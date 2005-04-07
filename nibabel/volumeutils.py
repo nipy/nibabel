@@ -800,14 +800,3 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     aff[:3,:3] = np.diag(zooms)
     aff[:3,-1] = -origin * zooms
     return aff
-
-
-def strip_compressed_ext(filename):
-    fname = filename
-    for ending in ('.gz', '.bz2'):
-        if filename.endswith(ending):
-            fname = fname[:-len(ending)]
-            break
-    else:
-        ending = ''
-    return fname, ending

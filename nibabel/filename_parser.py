@@ -130,6 +130,7 @@ def _parse_filename(filename, types_exts, trailing_suffixes):
         if filename.endswith(ext):
             filename = filename[:-(len(ext))]
             ignored = ext
+            break
     guessed_name = None
     found_ext = None
     tem = dict(types_exts)
@@ -143,3 +144,41 @@ def _parse_filename(filename, types_exts, trailing_suffixes):
         filename, found_ext = os.path.splitext(filename)
     return (filename, found_ext, ignored, guessed_name)
 
+
+def splitext_addext(filename, addexts=('.gz', '.bz2')):
+    ''' Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
+
+    where ``.gz`` may be any of passed `addext` trailing suffixes.
+
+    Parameters
+    ----------
+    filename : str
+       filename that may end in any or none of `addexts`
+
+    Returns
+    -------
+    froot : str
+       Root of filename - e.g. ``/pth/fname`` in example above
+    ext : str
+       Extension, where extension is not in `addexts` - e.g. ``.ext`` in
+       example above
+    addext : str
+       Any suffixes appearing in `addext` occuring at end of filename
+
+    Examples
+    --------
+    >>> splitext_addext('fname.ext.gz')
+    ('fname', '.ext', '.gz')
+    >>> splitext_addext('fname.ext')
+    ('fname', '.ext', '')
+    >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
+    ('fname', '.ext', '.foo')
+    ''' 
+    for ext in addexts:
+        if filename.endswith(ext):
+            filename = filename[:-(len(ext))]
+            addext = ext
+            break
+    else:
+        addext = ''
+    return os.path.splitext(filename) + (addext,)

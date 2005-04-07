@@ -1,14 +1,13 @@
 # module imports
 import os
 
-from nibabel.filename_parser import types_filenames
+from nibabel.filename_parser import types_filenames, splitext_addext
 from nibabel import volumeutils as vu
 from nibabel import spm2analyze as spm2
 from nibabel import nifti1
 from nibabel import minc
 from nibabel.spatialimages import ImageFileError
 from nibabel.imageclasses import class_map, ext_map
-from nibabel.volumeutils import strip_compressed_ext
 
 
 def load(filename):
@@ -25,8 +24,7 @@ def load(filename):
        Image of guessed type
 
     '''
-    fname, ending = strip_compressed_ext(filename)
-    _, ext = os.path.splitext(fname)
+    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     try:
         img_type = ext_map[ext]
     except KeyError:
@@ -69,8 +67,7 @@ def save(img, filename):
         pass
     else:
         return
-    fname, ending = strip_compressed_ext(filename)
-    _, ext = os.path.splitext(fname)
+    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     img_type = ext_map[ext]
     klass = class_map[img_type]['class']
     converted = klass.from_image(img)
