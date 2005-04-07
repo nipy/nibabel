@@ -18,7 +18,7 @@ some random Python library.
 
 All examples assume that you have imported the NiBabel module by invoking:
 
-  >>> import nibabel as nb
+  >>> import nibabel as nib
 
 and the ``os.path.join`` and ``os.path.split``  commands with:
 
@@ -31,7 +31,7 @@ and we have made a temporary directory for the files we are going to write:
 
 and we've got the path to the nifti example data:
 
-  >>> from nibabel.testing import example_data_path
+  >>> from nibabel.testing import data_path as example_data_path
   
 Loading and saving NIfTI files
 ==============================
@@ -41,13 +41,13 @@ source tarball. No filename extension is necessary as libniftiio determines it
 automatically:
 
   >>> example_4d_fname = pjoin(example_data_path, 'example4d.nii.gz')
-  >>> img = nb.load(example_4d_fname)
+  >>> img = nib.load(example_4d_fname)
 
 If you want to save this image as an uncompressed image simply do:
 
   >>> # a filename in our temporary directory
   >>> fname = pjoin(tmpdir, 'something.nii')
-  >>> nb.save(img, fname)
+  >>> nib.save(img, fname)
 
 
 NIfTI files from array data
@@ -56,14 +56,14 @@ NIfTI files from array data
 The next code snipped demonstrates how to create a 4d NIfTI image containing
 gaussian noise. First we need to import the NumPy module
 
-  >>> import numpy as N
+  >>> import numpy as np
 
 Now we generate the noise dataset. Let's generate noise for 100 volumes with 16
 slices and a 32x32 inplane matrix.
 
-  >>> noise = N.random.randn(32, 32, 16, 100)
+  >>> noise = np.random.randn(32, 32, 16, 100)
 
-The datatype of the array is by default `float64`, which can be verified by:
+The datatype of the array is by default ``float64``, which can be verified by:
 
   >>> noise.dtype
   dtype('float64')
@@ -71,7 +71,7 @@ The datatype of the array is by default `float64`, which can be verified by:
 Converting this dataset into a NIfTI image is done by invoking the
 :class:`~nibabel.Nifti1Image` constructor with the noise dataset as argument:
 
-  >>> nim = nb.Nifti1Image(noise, N.eye(4))
+  >>> nim = nib.Nifti1Image(noise, np.eye(4))
 
 The relevant header information is extracted from the NumPy array. If you
 query the header information about the dimensionality of the image, it returns
@@ -94,7 +94,7 @@ To save the noise file to disk, we can simply call the
 
   >>> # a filename in our temporary directory
   >>> noise_fname = pjoin(tmpdir, 'noise.nii.gz')
-  >>> nb.save(nim, noise_fname)
+  >>> nib.save(nim, noise_fname)
 
 
 Select ROIs
@@ -103,19 +103,19 @@ Select ROIs
 Suppose you want to have the first ten volumes of the noise dataset we have
 previously created in a separate file. First, we open the file:
 
-  >>> nim = nb.load(noise_fname)
+  >>> nim = nib.load(noise_fname)
 
 Now we select the first ten volumes and store them to another file, while
 preserving as much header information as possible
 
-  >>> nim2 = nb.Nifti1Image(nim.get_data()[..., :10],
+  >>> nim2 = nib.Nifti1Image(nim.get_data()[..., :10],
   ...                       nim.get_affine(),
   ...                       nim.get_header())
   >>> print nim2.get_header()['dim']
   [ 4 32 32 16 10  1  1  1]
   >>> # a filename in our temporary directory
   >>> fname = pjoin(tmpdir, 'part.hdr.gz')
-  >>> nim2.to_filename(fname)
+  >>> nib.save(nim2, fname)
 
 The :class:`~nifti.image.NiftiImage` constructor takes a dictionary with header
 information as an optional argument. Settings that are not determined by the
@@ -133,9 +133,9 @@ excellent SciPy module it is just a few lines of code. For this example we
 will first create a NIfTI image with just a single voxel and 50 timepoints
 (basically a linear function with some noise):
 
-  >>> nim = nb.Nifti1Image(
-  ...           (N.linspace(0,100) + N.random.randn(50)).reshape(1,1,1,50),
-  ...           N.eye(4))
+  >>> nim = nib.Nifti1Image(
+  ...           (np.linspace(0,100) + np.random.randn(50)).reshape(1,1,1,50),
+  ...           np.eye(4))
   >>> print nim.get_header()['dim']
   [ 4  1  1  1 50  1  1  1]
 
@@ -152,6 +152,6 @@ the 4th).
 Finally, create a new NIfTI image using header information from the original
 source image.
 
-  >>> nim_detrended = nb.Nifti1Image(data_detrended,
+  >>> nim_detrended = nib.Nifti1Image(data_detrended,
   ...                                nim.get_affine(),
   ...                                nim.get_header())

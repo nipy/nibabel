@@ -1,4 +1,8 @@
 ''' Utilities for testing '''
+from os.path import dirname, abspath, join as pjoin
+
+# set path to example data
+data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 # Allow failed import of nose if not now running tests
 try:

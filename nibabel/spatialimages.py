@@ -19,7 +19,7 @@ methods:
    * .set_shape(shape)
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
-   * to_files() - save image to files with which the image is already
+   * to_file_map() - save image to files with which the image is already
      associated.
 
 classmethods:
@@ -47,7 +47,7 @@ The image stores its associated files in its ``files`` attribute.  In
 order to just save an image, for which you know there is an associated
 filename, or other storage, you can do::
 
-   img.to_files()
+   img.to_file_map()
 
 You can get the data out again with of::
 
