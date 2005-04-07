@@ -687,7 +687,7 @@ def finite_range(arr):
 
 
 class UnsupportedDataType(Exception):
-    ''' Class to indicated data type not supported '''
+    ''' Class to indicate data type not supported '''
     pass
 
 
@@ -780,16 +780,17 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     '''
     shape = np.asarray(shape)
     zooms = np.array(zooms) # copy because of flip below
-    if len(shape) != len(zooms):
+    ndims = len(shape)
+    if ndims != len(zooms):
         raise ValueError('Should be same length of zooms and shape')
-    if len(shape) >= 3:
+    if ndims >= 3:
         shape = shape[:3]
         zooms = zooms[:3]
     else:
         full_shape = np.ones((3,))
         full_zooms = np.ones((3,))
-        full_shape[:len(shape)] = shape[:]
-        full_zooms[:len(zooms)] = zooms[:]
+        full_shape[:ndims] = shape[:]
+        full_zooms[:ndims] = zooms[:]
         shape = full_shape
         zooms = full_zooms
     if x_flip:

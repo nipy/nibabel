@@ -22,7 +22,6 @@ def load(filename):
     -------
     img : ``SpatialImage``
        Image of guessed type
-
     '''
     froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     try:
@@ -32,19 +31,19 @@ def load(filename):
                              filename)
     if ext in ('.nii', '.mnc'):
         klass = class_map[img_type]['class']
-        return klass.from_filename(filename)
-    # might be nifti pair or analyze of some sort
-    files_types = (('image','.img'), ('header','.hdr'))
-    filenames = types_filenames(filename, files_types)
-    hdr = nifti1.Nifti1Header.from_fileobj(
-        vu.allopen(filenames['header']),
-        check=False)
-    magic = hdr['magic']
-    if magic == 'ni1':
-        return nifti1.Nifti1Pair.from_filename(filename)
-    elif magic == 'n+1':
-        return nifti1.Nifti1Image.from_filename(filename)
-    return spm2.Spm2AnalyzeImage.from_filename(filename)
+    else:
+        # might be nifti pair or analyze of some sort
+        files_types = (('image','.img'), ('header','.hdr'))
+        filenames = types_filenames(filename, files_types)
+        hdr = nifti1.Nifti1Header.from_fileobj(
+            vu.allopen(filenames['header']),
+            check=False)
+        if hdr['magic'] in ('ni1', 'n+1'):
+            # allow goofy nifti single magic for pair
+            klass = nifti1.Nifti1Pair
+        else:
+            klass =  spm2.Spm2AnalyzeImage
+    return klass.from_filename(filename)
 
 
 def save(img, filename):
