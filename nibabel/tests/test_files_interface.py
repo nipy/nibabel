@@ -24,7 +24,8 @@ def test_files_images():
     # test files creation in image classes
     arr = np.zeros((2,3,4))
     aff = np.eye(4)
-    for klass in nib.image_classes.values():
+    for img_def in nib.class_map.values():
+        klass = img_def['class']
         file_map = klass.make_file_map()
         for key, value in file_map.items():
             yield assert_equal(value.filename, None)
