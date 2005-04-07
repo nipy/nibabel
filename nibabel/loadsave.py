@@ -7,18 +7,17 @@ from nibabel import spm2analyze as spm2
 from nibabel import nifti1
 from nibabel import minc
 from nibabel.spatialimages import ImageFileError
+from nibabel.imageclasses import class_map, ext_map
+from nibabel.volumeutils import strip_compressed_ext
 
 
-def load(filename, *args, **kwargs):
+def load(filename):
     ''' Load file given filename, guessing at file type
 
     Parameters
     ----------
     filename : string
        specification of file to load
-    *args
-    **kwargs
-       arguments to pass to image load function
 
     Returns
     -------
@@ -26,19 +25,16 @@ def load(filename, *args, **kwargs):
        Image of guessed type
 
     '''
-    fname = filename
-    for ending in ('.gz', '.bz2'):
-        if filename.endswith(ending):
-            fname = fname[:-len(ending)]
-            break
-    froot, ext = os.path.splitext(fname)
-    if ext == '.nii':
-        return nifti1.load(filename, *args, **kwargs)
-    if ext == '.mnc':
-        return minc.load(filename, *args, **kwargs)
-    if not ext in ('.img', '.hdr'):
-        raise RuntimeError('Cannot work out file type of "%s"' %
-                           filename)
+    fname, ending = strip_compressed_ext(filename)
+    _, ext = os.path.splitext(fname)
+    try:
+        img_type = ext_map[ext]
+    except KeyError:
+        raise ImageFileError('Cannot work out file type of "%s"' %
+                             filename)
+    if ext in ('.nii', '.mnc'):
+        klass = class_map[img_type]['class']
+        return klass.from_filename(filename)
     # might be nifti pair or analyze of some sort
     files_types = (('image','.img'), ('header','.hdr'))
     filenames = types_filenames(filename, files_types)
@@ -46,13 +42,15 @@ def load(filename, *args, **kwargs):
         vu.allopen(filenames['header']),
         check=False)
     magic = hdr['magic']
-    if magic in ('ni1', 'n+1'):
-        return nifti1.load(filename, *args, **kwargs)
-    return spm2.load(filename, *args, **kwargs)
+    if magic == 'ni1':
+        return nifti1.Nifti1Pair.from_filename(filename)
+    elif magic == 'n+1':
+        return nifti1.Nifti1Image.from_filename(filename)
+    return spm2.Spm2AnalyzeImage.from_filename(filename)
 
 
 def save(img, filename):
-    ''' Save an image to file without changing format
+    ''' Save an image to file adapting format to `filename`
 
     Parameters
     ----------
@@ -71,4 +69,9 @@ def save(img, filename):
         pass
     else:
         return
-    
+    fname, ending = strip_compressed_ext(filename)
+    _, ext = os.path.splitext(fname)
+    img_type = ext_map[ext]
+    klass = class_map[img_type]['class']
+    converted = klass.from_image(img)
+    converted.to_filename(filename)

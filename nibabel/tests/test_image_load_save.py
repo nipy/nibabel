@@ -205,6 +205,7 @@ def test_negative_load_save():
     yield assert_array_almost_equal, re_img.get_data(), data, 4
 
 
+@parametric
 def test_filename_save():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
@@ -220,5 +221,7 @@ def test_filename_save():
                 pth = mkdtemp()
                 fname = pjoin(pth, 'image' + out_ext)
                 nib.save(img, fname)
+                rt_img = nib.load(fname)
+                yield assert_array_almost_equal(rt_img.get_data(), data)
             finally:
                 shutil.rmtree(pth)

@@ -4,6 +4,7 @@ from nibabel.spm99analyze import Spm99AnalyzeImage
 from nibabel.spm2analyze import Spm2AnalyzeImage
 from nibabel.nifti1 import Nifti1Pair, Nifti1Image
 from nibabel.minc import MincImage
+from nibabel.volumeutils import Recoder
 
 # mapping of names to classes and class functionality
 class_map = {
@@ -32,3 +33,9 @@ class_map = {
              'has_affine': True,
              'rw': False}}
 
+
+# mapping of extensions to default image class names
+ext_map = Recoder((
+    ('nifti_single', '.nii'),
+    ('nifti_pair', '.img', '.hdr'),
+    ('minc', '.mnc')))
