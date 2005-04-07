@@ -7,6 +7,7 @@ import numpy.testing.decorators as dec
 from nibabel.externals.netcdf import netcdf_file as netcdf
 
 from nibabel import load, MincHeader, Nifti1Image
+from nibabel.spatialimages import ImageFileError
 from nose.tools import assert_true, assert_equal, assert_false, \
     assert_raises
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -56,5 +57,5 @@ def test_eg_img():
 @parametric
 def test_compressed():
     # we can't read minc compreesed, raise error
-    yield assert_raises(ValueError, load, 'test.mnc.gz')
-    yield assert_raises(ValueError, load, 'test.mnc.bz2')
+    yield assert_raises(ImageFileError, load, 'test.mnc.gz')
+    yield assert_raises(ImageFileError, load, 'test.mnc.bz2')

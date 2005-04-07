@@ -196,6 +196,10 @@ class ImageDataError(Exception):
     pass
 
 
+class ImageFileError(Exception):
+    pass
+
+
 class SpatialImage(object):
     _header_class = dict
     files_types = (('image', None),)
@@ -338,7 +342,7 @@ class SpatialImage(object):
                                         klass.files_types,
                                         trailing_suffixes=klass._compressed_exts)
         except TypesFilenamesError:
-            raise ValueError('Filespec "%s" does not look right for '
+            raise ImageFileError('Filespec "%s" does not look right for '
                              'class %s ' % (filespec, klass))
         file_map = {}
         for key, fname in filenames.items():

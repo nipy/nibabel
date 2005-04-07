@@ -6,6 +6,7 @@ from nibabel import volumeutils as vu
 from nibabel import spm2analyze as spm2
 from nibabel import nifti1
 from nibabel import minc
+from nibabel.spatialimages import ImageFileError
 
 
 def load(filename, *args, **kwargs):
@@ -51,5 +52,23 @@ def load(filename, *args, **kwargs):
 
 
 def save(img, filename):
-    ''' Save an image to file without changing format'''
-    img.to_filename(filename)
+    ''' Save an image to file without changing format
+
+    Parameters
+    ----------
+    img : ``SpatialImage``
+       image to save
+    filename : str
+       filename (often implying filenames) to which to save `img`.
+
+    Returns
+    -------
+    None
+    '''
+    try:
+        img.to_filename(filename)
+    except ImageFileError:
+        pass
+    else:
+        return
+    
