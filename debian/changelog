@@ -1,3 +1,9 @@
+pynifti (0.20061116-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 16 Nov 2006 21:25:03 +0100
+
 pynifti (0.20061114-1) unstable; urgency=low
 
   * Initial release. 
