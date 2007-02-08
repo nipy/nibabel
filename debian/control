@@ -1,0 +1,19 @@
+Source: pynifti
+Section: science
+Priority: optional
+Maintainer: Michael Hanke <michael.hanke@gmail.com>
+Build-Depends: debhelper (>= 5), swig, python-all-dev (>= 2.4), python-central (>= 0.5), python-numpy-ext, libniftiio0-dev, libfslio0-dev
+XS-Python-Version: >= 2.4
+Standards-Version: 3.7.2
+
+Package: python-nifti
+Architecture: any
+Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: Python interface to the NIfTI I/O libraries
+ The package provides a SWIG'ed interface to the NIfTI and FSLIO
+ libraries. Additionally it includes a wrapper class for easy access
+ and manipulation of NIfTI files.
+ .
+ This software is in a very early stage of development!
