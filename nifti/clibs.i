@@ -179,12 +179,14 @@ static void set_mat44(mat44* m,
                       float d1, float d2, float d3, float d4 ); 
 
 %include "cpointer.i"
+%pointer_functions(short, shortp);
 %pointer_functions(int, intp);
 %pointer_functions(unsigned int, uintp);
 %pointer_functions(float, floatp);
 %pointer_functions(double, doublep);
 
 %include "carrays.i"
+%array_class(short, shortArray);
 %array_class(int, intArray);
 %array_class(unsigned int, uintArray);
 %array_class(float, floatArray);
