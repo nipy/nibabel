@@ -13,52 +13,6 @@ def numpydtype2niftidtype(array):
     return DTnumpy2nifti[dtype]
 
 
-def setFileNamesAndType(niftiptr, base, filetype = 'NIFTI_GZ'):
-    if not filetype in nifti_filetype_ids:
-        raise ValueError, \
-            "Unknown filetype '%s'. Known filetypes are: %s" % (filetype, ' '.join(nifti_filetype_ids))
-
-    #initial names
-    fname = base
-    iname = base
-    
-    # append filtype specific parts
-    if filetype == 'ANALYZE':
-        fname += '.hdr'
-        iname += '.img'
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
-    elif filetype == 'NIFTI_PAIR':
-        fname += '.hdr'
-        iname += '.img'
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
-    elif filetype == 'NIFTI':
-        fname += '.nii'
-        iname = fname
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
-    elif filetype == 'NIFTI_GZ':
-        fname += '.nii.gz'
-        iname = fname
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
-    elif filetype == 'ANALYZE_GZ':
-        fname += '.hdr.gz'
-        iname += '.img.gz'
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
-    elif filetype == 'NIFTI_PAIR_GZ':
-        fname += '.hdr.gz'
-        iname += '.img.gz'
-        niftiptr.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
-    else:
-        raise RuntimeError, "Mismatch between supported filetypes and actually handled filetypes.\nI'm a bug. Please report me."
-
-    # set the names
-    niftiptr.fname = fname
-    niftiptr.iname = iname
-
-
-
-nifti_filetype_ids = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR',
-                     'ANALYZE_GZ', 'NIFTI_GZ', 'NIFTI_PAIR_GZ' ]
-
 nifti_unit_ids = [ 'm', 'mm', 'um' ]
 
 DTnumpy2nifti = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
@@ -74,8 +28,6 @@ DTnumpy2nifti = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
                   numpy.complex128: clibs.NIFTI_TYPE_COMPLEX128
                 }
     
-
-
 class NiftiFile(object):
     """Wrapper class for convenient access to NIfTI data.
     
@@ -90,6 +42,35 @@ class NiftiFile(object):
 
     Optional arguments of the respective other mode are ignored.
     """
+
+    filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
+                  'NIFTI_PAIR_GZ' ]
+
+    # class properties
+    filename = property(fget=lambda self: self.__nimg.fname)
+
+
+    @staticmethod
+    def splitFilename(filename):
+        """ Split a NIfTI filename and returns a tuple of basename and 
+        extension. If no valid NIfTI filename extension is found, the whole
+        string is returned as basename and the extension string will be empty.
+        """
+
+        parts = filename.split('.')
+
+        if parts[-1] == 'gz':
+            if parts[-2] != 'nii' and parts[-2] != 'hdr':
+                return filename, ''
+            else:
+                return '.'.join(parts[:-2]), '.'.join(parts[-2:])
+        else:
+            if parts[-1] != 'nii' and parts[-1] != 'hdr':
+                return filename, ''
+            else:
+                return '.'.join(parts[:-1]), parts[-1]
+
+
     def __init__(self, source, load=False, voxelsize=(1,1,1), tr=1, unit='mm'):
         """
         """
@@ -108,6 +89,7 @@ class NiftiFile(object):
     def __del__(self):
         self.__close()
 
+
     def __close(self):
         """Close the file and free all unnecessary memory.
         """
@@ -117,6 +99,7 @@ class NiftiFile(object):
 
         self.fslio = clibs.FslInit()
         self.__nimg = self.fslio.niftiptr
+
 
     def __newFromArray(self, data, voxelsize, tr, unit):
         
@@ -168,62 +151,96 @@ class NiftiFile(object):
 
         if not self.fslio:
             raise RuntimeError, "Error while opening nifti header."
+        
+        self.__nimg = self.fslio.niftiptr
 
         if load:
             self.load()
 
-        self.__nimg = self.fslio.niftiptr
     
-    def save(self, basename=None, filetype='NIFTI_GZ'):
-        """Save the image to its original file.
+    def save(self, filename=None, filetype='NIFTI'):
+        """Save the image.
 
         If the image was created using array data (not loaded from a file) one
-        has to specify a base filename (and filetype optionally).
+        has to specify a filename. 
         
-        If no image data is present in memory, this method does nothing.
-        """
-        # saving for the first time?
-        if not self.__nimg.fname:
-            if not basename:
-                raise ValueError, "When saving an image for the first time a filename has to be specified."
-            
-            # set filename
-            setFileNamesAndType(self.__nimg, basename, filetype)
-        
-        if self.__haveImageData():
-            # and save it
-            clibs.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
-    
-    def saveAs(self, filename, filetype = 'NIFTI_GZ'):
-        """Save the image to a new file.
+        Calling save() without a specified filename on a NiftiFile loaded from 
+        a file, will overwrite the original file.
 
-        By default a compressed NIfTI file is used to save the image.
-        Other supported filetypes can be passed to the 'filetype' parameter.
+        If a filename is specified, it will be made an attempt to guess the 
+        corresponding filetype. A filename has to be the name of the 
+        corresponding headerfile! In ambigous cases (.hdr might stand for 
+        ANALYZE or uncompressed NIFTI file pairs) one can use the filetype 
+        parameter to choose a certain type. If no filetype parameter is 
+        specified NIfTI files will be written by default.
 
-        If there is no image data in memory it is loaded first.
+        If filename is only the basefilename (i.e. does not have a valid 
+        extension of NIfTI/ANALYZE header files '.nii' is appended 
+        automatically and a NIfTI single file will be written.
+
+        If not yet done already, the image data will be loaded into memory 
+        before saving the file.
+
+        Warning: There will be no exception if writing fails for any reason, 
+        as the underlying function nifti_write_hdr_img() from libniftiio does
+        not provide any feedback. Suggestions for improvements are appreciated.
         """
-        if not filetype in nifti_filetype_ids:
-            raise ValueError, \
-                "Unknown filetype '%s'. Known filetypes are: %s" % (filetype, ' '.join(nifti_filetype_ids))
-        
+
+        # If image data is not yet loaded, do it now.
+        # It is important to do it already here, because nifti_image_load
+        # depends on the correct filename set in the nifti_image struct
+        # and this will be modified in this function!
         if not self.__haveImageData():
             self.load()
 
-        # create a temporary fslio structure
-        out = clibs.FslInit()
+        # saving for the first time?
+        if not self.filename or filename:
+            if not filename:
+                raise ValueError, "When saving an image for the first time a filename has to be specified."
+            
 
-        # copy the header data into the temp structure
-        clibs.FslCloneHeader(out, self.fslio)
+            # check for valid filetype specifier
+            if not filetype in self.filetypes:
+                raise ValueError, \
+                    "Unknown filetype '%s'. Known filetypes are: %s" % (filetype, ' '.join(nifti_filetype_ids))
 
-        # also assign the data blob 
-        out.niftiptr.data = self.__nimg.data
+            base, ext = NiftiFile.splitFilename(filename)
 
-        # set proper filenames and filetype
-        setFileNamesAndType(out.niftiptr, filename, filetype)
+            # if no extension default to nifti single files
+            if ext == '': ext = 'nii'
 
-        # and save it
-        clibs.nifti_image_write_hdr_img(out.niftiptr, 1, 'wb')
+            # Determine the filetype and set header and image filename 
+            # appropriately. If the filename extension is ambiguous the 
+            # filetype setting is used to determine the intended format.
+
+            # nifti single files are easy
+            if ext == 'nii.gz' or ext == 'nii':
+                self.__nimg.fname = base + '.' + ext
+                self.__nimg.iname = base + '.' + ext
+                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
+            # uncompressed file pairs
+            elif ext == 'hdr':
+                self.__nimg.fname = base + '.hdr'
+                self.__nimg.iname = base + '.img'
+                if filetype.startswith('NIFTI'):
+                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+                else:
+                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+            # compressed file pairs
+            elif ext == 'hdr.gz':
+                self.__nimg.fname = base + '.hdr.gz'
+                self.__nimg.iname = base + '.img.gz'
+                if filetype.startswith('NIFTI'):
+                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+                else:
+                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+            else:
+                raise RuntimeError, "Unhandled filetype."
         
+        # now save it
+        clibs.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
+
+
     def __haveImageData(self):
         """Returns true if the image data was loaded into memory.
         or False if not.
@@ -237,6 +254,7 @@ class NiftiFile(object):
         else:
             return False
 
+
     def load(self):
         """Load the image data into memory.
 
@@ -247,11 +265,13 @@ class NiftiFile(object):
         if clibs.nifti_image_load( self.__nimg ) < 0:
             raise RuntimeError, "Unable to load image data." 
     
+
     def unload(self):
         """Unload image data and free allocated memory.
         """
         clibs.nifti_image_unload(self.__nimg)
-        
+    
+
     def asarray(self, copy = False):
         """Convert the image data into a multidimensional array.
 
@@ -273,6 +293,7 @@ class NiftiFile(object):
         else:
             return a
 
+
     def __checkForNiftiImage(self):
         """Check whether a NIfTI image is present.
 
@@ -282,17 +303,17 @@ class NiftiFile(object):
         if not self.__nimg:
             raise RuntimeError, "There is no NIfTI image file structure."
 
+
     def setDescription(self, description):
         if len(description) > 79:
             raise ValueError, "The NIfTI format only support descriptions shorter than 80 chars."
 
         self.__nimg.descrip = description
-        
-    def filenames(self):
-        return (self.__nimg.fname, self.__nimg.iname)
+
 
     def datatype(self):
         return clibs.nifti_datatype_string(self.__nimg.datatype)
+
 
     def voxDims(self):
         """Returns the dimensions of a single voxel as a tuple (x,y,z).
@@ -302,23 +323,30 @@ class NiftiFile(object):
                  self.__nimg.dz
                )
 
+
     def tr(self):
         return self.__nimg.dt
 
+
     def slope(self):
         return self.__nimg.scl_slope
-        
+
+
     def intercept(self):
         return self.__nimg.scl_inter
-    
+
+
     def q2xyz(self):
         return clibs.mat44ToArray(self.__nimg.qto_xyz)
+
 
     def q2ijk(self):
         return clibs.mat44ToArray(self.__nimg.qto_ijk)
 
+
     def s2xyz(self):
         return clibs.mat44ToArray(self.__nimg.sto_xyz)
+
 
     def s2ijk(self):
         return clibs.mat44ToArray(self.__nimg.sto_ijk)
