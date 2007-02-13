@@ -2,6 +2,7 @@
 "
 This is a comprehensive description of this module as a
 multiline docstring...
+hmm... thanks ;) --yoh
 "
 %enddef
 
