@@ -15,14 +15,22 @@ hmm... thanks ;) --yoh
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-static PyObject* mat44ToArray(mat44* _mat)
-{ 
-    if (!_mat)
-    {
-        PyErr_SetString(PyExc_RuntimeError, "Zero pointer passed instead of valid mat44 struct pointer.");
-        return(NULL);
-    }
-       
+/* low tech wrapper function to set values of a mat44 struct */
+static void set_mat44(mat44* m, 
+                      float a1, float a2, float a3, float a4,
+                      float b1, float b2, float b3, float b4,
+                      float c1, float c2, float c3, float c4,
+                      float d1, float d2, float d3, float d4 ) 
+{
+    m->m[0][0] = a1; m->m[0][1] = a2; m->m[0][2] = a3; m->m[0][3] = a4;
+    m->m[1][0] = b1; m->m[1][1] = b2; m->m[1][2] = b3; m->m[1][3] = b4;
+    m->m[2][0] = c1; m->m[2][1] = c2; m->m[2][2] = c3; m->m[2][3] = c4;
+    m->m[3][0] = d1; m->m[3][1] = d2; m->m[3][2] = d3; m->m[3][3] = d4;
+}
+
+/* convert mat44 struct into a numpy float array */
+static PyObject* mat442array(mat44 _mat) 
+{
     int dims[2] = {4,4};
    
     PyObject* array = 0;
@@ -39,13 +47,12 @@ static PyObject* mat44ToArray(mat44* _mat)
     {
         for (j = 0; j<4; j+=1)
         {
-            data[4*i+j] = _mat->m[i][j];
+            data[4*i+j] = _mat.m[i][j];
         }
     }
 
     return PyArray_Return ( (PyArrayObject*) array  );
 }
-
 
 static PyObject* wrapImageDataWithArray(nifti_image* _img)
 { 
@@ -54,91 +61,72 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
         PyErr_SetString(PyExc_RuntimeError, "Zero pointer passed instead of valid nifti_image struct.");
         return(NULL);
     }
-       
-    if (_img->ndim > 4)
-    {
-        PyErr_SetString(PyExc_RuntimeError, "Data with more than 4 dimensions is not supported.");
-        return(NULL);
-    }
-       
-    if (!_img->data)
-    {
-        PyErr_SetString(PyExc_RuntimeError, "There is no data in the image (not loaded yet?).");
-        return(NULL);
-    }
-
-    int* dims = (int*) malloc (sizeof(int) * _img->ndim);
-   
-    switch (_img->ndim)
-    {
-        case 3:
-            dims[0] = _img->nz;
-            dims[1] = _img->ny;
-            dims[2] = _img->nx;
-            break;
-        case 4:
-            dims[0] = _img->nt;
-            dims[1] = _img->nz;
-            dims[2] = _img->ny;
-            dims[3] = _img->nx; 
-            break;
-        default:
-            PyErr_SetString(PyExc_RuntimeError, "Only 3d or 4d data is supported.");
-            return(NULL);
-    }
 
     int array_type=0;
 
+    /* translate nifti datatypes to numpy datatypes */
     switch(_img->datatype)
     {
-       case NIFTI_TYPE_UINT8:
-           array_type = NPY_UBYTE;
-           break;
-       case NIFTI_TYPE_INT8:
-           array_type = NPY_BYTE;
-           break;
-       case NIFTI_TYPE_UINT16:
-           array_type = NPY_USHORT;
-           break;
-       case NIFTI_TYPE_INT16:
-           array_type = NPY_SHORT;
-           break;
-       case NIFTI_TYPE_UINT32:
-           array_type = NPY_UINT;
-           break;
-       case NIFTI_TYPE_INT32:
-           array_type = NPY_INT;
-           break;
-       case NIFTI_TYPE_UINT64:
-       case NIFTI_TYPE_INT64:
-           array_type = NPY_LONG;
-           break;
-       case NIFTI_TYPE_FLOAT32:
-           array_type = NPY_FLOAT;
-           break;
-       case NIFTI_TYPE_FLOAT64:
-           array_type = NPY_DOUBLE;
-           break;
-       case NIFTI_TYPE_COMPLEX128:
-           array_type = NPY_CFLOAT;
-           break;
-       case NIFTI_TYPE_COMPLEX256:
-           array_type = NPY_CDOUBLE;
-           break;
-       default:
-           PyErr_SetString(PyExc_RuntimeError, "Unsupported datatype");
-           return(NULL);
-     }
-     
+      case NIFTI_TYPE_UINT8:
+          array_type = NPY_UBYTE;
+          break;
+      case NIFTI_TYPE_INT8:
+          array_type = NPY_BYTE;
+          break;
+      case NIFTI_TYPE_UINT16:
+          array_type = NPY_USHORT;
+          break;
+      case NIFTI_TYPE_INT16:
+          array_type = NPY_SHORT;
+          break;
+      case NIFTI_TYPE_UINT32:
+          array_type = NPY_UINT;
+          break;
+      case NIFTI_TYPE_INT32:
+          array_type = NPY_INT;
+          break;
+      case NIFTI_TYPE_UINT64:
+      case NIFTI_TYPE_INT64:
+          array_type = NPY_LONG;
+          break;
+      case NIFTI_TYPE_FLOAT32:
+          array_type = NPY_FLOAT;
+          break;
+      case NIFTI_TYPE_FLOAT64:
+          array_type = NPY_DOUBLE;
+          break;
+      case NIFTI_TYPE_COMPLEX128:
+          array_type = NPY_CFLOAT;
+          break;
+      case NIFTI_TYPE_COMPLEX256:
+          array_type = NPY_CDOUBLE;
+          break;
+      default:
+          PyErr_SetString(PyExc_RuntimeError, "Unsupported datatype");
+          return(NULL);
+    }
 
-     PyObject* volarray = 0;
-     
-     volarray = PyArray_FromDimsAndData ( _img->ndim, dims, array_type, ( char* ) _img->data );
+    /* array object */
+    PyObject* volarray = 0;
 
-     /*cleanup*/
-     free(dims);
+    /* Get the number of dimensions from the niftifile and
+     * reverse the order for the conversion to a numpy array.
+     * Doing so will make users access to the data more convenient:
+     * a 3d volume from a 4d file can be index by a single number.
+     */
+    int ar_dim[7], ndims, k;
+    /* first item in dim array stores the number of dims */
+    ndims = (int) _img->dim[0];
+    /* reverse the order */
+    for (k=0; k<ndims; k++)
+    {
+        ar_dim[k] = (int) _img->dim[ndims-k];
+    }
 
-     return PyArray_Return ( (PyArrayObject*) volarray  );
+    /* create numpy array */
+    volarray = PyArray_FromDimsAndData ( ndims, ar_dim, array_type, ( char* ) _img->data );
+
+    return PyArray_Return ( (PyArrayObject*) volarray  );
 }
 
 int allocateImageMemory(nifti_image* _nim)
@@ -182,5 +170,24 @@ int allocateImageMemory(nifti_image* _nim)
 
 static PyObject * wrapImageDataWithArray(nifti_image* _img);
 int allocateImageMemory(nifti_image* _nim);
-static PyObject* mat44ToArray(mat44* _mat);
+
+static PyObject* mat442array(mat44 _mat);
+static void set_mat44(mat44* m, 
+                      float a1, float a2, float a3, float a4,
+                      float b1, float b2, float b3, float b4,
+                      float c1, float c2, float c3, float c4,
+                      float d1, float d2, float d3, float d4 ); 
+
+%include "cpointer.i"
+%pointer_functions(int, intp);
+%pointer_functions(unsigned int, uintp);
+%pointer_functions(float, floatp);
+%pointer_functions(double, doublep);
+
+%include "carrays.i"
+%array_class(int, intArray);
+%array_class(unsigned int, uintArray);
+%array_class(float, floatArray);
+%array_class(double, doubleArray);
+
 

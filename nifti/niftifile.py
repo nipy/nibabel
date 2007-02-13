@@ -76,7 +76,7 @@ DTnumpy2nifti = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
 	
 
 
-class NiftiFile:
+class NiftiFile(object):
 	"""Wrapper class for convenient access to NIfTI data.
 	
 	The class can either load an image from file or convert a 3d/4d NumPy 
@@ -90,7 +90,7 @@ class NiftiFile:
 
 	Optional arguments of the respective other mode are ignored.
 	"""
-	def __init__(self, source, load=True, voxelsize=(1,1,1), tr=1, unit='mm'):
+	def __init__(self, source, load=False, voxelsize=(1,1,1), tr=1, unit='mm'):
 		"""
 		"""
 
