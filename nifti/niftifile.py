@@ -2,32 +2,10 @@ import clibs
 import os
 import numpy
 
-def numpydtype2niftidtype(array):
-    
-    # get the real datatype from numpy type dictionary
-    dtype = numpy.typeDict[str(array.dtype)]
-
-    if not DTnumpy2nifti.has_key(dtype):
-        raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
-
-    return DTnumpy2nifti[dtype]
-
 
 nifti_unit_ids = [ 'm', 'mm', 'um' ]
 
-DTnumpy2nifti = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
-                  numpy.int8 : clibs.NIFTI_TYPE_INT8,
-                  numpy.uint16: clibs.NIFTI_TYPE_UINT16,
-                  numpy.int16 : clibs.NIFTI_TYPE_INT16,
-                  numpy.uint32: clibs.NIFTI_TYPE_UINT32,
-                  numpy.int32 : clibs.NIFTI_TYPE_INT32,
-                  numpy.uint64: clibs.NIFTI_TYPE_UINT64,
-                  numpy.int64 : clibs.NIFTI_TYPE_INT64,
-                  numpy.float32: clibs.NIFTI_TYPE_FLOAT32,
-                  numpy.float64: clibs.NIFTI_TYPE_FLOAT64,
-                  numpy.complex128: clibs.NIFTI_TYPE_COMPLEX128
-                }
-    
+   
 class NiftiFile(object):
     """Wrapper class for convenient access to NIfTI data.
     
@@ -46,8 +24,30 @@ class NiftiFile(object):
     filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
                   'NIFTI_PAIR_GZ' ]
 
-    # class properties
-    filename = property(fget=lambda self: self.__nimg.fname)
+    numpy2nifti_dtype_map = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
+                              numpy.int8 : clibs.NIFTI_TYPE_INT8,
+                              numpy.uint16: clibs.NIFTI_TYPE_UINT16,
+                              numpy.int16 : clibs.NIFTI_TYPE_INT16,
+                              numpy.uint32: clibs.NIFTI_TYPE_UINT32,
+                              numpy.int32 : clibs.NIFTI_TYPE_INT32,
+                              numpy.uint64: clibs.NIFTI_TYPE_UINT64,
+                              numpy.int64 : clibs.NIFTI_TYPE_INT64,
+                              numpy.float32: clibs.NIFTI_TYPE_FLOAT32,
+                              numpy.float64: clibs.NIFTI_TYPE_FLOAT64,
+                              numpy.complex128: clibs.NIFTI_TYPE_COMPLEX128
+                            }
+
+
+    @staticmethod
+    def numpydtype2niftidtype(array):
+    
+        # get the real datatype from numpy type dictionary
+        dtype = numpy.typeDict[str(array.dtype)]
+
+        if not NiftiFile.numpy2nifti_dtype_map.has_key(dtype):
+            raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
+
+        return NiftiFile.numpy2nifti_dtype_map[dtype]
 
 
     @staticmethod
@@ -70,16 +70,189 @@ class NiftiFile(object):
             else:
                 return '.'.join(parts[:-1]), parts[-1]
 
+    
+    @staticmethod
+    def nhdr2dict(nhdr):
+        h = {}
+        
+        auto_convert = [ 'session_error', 'extents', 'sizeof_hdr', 
+                         'slice_duration', 'slice_start', 'xyzt_units',
+                         'cal_max', 'intent_p1', 'intent_p2', 'intent_p3',
+                         'intent_code', 'sform_code', 'cal_min', 'scl_slope',
+                         'slice_code', 'bitpix', 'descrip', 'glmin', 'dim_info',
+                         'glmax', 'data_type', 'aux_file', 'intent_name',
+                         'vox_offset', 'db_name', 'scl_inter', 'magic', 
+                         'datatype', 'regular', 'slice_end', 'qform_code', 
+                         'toffset' ]
 
-    def __init__(self, source, load=False, voxelsize=(1,1,1), tr=1, unit='mm'):
-        """
+
+        # now just dump all attributes into a dict
+        # handle a few special cases
+        for attr in auto_convert:
+            h[attr] = eval('nhdr.' + attr)
+
+        # handle 'pixdim'
+        pixdim = clibs.floatArray_frompointer(nhdr.pixdim)
+        h['pixdim'] = [ pixdim[i] for i in range(8) ]
+
+        # handle dim
+        dim = clibs.shortArray_frompointer(nhdr.dim)
+        h['dim'] = [ dim[i] for i in range(8) ]
+
+        # handle sform
+        srow_x = clibs.floatArray_frompointer( nhdr.srow_x )
+        srow_y = clibs.floatArray_frompointer( nhdr.srow_y )
+        srow_z = clibs.floatArray_frompointer( nhdr.srow_z )
+
+        h['sform'] = numpy.array( [ [ srow_x[i] for i in range(4) ],
+                                    [ srow_y[i] for i in range(4) ],
+                                    [ srow_y[i] for i in range(4) ],
+                                    [ 0.0, 0.0, 0.0, 1.0 ] ] )
+
+        # handle qform stuff
+        h['quatern'] = [ nhdr.quatern_b, nhdr.quatern_c, nhdr.quatern_d ]
+        h['qoffset'] = [ nhdr.qoffset_x, nhdr.qoffset_y, nhdr.qoffset_z ]
+
+        return h
+
+    
+    @staticmethod
+    def updateNiftiHeaderFromDict(nhdr, hdrdict):
+
+        # check every part of nifti1 struct and enforce
+        # nifti format limitations
+
+        # this function is still incomplete. add more checks
+
+        if hdrdict.has_key('data_type'):
+            if len(hdrdict['data_type']) > 9:
+                raise ValueError, "Nifti header property 'data_type' must not be longer than 9 characters."
+            nhdr.data_type = hdrdict['data_type']
+        if hdrdict.has_key('db_name'):
+            if len(hdrdict['db_name']) > 79:
+                raise ValueError, "Nifti header property 'db_name' must not be longer than 17 characters."
+            nhdr.db_name = hdrdict['db_name']
+
+        if hdrdict.has_key('extents'):
+            nhdr.extents = hdrdict['extents']
+        if hdrdict.has_key('session_error'):
+            nhdr.session_error = hdrdict['session_error']
+
+        if hdrdict.has_key('regular'):
+            if len(hdrdict['regular']) > 1:
+                raise ValueError, "Nifti header property 'regular' has to be a single character."
+            nhdr.regular = hdrdict['regular']
+        if hdrdict.has_key('dim_info'):
+            if len(hdrdict['dim_info']) > 1:
+                raise ValueError, "Nifti header property 'dim_info' has to be a single character."
+            nhdr.dim_info = hdrdict['dim_info']
+
+        if hdrdict.has_key('dim'):
+            dim = clibs.shortArray_frompointer(nhdr.dim)
+            for i in range(8): dim[i] = hdrdict['dim'][i]
+        if hdrdict.has_key('intent_p1'):
+            nhdr.intent_p1 = hdrdict['intent_p1']
+        if hdrdict.has_key('intent_p2'):
+            nhdr.intent_p2 = hdrdict['intent_p2']
+        if hdrdict.has_key('intent_p3'):
+            nhdr.intent_p3 = hdrdict['intent_p3']
+        if hdrdict.has_key('intent_code'):
+            nhdr.intent_code = hdrdict['intent_code']
+        if hdrdict.has_key('datatype'):
+            nhdr.datatype = hdrdict['datatype']
+        if hdrdict.has_key('bitpix'):
+            nhdr.bitpix = hdrdict['bitpix']
+        if hdrdict.has_key('slice_start'):
+            nhdr.slice_start = hdrdict['slice_start']
+        if hdrdict.has_key('pixdim'):
+            pixdim = clibs.floatArray_frompointer(nhdr.pixdim)
+            for i in range(8): pixdim[i] = hdrdict['pixdim'][i]
+        if hdrdict.has_key('vox_offset'):
+            nhdr.vox_offset = hdrdict['vox_offset']
+        if hdrdict.has_key('scl_slope'):
+            nhdr.scl_slope = hdrdict['scl_slope']
+        if hdrdict.has_key('scl_inter'):
+            nhdr.scl_inter = hdrdict['scl_inter']
+        if hdrdict.has_key('slice_end'):
+            nhdr.slice_end = hdrdict['slice_end']
+        if hdrdict.has_key('slice_code'):
+            nhdr.slice_code = hdrdict['slice_code']
+        if hdrdict.has_key('xyzt_units'):
+            nhdr.xyzt_units = hdrdict['xyzt_units']
+        if hdrdict.has_key('cal_max'):
+            nhdr.cal_max = hdrdict['cal_max']
+        if hdrdict.has_key('cal_min'):
+            nhdr.cal_min = hdrdict['cal_min']
+        if hdrdict.has_key('slice_duration'):
+            nhdr.slice_duration = hdrdict['slice_duration']
+        if hdrdict.has_key('toffset'):
+            nhdr.toffset = hdrdict['toffset']
+        if hdrdict.has_key('glmax'):
+            nhdr.glmax = hdrdict['glmax']
+        if hdrdict.has_key('glmin'):
+            nhdr.glmin = hdrdict['glmin']
+
+        if hdrdict.has_key('descrip'):
+            if len(hdrdict['descrip']) > 79:
+                raise ValueError, "Nifti header property 'descrip' must not be longer than 79 characters."
+            nhdr.descrip = hdrdict['descrip']
+        if hdrdict.has_key('aux_file'):
+            if len(hdrdict['aux_file']) > 23:
+                raise ValueError, "Nifti header property 'aux_file' must not be longer than 23 characters."
+            nhdr.aux_file = hdrdict['aux_file']
+
+        if hdrdict.has_key('qform_code'):
+            nhdr.qform_code = hdrdict['qform_code']
+
+        if hdrdict.has_key('sform_code'):
+            nhdr.sform_code = hdrdict['sform_code']
+
+        if hdrdict.has_key('quatern'):
+            if not len(hdrdict['quatern']) == 3:
+                raise ValueError, "Nifti header property 'quatern' must be 3-tuple of floats."
+            
+            nhdr.quatern_b = hdrdict['quatern'][0]
+            nhdr.quatern_c = hdrdict['quatern'][1]
+            nhdr.quatern_d = hdrdict['quatern'][2]
+
+        if hdrdict.has_key('qoffset'):
+            if not len(hdrdict['qoffset']) == 3:
+                raise ValueError, "Nifti header property 'qoffset' must be 3-tuple of floats."
+            
+            nhdr.qoffset_x = hdrdict['qoffset'][0]
+            nhdr.qoffset_y = hdrdict['qoffset'][1]
+            nhdr.qoffset_z = hdrdict['qoffset'][2]
+
+        if hdrdict.has_key('sform'):
+            if not hdrdict['sform'].shape == (4,4):
+                raise ValueError, "Nifti header property 'sform' must be 4x4 matrix."
+
+            srow_x = clibs.floatArray_frompointer(nhdr.srow_x)
+            for i in range(4): srow_x[i] = hdrdict['sform'][0][i]
+            srow_y = clibs.floatArray_frompointer(nhdr.srow_y)
+            for i in range(4): srow_y[i] = hdrdict['sform'][1][i]
+            srow_z = clibs.floatArray_frompointer(nhdr.srow_z)
+            for i in range(4): srow_z[i] = hdrdict['sform'][2][i]
+
+        if hdrdict.has_key('intent_name'):
+            if len(hdrdict['intent_name']) > 15:
+                raise ValueError, "Nifti header property 'intent_name' must not be longer than 15 characters."
+            nhdr.intent_name = hdrdict['intent_name']
+        
+        if hdrdict.has_key('magic'):
+            if hdrdict['magic'] != 'ni1' and hdrdict['magic'] != 'n+1':
+                raise ValueError, "Nifti header property 'magic' must be 'ni1' or 'n+1'."
+            nhdr.magic = hdrdict['magic']
+
+
+    def __init__(self, source, load=False, header = {} ):
+        """ 
         """
 
-        self.fslio = None
         self.__nimg = None
 
         if type( source ) == numpy.ndarray:
-            self.__newFromArray( source, voxelsize, tr, unit )
+            self.__newFromArray( source, header )
         elif type ( source ) == str:
             self.__newFromFile( source, load )
         else:
@@ -93,51 +266,64 @@ class NiftiFile(object):
     def __close(self):
         """Close the file and free all unnecessary memory.
         """
-        if self.fslio:
-            clibs.FslClose(self.fslio)
-            clibs.nifti_image_free(self.fslio.niftiptr)
+        if self.__nimg:
+            clibs.nifti_image_free(self.__nimg)
+            self.__nimg = None
 
-        self.fslio = clibs.FslInit()
-        self.__nimg = self.fslio.niftiptr
-
-
-    def __newFromArray(self, data, voxelsize, tr, unit):
+    def __newFromArray(self, data, hdr = {}):
+        # create template nifti header struct
+        niptr = clibs.nifti_simple_init_nim()
+        nhdr = clibs.nifti_convert_nim2nhdr(niptr)
         
-        if len(data.shape) > 4 or len(data.shape) < 3:
-            raise ValueError, "Only 3d or 4d array are supported"
+        # intermediate cleanup
+        clibs.nifti_image_free(niptr)
 
-        if not unit in nifti_unit_ids:
-            raise ValueError, "Unsupported unit '%s'. Supported units are '%s'" % (unit, ", ".join(nifti_unit_ids))
+        # convert virgin nifti header to dict to merge properties
+        # with supplied information and array properties
+        hdic = NiftiFile.nhdr2dict(nhdr)
 
+        # copy data from supplied header dict
+        for k, v in hdr.iteritems():
+            hdic[k] = v
+
+        # finally set header data that is determined by the data array
+        # convert numpy to nifti datatype
+        hdic['datatype'] = self.numpydtype2niftidtype(data)
+        
+        # set number of dims
+        hdic['dim'][0] = len(data.shape)
+        
+        # set size of each dim (and reverse the order to match nifti format
+        # requirements)
+        for i, s in enumerate(data.shape):
+            hdic['dim'][len(data.shape)-i] = s
+
+        # set magic field to mark as nifti file
+        hdic['magic'] = 'n+1'
+
+        # update nifti header with information from dict
+        NiftiFile.updateNiftiHeaderFromDict(nhdr, hdic)
+        
+        print nhdr.qform_code
         # make clean table
         self.__close()
 
-        dim = len(data.shape)
-
-        if dim == 4:
-            timesteps = data.shape[-4]
-        else:
-            timesteps = 1
-
-        # init the data structure
-        clibs.FslInitHeader( self.fslio,
-                             numpydtype2niftidtype(data),
-                             data.shape[-1], data.shape[-2], data.shape[-3],
-                             timesteps,
-                             voxelsize[0], voxelsize[1], voxelsize[2],
-                             tr,
-                             dim,
-                             unit)
-
-        self.__nimg = self.fslio.niftiptr
+        # convert nifti header to nifti image struct
+        self.__nimg = clibs.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
+        
+        if not self.__nimg:
+            raise RuntimeError, "Could not create nifti image structure."
+        
+        # kill filename for nifti images from arrays
+        self.__nimg.fname = ''
+        self.__nimg.iname = ''
 
         # allocate memory for image data
         if not clibs.allocateImageMemory(self.__nimg):
             raise RuntimeError, "Could not allocate memory for image data."
-    
+
         # assign data
         self.asarray()[:] = data[:]
-        
 
 
     def __newFromFile(self, filename, load=False):
@@ -147,13 +333,11 @@ class NiftiFile(object):
         the image data is loaded into memory.
         """
         self.__close()
-        self.fslio = clibs.FslOpen(filename, 'r+')
+        self.__nimg = clibs.nifti_image_read( filename, int(load) )
 
-        if not self.fslio:
+        if not self.__nimg:
             raise RuntimeError, "Error while opening nifti header."
         
-        self.__nimg = self.fslio.niftiptr
-
         if load:
             self.load()
 
@@ -192,6 +376,9 @@ class NiftiFile(object):
         # and this will be modified in this function!
         if not self.__haveImageData():
             self.load()
+
+        # update header information
+        self.updateCalMinMax()
 
         # saving for the first time?
         if not self.filename or filename:
@@ -277,11 +464,15 @@ class NiftiFile(object):
 
         Attention: If copy == False (the default) the array only wraps 
         the image data. Any modification done to the array is also done 
-        to the image data. If copy is true the array contains a copy
-        of the image data.
+        to the image data. 
+        
+        If copy is true the array contains a copy of the image data.
 
-        Changing the shape or size of the wrapping array is not supported
-        and will most likely result in a fatal error.
+        Changing the shape, size or data of a wrapping array is not supported
+        and will most likely result in a fatal error. If you want to data 
+        anything else to the data but reading or simple value assignment
+        use a copy of the data by setting the copy flag. Later you can convert
+        the modified data array into a NIfTi file again.
         """
         if not self.__haveImageData():
             self.load()
@@ -303,54 +494,65 @@ class NiftiFile(object):
         if not self.__nimg:
             raise RuntimeError, "There is no NIfTI image file structure."
 
-
-    def setDescription(self, description):
-        if len(description) > 79:
-            raise ValueError, "The NIfTI format only support descriptions shorter than 80 chars."
-
-        self.__nimg.descrip = description
-
-
-    def datatype(self):
-        return clibs.nifti_datatype_string(self.__nimg.datatype)
+    
+    def updateCalMinMax(self):
+        self.__nimg.cal_max = float(self.asarray().max())
+        self.__nimg.cal_min = float(self.asarray().min())
+        
+    def __getVoxDims(self):
+        dim = clibs.floatArray_frompointer(self.__nimg.pixdim)
+        return ( dim[1], dim[2], dim[3] )
 
 
-    def voxDims(self):
-        """Returns the dimensions of a single voxel as a tuple (x,y,z).
-        """
-        return ( self.__nimg.dx,
-                 self.__nimg.dy,
-                 self.__nimg.dz
-               )
+    def __setVoxDims(self, value):
+        if len(value) != 3:
+            raise ValueError, 'Requires 3-tuple.'
+
+        dim = clibs.floatArray_frompointer(self.__nimg.pixdim)
+
+        dim[1] = self.__nimg.dx = float(value[0])
+        dim[2] = self.__nimg.dy = float(value[1])
+        dim[3] = self.__nimg.dz = float(value[2])
 
 
     def tr(self):
         return self.__nimg.dt
 
+    def __nhdr2dict(self):
+        h = {}
+        
+        # Convert nifti_image struct into nifti1 header struct.
+        # This get us all data that will actually make it into a
+        # NIfTI file.
+        nhdr = clibs.nifti_convert_nim2nhdr(self.__nimg)
 
-    def slope(self):
-        return self.__nimg.scl_slope
-
-
-    def intercept(self):
-        return self.__nimg.scl_inter
-
-
-    def q2xyz(self):
-        return clibs.mat44ToArray(self.__nimg.qto_xyz)
+        return NiftiFile.nhdr2dict(nhdr)
 
 
-    def q2ijk(self):
-        return clibs.mat44ToArray(self.__nimg.qto_ijk)
+    def __setSlope(self, value):
+        self.__nimg.scl_slope = float(value)
 
 
-    def s2xyz(self):
-        return clibs.mat44ToArray(self.__nimg.sto_xyz)
+    def __setIntercept(self, value):
+        self.__nimg.scl_inter = float(value)
+
+    
+    def __setDescription(self, value):
+        if len(value) > 79:
+            raise ValueError, "The NIfTI format only support descriptions shorter than 80 chars."
+
+        self.__nimg.descrip = value
 
 
-    def s2ijk(self):
-        return clibs.mat44ToArray(self.__nimg.sto_ijk)
-
-
-
-
+    # class properties
+    filename = property(fget=lambda self: self.__nimg.fname)
+    nvox = property(fget=lambda self: self.__nimg.nvox)
+    max = property(fget=lambda self: self.__nimg.cal_max)
+    min = property(fget=lambda self: self.__nimg.cal_min)
+    slope = property(fget=lambda self: self.__nimg.scl_slope,
+                     fset=__setSlope)
+    intercept = property(fget=lambda self: self.__nimg.scl_inter,
+                fset=__setIntercept)
+    voxdim = property(fget=__getVoxDims, fset=__setVoxDims)
+    description = property(fget=lambda self: self.__nimg.descrip, 
+                           fset=__setDescription)
