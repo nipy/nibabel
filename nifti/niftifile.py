@@ -95,6 +95,7 @@ class NiftiFile(object):
         """
 
         self.fslio = None
+        self.__nimg = None
 
         if type( source ) == numpy.ndarray:
             self.__newFromArray( source, voxelsize, tr, unit )
@@ -103,6 +104,7 @@ class NiftiFile(object):
         else:
             raise ValueError, "Unsupported source type. Only NumPy arrays and filename string are supported."
 
+        
     def __del__(self):
         self.__close()
 
@@ -114,6 +116,7 @@ class NiftiFile(object):
             clibs.nifti_image_free(self.fslio.niftiptr)
 
         self.fslio = clibs.FslInit()
+        self.__nimg = self.fslio.niftiptr
 
     def __newFromArray(self, data, voxelsize, tr, unit):
         
@@ -143,13 +146,16 @@ class NiftiFile(object):
                              dim,
                              unit)
 
+        self.__nimg = self.fslio.niftiptr
+
         # allocate memory for image data
-        if not clibs.allocateImageMemory(self.fslio.niftiptr):
+        if not clibs.allocateImageMemory(self.__nimg):
             raise RuntimeError, "Could not allocate memory for image data."
     
         # assign data
         self.asarray()[:] = data[:]
         
+
 
     def __newFromFile(self, filename, load=False):
         """Open a NIfTI file.
@@ -166,6 +172,7 @@ class NiftiFile(object):
         if load:
             self.load()
 
+        self.__nimg = self.fslio.niftiptr
     
     def save(self, basename=None, filetype='NIFTI_GZ'):
         """Save the image to its original file.
@@ -176,16 +183,16 @@ class NiftiFile(object):
         If no image data is present in memory, this method does nothing.
         """
         # saving for the first time?
-        if not self.fslio.niftiptr.fname:
+        if not self.__nimg.fname:
             if not basename:
                 raise ValueError, "When saving an image for the first time a filename has to be specified."
             
             # set filename
-            setFileNamesAndType(self.fslio.niftiptr, basename, filetype)
+            setFileNamesAndType(self.__nimg, basename, filetype)
         
         if self.__haveImageData():
             # and save it
-            clibs.nifti_image_write_hdr_img(self.fslio.niftiptr, 1, 'wb')
+            clibs.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
     
     def saveAs(self, filename, filetype = 'NIFTI_GZ'):
         """Save the image to a new file.
@@ -209,7 +216,7 @@ class NiftiFile(object):
         clibs.FslCloneHeader(out, self.fslio)
 
         # also assign the data blob 
-        out.niftiptr.data = self.fslio.niftiptr.data
+        out.niftiptr.data = self.__nimg.data
 
         # set proper filenames and filetype
         setFileNamesAndType(out.niftiptr, filename, filetype)
@@ -225,7 +232,7 @@ class NiftiFile(object):
         """
         self.__checkForNiftiImage()
 
-        if self.fslio.niftiptr.data:
+        if self.__nimg.data:
             return True
         else:
             return False
@@ -237,13 +244,13 @@ class NiftiFile(object):
         """
         self.__checkForNiftiImage()
 
-        if clibs.nifti_image_load( self.fslio.niftiptr ) < 0:
+        if clibs.nifti_image_load( self.__nimg ) < 0:
             raise RuntimeError, "Unable to load image data." 
     
     def unload(self):
         """Unload image data and free allocated memory.
         """
-        clibs.nifti_image_unload(self.fslio.niftiptr)
+        clibs.nifti_image_unload(self.__nimg)
         
     def asarray(self, copy = False):
         """Convert the image data into a multidimensional array.
@@ -259,7 +266,7 @@ class NiftiFile(object):
         if not self.__haveImageData():
             self.load()
 
-        a = clibs.wrapImageDataWithArray(self.fslio.niftiptr)
+        a = clibs.wrapImageDataWithArray(self.__nimg)
 
         if copy:
             return a.copy()
@@ -272,82 +279,49 @@ class NiftiFile(object):
         Returns True if there is a nifti image file structure or False otherwise.
         One can create a file structure by calling open().
         """
-        if not self.fslio.niftiptr:
+        if not self.__nimg:
             raise RuntimeError, "There is no NIfTI image file structure."
-
-    def dims(self):
-        """Returns a tuple containing the size of the image.
-
-        In case of a 3d image the order of dimensions is (z, y, x). In case of 
-        a 4d image the tuple contains (t, z, y, x).
-
-        Only 3d and 4d images are supported. For images containing less than 
-        three dimensions the tuple nevertheless contains three values with the
-        missing dimensions set to 1.
-
-        The returned value also reflects the structure of the array returned by
-        asarray() -- NiftiFile.dims() == NiftiFile.asarray().shape
-        """
-        self.__checkForNiftiImage()
-
-        if self.fslio.niftiptr.ndim == 3:
-            return (self.fslio.niftiptr.nz,
-                    self.fslio.niftiptr.ny,
-                    self.fslio.niftiptr.nx)
-        elif self.fslio.niftiptr.ndim == 4:
-            return (self.fslio.niftiptr.nt,
-                    self.fslio.niftiptr.nz,
-                    self.fslio.niftiptr.ny,
-                    self.fslio.niftiptr.nx)
-        else:
-            raise ValueError, "Only 3d or 4d images are supported."
-
-    def nVoxels(self):
-        return self.fslio.niftiptr.nvox
-
-    def description(self):
-        return self.fslio.niftiptr.descrip
 
     def setDescription(self, description):
         if len(description) > 79:
             raise ValueError, "The NIfTI format only support descriptions shorter than 80 chars."
 
-        self.fslio.niftiptr.descrip = description
+        self.__nimg.descrip = description
         
     def filenames(self):
-        return (self.fslio.niftiptr.fname, self.fslio.niftiptr.iname)
+        return (self.__nimg.fname, self.__nimg.iname)
 
     def datatype(self):
-        return clibs.nifti_datatype_string(self.fslio.niftiptr.datatype)
+        return clibs.nifti_datatype_string(self.__nimg.datatype)
 
     def voxDims(self):
         """Returns the dimensions of a single voxel as a tuple (x,y,z).
         """
-        return ( self.fslio.niftiptr.dx,
-                 self.fslio.niftiptr.dy,
-                 self.fslio.niftiptr.dz
+        return ( self.__nimg.dx,
+                 self.__nimg.dy,
+                 self.__nimg.dz
                )
 
     def tr(self):
-        return self.fslio.niftiptr.dt
+        return self.__nimg.dt
 
     def slope(self):
-        return self.fslio.niftiptr.scl_slope
+        return self.__nimg.scl_slope
         
     def intercept(self):
-        return self.fslio.niftiptr.scl_inter
+        return self.__nimg.scl_inter
     
     def q2xyz(self):
-        return clibs.mat44ToArray(self.fslio.niftiptr.qto_xyz)
+        return clibs.mat44ToArray(self.__nimg.qto_xyz)
 
     def q2ijk(self):
-        return clibs.mat44ToArray(self.fslio.niftiptr.qto_ijk)
+        return clibs.mat44ToArray(self.__nimg.qto_ijk)
 
     def s2xyz(self):
-        return clibs.mat44ToArray(self.fslio.niftiptr.sto_xyz)
+        return clibs.mat44ToArray(self.__nimg.sto_xyz)
 
     def s2ijk(self):
-        return clibs.mat44ToArray(self.fslio.niftiptr.sto_ijk)
+        return clibs.mat44ToArray(self.__nimg.sto_ijk)
 
 
 
