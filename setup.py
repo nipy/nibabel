@@ -52,7 +52,7 @@ setup(name       = 'pynifti',
     packages     = [ 'nifti' ],
     ext_modules  = [ Extension( 'nifti._clibs', [ 'nifti/clibs.i' ], 
             include_dirs = [ '/usr/include/nifti', numpy_headers ],
-            libraries    = [ 'niftiio', 'fslio' ],
+            libraries    = [ 'niftiio' ],
             swig_opts    = [ '-I/usr/include/nifti',  
                              '-I' + numpy_headers ] ) ]
     )
