@@ -828,8 +828,34 @@ class NiftiFile(object):
         self.updateQFormFromQuaternion()
 
 
-    def getQOrientation(self):
-        return clibs.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
+    def getQOrientation(self, as_string = False):
+        """ Returns to orientation of the i,j and k axis as stored in the
+        qform matrix.
+
+        By default NIfTI orientation codes are returned, but if 'as_string' is
+        set to true a string representation ala 'Left-to-right' is returned 
+        instead.
+        """
+        codes = clibs.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
+        if as_string:
+            return [ clibs.nifti_orientation_string(i) for i in codes ]
+        else:
+            return codes
+
+
+    def getSOrientation(self, as_string = False):
+        """ Returns to orientation of the i,j and k axis as stored in the
+        sform matrix.
+
+        By default NIfTI orientation codes are returned, but if 'as_string' is
+        set to true a string representation ala 'Left-to-right' is returned 
+        instead.
+        """
+        codes = clibs.nifti_mat44_to_orientation(self.__nimg.sto_xyz)
+        if as_string:
+            return [ clibs.nifti_orientation_string(i) for i in codes ]
+        else:
+            return codes
 
 
     # class properties
