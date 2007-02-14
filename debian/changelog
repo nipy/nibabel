@@ -1,4 +1,4 @@
-pynifti (0.20070214-1) unstable; urgency=low
+pynifti (0.20070214.1-1) unstable; urgency=low
 
   * New upstream release.
   * Does not depend on libfslio anymore.
