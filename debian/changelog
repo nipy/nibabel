@@ -1,3 +1,15 @@
+pynifti (0.20070214-1) unstable; urgency=low
+
+  * New upstream release.
+  * Does not depend on libfslio anymore.
+  * Up to seven-dimensional dataset are supported (as much as NIfTI can do).
+  * The complete NIfTI header dataset is modifiable.
+  * Most image properties are accessable via class attributes and accessor
+    methods.
+  * Improved documentation (but still a long way to go).
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 14 Feb 2007 10:11:55 +0100
+
 pynifti (0.20061116-1) unstable; urgency=low
 
   * New upstream release.

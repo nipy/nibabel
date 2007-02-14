@@ -1,3 +1,27 @@
+/*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+ *
+ *    SWIG interface to wrap the low-level NIfTI IO libs for Python
+ *
+ *    Copyright (C) 2006-2007 by
+ *    Michael Hanke <michael.hanke@gmail.com>
+ *
+ *    This package is free software; you can redistribute it and/or
+ *    modify it under the terms of the GNU Lesser General Public
+ *    version 2 of the License, or (at your option) any later version.
+ *
+ *    This package is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    Lesser General Public License for more details.
+ *
+ *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+ * SVN version control block - do not edit manually
+ * $Id$
+ * $Rev$
+ * $Date$
+ *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+ */
+
 %define DOCSTRING
 "
 This is a comprehensive description of this module as a
@@ -9,7 +33,6 @@ hmm... thanks ;) --yoh
 %module (package="nifti", docstring=DOCSTRING) clibs
 %{
 #include <nifti1_io.h>
-#include <fslio.h>
 #include <znzlib.h>
 
 #include <Python.h>
@@ -163,10 +186,20 @@ int allocateImageMemory(nifti_image* _nim)
     import_array();
 %}
 
+%include "typemaps.i"
+/* Need to put before nifti1_io.h to overwrite function prototype with this
+ * typemap. */
+void nifti_mat44_to_quatern( mat44 R ,
+                             float *OUTPUT, float *OUTPUT, float *OUTPUT,
+                             float *OUTPUT, float *OUTPUT, float *OUTPUT,
+                             float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT );
+
+void nifti_mat44_to_orientation( mat44 R , int *OUTPUT, int *OUTPUT, int *OUTPUT );
+
+
 %include znzlib.h
 %include nifti1.h
 %include nifti1_io.h
-%include fslio.h
 
 static PyObject * wrapImageDataWithArray(nifti_image* _img);
 int allocateImageMemory(nifti_image* _nim);
@@ -178,12 +211,14 @@ static void set_mat44(mat44* m,
                       float c1, float c2, float c3, float c4,
                       float d1, float d2, float d3, float d4 ); 
 
+
 %include "cpointer.i"
 %pointer_functions(short, shortp);
 %pointer_functions(int, intp);
 %pointer_functions(unsigned int, uintp);
 %pointer_functions(float, floatp);
 %pointer_functions(double, doublep);
+%pointer_functions(char, charp);
 
 %include "carrays.i"
 %array_class(short, shortArray);

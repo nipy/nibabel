@@ -1,5 +1,28 @@
 #!/usr/bin/env python
 
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+#
+#    Python distutils setup for PyNifti
+#
+#    Copyright (C) 2006-2007 by
+#    Michael Hanke <michael.hanke@gmail.com>
+#
+#    This package is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public
+#    version 2 of the License, or (at your option) any later version.
+#
+#    This package is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    Lesser General Public License for more details.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+# SVN version control block - do not edit manually
+# $Id$
+# $Rev$
+# $Date$
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
 from distutils.core import setup, Extension
 import os
 import numpy
@@ -14,7 +37,7 @@ if not os.path.isfile(nifti_wrapper_file):
 numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 
 setup(name = 'pynifti',
-	version = '0.20061116',
+	version = '0.20070214',
 	author = 'Michael Hanke',
 	author_email = 'michael.hanke@gmail.com',
 	license = 'LGPL',
