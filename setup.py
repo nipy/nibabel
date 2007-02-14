@@ -26,6 +26,7 @@
 from distutils.core import setup, Extension
 import os
 import numpy
+from datetime import datetime
 
 nifti_wrapper_file = os.path.join('nifti', 'clibs.py')
 
@@ -37,7 +38,7 @@ if not os.path.isfile(nifti_wrapper_file):
 numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 
 setup(name = 'pynifti',
-	version = '0.20070214',
+	version = datetime.now().strftime('0.%Y%m%d.%H'),
 	author = 'Michael Hanke',
 	author_email = 'michael.hanke@gmail.com',
 	license = 'LGPL',
