@@ -59,7 +59,7 @@ class NiftiFile(object):
                             }
 
 
-    @staticmethod
+    @staticmethod 
     def numpydtype2niftidtype(array):
         """ Return the NIfTI datatype id for a corrsponding numpy array 
         datatype.
