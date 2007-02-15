@@ -83,12 +83,12 @@ class NiftiFile(object):
         parts = filename.split('.')
 
         if parts[-1] == 'gz':
-            if parts[-2] != 'nii' and parts[-2] != 'hdr':
+            if not parts[-2] in [ 'nii', 'hdr', 'img' ]:
                 return filename, ''
             else:
                 return '.'.join(parts[:-2]), '.'.join(parts[-2:])
         else:
-            if parts[-1] != 'nii' and parts[-1] != 'hdr':
+            if not parts[-1] in [ 'nii', 'hdr', 'img' ]:
                 return filename, ''
             else:
                 return '.'.join(parts[:-1]), parts[-1]
@@ -396,31 +396,22 @@ class NiftiFile(object):
 
         if not self.__nimg:
             raise RuntimeError, "Error while opening nifti header."
-        
+
         if load:
             self.load()
 
-    
-    def save(self, filename=None, filetype='NIFTI'):
+
+    def save(self, filename=None):
         """Save the image.
 
         If the image was created using array data (not loaded from a file) one
         has to specify a filename. 
-        
-        Calling save() without a specified filename on a NiftiFile loaded from 
-        a file, will overwrite the original file.
 
-        If a filename is specified, it will be made an attempt to guess the 
-        corresponding filetype. A filename has to be the name of the 
-        corresponding headerfile -- including the filename extension (.hdr,
-        .nii, .hdr.gz or .nii.gz). In ambigous cases (.hdr might stand for 
-        ANALYZE or uncompressed NIFTI file pairs) one can use the filetype 
-        parameter to choose a certain type. If no filetype parameter is 
-        specified NIfTI files will be written by default.
+        Setting the filename also determines the filetype (NIfTI/ANALYZE).
+        Please see the setFilename() method for some details.
 
-        If filename is only the basefilename (i.e. does not have a valid 
-        extension of NIfTI/ANALYZE header files '.nii' is appended 
-        automatically and a NIfTI single file will be written.
+        Calling save() without a specified filename on a NiftiFile loaded
+        from a file, will overwrite the original file.
 
         If not yet done already, the image data will be loaded into memory 
         before saving the file.
@@ -444,46 +435,9 @@ class NiftiFile(object):
         if not self.filename or filename:
             if not filename:
                 raise ValueError, "When saving an image for the first time a filename has to be specified."
-            
 
-            # check for valid filetype specifier
-            if not filetype in self.filetypes:
-                raise ValueError, \
-                    "Unknown filetype '%s'. Known filetypes are: %s" % (filetype, ' '.join(nifti_filetype_ids))
+            self.setFilename(filename)
 
-            base, ext = NiftiFile.splitFilename(filename)
-
-            # if no extension default to nifti single files
-            if ext == '': ext = 'nii'
-
-            # Determine the filetype and set header and image filename 
-            # appropriately. If the filename extension is ambiguous the 
-            # filetype setting is used to determine the intended format.
-
-            # nifti single files are easy
-            if ext == 'nii.gz' or ext == 'nii':
-                self.__nimg.fname = base + '.' + ext
-                self.__nimg.iname = base + '.' + ext
-                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
-            # uncompressed file pairs
-            elif ext == 'hdr':
-                self.__nimg.fname = base + '.hdr'
-                self.__nimg.iname = base + '.img'
-                if filetype.startswith('NIFTI'):
-                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
-                else:
-                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
-            # compressed file pairs
-            elif ext == 'hdr.gz':
-                self.__nimg.fname = base + '.hdr.gz'
-                self.__nimg.iname = base + '.img.gz'
-                if filetype.startswith('NIFTI'):
-                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
-                else:
-                    self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
-            else:
-                raise RuntimeError, "Unhandled filetype."
-        
         # now save it
         clibs.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
 
@@ -858,9 +812,95 @@ class NiftiFile(object):
             return codes
 
 
+    def setFilename(self, filename):
+        """ Set the filename for the NIfTI image.
+
+        Setting the filename also determines the filetype. If the filename
+        ends with '.nii' the type will be set to NIfTI single file. A '.hdr'
+        extension should has to be used for NIfTI file pairs. If the desired 
+        filetype is ANALYZE the extension should be '.img'.
+
+        If the filename carries an additional '.gz' the resulting file(s) will
+        be compressed.
+
+        Uncompressed NIfTI single files are the default filetype that will be 
+        used if the filename has no valid extension. The '.nii' extension is 
+        appended automatically.
+
+        Setting the filename will cause the image data to be loaded into memory
+        if not yet done already. This has to be done, because the the filename
+        of the original image file there would be no access to the image data 
+        anymore. As a side-effect a simple operation like setting a filename 
+        may take a significant amount of time (e.g. for a large 4d dataset).
+
+        Examples:
+
+          Filename          Output of save()
+          ----------------------------------
+          exmpl.nii         exmpl.nii (NIfTI)
+          exmpl.hdr         exmpl.hdr, exmpl.img (NIfTI)
+          exmpl.img         exmpl.hdr, exmpl.img (ANALYZE)
+          exmpl             exmpl.nii (NIfTI)
+          exmpl.hdr.gz      exmpl.hdr.gz, exmpl.img.gz (NIfTI)
+ 
+        ! exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
+
+        """
+        # If image data is not yet loaded, do it now.
+        # It is important to do it already here, because nifti_image_load
+        # depends on the correct filename set in the nifti_image struct
+        # and this will be modified in this function!
+        if not self.__haveImageData():
+            self.load()
+
+        # separate basename and extension
+        base, ext = NiftiFile.splitFilename(filename)
+
+        # if no extension default to nifti single files
+        if ext == '': ext = 'nii'
+
+        # Determine the filetype and set header and image filename 
+        # appropriately.
+
+        # nifti single files are easy
+        if ext == 'nii.gz' or ext == 'nii':
+            self.__nimg.fname = base + '.' + ext
+            self.__nimg.iname = base + '.' + ext
+            self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
+        # uncompressed nifti file pairs
+        elif ext in [ 'hdr', 'img' ]:
+            self.__nimg.fname = base + '.hdr'
+            self.__nimg.iname = base + '.img'
+            if ext == 'hdr':
+                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+            else:
+                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+        # compressed file pairs
+        elif ext in [ 'hdr.gz', 'img.gz' ]:
+            self.__nimg.fname = base + '.hdr.gz'
+            self.__nimg.iname = base + '.img.gz'
+            if ext == 'hdr.gz':
+                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+            else:
+                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+        else:
+            raise RuntimeError, "Unhandled filetype."
+
+
+    def getFilename(self):
+        """ Returns the filename.
+
+        To be consistent with setFilename() the image filename is returned
+        for ANALYZE images while the header filename is returned for NIfTI
+        files.
+        """
+        if self.__nimg.nifti_type == clibs.NIFTI_FTYPE_ANALYZE:
+            return self.__nimg.iname
+        else:
+            return self.__nimg.fname
+
     # class properties
     # read only
-    filename =      property(fget=lambda self: self.__nimg.fname)
     nvox =          property(fget=lambda self: self.__nimg.nvox)
     max =           property(fget=lambda self: self.__nimg.cal_max)
     min =           property(fget=lambda self: self.__nimg.cal_min)
@@ -869,6 +909,7 @@ class NiftiFile(object):
     qform_inv =     property(fget=getInverseQForm)
 
     # read and write
+    filename =      property(fget=getFilename, fset=setFilename)
     slope =         property(fget=lambda self: self.__nimg.scl_slope,
                              fset=setSlope)
     intercept =     property(fget=lambda self: self.__nimg.scl_inter,
