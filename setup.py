@@ -42,7 +42,7 @@ numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20070214.1',
+    version      = '0.20070219.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'LGPL',

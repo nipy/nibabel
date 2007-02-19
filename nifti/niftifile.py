@@ -382,7 +382,7 @@ class NiftiFile(object):
             raise RuntimeError, "Could not allocate memory for image data."
 
         # assign data
-        self.asarray()[:] = data[:]
+        self.data[:] = data[:]
 
 
     def __newFromFile(self, filename, load=False):
