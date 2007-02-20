@@ -1,3 +1,3 @@
-include AUTHOR COPYING Makefile
+include AUTHOR COPYING Makefile README.html
 include Changelog
 prune nifti/wrap.py

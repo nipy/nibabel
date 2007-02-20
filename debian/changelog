@@ -6,8 +6,9 @@ pynifti (0.20070220.1-1) unstable; urgency=low
     module.
   * Fixed broken NiftiImage from Numpy array constructor.
   * Added initial documentation in README.html.
+  * Fulfilled a number of Yarik's wishes ;)
 
- -- Michael Hanke <michael.hanke@gmail.com>  Tue, 20 Feb 2007 11:04:44 +0100
+ -- Michael Hanke <michael.hanke@gmail.com>  Tue, 20 Feb 2007 17:36:08 +0100
 
 pynifti (0.20070214.1-1) unstable; urgency=low
 

@@ -1,17 +1,6 @@
 
 Yarik's wishes unsorted - please remove or fulfill ;-)
 
-- all functions returning header values should be properties, and in
-  ideal case should be r/w - ie I could change them as well
-
-- function/property to get/set all header information in a single
-  dictionary
-
-- constructor to create NiftiFile from another one but with different
-  shape/dims (so the other header information gets preserved... it is somewhat
-  eliminated with feature above if I can only copy all header information
-  besides shape from one file to another)
-
 - failed save* and constructors should raise exception
 
 

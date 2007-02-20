@@ -12,8 +12,6 @@ Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python interface to the NIfTI I/O libraries
- The package provides a SWIG'ed interface to the NIfTI and FSLIO
- libraries. Additionally it includes a wrapper class for easy access
- and manipulation of NIfTI files.
- .
- This software is in a very early stage of development!
+ Using PyNIfTI one can easily read and write NIfTI and ANALYZE images from
+ within Python. The NiftiImage class provides Python-style access to the full 
+ header information. Image data is made available via NumPy arrays.

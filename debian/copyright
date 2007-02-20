@@ -9,7 +9,7 @@ Upstream Author:
 	
 	Michael Hanke <michael.hanke@gmail.com>
 
-Copyright (C) 2006 Michael Hanke
+Copyright (C) 2006-2007 Michael Hanke
 
 
 License:
@@ -32,7 +32,7 @@ On Debian systems, the complete text of the GNU Lesser General
 Public License can be found in `/usr/share/common-licenses/LGPL'.
 
 
-The Debian packaging is (C) 2006, Michael Hanke <michael.hanke@gmail.com> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+The Debian packaging is (C) 2006-2007, Michael Hanke <michael.hanke@gmail.com> 
+and is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
 
 
