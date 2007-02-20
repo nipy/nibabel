@@ -24,13 +24,16 @@
 
 %define DOCSTRING
 "
-This is a comprehensive description of this module as a
-multiline docstring...
-hmm... thanks ;) --yoh
+This module provide the all functions and datatypes implemented
+in the low-level C library libniftiio and the NIfTI-1 header.
+
+At the moment no additional documentation is provided here. Please see the
+intensively documented source code of the nifti C libs to learn about the
+capabilities of the library.
 "
 %enddef
 
-%module (package="nifti", docstring=DOCSTRING) clibs
+%module (package="nifti", docstring=DOCSTRING) nifticlib
 %{
 #include <nifti1_io.h>
 #include <znzlib.h>

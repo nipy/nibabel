@@ -27,7 +27,7 @@ from distutils.core import setup, Extension
 import os
 import numpy
 
-nifti_wrapper_file = os.path.join('nifti', 'clibs.py')
+nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
 
 # create an empty file to workaround crappy swig wrapper installation
 if not os.path.isfile(nifti_wrapper_file):
@@ -42,7 +42,7 @@ numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20070219.1',
+    version      = '0.20070220.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'LGPL',
@@ -50,7 +50,7 @@ setup(name       = 'pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
     long_description = """ """,
     packages     = [ 'nifti' ],
-    ext_modules  = [ Extension( 'nifti._clibs', [ 'nifti/clibs.i' ], 
+    ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ], 
             include_dirs = [ '/usr/include/nifti', numpy_headers ],
             libraries    = [ 'niftiio' ],
             swig_opts    = [ '-I/usr/include/nifti',  

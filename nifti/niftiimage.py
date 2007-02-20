@@ -21,7 +21,7 @@
 # $Date$
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-import clibs
+import nifticlib
 import os
 import numpy
 
@@ -29,7 +29,7 @@ import numpy
 nifti_unit_ids = [ 'm', 'mm', 'um' ]
 
    
-class NiftiFile(object):
+class NiftiImage(object):
     """Wrapper class for convenient access to NIfTI data.
     
     The class can either load an image from file or convert a NumPy 
@@ -45,17 +45,17 @@ class NiftiFile(object):
     filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
                   'NIFTI_PAIR_GZ' ]
 
-    numpy2nifti_dtype_map = { numpy.uint8: clibs.NIFTI_TYPE_UINT8,
-                              numpy.int8 : clibs.NIFTI_TYPE_INT8,
-                              numpy.uint16: clibs.NIFTI_TYPE_UINT16,
-                              numpy.int16 : clibs.NIFTI_TYPE_INT16,
-                              numpy.uint32: clibs.NIFTI_TYPE_UINT32,
-                              numpy.int32 : clibs.NIFTI_TYPE_INT32,
-                              numpy.uint64: clibs.NIFTI_TYPE_UINT64,
-                              numpy.int64 : clibs.NIFTI_TYPE_INT64,
-                              numpy.float32: clibs.NIFTI_TYPE_FLOAT32,
-                              numpy.float64: clibs.NIFTI_TYPE_FLOAT64,
-                              numpy.complex128: clibs.NIFTI_TYPE_COMPLEX128
+    numpy2nifti_dtype_map = { numpy.uint8: nifticlib.NIFTI_TYPE_UINT8,
+                              numpy.int8 : nifticlib.NIFTI_TYPE_INT8,
+                              numpy.uint16: nifticlib.NIFTI_TYPE_UINT16,
+                              numpy.int16 : nifticlib.NIFTI_TYPE_INT16,
+                              numpy.uint32: nifticlib.NIFTI_TYPE_UINT32,
+                              numpy.int32 : nifticlib.NIFTI_TYPE_INT32,
+                              numpy.uint64: nifticlib.NIFTI_TYPE_UINT64,
+                              numpy.int64 : nifticlib.NIFTI_TYPE_INT64,
+                              numpy.float32: nifticlib.NIFTI_TYPE_FLOAT32,
+                              numpy.float64: nifticlib.NIFTI_TYPE_FLOAT64,
+                              numpy.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
                             }
 
 
@@ -67,10 +67,10 @@ class NiftiFile(object):
         # get the real datatype from numpy type dictionary
         dtype = numpy.typeDict[str(array.dtype)]
 
-        if not NiftiFile.numpy2nifti_dtype_map.has_key(dtype):
+        if not NiftiImage.numpy2nifti_dtype_map.has_key(dtype):
             raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
 
-        return NiftiFile.numpy2nifti_dtype_map[dtype]
+        return NiftiImage.numpy2nifti_dtype_map[dtype]
 
 
     @staticmethod
@@ -123,17 +123,17 @@ class NiftiFile(object):
 
         # handle a few special cases
         # handle 'pixdim'
-        pixdim = clibs.floatArray_frompointer(nhdr.pixdim)
+        pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
         h['pixdim'] = [ pixdim[i] for i in range(8) ]
 
         # handle dim
-        dim = clibs.shortArray_frompointer(nhdr.dim)
+        dim = nifticlib.shortArray_frompointer(nhdr.dim)
         h['dim'] = [ dim[i] for i in range(8) ]
 
         # handle sform
-        srow_x = clibs.floatArray_frompointer( nhdr.srow_x )
-        srow_y = clibs.floatArray_frompointer( nhdr.srow_y )
-        srow_z = clibs.floatArray_frompointer( nhdr.srow_z )
+        srow_x = nifticlib.floatArray_frompointer( nhdr.srow_x )
+        srow_y = nifticlib.floatArray_frompointer( nhdr.srow_y )
+        srow_z = nifticlib.floatArray_frompointer( nhdr.srow_z )
 
         h['sform'] = numpy.array( [ [ srow_x[i] for i in range(4) ],
                                     [ srow_y[i] for i in range(4) ],
@@ -184,7 +184,7 @@ class NiftiFile(object):
             nhdr.dim_info = hdrdict['dim_info']
 
         if hdrdict.has_key('dim'):
-            dim = clibs.shortArray_frompointer(nhdr.dim)
+            dim = nifticlib.shortArray_frompointer(nhdr.dim)
             for i in range(8): dim[i] = hdrdict['dim'][i]
         if hdrdict.has_key('intent_p1'):
             nhdr.intent_p1 = hdrdict['intent_p1']
@@ -201,7 +201,7 @@ class NiftiFile(object):
         if hdrdict.has_key('slice_start'):
             nhdr.slice_start = hdrdict['slice_start']
         if hdrdict.has_key('pixdim'):
-            pixdim = clibs.floatArray_frompointer(nhdr.pixdim)
+            pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
             for i in range(8): pixdim[i] = hdrdict['pixdim'][i]
         if hdrdict.has_key('vox_offset'):
             nhdr.vox_offset = hdrdict['vox_offset']
@@ -263,11 +263,11 @@ class NiftiFile(object):
             if not hdrdict['sform'].shape == (4,4):
                 raise ValueError, "Nifti header property 'sform' must be 4x4 matrix."
 
-            srow_x = clibs.floatArray_frompointer(nhdr.srow_x)
+            srow_x = nifticlib.floatArray_frompointer(nhdr.srow_x)
             for i in range(4): srow_x[i] = hdrdict['sform'][0][i]
-            srow_y = clibs.floatArray_frompointer(nhdr.srow_y)
+            srow_y = nifticlib.floatArray_frompointer(nhdr.srow_y)
             for i in range(4): srow_y[i] = hdrdict['sform'][1][i]
-            srow_z = clibs.floatArray_frompointer(nhdr.srow_z)
+            srow_z = nifticlib.floatArray_frompointer(nhdr.srow_z)
             for i in range(4): srow_z[i] = hdrdict['sform'][2][i]
 
         if hdrdict.has_key('intent_name'):
@@ -318,7 +318,7 @@ class NiftiFile(object):
         """Close the file and free all unnecessary memory.
         """
         if self.__nimg:
-            clibs.nifti_image_free(self.__nimg)
+            nifticlib.nifti_image_free(self.__nimg)
             self.__nimg = None
 
 
@@ -332,15 +332,15 @@ class NiftiFile(object):
             raise ValueError, "NIfTI does not support data with more than 7 dimensions."
         
         # create template nifti header struct
-        niptr = clibs.nifti_simple_init_nim()
-        nhdr = clibs.nifti_convert_nim2nhdr(niptr)
+        niptr = nifticlib.nifti_simple_init_nim()
+        nhdr = nifticlib.nifti_convert_nim2nhdr(niptr)
         
         # intermediate cleanup
-        clibs.nifti_image_free(niptr)
+        nifticlib.nifti_image_free(niptr)
 
         # convert virgin nifti header to dict to merge properties
         # with supplied information and array properties
-        hdic = NiftiFile.nhdr2dict(nhdr)
+        hdic = NiftiImage.nhdr2dict(nhdr)
 
         # copy data from supplied header dict
         for k, v in hdr.iteritems():
@@ -362,13 +362,13 @@ class NiftiFile(object):
         hdic['magic'] = 'n+1'
 
         # update nifti header with information from dict
-        NiftiFile.updateNiftiHeaderFromDict(nhdr, hdic)
+        NiftiImage.updateNiftiHeaderFromDict(nhdr, hdic)
         
         # make clean table
         self.__close()
 
         # convert nifti header to nifti image struct
-        self.__nimg = clibs.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
+        self.__nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
         
         if not self.__nimg:
             raise RuntimeError, "Could not create nifti image structure."
@@ -378,7 +378,7 @@ class NiftiFile(object):
         self.__nimg.iname = ''
 
         # allocate memory for image data
-        if not clibs.allocateImageMemory(self.__nimg):
+        if not nifticlib.allocateImageMemory(self.__nimg):
             raise RuntimeError, "Could not allocate memory for image data."
 
         # assign data
@@ -392,7 +392,7 @@ class NiftiFile(object):
         the image data is loaded into memory.
         """
         self.__close()
-        self.__nimg = clibs.nifti_image_read( filename, int(load) )
+        self.__nimg = nifticlib.nifti_image_read( filename, int(load) )
 
         if not self.__nimg:
             raise RuntimeError, "Error while opening nifti header."
@@ -410,7 +410,7 @@ class NiftiFile(object):
         Setting the filename also determines the filetype (NIfTI/ANALYZE).
         Please see the setFilename() method for some details.
 
-        Calling save() without a specified filename on a NiftiFile loaded
+        Calling save() without a specified filename on a NiftiImage loaded
         from a file, will overwrite the original file.
 
         If not yet done already, the image data will be loaded into memory 
@@ -439,7 +439,7 @@ class NiftiFile(object):
             self.setFilename(filename)
 
         # now save it
-        clibs.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
+        nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
 
 
     def __haveImageData(self):
@@ -463,7 +463,7 @@ class NiftiFile(object):
         """
         self.__ensureNiftiImage()
 
-        if clibs.nifti_image_load( self.__nimg ) < 0:
+        if nifticlib.nifti_image_load( self.__nimg ) < 0:
             raise RuntimeError, "Unable to load image data." 
     
 
@@ -472,14 +472,14 @@ class NiftiFile(object):
         """
         self.__ensureNiftiImage()
         
-        clibs.nifti_image_unload(self.__nimg)
+        nifticlib.nifti_image_unload(self.__nimg)
     
 
     def getDataArray(self):
         """ Calls asarray(False) to return the NIfTI image data wrapped into
         a NumPy array. 
 
-        Attention: The array shares the data with the NiftiFile object. Any 
+        Attention: The array shares the data with the NiftiImage object. Any 
         resize operation or datatype conversion will most likely result in a
         fatal error. If you need to perform such things, get a copy
         of the image data by using asarray(copy=True).
@@ -505,7 +505,7 @@ class NiftiFile(object):
         if not self.__haveImageData():
             self.load()
 
-        a = clibs.wrapImageDataWithArray(self.__nimg)
+        a = nifticlib.wrapImageDataWithArray(self.__nimg)
 
         if copy:
             return a.copy()
@@ -560,9 +560,9 @@ class NiftiFile(object):
         # Convert nifti_image struct into nifti1 header struct.
         # This get us all data that will actually make it into a
         # NIfTI file.
-        nhdr = clibs.nifti_convert_nim2nhdr(self.__nimg)
+        nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
 
-        return NiftiFile.nhdr2dict(nhdr)
+        return NiftiImage.nhdr2dict(nhdr)
 
     def updateHeader(self, hdrdict):
         """ Update NIfTI header information.
@@ -571,18 +571,18 @@ class NiftiFile(object):
         modify dimensionality and datatype of the image data. If such 
         information is present in the header dictionary it is removed before
         the update. If such modifications are necessary one has to convert the
-        image data into a separate array ( NiftiFile.assarray(copy=True) ) and
+        image data into a separate array ( NiftiImage.assarray(copy=True) ) and
         perform resize and data manipulations on this array. When finished,
-        the array can be converted into a nifti file by calling the NiftiFile 
-        constructor with the modified array as 'source' and the nifti header 
-        of the original NiftiFile object as 'header'.
+        the array can be converted into a nifti file by calling the NiftiImage
+        constructor with the modified array as 'source' and the nifti header
+        of the original NiftiImage object as 'header'.
         
         It is save to call this method with and without loaded image data.
 
-        The actual update is done by NiftiFile.updateNiftiHeaderFromDict().
+        The actual update is done by NiftiImage.updateNiftiHeaderFromDict().
         """
         # rebuild nifti header from current image struct
-        nhdr = clibs.nifti_convert_nim2nhdr(self.__nimg)
+        nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
 
         # remove settings from the hdrdict that are determined by 
         # the data set and must not be modified to preserve data integrity
@@ -592,10 +592,10 @@ class NiftiFile(object):
             del hdrdict['dim']
 
         # update the nifti header
-        NiftiFile.updateNiftiHeaderFromDict(nhdr, hdrdict)
+        NiftiImage.updateNiftiHeaderFromDict(nhdr, hdrdict)
 
         # recreate nifti image struct
-        new_nimg = clibs.nifti_convert_nhdr2nim(nhdr, self.filename)
+        new_nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, self.filename)
         if not new_nimg:
             raise RuntimeError, "Could not recreate NIfTI image struct from updated header."
         
@@ -640,7 +640,7 @@ class NiftiFile(object):
     def getSForm(self):
         """ Returns the sform matrix.
         """
-        return clibs.mat442array(self.__nimg.sto_xyz)
+        return nifticlib.mat442array(self.__nimg.sto_xyz)
 
     def setSForm(self, m):
         """ Sets the sform matrix.
@@ -657,32 +657,32 @@ class NiftiFile(object):
         # make sure it is float
         m = m.astype('float')
 
-        clibs.set_mat44( self.__nimg.sto_xyz,
+        nifticlib.set_mat44( self.__nimg.sto_xyz,
                          m[0,0], m[0,1], m[0,2], m[0,3],
                          m[1,0], m[1,1], m[1,2], m[1,3],
                          m[2,0], m[2,1], m[2,2], m[2,3],
                          m[3,0], m[3,1], m[3,2], m[3,3] )
 
         # recalculate inverse 
-        self.__nimg.sto_ijk = clibs.nifti_mat44_inverse( self.__nimg.sto_xyz )
+        self.__nimg.sto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.sto_xyz )
 
     
     def getInverseSForm(self):
         """ Returns the inverse sform matrix.
         """
-        return clibs.mat442array(self.__nimg.sto_ijk)
+        return nifticlib.mat442array(self.__nimg.sto_ijk)
 
 
     def getQForm(self):
         """ Returns the qform matrix.
         """
-        return clibs.mat442array(self.__nimg.qto_xyz)
+        return nifticlib.mat442array(self.__nimg.qto_xyz)
 
 
     def getInverseQForm(self):
         """ Returns the inverse qform matrix.
         """
-        return clibs.mat442array(self.__nimg.qto_ijk)
+        return nifticlib.mat442array(self.__nimg.qto_ijk)
 
 
     def setQForm(self, m):
@@ -699,20 +699,20 @@ class NiftiFile(object):
         # make sure it is float
         m = m.astype('float')
 
-        clibs.set_mat44( self.__nimg.qto_xyz,
+        nifticlib.set_mat44( self.__nimg.qto_xyz,
                          m[0,0], m[0,1], m[0,2], m[0,3],
                          m[1,0], m[1,1], m[1,2], m[1,3],
                          m[2,0], m[2,1], m[2,2], m[2,3],
                          m[3,0], m[3,1], m[3,2], m[3,3] )
 
         # recalculate inverse 
-        self.__nimg.qto_ijk = clibs.nifti_mat44_inverse( self.__nimg.qto_xyz )
+        self.__nimg.qto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
         # update quaternions
         ( self.__nimg.quatern_b, self.__nimg.quatern_b, self.__nimg.quatern_b,
           self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
           self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
-          self.__nimg.qfac ) = clibs.nifti_mat44_to_quatern( self.__nimg.qto_xyz )
+          self.__nimg.qfac ) = nifticlib.nifti_mat44_to_quatern( self.__nimg.qto_xyz )
 
 
     def updateQFormFromQuaternion(self):
@@ -720,7 +720,7 @@ class NiftiFile(object):
         representation.
         """
         # recalculate qform
-        self.__nimg.qto_xyz = clibs.nifti_quatern_to_mat44 (
+        self.__nimg.qto_xyz = nifticlib.nifti_quatern_to_mat44 (
           self.__nimg.quatern_b, self.__nimg.quatern_b, self.__nimg.quatern_b,
           self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
           self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
@@ -728,7 +728,7 @@ class NiftiFile(object):
 
 
         # recalculate inverse 
-        self.__nimg.qto_ijk = clibs.nifti_mat44_inverse( self.__nimg.qto_xyz )
+        self.__nimg.qto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
 
     def setQuaternion(self, value):
@@ -790,9 +790,9 @@ class NiftiFile(object):
         set to true a string representation ala 'Left-to-right' is returned 
         instead.
         """
-        codes = clibs.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
+        codes = nifticlib.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
         if as_string:
-            return [ clibs.nifti_orientation_string(i) for i in codes ]
+            return [ nifticlib.nifti_orientation_string(i) for i in codes ]
         else:
             return codes
 
@@ -805,9 +805,9 @@ class NiftiFile(object):
         set to true a string representation ala 'Left-to-right' is returned 
         instead.
         """
-        codes = clibs.nifti_mat44_to_orientation(self.__nimg.sto_xyz)
+        codes = nifticlib.nifti_mat44_to_orientation(self.__nimg.sto_xyz)
         if as_string:
-            return [ clibs.nifti_orientation_string(i) for i in codes ]
+            return [ nifticlib.nifti_orientation_string(i) for i in codes ]
         else:
             return codes
 
@@ -854,7 +854,7 @@ class NiftiFile(object):
             self.load()
 
         # separate basename and extension
-        base, ext = NiftiFile.splitFilename(filename)
+        base, ext = NiftiImage.splitFilename(filename)
 
         # if no extension default to nifti single files
         if ext == '': ext = 'nii'
@@ -866,23 +866,23 @@ class NiftiFile(object):
         if ext == 'nii.gz' or ext == 'nii':
             self.__nimg.fname = base + '.' + ext
             self.__nimg.iname = base + '.' + ext
-            self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_1
+            self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_NIFTI1_1
         # uncompressed nifti file pairs
         elif ext in [ 'hdr', 'img' ]:
             self.__nimg.fname = base + '.hdr'
             self.__nimg.iname = base + '.img'
             if ext == 'hdr':
-                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+                self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_NIFTI1_2
             else:
-                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+                self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_ANALYZE
         # compressed file pairs
         elif ext in [ 'hdr.gz', 'img.gz' ]:
             self.__nimg.fname = base + '.hdr.gz'
             self.__nimg.iname = base + '.img.gz'
             if ext == 'hdr.gz':
-                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_NIFTI1_2
+                self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_NIFTI1_2
             else:
-                self.__nimg.nifti_type = clibs.NIFTI_FTYPE_ANALYZE
+                self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_ANALYZE
         else:
             raise RuntimeError, "Unhandled filetype."
 
@@ -894,7 +894,7 @@ class NiftiFile(object):
         for ANALYZE images while the header filename is returned for NIfTI
         files.
         """
-        if self.__nimg.nifti_type == clibs.NIFTI_FTYPE_ANALYZE:
+        if self.__nimg.nifti_type == nifticlib.NIFTI_FTYPE_ANALYZE:
             return self.__nimg.iname
         else:
             return self.__nimg.fname

@@ -21,4 +21,4 @@
 # $Date$
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-from niftifile import *
+from niftiimage import *
