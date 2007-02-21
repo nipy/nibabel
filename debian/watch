@@ -1,7 +1,7 @@
 # Compulsory line, this is a version 3 file
 version=3
 
-http://apsy.gse.uni-magdeburg.de/~hanke/software/pynifti/pynifti-(.*)\.tar\.gz
+http://apsy.gse.uni-magdeburg.de/~hanke/software/pynifti/pynifti_(.*)\.orig\.tar\.gz
 
 
 
