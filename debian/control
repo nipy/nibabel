@@ -2,7 +2,8 @@ Source: pynifti
 Section: science
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
-Build-Depends: debhelper (>= 5), swig, python-all-dev (>= 2.4), python-central (>= 0.5), python-numpy-ext, libniftiio0-dev
+Uploaders: Yaroslav Halchenko <debian@onerussian.com>
+Build-Depends: debhelper (>= 5.0.38), swig, python-all-dev (>= 2.4), python-central (>= 0.5.6), python-numpy-ext, libniftiio0-dev
 XS-Python-Version: >= 2.4
 Standards-Version: 3.7.2
 
