@@ -238,7 +238,7 @@ let's talk with Gnuplot.</p>
 <p><code>nim = NiftiImage('perfect_subject.nii.gz')</code></p>
 <p>and finally plot the timeseries of voxel (x=20, y=30, z=12):</p>
 <p><code>gp.plot(nim.data[:,12,30,20])</code></p>
-<p>A Gnuplot window showing the timeseries should popup now (<a href="pics/hanke/pynifti/gnuplot_ts.png">screenshot</a>). Please read the 
+<p>A Gnuplot window showing the timeseries should popup now (<a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/gnuplot_ts.png">screenshot</a>). Please read the 
 Gnuplot Manual to learn what it can do -- and it can do a lot more than just 
 simple line plots (have a look at <a href="http://gnuplot.sourceforge.net/demo_4.3/index.html">this</a>
 page if you are interested).</p>
@@ -252,4 +252,4 @@ page if you are interested).</p>
 show()</code></p>
 <p>It is necessary to call the <code>show()</code> function one time after importing pylab to actually see the image when running Python interactively (<a href="pics/hanke/pynifti/matplotlib_xyslice.png">screenshot</a>).</p><p>When you want to have a look at a yz-slice, NumPy array magic comes into play.</p>
 <p><code>imshow(nim3d.data[::-1,:,100], interpolation='nearest', cmap=cm.gray)</code></p>
-<p>The <code>::-1</code> notation causes the z-axis to be flipped in the images. This makes a much nicer <a href="pics/hanke/pynifti/matplotlib_yzslice.png">screenshot</a>, because the used example volume has the z-axis originally oriented upsidedown.</p>
+<p>The <code>::-1</code> notation causes the z-axis to be flipped in the images. This makes a much nicer <a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/matplotlib_yzslice.png">screenshot</a>, because the used example volume has the z-axis originally oriented upsidedown.</p>

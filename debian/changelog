@@ -1,8 +1,9 @@
 pynifti (0.20070220.1-2) unstable; urgency=low
 
   * Updated build-depends to comply to the latest Python policy.
+  * Initial upload to the Debian archive. 
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu, 22 Feb 2007 19:37:54 +0100
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 22 Feb 2007 21:08:28 +0100
 
 pynifti (0.20070220.1-1) unstable; urgency=low
 
