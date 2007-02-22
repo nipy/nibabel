@@ -1,4 +1,4 @@
-pynifti (0.20070220.1-2) UNRELEASED; urgency=low
+pynifti (0.20070220.1-2) unstable; urgency=low
 
   * Updated build-depends to comply to the latest Python policy.
 
