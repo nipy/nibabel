@@ -42,11 +42,11 @@ capabilities of the library.
 #include <numpy/arrayobject.h>
 
 /* low tech wrapper function to set values of a mat44 struct */
-static void set_mat44(mat44* m, 
+static void set_mat44(mat44* m,
                       float a1, float a2, float a3, float a4,
                       float b1, float b2, float b3, float b4,
                       float c1, float c2, float c3, float c4,
-                      float d1, float d2, float d3, float d4 ) 
+                      float d1, float d2, float d3, float d4 )
 {
     m->m[0][0] = a1; m->m[0][1] = a2; m->m[0][2] = a3; m->m[0][3] = a4;
     m->m[1][0] = b1; m->m[1][1] = b2; m->m[1][2] = b3; m->m[1][3] = b4;
@@ -55,20 +55,20 @@ static void set_mat44(mat44* m,
 }
 
 /* convert mat44 struct into a numpy float array */
-static PyObject* mat442array(mat44 _mat) 
+static PyObject* mat442array(mat44 _mat)
 {
     int dims[2] = {4,4};
-   
+
     PyObject* array = 0;
     array = PyArray_FromDims ( 2, dims, NPY_FLOAT );
-    
+
     /* mat44 subscription is [row][column] */
     PyArrayObject* a = (PyArrayObject*) array;
 
     float* data = (float *)a->data;
 
     int i,j;
-    
+
     for (i = 0; i<4; i+=1)
     {
         for (j = 0; j<4; j+=1)
@@ -81,7 +81,7 @@ static PyObject* mat442array(mat44 _mat)
 }
 
 static PyObject* wrapImageDataWithArray(nifti_image* _img)
-{ 
+{
     if (!_img)
     {
         PyErr_SetString(PyExc_RuntimeError, "Zero pointer passed instead of valid nifti_image struct.");
@@ -184,7 +184,7 @@ int allocateImageMemory(nifti_image* _nim)
 %}
 
 
-%init 
+%init
 %{
     import_array();
 %}
@@ -208,11 +208,11 @@ static PyObject * wrapImageDataWithArray(nifti_image* _img);
 int allocateImageMemory(nifti_image* _nim);
 
 static PyObject* mat442array(mat44 _mat);
-static void set_mat44(mat44* m, 
+static void set_mat44(mat44* m,
                       float a1, float a2, float a3, float a4,
                       float b1, float b2, float b3, float b4,
                       float c1, float c2, float c3, float c4,
-                      float d1, float d2, float d3, float d4 ); 
+                      float d1, float d2, float d3, float d4 );
 
 
 %include "cpointer.i"

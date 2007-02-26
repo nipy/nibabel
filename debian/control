@@ -16,5 +16,5 @@ Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python interface to the NIfTI I/O libraries
  Using PyNIfTI one can easily read and write NIfTI and ANALYZE images from
- within Python. The NiftiImage class provides Python-style access to the full 
+ within Python. The NiftiImage class provides Python-style access to the full
  header information. Image data is made available via NumPy arrays.

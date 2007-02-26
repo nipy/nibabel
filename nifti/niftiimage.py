@@ -28,17 +28,17 @@ import numpy
 
 nifti_unit_ids = [ 'm', 'mm', 'um' ]
 
-   
+
 class NiftiImage(object):
     """Wrapper class for convenient access to NIfTI data.
-    
-    The class can either load an image from file or convert a NumPy 
+
+    The class can either load an image from file or convert a NumPy
     array into a NIfTI file structure. Either way is automatically determined
     by the type of the 'source' argument (string == filename, array == Numpy).
 
-    One can optionally specify whether the image data should be loaded into 
+    One can optionally specify whether the image data should be loaded into
     memory when opening NIfTI data from files ('load'). When converting a NumPy
-    array one can optionally specify a dictionary with NIfTI header data as 
+    array one can optionally specify a dictionary with NIfTI header data as
     available via the 'header' attribute.
     """
 
@@ -59,9 +59,9 @@ class NiftiImage(object):
                             }
 
 
-    @staticmethod 
+    @staticmethod
     def numpydtype2niftidtype(array):
-        """ Return the NIfTI datatype id for a corrsponding numpy array 
+        """ Return the NIfTI datatype id for a corrsponding numpy array
         datatype.
         """
         # get the real datatype from numpy type dictionary
@@ -75,7 +75,7 @@ class NiftiImage(object):
 
     @staticmethod
     def splitFilename(filename):
-        """ Split a NIfTI filename and returns a tuple of basename and 
+        """ Split a NIfTI filename and returns a tuple of basename and
         extension. If no valid NIfTI filename extension is found, the whole
         string is returned as basename and the extension string will be empty.
         """
@@ -93,27 +93,27 @@ class NiftiImage(object):
             else:
                 return '.'.join(parts[:-1]), parts[-1]
 
-    
+
     @staticmethod
     def nhdr2dict(nhdr):
         """ Convert a NIfTI header struct into a python dictionary.
 
-        While most elements of the header struct will be translated 
-        1:1 some (e.g. sform matrix) are converted into more convenient 
+        While most elements of the header struct will be translated
+        1:1 some (e.g. sform matrix) are converted into more convenient
         datatypes (i.e. 4x4 matrix instead of 16 separate values).
         """
         h = {}
-        
+
         # the following header elements are converted in a simple loop
         # as they do not need special handling
-        auto_convert = [ 'session_error', 'extents', 'sizeof_hdr', 
+        auto_convert = [ 'session_error', 'extents', 'sizeof_hdr',
                          'slice_duration', 'slice_start', 'xyzt_units',
                          'cal_max', 'intent_p1', 'intent_p2', 'intent_p3',
                          'intent_code', 'sform_code', 'cal_min', 'scl_slope',
                          'slice_code', 'bitpix', 'descrip', 'glmin', 'dim_info',
                          'glmax', 'data_type', 'aux_file', 'intent_name',
-                         'vox_offset', 'db_name', 'scl_inter', 'magic', 
-                         'datatype', 'regular', 'slice_end', 'qform_code', 
+                         'vox_offset', 'db_name', 'scl_inter', 'magic',
+                         'datatype', 'regular', 'slice_end', 'qform_code',
                          'toffset' ]
 
 
@@ -146,15 +146,15 @@ class NiftiImage(object):
 
         return h
 
-    
+
     @staticmethod
     def updateNiftiHeaderFromDict(nhdr, hdrdict):
         """ Update a NIfTI header struct with data from a dictionary.
-        
-        The supplied dictionary might contain additonal data elements 
+
+        The supplied dictionary might contain additonal data elements
         that do not match any nifti header element. These are silently ignored.
 
-        Several checks are performed to ensure validity of the resulting 
+        Several checks are performed to ensure validity of the resulting
         nifti header struct. If any check fails a ValueError exception will be
         thrown. However, some tests are still missing.
         """
@@ -246,7 +246,7 @@ class NiftiImage(object):
         if hdrdict.has_key('quatern'):
             if not len(hdrdict['quatern']) == 3:
                 raise ValueError, "Nifti header property 'quatern' must be 3-tuple of floats."
-            
+
             nhdr.quatern_b = hdrdict['quatern'][0]
             nhdr.quatern_c = hdrdict['quatern'][1]
             nhdr.quatern_d = hdrdict['quatern'][2]
@@ -254,7 +254,7 @@ class NiftiImage(object):
         if hdrdict.has_key('qoffset'):
             if not len(hdrdict['qoffset']) == 3:
                 raise ValueError, "Nifti header property 'qoffset' must be 3-tuple of floats."
-            
+
             nhdr.qoffset_x = hdrdict['qoffset'][0]
             nhdr.qoffset_y = hdrdict['qoffset'][1]
             nhdr.qoffset_z = hdrdict['qoffset'][2]
@@ -274,7 +274,7 @@ class NiftiImage(object):
             if len(hdrdict['intent_name']) > 15:
                 raise ValueError, "Nifti header property 'intent_name' must not be longer than 15 characters."
             nhdr.intent_name = hdrdict['intent_name']
-        
+
         if hdrdict.has_key('magic'):
             if hdrdict['magic'] != 'ni1' and hdrdict['magic'] != 'n+1':
                 raise ValueError, "Nifti header property 'magic' must be 'ni1' or 'n+1'."
@@ -285,18 +285,18 @@ class NiftiImage(object):
         """ Create a Niftifile object.
 
         This method decides whether to load a nifti image from file or create
-        one from array data, depending on the datatype of 'source'. If source 
+        one from array data, depending on the datatype of 'source'. If source
         is a string, it is assumed to be a filename and an attempt will be made
-        to open the corresponding niftifile. If 'load' is set to True the image 
+        to open the corresponding niftifile. If 'load' is set to True the image
         data will be loaded into memory.
 
-        If 'source' is a numpy array the array data will be used for the to be 
+        If 'source' is a numpy array the array data will be used for the to be
         created nifti image and a matching nifti header is generated. Additonal
         header data might be supplied in a dictionary. However, dimensionality
-        and datatype are determined from the numpy array and not taken from 
+        and datatype are determined from the numpy array and not taken from
         a header dictionary.
 
-        If an object of a different type is supplied as 'source' as ValueError 
+        If an object of a different type is supplied as 'source' as ValueError
         exception will be thrown.
         """
 
@@ -309,7 +309,7 @@ class NiftiImage(object):
         else:
             raise ValueError, "Unsupported source type. Only NumPy arrays and filename string are supported."
 
-        
+
     def __del__(self):
         self.__close()
 
@@ -330,11 +330,11 @@ class NiftiImage(object):
         # check array
         if len(data.shape) > 7:
             raise ValueError, "NIfTI does not support data with more than 7 dimensions."
-        
+
         # create template nifti header struct
         niptr = nifticlib.nifti_simple_init_nim()
         nhdr = nifticlib.nifti_convert_nim2nhdr(niptr)
-        
+
         # intermediate cleanup
         nifticlib.nifti_image_free(niptr)
 
@@ -349,10 +349,10 @@ class NiftiImage(object):
         # finally set header data that is determined by the data array
         # convert numpy to nifti datatype
         hdic['datatype'] = self.numpydtype2niftidtype(data)
-        
+
         # set number of dims
         hdic['dim'][0] = len(data.shape)
-        
+
         # set size of each dim (and reverse the order to match nifti format
         # requirements)
         for i, s in enumerate(data.shape):
@@ -363,16 +363,16 @@ class NiftiImage(object):
 
         # update nifti header with information from dict
         NiftiImage.updateNiftiHeaderFromDict(nhdr, hdic)
-        
+
         # make clean table
         self.__close()
 
         # convert nifti header to nifti image struct
         self.__nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
-        
+
         if not self.__nimg:
             raise RuntimeError, "Could not create nifti image structure."
-        
+
         # kill filename for nifti images from arrays
         self.__nimg.fname = ''
         self.__nimg.iname = ''
@@ -405,7 +405,7 @@ class NiftiImage(object):
         """Save the image.
 
         If the image was created using array data (not loaded from a file) one
-        has to specify a filename. 
+        has to specify a filename.
 
         Setting the filename also determines the filetype (NIfTI/ANALYZE).
         Please see the setFilename() method for some details.
@@ -413,10 +413,10 @@ class NiftiImage(object):
         Calling save() without a specified filename on a NiftiImage loaded
         from a file, will overwrite the original file.
 
-        If not yet done already, the image data will be loaded into memory 
+        If not yet done already, the image data will be loaded into memory
         before saving the file.
 
-        Warning: There will be no exception if writing fails for any reason, 
+        Warning: There will be no exception if writing fails for any reason,
         as the underlying function nifti_write_hdr_img() from libniftiio does
         not provide any feedback. Suggestions for improvements are appreciated.
         """
@@ -464,40 +464,40 @@ class NiftiImage(object):
         self.__ensureNiftiImage()
 
         if nifticlib.nifti_image_load( self.__nimg ) < 0:
-            raise RuntimeError, "Unable to load image data." 
-    
+            raise RuntimeError, "Unable to load image data."
+
 
     def unload(self):
         """Unload image data and free allocated memory.
         """
         self.__ensureNiftiImage()
-        
+
         nifticlib.nifti_image_unload(self.__nimg)
-    
+
 
     def getDataArray(self):
         """ Calls asarray(False) to return the NIfTI image data wrapped into
-        a NumPy array. 
+        a NumPy array.
 
-        Attention: The array shares the data with the NiftiImage object. Any 
+        Attention: The array shares the data with the NiftiImage object. Any
         resize operation or datatype conversion will most likely result in a
         fatal error. If you need to perform such things, get a copy
         of the image data by using asarray(copy=True).
         """
         return self.asarray(False)
-    
+
 
     def asarray(self, copy = True):
         """Convert the image data into a multidimensional array.
 
-        Attention: If copy == False (the default) the array only wraps 
-        the image data. Any modification done to the array is also done 
-        to the image data. 
-        
+        Attention: If copy == False (the default) the array only wraps
+        the image data. Any modification done to the array is also done
+        to the image data.
+
         If copy is true the array contains a copy of the image data.
 
         Changing the shape, size or data of a wrapping array is not supported
-        and will most likely result in a fatal error. If you want to data 
+        and will most likely result in a fatal error. If you want to data
         anything else to the data but reading or simple value assignment
         use a copy of the data by setting the copy flag. Later you can convert
         the modified data array into a NIfTi file again.
@@ -522,14 +522,14 @@ class NiftiImage(object):
         if not self.__nimg:
             raise RuntimeError, "There is no NIfTI image file structure."
 
-    
+
     def updateCalMinMax(self):
         """ Update the image data maximum and minimum value in the
         nifti header.
         """
         self.__nimg.cal_max = float(self.data.max())
         self.__nimg.cal_min = float(self.data.min())
-        
+
     def getVoxDims(self):
         """ Returns a 3-tuple a voxel dimensions/size in (x,y,z).
         """
@@ -539,7 +539,7 @@ class NiftiImage(object):
     def setVoxDims(self, value):
         """ Set voxel dimensions/size.
 
-        This method takes a 3-tuple of floats as argument. The qform matrix 
+        This method takes a 3-tuple of floats as argument. The qform matrix
         and its inverse will be recalculated automatically.
         """
         if len(value) != 3:
@@ -553,10 +553,10 @@ class NiftiImage(object):
 
 
     def getHeader(self):
-        """ Returns the header data of the nifti image in a dictionary. 
+        """ Returns the header data of the nifti image in a dictionary.
         """
         h = {}
-        
+
         # Convert nifti_image struct into nifti1 header struct.
         # This get us all data that will actually make it into a
         # NIfTI file.
@@ -568,7 +568,7 @@ class NiftiImage(object):
         """ Update NIfTI header information.
 
         Updated header data is read from the supplied dictionary. One cannot
-        modify dimensionality and datatype of the image data. If such 
+        modify dimensionality and datatype of the image data. If such
         information is present in the header dictionary it is removed before
         the update. If such modifications are necessary one has to convert the
         image data into a separate array ( NiftiImage.assarray(copy=True) ) and
@@ -576,7 +576,7 @@ class NiftiImage(object):
         the array can be converted into a nifti file by calling the NiftiImage
         constructor with the modified array as 'source' and the nifti header
         of the original NiftiImage object as 'header'.
-        
+
         It is save to call this method with and without loaded image data.
 
         The actual update is done by NiftiImage.updateNiftiHeaderFromDict().
@@ -584,7 +584,7 @@ class NiftiImage(object):
         # rebuild nifti header from current image struct
         nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
 
-        # remove settings from the hdrdict that are determined by 
+        # remove settings from the hdrdict that are determined by
         # the data set and must not be modified to preserve data integrity
         if hdrdict.has_key('datatype'):
             del hdrdict['datatype']
@@ -598,13 +598,13 @@ class NiftiImage(object):
         new_nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, self.filename)
         if not new_nimg:
             raise RuntimeError, "Could not recreate NIfTI image struct from updated header."
-        
+
         # replace old image struct by new one
         # be careful with memory leak (still not checked whether successful)
 
         # rescue data ptr
         new_nimg.data = self.__nimg.data
-        
+
         # and remove it from old image struct
         self.__nimg.data = None
 
@@ -626,7 +626,7 @@ class NiftiImage(object):
         """
         self.__nimg.scl_inter = float(value)
 
-    
+
     def setDescription(self, value):
         """ Set the description element in the NIfTI header.
 
@@ -644,16 +644,16 @@ class NiftiImage(object):
 
     def setSForm(self, m):
         """ Sets the sform matrix.
-        The supplied value has to be a 4x4 matrix. The matrix elements will be 
-        converted to floats. By definition the last row of the sform matrix has 
-        to be (0,0,0,1). However, different values can be assigned, but will 
+        The supplied value has to be a 4x4 matrix. The matrix elements will be
+        converted to floats. By definition the last row of the sform matrix has
+        to be (0,0,0,1). However, different values can be assigned, but will
         not be stored when the niftifile is saved.
 
         The inverse sform matrix will be automatically recalculated.
         """
         if m.shape != (4,4):
             raise ValueError, "SForm matrix has to be of size 4x4."
-       
+
         # make sure it is float
         m = m.astype('float')
 
@@ -663,10 +663,10 @@ class NiftiImage(object):
                          m[2,0], m[2,1], m[2,2], m[2,3],
                          m[3,0], m[3,1], m[3,2], m[3,3] )
 
-        # recalculate inverse 
+        # recalculate inverse
         self.__nimg.sto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.sto_xyz )
 
-    
+
     def getInverseSForm(self):
         """ Returns the inverse sform matrix.
         """
@@ -688,14 +688,14 @@ class NiftiImage(object):
     def setQForm(self, m):
         """ Sets the qform matrix.
         The supplied value has to be a 4x4 matrix. The matrix will be converted
-        to float. 
-        
-        The inverse qform matrix and the quaternion representation will be 
+        to float.
+
+        The inverse qform matrix and the quaternion representation will be
         automatically recalculated.
         """
         if m.shape != (4,4):
             raise ValueError, "QForm matrix has to be of size 4x4."
-       
+
         # make sure it is float
         m = m.astype('float')
 
@@ -705,7 +705,7 @@ class NiftiImage(object):
                          m[2,0], m[2,1], m[2,2], m[2,3],
                          m[3,0], m[3,1], m[3,2], m[3,3] )
 
-        # recalculate inverse 
+        # recalculate inverse
         self.__nimg.qto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
         # update quaternions
@@ -727,13 +727,13 @@ class NiftiImage(object):
           self.__nimg.qfac )
 
 
-        # recalculate inverse 
+        # recalculate inverse
         self.__nimg.qto_ijk = nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
 
     def setQuaternion(self, value):
         """ Set Quaternion from 3-tuple (qb, qc, qd).
-        
+
         The qform matrix and its inverse are re-computed automatically.
         """
         if len(value) != 3:
@@ -754,7 +754,7 @@ class NiftiImage(object):
 
     def setQOffset(self, value):
         """ Set QOffset from 3-tuple (qx, qy, qz).
-        
+
         The qform matrix and its inverse are re-computed automatically.
         """
         if len(value) != 3:
@@ -775,7 +775,7 @@ class NiftiImage(object):
 
     def setQFac(self, value):
         """ Set qfac.
-        
+
         The qform matrix and its inverse are re-computed automatically.
         """
         self.__nimg.qfac = float(value)
@@ -787,7 +787,7 @@ class NiftiImage(object):
         qform matrix.
 
         By default NIfTI orientation codes are returned, but if 'as_string' is
-        set to true a string representation ala 'Left-to-right' is returned 
+        set to true a string representation ala 'Left-to-right' is returned
         instead.
         """
         codes = nifticlib.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
@@ -802,7 +802,7 @@ class NiftiImage(object):
         sform matrix.
 
         By default NIfTI orientation codes are returned, but if 'as_string' is
-        set to true a string representation ala 'Left-to-right' is returned 
+        set to true a string representation ala 'Left-to-right' is returned
         instead.
         """
         codes = nifticlib.nifti_mat44_to_orientation(self.__nimg.sto_xyz)
@@ -817,20 +817,20 @@ class NiftiImage(object):
 
         Setting the filename also determines the filetype. If the filename
         ends with '.nii' the type will be set to NIfTI single file. A '.hdr'
-        extension should has to be used for NIfTI file pairs. If the desired 
+        extension should has to be used for NIfTI file pairs. If the desired
         filetype is ANALYZE the extension should be '.img'.
 
         If the filename carries an additional '.gz' the resulting file(s) will
         be compressed.
 
-        Uncompressed NIfTI single files are the default filetype that will be 
-        used if the filename has no valid extension. The '.nii' extension is 
+        Uncompressed NIfTI single files are the default filetype that will be
+        used if the filename has no valid extension. The '.nii' extension is
         appended automatically.
 
         Setting the filename will cause the image data to be loaded into memory
         if not yet done already. This has to be done, because the the filename
-        of the original image file there would be no access to the image data 
-        anymore. As a side-effect a simple operation like setting a filename 
+        of the original image file there would be no access to the image data
+        anymore. As a side-effect a simple operation like setting a filename
         may take a significant amount of time (e.g. for a large 4d dataset).
 
         Examples:
@@ -842,7 +842,7 @@ class NiftiImage(object):
           exmpl.img         exmpl.hdr, exmpl.img (ANALYZE)
           exmpl             exmpl.nii (NIfTI)
           exmpl.hdr.gz      exmpl.hdr.gz, exmpl.img.gz (NIfTI)
- 
+
         ! exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
 
         """
@@ -859,7 +859,7 @@ class NiftiImage(object):
         # if no extension default to nifti single files
         if ext == '': ext = 'nii'
 
-        # Determine the filetype and set header and image filename 
+        # Determine the filetype and set header and image filename
         # appropriately.
 
         # nifti single files are easy
@@ -915,7 +915,7 @@ class NiftiImage(object):
     intercept =     property(fget=lambda self: self.__nimg.scl_inter,
                              fset=setIntercept)
     voxdim =        property(fget=getVoxDims, fset=setVoxDims)
-    description =   property(fget=lambda self: self.__nimg.descrip, 
+    description =   property(fget=lambda self: self.__nimg.descrip,
                              fset=setDescription)
     header =        property(fget=getHeader, fset=updateHeader)
     sform =         property(fget=getSForm, fset=setSForm)

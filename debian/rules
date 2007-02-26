@@ -23,7 +23,7 @@ else
 	CFLAGS += -O2
 endif
 
-#Architecture 
+#Architecture
 build: build-arch build-indep
 
 build-arch: build-arch-stamp
@@ -35,25 +35,25 @@ build-arch-python%:
 	touch $@
 
 build-indep: build-indep-stamp
-build-indep-stamp: 
+build-indep-stamp:
 	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp build-arch-python*
-	
+
 	# Add here commands to clean up after the build process.
 	python setup.py clean
 	$(MAKE) distclean
 
-	dh_clean 
+	dh_clean
 
 pre-install:
 	dh_testdir
 	dh_testroot
-	dh_clean -k  
-	dh_installdirs 
+	dh_clean -k
+	dh_installdirs
 
 
 install: build pre-install install-indep install-arch
@@ -74,11 +74,11 @@ install-arch: pre-install $(PYVERS:%=install-python%)
 binary-common:
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+	dh_installchangelogs
 	dh_installdocs
 	dh_strip
 	dh_pycentral
-	dh_compress 
+	dh_compress
 	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
@@ -89,7 +89,7 @@ binary-common:
 
 # Build architecture independant packages using the common target.
 binary-indep: build-indep install-indep
-	# there is nothing to do 
+	# there is nothing to do
 	#$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
 # Build architecture dependant packages using the common target.

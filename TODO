@@ -1,5 +1,9 @@
 
-Yarik's wishes unsorted - please remove or fulfill ;-)
+Yarik's wishes sorted - please remove or fulfill:
+
+- dims/shape property for NiftiImage
+
+- timepoints property
 
 - failed save* and constructors should raise exception
 

@@ -38,7 +38,7 @@ numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 
 
 # Notes on the setup
-# Version scheme is: 
+# Version scheme is:
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
@@ -50,10 +50,10 @@ setup(name       = 'pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
     long_description = """ """,
     packages     = [ 'nifti' ],
-    ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ], 
+    ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
             include_dirs = [ '/usr/include/nifti', numpy_headers ],
             libraries    = [ 'niftiio' ],
-            swig_opts    = [ '-I/usr/include/nifti',  
+            swig_opts    = [ '-I/usr/include/nifti',
                              '-I' + numpy_headers ] ) ]
     )
 
