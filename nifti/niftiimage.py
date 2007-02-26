@@ -552,6 +552,13 @@ class NiftiImage(object):
         self.updateQFormFromQuaternion()
 
 
+    def getExtent(self):
+        """ Returns a tuple describing the shape (size in voxel/timepoints)
+        of the dataimage.
+        """
+        return tuple( self.header['dim'][1:self.header['dim'][0]+1] )
+
+
     def getHeader(self):
         """ Returns the header data of the nifti image in a dictionary.
         """
@@ -907,6 +914,9 @@ class NiftiImage(object):
     data =          property(fget=getDataArray)
     sform_inv =     property(fget=getInverseSForm)
     qform_inv =     property(fget=getInverseQForm)
+    extent =        property(fget=getExtent)
+    volextent =     property(fget=lambda self: self.extent[:3])
+    timepoints =    property(fget=lambda self: self.extent[3])
 
     # read and write
     filename =      property(fget=getFilename, fset=setFilename)

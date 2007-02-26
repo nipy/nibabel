@@ -1,9 +1,14 @@
 pynifti (0.20070220.1-2) unstable; urgency=low
 
+  [ Michael Hanke ]
   * Updated build-depends to comply to the latest Python policy.
-  * Initial upload to the Debian archive. 
+  * Initial upload to the Debian archive.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu, 22 Feb 2007 21:08:28 +0100
+  [ Yaroslav Halchenko ]
+  * Added extent, volextent, and timepoints properties to NiftiImage
+    class.
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 26 Feb 2007 18:07:08 -0500
 
 pynifti (0.20070220.1-1) unstable; urgency=low
 

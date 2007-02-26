@@ -2,9 +2,14 @@
 Yarik's wishes sorted - please remove or fulfill:
 
 - dims/shape property for NiftiImage
-
 - timepoints property
+   yoh: made initial attempt to accomplish the mission. Check diff to
+   237
 
 - failed save* and constructors should raise exception
 
+Possibly wrong/incorrect/wontfix suggestions:
+
+- [gs]etVoxDims should work with all dimensions up to 7 as they are
+   defined in nifti1_io.h
 
