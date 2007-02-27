@@ -439,7 +439,8 @@ class NiftiImage(object):
             self.setFilename(filename)
 
         # now save it
-        nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
+        if not nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb'):
+            raise IOError, 'An error occured while attempting to save the image file.'
 
 
     def __haveImageData(self):
@@ -555,8 +556,45 @@ class NiftiImage(object):
     def getExtent(self):
         """ Returns a tuple describing the shape (size in voxel/timepoints)
         of the dataimage.
+
+        The order of dimensions is (x,y,z,t,u,v,w). If the image has less 
+        dimensions than 7 the return tuple will be shortened accordingly.
+
+        Please note that the order of dimensions is different from the tuple
+        returned by calling NiftiImage.data.shape!
+
+        See also getVolumeExtent() and getTimepoints().
         """
-        return tuple( self.header['dim'][1:self.header['dim'][0]+1] )
+        # wrap dim array in nifti image struct
+        dims_array = nifticlib.intArray_frompointer(self.__nimg.dim)
+        dims = [ dims_array[i] for i in range(8) ]
+
+        return tuple( dims[1:dims[0]+1] )
+
+
+    def getVolumeExtent(self):
+        """ Returns the size/shape of the volume(s) in the image as a tuple.
+
+        This method returns either a 3-tuple or 2-tuple or 1-tuple depending 
+        on the available dimensions in the image.
+
+        The order of dimensions in the tuple is (x [, y [, z ] ] ).
+        """
+
+        # it is save to do this even if self.extent is shorter than 4 items
+        return self.extent[:3]
+
+
+    def getTimepoints(self):
+        """ Returns the number of timepoints in the image.
+
+        In case of a 3d (or less dimension) image this method returns 1.
+        """
+
+        if len(self.extent) < 4:
+            return 1
+        else:
+            return self.extent[3]
 
 
     def getHeader(self):
@@ -570,6 +608,7 @@ class NiftiImage(object):
         nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
 
         return NiftiImage.nhdr2dict(nhdr)
+
 
     def updateHeader(self, hdrdict):
         """ Update NIfTI header information.
@@ -644,10 +683,12 @@ class NiftiImage(object):
 
         self.__nimg.descrip = value
 
+
     def getSForm(self):
         """ Returns the sform matrix.
         """
         return nifticlib.mat442array(self.__nimg.sto_xyz)
+
 
     def setSForm(self, m):
         """ Sets the sform matrix.
@@ -915,8 +956,8 @@ class NiftiImage(object):
     sform_inv =     property(fget=getInverseSForm)
     qform_inv =     property(fget=getInverseQForm)
     extent =        property(fget=getExtent)
-    volextent =     property(fget=lambda self: self.extent[:3])
-    timepoints =    property(fget=lambda self: self.extent[3])
+    volextent =     property(fget=getVolumeExtent)
+    timepoints =    property(fget=getTimepoints)
 
     # read and write
     filename =      property(fget=getFilename, fset=setFilename)

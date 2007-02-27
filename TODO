@@ -5,11 +5,12 @@ Yarik's wishes sorted - please remove or fulfill:
 - timepoints property
    yoh: made initial attempt to accomplish the mission. Check diff to
    237
-
-- failed save* and constructors should raise exception
+   hanke: Mission accomplished ;)
 
 Possibly wrong/incorrect/wontfix suggestions:
 
 - [gs]etVoxDims should work with all dimensions up to 7 as they are
    defined in nifti1_io.h
+   hanke: maybe, but that would mix different units, which I'd rather not do.
+
 
