@@ -1,8 +1,8 @@
-pynifti (0.20070301.1-1) unstable; urgency=low
+pynifti (0.20070301.2-1) unstable; urgency=low
 
   [ Michael Hanke ]
   * Updated build-depends to comply to the latest Python policy.
-  * Initial upload to the Debian archive.
+  * Initial upload to the Debian archive. (Closes: #413049)
   * NiftiImage.save() raises an IOError exception when writing the image file
     fails.
 
@@ -10,7 +10,7 @@ pynifti (0.20070301.1-1) unstable; urgency=low
   * Added extent, volextent, and timepoints properties to NiftiImage
     class.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu,  1 Mar 2007 20:33:37 +0100
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu,  1 Mar 2007 22:08:15 +0100
 
 pynifti (0.20070220.1-1) unstable; urgency=low
 
