@@ -1,5 +1,11 @@
 pynifti (0.20070301.2-1) unstable; urgency=low
 
+  * Fixed wrong link to the source tarball in README.html. 
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu,  1 Mar 2007 22:27:26 +0100
+
+pynifti (0.20070301.1-1) unstable; urgency=low
+
   [ Michael Hanke ]
   * Updated build-depends to comply to the latest Python policy.
   * Initial upload to the Debian archive. (Closes: #413049)
