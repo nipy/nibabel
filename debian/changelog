@@ -1,3 +1,10 @@
+pynifti (0.20070301.2-2) unstable; urgency=low
+
+  * Removed functionality for "NiftiImage.save() raises an IOError
+    exception when writing the image file fails."
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed,  7 Mar 2007 16:36:02 -0500
+
 pynifti (0.20070301.2-1) unstable; urgency=low
 
   * Fixed wrong link to the source tarball in README.html. 

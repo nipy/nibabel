@@ -439,8 +439,10 @@ class NiftiImage(object):
             self.setFilename(filename)
 
         # now save it
-        if not nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb'):
-            raise IOError, 'An error occured while attempting to save the image file.'
+        nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
+		# yoh comment: unfortunately return value of nifti_image_write_hdr_img
+		# can't be used to track the successful completion of save
+		# raise IOError, 'An error occured while attempting to save the image file.'
 
 
     def __haveImageData(self):
