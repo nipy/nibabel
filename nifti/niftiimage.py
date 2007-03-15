@@ -21,11 +21,12 @@
 # $Date$
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+# the swig wrapper if the NIfTI C library
 import nifticlib
 import os
 import numpy
 
-
+# TODO: merge this one into the NiftiImage class
 nifti_unit_ids = [ 'm', 'mm', 'um' ]
 
 
@@ -45,6 +46,7 @@ class NiftiImage(object):
     filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
                   'NIFTI_PAIR_GZ' ]
 
+    # map NumPy datatypes to NIfTI datatypes
     numpy2nifti_dtype_map = { numpy.uint8: nifticlib.NIFTI_TYPE_UINT8,
                               numpy.int8 : nifticlib.NIFTI_TYPE_INT8,
                               numpy.uint16: nifticlib.NIFTI_TYPE_UINT16,
@@ -281,7 +283,7 @@ class NiftiImage(object):
             nhdr.magic = hdrdict['magic']
 
 
-    def __init__(self, source, load=False, header = {} ):
+    def __init__(self, source, header = {}, load=False ):
         """ Create a Niftifile object.
 
         This method decides whether to load a nifti image from file or create
@@ -311,6 +313,8 @@ class NiftiImage(object):
 
 
     def __del__(self):
+        """ Do all necessary cleanups by calling __close().
+        """
         self.__close()
 
 
@@ -401,14 +405,15 @@ class NiftiImage(object):
             self.load()
 
 
-    def save(self, filename=None):
+    def save(self, filename=None, filetype = 'NIFTI'):
         """Save the image.
 
         If the image was created using array data (not loaded from a file) one
         has to specify a filename.
 
         Setting the filename also determines the filetype (NIfTI/ANALYZE).
-        Please see the setFilename() method for some details.
+        Please see the documentation of the setFilename() method for some 
+        details on the 'filename' and 'filetype' argument.
 
         Calling save() without a specified filename on a NiftiImage loaded
         from a file, will overwrite the original file.
@@ -436,13 +441,13 @@ class NiftiImage(object):
             if not filename:
                 raise ValueError, "When saving an image for the first time a filename has to be specified."
 
-            self.setFilename(filename)
+            self.setFilename(filename, filetype)
 
         # now save it
         nifticlib.nifti_image_write_hdr_img(self.__nimg, 1, 'wb')
-		# yoh comment: unfortunately return value of nifti_image_write_hdr_img
-		# can't be used to track the successful completion of save
-		# raise IOError, 'An error occured while attempting to save the image file.'
+        # yoh comment: unfortunately return value of nifti_image_write_hdr_img
+        # can't be used to track the successful completion of save
+        # raise IOError, 'An error occured while attempting to save the image file.'
 
 
     def __haveImageData(self):
@@ -505,6 +510,8 @@ class NiftiImage(object):
         use a copy of the data by setting the copy flag. Later you can convert
         the modified data array into a NIfTi file again.
         """
+        self.__ensureNiftiImage()
+
         if not self.__haveImageData():
             self.load()
 
@@ -514,6 +521,15 @@ class NiftiImage(object):
             return a.copy()
         else:
             return a
+
+
+    def getScaledData(self):
+        """ Returns a copy of the data array scaled by multiplying with the
+        slope and adding the intercept that is stored in the NIfTI header.
+        """
+        data = self.asarray(copy = True)
+
+        return data * self.slope + self.intercept
 
 
     def __ensureNiftiImage(self):
@@ -601,6 +617,10 @@ class NiftiImage(object):
 
     def getHeader(self):
         """ Returns the header data of the nifti image in a dictionary.
+
+        Note, that modifications done to this dictionary do not cause any 
+        modifications in the NIfTI image. Please use the updateHeader() method
+        to apply changes to the image.
         """
         h = {}
 
@@ -618,12 +638,13 @@ class NiftiImage(object):
         Updated header data is read from the supplied dictionary. One cannot
         modify dimensionality and datatype of the image data. If such
         information is present in the header dictionary it is removed before
-        the update. If such modifications are necessary one has to convert the
-        image data into a separate array ( NiftiImage.assarray(copy=True) ) and
-        perform resize and data manipulations on this array. When finished,
-        the array can be converted into a nifti file by calling the NiftiImage
-        constructor with the modified array as 'source' and the nifti header
-        of the original NiftiImage object as 'header'.
+        the update. If resizing or datatype casting are required one has to 
+        convert the image data into a separate array 
+        ( NiftiImage.assarray(copy=True) ) and perform resize and data 
+        manipulations on this array. When finished, the array can be converted
+        into a nifti file by calling the NiftiImage constructor with the
+        modified array as 'source' and the nifti header of the original
+        NiftiImage object as 'header'.
 
         It is save to call this method with and without loaded image data.
 
@@ -862,20 +883,27 @@ class NiftiImage(object):
             return codes
 
 
-    def setFilename(self, filename):
+    def setFilename(self, filename, filetype = 'NIFTI'):
         """ Set the filename for the NIfTI image.
 
         Setting the filename also determines the filetype. If the filename
         ends with '.nii' the type will be set to NIfTI single file. A '.hdr'
-        extension should has to be used for NIfTI file pairs. If the desired
-        filetype is ANALYZE the extension should be '.img'.
+        extension can be used for NIfTI file pairs. If the desired filetype
+        is ANALYZE the extension should be '.img'. However, one can use the
+        '.hdr' extension and force the filetype to ANALYZE by setting the
+        filetype argument to ANALYZE. Setting filetype if the filename
+        extension is '.nii' has no effect, the file will always be in NIFTI
+        format.
 
         If the filename carries an additional '.gz' the resulting file(s) will
         be compressed.
 
         Uncompressed NIfTI single files are the default filetype that will be
         used if the filename has no valid extension. The '.nii' extension is
-        appended automatically.
+        appended automatically. The 'filetype' argument can be used to force a
+        certain filetype when no extension can be used to determine it. 
+        'filetype' can be one of the nifticlibs filtetypes or any of 'NIFTI',
+        'NIFTI_GZ', 'NIFTI_PAIR', 'NIFTI_PAIR_GZ', 'ANALYZE', 'ANALYZE_GZ'.
 
         Setting the filename will cause the image data to be loaded into memory
         if not yet done already. This has to be done, because the the filename
@@ -907,7 +935,24 @@ class NiftiImage(object):
         base, ext = NiftiImage.splitFilename(filename)
 
         # if no extension default to nifti single files
-        if ext == '': ext = 'nii'
+        if ext == '': 
+            if filetype == 'NIFTI' \
+               or filetype == nifticlib.NIFTI_FTYPE_NIFTI1_1:
+                ext = 'nii'
+            elif filetype == 'NIFTI_PAIR' \
+                 or filetype == nifticlib.NIFTI_FTYPE_NIFTI1_2:
+                ext = 'hdr'
+            elif filetype == 'ANALYZE' \
+                 or filetype == nifticlib.NIFTI_FTYPE_ANALYZE:
+                ext = 'img'
+            elif filetype == 'NIFTI_GZ':
+                ext = 'nii.gz'
+            elif filetype == 'NIFTI_PAIR_GZ':
+                ext = 'hdr.gz'
+            elif filetype == 'ANALYZE_GZ':
+                ext = 'img.gz'
+            else:
+                raise RuntimeError, "Unhandled filetype."
 
         # Determine the filetype and set header and image filename
         # appropriately.
@@ -921,7 +966,7 @@ class NiftiImage(object):
         elif ext in [ 'hdr', 'img' ]:
             self.__nimg.fname = base + '.hdr'
             self.__nimg.iname = base + '.img'
-            if ext == 'hdr':
+            if ext == 'hdr' and not filetype.startswith('ANALYZE'):
                 self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_NIFTI1_2
             else:
                 self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_ANALYZE
@@ -929,7 +974,7 @@ class NiftiImage(object):
         elif ext in [ 'hdr.gz', 'img.gz' ]:
             self.__nimg.fname = base + '.hdr.gz'
             self.__nimg.iname = base + '.img.gz'
-            if ext == 'hdr.gz':
+            if ext == 'hdr.gz' and not filetype.startswith('ANALYZE'):
                 self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_NIFTI1_2
             else:
                 self.__nimg.nifti_type = nifticlib.NIFTI_FTYPE_ANALYZE

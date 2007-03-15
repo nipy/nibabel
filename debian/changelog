@@ -1,9 +1,20 @@
-pynifti (0.20070301.2-2) unstable; urgency=low
+pynifti (0.20070315.1-1) unstable; urgency=low
 
+  [ Yaroslav Halchenko ]
   * Removed functionality for "NiftiImage.save() raises an IOError
     exception when writing the image file fails."
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Wed,  7 Mar 2007 16:36:02 -0500
+  [ Michael Hanke ]
+  * Added ability to force a filetype when setting the filename or saving 
+    a file.
+  * Reverse the order of the 'header' and 'load' argument in the NiftiImage
+    constructor. 'header' is now first as it seems to be used more often.
+  * Improved the source code documentation.
+  * Added getScaledData() method to NiftiImage that returns a copy of the data
+    array that is scaled with the slope and intercept stored in the NIfTI
+    header.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 15 Mar 2007 18:25:52 +0100
 
 pynifti (0.20070301.2-1) unstable; urgency=low
 
