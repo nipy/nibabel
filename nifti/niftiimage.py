@@ -17,8 +17,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 # SVN version control block - do not edit manually
 # $Id$
-# $Rev$
-# $Date$
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 # the swig wrapper if the NIfTI C library

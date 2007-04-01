@@ -19,8 +19,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 # SVN version control block - do not edit manually
 # $Id$
-# $Rev$
-# $Date$
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 from distutils.core import setup, Extension

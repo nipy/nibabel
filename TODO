@@ -1,14 +1,6 @@
 
 Yarik's wishes sorted - please remove or fulfill:
 
-- too much automation or "where is my saveMyAss" ;-)
-  .save() should accept filetype parameter, which would override the
-   logic in setFilename (if not None)
-
-   filetype can be either specified by
-    nifticlib.NIFTI_FTYPE_* or may be human readable strings (ANALYZE,
-    NIFTI, etc)
-
 - as it is now: getHeader returns a header dictionary which is not
    binded to the object. so direct manipulation to it such as
 
@@ -46,13 +38,3 @@ Possibly wrong/incorrect/wontfix suggestions:
 - [gs]etVoxDims should work with all dimensions up to 7 as they are
    defined in nifti1_io.h
    hanke: maybe, but that would mix different units, which I'd rather not do.
-
-
-DONE:
-
-- dims/shape property for NiftiImage
-
-- timepoints property
-   yoh: made initial attempt to accomplish the mission. Check diff to
-   237
-   hanke: Mission accomplished ;)
