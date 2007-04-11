@@ -1,3 +1,18 @@
+pynifti (0.20070411.1-1) unstable; urgency=low
+
+  * Improved documentation. Added note about the special usage of the header
+    property. Also added notes about the relevant properties in the docstring
+    of the corresponding accessor methods.
+  * Added property and accessor methods to access/modify the repetition time
+    of timeseries (dt).
+  * Added functions to manipulate the pixdim values.
+  * Added utils.py with some utility functions.
+  * Added functions/property to determine the bounding box of an image.
+  * Fixed a bug that caused a corrupted sform matrix when converting a NumPy
+    array and a header dictionary into a NIfTI image.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 11 Apr 2007 15:32:58 +0200
+
 pynifti (0.20070315.1-1) unstable; urgency=low
 
   [ Yaroslav Halchenko ]
