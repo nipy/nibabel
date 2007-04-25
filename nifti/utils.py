@@ -21,22 +21,24 @@
 
 import nifti
 import numpy
+import scipy.stats
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
     the volume number that is closest in time. Volumes are assumed to be
     recorded exactly (and completely) after tr/2, e.g. if 'tr' is 2 secs the
-    first volume is recorded after one second.
+    first volume is recorded at exactly one second.
 
-    't' might be a single value a sequence or an array.
+    't' might be a single value, a sequence or an array.
 
     The repetition 'tr' might be specified directly, but can also be a 
     NiftiImage object. In the latter case the value of 'tr' is determined from
     the 'rtime' property of the NiftiImage object.
 
-    't' and 'tr' can be given in an arbitrary unit (but both in the same unit).
+    't' and 'tr' can be given in an arbitrary unit (but both have to be in the
+    same unit).
 
-    The 'lag' argument can be used to shift the times be constant offset.
+    The 'lag' argument can be used to shift the times by constant offset.
 
     Please note that numpy.round() is used to round to interger value (rounds
     to even numbers). The 'decimals' argument will be passed to numpy.round().
@@ -53,17 +55,22 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
     return vol
 
 
-def calcConditionMeans( ts, vols ):
-    """ Compute the mean of a series of volumes.
+def applyFxToVolumes( ts, vols, fx, **kwargs ):
+    """ Apply a function on selected volumes of a timeseries.
 
     'ts' is a 4d timeseries. It can be a NiftiImage or a numpy array.
-    In case of a numpy array one has to make sure that the time is on the first
-    axis.
+    In case of a numpy array one has to make sure that the time is on the
+    first axis. 'ts' can actually be of any dimensionality, but datasets aka
+    volumes are assumed to be along the first axis.
 
     'vols' is either a sequence of sequences or a 2d array indicating which 
-    volumes are to be averaged. Each row defines volumes that are to be averaged.
+    volumes fx should be applied to. Each row defines a set of volumes.
 
-    The output will be a 4d array with one average volume per row in the 'vols'
+    'fx' is a callable function to get an array of the selected volumes as
+    argument. Additonal arguments may be specified as keyword arguments and
+    are passed to 'fx'.
+
+    The output will be a 4d array with one computed volume per row in the 'vols'
     array.
     """
     # get data array from nifti image or assume data array is
@@ -73,22 +80,12 @@ def calcConditionMeans( ts, vols ):
     else:
         data = ts
 
-    # check for 4d array
-    if not len( data.shape ) == 4:
-        raise ValueError, 'This function only handles 4d arrays'
-
-    # determine the size of the output image
-    # input data is assumed to have time on the first axis
-    avg = numpy.zeros( (len(vols),) + data.shape[1:4] )
+    out = []
 
     for i, vol in enumerate(vols):
-        # calc mean of all indicated volumes
-        for v in vol:
-            avg[i] += data[v]
+        out.append( fx( data[ numpy.array( vol ) ], **kwargs ) )
 
-        avg[i] /= len(vol)
-
-    return avg
+    return numpy.array( out )
 
 
 def cropImage( nimg, bbox ):
@@ -98,7 +95,7 @@ def cropImage( nimg, bbox ):
     dimension).
 
     The function returns the cropped image. The data is not shared with the
-    original image, but is a copy.
+    original image, but is copied.
     """
 
     # build crop command
@@ -112,3 +109,11 @@ def cropImage( nimg, bbox ):
     # return the cropped image with preserved header data
     return nifti.NiftiImage(cropped, nimg.header)
 
+
+def getPeristimulusTimeseries( ts, onsetvols, nvols = 10):
+    """ Returns 4d array with peristimulus timeseries.
+    """
+    selected = [ [ o + offset for o in onsetvols ] \
+                    for offset in range( nvols ) ]
+
+    return applyFxToVolumes(ts, selected, scipy.stats.mean)

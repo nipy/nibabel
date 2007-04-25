@@ -76,6 +76,7 @@ binary-common:
 	dh_testroot
 	dh_installchangelogs
 	dh_installdocs
+	dh_installman
 	dh_strip
 	dh_pycentral
 	dh_compress

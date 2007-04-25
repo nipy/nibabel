@@ -24,6 +24,7 @@
 from distutils.core import setup, Extension
 import os
 import numpy
+from glob import glob
 
 nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
 
@@ -40,7 +41,7 @@ numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20070301.2',
+    version      = '0.20070425.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'LGPL',
@@ -48,6 +49,7 @@ setup(name       = 'pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
     long_description = """ """,
     packages     = [ 'nifti' ],
+    scripts      = glob( 'bin/*' ),
     ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
             include_dirs = [ '/usr/include/nifti', numpy_headers ],
             libraries    = [ 'niftiio' ],

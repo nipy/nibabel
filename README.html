@@ -77,6 +77,23 @@ copy of the image data if you intend to resize and cast the image data (see the
 docstring of the <code>NiftiImage.asarray()</code> method).</li>
 </ul>
 
+<h5>Scripts</h5>
+<p>Some functions provided by PyNIfTI also might be useful outside the Python
+environment. Therefore I plan to add some command line scripts to the package.</p>
+</p>Currently there is only one: <em>pynifti_pst</em> (pst: peristimulus
+timecourse). Using this script one can compute the signal timecourse for a
+certain condition for all voxels in a volume at once. This might be useful for
+exploring a dataset and accompanies similar tools like FSL's <em>tsplot</em>.</p>
+<p>The output of <em>pynifti_pst</em> can be loaded into FSLView to simultaneously
+look at statistics and signal timecourses. Please see the corresponding example below.</p>
+
+<h4>Known issues aka bugs</h4>
+<ul>
+  <li>PyNIfTI currently ignores the origin field of ANALYZE files - it is neither read nor 
+      written. A possible workaround is to convert ANALYZE files into the NIfTI format using
+      FSL's <em>avwchfiletype</em>.</li>
+</ul>
+
 
 <h3>2. License</h3>
 <p>PyNIfTI is written by Michael Hanke as free software (both beer and speech) and 
@@ -139,6 +156,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import nifti
 >>>  
 </pre>
+<p>Please note that some functions and scripts require 
+<a href="http://www.scipy.org/">SciPy</a> to be available.</p>
 
 <h3>5. Things to know</h3>
 <p>When accessing NIfTI image data through NumPy arrays the order of the 
@@ -152,7 +171,7 @@ it is much easier to write <code>data[2]</code> instead of
 <code>data[:,:,:,2]</code>, right?.
 
 <h3>6. Examples</h3>
-<p>The next sections contains some examples showing ways to use of PyNIfTI to 
+<p>The next sections contains some examples showing ways to use PyNIfTI to 
 read and write imaging data from within Python to be able to process it with 
 some random Python library.</p>
 <p>All examples assume that you have imported the PyNIfTI module by invoking:</p>
@@ -257,3 +276,19 @@ show()</code></p>
 <p>It is necessary to call the <code>show()</code> function one time after importing pylab to actually see the image when running Python interactively (<a href="pics/hanke/pynifti/matplotlib_xyslice.png">screenshot</a>).</p><p>When you want to have a look at a yz-slice, NumPy array magic comes into play.</p>
 <p><code>imshow(nim3d.data[::-1,:,100], interpolation='nearest', cmap=cm.gray)</code></p>
 <p>The <code>::-1</code> notation causes the z-axis to be flipped in the images. This makes a much nicer <a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/matplotlib_yzslice.png">screenshot</a>, because the used example volume has the z-axis originally oriented upsidedown.</p>
+
+<h4>g) Compute and display peristimulus signal timecourse of multiple conditions with <em>pynifti_pst</em> and <em>FSLView</em></h4>
+<p>Sometimes one wants to look at the signal timecourse of some voxel after a certain stimulation onset. An easy way would be to have some fMRI data viewer that displays a statistical map and one could click on some activated voxel and the peristimulus signal timecourse of some condition in that voxel would be displayed.</p>
+<p>This can easily be done by using <em>pynifti_pst</em> and <em>FSLView</em>.</p>
+<p><em>pynifti_pst</em> comes with a manpage that explains all options and arguments. Basically <em>pynifti_pst</em> need a 4d image (e.g. an fMRI timeseries; possibly preprocessed/filtered) and some stimulus onset information. This information can either be given directly on the command line or is read from files. Additionally one can specify onsets as volume numbers or as onset times.</p>
+<p><em>pynifti_pst</em> understands the FSL custom EV file format so one can easily use those files as input.</p>
+<p>An example call could look like this:</p>
+<p><code>pynifti_pst --times --nvols 5 -p uf92.feat/filtered_func_data.nii.gz pst_cond_a.nii.gz uf92.feat/custom_timing_files/ev1.txt uf92.feat/custom_timing_files/ev2.txt</code></p>
+<p>This computes a peristimulus timeseries using the preprocessed fMRI from a FEAT output directory
+and two custom EV files that both together make up condition A. <code>--times</code> indicates that
+the EV files list onset times (not volume ids) and <code>--nvols</code> requests the mean peristimulus
+timecourse for 4 volumes after stimulus onset (5 including onset). <code>-p</code> recodes the
+peristimulus timeseries into percent signalchange, where the onset is always zero and any following
+value is the signal change with respect to the onset volume.</p>
+<p>This call produces a simple 4d NIfTI image that can be loaded into FSLView as any other timeseries. The following call can be used to display an FSL zmap from the above results path on top of some anatomy. Additionally the peristimulus timeseries of two conditions are loaded. <a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/fslview_pst.png">This screenshot</a> shows how it could look like. One of the nice features of FSLView is that its timeseries window can remember selected curves, which can be useful to compare signal timecourses from different voxels (blue and green line in the screenshot).</p>
+<p><code>fslview pst_cond_a.nii.gz pst_cond_b.nii.gz uf92_ana.nii.gz uf92.feat/stats/zstat1.nii.gz -b 3,5</code></p>

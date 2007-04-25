@@ -1,4 +1,4 @@
-pynifti (0.20070411.1-1) unstable; urgency=low
+pynifti (0.20070425.1-1) unstable; urgency=low
 
   * Improved documentation. Added note about the special usage of the header
     property. Also added notes about the relevant properties in the docstring
@@ -10,8 +10,10 @@ pynifti (0.20070411.1-1) unstable; urgency=low
   * Added functions/property to determine the bounding box of an image.
   * Fixed a bug that caused a corrupted sform matrix when converting a NumPy
     array and a header dictionary into a NIfTI image.
+  * Added script to compute peristimulus timeseries (pynifti_pst).
+  * Package now depends on python-scipy.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Wed, 11 Apr 2007 15:32:58 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 25 Apr 2007 23:12:22 +0200
 
 pynifti (0.20070315.1-1) unstable; urgency=low
 
@@ -53,7 +55,6 @@ pynifti (0.20070301.1-1) unstable; urgency=low
 
 pynifti (0.20070220.1-1) unstable; urgency=low
 
-  * New upstream release.
   * NiftiFile class is renamed to NiftiImage.
   * SWIG-wrapped libniftiio functions are no available in the nifticlib
     module.
@@ -65,7 +66,6 @@ pynifti (0.20070220.1-1) unstable; urgency=low
 
 pynifti (0.20070214.1-1) unstable; urgency=low
 
-  * New upstream release.
   * Does not depend on libfslio anymore.
   * Up to seven-dimensional dataset are supported (as much as NIfTI can do).
   * The complete NIfTI header dataset is modifiable.
