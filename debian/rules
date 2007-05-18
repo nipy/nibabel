@@ -23,31 +23,40 @@ else
 	CFLAGS += -O2
 endif
 
+
 #Architecture
 build: build-arch build-indep
+
 
 build-arch: build-arch-stamp
 build-arch-stamp: $(PYVERS:%=build-arch-python%)
 	touch $@
 
+
 build-arch-python%:
+	# FIRST build swig extension (otherwise the swig wrapper scripts will not
+	# be installed correctly)
 	python$* setup.py build_ext
+	python$* setup.py build_py
 	touch $@
+
 
 build-indep: build-indep-stamp
 build-indep-stamp:
 	touch $@
 
+
 clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp build-arch-python*
-
+	
 	# Add here commands to clean up after the build process.
 	python setup.py clean
 	$(MAKE) distclean
-
+	
 	dh_clean
+
 
 pre-install:
 	dh_testdir
@@ -59,14 +68,22 @@ pre-install:
 install: build pre-install install-indep install-arch
 install-indep:
 	dh_installdirs -i
-
+	
 	dh_install -i
 
+
 install-python%:
+	# run tests using python modules for each python version
+	cd tests \
+		&& PYTHONPATH=$(CURDIR)/build/lib.$$(uname -s | tr 'A-Z' 'a-z')-$$(uname -m)-$* \
+		python$* test_main.py
+	
 	python$* setup.py install --root $(BASE)/$(PYPKG) --no-compile
 	python$* setup.py clean
 
+
 install-arch: pre-install $(PYVERS:%=install-python%)
+
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
@@ -88,14 +105,17 @@ binary-common:
 	dh_md5sums
 	dh_builddeb
 
+
 # Build architecture independant packages using the common target.
 binary-indep: build-indep install-indep
 	# there is nothing to do
 	#$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
+
 # Build architecture dependant packages using the common target.
 binary-arch: build-arch install-arch
 	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+
 
 binary: binary-arch binary-indep
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure

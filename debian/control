@@ -11,7 +11,8 @@ Standards-Version: 3.7.2
 
 Package: python-nifti
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, python-scipy
+Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext
+Recommends: python-scipy
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python interface to the NIfTI I/O libraries

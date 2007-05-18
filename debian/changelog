@@ -1,3 +1,13 @@
+pynifti (0.20070518.1-1) UNRELEASED; urgency=low
+
+  * Lowered SciPy dependency from depends to recommends. The core parts of
+    pynifti do not require SciPy at all. This solves the problem that the
+    Debian package of pynifti is priority optional and scipy is priority
+    extra, but optional must not depend on extra packages.
+  * Initial steps towards a unittest suite.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri, 18 May 2007 12:10:59 +0200
+
 pynifti (0.20070425.1-1) unstable; urgency=low
 
   * Improved documentation. Added note about the special usage of the header
