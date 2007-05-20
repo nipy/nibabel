@@ -15,8 +15,5 @@
 #    Lesser General Public License for more details.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-# SVN version control block - do not edit manually
-# $Id$
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 from niftiimage import *
