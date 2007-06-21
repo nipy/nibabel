@@ -17,15 +17,27 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 import unittest
-import test_fileio
-import test_utils
+
+# list all test modules (without .py extension)
+tests = [ 'test_fileio',
+          'test_utils',
+        ]
+
+
+# import all test modules
+for t in tests:
+    exec 'import ' + t
+
 
 if __name__ == '__main__':
-    
-    ts = unittest.TestSuite( [ test_fileio.suite(), 
-                               test_utils.suite() ] 
-                           )
 
+    # load all tests suites
+    suites = [ eval(t + '.suite()') for t in tests ]
+
+    # and make global test suite
+    ts = unittest.TestSuite( suites )
+
+    # finally run it
     unittest.TextTestRunner().run( ts )
-    
+
 
