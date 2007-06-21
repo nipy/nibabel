@@ -1,6 +1,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 #
-#    Main unit test interface for PyNIfTI
+#    Unit tests for PyNIfTI file io
 #
 #    Copyright (C) 2007 by
 #    Michael Hanke <michael.hanke@gmail.com>
@@ -16,16 +16,28 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+import nifti.utils
+import numpy
 import unittest
-import test_fileio
-import test_utils
+
+
+class UtilsTests(unittest.TestCase):
+    def testZScoring(self):
+        # dataset: mean=2, std=1
+        data = numpy.array( (0,1,3,4,2,2,3,1,1,3,3,1,2,2,2,2) )
+        self.failUnlessEqual( data.mean(), 2.0 )
+        self.failUnlessEqual( data.std(), 1.0 )
+
+        # check z-scoring
+        self.failUnless(
+            ( nifti.utils.zscore( data ) ==
+              numpy.array( (-2,-1,1,2,0,0,1,-1,-1,1,1,-1,0,0,0,0) ) ).all()
+            )
+
+def suite():
+    return unittest.makeSuite(UtilsTests)
+
 
 if __name__ == '__main__':
-    
-    ts = unittest.TestSuite( [ test_fileio.suite(), 
-                               test_utils.suite() ] 
-                           )
-
-    unittest.TextTestRunner().run( ts )
-    
+    unittest.main()
 

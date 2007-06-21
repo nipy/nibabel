@@ -114,3 +114,33 @@ def getPeristimulusTimeseries( ts, onsetvols, nvols = 10):
                     for offset in range( nvols ) ]
 
     return applyFxToVolumes(ts, selected, scipy.stats.mean)
+
+
+def zscore( data, mean = None, std = None ):
+    """ Z-Score a dataset.
+
+    'data' can be given as a NiftiImage instance or a NumPy array. By default
+    the mean and standard deviation of the data is computed along the first
+    axis of the data array.
+
+    'mean' and 'std' can be used to pass custom values to the z-scoring. Both
+    may be scalars or arrays.
+
+    All computations are done in-place.
+    """
+    # get data array from nifti image or assume data array is
+    # already present
+    if isinstance( data, nifti.NiftiImage ):
+        data = data.data
+
+    # calculate mean if necessary
+    if not mean:
+        mean = data.mean()
+
+    # calculate std-deviation if necessary
+    if not std:
+        std = data.std()
+
+    # do the z-scoring (do not use in-place operations to ensure
+    # appropriate data upcasting
+    return ( data - mean ) / std
