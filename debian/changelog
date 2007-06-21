@@ -1,12 +1,14 @@
 pynifti (0.20070518.1-1) UNRELEASED; urgency=low
 
-  * Lowered SciPy dependency from depends to recommends. The core parts of
-    pynifti do not require SciPy at all. This solves the problem that the
-    Debian package of pynifti is priority optional and scipy is priority
-    extra, but optional must not depend on extra packages.
+  * Does not depend on SciPy anymore.
   * Initial steps towards a unittest suite.
+  * pynifti_pst can now print the peristimulus signal matrix for a single
+    voxel (onsets x time) for easier processing of this information in
+    external applications.
+  * utils.getPeristimulusTimeseries() can now be used to compute mean and
+    variance of the signal (among others).
 
- -- Michael Hanke <michael.hanke@gmail.com>  Fri, 18 May 2007 12:10:59 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri,  8 Jun 2007 15:07:16 +0200
 
 pynifti (0.20070425.1-1) unstable; urgency=low
 

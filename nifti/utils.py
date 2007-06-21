@@ -21,7 +21,6 @@
 
 import nifti
 import numpy
-import scipy.stats
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
@@ -120,9 +119,11 @@ def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = numpy.mean ):
                     (starting from onsetvol)
         fx        - function to be applied to the list of corresponding
                     volumes. Typically this will be mean(), so it is default,
-                    but it could also be var() or something different.
+                    but it could also be var() or something different. The
+                    supplied function is to be able to handle an 'axis=0'
+                    argument similiar to NumPy's mean(), var(), ...
     """
     selected = [ [ o + offset for o in onsetvols ] \
                     for offset in range( nvols ) ]
 
-    return applyFxToVolumes( ts, selected, fx )
+    return applyFxToVolumes( ts, selected, fx, axis=0 )
