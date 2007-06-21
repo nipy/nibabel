@@ -15,6 +15,9 @@
 #    Lesser General Public License for more details.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+# SVN version control block - do not edit manually
+# $Id: utils.py 276M 2007-04-24 07:39:11Z (lokal) $
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 import nifti
 import numpy
@@ -107,40 +110,19 @@ def cropImage( nimg, bbox ):
     return nifti.NiftiImage(cropped, nimg.header)
 
 
-def getPeristimulusTimeseries( ts, onsetvols, nvols = 10):
+def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = numpy.mean ):
     """ Returns 4d array with peristimulus timeseries.
+
+    Parameters:
+        ts        - source 4d timeseries
+        onsetvols - sequence of onsetvolumes to be averaged over
+        nvols     - length of the peristimulus timeseries in volumes
+                    (starting from onsetvol)
+        fx        - function to be applied to the list of corresponding
+                    volumes. Typically this will be mean(), so it is default,
+                    but it could also be var() or something different.
     """
     selected = [ [ o + offset for o in onsetvols ] \
                     for offset in range( nvols ) ]
 
-    return applyFxToVolumes(ts, selected, scipy.stats.mean)
-
-
-def zscore( data, mean = None, std = None ):
-    """ Z-Score a dataset.
-
-    'data' can be given as a NiftiImage instance or a NumPy array. By default
-    the mean and standard deviation of the data is computed along the first
-    axis of the data array.
-
-    'mean' and 'std' can be used to pass custom values to the z-scoring. Both
-    may be scalars or arrays.
-
-    All computations are done in-place.
-    """
-    # get data array from nifti image or assume data array is
-    # already present
-    if isinstance( data, nifti.NiftiImage ):
-        data = data.data
-
-    # calculate mean if necessary
-    if not mean:
-        mean = data.mean()
-
-    # calculate std-deviation if necessary
-    if not std:
-        std = data.std()
-
-    # do the z-scoring (do not use in-place operations to ensure
-    # appropriate data upcasting
-    return ( data - mean ) / std
+    return applyFxToVolumes( ts, selected, fx )
