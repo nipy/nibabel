@@ -168,14 +168,14 @@ number of specified onsets.
 
 
     if opts.printvoxel:
-    	# get timeseries for each onset
+        # get timeseries for each onset
         pst = nifti.utils.getPeristimulusTimeseries(nimg, onsetvols, opts.nvols, tuple).copy()
-	# make matrix ( onset x time )
+        # make matrix ( onset x time )
         voxel_pst = eval('pst[:,:,' + opts.printvoxel +'].T')
 
-	for onset in voxel_pst:
-	    for t in onset:
-	    	print t,
+        for onset in voxel_pst:
+            for t in onset:
+                print t,
             print ''
 
 
