@@ -1,5 +1,5 @@
 #!/usr/bin/python
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
 #    Copyright (C) 2007 by
 #    Michael Hanke <michael.hanke@gmail.com>
@@ -13,7 +13,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 #    Lesser General Public License for more details.
 #
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 
 import os, sys
@@ -95,6 +95,13 @@ numbers. Without setting '--times' this option has no effect'.
 convert the computed timecourse to percent signal change relative to the first
 (onset) volume. Default: False
 """ )
+    parser.add_option('--printvoxel', action='store', dest='printvoxel', default=None,
+                      help="""\
+Print the peristimulus timeseries of a single voxel for all onsets separately.
+This will print a matrix (onsets x time), where the number of columns is
+identical to the value of --nvols and the number of rows corresponds to the
+number of specified onsets.
+""" )
     # parse options
     (opts, args) = parser.parse_args() # read sys.argv[1:] by default
 
@@ -155,12 +162,26 @@ convert the computed timecourse to percent signal change relative to the first
     if opts.verbose:
         print "Selected volumes:\n" + ', '.join([ str(o) for o in onsetvols])
 
-    print "Compute mean peristimulus signal timecourse (length: %i volumes)" \
-            % opts.nvols
+    if opts.verbose:
+        print "Compute mean peristimulus signal timecourse (length: %i volumes)" \
+                % opts.nvols
+
+
+    if opts.printvoxel:
+    	# get timeseries for each onset
+        pst = nifti.utils.getPeristimulusTimeseries(nimg, onsetvols, opts.nvols, tuple).copy()
+	# make matrix ( onset x time )
+        voxel_pst = eval('pst[:,:,' + opts.printvoxel +'].T')
+
+	for onset in voxel_pst:
+	    for t in onset:
+	    	print t,
+            print ''
 
 
     if opts.verbose:
         print "Compute peristimulus timeseries"
+
     pst = nifti.utils.getPeristimulusTimeseries(nimg, onsetvols, opts.nvols).copy()
 
     if opts.perc_sig_chg:
