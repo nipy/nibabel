@@ -7,8 +7,10 @@ pynifti (0.20070518.1-1) UNRELEASED; urgency=low
     external applications.
   * utils.getPeristimulusTimeseries() can now be used to compute mean and
     variance of the signal (among others).
+  * debian/{copyright|watch} now point to the new home of pynifti in the
+    niftilib project on SourceForge.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Fri,  8 Jun 2007 15:07:16 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 21 Jun 2007 13:46:35 +0200
 
 pynifti (0.20070425.1-1) unstable; urgency=low
 
