@@ -1,4 +1,4 @@
-pynifti (0.20070518.1-1) UNRELEASED; urgency=low
+pynifti (0.20070713.1-1) UNRELEASED; urgency=low
 
   * Does not depend on SciPy anymore.
   * Initial steps towards a unittest suite.
@@ -9,8 +9,10 @@ pynifti (0.20070518.1-1) UNRELEASED; urgency=low
     variance of the signal (among others).
   * debian/{copyright|watch} now point to the new home of pynifti in the
     niftilib project on SourceForge.
+  * pynifti_pst is able to compute more than just the mean peristimulus
+    timeseries (e.g. variance and standard deviation).
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu, 21 Jun 2007 13:46:35 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri, 13 Jul 2007 08:37:12 +0200
 
 pynifti (0.20070425.1-1) unstable; urgency=low
 
