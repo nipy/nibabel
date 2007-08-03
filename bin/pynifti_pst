@@ -19,7 +19,7 @@
 import os, sys
 from optparse import OptionParser
 import nifti.utils
-
+import numpy as np
 
 def loadEVFile( filename ):
     try:
@@ -85,6 +85,9 @@ volumes). This can be used to override the setting in the 4d image. The
 repetition time is necessary to convert onset times into volume numbers.
 If the '--times' option is not set this value has no effect. Please note
 that repetitions time and the supplied onsets have to be in the same unit.
+
+Please note, that if --times is given the tr has to be specified in the
+same unit as the read onset times.
 """ )
     parser.add_option('--offset', dest='offset', action='store', default=0.0,
                       type='float', help="""\
@@ -95,20 +98,24 @@ numbers. Without setting '--times' this option has no effect'.
                       dest='perc_sig_chg', default=False, help="""\
 Convert the computed timecourse to percent signal change relative to the first
 (onset) volume. This might not be meaningful when --operation is set to
-something different than 'mean'. Default: False
+something different than 'mean'. Please note, that the shape of the computes
+timeseries heavily depends on the first average volume. It might be more
+meaningful to use a real baseline condition as origin. However, this is not
+supported yet. Default: False
 """ )
     parser.add_option('--printvoxel', action='store', dest='printvoxel',
                       default=None, help="""\
 Print the peristimulus timeseries of a single voxel for all onsets separately.
 This will print a matrix (onsets x time), where the number of columns is
 identical to the value of --nvols and the number of rows corresponds to the
-number of specified onsets.
+number of specified onsets. (e.g. 'z,y,x')
 """ )
     parser.add_option('--operation', action='store', dest='operation',
                       default='mean', help="""\
 Choose the math operation that is performed to compute the peristimulus
 timeseries. By default this is the mean across all stimulations ('mean').
-Other possibilities are the variance ('var') and standard deviation ('std').
+Other possibilities are the standard deviation ('std') and standard error
+('sde').
 """ )
     # parse options
     (opts, args) = parser.parse_args() # read sys.argv[1:] by default
@@ -131,11 +138,9 @@ Other possibilities are the variance ('var') and standard deviation ('std').
 
     # determine the requested function for timeseries calculation
     if opts.operation == 'mean':
-        pst_fx = numpy.mean
-    elif opts.operation == 'var':
-        pst_fx = numpy.var
-    elif opts.operation == 'std':
-        pst_fx = numpy.std
+        pst_fx = np.mean
+    elif opts.operation == 'std' or opts.operation == 'sde':
+        pst_fx = np.std
     else:
         print "'%s' is not a supported operation." % opts.operation
         sys.exit(1)
@@ -183,13 +188,13 @@ Other possibilities are the variance ('var') and standard deviation ('std').
         onsetvols = [ int(i) for i in onsets ]
 
     if opts.verbose:
-        print "Selected volumes:\n" + ', '.join([ str(o) for o in onsetvols])
+        print "Selected volumes (index starts at zero!):\n" + ', '.join([ str(o) for o in onsetvols])
 
     if opts.verbose:
         print "Compute mean peristimulus signal timecourse " \
               "(length: %i volumes)" % opts.nvols
 
-   if opts.printvoxel:
+    if opts.printvoxel:
         # get timeseries for each onset
         pst = nifti.utils.getPeristimulusTimeseries( nimg,
                                                      onsetvols,
@@ -212,12 +217,23 @@ Other possibilities are the variance ('var') and standard deviation ('std').
                                                  opts.nvols,
                                                  pst_fx ).copy()
 
+    # divide by srqt of number of stimulations if standard error is requested
+    if opts.operation == 'sde':
+        pst /= np.sqrt( len(onsetvols) )
+
     if opts.perc_sig_chg:
         if opts.verbose:
             print "Convert to percent signal change"
-        baseline = pst[0].copy()
-        pst -= baseline
-        pst /= baseline
+        baseline = nifti.utils.getPeristimulusTimeseries( nimg,
+                                                          onsetvols,
+                                                          1,
+                                                          np.mean )[0].copy()
+
+        if opts.operation == 'mean':
+            pst -= baseline
+
+        # only divide if baseline is different from zero
+        pst[:,baseline != 0] /= baseline[baseline != 0]
         pst *= 100.0
 
     if opts.verbose:
