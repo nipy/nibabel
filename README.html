@@ -109,7 +109,7 @@ SVN repository (read below) if your problem is already solved.</p>
 
 </p>
 <h4>Source code</h4>
-<p>Since June 2006 PyNIfTI is part of the
+<p>Since June 2007 PyNIfTI is part of the
 <a href="http://niftilib.sourceforge.net">niftilibs family</a>. The PyNIfTI
 source code can be obtained from the
 <a href="http://sourceforge.net/projects/niftilib">Sourceforge project site</a>.
@@ -138,12 +138,17 @@ have to do to install PyNIfTI is this:</p>
 <p>This should pull all necessary dependencies.</p>
 
 <h4>Compile from source</h4>
-<p>PyNIfTI needs Python 2.4 or greater to build and run properly. Additonally 
-SWIG is required to build the module. Make sure
-that the compiled nifticlibs and the corresponding headers are available to 
-your compiler. If they are located in a custom directory, you might have to 
-specify <code>--include-dirs</code> and <code>--library-dirs</code> options
-to the build command below.</p>
+<p>PyNIfTI needs a few things to build and run properly:</p>
+<ul>
+  <li><a href="http://www.python.org">Python</a> 2.4 or greater</li>
+  <li><a href="http://numpy.scipy.org">NumPy</a></li>
+  <li><a href="http://www.swig.org">SWIG</a></li>
+  <li><a href="http://niftilib.sourceforge.net">NIfTI C libraries</a></li>
+</ul>
+<p>Make sure that the compiled nifticlibs and the corresponding headers are
+available to your compiler. If they are located in a custom directory, you
+might have to specify <code>--include-dirs</code> and
+<code>--library-dirs</code> options to the build command below.</p>
 <p>Once you have downloaded the sources, extract the tarball and enter the root 
 directory of the extracted sources. A simple</p>
 <p><code>python setup.py build_ext</code></p>
@@ -161,8 +166,23 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import nifti
 >>>  
 </pre>
-<p>Please note that some functions and scripts require 
-<a href="http://www.scipy.org/">SciPy</a> to be available.</p>
+<h5>MacOS X and MacPython</h5>
+<p>When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
+please make sure that the NIfTI C libraries are compiled as fat binaries
+(compiled for both <em>ppc</em> and <em>i386</em>). Otherwise
+PyNIfTI extensions will not compile.</p>
+<p>One can achieve this by adding both architectures to the <code>CFLAGS</code>
+definition in the toplevel Makefile of the NIfTI C library source code. Like
+this</p>
+<p><code>CFLAGS = $(ANSI_FLAGS) -arch ppc -arch i386</code></p>
+
+<h5>Troubleshooting</h5>
+<p>If you get an error when importing the <em>nifti</em> module in Python
+complaining about missing symbols your niftiio library contains references to
+some unresolved symbols. Try adding <em>znzlib</em> and <em>zlib</em> to the
+linker options the PyNIfTI <code>setup.py</code>, like this:</p>
+
+<p><code>libraries = [ 'niftiio', 'znz', 'z' ],</code></p>
 
 <h3>5. Things to know</h3>
 <p>When accessing NIfTI image data through NumPy arrays the order of the 
