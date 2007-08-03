@@ -1,4 +1,4 @@
-pynifti (0.20070713.1-1) UNRELEASED; urgency=low
+pynifti (0.20070803.1-1) unstable; urgency=low
 
   * Does not depend on SciPy anymore.
   * Initial steps towards a unittest suite.
@@ -11,8 +11,11 @@ pynifti (0.20070713.1-1) UNRELEASED; urgency=low
     niftilib project on SourceForge.
   * pynifti_pst is able to compute more than just the mean peristimulus
     timeseries (e.g. variance and standard deviation).
+  * Relaxed build-dependency on libniftiio to any SO-version of the library.
+  * Set default image description when saving a file if none is present.
+  * Improved documentation.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Fri, 13 Jul 2007 08:37:12 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri,  3 Aug 2007 15:47:26 +0200
 
 pynifti (0.20070425.1-1) unstable; urgency=low
 

@@ -28,11 +28,6 @@ class UtilsTests(unittest.TestCase):
         self.failUnlessEqual( data.mean(), 2.0 )
         self.failUnlessEqual( data.std(), 1.0 )
 
-        # check z-scoring
-        self.failUnless(
-            ( nifti.utils.zscore( data ) ==
-              numpy.array( (-2,-1,1,2,0,0,1,-1,-1,1,1,-1,0,0,0,0) ) ).all()
-            )
 
 def suite():
     return unittest.makeSuite(UtilsTests)
