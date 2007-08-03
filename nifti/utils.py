@@ -81,7 +81,7 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
 
     out = []
 
-    for i, vol in enumerate(vols):
+    for vol in vols:
         out.append( fx( data[ numpy.array( vol ) ], **kwargs ) )
 
     return numpy.array( out )
