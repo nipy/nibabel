@@ -1,4 +1,4 @@
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
 #    Python interface to the NIfTI file format
 #
@@ -14,7 +14,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 #    Lesser General Public License for more details.
 #
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 # the swig wrapper if the NIfTI C library
 import nifticlib
@@ -445,6 +445,10 @@ class NiftiImage(object):
         if not self.__haveImageData():
             self.load()
 
+        # set a default description if there is none
+        if not self.description:
+            self.description = 'Created with PyNIfTI'
+
         # update header information
         self.updateCalMinMax()
 
@@ -565,6 +569,7 @@ class NiftiImage(object):
         """
         self.__nimg.cal_max = float(self.data.max())
         self.__nimg.cal_min = float(self.data.min())
+
 
     def getVoxDims(self):
         """ Returns a 3-tuple a voxel dimensions/size in (x,y,z).
