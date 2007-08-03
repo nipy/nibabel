@@ -126,4 +126,8 @@ def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = numpy.mean ):
     selected = [ [ o + offset for o in onsetvols ] \
                     for offset in range( nvols ) ]
 
-    return applyFxToVolumes( ts, selected, fx, axis=0 )
+    if fx == tuple:
+        return applyFxToVolumes( ts, selected, fx )
+    else:
+        return applyFxToVolumes( ts, selected, fx, axis=0 )
+
