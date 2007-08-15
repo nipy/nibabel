@@ -1,3 +1,9 @@
+pynifti (0.20070803.1-2~1) unstable; urgency=low
+
+  * Fix for a qform/quatenrion handling
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 15 Aug 2007 17:41:04 -0400
+
 pynifti (0.20070803.1-1) unstable; urgency=low
 
   * Does not depend on SciPy anymore.

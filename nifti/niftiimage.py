@@ -927,7 +927,7 @@ class NiftiImage(object):
             nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
         # update quaternions
-        ( self.__nimg.quatern_b, self.__nimg.quatern_b, self.__nimg.quatern_b,
+        ( self.__nimg.quatern_b, self.__nimg.quatern_c, self.__nimg.quatern_d,
           self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
           self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
           self.__nimg.qfac ) = \
@@ -940,7 +940,7 @@ class NiftiImage(object):
         """
         # recalculate qform
         self.__nimg.qto_xyz = nifticlib.nifti_quatern_to_mat44 (
-          self.__nimg.quatern_b, self.__nimg.quatern_b, self.__nimg.quatern_b,
+          self.__nimg.quatern_b, self.__nimg.quatern_c, self.__nimg.quatern_d,
           self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
           self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
           self.__nimg.qfac )
