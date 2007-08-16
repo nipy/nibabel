@@ -22,6 +22,7 @@ import md5
 import tempfile
 import shutil
 import os
+import numpy as np
 
 
 def md5sum(filename):
@@ -53,6 +54,23 @@ class FileIOTests(unittest.TestCase):
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
+
+    def testQFormSetting(self):
+        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        # 4x4 identity matrix
+        ident = np.identity(4)
+        self.failIf( (nimg.qform == ident).all() )
+
+        # assign new qform
+        nimg.qform = ident
+        self.failUnless( (nimg.qform == ident).all() )
+
+        # test save/load cycle
+        nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
+        nimg2 = nifti.NiftiImage( os.path.join( self.workdir, 
+                                               'qformtest.nii.gz') )
+
+        self.failUnless( (nimg.qform == nimg2.qform).all() )
 
 
 def suite():

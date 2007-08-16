@@ -1,8 +1,13 @@
 pynifti (0.20070803.1-2~1) unstable; urgency=low
 
-  * Fix for a qform/quatenrion handling
+  [ Yaroslav Halchenko ]
+  * Fixed a bug in the qform/quaternion handling that caused changes to the
+    qform to vanish when saving to file.
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 15 Aug 2007 17:41:04 -0400
+  [ Michael Hanke ]
+  * Added more unit tests.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 16 Aug 2007 17:08:36 +0200
 
 pynifti (0.20070803.1-1) unstable; urgency=low
 
