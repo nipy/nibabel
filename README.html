@@ -1,9 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>PyNIfTI - Python bindings to NIfTI</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="nifti.css" />
+</head>
+
+<body>
+
 <h1>PyNIfTI - Python-style access to NIfTI and ANALYZE files</h1>
 
 
-<h3>1. What is NIfTI and what do I need PyNIfTI for?</h3>
+<h2>1. What is NIfTI and what do I need PyNIfTI for?</h2>
 
-<h4>NIfTI</h4>
+<h3>NIfTI</h3>
 <p><a href="http://nifti.nimh.nih.gov">NIfTI</a> is a new Analyze-style data 
 format, proposed by the 
 <a href="http://nifti.nimh.nih.gov/dfwg/beyond-nifti-1">NIfTI Data Format Working Group</a>
@@ -22,7 +34,7 @@ corresponding project is hosted at
 Matlab functions to make use of NIfTI files from within Matlab.</p>
 
 
-<h4>Python</h4>
+<h3>Python</h3>
 <p>Unfortunately, it is not that trivial to read NIfTI images with Python. This is
 particularly sad, because there is a large number of easy-to-use, high-quality 
 libraries for signal processing available for Python (e.g. SciPy).</p>
@@ -37,7 +49,7 @@ able to combine as many tools as necessary to solve a given problem
 -- the easiest way.</p>
 
 
-<h4>PyNIfTI</h4>
+<h3>PyNIfTI</h3>
 <p>PyNIfTI aims to provide easy access to NIfTI images from within Python. It 
 uses <a href="http://www.swig.org">SWIG</a>-generated wrappers for the NIfTI reference library and provides the 
 <code>NiftiImage</code> class for Python-style access to the image data.</p>
@@ -77,7 +89,7 @@ copy of the image data if you intend to resize and cast the image data (see the
 docstring of the <code>NiftiImage.asarray()</code> method).</li>
 </ul>
 
-<h5>Scripts</h5>
+<h4>Scripts</h4>
 <p>Some functions provided by PyNIfTI also might be useful outside the Python
 environment. Therefore I plan to add some command line scripts to the package.</p>
 </p>Currently there is only one: <em>pynifti_pst</em> (pst: peristimulus
@@ -87,7 +99,7 @@ exploring a dataset and accompanies similar tools like FSL's <em>tsplot</em>.</p
 <p>The output of <em>pynifti_pst</em> can be loaded into FSLView to simultaneously
 look at statistics and signal timecourses. Please see the corresponding example below.</p>
 
-<h4>Known issues aka bugs</h4>
+<h3>Known issues aka bugs</h3>
 <ul>
   <li>PyNIfTI currently ignores the origin field of ANALYZE files - it is neither read
   nor written. A possible workaround is to convert ANALYZE files into the NIfTI format
@@ -95,20 +107,21 @@ look at statistics and signal timecourses. Please see the corresponding example 
 </ul>
 
 
-<h3>2. License</h3>
-<p>PyNIfTI is written by Michael Hanke as free software (both beer and speech) and 
-licensed under the <a href="http://www.gnu.org/licenses/lgpl.html">GNU Lesser 
-General Public License</a>.</p>
+<h2>2. License</h2>
+<p>PyNIfTI is written by <a href="http://apsy.gse.uni-magdeburg.de/hanke">Michael Hanke</a>
+as free software (both beer and speech) and licensed under the
+<a href="http://www.gnu.org/licenses/lgpl.html">GNU Lesser General Public License</a>.
+</p>
 
 
-<h3>3. Download</h3>
+<h2>3. Download</h2>
 <p>As PyNIfTI is still pretty young, a number of significant
 improvements/modifications are very likely to happen in the near future. If you
 discover any bugs or you are missing some features, please be sure to check the
 SVN repository (read below) if your problem is already solved.</p>
 
 </p>
-<h4>Source code</h4>
+<h3>Source code</h3>
 <p>Since June 2007 PyNIfTI is part of the
 <a href="http://niftilib.sourceforge.net">niftilibs family</a>. The PyNIfTI
 source code can be obtained from the
@@ -121,23 +134,23 @@ of the
 To checkout the latest version use this command:</p>
 <p><code>svn co svn://svn.debian.org/svn/pkg-exppsy/pynifti/trunk pynifti-latest</code></p>
 
-<h4>Binary packages</h4>
+<h3>Binary packages</h3>
 <p>Binary packages for some Debian and (K)Ubuntu versions are available. Please visit
 <a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> to read 
 about how you have to setup your system to retrieve the PyNIfTI package via 
 your package manager and stay in sync with future releases.</p>
 
 
-<h3>4. Installation</h3>
+<h2>4. Installation</h2>
 
-<h4>Binary packages</h4>
+<h3>Binary packages</h3>
 <p>If you have configured your system as described on 
 <a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> all you 
 have to do to install PyNIfTI is this:</p>
 <p><code>apt-get update</code><br /><code>apt-get install python-nifti</code></p>
 <p>This should pull all necessary dependencies.</p>
 
-<h4>Compile from source</h4>
+<h3>Compile from source</h3>
 <p>PyNIfTI needs a few things to build and run properly:</p>
 <ul>
   <li><a href="http://www.python.org">Python</a> 2.4 or greater</li>
@@ -166,7 +179,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import nifti
 >>>  
 </pre>
-<h5>MacOS X and MacPython</h5>
+<h4>MacOS X and MacPython</h4>
 <p>When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
 please make sure that the NIfTI C libraries are compiled as fat binaries
 (compiled for both <em>ppc</em> and <em>i386</em>). Otherwise
@@ -176,7 +189,7 @@ definition in the toplevel Makefile of the NIfTI C library source code. Like
 this</p>
 <p><code>CFLAGS = $(ANSI_FLAGS) -arch ppc -arch i386</code></p>
 
-<h5>Troubleshooting</h5>
+<h4>Troubleshooting</h4>
 <p>If you get an error when importing the <em>nifti</em> module in Python
 complaining about missing symbols your niftiio library contains references to
 some unresolved symbols. Try adding <em>znzlib</em> and <em>zlib</em> to the
@@ -184,7 +197,7 @@ linker options the PyNIfTI <code>setup.py</code>, like this:</p>
 
 <p><code>libraries = [ 'niftiio', 'znz', 'z' ],</code></p>
 
-<h3>5. Things to know</h3>
+<h2>5. Things to know</h2>
 <p>When accessing NIfTI image data through NumPy arrays the order of the 
 dimensions is reversed. If the <em>x, y, z, t</em> dimensions of a NIfTI image
 are 64, 64, 32, 456 (as for example reported by <em>nifti_tool</em>), the shape 
@@ -195,14 +208,14 @@ common cases. For example, if you are interested in a certain volume of a timese
 it is much easier to write <code>data[2]</code> instead of 
 <code>data[:,:,:,2]</code>, right?.
 
-<h3>6. Examples</h3>
+<h2>6. Examples</h2>
 <p>The next sections contains some examples showing ways to use PyNIfTI to 
 read and write imaging data from within Python to be able to process it with 
 some random Python library.</p>
 <p>All examples assume that you have imported the PyNIfTI module by invoking:</p>
 <p><code>from nifti import *</code></p>
 
-<h4>a) Fileformat conversion</h4>
+<h3>a) Fileformat conversion</h3>
 <p>Open the MNI standard space template that is shipped with FSL. No filename
 extension is necessary as libniftiio determines it automatically:</p>
 
@@ -217,7 +230,7 @@ save this image as a single gzipped NIfTI file simply do:</p>
 <p><code>nim.filename = 'mni_analyze.img.gz'<br />nim.save()</code></p>
 <p>Please see the docstring of the <code>NiftiImage.setFilename()</code> method to learn how the filetypes are determined from the filenames.</p>
 
-<h4>b) NIfTI files from array data</h4>
+<h3>b) NIfTI files from array data</h3>
 <p>The next code snipped demonstrates how to create a 4d NIfTI image containing gaussian noise. First we need to import the NumPy module</p>
 <p><code>import numpy</code></p>
 <p>Now generate the noise dataset. Let's generate noise for 100 volumes with 16 slices and a 32x32 inplane matrix.</p>
@@ -241,7 +254,7 @@ direction and 100 volumes.</p>
 <p><code>nim.save('noise.nii.gz')</code></p>
 
 
-<h4>c) Select ROIs</h4>
+<h3>c) Select ROIs</h3>
 <p>Suppose you want to have the first ten volumes of the noise dataset we have just created in a separate file. First open the file (can be skipped if it is still open):</p>
 <p><code>nim = NiftiImage('noise.nii.gz')</code></p>
 <p>Now select the first ten volumes and store them to another file, while preserving as much header information as possible:</p>
@@ -252,7 +265,7 @@ nim2.save('part.hdr.gz')
 <p>The NiftiImage constructor takes a dictionary with header information as an optional argument. Settings that are not determined by the array (e.g. size, datatype) are copied from the dictionary and stored to the new NIfTI image.</p>
 
 
-<h4>d) Linear detrending of timeseries (SciPy module is required for this example)</h4>
+<h3>d) Linear detrending of timeseries (SciPy module is required for this example)</h3>
 <p>Let's load another 4d NIfTI file and perform a linear detrending, by fitting a straight line to the timeseries of each voxel and substract that fit from the data. Although this might sound complicated at first, thanks to the excellent SciPy module it is just a few lines of code.</p>
 <p><code>nim = NiftiImage('timeseries.nii')</code></p>
 <p>Depending on the datatype of the input image the detrending process might change the datatype from integer to float. As operations that change the (binary) size of the NIfTI image are not supported, we need to make a copy of the data and later create a new NIfTI image.</p>
@@ -264,7 +277,7 @@ data_detrended = signal.detrend( data, axis=0 )</code></p>
 <p>Finally, create a new NIfTI image using header information from the original source image.</p>
 <p><code>nim_detrended = NiftiImage( data_detrended, nim.header)</code></p>
 
-<h4>e) Make a quick plot of a voxels timeseries (Gnuplot module is required)</h4>
+<h3>e) Make a quick plot of a voxels timeseries (Gnuplot module is required)</h3>
 <p>Plotting is essential to get a 'feeling' for the data. The 
 <a href="http://gnuplot-py.sourceforge.net">python interface</a> 
 to <a href="http://www.gnuplot.info">Gnuplot</a> makes it really easy to plot 
@@ -291,18 +304,18 @@ Gnuplot Manual to learn what it can do -- and it can do a lot more than just
 simple line plots (have a look at <a href="http://gnuplot.sourceforge.net/demo_4.3/index.html">this</a>
 page if you are interested).</p>
 
-<h4>f) Show a slice of a 3d volume (Matplotlib module is required)</h4>
+<h3>f) Show a slice of a 3d volume (Matplotlib module is required)</h3>
 <p>This example demonstrates howto use the Matlab-style plotting of <a href="matplotlib.sourceforge.net">Matplotlib</a> to view a slice from a 3d volume.</p>
 <p>This time I assume that a 3d nifti file is already opened and available in the <code>nim3d</code> object. At first we need to load the necessary Python module.</p>
 <p><code>from pylab import *</code></p>
 <p>If everything went fine, we can now view a slice (x,y):</p>
 <p><code>imshow(nim3d.data[200], interpolation='nearest', cmap=cm.gray)<br />
 show()</code></p>
-<p>It is necessary to call the <code>show()</code> function one time after importing pylab to actually see the image when running Python interactively (<a href="pics/hanke/pynifti/matplotlib_xyslice.png">screenshot</a>).</p><p>When you want to have a look at a yz-slice, NumPy array magic comes into play.</p>
+<p>It is necessary to call the <code>show()</code> function one time after importing pylab to actually see the image when running Python interactively (<a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/matplotlib_xyslice.png">screenshot</a>).</p><p>When you want to have a look at a yz-slice, NumPy array magic comes into play.</p>
 <p><code>imshow(nim3d.data[::-1,:,100], interpolation='nearest', cmap=cm.gray)</code></p>
 <p>The <code>::-1</code> notation causes the z-axis to be flipped in the images. This makes a much nicer <a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/matplotlib_yzslice.png">screenshot</a>, because the used example volume has the z-axis originally oriented upsidedown.</p>
 
-<h4>g) Compute and display peristimulus signal timecourse of multiple conditions with <em>pynifti_pst</em> and <em>FSLView</em></h4>
+<h3>g) Compute and display peristimulus signal timecourse of multiple conditions with <em>pynifti_pst</em> and <em>FSLView</em></h3>
 <p>Sometimes one wants to look at the signal timecourse of some voxel after a certain stimulation onset. An easy way would be to have some fMRI data viewer that displays a statistical map and one could click on some activated voxel and the peristimulus signal timecourse of some condition in that voxel would be displayed.</p>
 <p>This can easily be done by using <em>pynifti_pst</em> and <em>FSLView</em>.</p>
 <p><em>pynifti_pst</em> comes with a manpage that explains all options and arguments. Basically <em>pynifti_pst</em> need a 4d image (e.g. an fMRI timeseries; possibly preprocessed/filtered) and some stimulus onset information. This information can either be given directly on the command line or is read from files. Additionally one can specify onsets as volume numbers or as onset times.</p>
@@ -317,3 +330,8 @@ peristimulus timeseries into percent signalchange, where the onset is always zer
 value is the signal change with respect to the onset volume.</p>
 <p>This call produces a simple 4d NIfTI image that can be loaded into FSLView as any other timeseries. The following call can be used to display an FSL zmap from the above results path on top of some anatomy. Additionally the peristimulus timeseries of two conditions are loaded. <a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/fslview_pst.png">This screenshot</a> shows how it could look like. One of the nice features of FSLView is that its timeseries window can remember selected curves, which can be useful to compare signal timecourses from different voxels (blue and green line in the screenshot).</p>
 <p><code>fslview pst_cond_a.nii.gz pst_cond_b.nii.gz uf92_ana.nii.gz uf92.feat/stats/zstat1.nii.gz -b 3,5</code></p>
+
+<h2>History</h2>
+<p>The full changelog is <a href="Changelog">here</a>.</p>
+</body>
+</html>
