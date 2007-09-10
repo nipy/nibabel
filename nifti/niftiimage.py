@@ -376,7 +376,7 @@ class NiftiImage(object):
         # set size of each dim (and reverse the order to match nifti format
         # requirements)
         for i, s in enumerate(data.shape):
-           hdic['dim'][len(data.shape)-i] = s
+            hdic['dim'][len(data.shape)-i] = s
 
         # set magic field to mark as nifti file
         hdic['magic'] = 'n+1'
