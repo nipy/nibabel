@@ -1,4 +1,4 @@
-pynifti (0.20070803.1-2~1) unstable; urgency=low
+pynifti (0.20070905.1-1) unstable; urgency=low
 
   [ Yaroslav Halchenko ]
   * Fixed a bug in the qform/quaternion handling that caused changes to the
@@ -6,8 +6,10 @@ pynifti (0.20070803.1-2~1) unstable; urgency=low
 
   [ Michael Hanke ]
   * Added more unit tests.
+  * 'dim' vector in the NIfTI header is now guaranteed to only contain
+    non-zero elements. This caused problems with some applications.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu, 16 Aug 2007 17:08:36 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed,  5 Sep 2007 20:54:18 +0200
 
 pynifti (0.20070803.1-1) unstable; urgency=low
 

@@ -366,13 +366,17 @@ class NiftiImage(object):
         # convert numpy to nifti datatype
         hdic['datatype'] = self.numpydtype2niftidtype(data)
 
+        # make sure there are no zeros in the dim vector
+        # especially not in #4 as FSLView doesn't like that
+        hdic['dim'] = [ 1 for i in hdic['dim'] ]
+
         # set number of dims
         hdic['dim'][0] = len(data.shape)
 
         # set size of each dim (and reverse the order to match nifti format
         # requirements)
         for i, s in enumerate(data.shape):
-            hdic['dim'][len(data.shape)-i] = s
+           hdic['dim'][len(data.shape)-i] = s
 
         # set magic field to mark as nifti file
         hdic['magic'] = 'n+1'
