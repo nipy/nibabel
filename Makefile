@@ -2,8 +2,8 @@ all:
 
 distclean:
 	-rm MANIFEST Changelog
-	-rm nifti/*.c nifti/*.pyc nifti/*.so
-	-rm nifti/nifticlib.py
+	-rm nifti/*.{c,pyc,so} nifti/nifticlib.py
+	-rm tests/*.pyc
 	-rm -r build
 	-rm -r dist
 
