@@ -1207,6 +1207,7 @@ class NiftiImage(object):
     intercept =     property(fget=lambda self: self.__nimg.scl_inter,
                              fset=setIntercept)
     voxdim =        property(fget=getVoxDims, fset=setVoxDims)
+    pixdim =        property(fget=getPixDims, fset=setPixDims)
     description =   property(fget=lambda self: self.__nimg.descrip,
                              fset=setDescription)
     header =        property(fget=getHeader, fset=updateHeader)

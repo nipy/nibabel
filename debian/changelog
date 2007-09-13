@@ -1,3 +1,9 @@
+pynifti (0.20070905.1-2~pre1) unstable; urgency=low
+
+  * Added 'pixdim' property
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 13 Sep 2007 18:19:57 -0400
+
 pynifti (0.20070905.1-1) unstable; urgency=low
 
   [ Yaroslav Halchenko ]
