@@ -1,8 +1,15 @@
-pynifti (0.20070905.1-2~pre1) unstable; urgency=low
+pynifti (0.20070914.1) unstable; urgency=low
 
-  * Added 'pixdim' property
+  [ Michael Hanke ]
+  * Bugfix: Can now update NIfTI header data when no filename is set.
+  * Unloading of image data without a filename set is no checked and prevented
+    as it would damage data integrity and the image data could not be
+    recovered.
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 13 Sep 2007 18:19:57 -0400
+  [ Yaroslav Halchenko ]
+  * Added 'pixdim' property.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri, 14 Sep 2007 09:29:55 +0200
 
 pynifti (0.20070905.1-1) unstable; urgency=low
 

@@ -501,6 +501,10 @@ class NiftiImage(object):
     def unload(self):
         """Unload image data and free allocated memory.
         """
+        # if no filename is se, the data will be lost and cannot be recovered
+        if not self.filename:
+            raise RuntimeError, "No filename is set, unloading the data would " \
+                              + "loose it completely without a chance of recovery. "
         self.__ensureNiftiImage()
 
         nifticlib.nifti_image_unload(self.__nimg)
@@ -766,6 +770,13 @@ class NiftiImage(object):
         # update the nifti header
         NiftiImage.updateNiftiHeaderFromDict(nhdr, hdrdict)
 
+        # if no filename was set already (e.g. image from array) set a temp
+        # name now, as otherwise nifti_convert_nhdr2nim will fail
+        have_temp_filename = False
+        if not self.filename:
+            self.filename = 'pynifti_updateheader_temp_name'
+            have_temp_filename = True
+
         # recreate nifti image struct
         new_nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, self.filename)
         if not new_nimg:
@@ -786,6 +797,10 @@ class NiftiImage(object):
 
         # assign the new image struct
         self.__nimg = new_nimg
+
+        # reset filename if temp name was set
+        if have_temp_filename:
+            self.filename = ''
 
 
     def setSlope(self, value):
@@ -1095,10 +1110,14 @@ class NiftiImage(object):
         'NIFTI_GZ', 'NIFTI_PAIR', 'NIFTI_PAIR_GZ', 'ANALYZE', 'ANALYZE_GZ'.
 
         Setting the filename will cause the image data to be loaded into memory
-        if not yet done already. This has to be done, because the the filename
-        of the original image file there would be no access to the image data
-        anymore. As a side-effect a simple operation like setting a filename
-        may take a significant amount of time (e.g. for a large 4d dataset).
+        if not yet done already. This has to be done, because without the
+        filename of the original image file there would be no access to the
+        image data anymore. As a side-effect a simple operation like setting a
+        filename may take a significant amount of time (e.g. for a large 4d
+        dataset).
+
+        By passing an empty string or none as filename one can reset the
+        filename and detach the NiftiImage object from any file on disk.
 
         Examples:
 
@@ -1121,6 +1140,12 @@ class NiftiImage(object):
         # and this will be modified in this function!
         if not self.__haveImageData():
             self.load()
+
+        # if no filename is given simply reset it to nothing
+        if not filename:
+            self.__nimg.fname = ''
+            self.__nimg.iname = ''
+            return
 
         # separate basename and extension
         base, ext = NiftiImage.splitFilename(filename)
