@@ -1,4 +1,4 @@
-pynifti (0.20070917.1) UNRELEASED; urgency=low
+pynifti (0.20070917.1-1) unstable; urgency=low
 
   [ Michael Hanke ]
   * Bugfix: Can now update NIfTI header data when no filename is set.
