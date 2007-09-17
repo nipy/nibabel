@@ -16,18 +16,18 @@
 <h2>1. What is NIfTI and what do I need PyNIfTI for?</h2>
 
 <h3>NIfTI</h3>
-<p><a href="http://nifti.nimh.nih.gov">NIfTI</a> is a new Analyze-style data 
-format, proposed by the 
+<p><a href="http://nifti.nimh.nih.gov">NIfTI</a> is a new Analyze-style data
+format, proposed by the
 <a href="http://nifti.nimh.nih.gov/dfwg/beyond-nifti-1">NIfTI Data Format Working Group</a>
-as a <em>"short-term measure to facilitate inter-operation of functional MRI data 
+as a <em>"short-term measure to facilitate inter-operation of functional MRI data
 analysis software packages"</em>.</p>
-<p>Meanwhile a number of toolkits are NIfTI-aware (e.g. FSL, AFNI, SPM, 
-Freesurfer and Brainvoyager). 
-Additionally, <a href="https://www.cbi.nyu.edu/public/software/dinifti">dicomnifti</a> 
+<p>Meanwhile a number of toolkits are NIfTI-aware (e.g. FSL, AFNI, SPM,
+Freesurfer and a to a certain degree also Brainvoyager).
+Additionally, <a href="http://cbi.nyu.edu/software/dinifti.php">dicomnifti</a>
 allows the direct conversion from DICOM images into the NIfTI format.</p>
 <p>With <a href="http://niftilib.sourceforge.net/niftilib_overview.html">libniftiio</a>
-there is a reference implementation of a C library to read, write and manipulate 
-NIfTI images. The library source code is put into the public domain and a 
+there is a reference implementation of a C library to read, write and manipulate
+NIfTI images. The library source code is put into the public domain and a
 corresponding project is hosted at
 <a href="http://sourceforge.net/projects/niftilib">SourceForge</a>.</p>
 <p>In addition to the C library, there is also an IO library written in Java and
@@ -36,55 +36,57 @@ Matlab functions to make use of NIfTI files from within Matlab.</p>
 
 <h3>Python</h3>
 <p>Unfortunately, it is not that trivial to read NIfTI images with Python. This is
-particularly sad, because there is a large number of easy-to-use, high-quality 
+particularly sad, because there is a large number of easy-to-use, high-quality
 libraries for signal processing available for Python (e.g. SciPy).</p>
-<p>Moreover Python has bindings to almost any important language/program 
-in the fields of maths, statistics and/or engineering. If you want to use 
-<a href="http://www.r-project.org">R</a> to calculate 
+<p>Moreover Python has bindings to almost any important language/program
+in the fields of maths, statistics and/or engineering. If you want to use
+<a href="http://www.r-project.org">R</a> to calculate
 some stats in a Python script, simply use <a href="http://rpy.sourceforge.net/">RPy</a>
-and pass any data to R. If you don't care about R, but Matlab is your one and 
-only friend, there are at least two different Python modules to control Matlab 
-from within Python scripts. Python is the glue between all those helpers and the Python user is 
-able to combine as many tools as necessary to solve a given problem 
+and pass any data to R. If you don't care about R, but Matlab is your one and
+only friend, there are at least two different Python modules to control Matlab
+from within Python scripts. Python is the glue between all those helpers and the Python user is
+able to combine as many tools as necessary to solve a given problem
 -- the easiest way.</p>
 
 
 <h3>PyNIfTI</h3>
-<p>PyNIfTI aims to provide easy access to NIfTI images from within Python. It 
-uses <a href="http://www.swig.org">SWIG</a>-generated wrappers for the NIfTI reference library and provides the 
-<code>NiftiImage</code> class for Python-style access to the image data.</p>
-<p>While PyNIfTI is not yet complete, it already provides access to the most 
-important features of the NIfTI-1 data format and <em>libniftiio</em> 
+<p>PyNIfTI aims to provide easy access to NIfTI images from within Python. It
+uses <a href="http://www.swig.org">SWIG</a>-generated wrappers for the NIfTI
+reference library and provides the <code>NiftiImage</code> class for
+Python-style access to the image data.</p>
+<p>While PyNIfTI is not yet complete (i.e. doesn't support everything the
+C library can do), it already provides access to the most
+important features of the NIfTI-1 data format and <em>libniftiio</em>
 capabilities. The following features are currently implemented:</p>
 <ul>
 
-<li>PyNIfTI can read and write any file format supported by libniftiio. This 
+<li>PyNIfTI can read and write any file format supported by libniftiio. This
 includes NIfTI (single and pairs) as well as ANALYZE files.</li>
-<li>PyNIfTI provides fast and convenient access to the image data via 
-<a href="http://numpy.scipy.org">NumPy</a> arrays. This should enable users to 
-process image data with most (if not all) numerical routines available for 
-Python. The NumPy array automatically uses a datatype corresponding to the NIfTI image data -- no 
+<li>PyNIfTI provides fast and convenient access to the image data via
+<a href="http://numpy.scipy.org">NumPy</a> arrays. This should enable users to
+process image data with most (if not all) numerical routines available for
+Python. The NumPy array automatically uses a datatype corresponding to the NIfTI image data -- no
 unnecessary upcasting is performed.</li>
 <li>PyNIfTI provides full read and write access to the NIfTI header data. Header information can
 be exported to a Python dictionary and can also be updated by using information
 from a dictionary.</li>
-<li>Instead of accessing NIfTI data from files, PyNIfTI is able to create NIfTI 
-images from NumPy arrays. The appropriate NIfTI header information is determined 
-from the array properties. Additional header information can be optionally 
-specified -- making it easy to clone NIfTI images if necessary, but with minor 
+<li>Instead of accessing NIfTI data from files, PyNIfTI is able to create NIfTI
+images from NumPy arrays. The appropriate NIfTI header information is determined
+from the array properties. Additional header information can be optionally
+specified -- making it easy to clone NIfTI images if necessary, but with minor
 modifications.</li>
-<li>Most properties of NIfTI images are accessible via attributes and/or accessor 
-functions of the <code>NiftiImage</code>. Inter-dependent properties are 
+<li>Most properties of NIfTI images are accessible via attributes and/or accessor
+functions of the <code>NiftiImage</code>. Inter-dependent properties are
 automatically updated if necessary (e.g. modifying the Q-Form matrix also updates
 the pixdim properties and quaternion representation).</li>
-<li>All properties are accessible via Python-style datatypes: A 4x4 matrix is 
+<li>All properties are accessible via Python-style datatypes: A 4x4 matrix is
 an array not 16 individual numbers.</li>
-<li>PyNIfTI should be resonably fast. Image data will only be loaded into the memory 
-if necessary. Simply opening a NIfTI file to access some header data is 
-performed with virtually no delay independent of the size of the image. Unless image 
-resizing or datatype conversion must be performed the image data can be 
-shared by the NIfTI image and accessing NumPy arrays, and therefore memory won't be wasted 
-memory with redundant copies of the image data. However, one should be careful to make a 
+<li>PyNIfTI should be resonably fast. Image data will only be loaded into the memory
+if necessary. Simply opening a NIfTI file to access some header data is
+performed with virtually no delay independent of the size of the image. Unless image
+resizing or datatype conversion must be performed the image data can be
+shared by the NIfTI image and accessing NumPy arrays, and therefore memory won't be wasted
+memory with redundant copies of the image data. However, one should be careful to make a
 copy of the image data if you intend to resize and cast the image data (see the
 docstring of the <code>NiftiImage.asarray()</code> method).</li>
 </ul>
@@ -127,28 +129,29 @@ SVN repository (read below) if your problem is already solved.</p>
 source code can be obtained from the
 <a href="http://sourceforge.net/projects/niftilib">Sourceforge project site</a>.
 </p>
-<p>Source code is also available from the 
+<p>Source code is also available from the
 <a href="http://svn.debian.org/wsvn/pkg-exppsy/pynifti/trunk/?rev=0&sc=0">SVN repository</a>
-of the 
+of the
 <a href="http://alioth.debian.org/projects/pkg-exppsy">Debian Experimental Psychology Project</a>.
 To checkout the latest version use this command:</p>
 <p><code>svn co svn://svn.debian.org/svn/pkg-exppsy/pynifti/trunk pynifti-latest</code></p>
 
 <h3>Binary packages</h3>
 <p>Binary packages for some Debian and (K)Ubuntu versions are available. Please visit
-<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> to read 
-about how you have to setup your system to retrieve the PyNIfTI package via 
+<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> to read
+about how you have to setup your system to retrieve the PyNIfTI package via
 your package manager and stay in sync with future releases.</p>
 
 
 <h2>4. Installation</h2>
 
 <h3>Binary packages</h3>
-<p>If you have configured your system as described on 
-<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> all you 
+<p>If you have configured your system as described on
+<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> all you
 have to do to install PyNIfTI is this:</p>
 <p><code>apt-get update</code><br /><code>apt-get install python-nifti</code></p>
-<p>This should pull all necessary dependencies.</p>
+<p>This should pull all necessary dependencies. If it doesn't, it's a bug that
+should be reported.</p>
 
 <h3>Compile from source</h3>
 <p>PyNIfTI needs a few things to build and run properly:</p>
@@ -162,22 +165,22 @@ have to do to install PyNIfTI is this:</p>
 available to your compiler. If they are located in a custom directory, you
 might have to specify <code>--include-dirs</code> and
 <code>--library-dirs</code> options to the build command below.</p>
-<p>Once you have downloaded the sources, extract the tarball and enter the root 
+<p>Once you have downloaded the sources, extract the tarball and enter the root
 directory of the extracted sources. A simple</p>
 <p><code>python setup.py build_ext</code></p>
-<p>should build the SWIG wrappers. If this has been done 
+<p>should build the SWIG wrappers. If this has been done
 successfully, all you need to do is install the modules by invoking</p>
 <p><code>sudo python setup.py install</code></p>
-<p>If sudo is not configured (or even installed) you might have to use 
+<p>If sudo is not configured (or even installed) you might have to use
 <code>su</code> instead.</p>
-<p>Now fire up Python and try importing the module to see if everything is 
+<p>Now fire up Python and try importing the module to see if everything is
 fine. It should look similar to this:</p>
 <pre>
 Python 2.4.4 (#2, Oct 20 2006, 00:23:25)
 [GCC 4.1.2 20061015 (prerelease) (Debian 4.1.1-16.1)] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import nifti
->>>  
+>>> 
 </pre>
 <h4>MacOS X and MacPython</h4>
 <p>When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
@@ -198,19 +201,19 @@ linker options the PyNIfTI <code>setup.py</code>, like this:</p>
 <p><code>libraries = [ 'niftiio', 'znz', 'z' ],</code></p>
 
 <h2>5. Things to know</h2>
-<p>When accessing NIfTI image data through NumPy arrays the order of the 
+<p>When accessing NIfTI image data through NumPy arrays the order of the
 dimensions is reversed. If the <em>x, y, z, t</em> dimensions of a NIfTI image
-are 64, 64, 32, 456 (as for example reported by <em>nifti_tool</em>), the shape 
+are 64, 64, 32, 456 (as for example reported by <em>nifti_tool</em>), the shape
 of the NumPy array (e.g. as returned by <code>NiftiImage.asarray()</code>) will
 be: 456, 32, 64, 64.</p>
-<p>This is done to be able to slice the data array much easier in the most 
+<p>This is done to be able to slice the data array much easier in the most
 common cases. For example, if you are interested in a certain volume of a timeseries
-it is much easier to write <code>data[2]</code> instead of 
+it is much easier to write <code>data[2]</code> instead of
 <code>data[:,:,:,2]</code>, right?.
 
 <h2>6. Examples</h2>
-<p>The next sections contains some examples showing ways to use PyNIfTI to 
-read and write imaging data from within Python to be able to process it with 
+<p>The next sections contains some examples showing ways to use PyNIfTI to
+read and write imaging data from within Python to be able to process it with
 some random Python library.</p>
 <p>All examples assume that you have imported the PyNIfTI module by invoking:</p>
 <p><code>from nifti import *</code></p>
@@ -223,29 +226,39 @@ extension is necessary as libniftiio determines it automatically:</p>
 
 <p>The filename is available via the 'filename' attribute:</p>
 <p><code>print nim.filename</code></p>
-<p>yields 'avg152T1_brain.img'. This indicates an ANALYZE image. If you want to 
+<p>yields 'avg152T1_brain.img'. This indicates an ANALYZE image. If you want to
 save this image as a single gzipped NIfTI file simply do:</p>
 <p><code>nim.save('mni.nii.gz')</code></p>
-<p>The filetype is determined from the filename. If you want to save to gzipped ANALYZE file pairs instead the following would be an alternative to calling the <code>save()</code> with a new filename.</p>
+<p>The filetype is determined from the filename. If you want to save to gzipped
+ANALYZE file pairs instead the following would be an alternative to calling the
+<code>save()</code> with a new filename.</p>
 <p><code>nim.filename = 'mni_analyze.img.gz'<br />nim.save()</code></p>
-<p>Please see the docstring of the <code>NiftiImage.setFilename()</code> method to learn how the filetypes are determined from the filenames.</p>
+<p>Please see the docstring of the <code>NiftiImage.setFilename()</code> method
+to learn how the filetypes are determined from the filenames.</p>
 
 <h3>b) NIfTI files from array data</h3>
-<p>The next code snipped demonstrates how to create a 4d NIfTI image containing gaussian noise. First we need to import the NumPy module</p>
+<p>The next code snipped demonstrates how to create a 4d NIfTI image containing
+gaussian noise. First we need to import the NumPy module</p>
 <p><code>import numpy</code></p>
-<p>Now generate the noise dataset. Let's generate noise for 100 volumes with 16 slices and a 32x32 inplane matrix.</p>
+<p>Now generate the noise dataset. Let's generate noise for 100 volumes with 16
+slices and a 32x32 inplane matrix.</p>
 <p><code>noise = numpy.random.randn(100,16,32,32)</code></p>
-<p>Please notice the order in which the dimensions are specified: (t, z, y, x).</p>
-<p>The datatype of the array will most likely be <em>float64</em> -- which can be verified by invoking <code>noise.dtype</code>.</p>
-<p>Converting this dataset into a NIfTI image is done by invoking the NiftiImage constructor with the noise dataset as argument:</p>
+<p>Please notice the order in which the dimensions are specified:
+(t, z, y, x).</p>
+<p>The datatype of the array will most likely be <em>float64</em> -- which can
+be verified by invoking <code>noise.dtype</code>.</p>
+<p>Converting this dataset into a NIfTI image is done by invoking the
+NiftiImage constructor with the noise dataset as argument:</p>
 <p><code>nim = NiftiImage(noise)</code></p>
 
-<p>The relevant header information is extracted from the NumPy array. If you query the header information about the dimensionality of the image, it returns the desired values:</p>
+<p>The relevant header information is extracted from the NumPy array. If you
+query the header information about the dimensionality of the image, it returns
+the desired values:</p>
 <p><code>print nim.header['dim']  # yields: [4, 32, 32, 16, 100, 0, 0, 0]</code></p>
-First value shows the number of dimensions in the datset: 4 (good, that's what 
-we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w 
-axis (NIfTI files can handle up to 7 dimensions). Please notice, that the order 
-of dimensions is now 'correct': We have 32x32 inplane resolution, 16 slices in z 
+First value shows the number of dimensions in the datset: 4 (good, that's what
+we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w
+axis (NIfTI files can handle up to 7 dimensions). Please notice, that the order
+of dimensions is now 'correct': We have 32x32 inplane resolution, 16 slices in z
 direction and 100 volumes.</p>
 <p>Also the datatype was set appropriately. The exprression:</p>
 <p><code>nim.header['datatype'] == nifticlib.NIFTI_TYPE_FLOAT64</code></p>
@@ -255,52 +268,67 @@ direction and 100 volumes.</p>
 
 
 <h3>c) Select ROIs</h3>
-<p>Suppose you want to have the first ten volumes of the noise dataset we have just created in a separate file. First open the file (can be skipped if it is still open):</p>
+<p>Suppose you want to have the first ten volumes of the noise dataset we have
+just created in a separate file. First open the file (can be skipped if it is
+still open):</p>
 <p><code>nim = NiftiImage('noise.nii.gz')</code></p>
-<p>Now select the first ten volumes and store them to another file, while preserving as much header information as possible:</p>
+<p>Now select the first ten volumes and store them to another file, while
+preserving as much header information as possible:</p>
 <p><code>
 nim2 = NiftiImage(nim.data[:10], nim.header)<br />
 nim2.save('part.hdr.gz')
 </code></p>
-<p>The NiftiImage constructor takes a dictionary with header information as an optional argument. Settings that are not determined by the array (e.g. size, datatype) are copied from the dictionary and stored to the new NIfTI image.</p>
+<p>The NiftiImage constructor takes a dictionary with header information as an
+optional argument. Settings that are not determined by the array (e.g. size,
+datatype) are copied from the dictionary and stored to the new NIfTI image.</p>
 
 
-<h3>d) Linear detrending of timeseries (SciPy module is required for this example)</h3>
-<p>Let's load another 4d NIfTI file and perform a linear detrending, by fitting a straight line to the timeseries of each voxel and substract that fit from the data. Although this might sound complicated at first, thanks to the excellent SciPy module it is just a few lines of code.</p>
+<h3>d) Linear detrending of timeseries (SciPy module is required for this
+example)</h3>
+<p>Let's load another 4d NIfTI file and perform a linear detrending, by fitting
+a straight line to the timeseries of each voxel and substract that fit from the
+data. Although this might sound complicated at first, thanks to the excellent
+SciPy module it is just a few lines of code.</p>
 <p><code>nim = NiftiImage('timeseries.nii')</code></p>
-<p>Depending on the datatype of the input image the detrending process might change the datatype from integer to float. As operations that change the (binary) size of the NIfTI image are not supported, we need to make a copy of the data and later create a new NIfTI image.</p>
+<p>Depending on the datatype of the input image the detrending process might
+change the datatype from integer to float. As operations that change the
+(binary) size of the NIfTI image are not supported, we need to make a copy
+of the data and later create a new NIfTI image.</p>
 <p><code>data = nim.asarray()</code></p>
-<p>Now detrend the data along the time axis. Remember that the array has the time axis as its first dimension (in contrast to the NIfTI file where it is the 4th).</p>
+<p>Now detrend the data along the time axis. Remember that the array has the
+time axis as its first dimension (in contrast to the NIfTI file where it is
+the 4th).</p>
 <p><code>
 from scipy import signal<br />
 data_detrended = signal.detrend( data, axis=0 )</code></p>
-<p>Finally, create a new NIfTI image using header information from the original source image.</p>
+<p>Finally, create a new NIfTI image using header information from the original
+source image.</p>
 <p><code>nim_detrended = NiftiImage( data_detrended, nim.header)</code></p>
 
 <h3>e) Make a quick plot of a voxels timeseries (Gnuplot module is required)</h3>
-<p>Plotting is essential to get a 'feeling' for the data. The 
-<a href="http://gnuplot-py.sourceforge.net">python interface</a> 
-to <a href="http://www.gnuplot.info">Gnuplot</a> makes it really easy to plot 
-something (e.g. when running Python 
-interactively via <a href="http://ipython.scipy.org">IPython</a>). Please 
-note, that there are many other possibilities for plotting. Some examples are: 
-using <a href="http://www.r-project.org">R</a> via 
-<a href="http://rpy.sourceforge.net">RPy</a> or Matlab-style plotting via 
+<p>Plotting is essential to get a 'feeling' for the data. The
+<a href="http://gnuplot-py.sourceforge.net">python interface</a>
+to <a href="http://www.gnuplot.info">Gnuplot</a> makes it really easy to plot
+something (e.g. when running Python
+interactively via <a href="http://ipython.scipy.org">IPython</a>). Please
+note, that there are many other possibilities for plotting. Some examples are:
+using <a href="http://www.r-project.org">R</a> via
+<a href="http://rpy.sourceforge.net">RPy</a> or Matlab-style plotting via
 <a href="http://matplotlib.sourceforge.net/">matplotlib</a>.</p>
-<p>However, using Gnuplot is really easy. First import the Gnuplot module 
+<p>However, using Gnuplot is really easy. First import the Gnuplot module
 and create the interface object.</p>
 <p><code>
 from Gnuplot import Gnuplot<br />
 gp = Gnuplot()</code></p>
-<p>We want the timeseries as a line plot and not just the datapoints, so 
+<p>We want the timeseries as a line plot and not just the datapoints, so
 let's talk with Gnuplot.</p>
 <p><code>gp('set data style lines')</code></p>
 <p>Now load a 4d NIfTI image</p>
 <p><code>nim = NiftiImage('perfect_subject.nii.gz')</code></p>
 <p>and finally plot the timeseries of voxel (x=20, y=30, z=12):</p>
 <p><code>gp.plot(nim.data[:,12,30,20])</code></p>
-<p>A Gnuplot window showing the timeseries should popup now (<a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/gnuplot_ts.png">screenshot</a>). Please read the 
-Gnuplot Manual to learn what it can do -- and it can do a lot more than just 
+<p>A Gnuplot window showing the timeseries should popup now (<a href="http://apsy.gse.uni-magdeburg.de/main/pics/hanke/pynifti/gnuplot_ts.png">screenshot</a>). Please read the
+Gnuplot Manual to learn what it can do -- and it can do a lot more than just
 simple line plots (have a look at <a href="http://gnuplot.sourceforge.net/demo_4.3/index.html">this</a>
 page if you are interested).</p>
 

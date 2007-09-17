@@ -1,4 +1,4 @@
-pynifti (0.20070914.1) unstable; urgency=low
+pynifti (0.20070917.1) UNRELEASED; urgency=low
 
   [ Michael Hanke ]
   * Bugfix: Can now update NIfTI header data when no filename is set.
@@ -9,7 +9,7 @@ pynifti (0.20070914.1) unstable; urgency=low
   [ Yaroslav Halchenko ]
   * Added 'pixdim' property.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Fri, 14 Sep 2007 09:29:55 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Mon, 17 Sep 2007 08:32:59 +0200
 
 pynifti (0.20070905.1-1) unstable; urgency=low
 
