@@ -1,3 +1,11 @@
+pynifti (0.20070930.1-1) unstable; urgency=low
+
+  * Relicense under the MIT license, to be compatible with SciPy license.
+    http://www.opensource.org/licenses/mit-license.php
+  * Updated documentation.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Sun, 30 Sep 2007 13:24:15 +0200
+
 pynifti (0.20070917.1-1) unstable; urgency=low
 
   [ Michael Hanke ]

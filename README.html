@@ -112,7 +112,7 @@ look at statistics and signal timecourses. Please see the corresponding example 
 <h2>2. License</h2>
 <p>PyNIfTI is written by <a href="http://apsy.gse.uni-magdeburg.de/hanke">Michael Hanke</a>
 as free software (both beer and speech) and licensed under the
-<a href="http://www.gnu.org/licenses/lgpl.html">GNU Lesser General Public License</a>.
+<a href="http://www.opensource.org/licenses/mit-license.php">MIT License</a>.
 </p>
 
 
@@ -129,31 +129,37 @@ SVN repository (read below) if your problem is already solved.</p>
 source code can be obtained from the
 <a href="http://sourceforge.net/projects/niftilib">Sourceforge project site</a>.
 </p>
-<p>Source code is also available from the
-<a href="http://svn.debian.org/wsvn/pkg-exppsy/pynifti/trunk/?rev=0&sc=0">SVN repository</a>
-of the
-<a href="http://alioth.debian.org/projects/pkg-exppsy">Debian Experimental Psychology Project</a>.
-To checkout the latest version use this command:</p>
-<p><code>svn co svn://svn.debian.org/svn/pkg-exppsy/pynifti/trunk pynifti-latest</code></p>
 
 <h3>Binary packages</h3>
-<p>Binary packages for some Debian and (K)Ubuntu versions are available. Please visit
+<h4>GNU/Linux</h4>
+<p>PyNIfTI is available in recent versions of the Debian (since lenny) and
+Ubuntu (since gutsy in universe) distributions. The name of the binary package
+is <em>python-nifti</em> in both cases.</p>
+<ul>
+<li><a href="http://packages.debian.org/python-nifti">PyNIfTI versions in Debian</a>
+<li><a href="http://packages.ubuntu.com/python-nifti">PyNIfTI versions in Ubuntu</a>
+</ul>
+<p>Binary packages for some additional Debian and (K)Ubuntu versions are also
+available. Please visit
 <a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> to read
 about how you have to setup your system to retrieve the PyNIfTI package via
 your package manager and stay in sync with future releases.</p>
 
+<h4>Windows</h4>
+<p>A binary installer for a recent Python version is available from the
+<a href="http://sourceforge.net/projects/niftilib">Sourceforge project site</a>.
+
+
+<h4>Macintosh</h4>
+<p>Unfortunately, no binary packages are available. I have no access to such
+a machine at the moment. But it is possible to build PyNIfTI from source on
+Mac OS X (see below for more information).</p>
+
+
 
 <h2>4. Installation</h2>
 
-<h3>Binary packages</h3>
-<p>If you have configured your system as described on
-<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> all you
-have to do to install PyNIfTI is this:</p>
-<p><code>apt-get update</code><br /><code>apt-get install python-nifti</code></p>
-<p>This should pull all necessary dependencies. If it doesn't, it's a bug that
-should be reported.</p>
-
-<h3>Compile from source</h3>
+<h3>Compile from source: General instructions</h3>
 <p>PyNIfTI needs a few things to build and run properly:</p>
 <ul>
   <li><a href="http://www.python.org">Python</a> 2.4 or greater</li>
@@ -182,6 +188,14 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import nifti
 >>> 
 </pre>
+<h4>Windows</h4>
+<p>It should be pretty straightforward to compile PyNIfTI for win32. The most
+convenient way seems to be using the
+<a href="http://www.bloodshed.net/devcpp.html">Dev-Cpp IDE</a>
+and the DevPak of the nifticlibs. Have a look into the toplevel Makefile of the
+PyNIfTI source distribution for some hints.</p>
+
+
 <h4>MacOS X and MacPython</h4>
 <p>When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
 please make sure that the NIfTI C libraries are compiled as fat binaries
@@ -191,6 +205,18 @@ PyNIfTI extensions will not compile.</p>
 definition in the toplevel Makefile of the NIfTI C library source code. Like
 this</p>
 <p><code>CFLAGS = $(ANSI_FLAGS) -arch ppc -arch i386</code></p>
+
+
+<h3>Binary packages</h3>
+<h4>GNU/Linux</h4>
+<p>If you have configured your system as described on
+<a href="index.php?sec=1&page=hanke/debian&lang=en">this page</a> all you
+have to do to install PyNIfTI is this:</p>
+<p><code>apt-get update</code><br /><code>apt-get install python-nifti</code></p>
+<p>This should pull all necessary dependencies. If it doesn't, it's a bug that
+should be reported.</p>
+<h4>Windows</h4>
+<p>As always: click <em>Next</em> as long as necessary and finally <em>Finish</em>.
 
 <h4>Troubleshooting</h4>
 <p>If you get an error when importing the <em>nifti</em> module in Python
