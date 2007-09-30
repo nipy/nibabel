@@ -116,15 +116,15 @@ class NiftiImage(object):
             h[attr] = eval('nhdr.' + attr)
 
         # handle a few special cases
-        # handle 'pixdim'
+        # handle 'pixdim': carray -> list
         pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
         h['pixdim'] = [ pixdim[i] for i in range(8) ]
 
-        # handle dim
+        # handle dim: carray -> list
         dim = nifticlib.shortArray_frompointer(nhdr.dim)
         h['dim'] = [ dim[i] for i in range(8) ]
 
-        # handle sform
+        # handle sform: carrays -> (4x4) numpy array
         srow_x = nifticlib.floatArray_frompointer( nhdr.srow_x )
         srow_y = nifticlib.floatArray_frompointer( nhdr.srow_y )
         srow_z = nifticlib.floatArray_frompointer( nhdr.srow_z )
@@ -134,7 +134,7 @@ class NiftiImage(object):
                                     [ srow_z[i] for i in range(4) ],
                                     [ 0.0, 0.0, 0.0, 1.0 ] ] )
 
-        # handle qform stuff
+        # handle qform stuff: 3 numbers -> list
         h['quatern'] = [ nhdr.quatern_b, nhdr.quatern_c, nhdr.quatern_d ]
         h['qoffset'] = [ nhdr.qoffset_x, nhdr.qoffset_y, nhdr.qoffset_z ]
 
@@ -298,7 +298,7 @@ class NiftiImage(object):
         This method decides whether to load a nifti image from file or create
         one from array data, depending on the datatype of 'source'. If source
         is a string, it is assumed to be a filename and an attempt will be made
-        to open the corresponding niftifile. If 'load' is set to True the image
+        to open the corresponding NIfTI file. If 'load' is set to True the image
         data will be loaded into memory.
 
         If 'source' is a numpy array the array data will be used for the to be
@@ -307,7 +307,7 @@ class NiftiImage(object):
         and datatype are determined from the numpy array and not taken from
         a header dictionary.
 
-        If an object of a different type is supplied as 'source' as ValueError
+        If an object of a different type is supplied as 'source' a ValueError
         exception will be thrown.
         """
 
