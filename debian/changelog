@@ -1,7 +1,8 @@
 pynifti (0.20070917.1-1) unstable; urgency=low
 
   [ Michael Hanke ]
-  * Bugfix: Can now update NIfTI header data when no filename is set.
+  * Bugfix: Can now update NIfTI header data when no filename is set
+    (Closes: #442175).
   * Unloading of image data without a filename set is no checked and prevented
     as it would damage data integrity and the image data could not be
     recovered.
