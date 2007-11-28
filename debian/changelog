@@ -1,12 +1,13 @@
 pynifti (0.20070930.1-1) unstable; urgency=low
 
-  * Relicense under the MIT license, to be compatible with SciPy license.
-    http://www.opensource.org/licenses/mit-license.php
+  * New upstream release. Relicense under the MIT license, to be compatible
+    with SciPy license. http://www.opensource.org/licenses/mit-license.php
   * Updated documentation.
   * Updated VCS information in debian/control.
   * Added new-style Homepage field in debian/control.
+  * Updated debian/watch. 
 
- -- Michael Hanke <michael.hanke@gmail.com>  Wed, 28 Nov 2007 20:30:53 +0100
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 28 Nov 2007 20:46:12 +0100
 
 pynifti (0.20070917.1-1) unstable; urgency=low
 
