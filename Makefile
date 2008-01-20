@@ -2,6 +2,7 @@
 PROFILE_FILE=tests/main.pstats
 COVERAGE_REPORT=coverage
 HTML_DIR=build/html
+PDF_DIR=build/pdf
 
 PYVER := $(shell pyversions -vd)
 ARCH := $(shell uname -m)
@@ -67,6 +68,34 @@ apidoc-stamp: $(PROFILE_FILE)
 	mkdir -p $(HTML_DIR)/api
 	epydoc --config doc/api/epydoc.conf
 	touch $@
+
+# convert rsT documentation in doc/* to HTML.
+rst2html-%:
+	if [ ! -d $(HTML_DIR) ]; then mkdir -p $(HTML_DIR); fi
+	for f in doc/$*/*.txt; do rst2html --date --strict --stylesheet=pynifti.css \
+		--link-stylesheet $${f} $(HTML_DIR)/$$(basename $${f%%.txt}.html); \
+	done
+	cp doc/misc/*.css $(HTML_DIR)
+	# copy common images
+	cp -r doc/misc/pics $(HTML_DIR)
+	# copy local images, but ignore if there are none
+	-cp -r doc/$*/pics $(HTML_DIR)
+
+# convert rsT documentation in doc/* to PDF.
+rst2pdf-%:
+	if [ ! -d $(PDF_DIR) ]; then mkdir -p $(PDF_DIR); fi
+	for f in doc/$*/*.txt; do \
+		rst2latex --documentclass=scrartcl \
+		          --use-latex-citations \
+				  --strict \
+				  --use-latex-footnotes \
+				  --stylesheet ../../doc/misc/style.tex \
+				  $${f} $(PDF_DIR)/$$(basename $${f%%.txt}.tex); \
+		done
+	-cp -r doc/$*/pics $(PDF_DIR)
+	cd $(PDF_DIR) && for f in *.tex; do pdflatex $${f}; done
+# need to clean tex files or the will be rebuild again
+	cd $(PDF_DIR) && rm *.tex
 
 
 #
