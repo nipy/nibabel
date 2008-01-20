@@ -2,7 +2,7 @@
 #
 #    Import helper for PyNifti
 #
-#    Copyright (C) 2006-2007 by
+#    Copyright (C) 2006-2008 by
 #    Michael Hanke <michael.hanke@gmail.com>
 #
 #    This is free software; you can redistribute it and/or
@@ -15,4 +15,4 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-from niftiimage import *
+from nifti.niftiimage import NiftiImage

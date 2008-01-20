@@ -2,7 +2,7 @@
 #
 #    Python interface to the NIfTI file format
 #
-#    Copyright (C) 2006-2007 by
+#    Copyright (C) 2006-2008 by
 #    Michael Hanke <michael.hanke@gmail.com>
 #
 #    This is free software; you can redistribute it and/or
@@ -16,8 +16,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 # the swig wrapper if the NIfTI C library
-import nifticlib
-import os
+import nifti.nifticlib as nifticlib
 import numpy
 
 
@@ -185,7 +184,8 @@ class NiftiImage(object):
 
         if hdrdict.has_key('dim'):
             dim = nifticlib.shortArray_frompointer(nhdr.dim)
-            for i in range(8): dim[i] = hdrdict['dim'][i]
+            for i in range(8):
+                dim[i] = hdrdict['dim'][i]
         if hdrdict.has_key('intent_p1'):
             nhdr.intent_p1 = hdrdict['intent_p1']
         if hdrdict.has_key('intent_p2'):
@@ -202,7 +202,8 @@ class NiftiImage(object):
             nhdr.slice_start = hdrdict['slice_start']
         if hdrdict.has_key('pixdim'):
             pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
-            for i in range(8): pixdim[i] = hdrdict['pixdim'][i]
+            for i in range(8):
+                pixdim[i] = hdrdict['pixdim'][i]
         if hdrdict.has_key('vox_offset'):
             nhdr.vox_offset = hdrdict['vox_offset']
         if hdrdict.has_key('scl_slope'):
@@ -266,16 +267,19 @@ class NiftiImage(object):
             nhdr.qoffset_z = hdrdict['qoffset'][2]
 
         if hdrdict.has_key('sform'):
-            if not hdrdict['sform'].shape == (4,4):
+            if not hdrdict['sform'].shape == (4, 4):
                 raise ValueError, \
                       "Nifti header property 'sform' must be 4x4 matrix."
 
             srow_x = nifticlib.floatArray_frompointer(nhdr.srow_x)
-            for i in range(4): srow_x[i] = hdrdict['sform'][0][i]
+            for i in range(4):
+                srow_x[i] = hdrdict['sform'][0][i]
             srow_y = nifticlib.floatArray_frompointer(nhdr.srow_y)
-            for i in range(4): srow_y[i] = hdrdict['sform'][1][i]
+            for i in range(4):
+                srow_y[i] = hdrdict['sform'][1][i]
             srow_z = nifticlib.floatArray_frompointer(nhdr.srow_z)
-            for i in range(4): srow_z[i] = hdrdict['sform'][2][i]
+            for i in range(4):
+                srow_z[i] = hdrdict['sform'][2][i]
 
         if hdrdict.has_key('intent_name'):
             if len(hdrdict['intent_name']) > 15:
@@ -862,7 +866,7 @@ class NiftiImage(object):
         Besides reading it is also possible to set the sform matrix by
         assigning to the 'sform' property.
         """
-        if m.shape != (4,4):
+        if m.shape != (4, 4):
             raise ValueError, "SForm matrix has to be of size 4x4."
 
         # make sure it is float
@@ -928,7 +932,7 @@ class NiftiImage(object):
         Besides reading it is also possible to set the qform matrix by
         assigning to the 'qform' property.
         """
-        if m.shape != (4,4):
+        if m.shape != (4, 4):
             raise ValueError, "QForm matrix has to be of size 4x4."
 
         # make sure it is float
