@@ -19,7 +19,7 @@
 
 from distutils.core import setup, Extension
 import os
-import numpy
+import numpy as N
 from glob import glob
 
 nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
@@ -29,7 +29,7 @@ if not os.path.isfile(nifti_wrapper_file):
     open(nifti_wrapper_file, 'w')
 
 # find numpy headers
-numpy_headers = os.path.join(os.path.dirname(numpy.__file__),'core','include')
+numpy_headers = os.path.join(os.path.dirname(N.__file__),'core','include')
 
 
 # Notes on the setup

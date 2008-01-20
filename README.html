@@ -265,10 +265,10 @@ to learn how the filetypes are determined from the filenames.</p>
 <h3>b) NIfTI files from array data</h3>
 <p>The next code snipped demonstrates how to create a 4d NIfTI image containing
 gaussian noise. First we need to import the NumPy module</p>
-<p><code>import numpy</code></p>
+<p><code>import numpy as N</code></p>
 <p>Now generate the noise dataset. Let's generate noise for 100 volumes with 16
 slices and a 32x32 inplane matrix.</p>
-<p><code>noise = numpy.random.randn(100,16,32,32)</code></p>
+<p><code>noise = N.random.randn(100,16,32,32)</code></p>
 <p>Please notice the order in which the dimensions are specified:
 (t, z, y, x).</p>
 <p>The datatype of the array will most likely be <em>float64</em> -- which can

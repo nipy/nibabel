@@ -16,14 +16,14 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 import nifti.utils
-import numpy
+import numpy as N
 import unittest
 
 
 class UtilsTests(unittest.TestCase):
     def testZScoring(self):
         # dataset: mean=2, std=1
-        data = numpy.array( (0,1,3,4,2,2,3,1,1,3,3,1,2,2,2,2) )
+        data = N.array( (0,1,3,4,2,2,3,1,1,3,3,1,2,2,2,2) )
         self.failUnlessEqual( data.mean(), 2.0 )
         self.failUnlessEqual( data.std(), 1.0 )
 

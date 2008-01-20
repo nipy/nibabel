@@ -16,7 +16,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import nifti
-import numpy
+import numpy as N
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
@@ -39,13 +39,13 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
     to even numbers). The 'decimals' argument will be passed to numpy.round().
     """
     # transform to numpy array for easy handling
-    tmp = numpy.array(t)
+    tmp = N.array(t)
     
     # determine tr if NiftiImage object
     if isinstance( tr, nifti.NiftiImage ):
         tr = tr.rtime
 
-    vol = numpy.round( ( tmp + lag + tr/2 ) / tr, decimals )
+    vol = N.round( ( tmp + lag + tr/2 ) / tr, decimals )
 
     return vol
 
@@ -53,8 +53,8 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
 def applyFxToVolumes( ts, vols, fx, **kwargs ):
     """ Apply a function on selected volumes of a timeseries.
 
-    'ts' is a 4d timeseries. It can be a NiftiImage or a numpy array.
-    In case of a numpy array one has to make sure that the time is on the
+    'ts' is a 4d timeseries. It can be a NiftiImage or a ndarray.
+    In case of a ndarray one has to make sure that the time is on the
     first axis. 'ts' can actually be of any dimensionality, but datasets aka
     volumes are assumed to be along the first axis.
 
@@ -78,9 +78,9 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
     out = []
 
     for vol in vols:
-        out.append( fx( data[ numpy.array( vol ) ], **kwargs ) )
+        out.append( fx( data[ N.array( vol ) ], **kwargs ) )
 
-    return numpy.array( out )
+    return N.array( out )
 
 
 def cropImage( nimg, bbox ):
@@ -105,7 +105,7 @@ def cropImage( nimg, bbox ):
     return nifti.NiftiImage(cropped, nimg.header)
 
 
-def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = numpy.mean ):
+def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
     """ Returns 4d array with peristimulus timeseries.
 
     Parameters:

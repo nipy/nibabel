@@ -17,7 +17,7 @@
 
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
-import numpy
+import numpy as N
 
 
 class NiftiImage(object):
@@ -37,32 +37,32 @@ class NiftiImage(object):
                   'NIFTI_PAIR_GZ' ]
 
     # map NumPy datatypes to NIfTI datatypes
-    numpy2nifti_dtype_map = { numpy.uint8: nifticlib.NIFTI_TYPE_UINT8,
-                              numpy.int8 : nifticlib.NIFTI_TYPE_INT8,
-                              numpy.uint16: nifticlib.NIFTI_TYPE_UINT16,
-                              numpy.int16 : nifticlib.NIFTI_TYPE_INT16,
-                              numpy.uint32: nifticlib.NIFTI_TYPE_UINT32,
-                              numpy.int32 : nifticlib.NIFTI_TYPE_INT32,
-                              numpy.uint64: nifticlib.NIFTI_TYPE_UINT64,
-                              numpy.int64 : nifticlib.NIFTI_TYPE_INT64,
-                              numpy.float32: nifticlib.NIFTI_TYPE_FLOAT32,
-                              numpy.float64: nifticlib.NIFTI_TYPE_FLOAT64,
-                              numpy.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
-                            }
+    N2nifti_dtype_map = { N.uint8: nifticlib.NIFTI_TYPE_UINT8,
+                          N.int8 : nifticlib.NIFTI_TYPE_INT8,
+                          N.uint16: nifticlib.NIFTI_TYPE_UINT16,
+                          N.int16 : nifticlib.NIFTI_TYPE_INT16,
+                          N.uint32: nifticlib.NIFTI_TYPE_UINT32,
+                          N.int32 : nifticlib.NIFTI_TYPE_INT32,
+                          N.uint64: nifticlib.NIFTI_TYPE_UINT64,
+                          N.int64 : nifticlib.NIFTI_TYPE_INT64,
+                          N.float32: nifticlib.NIFTI_TYPE_FLOAT32,
+                          N.float64: nifticlib.NIFTI_TYPE_FLOAT64,
+                          N.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
+                        }
 
 
     @staticmethod
-    def numpydtype2niftidtype(array):
-        """ Return the NIfTI datatype id for a corrsponding numpy array
+    def Ndtype2niftidtype(array):
+        """ Return the NIfTI datatype id for a corrsponding N array
         datatype.
         """
-        # get the real datatype from numpy type dictionary
-        dtype = numpy.typeDict[str(array.dtype)]
+        # get the real datatype from N type dictionary
+        dtype = N.typeDict[str(array.dtype)]
 
-        if not NiftiImage.numpy2nifti_dtype_map.has_key(dtype):
+        if not NiftiImage.N2nifti_dtype_map.has_key(dtype):
             raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
 
-        return NiftiImage.numpy2nifti_dtype_map[dtype]
+        return NiftiImage.N2nifti_dtype_map[dtype]
 
 
     @staticmethod
@@ -122,12 +122,12 @@ class NiftiImage(object):
         dim = nifticlib.shortArray_frompointer(nhdr.dim)
         h['dim'] = [ dim[i] for i in range(8) ]
 
-        # handle sform: carrays -> (4x4) numpy array
+        # handle sform: carrays -> (4x4) ndarray
         srow_x = nifticlib.floatArray_frompointer( nhdr.srow_x )
         srow_y = nifticlib.floatArray_frompointer( nhdr.srow_y )
         srow_z = nifticlib.floatArray_frompointer( nhdr.srow_z )
 
-        h['sform'] = numpy.array( [ [ srow_x[i] for i in range(4) ],
+        h['sform'] = N.array( [ [ srow_x[i] for i in range(4) ],
                                     [ srow_y[i] for i in range(4) ],
                                     [ srow_z[i] for i in range(4) ],
                                     [ 0.0, 0.0, 0.0, 1.0 ] ] )
@@ -304,10 +304,10 @@ class NiftiImage(object):
         to open the corresponding NIfTI file. If 'load' is set to True the image
         data will be loaded into memory.
 
-        If 'source' is a numpy array the array data will be used for the to be
+        If 'source' is a ndarray the array data will be used for the to be
         created nifti image and a matching nifti header is generated. Additonal
         header data might be supplied in a dictionary. However, dimensionality
-        and datatype are determined from the numpy array and not taken from
+        and datatype are determined from the ndarray and not taken from
         a header dictionary.
 
         If an object of a different type is supplied as 'source' a ValueError
@@ -316,7 +316,7 @@ class NiftiImage(object):
 
         self.__nimg = None
 
-        if type( source ) == numpy.ndarray:
+        if type( source ) == N.ndarray:
             self.__newFromArray( source, header )
         elif type ( source ) == str:
             self.__newFromFile( source, load )
@@ -341,7 +341,7 @@ class NiftiImage(object):
 
 
     def __newFromArray(self, data, hdr = {}):
-        """ Create a nifti image struct from a numpy array and optional header
+        """ Create a nifti image struct from a ndarray and optional header
         data.
         """
 
@@ -366,8 +366,8 @@ class NiftiImage(object):
             hdic[k] = v
 
         # finally set header data that is determined by the data array
-        # convert numpy to nifti datatype
-        hdic['datatype'] = self.numpydtype2niftidtype(data)
+        # convert NumPy to nifti datatype
+        hdic['datatype'] = self.Ndtype2niftidtype(data)
 
         # make sure there are no zeros in the dim vector
         # especially not in #4 as FSLView doesn't like that

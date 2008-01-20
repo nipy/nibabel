@@ -21,7 +21,7 @@ import md5
 import tempfile
 import shutil
 import os
-import numpy as np
+import numpy as N
 
 
 def md5sum(filename):
@@ -57,7 +57,7 @@ class FileIOTests(unittest.TestCase):
     def testQFormSetting(self):
         nimg = nifti.NiftiImage('data/example4d.nii.gz')
         # 4x4 identity matrix
-        ident = np.identity(4)
+        ident = N.identity(4)
         self.failIf( (nimg.qform == ident).all() )
 
         # assign new qform
