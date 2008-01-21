@@ -53,7 +53,7 @@ class NiftiImage(object):
 
     @staticmethod
     def Ndtype2niftidtype(array):
-        """ Return the NIfTI datatype id for a corresponding NumPy datatype.
+        """Return the NIfTI datatype id for a corresponding NumPy datatype.
         """
         # get the real datatype from N type dictionary
         dtype = N.typeDict[str(array.dtype)]
@@ -66,7 +66,7 @@ class NiftiImage(object):
 
     @staticmethod
     def splitFilename(filename):
-        """ Split a NIfTI filename into basename and extension.
+        """Split a NIfTI filename into basename and extension.
 
         :Parameters:
             filename: str
@@ -93,7 +93,7 @@ class NiftiImage(object):
 
     @staticmethod
     def nhdr2dict(nhdr):
-        """ Convert a NIfTI header struct into a python dictionary.
+        """Convert a NIfTI header struct into a python dictionary.
 
         While most elements of the header struct will be translated
         1:1 some (e.g. sform matrix) are converted into more convenient
@@ -152,7 +152,7 @@ class NiftiImage(object):
 
     @staticmethod
     def updateNiftiHeaderFromDict(nhdr, hdrdict):
-        """ Update a NIfTI header struct with data from a dictionary.
+        """Update a NIfTI header struct with data from a dictionary.
 
         The supplied dictionary might contain additonal data elements
         that do not match any nifti header element. These are silently ignored.
@@ -314,22 +314,26 @@ class NiftiImage(object):
 
 
     def __init__(self, source, header = {}, load=False ):
-        """ Create a Niftifile object.
+        """Create a NiftiImage object.
 
         This method decides whether to load a nifti image from file or create
-        one from array data, depending on the datatype of 'source'. If source
-        is a string, it is assumed to be a filename and an attempt will be made
-        to open the corresponding NIfTI file. If 'load' is set to True the image
-        data will be loaded into memory.
+        one from ndarray data, depending on the datatype of `source`.
 
-        If 'source' is a ndarray the array data will be used for the to be
-        created nifti image and a matching nifti header is generated. Additonal
-        header data might be supplied in a dictionary. However, dimensionality
-        and datatype are determined from the ndarray and not taken from
-        a header dictionary.
-
-        If an object of a different type is supplied as 'source' a ValueError
-        exception will be thrown.
+        :Parameters:
+            source: str | ndarray
+                If source is a string, it is assumed to be a filename and an
+                attempt will be made to open the corresponding NIfTI file.
+                In case of an ndarray the array data will be used for the to be
+                created nifti image and a matching nifti header is generated.
+                If an object of a different type is supplied as 'source' a
+                ValueError exception will be thrown.
+            header: dict
+                Additonal header data might be supplied. However,
+                dimensionality and datatype are determined from the ndarray and
+                not taken from a header dictionary.
+            load: Boolean
+                If set to True the image data will be loaded into memory. This
+                is only useful if loading a NIfTI image from file.
         """
 
         self.__nimg = None
@@ -345,7 +349,7 @@ class NiftiImage(object):
 
 
     def __del__(self):
-        """ Do all necessary cleanups by calling __close().
+        """Do all necessary cleanups by calling __close().
         """
         self.__close()
 
@@ -359,8 +363,7 @@ class NiftiImage(object):
 
 
     def __newFromArray(self, data, hdr = {}):
-        """ Create a nifti image struct from a ndarray and optional header
-        data.
+        """Create a nifti image struct from a ndarray and optional header data.
         """
 
         # check array
@@ -429,8 +432,13 @@ class NiftiImage(object):
     def __newFromFile(self, filename, load=False):
         """Open a NIfTI file.
 
-        If there is already an open file it is closed first. If 'load' is True
-        the image data is loaded into memory.
+        If there is already an open file it is closed first.
+
+        :Parameters:
+            filename: str
+                Filename of the to be opened image file.
+            load: Boolean
+                If set to True the image data is loaded into memory.
         """
         self.__close()
         self.__nimg = nifticlib.nifti_image_read( filename, int(load) )
@@ -448,19 +456,24 @@ class NiftiImage(object):
         If the image was created using array data (not loaded from a file) one
         has to specify a filename.
 
-        Setting the filename also determines the filetype (NIfTI/ANALYZE).
-        Please see the documentation of the setFilename() method for some 
-        details on the 'filename' and 'filetype' argument.
-
-        Calling save() without a specified filename on a NiftiImage loaded
-        from a file, will overwrite the original file.
+        Warning: There will be no exception if writing fails for any reason,
+        as the underlying function nifti_write_hdr_img() from libniftiio does
+        not provide any feedback. Suggestions for improvements are appreciated.
 
         If not yet done already, the image data will be loaded into memory
         before saving the file.
 
-        Warning: There will be no exception if writing fails for any reason,
-        as the underlying function nifti_write_hdr_img() from libniftiio does
-        not provide any feedback. Suggestions for improvements are appreciated.
+        :Parameters:
+            filename: str | None
+                Calling save() with `filename` equal None on a NiftiImage
+                loaded from a file, it will overwrite the original file.
+
+                Usually setting the filename also determines the filetype
+                (NIfTI/ANALYZE). Please see the documentation of the
+                `setFilename()` method for some more details.
+            filetype: str
+                Override filetype. Please see the documentation of the
+                `setFilename()` method for some more details.
         """
 
         # If image data is not yet loaded, do it now.
