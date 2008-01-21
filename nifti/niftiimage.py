@@ -1,19 +1,15 @@
+#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+#ex: set sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#    Python interface to the NIfTI file format
-#
-#    Copyright (C) 2006-2008 by
-#    Michael Hanke <michael.hanke@gmail.com>
-#
-#    This is free software; you can redistribute it and/or
-#    modify it under the terms of the MIT License.
-#
-#    This package is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the COPYING
-#    file that comes with this package for more details.
+#   See COPYING file distributed along with the PyNIfTI package for the
+#   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+"""Python class representation of a NIfTI image"""
+
+__docformat__ = 'restructuredtext'
+
 
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
@@ -23,20 +19,23 @@ import numpy as N
 class NiftiImage(object):
     """Wrapper class for convenient access to NIfTI data.
 
-    The class can either load an image from file or convert a NumPy
-    array into a NIfTI file structure. Either way is automatically determined
-    by the type of the 'source' argument (string == filename, array == Numpy).
+    The class can either load an image from file or convert a NumPy ndarray
+    into a NIfTI file structure. Either way is automatically determined
+    by the type of the 'source' argument. If `source` is a string, it is
+    assumed to be a filename an ndarray is treated as such.
 
     One can optionally specify whether the image data should be loaded into
-    memory when opening NIfTI data from files ('load'). When converting a NumPy
+    memory when opening NIfTI data from files (`load`). When converting a NumPy
     array one can optionally specify a dictionary with NIfTI header data as
-    available via the 'header' attribute.
+    available via the `header` attribute.
+
     """
+    # XXX Add more notes about how it works.
 
     filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
                   'NIFTI_PAIR_GZ' ]
+    """Typecodes of all supported NIfTI image formats."""
 
-    # map NumPy datatypes to NIfTI datatypes
     N2nifti_dtype_map = { N.uint8: nifticlib.NIFTI_TYPE_UINT8,
                           N.int8 : nifticlib.NIFTI_TYPE_INT8,
                           N.uint16: nifticlib.NIFTI_TYPE_UINT16,
@@ -49,12 +48,12 @@ class NiftiImage(object):
                           N.float64: nifticlib.NIFTI_TYPE_FLOAT64,
                           N.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
                         }
+    """Mapping of NumPy datatypes to NIfTI datatypes."""
 
 
     @staticmethod
     def Ndtype2niftidtype(array):
-        """ Return the NIfTI datatype id for a corrsponding N array
-        datatype.
+        """ Return the NIfTI datatype id for a corresponding NumPy datatype.
         """
         # get the real datatype from N type dictionary
         dtype = N.typeDict[str(array.dtype)]
@@ -67,11 +66,17 @@ class NiftiImage(object):
 
     @staticmethod
     def splitFilename(filename):
-        """ Split a NIfTI filename and returns a tuple of basename and
-        extension. If no valid NIfTI filename extension is found, the whole
-        string is returned as basename and the extension string will be empty.
-        """
+        """ Split a NIfTI filename into basename and extension.
 
+        :Parameters:
+            filename: str
+                Filename to be split.
+
+        :Returns:
+            The function returns a tuple of basename and extension. If no valid
+            NIfTI filename extension is found, the whole string is returned as
+            basename and the extension string will be empty.
+        """
         parts = filename.split('.')
 
         if parts[-1] == 'gz':
@@ -93,6 +98,12 @@ class NiftiImage(object):
         While most elements of the header struct will be translated
         1:1 some (e.g. sform matrix) are converted into more convenient
         datatypes (i.e. 4x4 matrix instead of 16 separate values).
+
+        :Parameters:
+            nhdr: nifti_1_header
+
+        :Returns:
+            dict
         """
         h = {}
 
@@ -149,6 +160,13 @@ class NiftiImage(object):
         Several checks are performed to ensure validity of the resulting
         nifti header struct. If any check fails a ValueError exception will be
         thrown. However, some tests are still missing.
+
+        :Parameters:
+            nhdr: nifti_1_header
+                To be updated NIfTI header struct (in-place update).
+            hdrdict: dict
+                Dictionary containing information intented to be merged into
+                the NIfTI header struct.
         """
         # this function is still incomplete. add more checks
 
