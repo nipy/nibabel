@@ -23,7 +23,7 @@ build-stamp:
 
 
 distclean:
-	-rm MANIFEST Changelog
+	-rm MANIFEST
 	-rm nifti/*.{c,pyc,pyo,so} nifti/nifticlib.py
 	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
@@ -110,8 +110,6 @@ pylint: distclean
 orig-src: distclean 
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
-	# the debian changelog is also the upstream changelog
-	cp debian/changelog Changelog
 
 	# update manpages
 	help2man -N -n "compute peristimulus timeseries of fMRI data" \
