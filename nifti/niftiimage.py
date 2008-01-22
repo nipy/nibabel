@@ -363,7 +363,13 @@ class NiftiImage(object):
 
 
     def __newFromArray(self, data, hdr = {}):
-        """Create a nifti image struct from a ndarray and optional header data.
+        """Create a `nifti_image` struct from a ndarray.
+
+        :Parameters:
+            data: ndarray
+                Source ndarray.
+            hdr: dict
+                Optional dictionary with NIfTI header data.
         """
 
         # check array
@@ -508,10 +514,9 @@ class NiftiImage(object):
 
 
     def __haveImageData(self):
-        """Returns true if the image data was loaded into memory.
-        or False if not.
+        """Returns if the image data was loaded into memory.
 
-        See: load(), unload()
+        See: `load()`, `unload()`
         """
         self.__ensureNiftiImage()
 
@@ -537,41 +542,40 @@ class NiftiImage(object):
         """
         # if no filename is se, the data will be lost and cannot be recovered
         if not self.filename:
-            raise RuntimeError, "No filename is set, unloading the data would " \
-                              + "loose it completely without a chance of recovery. "
+            raise RuntimeError, \
+                  "No filename is set, unloading the data would " \
+                  "loose it completely without a chance of recovery."
         self.__ensureNiftiImage()
 
         nifticlib.nifti_image_unload(self.__nimg)
 
 
     def getDataArray(self):
-        """ Calls asarray(False) to return the NIfTI image data wrapped into
-        a NumPy array.
+        """Return the NIfTI image data wrapped into a NumPy array.
 
         Attention: The array shares the data with the NiftiImage object. Any
         resize operation or datatype conversion will most likely result in a
         fatal error. If you need to perform such things, get a copy
-        of the image data by using asarray(copy=True).
+        of the image data by using `asarray(copy=True)`.
 
-        The 'data' property is an alternative way to access this function.
+        The `data` property is an alternative way to access this function.
         """
         return self.asarray(False)
 
 
     def asarray(self, copy = True):
-        """Convert the image data into a multidimensional array.
+        """Convert the image data into a ndarray.
 
-        Attention: If copy == False (the default) the array only wraps
-        the image data. Any modification done to the array is also done
-        to the image data.
-
-        If copy is true the array contains a copy of the image data.
-
-        Changing the shape, size or data of a wrapping array is not supported
-        and will most likely result in a fatal error. If you want to data
-        anything else to the data but reading or simple value assignment
-        use a copy of the data by setting the copy flag. Later you can convert
-        the modified data array into a NIfTi file again.
+        :Parameters:
+            copy: Boolean
+                If set to False the array only wraps the image data. Any
+                modification done to the array is also done to the image data.
+                In this case changing the shape, size or datatype of a wrapping
+                array is not supported and will most likely result in a fatal
+                error. If you want to do anything else to the data but reading
+                or simple value assignment use a copy of the data by setting
+                the copy flag to True. Later you can convert the modified data
+                array into a NIfTi file again.
         """
         self.__ensureNiftiImage()
 
@@ -587,8 +591,13 @@ class NiftiImage(object):
 
 
     def getScaledData(self):
-        """ Returns a copy of the data array scaled by multiplying with the
-        slope and adding the intercept that is stored in the NIfTI header.
+        """Returns a scaled copy of the data array.
+
+        Scaling is done by multiplying with the slope and adding the intercept
+        that is stored in the NIfTI header.
+
+        :Returns:
+            ndarray
         """
         data = self.asarray(copy = True)
 
@@ -598,37 +607,39 @@ class NiftiImage(object):
     def __ensureNiftiImage(self):
         """Check whether a NIfTI image is present.
 
-        Returns True if there is a nifti image file structure or False
-        otherwise. One can create a file structure by calling open().
+        :Returns:
+            True if there is a nifti image file structure or False
+            otherwise. One can create a file structure by calling open().
         """
         if not self.__nimg:
             raise RuntimeError, "There is no NIfTI image file structure."
 
 
     def updateCalMinMax(self):
-        """ Update the image data maximum and minimum value in the
-        nifti header.
+        """Update the image data maximum and minimum value in the nifti header.
         """
         self.__nimg.cal_max = float(self.data.max())
         self.__nimg.cal_min = float(self.data.min())
 
 
     def getVoxDims(self):
-        """ Returns a 3-tuple a voxel dimensions/size in (x,y,z).
+        """Returns a 3-tuple a voxel dimensions/size in (x,y,z).
 
-        The 'voxdim' property is an alternative way to access this function.
+        The `voxdim` property is an alternative way to access this function.
         """
-        return ( self.__nimg.dx, self.__nimg.dy, self.__nimg.dz )
+        return (self.__nimg.dx, self.__nimg.dy, self.__nimg.dz)
 
 
     def setVoxDims(self, value):
-        """ Set voxel dimensions/size.
+        """Set voxel dimensions/size.
 
-        This method takes a 3-tuple of floats as argument. The qform matrix
-        and its inverse will be recalculated automatically.
+        The qform matrix and its inverse will be recalculated automatically.
+
+        :Parameter:
+            value: 3-tuple of floats
 
         Besides reading it is also possible to set the voxel dimensions by
-        assigning to the 'voxdim' property.
+        assigning to the `voxdim` property.
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -641,15 +652,19 @@ class NiftiImage(object):
 
 
     def setPixDims(self, value):
-        """ Set the pixel dimensions.
+        """Set the pixel dimensions.
 
-        The methods takes a sequence of up to 7 values (max. number of
-        dimensions supported by the NIfTI format.
+        :Parameter:
+            value: sequence
+                Up to 7 values (max. number of dimensions supported by the
+                NIfTI format) are allowed in the sequence.
 
-        The supplied sequence can be shorter than seven elements. In this case
-        only present values are assigned starting with the first dimension
-        (spatial: x). Calling setPixDims() with a length-3 sequence equals
-        calling setVoxDims().
+                The supplied sequence can be shorter than seven elements. In
+                this case only present values are assigned starting with the
+                first dimension (spatial: x).
+
+        Calling `setPixDims()` with a length-3 sequence equals calling
+        `setVoxDims()`.
         """
         if len(value) > 7:
             raise ValueError, \
@@ -662,31 +677,32 @@ class NiftiImage(object):
 
 
     def getPixDims(self):
-        """ Returns the pixel dimensions on all 7 dimensions.
+        """Returns the pixel dimensions on all 7 dimensions.
 
-        The function is similar to getVoxDims(), but instead of the 3d spatial
-        dimensions of a voxel it returns the dimensions of an image pixel on
-        all 7 dimensions supported by the NIfTI dataformat.
+        The function is similar to `getVoxDims()`, but instead of the 3d
+        spatial dimensions of a voxel it returns the dimensions of an image
+        pixel on all 7 dimensions supported by the NIfTI dataformat.
         """
-        return tuple( 
-                    [ nifticlib.floatArray_frompointer(self.__nimg.pixdim)[i] 
-                      for i in range(1,8) ]
-                )
+        return \
+            tuple([ nifticlib.floatArray_frompointer(self.__nimg.pixdim)[i]
+                    for i in range(1,8) ] )
 
 
     def getExtent(self):
-        """ Returns a tuple describing the shape (size in voxel/timepoints)
-        of the dataimage.
+        """Returns the shape of the dataimage.
 
-        The order of dimensions is (x,y,z,t,u,v,w). If the image has less 
-        dimensions than 7 the return tuple will be shortened accordingly.
+        :Returns:
+            Tuple with the size in voxel/timepoints.
+
+            The order of dimensions is (x,y,z,t,u,v,w). If the image has less
+            dimensions than 7 the return tuple will be shortened accordingly.
 
         Please note that the order of dimensions is different from the tuple
-        returned by calling NiftiImage.data.shape!
+        returned by calling `NiftiImage.data.shape`!
 
-        See also getVolumeExtent() and getTimepoints().
+        See also `getVolumeExtent()` and `getTimepoints()`.
 
-        The 'extent' property is an alternative way to access this function.
+        The `extent` property is an alternative way to access this function.
         """
         # wrap dim array in nifti image struct
         dims_array = nifticlib.intArray_frompointer(self.__nimg.dim)
@@ -696,14 +712,15 @@ class NiftiImage(object):
 
 
     def getVolumeExtent(self):
-        """ Returns the size/shape of the volume(s) in the image as a tuple.
+        """Returns the size/shape of the volume(s) in the image as a tuple.
 
-        This method returns either a 3-tuple or 2-tuple or 1-tuple depending 
-        on the available dimensions in the image.
+        :Returns:
+            Either a 3-tuple or 2-tuple or 1-tuple depending on the available
+            dimensions in the image.
 
-        The order of dimensions in the tuple is (x [, y [, z ] ] ).
+            The order of dimensions in the tuple is (x [, y [, z ] ] ).
 
-        The 'volextent' property is an alternative way to access this function.
+        The `volextent` property is an alternative way to access this function.
         """
 
         # it is save to do this even if self.extent is shorter than 4 items
@@ -711,11 +728,11 @@ class NiftiImage(object):
 
 
     def getTimepoints(self):
-        """ Returns the number of timepoints in the image.
+        """Returns the number of timepoints in the image.
 
         In case of a 3d (or less dimension) image this method returns 1.
 
-        The 'timepoints' property is an alternative way to access this
+        The `timepoints` property is an alternative way to access this
         function.
         """
 
@@ -726,33 +743,33 @@ class NiftiImage(object):
 
 
     def getRepetitionTime(self):
-        """ Returns the temporal distance between the volumes in a timeseries.
+        """Returns the temporal distance between the volumes in a timeseries.
 
-        The 'rtime' property is an alternative way to access this function.
+        The `rtime` property is an alternative way to access this function.
         """
         return self.__nimg.dt
 
 
     def setRepetitionTime(self, value):
-        """ Set the repetition time of a nifti image (dt).
+        """Set the repetition time of a nifti image (dt).
         """
         self.__nimg.dt = float(value)
 
 
     def getHeader(self):
-        """ Returns the header data of the nifti image in a dictionary.
+        """Returns the header data of the `NiftiImage` in a dictionary.
 
-        Note, that modifications done to this dictionary do not cause any 
-        modifications in the NIfTI image. Please use the updateHeader() method
-        to apply changes to the image.
+        Note, that modifications done to this dictionary do not cause any
+        modifications in the NIfTI image. Please use the `updateHeader()`
+        method to apply changes to the image.
 
-        The 'header' property is an alternative way to access this function. 
-        But please note that the 'header' property cannot be used like this:
+        The `header` property is an alternative way to access this function. 
+        But please note that the `header` property cannot be used like this::
 
             nimg.header['something'] = 'new value'
 
         Instead one has to get the header dictionary, modify and later reassign
-        it:
+        it::
 
             h = nimg.header
             h['something'] = 'new value'
@@ -769,27 +786,21 @@ class NiftiImage(object):
 
 
     def updateHeader(self, hdrdict):
-        """ Update NIfTI header information.
+        """Update NIfTI header information.
 
         Updated header data is read from the supplied dictionary. One cannot
         modify dimensionality and datatype of the image data. If such
         information is present in the header dictionary it is removed before
         the update. If resizing or datatype casting are required one has to 
-        convert the image data into a separate array 
-        ( NiftiImage.assarray(copy=True) ) and perform resize and data 
-        manipulations on this array. When finished, the array can be converted
-        into a nifti file by calling the NiftiImage constructor with the
-        modified array as 'source' and the nifti header of the original
-        NiftiImage object as 'header'.
+        convert the image data into a separate array (`NiftiImage.assarray()`)
+        and perform resize and data manipulations on this array. When finished,
+        the array can be converted into a nifti file by calling the NiftiImage
+        constructor with the modified array as 'source' and the nifti header
+        of the original NiftiImage object as 'header'.
 
         It is save to call this method with and without loaded image data.
 
-        The actual update is done by NiftiImage.updateNiftiHeaderFromDict().
-
-        Besides reading it is also possible to set the header data by assigning
-        to the 'header' property. Please see the documentation of the 
-        getHeader() method for important information about the special usage
-        of the 'header' property.
+        The actual update is done by `NiftiImage.updateNiftiHeaderFromDict()`.
         """
         # rebuild nifti header from current image struct
         nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
@@ -838,30 +849,32 @@ class NiftiImage(object):
 
 
     def setSlope(self, value):
-        """ Set the slope attribute in the NIfTI header.
+        """Set the slope attribute in the NIfTI header.
 
         Besides reading it is also possible to set the slope by assigning
-        to the 'slope' property.
+        to the `slope` property.
         """
         self.__nimg.scl_slope = float(value)
 
 
     def setIntercept(self, value):
-        """ Set the intercept attribute in the NIfTI header.
+        """Set the intercept attribute in the NIfTI header.
 
         Besides reading it is also possible to set the intercept by assigning
-        to the 'intercept' property.
+        to the `intercept` property.
         """
         self.__nimg.scl_inter = float(value)
 
 
     def setDescription(self, value):
-        """ Set the description element in the NIfTI header.
+        """Set the description element in the NIfTI header.
 
-        Descriptions must not be longer than 79 characters.
+        :Parameter:
+            value: str
+                Description -- must not be longer than 79 characters.
 
         Besides reading it is also possible to set the description by assigning
-        to the 'description' property.
+        to the `description` property.
         """
         if len(value) > 79:
             raise ValueError, \
@@ -872,21 +885,22 @@ class NiftiImage(object):
 
 
     def getSForm(self):
-        """ Returns the sform matrix.
-
-        The 'sform' property is an alternative way to access this function.
+        """Returns the sform matrix.
 
         Please note, that the returned SForm matrix is not bound to the
         NiftiImage object. Therefore it cannot be successfully modified
         in-place. Modifications to the SForm matrix can only be done by setting
-        a new SForm matrix either by calling setSForm() or by assigning it to
-        the sform attribute.
+        a new SForm matrix either by calling `setSForm()` or by assigning it to
+        the `sform` attribute.
+
+        The `sform` property is an alternative way to access this function.
         """
         return nifticlib.mat442array(self.__nimg.sto_xyz)
 
 
     def setSForm(self, m):
-        """ Sets the sform matrix.
+        """Sets the sform matrix.
+
         The supplied value has to be a 4x4 matrix. The matrix elements will be
         converted to floats. By definition the last row of the sform matrix has
         to be (0,0,0,1). However, different values can be assigned, but will
@@ -895,7 +909,7 @@ class NiftiImage(object):
         The inverse sform matrix will be automatically recalculated.
 
         Besides reading it is also possible to set the sform matrix by
-        assigning to the 'sform' property.
+        assigning to the `sform` property.
         """
         if m.shape != (4, 4):
             raise ValueError, "SForm matrix has to be of size 4x4."
@@ -915,35 +929,33 @@ class NiftiImage(object):
 
 
     def getInverseSForm(self):
-        """ Returns the inverse sform matrix.
-
-        The 'sform_inv' property is an alternative way to access this function.
+        """Returns the inverse sform matrix.
 
         Please note, that the inverse SForm matrix cannot be modified in-place.
         One needs to set a new SForm matrix instead. The corresponding inverse
         matrix is then re-calculated automatically.
+
+        The `sform_inv` property is an alternative way to access this function.
         """
         return nifticlib.mat442array(self.__nimg.sto_ijk)
 
 
     def getQForm(self):
-        """ Returns the qform matrix.
-
-        The 'qform' property is an alternative way to access this function.
+        """Returns the qform matrix.
 
         Please note, that the returned QForm matrix is not bound to the
         NiftiImage object. Therefore it cannot be successfully modified
         in-place. Modifications to the QForm matrix can only be done by setting
-        a new QForm matrix either by calling setSForm() or by assigning it to
-        the sform attribute.
+        a new QForm matrix either by calling `setQForm()` or by assigning it to
+        the `qform` property.
         """
         return nifticlib.mat442array(self.__nimg.qto_xyz)
 
 
     def getInverseQForm(self):
-        """ Returns the inverse qform matrix.
+        """Returns the inverse qform matrix.
 
-        The 'qform_inv' property is an alternative way to access this function.
+        The `qform_inv` property is an alternative way to access this function.
 
         Please note, that the inverse QForm matrix cannot be modified in-place.
         One needs to set a new QForm matrix instead. The corresponding inverse
@@ -953,7 +965,8 @@ class NiftiImage(object):
 
 
     def setQForm(self, m):
-        """ Sets the qform matrix.
+        """Sets the qform matrix.
+
         The supplied value has to be a 4x4 matrix. The matrix will be converted
         to float.
 
@@ -961,7 +974,7 @@ class NiftiImage(object):
         automatically recalculated.
 
         Besides reading it is also possible to set the qform matrix by
-        assigning to the 'qform' property.
+        assigning to the `qform` property.
         """
         if m.shape != (4, 4):
             raise ValueError, "QForm matrix has to be of size 4x4."
@@ -988,7 +1001,7 @@ class NiftiImage(object):
 
 
     def updateQFormFromQuaternion(self):
-        """ Recalculates the qform matrix (and the inverse) from the quaternion
+        """Recalculates the qform matrix (and the inverse) from the quaternion
         representation.
         """
         # recalculate qform
@@ -1005,12 +1018,12 @@ class NiftiImage(object):
 
 
     def setQuaternion(self, value):
-        """ Set Quaternion from 3-tuple (qb, qc, qd).
+        """Set Quaternion from 3-tuple (qb, qc, qd).
 
-        The qform matrix and its inverse are re-computed automatically.
+        The qform matrix and it's inverse are re-computed automatically.
 
         Besides reading it is also possible to set the quaternion by assigning
-        to the 'quatern' property.
+        to the `quatern` property.
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -1023,9 +1036,9 @@ class NiftiImage(object):
 
 
     def getQuaternion(self):
-        """ Returns a 3-tuple containing (qb, qc, qd).
+        """Returns a 3-tuple containing (qb, qc, qd).
 
-        The 'quatern' property is an alternative way to access this function.
+        The `quatern` property is an alternative way to access this function.
         """
         return( ( self.__nimg.quatern_b, 
                   self.__nimg.quatern_c, 
@@ -1033,12 +1046,12 @@ class NiftiImage(object):
 
 
     def setQOffset(self, value):
-        """ Set QOffset from 3-tuple (qx, qy, qz).
+        """Set QOffset from 3-tuple (qx, qy, qz).
 
         The qform matrix and its inverse are re-computed automatically.
 
         Besides reading it is also possible to set the qoffset by assigning
-        to the 'qoffset' property.
+        to the `qoffset` property.
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -1051,9 +1064,9 @@ class NiftiImage(object):
 
 
     def getQOffset(self):
-        """ Returns a 3-tuple containing (qx, qy, qz).
+        """Returns a 3-tuple containing (qx, qy, qz).
 
-        The 'qoffset' property is an alternative way to access this function.
+        The `qoffset` property is an alternative way to access this function.
         """
         return( ( self.__nimg.qoffset_x,
                   self.__nimg.qoffset_y,
@@ -1061,22 +1074,22 @@ class NiftiImage(object):
 
 
     def setQFac(self, value):
-        """ Set qfac.
+        """Set qfac.
 
         The qform matrix and its inverse are re-computed automatically.
 
         Besides reading it is also possible to set the qfac by assigning
-        to the 'qfac' property.
+        to the `qfac` property.
         """
         self.__nimg.qfac = float(value)
         self.updateQFormFromQuaternion()
 
 
     def getQOrientation(self, as_string = False):
-        """ Returns to orientation of the i,j and k axis as stored in the
+        """Returns to orientation of the i, j and k axis as stored in the
         qform matrix.
 
-        By default NIfTI orientation codes are returned, but if 'as_string' is
+        By default NIfTI orientation codes are returned, but if `as_string` is
         set to true a string representation ala 'Left-to-right' is returned
         instead.
         """
@@ -1088,10 +1101,10 @@ class NiftiImage(object):
 
 
     def getSOrientation(self, as_string = False):
-        """ Returns to orientation of the i,j and k axis as stored in the
+        """Returns to orientation of the i, j and k axis as stored in the
         sform matrix.
 
-        By default NIfTI orientation codes are returned, but if 'as_string' is
+        By default NIfTI orientation codes are returned, but if `as_string` is
         set to true a string representation ala 'Left-to-right' is returned
         instead.
         """
@@ -1103,13 +1116,13 @@ class NiftiImage(object):
 
 
     def getBoundingBox(self):
-        """ Get the bounding box of the image.
+        """Get the bounding box of the image.
 
         This functions returns a tuple of (min, max) tuples. It contains as
         many tuples as image dimensions. The order of dimensions is identical
         to that in the data array.
 
-        The 'bbox' property is an alternative way to access this function.
+        The `bbox` property is an alternative way to access this function.
         """
         nz = self.data.squeeze().nonzero()
 
@@ -1122,7 +1135,7 @@ class NiftiImage(object):
 
 
     def setFilename(self, filename, filetype = 'NIFTI'):
-        """ Set the filename for the NIfTI image.
+        """Set the filename for the NIfTI image.
 
         Setting the filename also determines the filetype. If the filename
         ends with '.nii' the type will be set to NIfTI single file. A '.hdr'
@@ -1233,13 +1246,13 @@ class NiftiImage(object):
 
 
     def getFilename(self):
-        """ Returns the filename.
+        """Returns the filename.
 
-        To be consistent with setFilename() the image filename is returned
+        To be consistent with `setFilename()` the image filename is returned
         for ANALYZE images while the header filename is returned for NIfTI
         files.
 
-        The 'filename' property is an alternative way to access this function.
+        The `filename` property is an alternative way to access this function.
         """
         if self.__nimg.nifti_type == nifticlib.NIFTI_FTYPE_ANALYZE:
             return self.__nimg.iname
