@@ -146,13 +146,13 @@ h1 {
 }
 
 h1.title {
-  background: url(pics/title_back.jpg);
   color: white;
+  background-color: #335;
   font-size: 200%;
   border-bottom: 5px solid #822;
   padding-left: 10px;
   padding-bottom: 0.2em;
-  padding-top: 2em;
+  padding-top: 1em;
   margin-top: 0px;
   /* compensate for '.document' padding */
   margin-left: -10px;
