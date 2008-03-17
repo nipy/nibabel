@@ -29,8 +29,13 @@ class NiftiImage(object):
     array one can optionally specify a dictionary with NIfTI header data as
     available via the `header` attribute.
 
+    Alternatively, uncompressed NIfTI images can also be memory-mapped. This
+    is the preferred method whenever only a small part of the image data has
+    to be accessed or the memory is not sufficient to load the whole dataset.
+    Please note, that memory-mapping is not required when exclusively header
+    information shall be accessed. By default no image data is loaded into
+    memory.
     """
-    # XXX Add more notes about how it works.
 
     filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
                   'NIFTI_PAIR_GZ' ]
@@ -50,6 +55,20 @@ class NiftiImage(object):
                         }
     """Mapping of NumPy datatypes to NIfTI datatypes."""
 
+    nifti2numpy_dtype_map = \
+        { nifticlib.NIFTI_TYPE_UINT8: 'u1',
+          nifticlib.NIFTI_TYPE_INT8: 'i1',
+          nifticlib.NIFTI_TYPE_UINT16: 'u2',
+          nifticlib.NIFTI_TYPE_INT16: 'i2',
+          nifticlib.NIFTI_TYPE_UINT32: 'u4',
+          nifticlib.NIFTI_TYPE_INT32: 'i4',
+          nifticlib.NIFTI_TYPE_UINT64: 'u8',
+          nifticlib.NIFTI_TYPE_INT64: 'i8',
+          nifticlib.NIFTI_TYPE_FLOAT32: 'f4',
+          nifticlib.NIFTI_TYPE_FLOAT64: 'f8',
+          nifticlib.NIFTI_TYPE_COMPLEX128: 'c16'
+        }
+    """Mapping of NIfTI to NumPy datatypes."""
 
     @staticmethod
     def Ndtype2niftidtype(array):
@@ -313,7 +332,7 @@ class NiftiImage(object):
             nhdr.magic = hdrdict['magic']
 
 
-    def __init__(self, source, header = {}, load=False ):
+    def __init__(self, source, header={}, load=False, mmap=False):
         """Create a NiftiImage object.
 
         This method decides whether to load a nifti image from file or create
@@ -334,9 +353,20 @@ class NiftiImage(object):
             load: Boolean
                 If set to True the image data will be loaded into memory. This
                 is only useful if loading a NIfTI image from file.
+            mmap: Boolean
+                Enabled memory mapped access to an image file. This only works
+                with uncompressed NIfTI files. This setting will be ignored
+                if 'load' is set to true.
         """
 
         self.__nimg = None
+        self.__mmap_data = None
+
+        # ignore mmap setting if 'load' is requested
+        if not load:
+            self.__mmap = mmap
+        else:
+            self.__mmap = False
 
         if type( source ) == N.ndarray:
             self.__newFromArray( source, header )
@@ -455,6 +485,26 @@ class NiftiImage(object):
         if load:
             self.load()
 
+        # setup memory mapping
+        # not working on compressed files
+        if nifticlib.nifti_is_gzfile(self.__nimg.iname):
+            self.__mmap = False
+
+        if self.__mmap:
+            # determine byte-order
+            if nifticlib.nifti_short_order() == 1:
+                byteorder_flag = '<'
+            else:
+                byteorder_flag = '>'
+
+            self.__mmap_data = N.memmap(
+                self.__nimg.iname,
+                shape=self.extent[::-1],
+                offset=self.__nimg.iname_offset,
+                dtype=byteorder_flag + \
+                NiftiImage.nifti2numpy_dtype_map[self.__nimg.datatype],
+                mode='r+')
+
 
     def save(self, filename=None, filetype = 'NIFTI'):
         """Save the image.
@@ -486,8 +536,7 @@ class NiftiImage(object):
         # It is important to do it already here, because nifti_image_load
         # depends on the correct filename set in the nifti_image struct
         # and this will be modified in this function!
-        if not self.__haveImageData():
-            self.load()
+        self.load()
 
         # set a default description if there is none
         if not self.description:
@@ -514,24 +563,27 @@ class NiftiImage(object):
 
 
     def __haveImageData(self):
-        """Returns if the image data was loaded into memory.
+        """Returns if the image data is accessible -- either loaded into
+        memory or memory mapped.
 
         See: `load()`, `unload()`
         """
         self.__ensureNiftiImage()
 
-        if self.__nimg.data:
+        if self.__nimg.data or not self.__mmap_data == None:
             return True
         else:
             return False
 
 
     def load(self):
-        """Load the image data into memory.
+        """Load the image data into memory, if it is not already accessible.
 
-        It is save to call this method several times.
+        It is save to call this method several times successively.
         """
-        self.__ensureNiftiImage()
+        # do nothing if there already is data
+        if self.__haveImageData():
+            return
 
         if nifticlib.nifti_image_load( self.__nimg ) < 0:
             raise RuntimeError, "Unable to load image data."
@@ -577,12 +629,13 @@ class NiftiImage(object):
                 the copy flag to True. Later you can convert the modified data
                 array into a NIfTi file again.
         """
-        self.__ensureNiftiImage()
+        # make sure data is accessible
+        self.load()
 
-        if not self.__haveImageData():
-            self.load()
-
-        a = nifticlib.wrapImageDataWithArray(self.__nimg)
+        if self.__mmap and not self.__mmap_data == None:
+            a = self.__mmap_data
+        else:
+            a = nifticlib.wrapImageDataWithArray(self.__nimg)
 
         if copy:
             return a.copy()
@@ -1185,8 +1238,7 @@ class NiftiImage(object):
         # It is important to do it already here, because nifti_image_load
         # depends on the correct filename set in the nifti_image struct
         # and this will be modified in this function!
-        if not self.__haveImageData():
-            self.load()
+        self.load()
 
         # if no filename is given simply reset it to nothing
         if not filename:
