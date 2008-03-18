@@ -68,7 +68,8 @@ class NiftiImage(object):
           nifticlib.NIFTI_TYPE_FLOAT64: 'f8',
           nifticlib.NIFTI_TYPE_COMPLEX128: 'c16'
         }
-    """Mapping of NIfTI to NumPy datatypes."""
+    """Mapping of NIfTI to NumPy datatypes (necessary for handling memory
+    mapped array with proper byte-order handling."""
 
     @staticmethod
     def Ndtype2niftidtype(array):
@@ -391,6 +392,10 @@ class NiftiImage(object):
             nifticlib.nifti_image_free(self.__nimg)
             self.__nimg = None
 
+        if not self.__mmap_data == None:
+            self.__mmap_data.sync()
+            self.__mmap_data = None
+
 
     def __newFromArray(self, data, hdr = {}):
         """Create a `nifti_image` struct from a ndarray.
@@ -542,6 +547,17 @@ class NiftiImage(object):
         if not self.description:
             self.description = 'Created with PyNIfTI'
 
+        # for memory mapped arrays just call sync(), but do not touch header
+        if self.__mmap:
+            if not filename == None:
+                raise ValueError, \
+                      "Saving to file with new filename is not supported " \
+                      "for memory mapped array."
+
+            self.__mmap_data.sync()
+
+            return
+
         # update header information
         self.updateCalMinMax()
 
@@ -582,6 +598,7 @@ class NiftiImage(object):
         It is save to call this method several times successively.
         """
         # do nothing if there already is data
+        # which included memory mapped arrays not just data in memory
         if self.__haveImageData():
             return
 
@@ -591,6 +608,8 @@ class NiftiImage(object):
 
     def unload(self):
         """Unload image data and free allocated memory.
+
+        This methods does nothing in case of memory mapped files.
         """
         # if no filename is se, the data will be lost and cannot be recovered
         if not self.filename:

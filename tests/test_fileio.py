@@ -41,8 +41,10 @@ class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
 
+
     def tearDown(self):
         shutil.rmtree(self.workdir)
+
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
@@ -53,6 +55,7 @@ class FileIOTests(unittest.TestCase):
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
+
 
     def testQFormSetting(self):
         nimg = nifti.NiftiImage('data/example4d.nii.gz')
@@ -66,10 +69,39 @@ class FileIOTests(unittest.TestCase):
 
         # test save/load cycle
         nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
-        nimg2 = nifti.NiftiImage( os.path.join( self.workdir, 
+        nimg2 = nifti.NiftiImage( os.path.join( self.workdir,
                                                'qformtest.nii.gz') )
 
         self.failUnless( (nimg.qform == nimg2.qform).all() )
+
+
+    def testMemoryMapping(self):
+        nimg = nifti.NiftiImage('data/example4d.nii.gz', mmap=False)
+        # save as uncompressed file
+        nimg.save(os.path.join(self.workdir, 'mmap.nii'))
+
+        nimg_mm = nifti.NiftiImage(os.path.join(self.workdir,
+                                                'mmap.nii'), mmap=True)
+
+        # make sure we have the same
+        self.failUnlessEqual(nimg.data[1,12,39,46],
+                             nimg_mm.data[1,12,39,46])
+
+        orig = nimg_mm.data[0,12,30,23]
+        nimg_mm.data[0,12,30,23] = 999
+
+        # make sure data is written to disk
+        nimg_mm.save()
+
+        self.failUnlessEqual(nimg_mm.data[0,12,30,23], 999)
+
+        # now reopen non-mapped and confirm operation
+        nimg_mod = nifti.NiftiImage(os.path.join(self.workdir,
+                                                 'mmap.nii'), mmap=False)
+        self.failUnlessEqual(nimg_mod.data[0,12,30,23], 999)
+
+        self.failUnlessRaises(ValueError, nimg_mm.save, 'someother')
+
 
 
 def suite():
