@@ -57,10 +57,10 @@ def Ndtype2niftidtype(array):
     # get the real datatype from N type dictionary
     dtype = N.typeDict[str(array.dtype)]
 
-    if not NiftiImage.N2nifti_dtype_map.has_key(dtype):
+    if not N2nifti_dtype_map.has_key(dtype):
         raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
 
-    return NiftiImage.N2nifti_dtype_map[dtype]
+    return N2nifti_dtype_map[dtype]
 
 
 def nhdr2dict(nhdr):
