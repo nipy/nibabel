@@ -90,7 +90,8 @@ features are currently implemented:
 
 
 * PyNIfTI can read and write any file format supported by libniftiio. This
-  includes NIfTI (single and pairs) as well as ANALYZE files.
+  includes NIfTI (single and pairs) as well as ANALYZE files, both also in
+  gzipped versions.
 
 * PyNIfTI provides fast and convenient access to the image data via NumPy_
   arrays. This should enable users to process image data with most (if not
@@ -125,6 +126,11 @@ features are currently implemented:
   data. However, one should be careful to make a copy of the image data if
   you intend to resize and cast the image data (see the docstring of the
   ``NiftiImage.asarray()`` method).
+
+* Additionally PyNIfTI can access uncompressed NIfTI or ANALYZE files by
+  providing memory-mapped access to them via NumPy's memmap arrays. In this
+  mode it is possible to modified existing files of any size without having
+  to load the in memory first.
 
 .. _SWIG: http://www.swig.org
 .. _NumPy: http://numpy.scipy.org
