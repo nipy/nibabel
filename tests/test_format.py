@@ -22,6 +22,16 @@ class NiftiFormatTests(unittest.TestCase):
         # basic incomplete property check
         self.failUnlessEqual(nhdr.extent, (128, 96, 24, 2))
         self.failUnlessEqual(nhdr.rtime, 2000)
+        self.failUnlessEqual(nhdr.pixdim,
+                             (2.0, 2.0, 2.1999990940093994, 2000.0,
+                              1.0, 1.0, 1.0))
+        self.failUnlessEqual(nhdr.extent, (128, 96, 24, 2))
+        self.failUnlessEqual(nhdr.voxdim,
+                             (2.0, 2.0, 2.1999990940093994))
+        self.failUnlessEqual(nhdr.extent, (128, 96, 24, 2))
+        self.failUnlessEqual(nhdr.header['datatype'], 4)
+        self.failUnlessEqual(nhdr.header['bitpix'], 16)
+        self.failUnlessEqual(nhdr.header['magic'], 'n+1')
 
 
     def testLoadHdrFromArray(self):

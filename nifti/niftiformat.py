@@ -671,7 +671,7 @@ class NiftiFormat(object):
     pixdim =        property(fget=getPixDims, fset=setPixDims)
     description =   property(fget=lambda self: self.__nimg.descrip,
                              fset=setDescription)
-    asdict =        property(fget=asDict, fset=updateFromDict)
+    header =        property(fget=asDict, fset=updateFromDict)
     sform =         property(fget=getSForm, fset=setSForm)
     qform =         property(fget=getQForm, fset=setQForm)
     quatern =       property(fget=getQuaternion, fset=setQuaternion)

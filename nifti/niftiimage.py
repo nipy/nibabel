@@ -56,7 +56,7 @@ class NiftiImage(NiftiFormat):
                 If an object of a different type is supplied as 'source' a
                 ValueError exception will be thrown.
             header: dict
-                Additonal header data might be supplied. However,
+                Additional header data might be supplied. However,
                 dimensionality and datatype are determined from the ndarray and
                 not taken from a header dictionary.
             load: Boolean
@@ -375,5 +375,5 @@ class NiftiImage(NiftiFormat):
 
     # class properties
     # read only
-    data =          property(fget=getDataArray)
-    bbox =          property(fget=getBoundingBox)
+    data =   property(fget=getDataArray)
+    bbox =   property(fget=getBoundingBox)
