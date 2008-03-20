@@ -139,7 +139,7 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
     }
 
     /* create numpy array */
-    volarray = PyArray_FromDimsAndData ( ndims, ar_dim, array_type, ( char* ) _img->data );
+    volarray = PyArray_SimpleNewFromData ( ndims, ar_dim, array_type, ( char* ) _img->data );
 
     return PyArray_Return ( (PyArrayObject*) volarray  );
 }
