@@ -14,7 +14,7 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
 from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
-                        nifti2numpy_dtype_map, Ndtype2niftidtype
+                        Ndtype2niftidtype
 import numpy as N
 
 
@@ -47,7 +47,7 @@ class NiftiFormat(object):
 
         if type(source) == N.ndarray:
             self.__newFromArray(source, header)
-        elif type(source) == str:
+        elif type(source) in (str, unicode):
             self.__newFromFile(source)
         else:
             raise ValueError, \
@@ -310,8 +310,6 @@ class NiftiFormat(object):
             h['something'] = 'new value'
             nimg.header = h
         """
-        h = {}
-
         # Convert nifti_image struct into nifti1 header struct.
         # This get us all data that will actually make it into a
         # NIfTI file.

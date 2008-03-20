@@ -1,19 +1,15 @@
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+#vim:fileencoding=utf-8
+#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+#ex: set sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#    Unit tests for PyNIfTI file io
+#   See COPYING file distributed along with the PyNIfTI package for the
+#   copyright and license terms.
 #
-#    Copyright (C) 2007 by
-#    Michael Hanke <michael.hanke@gmail.com>
-#
-#    This is free software; you can redistribute it and/or
-#    modify it under the terms of the MIT License.
-#
-#    This package is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the COPYING
-#    file that comes with this package for more details.
-#
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+"""Unit tests for PyNIfTI file io"""
+
+__docformat__ = 'restructuredtext'
 
 import nifti
 import unittest
@@ -57,6 +53,17 @@ class FileIOTests(unittest.TestCase):
         self.failUnlessEqual(md5_orig, md5_io)
 
 
+    def testUnicodeLoadSaveCycle(self):
+        """ check load/save cycle for unicode filenames.
+        """
+        md5_orig = md5sum('data/example4d.nii.gz')
+        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
+        md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
+
+        self.failUnlessEqual(md5_orig, md5_io)
+
+
     def testQFormSetting(self):
         nimg = nifti.NiftiImage('data/example4d.nii.gz')
         # 4x4 identity matrix
@@ -74,6 +81,36 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
+
+    def testDataAccess(self):
+        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+
+        # test two points
+        self.failUnlessEqual(nimg.data[1,12,59,49], 509)
+        self.failUnlessEqual(nimg.data[0,4,17,42], 435)
+
+
+    def testDataOwnership(self):
+        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+
+        # assign data, but no copying
+        data = nimg.data
+
+        # get copy
+        data_copy = nimg.asarray()
+
+        # test two points
+        self.failUnlessEqual(data[1,12,59,49], 509)
+        self.failUnlessEqual(data[0,4,17,42], 435)
+
+        # now remove image and try again
+        del nimg
+        # next section would cause segfault as the 
+        #self.failUnlessEqual(data[1,12,59,49], 509)
+        #self.failUnlessEqual(data[0,4,17,42], 435)
+
+        self.failUnlessEqual(data_copy[1,12,59,49], 509)
+        self.failUnlessEqual(data_copy[0,4,17,42], 435)
 
 #    def testMemoryMapping(self):
 #        nimg = nifti.NiftiImage('data/example4d.nii.gz', mmap=False)

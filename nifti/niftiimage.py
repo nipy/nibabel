@@ -62,10 +62,6 @@ class NiftiImage(NiftiFormat):
             load: Boolean
                 If set to True the image data will be loaded into memory. This
                 is only useful if loading a NIfTI image from file.
-            mmap: Boolean
-                Enabled memory mapped access to an image file. This only works
-                with uncompressed NIfTI files. This setting will be ignored
-                if 'load' is set to true.
         """
         # setup all nifti header related stuff
         NiftiFormat.__init__(self, source, header)
@@ -77,7 +73,7 @@ class NiftiImage(NiftiFormat):
         if type(source) == N.ndarray:
             # assign data from source array
             self.__data = data[:]
-        elif type(source) == str:
+        elif type(source) in (str, unicode):
             # only load image data from file if requested
             if load:
                 self.load()

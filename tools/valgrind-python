@@ -2,4 +2,4 @@
 
 path=$(dirname $0)
 
-valgrind  --tool=memcheck --suppressions=$path/valgrind-python.supp python $*
+valgrind  --tool=memcheck --leak-check=full --suppressions=$path/valgrind-python.supp python $*
