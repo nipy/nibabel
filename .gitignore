@@ -5,3 +5,4 @@ build
 *.pyo
 *_wrap.c
 *.so
+nifti/nifticlib.py
