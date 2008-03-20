@@ -1,3 +1,7 @@
+* Valgrind reports a memory leak. It seems to be releated to some
+  string operation on the header data, as it also happens when image
+  data from ndarrays is used and never saved to file or inserted into the
+  Nifti image struct. However, so far I do not yet fully understand it.
 
 Yarik's wishes sorted - please remove or fulfill:
 -------------------------------------------------

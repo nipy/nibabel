@@ -30,13 +30,6 @@ class NiftiImage(NiftiFormat):
     memory when opening NIfTI data from files (`load`). When converting a NumPy
     array one can optionally specify a dictionary with NIfTI header data as
     available via the `header` attribute.
-
-    Alternatively, uncompressed NIfTI images can also be memory-mapped. This
-    is the preferred method whenever only a small part of the image data has
-    to be accessed or the memory is not sufficient to load the whole dataset.
-    Please note, that memory-mapping is not required when exclusively header
-    information shall be accessed. By default no image data is loaded into
-    memory.
     """
 
 
@@ -84,8 +77,7 @@ class NiftiImage(NiftiFormat):
 
 
     def __del__(self):
-        """Do all necessary cleanups by calling.
-        Close the file and free all unnecessary memory.
+        """Do all necessary cleanups.
         """
         self.unload()
 
