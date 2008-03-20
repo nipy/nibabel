@@ -14,7 +14,7 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
 from nifti.niftiformat import NiftiFormat
-from nifti.utils import splitFilename
+from nifti.utils import splitFilename, nifti2numpy_dtype_map
 import numpy as N
 
 
@@ -60,12 +60,12 @@ class NiftiImage(NiftiFormat):
         NiftiFormat.__init__(self, source, header)
 
         # where the data will go to
-        self.__data = None
+        self._data = None
 
         # load data
         if type(source) == N.ndarray:
             # assign data from source array
-            self.__data = source[:]
+            self._data = source[:]
         elif type(source) in (str, unicode):
             # only load image data from file if requested
             if load:
@@ -137,7 +137,7 @@ class NiftiImage(NiftiFormat):
                 raise RuntimeError, "Could not allocate memory for image data."
 
             a = nifticlib.wrapImageDataWithArray(self.raw_nimg)
-            a[:] = self.__data[:]
+            a[:] = self._data[:]
 
         # now save it
         nifticlib.nifti_image_write_hdr_img(self.raw_nimg, 1, 'wb')
@@ -153,7 +153,7 @@ class NiftiImage(NiftiFormat):
 
         See: `load()`, `unload()`
         """
-        return (not self.__data == None)
+        return (not self._data == None)
 
 
     def load(self):
@@ -169,7 +169,7 @@ class NiftiImage(NiftiFormat):
         if nifticlib.nifti_image_load( self.raw_nimg ) < 0:
             raise RuntimeError, "Unable to load image data."
 
-        self.__data = nifticlib.wrapImageDataWithArray(self.raw_nimg)
+        self._data = nifticlib.wrapImageDataWithArray(self.raw_nimg)
 
 
     def unload(self):
@@ -181,7 +181,7 @@ class NiftiImage(NiftiFormat):
             nifticlib.nifti_image_unload(self.raw_nimg)
 
         # reset array storage, as data pointer became invalid
-        self.__data = None
+        self._data = None
 
 
     def getDataArray(self):
@@ -215,9 +215,9 @@ class NiftiImage(NiftiFormat):
         self.load()
 
         if copy:
-            return self.__data.copy()
+            return self._data.copy()
         else:
-            return self.__data
+            return self._data
 
 
     def getScaledData(self):
@@ -373,3 +373,94 @@ class NiftiImage(NiftiFormat):
     # read only
     data =   property(fget=getDataArray)
     bbox =   property(fget=getBoundingBox)
+
+
+
+class MemMappedNiftiImage(NiftiImage):
+    """Memory mapped access to uncompressed NIfTI files.
+
+    This access mode might be the prefered one whenever whenever only a small
+    part of the image data has to be accessed or the memory is not sufficient
+    to load the whole dataset.
+    Please note, that memory-mapping is not required when exclusively header
+    information shall be accessed. By default the `NiftiImage` class does not
+    load any image data into memory.
+    """
+
+    def __init__(self, source):
+        """Create a NiftiImage object.
+
+        This method decides whether to load a nifti image from file or create
+        one from ndarray data, depending on the datatype of `source`.
+
+        :Parameters:
+            source: str | ndarray
+                If source is a string, it is assumed to be a filename and an
+                attempt will be made to open the corresponding NIfTI file.
+                In case of an ndarray the array data will be used for the to be
+                created nifti image and a matching nifti header is generated.
+                If an object of a different type is supplied as 'source' a
+                ValueError exception will be thrown.
+        """
+        NiftiImage.__init__(self, source)
+
+        # not working on compressed files
+        if nifticlib.nifti_is_gzfile(self.raw_nimg.iname):
+            raise RuntimeError, \
+                  "Memory mapped access is only supported for " \
+                  "uncompressed files."
+ 
+        # determine byte-order
+        if nifticlib.nifti_short_order() == 1:
+            byteorder_flag = '<'
+        else:
+            byteorder_flag = '>'
+
+        # create memmap array
+        self._data = N.memmap(
+            self.raw_nimg.iname,
+            shape=self.extent[::-1],
+            offset=self.raw_nimg.iname_offset,
+            dtype=byteorder_flag + \
+            nifti2numpy_dtype_map[self.raw_nimg.datatype],
+            mode='r+')
+
+
+    def __del__(self):
+        """Do all necessary cleanups by calling __close().
+        """
+        self._data.sync()
+
+
+    def save(self):
+        """Save the image.
+
+        This methods does nothing except for syncing the file on the disk.
+
+        Please note that the NIfTI header might not be completely up-to-date.
+        For example, the min and max values might be outdated, but this
+        class does not automatically update them, because it would require to
+        load and search through the whole array.
+        """
+        self._data.sync()
+
+
+    def load(self):
+        """Does nothing for memory mapped images.
+        """
+        return
+
+
+    def unload(self):
+        """Does nothing for memory mapped images.
+        """
+        return
+
+
+    def setFilename(self, filename, filetype = 'NIFTI'):
+        """Does not work for memory mapped images and therefore raises an
+        exception.
+        """
+        raise RuntimeError, \
+              "Filename modifications are not supported for memory mapped " \
+              "images."
