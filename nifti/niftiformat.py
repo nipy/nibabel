@@ -13,8 +13,8 @@ __docformat__ = 'restructuredtext'
 
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
-from nifti.dtypes import nhdr2dict, updateNiftiHeaderFromDict, \
-                         nifti2numpy_dtype_map, Ndtype2niftidtype
+from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
+                        nifti2numpy_dtype_map, Ndtype2niftidtype
 import numpy as N
 
 

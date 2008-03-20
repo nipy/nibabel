@@ -14,6 +14,7 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
 from nifti.niftiformat import NiftiFormat
+from nifti.utils import splitFilename
 import numpy as N
 
 
@@ -38,31 +39,6 @@ class NiftiImage(NiftiFormat):
     memory.
     """
 
-    @staticmethod
-    def splitFilename(filename):
-        """Split a NIfTI filename into basename and extension.
-
-        :Parameters:
-            filename: str
-                Filename to be split.
-
-        :Returns:
-            The function returns a tuple of basename and extension. If no valid
-            NIfTI filename extension is found, the whole string is returned as
-            basename and the extension string will be empty.
-        """
-        parts = filename.split('.')
-
-        if parts[-1] == 'gz':
-            if not parts[-2] in [ 'nii', 'hdr', 'img' ]:
-                return filename, ''
-            else:
-                return '.'.join(parts[:-2]), '.'.join(parts[-2:])
-        else:
-            if not parts[-1] in [ 'nii', 'hdr', 'img' ]:
-                return filename, ''
-            else:
-                return '.'.join(parts[:-1]), parts[-1]
 
 
     def __init__(self, source, header={}, load=False):
@@ -723,7 +699,7 @@ class NiftiImage(NiftiFormat):
             return
 
         # separate basename and extension
-        base, ext = NiftiImage.splitFilename(filename)
+        base, ext = splitFilename(filename)
 
         # if no extension default to nifti single files
         if ext == '': 
