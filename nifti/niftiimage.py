@@ -136,8 +136,8 @@ class NiftiImage(NiftiFormat):
             if not nifticlib.allocateImageMemory(self.raw_nimg):
                 raise RuntimeError, "Could not allocate memory for image data."
 
-            a = nifticlib.wrapImageDataWithArray(self.raw_nimg)
-            a[:] = self._data[:]
+        a = nifticlib.wrapImageDataWithArray(self.raw_nimg)
+        a[:] = self._data[:]
 
         # now save it
         nifticlib.nifti_image_write_hdr_img(self.raw_nimg, 1, 'wb')
