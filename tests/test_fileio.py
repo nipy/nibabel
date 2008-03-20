@@ -11,7 +11,7 @@
 
 __docformat__ = 'restructuredtext'
 
-import nifti
+from nifti import NiftiImage
 import unittest
 import md5
 import tempfile
@@ -46,7 +46,7 @@ class FileIOTests(unittest.TestCase):
         """ check if file is unchanged by load/save cycle.
         """
         md5_orig = md5sum('data/example4d.nii.gz')
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
         nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
@@ -57,7 +57,7 @@ class FileIOTests(unittest.TestCase):
         """ check load/save cycle for unicode filenames.
         """
         md5_orig = md5sum('data/example4d.nii.gz')
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
         nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
@@ -65,7 +65,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testQFormSetting(self):
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
         # 4x4 identity matrix
         ident = N.identity(4)
         self.failIf( (nimg.qform == ident).all() )
@@ -76,14 +76,14 @@ class FileIOTests(unittest.TestCase):
 
         # test save/load cycle
         nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
-        nimg2 = nifti.NiftiImage( os.path.join( self.workdir,
+        nimg2 = NiftiImage( os.path.join( self.workdir,
                                                'qformtest.nii.gz') )
 
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
 
     def testDataAccess(self):
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
 
         # test two points
         self.failUnlessEqual(nimg.data[1,12,59,49], 509)
@@ -91,7 +91,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testDataOwnership(self):
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
 
         # assign data, but no copying
         data = nimg.data
@@ -111,6 +111,18 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnlessEqual(data_copy[1,12,59,49], 509)
         self.failUnlessEqual(data_copy[0,4,17,42], 435)
+
+
+    def testFromScratch(self):
+        data = N.arange(24).reshape(2,3,4)
+        n = NiftiImage(data)
+
+        n.save(os.path.join(self.workdir, 'scratch.nii'))
+
+        n2 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+
+        self.failUnless((n2.data == data).all())
+
 
 #    def testMemoryMapping(self):
 #        nimg = nifti.NiftiImage('data/example4d.nii.gz', mmap=False)

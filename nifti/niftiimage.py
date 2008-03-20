@@ -72,7 +72,7 @@ class NiftiImage(NiftiFormat):
         # load data
         if type(source) == N.ndarray:
             # assign data from source array
-            self.__data = data[:]
+            self.__data = source[:]
         elif type(source) in (str, unicode):
             # only load image data from file if requested
             if load:
@@ -138,6 +138,15 @@ class NiftiImage(NiftiFormat):
 
             self.setFilename(filename, filetype)
 
+        # if still no data is present data source has been an array
+        # -> allocate memory in nifti struct and assign data to it
+        if not self.raw_nimg.data:
+            if not nifticlib.allocateImageMemory(self.raw_nimg):
+                raise RuntimeError, "Could not allocate memory for image data."
+
+            a = nifticlib.wrapImageDataWithArray(self.raw_nimg)
+            a[:] = self.__data[:]
+
         # now save it
         nifticlib.nifti_image_write_hdr_img(self.raw_nimg, 1, 'wb')
         # yoh comment: unfortunately return value of nifti_image_write_hdr_img
@@ -182,6 +191,7 @@ class NiftiImage(NiftiFormat):
                   "No filename is set, unloading the data would " \
                   "loose it completely without a chance of recovery."
 
+#        print self.raw_img.data
         nifticlib.nifti_image_unload(self.raw_nimg)
 
         # reset array storage, as data pointer became invalid

@@ -62,14 +62,6 @@ class NiftiFormat(object):
             nifticlib.nifti_image_free(self.__nimg)
 
 
-    def _close(self):
-        """Close the file and free all unnecessary memory.
-        """
-        if self.__nimg:
-            nifticlib.nifti_image_free(self.__nimg)
-            self.__nimg = None
-
-
     def __newFromArray(self, data, hdr = {}):
         """Create a `nifti_image` struct from a ndarray.
 
@@ -122,9 +114,6 @@ class NiftiFormat(object):
         # update nifti header with information from dict
         updateNiftiHeaderFromDict(nhdr, hdic)
 
-        # make clean table
-        self._close()
-
         # convert nifti header to nifti image struct
         self.__nimg = nifticlib.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
 
@@ -134,10 +123,6 @@ class NiftiFormat(object):
         # kill filename for nifti images from arrays
         self.__nimg.fname = ''
         self.__nimg.iname = ''
-
-        # allocate memory for image data
-        if not nifticlib.allocateImageMemory(self.__nimg):
-            raise RuntimeError, "Could not allocate memory for image data."
 
 
     def __newFromFile(self, filename):
@@ -149,7 +134,6 @@ class NiftiFormat(object):
             filename: str
                 Filename of the to be opened image file.
         """
-        self._close()
         # do not load image data!
         self.__nimg = nifticlib.nifti_image_read(filename, 0)
 
