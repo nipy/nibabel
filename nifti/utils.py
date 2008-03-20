@@ -11,9 +11,9 @@
 __docformat__ = 'restructuredtext'
 
 
+import numpy as N
 import nifti
 import nifti.nifticlib as nifticlib
-import numpy as N
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
@@ -37,7 +37,7 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
     """
     # transform to numpy array for easy handling
     tmp = N.array(t)
-    
+
     # determine tr if NiftiImage object
     if isinstance( tr, nifti.NiftiImage ):
         tr = tr.rtime
