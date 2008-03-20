@@ -185,14 +185,8 @@ class NiftiImage(NiftiFormat):
 
         This methods does nothing in case of memory mapped files.
         """
-        # if no filename is se, the data will be lost and cannot be recovered
-        if not self.filename:
-            raise RuntimeError, \
-                  "No filename is set, unloading the data would " \
-                  "loose it completely without a chance of recovery."
-
-#        print self.raw_img.data
-        nifticlib.nifti_image_unload(self.raw_nimg)
+        if self.raw_nimg.data:
+            nifticlib.nifti_image_unload(self.raw_nimg)
 
         # reset array storage, as data pointer became invalid
         self.__data = None

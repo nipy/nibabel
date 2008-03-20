@@ -12,6 +12,7 @@
 __docformat__ = 'restructuredtext'
 
 from nifti import NiftiImage
+from nifti.niftiformat import NiftiFormat
 import unittest
 import md5
 import tempfile
@@ -123,6 +124,21 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnless((n2.data == data).all())
 
+        # now modify data and store again
+        n2.data[:] = n2.data * 2
+
+        n2.save(os.path.join(self.workdir, 'scratch.nii'))
+
+        # reopen and check data
+        n3 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+
+        self.failUnless((n3.data == data * 2).all())
+
+
+#    def testLeak(self):
+#        for i in xrange(100000):
+#            nimg = NiftiImage('data/example4d.nii.gz')
+#            nimg = NiftiImage(N.arange(1))
 
 #    def testMemoryMapping(self):
 #        nimg = nifti.NiftiImage('data/example4d.nii.gz', mmap=False)

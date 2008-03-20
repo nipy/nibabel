@@ -19,7 +19,14 @@ import numpy as N
 
 
 class NiftiFormat(object):
-    """
+    """NIfTI header representation.
+
+    NIfTI header can be created by loading information from an existing NIfTI
+    file or by creating a matching NIfTI header for a ndarray.
+
+    In addition a number of methods to manipulate the header information are
+    provided. However, this class is not able to write a NIfTI header back to
+    disk. Please refer to the NIfTIImage class for this functionality.
     """
     def __init__(self, source, header=None):
         """Create a NiftiImage object.
@@ -36,7 +43,7 @@ class NiftiFormat(object):
                 If an object of a different type is supplied as 'source' a
                 ValueError exception will be thrown.
             header: dict
-                Additonal header data might be supplied. However,
+                Additional header data might be supplied. However,
                 dimensionality and datatype are determined from the ndarray and
                 not taken from a header dictionary.
         """
@@ -56,7 +63,7 @@ class NiftiFormat(object):
 
 
     def __del__(self):
-        """Do all necessary cleanups by calling _close().
+        """Do all necessary cleanups.
         """
         if self.__nimg:
             nifticlib.nifti_image_free(self.__nimg)
@@ -127,8 +134,6 @@ class NiftiFormat(object):
 
     def __newFromFile(self, filename):
         """Open a NIfTI file.
-
-        If there is already an open file it is closed first.
 
         :Parameters:
             filename: str
@@ -622,9 +627,9 @@ class NiftiFormat(object):
     def getFilename(self):
         """Returns the filename.
 
-        To be consistent with `setFilename()` the image filename is returned
-        for ANALYZE images while the header filename is returned for NIfTI
-        files.
+        To distinguish ANALYZE from 2-file NIfTI images the image filename is
+        returned for ANALYZE images while the header filename is returned for
+        NIfTI files.
 
         The `filename` property is an alternative way to access this function.
         """
