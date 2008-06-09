@@ -337,7 +337,8 @@ class NiftiFormat(object):
         # name now, as otherwise nifti_convert_nhdr2nim will fail
         have_temp_filename = False
         if not self.filename:
-            self.filename = 'pynifti_updateheader_temp_name'
+            self.__nimg.fname = 'pynifti_updateheader_temp_name'
+            self.__nimg.iname = 'pynifti_updateheader_temp_name'
             have_temp_filename = True
 
         # recreate nifti image struct
@@ -354,7 +355,8 @@ class NiftiFormat(object):
 
         # reset filename if temp name was set
         if have_temp_filename:
-            self.filename = ''
+            self.__nimg.fname = ''
+            self.__nimg.iname = ''
 
 
     def setSlope(self, value):

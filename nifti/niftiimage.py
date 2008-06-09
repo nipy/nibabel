@@ -369,6 +369,15 @@ class NiftiImage(NiftiFormat):
         else:
             raise RuntimeError, "Unhandled filetype."
 
+
+    def updateHeader(self, hdrdict):
+        """Deprecated method only here for backward compatibility.
+
+        Please refer to NiftiFormat.updateFromDict()
+        """
+        NiftiFormat.updateFromDict(self, hdrdict)
+
+
     # class properties
     # read only
     data =   property(fget=getDataArray)
