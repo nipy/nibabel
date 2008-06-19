@@ -66,11 +66,11 @@ $(WWW_DIR):
 	if [ ! -d $(WWW_DIR) ]; then mkdir -p $(WWW_DIR); fi
 
 
-test-%: build
+ut-%: build
 	@cd tests && PYTHONPATH=.. python test_$*.py
 
 
-test: build
+unittest: build
 	@cd tests && PYTHONPATH=.. python main.py
 
 
