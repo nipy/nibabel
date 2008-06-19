@@ -166,6 +166,62 @@ class FileIOTests(unittest.TestCase):
         self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
 
 
+    def testQFormSetting_fromFile(self):
+        # test setting qoffset
+        nimg = NiftiImage('data/example4d.nii.gz')
+        new_qoffset = (10.0, 20.0, 30.0)
+        nimg.qoffset = new_qoffset
+
+        fname = os.path.join(self.workdir, 'test-qoffset-file.nii.gz')
+        nimg.save(fname)
+        nimg2 = NiftiImage(fname)
+
+        self.failUnless((nimg.qform == nimg.qform).all())
+
+        # now test setting full qform
+        nimg3 = NiftiImage('data/example4d.nii.gz')
+
+        # build custom qform matrix
+        qform = N.identity(4)
+        # give 2mm pixdim
+        qform.ravel()[0:11:5] = 2
+        # give some qoffset
+        qform[0:3, 3] = [10.0, 20.0, 30.0]
+
+        nimg3.qform = qform
+        self.failUnless( (nimg3.qform == qform).all() )
+
+        # see whether it survives save/load cycle
+        fname = os.path.join(self.workdir, 'qform_fromfile_test.nii.gz')
+        nimg3.save(fname)
+        nimg4 = NiftiImage(fname)
+
+        # test rotation portion of qform, pixdims appear to be ok
+        self.failUnless( (nimg4.qform[:3, :3] == qform[:3, :3]).all() )
+        # test full qform
+        self.failUnless( (nimg4.qform == qform).all() )
+
+
+    def testQFormSetting_fromArray(self):
+        data = N.zeros((4,3,2))
+        ident = N.identity(4)
+        # give 2mm pixdim
+        ident.ravel()[0:11:5] = 2
+        # give some qoffset
+        ident[0:3, 3] = [10.0, 20.0, 30.0]
+        nimg = NiftiImage(data)
+        nimg.qform = ident
+        self.failUnless( (nimg.qform == ident).all() )
+
+        fname = os.path.join(self.workdir, 'qform_fromarray_test.nii.gz')
+        nimg.save(fname)
+        nimg2 = NiftiImage(fname)
+        # test rotation portion of qform, pixdims appear to be ok
+        self.failUnless( (nimg.qform[:3, :3] == nimg2.qform[:3, :3]).all() )
+        # test full qform
+        self.failUnless( (nimg.qform == nimg2.qform).all() )
+
+
 
 def suite():
     return unittest.makeSuite(FileIOTests)

@@ -14,7 +14,7 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifti.nifticlib as nifticlib
 from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
-                        Ndtype2niftidtype
+                        Ndtype2niftidtype, nifti_xform_map
 import numpy as N
 
 
@@ -395,6 +395,49 @@ class NiftiFormat(object):
         self.__nimg.descrip = value
 
 
+    def setXFormCode(self, xform, code):
+        """Set the type of space described by the NIfTI transformations.
+
+        The NIfTI format defines five coordinate system types which are used
+        to describe the target space of a transformation (qform or sform).
+        Please note, that the last four transformation types are only available
+        in the NIfTI format and not when saving into ANALYZE.
+
+          'unkown', `NIFTI_XFORM_UNKNOWN`, 0:
+             Transformation is arbitrary. This is the ANALYZE compatibility
+             mode. In this case no *sform* matrix will be written, even when
+             stored in NIfTI and not in ANALYZE format. Additionally, only the
+             pixdim parts of the *qform* matrix will be saved (upper-left 3x3).
+          'scanner', `NIFTI_XFORM_SCANNER_ANAT`, 1:
+             Scanner-based anatomical coordinates.
+          'aligned', `NIFTI_XFORM_ALIGNED_ANAT`, 2:
+             Coordinates are aligned to another file's coordinate system.
+          'talairach', `NIFTI_XFORM_TALAIRACH`, 3:
+             Coordinate system is shifted to have its origin (0,0,0) at the
+             anterior commissure, as in the Talairach-Tournoux Atlas.
+          'mni152', `NIFTI_XFORM_MNI_152`, 4:
+             Coordinates are in MNI152 space.
+
+        :Parameters:
+          xform: str('qform' | 'sform')
+            Which of the two NIfTI transformations to set.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The Transformation code can be specified either by a string, the
+            `NIFTI_XFORM_CODE` defined in the nifti1.h header file (accessible
+            via the `nifticlib` module, or the corresponding integer value
+            (see above list for all possibilities).
+        """
+        if isinstance(code, str):
+            code = nifti_xform_map[code]
+
+        if xform == 'qform':
+            self.raw_nimg.qform_code = code
+        elif xform == 'sform':
+            self.raw_nimg.sform_code = code
+        else:
+            raise ValueError, "Unkown transformation '%s'" % xform
+
+
     def getSForm(self):
         """Returns the sform matrix.
 
@@ -409,7 +452,7 @@ class NiftiFormat(object):
         return nifticlib.mat442array(self.__nimg.sto_xyz)
 
 
-    def setSForm(self, m):
+    def setSForm(self, m, code='mni152'):
         """Sets the sform matrix.
 
         The supplied value has to be a 4x4 matrix. The matrix elements will be
@@ -421,6 +464,15 @@ class NiftiFormat(object):
 
         Besides reading it is also possible to set the sform matrix by
         assigning to the `sform` property.
+
+        :Parameters:
+          m: 4x4 ndarray
+            The sform matrix.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The type of the coordinate system the sform matrix is describing.
+            By default this coordinate system is assumed to be the MNI152 space.
+            Please refer to the `setXFormCode()` method for a full list of
+            possible codes and their meaning.
         """
         if m.shape != (4, 4):
             raise ValueError, "SForm matrix has to be of size 4x4."
@@ -437,6 +489,9 @@ class NiftiFormat(object):
         # recalculate inverse
         self.__nimg.sto_ijk = \
             nifticlib.nifti_mat44_inverse( self.__nimg.sto_xyz )
+
+        # set sform code, which decides how the sform matrix is interpreted
+        self.setXFormCode('sform', code)
 
 
     def getInverseSForm(self):
@@ -475,7 +530,7 @@ class NiftiFormat(object):
         return nifticlib.mat442array(self.__nimg.qto_ijk)
 
 
-    def setQForm(self, m):
+    def setQForm(self, m, code='scanner'):
         """Sets the qform matrix.
 
         The supplied value has to be a 4x4 matrix. The matrix will be converted
@@ -486,6 +541,15 @@ class NiftiFormat(object):
 
         Besides reading it is also possible to set the qform matrix by
         assigning to the `qform` property.
+
+        :Parameters:
+          m: 4x4 ndarray
+            The qform matrix.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The type of the coordinate system the qform matrix is describing.
+            By default this coordinate system is assumed to be the scanner
+            anatomical space. Please refer to the `setXFormCode()` method for
+            a full list of possible codes and their meaning.
         """
         if m.shape != (4, 4):
             raise ValueError, "QForm matrix has to be of size 4x4."
@@ -510,6 +574,9 @@ class NiftiFormat(object):
           self.__nimg.qfac ) = \
             nifticlib.nifti_mat44_to_quatern( self.__nimg.qto_xyz )
 
+        # set qform code, which decides how the qform matrix is interpreted
+        self.setXFormCode('qform', code)
+
 
     def updateQFormFromQuaternion(self):
         """Recalculates the qform matrix (and the inverse) from the quaternion
@@ -528,13 +595,22 @@ class NiftiFormat(object):
             nifticlib.nifti_mat44_inverse( self.__nimg.qto_xyz )
 
 
-    def setQuaternion(self, value):
+    def setQuaternion(self, value, code='scanner'):
         """Set Quaternion from 3-tuple (qb, qc, qd).
 
         The qform matrix and it's inverse are re-computed automatically.
 
         Besides reading it is also possible to set the quaternion by assigning
         to the `quatern` property.
+
+        :Parameters:
+          value: length-3 sequence
+            qb, qc and qd quaternions.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The type of the coordinate system the corresponding qform matrix
+            is describing. By default this coordinate system is assumed to be
+            the scanner anatomical space. Please refer to the `setXFormCode()`
+            method for a full list of possible codes and their meaning.
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -544,6 +620,7 @@ class NiftiFormat(object):
         self.__nimg.quatern_d = float(value[2])
 
         self.updateQFormFromQuaternion()
+        self.setXFormCode('qform', code)
 
 
     def getQuaternion(self):
@@ -556,13 +633,22 @@ class NiftiFormat(object):
                   self.__nimg.quatern_d ) )
 
 
-    def setQOffset(self, value):
+    def setQOffset(self, value, code='scanner'):
         """Set QOffset from 3-tuple (qx, qy, qz).
 
         The qform matrix and its inverse are re-computed automatically.
 
         Besides reading it is also possible to set the qoffset by assigning
         to the `qoffset` property.
+
+        :Parameters:
+          value: length-3 sequence
+            qx, qy and qz offsets.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The type of the coordinate system the corresponding qform matrix
+            is describing. By default this coordinate system is assumed to be
+            the scanner anatomical space. Please refer to the `setXFormCode()`
+            method for a full list of possible codes and their meaning.
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -572,6 +658,7 @@ class NiftiFormat(object):
         self.__nimg.qoffset_z = float(value[2])
 
         self.updateQFormFromQuaternion()
+        self.setXFormCode('qform', code)
 
 
     def getQOffset(self):
@@ -584,16 +671,26 @@ class NiftiFormat(object):
                   self.__nimg.qoffset_z ) )
 
 
-    def setQFac(self, value):
-        """Set qfac.
+    def setQFac(self, value, code='scanner'):
+        """Set qfac (scaling factor of qform matrix).
 
         The qform matrix and its inverse are re-computed automatically.
 
         Besides reading it is also possible to set the qfac by assigning
         to the `qfac` property.
+
+        :Parameters:
+          value: float
+            Scaling factor.
+          code: str | `NIFTI_XFORM_CODE` | int (0..4)
+            The type of the coordinate system the corresponding qform matrix
+            is describing. By default this coordinate system is assumed to be
+            the scanner anatomical space. Please refer to the `setXFormCode()`
+            method for a full list of possible codes and their meaning.
         """
         self.__nimg.qfac = float(value)
         self.updateQFormFromQuaternion()
+        self.setXFormCode('qform', code)
 
 
     def getQOrientation(self, as_string = False):

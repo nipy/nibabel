@@ -172,6 +172,15 @@ def Ndtype2niftidtype(array):
     return N2nifti_dtype_map[dtype]
 
 
+nifti_xform_map = \
+    { 'unknown': nifticlib.NIFTI_XFORM_UNKNOWN,
+      'scanner': nifticlib.NIFTI_XFORM_SCANNER_ANAT,
+      'aligned': nifticlib.NIFTI_XFORM_ALIGNED_ANAT,
+      'talairach': nifticlib.NIFTI_XFORM_TALAIRACH,
+      'mni152': nifticlib.NIFTI_XFORM_MNI_152,
+    }
+
+
 def nhdr2dict(nhdr):
     """Convert a NIfTI header struct into a python dictionary.
 
