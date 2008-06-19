@@ -24,6 +24,15 @@ Unreleased changes
   * Included configuration and Makefile support for profiling, API doc
     generation (via epydoc) and code quality checks (with PyLint).
   * Consistently import NumPy as N.
+  * Bugfix: Proper handling of [qs]form codes, which previously have not been
+    handled at all. Thanks to Christopher Burns for pointing it out.
+  * Bugfix: Make NiftiFormat work without setFilename(). Thanks to Benjamin
+    Thyreau for reporting.
+  * Bugfix: setPixDims() stored meaningless values.
+  * Use new NumPy API and replace deprecated function calls
+    (`PyArray_FromDimsAndData`).
+  * Initial support for memory mapped access to uncompressed NIfTI files
+    (`MemMappedNiftiImage`).
 
 
 Releases
