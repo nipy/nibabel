@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>
-Build-Depends: cdbs, debhelper (>= 5.0.38), swig, python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext, libnifti1-dev | libnifti-dev
+Build-Depends: cdbs, debhelper (>= 5.0.38), swig, python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext, libnifti1-dev | libnifti-dev, python-docutils
 Standards-Version: 3.7.3
 Homepage: http://niftilib.sourceforge.net/pynifti/
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
