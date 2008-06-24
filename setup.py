@@ -12,7 +12,8 @@
 __docformat__ = 'restructuredtext'
 
 from distutils.core import setup, Extension
-import os
+import os.path
+import sys
 import numpy as N
 from glob import glob
 
@@ -25,6 +26,26 @@ if not os.path.isfile(nifti_wrapper_file):
 # find numpy headers
 numpy_headers = os.path.join(os.path.dirname(N.__file__),'core','include')
 
+# include directory: numpy for all 
+include_dirs = [ numpy_headers ]
+
+#library dirs: nothing by default
+library_dirs = []
+
+# determine what libs to link against
+link_libs = [ 'niftiio' ]
+
+# we only know that Debian niftiio is properly linked with znzlib and zlib
+# use local niftilib copy on all others
+if not os.path.exists('/etc/debian_version'):
+    link_libs += ['znz', 'z']
+    include_dirs.append(os.path.join('3rd', 'nifticlibs'))
+    library_dirs.append(os.path.join('3rd', 'nifticlibs'))
+
+swig_opts = []
+# win32 stuff
+if sys.platform.startswith('win'):
+    swig_opts.append('-DWIN32')
 
 # Notes on the setup
 # Version scheme is:
@@ -41,9 +62,9 @@ setup(name       = 'pynifti',
     packages     = [ 'nifti' ],
     scripts      = glob( 'bin/*' ),
     ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
-            include_dirs = [ '/usr/include/nifti', numpy_headers ],
-            libraries    = [ 'niftiio' ],
-            swig_opts    = [ '-I/usr/include/nifti',
-                             '-I' + numpy_headers ] ) ]
+            include_dirs = include_dirs,
+            library_dirs = library_dirs,
+            libraries    = link_libs,
+            swig_opts    = swig_opts + ['-I' + d for d in include_dirs ] ) ]
     )
 

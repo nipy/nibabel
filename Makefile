@@ -19,9 +19,18 @@ rst2html=rst2html --date --strict --stylesheet=nifti.css --link-stylesheet
 
 all: build
 
+# build included 3rd party pieces (if present)
+3rd: 3rd-stamp
+3rd-stamp:
+	find 3rd -mindepth 1 -maxdepth 1  -type d | \
+	 while read d; do \
+	  [ -f "$$d/Makefile" ] && $(MAKE) -C "$$d"; \
+     done
+	touch $@
+
 
 build: build-stamp
-build-stamp:
+build-stamp: 3rd
 	python setup.py config --noisy
 	python setup.py build_ext
 	python setup.py build_py
@@ -30,13 +39,21 @@ build-stamp:
 	touch $@
 
 
-clean: distclean
-distclean:
+clean:
+# clean 3rd party pieces
+	find 3rd -mindepth 1 -maxdepth 1  -type d | \
+	 while read d; do \
+	  [ -f "$$d/Makefile" ] && $(MAKE) -C "$$d" clean; \
+     done
+	-rm 3rd-stamp
+
+distclean: clean
 	-rm MANIFEST
 	-rm nifti/*.{c,pyc,pyo,so} nifti/nifticlib.py
 	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
 	@find . -name '*.py[co]' \
+		 -o -name '*.a' \
 		 -o -name '*,cover' \
 		 -o -name '.coverage' \
 		 -o -iname '*~' \
