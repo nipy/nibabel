@@ -31,11 +31,11 @@ numpy_headers = os.path.join(os.path.dirname(N.__file__),'core','include')
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20070930.1',
+    version      = '0.20080624.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'MIT License',
-    url          = 'http://apsy.gse.uni-magdeburg.de/hanke',
+    url          = 'http://niftilib.sf.net/pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
     long_description = """ """,
     packages     = [ 'nifti' ],

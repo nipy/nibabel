@@ -18,6 +18,14 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  * None yet.
+
+
+Releases
+~~~~~~~~
+
+* 0.20080624.1 (Tue, 24 Jun 2008)
+
   * Converted all documentation (including docstrings) into the restructured
     text format.
   * Improved Makefile.
@@ -34,9 +42,6 @@ Unreleased changes
   * Initial support for memory mapped access to uncompressed NIfTI files
     (`MemMappedNiftiImage`).
 
-
-Releases
-~~~~~~~~
 
 * 0.20070930.1 (Sun, 30 Sep 2007)
 
