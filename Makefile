@@ -170,21 +170,4 @@ orig-src: distclean
 		mv dist/$$file ../pynifti_$$ver.tar.gz
 
 
-bdist_wininst:
-	# THIS IS ONLY FOR WINDOWS!
-	# Consider this a set of notes on how to build PyNIfTI on win32, rather
-	# than an actually working target
-	#
-	# assumes Dev-Cpp to be installed at C:\Dev-Cpp
-	python setup.py build_ext -c mingw32 --swig-opts \
-		"-C:\Dev-Cpp\include/nifti -DWIN32" \
-		-IC:\Dev-Cpp\include nifti
-	
-	# for some stupid reason the swig wrapper is in the wrong location
-	move /Y nifticlib.py nifti
-	
-	# now build the installer
-	python setup.py bdist_wininst
-
-
 .PHONY: orig-src pylint apidoc

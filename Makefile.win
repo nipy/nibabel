@@ -21,7 +21,11 @@ all: build configure-inplace-use
 build: 3rd
 # build pymvpa extensions including libsvm
 	set PYTHON_INCLUDE="$(PYTHON_PATH)\\include" \
-		& python setup.py build_ext --compiler mingw32
+		& python setup.py build_ext -c mingw32
+# for some stupid reason the swig wrapper is in the wrong location
+	copy /Y nifticlib.py nifti
+	del /F nifticlib.py
+
 
 installer: 3rd build
 # now build the installer

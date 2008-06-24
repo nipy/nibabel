@@ -41,6 +41,8 @@ Releases
     (`PyArray_FromDimsAndData`).
   * Initial support for memory mapped access to uncompressed NIfTI files
     (`MemMappedNiftiImage`).
+  * Add a proper Makefile and setup.cfg for compiling PyNIfTI under Windows
+    with MinGW.
 
 
 * 0.20070930.1 (Sun, 30 Sep 2007)
