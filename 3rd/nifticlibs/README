@@ -1,0 +1,3 @@
+This is a copy of libniftiio 1.0. It is only here to be able to easily build
+a static lib for linking PyNIfTI under windows (when building the binary
+installer).
