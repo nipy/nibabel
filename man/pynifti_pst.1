@@ -2,9 +2,10 @@
 .TH PYNIFTI_PST "1" "June 2008" "pynifti_pst 0.20080624.1" "User Commands"
 .SH NAME
 pynifti_pst \- compute peristimulus timeseries of fMRI data
+.SH SYNOPSIS
+.B pynifti_pst
+[\fIoptions\fR] \fI<4dimage> <outfile> <vol_id | filename> \fR[...]
 .SH DESCRIPTION
-usage: pynifti_pst [options] <4dimage> <outfile> <vol_id | filename> [...]
-.PP
 pynifti_pst computes the peristimulus signal timecourse for all voxels in a
 volume at once. Stimulus onsets can be specified as volume numbers or times
 (will be converted into volume numbers using a supplied repetition time).
@@ -15,7 +16,7 @@ e.g. FSL's custom EV files. If several files are specified, the read onsets
 are combined to a single onset vector. pynifti_pst writes a 4d timeseries
 image as output. This image can e.g. be loaded into FSLView to look at each
 voxels signal timecourse in a certain condition by simply clicking on it.
-.SS "options:"
+.SH OPTIONS
 .TP
 \fB\-\-version\fR
 show program's version number and exit
