@@ -1,10 +1,12 @@
 pynifti (0.20080624.1-1) unstable; urgency=low
 
   * New upstream release.
-  * Rewrote debian/rules using CDBS (with python-support).
+  * Rewrote debian/rules using CDBS (with python-support) and adjusted
+    build-dependencies accordingly..
   * Build and install documentation in HTML format.
+  * Mention nifticlibs code copy in debian/copyright.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Tue, 24 Jun 2008 20:50:31 +0200
+ -- Michael Hanke <michael.hanke@gmail.com>  Tue, 24 Jun 2008 21:23:21 +0200
 
 pynifti (0.20070930.1-2) unstable; urgency=low
 
