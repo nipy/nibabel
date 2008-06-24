@@ -24,7 +24,7 @@ class NiftiFormat(object):
     NIfTI header can be created by loading information from an existing NIfTI
     file or by creating a matching NIfTI header for a ndarray.
 
-    In addition a number of methods to manipulate the header information are
+    In addition, a number of methods to manipulate the header information are
     provided. However, this class is not able to write a NIfTI header back to
     disk. Please refer to the NIfTIImage class for this functionality.
     """
@@ -35,17 +35,17 @@ class NiftiFormat(object):
         create one from ndarray data, depending on the datatype of `source`.
 
         :Parameters:
-            source: str | ndarray
-                If source is a string, it is assumed to be a filename and an
-                attempt will be made to open the corresponding NIfTI file.
-                In case of an ndarray the array data will be used for the to be
-                created nifti image and a matching nifti header is generated.
-                If an object of a different type is supplied as 'source' a
-                ValueError exception will be thrown.
-            header: dict
-                Additional header data might be supplied. However,
-                dimensionality and datatype are determined from the ndarray and
-                not taken from a header dictionary.
+          source: str | ndarray
+            If source is a string, it is assumed to be a filename and an
+            attempt will be made to open the corresponding NIfTI file.
+            In case of an ndarray the array data will be used for the to be
+            created nifti image and a matching nifti header is generated.
+            If an object of a different type is supplied as 'source' a
+            ValueError exception will be thrown.
+          header: dict
+            Additional header data might be supplied. However,
+            dimensionality and datatype are determined from the ndarray and
+            not taken from a header dictionary.
         """
         self.__nimg = None
 
@@ -73,10 +73,10 @@ class NiftiFormat(object):
         """Create a `nifti_image` struct from a ndarray.
 
         :Parameters:
-            data: ndarray
-                Source ndarray.
-            hdr: dict
-                Optional dictionary with NIfTI header data.
+          data: ndarray
+            Source ndarray.
+          hdr: dict
+            Optional dictionary with NIfTI header data.
         """
 
         # check array
@@ -136,8 +136,8 @@ class NiftiFormat(object):
         """Open a NIfTI file.
 
         :Parameters:
-            filename: str
-                Filename of the to be opened image file.
+          filename: str
+            Filename of the to be opened image file.
         """
         # do not load image data!
         self.__nimg = nifticlib.nifti_image_read(filename, 0)
@@ -160,7 +160,7 @@ class NiftiFormat(object):
         The qform matrix and its inverse will be recalculated automatically.
 
         :Parameter:
-            value: 3-tuple of floats
+          value: 3-tuple of floats
 
         Besides reading it is also possible to set the voxel dimensions by
         assigning to the `voxdim` property.
@@ -179,13 +179,13 @@ class NiftiFormat(object):
         """Set the pixel dimensions.
 
         :Parameter:
-            value: sequence
-                Up to 7 values (max. number of dimensions supported by the
-                NIfTI format) are allowed in the sequence.
+          value: sequence
+            Up to 7 values (max. number of dimensions supported by the
+            NIfTI format) are allowed in the sequence.
 
-                The supplied sequence can be shorter than seven elements. In
-                this case only present values are assigned starting with the
-                first dimension (spatial: x).
+            The supplied sequence can be shorter than seven elements. In
+            this case only present values are assigned starting with the
+            first dimension (spatial: x).
 
         Calling `setPixDims()` with a length-3 sequence equals calling
         `setVoxDims()`.
@@ -216,10 +216,10 @@ class NiftiFormat(object):
         """Returns the shape of the dataimage.
 
         :Returns:
-            Tuple with the size in voxel/timepoints.
+          Tuple with the size in voxel/timepoints.
 
-            The order of dimensions is (x,y,z,t,u,v,w). If the image has less
-            dimensions than 7 the return tuple will be shortened accordingly.
+          The order of dimensions is (x,y,z,t,u,v,w). If the image has less
+          dimensions than 7 the return tuple will be shortened accordingly.
 
         Please note that the order of dimensions is different from the tuple
         returned by calling `NiftiImage.data.shape`!
@@ -239,10 +239,10 @@ class NiftiFormat(object):
         """Returns the size/shape of the volume(s) in the image as a tuple.
 
         :Returns:
-            Either a 3-tuple or 2-tuple or 1-tuple depending on the available
-            dimensions in the image.
+          Either a 3-tuple or 2-tuple or 1-tuple depending on the available
+          dimensions in the image.
 
-            The order of dimensions in the tuple is (x [, y [, z ] ] ).
+          The order of dimensions in the tuple is (x [, y [, z ] ] ).
 
         The `volextent` property is an alternative way to access this function.
         """
@@ -284,7 +284,7 @@ class NiftiFormat(object):
         """Returns the header data of the `NiftiImage` in a dictionary.
 
         Note, that modifications done to this dictionary do not cause any
-        modifications in the NIfTI image. Please use the `updateHeader()`
+        modifications in the NIfTI image. Please use the `updateFromDict()`
         method to apply changes to the image.
 
         The `header` property is an alternative way to access this function. 
@@ -381,8 +381,8 @@ class NiftiFormat(object):
         """Set the description element in the NIfTI header.
 
         :Parameter:
-            value: str
-                Description -- must not be longer than 79 characters.
+          value: str
+            Description -- must not be longer than 79 characters.
 
         Besides reading it is also possible to set the description by assigning
         to the `description` property.
