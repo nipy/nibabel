@@ -1,5 +1,6 @@
-include AUTHOR COPYING Makefile README.html MANIFEST.in
+include AUTHOR COPYING Makefile MANIFEST.in setup*
 include Changelog TODO
-include man/*
-include tests/* tests/data/*
+recursive-include doc *
+recursive-include man *
+recursive-include data *
 prune nifti/wrap.py
