@@ -1,7 +1,7 @@
 #!/usr/bin/python
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#    Copyright (C) 2007 by
+#    Copyright (C) 2007-2008 by
 #    Michael Hanke <michael.hanke@gmail.com>
 #
 #    This is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 import os, sys
 from optparse import OptionParser
 import nifti.utils
-import numpy as np
+import numpy as N
 
 def loadEVFile( filename ):
     try:
@@ -47,7 +47,7 @@ def checkCmdLine(args, opts, min_args):
 def main():
     parser = OptionParser( \
         usage="%prog [options] <4dimage> <outfile> <vol_id | filename> [...]", \
-        version="%prog 0.20070424", description="""\
+        version="%prog 0.20080624.1", description="""\
 %prog computes the peristimulus signal timecourse for all voxels in a volume at
 once. Stimulus onsets can be specified as volume numbers or times (will be
 converted into volume numbers using a supplied repetition time). Onsets can be
@@ -137,9 +137,9 @@ Other possibilities are the standard deviation ('std') and standard error
 
     # determine the requested function for timeseries calculation
     if opts.operation == 'mean':
-        pst_fx = np.mean
+        pst_fx = N.mean
     elif opts.operation == 'std' or opts.operation == 'sde':
-        pst_fx = np.std
+        pst_fx = N.std
     else:
         print "'%s' is not a supported operation." % opts.operation
         sys.exit(1)
@@ -218,7 +218,7 @@ Other possibilities are the standard deviation ('std') and standard error
 
     # divide by srqt of number of stimulations if standard error is requested
     if opts.operation == 'sde':
-        pst /= np.sqrt( len(onsetvols) )
+        pst /= N.sqrt( len(onsetvols) )
 
     if opts.perc_sig_chg:
         if opts.verbose:
@@ -226,7 +226,7 @@ Other possibilities are the standard deviation ('std') and standard error
         baseline = nifti.utils.getPeristimulusTimeseries( nimg,
                                                           onsetvols,
                                                           1,
-                                                          np.mean )[0].copy()
+                                                          N.mean )[0].copy()
 
         if opts.operation == 'mean':
             pst -= baseline

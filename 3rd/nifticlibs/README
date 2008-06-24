@@ -1,0 +1,16 @@
+This directory contains a copy of the nifticlibs. The copy does not cover
+the full distribution, but only the files:
+
+  * nifti1.h
+  * nifti1_io.[h,c]
+  * znzlib.[h,c]
+  * LICENSE
+
+These files represent the functionality of the nifticlibs that is required
+by PyNIfTI. Above files are included verbatim without any patches.
+
+The purpose of the library copy is to lower the threshold to build PyNIfTI
+on systems which do not provide proper developer packages for those libs.
+Please do not build/link/use them on systems providing official library
+packages (e.g. Debian and Ubuntu) and use those instead (security support,
+maybe additional bugfixes, etc.)

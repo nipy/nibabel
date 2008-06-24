@@ -1,0 +1,8 @@
+build-stamp
+build
+*.swp
+*.pyc
+*.pyo
+*_wrap.c
+*.so
+nifti/nifticlib.py

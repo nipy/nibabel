@@ -1,27 +1,24 @@
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+#vim:fileencoding=utf-8
+#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+#ex: set sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#    Unit tests for PyNIfTI file io
+#   See COPYING file distributed along with the PyNIfTI package for the
+#   copyright and license terms.
 #
-#    Copyright (C) 2007 by
-#    Michael Hanke <michael.hanke@gmail.com>
-#
-#    This is free software; you can redistribute it and/or
-#    modify it under the terms of the MIT License.
-#
-#    This package is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the COPYING
-#    file that comes with this package for more details.
-#
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+"""Unit tests for PyNIfTI file io"""
 
-import nifti
+__docformat__ = 'restructuredtext'
+
+from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
+from nifti.niftiformat import NiftiFormat
 import unittest
 import md5
 import tempfile
 import shutil
 import os
-import numpy as np
+import numpy as N
 
 
 def md5sum(filename):
@@ -41,23 +38,37 @@ class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
 
+
     def tearDown(self):
         shutil.rmtree(self.workdir)
+
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
         md5_orig = md5sum('data/example4d.nii.gz')
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
         nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
 
+
+    def testUnicodeLoadSaveCycle(self):
+        """ check load/save cycle for unicode filenames.
+        """
+        md5_orig = md5sum('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
+        nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
+        md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
+
+        self.failUnlessEqual(md5_orig, md5_io)
+
+
     def testQFormSetting(self):
-        nimg = nifti.NiftiImage('data/example4d.nii.gz')
+        nimg = NiftiImage('data/example4d.nii.gz')
         # 4x4 identity matrix
-        ident = np.identity(4)
+        ident = N.identity(4)
         self.failIf( (nimg.qform == ident).all() )
 
         # assign new qform
@@ -66,10 +77,150 @@ class FileIOTests(unittest.TestCase):
 
         # test save/load cycle
         nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
-        nimg2 = nifti.NiftiImage( os.path.join( self.workdir, 
+        nimg2 = NiftiImage( os.path.join( self.workdir,
                                                'qformtest.nii.gz') )
 
         self.failUnless( (nimg.qform == nimg2.qform).all() )
+
+
+    def testDataAccess(self):
+        nimg = NiftiImage('data/example4d.nii.gz')
+
+        # test two points
+        self.failUnlessEqual(nimg.data[1,12,59,49], 509)
+        self.failUnlessEqual(nimg.data[0,4,17,42], 435)
+
+
+    def testDataOwnership(self):
+        nimg = NiftiImage('data/example4d.nii.gz')
+
+        # assign data, but no copying
+        data = nimg.data
+
+        # get copy
+        data_copy = nimg.asarray()
+
+        # test two points
+        self.failUnlessEqual(data[1,12,59,49], 509)
+        self.failUnlessEqual(data[0,4,17,42], 435)
+
+        # now remove image and try again
+        del nimg
+        # next section would cause segfault as the 
+        #self.failUnlessEqual(data[1,12,59,49], 509)
+        #self.failUnlessEqual(data[0,4,17,42], 435)
+
+        self.failUnlessEqual(data_copy[1,12,59,49], 509)
+        self.failUnlessEqual(data_copy[0,4,17,42], 435)
+
+
+    def testFromScratch(self):
+        data = N.arange(24).reshape(2,3,4)
+        n = NiftiImage(data)
+
+        n.save(os.path.join(self.workdir, 'scratch.nii'))
+
+        n2 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+
+        self.failUnless((n2.data == data).all())
+
+        # now modify data and store again
+        n2.data[:] = n2.data * 2
+
+        n2.save(os.path.join(self.workdir, 'scratch.nii'))
+
+        # reopen and check data
+        n3 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+
+        self.failUnless((n3.data == data * 2).all())
+
+
+#    def testLeak(self):
+#        for i in xrange(100000):
+#            nimg = NiftiImage('data/example4d.nii.gz')
+#            nimg = NiftiImage(N.arange(1))
+
+    def testMemoryMapping(self):
+        nimg = NiftiImage('data/example4d.nii.gz')
+        # save as uncompressed file
+        nimg.save(os.path.join(self.workdir, 'mmap.nii'))
+
+        nimg_mm = MemMappedNiftiImage(os.path.join(self.workdir, 'mmap.nii'))
+
+        # make sure we have the same
+        self.failUnlessEqual(nimg.data[1,12,39,46],
+                             nimg_mm.data[1,12,39,46])
+
+        orig = nimg_mm.data[0,12,30,23]
+        nimg_mm.data[0,12,30,23] = 999
+
+        # make sure data is written to disk
+        nimg_mm.save()
+
+        self.failUnlessEqual(nimg_mm.data[0,12,30,23], 999)
+
+        # now reopen non-mapped and confirm operation
+        nimg_mod = NiftiImage(os.path.join(self.workdir, 'mmap.nii'))
+        self.failUnlessEqual(nimg_mod.data[0,12,30,23], 999)
+
+        self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
+
+
+    def testQFormSetting_fromFile(self):
+        # test setting qoffset
+        nimg = NiftiImage('data/example4d.nii.gz')
+        new_qoffset = (10.0, 20.0, 30.0)
+        nimg.qoffset = new_qoffset
+
+        fname = os.path.join(self.workdir, 'test-qoffset-file.nii.gz')
+        nimg.save(fname)
+        nimg2 = NiftiImage(fname)
+
+        self.failUnless((nimg.qform == nimg.qform).all())
+
+        # now test setting full qform
+        nimg3 = NiftiImage('data/example4d.nii.gz')
+
+        # build custom qform matrix
+        qform = N.identity(4)
+        # give 2mm pixdim
+        qform.ravel()[0:11:5] = 2
+        # give some qoffset
+        qform[0:3, 3] = [10.0, 20.0, 30.0]
+
+        nimg3.qform = qform
+        self.failUnless( (nimg3.qform == qform).all() )
+
+        # see whether it survives save/load cycle
+        fname = os.path.join(self.workdir, 'qform_fromfile_test.nii.gz')
+        nimg3.save(fname)
+        nimg4 = NiftiImage(fname)
+
+        # test rotation portion of qform, pixdims appear to be ok
+        self.failUnless( (nimg4.qform[:3, :3] == qform[:3, :3]).all() )
+        # test full qform
+        self.failUnless( (nimg4.qform == qform).all() )
+
+
+    def testQFormSetting_fromArray(self):
+        data = N.zeros((4,3,2))
+        ident = N.identity(4)
+        # give 2mm pixdim
+        ident.ravel()[0:11:5] = 2
+        # give some qoffset
+        ident[0:3, 3] = [10.0, 20.0, 30.0]
+        nimg = NiftiImage(data)
+        nimg.qform = ident
+        self.failUnless( (nimg.qform == ident).all() )
+
+        fname = os.path.join(self.workdir, 'qform_fromarray_test.nii.gz')
+        nimg.save(fname)
+        nimg2 = NiftiImage(fname)
+        # test rotation portion of qform, pixdims appear to be ok
+        self.failUnless( (nimg.qform[:3, :3] == nimg2.qform[:3, :3]).all() )
+        # test full qform
+        self.failUnless( (nimg.qform == nimg2.qform).all() )
+
 
 
 def suite():

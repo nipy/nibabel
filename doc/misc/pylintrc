@@ -1,0 +1,86 @@
+# PyLint configuration file for the project pynifti.
+#
+# Agreed formatting (per yoh+michael voice dialog) is camel.
+#
+# This pylintrc file will use the default settings except for the
+# naming conventions, which will allow for camel case naming as found
+# in Java code or several libraries such as PyQt, etc.
+#
+# At some moment it was modified by yoh from the original one
+# which can be found on debian systems at
+# /usr/share/doc/pylint/examples/pylintrc_camelcase
+#
+# Just place it in ~/.pylintrc for user-wide installation or simply
+# use within a call to pylint or export environment variable
+# export PYLINTRC=$PWD/doc/misc/pylintrc
+
+
+[BASIC]
+# Regular expression which should only match correct module names
+module-rgx=(([a-z][a-z0-9]*)|([A-Z][a-zA-Z0-9]+))$
+
+attr-rgx=[a-z_][a-zA-Z0-9_]{2,30}
+
+# Regular expression which should only match correct class names
+class-rgx=[A-Z][a-zA-Z0-9]+$
+
+# Regular expression which should only match correct function names
+function-rgx=[a-z_][a-zA-Z0-9]*$
+
+# Regular expression which should only match correct method names
+method-rgx=([a-z_]|__)[a-zA-Z0-9]*(__)?$
+
+# Regular expression which should only match correct argument names
+argument-rgx=[a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?$
+
+# Regular expression which should only match correct variable names
+variable-rgx=([a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?||(__.*__))$
+
+# Regular expression which should only match correct module level names
+# Default: (([A-Z_][A-Z1-9_]*)|(__.*__))$
+const-rgx=([a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?|__.*__)$
+
+
+[FORMAT]
+indent-string='    '
+
+
+[DESIGN]
+
+# We are capable to follow that many, yes!
+max-branchs = 20
+
+# some base class constructors have quite a few arguments
+max-args = 12
+
+[MESSAGES CONTROL]
+# Disable the following PyLint messages:
+# R0903 - Not enough public methods
+# W0102 - Dangerous default value [] as argument # list of callables
+# W0105 - String statement has no effect # often used for after-line doc
+# W0142 - Used * or ** magic
+# W0232 - Class has no __init__ method
+# W0212 - Access to a protected member ... of a client class
+# W0613 - Unused argument
+disable-msg=R0903,W0142,W0102,W0105,W0212,W0613
+
+[REPORTS]
+
+# set the output format. Available formats are text, parseable, colorized and
+# html
+output-format=colorized
+
+# Include message's id in output
+include-ids=yes
+
+# Tells wether to display a full report or only the messages
+reports=yes
+
+[MISCELLANEOUS]
+
+# List of note tags to take in consideration, separated by a comma.
+# FIXME -- something which needs fixing
+# TODO  -- future plan
+# XXX   -- some concern
+# YYY   -- comment/answer to above mentioned concern
+notes=FIXME,TODO,XXX,YYY
