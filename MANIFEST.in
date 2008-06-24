@@ -3,4 +3,5 @@ include Changelog TODO
 recursive-include doc *
 recursive-include man *
 recursive-include data *
+recursive-include 3rd *
 prune nifti/wrap.py
