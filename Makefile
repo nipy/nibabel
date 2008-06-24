@@ -170,4 +170,11 @@ orig-src: distclean
 		mv dist/$$file ../pynifti_$$ver.tar.gz
 
 
+bdist_rpm: 3rd
+	python setup.py bdist_rpm \
+	  --doc-files "doc" \
+	  --packager "Michael Hanke <michael.hanke@gmail.com>" \
+	  --vendor "Michael Hanke <michael.hanke@gmail.com>"
+
+
 .PHONY: orig-src pylint apidoc
