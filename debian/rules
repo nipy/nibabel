@@ -1,121 +1,21 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
+# -*- mode: makefile; coding: utf-8 -*-
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+include /usr/share/cdbs/1/rules/debhelper.mk
+DEB_PYTHON_SYSTEM = pysupport
+DEB_PYTHON_MODULE_PACKAGE = python-nifti
+include /usr/share/cdbs/1/class/python-distutils.mk
 
-# This has to be exported to make some magic below work.
-export DH_OPTIONS
-
-#config
-PYVERS	:= $(shell pyversions -vr)
-
-PYNAME=nifti
-PYPKG=python-$(PYNAME)
-BASE=$(CURDIR)/debian
-
-
-CFLAGS = -Wall -g
-
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
-else
-	CFLAGS += -O2
-endif
-
-
-#Architecture
-build: build-arch build-indep
-
-
-build-arch: build-arch-stamp
-build-arch-stamp: $(PYVERS:%=build-arch-python%)
-	touch $@
-
-
-build-arch-python%:
-	# FIRST build swig extension (otherwise the swig wrapper scripts will not
-	# be installed correctly)
-	python$* setup.py build_ext
-	python$* setup.py build_py
-	touch $@
-
-
-build-indep: build-indep-stamp
-build-indep-stamp:
-	touch $@
-
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-arch-stamp build-indep-stamp build-arch-python*
-	
-	# Add here commands to clean up after the build process.
-	python setup.py clean
+clean::
 	$(MAKE) distclean
-	
-	dh_clean
 
+build/python-nifti::
+	$(MAKE) htmlmanual
 
-pre-install:
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
+# install directly into package directory
+DEB_DESTDIR = $(CURDIR)/debian/python-nifti
+# immediately useable documentation
+DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt
+# doc contents
+DEB_INSTALL_DOCS_python-nifti := build/html
 
-
-install: build pre-install install-indep install-arch
-install-indep:
-	dh_installdirs -i
-	
-	dh_install -i
-
-
-install-python%:
-	# run tests using python modules for each python version
-	cd tests \
-		&& PYTHONPATH=$(CURDIR)/build/lib.$$(uname -s | tr 'A-Z' 'a-z')-$$(uname -m)-$* \
-		python$* test_main.py
-	
-	python$* setup.py install --root $(BASE)/$(PYPKG) --no-compile
-	python$* setup.py clean
-
-
-install-arch: pre-install $(PYVERS:%=install-python%)
-
-
-# Must not depend on anything. This is to be called by
-# binary-arch/binary-indep
-# in another 'make' thread.
-binary-common:
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs
-	dh_installman
-	dh_strip
-	dh_pycentral
-	dh_compress
-	dh_fixperms
-	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-
-# Build architecture independant packages using the common target.
-binary-indep: build-indep install-indep
-	# there is nothing to do
-	#$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
-
-
-# Build architecture dependant packages using the common target.
-binary-arch: build-arch install-arch
-	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
-
-
-binary: binary-arch binary-indep
-.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure

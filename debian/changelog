@@ -1,3 +1,11 @@
+pynifti (0.20080624.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * Rewrote debian/rules using CDBS (with python-support).
+  * Build and install documentation in HTML format.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Tue, 24 Jun 2008 20:50:31 +0200
+
 pynifti (0.20070930.1-2) unstable; urgency=low
 
   * Bumped Debian Standards-version to 3.7.3, no changes necessary.
