@@ -43,6 +43,9 @@ Releases
     (`MemMappedNiftiImage`).
   * Add a proper Makefile and setup.cfg for compiling PyNIfTI under Windows
     with MinGW.
+  * Include a minimal copy of the most recent nifticlibs (just libniftiio and
+    znzlib; version 1.0), to lower the threshold to build PyNIfTI on systems
+    that do not provide a developer package for those libraries.
 
 
 * 0.20070930.1 (Sun, 30 Sep 2007)
