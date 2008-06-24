@@ -41,11 +41,15 @@ if not os.path.exists('/etc/debian_version'):
     link_libs += ['znz', 'z']
     include_dirs.append(os.path.join('3rd', 'nifticlibs'))
     library_dirs.append(os.path.join('3rd', 'nifticlibs'))
+else:
+    include_dirs.append('/usr/include/nifti')
 
 swig_opts = []
+defines = []
 # win32 stuff
 if sys.platform.startswith('win'):
     swig_opts.append('-DWIN32')
+    defines.append(('WIN32', None))
 
 # Notes on the setup
 # Version scheme is:
@@ -62,6 +66,7 @@ setup(name       = 'pynifti',
     packages     = [ 'nifti' ],
     scripts      = glob( 'bin/*' ),
     ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
+            define_macros = defines,
             include_dirs = include_dirs,
             library_dirs = library_dirs,
             libraries    = link_libs,
