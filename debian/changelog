@@ -1,3 +1,9 @@
+pynifti (0.20080624.1-2) unstable; urgency=low
+
+  * Fixed bashism in Makefile.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 25 Jun 2008 10:22:57 +0200
+
 pynifti (0.20080624.1-1) unstable; urgency=low
 
   * New upstream release.
