@@ -118,7 +118,7 @@ htmlchangelog: $(HTML_DIR)
 htmlmanual: $(HTML_DIR)
 	$(rst2html) doc/manual/manual.txt $(HTML_DIR)/manual.html
 	# copy images
-	cp -r -t $(HTML_DIR) doc/misc/*.css doc/misc/*.pics doc/manual/pics 
+	cp -r -t $(HTML_DIR) doc/misc/*.css doc/misc/pics doc/manual/pics 
 
 
 # convert rsT documentation in doc/* to PDF.
