@@ -1,3 +1,10 @@
+pynifti (0.20080630.1-1) unstable; urgency=low
+
+  * New upstream release. Fixed memory leak.
+  * Merged bashism-removal patch with upstream.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Mon, 30 Jun 2008 10:08:58 +0200
+
 pynifti (0.20080624.1-2) unstable; urgency=low
 
   * Fixed bashism in Makefile.
