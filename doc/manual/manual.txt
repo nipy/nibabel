@@ -16,7 +16,7 @@
 :Contact:  pkg-exppsy-pymvpa@lists.alioth.debian.org
 :Homepage: http://niftilib.sf.net/pynifti
 :IRC: #exppsy on OTFC/Freenode
-:Revision: 0.20080624.1
+:Revision: 0.20080630.1
 
 .. meta::
    :description: The PyNIfTI documentation
