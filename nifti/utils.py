@@ -12,8 +12,8 @@ __docformat__ = 'restructuredtext'
 
 
 import numpy as N
-import nifti
-import nifti.nifticlib as nifticlib
+from niftiimage import NiftiImage
+import nifticlib
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
@@ -39,7 +39,7 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
     tmp = N.array(t)
 
     # determine tr if NiftiImage object
-    if isinstance( tr, nifti.NiftiImage ):
+    if isinstance( tr, NiftiImage ):
         tr = tr.rtime
 
     vol = N.round( ( tmp + lag + tr/2 ) / tr, decimals )
@@ -67,7 +67,7 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
     """
     # get data array from nifti image or assume data array is
     # already present
-    if isinstance( ts, nifti.NiftiImage ):
+    if isinstance( ts, NiftiImage ):
         data = ts.data
     else:
         data = ts
@@ -99,7 +99,7 @@ def cropImage( nimg, bbox ):
     cropped = eval(cmd).copy()
 
     # return the cropped image with preserved header data
-    return nifti.NiftiImage(cropped, nimg.header)
+    return NiftiImage(cropped, nimg.header)
 
 
 def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
