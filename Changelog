@@ -18,11 +18,16 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  * None yet.
-
 
 Releases
 ~~~~~~~~
+
+* 0.20080630.1 (Tue, 30 Jun 2008)
+
+  * Bugfix: NiftiImage caused a memory leak by not calling the NiftiFormat
+    destructor.
+  * Bugfix: Merged bashism-removal patch from Debian packaging.
+
 
 * 0.20080624.1 (Tue, 24 Jun 2008)
 

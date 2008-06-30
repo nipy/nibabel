@@ -81,6 +81,10 @@ class NiftiImage(NiftiFormat):
         """
         self.unload()
 
+        # it is required to call base class destructors!
+        NiftiFormat.__del__(self)
+
+
 
     def save(self, filename=None, filetype = 'NIFTI'):
         """Save the image.
@@ -439,6 +443,9 @@ class MemMappedNiftiImage(NiftiImage):
         """Do all necessary cleanups by calling __close().
         """
         self._data.sync()
+
+        # it is required to call base class destructors!
+        NiftiFormat.__del__(self)
 
 
     def save(self):
