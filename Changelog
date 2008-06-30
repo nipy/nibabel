@@ -26,6 +26,7 @@ Releases
 
   * Bugfix: NiftiImage caused a memory leak by not calling the NiftiFormat
     destructor.
+  * Bugfix: Merged bashism-removal patch from Debian packaging.
 
 
 * 0.20080624.1 (Tue, 24 Jun 2008)
