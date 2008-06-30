@@ -12,7 +12,6 @@ __docformat__ = 'restructuredtext'
 
 
 import numpy as N
-from niftiimage import NiftiImage
 import nifticlib
 
 def time2vol( t, tr, lag=0.0, decimals=0 ):
@@ -78,29 +77,6 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
         out.append( fx( data[ N.array( vol ) ], **kwargs ) )
 
     return N.array( out )
-
-
-def cropImage( nimg, bbox ):
-    """ Crop an image.
-
-    'bbox' has to be a sequency of (min,max) tuples (one for each image
-    dimension).
-
-    The function returns the cropped image. The data is not shared with the
-    original image, but is copied.
-    """
-
-    # build crop command
-    cmd = 'nimg.data.squeeze()['
-    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
-    cmd += ']'
-
-    # crop the image data array
-    cropped = eval(cmd).copy()
-
-    # return the cropped image with preserved header data
-    return NiftiImage(cropped, nimg.header)
-
 
 def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
     """ Returns 4d array with peristimulus timeseries.
