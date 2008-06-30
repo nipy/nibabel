@@ -38,8 +38,8 @@ def time2vol( t, tr, lag=0.0, decimals=0 ):
     # transform to numpy array for easy handling
     tmp = N.array(t)
 
-    # determine tr if NiftiImage object
-    if isinstance( tr, NiftiImage ):
+    # Use rtime from tr if it exists.  This will be true for NiftiImage objects.
+    if hasattr(tr, 'rtime'):
         tr = tr.rtime
 
     vol = N.round( ( tmp + lag + tr/2 ) / tr, decimals )
@@ -67,7 +67,7 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
     """
     # get data array from nifti image or assume data array is
     # already present
-    if isinstance( ts, NiftiImage ):
+    if hasattr(ts, 'data') and isinstance(ts.data, N.ndarray):
         data = ts.data
     else:
         data = ts
