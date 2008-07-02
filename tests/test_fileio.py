@@ -214,7 +214,28 @@ class FileIOTests(unittest.TestCase):
         # test full qform
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
+    def test_setPixDims_fromFile(self):
+        pdims = [2.0, 3.0, 4.0, 2000.0, 1.0, 1.0, 1.0]
+        self.nimg.pixdim = pdims
+        self.failUnless(self.nimg.pixdim == pdims)
 
+        fname = os.path.join(self.workdir, 'test-pixdims-file.nii.gz')
+        self.nimg.save(fname)
+
+        nimg2 = NiftiImage(fname)
+        self.failUnless(self.nimg.pixdim == nimg2.pixdim)
+
+    def test_setVoxDims_fromFile(self):
+        vdims = [2.0, 3.0, 4.0]
+        self.nimg.voxdim = vdims
+        self.failUnless(self.nimg.voxdim == vdims)
+
+        fname = os.path.join(self.workdir, 'test-voxdims-file.nii.gz')
+        self.nimg.save(fname)
+
+        nimg2 = NiftiImage(fname)
+        self.failUnless(self.nimg.voxdim == nimg2.voxdim)
+        
 
 def suite():
     return unittest.makeSuite(FileIOTests)
