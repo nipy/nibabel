@@ -37,18 +37,17 @@ def md5sum(filename):
 class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
-
+        self.nimg = NiftiImage('data/example4d.nii.gz')
 
     def tearDown(self):
         shutil.rmtree(self.workdir)
-
+        del self.nimg
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
         md5_orig = md5sum('data/example4d.nii.gz')
-        nimg = NiftiImage('data/example4d.nii.gz')
-        nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
+        self.nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
@@ -58,54 +57,35 @@ class FileIOTests(unittest.TestCase):
         """ check load/save cycle for unicode filenames.
         """
         md5_orig = md5sum('data/example4d.nii.gz')
-        nimg = NiftiImage('data/example4d.nii.gz')
-        nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
+        self.nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
 
 
-    def testQFormSetting(self):
-        nimg = NiftiImage('data/example4d.nii.gz')
-        # 4x4 identity matrix
-        ident = N.identity(4)
-        self.failIf( (nimg.qform == ident).all() )
-
-        # assign new qform
-        nimg.qform = ident
-        self.failUnless( (nimg.qform == ident).all() )
-
-        # test save/load cycle
-        nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
-        nimg2 = NiftiImage( os.path.join( self.workdir,
-                                               'qformtest.nii.gz') )
-
-        self.failUnless( (nimg.qform == nimg2.qform).all() )
-
-
     def testDataAccess(self):
-        nimg = NiftiImage('data/example4d.nii.gz')
-
         # test two points
-        self.failUnlessEqual(nimg.data[1,12,59,49], 509)
-        self.failUnlessEqual(nimg.data[0,4,17,42], 435)
+        self.failUnlessEqual(self.nimg.data[1,12,59,49], 509)
+        self.failUnlessEqual(self.nimg.data[0,4,17,42], 435)
 
 
     def testDataOwnership(self):
-        nimg = NiftiImage('data/example4d.nii.gz')
-
         # assign data, but no copying
-        data = nimg.data
+        data = self.nimg.data
+        # data is a view of the array data buffer
+        assert data.flags.owndata == False
 
         # get copy
-        data_copy = nimg.asarray()
+        data_copy = self.nimg.asarray()
+        # data_copy is a copy of the array data buffer, it own's the buffer
+        assert data_copy.flags.owndata == True
 
         # test two points
         self.failUnlessEqual(data[1,12,59,49], 509)
         self.failUnlessEqual(data[0,4,17,42], 435)
 
         # now remove image and try again
-        del nimg
+        #del nimg
         # next section would cause segfault as the 
         #self.failUnlessEqual(data[1,12,59,49], 509)
         #self.failUnlessEqual(data[0,4,17,42], 435)
@@ -141,14 +121,13 @@ class FileIOTests(unittest.TestCase):
 #            nimg = NiftiImage(N.arange(1))
 
     def testMemoryMapping(self):
-        nimg = NiftiImage('data/example4d.nii.gz')
         # save as uncompressed file
-        nimg.save(os.path.join(self.workdir, 'mmap.nii'))
+        self.nimg.save(os.path.join(self.workdir, 'mmap.nii'))
 
         nimg_mm = MemMappedNiftiImage(os.path.join(self.workdir, 'mmap.nii'))
 
         # make sure we have the same
-        self.failUnlessEqual(nimg.data[1,12,39,46],
+        self.failUnlessEqual(self.nimg.data[1,12,39,46],
                              nimg_mm.data[1,12,39,46])
 
         orig = nimg_mm.data[0,12,30,23]
@@ -165,18 +144,32 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
 
+    def testQFormSetting(self):
+        # 4x4 identity matrix
+        ident = N.identity(4)
+        self.failIf( (self.nimg.qform == ident).all() )
+
+        # assign new qform
+        self.nimg.qform = ident
+        self.failUnless( (self.nimg.qform == ident).all() )
+
+        # test save/load cycle
+        self.nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
+        nimg2 = NiftiImage( os.path.join( self.workdir,
+                                               'qformtest.nii.gz') )
+
+        self.failUnless( (self.nimg.qform == nimg2.qform).all() )
 
     def testQFormSetting_fromFile(self):
         # test setting qoffset
-        nimg = NiftiImage('data/example4d.nii.gz')
         new_qoffset = (10.0, 20.0, 30.0)
-        nimg.qoffset = new_qoffset
+        self.nimg.qoffset = new_qoffset
 
         fname = os.path.join(self.workdir, 'test-qoffset-file.nii.gz')
-        nimg.save(fname)
+        self.nimg.save(fname)
         nimg2 = NiftiImage(fname)
 
-        self.failUnless((nimg.qform == nimg.qform).all())
+        self.failUnless((self.nimg.qform == nimg2.qform).all())
 
         # now test setting full qform
         nimg3 = NiftiImage('data/example4d.nii.gz')
