@@ -442,7 +442,7 @@ class MemMappedNiftiImage(NiftiImage):
     def __del__(self):
         """Do all necessary cleanups by calling __close().
         """
-        self._data.sync()
+        self._data.flush()
 
         # it is required to call base class destructors!
         NiftiFormat.__del__(self)
@@ -458,7 +458,7 @@ class MemMappedNiftiImage(NiftiImage):
         class does not automatically update them, because it would require to
         load and search through the whole array.
         """
-        self._data.sync()
+        self._data.flush()
 
 
     def load(self):
