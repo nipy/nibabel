@@ -215,7 +215,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
     def test_setPixDims_fromFile(self):
-        pdims = [2.0, 3.0, 4.0, 2000.0, 1.0, 1.0, 1.0]
+        pdims = (2.0, 3.0, 4.0, 2000.0, 1.0, 1.0, 1.0)
         self.nimg.pixdim = pdims
         self.failUnless(self.nimg.pixdim == pdims)
 
@@ -226,7 +226,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless(self.nimg.pixdim == nimg2.pixdim)
 
     def test_setVoxDims_fromFile(self):
-        vdims = [2.0, 3.0, 4.0]
+        vdims = (2.0, 3.0, 4.0)
         self.nimg.voxdim = vdims
         self.failUnless(self.nimg.voxdim == vdims)
 
