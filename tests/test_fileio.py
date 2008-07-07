@@ -38,10 +38,12 @@ class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
         self.nimg = NiftiImage('data/example4d.nii.gz')
+        self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
 
     def tearDown(self):
         shutil.rmtree(self.workdir)
         del self.nimg
+        self.fp.close()
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
@@ -214,26 +216,44 @@ class FileIOTests(unittest.TestCase):
         # test full qform
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
-    def test_setPixDims_fromFile(self):
-        pdims = (2.0, 3.0, 4.0, 2000.0, 1.0, 1.0, 1.0)
+    def test_setPixDims(self):
+        pdims = (20.0, 30.0, 40.0, 2000.0, 1.0, 1.0, 1.0)
+        # test setPixDims func
+        self.nimg.setPixDims(pdims)
+        self.failUnless(self.nimg.getPixDims() == pdims)
+
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
+        self.failUnless(nimg2.getPixDims() == pdims)
+
+        # test assignment
+        pdims = [x*2 for x in pdims]
+        pdims = tuple(pdims)
         self.nimg.pixdim = pdims
         self.failUnless(self.nimg.pixdim == pdims)
 
-        fname = os.path.join(self.workdir, 'test-pixdims-file.nii.gz')
-        self.nimg.save(fname)
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
+        self.failUnless(nimg2.pixdim == pdims)
 
-        nimg2 = NiftiImage(fname)
-        self.failUnless(self.nimg.pixdim == nimg2.pixdim)
-
-    def test_setVoxDims_fromFile(self):
+    def test_setVoxDims(self):
         vdims = (2.0, 3.0, 4.0)
+        # test setVoxDims func
+        self.nimg.setVoxDims(vdims)
+        self.failUnless(self.nimg.getVoxDims() == vdims)
+
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
+        self.failUnless(nimg2.getVoxDims() == vdims)
+
+        # test assignment
+        vdims = [x*2 for x in vdims]
+        vdims = tuple(vdims)
         self.nimg.voxdim = vdims
         self.failUnless(self.nimg.voxdim == vdims)
 
-        fname = os.path.join(self.workdir, 'test-voxdims-file.nii.gz')
-        self.nimg.save(fname)
-
-        nimg2 = NiftiImage(fname)
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
         self.failUnless(self.nimg.voxdim == nimg2.voxdim)
         
 

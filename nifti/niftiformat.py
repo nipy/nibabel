@@ -199,6 +199,12 @@ class NiftiFormat(object):
         for i, val in enumerate(value):
             pixdim[i+1] = float(val)
 
+        # The nifticlib uses dimension deltas (dx, dy, dz, dt...) to store
+        # the pixdim values (in addition to the pixdim array).  When
+        # saving the image to a file, the deltas are used, not the pixdims.
+        # The nifti_update_dims_from_array sync's the deltas with the pixdims.
+        # (It also syncs the dim array with it's duplicate scalar variables.)
+        nifticlib.nifti_update_dims_from_array(self.__nimg)
 
     def getPixDims(self):
         """Returns the pixel dimensions on all 7 dimensions.
