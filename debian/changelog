@@ -1,3 +1,13 @@
+pynifti (0.20080710.1-1) unstable; urgency=low
+
+  * New upstream release (Closes: #490141).
+  * Change email address of Yaroslav Halchenko in uploaders field to
+    'yoh@debian.org'.
+  * Bumped Debian Standards-version to 3.8.0, no changes necessary.
+  * Converted debian/copyright into a machine readable format. 
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Thu, 10 Jul 2008 17:30:22 +0200
+
 pynifti (0.20080630.1-1) unstable; urgency=low
 
   * New upstream release. Fixed memory leak.

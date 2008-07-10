@@ -1,68 +1,55 @@
-This package was debianized by Michael Hanke <michael.hanke@gmail.com> on
-Tue, 14 Nov 2006 19:36:51 +0100.
-
-It was downloaded from:
-
-    http://niftilib.sourceforge.net
-
-Upstream Author:
-
-    Michael Hanke <michael.hanke@gmail.com>
-
-Copyright (C) 2006-2008 Michael Hanke
+Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
+Upstream-Name: PyNIfTI
+Upstream-Source: http://niftilib.sourceforge.net
 
 
-The MIT License
+Files: *
+Copyright: Copyright 2006-2008, Michael Hanke <michael.hanke@gmail.com>
+License: Expat
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
-Copyright (c) 2006-2008 Michael Hanke <michael.hanke@gmail.com>
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
-3rd/nifticlibs/
----------------
-
-The source tarball contains a partial copy of the NIfTI C libraries. This
-code is placed into the public domain. Quote from LICENSE file:
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
 
 
-> Niftilib has been developed by members of the NIFTI DFWG and volunteers in
-> the neuroimaging community and serves as a reference implementation of the
-> nifti-1 file format.
->
-> http://nifti.nimh.nih.gov/
->
-> Nifticlib code is released into the public domain, developers are encouraged
-> to incorporate niftilib code into their applications, and, to contribute
-> changes and enhancements to niftilib.
+Files: 3rd/nifticlibs/*
+Copyright: None, the code is placed into the public domain
+License: Other
+  The source tarball contains a partial copy of the NIfTI C libraries. This
+  code is placed into the public domain. Quote from LICENSE file:
 
-However, the corresponding libraries are available from the nifticlib source
-package (or rather the binary packages it builds). Therefore this code is
-not used and the respective packages are used as dependencies. This copy of
-the nifticlibs code is, however, left in place, as it does not hurt and does
-not justify repackaging of the upstream sources.
+  Niftilib has been developed by members of the NIFTI DFWG and volunteers in
+  the neuroimaging community and serves as a reference implementation of the
+  nifti-1 file format.
+
+  http://nifti.nimh.nih.gov/
+
+  Nifticlib code is released into the public domain, developers are encouraged
+  to incorporate niftilib code into their applications, and, to contribute
+  changes and enhancements to niftilib.
+
+  However, the corresponding libraries are available from the nifticlib source
+  package (or rather the binary packages it builds). Therefore this code is
+  not used and the respective packages are used as dependencies. This copy of
+  the nifticlibs code is, however, left in place, as it does not hurt and does
+  not justify repackaging of the upstream sources.
 
 
-Debian packaging
-----------------
-
-The Debian packaging is (C) 2006-2008, Michael Hanke <michael.hanke@gmail.com> 
-and also licensed under the MIT license.
+Files: debian/*
+Copyright: Copyright 2006-2008, Michael Hanke <michael.hanke@gmail.com>
+License: Expat
 
 
