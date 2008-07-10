@@ -21,6 +21,14 @@ Unreleased changes
 
 Releases
 ~~~~~~~~
+* 0.20080710.1 (Thu, 7 Jul 2008)
+
+  * Bugfix: Pointer bug introduced by switch to new NumPy API in 0.20080624
+    Thanks to Christopher Burns for fixing it.
+  * Bugfix: Honored DeprecationWarning: sync() -> flush() for memory mapped
+    arrays. Again thanks to Christopher Burns.
+  * More unit tests and other improvements (e.g. fixed circular imports) done
+    by Christopher Burns.
 
 * 0.20080630.1 (Tue, 30 Jun 2008)
 
