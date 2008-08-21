@@ -179,4 +179,10 @@ bdist_rpm: 3rd
 	  --vendor "Michael Hanke <michael.hanke@gmail.com>"
 
 
+# build MacOS installer -- depends on patched bdist_mpkg for Leopard
+bdist_mpkg: 3rd
+	python tools/mpkg_wrapper.py setup.py build_ext
+	python tools/mpkg_wrapper.py setup.py install
+
+
 .PHONY: orig-src pylint apidoc
