@@ -129,7 +129,15 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
      * Doing so will make users access to the data more convenient:
      * a 3d volume from a 4d file can be index by a single number.
      */
-    int ar_dim[7], ndims, k;
+    int ndims, k;
+    /* Array dimensions need to be an integer type whose byte size matches
+     * the pointer size on the compiled platform.  This way the dimension
+     * along that array axis is only limited by the available memory.
+     * The Numpy C-API provides a type npy_intp for this purpose.
+     * This is required by all PyArray_New* functions.
+     */
+    npy_intp ar_dim[7];
+
     /* first item in dim array stores the number of dims */
     ndims = (int) _img->dim[0];
     /* reverse the order */
@@ -139,7 +147,7 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
     }
 
     /* create numpy array */
-    volarray = PyArray_SimpleNewFromData ( ndims, ar_dim, array_type, ( char* ) _img->data );
+    volarray = PyArray_SimpleNewFromData(ndims, ar_dim, array_type, _img->data);
 
     return PyArray_Return ( (PyArrayObject*) volarray  );
 }
