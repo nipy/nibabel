@@ -60,7 +60,7 @@ distclean: clean
 		 -o -iname '*.kcache' \
 		 -o -iname '*.pstats' \
 		 -o -iname '*.prof' \
-		 -o -iname '#*#' | xargs -l10 rm -f
+		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r build
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
