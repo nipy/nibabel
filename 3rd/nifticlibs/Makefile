@@ -5,6 +5,9 @@ MISC=nifti1_io.c znzlib.c
 LIBFLAGS=-fPIC
 CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB
 
+# Use the below CFLAGS on OSX
+# CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB -arch i386 -arch ppc
+
 all: $(LIB)
 
 .c.o:
