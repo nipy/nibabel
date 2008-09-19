@@ -11,10 +11,10 @@ all: $(LIB)
 	gcc $(CFLAGS) $(LIBFLAGS) -c $^
 
 libniftiio.a: nifti1_io.o
-	ar cur $@ $^
+	ar curs $@ $^
 
 libznz.a: znzlib.o
-	ar cur $@ $^
+	ar curs $@ $^
 
 clean:
 	rm -f $(LIB) $(MISC:.c=.o)
