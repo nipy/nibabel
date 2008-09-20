@@ -132,7 +132,7 @@ website: $(WWW_DIR) htmlmanual htmlchangelog pdfmanual apidoc
 	cp $(HTML_DIR)/manual.html $(WWW_DIR)/index.html
 	cp -r -t $(WWW_DIR) $(HTML_DIR)/pics \
 						$(HTML_DIR)/changelog.html \
-						$(HTML_DIR)/*.css}
+						$(HTML_DIR)/*.css
 	cp $(PDF_DIR)/manual.pdf $(WWW_DIR)
 	cp -r $(HTML_DIR)/api $(WWW_DIR)
 
@@ -177,6 +177,12 @@ bdist_rpm: 3rd
 	  --doc-files "doc" \
 	  --packager "Michael Hanke <michael.hanke@gmail.com>" \
 	  --vendor "Michael Hanke <michael.hanke@gmail.com>"
+
+
+# build MacOS installer -- depends on patched bdist_mpkg for Leopard
+bdist_mpkg: 3rd
+	python tools/mpkg_wrapper.py setup.py build_ext
+	python tools/mpkg_wrapper.py setup.py install
 
 
 .PHONY: orig-src pylint apidoc

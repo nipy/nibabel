@@ -56,13 +56,21 @@ if sys.platform.startswith('win'):
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20080630.1',
+    version      = '0.20080710.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'MIT License',
     url          = 'http://niftilib.sf.net/pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
-    long_description = """ """,
+    long_description = \
+        "PyNIfTI aims to provide easy access to NIfTI images from within " \
+        "Python. It uses SWIG-generated wrappers for the NIfTI reference " \
+        "library and provides the NiftiImage class for Python-style " \
+        "access to the image data.\n" \
+        "While PyNIfTI is not yet complete (i.e. doesn't support " \
+        "everything the C library can do), it already provides access to " \
+        "the most important features of the NIfTI-1 data format and " \
+        "libniftiio capabilities.",
     packages     = [ 'nifti' ],
     scripts      = glob( 'bin/*' ),
     ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
