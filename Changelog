@@ -24,6 +24,7 @@ Unreleased changes
     pointing to the local nifticlibs copy, when it is actually built.
     On Debian system the local copy is still not used at all, as a proper
     nifticlibs package is guaranteed to be available.
+  * Added minimal setup_egg.py for setuptools users. Thanks to Gaël Varoquaux.
 
 
 Releases
