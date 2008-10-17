@@ -5,7 +5,10 @@ HTML_DIR=build/html
 PDF_DIR=build/pdf
 WWW_DIR=build/website
 
-PYVER := $(shell pyversions -vd)
+# should be made conditional, as pyversions is Debian-specific
+#PYVER := $(shell pyversions -vd)
+# try generic variant instead
+PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 ARCH := $(shell uname -m)
 
 rst2latex=rst2latex --documentclass=scrartcl \
