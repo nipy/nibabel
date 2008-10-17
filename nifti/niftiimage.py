@@ -32,8 +32,6 @@ class NiftiImage(NiftiFormat):
     available via the `header` attribute.
     """
 
-
-
     def __init__(self, source, header={}, load=False):
         """Create a NiftiImage object.
 
@@ -150,6 +148,10 @@ class NiftiImage(NiftiFormat):
         # raise IOError, 'An error occured while attempting to save the image
         # file.'
 
+        # take data pointer away from nifticlibs so we can let Python manage
+        # the memory
+        nifticlib.detachDataFromImage(self.raw_nimg)
+
 
     def __haveImageData(self):
         """Returns if the image data is accessible -- either loaded into
@@ -175,26 +177,23 @@ class NiftiImage(NiftiFormat):
 
         self._data = nifticlib.wrapImageDataWithArray(self.raw_nimg)
 
+        # take data pointer away from nifticlibs so we can let Python manage
+        # the memory
+        nifticlib.detachDataFromImage(self.raw_nimg)
+
 
     def unload(self):
         """Unload image data and free allocated memory.
 
         This methods does nothing in case of memory mapped files.
         """
-        if self.raw_nimg.data:
-            nifticlib.nifti_image_unload(self.raw_nimg)
-
-        # reset array storage, as data pointer became invalid
+        # simply assign none. The data array will free itself when the
+        # reference count goes to zero.
         self._data = None
 
 
     def getDataArray(self):
         """Return the NIfTI image data wrapped into a NumPy array.
-
-        Attention: The array shares the data with the NiftiImage object. Any
-        resize operation or datatype conversion will most likely result in a
-        fatal error. If you need to perform such things, get a copy
-        of the image data by using `asarray(copy=True)`.
 
         The `data` property is an alternative way to access this function.
         """
@@ -206,14 +205,8 @@ class NiftiImage(NiftiFormat):
 
         :Parameters:
             copy: Boolean
-                If set to False the array only wraps the image data. Any
-                modification done to the array is also done to the image data.
-                In this case changing the shape, size or datatype of a wrapping
-                array is not supported and will most likely result in a fatal
-                error. If you want to do anything else to the data but reading
-                or simple value assignment use a copy of the data by setting
-                the copy flag to True. Later you can convert the modified data
-                array into a NIfTi file again.
+                If set to False the array only wraps the image data, while True
+                will return a copy of the data array.
         """
         # make sure data is accessible
         self.load()

@@ -25,6 +25,10 @@ Unreleased changes
     On Debian system the local copy is still not used at all, as a proper
     nifticlibs package is guaranteed to be available.
   * Added minimal setup_egg.py for setuptools users. Thanks to Gaël Varoquaux.
+  * PyNIfTI now does a proper wrapping of the image data with NumPy arrays,
+    which no longer leads to accidental memory leaks, when accessing array
+    data that has not been copied before (e.g. via the *data* property of
+    NiftiImage). Thanks to Gaël Varoquaux for mentioning this possibility.
 
 
 Releases
