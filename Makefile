@@ -142,7 +142,7 @@ website: $(WWW_DIR) htmlmanual htmlchangelog pdfmanual apidoc
 
 upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
-		shell.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/pynifti/
+		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/pynifti/
 
 
 printables: pdfmanual
