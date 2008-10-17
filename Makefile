@@ -49,7 +49,7 @@ clean:
 
 distclean: clean
 	-rm MANIFEST
-	-rm nifti/*.c *.pyc *.pyo *.so nifti/nifticlib.py
+	-rm nifti/*.c *.pyc *.pyo *.so nifti/nifticlib.py nifti/_nifticlib.so
 	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
 	@find . -name '*.py[co]' \
