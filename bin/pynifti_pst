@@ -47,7 +47,7 @@ def checkCmdLine(args, opts, min_args):
 def main():
     parser = OptionParser( \
         usage="%prog [options] <4dimage> <outfile> <vol_id | filename> [...]", \
-        version="%prog 0.20080710.1", description="""\
+        version="%prog 0.20081017.1", description="""\
 %prog computes the peristimulus signal timecourse for all voxels in a volume at
 once. Stimulus onsets can be specified as volume numbers or times (will be
 converted into volume numbers using a supplied repetition time). Onsets can be

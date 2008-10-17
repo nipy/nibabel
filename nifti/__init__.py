@@ -19,7 +19,7 @@ The nifti package contains the following subpackages and modules:
 
 :author: `Michael Hanke <michael.hanke@gmail.com>`__
 :requires: Python 2.4+
-:version: 0.20080710.1
+:version: 0.20081017.1
 :see: `The PyNIfTI webpage <http://niftilib.sf.net/pynifti>`__
 :see: `GIT Repository Browser <http://git.debian.org/?p=pkg-exppsy/pynifti.git>`__
 

@@ -18,8 +18,17 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  None yet.
+
+
+Releases
+~~~~~~~~
+
+* 0.20081017.1 (Fri, 17 Oct 2008)
+
   * Updated included minimal copy of the nifticlibs to version 1.1.0.
-  * Few changes to the Makefiles to enhance Posix compatibility.
+  * Few changes to the Makefiles to enhance Posix compatibility. Thanks to
+    Chris Burns.
   * When building on non-Debian systems, only add include and library paths
     pointing to the local nifticlibs copy, when it is actually built.
     On Debian system the local copy is still not used at all, as a proper
@@ -30,9 +39,6 @@ Unreleased changes
     data that has not been copied before (e.g. via the *data* property of
     NiftiImage). Thanks to Gaël Varoquaux for mentioning this possibility.
 
-
-Releases
-~~~~~~~~
 * 0.20080710.1 (Thu, 7 Jul 2008)
 
   * Bugfix: Pointer bug introduced by switch to new NumPy API in 0.20080624

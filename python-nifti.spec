@@ -2,7 +2,7 @@
 Name:           python-nifti
 URL:            http://niftilib.sf.net/pynifti/
 Summary:        Python interface to the NIfTI I/O libraries
-Version:        0.20080710.1
+Version:        0.20081017.1
 Release:        1
 License:        MIT License
 Group:          Development/Libraries/Python
@@ -40,6 +40,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 17 2008 - Michael Hanke <michael.hanke@gmail.com> - 0.20081017.1-1
+  New upstream version.
 
 * Sat Oct 4 2008 - Michael Hanke <michael.hanke@gmail.com> - 0.20080710.1-1
 - Initial release
