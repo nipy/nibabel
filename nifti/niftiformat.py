@@ -29,8 +29,7 @@ class NiftiFormat(object):
     disk. Please refer to the NIfTIImage class for this functionality.
     """
     def __init__(self, source, header=None):
-        """Create a NiftiImage object.
-
+        """
         This method decides whether to load a nifti image header from file or
         create one from ndarray data, depending on the datatype of `source`.
 
@@ -63,8 +62,6 @@ class NiftiFormat(object):
 
 
     def __del__(self):
-        """Do all necessary cleanups.
-        """
         if self.__nimg:
             nifticlib.nifti_image_free(self.__nimg)
 

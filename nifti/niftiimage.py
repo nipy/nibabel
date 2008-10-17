@@ -33,26 +33,25 @@ class NiftiImage(NiftiFormat):
     """
 
     def __init__(self, source, header={}, load=False):
-        """Create a NiftiImage object.
-
+        """
         This method decides whether to load a nifti image from file or create
         one from ndarray data, depending on the datatype of `source`.
 
         :Parameters:
-            source: str | ndarray
-                If source is a string, it is assumed to be a filename and an
-                attempt will be made to open the corresponding NIfTI file.
-                In case of an ndarray the array data will be used for the to be
-                created nifti image and a matching nifti header is generated.
-                If an object of a different type is supplied as 'source' a
-                ValueError exception will be thrown.
-            header: dict
-                Additional header data might be supplied. However,
-                dimensionality and datatype are determined from the ndarray and
-                not taken from a header dictionary.
-            load: Boolean
-                If set to True the image data will be loaded into memory. This
-                is only useful if loading a NIfTI image from file.
+          source: str | ndarray
+            If source is a string, it is assumed to be a filename and an
+            attempt will be made to open the corresponding NIfTI file.
+            In case of an ndarray the array data will be used for the to be
+            created nifti image and a matching nifti header is generated.
+            If an object of a different type is supplied as 'source' a
+            ValueError exception will be thrown.
+          header: dict
+            Additional header data might be supplied. However,
+            dimensionality and datatype are determined from the ndarray and
+            not taken from a header dictionary.
+          load: Boolean
+            If set to True the image data will be loaded into memory. This
+            is only useful if loading a NIfTI image from file.
         """
         # setup all nifti header related stuff
         NiftiFormat.__init__(self, source, header)
@@ -75,8 +74,6 @@ class NiftiImage(NiftiFormat):
 
 
     def __del__(self):
-        """Do all necessary cleanups.
-        """
         self.unload()
 
         # it is required to call base class destructors!
@@ -98,16 +95,16 @@ class NiftiImage(NiftiFormat):
         before saving the file.
 
         :Parameters:
-            filename: str | None
-                Calling save() with `filename` equal None on a NiftiImage
-                loaded from a file, it will overwrite the original file.
+          filename: str | None
+            Calling save() with `filename` equal None on a NiftiImage
+            loaded from a file, it will overwrite the original file.
 
-                Usually setting the filename also determines the filetype
-                (NIfTI/ANALYZE). Please see the documentation of the
-                `setFilename()` method for some more details.
-            filetype: str
-                Override filetype. Please see the documentation of the
-                `setFilename()` method for some more details.
+            Usually setting the filename also determines the filetype
+            (NIfTI/ANALYZE). Please see the documentation of the
+            `setFilename()` method for some more details.
+          filetype: str
+            Override filetype. Please see the documentation of the
+            `setFilename()` method for some more details.
         """
 
         # If image data is not yet loaded, do it now.
@@ -204,9 +201,9 @@ class NiftiImage(NiftiFormat):
         """Convert the image data into a ndarray.
 
         :Parameters:
-            copy: Boolean
-                If set to False the array only wraps the image data, while True
-                will return a copy of the data array.
+          copy: Boolean
+            If set to False the array only wraps the image data, while True
+            will return a copy of the data array.
         """
         # make sure data is accessible
         self.load()
@@ -224,7 +221,7 @@ class NiftiImage(NiftiFormat):
         that is stored in the NIfTI header.
 
         :Returns:
-            ndarray
+          ndarray
         """
         data = self.asarray(copy = True)
 
@@ -400,13 +397,13 @@ class MemMappedNiftiImage(NiftiImage):
         one from ndarray data, depending on the datatype of `source`.
 
         :Parameters:
-            source: str | ndarray
-                If source is a string, it is assumed to be a filename and an
-                attempt will be made to open the corresponding NIfTI file.
-                In case of an ndarray the array data will be used for the to be
-                created nifti image and a matching nifti header is generated.
-                If an object of a different type is supplied as 'source' a
-                ValueError exception will be thrown.
+          source: str | ndarray
+            If source is a string, it is assumed to be a filename and an
+            attempt will be made to open the corresponding NIfTI file.
+            In case of an ndarray the array data will be used for the to be
+            created nifti image and a matching nifti header is generated.
+            If an object of a different type is supplied as 'source' a
+            ValueError exception will be thrown.
         """
         NiftiImage.__init__(self, source)
 
