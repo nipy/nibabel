@@ -18,6 +18,13 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  * Updated included minimal copy of the nifticlibs to version 1.1.0.
+  * Few changes to the Makefiles to enhance Posix compatibility.
+  * When building on non-Debian systems, only add include and library paths
+    pointing to the local nifticlibs copy, when it is actually built.
+    On Debian system the local copy is still not used at all, as a proper
+    nifticlibs package is guaranteed to be available.
+
 
 Releases
 ~~~~~~~~

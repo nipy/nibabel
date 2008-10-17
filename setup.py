@@ -17,9 +17,11 @@ import sys
 import numpy as N
 from glob import glob
 
-nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
+# define path to the included minimal nifticlibs copy
+builtin_nifticlib_path = os.path.join('3rd', 'nifticlibs')
 
 # create an empty file to workaround crappy swig wrapper installation
+nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
 if not os.path.isfile(nifti_wrapper_file):
     open(nifti_wrapper_file, 'w')
 
@@ -36,12 +38,23 @@ library_dirs = []
 link_libs = [ 'niftiio' ]
 
 # we only know that Debian niftiio is properly linked with znzlib and zlib
-# use local niftilib copy on all others
 if not os.path.exists('/etc/debian_version'):
     link_libs += ['znz', 'z']
-    include_dirs.append(os.path.join('3rd', 'nifticlibs'))
-    library_dirs.append(os.path.join('3rd', 'nifticlibs'))
+    # setup paths in case the included nifticlibs were built
+    # to use the local nifticlib copy
+    if os.path.exists(os.path.join(builtin_nifticlib_path, 'libniftiio.a')):
+        include_dirs.append(builtin_nifticlib_path)
+        library_dirs.append(builtin_nifticlib_path)
+    else:
+        # otherwise we'll just tried a few things
+        if not sys.platform.startswith('win'):
+            include_dirs += [ '/usr/local/include/nifti',
+                              '/usr/include/nifti' ]
+        else:
+            # clueless on windows
+            pass
 else:
+    # on Debian we know where things are
     include_dirs.append('/usr/include/nifti')
 
 swig_opts = []
@@ -80,4 +93,3 @@ setup(name       = 'pynifti',
             libraries    = link_libs,
             swig_opts    = swig_opts + ['-I' + d for d in include_dirs ] ) ]
     )
-
