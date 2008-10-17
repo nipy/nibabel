@@ -1,3 +1,9 @@
+pynifti (0.20081017.1-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri, 17 Oct 2008 14:20:58 +0200
+
 pynifti (0.20080710.1-1) unstable; urgency=low
 
   * New upstream release (Closes: #490141).
