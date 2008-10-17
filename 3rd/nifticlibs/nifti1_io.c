@@ -313,9 +313,15 @@ static char * gni_history[] =
   "   - added nifti_datatype_is_valid()\n",
   "1.33 05 Feb 2008 [hansj,rickr] - block nia.gz use\n"
   "1.34 13 Jun 2008 [rickr] - added nifti_compiled_with_zlib()\n"
+  "1.35 03 Aug 2008 [rickr]\n",
+  "   - deal with swapping, so that CPU type does not affect output\n"
+  "     (motivated by C Burns)\n"
+  "   - added nifti_analyze75 structure and nifti_swap_as_analyze()\n"
+  "   - previous swap_nifti_header is saved as old_swap_nifti_header\n"
+  "   - also swap UNUSED fields in nifti_1_header struct\n",
   "----------------------------------------------------------------------\n"
 };
-static char gni_version[] = "nifti library version 1.34 (13 Jun, 2008)";
+static char gni_version[] = "nifti library version 1.35 (3 Aug, 2008)";
 
 /*! global nifti options structure */
 static nifti_global_options g_opts = { 1, 0 };
@@ -2142,21 +2148,130 @@ void nifti_swap_Nbytes( int n , int siz , void *ar )  /* subsuming case */
 /*-------------------------------------------------------------------------*/
 /*! Byte swap NIFTI-1 file header in various places and ways.
 
-    If is_nifti is nonzero, will also swap the NIFTI-specific
-    components of the header; otherwise, only the components
-    common to NIFTI and ANALYZE will be swapped.
+    If is_nifti, swap all (even UNUSED) fields of NIfTI header.
+    Else, swap as a nifti_analyze75 struct.
 *//*---------------------------------------------------------------------- */
 void swap_nifti_header( struct nifti_1_header *h , int is_nifti )
 {
 
-#if 0                /* ANALYZE fields not used by this software */
-   swap_4(h->sizeof_hdr) ;
-   swap_4(h->extents) ;
-   swap_2(h->session_error) ;
-   swap_4(h->compressed) ;
-   swap_4(h->glmax) ; swap_4(h->glmin) ;
-#endif
+   /* if ANALYZE, swap as such and return */
+   if( ! is_nifti ) {
+      nifti_swap_as_analyze((nifti_analyze75 *)h);
+      return;
+   }
 
+   /* otherwise, swap all NIFTI fields */
+
+   nifti_swap_4bytes(1, &h->sizeof_hdr);
+   nifti_swap_4bytes(1, &h->extents);
+   nifti_swap_2bytes(1, &h->session_error);
+
+   nifti_swap_2bytes(8, h->dim);
+   nifti_swap_4bytes(1, &h->intent_p1);
+   nifti_swap_4bytes(1, &h->intent_p2);
+   nifti_swap_4bytes(1, &h->intent_p3);
+
+   nifti_swap_2bytes(1, &h->intent_code);
+   nifti_swap_2bytes(1, &h->datatype);
+   nifti_swap_2bytes(1, &h->bitpix);
+   nifti_swap_2bytes(1, &h->slice_start);
+
+   nifti_swap_4bytes(8, h->pixdim);
+
+   nifti_swap_4bytes(1, &h->vox_offset);
+   nifti_swap_4bytes(1, &h->scl_slope);
+   nifti_swap_4bytes(1, &h->scl_inter);
+   nifti_swap_2bytes(1, &h->slice_end);
+
+   nifti_swap_4bytes(1, &h->cal_max);
+   nifti_swap_4bytes(1, &h->cal_min);
+   nifti_swap_4bytes(1, &h->slice_duration);
+   nifti_swap_4bytes(1, &h->toffset);
+   nifti_swap_4bytes(1, &h->glmax);
+   nifti_swap_4bytes(1, &h->glmin);
+
+   nifti_swap_2bytes(1, &h->qform_code);
+   nifti_swap_2bytes(1, &h->sform_code);
+
+   nifti_swap_4bytes(1, &h->quatern_b);
+   nifti_swap_4bytes(1, &h->quatern_c);
+   nifti_swap_4bytes(1, &h->quatern_d);
+   nifti_swap_4bytes(1, &h->qoffset_x);
+   nifti_swap_4bytes(1, &h->qoffset_y);
+   nifti_swap_4bytes(1, &h->qoffset_z);
+
+   nifti_swap_4bytes(4, h->srow_x);
+   nifti_swap_4bytes(4, h->srow_y);
+   nifti_swap_4bytes(4, h->srow_z);
+
+   return ;
+}
+
+/*-------------------------------------------------------------------------*/
+/*! Byte swap as an ANALYZE 7.5 header
+ *
+ *  return non-zero on failure
+*//*---------------------------------------------------------------------- */
+int nifti_swap_as_analyze( nifti_analyze75 * h )
+{
+   if( !h ) return 1;
+
+   nifti_swap_4bytes(1, &h->sizeof_hdr);
+   nifti_swap_4bytes(1, &h->extents);
+   nifti_swap_2bytes(1, &h->session_error);
+
+   nifti_swap_2bytes(8, h->dim);
+   nifti_swap_2bytes(1, &h->unused8);
+   nifti_swap_2bytes(1, &h->unused9);
+   nifti_swap_2bytes(1, &h->unused10);
+   nifti_swap_2bytes(1, &h->unused11);
+   nifti_swap_2bytes(1, &h->unused12);
+   nifti_swap_2bytes(1, &h->unused13);
+   nifti_swap_2bytes(1, &h->unused14);
+
+   nifti_swap_2bytes(1, &h->datatype);
+   nifti_swap_2bytes(1, &h->bitpix);
+   nifti_swap_2bytes(1, &h->dim_un0);
+
+   nifti_swap_4bytes(8, h->pixdim);
+
+   nifti_swap_4bytes(1, &h->vox_offset);
+   nifti_swap_4bytes(1, &h->funused1);
+   nifti_swap_4bytes(1, &h->funused2);
+   nifti_swap_4bytes(1, &h->funused3);
+
+   nifti_swap_4bytes(1, &h->cal_max);
+   nifti_swap_4bytes(1, &h->cal_min);
+   nifti_swap_4bytes(1, &h->compressed);
+   nifti_swap_4bytes(1, &h->verified);
+
+   nifti_swap_4bytes(1, &h->glmax);
+   nifti_swap_4bytes(1, &h->glmin);
+
+   nifti_swap_4bytes(1, &h->views);
+   nifti_swap_4bytes(1, &h->vols_added);
+   nifti_swap_4bytes(1, &h->start_field);
+   nifti_swap_4bytes(1, &h->field_skip);
+
+   nifti_swap_4bytes(1, &h->omax);
+   nifti_swap_4bytes(1, &h->omin);
+   nifti_swap_4bytes(1, &h->smax);
+   nifti_swap_4bytes(1, &h->smin);
+
+   return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+/*! OLD VERSION of swap_nifti_header (left for undo/compare operations)
+  
+    Byte swap NIFTI-1 file header in various places and ways.
+
+    If is_nifti is nonzero, will also swap the NIFTI-specific
+    components of the header; otherwise, only the components
+    common to NIFTI and ANALYZE will be swapped.
+*//*---------------------------------------------------------------------- */
+void old_swap_nifti_header( struct nifti_1_header *h , int is_nifti )
+{
    /* this stuff is always present, for ANALYZE and NIFTI */
 
    swap_4(h->sizeof_hdr) ;
@@ -3529,6 +3644,9 @@ nifti_1_header * nifti_read_header(const char * hname, int * swapped, int check)
    if( check && lswap < 0 ){
       LNI_FERR(fname,"bad nifti_1_header for file", hname);
       return NULL;
+   } else if ( lswap < 0 ) {
+      lswap = 0;  /* if swapping does not help, don't do it */
+      if(g_opts.debug > 1) fprintf(stderr,"-- swap failure, none applied\n");
    }
 
    if( lswap ) {
@@ -3641,7 +3759,7 @@ static int need_nhdr_swap( short dim0, int hdrsize )
       if( d0 > 0 && d0 <= 7 ) return 1;
 
       if( g_opts.debug > 1 ){
-         fprintf(stderr,"** bad swapped d0 = %d, unswapped = ", d0);
+         fprintf(stderr,"** NIFTI: bad swapped d0 = %d, unswapped = ", d0);
          nifti_swap_2bytes(1, &d0);        /* swap? */
          fprintf(stderr,"%d\n", d0);
       }
@@ -3656,7 +3774,7 @@ static int need_nhdr_swap( short dim0, int hdrsize )
    if( hsize == sizeof(nifti_1_header) ) return 1;
 
    if( g_opts.debug > 1 ){
-      fprintf(stderr,"** bad swapped hsize = %d, unswapped = ", hsize);
+      fprintf(stderr,"** NIFTI: bad swapped hsize = %d, unswapped = ", hsize);
       nifti_swap_4bytes(1, &hsize);        /* swap? */
       fprintf(stderr,"%d\n", hsize);
    }

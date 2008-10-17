@@ -16,7 +16,7 @@
 :Contact:  pkg-exppsy-pymvpa@lists.alioth.debian.org
 :Homepage: http://niftilib.sf.net/pynifti
 :IRC: #exppsy on OTFC/Freenode
-:Revision: 0.20080710.1
+:Revision: 0.20081017.1
 
 .. meta::
    :description: The PyNIfTI documentation
@@ -140,15 +140,16 @@ Scripts
 '''''''
 
 Some functions provided by PyNIfTI also might be useful outside the Python
-environment. Therefore I plan to add some command line scripts to the package.
+environment and it might be useful to export them via some command line scripts.
 
 Currently there is only one: ``pynifti_pst`` (pst: peristimulus timecourse).
-Using this script one can compute the signal timecourse for a certain
-condition for all voxels in a volume at once. This might be useful for
-exploring a dataset and accompanies similar tools like FSL's ``tsplot``.
-The output of ``pynifti_pst`` can be loaded into FSLView to simultaneously
-look at statistics and signal timecourses. Please see the corresponding
-example below.
+Using this script one can compute the signal timecourse for a certain condition
+for all voxels in a volume at once. Although it is done by simply averaging the
+timecourses of the involved events (nothing fancy), this might nevertheless be
+useful for exploring a dataset and accompanies similar tools like FSL's
+``tsplot``.  The output of ``pynifti_pst`` can be loaded into FSLView to
+simultaneously look at statistics and signal timecourses. Please see the
+corresponding example below.
 
 
 Known issues aka bugs
@@ -169,17 +170,8 @@ and licensed under the `MIT License`_.
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-Download
---------
-
-As PyNIfTI is still pretty young, a number of significant improvements and
-modifications are very likely to happen in the near future. If you discover
-any bugs or you are missing some features, please be sure to check the
-Git repository (read below) if your problem is already solved.
-
-
-Source code
-~~~~~~~~~~~
+Get the sources
+---------------
 
 Since June 2007 PyNIfTI is part of the niftilibs_ family. The source code of
 PyNIfTI releases can be obtained from the corresponding Sourceforge_ project
@@ -208,6 +200,9 @@ do::
 .. _Debian project: http://www.debian.org
 
 
+Installation
+------------
+
 Binary packages
 ~~~~~~~~~~~~~~~
 
@@ -227,9 +222,49 @@ available. Please visit `Michael Hanke's APT repository`_ to read about how
 you have to setup your system to retrieve the PyNIfTI package via your package
 manager and stay in sync with future releases.
 
+If you are using Debian lenny (or later) or Ubuntu gutsy (or later) or you
+have configured your system for `Michael Hanke's APT repository`_ all you
+have to do to install PyNIfTI is this::
+
+  apt-get update
+  apt-get install python-nifti
+
+This should pull all necessary dependencies. If it doesn't, it's a bug that
+should be reported.
+
 .. _versions in Debian: http://packages.debian.org/python-nifti
 .. _versions in Ubuntu: http://packages.ubuntu.com/python-nifti
 .. _Michael Hanke's APT repository: http://apsy.gse.uni-magdeburg.de/main/index.psp?page=hanke/debian&lang=en&sec=1
+
+Additionally, there are binary packages for several RPM-based distributions,
+provided through the `OpenSUSE Build Service`_. To install one of these
+packages first download it from the `OpenSUSE software website`_. Please note,
+that this site does not only offer OpenSUSE packages, but also binaries for
+other distributions, including: CentOS 5, Fedora 9, Mandriva 2007-2008, RedHat
+Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE 10.2 up to 11.0.  Once
+downloaded, open a console and invoke (the example command refers to PyMVPA
+0.3.1)::
+
+  rpm -i python-nifti-0.20080710.1-4.1.i386.rpm
+
+The OpenSUSE website also offers `1-click-installations`_ for distributions
+supporting it.
+
+A more convenient way to install PyNIfTI and automatically receive software
+updates is to included one of the `RPM-package repositories`_ in the system's
+package management configuration. For e.g. OpenSUSE 11.0, simply use Yast to add
+another repository, using the following URL:
+
+  http://download.opensuse.org/repositories/home:/hankem/openSUSE_11.0/
+
+For other distributions use the respective package managers (e.g. Yum) to setup
+the repository URL.  The repositories include all dependencies of PyMIfTI, if
+they are not available from other repositories of the respective distribution.
+
+.. _RPM-package repositories: http://download.opensuse.org/repositories/home:/hankem/
+.. _1-click-installations: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
+.. _OpenSUSE software website: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
+.. _OpenSUSE Build Service: https://build.opensuse.org/
 
 
 Windows
@@ -238,30 +273,58 @@ Windows
 A binary installer for a recent Python version is available from the
 nifticlibs Sourceforge_ project site.
 
+There are a few Python distributions for Windows. In theory all of them should
+work equally well. However, I only tested the standard Python distribution
+from www.python.org (with version 2.5.2).
+
+First you need to download and install Python. Use the Python installer for
+this job. Yo do not need to install the Python test suite and utility scripts.
+From now on we will assume that Python was installed in `C:\\Python25` and that
+this directory has been added to the `PATH` environment variable.
+
+In addition you'll need NumPy_. Download a matching NumPy windows installer for
+your Python version (in this case 2.5) from the `SciPy download page`_ and
+install it.
+
+PyNIfTI does not come with the required `zlib` library, so you also need to
+download and install it. A binary installer is available from the `GnuWin32
+project`_. Install it in some arbitrary folder (just the binaries nothing
+else), find the `zlib1.dll` file in the `bin` subdirectory and move it in the
+Windows `system32` directory.
+
+Now, you can use the PyNIfTI windows installer to install PyNIfTI on your
+system.  As always: click *Next* as long as necessary and finally *Finish*.  If
+done, verify that everything went fine by opening a command promt and start
+Python by typing `python` and hit enter. Now you should see the Python prompt.
+Import the nifti module, which should cause no error messages::
+
+  >>> import nifti
+  >>>
+
+.. _SciPy download page: http://scipy.org/Download
+.. _NIfTI libraries: http://niftilib.sourceforge.net/
+.. _GnuWin32 project: http://gnuwin32.sourceforge.net/
+
 
 Macintosh
 '''''''''
 
-Unfortunately, no binary packages are available. I have no access to such
-a machine at the moment. But it is possible to build PyNIfTI from source on
-Mac OS X (see below for more information).
+A binary package for a recent Python version is provided in the download area
+of the SourceForge_ project.
 
-
-
-Installation
-------------
 
 Compile from source: General instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PyNIfTI needs a few things to build and run properly:
+If no binary packages are provided for your platfom, you can build PyNIfTI from
+source. It needs a few things to build and run properly:
 
 *  Python_ 2.4 or greater
 *  NumPy_
 *  SWIG_
 *  `NIfTI C libraries`_
      Proper developer packages are prefered, but for convenience reasons a
-     minial copy is included in the PyNIfTI source package.
+     minimal copy is included in the PyNIfTI source package.
 
 Make sure that the compiled nifticlibs and the corresponding headers are
 available to your compiler. If they are located in a custom directory, you
@@ -270,16 +333,17 @@ the build command below. In case, you want to build and use the nifticlibs
 copy that is shipped with PyNIfTI, this is automatically done for you.
 
 Once you have downloaded the sources, extract the tarball and enter the root
-directory of the extracted sources. If you do not have the nifticlibs
+directory of the extracted sources. If you *do not* have the nifticlibs
 installed, run::
 
-  make 3rd
+  make
 
-in the root of the extracted source tarball. Afterwards, a simple::
+in the root of the extracted source tarball. If you have system-wide installed
+nifticlibs available on your system, instead simply do::
 
-  python setup.py build_ext
+  python setup.py build
 
-should build the SWIG wrappers. If this has been done successfully, all you
+That should build the SWIG wrappers. If this has been done successfully, all you
 need to do is install the modules by invoking::
 
   sudo python setup.py install
@@ -374,60 +438,6 @@ with the PyNIfTI sources. Like this::
   CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB -arch ppc -arch i386
 
 
-Binary packages
-~~~~~~~~~~~~~~~
-
-GNU/Linux
-'''''''''
-
-If you are using Debian lenny (or later) or Ubuntu gutsy (or later) or you
-have configured your system for `Michael Hanke's APT repository`_ all you
-have to do to install PyNIfTI is this::
-
-  apt-get update
-  apt-get install python-nifti
-
-This should pull all necessary dependencies. If it doesn't, it's a bug that
-should be reported.
-
-
-Windows
-'''''''
-
-There are a few Python distributions for Windows. In theory all of them should
-work equally well. However, I only tested the standard Python distribution
-from www.python.org (with version 2.5.2).
-
-First you need to download and install Python. Use the Python installer for
-this job. Yo do not need to install the Python test suite and utility scripts.
-From now on we will assume that Python was installed in `C:\\Python25` and that
-this directory has been added to the `PATH` environment variable.
-
-In addition you'll need NumPy_. Download a matching NumPy windows installer for
-your Python version (in this case 2.5) from the `SciPy download page`_ and
-install it.
-
-PyNIfTI does not come with the required `zlib` library, so you also need to
-download and install it. A binary installer is available from the `GnuWin32
-project`_. Install it in some arbitrary folder (just the binaries nothing
-else), find the `zlib1.dll` file in the `bin` subdirectory and move it in the
-Windows `system32` directory.
-
-Now, you can use the PyNIfTI windows installer to install PyNIfTI on your
-system.  As always: click *Next* as long as necessary and finally *Finish*.  If
-done, verify that everything went fine by opening a command promt and start
-Python by typing `python` and hit enter. Now you should see the Python prompt.
-Import the nifti module, which should cause no error messages::
-
-  >>> import nifti
-  >>>
-
-.. _SciPy download page: http://scipy.org/Download
-.. _NIfTI libraries: http://niftilib.sourceforge.net/
-.. _GnuWin32 project: http://gnuwin32.sourceforge.net/
-
-
-
 Troubleshooting
 '''''''''''''''
 
@@ -458,7 +468,7 @@ Things to know
 When accessing NIfTI image data through NumPy arrays the order of the
 dimensions is reversed. If the *x, y, z, t* dimensions of a NIfTI image
 are 64, 64, 32, 456 (as for example reported by ``nifti_tool``), the shape
-of the NumPy array (e.g. as returned by ``NiftiImage.asarray()``) will
+of the NumPy array (e.g. as returned by ``NiftiImage.data``) will
 be: 456, 32, 64, 64.
 
 This is done to be able to slice the data array much easier in the most

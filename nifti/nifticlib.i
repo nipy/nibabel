@@ -69,11 +69,43 @@ static PyObject* mat442array(mat44 _mat)
     return PyArray_Return ( (PyArrayObject*) array  );
 }
 
+/********************************************************
+ *
+ * Wrapping the image array with a NumPy array.
+ *
+ * This is a revised version following the solution
+ * outlined here: http://blog.enthought.com/?p=62
+ * 
+ *******************************************************/
+
+/* define a new python object type that performs the array
+   data de-allocation when the ref count goes to zero */
+typedef struct
+{
+    PyObject_HEAD
+    void *memory;
+} _MyDeallocObject;
+
+static void _mydealloc_dealloc(_MyDeallocObject *self)
+{
+    free(self->memory);
+    self->ob_type->tp_free((PyObject *)self);
+}
+
+static PyTypeObject _MyDeallocType = {
+    PyObject_HEAD_INIT(NULL)
+    0, "mydeallocator", sizeof(_MyDeallocObject), 0, _mydealloc_dealloc,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Py_TPFLAGS_DEFAULT,
+    "Internal deallocator object",
+};
+
 static PyObject* wrapImageDataWithArray(nifti_image* _img)
 {
     if (!_img)
     {
-        PyErr_SetString(PyExc_RuntimeError, "Zero pointer passed instead of valid nifti_image struct.");
+        PyErr_SetString(
+            PyExc_RuntimeError,
+            "Zero pointer passed instead of valid nifti_image struct.");
         return(NULL);
     }
 
@@ -149,8 +181,22 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
     /* create numpy array */
     volarray = PyArray_SimpleNewFromData(ndims, ar_dim, array_type, _img->data);
 
+    /* create deallocator */
+    PyObject* newobj=NULL;
+    newobj = PyObject_New(_MyDeallocObject, &_MyDeallocType);
+    /* assign the image data pointer */
+    ((_MyDeallocObject *)newobj)->memory = _img->data;
+    /* let the deallocator manage the array memory management */
+    PyArray_BASE(volarray) = newobj;
+
     return PyArray_Return ( (PyArrayObject*) volarray  );
 }
+
+static void detachDataFromImage(nifti_image* _nim)
+{
+    _nim->data = NULL;
+}
+
 
 int allocateImageMemory(nifti_image* _nim)
 {
@@ -162,7 +208,9 @@ int allocateImageMemory(nifti_image* _nim)
 
   if (_nim->data != NULL)
   {
-    fprintf(stderr, "There seems to be allocated memory already (valid nim->data pointer found).");
+    fprintf(
+        stderr,
+        "There seems to be allocated memory already (valid nim->data pointer found).");
     return(0);
   }
 
@@ -171,7 +219,9 @@ int allocateImageMemory(nifti_image* _nim)
 
   if (_nim->data == NULL)
   {
-    fprintf(stderr, "Failed to allocate %d bytes for image data\n", (int)nifti_get_volsize(_nim));
+    fprintf(stderr,
+            "Failed to allocate %d bytes for image data\n",
+            (int)nifti_get_volsize(_nim));
     return(0);
   }
 
@@ -184,6 +234,11 @@ int allocateImageMemory(nifti_image* _nim)
 %init
 %{
     import_array();
+
+    /* initialize the new Python type for memory deallocation */
+    _MyDeallocType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&_MyDeallocType) < 0)
+        return;
 %}
 
 %include "typemaps.i"
@@ -192,9 +247,11 @@ int allocateImageMemory(nifti_image* _nim)
 void nifti_mat44_to_quatern( mat44 R ,
                              float *OUTPUT, float *OUTPUT, float *OUTPUT,
                              float *OUTPUT, float *OUTPUT, float *OUTPUT,
-                             float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT );
+                             float *OUTPUT, float *OUTPUT, float *OUTPUT,
+                             float *OUTPUT );
 
-void nifti_mat44_to_orientation( mat44 R , int *OUTPUT, int *OUTPUT, int *OUTPUT );
+void nifti_mat44_to_orientation( mat44 R , int *OUTPUT, int *OUTPUT,
+                                 int *OUTPUT );
 
 
 %include znzlib.h
@@ -202,6 +259,7 @@ void nifti_mat44_to_orientation( mat44 R , int *OUTPUT, int *OUTPUT, int *OUTPUT
 %include nifti1_io.h
 
 static PyObject * wrapImageDataWithArray(nifti_image* _img);
+static void detachDataFromImage(nifti_image* _nim);
 int allocateImageMemory(nifti_image* _nim);
 
 static PyObject* mat442array(mat44 _mat);
