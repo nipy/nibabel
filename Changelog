@@ -20,7 +20,10 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  None yet.
+  * Exposed :class:`~nifti.niftiimage.MemMappedNiftiImage` in the root module.
+  * Moved :func:`~nifti.utils.cropImage` into the :mod:`~nifti.utils` module.
+  * From now on Sphinx is used to generate the documentation. This includes a
+    module reference that replaces that old API reference.
 
 
 Releases
