@@ -8,12 +8,16 @@
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 
+The PyNIfTI module is a Python interface to the NIfTI I/O libraries.  Using
+PyNIfTI one can easily read and write NIfTI and ANALYZE images from within
+Python. The NiftiImage class provides Python-style access to the full header
+information. Image data is made available via NumPy arrays.
+
 :Author:
   Michael Hanke <michael.hanke@gmail.com>
 :Contact:  pkg-exppsy-pymvpa@lists.alioth.debian.org
 :Homepage: http://niftilib.sf.net/pynifti
 :IRC: #exppsy on OTFC/Freenode
-:Revision: 0.20081017.1
 
 .. meta::
    :description: The PyNIfTI documentation

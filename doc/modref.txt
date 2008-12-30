@@ -1,0 +1,43 @@
+:mod:`nifti.niftiimage`
+=======================
+.. automodule:: nifti.niftiimage
+
+.. currentmodule:: nifti.niftiimage
+
+
+Classes
+-------
+
+
+:class:`NiftiFormat`
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: NiftiFormat
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:class:`NiftiImage`
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: NiftiImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:class:`MemMappedNiftiImage`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MemMappedNiftiImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+Function
+--------
+
+.. autofunction:: cropImage
+

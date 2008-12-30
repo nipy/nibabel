@@ -6,5 +6,6 @@ PyMVPA Documentation Contents
 
 .. toctree::
 
+  modref
   legal
   changelog

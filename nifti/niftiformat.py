@@ -218,18 +218,17 @@ class NiftiFormat(object):
     def getExtent(self):
         """Returns the shape of the dataimage.
 
-        :Returns:
-          Tuple with the size in voxel/timepoints.
-
-          The order of dimensions is (x,y,z,t,u,v,w). If the image has less
-          dimensions than 7 the return tuple will be shortened accordingly.
-
-        Please note that the order of dimensions is different from the tuple
-        returned by calling `NiftiImage.data.shape`!
-
-        See also `getVolumeExtent()` and `getTimepoints()`.
-
         The `extent` property is an alternative way to access this function.
+
+        :Returns:
+          tuple: Tuple with the size in voxel/timepoints.
+            The order of dimensions is (x,y,z,t,u,v,w). If the image has less
+            dimensions than 7 the return tuple will be shortened accordingly.
+
+            Please note that the order of dimensions is different from the tuple
+            returned by calling `NiftiImage.data.shape`!
+
+            See also `getVolumeExtent()` and `getTimepoints()`.
         """
         # wrap dim array in nifti image struct
         dims_array = nifticlib.intArray_frompointer(self.__nimg.dim)
@@ -241,13 +240,14 @@ class NiftiFormat(object):
     def getVolumeExtent(self):
         """Returns the size/shape of the volume(s) in the image as a tuple.
 
-        :Returns:
-          Either a 3-tuple or 2-tuple or 1-tuple depending on the available
-          dimensions in the image.
-
-          The order of dimensions in the tuple is (x [, y [, z ] ] ).
-
         The `volextent` property is an alternative way to access this function.
+
+        :Returns:
+          tuple:
+            Either a 3-tuple or 2-tuple or 1-tuple depending on the available
+            dimensions in the image.
+
+            The order of dimensions in the tuple is (x [, y [, z ] ] ).
         """
 
         # it is save to do this even if self.extent is shorter than 4 items

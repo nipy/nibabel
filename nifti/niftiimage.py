@@ -288,15 +288,17 @@ class NiftiImage(NiftiFormat):
 
         Examples:
 
+          ================  ==================================
           Filename          Output of save()
-          ----------------------------------
+          ----------------  ----------------------------------
           exmpl.nii         exmpl.nii (NIfTI)
           exmpl.hdr         exmpl.hdr, exmpl.img (NIfTI)
           exmpl.img         exmpl.hdr, exmpl.img (ANALYZE)
           exmpl             exmpl.nii (NIfTI)
           exmpl.hdr.gz      exmpl.hdr.gz, exmpl.img.gz (NIfTI)
-
-        ! exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
+          ----------------  ----------------------------------
+          exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
+          ================  ==================================
 
         Setting the filename is also possible by assigning to the 'filename'
         property.
