@@ -7,12 +7,14 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+.. _intro:
 
+*********************************************
 What is NIfTI and what do I need PyNIfTI for?
----------------------------------------------
+*********************************************
 
 NIfTI
-~~~~~
+=====
 
 NIfTI_ is a new Analyze-style data format, proposed by the `NIfTI Data Format
 Working Group`_ as a *"short-term measure to facilitate inter-operation of
@@ -36,7 +38,7 @@ Matlab functions to make use of NIfTI files from within Matlab.
 
 
 Python
-~~~~~~
+======
 
 Unfortunately, it is not that trivial to read NIfTI images with Python. This
 is particularly sad, because there is a large number of easy-to-use,
@@ -57,11 +59,12 @@ able to combine as many tools as necessary to solve a given problem
 
 
 PyNIfTI
-~~~~~~~
+=======
 
-PyNIfTI aims to provide easy access to NIfTI images from within Python. It
-uses SWIG_-generated wrappers for the NIfTI reference library and provides
-the ``NiftiImage`` class for Python-style access to the image data.
+PyNIfTI aims to provide easy access to NIfTI images from within Python. It uses
+SWIG_-generated wrappers for the NIfTI reference library and provides the
+:class:`~nifti.niftiimage.NiftiImage` class for Python-style access to the
+image data.
 
 While PyNIfTI is not yet complete (i.e. doesn't support everything the
 C library can do), it already provides access to the most important features
@@ -90,10 +93,10 @@ features are currently implemented:
   optionally specified -- making it easy to clone NIfTI images if necessary,
   but with minor modifications.
 
-* Most properties of NIfTI images are accessible via attributes and/or
-  accessor functions of the ``NiftiImage``. Inter-dependent properties are
-  automatically updated if necessary (e.g. modifying the Q-Form matrix also
-  updates the pixdim properties and quaternion representation).
+* Most properties of NIfTI images are accessible via attributes and/or accessor
+  functions of the :class:`~nifti.niftiimage.NiftiImage`. Inter-dependent
+  properties are automatically updated if necessary (e.g. modifying the Q-Form
+  matrix also updates the pixdim properties and quaternion representation).
 
 * All properties are accessible via Python-style datatypes: A 4x4 matrix is
   an array not 16 individual numbers.
@@ -104,9 +107,7 @@ features are currently implemented:
   Unless image resizing or datatype conversion must be performed the image
   data can be shared by the NIfTI image and accessing NumPy arrays, and
   therefore memory won't be wasted memory with redundant copies of the image
-  data. However, one should be careful to make a copy of the image data if
-  you intend to resize and cast the image data (see the docstring of the
-  ``NiftiImage.asarray()`` method).
+  data.
 
 * Additionally PyNIfTI can access uncompressed NIfTI or ANALYZE files by
   providing memory-mapped access to them via NumPy's memmap arrays. In this
@@ -118,7 +119,7 @@ features are currently implemented:
 
 
 Scripts
-'''''''
+=======
 
 Some functions provided by PyNIfTI also might be useful outside the Python
 environment and it might be useful to export them via some command line scripts.
@@ -133,26 +134,16 @@ simultaneously look at statistics and signal timecourses. Please see the
 corresponding example below.
 
 
-Known issues aka bugs
-~~~~~~~~~~~~~~~~~~~~~
+Known issues
+============
 
-* PyNIfTI currently ignores the origin field of ANALYZE files - it is neither
-  read nor written. A possible workaround is to convert ANALYZE files into the
-  NIfTI format using FSL's ``fslchfiletype``.
-
-
-License
--------
-
-PyNIfTI is written by `Michael Hanke`_ as free software (both beer and speech)
-and licensed under the `MIT License`_.
-
-.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
-.. _MIT License: http://www.opensource.org/licenses/mit-license.php
+PyNIfTI currently ignores the origin field of ANALYZE files - it is neither
+read nor written. A possible workaround is to convert ANALYZE files into the
+NIfTI format using FSL's ``fslchfiletype``.
 
 
 Things to know
-~~~~~~~~~~~~~~
+==============
 
 When accessing NIfTI image data through NumPy arrays the order of the
 dimensions is reversed. If the *x, y, z, t* dimensions of a NIfTI image

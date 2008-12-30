@@ -156,6 +156,9 @@ running Python interactively via IPython_). Please note, that there are many
 other possibilities for plotting, e.g. R_  via RPy_ or Matlab-style plotting
 via matplotlib_.
 
+.. _R: http://www.r-project.org
+.. _RPy: http://rpy.sourceforge.net
+
 However, using Gnuplot is really easy. First import the Gnuplot module
 and create the interface object
 
@@ -264,8 +267,3 @@ peristimulus timeseries of two conditions are loaded. The figure shows how it
 could look like. One of the nice features of FSLView is that its timeseries
 window can remember selected curves, which can be useful to compare signal
 timecourses from different voxels (blue and green line in the figure).
-
-.. raw:: html
-
-   <h1>History</h1>
-   <p>The full changelog is <a href="changelog.html">here</a>.</p>

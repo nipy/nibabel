@@ -7,44 +7,26 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-Get the sources
----------------
+.. _installation:
 
-Since June 2007 PyNIfTI is part of the niftilibs_ family. The source code of
-PyNIfTI releases can be obtained from the corresponding Sourceforge_ project
-site. Alternatively, one can also download a tarball of the latest development
-snapshot_ (i.e. the current state of the *master* branch of the PyNIfTI source
-code repository).
-
-.. _snapshot:  http://git.debian.org/?p=pkg-exppsy/pynifti.git;a=snapshot;h=refs/heads/master;sf=tgz
-
-If you want to have access to both, the full PyNIfTI history and the latest
-development code, you can use the PyNIfTI Git_ repository on the Alioth_
-server, a service kindly provided by the `Debian project`_.
-To view the repository, please point your web browser to gitweb:
-
-  http://git.debian.org/?p=pkg-exppsy/pynifti.git
-
-The gitweb browser also allows to download arbitrary development snapshots
-of PyNIfTI. For a full clone (aka checkout) of the PyNIfTI repository simply
-do::
-
-  git clone http://git.debian.org/git/pkg-exppsy/pynifti.git
-
-.. _niftilibs: http://niftilib.sourceforge.net
-.. _Git: http://git.or.cz
-.. _Alioth: http://alioth.debian.org
-.. _Debian project: http://www.debian.org
-
-
+************
 Installation
-------------
+************
+
+It should be fairly easy to get PyNIfTI running on any system. For the most
+popular platforms and operating systems there are binary packages provided in
+the respective native packaging format (DEB, RPM or installers). On all other
+systems PyNIfTI has to be compiled from source -- which should also be pretty
+straightforward.
+
 
 Binary packages
-~~~~~~~~~~~~~~~
+===============
+
+.. _install_debian:
 
 GNU/Linux
-'''''''''
+---------
 
 PyNIfTI is available in recent versions of the Debian (since lenny) and
 Ubuntu (since gutsy in universe) distributions. The name of the binary package
@@ -72,6 +54,9 @@ should be reported.
 .. _versions in Debian: http://packages.debian.org/python-nifti
 .. _versions in Ubuntu: http://packages.ubuntu.com/python-nifti
 .. _Michael Hanke's APT repository: http://apsy.gse.uni-magdeburg.de/main/index.psp?page=hanke/debian&lang=en&sec=1
+
+
+.. _install_rpm:
 
 Additionally, there are binary packages for several RPM-based distributions,
 provided through the `OpenSUSE Build Service`_. To install one of these
@@ -104,8 +89,10 @@ they are not available from other repositories of the respective distribution.
 .. _OpenSUSE Build Service: https://build.opensuse.org/
 
 
+.. _install_win:
+
 Windows
-'''''''
+-------
 
 A binary installer for a recent Python version is available from the
 nifticlibs Sourceforge_ project site.
@@ -143,15 +130,20 @@ Import the nifti module, which should cause no error messages::
 .. _GnuWin32 project: http://gnuwin32.sourceforge.net/
 
 
+.. _install_macos:
+
 Macintosh
-'''''''''
+---------
 
 A binary package for a recent Python version is provided in the download area
 of the SourceForge_ project.
 
 
-Compile from source: General instructions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _requirements:
+.. _buildfromsource:
+
+Compile from source
+===================
 
 If no binary packages are provided for your platfom, you can build PyNIfTI from
 source. It needs a few things to build and run properly:
@@ -162,6 +154,43 @@ source. It needs a few things to build and run properly:
 *  `NIfTI C libraries`_
      Proper developer packages are prefered, but for convenience reasons a
      minimal copy is included in the PyNIfTI source package.
+
+.. _NumPy: http://numpy.scipy.org
+.. _SWIG: http://www.swig.org
+
+Get the sources
+---------------
+
+Since June 2007 PyNIfTI is part of the niftilibs_ family. The source code of
+PyNIfTI releases can be obtained from the corresponding Sourceforge_ project
+site. Alternatively, one can also download a tarball of the latest development
+snapshot_ (i.e. the current state of the *master* branch of the PyNIfTI source
+code repository).
+
+.. _Sourceforge: http://sourceforge.net/
+.. _snapshot:  http://git.debian.org/?p=pkg-exppsy/pynifti.git;a=snapshot;h=refs/heads/master;sf=tgz
+
+If you want to have access to both, the full PyNIfTI history and the latest
+development code, you can use the PyNIfTI Git_ repository on the Alioth_
+server, a service kindly provided by the `Debian project`_.
+To view the repository, please point your web browser to gitweb:
+
+  http://git.debian.org/?p=pkg-exppsy/pynifti.git
+
+The gitweb browser also allows to download arbitrary development snapshots
+of PyNIfTI. For a full clone (aka checkout) of the PyNIfTI repository simply
+do::
+
+  git clone http://git.debian.org/git/pkg-exppsy/pynifti.git
+
+.. _niftilibs: http://niftilib.sourceforge.net
+.. _Git: http://git.or.cz
+.. _Alioth: http://alioth.debian.org
+.. _Debian project: http://www.debian.org
+
+
+Compiling: General instructions
+-------------------------------
 
 Make sure that the compiled nifticlibs and the corresponding headers are
 available to your compiler. If they are located in a custom directory, you
@@ -202,7 +231,7 @@ It should look similar to this::
 
 
 Building on Windows Systems
-'''''''''''''''''''''''''''
+---------------------------
 
 On Windows the whole situation is a little more tricky, as the system doesn't
 come with a compiler by default. Nevertheless, it is easily possible to build
@@ -260,7 +289,7 @@ as described below.
 
 
 MacOS X and MacPython
-'''''''''''''''''''''
+---------------------
 
 When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
 please make sure that the NIfTI C libraries are compiled as fat binaries
@@ -276,7 +305,7 @@ with the PyNIfTI sources. Like this::
 
 
 Troubleshooting
-'''''''''''''''
+===============
 
 If you get an error when importing the ``nifti`` module in Python
 complaining about missing symbols your niftiio library contains references to
