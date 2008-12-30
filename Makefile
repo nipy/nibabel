@@ -10,14 +10,6 @@ WWW_DIR=build/website
 PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 ARCH := $(shell uname -m)
 
-rst2latex=rst2latex --documentclass=scrartcl \
-					--use-latex-citations \
-					--strict \
-					--use-latex-footnotes \
-					--stylesheet ../../doc/misc/style.tex
-
-rst2html=rst2html --date --strict --stylesheet=nifti.css --link-stylesheet
-
 
 all: build
 
@@ -106,24 +98,7 @@ coverage: build
 # Documentation
 #
 
-apidoc: apidoc-stamp
-apidoc-stamp: $(PROFILE_FILE)
-	mkdir -p $(HTML_DIR)/api
-	epydoc --config doc/api/epydoc.conf
-	touch $@
-
-
-htmlchangelog: $(HTML_DIR)
-	$(rst2html) Changelog $(HTML_DIR)/changelog.html
-
-
-htmlmanual: $(HTML_DIR)
-	$(rst2html) doc/manual/manual.txt $(HTML_DIR)/manual.html
-	# copy images
-	cp -r -t $(HTML_DIR) doc/misc/*.css doc/misc/pics doc/manual/pics 
-
-
-htmldoc: build
+htmldoc: build $(HTML_DIR)
 	cd doc && PYTHONPATH=$(CURDIR) $(MAKE) html
 
 
@@ -134,7 +109,7 @@ pdfmanual: $(PDF_DIR)
 	cd $(PDF_DIR) && pdflatex manual.tex
 
 
-website: $(WWW_DIR) htmlmanual htmlchangelog pdfmanual apidoc
+website: $(WWW_DIR) htmldoc pdfmanual
 	cp $(HTML_DIR)/manual.html $(WWW_DIR)/index.html
 	cp -r -t $(WWW_DIR) $(HTML_DIR)/pics \
 						$(HTML_DIR)/changelog.html \
@@ -146,10 +121,6 @@ website: $(WWW_DIR) htmlmanual htmlchangelog pdfmanual apidoc
 upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
 		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/pynifti/
-
-
-printables: pdfmanual
-
 
 #
 # Sources
