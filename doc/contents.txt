@@ -6,6 +6,9 @@ PyMVPA Documentation Contents
 
 .. toctree::
 
+  intro
+  installation
+  examples
   modref
   legal
   changelog

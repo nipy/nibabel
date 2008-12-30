@@ -1,0 +1,166 @@
+.. -*- mode: rst -*-
+.. ex: set sts=4 ts=4 sw=4 et tw=79:
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  #
+  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   copyright and license terms.
+  #
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+
+What is NIfTI and what do I need PyNIfTI for?
+---------------------------------------------
+
+NIfTI
+~~~~~
+
+NIfTI_ is a new Analyze-style data format, proposed by the `NIfTI Data Format
+Working Group`_ as a *"short-term measure to facilitate inter-operation of
+functional MRI data analysis software packages"*. Meanwhile a number of
+toolkits are NIfTI-aware (e.g. FSL, AFNI, SPM, Freesurfer and a to a certain
+degree also Brainvoyager). Additionally, dicomnifti_ allows the direct
+conversion from DICOM images into the NIfTI format.
+
+With libnifti_ there is a reference implementation of a C library to read,
+write and manipulate NIfTI images. The library source code is put into the
+public domain and a corresponding project is hosted at SourceForge_.
+
+In addition to the C library, there is also an IO library written in Java and
+Matlab functions to make use of NIfTI files from within Matlab.
+
+.. _NIfTI: http://nifti.nimh.nih.gov
+.. _NIfTI Data Format Working Group: http://nifti.nimh.nih.gov/dfwg/beyond-nifti-1
+.. _dicomnifti: http://cbi.nyu.edu/software/dinifti.php
+.. _libnifti: http://niftilib.sf.net/niftilib_overview.html
+.. _SourceForge: http://sourceforge.net/projects/niftilib
+
+
+Python
+~~~~~~
+
+Unfortunately, it is not that trivial to read NIfTI images with Python. This
+is particularly sad, because there is a large number of easy-to-use,
+high-quality libraries for signal processing available for Python (e.g.
+SciPy).
+
+Moreover Python has bindings to almost any important language/program in the
+fields of maths, statistics and/or engineering. If you want to use R_ to
+calculate some stats in a Python script, simply use RPy_ and pass any data
+to R. If you don't care about R, but Matlab is your one and only friend, there
+are at least two different Python modules to control Matlab from within Python
+scripts. Python is the glue between all those helpers and the Python user is
+able to combine as many tools as necessary to solve a given problem
+-- the easiest way.
+
+.. _R: http://www.r-project.org
+.. _RPy: http://rpy.sourceforge.net/
+
+
+PyNIfTI
+~~~~~~~
+
+PyNIfTI aims to provide easy access to NIfTI images from within Python. It
+uses SWIG_-generated wrappers for the NIfTI reference library and provides
+the ``NiftiImage`` class for Python-style access to the image data.
+
+While PyNIfTI is not yet complete (i.e. doesn't support everything the
+C library can do), it already provides access to the most important features
+of the NIfTI-1 data format and *libniftiio* capabilities. The following
+features are currently implemented:
+
+
+
+* PyNIfTI can read and write any file format supported by libniftiio. This
+  includes NIfTI (single and pairs) as well as ANALYZE files, both also in
+  gzipped versions.
+
+* PyNIfTI provides fast and convenient access to the image data via NumPy_
+  arrays. This should enable users to process image data with most (if not
+  all) numerical routines available for Python. The NumPy array automatically
+  uses a datatype corresponding to the NIfTI image data -- no unnecessary
+  upcasting is performed.
+
+* PyNIfTI provides full read and write access to the NIfTI header data. Header
+  information can be exported to a Python dictionary and can also be updated
+  by using information from a dictionary.
+
+* Besides accessing NIfTI data from files, PyNIfTI is able to create NIfTI
+  images from NumPy arrays. The appropriate NIfTI header information is
+  determined from the array properties. Additional header information can be
+  optionally specified -- making it easy to clone NIfTI images if necessary,
+  but with minor modifications.
+
+* Most properties of NIfTI images are accessible via attributes and/or
+  accessor functions of the ``NiftiImage``. Inter-dependent properties are
+  automatically updated if necessary (e.g. modifying the Q-Form matrix also
+  updates the pixdim properties and quaternion representation).
+
+* All properties are accessible via Python-style datatypes: A 4x4 matrix is
+  an array not 16 individual numbers.
+
+* PyNIfTI should be resonably fast. Image data will only be loaded into the
+  memory if necessary. Simply opening a NIfTI file to access some header data
+  is performed with virtually no delay independent of the size of the image.
+  Unless image resizing or datatype conversion must be performed the image
+  data can be shared by the NIfTI image and accessing NumPy arrays, and
+  therefore memory won't be wasted memory with redundant copies of the image
+  data. However, one should be careful to make a copy of the image data if
+  you intend to resize and cast the image data (see the docstring of the
+  ``NiftiImage.asarray()`` method).
+
+* Additionally PyNIfTI can access uncompressed NIfTI or ANALYZE files by
+  providing memory-mapped access to them via NumPy's memmap arrays. In this
+  mode it is possible to modified existing files of any size without having
+  to load them in memory first.
+
+.. _SWIG: http://www.swig.org
+.. _NumPy: http://numpy.scipy.org
+
+
+Scripts
+'''''''
+
+Some functions provided by PyNIfTI also might be useful outside the Python
+environment and it might be useful to export them via some command line scripts.
+
+Currently there is only one: ``pynifti_pst`` (pst: peristimulus timecourse).
+Using this script one can compute the signal timecourse for a certain condition
+for all voxels in a volume at once. Although it is done by simply averaging the
+timecourses of the involved events (nothing fancy), this might nevertheless be
+useful for exploring a dataset and accompanies similar tools like FSL's
+``tsplot``.  The output of ``pynifti_pst`` can be loaded into FSLView to
+simultaneously look at statistics and signal timecourses. Please see the
+corresponding example below.
+
+
+Known issues aka bugs
+~~~~~~~~~~~~~~~~~~~~~
+
+* PyNIfTI currently ignores the origin field of ANALYZE files - it is neither
+  read nor written. A possible workaround is to convert ANALYZE files into the
+  NIfTI format using FSL's ``fslchfiletype``.
+
+
+License
+-------
+
+PyNIfTI is written by `Michael Hanke`_ as free software (both beer and speech)
+and licensed under the `MIT License`_.
+
+.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
+.. _MIT License: http://www.opensource.org/licenses/mit-license.php
+
+
+Things to know
+~~~~~~~~~~~~~~
+
+When accessing NIfTI image data through NumPy arrays the order of the
+dimensions is reversed. If the *x, y, z, t* dimensions of a NIfTI image
+are 64, 64, 32, 456 (as for example reported by ``nifti_tool``), the shape
+of the NumPy array (e.g. as returned by ``NiftiImage.data``) will
+be: 456, 32, 64, 64.
+
+This is done to be able to slice the data array much easier in the most
+common cases. For example, if you are interested in a certain volume of a
+timeseries it is much easier to write ``data[2]`` instead of
+``data[:,:,:,2]``, right?

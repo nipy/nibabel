@@ -1,0 +1,271 @@
+.. -*- mode: rst -*-
+.. ex: set sts=4 ts=4 sw=4 et tw=79:
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  #
+  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   copyright and license terms.
+  #
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+
+********
+Examples
+********
+
+The next sections contains some examples showing ways to use PyNIfTI to
+read and write imaging data from within Python to be able to process it with
+some random Python library.
+
+All examples assume that you have imported the PyNIfTI module by invoking::
+
+  from nifti import *
+
+
+Fileformat conversion
+=====================
+
+Open the MNI standard space template that is shipped with FSL. No filename
+extension is necessary as libniftiio determines it automatically:
+
+  >>> nim = NiftiImage('avg152T1_brain')
+
+The filename is available via the 'filename' attribute::
+
+  >>> print nim.filename
+  avg152T1_brain.img
+
+This indicates an ANALYZE image. If you want to save this image as a single
+gzipped NIfTI file simply do:
+
+  >>> nim.save('mni.nii.gz')
+
+The filetype is determined from the filename. If you want to save to gzipped
+ANALYZE file pairs instead the following would be an alternative to calling
+the ``save()`` with a new filename:
+
+  >>> nim.filename = 'mni_analyze.img.gz'
+  >>> nim.save()
+
+Please see the docstring of the ``NiftiImage.setFilename()`` method
+to learn how the filetypes are determined from the filenames.
+
+
+NIfTI files from array data
+===========================
+
+The next code snipped demonstrates how to create a 4d NIfTI image containing
+gaussian noise. First we need to import the NumPy module
+
+  >>> import numpy as N
+
+Now generate the noise dataset. Let's generate noise for 100 volumes with 16
+slices and a 32x32 inplane matrix.
+
+  >>> noise = N.random.randn(100,16,32,32)
+
+Please notice the order in which the dimensions are specified: (t, z, y, x).
+
+The datatype of the array will most likely be *float64* -- which can be
+verified by invoking ``noise.dtype``.
+
+Converting this dataset into a NIfTI image is done by invoking the
+``NiftiImage`` constructor with the noise dataset as argument:
+
+  >>> nim = NiftiImage(noise)
+
+The relevant header information is extracted from the NumPy array. If you
+query the header information about the dimensionality of the image, it returns
+the desired values:
+
+  >>> print nim.header['dim']
+  [4, 32, 32, 16, 100, 0, 0, 0]
+
+First value shows the number of dimensions in the datset: 4 (good, that's what
+we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w
+axis (NIfTI files can handle up to 7 dimensions). Please notice, that the
+order of dimensions is now 'correct': We have 32x32 inplane resolution, 16
+slices in z direction and 100 volumes.
+
+Also the datatype was set appropriately:
+
+  >>> nim.header['datatype'] == nifticlib.NIFTI_TYPE_FLOAT64
+  True
+
+To save the noise file to disk, just call the ``save()`` method:
+
+  >>> nim.save('noise.nii.gz')
+
+
+Select ROIs
+===========
+
+Suppose you want to have the first ten volumes of the noise dataset we have
+just created in a separate file. First open the file (can be skipped if it is
+still open):
+
+  >>> nim = NiftiImage('noise.nii.gz')
+
+Now select the first ten volumes and store them to another file, while
+preserving as much header information as possible
+
+  >>> nim2 = NiftiImage(nim.data[:10], nim.header)
+  >>> nim2.save('part.hdr.gz')
+
+The ``NiftiImage`` constructor takes a dictionary with header information as
+an optional argument. Settings that are not determined by the array (e.g.
+size, datatype) are copied from the dictionary and stored to the new NIfTI
+image.
+
+
+Linear detrending of timeseries (SciPy module is required for this example)
+===========================================================================
+
+Let's load another 4d NIfTI file and perform a linear detrending, by fitting
+a straight line to the timeseries of each voxel and substract that fit from
+the data. Although this might sound complicated at first, thanks to the
+excellent SciPy module it is just a few lines of code.
+
+  >>> nim = NiftiImage('timeseries.nii')
+
+Depending on the datatype of the input image the detrending process might
+change the datatype from integer to float. As operations that change the
+(binary) size of the NIfTI image are not supported, we need to make a copy
+of the data and later create a new NIfTI image.
+
+  >>> data = nim.asarray()
+
+Now detrend the data along the time axis. Remember that the array has the
+time axis as its first dimension (in contrast to the NIfTI file where it is
+the 4th).
+
+  >>> from scipy import signal
+  >>> data_detrended = signal.detrend( data, axis=0 )
+
+Finally, create a new NIfTI image using header information from the original
+source image.
+
+  >>> nim_detrended = NiftiImage( data_detrended, nim.header)
+
+
+Make a quick plot of a voxel's timeseries (Gnuplot module is required)
+======================================================================
+
+Plotting is essential to get a 'feeling' for the data. The `Gnuplot python
+bindings`_ make it really easy to plot something with Gnuplot_ (e.g. when
+running Python interactively via IPython_). Please note, that there are many
+other possibilities for plotting, e.g. R_  via RPy_ or Matlab-style plotting
+via matplotlib_.
+
+However, using Gnuplot is really easy. First import the Gnuplot module
+and create the interface object
+
+  >>> from Gnuplot import Gnuplot
+  >>> gp = Gnuplot()
+
+We want the timeseries as a line plot and not just the datapoints, so
+let's talk with Gnuplot
+
+  >>> gp('set data style lines')
+
+now load a 4d NIfTI image
+
+  >>> nim = NiftiImage('perfect_subject.nii.gz')
+
+and finally plot the timeseries of voxel (x=20, y=30, z=12)
+
+  >>> gp.plot(nim.data[:,12,30,20])
+
+A Gnuplot window showing the timeseries_ should popup now. Please refer to the
+Gnuplot manual to learn what it can do -- and it can do a lot more than just
+simple line plots (have a look at some `Gnuplot demos`_ if you are
+interested).
+
+.. _Gnuplot python bindings: http://gnuplot-py.sourceforge.net
+.. _Gnuplot: http://www.gnuplot.info
+.. _IPython: http://ipython.scipy.org
+.. _matplotlib: http://matplotlib.sourceforge.net
+.. _Gnuplot demos: http://gnuplot.sourceforge.net/demo_4.3/index.html
+.. _timeseries: pics/gnuplot_ts.png
+
+
+Show a slice of a 3d volume (Matplotlib module is required)
+===========================================================
+
+This example demonstrates howto use the Matlab-style plotting of matplotlib_
+to view a slice from a 3d volume.
+
+This time I assume that a 3d nifti file is already opened and available in the
+``nim3d`` object. At first we need to load the necessary Python module.
+
+  >>> from pylab import *
+
+If everything went fine, we can now view a slice (x,y):
+
+  >>> imshow(nim3d.data[200], interpolation='nearest', cmap=cm.gray)
+  >>> show()
+
+It is necessary to call the ``show()`` function one time after importing
+pylab to actually see the image when running Python interactively.
+
+When you want to have a look at a yz-slice, NumPy array magic comes into
+play.
+
+  >>> imshow(nim3d.data[::-1,:,100], interpolation='nearest', cmap=cm.gray)
+
+The ``::-1`` notation causes the z-axis to be flipped in the images. This
+makes a much nicer view, if the used example volume has the z-axis originally
+oriented upsidedown.
+
+
+Compute and display peristimulus signal timecourse of multiple conditions
+=========================================================================
+
+Sometimes one wants to look at the signal timecourse of some voxel after a
+certain stimulation onset. An easy way would be to have some fMRI data viewer
+that displays a statistical map and one could click on some activated voxel
+and the peristimulus signal timecourse of some condition in that voxel would
+be displayed.
+
+This can easily be done by using ``pynifti_pst`` and ``FSLView``.
+
+``pynifti_pst`` comes with a manpage that explains all options and arguments.
+Basically ``pynifti_pst`` needs a 4d image (e.g. an fMRI timeseries; possibly
+preprocessed/filtered) and some stimulus onset information. This information
+can either be given directly on the command line or is read from files.
+Additionally one can specify onsets as volume numbers or as onset times.
+
+``pynifti_pst`` understands the FSL custom EV file format so one can easily
+use those files as input.
+
+An example call could look like this::
+
+  pynifti_pst --times --nvols 5 -p uf92.feat/filtered_func_data.nii.gz \
+      pst_cond_a.nii.gz uf92.feat/custom_timing_files/ev1.txt \
+      uf92.feat/custom_timing_files/ev2.txt
+
+This computes a peristimulus timeseries using the preprocessed fMRI from a
+FEAT output directory and two custom EV files that both together make up
+condition A. ``--times`` indicates that the EV files list onset times (not
+volume ids) and ``--nvols`` requests the mean peristimulus timecourse for 4
+volumes after stimulus onset (5 including onset). ``-p`` recodes the
+peristimulus timeseries into percent signalchange, where the onset is always
+zero and any following value is the signal change with respect to the onset
+volume.
+
+.. figure:: pics/fslview_pst.png
+   :width: 15cm
+
+   FSLView with ``pynifti_pst`` example.
+
+This call produces a simple 4d NIfTI image that can be loaded into FSLView as
+any other timeseries. The following call can be used to display an FSL zmap
+from the above results path on top of some anatomy. Additionally the
+peristimulus timeseries of two conditions are loaded. The figure shows how it
+could look like. One of the nice features of FSLView is that its timeseries
+window can remember selected curves, which can be useful to compare signal
+timecourses from different voxels (blue and green line in the figure).
+
+.. raw:: html
+
+   <h1>History</h1>
+   <p>The full changelog is <a href="changelog.html">here</a>.</p>

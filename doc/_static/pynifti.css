@@ -93,6 +93,10 @@ tt.xref {
     border: 0;
 }
 
+tt.xref.docutils.literal {
+    color: #822;
+}
+
 a tt {
     background-color: transparent;
     font-weight: bold;
@@ -247,6 +251,8 @@ div.sidebar ul, div.sphinxsidebar ul {
 
 div.sidebar ul ul, div.sphinxsidebar ul ul {
     list-style: square;
+    margin-left: 20px;
+    font-size: 0.95em;
     margin-left: 20px;
 }
 
@@ -507,3 +513,5 @@ ul.search li div.context {
 ul.keywordmatches li.goodmatch a {
     font-weight: bold;
 }
+
+
