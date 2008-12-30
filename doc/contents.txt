@@ -1,0 +1,10 @@
+.. _contents:
+
+*****************************
+PyMVPA Documentation Contents
+*****************************
+
+.. toctree::
+
+  legal
+  changelog
