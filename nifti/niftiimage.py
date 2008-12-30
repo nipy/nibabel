@@ -472,25 +472,3 @@ class MemMappedNiftiImage(NiftiImage):
         raise RuntimeError, \
               "Filename modifications are not supported for memory mapped " \
               "images."
-
-
-def cropImage( nimg, bbox ):
-    """ Crop an image.
-
-    'bbox' has to be a sequency of (min,max) tuples (one for each image
-    dimension).
-
-    The function returns the cropped image. The data is not shared with the
-    original image, but is copied.
-    """
-
-    # build crop command
-    cmd = 'nimg.data.squeeze()['
-    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
-    cmd += ']'
-
-    # crop the image data array
-    cropped = eval(cmd).copy()
-
-    # return the cropped image with preserved header data
-    return NiftiImage(cropped, nimg.header)

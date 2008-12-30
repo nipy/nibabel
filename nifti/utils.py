@@ -14,6 +14,30 @@ __docformat__ = 'restructuredtext'
 import numpy as N
 import nifticlib
 
+
+def cropImage( nimg, bbox ):
+    """ Crop an image.
+
+    'bbox' has to be a sequency of (min,max) tuples (one for each image
+    dimension).
+
+    The function returns the cropped image. The data is not shared with the
+    original image, but is copied.
+    """
+
+    # build crop command
+    # XXX: the following looks rather stupid -- cannot recall why I did this
+    cmd = 'nimg.data.squeeze()['
+    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
+    cmd += ']'
+
+    # crop the image data array
+    cropped = eval(cmd).copy()
+
+    # return the cropped image with preserved header data
+    return nimg.__class__(cropped, nimg.header)
+
+
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
     the volume number that is closest in time. Volumes are assumed to be
@@ -78,19 +102,23 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
 
     return N.array( out )
 
+
 def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
     """ Returns 4d array with peristimulus timeseries.
 
-    Parameters:
-        ts        - source 4d timeseries
-        onsetvols - sequence of onsetvolumes to be averaged over
-        nvols     - length of the peristimulus timeseries in volumes
-                    (starting from onsetvol)
-        fx        - function to be applied to the list of corresponding
-                    volumes. Typically this will be mean(), so it is default,
-                    but it could also be var() or something different. The
-                    supplied function is to be able to handle an 'axis=0'
-                    argument similiar to NumPy's mean(), var(), ...
+    :Parameters:
+      ts:
+        source 4d timeseries
+      onsetvols:
+        sequence of onsetvolumes to be averaged over
+      nvols:
+        length of the peristimulus timeseries in volumes (starting from
+        onsetvol)
+      fx:
+        function to be applied to the list of corresponding volumes. Typically
+        this will be mean(), so it is default, but it could also be var() or
+        something different. The supplied function is to be able to handle an
+        'axis=0' argument similiar to NumPy's mean(), var(), ...
     """
     selected = [ [ o + offset for o in onsetvols ] \
                     for offset in range( nvols ) ]
@@ -118,6 +146,7 @@ N2nifti_dtype_map = { N.uint8: nifticlib.NIFTI_TYPE_UINT8,
                       N.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
                     }
 """Mapping of NumPy datatypes to NIfTI datatypes."""
+
 
 nifti2numpy_dtype_map = \
     { nifticlib.NIFTI_TYPE_UINT8: 'u1',
@@ -385,6 +414,7 @@ def splitFilename(filename):
             Filename to be split.
 
     :Returns:
+      tuple: (basename, extension)
         The function returns a tuple of basename and extension. If no valid
         NIfTI filename extension is found, the whole string is returned as
         basename and the extension string will be empty.
