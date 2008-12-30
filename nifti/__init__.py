@@ -35,4 +35,4 @@ The nifti package contains the following subpackages and modules:
 __docformat__ = 'restructuredtext'
 
 
-from niftiimage import NiftiImage
+from niftiimage import NiftiImage, MemMappedNiftiImage
