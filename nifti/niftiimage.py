@@ -218,14 +218,21 @@ class NiftiImage(NiftiFormat):
         """Returns a scaled copy of the data array.
 
         Scaling is done by multiplying with the slope and adding the intercept
-        that is stored in the NIfTI header.
+        that is stored in the NIfTI header. In compliance with the NIfTI
+        standard scaling is only performed in case of a non-zero slope value.
+        The original data array is returned otherwise.
 
         :Returns:
           ndarray
         """
         data = self.asarray(copy = True)
 
-        return data * self.slope + self.intercept
+        # NIfTI standard says: scaling only if non-zero slope
+        if self.slope:
+            data *= self.slope
+            data += self.intercept
+
+        return data
 
 
     def updateCalMinMax(self):
