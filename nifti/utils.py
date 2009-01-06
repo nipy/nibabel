@@ -178,6 +178,9 @@ nifti_units_map = \
      "rad/s": nifticlib.NIFTI_UNITS_RADS,
     }
 
+# encode bits of NIfTI1 standard
+valid_xyz_unit_codes = range(8)
+valid_time_unit_codes = range(0, 64, 8)
 
 def Ndtype2niftidtype(array):
     """Return the NIfTI datatype id for a corresponding NumPy datatype.
@@ -218,7 +221,7 @@ def nhdr2dict(nhdr):
     # the following header elements are converted in a simple loop
     # as they do not need special handling
     auto_convert = [ 'session_error', 'extents', 'sizeof_hdr',
-                     'slice_duration', 'slice_start', 'xyzt_units',
+                     'slice_duration', 'slice_start',
                      'cal_max', 'intent_p1', 'intent_p2', 'intent_p3',
                      'intent_code', 'sform_code', 'cal_min', 'scl_slope',
                      'slice_code', 'bitpix', 'descrip', 'glmin', 'dim_info',
@@ -254,6 +257,11 @@ def nhdr2dict(nhdr):
     # handle qform stuff: 3 numbers -> list
     h['quatern'] = [ nhdr.quatern_b, nhdr.quatern_c, nhdr.quatern_d ]
     h['qoffset'] = [ nhdr.qoffset_x, nhdr.qoffset_y, nhdr.qoffset_z ]
+
+    # some more postprocessing
+    # expand units
+    h['xyz_unit'] = nifticlib.xyzt2space(nhdr.xyzt_units)
+    h['time_unit'] = nifticlib.xyzt2time(nhdr.xyzt_units)
 
     return h
 
@@ -339,8 +347,21 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
         nhdr.slice_end = hdrdict['slice_end']
     if hdrdict.has_key('slice_code'):
         nhdr.slice_code = hdrdict['slice_code']
-    if hdrdict.has_key('xyzt_units'):
-        nhdr.xyzt_units = hdrdict['xyzt_units']
+    if hdrdict.has_key('xyz_unit') \
+       or hdrdict.has_key('time_unit'):
+        # precharge units from current header, in case only one of them is to be
+        # updated
+        tu = nifticlib.xyzt2space(nhdr.xyzt_units)
+        su = nifticlib.xyzt2time(nhdr.xyzt_units)
+
+        # overwrite unit if present
+        if hdrdict.has_key('xyz_unit'):
+            su = _checkUnit(hdrdict['xyz_unit'], valid_xyz_unit_codes)
+        if hdrdict.has_key('time_unit'):
+            tu = _checkUnit(hdrdict['time_unit'], valid_time_unit_codes)
+        # compress both units into hdr format
+        nhdr.xyzt_units = nifticlib.spacetime2xyzt(su, tu)
+
     if hdrdict.has_key('cal_max'):
         nhdr.cal_max = hdrdict['cal_max']
     if hdrdict.has_key('cal_min'):

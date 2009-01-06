@@ -228,6 +228,21 @@ int allocateImageMemory(nifti_image* _nim)
   return(1);
 }
 
+int xyzt2space(char val)
+{
+  return XYZT_TO_SPACE(val);
+}
+
+int xyzt2time(char val)
+{
+  return XYZT_TO_TIME(val);
+}
+
+char spacetime2xyzt(int sp, int t)
+{
+  return SPACE_TIME_TO_XYZT(sp, t);
+}
+
 %}
 
 
@@ -269,6 +284,9 @@ static void set_mat44(mat44* m,
                       float c1, float c2, float c3, float c4,
                       float d1, float d2, float d3, float d4 );
 
+int xyzt2space(char val);
+int xyzt2time(char val);
+char spacetime2xyzt(int sp, int t);
 
 %include "cpointer.i"
 %pointer_functions(short, shortp);

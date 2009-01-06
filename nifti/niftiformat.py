@@ -14,7 +14,8 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifticlib
 from utils import nhdr2dict, updateNiftiHeaderFromDict, \
-    Ndtype2niftidtype, nifti_xform_map, nifti_units_map, _checkUnit
+    Ndtype2niftidtype, nifti_xform_map, nifti_units_map, _checkUnit, \
+    valid_xyz_unit_codes, valid_time_unit_codes
 import numpy as N
 
 
@@ -794,7 +795,7 @@ class NiftiFormat(object):
             :meth:'~nifti.niftiformat.NiftiFormat.getXYZUnit`
         """
         # check for valid codes according to NIfTI1 standard
-        code = _checkUnit(value, range(8))
+        code = _checkUnit(value, valid_xyz_unit_codes)
         self.raw_nimg.xyz_units = code
 
 
@@ -821,7 +822,7 @@ class NiftiFormat(object):
             :meth:'~nifti.niftiformat.NiftiFormat.getTimeUnit`
         """
         # check for valid codes according to NIfTI1 standard
-        code = _checkUnit(value, range(0, 64, 8))
+        code = _checkUnit(value, valid_time_unit_codes)
         self.raw_nimg.time_units = code
 
 
@@ -838,6 +839,7 @@ class NiftiFormat(object):
             return self.__nimg.iname
         else:
             return self.__nimg.fname
+
 
     # class properties
     # read only
