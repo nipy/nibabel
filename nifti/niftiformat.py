@@ -726,6 +726,51 @@ class NiftiFormat(object):
             return codes
 
 
+    def vx2q(self, coord):
+        """Transform a voxel's index into coordinates (qform-defined).
+
+        :Parameter:
+          coord: 3-tuple
+            A voxel's index in the volume fiven as three positive integers
+            (i, j, k).
+
+        :Returns:
+          vector
+
+        .. seealso::
+          :meth:`~NiftiFormat.setQForm`, :meth:`~NiftiFormat.getQForm`
+        """
+        # add dummy one to row vector
+        coord_ = N.r_[coord, [1.0]]
+        # apply affine transformation
+        result = N.dot(self.qform, coord_)
+        # return 3D coordinates
+        return result[0:-1]
+
+
+    def vx2s(self, coord):
+        """Transform a voxel's index into coordinates (sform-defined).
+
+        :Parameter:
+          coord: 3-tuple
+            A voxel's index in the volume fiven as three positive integers
+            (i, j, k).
+
+        :Returns:
+          vector
+
+        .. seealso::
+          :meth:`~NiftiFormat.setSForm`, :meth:`~NiftiFormat.getSForm`
+        """
+        # add dummy one to row vector
+        coord_ = N.r_[coord, [1.0]]
+        # apply affine transformation
+        result = N.dot(self.qform, coord_)
+        # return 3D coordinates
+        return result[0:-1]
+
+
+
     def getFilename(self):
         """Returns the filename.
 
