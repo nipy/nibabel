@@ -165,6 +165,20 @@ nifti2numpy_dtype_map = \
 mapped array with proper byte-order handling."""
 
 
+nifti_units_map = \
+    {"unknown": nifticlib.NIFTI_UNITS_UNKNOWN,
+     "m": nifticlib.NIFTI_UNITS_METER,
+     "mm": nifticlib.NIFTI_UNITS_MM,
+     "um": nifticlib.NIFTI_UNITS_MICRON,
+     "s": nifticlib.NIFTI_UNITS_SEC,
+     "ms": nifticlib.NIFTI_UNITS_MSEC,
+     "us": nifticlib.NIFTI_UNITS_USEC,
+     "Hz": nifticlib.NIFTI_UNITS_HZ,
+     "ppm": nifticlib.NIFTI_UNITS_PPM,
+     "rad/s": nifticlib.NIFTI_UNITS_RADS,
+    }
+
+
 def Ndtype2niftidtype(array):
     """Return the NIfTI datatype id for a corresponding NumPy datatype.
     """
@@ -431,3 +445,38 @@ def splitFilename(filename):
             return filename, ''
         else:
             return '.'.join(parts[:-1]), parts[-1]
+
+
+def _checkUnit(value, valid_codes):
+    """Internal helper function to check axis units and convert into codes.
+
+    :Parameter:
+      value: int | str
+      valid_codes: list
+
+    :Returns:
+      int
+    """
+    # is it a code?
+    if isinstance(value, int):
+        if value not in valid_codes:
+            raise ValueError, \
+                  "'%i' is not a valid NIfTI units code. Should be one of" \
+                  " %s." % (value,
+                            str([c for c in nifti_units_map.values()
+                                    if c in valid_codes]))
+        # value seems to be valid
+        return value
+
+    # must be plain unit then
+    else:
+        if value not in nifti_units_map.keys() \
+           or nifti_units_map[value] not in valid_codes:
+            raise ValueError, \
+                  "'%s' is not a valid NIfTI unit. Should be one of" \
+                  " %s." % (value,
+                            str([c for c in nifti_units_map.keys()
+                                    if nifti_units_map[c] in valid_codes]))
+
+        # value seems to be valid
+        return nifti_units_map[value]

@@ -14,7 +14,7 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifticlib
 from utils import nhdr2dict, updateNiftiHeaderFromDict, \
-    Ndtype2niftidtype, nifti_xform_map
+    Ndtype2niftidtype, nifti_xform_map, nifti_units_map, _checkUnit
 import numpy as N
 
 
@@ -771,6 +771,60 @@ class NiftiFormat(object):
 
 
 
+    def getXYZUnit(self, as_string = False):
+        """Return 3D-space unit.
+
+        By default NIfTI unit codes are returned, but if `as_string` is set to
+        true a string representation ala 'mm' is returned instead.
+        """
+        code = self.__nimg.xyz_units
+        if as_string:
+            code = nifticlib.nifti_units_string(code)
+
+        return code
+
+
+    def setXYZUnit(self, value):
+        """Set the unit of the spatial axes.
+
+        :Parameter:
+          value: int | str
+            The unit can either be given as a NIfTI unit code or as any of the
+            plain text abbrevations returned by
+            :meth:'~nifti.niftiformat.NiftiFormat.getXYZUnit`
+        """
+        # check for valid codes according to NIfTI1 standard
+        code = _checkUnit(value, range(8))
+        self.raw_nimg.xyz_units = code
+
+
+    def getTimeUnit(self, as_string = False):
+        """Return unit of temporal (4th) axis.
+
+        By default NIfTI unit codes are returned, but if `as_string` is set to
+        true a string representation ala 's' is returned instead.
+        """
+        code = self.__nimg.time_units
+        if as_string:
+            code = nifticlib.nifti_units_string(code)
+
+        return code
+
+
+    def setTimeUnit(self, value):
+        """Set the unit of the temporal axis (4th).
+
+        :Parameter:
+          value: int | str
+            The unit can either be given as a NIfTI unit code or as any of the
+            plain text abbrevations returned by
+            :meth:'~nifti.niftiformat.NiftiFormat.getTimeUnit`
+        """
+        # check for valid codes according to NIfTI1 standard
+        code = _checkUnit(value, range(0, 64, 8))
+        self.raw_nimg.time_units = code
+
+
     def getFilename(self):
         """Returns the filename.
 
@@ -814,4 +868,6 @@ class NiftiFormat(object):
     qoffset =       property(fget=getQOffset, fset=setQOffset)
     qfac =          property(fget=lambda self: self.__nimg.qfac, fset=setQFac)
     rtime =         property(fget=getRepetitionTime, fset=setRepetitionTime)
+    xyz_unit =      property(fget=getXYZUnit, fset=setXYZUnit)
+    time_unit =     property(fget=getTimeUnit, fset=setTimeUnit)
 
