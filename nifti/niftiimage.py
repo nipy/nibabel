@@ -161,6 +161,10 @@ class NiftiImage(NiftiFormat):
         memory or memory mapped.
 
         See: `load()`, `unload()`
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
         """
         return (not self._data == None)
 

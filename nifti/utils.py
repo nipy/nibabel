@@ -478,6 +478,10 @@ def _checkUnit(value, valid_codes):
 
     :Returns:
       int
+
+    .. warning::
+      This is an internal method. Neither its availability nor its API is
+      guarenteed.
     """
     # is it a code?
     if isinstance(value, int):
