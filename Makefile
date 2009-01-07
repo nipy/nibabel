@@ -4,11 +4,12 @@ HTML_DIR=build/html
 PDF_DIR=build/pdf
 WWW_DIR=build/website
 
-# should be made conditional, as pyversions is Debian-specific
-#PYVER := $(shell pyversions -vd)
-# try generic variant instead
+#
+# Details on the Python/system
+#
+
 PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
-ARCH := $(shell uname -m)
+DISTUTILS_PLATFORM := $(shell python -c "import distutils.util; print distutils.util.get_platform()")
 
 
 all: build
@@ -29,21 +30,20 @@ build-stamp: 3rd
 	python setup.py build_ext
 	python setup.py build_py
 	# to overcome the issue of not-installed _nifticlib.so
-	ln -sf ../build/lib.linux-$(ARCH)-$(PYVER)/nifti/_nifticlib.so nifti/
+	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_nifticlib.so nifti/
+	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/nifticlib.py nifti/
 	touch $@
 
 
 clean:
-# clean 3rd party pieces
-	find 3rd -mindepth 1 -maxdepth 1  -type d | \
-	 while read d; do \
-	  [ -f "$$d/Makefile" ] && $(MAKE) -C "$$d" clean; \
-     done
-	-rm 3rd-stamp
+	-rm -rf build
+	-rm *-stamp
+	-rm nifti/nifticlib.py nifti/_nifticlib.so
+	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
+
 
 distclean: clean
 	-rm MANIFEST
-	-rm nifti/*.c *.pyc *.pyo *.so nifti/nifticlib.py nifti/_nifticlib.so
 	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
 	@find . -name '*.py[co]' \
@@ -55,7 +55,6 @@ distclean: clean
 		 -o -iname '*.pstats' \
 		 -o -iname '*.prof' \
 		 -o -iname '#*#' | xargs -L10 rm -f
-	-rm -r build
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
 

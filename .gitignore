@@ -1,8 +1,8 @@
-build-stamp
+*-stamp
+*/*/*-stamp
 build
 *.swp
 *.pyc
 *.pyo
-*_wrap.c
-*.so
+nifti/_nifticlib.so
 nifti/nifticlib.py
