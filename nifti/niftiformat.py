@@ -185,7 +185,7 @@ class NiftiFormat(object):
         self.__nimg.dy = float(value[1])
         self.__nimg.dz = float(value[2])
 
-        self.updateQFormFromQuaternion()
+        self.__updateQFormFromQuaternion()
 
 
     def setPixDims(self, value):
@@ -747,7 +747,7 @@ class NiftiFormat(object):
         self.setXFormCode('qform', code)
 
 
-    def updateQFormFromQuaternion(self):
+    def __updateQFormFromQuaternion(self):
         """Recalculates the qform matrix (and the inverse) from the quaternion
         representation.
 
@@ -806,7 +806,7 @@ class NiftiFormat(object):
         self.__nimg.quatern_c = float(value[1])
         self.__nimg.quatern_d = float(value[2])
 
-        self.updateQFormFromQuaternion()
+        self.__updateQFormFromQuaternion()
         self.setXFormCode('qform', code)
 
 
@@ -853,7 +853,7 @@ class NiftiFormat(object):
         self.__nimg.qoffset_y = float(value[1])
         self.__nimg.qoffset_z = float(value[2])
 
-        self.updateQFormFromQuaternion()
+        self.__updateQFormFromQuaternion()
         self.setXFormCode('qform', code)
 
 
@@ -893,7 +893,7 @@ class NiftiFormat(object):
           :attr:`~nifti.niftiformat.NiftiFormat.qfac`
         """
         self.__nimg.qfac = float(value)
-        self.updateQFormFromQuaternion()
+        self.__updateQFormFromQuaternion()
         self.setXFormCode('qform', code)
 
 
