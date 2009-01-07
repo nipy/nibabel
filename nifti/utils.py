@@ -201,6 +201,7 @@ nifti_xform_map = \
       'talairach': nifticlib.NIFTI_XFORM_TALAIRACH,
       'mni152': nifticlib.NIFTI_XFORM_MNI_152,
     }
+nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
 
 
 def nhdr2dict(nhdr):

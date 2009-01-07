@@ -14,8 +14,9 @@ __docformat__ = 'restructuredtext'
 # the swig wrapper if the NIfTI C library
 import nifticlib
 from utils import nhdr2dict, updateNiftiHeaderFromDict, \
-    Ndtype2niftidtype, nifti_xform_map, nifti_units_map, _checkUnit, \
-    valid_xyz_unit_codes, valid_time_unit_codes
+    Ndtype2niftidtype, nifti_xform_map, nifti_xform_inv_map, nifti_units_map, \
+    _checkUnit, valid_xyz_unit_codes, valid_time_unit_codes, \
+    nifti2numpy_dtype_map
 import numpy as N
 
 
@@ -423,23 +424,79 @@ class NiftiFormat(object):
              Coordinates are in MNI152 space.
 
         :Parameters:
-          xform: str('qform' | 'sform')
+          xform: str('qform' | 'q' | 'sform' | 's')
             Which of the two NIfTI transformations to set.
           code: str | `NIFTI_XFORM_CODE` | int (0..4)
             The Transformation code can be specified either by a string, the
             `NIFTI_XFORM_CODE` defined in the nifti1.h header file (accessible
-            via the `nifticlib` module, or the corresponding integer value
-            (see above list for all possibilities).
+            via the `nifticlib` module, or the corresponding integer value.
         """
         if isinstance(code, str):
+            if not code in nifti_xform_map.keys():
+                raise ValueError, \
+                      "Unknown xform code '%s'. Must be one of '%s'" \
+                      % (code, str(nifti_xform_map.keys()))
             code = nifti_xform_map[code]
+        else:
+            if not code in nifti_xform_map.values():
+                raise ValueError, \
+                      "Unknown xform code '%s'. Must be one of '%s'" \
+                      % (str(code), str(nifti_xform_map.values()))
 
-        if xform == 'qform':
+        if xform == 'qform' or xform == 'q':
             self.raw_nimg.qform_code = code
-        elif xform == 'sform':
+        elif xform == 'sform' or xform == 's':
             self.raw_nimg.sform_code = code
         else:
             raise ValueError, "Unkown transformation '%s'" % xform
+
+
+    def setQFormCode(self, code):
+        """Set the qform code.
+
+        .. note::
+          This is a convenience frontend for
+          :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode`. Please see its
+          documentation for more information.
+        """
+        self.setXFormCode('qform', code)
+
+
+    def getQFormCode(self, as_string = False):
+        """Return the qform code.
+
+        By default NIfTI xform codes are returned, but if `as_string` is set to
+        true a string representation ala 'talairach' is returned instead.
+        """
+        code = self.raw_nimg.qform_code
+        if as_string:
+            code = nifti_xform_inv_map[code]
+
+        return code
+
+
+    def getSFormCode(self, as_string = False):
+        """Return the sform code.
+
+        By default NIfTI xform codes are returned, but if `as_string` is set to
+        true a string representation ala 'talairach' is returned instead.
+        """
+        code = self.raw_nimg.sform_code
+        if as_string:
+            code = nifti_xform_inv_map[code]
+
+        return code
+
+
+    def setSFormCode(self, code):
+        """Set the sform code.
+
+        .. note::
+          This is a convenience frontend for
+          :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode`. Please see its
+          documentation for more information.
+        """
+        self.setXFormCode('sform', code)
 
 
     def getSForm(self):
@@ -841,6 +898,46 @@ class NiftiFormat(object):
             return self.__nimg.fname
 
 
+    def __str__(self):
+        """Returns a dump of some interesting header information.
+        """
+        lines = []
+
+        lines.append('extent' + str(self.extent))
+
+        lines.append('dtype(' \
+                     + nifti2numpy_dtype_map[self.raw_nimg.datatype] \
+                     + ')')
+
+        s = 'voxels('
+        s += 'x'.join(["%f" % d for d in self.voxdim])
+        if self.xyz_unit:
+            s += ' ' + self.getXYZUnit(as_string=True)
+        lines.append(s + ')')
+
+        if self.timepoints > 1:
+            s = "timepoints(%i, dt=%f" % (self.timepoints, self.rtime)
+            if self.time_unit:
+                s += ' ' + self.getTimeUnit(as_string=True)
+            s += ')'
+            lines.append(s)
+
+        if self.slope:
+            lines.append("scaling(slope=%f, intercept=%f)" \
+                    % (self.slope, self.intercept))
+
+        if self.qform_code:
+            lines.append("qform(%s)" % self.getQFormCode(as_string=True))
+
+        if self.sform_code:
+            lines.append("sform(%s)" % self.getSFormCode(as_string=True))
+
+        if self.description:
+            lines.append("descr('%s')" % self.description)
+
+        return '<NIfTI:\n  ' + ';\n  '.join(lines) + ';\n>'
+
+
     # class properties
     # read only
     nvox =          property(fget=lambda self: self.__nimg.nvox)
@@ -865,11 +962,12 @@ class NiftiFormat(object):
                              fset=setDescription)
     header =        property(fget=asDict, fset=updateFromDict)
     sform =         property(fget=getSForm, fset=setSForm)
+    sform_code =    property(fget=getSFormCode, fset=setSFormCode)
     qform =         property(fget=getQForm, fset=setQForm)
+    qform_code =    property(fget=getQFormCode, fset=setQFormCode)
     quatern =       property(fget=getQuaternion, fset=setQuaternion)
     qoffset =       property(fget=getQOffset, fset=setQOffset)
     qfac =          property(fget=lambda self: self.__nimg.qfac, fset=setQFac)
     rtime =         property(fget=getRepetitionTime, fset=setRepetitionTime)
     xyz_unit =      property(fget=getXYZUnit, fset=setXYZUnit)
     time_unit =     property(fget=getTimeUnit, fset=setTimeUnit)
-
