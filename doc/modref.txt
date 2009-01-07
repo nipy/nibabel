@@ -51,7 +51,7 @@ Module :mod:`~nifti.niftiimage`
 :class:`MemMappedNiftiImage`
 ----------------------------
 
-.. autoclass:: nifti.MemMappedNiftiImage
+.. autoclass:: nifti.niftiimage.MemMappedNiftiImage
   :members:
   :undoc-members:
   :show-inheritance:

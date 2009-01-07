@@ -6,7 +6,9 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Python class representation of a NIfTI image header"""
+"""This modules provides a class representation of a NIfTI image header. The
+interface provides pythonic access to NIfTI properties using Python datatypes.
+"""
 
 __docformat__ = 'restructuredtext'
 
@@ -32,8 +34,8 @@ class NiftiFormat(object):
     """
     def __init__(self, source, header=None):
         """
-        This method decides whether to load a nifti image header from file or
-        create one from ndarray data, depending on the datatype of `source`.
+        The constructor decides whether to load a nifti image header from file
+        or create one from ndarray data, depending on the datatype of `source`.
 
         :Parameters:
           source: str | ndarray

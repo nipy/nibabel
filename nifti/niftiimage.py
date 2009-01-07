@@ -6,7 +6,13 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Python class representation of a NIfTI image"""
+"""This module provides two classes for accessing NIfTI files.
+
+* :class:`~nifti.niftiimage.NiftiImage` (traditional load-as-much-as-you-can
+  approach)
+* :class:`~nifti.niftiimage.MemMappedNiftiImage` (memory-mapped access to
+  uncompressed NIfTI files)
+"""
 
 __docformat__ = 'restructuredtext'
 
