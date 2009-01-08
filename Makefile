@@ -1,16 +1,21 @@
-PROFILE_FILE=tests/main.pstats
 COVERAGE_REPORT=coverage
 HTML_DIR=build/html
-PDF_DIR=build/pdf
+LATEX_DIR=build/latex
 WWW_DIR=build/website
+DOCSRC_DIR=doc
 
 #
-# Details on the Python/system
+# Determine details on the Python/system
 #
 
 PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
-DISTUTILS_PLATFORM := $(shell python -c "import distutils.util; print distutils.util.get_platform()")
+DISTUTILS_PLATFORM := \
+	$(shell \
+		python -c "import distutils.util; print distutils.util.get_platform()")
 
+#
+# Building
+#
 
 all: build
 
@@ -34,6 +39,10 @@ build-stamp: 3rd
 	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/nifticlib.py nifti/
 	touch $@
 
+
+#
+# Cleaning
+#
 
 clean:
 	-rm -rf build
@@ -59,22 +68,17 @@ distclean: clean
 	-rm build-stamp apidoc-stamp
 
 
-$(PROFILE_FILE): build tests/main.py
-	@cd tests && \
-		PYTHONPATH=.. ../tools/profile -K  -O ../$(PROFILE_FILE) main.py
-
-
-$(HTML_DIR):
-	if [ ! -d $(HTML_DIR) ]; then mkdir -p $(HTML_DIR); fi
-
-
-$(PDF_DIR):
-	if [ ! -d $(PDF_DIR) ]; then mkdir -p $(PDF_DIR); fi
-
+#
+# Little helpers
+#
 
 $(WWW_DIR):
 	if [ ! -d $(WWW_DIR) ]; then mkdir -p $(WWW_DIR); fi
 
+
+#
+# Tests
+#
 
 ut-%: build
 	@cd tests && PYTHONPATH=.. python test_$*.py
@@ -97,24 +101,24 @@ coverage: build
 # Documentation
 #
 
-htmldoc: build $(HTML_DIR)
-	cd doc && PYTHONPATH=$(CURDIR) $(MAKE) html
+htmldoc: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) html
 
 
-# convert rsT documentation in doc/* to PDF.
-pdfmanual: $(PDF_DIR)
-	cat doc/manual/manual.txt Changelog | $(rst2latex) > $(PDF_DIR)/manual.tex
-	-cp -r doc/manual/pics $(PDF_DIR)
-	cd $(PDF_DIR) && pdflatex manual.tex
+pdfdoc: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) latex
+	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
-website: $(WWW_DIR) htmldoc pdfmanual
-	cp $(HTML_DIR)/manual.html $(WWW_DIR)/index.html
-	cp -r -t $(WWW_DIR) $(HTML_DIR)/pics \
-						$(HTML_DIR)/changelog.html \
-						$(HTML_DIR)/*.css
-	cp $(PDF_DIR)/manual.pdf $(WWW_DIR)
-	cp -r $(HTML_DIR)/api $(WWW_DIR)
+#
+# Website
+#
+
+website: website-stamp
+website-stamp: $(WWW_DIR) htmldoc pdfdoc
+	cp -r $(HTML_DIR)/* $(WWW_DIR)
+	cp $(LATEX_DIR)/*.pdf $(WWW_DIR)
+	touch $@
 
 
 upload-website: website
@@ -129,6 +133,10 @@ pylint: distclean
 	# do distclean first to silence SWIG's sins
 	pylint --rcfile doc/misc/pylintrc nifti
 
+
+#
+# Distributions
+#
 
 orig-src: distclean 
 	# clean existing dist dir first to have a single source tarball to process
