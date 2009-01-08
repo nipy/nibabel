@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# PyMVPA documentation build configuration file, created by
+# PyNIfTI documentation build configuration file, created by
 # sphinx-quickstart on Sun May  4 09:06:06 2008.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -279,7 +279,7 @@ master_doc = 'contents'
 
 # General substitutions.
 project = 'PyNIfTI'
-copyright = '2006-2008, Michael Hanke'
+copyright = '2006-2009, Michael Hanke'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
