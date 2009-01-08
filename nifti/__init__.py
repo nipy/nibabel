@@ -6,33 +6,19 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Python bindings to the NIfTI data format
+"""This module provides Python bindings to the NIfTI data format.
 
-
-Package Organization
-====================
-
-The nifti package contains the following subpackages and modules:
-
-.. packagetree::
-   :style: UML
-
-:author: `Michael Hanke <michael.hanke@gmail.com>`__
-:requires: Python 2.4+
-:version: 0.20081017.1
-:see: `The PyNIfTI webpage <http://niftilib.sf.net/pynifti>`__
-:see: `GIT Repository Browser <http://git.debian.org/?p=pkg-exppsy/pynifti.git>`__
-
-:license: The MIT License
-:copyright: |copy| 2006-2008 Michael Hanke <michael.hanke@gmail.com>
-
-:newfield contributor: Contributor, Contributors (Alphabetical Order)
-:contributor: `Yaroslav Halchenko <debian@onerussian.com>`__
-
-.. |copy| unicode:: 0xA9 .. copyright sign
+The PyNIfTI module is a Python interface to the NIfTI I/O libraries. Using
+PyNIfTI, one can easily read and write NIfTI and ANALYZE images from within
+Python. The :class:`~nifti.niftiimage.NiftiImage` class provides pythonic
+access to the full header information and for a maximum of interoperability the
+image data is made available via NumPy arrays.
 """
 
 __docformat__ = 'restructuredtext'
 
 
-from niftiimage import NiftiImage
+from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
+
+# canonical version string
+pynifti_version = '0.2009xxxx.1'

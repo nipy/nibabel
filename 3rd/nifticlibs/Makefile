@@ -7,17 +7,25 @@ CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB
 
 # Use the below CFLAGS on OSX
 # CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB -arch i386 -arch ppc
+TDIR=../../build/nifticlibs
 
-all: $(LIB)
+all: prep $(LIB)
+
+prep: prep-stamp
+prep-stamp:
+	mkdir -p $(TDIR)
+	touch $@
+
 
 .c.o:
-	gcc $(CFLAGS) $(LIBFLAGS) -c $^
+	gcc $(CFLAGS) $(LIBFLAGS) -c $^ -o $(TDIR)/$(^:.c=.o)
 
 libniftiio.a: nifti1_io.o
-	ar curs $@ $^
+	ar curs $(TDIR)/$@ $(TDIR)/$^
 
 libznz.a: znzlib.o
-	ar curs $@ $^
+	ar curs $(TDIR)/$@ $(TDIR)/$^
 
 clean:
-	rm -f $(LIB) $(MISC:.c=.o)
+	rm -rf $(TDIR)
+	rm *-stamp

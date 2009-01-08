@@ -1,0 +1,25 @@
+.. -*- mode: rst; fill-column: 78 -*-
+.. ex: set sts=4 ts=4 sw=4 et tw=79:
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  #
+  #   See COPYING file distributed along with the PyMVPA package for the
+  #   copyright and license terms.
+  #
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+**********************************
+ PDF version of the PyNIfTI Manual
+**********************************
+
+The PDF version of the manual is available for download_.
+
+.. _download: PyNIfTI-Manual.pdf
+
+
+.. toctree::
+
+   intro
+   installation
+   examples
+   modref
+   changelog

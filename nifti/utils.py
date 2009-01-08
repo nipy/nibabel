@@ -14,6 +14,30 @@ __docformat__ = 'restructuredtext'
 import numpy as N
 import nifticlib
 
+
+def cropImage( nimg, bbox ):
+    """ Crop an image.
+
+    'bbox' has to be a sequency of (min,max) tuples (one for each image
+    dimension).
+
+    The function returns the cropped image. The data is not shared with the
+    original image, but is copied.
+    """
+
+    # build crop command
+    # XXX: the following looks rather stupid -- cannot recall why I did this
+    cmd = 'nimg.data.squeeze()['
+    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
+    cmd += ']'
+
+    # crop the image data array
+    cropped = eval(cmd).copy()
+
+    # return the cropped image with preserved header data
+    return nimg.__class__(cropped, nimg.header)
+
+
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
     the volume number that is closest in time. Volumes are assumed to be
@@ -78,19 +102,23 @@ def applyFxToVolumes( ts, vols, fx, **kwargs ):
 
     return N.array( out )
 
+
 def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
     """ Returns 4d array with peristimulus timeseries.
 
-    Parameters:
-        ts        - source 4d timeseries
-        onsetvols - sequence of onsetvolumes to be averaged over
-        nvols     - length of the peristimulus timeseries in volumes
-                    (starting from onsetvol)
-        fx        - function to be applied to the list of corresponding
-                    volumes. Typically this will be mean(), so it is default,
-                    but it could also be var() or something different. The
-                    supplied function is to be able to handle an 'axis=0'
-                    argument similiar to NumPy's mean(), var(), ...
+    :Parameters:
+      ts:
+        source 4d timeseries
+      onsetvols:
+        sequence of onsetvolumes to be averaged over
+      nvols:
+        length of the peristimulus timeseries in volumes (starting from
+        onsetvol)
+      fx:
+        function to be applied to the list of corresponding volumes. Typically
+        this will be mean(), so it is default, but it could also be var() or
+        something different. The supplied function is to be able to handle an
+        'axis=0' argument similiar to NumPy's mean(), var(), ...
     """
     selected = [ [ o + offset for o in onsetvols ] \
                     for offset in range( nvols ) ]
@@ -119,6 +147,7 @@ N2nifti_dtype_map = { N.uint8: nifticlib.NIFTI_TYPE_UINT8,
                     }
 """Mapping of NumPy datatypes to NIfTI datatypes."""
 
+
 nifti2numpy_dtype_map = \
     { nifticlib.NIFTI_TYPE_UINT8: 'u1',
       nifticlib.NIFTI_TYPE_INT8: 'i1',
@@ -135,6 +164,23 @@ nifti2numpy_dtype_map = \
 """Mapping of NIfTI to NumPy datatypes (necessary for handling memory
 mapped array with proper byte-order handling."""
 
+
+nifti_units_map = \
+    {"unknown": nifticlib.NIFTI_UNITS_UNKNOWN,
+     "m": nifticlib.NIFTI_UNITS_METER,
+     "mm": nifticlib.NIFTI_UNITS_MM,
+     "um": nifticlib.NIFTI_UNITS_MICRON,
+     "s": nifticlib.NIFTI_UNITS_SEC,
+     "ms": nifticlib.NIFTI_UNITS_MSEC,
+     "us": nifticlib.NIFTI_UNITS_USEC,
+     "Hz": nifticlib.NIFTI_UNITS_HZ,
+     "ppm": nifticlib.NIFTI_UNITS_PPM,
+     "rad/s": nifticlib.NIFTI_UNITS_RADS,
+    }
+
+# encode bits of NIfTI1 standard
+valid_xyz_unit_codes = range(8)
+valid_time_unit_codes = range(0, 64, 8)
 
 def Ndtype2niftidtype(array):
     """Return the NIfTI datatype id for a corresponding NumPy datatype.
@@ -155,6 +201,7 @@ nifti_xform_map = \
       'talairach': nifticlib.NIFTI_XFORM_TALAIRACH,
       'mni152': nifticlib.NIFTI_XFORM_MNI_152,
     }
+nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
 
 
 def nhdr2dict(nhdr):
@@ -175,7 +222,7 @@ def nhdr2dict(nhdr):
     # the following header elements are converted in a simple loop
     # as they do not need special handling
     auto_convert = [ 'session_error', 'extents', 'sizeof_hdr',
-                     'slice_duration', 'slice_start', 'xyzt_units',
+                     'slice_duration', 'slice_start',
                      'cal_max', 'intent_p1', 'intent_p2', 'intent_p3',
                      'intent_code', 'sform_code', 'cal_min', 'scl_slope',
                      'slice_code', 'bitpix', 'descrip', 'glmin', 'dim_info',
@@ -211,6 +258,11 @@ def nhdr2dict(nhdr):
     # handle qform stuff: 3 numbers -> list
     h['quatern'] = [ nhdr.quatern_b, nhdr.quatern_c, nhdr.quatern_d ]
     h['qoffset'] = [ nhdr.qoffset_x, nhdr.qoffset_y, nhdr.qoffset_z ]
+
+    # some more postprocessing
+    # expand units
+    h['xyz_unit'] = nifticlib.xyzt2space(nhdr.xyzt_units)
+    h['time_unit'] = nifticlib.xyzt2time(nhdr.xyzt_units)
 
     return h
 
@@ -296,8 +348,21 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
         nhdr.slice_end = hdrdict['slice_end']
     if hdrdict.has_key('slice_code'):
         nhdr.slice_code = hdrdict['slice_code']
-    if hdrdict.has_key('xyzt_units'):
-        nhdr.xyzt_units = hdrdict['xyzt_units']
+    if hdrdict.has_key('xyz_unit') \
+       or hdrdict.has_key('time_unit'):
+        # precharge units from current header, in case only one of them is to be
+        # updated
+        tu = nifticlib.xyzt2space(nhdr.xyzt_units)
+        su = nifticlib.xyzt2time(nhdr.xyzt_units)
+
+        # overwrite unit if present
+        if hdrdict.has_key('xyz_unit'):
+            su = _checkUnit(hdrdict['xyz_unit'], valid_xyz_unit_codes)
+        if hdrdict.has_key('time_unit'):
+            tu = _checkUnit(hdrdict['time_unit'], valid_time_unit_codes)
+        # compress both units into hdr format
+        nhdr.xyzt_units = nifticlib.spacetime2xyzt(su, tu)
+
     if hdrdict.has_key('cal_max'):
         nhdr.cal_max = hdrdict['cal_max']
     if hdrdict.has_key('cal_min'):
@@ -385,6 +450,7 @@ def splitFilename(filename):
             Filename to be split.
 
     :Returns:
+      tuple: (basename, extension)
         The function returns a tuple of basename and extension. If no valid
         NIfTI filename extension is found, the whole string is returned as
         basename and the extension string will be empty.
@@ -401,3 +467,42 @@ def splitFilename(filename):
             return filename, ''
         else:
             return '.'.join(parts[:-1]), parts[-1]
+
+
+def _checkUnit(value, valid_codes):
+    """Internal helper function to check axis units and convert into codes.
+
+    :Parameter:
+      value: int | str
+      valid_codes: list
+
+    :Returns:
+      int
+
+    .. warning::
+      This is an internal method. Neither its availability nor its API is
+      guarenteed.
+    """
+    # is it a code?
+    if isinstance(value, int):
+        if value not in valid_codes:
+            raise ValueError, \
+                  "'%i' is not a valid NIfTI units code. Should be one of" \
+                  " %s." % (value,
+                            str([c for c in nifti_units_map.values()
+                                    if c in valid_codes]))
+        # value seems to be valid
+        return value
+
+    # must be plain unit then
+    else:
+        if value not in nifti_units_map.keys() \
+           or nifti_units_map[value] not in valid_codes:
+            raise ValueError, \
+                  "'%s' is not a valid NIfTI unit. Should be one of" \
+                  " %s." % (value,
+                            str([c for c in nifti_units_map.keys()
+                                    if nifti_units_map[c] in valid_codes]))
+
+        # value seems to be valid
+        return nifti_units_map[value]

@@ -6,7 +6,13 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Python class representation of a NIfTI image"""
+"""This module provides two classes for accessing NIfTI files.
+
+* :class:`~nifti.niftiimage.NiftiImage` (traditional load-as-much-as-you-can
+  approach)
+* :class:`~nifti.niftiimage.MemMappedNiftiImage` (memory-mapped access to
+  uncompressed NIfTI files)
+"""
 
 __docformat__ = 'restructuredtext'
 
@@ -81,31 +87,36 @@ class NiftiImage(NiftiFormat):
 
 
 
-    def save(self, filename=None, filetype = 'NIFTI'):
-        """Save the image.
+    def save(self, filename=None, filetype = 'NIFTI', update_minmax=True):
+        """Save the image to a file.
 
-        If the image was created using array data (not loaded from a file) one
-        has to specify a filename.
-
-        Warning: There will be no exception if writing fails for any reason,
-        as the underlying function nifti_write_hdr_img() from libniftiio does
-        not provide any feedback. Suggestions for improvements are appreciated.
+        If the image was created using array data (i.e., not loaded from a file)
+        a filename has to be specified.
 
         If not yet done already, the image data will be loaded into memory
         before saving the file.
 
         :Parameters:
           filename: str | None
-            Calling save() with `filename` equal None on a NiftiImage
-            loaded from a file, it will overwrite the original file.
-
+            The name of the target file (typically including its extension).
             Usually setting the filename also determines the filetype
-            (NIfTI/ANALYZE). Please see the documentation of the
-            `setFilename()` method for some more details.
+            (NIfTI/ANALYZE).  Please see
+            :meth:`~nifti.niftiimage.NiftiImage.setFilename` for some more
+            details. If None, an image loaded from a file will cause the
+            original image to be overwritten.
           filetype: str
-            Override filetype. Please see the documentation of the
+            Provide intented filetype. Please see the documentation of the
             `setFilename()` method for some more details.
-        """
+          update_minmax: bool
+            Whether the image header's min and max values should be updated
+            according to the current image data.
+
+        .. warning::
+
+          There will be no exception if writing fails for any reason, as the
+          underlying function nifti_write_hdr_img() from libniftiio does not
+          provide any feedback. Suggestions for improvements are appreciated.
+       """
 
         # If image data is not yet loaded, do it now.
         # It is important to do it already here, because nifti_image_load
@@ -118,7 +129,8 @@ class NiftiImage(NiftiFormat):
             self.description = 'Created with PyNIfTI'
 
         # update header information
-        self.updateCalMinMax()
+        if update_minmax:
+            self.updateCalMinMax()
 
         # saving for the first time?
         if not self.filename or filename:
@@ -155,6 +167,10 @@ class NiftiImage(NiftiFormat):
         memory or memory mapped.
 
         See: `load()`, `unload()`
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
         """
         return (not self._data == None)
 
@@ -218,14 +234,21 @@ class NiftiImage(NiftiFormat):
         """Returns a scaled copy of the data array.
 
         Scaling is done by multiplying with the slope and adding the intercept
-        that is stored in the NIfTI header.
+        that is stored in the NIfTI header. In compliance with the NIfTI
+        standard scaling is only performed in case of a non-zero slope value.
+        The original data array is returned otherwise.
 
         :Returns:
           ndarray
         """
         data = self.asarray(copy = True)
 
-        return data * self.slope + self.intercept
+        # NIfTI standard says: scaling only if non-zero slope
+        if self.slope:
+            data *= self.slope
+            data += self.intercept
+
+        return data
 
 
     def updateCalMinMax(self):
@@ -288,15 +311,17 @@ class NiftiImage(NiftiFormat):
 
         Examples:
 
+          ================  ==================================
           Filename          Output of save()
-          ----------------------------------
+          ----------------  ----------------------------------
           exmpl.nii         exmpl.nii (NIfTI)
           exmpl.hdr         exmpl.hdr, exmpl.img (NIfTI)
           exmpl.img         exmpl.hdr, exmpl.img (ANALYZE)
           exmpl             exmpl.nii (NIfTI)
           exmpl.hdr.gz      exmpl.hdr.gz, exmpl.img.gz (NIfTI)
-
-        ! exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
+          ----------------  ----------------------------------
+          exmpl.gz          exmpl.gz.nii (uncompressed NIfTI)
+          ================  ==================================
 
         Setting the filename is also possible by assigning to the 'filename'
         property.
@@ -470,25 +495,3 @@ class MemMappedNiftiImage(NiftiImage):
         raise RuntimeError, \
               "Filename modifications are not supported for memory mapped " \
               "images."
-
-
-def cropImage( nimg, bbox ):
-    """ Crop an image.
-
-    'bbox' has to be a sequency of (min,max) tuples (one for each image
-    dimension).
-
-    The function returns the cropped image. The data is not shared with the
-    original image, but is copied.
-    """
-
-    # build crop command
-    cmd = 'nimg.data.squeeze()['
-    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
-    cmd += ']'
-
-    # crop the image data array
-    cropped = eval(cmd).copy()
-
-    # return the cropped image with preserved header data
-    return NiftiImage(cropped, nimg.header)

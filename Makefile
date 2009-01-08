@@ -1,24 +1,21 @@
-
-PROFILE_FILE=tests/main.pstats
 COVERAGE_REPORT=coverage
 HTML_DIR=build/html
-PDF_DIR=build/pdf
+LATEX_DIR=build/latex
 WWW_DIR=build/website
+DOCSRC_DIR=doc
 
-# should be made conditional, as pyversions is Debian-specific
-#PYVER := $(shell pyversions -vd)
-# try generic variant instead
+#
+# Determine details on the Python/system
+#
+
 PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
-ARCH := $(shell uname -m)
+DISTUTILS_PLATFORM := \
+	$(shell \
+		python -c "import distutils.util; print distutils.util.get_platform()")
 
-rst2latex=rst2latex --documentclass=scrartcl \
-					--use-latex-citations \
-					--strict \
-					--use-latex-footnotes \
-					--stylesheet ../../doc/misc/style.tex
-
-rst2html=rst2html --date --strict --stylesheet=nifti.css --link-stylesheet
-
+#
+# Building
+#
 
 all: build
 
@@ -38,21 +35,24 @@ build-stamp: 3rd
 	python setup.py build_ext
 	python setup.py build_py
 	# to overcome the issue of not-installed _nifticlib.so
-	ln -sf ../build/lib.linux-$(ARCH)-$(PYVER)/nifti/_nifticlib.so nifti/
+	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_nifticlib.so nifti/
+	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/nifticlib.py nifti/
 	touch $@
 
 
+#
+# Cleaning
+#
+
 clean:
-# clean 3rd party pieces
-	find 3rd -mindepth 1 -maxdepth 1  -type d | \
-	 while read d; do \
-	  [ -f "$$d/Makefile" ] && $(MAKE) -C "$$d" clean; \
-     done
-	-rm 3rd-stamp
+	-rm -rf build
+	-rm *-stamp
+	-rm nifti/nifticlib.py nifti/_nifticlib.so
+	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
+
 
 distclean: clean
 	-rm MANIFEST
-	-rm nifti/*.c *.pyc *.pyo *.so nifti/nifticlib.py nifti/_nifticlib.so
 	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
 	@find . -name '*.py[co]' \
@@ -64,27 +64,21 @@ distclean: clean
 		 -o -iname '*.pstats' \
 		 -o -iname '*.prof' \
 		 -o -iname '#*#' | xargs -L10 rm -f
-	-rm -r build
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
 
 
-$(PROFILE_FILE): build tests/main.py
-	@cd tests && \
-		PYTHONPATH=.. ../tools/profile -K  -O ../$(PROFILE_FILE) main.py
-
-
-$(HTML_DIR):
-	if [ ! -d $(HTML_DIR) ]; then mkdir -p $(HTML_DIR); fi
-
-
-$(PDF_DIR):
-	if [ ! -d $(PDF_DIR) ]; then mkdir -p $(PDF_DIR); fi
-
+#
+# Little helpers
+#
 
 $(WWW_DIR):
 	if [ ! -d $(WWW_DIR) ]; then mkdir -p $(WWW_DIR); fi
 
+
+#
+# Tests
+#
 
 ut-%: build
 	@cd tests && PYTHONPATH=.. python test_$*.py
@@ -107,46 +101,29 @@ coverage: build
 # Documentation
 #
 
-apidoc: apidoc-stamp
-apidoc-stamp: $(PROFILE_FILE)
-	mkdir -p $(HTML_DIR)/api
-	epydoc --config doc/api/epydoc.conf
+htmldoc: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) html
+
+
+pdfdoc: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) latex
+	cd $(LATEX_DIR) && $(MAKE) all-pdf
+
+
+#
+# Website
+#
+
+website: website-stamp
+website-stamp: $(WWW_DIR) htmldoc pdfdoc
+	cp -r $(HTML_DIR)/* $(WWW_DIR)
+	cp $(LATEX_DIR)/*.pdf $(WWW_DIR)
 	touch $@
-
-
-htmlchangelog: $(HTML_DIR)
-	$(rst2html) Changelog $(HTML_DIR)/changelog.html
-
-
-htmlmanual: $(HTML_DIR)
-	$(rst2html) doc/manual/manual.txt $(HTML_DIR)/manual.html
-	# copy images
-	cp -r -t $(HTML_DIR) doc/misc/*.css doc/misc/pics doc/manual/pics 
-
-
-# convert rsT documentation in doc/* to PDF.
-pdfmanual: $(PDF_DIR)
-	cat doc/manual/manual.txt Changelog | $(rst2latex) > $(PDF_DIR)/manual.tex
-	-cp -r doc/manual/pics $(PDF_DIR)
-	cd $(PDF_DIR) && pdflatex manual.tex
-
-
-website: $(WWW_DIR) htmlmanual htmlchangelog pdfmanual apidoc
-	cp $(HTML_DIR)/manual.html $(WWW_DIR)/index.html
-	cp -r -t $(WWW_DIR) $(HTML_DIR)/pics \
-						$(HTML_DIR)/changelog.html \
-						$(HTML_DIR)/*.css
-	cp $(PDF_DIR)/manual.pdf $(WWW_DIR)
-	cp -r $(HTML_DIR)/api $(WWW_DIR)
 
 
 upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
-		shell.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/pynifti/
-
-
-printables: pdfmanual
-
+		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/pynifti/
 
 #
 # Sources
@@ -156,6 +133,10 @@ pylint: distclean
 	# do distclean first to silence SWIG's sins
 	pylint --rcfile doc/misc/pylintrc nifti
 
+
+#
+# Distributions
+#
 
 orig-src: distclean 
 	# clean existing dist dir first to have a single source tarball to process

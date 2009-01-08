@@ -1,0 +1,70 @@
+.. -*- mode: rst -*-
+.. ex: set sts=4 ts=4 sw=4 et tw=79:
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  #
+  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   copyright and license terms.
+  #
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+.. _modref:
+
+****************
+Module Reference
+****************
+
+.. automodule:: nifti
+
+
+
+Module :mod:`~nifti.niftiformat`
+================================
+
+.. automodule:: nifti.niftiformat
+
+
+:class:`NiftiFormat`
+--------------------
+
+.. autoclass:: nifti.niftiformat.NiftiFormat
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+
+Module :mod:`~nifti.niftiimage`
+===============================
+
+.. automodule:: nifti.niftiimage
+
+
+:class:`NiftiImage`
+-------------------
+
+.. autoclass:: nifti.niftiimage.NiftiImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+:class:`MemMappedNiftiImage`
+----------------------------
+
+.. autoclass:: nifti.niftiimage.MemMappedNiftiImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+
+Useful Functions from :mod:`nifti.utils`
+========================================
+
+.. automodule:: nifti.utils
+
+.. autofunction:: nifti.utils.applyFxToVolumes
+.. autofunction:: nifti.utils.cropImage
+.. autofunction:: nifti.utils.getPeristimulusTimeseries
+.. autofunction:: nifti.utils.splitFilename
+.. autofunction:: nifti.utils.time2vol

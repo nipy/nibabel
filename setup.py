@@ -11,65 +11,84 @@
 
 __docformat__ = 'restructuredtext'
 
-from distutils.core import setup, Extension
+
+from numpy.distutils.core import setup, Extension
 import os.path
 import sys
-import numpy as N
 from glob import glob
 
-# define path to the included minimal nifticlibs copy
-builtin_nifticlib_path = os.path.join('3rd', 'nifticlibs')
+########################
+# Common configuration #
+########################
 
-# create an empty file to workaround crappy swig wrapper installation
-nifti_wrapper_file = os.path.join('nifti', 'nifticlib.py')
-if not os.path.isfile(nifti_wrapper_file):
-    open(nifti_wrapper_file, 'w')
-
-# find numpy headers
-numpy_headers = os.path.join(os.path.dirname(N.__file__),'core','include')
-
-# include directory: numpy for all 
-include_dirs = [ numpy_headers ]
-
-#library dirs: nothing by default
+extra_link_args = ['--Wl,--no-undefined']
+include_dirs = []
 library_dirs = []
-
-# determine what libs to link against
-link_libs = [ 'niftiio' ]
-
-# we only know that Debian niftiio is properly linked with znzlib and zlib
-if not os.path.exists('/etc/debian_version'):
-    link_libs += ['znz', 'z']
-    # setup paths in case the included nifticlibs were built
-    # to use the local nifticlib copy
-    if os.path.exists(os.path.join(builtin_nifticlib_path, 'libniftiio.a')):
-        include_dirs.append(builtin_nifticlib_path)
-        library_dirs.append(builtin_nifticlib_path)
-    else:
-        # otherwise we'll just tried a few things
-        if not sys.platform.startswith('win'):
-            include_dirs += [ '/usr/local/include/nifti',
-                              '/usr/include/nifti' ]
-        else:
-            # clueless on windows
-            pass
-else:
-    # on Debian we know where things are
-    include_dirs.append('/usr/include/nifti')
-
-swig_opts = []
 defines = []
+link_libs = []
+# for some additional swig flags, but see below
+swig_opts = []
+# a more reliable way to pass options to SWIG
+os.environ['SWIG_FEATURES'] = '-O -v'
+
+
+#############################
+# Check for 3rd party stuff #
+#############################
+
+# make use of the local nifticlibs copy, only if it was compiled before
+if os.path.exists(os.path.join('build', 'nifticlibs', 'libniftiio.a')):
+    include_dirs += [os.path.join('3rd', 'nifticlibs')]
+    library_dirs += [os.path.join('build', 'nifticlibs')]
+    # need to link against additional libs in case of the local static lib
+    link_libs += ['znz', 'z']
+else:
+    # try to look for nifticlibs in some place
+    if not sys.platform.startswith('win'):
+        include_dirs += ['/usr/include/nifti',
+                         '/usr/include/nifticlibs',
+                         '/usr/local/include/nifti',
+                         '/usr/local/include/nifticlibs',
+                         '/usr/local/include']
+    else:
+        # no clue on windows
+        pass
+
+
+###########################
+# Platform-specific setup #
+###########################
+
 # win32 stuff
 if sys.platform.startswith('win'):
     swig_opts.append('-DWIN32')
     defines.append(('WIN32', None))
+
+# apple stuff
+if sys.platform == "darwin":
+    extra_link_args.append("-bundle")
+
+
+##############
+# Extensions #
+##############
+
+nifticlib_ext = Extension(
+    'nifti._nifticlib',
+    sources = ['nifti/nifticlib.i'],
+    define_macros = defines,
+    include_dirs = include_dirs,
+    library_dirs = library_dirs,
+    libraries = ['niftiio'] + link_libs,
+    extra_link_args = extra_link_args,
+    swig_opts = swig_opts)
 
 # Notes on the setup
 # Version scheme is:
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20081017.1',
+    version      = '0.2009xxxx.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'MIT License',
@@ -84,12 +103,7 @@ setup(name       = 'pynifti',
         "everything the C library can do), it already provides access to " \
         "the most important features of the NIfTI-1 data format and " \
         "libniftiio capabilities.",
-    packages     = [ 'nifti' ],
-    scripts      = glob( 'bin/*' ),
-    ext_modules  = [ Extension( 'nifti._nifticlib', [ 'nifti/nifticlib.i' ],
-            define_macros = defines,
-            include_dirs = include_dirs,
-            library_dirs = library_dirs,
-            libraries    = link_libs,
-            swig_opts    = swig_opts + ['-I' + d for d in include_dirs ] ) ]
+    packages     = ['nifti'],
+    scripts      = glob('bin/*'),
+    ext_modules  = [nifticlib_ext]
     )

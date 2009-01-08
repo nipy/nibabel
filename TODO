@@ -1,3 +1,7 @@
+* Implement support for slice timing related NIfTI information.
+
+* Implement support for intent codes.
+
 * Valgrind reports a memory leak. It seems to be releated to some
   string operation on the header data, as it also happens when image
   data from ndarrays is used and never saved to file or inserted into the
