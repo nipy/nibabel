@@ -48,6 +48,9 @@ Unreleased changes
     :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
   * Each image instance is now able to generate a human-readable dump of its
     most important header information via `__str__()`.
+  * Switched to NumPy's distutils for building the package. Cleaned and
+    simplified the build procedure. Added optimization flags to SWIG call.
+  * Introduced :data:`nifti.pynifti_version` as canonical version string.
   * Removed `updateQFormFromQuarternion()` from the list of public methods of
     :class:`~nifti.niftiformat.NiftiFormat`. This is an internal method that
     should not be used in user code.
