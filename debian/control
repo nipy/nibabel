@@ -8,6 +8,7 @@ Standards-Version: 3.8.0
 Homepage: http://niftilib.sourceforge.net/pynifti/
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
+DM-Upload-Allowed: yes
 
 Package: python-nifti
 Architecture: any
