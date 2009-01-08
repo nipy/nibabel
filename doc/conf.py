@@ -371,32 +371,27 @@ htmlhelp_basename = 'PyNIfTIdoc'
 latex_paper_size = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
+latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-#latex_documents = [
-#  ('manual', 'PyMVPA-Manual.tex', 'PyMVPA Manual',
-#   'Michael~Hanke, Yaroslav~O.~Halchenko, Per~B.~Sederberg, '
-#   'James M. Hughes',
-#   'manual'),
-#  ('devguide', 'PyMVPA-DevGuide.tex', 'PyMVPA Developer Guidelines',
-#   'Michael~Hanke, Yaroslav~O.~Halchenko, Per~B.~Sederberg',
-#   'manual'),
-#]
+latex_documents = [
+  ('manual', 'PyNIfTI-Manual.tex', 'PyNIfTI Manual',
+   'Michael~Hanke', 'manual'),
+]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #latex_logo = os.path.join('_static', 'logo.pdf')
 
 # Additional stuff for the LaTeX preamble.
-#latex_preamble = """
-#\usepackage{enumitem}
-#\setdescription{style=nextline,font=\\normalfont}
-#"""
+latex_preamble = """
+\usepackage{enumitem}
+\setdescription{style=nextline,font=\\normalfont}
+"""
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
 # If false, no module index is generated.
-#latex_use_modindex = True
+latex_use_modindex = True

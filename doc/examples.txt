@@ -178,17 +178,18 @@ and finally plot the timeseries of voxel (x=20, y=30, z=12)
 
   >>> gp.plot(nim.data[:,12,30,20])
 
-A Gnuplot window showing the timeseries_ should popup now. Please refer to the
-Gnuplot manual to learn what it can do -- and it can do a lot more than just
-simple line plots (have a look at some `Gnuplot demos`_ if you are
-interested).
+.. figure:: pics/gnuplot_ts.png
+
+  A Gnuplot window showing the timeseries should popup now.
+  Please refer to the Gnuplot manual to learn what it can do --
+  and it can do a lot more than just simple line plots (have a
+  look at some `Gnuplot demos`_ if you are interested).
 
 .. _Gnuplot python bindings: http://gnuplot-py.sourceforge.net
 .. _Gnuplot: http://www.gnuplot.info
 .. _IPython: http://ipython.scipy.org
 .. _matplotlib: http://matplotlib.sourceforge.net
 .. _Gnuplot demos: http://gnuplot.sourceforge.net/demo_4.3/index.html
-.. _timeseries: pics/gnuplot_ts.png
 
 
 Show a slice of a 3d volume (Matplotlib module is required)
@@ -256,7 +257,6 @@ zero and any following value is the signal change with respect to the onset
 volume.
 
 .. figure:: pics/fslview_pst.png
-   :width: 15cm
 
    FSLView with ``pynifti_pst`` example.
 
