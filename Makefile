@@ -30,7 +30,8 @@ all: build
 
 
 build: build-stamp
-build-stamp: 3rd
+# no 3rd building in Debian
+build-stamp:
 	python setup.py config --noisy
 	python setup.py build_ext
 	python setup.py build_py
