@@ -19,3 +19,6 @@ __docformat__ = 'restructuredtext'
 
 
 from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
+
+# canonical version string
+pynifti_version = '0.2009xxxx.1'

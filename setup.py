@@ -26,6 +26,7 @@ include_dirs = []
 library_dirs = []
 defines = []
 link_libs = []
+# for some additional swig flags, but see below
 swig_opts = []
 # a more reliable way to pass options to SWIG
 os.environ['SWIG_FEATURES'] = '-O -v'
@@ -35,15 +36,14 @@ os.environ['SWIG_FEATURES'] = '-O -v'
 # Check for 3rd party stuff #
 #############################
 
-# only if local nifticlibs are available
+# make use of the local nifticlibs copy, only if it was compiled before
 if os.path.exists(os.path.join('build', 'nifticlibs', 'libniftiio.a')):
     include_dirs += [os.path.join('3rd', 'nifticlibs')]
     library_dirs += [os.path.join('build', 'nifticlibs')]
     # need to link against additional libs in case of the local static lib
     link_libs += ['znz', 'z']
-
-# try to look for nifticlibs in some place
 else:
+    # try to look for nifticlibs in some place
     if not sys.platform.startswith('win'):
         include_dirs += ['/usr/include/nifti',
                          '/usr/include/nifticlibs',
@@ -53,6 +53,7 @@ else:
     else:
         # no clue on windows
         pass
+
 
 ###########################
 # Platform-specific setup #
@@ -87,7 +88,7 @@ nifticlib_ext = Extension(
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20081017.1',
+    version      = '0.2009xxxx.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'MIT License',

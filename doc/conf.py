@@ -13,6 +13,8 @@
 
 import sys, os, re
 import numpy as N
+# also import pynifti itself to get the version string
+from nifti import pynifti_version
 
 try:
     import matplotlib
@@ -283,9 +285,9 @@ copyright = '2006-2008, Michael Hanke'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.20081230.1'
+version = pynifti_version
 # The full version, including alpha/beta/rc tags.
-release = '0.20081230.1'
+release = pynifti_version
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
