@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.38), swig, python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext, libnifti1-dev | libnifti-dev, python-docutils
+Build-Depends: cdbs, debhelper (>= 5.0.38), swig, python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext, libnifti1-dev | libnifti-dev, python-sphinx, texlive, texlive-latex-extra
 Standards-Version: 3.8.0
 Homepage: http://niftilib.sourceforge.net/pynifti/
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
@@ -11,7 +11,7 @@ Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
 
 Package: python-nifti
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext
+Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python interface to the NIfTI I/O libraries

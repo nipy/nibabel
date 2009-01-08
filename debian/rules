@@ -10,12 +10,22 @@ clean::
 	$(MAKE) distclean
 
 build/python-nifti::
-	$(MAKE) htmlmanual
+	$(MAKE) unittest
+	$(MAKE) htmldoc
+	$(MAKE) pdfdoc
+
+
+# use jquery from Debian package
+# symlinked by debhelper
+install/python-mvpa-doc::
+	-rm build/html/_static/jquery.js
+
 
 # install directly into package directory
 DEB_DESTDIR = $(CURDIR)/debian/python-nifti
 # immediately useable documentation
-DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt
+# and exemplar data (they are small excerpts anyways)
+DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt .js .json .rtc .par .bin
 # doc contents
-DEB_INSTALL_DOCS_python-nifti := build/html
+DEB_INSTALL_DOCS_python-nifti := build/html build/latex/PyNIfTI*.pdf
 
