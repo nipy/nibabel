@@ -284,7 +284,7 @@ h3 {
 
 h3::before
 {
-    content: url(item.jpg);
+    content: url(item.png);
     padding-right: 5px;
   }
 
