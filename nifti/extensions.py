@@ -67,6 +67,7 @@ class NiftiExtensions(object):
     The usage is best explained by a few examples. All examples assume a NIfTI
     image to be loaded:
 
+      >>> from nifti import *
       >>> nim = NiftiImage('example4d.nii.gz')
 
     Access to the extensions is provided through the `extensions` attribute of

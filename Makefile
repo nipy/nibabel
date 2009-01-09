@@ -80,12 +80,19 @@ $(WWW_DIR):
 # Tests
 #
 
+test: unittest testdoc
+
 ut-%: build
 	@cd tests && PYTHONPATH=.. python test_$*.py
 
 
 unittest: build
 	@cd tests && PYTHONPATH=.. python main.py
+
+
+testdoc: build
+# go into data, because docs assume now data dir
+	@cd tests/data && PYTHONPATH=../../ nosetests --with-doctest ../../nifti/
 
 
 coverage: build
