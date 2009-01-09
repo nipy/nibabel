@@ -178,6 +178,7 @@ nifti_units_map = \
      "rad/s": nifticlib.NIFTI_UNITS_RADS,
     }
 
+
 # encode bits of NIfTI1 standard
 valid_xyz_unit_codes = range(8)
 valid_time_unit_codes = range(0, 64, 8)
@@ -204,7 +205,7 @@ nifti_xform_map = \
 nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
 
 
-def nhdr2dict(nhdr):
+def nhdr2dict(nhdr, extensions=None):
     """Convert a NIfTI header struct into a python dictionary.
 
     While most elements of the header struct will be translated
@@ -263,6 +264,15 @@ def nhdr2dict(nhdr):
     # expand units
     h['xyz_unit'] = nifticlib.xyzt2space(nhdr.xyzt_units)
     h['time_unit'] = nifticlib.xyzt2time(nhdr.xyzt_units)
+
+    if not extensions:
+        return h
+
+    #
+    # handle extensions
+    #
+    # simply store a tuple of code (i.e. extension type) and extension data
+    h['extensions'] = [e for e in extensions.iteritems()]
 
     return h
 

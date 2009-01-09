@@ -15,7 +15,8 @@ __docformat__ = 'restructuredtext'
 
 # the swig wrapper if the NIfTI C library
 import nifticlib
-from utils import nhdr2dict, updateNiftiHeaderFromDict, \
+from nifti.extensions import NiftiExtensions
+from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
     Ndtype2niftidtype, nifti_xform_map, nifti_xform_inv_map, nifti_units_map, \
     _checkUnit, valid_xyz_unit_codes, valid_time_unit_codes, \
     nifti2numpy_dtype_map
@@ -31,6 +32,14 @@ class NiftiFormat(object):
     In addition, a number of methods to manipulate the header information are
     provided. However, this class is not able to write a NIfTI header back to
     disk. Please refer to the NIfTIImage class for this functionality.
+
+    .. note::
+
+      Handling of NIfTI header extensions is provided by the
+      :class:`~nifti.extensions.NiftiExtensions` class (see its documentation
+      for more information). Access to an instance of this class is available
+      through the `NiftiFormat.extensions` attribute.
+
     """
     def __init__(self, source, header=None):
         """
@@ -52,13 +61,16 @@ class NiftiFormat(object):
         """
         self.__nimg = None
 
-        if header == None:
-            header = {}
-
         if type(source) == N.ndarray:
+            # newFromArray will take care of the extensions interface itself
             self.__newFromArray(source, header)
+
         elif type(source) in (str, unicode):
             self.__newFromFile(source)
+            # simply create extension interface since nifticlib took care of
+            # loading all extensions already
+            self.extensions = NiftiExtensions(self.raw_nimg)
+
         else:
             raise ValueError, \
                   "Unsupported source type. Only NumPy arrays and filename " \
@@ -70,7 +82,7 @@ class NiftiFormat(object):
             nifticlib.nifti_image_free(self.__nimg)
 
 
-    def __newFromArray(self, data, hdr = {}):
+    def __newFromArray(self, data, hdr=None):
         """Create a `nifti_image` struct from a ndarray.
 
         :Parameters:
@@ -83,6 +95,8 @@ class NiftiFormat(object):
           This is an internal method. Neither its availability nor its API is
           guarenteed.
         """
+        if hdr == None:
+            hdr = {}
 
         # check array
         if len(data.shape) > 7:
@@ -135,6 +149,14 @@ class NiftiFormat(object):
         # kill filename for nifti images from arrays
         self.__nimg.fname = ''
         self.__nimg.iname = ''
+
+        #
+        # handle extensions
+        #
+        extsource = None
+        if hdic.has_key('extensions'):
+            extsource = hdic['extensions']
+        self.extensions = NiftiExtensions(self.__nimg, extsource)
 
 
     def __newFromFile(self, filename):
@@ -337,9 +359,10 @@ class NiftiFormat(object):
         # Convert nifti_image struct into nifti1 header struct.
         # This get us all data that will actually make it into a
         # NIfTI file.
-        nhdr = nifticlib.nifti_convert_nim2nhdr(self.__nimg)
+        nhdr = nifticlib.nifti_convert_nim2nhdr(self.raw_nimg)
 
-        return nhdr2dict(nhdr)
+        # pass extensions as well
+        return nhdr2dict(nhdr, extensions=self.extensions)
 
 
     def updateFromDict(self, hdrdict):

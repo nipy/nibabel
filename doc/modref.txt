@@ -57,6 +57,21 @@ Module :mod:`~nifti.niftiimage`
   :show-inheritance:
 
 
+Module :mod:`~nifti.extensions`
+===============================
+
+.. automodule:: nifti.extensions
+
+
+:class:`NiftiExtensions`
+------------------------
+
+.. autoclass:: nifti.extensions.NiftiExtensions
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
 
 Useful Functions from :mod:`nifti.utils`
 ========================================

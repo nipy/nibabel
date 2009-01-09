@@ -21,6 +21,7 @@ import unittest
 tests = [ 'test_fileio',
           'test_utils',
           'test_format',
+          'test_extensions',
         ]
 
 

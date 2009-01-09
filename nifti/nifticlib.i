@@ -302,5 +302,6 @@ char spacetime2xyzt(int sp, int t);
 %array_class(unsigned int, uintArray);
 %array_class(float, floatArray);
 %array_class(double, doubleArray);
+%array_class(nifti1_extension, extensionArray);
 
 

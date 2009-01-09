@@ -37,7 +37,7 @@ def md5sum(filename):
 class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
-        self.nimg = NiftiImage('data/example4d.nii.gz')
+        self.nimg = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
 
     def tearDown(self):
@@ -48,8 +48,9 @@ class FileIOTests(unittest.TestCase):
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
-        md5_orig = md5sum('data/example4d.nii.gz')
+        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
+        nimg2 = NiftiImage( os.path.join( self.workdir, 'iotest.nii.gz'))
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
@@ -58,7 +59,7 @@ class FileIOTests(unittest.TestCase):
     def testUnicodeLoadSaveCycle(self):
         """ check load/save cycle for unicode filenames.
         """
-        md5_orig = md5sum('data/example4d.nii.gz')
+        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
@@ -174,7 +175,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless((self.nimg.qform == nimg2.qform).all())
 
         # now test setting full qform
-        nimg3 = NiftiImage('data/example4d.nii.gz')
+        nimg3 = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
 
         # build custom qform matrix
         qform = N.identity(4)
@@ -255,7 +256,19 @@ class FileIOTests(unittest.TestCase):
         self.nimg.save(self.fp.name)
         nimg2 = NiftiImage(self.fp.name)
         self.failUnless(self.nimg.voxdim == nimg2.voxdim)
-        
+
+
+    def testExtensionsSurvive(self):
+        """ check if extensions actually get safed to the file.
+        """
+        self.nimg.extensions += ('comment', 'fileio')
+        self.nimg.save(os.path.join( self.workdir, 'extensions.nii.gz'))
+
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'extensions.nii.gz'))
+
+        # should be the last one added
+        self.failUnless(nimg2.extensions[-1] == 'fileio')
+
 
 def suite():
     return unittest.makeSuite(FileIOTests)
