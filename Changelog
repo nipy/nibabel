@@ -20,6 +20,13 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  * The whole package was restructured. The included renaming
+    `nifti.nifti(image,format,clibs)` to `nifti.(image,format,clibs)`. Redirect
+    modules make sure that existing user code will not break, but they will
+    issue a DeprecationWarning and will be removed with the release of PyNIfTI
+    1.0.
+  * Added :class:`~nifti.extensions.NiftiExtensions`. This is a container-like
+    handler to access and manipulate NIfTI1 header extensions.
   * Exposed :class:`~nifti.image.MemMappedNiftiImage` in the root module.
   * Moved :func:`~nifti.utils.cropImage` into the :mod:`~nifti.utils` module.
   * From now on Sphinx is used to generate the documentation. This includes a
@@ -53,7 +60,8 @@ Unreleased changes
   * Introduced :data:`nifti.pynifti_version` as canonical version string.
   * Removed `updateQFormFromQuarternion()` from the list of public methods of
     :class:`~nifti.format.NiftiFormat`. This is an internal method that
-    should not be used in user code.
+    should not be used in user code. However, a redirect to the new method
+    will remain in-place until PyNIfTI 1.0.
   * Bugfix: :meth:`~nifti.image.NiftiImage.getScaledData` returns a
     unmodified data array if `slope` is set to zero (as required by the NIfTI
     standard). Thanks to Thomas Ross for reporting.
