@@ -181,8 +181,8 @@ class NiftiFormat(object):
         """Returns a 3-tuple a voxel dimensions/size in (x,y,z).
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setVoxDims`,
-          :attr:`~nifti.niftiformat.NiftiFormat.voxdim`
+          :meth:`~nifti.format.NiftiFormat.setVoxDims`,
+          :attr:`~nifti.format.NiftiFormat.voxdim`
         """
         return (self.__nimg.dx, self.__nimg.dy, self.__nimg.dz)
 
@@ -197,8 +197,8 @@ class NiftiFormat(object):
             Have to be given in (x,y,z) order.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getVoxDims`,
-          :attr:`~nifti.niftiformat.NiftiFormat.voxdim`
+          :meth:`~nifti.format.NiftiFormat.getVoxDims`,
+          :attr:`~nifti.format.NiftiFormat.voxdim`
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -227,9 +227,9 @@ class NiftiFormat(object):
           `setVoxDims()`.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setVoxDims`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getPixDims`,
-          :attr:`~nifti.niftiformat.NiftiFormat.pixdim`
+          :meth:`~nifti.format.NiftiFormat.setVoxDims`,
+          :meth:`~nifti.format.NiftiFormat.getPixDims`,
+          :attr:`~nifti.format.NiftiFormat.pixdim`
         """
         if len(value) > 7:
             raise ValueError, \
@@ -256,9 +256,9 @@ class NiftiFormat(object):
         pixel on all 7 dimensions supported by the NIfTI dataformat.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getVoxDims`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setPixDims`,
-          :attr:`~nifti.niftiformat.NiftiFormat.pixdim`
+          :meth:`~nifti.format.NiftiFormat.getVoxDims`,
+          :meth:`~nifti.format.NiftiFormat.setPixDims`,
+          :attr:`~nifti.format.NiftiFormat.pixdim`
         """
         return \
             tuple([ ncl.floatArray_frompointer(self.__nimg.pixdim)[i]
@@ -277,9 +277,9 @@ class NiftiFormat(object):
             returned by calling `NiftiImage.data.shape`!
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getVolumeExtent`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getTimepoints`,
-          :attr:`~nifti.niftiformat.NiftiFormat.extent`
+          :meth:`~nifti.format.NiftiFormat.getVolumeExtent`,
+          :meth:`~nifti.format.NiftiFormat.getTimepoints`,
+          :attr:`~nifti.format.NiftiFormat.extent`
         """
         # wrap dim array in nifti image struct
         dims_array = ncl.intArray_frompointer(self.__nimg.dim)
@@ -299,8 +299,8 @@ class NiftiFormat(object):
             The order of dimensions in the tuple is (x [, y [, z ] ] ).
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getExtent`,
-          :attr:`~nifti.niftiformat.NiftiFormat.volextent`
+          :meth:`~nifti.format.NiftiFormat.getExtent`,
+          :attr:`~nifti.format.NiftiFormat.volextent`
         """
 
         # it is save to do this even if self.extent is shorter than 4 items
@@ -313,7 +313,7 @@ class NiftiFormat(object):
         In case of a 3d (or less dimension) image this method returns 1.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.timepoints`
+          :attr:`~nifti.format.NiftiFormat.timepoints`
         """
 
         if len(self.extent) < 4:
@@ -326,8 +326,8 @@ class NiftiFormat(object):
         """Returns the temporal distance between the volumes in a timeseries.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setRepetitionTime`,
-          :attr:`~nifti.niftiformat.NiftiFormat.rtime`
+          :meth:`~nifti.format.NiftiFormat.setRepetitionTime`,
+          :attr:`~nifti.format.NiftiFormat.rtime`
         """
         return self.__nimg.dt
 
@@ -336,8 +336,8 @@ class NiftiFormat(object):
         """Set the repetition time of a NIfTI image (dt).
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getRepetitionTime`,
-          :attr:`~nifti.niftiformat.NiftiFormat.rtime`
+          :meth:`~nifti.format.NiftiFormat.getRepetitionTime`,
+          :attr:`~nifti.format.NiftiFormat.rtime`
         """
         self.__nimg.dt = float(value)
 
@@ -349,12 +349,12 @@ class NiftiFormat(object):
 
           Modifications done to the returned dictionary do not cause any
           modifications in the NIfTI image itself. Please use
-          :meth:`~nifti.niftiformat.NiftiFormat.updateFromDict` to apply
+          :meth:`~nifti.format.NiftiFormat.updateFromDict` to apply
           changes to the image.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.updateFromDict`,
-          :attr:`~nifti.niftiformat.NiftiFormat.header`
+          :meth:`~nifti.format.NiftiFormat.updateFromDict`,
+          :attr:`~nifti.format.NiftiFormat.header`
         """
         # Convert nifti_image struct into nifti1 header struct.
         # This get us all data that will actually make it into a
@@ -379,8 +379,8 @@ class NiftiFormat(object):
         NiftiImage object as 'header'.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.asDict`,
-          :attr:`~nifti.niftiformat.NiftiFormat.header`
+          :meth:`~nifti.format.NiftiFormat.asDict`,
+          :attr:`~nifti.format.NiftiFormat.header`
         """
         # rebuild nifti header from current image struct
         nhdr = ncl.nifti_convert_nim2nhdr(self.__nimg)
@@ -427,8 +427,8 @@ class NiftiFormat(object):
         Setting the slope to zero, will disable scaling.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.slope`,
-          :attr:`~nifti.niftiformat.NiftiFormat.intercept`
+          :attr:`~nifti.format.NiftiFormat.slope`,
+          :attr:`~nifti.format.NiftiFormat.intercept`
         """
         self.__nimg.scl_slope = float(value)
 
@@ -440,8 +440,8 @@ class NiftiFormat(object):
         slope value.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.slope`,
-          :attr:`~nifti.niftiformat.NiftiFormat.intercept`
+          :attr:`~nifti.format.NiftiFormat.slope`,
+          :attr:`~nifti.format.NiftiFormat.intercept`
         """
         self.__nimg.scl_inter = float(value)
 
@@ -454,7 +454,7 @@ class NiftiFormat(object):
             Description -- must not be longer than 79 characters.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.description`
+          :attr:`~nifti.format.NiftiFormat.description`
         """
         if len(value) > 79:
             raise ValueError, \
@@ -496,12 +496,12 @@ class NiftiFormat(object):
             via the `nifti.clib` module, or the corresponding integer value.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setSFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getSFormCode`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_code`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
+          :meth:`~nifti.format.NiftiFormat.setQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.setSFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getSFormCode`,
+          :attr:`~nifti.format.NiftiFormat.qform_code`,
+          :attr:`~nifti.format.NiftiFormat.sform_code`
         """
         if isinstance(code, str):
             if not code in nifti_xform_map.keys():
@@ -528,7 +528,7 @@ class NiftiFormat(object):
 
         .. note::
           This is a convenience frontend for
-          :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode`. Please see its
+          :meth:`~nifti.format.NiftiFormat.setXFormCode`. Please see its
           documentation for more information.
         """
         self.setXFormCode('qform', code)
@@ -541,8 +541,8 @@ class NiftiFormat(object):
         true a string representation ala 'talairach' is returned instead.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_code`
+          :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+          :attr:`~nifti.format.NiftiFormat.qform_code`
         """
         code = self.raw_nimg.qform_code
         if as_string:
@@ -558,8 +558,8 @@ class NiftiFormat(object):
         true a string representation ala 'talairach' is returned instead.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getSFormCode`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
+          :meth:`~nifti.format.NiftiFormat.getSFormCode`,
+          :attr:`~nifti.format.NiftiFormat.sform_code`
         """
         code = self.raw_nimg.sform_code
         if as_string:
@@ -573,7 +573,7 @@ class NiftiFormat(object):
 
         .. note::
           This is a convenience frontend for
-          :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode`. Please see its
+          :meth:`~nifti.format.NiftiFormat.setXFormCode`. Please see its
           documentation for more information.
         """
         self.setXFormCode('sform', code)
@@ -589,12 +589,12 @@ class NiftiFormat(object):
           matrix can only be done by setting a new sform matrix
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setSForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setSFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getSFormCode`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_inv`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
+          :meth:`~nifti.format.NiftiFormat.setSForm`,
+          :meth:`~nifti.format.NiftiFormat.setSFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getSFormCode`,
+          :attr:`~nifti.format.NiftiFormat.sform`,
+          :attr:`~nifti.format.NiftiFormat.sform_inv`,
+          :attr:`~nifti.format.NiftiFormat.sform_code`
         """
         return ncl.mat442array(self.__nimg.sto_xyz)
 
@@ -616,15 +616,15 @@ class NiftiFormat(object):
             The type of the coordinate system the sform matrix is describing.
             By default this coordinate system is assumed to be the MNI152
             space.  Please refer to the
-            :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode` method for a
+            :meth:`~nifti.format.NiftiFormat.setXFormCode` method for a
             full list of possible codes and their meaning.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getSForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setSFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getSFormCode`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
+          :meth:`~nifti.format.NiftiFormat.getSForm`,
+          :meth:`~nifti.format.NiftiFormat.setSFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getSFormCode`,
+          :attr:`~nifti.format.NiftiFormat.sform`,
+          :attr:`~nifti.format.NiftiFormat.sform_code`
         """
         if m.shape != (4, 4):
             raise ValueError, "SForm matrix has to be of size 4x4."
@@ -656,9 +656,9 @@ class NiftiFormat(object):
           then re-calculated automatically.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getSForm`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.sform_inv`,
+          :meth:`~nifti.format.NiftiFormat.getSForm`,
+          :attr:`~nifti.format.NiftiFormat.sform`,
+          :attr:`~nifti.format.NiftiFormat.sform_inv`,
         """
         return ncl.mat442array(self.__nimg.sto_ijk)
 
@@ -673,20 +673,20 @@ class NiftiFormat(object):
           matrix can only be done by setting a new qform matrix
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setQForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQuaternion`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQuaternion`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFac`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_inv`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_code`,
-          :attr:`~nifti.niftiformat.NiftiFormat.quatern`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qoffset`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qfac`
+          :meth:`~nifti.format.NiftiFormat.setQForm`,
+          :meth:`~nifti.format.NiftiFormat.setQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQuaternion`,
+          :meth:`~nifti.format.NiftiFormat.getQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQuaternion`,
+          :meth:`~nifti.format.NiftiFormat.setQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQFac`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qform_inv`,
+          :attr:`~nifti.format.NiftiFormat.qform_code`,
+          :attr:`~nifti.format.NiftiFormat.quatern`,
+          :attr:`~nifti.format.NiftiFormat.qoffset`,
+          :attr:`~nifti.format.NiftiFormat.qfac`
         """
         return ncl.mat442array(self.__nimg.qto_xyz)
 
@@ -701,9 +701,9 @@ class NiftiFormat(object):
           then re-calculated automatically.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getQForm`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_inv`,
+          :meth:`~nifti.format.NiftiFormat.getQForm`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qform_inv`,
         """
         return ncl.mat442array(self.__nimg.qto_ijk)
 
@@ -724,24 +724,24 @@ class NiftiFormat(object):
             The type of the coordinate system the qform matrix is describing.
             By default this coordinate system is assumed to be the scanner
             space.  Please refer to the
-            :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode` method for a
+            :meth:`~nifti.format.NiftiFormat.setXFormCode` method for a
             full list of possible codes and their meaning.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getQForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQuaternion`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQuaternion`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFac`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_inv`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_code`,
-          :attr:`~nifti.niftiformat.NiftiFormat.quatern`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qoffset`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qfac`
+          :meth:`~nifti.format.NiftiFormat.getQForm`,
+          :meth:`~nifti.format.NiftiFormat.setQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQuaternion`,
+          :meth:`~nifti.format.NiftiFormat.getQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQuaternion`,
+          :meth:`~nifti.format.NiftiFormat.setQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQFac`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qform_inv`,
+          :attr:`~nifti.format.NiftiFormat.qform_code`,
+          :attr:`~nifti.format.NiftiFormat.quatern`,
+          :attr:`~nifti.format.NiftiFormat.qoffset`,
+          :attr:`~nifti.format.NiftiFormat.qfac`
         """
         if m.shape != (4, 4):
             raise ValueError, "QForm matrix has to be of size 4x4."
@@ -814,24 +814,24 @@ class NiftiFormat(object):
             The type of the coordinate system the corresponding qform matrix is
             describing.  By default this coordinate system is assumed to be the
             scanner space.  Please refer to the
-            :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode` method for a
+            :meth:`~nifti.format.NiftiFormat.setXFormCode` method for a
             full list of possible codes and their meaning.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getQForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQuaternion`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQOffset`,
-          :meth:`~nifti.niftiformat.NiftiFormat.setQFac`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_inv`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform_code`,
-          :attr:`~nifti.niftiformat.NiftiFormat.quatern`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qoffset`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qfac`
+          :meth:`~nifti.format.NiftiFormat.getQForm`,
+          :meth:`~nifti.format.NiftiFormat.setQForm`,
+          :meth:`~nifti.format.NiftiFormat.setQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+          :meth:`~nifti.format.NiftiFormat.getQuaternion`,
+          :meth:`~nifti.format.NiftiFormat.getQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQOffset`,
+          :meth:`~nifti.format.NiftiFormat.setQFac`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qform_inv`,
+          :attr:`~nifti.format.NiftiFormat.qform_code`,
+          :attr:`~nifti.format.NiftiFormat.quatern`,
+          :attr:`~nifti.format.NiftiFormat.qoffset`,
+          :attr:`~nifti.format.NiftiFormat.qfac`
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -848,9 +848,9 @@ class NiftiFormat(object):
         """Returns a 3-tuple containing (qb, qc, qd).
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setQuaternion`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.quatern`
+          :meth:`~nifti.format.NiftiFormat.setQuaternion`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.quatern`
         """
         return( ( self.__nimg.quatern_b, 
                   self.__nimg.quatern_c, 
@@ -872,13 +872,13 @@ class NiftiFormat(object):
             The type of the coordinate system the corresponding qform matrix is
             describing.  By default this coordinate system is assumed to be the
             scanner space.  Please refer to the
-            :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode` method for a
+            :meth:`~nifti.format.NiftiFormat.setXFormCode` method for a
             full list of possible codes and their meaning.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getQOffset`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qoffset`
+          :meth:`~nifti.format.NiftiFormat.getQOffset`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qoffset`
         """
         if len(value) != 3:
             raise ValueError, 'Requires 3-tuple.'
@@ -895,9 +895,9 @@ class NiftiFormat(object):
         """Returns a 3-tuple containing (qx, qy, qz).
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setQOffset`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qoffset`
+          :meth:`~nifti.format.NiftiFormat.setQOffset`,
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qoffset`
         """
         return( ( self.__nimg.qoffset_x,
                   self.__nimg.qoffset_y,
@@ -919,12 +919,12 @@ class NiftiFormat(object):
             The type of the coordinate system the corresponding qform matrix is
             describing.  By default this coordinate system is assumed to be the
             scanner space.  Please refer to the
-            :meth:`~nifti.niftiformat.NiftiFormat.setXFormCode` method for a
+            :meth:`~nifti.format.NiftiFormat.setXFormCode` method for a
             full list of possible codes and their meaning.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`,
-          :attr:`~nifti.niftiformat.NiftiFormat.qfac`
+          :attr:`~nifti.format.NiftiFormat.qform`,
+          :attr:`~nifti.format.NiftiFormat.qfac`
         """
         self.__nimg.qfac = float(value)
         self.__updateQFormFromQuaternion()
@@ -944,7 +944,7 @@ class NiftiFormat(object):
             orientations fo the x, y and z axis respectively.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`
+          :attr:`~nifti.format.NiftiFormat.qform`
         """
         codes = ncl.nifti_mat44_to_orientation(self.__nimg.qto_xyz)
         if as_string:
@@ -966,7 +966,7 @@ class NiftiFormat(object):
             orientations fo the x, y and z axis respectively.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.sform`
+          :attr:`~nifti.format.NiftiFormat.sform`
         """
         codes = ncl.nifti_mat44_to_orientation(self.__nimg.sto_xyz)
         if as_string:
@@ -987,9 +987,9 @@ class NiftiFormat(object):
           vector
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setQForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getQForm`
-          :attr:`~nifti.niftiformat.NiftiFormat.qform`
+          :meth:`~nifti.format.NiftiFormat.setQForm`,
+          :meth:`~nifti.format.NiftiFormat.getQForm`
+          :attr:`~nifti.format.NiftiFormat.qform`
         """
         # add dummy one to row vector
         coord_ = N.r_[coord, [1.0]]
@@ -1011,9 +1011,9 @@ class NiftiFormat(object):
           vector
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setSForm`,
-          :meth:`~nifti.niftiformat.NiftiFormat.getSForm`
-          :attr:`~nifti.niftiformat.NiftiFormat.sform`
+          :meth:`~nifti.format.NiftiFormat.setSForm`,
+          :meth:`~nifti.format.NiftiFormat.getSForm`
+          :attr:`~nifti.format.NiftiFormat.sform`
         """
         # add dummy one to row vector
         coord_ = N.r_[coord, [1.0]]
@@ -1031,8 +1031,8 @@ class NiftiFormat(object):
         true a string representation ala 'mm' is returned instead.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setXYZUnit`,
-          :attr:`~nifti.niftiformat.NiftiFormat.xyz_unit`
+          :meth:`~nifti.format.NiftiFormat.setXYZUnit`,
+          :attr:`~nifti.format.NiftiFormat.xyz_unit`
         """
         code = self.__nimg.xyz_units
         if as_string:
@@ -1048,11 +1048,11 @@ class NiftiFormat(object):
           value: int | str
             The unit can either be given as a NIfTI unit code or as any of the
             plain text abbrevations returned by
-            :meth:'~nifti.niftiformat.NiftiFormat.getXYZUnit`
+            :meth:'~nifti.format.NiftiFormat.getXYZUnit`
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getXYZUnit`,
-          :attr:`~nifti.niftiformat.NiftiFormat.xyz_unit`
+          :meth:`~nifti.format.NiftiFormat.getXYZUnit`,
+          :attr:`~nifti.format.NiftiFormat.xyz_unit`
         """
         # check for valid codes according to NIfTI1 standard
         code = _checkUnit(value, valid_xyz_unit_codes)
@@ -1066,8 +1066,8 @@ class NiftiFormat(object):
         true a string representation ala 's' is returned instead.
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.setTimeUnit`,
-          :attr:`~nifti.niftiformat.NiftiFormat.time_unit`
+          :meth:`~nifti.format.NiftiFormat.setTimeUnit`,
+          :attr:`~nifti.format.NiftiFormat.time_unit`
         """
         code = self.__nimg.time_units
         if as_string:
@@ -1083,11 +1083,11 @@ class NiftiFormat(object):
           value: int | str
             The unit can either be given as a NIfTI unit code or as any of the
             plain text abbrevations returned by
-            :meth:'~nifti.niftiformat.NiftiFormat.getTimeUnit`
+            :meth:'~nifti.format.NiftiFormat.getTimeUnit`
 
         .. seealso::
-          :meth:`~nifti.niftiformat.NiftiFormat.getTimeUnit`,
-          :attr:`~nifti.niftiformat.NiftiFormat.time_unit`
+          :meth:`~nifti.format.NiftiFormat.getTimeUnit`,
+          :attr:`~nifti.format.NiftiFormat.time_unit`
         """
         # check for valid codes according to NIfTI1 standard
         code = _checkUnit(value, valid_time_unit_codes)
@@ -1102,7 +1102,7 @@ class NiftiFormat(object):
         NIfTI files.
 
         .. seealso::
-          :attr:`~nifti.niftiformat.NiftiFormat.filename`
+          :attr:`~nifti.format.NiftiFormat.filename`
         """
         if self.__nimg.nifti_type == ncl.NIFTI_FTYPE_ANALYZE:
             return self.__nimg.iname
@@ -1192,8 +1192,8 @@ class NiftiFormat(object):
                 nimg.header = h
 
             .. seealso::
-              :meth:`~nifti.niftiformat.NiftiFormat.asDict`,
-              :meth:`~nifti.niftiformat.NiftiFormat.updateFromDict`
+              :meth:`~nifti.format.NiftiFormat.asDict`,
+              :meth:`~nifti.format.NiftiFormat.updateFromDict`
             """)
     sform =         property(fget=getSForm, fset=setSForm)
     sform_code =    property(fget=getSFormCode, fset=setSFormCode)

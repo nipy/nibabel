@@ -17,32 +17,32 @@ Module Reference
 
 
 
-Module :mod:`~nifti.niftiformat`
+Module :mod:`~nifti.format`
 ================================
 
-.. automodule:: nifti.niftiformat
+.. automodule:: nifti.format
 
 
 :class:`NiftiFormat`
 --------------------
 
-.. autoclass:: nifti.niftiformat.NiftiFormat
+.. autoclass:: nifti.format.NiftiFormat
   :members:
   :undoc-members:
   :show-inheritance:
 
 
 
-Module :mod:`~nifti.niftiimage`
+Module :mod:`~nifti.image`
 ===============================
 
-.. automodule:: nifti.niftiimage
+.. automodule:: nifti.image
 
 
 :class:`NiftiImage`
 -------------------
 
-.. autoclass:: nifti.niftiimage.NiftiImage
+.. autoclass:: nifti.image.NiftiImage
   :members:
   :undoc-members:
   :show-inheritance:
@@ -51,7 +51,7 @@ Module :mod:`~nifti.niftiimage`
 :class:`MemMappedNiftiImage`
 ----------------------------
 
-.. autoclass:: nifti.niftiimage.MemMappedNiftiImage
+.. autoclass:: nifti.image.MemMappedNiftiImage
   :members:
   :undoc-members:
   :show-inheritance:

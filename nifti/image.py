@@ -8,9 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """This module provides two classes for accessing NIfTI files.
 
-* :class:`~nifti.niftiimage.NiftiImage` (traditional load-as-much-as-you-can
+* :class:`~nifti.image.NiftiImage` (traditional load-as-much-as-you-can
   approach)
-* :class:`~nifti.niftiimage.MemMappedNiftiImage` (memory-mapped access to
+* :class:`~nifti.image.MemMappedNiftiImage` (memory-mapped access to
   uncompressed NIfTI files)
 """
 
@@ -101,7 +101,7 @@ class NiftiImage(NiftiFormat):
             The name of the target file (typically including its extension).
             Usually setting the filename also determines the filetype
             (NIfTI/ANALYZE).  Please see
-            :meth:`~nifti.niftiimage.NiftiImage.setFilename` for some more
+            :meth:`~nifti.image.NiftiImage.setFilename` for some more
             details. If None, an image loaded from a file will cause the
             original image to be overwritten.
           filetype: str

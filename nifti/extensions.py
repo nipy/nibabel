@@ -118,7 +118,7 @@ class NiftiExtensions(object):
         :Parameters:
           raw_nimg: nifti_image struct
             This is the raw NIfTI image struct pointer. It is typically provided
-            by :attr:`nifti.niftiformat.NiftiFormat.raw_nimg`.
+            by :attr:`nifti.format.NiftiFormat.raw_nimg`.
           source: list(2-tuple)
             This is an optional list for extension tuples (ecode, edata). Each
             element of this list will be appended as a new extension.

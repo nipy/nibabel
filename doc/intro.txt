@@ -63,7 +63,7 @@ PyNIfTI
 
 PyNIfTI aims to provide easy access to NIfTI images from within Python. It uses
 SWIG_-generated wrappers for the NIfTI reference library and provides the
-:class:`~nifti.niftiimage.NiftiImage` class for Python-style access to the
+:class:`~nifti.image.NiftiImage` class for Python-style access to the
 image data.
 
 While PyNIfTI is not yet complete (i.e. doesn't support everything the
@@ -94,7 +94,7 @@ features are currently implemented:
   but with minor modifications.
 
 * Most properties of NIfTI images are accessible via attributes and/or accessor
-  functions of the :class:`~nifti.niftiimage.NiftiImage`. Inter-dependent
+  functions of the :class:`~nifti.image.NiftiImage`. Inter-dependent
   properties are automatically updated if necessary (e.g. modifying the Q-Form
   matrix also updates the pixdim properties and quaternion representation).
 
