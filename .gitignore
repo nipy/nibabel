@@ -4,5 +4,5 @@ build
 *.swp
 *.pyc
 *.pyo
-nifti/_nifticlib.so
-nifti/nifticlib.py
+nifti/_clib.so
+nifti/clib.py

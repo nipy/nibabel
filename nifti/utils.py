@@ -12,7 +12,7 @@ __docformat__ = 'restructuredtext'
 
 
 import numpy as N
-import nifticlib
+import nifti.clib as ncl
 
 
 def cropImage( nimg, bbox ):
@@ -133,49 +133,49 @@ filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
               'NIFTI_PAIR_GZ' ]
 """Typecodes of all supported NIfTI image formats."""
 
-N2nifti_dtype_map = { N.uint8: nifticlib.NIFTI_TYPE_UINT8,
-                      N.int8 : nifticlib.NIFTI_TYPE_INT8,
-                      N.uint16: nifticlib.NIFTI_TYPE_UINT16,
-                      N.int16 : nifticlib.NIFTI_TYPE_INT16,
-                      N.uint32: nifticlib.NIFTI_TYPE_UINT32,
-                      N.int32 : nifticlib.NIFTI_TYPE_INT32,
-                      N.uint64: nifticlib.NIFTI_TYPE_UINT64,
-                      N.int64 : nifticlib.NIFTI_TYPE_INT64,
-                      N.float32: nifticlib.NIFTI_TYPE_FLOAT32,
-                      N.float64: nifticlib.NIFTI_TYPE_FLOAT64,
-                      N.complex128: nifticlib.NIFTI_TYPE_COMPLEX128
+N2nifti_dtype_map = { N.uint8: ncl.NIFTI_TYPE_UINT8,
+                      N.int8 : ncl.NIFTI_TYPE_INT8,
+                      N.uint16: ncl.NIFTI_TYPE_UINT16,
+                      N.int16 : ncl.NIFTI_TYPE_INT16,
+                      N.uint32: ncl.NIFTI_TYPE_UINT32,
+                      N.int32 : ncl.NIFTI_TYPE_INT32,
+                      N.uint64: ncl.NIFTI_TYPE_UINT64,
+                      N.int64 : ncl.NIFTI_TYPE_INT64,
+                      N.float32: ncl.NIFTI_TYPE_FLOAT32,
+                      N.float64: ncl.NIFTI_TYPE_FLOAT64,
+                      N.complex128: ncl.NIFTI_TYPE_COMPLEX128
                     }
 """Mapping of NumPy datatypes to NIfTI datatypes."""
 
 
 nifti2numpy_dtype_map = \
-    { nifticlib.NIFTI_TYPE_UINT8: 'u1',
-      nifticlib.NIFTI_TYPE_INT8: 'i1',
-      nifticlib.NIFTI_TYPE_UINT16: 'u2',
-      nifticlib.NIFTI_TYPE_INT16: 'i2',
-      nifticlib.NIFTI_TYPE_UINT32: 'u4',
-      nifticlib.NIFTI_TYPE_INT32: 'i4',
-      nifticlib.NIFTI_TYPE_UINT64: 'u8',
-      nifticlib.NIFTI_TYPE_INT64: 'i8',
-      nifticlib.NIFTI_TYPE_FLOAT32: 'f4',
-      nifticlib.NIFTI_TYPE_FLOAT64: 'f8',
-      nifticlib.NIFTI_TYPE_COMPLEX128: 'c16'
+    { ncl.NIFTI_TYPE_UINT8: 'u1',
+      ncl.NIFTI_TYPE_INT8: 'i1',
+      ncl.NIFTI_TYPE_UINT16: 'u2',
+      ncl.NIFTI_TYPE_INT16: 'i2',
+      ncl.NIFTI_TYPE_UINT32: 'u4',
+      ncl.NIFTI_TYPE_INT32: 'i4',
+      ncl.NIFTI_TYPE_UINT64: 'u8',
+      ncl.NIFTI_TYPE_INT64: 'i8',
+      ncl.NIFTI_TYPE_FLOAT32: 'f4',
+      ncl.NIFTI_TYPE_FLOAT64: 'f8',
+      ncl.NIFTI_TYPE_COMPLEX128: 'c16'
     }
 """Mapping of NIfTI to NumPy datatypes (necessary for handling memory
 mapped array with proper byte-order handling."""
 
 
 nifti_units_map = \
-    {"unknown": nifticlib.NIFTI_UNITS_UNKNOWN,
-     "m": nifticlib.NIFTI_UNITS_METER,
-     "mm": nifticlib.NIFTI_UNITS_MM,
-     "um": nifticlib.NIFTI_UNITS_MICRON,
-     "s": nifticlib.NIFTI_UNITS_SEC,
-     "ms": nifticlib.NIFTI_UNITS_MSEC,
-     "us": nifticlib.NIFTI_UNITS_USEC,
-     "Hz": nifticlib.NIFTI_UNITS_HZ,
-     "ppm": nifticlib.NIFTI_UNITS_PPM,
-     "rad/s": nifticlib.NIFTI_UNITS_RADS,
+    {"unknown": ncl.NIFTI_UNITS_UNKNOWN,
+     "m": ncl.NIFTI_UNITS_METER,
+     "mm": ncl.NIFTI_UNITS_MM,
+     "um": ncl.NIFTI_UNITS_MICRON,
+     "s": ncl.NIFTI_UNITS_SEC,
+     "ms": ncl.NIFTI_UNITS_MSEC,
+     "us": ncl.NIFTI_UNITS_USEC,
+     "Hz": ncl.NIFTI_UNITS_HZ,
+     "ppm": ncl.NIFTI_UNITS_PPM,
+     "rad/s": ncl.NIFTI_UNITS_RADS,
     }
 
 
@@ -196,11 +196,11 @@ def Ndtype2niftidtype(array):
 
 
 nifti_xform_map = \
-    { 'unknown': nifticlib.NIFTI_XFORM_UNKNOWN,
-      'scanner': nifticlib.NIFTI_XFORM_SCANNER_ANAT,
-      'aligned': nifticlib.NIFTI_XFORM_ALIGNED_ANAT,
-      'talairach': nifticlib.NIFTI_XFORM_TALAIRACH,
-      'mni152': nifticlib.NIFTI_XFORM_MNI_152,
+    { 'unknown': ncl.NIFTI_XFORM_UNKNOWN,
+      'scanner': ncl.NIFTI_XFORM_SCANNER_ANAT,
+      'aligned': ncl.NIFTI_XFORM_ALIGNED_ANAT,
+      'talairach': ncl.NIFTI_XFORM_TALAIRACH,
+      'mni152': ncl.NIFTI_XFORM_MNI_152,
     }
 nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
 
@@ -239,17 +239,17 @@ def nhdr2dict(nhdr, extensions=None):
 
     # handle a few special cases
     # handle 'pixdim': carray -> list
-    pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
+    pixdim = ncl.floatArray_frompointer(nhdr.pixdim)
     h['pixdim'] = [ pixdim[i] for i in range(8) ]
 
     # handle dim: carray -> list
-    dim = nifticlib.shortArray_frompointer(nhdr.dim)
+    dim = ncl.shortArray_frompointer(nhdr.dim)
     h['dim'] = [ dim[i] for i in range(8) ]
 
     # handle sform: carrays -> (4x4) ndarray
-    srow_x = nifticlib.floatArray_frompointer( nhdr.srow_x )
-    srow_y = nifticlib.floatArray_frompointer( nhdr.srow_y )
-    srow_z = nifticlib.floatArray_frompointer( nhdr.srow_z )
+    srow_x = ncl.floatArray_frompointer( nhdr.srow_x )
+    srow_y = ncl.floatArray_frompointer( nhdr.srow_y )
+    srow_z = ncl.floatArray_frompointer( nhdr.srow_z )
 
     h['sform'] = N.array( [ [ srow_x[i] for i in range(4) ],
                                 [ srow_y[i] for i in range(4) ],
@@ -262,8 +262,8 @@ def nhdr2dict(nhdr, extensions=None):
 
     # some more postprocessing
     # expand units
-    h['xyz_unit'] = nifticlib.xyzt2space(nhdr.xyzt_units)
-    h['time_unit'] = nifticlib.xyzt2time(nhdr.xyzt_units)
+    h['xyz_unit'] = ncl.xyzt2space(nhdr.xyzt_units)
+    h['time_unit'] = ncl.xyzt2time(nhdr.xyzt_units)
 
     if not extensions:
         return h
@@ -327,7 +327,7 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
         nhdr.dim_info = hdrdict['dim_info']
 
     if hdrdict.has_key('dim'):
-        dim = nifticlib.shortArray_frompointer(nhdr.dim)
+        dim = ncl.shortArray_frompointer(nhdr.dim)
         for i in range(8):
             dim[i] = hdrdict['dim'][i]
     if hdrdict.has_key('intent_p1'):
@@ -345,7 +345,7 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
     if hdrdict.has_key('slice_start'):
         nhdr.slice_start = hdrdict['slice_start']
     if hdrdict.has_key('pixdim'):
-        pixdim = nifticlib.floatArray_frompointer(nhdr.pixdim)
+        pixdim = ncl.floatArray_frompointer(nhdr.pixdim)
         for i in range(8):
             pixdim[i] = hdrdict['pixdim'][i]
     if hdrdict.has_key('vox_offset'):
@@ -362,8 +362,8 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
        or hdrdict.has_key('time_unit'):
         # precharge units from current header, in case only one of them is to be
         # updated
-        tu = nifticlib.xyzt2space(nhdr.xyzt_units)
-        su = nifticlib.xyzt2time(nhdr.xyzt_units)
+        tu = ncl.xyzt2space(nhdr.xyzt_units)
+        su = ncl.xyzt2time(nhdr.xyzt_units)
 
         # overwrite unit if present
         if hdrdict.has_key('xyz_unit'):
@@ -371,7 +371,7 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
         if hdrdict.has_key('time_unit'):
             tu = _checkUnit(hdrdict['time_unit'], valid_time_unit_codes)
         # compress both units into hdr format
-        nhdr.xyzt_units = nifticlib.spacetime2xyzt(su, tu)
+        nhdr.xyzt_units = ncl.spacetime2xyzt(su, tu)
 
     if hdrdict.has_key('cal_max'):
         nhdr.cal_max = hdrdict['cal_max']
@@ -428,13 +428,13 @@ def updateNiftiHeaderFromDict(nhdr, hdrdict):
             raise ValueError, \
                   "Nifti header property 'sform' must be 4x4 matrix."
 
-        srow_x = nifticlib.floatArray_frompointer(nhdr.srow_x)
+        srow_x = ncl.floatArray_frompointer(nhdr.srow_x)
         for i in range(4):
             srow_x[i] = hdrdict['sform'][0][i]
-        srow_y = nifticlib.floatArray_frompointer(nhdr.srow_y)
+        srow_y = ncl.floatArray_frompointer(nhdr.srow_y)
         for i in range(4):
             srow_y[i] = hdrdict['sform'][1][i]
-        srow_z = nifticlib.floatArray_frompointer(nhdr.srow_z)
+        srow_z = ncl.floatArray_frompointer(nhdr.srow_z)
         for i in range(4):
             srow_z[i] = hdrdict['sform'][2][i]
 

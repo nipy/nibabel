@@ -11,8 +11,8 @@
 
 __docformat__ = 'restructuredtext'
 
-from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
-from nifti.niftiformat import NiftiFormat
+from nifti.image import NiftiImage, MemMappedNiftiImage
+from nifti.format import NiftiFormat
 import unittest
 import md5
 import tempfile

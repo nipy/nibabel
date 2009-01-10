@@ -17,8 +17,8 @@ image data is made available via NumPy arrays.
 
 __docformat__ = 'restructuredtext'
 
-
-from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
+# expose the two main classes
+from nifti.image import NiftiImage, MemMappedNiftiImage
 
 # canonical version string
 pynifti_version = '0.2009xxxx.1'

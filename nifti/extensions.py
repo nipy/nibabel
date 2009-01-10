@@ -13,7 +13,7 @@ __docformat__ = 'restructuredtext'
 
 
 # the swig wrapper if the NIfTI C library
-import nifticlib as ncl
+import nifti.clib as ncl
 
 nifti_ecode_map = \
     {"ignore": ncl.NIFTI_ECODE_IGNORE,
@@ -67,7 +67,7 @@ class NiftiExtensions(object):
     The usage is best explained by a few examples. All examples assume a NIfTI
     image to be loaded:
 
-      >>> from nifti import *
+      >>> from nifti import NiftiImage
       >>> nim = NiftiImage('example4d.nii.gz')
 
     Access to the extensions is provided through the `extensions` attribute of

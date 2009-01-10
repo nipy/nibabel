@@ -34,9 +34,9 @@ build-stamp: 3rd
 	python setup.py config --noisy
 	python setup.py build_ext
 	python setup.py build_py
-	# to overcome the issue of not-installed _nifticlib.so
-	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_nifticlib.so nifti/
-	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/nifticlib.py nifti/
+	# to overcome the issue of not-installed _clib.so
+	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_clib.so nifti/
+	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/clib.py nifti/
 	touch $@
 
 
@@ -47,7 +47,7 @@ build-stamp: 3rd
 clean:
 	-rm -rf build
 	-rm *-stamp
-	-rm nifti/nifticlib.py nifti/_nifticlib.so
+	-rm nifti/clib.py nifti/_clib.so
 	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
 
 

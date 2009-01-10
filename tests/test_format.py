@@ -10,7 +10,7 @@
 
 __docformat__ = 'restructuredtext'
 
-from nifti.niftiformat import NiftiFormat
+from nifti.format import NiftiFormat
 import unittest
 import numpy as N
 

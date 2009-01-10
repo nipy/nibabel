@@ -88,7 +88,7 @@ slices in z direction and 100 volumes.
 
 Also the datatype was set appropriately:
 
-  >>> nim.header['datatype'] == nifticlib.NIFTI_TYPE_FLOAT64
+  >>> nim.header['datatype'] == ncl.NIFTI_TYPE_FLOAT64
   True
 
 To save the noise file to disk, just call the ``save()`` method:

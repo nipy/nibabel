@@ -74,8 +74,8 @@ if sys.platform == "darwin":
 ##############
 
 nifticlib_ext = Extension(
-    'nifti._nifticlib',
-    sources = ['nifti/nifticlib.i'],
+    'nifti._clib',
+    sources = ['nifti/clib.i'],
     define_macros = defines,
     include_dirs = include_dirs,
     library_dirs = library_dirs,
