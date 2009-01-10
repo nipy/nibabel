@@ -770,6 +770,17 @@ class NiftiFormat(object):
         self.setXFormCode('qform', code)
 
 
+    def updateQFormFromQuaternion(self):
+        """Only here for backward compatibility."""
+        from warnings import warn
+        warn("The method has been renamed to " \
+             "NiftiFormat.__updateQFormFromQuaternion and should not be used " \
+             "in user code. This redirect will be removed with PyNIfTI 1.0.", \
+             DeprecationWarning)
+
+        self.__updateQFormFromQuaternion()
+
+
     def __updateQFormFromQuaternion(self):
         """Recalculates the qform matrix (and the inverse) from the quaternion
         representation.
