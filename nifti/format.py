@@ -69,6 +69,8 @@ class NiftiFormat(object):
         self.__nimg = None
         # prepare empty meta dict
         self.meta = {}
+        # placeholder for extensions interface
+        self.extensions = None
 
         if type(source) == N.ndarray:
             self.__newFromArray(source, header)
@@ -135,31 +137,7 @@ class NiftiFormat(object):
         # set magic field to mark as nifti file
         hdic['magic'] = 'n+1'
 
-        # update nifti header with information from dict
-        updateNiftiHeaderFromDict(nhdr, hdic)
-
-        # convert nifti header to nifti image struct
-        self.__nimg = ncl.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
-
-        if not self.__nimg:
-            raise RuntimeError, "Could not create nifti image structure."
-
-        # kill filename for nifti images from arrays
-        self.__nimg.fname = ''
-        self.__nimg.iname = ''
-
-        #
-        # handle extensions
-        #
-        extsource = None
-        if hdic.has_key('extensions'):
-            extsource = hdic['extensions']
-        self.extensions = NiftiExtensions(self.__nimg, extsource)
-        self._removePickleExtension()
-
-        # look for meta data
-        if hdr.has_key('meta'):
-            self.meta = hdr['meta']
+        self._rebuildNimgFromHdrAndDict(nhdr, hdic)
 
 
     def __newFromFile(self, filename):
@@ -302,9 +280,12 @@ class NiftiFormat(object):
         .. note::
 
           If the provided dictionary contains a 'meta' item its content is
-          merged with the current meta data, i.e. present items will not be
-          removed unless they are overwritten by a corresponding item in the
+          used to overwrite any potentially existing meta data.
           dictionary.
+
+          The same behavior will be used for 'extensions'. If extensions
+          are defined in the provided dictionary all currently existing
+          extensions will be overwritten.
 
         .. seealso::
           :meth:`~nifti.format.NiftiFormat.asDict`,
@@ -320,39 +301,7 @@ class NiftiFormat(object):
         if hdrdict.has_key('dim'):
             del hdrdict['dim']
 
-        # update the nifti header
-        updateNiftiHeaderFromDict(nhdr, hdrdict)
-
-        # if no filename was set already (e.g. image from array) set a temp
-        # name now, as otherwise nifti_convert_nhdr2nim will fail
-        have_temp_filename = False
-        if not self.filename:
-            self.__nimg.fname = 'pynifti_updateheader_temp_name'
-            self.__nimg.iname = 'pynifti_updateheader_temp_name'
-            have_temp_filename = True
-
-        # recreate nifti image struct
-        new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, self.filename)
-        if not new_nimg:
-            raise RuntimeError, \
-                  "Could not recreate NIfTI image struct from updated header."
-
-        # replace old image struct by new one
-        # be careful with memory leak (still not checked whether successful)
-
-        # assign the new image struct
-        self.__nimg = new_nimg
-
-        # reset filename if temp name was set
-        if have_temp_filename:
-            self.__nimg.fname = ''
-            self.__nimg.iname = ''
-
-        #
-        # handle meta data by merging it with the current set
-        if hdrdict.has_key('meta'):
-            for k, v in hdrdict['meta'].iteritems():
-                self.meta[k] = v
+        _rebuildNimgFromHdrAndDict(nhdr, hdrdict)
 
 
     def vx2q(self, coord):
@@ -406,6 +355,73 @@ class NiftiFormat(object):
     #
     # private helpers
     #
+    def _rebuildNimgFromHdrAndDict(self, nhdr, hdic):
+        """
+        """
+        # first updated the header struct from the provided dictionary
+        # data
+        updateNiftiHeaderFromDict(nhdr, hdic)
+
+        # if no filename was set already (e.g. image from array) set a temp
+        # name now, as otherwise nifti_convert_nhdr2nim will fail
+        have_temp_filename = False
+        if not self.__nimg:
+            # we are creating from scratch
+            new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
+            have_temp_filename = True
+        elif not self.filename:
+            # rebuild but no filename yet
+            self.__nimg.fname = 'pynifti_updateheader_temp_name'
+            self.__nimg.iname = 'pynifti_updateheader_temp_name'
+            new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, 'pynifti_none')
+            have_temp_filename = True
+        else:
+            # recreate nifti image struct using current filename
+            new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, self.filename)
+
+        if not new_nimg:
+            raise RuntimeError, \
+                  "Could not create NIfTI image struct from header."
+
+        # rescue all extensions
+        if self.extensions:
+            # need to create a new extensions wrapper around the new
+            # nifti image struct
+            new_ext = NiftiExtensions(
+                        new_nimg,
+                        [ext for ext in self.extensions.iteritems()])
+        else:
+            # just create an empty wrapper
+            new_ext = NiftiExtensions(new_nimg)
+
+        # replace old image struct by new one
+        # be careful with memory leak (still not checked whether successful)
+
+        # assign the new image struct
+        self.__nimg = new_nimg
+        # and the extensions
+        self.extensions = new_ext
+
+        # reset filename if temp name was set
+        if have_temp_filename:
+            self.__nimg.fname = ''
+            self.__nimg.iname = ''
+
+        #
+        # merge new extensions
+        #
+        if hdic.has_key('extensions'):
+            # wipe current set of extensions
+            self.extensions.clear()
+            for e in hdic['extensions']:
+                self.extensions.append(e)
+
+        #
+        # assign new meta data
+        if hdic.has_key('meta'):
+            self.meta = hdic['meta']
+
+
     def _removePickleExtension(self):
         """Remove the 'pypickle' extension from the raw NIfTI image struct.
 

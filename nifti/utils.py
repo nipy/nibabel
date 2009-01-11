@@ -223,6 +223,9 @@ def nhdr2dict(nhdr, extensions=None):
 
     :Parameters:
         nhdr: nifti_1_header
+        extensions: NiftiExtensions instance
+          All extensions will be merged into the returned dictionary
+          under the special `extensions` key.
 
     :Returns:
         dict
