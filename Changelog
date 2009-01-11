@@ -25,6 +25,11 @@ Unreleased changes
     modules make sure that existing user code will not break, but they will
     issue a DeprecationWarning and will be removed with the release of PyNIfTI
     1.0.
+  * Added a special extension that can embed any serializable Python object
+    into the NIfTI file header. The contents of this extension is
+    automatically expanded into the `.meta` attribute of each NiftiImage. When
+    saving files to disk the content of the dictionary is also automatically
+    dumped into this extension.
   * Added :class:`~nifti.extensions.NiftiExtensions`. This is a container-like
     handler to access and manipulate NIfTI1 header extensions.
   * Exposed :class:`~nifti.image.MemMappedNiftiImage` in the root module.
