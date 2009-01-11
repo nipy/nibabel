@@ -16,37 +16,38 @@ The next sections contains some examples showing ways to use PyNIfTI to
 read and write imaging data from within Python to be able to process it with
 some random Python library.
 
-All examples assume that you have imported the PyNIfTI module by invoking::
+All examples assume that you have imported the PyNIfTI module by invoking:
 
-  from nifti import *
+  >>> from nifti import *
 
 
-Fileformat conversion
-=====================
+Loading and saving NIfTI files
+==============================
 
-Open the MNI standard space template that is shipped with FSL. No filename
-extension is necessary as libniftiio determines it automatically:
+First we will open the tiny example NIfTI file that is included in the PyNIfTI
+source tarball. No filename extension is necessary as libniftiio determines it
+automatically:
 
-  >>> nim = NiftiImage('avg152T1_brain')
+  >>> nim = NiftiImage('example4d')
 
-The filename is available via the 'filename' attribute::
+The filename is available via the 'filename' attribute:
 
   >>> print nim.filename
-  avg152T1_brain.img
+  example4d.nii.gz
 
-This indicates an ANALYZE image. If you want to save this image as a single
-gzipped NIfTI file simply do:
+This indicates a compressed NIfTI image. If you want to save this image as an
+uncompressed image simply do:
 
-  >>> nim.save('mni.nii.gz')
+  >>> nim.save('something.nii')
 
 The filetype is determined from the filename. If you want to save to gzipped
 ANALYZE file pairs instead the following would be an alternative to calling
 the ``save()`` with a new filename:
 
-  >>> nim.filename = 'mni_analyze.img.gz'
+  >>> nim.setFilename('analyze.img.gz')
   >>> nim.save()
 
-Please see the docstring of the ``NiftiImage.setFilename()`` method
+Please see the documentation of :meth:`~nifti.image.NiftiImage.setFilename`
 to learn how the filetypes are determined from the filenames.
 
 
@@ -58,18 +59,20 @@ gaussian noise. First we need to import the NumPy module
 
   >>> import numpy as N
 
-Now generate the noise dataset. Let's generate noise for 100 volumes with 16
+Now we generate the noise dataset. Let's generate noise for 100 volumes with 16
 slices and a 32x32 inplane matrix.
 
   >>> noise = N.random.randn(100,16,32,32)
 
 Please notice the order in which the dimensions are specified: (t, z, y, x).
 
-The datatype of the array will most likely be *float64* -- which can be
-verified by invoking ``noise.dtype``.
+The datatype of the array is by default `float64`, which can be verified by:
+
+  >>> noise.dtype
+  dtype('float64')
 
 Converting this dataset into a NIfTI image is done by invoking the
-``NiftiImage`` constructor with the noise dataset as argument:
+:class:`~nifti.image.NiftiImage` constructor with the noise dataset as argument:
 
   >>> nim = NiftiImage(noise)
 
@@ -78,7 +81,7 @@ query the header information about the dimensionality of the image, it returns
 the desired values:
 
   >>> print nim.header['dim']
-  [4, 32, 32, 16, 100, 0, 0, 0]
+  [4, 32, 32, 16, 100, 1, 1, 1]
 
 First value shows the number of dimensions in the datset: 4 (good, that's what
 we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w
@@ -88,10 +91,12 @@ slices in z direction and 100 volumes.
 
 Also the datatype was set appropriately:
 
+  >>> import nifti.clib as ncl
   >>> nim.header['datatype'] == ncl.NIFTI_TYPE_FLOAT64
   True
 
-To save the noise file to disk, just call the ``save()`` method:
+To save the noise file to disk, we can simply call the
+:meth:`~nifti.image.NiftiImage.save` method:
 
   >>> nim.save('noise.nii.gz')
 
@@ -100,21 +105,20 @@ Select ROIs
 ===========
 
 Suppose you want to have the first ten volumes of the noise dataset we have
-just created in a separate file. First open the file (can be skipped if it is
-still open):
+previously created in a separate file. First, we open the file:
 
   >>> nim = NiftiImage('noise.nii.gz')
 
-Now select the first ten volumes and store them to another file, while
+Now we select the first ten volumes and store them to another file, while
 preserving as much header information as possible
 
   >>> nim2 = NiftiImage(nim.data[:10], nim.header)
   >>> nim2.save('part.hdr.gz')
 
-The ``NiftiImage`` constructor takes a dictionary with header information as
-an optional argument. Settings that are not determined by the array (e.g.
-size, datatype) are copied from the dictionary and stored to the new NIfTI
-image.
+The :class:`~nifti.image.NiftiImage` constructor takes a dictionary with header
+information as an optional argument. Settings that are not determined by the
+array (e.g.  size, datatype) are taken from the dictionary and stored to the
+new NIfTI image.
 
 
 Linear detrending of timeseries (SciPy module is required for this example)
@@ -123,23 +127,26 @@ Linear detrending of timeseries (SciPy module is required for this example)
 Let's load another 4d NIfTI file and perform a linear detrending, by fitting
 a straight line to the timeseries of each voxel and substract that fit from
 the data. Although this might sound complicated at first, thanks to the
-excellent SciPy module it is just a few lines of code.
+excellent SciPy module it is just a few lines of code. For this example we
+will first create a NIfTI image with just a single voxel and 50 timepoints
+(basically a linear function with some noise):
 
-  >>> nim = NiftiImage('timeseries.nii')
+  >>> nim = NiftiImage(
+  ...           (N.linspace(0,100) + N.random.randn(50)).reshape(50,1,1,1))
+  >>> nim.timepoints
+  50
+  >>> nim.volextent
+  (1, 1, 1)
 
 Depending on the datatype of the input image the detrending process might
 change the datatype from integer to float. As operations that change the
 (binary) size of the NIfTI image are not supported, we need to make a copy
-of the data and later create a new NIfTI image.
-
-  >>> data = nim.asarray()
-
-Now detrend the data along the time axis. Remember that the array has the
+of the data and later create a new NIfTI image. Remember that the array has the
 time axis as its first dimension (in contrast to the NIfTI file where it is
 the 4th).
 
   >>> from scipy import signal
-  >>> data_detrended = signal.detrend( data, axis=0 )
+  >>> data_detrended = signal.detrend(nim.data, axis=0)
 
 Finally, create a new NIfTI image using header information from the original
 source image.
@@ -147,43 +154,31 @@ source image.
   >>> nim_detrended = NiftiImage( data_detrended, nim.header)
 
 
-Make a quick plot of a voxel's timeseries (Gnuplot module is required)
-======================================================================
+Make a quick plot of a voxel's timeseries (matplotlib module is required)
+=========================================================================
 
-Plotting is essential to get a 'feeling' for the data. The `Gnuplot python
-bindings`_ make it really easy to plot something with Gnuplot_ (e.g. when
+Plotting is essential to get a 'feeling' for the data. The Matlab-style plotting
+via matplotlib_ make it really easy to plot something with (e.g. when
 running Python interactively via IPython_). Please note, that there are many
-other possibilities for plotting, e.g. R_  via RPy_ or Matlab-style plotting
-via matplotlib_.
+other possibilities for plotting, e.g. R_  via RPy_ or Gnuplot_ via the
+`Gnuplot python bindings`_
 
 .. _R: http://www.r-project.org
 .. _RPy: http://rpy.sourceforge.net
 
-However, using Gnuplot is really easy. First import the Gnuplot module
-and create the interface object
+However, using matplotlib is really easy. For this example we will plot the
+two timeseries from the previous example, i.e. the raw and the detrended one.
+First we import the pylab module:
 
-  >>> from Gnuplot import Gnuplot
-  >>> gp = Gnuplot()
+  >>> import pylab as P
 
-We want the timeseries as a line plot and not just the datapoints, so
-let's talk with Gnuplot
+Now we can easly plot both timeseries of the single voxel in our artifical
+image:
 
-  >>> gp('set data style lines')
+  >>> line1 = P.plot(nim.data[:, 0, 0, 0])
+  >>> line2 = P.plot(nim_detrended.data[:, 0, 0, 0,])
 
-now load a 4d NIfTI image
-
-  >>> nim = NiftiImage('perfect_subject.nii.gz')
-
-and finally plot the timeseries of voxel (x=20, y=30, z=12)
-
-  >>> gp.plot(nim.data[:,12,30,20])
-
-.. figure:: pics/gnuplot_ts.png
-
-  A Gnuplot window showing the timeseries should popup now.
-  Please refer to the Gnuplot manual to learn what it can do --
-  and it can do a lot more than just simple line plots (have a
-  look at some `Gnuplot demos`_ if you are interested).
+A `P.show()` call would render the plot on the screen.
 
 .. _Gnuplot python bindings: http://gnuplot-py.sourceforge.net
 .. _Gnuplot: http://www.gnuplot.info
@@ -196,25 +191,26 @@ Show a slice of a 3d volume (Matplotlib module is required)
 ===========================================================
 
 This example demonstrates howto use the Matlab-style plotting of matplotlib_
-to view a slice from a 3d volume.
+to view a slice from a 3d volume. We will actually use a 4D image as data
+source and limit us to the first volume:
 
-This time I assume that a 3d nifti file is already opened and available in the
-``nim3d`` object. At first we need to load the necessary Python module.
-
-  >>> from pylab import *
+  >>> nim = NiftiImage('example4d')
+  >>> volume = nim.data[0]
 
 If everything went fine, we can now view a slice (x,y):
 
-  >>> imshow(nim3d.data[200], interpolation='nearest', cmap=cm.gray)
-  >>> show()
+  >>> xyplot = P.imshow(volume[16],
+  ...                   interpolation='nearest',
+  ...                   cmap=P.cm.gray)
 
-It is necessary to call the ``show()`` function one time after importing
-pylab to actually see the image when running Python interactively.
+Again a call to the `P.show()` function would render the plot on the screen.
 
 When you want to have a look at a yz-slice, NumPy array magic comes into
 play.
 
-  >>> imshow(nim3d.data[::-1,:,100], interpolation='nearest', cmap=cm.gray)
+  >>> yzplot = P.imshow(volume[::-1,:,18],
+  ...                   interpolation='nearest',
+  ...                   cmap=P.cm.gray)
 
 The ``::-1`` notation causes the z-axis to be flipped in the images. This
 makes a much nicer view, if the used example volume has the z-axis originally
