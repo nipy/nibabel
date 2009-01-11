@@ -12,9 +12,12 @@
 __docformat__ = 'restructuredtext'
 
 
-# the swig wrapper if the NIfTI C library
+# the NIfTI pieces
 import nifti.clib as ncl
 
+#
+# type maps
+#
 nifti_ecode_map = \
     {"ignore": ncl.NIFTI_ECODE_IGNORE,
      "dicom": ncl.NIFTI_ECODE_DICOM,
@@ -29,6 +32,9 @@ nifti_ecode_map = \
 nifti_ecode_inv_map = dict([(v, k) for k, v in nifti_ecode_map.iteritems()])
 
 
+#
+# little helpers
+#
 def _any2ecode(code, check_num=True):
     """Convert literal NIFTI_ECODEs into numerical ones.
 
@@ -50,7 +56,9 @@ def _any2ecode(code, check_num=True):
     return code
 
 
-
+#
+# classes
+#
 class NiftiExtensions(object):
     """NIfTI1 header extension handler.
 

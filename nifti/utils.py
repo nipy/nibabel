@@ -14,6 +14,88 @@ __docformat__ = 'restructuredtext'
 import numpy as N
 import nifti.clib as ncl
 
+#
+# type maps, codes and other NIfTI header stuff
+#
+filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
+              'NIFTI_PAIR_GZ' ]
+"""Typecodes of all supported NIfTI image formats."""
+
+N2nifti_dtype_map = { N.uint8: ncl.NIFTI_TYPE_UINT8,
+                      N.int8 : ncl.NIFTI_TYPE_INT8,
+                      N.uint16: ncl.NIFTI_TYPE_UINT16,
+                      N.int16 : ncl.NIFTI_TYPE_INT16,
+                      N.uint32: ncl.NIFTI_TYPE_UINT32,
+                      N.int32 : ncl.NIFTI_TYPE_INT32,
+                      N.uint64: ncl.NIFTI_TYPE_UINT64,
+                      N.int64 : ncl.NIFTI_TYPE_INT64,
+                      N.float32: ncl.NIFTI_TYPE_FLOAT32,
+                      N.float64: ncl.NIFTI_TYPE_FLOAT64,
+                      N.complex128: ncl.NIFTI_TYPE_COMPLEX128
+                    }
+"""Mapping of NumPy datatypes to NIfTI datatypes."""
+
+
+nifti2numpy_dtype_map = \
+    { ncl.NIFTI_TYPE_UINT8: 'u1',
+      ncl.NIFTI_TYPE_INT8: 'i1',
+      ncl.NIFTI_TYPE_UINT16: 'u2',
+      ncl.NIFTI_TYPE_INT16: 'i2',
+      ncl.NIFTI_TYPE_UINT32: 'u4',
+      ncl.NIFTI_TYPE_INT32: 'i4',
+      ncl.NIFTI_TYPE_UINT64: 'u8',
+      ncl.NIFTI_TYPE_INT64: 'i8',
+      ncl.NIFTI_TYPE_FLOAT32: 'f4',
+      ncl.NIFTI_TYPE_FLOAT64: 'f8',
+      ncl.NIFTI_TYPE_COMPLEX128: 'c16'
+    }
+"""Mapping of NIfTI to NumPy datatypes (necessary for handling memory
+mapped array with proper byte-order handling."""
+
+
+nifti_units_map = \
+    {"unknown": ncl.NIFTI_UNITS_UNKNOWN,
+     "m": ncl.NIFTI_UNITS_METER,
+     "mm": ncl.NIFTI_UNITS_MM,
+     "um": ncl.NIFTI_UNITS_MICRON,
+     "s": ncl.NIFTI_UNITS_SEC,
+     "ms": ncl.NIFTI_UNITS_MSEC,
+     "us": ncl.NIFTI_UNITS_USEC,
+     "Hz": ncl.NIFTI_UNITS_HZ,
+     "ppm": ncl.NIFTI_UNITS_PPM,
+     "rad/s": ncl.NIFTI_UNITS_RADS,
+    }
+
+
+# encode bits of NIfTI1 standard
+valid_xyz_unit_codes = range(8)
+valid_time_unit_codes = range(0, 64, 8)
+
+def Ndtype2niftidtype(array):
+    """Return the NIfTI datatype id for a corresponding NumPy datatype.
+    """
+    # get the real datatype from N type dictionary
+    dtype = N.typeDict[str(array.dtype)]
+
+    if not N2nifti_dtype_map.has_key(dtype):
+        raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
+
+    return N2nifti_dtype_map[dtype]
+
+
+nifti_xform_map = \
+    { 'unknown': ncl.NIFTI_XFORM_UNKNOWN,
+      'scanner': ncl.NIFTI_XFORM_SCANNER_ANAT,
+      'aligned': ncl.NIFTI_XFORM_ALIGNED_ANAT,
+      'talairach': ncl.NIFTI_XFORM_TALAIRACH,
+      'mni152': ncl.NIFTI_XFORM_MNI_152,
+    }
+nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
+
+
+#
+# utility functions
+#
 
 def cropImage( nimg, bbox ):
     """ Crop an image.
@@ -129,82 +211,9 @@ def getPeristimulusTimeseries( ts, onsetvols, nvols = 10, fx = N.mean ):
         return applyFxToVolumes( ts, selected, fx, axis=0 )
 
 
-filetypes = [ 'ANALYZE', 'NIFTI', 'NIFTI_PAIR', 'ANALYZE_GZ', 'NIFTI_GZ',
-              'NIFTI_PAIR_GZ' ]
-"""Typecodes of all supported NIfTI image formats."""
-
-N2nifti_dtype_map = { N.uint8: ncl.NIFTI_TYPE_UINT8,
-                      N.int8 : ncl.NIFTI_TYPE_INT8,
-                      N.uint16: ncl.NIFTI_TYPE_UINT16,
-                      N.int16 : ncl.NIFTI_TYPE_INT16,
-                      N.uint32: ncl.NIFTI_TYPE_UINT32,
-                      N.int32 : ncl.NIFTI_TYPE_INT32,
-                      N.uint64: ncl.NIFTI_TYPE_UINT64,
-                      N.int64 : ncl.NIFTI_TYPE_INT64,
-                      N.float32: ncl.NIFTI_TYPE_FLOAT32,
-                      N.float64: ncl.NIFTI_TYPE_FLOAT64,
-                      N.complex128: ncl.NIFTI_TYPE_COMPLEX128
-                    }
-"""Mapping of NumPy datatypes to NIfTI datatypes."""
-
-
-nifti2numpy_dtype_map = \
-    { ncl.NIFTI_TYPE_UINT8: 'u1',
-      ncl.NIFTI_TYPE_INT8: 'i1',
-      ncl.NIFTI_TYPE_UINT16: 'u2',
-      ncl.NIFTI_TYPE_INT16: 'i2',
-      ncl.NIFTI_TYPE_UINT32: 'u4',
-      ncl.NIFTI_TYPE_INT32: 'i4',
-      ncl.NIFTI_TYPE_UINT64: 'u8',
-      ncl.NIFTI_TYPE_INT64: 'i8',
-      ncl.NIFTI_TYPE_FLOAT32: 'f4',
-      ncl.NIFTI_TYPE_FLOAT64: 'f8',
-      ncl.NIFTI_TYPE_COMPLEX128: 'c16'
-    }
-"""Mapping of NIfTI to NumPy datatypes (necessary for handling memory
-mapped array with proper byte-order handling."""
-
-
-nifti_units_map = \
-    {"unknown": ncl.NIFTI_UNITS_UNKNOWN,
-     "m": ncl.NIFTI_UNITS_METER,
-     "mm": ncl.NIFTI_UNITS_MM,
-     "um": ncl.NIFTI_UNITS_MICRON,
-     "s": ncl.NIFTI_UNITS_SEC,
-     "ms": ncl.NIFTI_UNITS_MSEC,
-     "us": ncl.NIFTI_UNITS_USEC,
-     "Hz": ncl.NIFTI_UNITS_HZ,
-     "ppm": ncl.NIFTI_UNITS_PPM,
-     "rad/s": ncl.NIFTI_UNITS_RADS,
-    }
-
-
-# encode bits of NIfTI1 standard
-valid_xyz_unit_codes = range(8)
-valid_time_unit_codes = range(0, 64, 8)
-
-def Ndtype2niftidtype(array):
-    """Return the NIfTI datatype id for a corresponding NumPy datatype.
-    """
-    # get the real datatype from N type dictionary
-    dtype = N.typeDict[str(array.dtype)]
-
-    if not N2nifti_dtype_map.has_key(dtype):
-        raise ValueError, "Unsupported datatype '%s'" % str(array.dtype)
-
-    return N2nifti_dtype_map[dtype]
-
-
-nifti_xform_map = \
-    { 'unknown': ncl.NIFTI_XFORM_UNKNOWN,
-      'scanner': ncl.NIFTI_XFORM_SCANNER_ANAT,
-      'aligned': ncl.NIFTI_XFORM_ALIGNED_ANAT,
-      'talairach': ncl.NIFTI_XFORM_TALAIRACH,
-      'mni152': ncl.NIFTI_XFORM_MNI_152,
-    }
-nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
-
-
+#
+# little helpers
+#
 def nhdr2dict(nhdr, extensions=None):
     """Convert a NIfTI header struct into a python dictionary.
 

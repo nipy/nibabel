@@ -18,7 +18,7 @@ from warnings import warn
 
 import numpy as N
 
-# the swig wrapper if the NIfTI C library
+# the NIfTI pieces
 import nifti.clib as ncl
 from nifti.extensions import NiftiExtensions
 from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
@@ -45,6 +45,9 @@ class NiftiFormat(object):
       through the `NiftiFormat.extensions` attribute.
 
     """
+    #
+    # object constructors, destructors and generic Python interface
+    #
     def __init__(self, source, header=None):
         """
         The constructor decides whether to load a nifti image header from file
@@ -75,25 +78,6 @@ class NiftiFormat(object):
             raise ValueError, \
                   "Unsupported source type. Only NumPy arrays and filename " \
                   + "string are supported."
-
-
-    def __del__(self):
-        if self.__nimg:
-            ncl.nifti_image_free(self.__nimg)
-
-
-    def _removePickleExtension(self):
-        """Remove the 'pypickle' extension from the raw NIfTI image struct.
-
-        Its content is expanded into the `meta` attribute in a NiftiImage
-        instance.
-
-        .. warning::
-          This is an internal method. Neither its availability nor its API is
-          guarenteed.
-        """
-        if 'pypickle' in self.extensions:
-            del self.extensions['pypickle']
 
 
     def __newFromArray(self, data, hdr=None):
@@ -215,6 +199,262 @@ class NiftiFormat(object):
             self._removePickleExtension()
 
 
+    def __del__(self):
+        if self.__nimg:
+            ncl.nifti_image_free(self.__nimg)
+
+
+    def __str__(self):
+        lines = []
+
+        lines.append('extent' + str(self.extent))
+
+        lines.append('dtype(' \
+                     + nifti2numpy_dtype_map[self.raw_nimg.datatype] \
+                     + ')')
+
+        s = 'voxels('
+        s += 'x'.join(["%f" % d for d in self.voxdim])
+        if self.xyz_unit:
+            s += ' ' + self.getXYZUnit(as_string=True)
+        lines.append(s + ')')
+
+        if self.timepoints > 1:
+            s = "timepoints(%i, dt=%f" % (self.timepoints, self.rtime)
+            if self.time_unit:
+                s += ' ' + self.getTimeUnit(as_string=True)
+            s += ')'
+            lines.append(s)
+
+        if self.slope:
+            lines.append("scaling(slope=%f, intercept=%f)" \
+                    % (self.slope, self.intercept))
+
+        if self.qform_code:
+            lines.append("qform(%s)" % self.getQFormCode(as_string=True))
+            lines.append("qform_orientation(%s)" \
+                         % ', '.join(self.getQOrientation(as_string=True)))
+
+        if self.sform_code:
+            lines.append("sform(%s)" % self.getSFormCode(as_string=True))
+            lines.append("sform_orientation(%s)" \
+                         % ', '.join(self.getSOrientation(as_string=True)))
+
+        if self.description:
+            lines.append("descr('%s')" % self.description)
+
+        if len(self.meta.keys()):
+            lines.append("meta(%s)" % str(self.meta.keys()))
+
+        return '<NIfTI:\n  ' + ';\n  '.join(lines) + ';\n>'
+
+
+    #
+    # converters
+    #
+    def asDict(self):
+        """Returns the header data of the `NiftiImage` in a dictionary.
+
+        :Returns:
+          dict
+            The dictionary contains all NIfTI header information. Additionally,
+            it might also contain a special 'meta' item that contains the
+            meta data currently assigned to this instance.
+
+        .. note::
+
+          Modifications done to the returned dictionary do not cause any
+          modifications in the NIfTI image itself. Please use
+          :meth:`~nifti.format.NiftiFormat.updateFromDict` to apply
+          changes to the image.
+
+        .. seealso::
+          :meth:`~nifti.format.NiftiFormat.updateFromDict`,
+          :attr:`~nifti.format.NiftiFormat.header`
+        """
+        # Convert nifti_image struct into nifti1 header struct.
+        # This get us all data that will actually make it into a
+        # NIfTI file.
+        nhdr = ncl.nifti_convert_nim2nhdr(self.raw_nimg)
+
+        # pass extensions as well
+        ret = nhdr2dict(nhdr, extensions=self.extensions)
+
+        if len(self.meta.keys()):
+            ret['meta'] = self.meta
+
+        return ret
+
+
+    def updateFromDict(self, hdrdict):
+        """Update NIfTI header information.
+
+        Updated header data is read from the supplied dictionary. One cannot
+        modify dimensionality and datatype of the image data. If such
+        information is present in the header dictionary it is removed before
+        the update. If resizing or datatype casting are required one has to
+        convert the image data into a separate array and perform resize and
+        data manipulations on this array. When finished, the array can be
+        converted into a nifti file by calling the NiftiImage constructor with
+        the modified array as 'source' and the nifti header of the original
+        NiftiImage object as 'header'.
+
+        .. note::
+
+          If the provided dictionary contains a 'meta' item its content is
+          merged with the current meta data, i.e. present items will not be
+          removed unless they are overwritten by a corresponding item in the
+          dictionary.
+
+        .. seealso::
+          :meth:`~nifti.format.NiftiFormat.asDict`,
+          :attr:`~nifti.format.NiftiFormat.header`
+        """
+        # rebuild nifti header from current image struct
+        nhdr = ncl.nifti_convert_nim2nhdr(self.__nimg)
+
+        # remove settings from the hdrdict that are determined by
+        # the data set and must not be modified to preserve data integrity
+        if hdrdict.has_key('datatype'):
+            del hdrdict['datatype']
+        if hdrdict.has_key('dim'):
+            del hdrdict['dim']
+
+        # update the nifti header
+        updateNiftiHeaderFromDict(nhdr, hdrdict)
+
+        # if no filename was set already (e.g. image from array) set a temp
+        # name now, as otherwise nifti_convert_nhdr2nim will fail
+        have_temp_filename = False
+        if not self.filename:
+            self.__nimg.fname = 'pynifti_updateheader_temp_name'
+            self.__nimg.iname = 'pynifti_updateheader_temp_name'
+            have_temp_filename = True
+
+        # recreate nifti image struct
+        new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, self.filename)
+        if not new_nimg:
+            raise RuntimeError, \
+                  "Could not recreate NIfTI image struct from updated header."
+
+        # replace old image struct by new one
+        # be careful with memory leak (still not checked whether successful)
+
+        # assign the new image struct
+        self.__nimg = new_nimg
+
+        # reset filename if temp name was set
+        if have_temp_filename:
+            self.__nimg.fname = ''
+            self.__nimg.iname = ''
+
+        #
+        # handle meta data by merging it with the current set
+        if hdrdict.has_key('meta'):
+            for k, v in hdrdict['meta'].iteritems():
+                self.meta[k] = v
+
+
+    def vx2q(self, coord):
+        """Transform a voxel's index into coordinates (qform-defined).
+
+        :Parameter:
+          coord: 3-tuple
+            A voxel's index in the volume fiven as three positive integers
+            (i, j, k).
+
+        :Returns:
+          vector
+
+        .. seealso::
+          :meth:`~nifti.format.NiftiFormat.setQForm`,
+          :meth:`~nifti.format.NiftiFormat.getQForm`
+          :attr:`~nifti.format.NiftiFormat.qform`
+        """
+        # add dummy one to row vector
+        coord_ = N.r_[coord, [1.0]]
+        # apply affine transformation
+        result = N.dot(self.qform, coord_)
+        # return 3D coordinates
+        return result[0:-1]
+
+
+    def vx2s(self, coord):
+        """Transform a voxel's index into coordinates (sform-defined).
+
+        :Parameter:
+          coord: 3-tuple
+            A voxel's index in the volume fiven as three positive integers
+            (i, j, k).
+
+        :Returns:
+          vector
+
+        .. seealso::
+          :meth:`~nifti.format.NiftiFormat.setSForm`,
+          :meth:`~nifti.format.NiftiFormat.getSForm`
+          :attr:`~nifti.format.NiftiFormat.sform`
+        """
+        # add dummy one to row vector
+        coord_ = N.r_[coord, [1.0]]
+        # apply affine transformation
+        result = N.dot(self.qform, coord_)
+        # return 3D coordinates
+        return result[0:-1]
+
+
+    #
+    # private helpers
+    #
+    def _removePickleExtension(self):
+        """Remove the 'pypickle' extension from the raw NIfTI image struct.
+
+        Its content is expanded into the `meta` attribute in a NiftiImage
+        instance.
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
+        """
+        if 'pypickle' in self.extensions:
+            del self.extensions['pypickle']
+
+
+    def updateQFormFromQuaternion(self):
+        """Only here for backward compatibility."""
+        from warnings import warn
+        warn("The method has been renamed to " \
+             "NiftiFormat.__updateQFormFromQuaternion and should not be used " \
+             "in user code. This redirect will be removed with PyNIfTI 1.0.", \
+             DeprecationWarning)
+
+        self.__updateQFormFromQuaternion()
+
+
+    def __updateQFormFromQuaternion(self):
+        """Recalculates the qform matrix (and the inverse) from the quaternion
+        representation.
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
+        """
+        # recalculate qform
+        self.__nimg.qto_xyz = ncl.nifti_quatern_to_mat44 (
+          self.__nimg.quatern_b, self.__nimg.quatern_c, self.__nimg.quatern_d,
+          self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
+          self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
+          self.__nimg.qfac )
+
+
+        # recalculate inverse
+        self.__nimg.qto_ijk = \
+            ncl.nifti_mat44_inverse( self.__nimg.qto_xyz )
+
+
+    #
+    # getters and setters
+    #
     def getVoxDims(self):
         """Returns a 3-tuple a voxel dimensions/size in (x,y,z).
 
@@ -378,109 +618,6 @@ class NiftiFormat(object):
           :attr:`~nifti.format.NiftiFormat.rtime`
         """
         self.__nimg.dt = float(value)
-
-
-    def asDict(self):
-        """Returns the header data of the `NiftiImage` in a dictionary.
-
-        :Returns:
-          dict
-            The dictionary contains all NIfTI header information. Additionally,
-            it might also contain a special 'meta' item that contains the
-            meta data currently assigned to this instance.
-
-        .. note::
-
-          Modifications done to the returned dictionary do not cause any
-          modifications in the NIfTI image itself. Please use
-          :meth:`~nifti.format.NiftiFormat.updateFromDict` to apply
-          changes to the image.
-
-        .. seealso::
-          :meth:`~nifti.format.NiftiFormat.updateFromDict`,
-          :attr:`~nifti.format.NiftiFormat.header`
-        """
-        # Convert nifti_image struct into nifti1 header struct.
-        # This get us all data that will actually make it into a
-        # NIfTI file.
-        nhdr = ncl.nifti_convert_nim2nhdr(self.raw_nimg)
-
-        # pass extensions as well
-        ret = nhdr2dict(nhdr, extensions=self.extensions)
-
-        if len(self.meta.keys()):
-            ret['meta'] = self.meta
-
-        return ret
-
-
-    def updateFromDict(self, hdrdict):
-        """Update NIfTI header information.
-
-        Updated header data is read from the supplied dictionary. One cannot
-        modify dimensionality and datatype of the image data. If such
-        information is present in the header dictionary it is removed before
-        the update. If resizing or datatype casting are required one has to
-        convert the image data into a separate array and perform resize and
-        data manipulations on this array. When finished, the array can be
-        converted into a nifti file by calling the NiftiImage constructor with
-        the modified array as 'source' and the nifti header of the original
-        NiftiImage object as 'header'.
-
-        .. note::
-
-          If the provided dictionary contains a 'meta' item its content is
-          merged with the current meta data, i.e. present items will not be
-          removed unless they are overwritten by a corresponding item in the
-          dictionary.
-
-        .. seealso::
-          :meth:`~nifti.format.NiftiFormat.asDict`,
-          :attr:`~nifti.format.NiftiFormat.header`
-        """
-        # rebuild nifti header from current image struct
-        nhdr = ncl.nifti_convert_nim2nhdr(self.__nimg)
-
-        # remove settings from the hdrdict that are determined by
-        # the data set and must not be modified to preserve data integrity
-        if hdrdict.has_key('datatype'):
-            del hdrdict['datatype']
-        if hdrdict.has_key('dim'):
-            del hdrdict['dim']
-
-        # update the nifti header
-        updateNiftiHeaderFromDict(nhdr, hdrdict)
-
-        # if no filename was set already (e.g. image from array) set a temp
-        # name now, as otherwise nifti_convert_nhdr2nim will fail
-        have_temp_filename = False
-        if not self.filename:
-            self.__nimg.fname = 'pynifti_updateheader_temp_name'
-            self.__nimg.iname = 'pynifti_updateheader_temp_name'
-            have_temp_filename = True
-
-        # recreate nifti image struct
-        new_nimg = ncl.nifti_convert_nhdr2nim(nhdr, self.filename)
-        if not new_nimg:
-            raise RuntimeError, \
-                  "Could not recreate NIfTI image struct from updated header."
-
-        # replace old image struct by new one
-        # be careful with memory leak (still not checked whether successful)
-
-        # assign the new image struct
-        self.__nimg = new_nimg
-
-        # reset filename if temp name was set
-        if have_temp_filename:
-            self.__nimg.fname = ''
-            self.__nimg.iname = ''
-
-        #
-        # handle meta data by merging it with the current set
-        if hdrdict.has_key('meta'):
-            for k, v in hdrdict['meta'].iteritems():
-                self.meta[k] = v
 
 
     def setSlope(self, value):
@@ -832,38 +969,6 @@ class NiftiFormat(object):
         self.setXFormCode('qform', code)
 
 
-    def updateQFormFromQuaternion(self):
-        """Only here for backward compatibility."""
-        from warnings import warn
-        warn("The method has been renamed to " \
-             "NiftiFormat.__updateQFormFromQuaternion and should not be used " \
-             "in user code. This redirect will be removed with PyNIfTI 1.0.", \
-             DeprecationWarning)
-
-        self.__updateQFormFromQuaternion()
-
-
-    def __updateQFormFromQuaternion(self):
-        """Recalculates the qform matrix (and the inverse) from the quaternion
-        representation.
-
-        .. warning::
-          This is an internal method. Neither its availability nor its API is
-          guarenteed.
-        """
-        # recalculate qform
-        self.__nimg.qto_xyz = ncl.nifti_quatern_to_mat44 (
-          self.__nimg.quatern_b, self.__nimg.quatern_c, self.__nimg.quatern_d,
-          self.__nimg.qoffset_x, self.__nimg.qoffset_y, self.__nimg.qoffset_z,
-          self.__nimg.dx, self.__nimg.dy, self.__nimg.dz,
-          self.__nimg.qfac )
-
-
-        # recalculate inverse
-        self.__nimg.qto_ijk = \
-            ncl.nifti_mat44_inverse( self.__nimg.qto_xyz )
-
-
     def setQuaternion(self, value, code='scanner'):
         """Set Quaternion from 3-tuple (qb, qc, qd).
 
@@ -1037,55 +1142,6 @@ class NiftiFormat(object):
             return codes
 
 
-    def vx2q(self, coord):
-        """Transform a voxel's index into coordinates (qform-defined).
-
-        :Parameter:
-          coord: 3-tuple
-            A voxel's index in the volume fiven as three positive integers
-            (i, j, k).
-
-        :Returns:
-          vector
-
-        .. seealso::
-          :meth:`~nifti.format.NiftiFormat.setQForm`,
-          :meth:`~nifti.format.NiftiFormat.getQForm`
-          :attr:`~nifti.format.NiftiFormat.qform`
-        """
-        # add dummy one to row vector
-        coord_ = N.r_[coord, [1.0]]
-        # apply affine transformation
-        result = N.dot(self.qform, coord_)
-        # return 3D coordinates
-        return result[0:-1]
-
-
-    def vx2s(self, coord):
-        """Transform a voxel's index into coordinates (sform-defined).
-
-        :Parameter:
-          coord: 3-tuple
-            A voxel's index in the volume fiven as three positive integers
-            (i, j, k).
-
-        :Returns:
-          vector
-
-        .. seealso::
-          :meth:`~nifti.format.NiftiFormat.setSForm`,
-          :meth:`~nifti.format.NiftiFormat.getSForm`
-          :attr:`~nifti.format.NiftiFormat.sform`
-        """
-        # add dummy one to row vector
-        coord_ = N.r_[coord, [1.0]]
-        # apply affine transformation
-        result = N.dot(self.qform, coord_)
-        # return 3D coordinates
-        return result[0:-1]
-
-
-
     def getXYZUnit(self, as_string = False):
         """Return 3D-space unit.
 
@@ -1172,52 +1228,10 @@ class NiftiFormat(object):
             return self.__nimg.fname
 
 
-    def __str__(self):
-        lines = []
-
-        lines.append('extent' + str(self.extent))
-
-        lines.append('dtype(' \
-                     + nifti2numpy_dtype_map[self.raw_nimg.datatype] \
-                     + ')')
-
-        s = 'voxels('
-        s += 'x'.join(["%f" % d for d in self.voxdim])
-        if self.xyz_unit:
-            s += ' ' + self.getXYZUnit(as_string=True)
-        lines.append(s + ')')
-
-        if self.timepoints > 1:
-            s = "timepoints(%i, dt=%f" % (self.timepoints, self.rtime)
-            if self.time_unit:
-                s += ' ' + self.getTimeUnit(as_string=True)
-            s += ')'
-            lines.append(s)
-
-        if self.slope:
-            lines.append("scaling(slope=%f, intercept=%f)" \
-                    % (self.slope, self.intercept))
-
-        if self.qform_code:
-            lines.append("qform(%s)" % self.getQFormCode(as_string=True))
-            lines.append("qform_orientation(%s)" \
-                         % ', '.join(self.getQOrientation(as_string=True)))
-
-        if self.sform_code:
-            lines.append("sform(%s)" % self.getSFormCode(as_string=True))
-            lines.append("sform_orientation(%s)" \
-                         % ', '.join(self.getSOrientation(as_string=True)))
-
-        if self.description:
-            lines.append("descr('%s')" % self.description)
-
-        if len(self.meta.keys()):
-            lines.append("meta(%s)" % str(self.meta.keys()))
-
-        return '<NIfTI:\n  ' + ';\n  '.join(lines) + ';\n>'
-
-
+    #
     # class properties
+    #
+
     # read only
     nvox =          property(fget=lambda self: self.__nimg.nvox)
     max =           property(fget=lambda self: self.__nimg.cal_max)

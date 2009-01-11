@@ -18,6 +18,7 @@ __docformat__ = 'restructuredtext'
 
 
 import cPickle
+from warnings import warn
 
 import numpy as N
 
@@ -41,6 +42,10 @@ class NiftiImage(NiftiFormat):
     array one can optionally specify a dictionary with NIfTI header data as
     available via the `header` attribute.
     """
+
+    #
+    # object constructors, destructors and generic Python interface
+    #
 
     def __init__(self, source, header=None, load=False):
         """
@@ -90,7 +95,6 @@ class NiftiImage(NiftiFormat):
         NiftiFormat.__del__(self)
 
 
-
     def save(self, filename=None, filetype = 'NIFTI', update_minmax=True):
         """Save the image to a file.
 
@@ -120,7 +124,7 @@ class NiftiImage(NiftiFormat):
           There will be no exception if writing fails for any reason, as the
           underlying function nifti_write_hdr_img() from libniftiio does not
           provide any feedback. Suggestions for improvements are appreciated.
-       """
+        """
 
         # If image data is not yet loaded, do it now.
         # It is important to do it already here, because nifti_image_load
@@ -178,7 +182,10 @@ class NiftiImage(NiftiFormat):
         self._removePickleExtension()
 
 
-    def __haveImageData(self):
+    #
+    # little helpers
+    #
+    def _haveImageData(self):
         """Returns if the image data is accessible -- either loaded into
         memory or memory mapped.
 
@@ -198,7 +205,7 @@ class NiftiImage(NiftiFormat):
         """
         # do nothing if there already is data
         # which included memory mapped arrays not just data in memory
-        if self.__haveImageData():
+        if self._haveImageData():
             return
 
         if ncl.nifti_image_load( self.raw_nimg ) < 0:
@@ -221,6 +228,51 @@ class NiftiImage(NiftiFormat):
         self._data = None
 
 
+    def updateCalMinMax(self):
+        """Update the image data maximum and minimum value in the nifti header.
+        """
+        self.raw_nimg.cal_max = float(self.data.max())
+        self.raw_nimg.cal_min = float(self.data.min())
+
+
+    def updateHeader(self, hdrdict):
+        """Deprecated method only here for backward compatibility.
+
+        Please refer to NiftiFormat.updateFromDict()
+        """
+        warn("This function is deprecated and will be removed with " \
+             "PyNIfTI 1.0.", DeprecationWarning)
+        NiftiFormat.updateFromDict(self, hdrdict)
+
+
+
+    #
+    # converters
+    #
+    def getScaledData(self):
+        """Returns a scaled copy of the data array.
+
+        Scaling is done by multiplying with the slope and adding the intercept
+        that is stored in the NIfTI header. In compliance with the NIfTI
+        standard scaling is only performed in case of a non-zero slope value.
+        The original data array is returned otherwise.
+
+        :Returns:
+          ndarray
+        """
+        data = self.asarray(copy = True)
+
+        # NIfTI standard says: scaling only if non-zero slope
+        if self.slope:
+            data *= self.slope
+            data += self.intercept
+
+        return data
+
+
+    #
+    # getters and setters
+    #
     def getDataArray(self):
         """Return the NIfTI image data wrapped into a NumPy array.
 
@@ -244,34 +296,6 @@ class NiftiImage(NiftiFormat):
             return self._data.copy()
         else:
             return self._data
-
-
-    def getScaledData(self):
-        """Returns a scaled copy of the data array.
-
-        Scaling is done by multiplying with the slope and adding the intercept
-        that is stored in the NIfTI header. In compliance with the NIfTI
-        standard scaling is only performed in case of a non-zero slope value.
-        The original data array is returned otherwise.
-
-        :Returns:
-          ndarray
-        """
-        data = self.asarray(copy = True)
-
-        # NIfTI standard says: scaling only if non-zero slope
-        if self.slope:
-            data *= self.slope
-            data += self.intercept
-
-        return data
-
-
-    def updateCalMinMax(self):
-        """Update the image data maximum and minimum value in the nifti header.
-        """
-        self.raw_nimg.cal_max = float(self.data.max())
-        self.raw_nimg.cal_min = float(self.data.min())
 
 
     def getBoundingBox(self):
@@ -405,15 +429,10 @@ class NiftiImage(NiftiFormat):
             raise RuntimeError, "Unhandled filetype."
 
 
-    def updateHeader(self, hdrdict):
-        """Deprecated method only here for backward compatibility.
-
-        Please refer to NiftiFormat.updateFromDict()
-        """
-        NiftiFormat.updateFromDict(self, hdrdict)
-
-
+    #
     # class properties
+    #
+
     # read only
     data =   property(fget=getDataArray)
     bbox =   property(fget=getBoundingBox)
@@ -436,6 +455,10 @@ class MemMappedNiftiImage(NiftiImage):
       It currently neither supports saving changed header fields nor storing
       meta data.
     """
+
+    #
+    # object constructors, destructors and generic Python interface
+    #
 
     def __init__(self, source):
         """Create a NiftiImage object.
@@ -485,6 +508,21 @@ class MemMappedNiftiImage(NiftiImage):
         NiftiFormat.__del__(self)
 
 
+    #
+    # little helpers
+    #
+    def load(self):
+        """Does nothing for memory mapped images.
+        """
+        return
+
+
+    def unload(self):
+        """Does nothing for memory mapped images.
+        """
+        return
+
+
     def save(self):
         """Save the image.
 
@@ -498,18 +536,9 @@ class MemMappedNiftiImage(NiftiImage):
         self._data.flush()
 
 
-    def load(self):
-        """Does nothing for memory mapped images.
-        """
-        return
-
-
-    def unload(self):
-        """Does nothing for memory mapped images.
-        """
-        return
-
-
+    #
+    # getters and setters
+    #
     def setFilename(self, filename, filetype = 'NIFTI'):
         """Does not work for memory mapped images and therefore raises an
         exception.
