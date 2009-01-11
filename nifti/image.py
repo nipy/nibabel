@@ -21,7 +21,8 @@ import cPickle
 
 import numpy as N
 
-# the swig wrapper if the NIfTI C library
+# the NIfTI pieces
+import nifti
 import nifti.clib as ncl
 from nifti.format import NiftiFormat
 from nifti.utils import splitFilename, nifti2numpy_dtype_map
@@ -129,7 +130,8 @@ class NiftiImage(NiftiFormat):
 
         # set a default description if there is none
         if not self.description:
-            self.description = 'Created with PyNIfTI'
+            self.description = \
+                    'Written by PyNIfTI version %s' % nifti.pynifti_version
 
         # update header information
         if update_minmax:
