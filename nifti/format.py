@@ -13,6 +13,11 @@ interface provides pythonic access to NIfTI properties using Python datatypes.
 __docformat__ = 'restructuredtext'
 
 
+import cPickle
+from warnings import warn
+
+import numpy as N
+
 # the swig wrapper if the NIfTI C library
 import nifti.clib as ncl
 from nifti.extensions import NiftiExtensions
@@ -20,7 +25,6 @@ from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
     Ndtype2niftidtype, nifti_xform_map, nifti_xform_inv_map, nifti_units_map, \
     _checkUnit, valid_xyz_unit_codes, valid_time_unit_codes, \
     nifti2numpy_dtype_map
-import numpy as N
 
 
 class NiftiFormat(object):
@@ -55,22 +59,18 @@ class NiftiFormat(object):
             If an object of a different type is supplied as 'source' a
             ValueError exception will be thrown.
           header: dict
-            Additional header data might be supplied. However,
-            dimensionality and datatype are determined from the ndarray and
-            not taken from a header dictionary.
+            Additional header data might be supplied if image data is not loaded
+            from a file. However, dimensionality and datatype are determined
+            from the ndarray and not taken from a header dictionary.
         """
         self.__nimg = None
+        # prepare empty meta dict
+        self.meta = {}
 
         if type(source) == N.ndarray:
-            # newFromArray will take care of the extensions interface itself
             self.__newFromArray(source, header)
-
         elif type(source) in (str, unicode):
             self.__newFromFile(source)
-            # simply create extension interface since nifticlib took care of
-            # loading all extensions already
-            self.extensions = NiftiExtensions(self.raw_nimg)
-
         else:
             raise ValueError, \
                   "Unsupported source type. Only NumPy arrays and filename " \
@@ -80,6 +80,20 @@ class NiftiFormat(object):
     def __del__(self):
         if self.__nimg:
             ncl.nifti_image_free(self.__nimg)
+
+
+    def _removePickleExtension(self):
+        """Remove the 'pypickle' extension from the raw NIfTI image struct.
+
+        Its content is expanded into the `meta` attribute in a NiftiImage
+        instance.
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
+        """
+        if 'pypickle' in self.extensions:
+            del self.extensions['pypickle']
 
 
     def __newFromArray(self, data, hdr=None):
@@ -157,6 +171,11 @@ class NiftiFormat(object):
         if hdic.has_key('extensions'):
             extsource = hdic['extensions']
         self.extensions = NiftiExtensions(self.__nimg, extsource)
+        self._removePickleExtension()
+
+        # look for meta data
+        if hdr.has_key('meta'):
+            self.meta = hdr['meta']
 
 
     def __newFromFile(self, filename):
@@ -175,6 +194,25 @@ class NiftiFormat(object):
 
         if not self.__nimg:
             raise RuntimeError, "Error while opening nifti header."
+
+        # simply create extension interface since nifticlib took care of
+        # loading all extensions already
+        self.extensions = NiftiExtensions(self.raw_nimg)
+
+        # try to load meta data
+        if self.extensions.count('pypickle') > 1:
+            warn("Handling more than one 'pypickle' extension is not "
+                 "supported. Will continue using the first detected "
+                 "extension.")
+
+        # unpickle meta data if present
+        if 'pypickle' in self.extensions:
+            # unpickle meta data
+            self.meta = cPickle.loads(self.extensions['pypickle'])
+            # and remove the pickle extension to not confuse data integrity when
+            # users would add something to it manually, i.e. via
+            # self.extensions['pypickle']
+            self._removePickleExtension()
 
 
     def getVoxDims(self):
@@ -345,6 +383,12 @@ class NiftiFormat(object):
     def asDict(self):
         """Returns the header data of the `NiftiImage` in a dictionary.
 
+        :Returns:
+          dict
+            The dictionary contains all NIfTI header information. Additionally,
+            it might also contain a special 'meta' item that contains the
+            meta data currently assigned to this instance.
+
         .. note::
 
           Modifications done to the returned dictionary do not cause any
@@ -362,7 +406,12 @@ class NiftiFormat(object):
         nhdr = ncl.nifti_convert_nim2nhdr(self.raw_nimg)
 
         # pass extensions as well
-        return nhdr2dict(nhdr, extensions=self.extensions)
+        ret = nhdr2dict(nhdr, extensions=self.extensions)
+
+        if len(self.meta.keys()):
+            ret['meta'] = self.meta
+
+        return ret
 
 
     def updateFromDict(self, hdrdict):
@@ -377,6 +426,13 @@ class NiftiFormat(object):
         converted into a nifti file by calling the NiftiImage constructor with
         the modified array as 'source' and the nifti header of the original
         NiftiImage object as 'header'.
+
+        .. note::
+
+          If the provided dictionary contains a 'meta' item its content is
+          merged with the current meta data, i.e. present items will not be
+          removed unless they are overwritten by a corresponding item in the
+          dictionary.
 
         .. seealso::
           :meth:`~nifti.format.NiftiFormat.asDict`,
@@ -419,6 +475,12 @@ class NiftiFormat(object):
         if have_temp_filename:
             self.__nimg.fname = ''
             self.__nimg.iname = ''
+
+        #
+        # handle meta data by merging it with the current set
+        if hdrdict.has_key('meta'):
+            for k, v in hdrdict['meta'].iteritems():
+                self.meta[k] = v
 
 
     def setSlope(self, value):
@@ -1148,6 +1210,9 @@ class NiftiFormat(object):
 
         if self.description:
             lines.append("descr('%s')" % self.description)
+
+        if len(self.meta.keys()):
+            lines.append("meta(%s)" % str(self.meta.keys()))
 
         return '<NIfTI:\n  ' + ';\n  '.join(lines) + ';\n>'
 

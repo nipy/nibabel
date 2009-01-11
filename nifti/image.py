@@ -17,11 +17,14 @@
 __docformat__ = 'restructuredtext'
 
 
+import cPickle
+
+import numpy as N
+
 # the swig wrapper if the NIfTI C library
 import nifti.clib as ncl
 from nifti.format import NiftiFormat
 from nifti.utils import splitFilename, nifti2numpy_dtype_map
-import numpy as N
 
 
 class NiftiImage(NiftiFormat):
@@ -38,7 +41,7 @@ class NiftiImage(NiftiFormat):
     available via the `header` attribute.
     """
 
-    def __init__(self, source, header={}, load=False):
+    def __init__(self, source, header=None, load=False):
         """
         This method decides whether to load a nifti image from file or create
         one from ndarray data, depending on the datatype of `source`.
@@ -150,6 +153,13 @@ class NiftiImage(NiftiFormat):
         a = ncl.wrapImageDataWithArray(self.raw_nimg)
         a[:] = self._data[:]
 
+        #
+        # embed meta data
+        #
+        if len(self.meta.keys()):
+            self.extensions += ('pypickle',
+                                cPickle.dumps(self.meta, protocol=0))
+
         # now save it
         ncl.nifti_image_write_hdr_img(self.raw_nimg, 1, 'wb')
         # yoh comment: unfortunately return value of nifti_image_write_hdr_img
@@ -160,6 +170,10 @@ class NiftiImage(NiftiFormat):
         # take data pointer away from nifticlibs so we can let Python manage
         # the memory
         ncl.detachDataFromImage(self.raw_nimg)
+
+        # and finally clean 'pypickle' extension again, since its data is in
+        # 'meta'
+        self._removePickleExtension()
 
 
     def __haveImageData(self):
@@ -413,6 +427,12 @@ class MemMappedNiftiImage(NiftiImage):
     Please note, that memory-mapping is not required when exclusively header
     information shall be accessed. By default the `NiftiImage` class does not
     load any image data into memory.
+
+    .. note::
+
+      The class is mostly useful for read-only access to the NIfTI image data.
+      It currently neither supports saving changed header fields nor storing
+      meta data.
     """
 
     def __init__(self, source):

@@ -45,6 +45,22 @@ class NiftiExtensionTests(unittest.TestCase):
         self.failUnless(ext.count('afni') == 1)
 
 
+    def testMetaData(self):
+        # come up with image
+        nim = NiftiImage(N.arange(24).reshape(1,2,3,4))
+        nim.meta['test1'] = range(5)
+
+        # test whether meta data makes it into header dict
+        self.failUnless(nim.header.has_key('meta'))
+        self.failUnless(nim.header['meta']['test1'] == range(5))
+
+        # clone image
+        # test whether meta data makes it again into header dict
+        nim2 = NiftiImage(nim.data, nim.header)
+        self.failUnless(nim2.header.has_key('meta'))
+        self.failUnless(nim2.header['meta']['test1'] == range(5))
+
+
 def suite():
     return unittest.makeSuite(NiftiExtensionTests)
 

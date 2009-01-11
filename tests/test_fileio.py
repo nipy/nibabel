@@ -270,6 +270,17 @@ class FileIOTests(unittest.TestCase):
         self.failUnless(nimg2.extensions[-1] == 'fileio')
 
 
+    def testMetaReconstruction(self):
+        """Check if the meta data gets properly reconstructed during
+        save/load cycle.
+        """
+        self.nimg.meta['something'] = 'Gmork'
+        self.nimg.save(os.path.join( self.workdir, 'meta.nii.gz'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
+
+        self.failUnless(nimg2.meta['something'] == 'Gmork')
+
+
 def suite():
     return unittest.makeSuite(FileIOTests)
 

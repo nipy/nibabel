@@ -24,6 +24,7 @@ nifti_ecode_map = \
      "jimdiminfo": ncl.NIFTI_ECODE_JIMDIMINFO,
      "workflow_fwds": ncl.NIFTI_ECODE_WORKFLOW_FWDS,
      "freesurfer": ncl.NIFTI_ECODE_FREESURFER,
+     "pypickle": 16,
     }
 nifti_ecode_inv_map = dict([(v, k) for k, v in nifti_ecode_map.iteritems()])
 
@@ -231,6 +232,11 @@ class NiftiExtensions(object):
 
 
     def __delitem__(self, key):
+        # first try if we have an ascii ecode
+        if isinstance(key, str):
+            key = _any2ecode(key)
+            key = self.ecodes.index(key)
+
         exts = [e for i, e in enumerate(self.iteritems()) if i != key]
         # tabula rasa
         self.clear()
