@@ -429,14 +429,22 @@ class NiftiImage(NiftiFormat):
             raise RuntimeError, "Unhandled filetype."
 
 
+    # need to redefine, since we need to redefine to 'filename' property
+    def getFilename(self):
+        """Please see :meth:`nifti.format.NiftiFormat.getFilename`
+        for the documentation."""
+        return NiftiFormat.getFilename(self)
+
     #
     # class properties
     #
 
     # read only
-    data =   property(fget=getDataArray)
-    bbox =   property(fget=getBoundingBox)
+    data = property(fget=getDataArray)
+    bbox = property(fget=getBoundingBox)
 
+    # read and write
+    filename = property(fget=getFilename, fset=setFilename)
 
 
 class MemMappedNiftiImage(NiftiImage):
@@ -546,3 +554,18 @@ class MemMappedNiftiImage(NiftiImage):
         raise RuntimeError, \
               "Filename modifications are not supported for memory mapped " \
               "images."
+
+
+    # need to redefine, since we need to redefine to 'filename' property
+    def getFilename(self):
+        """Please see :meth:`nifti.format.NiftiFormat.getFilename`
+        for the documentation."""
+        return NiftiFormat.getFilename(self)
+
+
+    #
+    # class properties
+    #
+
+    # read only
+    filename = property(fget=getFilename)

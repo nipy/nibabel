@@ -1258,9 +1258,9 @@ class NiftiFormat(object):
     volextent =     property(fget=getVolumeExtent)
     timepoints =    property(fget=getTimepoints)
     raw_nimg =      property(fget=lambda self: self.__nimg)
+    filename =      property(fget=getFilename)
 
     # read and write
-    filename =      property(fget=getFilename)
     slope =         property(fget=lambda self: self.__nimg.scl_slope,
                              fset=setSlope)
     intercept =     property(fget=lambda self: self.__nimg.scl_inter,
