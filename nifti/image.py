@@ -590,4 +590,5 @@ class MemMappedNiftiImage(NiftiImage):
     #
 
     # read only
+    data = property(fget=getDataArray)
     filename = property(fget=getFilename)
