@@ -10,9 +10,9 @@
 
 The PyNIfTI module is a Python_ interface to the `NIfTI I/O libraries`_.  Using
 PyNIfTI, one can easily read and write NIfTI and ANALYZE images from within
-Python. The :class:`~nifti.image.NiftiImage` class provides pythonic access to the
-full header information and for a maximum of interoperability the image data is
-made available via NumPy_ arrays.
+Python. The :class:`~nifti.image.NiftiImage` class provides pythonic access to
+the full header information and for a maximum of interoperability the image
+data is made available via NumPy_ arrays.
 
 .. _Python: http://www.python.org
 .. _NIfTI I/O libraries: http://niftilib.sf.net
@@ -24,7 +24,8 @@ Documentation
 * :ref:`User Documentation <contents>` (**the** documentation)
 * :ref:`Installation Instructions <installation>`
 * :ref:`Development Changelog <changelog>` (see what has changed)
-* :ref:`Module Reference <modref>` (user-oriented reference, less complex than full API docs)
+* :ref:`Module Reference <modref>` (user-oriented reference, less complex than
+  full API docs)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)
 
@@ -32,8 +33,9 @@ Documentation
 Author and License
 ==================
 
-PyNIfTI is written by `Michael Hanke`_. The author is grateful to the following
-people who have contributed to PyNIfTI (in order of appearance):
+PyNIfTI is written and maintained by `Michael Hanke`_. The author is grateful
+to the following people who have contributed to PyNIfTI (in order of
+appearance):
 
 * `Yaroslav O. Halchenko`_
 * Chris Burns

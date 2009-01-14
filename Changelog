@@ -62,6 +62,8 @@ Unreleased changes
     most important header information via `__str__()`.
   * Switched to NumPy's distutils for building the package. Cleaned and
     simplified the build procedure. Added optimization flags to SWIG call.
+  * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a
+    filename.
   * Introduced :data:`nifti.pynifti_version` as canonical version string.
   * Removed `updateQFormFromQuarternion()` from the list of public methods of
     :class:`~nifti.format.NiftiFormat`. This is an internal method that

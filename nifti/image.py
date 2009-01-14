@@ -30,17 +30,21 @@ from nifti.utils import splitFilename, nifti2numpy_dtype_map
 
 
 class NiftiImage(NiftiFormat):
-    """Wrapper class for convenient access to NIfTI data.
+    """Wrapper class for convenient access to NIfTI images.
 
-    The class can either load an image from file or convert a NumPy ndarray
-    into a NIfTI file structure. Either way is automatically determined
-    by the type of the 'source' argument. If `source` is a string, it is
-    assumed to be a filename an ndarray is treated as such.
+    An image can either be loaded from a file or created from a NumPy ndarray.
+    Either way is automatically determined by the type of the 'source'
+    argument. If `source` is a string, it is assumed to be a filename an
+    ndarray is treated as such.
 
-    One can optionally specify whether the image data should be loaded into
-    memory when opening NIfTI data from files (`load`). When converting a NumPy
-    array one can optionally specify a dictionary with NIfTI header data as
-    available via the `header` attribute.
+    All NIfTI header information is conveniently exposed via Python data types.
+    This functionality is provided by the :class:`~nifti.format.NiftiFormat`
+    base class. Please refer to its documentation for the full list of its
+    methods and properties.
+
+    .. seealso::
+      :class:`~nifti.format.NiftiFormat`,
+      :class:`~nifti.image.MemMappedNiftiImage`
     """
 
     #
@@ -49,9 +53,6 @@ class NiftiImage(NiftiFormat):
 
     def __init__(self, source, header=None, load=False):
         """
-        This method decides whether to load a nifti image from file or create
-        one from ndarray data, depending on the datatype of `source`.
-
         :Parameters:
           source: str | ndarray
             If source is a string, it is assumed to be a filename and an
@@ -67,6 +68,8 @@ class NiftiImage(NiftiFormat):
           load: Boolean
             If set to True the image data will be loaded into memory. This
             is only useful if loading a NIfTI image from file.
+            This flag is almost useless, as the data will be loaded
+            automatically whenever it is accessed.
         """
         # setup all nifti header related stuff
         NiftiFormat.__init__(self, source, header)
@@ -276,7 +279,8 @@ class NiftiImage(NiftiFormat):
     def getDataArray(self):
         """Return the NIfTI image data wrapped into a NumPy array.
 
-        The `data` property is an alternative way to access this function.
+        .. seealso::
+          :attr:`~nifti.image.NiftiImage.data`
         """
         return self.asarray(False)
 
@@ -305,7 +309,8 @@ class NiftiImage(NiftiFormat):
         many tuples as image dimensions. The order of dimensions is identical
         to that in the data array.
 
-        The `bbox` property is an alternative way to access this function.
+        .. seealso::
+          :attr:`~nifti.image.NiftiImage.bbox`
         """
         nz = self.data.squeeze().nonzero()
 
@@ -365,6 +370,10 @@ class NiftiImage(NiftiFormat):
 
         Setting the filename is also possible by assigning to the 'filename'
         property.
+
+        .. seealso::
+          :meth:`~nifti.format.NiftiFormat.getFilename`,
+          :attr:`~nifti.image.NiftiImage.filename`
         """
         # If image data is not yet loaded, do it now.
         # It is important to do it already here, because nifti_image_load
@@ -450,11 +459,13 @@ class NiftiImage(NiftiFormat):
 class MemMappedNiftiImage(NiftiImage):
     """Memory mapped access to uncompressed NIfTI files.
 
-    This access mode might be the prefered one whenever whenever only a small
-    part of the image data has to be accessed or the memory is not sufficient
-    to load the whole dataset.
+    This access mode might be the prefered one whenever only a small part of
+    the image data has to be accessed or the memory is not sufficient to load
+    the whole dataset.
+
     Please note, that memory-mapping is not required when exclusively header
-    information shall be accessed. By default the `NiftiImage` class does not
+    information shall be accessed. The :class:`~nifti.format.NiftiFormat` class
+    and by default also the :class:`~nifti.image.NiftiImage` class will not
     load any image data into memory.
 
     .. note::
@@ -508,8 +519,6 @@ class MemMappedNiftiImage(NiftiImage):
 
 
     def __del__(self):
-        """Do all necessary cleanups by calling __close().
-        """
         self._data.flush()
 
         # it is required to call base class destructors!
