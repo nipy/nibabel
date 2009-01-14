@@ -355,8 +355,53 @@ class NiftiFormat(object):
     #
     # private helpers
     #
+    def _updateNimgFromArray(self, val):
+        """Update all relevant items in the nimg struct to match a given
+        array's properties.
+
+        We can only savely modify the respective nimg items since the data
+        array is disconnected from the struct all the time.
+
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
+        """
+        # convert dtype and store in struct
+        self.raw_nimg.datatype = Ndtype2niftidtype(val)
+
+        # wrap dims
+        dim = ncl.intArray_frompointer(self.raw_nimg.dim)
+
+        # make sure there are no zeros in the dim vector
+        # especially not in #4 as FSLView doesn't like that
+        target_dim = N.ones(7, dtype='int')
+
+        # reverse the array shape
+        target_dim[:len(val.shape)] = val.shape[::-1]
+
+        # set number of dims
+        dim[0] = len(val.shape)
+
+        # assign remaining dim vector
+        for i in range(7):
+            dim[i+1] = target_dim[i]
+
+        # expand dim vector
+        self.raw_nimg.ndim = dim[0]
+        self.raw_nimg.nx = dim[1]
+        self.raw_nimg.ny = dim[2]
+        self.raw_nimg.nz = dim[3]
+        self.raw_nimg.nt = dim[4]
+        self.raw_nimg.nu = dim[5]
+        self.raw_nimg.nv = dim[6]
+        self.raw_nimg.nw = dim[7]
+
+
     def _rebuildNimgFromHdrAndDict(self, nhdr, hdic):
         """
+        .. warning::
+          This is an internal method. Neither its availability nor its API is
+          guarenteed.
         """
         # first updated the header struct from the provided dictionary
         # data

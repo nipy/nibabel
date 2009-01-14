@@ -13,6 +13,7 @@ __docformat__ = 'restructuredtext'
 
 from nifti.image import NiftiImage, MemMappedNiftiImage
 from nifti.format import NiftiFormat
+import nifti.clib as ncl
 import unittest
 import md5
 import tempfile
@@ -40,10 +41,12 @@ class FileIOTests(unittest.TestCase):
         self.nimg = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
 
+
     def tearDown(self):
         shutil.rmtree(self.workdir)
         del self.nimg
         self.fp.close()
+
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
@@ -147,6 +150,7 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
 
+
     def testQFormSetting(self):
         # 4x4 identity matrix
         ident = N.identity(4)
@@ -162,6 +166,7 @@ class FileIOTests(unittest.TestCase):
                                                'qformtest.nii.gz') )
 
         self.failUnless( (self.nimg.qform == nimg2.qform).all() )
+
 
     def testQFormSetting_fromFile(self):
         # test setting qoffset
@@ -217,6 +222,7 @@ class FileIOTests(unittest.TestCase):
         # test full qform
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
+
     def test_setPixDims(self):
         pdims = (20.0, 30.0, 40.0, 2000.0, 1.0, 1.0, 1.0)
         # test setPixDims func
@@ -236,6 +242,7 @@ class FileIOTests(unittest.TestCase):
         self.nimg.save(self.fp.name)
         nimg2 = NiftiImage(self.fp.name)
         self.failUnless(nimg2.pixdim == pdims)
+
 
     def test_setVoxDims(self):
         vdims = (2.0, 3.0, 4.0)
@@ -279,6 +286,19 @@ class FileIOTests(unittest.TestCase):
         nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
 
         self.failUnless(nimg2.meta['something'] == 'Gmork')
+
+
+    def testArrayAssign(self):
+        alt_array = N.zeros((3,4,5,6,7), dtype='int')
+        self.nimg.data = alt_array
+
+        self.nimg.save(os.path.join( self.workdir, 'assign.nii'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'assign.nii'))
+
+
+        print nimg2.header['dim']
+        self.failUnless(nimg2.header['dim'] == [5, 7, 6, 5, 4, 3, 1, 1])
+        self.failUnless(nimg2.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
 
 
 def suite():

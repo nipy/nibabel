@@ -158,7 +158,11 @@ class NiftiImage(NiftiFormat):
         if not self.raw_nimg.data:
             if not ncl.allocateImageMemory(self.raw_nimg):
                 raise RuntimeError, "Could not allocate memory for image data."
+        else:
+            raise RuntimeError, "This should never happen! Please report me!"
 
+        # This assumes that the nimg struct knows about the correct datatype and
+        # dimensions of the array
         a = ncl.wrapImageDataWithArray(self.raw_nimg)
         a[:] = self._data[:]
 
@@ -276,6 +280,15 @@ class NiftiImage(NiftiFormat):
     #
     # getters and setters
     #
+    def setDataArray(self, data):
+        """
+        """
+        # XXX should probably add more checks
+
+        self._updateNimgFromArray(data)
+        self._data = data
+
+
     def getDataArray(self):
         """Return the NIfTI image data wrapped into a NumPy array.
 
@@ -449,7 +462,7 @@ class NiftiImage(NiftiFormat):
     #
 
     # read only
-    data = property(fget=getDataArray)
+    data = property(fget=getDataArray, fset=setDataArray)
     bbox = property(fget=getBoundingBox)
 
     # read and write
