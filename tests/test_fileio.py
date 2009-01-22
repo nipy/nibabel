@@ -296,7 +296,6 @@ class FileIOTests(unittest.TestCase):
         nimg2 = NiftiImage(os.path.join(self.workdir, 'assign.nii'))
 
 
-        print nimg2.header['dim']
         self.failUnless(nimg2.header['dim'] == [5, 7, 6, 5, 4, 3, 1, 1])
         self.failUnless(nimg2.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
 
