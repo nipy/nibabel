@@ -97,29 +97,6 @@ nifti_xform_inv_map = dict([(v, k) for k, v in nifti_xform_map.iteritems()])
 # utility functions
 #
 
-def cropImage( nimg, bbox ):
-    """ Crop an image.
-
-    'bbox' has to be a sequency of (min,max) tuples (one for each image
-    dimension).
-
-    The function returns the cropped image. The data is not shared with the
-    original image, but is copied.
-    """
-
-    # build crop command
-    # XXX: the following looks rather stupid -- cannot recall why I did this
-    cmd = 'nimg.data.squeeze()['
-    cmd += ','.join( [ ':'.join( [ str(i) for i in dim ] ) for dim in bbox ] )
-    cmd += ']'
-
-    # crop the image data array
-    cropped = eval(cmd).copy()
-
-    # return the cropped image with preserved header data
-    return nimg.__class__(cropped, nimg.header)
-
-
 def time2vol( t, tr, lag=0.0, decimals=0 ):
     """ Translates a time 't' into a volume number. By default function returns
     the volume number that is closest in time. Volumes are assumed to be
