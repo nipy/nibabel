@@ -277,6 +277,43 @@ class NiftiImage(NiftiFormat):
         return data
 
 
+    def iterVolumes(self):
+        """Volume generator.
+
+        For images with four or less dimensions this methods provides
+        a generator for volumes. When called on images with less than
+        four dimensions a single item is returned that is guaranteed
+        to be three-dimensional (by adding missing axes if necessary).
+
+        Examples:
+
+          >>> nim = NiftiImage(N.random.rand(4,2,3,2))
+          >>> vols = [v for v in nim.iterVolumes()]
+          >>> len(vols)
+          4
+
+          >>> nim = NiftiImage(N.random.rand(3,2))
+          >>> vols = [v for v in nim.iterVolumes()]
+          >>> len(vols)
+          1
+          >>> vols[0].data.shape
+          (1, 3, 2)
+        """
+        if len(self.data.shape) > 4:
+            raise ValueError, \
+                  "Cannot handle image with more than 4 dimensions"
+
+        # only one volume or less (single slice)
+        if len(self.data.shape) < 4:
+            yield NiftiImage(N.array(self.data, ndmin=3),
+                             self.header)
+            return
+
+        # 4d images
+        for v in self.data:
+            yield NiftiImage(v, self.header)
+
+
     #
     # getters and setters
     #
@@ -585,6 +622,11 @@ class MemMappedNiftiImage(NiftiImage):
         return NiftiFormat.getFilename(self)
 
 
+    # need to redefine, since we need to redefine to 'filename' property
+    def getDataArray(self):
+        """Please see :meth:`nifti.format.NiftiImage.getDataArray`
+        for the documentation."""
+        return NiftiImage.getDataArray(self)
     #
     # class properties
     #
@@ -592,3 +634,4 @@ class MemMappedNiftiImage(NiftiImage):
     # read only
     data = property(fget=getDataArray)
     filename = property(fget=getFilename)
+

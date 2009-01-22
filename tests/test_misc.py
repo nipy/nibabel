@@ -51,6 +51,24 @@ class MiscTests(unittest.TestCase):
         self.failUnless(nimg.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
 
 
+    def testVolumeIter(self):
+        nim = NiftiImage(os.path.join('data', 'example4d'))
+
+        vols = [v for v in nim.volumes()]
+
+        self.failUnless(len(vols) == 2)
+
+        for v in vols:
+            self.failUnless(v.extent == v.volextent == nim.volextent)
+
+        # test if data is shared
+        vols[1].data[20,10,5] = 666
+
+        # check if copying works
+        print vols[1].data[20,10,5]
+        print nim.data[1,20,10,5]
+
+
 def suite():
     return unittest.makeSuite(MiscTests)
 
