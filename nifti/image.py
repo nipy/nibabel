@@ -27,6 +27,7 @@ import nifti
 import nifti.clib as ncl
 from nifti.format import NiftiFormat
 from nifti.utils import splitFilename, nifti2numpy_dtype_map
+import nifti.imgfx as imgfx
 
 
 class NiftiImage(NiftiFormat):
@@ -187,6 +188,12 @@ class NiftiImage(NiftiFormat):
         # and finally clean 'pypickle' extension again, since its data is in
         # 'meta'
         self._removePickleExtension()
+
+
+    def copy(self):
+        """Return a copy of the image.
+        """
+        return NiftiImage(self.data.copy(), self.header)
 
 
     #
@@ -352,26 +359,6 @@ class NiftiImage(NiftiFormat):
             return self._data
 
 
-    def getBoundingBox(self):
-        """Get the bounding box of the image.
-
-        This functions returns a tuple of (min, max) tuples. It contains as
-        many tuples as image dimensions. The order of dimensions is identical
-        to that in the data array.
-
-        .. seealso::
-          :attr:`~nifti.image.NiftiImage.bbox`
-        """
-        nz = self.data.squeeze().nonzero()
-
-        bbox = []
-
-        for dim in nz:
-            bbox.append( ( dim.min(), dim.max() ) )
-
-        return tuple(bbox)
-
-
     def setFilename(self, filename, filetype = 'NIFTI'):
         """Set the filename for the NIfTI image.
 
@@ -494,16 +481,19 @@ class NiftiImage(NiftiFormat):
         for the documentation."""
         return NiftiFormat.getFilename(self)
 
+
+
     #
     # class properties
     #
 
     # read only
     data = property(fget=getDataArray, fset=setDataArray)
-    bbox = property(fget=getBoundingBox)
 
     # read and write
     filename = property(fget=getFilename, fset=setFilename)
+    bbox = property(fget=imgfx.getBoundingBox, fset=imgfx.crop)
+
 
 
 class MemMappedNiftiImage(NiftiImage):
@@ -634,4 +624,12 @@ class MemMappedNiftiImage(NiftiImage):
     # read only
     data = property(fget=getDataArray)
     filename = property(fget=getFilename)
+
+
+
+#
+# Assign extra methods
+#
+
+NiftiImage.crop = imgfx.crop
 

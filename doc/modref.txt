@@ -73,13 +73,24 @@ Module :mod:`~nifti.extensions`
 
 
 
-Useful Functions from :mod:`nifti.utils`
-========================================
+Useful Functions
+================
+
+Utilities from :mod:`nifti.utils`
+---------------------------------
 
 .. automodule:: nifti.utils
 
 .. autofunction:: nifti.utils.applyFxToVolumes
-.. autofunction:: nifti.utils.cropImage
 .. autofunction:: nifti.utils.getPeristimulusTimeseries
 .. autofunction:: nifti.utils.splitFilename
 .. autofunction:: nifti.utils.time2vol
+
+
+Image functions in :mod:`nifti.imgfx`
+-------------------------------------
+
+.. automodule:: nifti.imgfx
+
+.. autofunction:: nifti.imgfx.getBoundingBox
+.. autofunction:: nifti.imgfx.crop

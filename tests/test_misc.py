@@ -51,10 +51,24 @@ class MiscTests(unittest.TestCase):
         self.failUnless(nimg.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
 
 
+    def testCopying(self):
+        nim = NiftiImage(os.path.join('data', 'example4d'))
+
+        n2 = nim.copy()
+        n2.voxdim = (2,3,4)
+        n2.data[0,3,4,2] = 543
+
+        self.failUnless(n2.voxdim == (2,3,4))
+        self.failIf(nim.voxdim == n2.voxdim)
+
+        self.failUnless(n2.data[0,3,4,2] == 543)
+        self.failIf(nim.data[0,3,4,2] == n2.data[0,3,4,2])
+
+
     def testVolumeIter(self):
         nim = NiftiImage(os.path.join('data', 'example4d'))
 
-        vols = [v for v in nim.volumes()]
+        vols = [v for v in nim.iterVolumes()]
 
         self.failUnless(len(vols) == 2)
 
