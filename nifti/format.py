@@ -151,6 +151,14 @@ class NiftiFormat(object):
           This is an internal method. Neither its availability nor its API is
           guarenteed.
         """
+        # make sure filename is not unicode
+        try:
+            filename = str(filename)
+        except UnicodeEncodeError:
+            raise UnicodeError, \
+                  "The filename must not contain unicode characters, since " \
+                  "the NIfTI library cannot handle them."
+
         # do not load image data!
         self.__nimg = ncl.nifti_image_read(filename, 0)
 

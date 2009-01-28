@@ -129,6 +129,14 @@ class NiftiImage(NiftiFormat):
           underlying function nifti_write_hdr_img() from libniftiio does not
           provide any feedback. Suggestions for improvements are appreciated.
         """
+        # make sure filename is not unicode
+        try:
+            filename = str(filename)
+        except UnicodeEncodeError:
+            raise UnicodeError, \
+                  "The filename must not contain unicode characters, since " \
+                  "the NIfTI library cannot handle them."
+
 
         # If image data is not yet loaded, do it now.
         # It is important to do it already here, because nifti_image_load

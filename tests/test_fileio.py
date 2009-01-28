@@ -300,6 +300,31 @@ class FileIOTests(unittest.TestCase):
         self.failUnless(nimg2.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
 
 
+    def testUnicodeHandling(self):
+        fn = os.path.join(u'data', u'example4d.nii.gz')
+        fn_pureuni = fn + u'łđ€æßđ¢»«'
+
+        # should both be unicode
+        self.failUnless(isinstance(fn, unicode))
+        self.failUnless(isinstance(fn_pureuni, unicode))
+
+        # nifti should be able to deal with ascii encodable unicode string
+        self.failUnless(NiftiImage(fn))
+
+        # and it should raise an exception if that is not possible
+        self.failUnlessRaises(UnicodeError, NiftiImage, fn_pureuni)
+
+        # same for calling 'save'
+        outpath = os.path.join( self.workdir, u'assign.nii')
+        self.failUnless(isinstance(outpath, unicode))
+        nim = NiftiImage(N.ones((2,3,4)))
+
+        nim.save(outpath)
+        self.failUnless(os.path.exists(outpath))
+
+        self.failUnlessRaises(UnicodeError, nim.save, fn_pureuni)
+
+
 def suite():
     return unittest.makeSuite(FileIOTests)
 
