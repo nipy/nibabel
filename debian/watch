@@ -2,7 +2,7 @@
 version=3
 
 #http://apsy.gse.uni-magdeburg.de/~hanke/software/pynifti/pynifti_(.*)\.orig\.tar\.gz
-http://sf.net/niftilib pynifti_([\d\.]*)\.orig\.tar\.gz
+http://sf.net/niftilib pynifti_([\d\.]*)\.tar\.gz
 
 
 
