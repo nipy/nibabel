@@ -155,7 +155,8 @@ class NiftiFormat(object):
         self.__nimg = ncl.nifti_image_read(filename, 0)
 
         if not self.__nimg:
-            raise RuntimeError, "Error while opening nifti header."
+            raise RuntimeError, "Error while opening NIfTI file '%s'." % \
+                                    filename
 
         # simply create extension interface since nifticlib took care of
         # loading all extensions already
