@@ -111,6 +111,9 @@ class NiftiImage(NiftiFormat):
         :Parameters:
           filename: str | None
             The name of the target file (typically including its extension).
+            Filenames might be provided as unicode strings. However, as the
+            underlying library does not support unicode, they must be
+            ascii-encodable, i.e. must not contain pure unicode characters.
             Usually setting the filename also determines the filetype
             (NIfTI/ANALYZE).  Please see
             :meth:`~nifti.image.NiftiImage.setFilename` for some more

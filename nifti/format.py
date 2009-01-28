@@ -57,6 +57,9 @@ class NiftiFormat(object):
           source: str | ndarray
             If source is a string, it is assumed to be a filename and an
             attempt will be made to open the corresponding NIfTI file.
+            Filenames might be provided as unicode strings. However, as the
+            underlying library does not support unicode, they must be
+            ascii-encodable, i.e. must not contain pure unicode characters.
             In case of an ndarray the array data will be used for the to be
             created nifti image and a matching nifti header is generated.
             If an object of a different type is supplied as 'source' a

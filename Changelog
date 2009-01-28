@@ -72,6 +72,9 @@ Unreleased changes
   * Bugfix: :meth:`~nifti.image.NiftiImage.getScaledData` returns a
     unmodified data array if `slope` is set to zero (as required by the NIfTI
     standard). Thanks to Thomas Ross for reporting.
+  * Bugfix: Unicode filenames are now handled properly, as long as they do not
+    contain pure-unicode characters (since the NIfTI library does not support
+    them). Thanks to Gaël Varoquaux for reporting this issue.
 
 
 Releases
