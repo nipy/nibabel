@@ -99,6 +99,11 @@ class NiftiImage(NiftiFormat):
         NiftiFormat.__del__(self)
 
 
+    def __reduce__(self):
+        # little helper to make NiftiImage objects compatible with pickling
+        return (NiftiImage, (self.data, self.header))
+
+
     def save(self, filename=None, filetype = 'NIFTI', update_minmax=True):
         """Save the image to a file.
 

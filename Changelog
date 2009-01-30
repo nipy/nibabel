@@ -60,6 +60,7 @@ Unreleased changes
     :attr:`~nifti.format.NiftiFormat.sform_code`
   * Each image instance is now able to generate a human-readable dump of its
     most important header information via `__str__()`.
+  * :class:`~nifti.image.NiftiImage` objects can now be pickled.
   * Switched to NumPy's distutils for building the package. Cleaned and
     simplified the build procedure. Added optimization flags to SWIG call.
   * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a

@@ -18,6 +18,7 @@ from nifti import *
 import nifti.clib as ncl
 from nifti.format import NiftiFormat
 import unittest
+import cPickle
 
 
 class MiscTests(unittest.TestCase):
@@ -81,6 +82,18 @@ class MiscTests(unittest.TestCase):
         # check if copying works
         print vols[1].data[20,10,5]
         print nim.data[1,20,10,5]
+
+
+    def testPickleCycle(self):
+        nim = NiftiImage(os.path.join('data', 'example4d'))
+
+        pickled = cPickle.dumps(nim)
+
+        nim2 = cPickle.loads(pickled)
+
+        self.failUnless((nim.data == nim2.data).all())
+        self.failUnless(N.all([N.all(nim2.header[k] == v)
+                for k,v in nim.header.iteritems()]))
 
 
 def suite():
