@@ -9,12 +9,19 @@ Group:          Development/Libraries/Python
 Source:         %{modname}_%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-root
 %if %{defined fedora_version} || %{defined rhel_version} || %{defined centos_version}  
+BuildRequires:  numpy
+Requires:       numpy
+%if %{defined fedora_version}
+BuildRequires:  atlas lapack
+%endif
 %else  
-%{py_requires}  
+%{py_requires}
+BuildRequires:  python-numpy
+Requires:       python-numpy
 %endif  
 BuildRequires:  python-devel swig nifticlib-devel
-BuildRequires:  python-numpy zlib-devel
-Requires:       python-numpy nifticlib
+BuildRequires:  zlib-devel
+Requires:       nifticlib
 BuildRequires:  gcc-c++
 
 %description
@@ -40,6 +47,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Feb 5 2009 - Michael Hanke <michael.hanke@gmail.com> - 0.20090205.1-1
+  New upstream version.
+
 * Fri Oct 17 2008 - Michael Hanke <michael.hanke@gmail.com> - 0.20081017.1-1
   New upstream version.
 
