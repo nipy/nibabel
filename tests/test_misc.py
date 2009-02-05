@@ -66,22 +66,24 @@ class MiscTests(unittest.TestCase):
         self.failIf(nim.data[0,3,4,2] == n2.data[0,3,4,2])
 
 
-    def testVolumeIter(self):
-        nim = NiftiImage(os.path.join('data', 'example4d'))
-
-        vols = [v for v in nim.iterVolumes()]
-
-        self.failUnless(len(vols) == 2)
-
-        for v in vols:
-            self.failUnless(v.extent == v.volextent == nim.volextent)
-
-        # test if data is shared
-        vols[1].data[20,10,5] = 666
-
-        # check if copying works
-        print vols[1].data[20,10,5]
-        print nim.data[1,20,10,5]
+# XXX Disabled since the corresponding method is temporally unavailable.
+#
+#    def testVolumeIter(self):
+#        nim = NiftiImage(os.path.join('data', 'example4d'))
+#
+#        vols = [v for v in nim.iterVolumes()]
+#
+#        self.failUnless(len(vols) == 2)
+#
+#        for v in vols:
+#            self.failUnless(v.extent == v.volextent == nim.volextent)
+#
+#        # test if data is shared
+#        vols[1].data[20,10,5] = 666
+#
+#        # check if copying works
+#        print vols[1].data[20,10,5]
+#        print nim.data[1,20,10,5]
 
 
     def testPickleCycle(self):

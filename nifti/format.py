@@ -48,7 +48,7 @@ class NiftiFormat(object):
     #
     # object constructors, destructors and generic Python interface
     #
-    def __init__(self, source, header=None):
+    def __init__(self, source, header=None, loadmeta=False):
         """
         The constructor decides whether to load a nifti image header from file
         or create one from ndarray data, depending on the datatype of `source`.
@@ -78,7 +78,7 @@ class NiftiFormat(object):
         if type(source) == N.ndarray:
             self.__newFromArray(source, header)
         elif type(source) in (str, unicode):
-            self.__newFromFile(source)
+            self.__newFromFile(source, loadmeta)
         else:
             raise ValueError, \
                   "Unsupported source type. Only NumPy arrays and filename " \
@@ -143,7 +143,7 @@ class NiftiFormat(object):
         self._rebuildNimgFromHdrAndDict(nhdr, hdic)
 
 
-    def __newFromFile(self, filename):
+    def __newFromFile(self, filename, loadmeta):
         """Open a NIfTI file.
 
         :Parameters:
@@ -173,14 +173,13 @@ class NiftiFormat(object):
         # loading all extensions already
         self.extensions = NiftiExtensions(self.raw_nimg)
 
-        # try to load meta data
-        if self.extensions.count('pypickle') > 1:
-            warn("Handling more than one 'pypickle' extension is not "
-                 "supported. Will continue using the first detected "
-                 "extension.")
-
         # unpickle meta data if present
-        if 'pypickle' in self.extensions:
+        if loadmeta and 'pypickle' in self.extensions:
+            if self.extensions.count('pypickle') > 1:
+                warn("Handling more than one 'pypickle' extension is not "
+                     "supported. Will continue using the first detected "
+                     "extension.")
+
             # unpickle meta data
             self.meta = cPickle.loads(self.extensions['pypickle'])
             # and remove the pickle extension to not confuse data integrity when

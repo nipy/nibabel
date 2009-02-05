@@ -52,7 +52,7 @@ class NiftiImage(NiftiFormat):
     # object constructors, destructors and generic Python interface
     #
 
-    def __init__(self, source, header=None, load=False):
+    def __init__(self, source, header=None, load=False, **kwargs):
         """
         :Parameters:
           source: str | ndarray
@@ -71,9 +71,11 @@ class NiftiImage(NiftiFormat):
             is only useful if loading a NIfTI image from file.
             This flag is almost useless, as the data will be loaded
             automatically whenever it is accessed.
+          **kwargs:
+            Additional stuff is passed to :class:`~nifti.format.NiftiFormat`.
         """
         # setup all nifti header related stuff
-        NiftiFormat.__init__(self, source, header)
+        NiftiFormat.__init__(self, source, header, **kwargs)
 
         # where the data will go to
         self._data = None
@@ -300,41 +302,43 @@ class NiftiImage(NiftiFormat):
         return data
 
 
-    def iterVolumes(self):
-        """Volume generator.
-
-        For images with four or less dimensions this methods provides
-        a generator for volumes. When called on images with less than
-        four dimensions a single item is returned that is guaranteed
-        to be three-dimensional (by adding missing axes if necessary).
-
-        Examples:
-
-          >>> nim = NiftiImage(N.random.rand(4,2,3,2))
-          >>> vols = [v for v in nim.iterVolumes()]
-          >>> len(vols)
-          4
-
-          >>> nim = NiftiImage(N.random.rand(3,2))
-          >>> vols = [v for v in nim.iterVolumes()]
-          >>> len(vols)
-          1
-          >>> vols[0].data.shape
-          (1, 3, 2)
-        """
-        if len(self.data.shape) > 4:
-            raise ValueError, \
-                  "Cannot handle image with more than 4 dimensions"
-
-        # only one volume or less (single slice)
-        if len(self.data.shape) < 4:
-            yield NiftiImage(N.array(self.data, ndmin=3),
-                             self.header)
-            return
-
-        # 4d images
-        for v in self.data:
-            yield NiftiImage(v, self.header)
+# XXX The whole thing needs more thought.
+#
+#    def iterVolumes(self):
+#        """Volume generator.
+#
+#        For images with four or less dimensions this methods provides
+#        a generator for volumes. When called on images with less than
+#        four dimensions a single item is returned that is guaranteed
+#        to be three-dimensional (by adding missing axes if necessary).
+#
+#        Examples:
+#
+#          >>> nim = NiftiImage(N.random.rand(4,2,3,2))
+#          >>> vols = [v for v in nim.iterVolumes()]
+#          >>> len(vols)
+#          4
+#
+#          >>> nim = NiftiImage(N.random.rand(3,2))
+#          >>> vols = [v for v in nim.iterVolumes()]
+#          >>> len(vols)
+#          1
+#          >>> vols[0].data.shape
+#          (1, 3, 2)
+#        """
+#        if len(self.data.shape) > 4:
+#            raise ValueError, \
+#                  "Cannot handle image with more than 4 dimensions"
+#
+#        # only one volume or less (single slice)
+#        if len(self.data.shape) < 4:
+#            yield NiftiImage(N.array(self.data, ndmin=3),
+#                             self.header)
+#            return
+#
+#        # 4d images
+#        for v in self.data:
+#            yield NiftiImage(v, self.header)
 
 
     #

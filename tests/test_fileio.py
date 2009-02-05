@@ -283,8 +283,20 @@ class FileIOTests(unittest.TestCase):
         """
         self.nimg.meta['something'] = 'Gmork'
         self.nimg.save(os.path.join( self.workdir, 'meta.nii.gz'))
-        nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'),
+                           loadmeta=True)
 
+        self.failUnless(nimg2.meta['something'] == 'Gmork')
+
+        # test whether the meta extensions is preserved during a load/safe cycle
+        # even when it is not unpickled intermediately
+        # by default nothing is unpickled
+        nimg_packed = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
+        self.failUnless(len(nimg_packed.meta) == 0)
+
+        nimg_packed.save(os.path.join( self.workdir, 'packed.nii.gz'))
+
+        nimg_unpacked = NiftiImage(os.path.join(self.workdir, 'packed.nii.gz'))
         self.failUnless(nimg2.meta['something'] == 'Gmork')
 
 
