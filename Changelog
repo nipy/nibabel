@@ -20,6 +20,16 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  None yet.
+
+
+Releases
+~~~~~~~~
+
+* 0.20090205.1 (Thu, 5 Feb 2009)
+
+  * This release is the first in a series that aims stabilize the API and
+    finally result in PyNIfTI 1.0 with full support of the NIfTI1 standard.
   * The whole package was restructured. The included renaming
     `nifti.nifti(image,format,clibs)` to `nifti.(image,format,clibs)`. Redirect
     modules make sure that existing user code will not break, but they will
@@ -27,9 +37,12 @@ Unreleased changes
     1.0.
   * Added a special extension that can embed any serializable Python object
     into the NIfTI file header. The contents of this extension is
-    automatically expanded into the `.meta` attribute of each NiftiImage. When
-    saving files to disk the content of the dictionary is also automatically
-    dumped into this extension.
+    automatically expanded upon request into the `.meta` attribute of each
+    NiftiImage. When saving files to disk the content of the dictionary is also
+    automatically dumped into this extension.
+    Embedded meta data is not loaded automatically, since this has security
+    implications, because code from the file header is actually executed.
+    The documentation explicitely mentions this risk.
   * Added :class:`~nifti.extensions.NiftiExtensions`. This is a container-like
     handler to access and manipulate NIfTI1 header extensions.
   * Exposed :class:`~nifti.image.MemMappedNiftiImage` in the root module.
@@ -65,7 +78,7 @@ Unreleased changes
     simplified the build procedure. Added optimization flags to SWIG call.
   * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a
     filename.
-  * Introduced :data:`nifti.pynifti_version` as canonical version string.
+  * Introduced :data:`nifti.__version__` as canonical version string.
   * Removed `updateQFormFromQuarternion()` from the list of public methods of
     :class:`~nifti.format.NiftiFormat`. This is an internal method that
     should not be used in user code. However, a redirect to the new method
@@ -76,10 +89,6 @@ Unreleased changes
   * Bugfix: Unicode filenames are now handled properly, as long as they do not
     contain pure-unicode characters (since the NIfTI library does not support
     them). Thanks to Gaël Varoquaux for reporting this issue.
-
-
-Releases
-~~~~~~~~
 
 * 0.20081017.1 (Fri, 17 Oct 2008)
 

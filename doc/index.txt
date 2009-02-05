@@ -70,14 +70,14 @@ Binary packages are available for:
 
 * RPM-based GNU/Linux distributions (:ref:`installation instructions <install_rpm>`)
     RPM packages are provided through the `OpenSUSE Build Service`_. The
-    currently supported distributions include: CentOS 5, Fedora 9, Mandriva
+    currently supported distributions include: CentOS 5, Fedora 9-10, Mandriva
     2007-2008, RedHat Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE
-    10.2 up to 11.0. The build service supports `RPM-package repositories`_ and
+    10.2 up to 11.0. The build service supports RPM-package repositories (`Suse
+    and Mandriva-related`_ and `Fedora, Redhat and CentOS-related`_) and
     `1-click-installations`_.
 
 * MacOS X (:ref:`installation instructions <install_macos>`)
-    An installer built for the Enthought Python 2.5 distribution is available
-    from the `download area`_.
+    PyNIfTI is available from the MacPorts_ framework.
 
 * Windows (:ref:`installation instructions <install_win>`)
     An installer for Python 2.5 is available from the `download area`_.
@@ -86,9 +86,11 @@ If there are no binary packages for your particular operating system or
 platform, you need to compile your own. The manual contains :ref:`instructions
 <buildfromsource>` to build PyNIfTI in various environments.
 
+.. _MacPorts: http://www.macports.org
 .. _official Debian package: http://packages.debian.org/python-nifti
 .. _package repository instructions: http://apsy.gse.uni-magdeburg.de/main/index.psp?sec=1&page=hanke/debian&lang=en
-.. _RPM-package repositories: http://download.opensuse.org/repositories/home:/hankem/
+.. _Suse and Mandriva-related: http://download.opensuse.org/repositories/home:/hankem/
+.. _Fedora, Redhat and CentOS-related: http://download.opensuse.org/repositories/home://hankem://rh5/
 .. _1-click-installations: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
 .. _OpenSUSE Build Service: https://build.opensuse.org/
 

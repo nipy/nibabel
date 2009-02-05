@@ -88,7 +88,7 @@ nifticlib_ext = Extension(
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.2009xxxx.1',
+    version      = '0.20090205.1',
     author       = 'Michael Hanke',
     author_email = 'michael.hanke@gmail.com',
     license      = 'MIT License',

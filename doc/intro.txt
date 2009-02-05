@@ -114,6 +114,9 @@ features are currently implemented:
   mode it is possible to modified existing files of any size without having
   to load them in memory first.
 
+* PyNIfTI allows to embed arbitrary additional information into the NIfTI file
+  header.
+
 .. _SWIG: http://www.swig.org
 .. _NumPy: http://numpy.scipy.org
 
