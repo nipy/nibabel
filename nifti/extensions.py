@@ -27,7 +27,10 @@ nifti_ecode_map = \
      "jimdiminfo": ncl.NIFTI_ECODE_JIMDIMINFO,
      "workflow_fwds": ncl.NIFTI_ECODE_WORKFLOW_FWDS,
      "freesurfer": ncl.NIFTI_ECODE_FREESURFER,
-     "pypickle": ncl.NIFTI_ECODE_PYPICKLE,
+     # for now just conquer the next available ECODE
+     "pypickle": 16,
+     # later replace by the following when new niftilib is released
+     #"pypickle": ncl.NIFTI_ECODE_PYPICKLE,
     }
 nifti_ecode_inv_map = dict([(v, k) for k, v in nifti_ecode_map.iteritems()])
 
