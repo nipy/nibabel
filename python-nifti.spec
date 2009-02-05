@@ -35,6 +35,7 @@ header information. Image data is made available via NumPy arrays.
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 python setup.py build
+make unittest
 
 %install
 python setup.py install --prefix=%{_prefix} --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
