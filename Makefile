@@ -67,7 +67,7 @@ distclean: clean
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
 	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
-		tests/data/noise*
+		tests/data/noise* tests/data/None.nii
 
 
 #
