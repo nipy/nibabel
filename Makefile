@@ -153,12 +153,15 @@ pylint: distclean
 # Distributions
 #
 
-orig-src: distclean 
+# we need to build first to be able to update the manpage
+orig-src: build
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
 	# update manpages
-	help2man -N -n "compute peristimulus timeseries of fMRI data" \
+	PYTHONPATH=. help2man -N -n "compute peristimulus timeseries of fMRI data" \
 		bin/pynifti_pst > man/pynifti_pst.1
+	# now clean
+	$(MAKE) distclean
 	# check versions
 	grep -iR 'version[ ]*[=:]' * | python tools/checkversion.py
 	# let python create the source tarball
