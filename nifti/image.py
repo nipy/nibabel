@@ -157,7 +157,7 @@ class NiftiImage(NiftiFormat):
         # set a default description if there is none
         if not self.description:
             self.description = \
-                    'Written by PyNIfTI version %s' % nifti.pynifti_version
+                    'Written by PyNIfTI version %s' % nifti.__version__
 
         # update header information
         if update_minmax:
