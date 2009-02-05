@@ -20,12 +20,37 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  * Exposed :class:`~nifti.niftiimage.MemMappedNiftiImage` in the root module.
+  None yet.
+
+
+Releases
+~~~~~~~~
+
+* 0.20090205.1 (Thu, 5 Feb 2009)
+
+  * This release is the first in a series that aims stabilize the API and
+    finally result in PyNIfTI 1.0 with full support of the NIfTI1 standard.
+  * The whole package was restructured. The included renaming
+    `nifti.nifti(image,format,clibs)` to `nifti.(image,format,clibs)`. Redirect
+    modules make sure that existing user code will not break, but they will
+    issue a DeprecationWarning and will be removed with the release of PyNIfTI
+    1.0.
+  * Added a special extension that can embed any serializable Python object
+    into the NIfTI file header. The contents of this extension is
+    automatically expanded upon request into the `.meta` attribute of each
+    NiftiImage. When saving files to disk the content of the dictionary is also
+    automatically dumped into this extension.
+    Embedded meta data is not loaded automatically, since this has security
+    implications, because code from the file header is actually executed.
+    The documentation explicitely mentions this risk.
+  * Added :class:`~nifti.extensions.NiftiExtensions`. This is a container-like
+    handler to access and manipulate NIfTI1 header extensions.
+  * Exposed :class:`~nifti.image.MemMappedNiftiImage` in the root module.
   * Moved :func:`~nifti.utils.cropImage` into the :mod:`~nifti.utils` module.
   * From now on Sphinx is used to generate the documentation. This includes a
     module reference that replaces that old API reference.
-  * Added methods :meth:`~nifti.niftiformat.NiftiFormat.vx2q` and
-    :meth:`~nifti.niftiformat.NiftiFormat.vx2s` to convert voxel indices into
+  * Added methods :meth:`~nifti.format.NiftiFormat.vx2q` and
+    :meth:`~nifti.format.NiftiFormat.vx2s` to convert voxel indices into
     coordinates defined by qform or sform respectively.
   * Updating the `cal_min` and `cal_max` values in the NIfTI header when
     saving a file is now conditional, but remains enabled by default.
@@ -33,34 +58,37 @@ Unreleased changes
     expanding the previous `xyzt_units` field in the header dictionary into
     editable `xyz_unit` and `time_unit` fields. The former `xyzt_units` field
     is no longer available. See:
-    :meth:`~nifti.niftiformat.NiftiFormat.getXYZUnit`,
-    :meth:`~nifti.niftiformat.NiftiFormat.setXYZUnit`,
-    :meth:`~nifti.niftiformat.NiftiFormat.getTimeUnit`,
-    :meth:`~nifti.niftiformat.NiftiFormat.setTimeUnit`,
-    :attr:`~nifti.niftiformat.NiftiFormat.xyz_unit`,
-    :attr:`~nifti.niftiformat.NiftiFormat.time_unit`
+    :meth:`~nifti.format.NiftiFormat.getXYZUnit`,
+    :meth:`~nifti.format.NiftiFormat.setXYZUnit`,
+    :meth:`~nifti.format.NiftiFormat.getTimeUnit`,
+    :meth:`~nifti.format.NiftiFormat.setTimeUnit`,
+    :attr:`~nifti.format.NiftiFormat.xyz_unit`,
+    :attr:`~nifti.format.NiftiFormat.time_unit`
   * Full set of methods to query and manuipulate qform and sform codes. See:
-    :meth:`~nifti.niftiformat.NiftiFormat.getQFormCode`,
-    :meth:`~nifti.niftiformat.NiftiFormat.setQFormCode`,
-    :meth:`~nifti.niftiformat.NiftiFormat.getSFormCode`,
-    :meth:`~nifti.niftiformat.NiftiFormat.setSFormCode`,
-    :attr:`~nifti.niftiformat.NiftiFormat.qform_code`,
-    :attr:`~nifti.niftiformat.NiftiFormat.sform_code`
+    :meth:`~nifti.format.NiftiFormat.getQFormCode`,
+    :meth:`~nifti.format.NiftiFormat.setQFormCode`,
+    :meth:`~nifti.format.NiftiFormat.getSFormCode`,
+    :meth:`~nifti.format.NiftiFormat.setSFormCode`,
+    :attr:`~nifti.format.NiftiFormat.qform_code`,
+    :attr:`~nifti.format.NiftiFormat.sform_code`
   * Each image instance is now able to generate a human-readable dump of its
     most important header information via `__str__()`.
+  * :class:`~nifti.image.NiftiImage` objects can now be pickled.
   * Switched to NumPy's distutils for building the package. Cleaned and
     simplified the build procedure. Added optimization flags to SWIG call.
-  * Introduced :data:`nifti.pynifti_version` as canonical version string.
+  * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a
+    filename.
+  * Introduced :data:`nifti.__version__` as canonical version string.
   * Removed `updateQFormFromQuarternion()` from the list of public methods of
-    :class:`~nifti.niftiformat.NiftiFormat`. This is an internal method that
-    should not be used in user code.
-  * Bugfix: :meth:`~nifti.niftiimage.NiftiImage.getScaledData` returns a
+    :class:`~nifti.format.NiftiFormat`. This is an internal method that
+    should not be used in user code. However, a redirect to the new method
+    will remain in-place until PyNIfTI 1.0.
+  * Bugfix: :meth:`~nifti.image.NiftiImage.getScaledData` returns a
     unmodified data array if `slope` is set to zero (as required by the NIfTI
     standard). Thanks to Thomas Ross for reporting.
-
-
-Releases
-~~~~~~~~
+  * Bugfix: Unicode filenames are now handled properly, as long as they do not
+    contain pure-unicode characters (since the NIfTI library does not support
+    them). Thanks to Gaël Varoquaux for reporting this issue.
 
 * 0.20081017.1 (Fri, 17 Oct 2008)
 

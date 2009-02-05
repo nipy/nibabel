@@ -10,15 +10,15 @@
 
 The PyNIfTI module is a Python interface to the NIfTI I/O libraries. Using
 PyNIfTI, one can easily read and write NIfTI and ANALYZE images from within
-Python. The :class:`~nifti.niftiimage.NiftiImage` class provides pythonic
+Python. The :class:`~nifti.image.NiftiImage` class provides pythonic
 access to the full header information and for a maximum of interoperability the
 image data is made available via NumPy arrays.
 """
 
 __docformat__ = 'restructuredtext'
 
-
-from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
+# expose the two main classes
+from nifti.image import NiftiImage, MemMappedNiftiImage
 
 # canonical version string
-pynifti_version = '0.2009xxxx.1'
+__version__ = '0.20090205.1'

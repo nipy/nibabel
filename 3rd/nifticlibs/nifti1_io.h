@@ -450,7 +450,10 @@ int    valid_nifti_extensions(const nifti_image *nim);
 
 #define NIFTI_ECODE_FREESURFER      14  /* http://surfer.nmr.mgh.harvard.edu */
 
-#define NIFTI_MAX_ECODE             14  /******* maximum extension code *******/
+#define NIFTI_ECODE_PYPICKLE        16  /* Embedded Python objects
+                                           http://niftilib.sourceforge.net/pynifti */
+
+#define NIFTI_MAX_ECODE             16  /******* maximum extension code *******/
 
 /* nifti_type file codes */
 #define NIFTI_FTYPE_ANALYZE   0

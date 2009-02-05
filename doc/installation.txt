@@ -62,7 +62,7 @@ Additionally, there are binary packages for several RPM-based distributions,
 provided through the `OpenSUSE Build Service`_. To install one of these
 packages first download it from the `OpenSUSE software website`_. Please note,
 that this site does not only offer OpenSUSE packages, but also binaries for
-other distributions, including: CentOS 5, Fedora 9, Mandriva 2007-2008, RedHat
+other distributions, including: CentOS 5, Fedora 9-10, Mandriva 2007-2008, RedHat
 Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE 10.2 up to 11.0.  Once
 downloaded, open a console and invoke (the example command refers to PyMVPA
 0.3.1)::
@@ -80,10 +80,14 @@ another repository, using the following URL:
   http://download.opensuse.org/repositories/home:/hankem/openSUSE_11.0/
 
 For other distributions use the respective package managers (e.g. Yum) to setup
-the repository URL.  The repositories include all dependencies of PyMIfTI, if
-they are not available from other repositories of the respective distribution.
+the repository URL.  The repositories include all core dependencies of PyNIfTI,
+if they are not available from other repositories
+of the respective distribution. There are two different repository groups, one
+for `Suse and Mandriva-related packages`_ and another one for `Fedora, Redhat
+and CentOS-related packages`_.
 
-.. _RPM-package repositories: http://download.opensuse.org/repositories/home:/hankem/
+.. _Suse and Mandriva-related packages: http://download.opensuse.org/repositories/home:/hankem/
+.. _Fedora, Redhat and CentOS-related packages: http://download.opensuse.org/repositories/home://hankem://rh5/
 .. _1-click-installations: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
 .. _OpenSUSE software website: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
 .. _OpenSUSE Build Service: https://build.opensuse.org/
@@ -132,11 +136,72 @@ Import the nifti module, which should cause no error messages::
 
 .. _install_macos:
 
-Macintosh
----------
+MacOS X
+-------
 
-A binary package for a recent Python version is provided in the download area
-of the SourceForge_ project.
+The easiest installation method for OSX is via MacPorts_. MacPorts is a package
+management system for MacOS, which is in some respects very similiar to RPM or
+APT which are used in most GNU/Linux distributions. However, rather than
+installing binary packages, it compiles software from source on the target
+machine. 
+
+*The MacPort of PyNIfTI is kindly maintained by James Kyle <jameskyle@ucla.edu>.*
+
+.. _MacPorts: http://www.macports.org
+
+In the context of PyNIfTI MacPorts is much easier to handle than the previously
+available installer for Macs.  Although the initial overhead to setup MacPorts
+on a machine is higher than simply installing PyNIfTI using the former
+installer, MacPorts saves the user a significant amount of time (in the long
+run). This is due to the fact that this framework will not only take care of
+updating a PyNIfTI installation automatically whenever a new release is
+available. It will also provide many of the optional dependencies of PyNIfTI
+(e.g. NumPy_, nifticlibs) in the same environment and therefore abolishes the
+need to manually check dozens of websites for updates and deal with an
+unbelievable number of different installation methods.
+
+MacPorts provides a universal binary package installer that is downloadable at
+http://www.macports.org/install.php
+
+After downloading, simply mount the dmg image and double click `MacPorts.pkg`.
+
+By default, MacPorts installs to `/opt/local`. After the installation is
+completed, you must ensure that your paths are set up correctly in order to
+access the programs and utilities installed by MacPorts. For exhaustive details
+on editing shell paths please see:
+
+  http://www.debian.org/doc/manuals/reference/ch-install.en.html#s-bashconf
+
+A typical `.bash_profile` set up for MacPorts might look like::
+
+  > export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+  > export DYLD_LIBRARY_PATH=/opt/local/lib:$DYLD_LIBRARY_PATH
+
+Be sure to source your .bash_profile or close Terminal.app and reopen it for
+these changes to take effect.
+
+Once MacPorts is installed and your environment is properly configured, PyNIfTI
+is installed using a single command::
+
+  > $ sudo port install py25-pynifti
+
+If this is your first time using MacPorts Python 2.5 will be automatically
+installed for you. However, an additional step is needed::
+
+  $ sudo port install python_select
+  $ sudo python_select python25
+
+MacPorts has the ability of installing several Python versions at a time, the
+`python_select` utility ensures that the default Python (located at
+`/opt/local/bin/python`) points to your preferred version.
+
+Upon success, open a terminal window and start Python by typing `python` and
+hit return. Now try to import the PyNIfTI module by doing:
+
+  >>> import nifti
+  >>>
+
+If no error messages appear, you have succesfully installed PyNIfTI.
 
 
 .. _requirements:
@@ -286,6 +351,21 @@ as described below.
 .. _MinGW project website: http://www.mingw.org/
 .. _MSYS: http://www.mingw.org/msys.shtml
 
+
+MacOS X
+-------
+
+Since the MacPorts_ system basically compiles from source there should be no
+need to perform this step manually. However, if one intends to compile without
+MacPorts_ the `XCode developer tools`_, have to be installed first, as the
+operating system does not come with a compiler by default. If you want to use
+or even work on the latest development code, you should also install Git_.
+There is a `MacOS installer for Git`_, that make this step very easy.
+
+.. _XCode developer tools: http://developer.apple.com/tools/xcode/
+.. _MacOS installer for Git: http://code.google.com/p/git-osx-installer/
+
+Otherwise follow the :ref:`general build instructions <buildfromsource>`.
 
 
 MacOS X and MacPython

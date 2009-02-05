@@ -11,8 +11,9 @@
 
 __docformat__ = 'restructuredtext'
 
-from nifti.niftiimage import NiftiImage, MemMappedNiftiImage
-from nifti.niftiformat import NiftiFormat
+from nifti.image import NiftiImage, MemMappedNiftiImage
+from nifti.format import NiftiFormat
+import nifti.clib as ncl
 import unittest
 import md5
 import tempfile
@@ -37,19 +38,22 @@ def md5sum(filename):
 class FileIOTests(unittest.TestCase):
     def setUp(self):
         self.workdir = tempfile.mkdtemp('pynifti_test')
-        self.nimg = NiftiImage('data/example4d.nii.gz')
+        self.nimg = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
+
 
     def tearDown(self):
         shutil.rmtree(self.workdir)
         del self.nimg
         self.fp.close()
 
+
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
-        md5_orig = md5sum('data/example4d.nii.gz')
+        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
+        nimg2 = NiftiImage( os.path.join( self.workdir, 'iotest.nii.gz'))
         md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
 
         self.failUnlessEqual(md5_orig, md5_io)
@@ -58,7 +62,7 @@ class FileIOTests(unittest.TestCase):
     def testUnicodeLoadSaveCycle(self):
         """ check load/save cycle for unicode filenames.
         """
-        md5_orig = md5sum('data/example4d.nii.gz')
+        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
@@ -146,6 +150,7 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
 
+
     def testQFormSetting(self):
         # 4x4 identity matrix
         ident = N.identity(4)
@@ -162,6 +167,7 @@ class FileIOTests(unittest.TestCase):
 
         self.failUnless( (self.nimg.qform == nimg2.qform).all() )
 
+
     def testQFormSetting_fromFile(self):
         # test setting qoffset
         new_qoffset = (10.0, 20.0, 30.0)
@@ -174,7 +180,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless((self.nimg.qform == nimg2.qform).all())
 
         # now test setting full qform
-        nimg3 = NiftiImage('data/example4d.nii.gz')
+        nimg3 = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
 
         # build custom qform matrix
         qform = N.identity(4)
@@ -216,6 +222,7 @@ class FileIOTests(unittest.TestCase):
         # test full qform
         self.failUnless( (nimg.qform == nimg2.qform).all() )
 
+
     def test_setPixDims(self):
         pdims = (20.0, 30.0, 40.0, 2000.0, 1.0, 1.0, 1.0)
         # test setPixDims func
@@ -236,6 +243,7 @@ class FileIOTests(unittest.TestCase):
         nimg2 = NiftiImage(self.fp.name)
         self.failUnless(nimg2.pixdim == pdims)
 
+
     def test_setVoxDims(self):
         vdims = (2.0, 3.0, 4.0)
         # test setVoxDims func
@@ -255,7 +263,79 @@ class FileIOTests(unittest.TestCase):
         self.nimg.save(self.fp.name)
         nimg2 = NiftiImage(self.fp.name)
         self.failUnless(self.nimg.voxdim == nimg2.voxdim)
-        
+
+
+    def testExtensionsSurvive(self):
+        """ check if extensions actually get safed to the file.
+        """
+        self.nimg.extensions += ('comment', 'fileio')
+        self.nimg.save(os.path.join( self.workdir, 'extensions.nii.gz'))
+
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'extensions.nii.gz'))
+
+        # should be the last one added
+        self.failUnless(nimg2.extensions[-1] == 'fileio')
+
+
+    def testMetaReconstruction(self):
+        """Check if the meta data gets properly reconstructed during
+        save/load cycle.
+        """
+        self.nimg.meta['something'] = 'Gmork'
+        self.nimg.save(os.path.join( self.workdir, 'meta.nii.gz'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'),
+                           loadmeta=True)
+
+        self.failUnless(nimg2.meta['something'] == 'Gmork')
+
+        # test whether the meta extensions is preserved during a load/safe cycle
+        # even when it is not unpickled intermediately
+        # by default nothing is unpickled
+        nimg_packed = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
+        self.failUnless(len(nimg_packed.meta) == 0)
+
+        nimg_packed.save(os.path.join( self.workdir, 'packed.nii.gz'))
+
+        nimg_unpacked = NiftiImage(os.path.join(self.workdir, 'packed.nii.gz'))
+        self.failUnless(nimg2.meta['something'] == 'Gmork')
+
+
+    def testArrayAssign(self):
+        alt_array = N.zeros((3,4,5,6,7), dtype='int')
+        self.nimg.data = alt_array
+
+        self.nimg.save(os.path.join( self.workdir, 'assign.nii'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'assign.nii'))
+
+
+        self.failUnless(nimg2.header['dim'] == [5, 7, 6, 5, 4, 3, 1, 1])
+        self.failUnless(nimg2.raw_nimg.datatype == ncl.NIFTI_TYPE_INT32)
+
+
+    def testUnicodeHandling(self):
+        fn = os.path.join(u'data', u'example4d.nii.gz')
+        fn_pureuni = fn + u'łđ€æßđ¢»«'
+
+        # should both be unicode
+        self.failUnless(isinstance(fn, unicode))
+        self.failUnless(isinstance(fn_pureuni, unicode))
+
+        # nifti should be able to deal with ascii encodable unicode string
+        self.failUnless(NiftiImage(fn))
+
+        # and it should raise an exception if that is not possible
+        self.failUnlessRaises(UnicodeError, NiftiImage, fn_pureuni)
+
+        # same for calling 'save'
+        outpath = os.path.join( self.workdir, u'assign.nii')
+        self.failUnless(isinstance(outpath, unicode))
+        nim = NiftiImage(N.ones((2,3,4)))
+
+        nim.save(outpath)
+        self.failUnless(os.path.exists(outpath))
+
+        self.failUnlessRaises(UnicodeError, nim.save, fn_pureuni)
+
 
 def suite():
     return unittest.makeSuite(FileIOTests)

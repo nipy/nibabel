@@ -17,32 +17,32 @@ Module Reference
 
 
 
-Module :mod:`~nifti.niftiformat`
+Module :mod:`~nifti.format`
 ================================
 
-.. automodule:: nifti.niftiformat
+.. automodule:: nifti.format
 
 
 :class:`NiftiFormat`
 --------------------
 
-.. autoclass:: nifti.niftiformat.NiftiFormat
+.. autoclass:: nifti.format.NiftiFormat
   :members:
   :undoc-members:
   :show-inheritance:
 
 
 
-Module :mod:`~nifti.niftiimage`
+Module :mod:`~nifti.image`
 ===============================
 
-.. automodule:: nifti.niftiimage
+.. automodule:: nifti.image
 
 
 :class:`NiftiImage`
 -------------------
 
-.. autoclass:: nifti.niftiimage.NiftiImage
+.. autoclass:: nifti.image.NiftiImage
   :members:
   :undoc-members:
   :show-inheritance:
@@ -51,20 +51,46 @@ Module :mod:`~nifti.niftiimage`
 :class:`MemMappedNiftiImage`
 ----------------------------
 
-.. autoclass:: nifti.niftiimage.MemMappedNiftiImage
+.. autoclass:: nifti.image.MemMappedNiftiImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+Module :mod:`~nifti.extensions`
+===============================
+
+.. automodule:: nifti.extensions
+
+
+:class:`NiftiExtensions`
+------------------------
+
+.. autoclass:: nifti.extensions.NiftiExtensions
   :members:
   :undoc-members:
   :show-inheritance:
 
 
 
-Useful Functions from :mod:`nifti.utils`
-========================================
+Useful Functions
+================
+
+Utilities from :mod:`nifti.utils`
+---------------------------------
 
 .. automodule:: nifti.utils
 
 .. autofunction:: nifti.utils.applyFxToVolumes
-.. autofunction:: nifti.utils.cropImage
 .. autofunction:: nifti.utils.getPeristimulusTimeseries
 .. autofunction:: nifti.utils.splitFilename
 .. autofunction:: nifti.utils.time2vol
+
+
+Image functions in :mod:`nifti.imgfx`
+-------------------------------------
+
+.. automodule:: nifti.imgfx
+
+.. autofunction:: nifti.imgfx.getBoundingBox
+.. autofunction:: nifti.imgfx.crop

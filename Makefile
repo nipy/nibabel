@@ -35,9 +35,9 @@ build-stamp:
 	python setup.py config --noisy
 	python setup.py build_ext
 	python setup.py build_py
-	# to overcome the issue of not-installed _nifticlib.so
-	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_nifticlib.so nifti/
-	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/nifticlib.py nifti/
+	# to overcome the issue of not-installed _clib.so
+	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_clib.so nifti/
+	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/clib.py nifti/
 	touch $@
 
 
@@ -48,7 +48,7 @@ build-stamp:
 clean:
 	-rm -rf build
 	-rm *-stamp
-	-rm nifti/nifticlib.py nifti/_nifticlib.so
+	-rm nifti/clib.py nifti/_clib.so
 	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
 
 
@@ -67,6 +67,8 @@ distclean: clean
 		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
+	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
+		tests/data/noise* tests/data/None.nii
 
 
 #
@@ -81,12 +83,25 @@ $(WWW_DIR):
 # Tests
 #
 
+test: unittest testdoc testmanual
+
+
 ut-%: build
 	@cd tests && PYTHONPATH=.. python test_$*.py
 
 
 unittest: build
 	@cd tests && PYTHONPATH=.. python main.py
+
+
+testdoc: build
+# go into data, because docs assume now data dir
+	@cd tests/data && PYTHONPATH=../../ nosetests --with-doctest ../../nifti/
+
+
+testmanual: build
+# go into data, because docs assume now data dir
+	@cd tests/data && PYTHONPATH=../../ nosetests --with-doctest --doctest-extension=.txt ../../doc/
 
 
 coverage: build
@@ -139,12 +154,15 @@ pylint: distclean
 # Distributions
 #
 
-orig-src: distclean 
+# we need to build first to be able to update the manpage
+orig-src: build
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
 	# update manpages
-	help2man -N -n "compute peristimulus timeseries of fMRI data" \
+	PYTHONPATH=. help2man -N -n "compute peristimulus timeseries of fMRI data" \
 		bin/pynifti_pst > man/pynifti_pst.1
+	# now clean
+	$(MAKE) distclean
 	# check versions
 	grep -iR 'version[ ]*[=:]' * | python tools/checkversion.py
 	# let python create the source tarball

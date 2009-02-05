@@ -22,7 +22,7 @@ capabilities of the library.
 "
 %enddef
 
-%module (package="nifti", docstring=DOCSTRING) nifticlib
+%module (package="nifti", docstring=DOCSTRING) clib
 %{
 #include <nifti1_io.h>
 #include <znzlib.h>
@@ -46,10 +46,10 @@ static void set_mat44(mat44* m,
 /* convert mat44 struct into a numpy float array */
 static PyObject* mat442array(mat44 _mat)
 {
-    int dims[2] = {4,4};
+    npy_intp dims[2] = {4,4};
 
     PyObject* array = 0;
-    array = PyArray_FromDims ( 2, dims, NPY_FLOAT );
+    array = PyArray_SimpleNew ( 2, dims, NPY_FLOAT );
 
     /* mat44 subscription is [row][column] */
     PyArrayObject* a = (PyArrayObject*) array;
@@ -302,5 +302,6 @@ char spacetime2xyzt(int sp, int t);
 %array_class(unsigned int, uintArray);
 %array_class(float, floatArray);
 %array_class(double, doubleArray);
+%array_class(nifti1_extension, extensionArray);
 
 

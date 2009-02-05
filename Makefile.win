@@ -23,8 +23,8 @@ build: 3rd
 	set PYTHON_INCLUDE="$(PYTHON_PATH)\\include" \
 		& python setup.py build_ext -c mingw32
 # for some stupid reason the swig wrapper is in the wrong location
-	copy /Y nifticlib.py nifti
-	del /F nifticlib.py
+	copy /Y clib.py nifti
+	del /F clib.py
 
 
 installer: 3rd build
@@ -33,7 +33,7 @@ installer: 3rd build
 
 
 configure-inplace-use:
-	copy build\\lib.win32-$(PYTHON_VERSION)\\nifti\\_nifticlib.pyd \
+	copy build\\lib.win32-$(PYTHON_VERSION)\\nifti\\_clib.pyd \
 		nifti
 
 #
