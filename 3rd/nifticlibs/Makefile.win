@@ -1,20 +1,27 @@
-# Minimalistic makefile for libsvm
+# Minimalistic makefile for libnifti
 LIB=libniftiio.a libznz.a
 MISC=nifti1_io.c znzlib.c
 
 LIBFLAGS=
 CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB -DWIN32
 
-all: $(LIB)
+TDIR=..\..\build\nifticlibs
+
+all: prep $(LIB)
+
+prep:
+	-mkdir ..\..\build
+	-mkdir $(TDIR)
 
 .c.o:
-	gcc $(CFLAGS) $(LIBFLAGS) -c $^
+	gcc $(CFLAGS) $(LIBFLAGS) -c $^ -o $(TDIR)\$(^:.c=.o)
 
 libniftiio.a: nifti1_io.o
-	ar cur $@ $^
+	ar curs $(TDIR)\$@ $(TDIR)\$^
 
 libznz.a: znzlib.o
-	ar cur $@ $^
+	ar curs $(TDIR)\$@ $(TDIR)\$^
 
 clean:
-	-del $(LIB) $(MISC:.c=.o)
+	-rmdir $(TDIR)
+	-del *-stamp
