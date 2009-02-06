@@ -61,7 +61,7 @@ else:
 
 # win32 stuff
 if sys.platform.startswith('win'):
-    swig_opts.append('-DWIN32')
+    os.environ['SWIG_FEATURES'] = '-DWIN32 ' + os.environ['SWIG_FEATURES']
     defines.append(('WIN32', None))
 
 # apple stuff

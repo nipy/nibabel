@@ -1,4 +1,4 @@
-# Makefile to build PyMVPA under Windows using a standard Python
+# Makefile to build PyNIfTI under Windows using a standard Python
 # distribution and MinGW
 #
 # Adjust this path to match the version and location of your Python
@@ -18,13 +18,10 @@ all: build configure-inplace-use
 	cd 3rd\nifticlibs & $(MAKE) -f Makefile.win
 
 
-build: 3rd
-# build pymvpa extensions including libsvm
+build: 3rd build-stamp
+build-stamp:
 	set PYTHON_INCLUDE="$(PYTHON_PATH)\\include" \
 		& python setup.py build_ext -c mingw32
-# for some stupid reason the swig wrapper is in the wrong location
-	copy /Y clib.py nifti
-	del /F clib.py
 
 
 installer: 3rd build
