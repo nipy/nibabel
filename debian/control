@@ -12,7 +12,7 @@ DM-Upload-Allowed: yes
 
 Package: python-nifti
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python interface to the NIfTI I/O libraries
