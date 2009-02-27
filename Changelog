@@ -20,7 +20,8 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  None yet.
+  * Bugfix: Updating the NIfTI header from a dictionary was broken.
+  * Bugfix: Removed left-over print statement in extension code.
 
 
 Releases
