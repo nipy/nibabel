@@ -272,8 +272,9 @@ class NiftiImage(NiftiFormat):
 
         Please refer to NiftiFormat.updateFromDict()
         """
-        warn("This function is deprecated and will be removed with " \
-             "PyNIfTI 1.0.", DeprecationWarning)
+        warn("updateHeader function is deprecated and will be removed with " \
+             "PyNIfTI 1.0.  Please use updateFromDict instead.",
+             DeprecationWarning)
         NiftiFormat.updateFromDict(self, hdrdict)
 
 
