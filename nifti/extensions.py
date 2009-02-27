@@ -142,7 +142,6 @@ class NiftiExtensions(object):
 
         if source:
             for ext in source:
-                print ext
                 self.append(ext)
 
 
