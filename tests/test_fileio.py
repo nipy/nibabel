@@ -301,7 +301,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testArrayAssign(self):
-        alt_array = N.zeros((3,4,5,6,7), dtype='int')
+        alt_array = N.zeros((3,4,5,6,7), dtype='int32')
         self.nimg.data = alt_array
 
         self.nimg.save(os.path.join( self.workdir, 'assign.nii'))
