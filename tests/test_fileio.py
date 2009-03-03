@@ -277,6 +277,38 @@ class FileIOTests(unittest.TestCase):
         self.failUnless(nimg2.extensions[-1] == 'fileio')
 
 
+    def testPristineExtensions(self):
+        """See whether extensions of variable length are loaded properly.
+        """
+        ext = self.nimg.extensions
+
+        # tabula rasa
+        ext.clear()
+        self.failIf(len(ext))
+
+        chunks = 100
+        teststr = chunks * '0123456789'
+
+        for el in xrange(10 * chunks):
+            ext += ('comment', teststr[:el])
+
+        # check whether all went well
+        for el in xrange(10 * chunks):
+            self.failUnless(ext[el] == teststr[:el])
+
+        # save/load cycle
+        self.nimg.save(os.path.join( self.workdir, 'ext2.nii.gz'))
+        nimg2 = NiftiImage(os.path.join(self.workdir, 'ext2.nii.gz'))
+
+        # see what came out of it
+        ext2 = nimg2.extensions
+
+        for el in xrange(10 * chunks):
+            if not ext2[el] == teststr[:el]:
+                print 'extension of length %i is broken' % el
+            self.failUnless(ext2[el] == teststr[:el])
+
+
     def testMetaReconstruction(self):
         """Check if the meta data gets properly reconstructed during
         save/load cycle.
@@ -301,7 +333,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testArrayAssign(self):
-        alt_array = N.zeros((3,4,5,6,7), dtype='int')
+        alt_array = N.zeros((3,4,5,6,7), dtype='int32')
         self.nimg.data = alt_array
 
         self.nimg.save(os.path.join( self.workdir, 'assign.nii'))

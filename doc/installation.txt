@@ -215,7 +215,7 @@ source. It needs a few things to build and run properly:
 
 *  Python_ 2.4 or greater
 *  NumPy_
-*  SWIG_
+*  SWIG_ 1.3.29 (or later)
 *  `NIfTI C libraries`_
      Proper developer packages are prefered, but for convenience reasons a
      minimal copy is included in the PyNIfTI source package.
@@ -328,12 +328,6 @@ Windows). SWIG does not have to be installed, just unzip the file you
 downloaded and add the root directory of the extracted sources to the `PATH`
 environment variable (make sure that this directory contains `swig.exe`, if
 not, you haven't downloaded `swigwin`).
-
-PyNIfTI comes with a specific build setup configuration for Windows --
-`setup.cfg.mingw32` in the root of the source tarball. Please rename this file
-to `setup.cfg`. This is only necessary, if you have *not* configured your
-Python distutils installation to always use MinGW instead of the Microsoft
-compilers.
 
 Now, we are ready to build PyNIfTI. The easiest way to do this, is to make use
 of the `Makefile.win` that is shipped with PyNIfTI to build a binary installer

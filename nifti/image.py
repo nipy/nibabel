@@ -139,13 +139,14 @@ class NiftiImage(NiftiFormat):
           underlying function nifti_write_hdr_img() from libniftiio does not
           provide any feedback. Suggestions for improvements are appreciated.
         """
-        # make sure filename is not unicode
-        try:
-            filename = str(filename)
-        except UnicodeEncodeError:
-            raise UnicodeError, \
-                  "The filename must not contain unicode characters, since " \
-                  "the NIfTI library cannot handle them."
+        if not filename is None:
+            # make sure filename is not unicode
+            try:
+                filename = str(filename)
+            except UnicodeEncodeError:
+                raise UnicodeError, \
+                      "The filename must not contain unicode characters, since " \
+                      "the NIfTI library cannot handle them."
 
 
         # If image data is not yet loaded, do it now.
@@ -272,8 +273,9 @@ class NiftiImage(NiftiFormat):
 
         Please refer to NiftiFormat.updateFromDict()
         """
-        warn("This function is deprecated and will be removed with " \
-             "PyNIfTI 1.0.", DeprecationWarning)
+        warn("updateHeader function is deprecated and will be removed with " \
+             "PyNIfTI 1.0.  Please use updateFromDict instead.",
+             DeprecationWarning)
         NiftiFormat.updateFromDict(self, hdrdict)
 
 

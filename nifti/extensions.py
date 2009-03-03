@@ -222,15 +222,20 @@ class NiftiExtensions(object):
           extension: 2-tuple
             An extension is given by a `(ecode, edata)` tuple, where `ecode` can
             be either literal or numerical and `edata` is any kind of data.
+
+        Note:
+          Currently, `edata` can only be stuff whos len(edata) matches its size
+          in bytes, e.g. str.
         """
         ecode, edata = extension
 
         # check and potentially convert ecodes
         ecode = _any2ecode(ecode)
 
+        # +1 to still include the stop bit if the extension length is n*16-8
         ret = ncl.nifti_add_extension(self.__raw_nimg,
                                       edata,
-                                      len(edata),
+                                      len(edata) + 1,
                                       ecode)
         if not ret == 0:
             raise RuntimeError, \
