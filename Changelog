@@ -24,6 +24,8 @@ Unreleased changes
   * Bugfix: Removed left-over print statement in extension code.
   * Bugfix: Prevent saving of bogus 'None.nii' images when the filename
     was previously assign, before calling NiftiImage.save() (Closes: #517920).
+  * Bugfix: Extension length was to short for all `edata` whos length matches
+    n*16-8, for a integer n.
 
 
 Releases
