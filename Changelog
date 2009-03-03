@@ -20,16 +20,19 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
+  None yet.
+
+
+Releases
+~~~~~~~~
+
+* 0.20090303.1 (Tue, 3 Mar 2009)
   * Bugfix: Updating the NIfTI header from a dictionary was broken.
   * Bugfix: Removed left-over print statement in extension code.
   * Bugfix: Prevent saving of bogus 'None.nii' images when the filename
     was previously assign, before calling NiftiImage.save() (Closes: #517920).
   * Bugfix: Extension length was to short for all `edata` whos length matches
     n*16-8, for a integer n.
-
-
-Releases
-~~~~~~~~
 
 * 0.20090205.1 (Thu, 5 Feb 2009)
 
