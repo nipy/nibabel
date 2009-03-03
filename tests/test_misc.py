@@ -44,7 +44,7 @@ class MiscTests(unittest.TestCase):
         self.failUnless(nimg.raw_nimg.datatype == ncl.NIFTI_TYPE_FLOAT64)
 
         # now turn that image into 4d with ints
-        alt_array = N.zeros((4,5,6,7), dtype='int')
+        alt_array = N.zeros((4,5,6,7), dtype='int32')
         nimg.data = alt_array
 
         self.failUnless(nimg.data.shape == alt_array.shape)

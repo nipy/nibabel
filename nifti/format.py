@@ -312,7 +312,7 @@ class NiftiFormat(object):
         if hdrdict.has_key('dim'):
             del hdrdict['dim']
 
-        _rebuildNimgFromHdrAndDict(nhdr, hdrdict)
+        self._rebuildNimgFromHdrAndDict(nhdr, hdrdict)
 
 
     def vx2q(self, coord):
