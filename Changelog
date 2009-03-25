@@ -20,7 +20,9 @@ Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  None yet.
+  * Added support for COMPLEX64 datatype.
+  * Bugfix: Ensure consistent mapping between NIfTI and NumPy datatypes.
+
 
 
 Releases
