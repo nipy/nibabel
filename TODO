@@ -1,3 +1,5 @@
+* Enhance pynifti_pst to do percent signalchange relative to a given volume.
+
 * Implement support for slice timing related NIfTI information.
 
 * Implement support for intent codes.

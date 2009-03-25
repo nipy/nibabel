@@ -13,6 +13,7 @@ __docformat__ = 'restructuredtext'
 
 from nifti.image import NiftiImage, MemMappedNiftiImage
 from nifti.format import NiftiFormat
+import nifti.utils
 import nifti.clib as ncl
 import unittest
 import md5
@@ -40,21 +41,23 @@ class FileIOTests(unittest.TestCase):
         self.workdir = tempfile.mkdtemp('pynifti_test')
         self.nimg = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
+        self.fp_plain = tempfile.NamedTemporaryFile(suffix='.nii')
 
 
     def tearDown(self):
         shutil.rmtree(self.workdir)
         del self.nimg
         self.fp.close()
+        self.fp_plain.close()
 
 
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
         md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
-        self.nimg.save( os.path.join( self.workdir, 'iotest.nii.gz') )
-        nimg2 = NiftiImage( os.path.join( self.workdir, 'iotest.nii.gz'))
-        md5_io =  md5sum( os.path.join( self.workdir, 'iotest.nii.gz') )
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
+        md5_io =  md5sum(self.fp.name)
 
         self.failUnlessEqual(md5_orig, md5_io)
 
@@ -104,19 +107,19 @@ class FileIOTests(unittest.TestCase):
         data = N.arange(24).reshape(2,3,4)
         n = NiftiImage(data)
 
-        n.save(os.path.join(self.workdir, 'scratch.nii'))
+        n.save(self.fp.name)
 
-        n2 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+        n2 = NiftiImage(self.fp.name)
 
         self.failUnless((n2.data == data).all())
 
         # now modify data and store again
         n2.data[:] = n2.data * 2
 
-        n2.save(os.path.join(self.workdir, 'scratch.nii'))
+        n2.save(self.fp.name)
 
         # reopen and check data
-        n3 = NiftiImage(os.path.join(self.workdir, 'scratch.nii'))
+        n3 = NiftiImage(self.fp.name)
 
         self.failUnless((n3.data == data * 2).all())
 
@@ -128,9 +131,9 @@ class FileIOTests(unittest.TestCase):
 
     def testMemoryMapping(self):
         # save as uncompressed file
-        self.nimg.save(os.path.join(self.workdir, 'mmap.nii'))
+        self.nimg.save(self.fp_plain.name)
 
-        nimg_mm = MemMappedNiftiImage(os.path.join(self.workdir, 'mmap.nii'))
+        nimg_mm = MemMappedNiftiImage(self.fp_plain.name)
 
         # make sure we have the same
         self.failUnlessEqual(self.nimg.data[1,12,39,46],
@@ -145,7 +148,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnlessEqual(nimg_mm.data[0,12,30,23], 999)
 
         # now reopen non-mapped and confirm operation
-        nimg_mod = NiftiImage(os.path.join(self.workdir, 'mmap.nii'))
+        nimg_mod = NiftiImage(self.fp_plain.name)
         self.failUnlessEqual(nimg_mod.data[0,12,30,23], 999)
 
         self.failUnlessRaises(RuntimeError, nimg_mm.setFilename, 'someother')
@@ -161,9 +164,8 @@ class FileIOTests(unittest.TestCase):
         self.failUnless( (self.nimg.qform == ident).all() )
 
         # test save/load cycle
-        self.nimg.save( os.path.join( self.workdir, 'qformtest.nii.gz') )
-        nimg2 = NiftiImage( os.path.join( self.workdir,
-                                               'qformtest.nii.gz') )
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
 
         self.failUnless( (self.nimg.qform == nimg2.qform).all() )
 
@@ -173,9 +175,8 @@ class FileIOTests(unittest.TestCase):
         new_qoffset = (10.0, 20.0, 30.0)
         self.nimg.qoffset = new_qoffset
 
-        fname = os.path.join(self.workdir, 'test-qoffset-file.nii.gz')
-        self.nimg.save(fname)
-        nimg2 = NiftiImage(fname)
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
 
         self.failUnless((self.nimg.qform == nimg2.qform).all())
 
@@ -193,9 +194,8 @@ class FileIOTests(unittest.TestCase):
         self.failUnless( (nimg3.qform == qform).all() )
 
         # see whether it survives save/load cycle
-        fname = os.path.join(self.workdir, 'qform_fromfile_test.nii.gz')
-        nimg3.save(fname)
-        nimg4 = NiftiImage(fname)
+        nimg3.save(self.fp.name)
+        nimg4 = NiftiImage(self.fp.name)
 
         # test rotation portion of qform, pixdims appear to be ok
         self.failUnless( (nimg4.qform[:3, :3] == qform[:3, :3]).all() )
@@ -214,9 +214,8 @@ class FileIOTests(unittest.TestCase):
         nimg.qform = ident
         self.failUnless( (nimg.qform == ident).all() )
 
-        fname = os.path.join(self.workdir, 'qform_fromarray_test.nii.gz')
-        nimg.save(fname)
-        nimg2 = NiftiImage(fname)
+        nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
         # test rotation portion of qform, pixdims appear to be ok
         self.failUnless( (nimg.qform[:3, :3] == nimg2.qform[:3, :3]).all() )
         # test full qform
@@ -269,9 +268,9 @@ class FileIOTests(unittest.TestCase):
         """ check if extensions actually get safed to the file.
         """
         self.nimg.extensions += ('comment', 'fileio')
-        self.nimg.save(os.path.join( self.workdir, 'extensions.nii.gz'))
+        self.nimg.save(self.fp.name)
 
-        nimg2 = NiftiImage(os.path.join(self.workdir, 'extensions.nii.gz'))
+        nimg2 = NiftiImage(self.fp.name)
 
         # should be the last one added
         self.failUnless(nimg2.extensions[-1] == 'fileio')
@@ -297,8 +296,8 @@ class FileIOTests(unittest.TestCase):
             self.failUnless(ext[el] == teststr[:el])
 
         # save/load cycle
-        self.nimg.save(os.path.join( self.workdir, 'ext2.nii.gz'))
-        nimg2 = NiftiImage(os.path.join(self.workdir, 'ext2.nii.gz'))
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
 
         # see what came out of it
         ext2 = nimg2.extensions
@@ -314,21 +313,20 @@ class FileIOTests(unittest.TestCase):
         save/load cycle.
         """
         self.nimg.meta['something'] = 'Gmork'
-        self.nimg.save(os.path.join( self.workdir, 'meta.nii.gz'))
-        nimg2 = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'),
-                           loadmeta=True)
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name, loadmeta=True)
 
         self.failUnless(nimg2.meta['something'] == 'Gmork')
 
         # test whether the meta extensions is preserved during a load/safe cycle
         # even when it is not unpickled intermediately
         # by default nothing is unpickled
-        nimg_packed = NiftiImage(os.path.join(self.workdir, 'meta.nii.gz'))
+        nimg_packed = NiftiImage(self.fp.name)
         self.failUnless(len(nimg_packed.meta) == 0)
 
-        nimg_packed.save(os.path.join( self.workdir, 'packed.nii.gz'))
+        nimg_packed.save(self.fp.name)
 
-        nimg_unpacked = NiftiImage(os.path.join(self.workdir, 'packed.nii.gz'))
+        nimg_unpacked = NiftiImage(self.fp.name)
         self.failUnless(nimg2.meta['something'] == 'Gmork')
 
 
@@ -336,8 +334,8 @@ class FileIOTests(unittest.TestCase):
         alt_array = N.zeros((3,4,5,6,7), dtype='int32')
         self.nimg.data = alt_array
 
-        self.nimg.save(os.path.join( self.workdir, 'assign.nii'))
-        nimg2 = NiftiImage(os.path.join(self.workdir, 'assign.nii'))
+        self.nimg.save(self.fp.name)
+        nimg2 = NiftiImage(self.fp.name)
 
 
         self.failUnless(nimg2.header['dim'] == [5, 7, 6, 5, 4, 3, 1, 1])
@@ -367,6 +365,20 @@ class FileIOTests(unittest.TestCase):
         self.failUnless(os.path.exists(outpath))
 
         self.failUnlessRaises(UnicodeError, nim.save, fn_pureuni)
+
+
+    def testDTypesSupport(self):
+        """Check load/cycles with all supported dtypes"""
+        for dt in nifti.utils.N2nifti_dtype_map.keys():
+            data = N.ones(65536, dt).reshape(256,256)
+            nim = NiftiImage(data)
+            nim.save(self.fp.name)
+            nim2 = NiftiImage(self.fp.name)
+            self.failUnlessEqual(nim2.data.dtype, dt)
+            self.failUnlessEqual(nim2.header['datatype'],
+                                 nifti.utils.N2nifti_dtype_map[dt])
+            self.failUnless((nim2.data == 1).all())
+
 
 
 def suite():

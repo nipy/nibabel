@@ -115,38 +115,40 @@ static PyObject* wrapImageDataWithArray(nifti_image* _img)
     switch(_img->datatype)
     {
       case NIFTI_TYPE_UINT8:
-          array_type = NPY_UBYTE;
+          array_type = NPY_UINT8;
           break;
       case NIFTI_TYPE_INT8:
-          array_type = NPY_BYTE;
+          array_type = NPY_INT8;
           break;
       case NIFTI_TYPE_UINT16:
-          array_type = NPY_USHORT;
+          array_type = NPY_UINT16;
           break;
       case NIFTI_TYPE_INT16:
-          array_type = NPY_SHORT;
+          array_type = NPY_INT16;
           break;
       case NIFTI_TYPE_UINT32:
-          array_type = NPY_UINT;
+          array_type = NPY_UINT32;
           break;
       case NIFTI_TYPE_INT32:
-          array_type = NPY_INT;
+          array_type = NPY_INT32;
           break;
       case NIFTI_TYPE_UINT64:
+          array_type = NPY_UINT64;
+          break;
       case NIFTI_TYPE_INT64:
-          array_type = NPY_LONG;
+          array_type = NPY_INT64;
           break;
       case NIFTI_TYPE_FLOAT32:
-          array_type = NPY_FLOAT;
+          array_type = NPY_FLOAT32;
           break;
       case NIFTI_TYPE_FLOAT64:
-          array_type = NPY_DOUBLE;
+          array_type = NPY_FLOAT64;
+          break;
+      case NIFTI_TYPE_COMPLEX64:
+          array_type = NPY_COMPLEX64;
           break;
       case NIFTI_TYPE_COMPLEX128:
-          array_type = NPY_CFLOAT;
-          break;
-      case NIFTI_TYPE_COMPLEX256:
-          array_type = NPY_CDOUBLE;
+          array_type = NPY_COMPLEX128;
           break;
       default:
           PyErr_SetString(PyExc_RuntimeError, "Unsupported datatype");

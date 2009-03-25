@@ -31,6 +31,7 @@ N2nifti_dtype_map = { N.uint8: ncl.NIFTI_TYPE_UINT8,
                       N.int64 : ncl.NIFTI_TYPE_INT64,
                       N.float32: ncl.NIFTI_TYPE_FLOAT32,
                       N.float64: ncl.NIFTI_TYPE_FLOAT64,
+                      N.complex64: ncl.NIFTI_TYPE_COMPLEX64,
                       N.complex128: ncl.NIFTI_TYPE_COMPLEX128
                     }
 """Mapping of NumPy datatypes to NIfTI datatypes."""
@@ -47,6 +48,7 @@ nifti2numpy_dtype_map = \
       ncl.NIFTI_TYPE_INT64: 'i8',
       ncl.NIFTI_TYPE_FLOAT32: 'f4',
       ncl.NIFTI_TYPE_FLOAT64: 'f8',
+      ncl.NIFTI_TYPE_COMPLEX64: 'c8',
       ncl.NIFTI_TYPE_COMPLEX128: 'c16'
     }
 """Mapping of NIfTI to NumPy datatypes (necessary for handling memory
