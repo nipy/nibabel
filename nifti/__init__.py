@@ -46,12 +46,12 @@ from nifti.image import NiftiImage, MemMappedNiftiImage
 __version__ = '0.20090303.1'
 
 
-from loadsave import load, save
-import analyze as ana
-import spm99analyze as spm99
-import spm2analyze as spm2
-import nifti1 as ni1
-from analyze import AnalyzeHeader, AnalyzeImage
-from spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
-from spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-from nifti1 import Nifti1Header, Nifti1Image
+from nifti.loadsave import load, save
+import nifti.analyze as ana
+import nifti.spm99analyze as spm99
+import nifti.spm2analyze as spm2
+import nifti.nifti1 as ni1
+from nifti.analyze import AnalyzeHeader, AnalyzeImage
+from nifti.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
+from nifti.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
+from nifti.nifti1 import Nifti1Header, Nifti1Image

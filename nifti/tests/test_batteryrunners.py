@@ -92,10 +92,10 @@ from StringIO import StringIO
 
 import logging
 
-from volumeimages.testing import assert_true, assert_false, \
+from nifti.testing import assert_true, assert_false, \
      assert_equal, assert_not_equal, assert_raises
 
-from volumeimages.batteryrunners import BatteryRunner, Report
+from nifti.batteryrunners import BatteryRunner, Report
 
 # define some trivial functions as checks
 def chk1(obj, fix=True):

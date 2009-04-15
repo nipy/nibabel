@@ -2,17 +2,17 @@
 
 import numpy as np
 
-from volumeutils import pretty_mapping, endian_codes, \
+from nifti.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, array_from_file, array_to_file, \
      HeaderDataError, HeaderTypeError, allopen, \
      can_cast
 
-import volumeimages.imageglobals as imageglobals
-import volumeimages.spatialimages as spatialimages
-import volumeimages.filetuples as filetuples
+import nifti.imageglobals as imageglobals
+import nifti.spatialimages as spatialimages
+import nifti.filetuples as filetuples
 
-from batteryrunners import BatteryRunner, Report
+from nifti.batteryrunners import BatteryRunner, Report
 
 # Sub-parts of standard analyze header from 
 # Mayo dbh.h file

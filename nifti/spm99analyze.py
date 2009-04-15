@@ -1,13 +1,13 @@
 ''' Header reading functions for SPM version of analyze format '''
 import numpy as np
 
-from volumeutils import HeaderDataError, HeaderTypeError, \
+from nifti.volumeutils import HeaderDataError, HeaderTypeError, \
     array_to_file, calculate_scale, allopen, can_cast
 
-import volumeimages.filetuples as filetuples
-from volumeimages.batteryrunners import Report
+import nifti.filetuples as filetuples
+from nifti.batteryrunners import Report
 
-import volumeimages.analyze as analyze
+import nifti.analyze as analyze
 
 ''' Support subtle variations of SPM version of Analyze '''
 header_key_dtd = analyze.header_key_dtd

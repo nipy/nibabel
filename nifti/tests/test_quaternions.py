@@ -5,7 +5,7 @@ from numpy import pi
 
 from numpy.testing import dec, assert_raises
 
-import volumeimages.quaternions as vq
+import nifti.quaternions as vq
 
 def euler2mat(z=0, y=0, x=0):
     ''' Return matrices for give rotations around z, y and x axes
@@ -90,7 +90,7 @@ def test_conjugate():
     cq = vq.conjugate((1, 0, 0, 0))
     # Returns float type
     assert cq.dtype.kind == 'f'
-    
+
 def test_inverse():
     # Takes sequence
     iq = vq.inverse((1, 0, 0, 0))
@@ -122,7 +122,7 @@ def test_mult():
         for M2, q2 in eg_pairs[1::4]:
             q12 = vq.mult(q1, q2)
     assert np.allclose(np.dot(M2,M1), vq.quat2mat(q12))
-    
+
 def test_inverse():
     for M, q in eg_pairs:
         iq = vq.inverse(q)

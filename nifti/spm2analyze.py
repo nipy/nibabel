@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from volumeutils import HeaderDataError, HeaderTypeError
+from nifti.volumeutils import HeaderDataError, HeaderTypeError
 
-from volumeimages.batteryrunners import Report
+from nifti.batteryrunners import Report
 
-import  volumeimages.spm99analyze as spm99
+import  nifti.spm99analyze as spm99
 
 image_dimension_dtd = spm99.image_dimension_dtd[:]
 image_dimension_dtd[

@@ -9,14 +9,14 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import assert_true, assert_equal, assert_raises
 
-import volumeimages.testing as vit
+import nifti.testing as vit
 
-from volumeimages.volumeutils import HeaderDataError
-import volumeimages.nifti1 as nifti1
-from volumeimages.nifti1 import Nifti1Header, Nifti1Image
+from nifti.volumeutils import HeaderDataError
+import nifti.nifti1 as nifti1
+from nifti.nifti1 import Nifti1Header, Nifti1Image
 
-from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
-from test_analyze import TestAnalyzeHeader
+from nifti.tests.test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
+from nifti.tests.test_analyze import TestAnalyzeHeader
 
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')

@@ -5,7 +5,7 @@ from StringIO import StringIO
 from nose.tools import assert_equals, assert_true, assert_false, \
      assert_raises
 
-from volumeimages.filetuples import FileTuples, FileTuplesError
+from nifti.filetuples import FileTuples, FileTuplesError
 
 
 def test_init():

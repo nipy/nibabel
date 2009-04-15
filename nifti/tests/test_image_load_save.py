@@ -7,12 +7,12 @@ from StringIO import StringIO
 
 import numpy as np
 
-import volumeimages.volumeutils as vu
-import volumeimages.analyze as ana
-import volumeimages.spm99analyze as spm99
-import volumeimages.spm2analyze as spm2
-import volumeimages.nifti1 as ni1
-import volumeimages.loadsave as vils
+import nifti.volumeutils as vu
+import nifti.analyze as ana
+import nifti.spm99analyze as spm99
+import nifti.spm2analyze as spm2
+import nifti.nifti1 as ni1
+import nifti.loadsave as vils
 
 from numpy.testing import assert_array_equal
 from nose.tools import assert_true, assert_equal, assert_raises
@@ -33,7 +33,7 @@ def test_conversion():
         yield assert_array_equal, img4.get_data(), data
         img5 = ni1.Nifti1Image.from_image(img4)
         yield assert_array_equal, img5.get_data(), data
-        
+
 
 def test_save_load():
     shape = (2, 4, 6)
@@ -93,4 +93,3 @@ def test_two_to_one():
     img.to_files(files)
     yield assert_equal, img.get_metadata()['magic'], 'ni1'
     yield assert_equal, img.get_metadata()['vox_offset'], 0
-    

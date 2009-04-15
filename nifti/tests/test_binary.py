@@ -162,12 +162,12 @@ from StringIO import StringIO
 
 import numpy as np
 
-from volumeimages.testing import assert_equal, assert_true, assert_false, \
+from nifti.testing import assert_equal, assert_true, assert_false, \
      assert_raises, assert_not_equal
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from volumeimages.volumeutils import swapped_code, \
+from nifti.volumeutils import swapped_code, \
      native_code, HeaderDataError
 
 
@@ -177,7 +177,7 @@ class _TestBinaryHeader(object):
     It serves as a base class for other binary header tests
     '''
     header_class = None # overwrite with sub-classes
-    
+
     def test_general_init(self):
         hdr = self.header_class()
         # binaryblock has length given by header data dtype

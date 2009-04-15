@@ -119,5 +119,3 @@ class Report(object):
         if self.level and self.level >= error_level:
             if self.error:
                 raise self.error(self.problem_msg)
-        
-                         

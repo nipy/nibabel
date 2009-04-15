@@ -2,7 +2,7 @@
 
 from nose.tools import assert_equal, assert_raises
 
-from volumeimages.volumeutils import Recoder
+from nifti.volumeutils import Recoder
 
 def test_recoder():
     # simplest case, no aliases
@@ -72,4 +72,3 @@ def test_sugar():
     yield assert_equal, rc.value_set(), set((1, 2))
     # or named column if given
     yield assert_equal, rc.value_set('label'), set(('one', 'two'))
-    

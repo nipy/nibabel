@@ -33,16 +33,16 @@ from StringIO import StringIO
 
 import numpy as np
 
-from volumeimages.testing import assert_equal, assert_true, assert_false, \
+from nifti.testing import assert_equal, assert_true, assert_false, \
      assert_raises
 
 from numpy.testing import assert_array_equal
 
-from volumeimages.volumeutils import HeaderDataError, HeaderTypeError
+from nifti.volumeutils import HeaderDataError, HeaderTypeError
 
-from volumeimages.analyze import AnalyzeHeader, AnalyzeImage
+from nifti.analyze import AnalyzeHeader, AnalyzeImage
 
-from test_binary import _TestBinaryHeader
+from nifti.tests.test_binary import _TestBinaryHeader
 
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')

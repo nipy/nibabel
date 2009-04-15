@@ -1,20 +1,18 @@
 ''' Header reading / writing functions for nifti1 image format
 
 Author: Matthew Brett
-License: BSD
-
 '''
 
 import numpy as np
 import numpy.linalg as npl
 
-from volumeimages.volumeutils import Recoder, make_dt_codes, \
+from nifti.volumeutils import Recoder, make_dt_codes, \
      HeaderDataError, HeaderTypeError, allopen
-from volumeimages.batteryrunners import Report
-from volumeimages.quaternions import fillpositive, quat2mat, mat2quat
-import volumeimages.analyze as analyze
-from volumeimages.spm99analyze import SpmAnalyzeHeader
-import volumeimages.filetuples as filetuples
+from nifti.batteryrunners import Report
+from nifti.quaternions import fillpositive, quat2mat, mat2quat
+import nifti.analyze as analyze
+from nifti.spm99analyze import SpmAnalyzeHeader
+import nifti.filetuples as filetuples
 
 
 # nifti1 flat header definition for Analyze-like first 348 bytes

@@ -1,6 +1,6 @@
-import volumeimages.volumeutils as vu
-import volumeimages.spm2analyze as spm2
-import volumeimages.nifti1 as nifti1
+import nifti.volumeutils as vu
+import nifti.spm2analyze as spm2
+import nifti.nifti1 as nifti1
 
 def load(filespec, *args, **kwargs):
     ''' Load file given filespec, guessing at file type

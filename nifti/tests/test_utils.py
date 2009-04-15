@@ -6,7 +6,7 @@ import tempfile
 
 import numpy as np
 
-from volumeimages.volumeutils import array_from_file, \
+from nifti.volumeutils import array_from_file, \
     array_to_file, calculate_scale, scale_min_max, can_cast
 
 from numpy.testing import assert_array_almost_equal, \
