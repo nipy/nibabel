@@ -88,9 +88,9 @@ nifticlib_ext = Extension(
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
 setup(name       = 'pynifti',
-    version      = '0.20090303.1',
-    author       = 'Michael Hanke',
-    author_email = 'michael.hanke@gmail.com',
+    version      = '0.2009xxxx.1',
+    author       = 'Michael Hanke and Matthew Brett',
+    author_email = 'PyNIfTI List <pkg-exppsy-pynifti@lists.alioth.debian.org>',
     license      = 'MIT License',
     url          = 'http://niftilib.sf.net/pynifti',
     description  = 'Python interface for the NIfTI IO libraries',
