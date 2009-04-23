@@ -38,8 +38,11 @@ def md5sum(filename):
 
 class FileIOTests(unittest.TestCase):
     def setUp(self):
+        data_path, _ = os.path.split(__file__)
+        self.data_path = os.path.join(data_path, 'data')
         self.workdir = tempfile.mkdtemp('pynifti_test')
-        self.nimg = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
+        self.nimg = NiftiImage(os.path.join(self.data_path,
+                                            'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
         self.fp_plain = tempfile.NamedTemporaryFile(suffix='.nii')
 
@@ -54,7 +57,8 @@ class FileIOTests(unittest.TestCase):
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
-        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
+        md5_orig = md5sum(os.path.join(self.data_path,
+                                       'example4d.nii.gz'))
         self.nimg.save(self.fp.name)
         nimg2 = NiftiImage(self.fp.name)
         md5_io =  md5sum(self.fp.name)
@@ -65,7 +69,7 @@ class FileIOTests(unittest.TestCase):
     def testUnicodeLoadSaveCycle(self):
         """ check load/save cycle for unicode filenames.
         """
-        md5_orig = md5sum(os.path.join('data', 'example4d.nii.gz'))
+        md5_orig = md5sum(os.path.join(self.data_path, 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
@@ -181,7 +185,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless((self.nimg.qform == nimg2.qform).all())
 
         # now test setting full qform
-        nimg3 = NiftiImage(os.path.join('data', 'example4d.nii.gz'))
+        nimg3 = NiftiImage(os.path.join(self.data_path, 'example4d.nii.gz'))
 
         # build custom qform matrix
         qform = N.identity(4)
@@ -343,7 +347,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testUnicodeHandling(self):
-        fn = os.path.join(u'data', u'example4d.nii.gz')
+        fn = os.path.join(self.data_path, u'example4d.nii.gz')
         fn_pureuni = fn + u'łđ€æßđ¢»«'
 
         # should both be unicode

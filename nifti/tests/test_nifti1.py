@@ -15,8 +15,8 @@ from nifti.volumeutils import HeaderDataError
 import nifti.nifti1 as nifti1
 from nifti.nifti1 import Nifti1Header, Nifti1Image
 
-from nifti.tests.test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
-from nifti.tests.test_analyze import TestAnalyzeHeader
+from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
+from test_analyze import TestAnalyzeHeader
 
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')

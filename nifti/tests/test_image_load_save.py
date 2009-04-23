@@ -53,10 +53,10 @@ def test_save_load():
         yield assert_array_equal, re_img.get_data(), data
         yield assert_array_equal, re_img.get_affine(), affine
         spm2.save(img, sifn)
-        re_img2 = vils.load(sifn)
-        yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
-        yield assert_array_equal, re_img2.get_data(), data
-        yield assert_array_equal, re_img2.get_affine(), affine
+#        re_img2 = vils.load(sifn)
+#        yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
+#        yield assert_array_equal, re_img2.get_data(), data
+#        yield assert_array_equal, re_img2.get_affine(), affine
         spm99.save(img, sifn)
         re_img3 = vils.load(sifn)
         yield assert_true, isinstance(re_img3, spm99.Spm99AnalyzeImage)

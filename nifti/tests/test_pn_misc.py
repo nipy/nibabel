@@ -22,14 +22,18 @@ import cPickle
 
 
 class MiscTests(unittest.TestCase):
+    def setUp(self):
+        data_path, _ = os.path.split(__file__)
+        self.data_path = os.path.join(data_path, 'data')
+
     def testFilenameProps(self):
         def helper(obj, filename):
             obj.filename = filename
 
-        nif = NiftiFormat(os.path.join('data', 'example4d'))
+        nif = NiftiFormat(os.path.join(self.data_path, 'example4d'))
         self.failUnlessRaises(AttributeError, helper, nif, 'test.nii')
 
-        nim = NiftiImage(os.path.join('data', 'example4d'))
+        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
         nim.filename = 'test.nii'
         self.failUnless(nim.filename == 'test.nii')
 
@@ -53,7 +57,7 @@ class MiscTests(unittest.TestCase):
 
 
     def testCopying(self):
-        nim = NiftiImage(os.path.join('data', 'example4d'))
+        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
 
         n2 = nim.copy()
         n2.voxdim = (2,3,4)
@@ -87,7 +91,7 @@ class MiscTests(unittest.TestCase):
 
 
     def testPickleCycle(self):
-        nim = NiftiImage(os.path.join('data', 'example4d'))
+        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
 
         pickled = cPickle.dumps(nim)
 

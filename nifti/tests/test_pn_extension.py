@@ -19,8 +19,12 @@ import numpy as N
 
 
 class NiftiExtensionTests(unittest.TestCase):
+    def setUp(self):
+        data_path, _ = os.path.split(__file__)
+        self.data_path = os.path.join(data_path, 'data')
+
     def testExtensions(self):
-        nim = NiftiFormat(os.path.join('data', 'example4d.nii.gz'))
+        nim = NiftiFormat(os.path.join(self.data_path, 'example4d.nii.gz'))
         # basic checks of the available extensions
         ext = nim.extensions
         self.failUnless(len(ext) == 2)

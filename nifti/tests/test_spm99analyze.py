@@ -9,7 +9,7 @@ from nifti.spm99analyze import Spm99AnalyzeHeader
 from nifti.testing import assert_equal, assert_true, assert_false, \
      assert_raises
 
-from nifti.tests.test_analyze import TestAnalyzeHeader as _TAH
+from test_analyze import TestAnalyzeHeader as _TAH
 
 class TestSpm99AnalyzeHeader(_TAH):
     header_class = Spm99AnalyzeHeader

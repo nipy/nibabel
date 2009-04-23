@@ -42,7 +42,7 @@ from nifti.volumeutils import HeaderDataError, HeaderTypeError
 
 from nifti.analyze import AnalyzeHeader, AnalyzeImage
 
-from nifti.tests.test_binary import _TestBinaryHeader
+from test_binary import _TestBinaryHeader
 
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')

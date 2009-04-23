@@ -53,7 +53,6 @@ clean:
 
 distclean: clean
 	-rm MANIFEST
-	-rm tests/*.pyc
 	-rm $(COVERAGE_REPORT)
 	@find . -name '*.py[co]' \
 		 -o -name '*.a' \
@@ -66,8 +65,8 @@ distclean: clean
 		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r dist
 	-rm build-stamp apidoc-stamp
-	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
-		tests/data/noise* tests/data/None.nii
+#	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
+#		tests/data/noise* tests/data/None.nii
 
 
 #
@@ -86,11 +85,11 @@ test: unittest testdoc testmanual
 
 
 ut-%: build
-	@cd tests && PYTHONPATH=.. python test_$*.py
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti/tests/test_$*.py
 
 
 unittest: build
-	@cd tests && PYTHONPATH=.. python main.py
+	@PYTHONPATH=.$(PYTHONPATH) nosetests
 
 
 testdoc: build
@@ -104,12 +103,7 @@ testmanual: build
 
 
 coverage: build
-	@cd tests && { \
-	  export PYTHONPATH=..; \
-	  python-coverage -x main.py; \
-	  python-coverage -r -i -o /usr >| ../$(COVERAGE_REPORT); \
-	  grep -v '100%$$' ../$(COVERAGE_REPORT); \
-	  python-coverage -a -i -o /usr; }
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-coverage
 
 
 #
