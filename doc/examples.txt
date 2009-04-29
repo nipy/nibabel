@@ -20,7 +20,15 @@ All examples assume that you have imported the PyNIfTI module by invoking:
 
   >>> from nifti import *
 
+and the ``os.path.join`` and ``os.path.split``  commands with:
 
+  >>> from os.path import join as pjoin, split as psplit
+
+and we have made a temporary directory for the files we are going to write:
+
+  >>> import tempfile
+  >>> tmpdir = tempfile.mkdtemp()
+  
 Loading and saving NIfTI files
 ==============================
 
@@ -28,23 +36,28 @@ First we will open the tiny example NIfTI file that is included in the PyNIfTI
 source tarball. No filename extension is necessary as libniftiio determines it
 automatically:
 
-  >>> nim = NiftiImage('example4d')
+  >>> example_4d_fname = pjoin(testing.example_data_path, 'example4d')
+  >>> nim = NiftiImage(example_4d_fname)
 
 The filename is available via the 'filename' attribute:
 
-  >>> print nim.filename
+  >>> print psplit(nim.filename)[1]
   example4d.nii.gz
 
 This indicates a compressed NIfTI image. If you want to save this image as an
 uncompressed image simply do:
 
-  >>> nim.save('something.nii')
+  >>> # a filename in our temporary directory
+  >>> fname = pjoin(tmpdir, 'something.nii')
+  >>> nim.save(fname)
 
 The filetype is determined from the filename. If you want to save to gzipped
 ANALYZE file pairs instead the following would be an alternative to calling
 the ``save()`` with a new filename:
 
-  >>> nim.setFilename('analyze.img.gz')
+  >>> # a filename in our temporary directory
+  >>> fname = pjoin(tmpdir, 'analyze.img.gz')
+  >>> nim.setFilename(fname)
   >>> nim.save()
 
 Please see the documentation of :meth:`~nifti.image.NiftiImage.setFilename`
@@ -98,7 +111,9 @@ Also the datatype was set appropriately:
 To save the noise file to disk, we can simply call the
 :meth:`~nifti.image.NiftiImage.save` method:
 
-  >>> nim.save('noise.nii.gz')
+  >>> # a filename in our temporary directory
+  >>> noise_fname = pjoin(tmpdir, 'noise.nii.gz')
+  >>> nim.save(noise_fname)
 
 
 Select ROIs
@@ -107,13 +122,15 @@ Select ROIs
 Suppose you want to have the first ten volumes of the noise dataset we have
 previously created in a separate file. First, we open the file:
 
-  >>> nim = NiftiImage('noise.nii.gz')
+  >>> nim = NiftiImage(noise_fname)
 
 Now we select the first ten volumes and store them to another file, while
 preserving as much header information as possible
 
   >>> nim2 = NiftiImage(nim.data[:10], nim.header)
-  >>> nim2.save('part.hdr.gz')
+  >>> # a filename in our temporary directory
+  >>> fname = pjoin(tmpdir, 'part.hdr.gz')
+  >>> nim2.save(fname)
 
 The :class:`~nifti.image.NiftiImage` constructor takes a dictionary with header
 information as an optional argument. Settings that are not determined by the
@@ -194,7 +211,7 @@ This example demonstrates howto use the Matlab-style plotting of matplotlib_
 to view a slice from a 3d volume. We will actually use a 4D image as data
 source and limit us to the first volume:
 
-  >>> nim = NiftiImage('example4d')
+  >>> nim = NiftiImage(example_4d_fname)
   >>> volume = nim.data[0]
 
 If everything went fine, we can now view a slice (x,y):
@@ -215,6 +232,12 @@ play.
 The ``::-1`` notation causes the z-axis to be flipped in the images. This
 makes a much nicer view, if the used example volume has the z-axis originally
 oriented upsidedown.
+
+Finally (to clean up after ourselves) we delete the temporary files that
+we saved:
+
+  >>> import shutil
+  >>> shutil.rmtree(tmpdir)
 
 
 Compute and display peristimulus signal timecourse of multiple conditions

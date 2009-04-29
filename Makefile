@@ -81,7 +81,7 @@ $(WWW_DIR):
 # Tests
 #
 
-test: unittest testdoc testmanual
+test: unittest testmanual
 
 
 ut-%: build
@@ -89,17 +89,11 @@ ut-%: build
 
 
 unittest: build
-	@PYTHONPATH=.$(PYTHONPATH) nosetests
-
-
-testdoc: build
-# go into data, because docs assume now data dir
-	@cd tests/data && PYTHONPATH=../../ nosetests --with-doctest ../../nifti/
-
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti --with-doctest
 
 testmanual: build
 # go into data, because docs assume now data dir
-	@cd tests/data && PYTHONPATH=../../ nosetests --with-doctest --doctest-extension=.txt ../../doc/
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-doctest --doctest-extension=.txt doc
 
 
 coverage: build

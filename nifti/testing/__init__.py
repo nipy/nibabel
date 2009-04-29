@@ -1,6 +1,10 @@
 ''' Utilities to change context for nose.tools tests '''
 
+from os.path import join as pjoin, split as psplit, abspath
+
 import nose.tools as nt
+
+example_data_path = abspath(pjoin(psplit(__file__)[0], '..', 'tests', 'data'))
 
 assert_equal = lambda x, y: nt.assert_equal(x, y)
 assert_not_equal = lambda x, y: nt.assert_not_equal(x, y)
