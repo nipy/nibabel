@@ -287,7 +287,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
-    _meta_maker = Spm99AnalyzeHeader
+    _header_maker = Spm99AnalyzeHeader
     @classmethod
     def from_filespec(klass, filespec):
         ret = super(Spm99AnalyzeImage, klass).from_filespec(filespec)

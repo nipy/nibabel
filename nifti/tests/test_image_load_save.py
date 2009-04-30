@@ -7,7 +7,6 @@ from StringIO import StringIO
 
 import numpy as np
 
-import nifti.volumeutils as vu
 import nifti.analyze as ana
 import nifti.spm99analyze as spm99
 import nifti.spm2analyze as spm2
@@ -82,14 +81,14 @@ def test_two_to_one():
     affine = np.diag([1, 2, 3, 1])
     affine[:3,3] = [3,2,1]
     img = ni1.Nifti1Image(data, affine)
-    yield assert_equal, img.get_metadata()['magic'], 'n+1'
+    yield assert_equal, img.get_header()['magic'], 'n+1'
     str_io = StringIO()
     files = {'header':str_io, 'image':str_io}
     img.to_files(files)
-    yield assert_equal, img.get_metadata()['magic'], 'n+1'
-    yield assert_equal, img.get_metadata()['vox_offset'], 352
+    yield assert_equal, img.get_header()['magic'], 'n+1'
+    yield assert_equal, img.get_header()['vox_offset'], 352
     str_io2 = StringIO()
     files['image'] = str_io2
     img.to_files(files)
-    yield assert_equal, img.get_metadata()['magic'], 'ni1'
-    yield assert_equal, img.get_metadata()['vox_offset'], 0
+    yield assert_equal, img.get_header()['magic'], 'ni1'
+    yield assert_equal, img.get_header()['vox_offset'], 0

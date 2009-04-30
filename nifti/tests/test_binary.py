@@ -30,9 +30,6 @@ Headers also implement general mappingness:
     hdr.keys()
     hdr.items()
     hdr.values()
-    hdr.iterkeys()
-    hdr.iteritems()
-    hdr.itervalues()
     
 Basic attributes of the header object are::
 
@@ -209,41 +206,19 @@ class _TestBinaryHeader(object):
                hdr.write_data, np.zeros(3), sfobj)
         # You can also pass in a check flag, without data this has no effect
         hdr = self.header_class(check=False)
-        # extra data can also be passed
-        hdr = self.header_class(extra_data={'funny_key':0.1})
-        yield assert_equal, hdr.extra_data, {'funny_key':0.1}
-        # but if not, extra_data is empty
-        hdr = self.header_class()
-        yield assert_equal, hdr.extra_data, {}
         
     def test_mappingness(self):
         hdr = self.header_class()
-        hdr['nonexistent key'] = 0.1
+        yield assert_raises, KeyError, hdr.__setitem__, 'nonexistent key', 0.1
         hdr_dt = hdr.header_data.dtype
         keys = hdr.keys()
         yield assert_equal, keys, list(hdr)
         vals = hdr.values()
         items = hdr.items()
-        ikeys = hdr.iterkeys()
-        ivals = hdr.itervalues()
-        iitems = hdr.iteritems()
-        yield assert_equal, keys, list(hdr_dt.names) + hdr.extra_data.keys()
+        yield assert_equal, keys, list(hdr_dt.names)
         for key, val in hdr.items():
             yield assert_array_equal, hdr[key], val
-            ikey = ikeys.next()
-            ival = ivals.next()
-            iitem = iitems.next()
-            yield assert_equal, ikey, key
-            yield assert_array_equal, ival, val
-            yield assert_equal, key, iitem[0]
-            yield assert_array_equal, val, iitem[1]
-        hdr2 = self.header_class()
-        hdr2.update(hdr)
-        yield assert_equal, hdr2['nonexistent key'], 0.1
 
-    def test_from_mapping(self):
-        hdr = self.header_class.from_mapping({'sizeof_hdr':348})
-            
     def test_str(self):
         hdr = self.header_class()
         # Check something returns from str

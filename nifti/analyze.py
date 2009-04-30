@@ -109,8 +109,7 @@ class AnalyzeHeader(object):
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
-                 check=True,
-                 extra_data=None):
+                 check=True):
         ''' Initialize header from binary data block
 
         Parameters
@@ -124,8 +123,6 @@ class AnalyzeHeader(object):
         check : bool, optional
             Whether to check content of header in initialization.
             Default is True.
-        extra_data : None or dict
-            Other metadata to hold in mapping from object
             
         Examples
 	--------
@@ -167,9 +164,6 @@ class AnalyzeHeader(object):
         >>> hdr4.endianness == swapped_code
         True
         '''
-        if extra_data is None:
-            extra_data = {}
-        self.extra_data = extra_data
         if binaryblock is None:
             self._header_data = self._empty_headerdata(endianness)
             return
@@ -275,11 +269,9 @@ class AnalyzeHeader(object):
         this_end = self.endianness
         this_bb = self.binaryblock
         if this_end == other.endianness:
-            return (this_bb == other.binaryblock and
-                    self.extra_data == other.extra_data)
+            return this_bb == other.binaryblock
         other_bb = other._header_data.byteswap().tostring()
-        return (this_bb == other_bb and
-                self.extra_data == other.extra_data)
+        return this_bb == other_bb
         
     def __ne__(self, other):
         ''' equality between two headers defined by ``header_data``
@@ -297,9 +289,7 @@ class AnalyzeHeader(object):
         >>> hdr['sizeof_hdr'] == 348
         True
         '''
-        if item in self._dtype.names:
-            return self._header_data[item]
-        return self.extra_data[item]
+        return self._header_data[item]
     
     def __setitem__(self, item, value):
         ''' Set values in header data
@@ -311,40 +301,23 @@ class AnalyzeHeader(object):
         >>> str(hdr['descrip'])
         'description'
         '''
-        if item in self._dtype.names:
-            self._header_data[item] = value
-            return
-        self.extra_data[item] = value
+        self._header_data[item] = value
 
     def __iter__(self):
-        return self.iterkeys()
+        return iter(self.keys())
             
     def keys(self):
-        ''' Return keys from header data and extra data'''
-        return list(self._dtype.names) + self.extra_data.keys()
+        ''' Return keys from header data'''
+        return list(self._dtype.names)
     
     def values(self):
-        ''' Return values from header data and extra data'''
+        ''' Return values from header data'''
         data = self._header_data
-        return ([data[key] for key in self._dtype.names] + \
-                    self.extra_data.values())
+        return [data[key] for key in self._dtype.names]
 
     def items(self):
-        ''' Return items from header data and extra data'''
+        ''' Return items from header data'''
         return zip(self.keys(), self.values())
-
-    def iterkeys(self):
-        return iter(self.keys())
-
-    def itervalues(self):
-        return iter(self.values())
-
-    def iteritems(self):
-        return iter(self.items())
-
-    def update(self, other):
-        for key, value in other.iteritems():
-            self[key] = value
 
     def check_fix(self,
               logger=imageglobals.logger,
@@ -495,59 +468,10 @@ class AnalyzeHeader(object):
         raw_str = fileobj.read(klass._dtype.itemsize)
         return klass(raw_str, endianness, check)
 
-    @classmethod
-    def from_mapping(klass, mapping, endianness=None, check=True):
-        ''' Return header constructed from mapping object
-
-        Parameters
-        ----------
-        mapping : mapping
-           object implementing iteritems
-        endianness : None or string
-           Endianness for output header.  None (default) gives native
-        check : bool
-           Whether to check this is a valid header, default is True
-
-        Returns
-        -------
-        hdr : header object
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr2 = AnalyzeHeader.from_mapping({})
-        >>> hdr2 == hdr
-        True
-        >>> hdr2 = AnalyzeHeader.from_mapping({}, swapped_code)
-        >>> hdr2 == hdr
-        True
-        >>> hdr2 = AnalyzeHeader.from_mapping(dict(hdr.items()))
-        >>> hdr2 == hdr
-        True
-        >>> hdr2 =  AnalyzeHeader.from_mapping({'unlikely key':'yes'})
-        >>> hdr2 == hdr
-        False
-        >>> hdr['unlikely key'] = 'yes'
-        >>> hdr2 == hdr
-        True
-        >>> hdr2 =  AnalyzeHeader.from_mapping({'datatype':0})
-        Traceback (most recent call last):
-           ...
-        HeaderDataError: data code not supported
-        >>> hdr2 =  AnalyzeHeader.from_mapping({'datatype':0}, check=False)
-        '''
-        hdr = klass(endianness=endianness)
-        hdr.update(mapping)
-        if check:
-            hdr.check_fix()
-        return hdr
-
     def write_header_to(self, fileobj):
         ''' Write header to fileobj
 
-        Write starts at fileobj current file position.  Only the
-        canonical (binary) part of the header is written, not any extra
-        metadata not in the binary part.
+        Write starts at fileobj current file position.
         
         Parameters
         ----------
@@ -922,12 +846,26 @@ class AnalyzeHeader(object):
         if data.shape != shape:
             raise HeaderDataError('Data should be shape (%s)' %
                                   ', '.join(str(s) for s in shape))
-        offset = int(self._header_data['vox_offset'])
+        offset = self.get_data_offset()
         try:
             fileobj.seek(offset)
         except IOError, msg:
             if fileobj.tell() != offset:
                 raise IOError(msg)
+
+    def get_data_offset(self):
+        ''' Return offset into data file to read data
+
+        Examples
+        --------
+        >>> hdr = AnalyzeHeader()
+        >>> hdr.get_data_offset()
+        0
+        >>> hdr['vox_offset'] = 12
+        >>> hdr.get_data_offset()
+        12
+        '''
+        return int(self._header_data['vox_offset'])
 
     def _cast_check(self, nptype):
         ''' Check if can cast numpy type ``nptype`` to hdr datatype
@@ -1032,7 +970,7 @@ class AnalyzeHeader(object):
 
 
 class AnalyzeImage(spatialimages.SpatialImage):
-    _meta_maker = AnalyzeHeader
+    _header_maker = AnalyzeHeader
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
@@ -1043,27 +981,27 @@ class AnalyzeImage(spatialimages.SpatialImage):
             fname = self._files['image']
         except KeyError:
             return None
-        self._data = self._metadata.read_data(allopen(fname))
+        self._data = self._header.read_data(allopen(fname))
         return self._data
 
-    def get_metadata(self):
-        ''' Return metadata
+    def get_header(self):
+        ''' Return header
 
-        Update metadata to match data, affine etc in object
+        Update header to match data, affine etc in object
         '''
-        self._update_metadata()
-        return self._metadata
+        self._update_header()
+        return self._header
 
     def get_shape(self):
         if not self._data is None:
             return self._data.shape
-        return self._metadata.get_data_shape()
+        return self._header.get_data_shape()
     
     def get_data_dtype(self):
-        return self._metadata.get_data_dtype()
+        return self._header.get_data_dtype()
     
     def set_data_dtype(self, dtype):
-        self._metadata.set_data_dtype(dtype)
+        self._header.set_data_dtype(dtype)
     
     @classmethod
     def from_filespec(klass, filespec):
@@ -1073,16 +1011,16 @@ class AnalyzeImage(spatialimages.SpatialImage):
     @classmethod
     def from_files(klass, files):
         fname = files['header']
-        metadata = klass._meta_maker.from_fileobj(allopen(fname))
-        affine = metadata.get_best_affine()
-        ret =  klass(None, affine, metadata)
+        header = klass._header_maker.from_fileobj(allopen(fname))
+        affine = header.get_best_affine()
+        ret =  klass(None, affine, header)
         ret._files = files
         return ret
     
     @classmethod
     def from_image(klass, img):
-        orig_hdr = img.get_metadata()
-        hdr = klass._meta_maker.from_mapping(orig_hdr)
+        orig_hdr = img.get_header()
+        hdr = klass._header_maker.from_mapping(orig_hdr)
         return klass(img.get_data(), img.get_affine(), hdr)
     
     @staticmethod
@@ -1111,35 +1049,35 @@ class AnalyzeImage(spatialimages.SpatialImage):
             if files is None:
                 raise ValueError('Need files to write data')
         data = self.get_data()
-        hdr = self.get_metadata()
+        hdr = self.get_header()
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
         imgf = allopen(files['image'], 'wb')
         hdr.write_data(data, imgf)
         self._files = files
         
-    def _update_metadata(self):
-        ''' Harmonize metadata with image data and affine
+    def _update_header(self):
+        ''' Harmonize header with image data and affine
 
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = AnalyzeImage(data, affine)
         >>> img.get_shape()
         (2, 3, 4)
-        >>> meta = img._metadata
-        >>> meta.get_data_shape()
+        >>> hdr = img._header
+        >>> hdr.get_data_shape()
         (0,)
-        >>> meta.get_zooms()
+        >>> hdr.get_zooms()
         ()
-        >>> np.all(meta.get_best_affine() == np.diag([-1,1,1,1]))
+        >>> np.all(hdr.get_best_affine() == np.diag([-1,1,1,1]))
         True
-        >>> img._update_metadata()
-        >>> meta.get_data_shape()
+        >>> img._update_header()
+        >>> hdr.get_data_shape()
         (2, 3, 4)
-        >>> meta.get_zooms()
+        >>> hdr.get_zooms()
         (1.0, 2.0, 3.0)
         '''
-        hdr = self._metadata
+        hdr = self._header
         if not self._data is None:
             hdr.set_data_shape(self._data.shape)
         if not self._affine is None:

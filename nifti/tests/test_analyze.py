@@ -171,4 +171,4 @@ def test_images():
     img = AnalyzeImage(None, None)
     yield assert_equal, img.get_data(), None
     yield assert_equal, img.get_affine(), None
-    yield assert_equal, img.get_metadata(), AnalyzeHeader()
+    yield assert_equal, img.get_header(), AnalyzeHeader()

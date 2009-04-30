@@ -256,7 +256,7 @@ def test_nifti1_images():
         img3 = nifti1.load(fname)
         yield assert_true, isinstance(img3, img.__class__)
         yield assert_array_equal, img3.get_data(), data
-        yield assert_equal, img3.get_metadata(), img.get_metadata()
+        yield assert_equal, img3.get_header(), img.get_header()
     finally:
         os.unlink(fname)
     

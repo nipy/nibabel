@@ -1032,7 +1032,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 
 class Nifti1Image(analyze.AnalyzeImage):
-    _meta_maker = Nifti1Header
+    _header_maker = Nifti1Header
 
     @staticmethod
     def filespec_to_files(filespec):
@@ -1065,7 +1065,7 @@ class Nifti1Image(analyze.AnalyzeImage):
         data = self.get_data()
         # Adapt header to possible two<->one file difference
         self._file_1_2(files)
-        hdr = self.get_metadata()
+        hdr = self.get_header()
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
         # The header file can be the same as the image file
@@ -1081,24 +1081,24 @@ class Nifti1Image(analyze.AnalyzeImage):
         hdr.write_data(data, imgf)
         self._files = files
 
-    def _update_metadata(self):
-        ''' Harmonize metadata with image data and affine
+    def _update_header(self):
+        ''' Harmonize header with image data and affine
 
-        See AnalyzeImage._update_metadata for more examples
+        See AnalyzeImage._update_header for more examples
 
         Examples
         --------
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = Nifti1Image(data, affine)
-        >>> meta = img.get_metadata()
-        >>> np.all(meta.get_qform() == affine)
+        >>> hdr = img.get_header()
+        >>> np.all(hdr.get_qform() == affine)
         True
-        >>> np.all(meta.get_sform() == affine)
+        >>> np.all(hdr.get_sform() == affine)
         True
         '''
-        super(Nifti1Image, self)._update_metadata()
-        hdr = self._metadata
+        super(Nifti1Image, self)._update_header()
+        hdr = self._header
         if not self._affine is None:
             hdr.set_sform(self._affine)
             hdr.set_qform(self._affine)
@@ -1111,26 +1111,26 @@ class Nifti1Image(analyze.AnalyzeImage):
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = Nifti1Image(data, affine)
-        >>> meta = img.get_metadata()
-        >>> str(meta['magic'])
+        >>> hdr = img.get_header()
+        >>> str(hdr['magic'])
         'n+1'
         >>> from StringIO import StringIO
         >>> str_io = StringIO()
         >>> files = {'header':str_io,'image':str_io}
         >>> img._file_1_2(files)
-        >>> str(meta['magic'])
+        >>> str(hdr['magic'])
         'n+1'
-        >>> int(meta['vox_offset'])
+        >>> int(hdr['vox_offset'])
         352
         >>> str_io2 = StringIO()
         >>> files = {'header':str_io,'image':str_io2}
         >>> img._file_1_2(files)
-        >>> str(meta['magic'])
+        >>> str(hdr['magic'])
         'ni1'
-        >>> int(meta['vox_offset'])
+        >>> int(hdr['vox_offset'])
         0
         '''
-        hdr = self._metadata
+        hdr = self._header
         if files['header'] == files['image']:
             # one file version
             if hdr['magic'] == 'n+1':

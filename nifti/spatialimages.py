@@ -1,14 +1,16 @@
 ''' Very simple spatial image class '''
 
 class SpatialImage(object):
-    _meta_maker = dict
+    _header_maker = dict
     ''' Template class for lightweight image '''
-    def __init__(self, data, affine, metadata=None):
+    def __init__(self, data, affine, header=None, extra=None):
         self._data = data
         self._affine = affine
-        self._metadata = self._meta_maker()
-        if not metadata is None:
-            self._metadata.update(metadata)
+        self._header = self._header_maker()
+        if extra is None:
+            extra = {}
+        if not header is None:
+            self._header.update(header)
         self._files = {}
         
     def __str__(self):
@@ -20,7 +22,7 @@ class SpatialImage(object):
                 'affine: ',
                 '%s' % affine,
                 'metadata:',
-                '%s' % self._metadata))
+                '%s' % self._header))
 
     def get_data(self):
         return self._data
@@ -38,8 +40,8 @@ class SpatialImage(object):
     def get_affine(self):
         return self._affine
 
-    def get_metadata(self):
-        return self._metadata
+    def get_header(self):
+        return self._header
 
     @classmethod
     def from_filespec(klass, filespec):
