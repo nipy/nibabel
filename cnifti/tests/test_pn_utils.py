@@ -15,7 +15,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-import nifti.utils
+import cnifti.utils
 import numpy as N
 import unittest
 

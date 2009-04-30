@@ -11,29 +11,29 @@
 __docformat__ = 'restructuredtext'
 
 import os
+import cPickle
 
 import numpy as N
 
-from nifti import *
-import nifti.clib as ncl
-from nifti.format import NiftiFormat
+from cnifti import *
+import cnifti.clib as ncl
+from cnifti.format import NiftiFormat
+
+from nifti.testing import example_data_path
+
 import unittest
-import cPickle
 
 
 class MiscTests(unittest.TestCase):
-    def setUp(self):
-        data_path, _ = os.path.split(__file__)
-        self.data_path = os.path.join(data_path, 'data')
 
     def testFilenameProps(self):
         def helper(obj, filename):
             obj.filename = filename
 
-        nif = NiftiFormat(os.path.join(self.data_path, 'example4d'))
+        nif = NiftiFormat(os.path.join(example_data_path, 'example4d'))
         self.failUnlessRaises(AttributeError, helper, nif, 'test.nii')
 
-        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
+        nim = NiftiImage(os.path.join(example_data_path, 'example4d'))
         nim.filename = 'test.nii'
         self.failUnless(nim.filename == 'test.nii')
 
@@ -57,7 +57,7 @@ class MiscTests(unittest.TestCase):
 
 
     def testCopying(self):
-        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
+        nim = NiftiImage(os.path.join(example_data_path, 'example4d'))
 
         n2 = nim.copy()
         n2.voxdim = (2,3,4)
@@ -91,7 +91,7 @@ class MiscTests(unittest.TestCase):
 
 
     def testPickleCycle(self):
-        nim = NiftiImage(os.path.join(self.data_path, 'example4d'))
+        nim = NiftiImage(os.path.join(example_data_path, 'example4d'))
 
         pickled = cPickle.dumps(nim)
 

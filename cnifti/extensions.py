@@ -14,10 +14,7 @@ __docformat__ = 'restructuredtext'
 import os
 
 # the NIfTI pieces
-import nifti.clib as ncl
-
-# For the doctests
-from nifti.testing import example_data_path
+import cnifti.clib as ncl
 
 #
 # type maps
@@ -83,14 +80,15 @@ class NiftiExtensions(object):
     The usage is best explained by a few examples. All examples assume a NIfTI
     image to be loaded:
 
-      >>> from nifti import NiftiImage
+      >>> from nifti.testing import example_data_path
+      >>> from cnifti import NiftiImage
       >>> nim = NiftiImage(os.path.join(example_data_path, 'example4d.nii.gz'))
 
     Access to the extensions is provided through the `extensions` attribute of
     the NiftiImage class:
 
       >>> type(nim.extensions)
-      <class 'nifti.extensions.NiftiExtensions'>
+      <class 'cnifti.extensions.NiftiExtensions'>
 
     How many extensions are avialable?
 

@@ -11,10 +11,9 @@
 
 __docformat__ = 'restructuredtext'
 
-from nifti.image import NiftiImage, MemMappedNiftiImage
-from nifti.format import NiftiFormat
-import nifti.utils
-import nifti.clib as ncl
+from cnifti.image import NiftiImage, MemMappedNiftiImage
+import cnifti.utils
+import cnifti.clib as ncl
 import unittest
 import md5
 import tempfile
@@ -22,6 +21,7 @@ import shutil
 import os
 import numpy as N
 
+from nifti.testing import example_data_path
 
 def md5sum(filename):
     """ Generate MD5 hash string.
@@ -38,10 +38,8 @@ def md5sum(filename):
 
 class FileIOTests(unittest.TestCase):
     def setUp(self):
-        data_path, _ = os.path.split(__file__)
-        self.data_path = os.path.join(data_path, 'data')
-        self.workdir = tempfile.mkdtemp('pynifti_test')
-        self.nimg = NiftiImage(os.path.join(self.data_path,
+        self.workdir = tempfile.mkdtemp()
+        self.nimg = NiftiImage(os.path.join(example_data_path,
                                             'example4d.nii.gz'))
         self.fp = tempfile.NamedTemporaryFile(suffix='.nii.gz')
         self.fp_plain = tempfile.NamedTemporaryFile(suffix='.nii')
@@ -57,7 +55,7 @@ class FileIOTests(unittest.TestCase):
     def testIdempotentLoadSaveCycle(self):
         """ check if file is unchanged by load/save cycle.
         """
-        md5_orig = md5sum(os.path.join(self.data_path,
+        md5_orig = md5sum(os.path.join(example_data_path,
                                        'example4d.nii.gz'))
         self.nimg.save(self.fp.name)
         nimg2 = NiftiImage(self.fp.name)
@@ -69,7 +67,7 @@ class FileIOTests(unittest.TestCase):
     def testUnicodeLoadSaveCycle(self):
         """ check load/save cycle for unicode filenames.
         """
-        md5_orig = md5sum(os.path.join(self.data_path, 'example4d.nii.gz'))
+        md5_orig = md5sum(os.path.join(example_data_path, 'example4d.nii.gz'))
         self.nimg.save( os.path.join( self.workdir, 'üöä.nii.gz') )
         md5_io =  md5sum( os.path.join( self.workdir, 'üöä.nii.gz') )
 
@@ -185,7 +183,7 @@ class FileIOTests(unittest.TestCase):
         self.failUnless((self.nimg.qform == nimg2.qform).all())
 
         # now test setting full qform
-        nimg3 = NiftiImage(os.path.join(self.data_path, 'example4d.nii.gz'))
+        nimg3 = NiftiImage(os.path.join(example_data_path, 'example4d.nii.gz'))
 
         # build custom qform matrix
         qform = N.identity(4)
@@ -347,7 +345,7 @@ class FileIOTests(unittest.TestCase):
 
 
     def testUnicodeHandling(self):
-        fn = os.path.join(self.data_path, u'example4d.nii.gz')
+        fn = os.path.join(example_data_path, u'example4d.nii.gz')
         fn_pureuni = fn + u'łđ€æßđ¢»«'
 
         # should both be unicode
@@ -373,14 +371,14 @@ class FileIOTests(unittest.TestCase):
 
     def testDTypesSupport(self):
         """Check load/cycles with all supported dtypes"""
-        for dt in nifti.utils.N2nifti_dtype_map.keys():
+        for dt in cnifti.utils.N2nifti_dtype_map.keys():
             data = N.ones(65536, dt).reshape(256,256)
             nim = NiftiImage(data)
             nim.save(self.fp.name)
             nim2 = NiftiImage(self.fp.name)
             self.failUnlessEqual(nim2.data.dtype, dt)
             self.failUnlessEqual(nim2.header['datatype'],
-                                 nifti.utils.N2nifti_dtype_map[dt])
+                                 cnifti.utils.N2nifti_dtype_map[dt])
             self.failUnless((nim2.data == 1).all())
 
 

@@ -19,9 +19,9 @@ from warnings import warn
 import numpy as N
 
 # the NIfTI pieces
-import nifti.clib as ncl
-from nifti.extensions import NiftiExtensions
-from nifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
+import cnifti.clib as ncl
+from cnifti.extensions import NiftiExtensions
+from cnifti.utils import nhdr2dict, updateNiftiHeaderFromDict, \
     Ndtype2niftidtype, nifti_xform_map, nifti_xform_inv_map, nifti_units_map, \
     _checkUnit, valid_xyz_unit_codes, valid_time_unit_codes, \
     nifti2numpy_dtype_map

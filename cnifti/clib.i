@@ -22,7 +22,7 @@ capabilities of the library.
 "
 %enddef
 
-%module (package="nifti", docstring=DOCSTRING) clib
+%module (package="cnifti", docstring=DOCSTRING) clib
 %{
 #include <nifti1_io.h>
 #include <znzlib.h>

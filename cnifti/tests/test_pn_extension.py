@@ -10,21 +10,19 @@
 
 __docformat__ = 'restructuredtext'
 
-from nifti.format import NiftiFormat
-from nifti import NiftiImage
-
 import os
 import unittest
 import numpy as N
 
+from cnifti.format import NiftiFormat
+from cnifti import NiftiImage
+
+from nifti.testing import example_data_path
 
 class NiftiExtensionTests(unittest.TestCase):
-    def setUp(self):
-        data_path, _ = os.path.split(__file__)
-        self.data_path = os.path.join(data_path, 'data')
 
     def testExtensions(self):
-        nim = NiftiFormat(os.path.join(self.data_path, 'example4d.nii.gz'))
+        nim = NiftiFormat(os.path.join(example_data_path, 'example4d.nii.gz'))
         # basic checks of the available extensions
         ext = nim.extensions
         self.failUnless(len(ext) == 2)

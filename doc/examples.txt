@@ -18,7 +18,7 @@ some random Python library.
 
 All examples assume that you have imported the PyNIfTI module by invoking:
 
-  >>> from nifti import *
+  >>> from cnifti import *
 
 and the ``os.path.join`` and ``os.path.split``  commands with:
 
@@ -28,6 +28,10 @@ and we have made a temporary directory for the files we are going to write:
 
   >>> import tempfile
   >>> tmpdir = tempfile.mkdtemp()
+
+and we've got the path to the nifti example data:
+
+  >>> from nifti.testing import example_data_path
   
 Loading and saving NIfTI files
 ==============================
@@ -36,7 +40,7 @@ First we will open the tiny example NIfTI file that is included in the PyNIfTI
 source tarball. No filename extension is necessary as libniftiio determines it
 automatically:
 
-  >>> example_4d_fname = pjoin(testing.example_data_path, 'example4d')
+  >>> example_4d_fname = pjoin(example_data_path, 'example4d')
   >>> nim = NiftiImage(example_4d_fname)
 
 The filename is available via the 'filename' attribute:
@@ -104,7 +108,7 @@ slices in z direction and 100 volumes.
 
 Also the datatype was set appropriately:
 
-  >>> import nifti.clib as ncl
+  >>> import cnifti.clib as ncl
   >>> nim.header['datatype'] == ncl.NIFTI_TYPE_FLOAT64
   True
 

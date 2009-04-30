@@ -15,5 +15,4 @@ from warnings import warn
 warn("This module has been renamed to 'nifti.format'. This redirect will be removed with PyNIfTI 1.0.", DeprecationWarning)
 
 
-
-from nifti.format import *
+from cnifti.format import *

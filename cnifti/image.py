@@ -8,9 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """This module provides two classes for accessing NIfTI files.
 
-* :class:`~nifti.image.NiftiImage` (traditional load-as-much-as-you-can
+* :class:`~cnifti.image.NiftiImage` (traditional load-as-much-as-you-can
   approach)
-* :class:`~nifti.image.MemMappedNiftiImage` (memory-mapped access to
+* :class:`~cnifti.image.MemMappedNiftiImage` (memory-mapped access to
   uncompressed NIfTI files)
 """
 
@@ -23,11 +23,11 @@ from warnings import warn
 import numpy as N
 
 # the NIfTI pieces
-import nifti
-import nifti.clib as ncl
-from nifti.format import NiftiFormat
-from nifti.utils import splitFilename, nifti2numpy_dtype_map
-import nifti.imgfx as imgfx
+import cnifti
+import cnifti.clib as ncl
+from cnifti.format import NiftiFormat
+from cnifti.utils import splitFilename, nifti2numpy_dtype_map
+import cnifti.imgfx as imgfx
 
 
 class NiftiImage(NiftiFormat):
@@ -39,13 +39,13 @@ class NiftiImage(NiftiFormat):
     ndarray is treated as such.
 
     All NIfTI header information is conveniently exposed via Python data types.
-    This functionality is provided by the :class:`~nifti.format.NiftiFormat`
+    This functionality is provided by the :class:`~cnifti.format.NiftiFormat`
     base class. Please refer to its documentation for the full list of its
     methods and properties.
 
     .. seealso::
-      :class:`~nifti.format.NiftiFormat`,
-      :class:`~nifti.image.MemMappedNiftiImage`
+      :class:`~cnifti.format.NiftiFormat`,
+      :class:`~cnifti.image.MemMappedNiftiImage`
     """
 
     #
@@ -72,7 +72,7 @@ class NiftiImage(NiftiFormat):
             This flag is almost useless, as the data will be loaded
             automatically whenever it is accessed.
           **kwargs:
-            Additional stuff is passed to :class:`~nifti.format.NiftiFormat`.
+            Additional stuff is passed to :class:`~cnifti.format.NiftiFormat`.
         """
         # setup all nifti header related stuff
         NiftiFormat.__init__(self, source, header, **kwargs)
@@ -123,7 +123,7 @@ class NiftiImage(NiftiFormat):
             ascii-encodable, i.e. must not contain pure unicode characters.
             Usually setting the filename also determines the filetype
             (NIfTI/ANALYZE).  Please see
-            :meth:`~nifti.image.NiftiImage.setFilename` for some more
+            :meth:`~cnifti.image.NiftiImage.setFilename` for some more
             details. If None, an image loaded from a file will cause the
             original image to be overwritten.
           filetype: str
@@ -158,7 +158,7 @@ class NiftiImage(NiftiFormat):
         # set a default description if there is none
         if not self.description:
             self.description = \
-                    'Written by PyNIfTI version %s' % nifti.__version__
+                    'Written by PyNIfTI version %s' % cnifti.__version__
 
         # update header information
         if update_minmax:
@@ -359,7 +359,7 @@ class NiftiImage(NiftiFormat):
         """Return the NIfTI image data wrapped into a NumPy array.
 
         .. seealso::
-          :attr:`~nifti.image.NiftiImage.data`
+          :attr:`~cnifti.image.NiftiImage.data`
         """
         return self.asarray(False)
 
@@ -431,8 +431,8 @@ class NiftiImage(NiftiFormat):
         property.
 
         .. seealso::
-          :meth:`~nifti.format.NiftiFormat.getFilename`,
-          :attr:`~nifti.image.NiftiImage.filename`
+          :meth:`~cnifti.format.NiftiFormat.getFilename`,
+          :attr:`~cnifti.image.NiftiImage.filename`
         """
         # If image data is not yet loaded, do it now.
         # It is important to do it already here, because nifti_image_load
@@ -499,7 +499,7 @@ class NiftiImage(NiftiFormat):
 
     # need to redefine, since we need to redefine to 'filename' property
     def getFilename(self):
-        """Please see :meth:`nifti.format.NiftiFormat.getFilename`
+        """Please see :meth:`cnifti.format.NiftiFormat.getFilename`
         for the documentation."""
         return NiftiFormat.getFilename(self)
 
@@ -526,8 +526,8 @@ class MemMappedNiftiImage(NiftiImage):
     the whole dataset.
 
     Please note, that memory-mapping is not required when exclusively header
-    information shall be accessed. The :class:`~nifti.format.NiftiFormat` class
-    and by default also the :class:`~nifti.image.NiftiImage` class will not
+    information shall be accessed. The :class:`~cnifti.format.NiftiFormat` class
+    and by default also the :class:`~cnifti.image.NiftiImage` class will not
     load any image data into memory.
 
     .. note::
@@ -629,14 +629,14 @@ class MemMappedNiftiImage(NiftiImage):
 
     # need to redefine, since we need to redefine to 'filename' property
     def getFilename(self):
-        """Please see :meth:`nifti.format.NiftiFormat.getFilename`
+        """Please see :meth:`cnifti.format.NiftiFormat.getFilename`
         for the documentation."""
         return NiftiFormat.getFilename(self)
 
 
     # need to redefine, since we need to redefine to 'filename' property
     def getDataArray(self):
-        """Please see :meth:`nifti.format.NiftiImage.getDataArray`
+        """Please see :meth:`cnifti.format.NiftiImage.getDataArray`
         for the documentation."""
         return NiftiImage.getDataArray(self)
     #

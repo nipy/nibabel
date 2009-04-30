@@ -12,7 +12,7 @@ __docformat__ = 'restructuredtext'
 
 
 import numpy as N
-import nifti.clib as ncl
+import cnifti.clib as ncl
 
 #
 # type maps, codes and other NIfTI header stuff

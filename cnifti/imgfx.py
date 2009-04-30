@@ -16,9 +16,7 @@
 
 __docformat__ = 'restructuredtext'
 
-
 import numpy as N
-
 
 def getBoundingBox(nim):
     """Get the bounding box an image.
@@ -33,7 +31,7 @@ def getBoundingBox(nim):
 
     Examples:
 
-      >>> from nifti import NiftiImage
+      >>> from cnifti import NiftiImage
       >>> nim = NiftiImage(N.zeros((12, 24, 32)))
       >>> nim.bbox is None
       True

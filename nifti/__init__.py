@@ -40,7 +40,7 @@ Quickstart::
 __docformat__ = 'restructuredtext'
 
 # expose the two main classes
-from nifti.image import NiftiImage, MemMappedNiftiImage
+#from nifti.image import NiftiImage, MemMappedNiftiImage
 
 # canonical version string
 __version__ = '0.20090303.1'

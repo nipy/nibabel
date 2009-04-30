@@ -20,8 +20,8 @@ DISTUTILS_PLATFORM := \
 all: build
 
 # build included 3rd party pieces (if present)
-3rd: 3rd-stamp
-3rd-stamp:
+cn_3rd: cn_3rd-stamp
+cn_3rd-stamp:
 	find 3rd -mindepth 1 -maxdepth 1  -type d | \
 	 while read d; do \
 	  [ -f "$$d/Makefile" ] && $(MAKE) -C "$$d"; \
@@ -29,15 +29,19 @@ all: build
 	touch $@
 
 
-build: build-stamp
-build-stamp: 3rd
-	python setup.py config --noisy
-	python setup.py build_ext
-	python setup.py build_py
+cn_build: cn_build-stamp
+cn_build-stamp: cn_3rd
+	python setup_cnifti.py config --noisy
+	python setup_cnifti.py build_ext
+	python setup_cnifti.py build_py
 	# to overcome the issue of not-installed _clib.so
-	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/_clib.so nifti/
-	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/nifti/clib.py nifti/
+	ln -sf ../build/lib.$(DISTUTILS_PLATFORM)-$(PYVER)/cnifti/_clib.so cnifti/
+	ln -sf ../build/src.$(DISTUTILS_PLATFORM)-$(PYVER)/cnifti/clib.py cnifti/
 	touch $@
+
+build: 
+	python setup.py config --noisy
+	python setup.py build
 
 
 #
@@ -50,6 +54,11 @@ clean:
 	-rm nifti/clib.py nifti/_clib.so
 	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
 
+cn_clean:
+	-rm -rf build
+	-rm *-stamp
+	-rm cnifti/clib.py cnifti/_clib.so
+	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
 
 distclean: clean
 	-rm MANIFEST
@@ -88,10 +97,11 @@ ut-%: build
 	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti/tests/test_$*.py
 
 
-unittest: build
+unittest: build cn_build
 	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti --with-doctest
+	nosetests cnifti --with-doctest
 
-testmanual: build
+testmanual: build cn_build
 # go into data, because docs assume now data dir
 	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-doctest --doctest-extension=.txt doc
 

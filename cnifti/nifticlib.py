@@ -14,6 +14,4 @@ from warnings import warn
 
 warn("This module has been renamed to 'nifti.clib'. This redirect will be removed with PyNIfTI 1.0.", DeprecationWarning)
 
-
-
-from nifti.image import *
+from cnifti.image import *
