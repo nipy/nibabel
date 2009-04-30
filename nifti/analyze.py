@@ -566,7 +566,7 @@ class AnalyzeHeader(object):
         dims[0] = ndims        
         dims[1:ndims+1] = shape
         
-    def as_byteswapped(self, endianness):
+    def as_byteswapped(self, endianness=None):
         ''' return new byteswapped header object with given ``endianness``
 
         Guaranteed to make a copy even if endianness is the same as
@@ -574,8 +574,9 @@ class AnalyzeHeader(object):
 
         Parameters
         ----------
-        endianness : string
-           endian code to which to swap.  
+        endianness : None or string, optional
+           endian code to which to swap.  None means swap from current
+           endianness, and is the default
 
         Returns
         -------
@@ -586,6 +587,9 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr.endianness == native_code
+        True
+        >>> bs_hdr = hdr.as_byteswapped()
+        >>> bs_hdr.endianness == swapped_code
         True
         >>> bs_hdr = hdr.as_byteswapped(swapped_code)
         >>> bs_hdr.endianness == swapped_code
@@ -610,8 +614,15 @@ class AnalyzeHeader(object):
         >>> nbs_hdr is hdr
         False
         '''
-        endianness = endian_codes[endianness]
-        if endianness == self.endianness:
+        current = self.endianness
+        if endianness is None:
+            if current == native_code:
+                endianness = swapped_code
+            else:
+                endianness = native_code
+        else:
+            endianness = endian_codes[endianness]
+        if endianness == current:
             return self.__class__(
                 self.binaryblock,
                 self.endianness, check=False)
