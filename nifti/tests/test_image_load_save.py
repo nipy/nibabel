@@ -47,11 +47,13 @@ def test_endianness():
     bs_hdr = hdr.as_byteswapped()
     img2 = nf.Nifti1Image(data, affine, bs_hdr)
     hdr2 = img2.get_header()
-    yield assert_equal, hdr2.endianness, swapped_code    
+    yield assert_equal, hdr2.endianness, swapped_code
     img3 = nf.AnalyzeImage.from_image(img2)
     hdr3 = img3.get_header()
+    yield assert_equal, hdr3.endianness, swapped_code
+    img4 = nf.Nifti1Image.from_image(img3)
+    hdr4 = img4.get_header()
     yield assert_equal, hdr3.endianness, swapped_code    
-
 
 def test_save_load():
     shape = (2, 4, 6)
