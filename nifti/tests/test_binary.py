@@ -209,7 +209,7 @@ class _TestBinaryHeader(object):
         
     def test_mappingness(self):
         hdr = self.header_class()
-        yield assert_raises, KeyError, hdr.__setitem__, 'nonexistent key', 0.1
+        yield assert_raises, ValueError, hdr.__setitem__, 'nonexistent key', 0.1
         hdr_dt = hdr.header_data.dtype
         keys = hdr.keys()
         yield assert_equal, keys, list(hdr)

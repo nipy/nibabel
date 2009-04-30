@@ -444,7 +444,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> fields = {'scl_slope':1,'scl_inter':0}
-        >>> hdr = Nifti1Header.from_mapping(fields)
+        >>> hdr = Nifti1Header()
         >>> hdr.get_slope_inter()
         (1.0, 0.0)
         >>> hdr['scl_slope'] = 0

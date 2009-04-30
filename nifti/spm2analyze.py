@@ -54,7 +54,9 @@ class Spm2AnalyzeHeader(spm99.SpmAnalyzeHeader):
         Examples
         --------
         >>> fields = {'scl_slope':1,'scl_inter':0,'glmax':0,'glmin':0,'cal_max':0, 'cal_min':0}
-        >>> hdr = Spm2AnalyzeHeader.from_mapping(fields)
+        >>> hdr = Spm2AnalyzeHeader()
+        >>> for key, value in fields.items():
+        ...     hdr[key] = value
         >>> hdr.get_slope_inter()
         (1.0, 0.0)
         >>> hdr['scl_inter'] = 0.5

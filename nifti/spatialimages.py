@@ -6,11 +6,18 @@ class SpatialImage(object):
     def __init__(self, data, affine, header=None, extra=None):
         self._data = data
         self._affine = affine
-        self._header = self._header_maker()
         if extra is None:
             extra = {}
-        if not header is None:
-            self._header.update(header)
+        self.extra = extra
+        if header is None:
+            self._header = self._header_maker()
+        else:
+            self._header = self._header_maker(endianness=header.endianness)
+            for key, value in header.items():
+                if key in self._header:
+                    self._header[key] = value
+                else:
+                    self.extra[key] = value
         self._files = {}
         
     def __str__(self):

@@ -259,12 +259,6 @@ class AnalyzeHeader(object):
         >>> hdr4 = AnalyzeHeader()
         >>> hdr == hdr4
         True
-        >>> hdr4['funny key'] = 0
-        >>> hdr == hdr4
-        False
-        >>> hdr['funny key'] = 0
-        >>> hdr == hdr4
-        True
         '''
         this_end = self.endianness
         this_bb = self.binaryblock
@@ -1020,8 +1014,10 @@ class AnalyzeImage(spatialimages.SpatialImage):
     @classmethod
     def from_image(klass, img):
         orig_hdr = img.get_header()
-        hdr = klass._header_maker.from_mapping(orig_hdr)
-        return klass(img.get_data(), img.get_affine(), hdr)
+        return klass(img.get_data(),
+                     img.get_affine(),
+                     img.get_header(),
+                     img.extra)
     
     @staticmethod
     def filespec_to_files(filespec):
