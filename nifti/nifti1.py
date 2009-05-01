@@ -13,7 +13,7 @@ from nifti.quaternions import fillpositive, quat2mat, mat2quat
 import nifti.analyze as analyze
 from nifti.spm99analyze import SpmAnalyzeHeader
 import nifti.filetuples as filetuples
-
+from nifti.spatialimages import SpatialImage
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 header_dtd = [
@@ -1096,7 +1096,7 @@ class Nifti1Image(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
 
     def set_header(self, header=None):
-        spatialimages.SpatialImage.set_header(self, header)
+        SpatialImage.set_header(self, header)
 
     @staticmethod
     def filespec_to_files(filespec):
