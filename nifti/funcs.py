@@ -2,7 +2,6 @@
 import numpy as np
 
 def squeeze_image(img):
-
     ''' Return image, remove axes length 1 at end of image shape
 
     For example, an image may have shape (10,20,30,1,1).  In this case
@@ -43,7 +42,7 @@ def squeeze_image(img):
     >>> img2.get_shape()
     (10, 1, 1)
 
-    Only final dimensions of 1 are squeezed
+    Only *final* dimensions of 1 are squeezed
 
     >>> shape = (1, 1, 5, 1, 2, 1, 1)
     >>> data = data.reshape(shape)
@@ -75,7 +74,7 @@ def squeeze_image(img):
                  img.extra)
 
 
-def concat_images(images, image_maker=None):
+def concat_images(images):
     ''' Concatenate images in list to single image, along last dimension '''
     n_imgs = len(images)
     img0 = images[0]
@@ -89,7 +88,6 @@ def concat_images(images, image_maker=None):
             raise ValueError('Affines do not match')
         out_data[i] = img.get_data()
     out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
-    if image_maker is None:
-        image_maker = img0.__class__
-    return image_maker(out_data, affine, header)
+    klass = img0.__class__
+    return klass(out_data, affine, header)
 
