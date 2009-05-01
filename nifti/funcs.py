@@ -73,3 +73,23 @@ def squeeze_image(img):
                  img.get_affine(),
                  img.get_header(),
                  img.extra)
+
+
+def concat_images(images, image_maker=None):
+    ''' Concatenate images in list to single image, along last dimension '''
+    n_imgs = len(images)
+    img0 = images[0]
+    i0shape = img0.get_shape()
+    affine = img0.get_affine()
+    header = img0.get_header()
+    out_shape = (n_imgs, ) + i0shape
+    out_data = np.empty(out_shape)
+    for i, img in enumerate(images):
+        if not np.all(img.get_affine() == affine):
+            raise ValueError('Affines do not match')
+        out_data[i] = img.get_data()
+    out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
+    if image_maker is None:
+        image_maker = img0.__class__
+    return image_maker(out_data, affine, header)
+
