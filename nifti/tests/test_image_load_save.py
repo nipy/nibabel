@@ -113,3 +113,17 @@ def test_two_to_one():
     img.to_files(files)
     yield assert_equal, img.get_header()['magic'], 'ni1'
     yield assert_equal, img.get_header()['vox_offset'], 0
+    # same for from_image
+    ana_img = ana.AnalyzeImage.from_image(img)
+    yield assert_equal, ana_img.get_header()['vox_offset'], 0
+    files = {'header':str_io, 'image':str_io}
+    img.to_files(files)
+    yield assert_equal, img.get_header()['vox_offset'], 352
+    aimg = ana.AnalyzeImage.from_image(img)
+    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    aimg = spm99.Spm99AnalyzeImage.from_image(img)
+    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    aimg = spm2.Spm2AnalyzeImage.from_image(img)
+    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    nfimg = ni1.Nifti1Image.from_image(img)
+    yield assert_equal, nfimg.get_header()['vox_offset'], 352

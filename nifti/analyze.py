@@ -976,6 +976,7 @@ class AnalyzeHeader(object):
 
 class AnalyzeImage(spatialimages.SpatialImage):
     _header_maker = AnalyzeHeader
+
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
@@ -996,6 +997,14 @@ class AnalyzeImage(spatialimages.SpatialImage):
         '''
         self._update_header()
         return self._header
+
+    def set_header(self, header=None):
+        # Pick up case of nifti image -> analyze
+        try:
+            header = header.for_file_pair()
+        except AttributeError:
+            pass
+        super(AnalyzeImage, self).set_header(header)
 
     def get_shape(self):
         if not self._data is None:

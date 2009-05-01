@@ -4,20 +4,12 @@ class SpatialImage(object):
     _header_maker = dict
     ''' Template class for lightweight image '''
     def __init__(self, data, affine, header=None, extra=None):
-        self._data = data
-        self._affine = affine
         if extra is None:
             extra = {}
+        self._data = data
+        self._affine = affine
         self.extra = extra
-        if header is None:
-            self._header = self._header_maker()
-        else:
-            self._header = self._header_maker(endianness=header.endianness)
-            for key, value in header.items():
-                if key in self._header:
-                    self._header[key] = value
-                else:
-                    self.extra[key] = value
+        self.set_header(header)
         self._files = {}
         
     def __str__(self):
@@ -49,6 +41,17 @@ class SpatialImage(object):
 
     def get_header(self):
         return self._header
+
+    def set_header(self, header=None):
+        if header is None:
+            self._header = self._header_maker()
+            return
+        self._header = self._header_maker(endianness=header.endianness)
+        for key, value in header.items():
+            if key in self._header:
+                self._header[key] = value
+            elif key not in self.extra:
+                self.extra[key] = value
 
     @classmethod
     def from_filespec(klass, filespec):

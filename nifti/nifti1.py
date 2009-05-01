@@ -891,6 +891,67 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['slice_duration'] = duration
         hdr['slice_code'] = slice_order_codes.code[label]
 
+    def for_file_pair(self, is_pair=True):
+        ''' Adapt header to separate or same image and header file
+
+        Parameters
+        ----------
+        is_pair : bool, optional
+           True if adapting header to file pair state, False for single
+
+        Returns
+        -------
+        hdr : Nifti1Header
+           copied and possibly modified header
+        
+        Examples
+        --------
+        The header starts off as being for a single file
+        
+        >>> hdr = Nifti1Header()
+        >>> str(hdr['magic'])
+        'n+1'
+        >>> hdr.get_data_offset()
+        352
+
+        But we can switch it to be for two files (a pair)
+        
+        >>> pair_hdr = hdr.for_file_pair()
+        >>> str(pair_hdr['magic'])
+        'ni1'
+        >>> pair_hdr.get_data_offset()
+        0
+
+        The original header is not affected (a copy is returned)
+        
+        >>> hdr.get_data_offset()
+        352
+
+        Back to single again
+        
+        >>> unpair_hdr = pair_hdr.for_file_pair(False)
+        >>> str(unpair_hdr['magic'])
+        'n+1'
+        >>> unpair_hdr.get_data_offset()
+        352
+        '''
+        hdr = self.__class__(self.binaryblock, self.endianness)
+        if not is_pair:
+            # one file version
+            if hdr['magic'] == 'n+1':
+                if hdr['vox_offset'] < 352:
+                    hdr['vox_offset'] = 352
+                return hdr
+            hdr['magic'] = 'n+1'
+            hdr['vox_offset'] = 352
+            return hdr
+        # two file version
+        if hdr['magic'] == 'ni1':
+            return hdr
+        hdr['magic'] = 'ni1'
+        hdr['vox_offset'] = 0
+        return hdr
+    
     def _slice_time_order(self, slabel, n_slices):
         ''' Supporting function to give time order of slices from label '''
         if slabel == 'sequential increasing':
@@ -1034,6 +1095,9 @@ class Nifti1Header(SpmAnalyzeHeader):
 class Nifti1Image(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
 
+    def set_header(self, header=None):
+        spatialimages.SpatialImage.set_header(self, header)
+
     @staticmethod
     def filespec_to_files(filespec):
         ft1 = filetuples.FileTuples(
@@ -1064,21 +1128,22 @@ class Nifti1Image(analyze.AnalyzeImage):
                 raise ValueError('Need files to write data')
         data = self.get_data()
         # Adapt header to possible two<->one file difference
-        self._file_1_2(files)
-        hdr = self.get_header()
+        is_pair = files['header'] != files['image']
+        hdr = self.get_header().for_file_pair(is_pair)
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
         # The header file can be the same as the image file
-        if files['header'] == files['image']:
+        if not is_pair:
             imgf = hdrf
             # continue on
-            offset = int(hdr['vox_offset'])
+            offset = hdr.get_data_offset()
             diff = offset-hdrf.tell()
             if diff > 0:
                 hdrf.write('\x00' * diff)
         else:
             imgf = allopen(files['image'], 'wb')
         hdr.write_data(data, imgf)
+        self._header = hdr
         self._files = files
 
     def _update_header(self):
@@ -1102,47 +1167,6 @@ class Nifti1Image(analyze.AnalyzeImage):
         if not self._affine is None:
             hdr.set_sform(self._affine)
             hdr.set_qform(self._affine)
-
-    def _file_1_2(self, files):
-        ''' Adapt header to separate or same image and header file
-        
-        Examples
-        --------
-        >>> data = np.zeros((2,3,4))
-        >>> affine = np.diag([1.0,2.0,3.0,1.0])
-        >>> img = Nifti1Image(data, affine)
-        >>> hdr = img.get_header()
-        >>> str(hdr['magic'])
-        'n+1'
-        >>> from StringIO import StringIO
-        >>> str_io = StringIO()
-        >>> files = {'header':str_io,'image':str_io}
-        >>> img._file_1_2(files)
-        >>> str(hdr['magic'])
-        'n+1'
-        >>> int(hdr['vox_offset'])
-        352
-        >>> str_io2 = StringIO()
-        >>> files = {'header':str_io,'image':str_io2}
-        >>> img._file_1_2(files)
-        >>> str(hdr['magic'])
-        'ni1'
-        >>> int(hdr['vox_offset'])
-        0
-        '''
-        hdr = self._header
-        if files['header'] == files['image']:
-            # one file version
-            if hdr['magic'] == 'n+1':
-                return
-            hdr['magic'] = 'n+1'
-            hdr['vox_offset'] = 352
-            return
-        # two file version
-        if hdr['magic'] == 'ni1':
-            return
-        hdr['magic'] = 'ni1'
-        hdr['vox_offset'] = 0
 
 
 def load(filespec):

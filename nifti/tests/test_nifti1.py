@@ -239,7 +239,7 @@ def test_set_slice_times():
 def test_nifti1_images():
     shape = (2, 4, 6)
     npt = np.float32
-    data = np.zeros(shape, dtype=npt)
+    data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
     yield assert_equal, img.get_shape(), shape
