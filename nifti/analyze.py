@@ -1066,10 +1066,12 @@ class AnalyzeImage(spatialimages.SpatialImage):
                 raise ValueError('Need files to write data')
         data = self.get_data()
         hdr = self.get_header()
-        hdrf = allopen(files['header'], 'wb')
-        hdr.write_header_to(hdrf)
+        # we have to write the header after the image, because, for some
+        # image formats, the write updates the header with information
         imgf = allopen(files['image'], 'wb')
         hdr.write_data(data, imgf)
+        hdrf = allopen(files['header'], 'wb')
+        hdr.write_header_to(hdrf)
         self._files = files
         
     def _update_header(self):

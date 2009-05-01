@@ -16,7 +16,7 @@ import nifti.loadsave as nils
 
 from nifti.volumeutils import native_code, swapped_code
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises
 
 
@@ -127,3 +127,19 @@ def test_two_to_one():
     yield assert_equal, aimg.get_header()['vox_offset'], 0
     nfimg = ni1.Nifti1Image.from_image(img)
     yield assert_equal, nfimg.get_header()['vox_offset'], 352
+
+
+def test_negative_load_save():
+    shape = (1,2,5)
+    data = np.arange(10).reshape(shape) - 10.0
+    affine = np.eye(4)
+    hdr = nf.Nifti1Header()
+    hdr.set_data_dtype(np.int16)
+    img = nf.Nifti1Image(data, affine, hdr)
+    str_io = StringIO()
+    files = {'header':str_io,'image':str_io}
+    img.to_files(files)
+    str_io.seek(0)
+    re_img = nf.Nifti1Image.from_files(files)
+    yield assert_array_almost_equal, re_img.get_data(), data, 4
+
