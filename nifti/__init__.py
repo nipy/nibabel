@@ -55,3 +55,4 @@ from nifti.analyze import AnalyzeHeader, AnalyzeImage
 from nifti.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from nifti.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nifti.nifti1 import Nifti1Header, Nifti1Image
+from nifti.funcs import squeeze_image
