@@ -1130,17 +1130,21 @@ class Nifti1Image(analyze.AnalyzeImage):
         # Adapt header to possible two<->one file difference
         is_pair = files['header'] != files['image']
         hdr = self.get_header().for_file_pair(is_pair)
-        # we have to write the image then the header, because writing
-        # the data may change the header
-        imgf = allopen(files['image'], 'wb')
-        hdr.write_data(data, imgf)
-        # The header file can be the same as the image file
-        if not is_pair:
-            hdrf = imgf
-            hdrf.seek(0)
-        else:
-            hdrf = allopen(files['header'], 'wb')
+        slope, inter, mn, mx = adapt_header_to_data(hdr, data)
+        hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
+        if not is_pair:
+            imgf = hdrf
+            # streams like bz2 do not allow seeks, even forward.  We
+            # check where to go, and write zeros up until the data part
+            # of the file
+            offset = hdr.get_data_offset()
+            diff = offset-hdrf.tell()
+            if diff > 0:
+                hdrf.write('\x00' * diff)
+        else:
+            imgf = allopen(files['image'], 'wb')
+        write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
         self._files = files
 

@@ -2,7 +2,7 @@
 import numpy as np
 
 from nifti.volumeutils import HeaderDataError, HeaderTypeError, \
-    array_to_file, calculate_scale, allopen, can_cast
+    allopen
 
 import nifti.filetuples as filetuples
 from nifti.batteryrunners import Report

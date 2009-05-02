@@ -100,7 +100,7 @@ from nifti.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, array_from_file, array_to_file, \
      HeaderDataError, HeaderTypeError, allopen, \
-     can_cast
+     can_cast, calculate_scale
 
 import nifti.imageglobals as imageglobals
 import nifti.spatialimages as spatialimages
@@ -879,6 +879,58 @@ class AnalyzeHeader(object):
             raise HeaderTypeError('Cannot set slope or intercept '
                                   'for Analyze headers')
 
+    def for_file_pair(self, is_pair=True):
+        ''' Adapt header to separate or same image and header file
+
+        This is a rare and exotic case for Analyze files, common for
+        Nifti1.  For Analyze, we only need to check that, if the file is
+        single, then the data offset is large enough to leave room for
+        the header.
+        
+        Parameters
+        ----------
+        is_pair : bool, optional
+           True if adapting header to file pair state, False for single
+
+        Returns
+        -------
+        hdr : header
+           copied and possibly modified header
+        
+        Examples
+        --------
+        The header starts off as being for two files
+        
+        >>> hdr = AnalyzeHeader()
+        >>> hdr.get_data_offset()
+        0
+
+        This is the same as the default behavior for this method
+        
+        >>> pair_hdr = hdr.for_file_pair()
+        >>> pair_hdr.get_data_offset()
+        0
+
+        But we can switch it to be for one
+        
+        >>> unpair_hdr = hdr.for_file_pair(False)
+        >>> unpair_hdr.get_data_offset()
+        352
+
+        The original header is not affected (a copy is returned)
+        
+        >>> hdr.get_data_offset()
+        0
+        '''
+        hdr = self.__class__(self.binaryblock, self.endianness)
+        if not is_pair:
+            if hdr['vox_offset'] < 352:
+                hdr['vox_offset'] = 352
+            return hdr
+        # two file version
+        hdr['vox_offset'] = 0
+        return hdr
+
     def _get_code_field(self, code_repr, fieldname, recoder):
         ''' Returns representation of field given recoder and code_repr
         '''
@@ -968,7 +1020,7 @@ class AnalyzeHeader(object):
 
 
 # Ufunc-like functions operating on Analyze headers
-def read_raw_data(hdr, fileobj):
+def read_unscaled_data(hdr, fileobj):
     ''' Read raw (unscaled) data from ``fileobj``
 
     Parameters
@@ -998,7 +1050,7 @@ def read_data(hdr, fileobj):
     ----------
     hdr : header
        analyze-like header implementing ``get_slope_inter`` and
-       requirements for ``read_raw_data``
+       requirements for ``read_unscaled_data``
     fileobj : file-like
        Must be open, and implement ``read`` and ``seek`` methods
 
@@ -1010,7 +1062,7 @@ def read_data(hdr, fileobj):
 
     '''
     slope, inter = hdr.get_slope_inter()
-    data = read_raw_data(hdr, fileobj)
+    data = read_unscaled_data(hdr, fileobj)
     if slope is None:
         return data
     # The data may be from a memmap, and not writeable
@@ -1028,29 +1080,81 @@ def read_data(hdr, fileobj):
     return data
 
 
-def write_raw_data(hdr, data, fileobj):
+def write_data(hdr, data, fileobj,
+               intercept=0.0,
+               divslope=1.0,
+               mn=None,
+               mx=None):
     ''' Write ``data`` to ``fileobj`` coercing to header dtype
 
     Parameters
     ----------
     hdr : header
-       header object implementing ``get_data_dtype``
+       header object implementing ``get_data_dtype``, ``get_data_shape``
+       and ``get_data_offset``.
     data : array-like
        data to write; should match header defined shape.  Data is
        coerced to dtype matching header by simple ``astype``.
     fileobj : file-like object
        Object with file interface, implementing ``write`` and ``seek``
+    intercept : scalar, optional
+       scalar to subtract from data, before dividing by ``divslope``.
+       Default is 0.0
+    divslope : None or scalar, optional
+       scalefactor to *divide* data by before writing.  Default
+       is 1.0.  If None, image has no valid data, zeros are written
+    mn : scalar, optional
+       minimum threshold in (unscaled) data, such that all data below
+       this value are set to this value. Default is None (no threshold)
+    mx : scalar, optional
+       maximum threshold in (unscaled) data, such that all data above
+       this value are set to this value. Default is None (no threshold)
+
     '''
     data = np.asarray(data)
-    _prepare_write(hdr, data, fileobj)
+    shape = hdr.get_data_shape()
+    if data.shape != shape:
+        raise HeaderDataError('Data should be shape (%s)' %
+                              ', '.join(str(s) for s in shape))
     out_dtype = hdr.get_data_dtype()
-    array_to_file(data,
-                  fileobj,
-                  out_dtype)
+    offset = hdr.get_data_offset()
+    try:
+        fileobj.seek(offset)
+    except IOError, msg:
+        if fileobj.tell() != offset:
+            raise IOError(msg)
+    if divslope is None: # No valid data
+        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        return
+    array_to_file(data, out_dtype, fileobj, intercept, divslope,
+                  mn, mx)
 
 
-def write_data(self, data, fileobj):
-    ''' Write data to ``fileobj`` doing best match to header dtype
+def adapt_header_to_data(hdr, data):
+    data = np.asarray(data)
+    out_dtype = hdr.get_data_dtype()
+    if not can_cast(data.dtype.type,
+                    out_dtype.type,
+                    hdr.has_data_intercept,
+                    hdr.has_data_slope):
+        raise HeaderTypeError('Cannot cast data to header dtype without'
+                              ' large potential loss in precision')
+    if not hdr.has_data_slope:
+        return 1.0, 0.0, None, None
+    slope, inter, mn, mx = calculate_scale(
+        data,
+        out_dtype,
+        hdr.has_data_intercept)
+    if slope is None:
+        hdr.set_slope_inter(1.0, 0.0)
+    else:
+        hdr.set_slope_inter(slope, inter)
+    return slope, inter, mn, mx
+
+
+def write_scaled_data(hdr, data, fileobj):
+    ''' Write data to ``fileobj`` doing best data match to header
+    dtype
 
     Parameters
     ----------
@@ -1068,93 +1172,17 @@ def write_data(self, data, fileobj):
     >>> hdr = AnalyzeHeader()
     >>> hdr.set_data_shape((1, 2, 3))
     >>> hdr.set_data_dtype(np.float64)
-    >>> import StringIO
-    >>> str_io = StringIO.StringIO()
-    >>> data = np.arange(6).reshape(1,2,3)
-    >>> write_data(hdr, data, str_io)
-    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
-    True
-    '''
-    data = np.asarray(data)
-    hdr._cast_check(data.dtype.type)
-    return hdr.write_raw_data(data, fileobj)
-
-
-def write_data(hdr, data, fileobj):
-    ''' Write data to ``fileobj`` doing best data match to header
-    dtype
-
-    Parameters
-    ----------
-    data : array-like
-       data to write; should match header defined shape
-    fileobj : file-like object
-       Object with file interface, implementing ``write`` and ``seek``
-
-    Returns
-    -------
-    None
-
-    Examples
-    --------
-    >>> hdr = SpmAnalyzeHeader()
-    >>> hdr.set_data_shape((1, 2, 3))
-    >>> hdr.set_data_dtype(np.float64)
     >>> from StringIO import StringIO
     >>> str_io = StringIO()
     >>> data = np.arange(6).reshape(1,2,3)
-    >>> hdr.write_data(data, str_io)
+    >>> write_scaled_data(hdr, data, str_io)
     >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
     True
     '''
-    data = np.asarray(data)
-    out_dtype = hdr.get_data_dtype()
-    hdr._cast_check(data.dtype.type)
-    hdr._prepare_write(data, fileobj)
-    slope, inter, mn, mx = calculate_scale(
-        data,
-        out_dtype,
-        hdr._has_data_intercept)
-    if slope is None: # No valid data
-        hdr.set_slope_inter(1.0, 0.0)
-        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
-        return
-    hdr.set_slope_inter(slope, inter)
-    array_to_file(data, fileobj, out_dtype, inter, slope, mn, mx)
+    slope, inter, mn, mx = adapt_header_to_data(hdr, data)
+    write_data(hdr, data, fileobj, inter, slope, mn, mx)
 
 
-def data_compatible(hdr, data):
-    ''' Check if ``data`` can be adapted to image having ``hdr``
-
-    Raise error otherwise
-    '''
-    shape = hdr.get_data_shape()
-    if data.shape != shape:
-        raise HeaderDataError('Data should be shape (%s)' %
-                              ', '.join(str(s) for s in shape))
-    in_dtype = data.dtype
-    out_dtype = hdr.get_data_dtype()
-    if can_cast(nptype,
-                out_dtype.type,
-                hdr.has_data_intercept,
-                hdr.has_data_slope):
-                return
-    raise HeaderTypeError('Cannot cast data to header dtype without'
-                          ' large potential loss in precision')
-
-
-def _prepare_write(hdr, data, fileobj):
-    ''' Prepare fileobj for writing, check data shape '''
-    offset = hdr.get_data_offset()
-    try:
-        fileobj.seek(offset)
-    except IOError, msg:
-        if fileobj.tell() != offset:
-            raise IOError(msg)
-
-
-
-    
 class AnalyzeImage(spatialimages.SpatialImage):
     _header_maker = AnalyzeHeader
 
@@ -1168,7 +1196,7 @@ class AnalyzeImage(spatialimages.SpatialImage):
             fname = self._files['image']
         except KeyError:
             return None
-        self._data = self._header.read_data(allopen(fname))
+        self._data = read_data(self._header, allopen(fname))
         return self._data
 
     def get_header(self):
@@ -1247,12 +1275,11 @@ class AnalyzeImage(spatialimages.SpatialImage):
                 raise ValueError('Need files to write data')
         data = self.get_data()
         hdr = self.get_header()
-        # we have to write the header after the image, because, for some
-        # image formats, the write updates the header with information
-        imgf = allopen(files['image'], 'wb')
-        hdr.write_data(data, imgf)
+        slope, inter, mn, mx = adapt_header_to_data(hdr, data)
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
+        imgf = allopen(files['image'], 'wb')
+        write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._files = files
         
     def _update_header(self):

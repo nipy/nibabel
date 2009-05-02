@@ -372,7 +372,7 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
     return arr
 
 
-def array_to_file(data, fileobj, out_dtype,
+def array_to_file(data, out_dtype, fileobj, 
                   intercept=0.0, divslope=1.0, 
                   mn=None, mx=None, order='F', nan2zero=True):
     ''' Helper function for writing possibly scaled arrays to disk
@@ -381,17 +381,17 @@ def array_to_file(data, fileobj, out_dtype,
     ----------
     data : array
        array to write
+    out_dtype : dtype
+       dtype to write array as
     fileobj : file-like
        file-like object implementing ``write`` method.  The fileobj
        should be initialized to start writing at the correct location
-    out_dtype : dtype
-       dtype to write array as
     intercept : scalar, optional
        scalar to subtract from data, before dividing by ``divslope``.
        Default is 0.0
-    divslope : None or scalar, optional
+    divslope : scalar, optional
        scalefactor to *divide* data by before writing.  Default
-       is 1.0.  
+       is 1.0.
     mn : scalar, optional
        minimum threshold in (unscaled) data, such that all data below
        this value are set to this value. Default is None (no threshold)
