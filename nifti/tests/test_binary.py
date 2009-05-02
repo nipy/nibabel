@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nifti.volumeutils import swapped_code, \
      native_code, HeaderDataError
 
-from nifti.analyze import read_data, read_unscaled_data, \
+from nifti.header_ufuncs import read_data, \
     write_data, write_scaled_data
 
 class _TestBinaryHeader(object):

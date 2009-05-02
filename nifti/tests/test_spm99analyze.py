@@ -4,7 +4,7 @@ import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nifti.analyze import read_unscaled_data, read_data, \
+from nifti.header_ufuncs import read_unscaled_data, read_data, \
     write_data, write_scaled_data
 
 from nifti.spm99analyze import Spm99AnalyzeHeader

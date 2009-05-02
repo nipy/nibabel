@@ -40,8 +40,8 @@ from numpy.testing import assert_array_equal
 
 from nifti.volumeutils import HeaderDataError, HeaderTypeError
 
-from nifti.analyze import AnalyzeHeader, AnalyzeImage, \
-    read_unscaled_data, read_data, write_data, write_scaled_data
+from nifti.analyze import AnalyzeHeader, AnalyzeImage
+from nifti.header_ufuncs import read_data, write_data, write_scaled_data
 
 from test_binary import _TestBinaryHeader
 
