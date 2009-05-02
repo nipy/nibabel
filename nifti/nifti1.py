@@ -1119,35 +1119,6 @@ class Nifti1Image(analyze.AnalyzeImage):
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
-    def to_files(self, files=None):
-        ''' Write image to files passed, or self._files
-        '''
-        if files is None:
-            files = self._files
-            if files is None:
-                raise ValueError('Need files to write data')
-        data = self.get_data()
-        # Adapt header to possible two<->one file difference
-        is_pair = files['header'] != files['image']
-        hdr = self.get_header().for_file_pair(is_pair)
-        slope, inter, mn, mx = adapt_header_to_data(hdr, data)
-        hdrf = allopen(files['header'], 'wb')
-        hdr.write_header_to(hdrf)
-        if not is_pair:
-            imgf = hdrf
-            # streams like bz2 do not allow seeks, even forward.  We
-            # check where to go, and write zeros up until the data part
-            # of the file
-            offset = hdr.get_data_offset()
-            diff = offset-hdrf.tell()
-            if diff > 0:
-                hdrf.write('\x00' * diff)
-        else:
-            imgf = allopen(files['image'], 'wb')
-        write_data(hdr, data, imgf, inter, slope, mn, mx)
-        self._header = hdr
-        self._files = files
-
     def _update_header(self):
         ''' Harmonize header with image data and affine
 
