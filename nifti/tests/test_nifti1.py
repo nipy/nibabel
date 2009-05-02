@@ -250,14 +250,13 @@ def test_nifti1_images():
     stio.seek(0)
     img2 = Nifti1Image.from_files(files)
     yield assert_array_equal, img2.get_data(), data
-    '''
-    try:
-        _, fname = tempfile.mkstemp('.nii.gz')
-        img.to_filespec(fname)
-        img3 = nifti1.load(fname)
-        yield assert_true, isinstance(img3, img.__class__)
-        yield assert_array_equal, img3.get_data(), data
-        yield assert_equal, img3.get_header(), img.get_header()
-    finally:
-        os.unlink(fname)
-    '''
+    for ext in ('.gz', '.bz2'):
+        try:
+            _, fname = tempfile.mkstemp('.nii' + ext)
+            img.to_filespec(fname)
+            img3 = nifti1.load(fname)
+            yield assert_true, isinstance(img3, img.__class__)
+            yield assert_array_equal, img3.get_data(), data
+            yield assert_equal, img3.get_header(), img.get_header()
+        finally:
+            os.unlink(fname)
