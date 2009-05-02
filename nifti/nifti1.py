@@ -1095,8 +1095,8 @@ class Nifti1Header(SpmAnalyzeHeader):
 class Nifti1Image(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
 
-    def set_header(self, header=None):
-        SpatialImage.set_header(self, header)
+    def _set_header(self, header=None):
+        SpatialImage._set_header(self, header)
 
     @staticmethod
     def filespec_to_files(filespec):

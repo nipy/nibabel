@@ -4,13 +4,19 @@ The image class maintains the association between a 3D (or greater)
 array, and an affine transform that maps voxel coordinates to some real
 world space.  It also has a ``header`` - some standard set of meta-data
 that is specific to the image format - and ``extra`` - a dictionary
-container for any other metadata.  It has attributes::
+container for any other metadata.
+
+It has attributes::
 
     extra
-
+    filename (read only)
+    
 and methods::
 
     .get_data()
+    .get_affine()
+    .get_header()
+    .to_files() # writes image out to passed or
     .get_raw_data()
     .write_data(fileobj)
     .write_raw_data(fileobj)
@@ -33,18 +39,18 @@ You can get the data out again with of::
 Less commonly, you might want to fetch out the unscaled array via
 the header::
 
-    unscaled_data = hdr.read_data(fileobj, scale=False)
+    unscaled_data = img.get_raw_data(fileobj)
 
 then do something with it.  Then put it back again::
 
-    hdr.write_data(modifed_unscaled_data, fileobj,
-                   write_scale=False)
+    img.write_raw_data(modifed_unscaled_data, fileobj)
 
 Sometimes you might to avoid any loss of precision by making the
 data type the same as the input::
 
+    hdr = img.get_header()
     hdr.set_data_dtype(data.dtype)
-    hdr.write_data(data, fileobj)
+    img.write_data(data, fileobj)
 
 '''
 
@@ -57,7 +63,7 @@ class SpatialImage(object):
         self._data = data
         self._affine = affine
         self.extra = extra
-        self.set_header(header)
+        self._set_header(header)
         self._files = {}
         
     def __str__(self):
@@ -90,7 +96,7 @@ class SpatialImage(object):
     def get_header(self):
         return self._header
 
-    def set_header(self, header=None):
+    def _set_header(self, header=None):
         if header is None:
             self._header = self._header_maker()
             return
