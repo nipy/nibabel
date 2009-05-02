@@ -1,4 +1,98 @@
-''' Header reading functions for Analyze format '''
+''' Header and image for the basic Mayo Analyze format
+
+The basic principle of the header object is that it manages and
+contains header information.  Each header type may have different
+attributes that can be set.  Some headers can contain only subsets of
+possible passed values - for example the basic Analyze header can only
+encode the zooms in an affine transform - not shears, rotations,
+translations.
+
+The attributes and methods of the object guarantee that the set values
+will be consistent and valid with the header standard, in some sense.
+The object API therefore gives "safe" access to the header.  You can
+reach all the named fields in the header directly with the
+``header_data`` attribute.  If you futz with these, the object
+makes no guarantee that the data in the header are consistent.
+
+Headers do not have filenames, they refer only the block of data in
+the header.  The containing object manages the filenames, and
+therefore must know how to predict image filenames from header
+filenames, whether these are different, and so on.
+
+You can access and set fields of a particular header type using standard __getitem__ / __setitem__ syntax:
+
+    hdr['field'] = 10
+
+Headers also implement general mappingness:
+
+    hdr.keys()
+    hdr.items()
+    hdr.values()
+    
+Basic attributes of the header object are::
+
+    .endianness (read only)
+    .binaryblock (read_only)
+    .header_data (read only)
+    
+Class attributes are::
+
+    .default_x_flip
+    
+with methods::
+    
+    .get/set_data_shape
+    .get/set_data_dtype
+    .get/set_zooms
+    .get_base_affine()
+    .get_best_affine()
+    .check_fix()
+    .as_byteswapped(endianness)
+    .write_header_to(fileobj)
+    .__str__
+    .__eq__
+    .__ne__
+
+and class methods::
+
+    .diagnose_binaryblock(string)
+    .from_fileobj(fileobj)
+    
+More sophisticated headers can add more methods and attributes.
+
+=================
+ Header checking
+=================
+
+We have a file, and we would like feedback as to whether there are any
+problems with this header, and whether they are fixable::
+
+   hdr = AnalyzeHeader.from_fileobj(fileobj, check=False)
+   AnalyzeHeader.diagnose_binaryblock(hdr.binaryblock)
+
+This will run all known checks, with no fixes, outputing to stdout
+
+In creating a header object, we might want to check the header data.  If it
+passes the error threshold, it goes through::
+
+   hdr = AnalyzeHeader.from_fileobj(good_fileobj)
+
+whereas::
+
+   hdr = AnalyzeHeader.from_fileobj(bad_fileobj)
+
+would raise some error, with output to logging (see below).
+
+We set the error level (the level of problem that the ``check=True``
+versions will accept as OK) from global defaults::
+
+   nifti.imageglobals.error_level = 30
+
+The same for logging::
+
+   nifti.logger = logger
+
+'''
 
 import numpy as np
 

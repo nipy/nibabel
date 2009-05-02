@@ -1,4 +1,52 @@
-''' Very simple spatial image class '''
+''' Very simple spatial image class
+
+The image class maintains the association between a 3D (or greater)
+array, and an affine transform that maps voxel coordinates to some real
+world space.  It also has a ``header`` - some standard set of meta-data
+that is specific to the image format - and ``extra`` - a dictionary
+container for any other metadata.  It has attributes::
+
+    extra
+
+and methods::
+
+    .get_data()
+    .get_raw_data()
+    .write_data(fileobj)
+    .write_raw_data(fileobj)
+
+There are several ways of writing data.
+=======================================
+
+There is the usual way, which is the default::
+
+    img.write_data(data, fileobj)
+
+and that is, to take the data array, ``data``, and cast it to the
+datatype the header expects, setting any available header scaling
+into the header to help the data match.
+
+You can get the data out again with of::
+
+    img.get_data(fileobj)
+
+Less commonly, you might want to fetch out the unscaled array via
+the header::
+
+    unscaled_data = hdr.read_data(fileobj, scale=False)
+
+then do something with it.  Then put it back again::
+
+    hdr.write_data(modifed_unscaled_data, fileobj,
+                   write_scale=False)
+
+Sometimes you might to avoid any loss of precision by making the
+data type the same as the input::
+
+    hdr.set_data_dtype(data.dtype)
+    hdr.write_data(data, fileobj)
+
+'''
 
 class SpatialImage(object):
     _header_maker = dict
