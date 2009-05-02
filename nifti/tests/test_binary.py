@@ -14,6 +14,8 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nifti.volumeutils import swapped_code, \
      native_code, HeaderDataError
 
+from nifti.analyze import read_data, read_unscaled_data, \
+    write_data, write_scaled_data
 
 class _TestBinaryHeader(object):
     ''' Class implements tests for binary headers
@@ -43,14 +45,14 @@ class _TestBinaryHeader(object):
         hdr = self.header_class(endianness='swapped')
         yield assert_equal, hdr.endianness, swapped_code
         # Trying to read data from an empty header gives no data
-        yield assert_equal, len(hdr.read_data(StringIO())), 0
+        yield assert_equal, len(read_data(hdr, StringIO())), 0
         # Setting no data into an empty header results in - no data
         sfobj = StringIO()
-        hdr.write_data([], sfobj)
+        write_scaled_data(hdr, [], sfobj)
         yield assert_equal, sfobj.getvalue(), ''
         # Setting more data then there should be gives an error
         yield (assert_raises, HeaderDataError,
-               hdr.write_data, np.zeros(3), sfobj)
+               write_scaled_data, hdr, np.zeros(3), sfobj)
         # You can also pass in a check flag, without data this has no effect
         hdr = self.header_class(check=False)
         
@@ -240,28 +242,28 @@ class _TestBinaryHeader(object):
         data = np.arange(6, dtype=np.float64)
         # data have to be the right shape
         yield (assert_raises, HeaderDataError,
-               hdr.write_data, data, S)
+               write_scaled_data, hdr, data, S)
         data = data.reshape((1,2,3))
         # and size
         yield (assert_raises, HeaderDataError,
-               hdr.write_data, data[:,:,:-1], S)
+               write_scaled_data, hdr, data[:,:,:-1], S)
         yield (assert_raises, HeaderDataError,
-               hdr.write_data, data[:,:-1,:], S)
+               write_scaled_data, hdr, data[:,:-1,:], S)
         # OK if so
-        hdr.write_data(data, S)
+        write_scaled_data(hdr, data, S)
         # Read it back
-        data_back = hdr.read_data(S)
+        data_back = read_data(hdr, S)
         # Should be about the same
         yield assert_array_almost_equal, data, data_back
         # but with the header dtype, not the data dtype
         yield assert_equal, hdr.get_data_dtype(), data_back.dtype
         # this is with native endian, not so for swapped
         S2 = StringIO()
-        hdr2 = self.header_class(endianness='swapped')
+        hdr2 = hdr.as_byteswapped()
         hdr2.set_data_dtype(np.float32)
         hdr2.set_data_shape((1,2,3))
-        hdr2.write_data(data, S)
-        data_back2 = hdr2.read_data(S)
+        write_scaled_data(hdr2, data, S)
+        data_back2 = read_data(hdr2, S)
         # Compares the same
         yield assert_array_almost_equal, data_back, data_back2
         # Same dtype names
@@ -275,13 +277,13 @@ class _TestBinaryHeader(object):
         S3 = StringIO()
         # Analyze header cannot do scaling, but, if not scaling,
         # AnalyzeHeader is OK
-        hdr.write_raw_data(data, S3)
-        data_back = hdr.read_data(S3)
+        write_data(hdr, data, S3)
+        data_back = read_data(hdr, S3)
         yield assert_array_almost_equal, data, data_back
-        # But, the data won't be same as input if not scaling
+        # But, the data won't always be same as input if not scaling
         data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        hdr.write_raw_data(data, S3)
-        data_back = hdr.read_data(S3)
+        write_data(hdr, data, S3)
+        data_back = read_data(hdr, S3)
         yield assert_false, np.allclose(data, data_back)
 
     def test_empty_check(self):

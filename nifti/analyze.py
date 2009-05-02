@@ -1110,6 +1110,24 @@ def write_data(hdr, data, fileobj,
        maximum threshold in (unscaled) data, such that all data above
        this value are set to this value. Default is None (no threshold)
 
+    Examples
+    --------
+    >>> hdr = AnalyzeHeader()
+    >>> hdr.set_data_shape((1, 2, 3))
+    >>> hdr.set_data_dtype(np.float64)
+    >>> from StringIO import StringIO
+    >>> str_io = StringIO()
+    >>> data = np.arange(6).reshape(1,2,3)
+    >>> write_data(hdr, data, str_io)
+    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+    True
+
+    We check the data shape
+
+    >>> write_data(hdr, data.reshape(3,2,1), str_io)
+    Traceback (most recent call last):
+       ...
+    HeaderDataError: Data should be shape (1, 2, 3)
     '''
     data = np.asarray(data)
     shape = hdr.get_data_shape()
@@ -1130,7 +1148,45 @@ def write_data(hdr, data, fileobj,
                   mn, mx)
 
 
-def adapt_header_to_data(hdr, data):
+def adapt_header(hdr, data):
+    ''' Calculate scaling for data, set into header, return scaling
+
+    Check that the data can be sensibly adapted to this header data
+    dtype.  If the header type does support useful scaling to allow
+    this, raise a HeaderTypeError.
+
+    Parameters
+    ----------
+    hdr : header
+       header to match data to.  The header may be adapted in-place
+    data : array-like
+       array of data for which to calculate scaling etc
+
+    Returns
+    -------
+    divslope : None or scalar
+       divisor for data, after subtracting intercept.  If None, then
+       there are no valid data
+    intercept : None or scalar
+       number to subtract from data before writing. 
+    mn : None or scalar
+       data minimum to write, None means use data minimum
+    mx : None or scalar
+       data maximum to write, None means use data maximum
+
+    Examples
+    --------
+    >>> hdr = AnalyzeHeader()
+    >>> hdr.set_data_dtype(np.float32)
+    >>> data = np.arange(6, dtype=np.float32).reshape(1,2,3)
+    >>> adapt_header(hdr, data)
+    (1.0, 0.0, None, None)
+    >>> hdr.set_data_dtype(np.int16)
+    >>> adapt_header(hdr, data) # The Analyze header cannot scale
+    Traceback (most recent call last):
+       ...
+    HeaderTypeError: Cannot cast data to header dtype without large potential loss in precision
+    ''' 
     data = np.asarray(data)
     out_dtype = hdr.get_data_dtype()
     if not can_cast(data.dtype.type,
@@ -1153,8 +1209,12 @@ def adapt_header_to_data(hdr, data):
 
 
 def write_scaled_data(hdr, data, fileobj):
-    ''' Write data to ``fileobj`` doing best data match to header
-    dtype
+    ''' Write data to ``fileobj`` with best data match to ``hdr`` dtype
+
+    This is a convenience function that modifies the header as well as
+    writing the data to file.  Because it modifies the header, it is not
+    very useful for general image writing, where you often need to first
+    write the header, then the image.
 
     Parameters
     ----------
@@ -1179,7 +1239,7 @@ def write_scaled_data(hdr, data, fileobj):
     >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
     True
     '''
-    slope, inter, mn, mx = adapt_header_to_data(hdr, data)
+    slope, inter, mn, mx = adapt_header(hdr, data)
     write_data(hdr, data, fileobj, inter, slope, mn, mx)
 
 
@@ -1256,7 +1316,8 @@ class AnalyzeImage(spatialimages.SpatialImage):
         try:
             ftups.set_filenames(filespec)
         except filetuples.FileTuplesError:
-            raise ValueError('Strange filespec "%s"' % filespec)
+            raise ValueError('Filespec "%s" does not look like '
+                             'Analyze ' % filespec)
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
@@ -1277,7 +1338,7 @@ class AnalyzeImage(spatialimages.SpatialImage):
         # Adapt header to possible two<->one file difference
         is_pair = files['header'] != files['image']
         hdr = self.get_header().for_file_pair(is_pair)
-        slope, inter, mn, mx = adapt_header_to_data(hdr, data)
+        slope, inter, mn, mx = adapt_header(hdr, data)
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
         if not is_pair:
@@ -1324,11 +1385,15 @@ class AnalyzeImage(spatialimages.SpatialImage):
             vox = np.sqrt(np.sum(RZS * RZS, axis=0))
             hdr['pixdim'][1:4] = vox
         
+    @classmethod
+    def load(klass, filespec):
+        return klass.from_filespec(filespec)
 
-def load(filespec):
-    return AnalyzeImage.from_filespec(filespec)
+    @classmethod
+    def save(klass, img, filespec):
+        img = klass.from_image(img)
+        img.to_filespec(filespec)
 
 
-def save(img, filespec):
-    img = AnalyzeImage.from_image(img)
-    img.to_filespec(filespec)
+load = AnalyzeImage.load
+save = AnalyzeImage.save

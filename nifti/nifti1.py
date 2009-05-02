@@ -1115,7 +1115,8 @@ class Nifti1Image(analyze.AnalyzeImage):
                 continue
             break
         else:
-            raise ValueError('Strange filespec "%s"' % filespec)
+            raise ValueError('Filespec "%s" does not '
+                             'look like Nifti1' % filespec)
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
@@ -1142,10 +1143,5 @@ class Nifti1Image(analyze.AnalyzeImage):
             hdr.set_qform(self._affine)
 
 
-def load(filespec):
-    return Nifti1Image.from_filespec(filespec)
-
-
-def save(img, filespec):
-    img = Nifti1Image.from_image(img)
-    img.to_filespec(filespec)
+load = Nifti1Image.load
+save = Nifti1Image.save

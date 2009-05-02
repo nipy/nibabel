@@ -4,6 +4,9 @@ import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+from nifti.analyze import read_unscaled_data, read_data, \
+    write_data, write_scaled_data
+
 from nifti.spm99analyze import Spm99AnalyzeHeader
 
 from nifti.testing import assert_equal, assert_true, assert_false, \
@@ -27,11 +30,11 @@ class TestSpm99AnalyzeHeader(_TAH):
         S3 = StringIO()
         data = np.arange(6, dtype=np.float64).reshape((1,2,3))
         # This uses scaling
-        hdr.write_data(data, S3)
-        data_back = hdr.read_data(S3)
+        write_scaled_data(hdr, data, S3)
+        data_back = read_data(hdr, S3)
         yield assert_array_almost_equal, data, data_back, 4
-        # This is exactly the same
-        data_back2 = hdr.read_data(S3)
+        # This is exactly the same call, just testing it works twice
+        data_back2 = read_data(hdr, S3)
         yield assert_array_equal, data_back, data_back2, 4
 
 

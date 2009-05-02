@@ -255,10 +255,5 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         sio.savemat(mfobj, {'M':self._affine, 'mat': self._affine})
 
 
-def load(filespec):
-    return Spm99AnalyzeImage.from_filespec(filespec)
-
-
-def save(img, filespec):
-    img = Spm99AnalyzeImage.from_image(img)
-    img.to_filespec(filespec)
+load = Spm99AnalyzeImage.load
+save = Spm99AnalyzeImage.save

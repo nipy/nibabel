@@ -40,7 +40,8 @@ from numpy.testing import assert_array_equal
 
 from nifti.volumeutils import HeaderDataError, HeaderTypeError
 
-from nifti.analyze import AnalyzeHeader, AnalyzeImage
+from nifti.analyze import AnalyzeHeader, AnalyzeImage, \
+    read_unscaled_data, read_data, write_data, write_scaled_data
 
 from test_binary import _TestBinaryHeader
 
@@ -148,22 +149,22 @@ def test_scaling():
     data = np.ones(shape, dtype=np.float64)
     S = StringIO()
     # Writing to float datatype doesn't need scaling
-    hdr.write_data(data, S)
-    rdata = hdr.read_data(S)
+    write_scaled_data(hdr, data, S)
+    rdata = read_data(hdr, S)
     yield assert_true, np.allclose(data, rdata)
     # Writing to integer datatype does, and raises an error
     hdr.set_data_dtype(np.int32)
-    yield (assert_raises, HeaderTypeError, hdr.write_data,
-           data, StringIO())
+    yield (assert_raises, HeaderTypeError, write_scaled_data,
+           hdr, data, StringIO())
     # unless we aren't scaling, in which case we convert the floats to
     # integers and write
-    hdr.write_raw_data(data, S)
-    rdata = hdr.read_data(S)
+    write_data(hdr, data, S)
+    rdata = read_data(hdr, S)
     yield assert_true, np.allclose(data, rdata)
     # This won't work for floats that aren't close to integers
     data_p5 = data + 0.5
-    hdr.write_raw_data(data_p5, S)
-    rdata = hdr.read_data(S)
+    write_data(hdr, data_p5, S)
+    rdata = read_data(hdr, S)
     yield assert_false, np.allclose(data_p5, rdata)
 
     

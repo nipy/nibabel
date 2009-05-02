@@ -126,10 +126,5 @@ class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     _header_maker = Spm2AnalyzeHeader
 
 
-def load(filespec):
-    return Spm2AnalyzeImage.from_filespec(filespec)
-
-
-def save(img, filespec):
-    img = Spm2AnalyzeImage.from_image(img)
-    img.to_filespec(filespec)
+load = Spm2AnalyzeImage.load
+save = Spm2AnalyzeImage.save

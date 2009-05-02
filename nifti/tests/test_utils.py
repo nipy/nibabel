@@ -114,7 +114,7 @@ def test_array_to_file():
     
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
-    array_to_file(data, fileobj, out_dtype, *args, **kwargs)
+    array_to_file(data, out_dtype, fileobj, *args, **kwargs)
     data = array_from_file(data.shape, out_dtype, fileobj)
     return data
 
