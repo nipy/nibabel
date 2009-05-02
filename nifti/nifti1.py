@@ -184,8 +184,8 @@ class Nifti1Header(SpmAnalyzeHeader):
     _slice_order_codes = slice_order_codes
 
     # data scaling capabilities
-    _has_data_slope = True
-    _has_data_intercept = True
+    has_data_slope = True
+    has_data_intercept = True
 
     def get_best_affine(self):
         ''' Select best of available transforms '''

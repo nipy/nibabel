@@ -34,8 +34,8 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     _dtype = header_dtype
     
     # data scaling capabilities
-    _has_data_slope = True
-    _has_data_intercept = False
+    has_data_slope = True
+    has_data_intercept = False
 
     def _empty_headerdata(self, endianness=None):
         ''' Create empty header binary block with given endianness '''
@@ -55,81 +55,6 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
             raise HeaderTypeError('Cannot set non-zero intercept '
                                   'for SPM headers')
         
-    def read_data(self, fileobj):
-        ''' Read data from ``fileobj``
-
-        Parameters
-        ----------
-        fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
-
-	Returns
-	-------
-	arr : array-like
-	   an array like object (that might be an ndarray),
-	   implementing at least slicing.
-
-	'''
-        slope, inter = self.get_slope_inter()
-	data = self.read_raw_data(fileobj)
-        if slope is None:
-            return data
-        # The data may be from a memmap, and not writeable
-        if slope:
-            if slope !=1.0:
-                try:
-                    data *= slope
-                except ValueError:
-                    data = data * slope
-            if inter:
-                try:
-                    data += inter
-                except ValueError:
-                    data = data + inter
-        return data
-
-    def write_data(self, data, fileobj):
-        ''' Write data to ``fileobj`` doing best data match to header
-        dtype
-
-        Parameters
-        ----------
-        data : array-like
-           data to write; should match header defined shape
-        fileobj : file-like object
-           Object with file interface, implementing ``write`` and ``seek``
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        >>> hdr = SpmAnalyzeHeader()
-        >>> hdr.set_data_shape((1, 2, 3))
-        >>> hdr.set_data_dtype(np.float64)
-        >>> from StringIO import StringIO
-        >>> str_io = StringIO()
-        >>> data = np.arange(6).reshape(1,2,3)
-        >>> hdr.write_data(data, str_io)
-        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
-        True
-        '''
-        data = np.asarray(data)
-        out_dtype = self.get_data_dtype()
-        self._cast_check(data.dtype.type)
-        self._prepare_write(data, fileobj)
-        slope, inter, mn, mx = calculate_scale(
-            data,
-            out_dtype,
-            self._has_data_intercept)
-        if slope is None: # No valid data
-            self.set_slope_inter(1.0, 0.0)
-            fileobj.write('\x00' * (data.size*out_dtype.itemsize))
-            return
-        self.set_slope_inter(slope, inter)
-        array_to_file(data, fileobj, out_dtype, inter, slope, mn, mx)
-
     @classmethod
     def _get_checks(klass):
         checks = super(SpmAnalyzeHeader, klass)._get_checks()

@@ -197,8 +197,8 @@ class AnalyzeHeader(object):
     default_x_flip = True
 
     # data scaling capabilities
-    _has_data_slope = False
-    _has_data_intercept = False
+    has_data_slope = False
+    has_data_intercept = False
     
     def __init__(self,
                  binaryblock=None,
@@ -852,106 +852,6 @@ class AnalyzeHeader(object):
             'datatype',
             self._data_type_codes)
 
-    def read_raw_data(self, fileobj):
-        ''' Read raw (unscaled) data from ``fileobj``
-
-        Parameters
-        ----------
-        fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
-
-	Returns
-	-------
-	arr : array-like
-	   an array like object (that might be an ndarray),
-	   implementing at least slicing.
-	'''
-        dtype = self.get_data_dtype()
-        shape = self.get_data_shape()
-        offset = int(self._header_data['vox_offset'])
-        return array_from_file(shape, dtype, fileobj, offset)
-        
-    def read_data(self, fileobj):
-        ''' Read data from ``fileobj``
-
-        Parameters
-        ----------
-        fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
-
-	Returns
-	-------
-	arr : array-like
-	   an array like object (that might be an ndarray),
-	   implementing at least slicing.
-
-        Notes
-        -----
-        The AnalyzeHeader cannot do integer scaling.
-	'''
-	return self.read_raw_data(fileobj)
-
-    def write_raw_data(self, data, fileobj):
-        ''' Write ``data`` to ``fileobj`` coercing to header dtype
-        
-        Parameters
-        ----------
-        data : array-like
-           data to write; should match header defined shape.  Data is
-           coerced to dtype matching header by simple ``astype``.
-        fileobj : file-like object
-           Object with file interface, implementing ``write`` and ``seek``
-        '''
-        data = np.asarray(data)
-        self._prepare_write(data, fileobj)
-        out_dtype = self.get_data_dtype()
-        array_to_file(data,
-                      fileobj,
-                      out_dtype)
-
-    def write_data(self, data, fileobj):
-        ''' Write data to ``fileobj`` doing best match to header dtype
-
-        Parameters
-        ----------
-        data : array-like
-           data to write; should match header defined shape
-        fileobj : file-like object
-           Object with file interface, implementing ``write`` and ``seek``
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr.set_data_shape((1, 2, 3))
-        >>> hdr.set_data_dtype(np.float64)
-        >>> import StringIO
-        >>> str_io = StringIO.StringIO()
-        >>> data = np.arange(6).reshape(1,2,3)
-        >>> hdr.write_data(data, str_io)
-        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
-        True
-        '''
-	data = np.asarray(data)
-        self._cast_check(data.dtype.type)
-        return self.write_raw_data(data, fileobj)
-
-    def _prepare_write(self, data, fileobj):
-        ''' Prepare fileobj for writing, check data shape '''
-        shape = self.get_data_shape()
-        if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' %
-                                  ', '.join(str(s) for s in shape))
-        offset = self.get_data_offset()
-        try:
-            fileobj.seek(offset)
-        except IOError, msg:
-            if fileobj.tell() != offset:
-                raise IOError(msg)
-
     def get_data_offset(self):
         ''' Return offset into data file to read data
 
@@ -966,20 +866,19 @@ class AnalyzeHeader(object):
         '''
         return int(self._header_data['vox_offset'])
 
-    def _cast_check(self, nptype):
-        ''' Check if can cast numpy type ``nptype`` to hdr datatype
+    def get_slope_inter(self):
+        ''' Get scalefactor and intercept
 
-        Raise error otherwise
+        These are not implemented for basic Analyze
         '''
-        out_dtype = self.get_data_dtype()
-        if can_cast(nptype,
-                    out_dtype.type,
-                    self._has_data_intercept,
-                    self._has_data_slope):
-                    return
-        raise HeaderTypeError('Cannot cast data to header dtype without'
-                              ' large potential loss in precision')
-        
+        return 1.0, 0.0
+
+    def set_slope_inter(self, slope, inter):
+        ''' Set raises error for Analyze header '''
+        if slope != 1.0 or inter:
+            raise HeaderTypeError('Cannot set slope or intercept '
+                                  'for Analyze headers')
+
     def _get_code_field(self, code_repr, fieldname, recoder):
         ''' Returns representation of field given recoder and code_repr
         '''
@@ -1068,6 +967,194 @@ class AnalyzeHeader(object):
         return ret
 
 
+# Ufunc-like functions operating on Analyze headers
+def read_raw_data(hdr, fileobj):
+    ''' Read raw (unscaled) data from ``fileobj``
+
+    Parameters
+    ----------
+    hdr : header
+       analyze-like header implementing ``get_data_dtype``,
+       ``get_data_shape`` and ``get_data_offset``.
+    fileobj : file-like
+       Must be open, and implement ``read`` and ``seek`` methods
+
+    Returns
+    -------
+    arr : array-like
+       an array like object (that might be an ndarray),
+       implementing at least slicing.
+    '''
+    dtype = hdr.get_data_dtype()
+    shape = hdr.get_data_shape()
+    offset = hdr.get_data_offset()
+    return array_from_file(shape, dtype, fileobj, offset)
+
+
+def read_data(hdr, fileobj):
+    ''' Read data from ``fileobj`` given ``hdr``
+
+    Parameters
+    ----------
+    hdr : header
+       analyze-like header implementing ``get_slope_inter`` and
+       requirements for ``read_raw_data``
+    fileobj : file-like
+       Must be open, and implement ``read`` and ``seek`` methods
+
+    Returns
+    -------
+    arr : array-like
+       an array like object (that might be an ndarray),
+       implementing at least slicing.
+
+    '''
+    slope, inter = hdr.get_slope_inter()
+    data = read_raw_data(hdr, fileobj)
+    if slope is None:
+        return data
+    # The data may be from a memmap, and not writeable
+    if slope:
+        if slope !=1.0:
+            try:
+                data *= slope
+            except ValueError:
+                data = data * slope
+        if inter:
+            try:
+                data += inter
+            except ValueError:
+                data = data + inter
+    return data
+
+
+def write_raw_data(hdr, data, fileobj):
+    ''' Write ``data`` to ``fileobj`` coercing to header dtype
+
+    Parameters
+    ----------
+    hdr : header
+       header object implementing ``get_data_dtype``
+    data : array-like
+       data to write; should match header defined shape.  Data is
+       coerced to dtype matching header by simple ``astype``.
+    fileobj : file-like object
+       Object with file interface, implementing ``write`` and ``seek``
+    '''
+    data = np.asarray(data)
+    _prepare_write(hdr, data, fileobj)
+    out_dtype = hdr.get_data_dtype()
+    array_to_file(data,
+                  fileobj,
+                  out_dtype)
+
+
+def write_data(self, data, fileobj):
+    ''' Write data to ``fileobj`` doing best match to header dtype
+
+    Parameters
+    ----------
+    data : array-like
+       data to write; should match header defined shape
+    fileobj : file-like object
+       Object with file interface, implementing ``write`` and ``seek``
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    >>> hdr = AnalyzeHeader()
+    >>> hdr.set_data_shape((1, 2, 3))
+    >>> hdr.set_data_dtype(np.float64)
+    >>> import StringIO
+    >>> str_io = StringIO.StringIO()
+    >>> data = np.arange(6).reshape(1,2,3)
+    >>> write_data(hdr, data, str_io)
+    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+    True
+    '''
+    data = np.asarray(data)
+    hdr._cast_check(data.dtype.type)
+    return hdr.write_raw_data(data, fileobj)
+
+
+def write_data(hdr, data, fileobj):
+    ''' Write data to ``fileobj`` doing best data match to header
+    dtype
+
+    Parameters
+    ----------
+    data : array-like
+       data to write; should match header defined shape
+    fileobj : file-like object
+       Object with file interface, implementing ``write`` and ``seek``
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    >>> hdr = SpmAnalyzeHeader()
+    >>> hdr.set_data_shape((1, 2, 3))
+    >>> hdr.set_data_dtype(np.float64)
+    >>> from StringIO import StringIO
+    >>> str_io = StringIO()
+    >>> data = np.arange(6).reshape(1,2,3)
+    >>> hdr.write_data(data, str_io)
+    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+    True
+    '''
+    data = np.asarray(data)
+    out_dtype = hdr.get_data_dtype()
+    hdr._cast_check(data.dtype.type)
+    hdr._prepare_write(data, fileobj)
+    slope, inter, mn, mx = calculate_scale(
+        data,
+        out_dtype,
+        hdr._has_data_intercept)
+    if slope is None: # No valid data
+        hdr.set_slope_inter(1.0, 0.0)
+        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        return
+    hdr.set_slope_inter(slope, inter)
+    array_to_file(data, fileobj, out_dtype, inter, slope, mn, mx)
+
+
+def data_compatible(hdr, data):
+    ''' Check if ``data`` can be adapted to image having ``hdr``
+
+    Raise error otherwise
+    '''
+    shape = hdr.get_data_shape()
+    if data.shape != shape:
+        raise HeaderDataError('Data should be shape (%s)' %
+                              ', '.join(str(s) for s in shape))
+    in_dtype = data.dtype
+    out_dtype = hdr.get_data_dtype()
+    if can_cast(nptype,
+                out_dtype.type,
+                hdr.has_data_intercept,
+                hdr.has_data_slope):
+                return
+    raise HeaderTypeError('Cannot cast data to header dtype without'
+                          ' large potential loss in precision')
+
+
+def _prepare_write(hdr, data, fileobj):
+    ''' Prepare fileobj for writing, check data shape '''
+    offset = hdr.get_data_offset()
+    try:
+        fileobj.seek(offset)
+    except IOError, msg:
+        if fileobj.tell() != offset:
+            raise IOError(msg)
+
+
+
+    
 class AnalyzeImage(spatialimages.SpatialImage):
     _header_maker = AnalyzeHeader
 
