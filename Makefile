@@ -51,12 +51,6 @@ build:
 clean:
 	-rm -rf build
 	-rm *-stamp
-	-rm nifti/clib.py nifti/_clib.so
-	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
-
-cn_clean:
-	-rm -rf build
-	-rm *-stamp
 	-rm cnifti/clib.py cnifti/_clib.so
 	find 3rd -mindepth 2 -maxdepth 2  -type f -name '*-stamp' | xargs -L10 rm -f
 
