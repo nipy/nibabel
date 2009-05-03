@@ -3,7 +3,15 @@
 import numpy as np
 from numpy import pi
 
-from numpy.testing import dec, assert_raises
+# Recent (1.2) versions of numpy have this decorator
+try:
+    from numpy.testing.decorators import slow
+except ImportError:
+    def slow(t):
+        t.slow = True
+        return t
+
+from nose.tools import assert_raises
 
 import nifti.quaternions as vq
 
@@ -115,7 +123,7 @@ def test_norm():
     qi[1] = 0.2
     assert not vq.isunit(qi)
 
-@dec.slow
+@slow
 def test_mult():
     ''' Test that quaternion * same as matrix * '''
     for M1, q1 in eg_pairs[0::4]:
@@ -135,7 +143,7 @@ def test_eye():
     assert np.all([1,0,0,0]==qi)
     assert np.allclose(vq.quat2mat(qi), np.eye(3))
 
-@dec.slow
+@slow
 def test_quaternion_reconstruction():
     ''' Test reconstruction of arbitrary unit quaternions '''
     for q in unit_quats:

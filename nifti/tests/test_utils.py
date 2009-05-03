@@ -10,9 +10,9 @@ from nifti.volumeutils import array_from_file, \
     array_to_file, calculate_scale, scale_min_max, can_cast
 
 from numpy.testing import assert_array_almost_equal, \
-    assert_array_equal, assert_raises
+    assert_array_equal
 
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
 
 
 def test_array_from_file():

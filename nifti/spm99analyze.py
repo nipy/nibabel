@@ -263,7 +263,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         else:
             M = mat
         sio.savemat(mfobj, {'M': M, 'mat': mat})
-
+        mfobj.close()
 
 load = Spm99AnalyzeImage.load
 save = Spm99AnalyzeImage.save
