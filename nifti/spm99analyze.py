@@ -223,10 +223,14 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         except IOError:
             return ret
         mats = sio.loadmat(matf)
-        if 'mat' in mats:
+        if 'mat' in mats: # this overrides a 'M', and includes any flip
             ret._affine = mats['mat']
-        elif 'M' in mats:
-            ret._affine = mats['M']
+        elif 'M' in mats: # the 'M' matrix does not include flips
+            hdr = ret._header
+            if hdr.default_x_flip:
+                ret._affine = np.dot(np.diag([-1,1,1,1]), mats['M'])
+            else:
+                ret._affine = mats['M']
         else:
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
@@ -252,7 +256,13 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         import scipy.io as sio
         matfname = self._files['mat']
         mfobj = allopen(matfname, 'wb')
-        sio.savemat(mfobj, {'M':self._affine, 'mat': self._affine})
+        mat = self._affine
+        hdr = self._header
+        if hdr.default_x_flip:
+            M = np.dot(np.diag([-1,1,1,1]), mat)
+        else:
+            M = mat
+        sio.savemat(mfobj, {'M': M, 'mat': mat})
 
 
 load = Spm99AnalyzeImage.load
