@@ -406,6 +406,26 @@ def array_to_file(data, out_dtype, fileobj,
        does when casting, and this can be odd (often the lowest
        available integer value)
 
+    Examples
+    --------
+    >>> from StringIO import StringIO
+    >>> sio = StringIO()
+    >>> data = np.arange(10, dtype=np.float)
+    >>> array_to_file(data, np.float, sio)
+    >>> sio.getvalue() == data.tostring('F')
+    True
+    >>> sio.truncate(0)
+    >>> array_to_file(data, np.int16, sio)
+    >>> sio.getvalue() == data.astype(np.int16).tostring()
+    True
+    >>> sio.truncate(0)
+    >>> array_to_file(data.byteswap(), np.float, sio)
+    >>> sio.getvalue() == data.byteswap().tostring('F')
+    True
+    >>> sio.truncate(0)
+    >>> array_to_file(data, np.float, sio, order='C')
+    >>> sio.getvalue() == data.tostring('C')
+    True
     '''
     out_dtype = np.dtype(out_dtype)
     nan2zero = (nan2zero and
@@ -435,7 +455,7 @@ def array_to_file(data, out_dtype, fileobj,
         if in_dtype == out_dtype:
             fileobj.write(dslice.tostring())
         elif in_dtype == out_dtype.newbyteorder('S'): # just byte swapped
-            out_arr = dslice.byteswap(out_dtype.byteorder)
+            out_arr = dslice.byteswap()
             fileobj.write(out_arr.tostring())
         else:
             fileobj.write(dslice.astype(out_dtype).tostring())
