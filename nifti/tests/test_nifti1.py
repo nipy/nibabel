@@ -13,7 +13,7 @@ import nifti.testing as vit
 
 from nifti.volumeutils import HeaderDataError
 import nifti.nifti1 as nifti1
-from nifti.nifti1 import Nifti1Header, Nifti1Image
+from nifti.nifti1 import Nifti1Header, Nifti1Image, data_type_codes
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
 from test_analyze import TestAnalyzeHeader
@@ -47,6 +47,21 @@ class TestNiftiHeader(_TSAH):
         yield vit.assert_equal, hdr.endianness, '<'
         yield vit.assert_equal, hdr['magic'], 'ni1'
         yield vit.assert_equal, hdr['sizeof_hdr'], 348
+
+
+def test_datatypes():
+    hdr = Nifti1Header()
+    for code in data_type_codes.value_set():
+        dt = data_type_codes.type[code]
+        if dt == np.void:
+            continue
+        hdr.set_data_dtype(code)
+        yield (assert_equal,
+               hdr.get_data_dtype(),
+               data_type_codes.dtype[code])
+    # Check that checks also see new datatypes
+    hdr.set_data_dtype(np.complex128)
+    hdr.check_fix()
 
 
 def test_quaternion():

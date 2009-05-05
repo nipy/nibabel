@@ -178,6 +178,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     ''' Class for NIFTI1 header '''
     # Copies of module level definitions
     _dtype = header_dtype
+    _data_type_codes = data_type_codes
     _xform_codes = xform_codes
     _unit_codes = unit_codes
     _intent_codes = intent_codes
@@ -975,14 +976,18 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def _get_checks(klass):
-        checks = analyze.AnalyzeHeader._get_checks()
-        return checks + (
-            klass._chk_scale_slope,
-            klass._chk_scale_inter,
-            klass._chk_qfac,
-            klass._chk_magic_offset,
-            klass._chk_qform_code,
-            klass._chk_sform_code)
+        # We need to return our own versions of - e.g. chk_datatype, to
+        # pick up the Nifti datatypes from our class
+        return (klass._chk_sizeof_hdr,
+                klass._chk_datatype,
+                klass._chk_bitpix,
+                klass._chk_pixdims,
+                klass._chk_scale_slope,
+                klass._chk_scale_inter,
+                klass._chk_qfac,
+                klass._chk_magic_offset,
+                klass._chk_qform_code,
+                klass._chk_sform_code)
 
     @staticmethod
     def _chk_scale_slope(hdr, fix=True):

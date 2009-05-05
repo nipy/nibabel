@@ -972,11 +972,11 @@ class AnalyzeHeader(object):
             dtype = klass._data_type_codes.dtype[code]
         except KeyError:
             ret.level = 40
-            ret.problem_msg = 'data code not recognized'
+            ret.problem_msg = 'data code %d not recognized' % code
         else:
             if dtype.type is np.void:
                 ret.level = 40
-                ret.problem_msg = 'data code not supported'
+                ret.problem_msg = 'data code %d not supported' % code
         if fix:
             ret.fix_problem_msg = 'not attempting fix'
         return ret

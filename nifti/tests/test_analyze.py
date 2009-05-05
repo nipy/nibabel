@@ -80,7 +80,7 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         yield assert_equal, dxer(hdr_data), 'sizeof_hdr should be 348'
         hdr_data = hdr_data_t.copy()
         hdr_data['datatype'] = 0
-        yield assert_equal, dxer(hdr_data), 'data code not supported\nbitpix does not match datatype'
+        yield assert_equal, dxer(hdr_data), 'data code 0 not supported\nbitpix does not match datatype'
         hdr_data = hdr_data_t.copy()
         hdr_data['bitpix'] = 0
         yield assert_equal, dxer(hdr_data), 'bitpix does not match datatype'
