@@ -12,11 +12,34 @@ to the previous C-based implementation.
 
 __docformat__ = 'restructuredtext'
 
-import nifti.nifti1
+import numpy as N
+from nifti.nifti1 import Nifti1Image
+from nifti.volumeutils import allopen
 
-class NiftiImage(nifti.nifti1.Nifti1Image):
+class NiftiImage(Nifti1Image):
     def __init__(self, source, header=None, loadmeta=False):
-        raise NotImplementedError
+        if type(source) == N.ndarray:
+            raise NotImplementedError
+
+        elif type(source) in (str, unicode):
+            # basically mimic from_filespec() + from_files()
+            files = Nifti1Image.filespec_to_files(source)
+            header = Nifti1Image._header_maker.from_fileobj(
+                        allopen(files['header']))
+            affine = header.get_best_affine()
+            Nifti1Image.__init__(self, None, affine, header)
+
+            # store filenames? yes! otherwise get_data() will refuse to access
+            # the data since it doesn't know where to get the image from
+            self._files = files
+
+            # XXX handle original 'header' argument
+
+        else:
+            raise ValueError, \
+                  "Unsupported source type. Only NumPy arrays and filename " \
+                  + "string are supported."
+
 
 
     def asDict(self):
@@ -208,7 +231,8 @@ class NiftiImage(nifti.nifti1.Nifti1Image):
 
 
     def getDataArray(self):
-        raise NotImplementedError
+        # we need the axis order reversed
+        return Nifti1Image.get_data(self).T
 
 
     def asarray(self, copy = True):
@@ -227,39 +251,39 @@ class NiftiImage(nifti.nifti1.Nifti1Image):
     # class properties
     #
 
-    # read only
-    data =          property(fget=getDataArray, fset=setDataArray)
-    nvox =          property(fget=lambda self: self.__nimg.nvox)
-    max =           property(fget=lambda self: self.__nimg.cal_max)
-    min =           property(fget=lambda self: self.__nimg.cal_min)
-    sform_inv =     property(fget=getInverseSForm)
-    qform_inv =     property(fget=getInverseQForm)
-    extent =        property(fget=getExtent)
-    volextent =     property(fget=getVolumeExtent)
-    timepoints =    property(fget=getTimepoints)
-    raw_nimg =      property(fget=lambda self: self.__nimg)
-    filename =      property(fget=getFilename)
-
-    # read and write
-    filename =      property(fget=getFilename, fset=setFilename)
-    bbox =          property(fget=imgfx.getBoundingBox, fset=imgfx.crop)
-
-    slope =         property(fget=lambda self: self.__nimg.scl_slope,
-                             fset=setSlope)
-    intercept =     property(fget=lambda self: self.__nimg.scl_inter,
-                             fset=setIntercept)
-    voxdim =        property(fget=getVoxDims, fset=setVoxDims)
-    pixdim =        property(fget=getPixDims, fset=setPixDims)
-    description =   property(fget=lambda self: self.__nimg.descrip,
-                             fset=setDescription)
-    header =        property(fget=asDict, fset=updateFromDict)
-    sform =         property(fget=getSForm, fset=setSForm)
-    sform_code =    property(fget=getSFormCode, fset=setSFormCode)
-    qform =         property(fget=getQForm, fset=setQForm)
-    qform_code =    property(fget=getQFormCode, fset=setQFormCode)
-    quatern =       property(fget=getQuaternion, fset=setQuaternion)
-    qoffset =       property(fget=getQOffset, fset=setQOffset)
-    qfac =          property(fget=lambda self: self.__nimg.qfac, fset=setQFac)
-    rtime =         property(fget=getRepetitionTime, fset=setRepetitionTime)
-    xyz_unit =      property(fget=getXYZUnit, fset=setXYZUnit)
-    time_unit =     property(fget=getTimeUnit, fset=setTimeUnit)
+#    # read only
+    data =          property(fget=getDataArray) #, fset=setDataArray)
+#    nvox =          property(fget=lambda self: self.__nimg.nvox)
+#    max =           property(fget=lambda self: self.__nimg.cal_max)
+#    min =           property(fget=lambda self: self.__nimg.cal_min)
+#    sform_inv =     property(fget=getInverseSForm)
+#    qform_inv =     property(fget=getInverseQForm)
+#    extent =        property(fget=getExtent)
+#    volextent =     property(fget=getVolumeExtent)
+#    timepoints =    property(fget=getTimepoints)
+#    raw_nimg =      property(fget=lambda self: self.__nimg)
+#    filename =      property(fget=getFilename)
+#
+#    # read and write
+#    filename =      property(fget=getFilename, fset=setFilename)
+#    bbox =          property(fget=imgfx.getBoundingBox, fset=imgfx.crop)
+#
+#    slope =         property(fget=lambda self: self.__nimg.scl_slope,
+#                             fset=setSlope)
+#    intercept =     property(fget=lambda self: self.__nimg.scl_inter,
+#                             fset=setIntercept)
+#    voxdim =        property(fget=getVoxDims, fset=setVoxDims)
+#    pixdim =        property(fget=getPixDims, fset=setPixDims)
+#    description =   property(fget=lambda self: self.__nimg.descrip,
+#                             fset=setDescription)
+#    header =        property(fget=asDict, fset=updateFromDict)
+#    sform =         property(fget=getSForm, fset=setSForm)
+#    sform_code =    property(fget=getSFormCode, fset=setSFormCode)
+#    qform =         property(fget=getQForm, fset=setQForm)
+#    qform_code =    property(fget=getQFormCode, fset=setQFormCode)
+#    quatern =       property(fget=getQuaternion, fset=setQuaternion)
+#    qoffset =       property(fget=getQOffset, fset=setQOffset)
+#    qfac =          property(fget=lambda self: self.__nimg.qfac, fset=setQFac)
+#    rtime =         property(fget=getRepetitionTime, fset=setRepetitionTime)
+#    xyz_unit =      property(fget=getXYZUnit, fset=setXYZUnit)
+#    time_unit =     property(fget=getTimeUnit, fset=setTimeUnit)
