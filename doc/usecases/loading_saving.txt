@@ -1,0 +1,58 @@
+===============================================
+ Loading and saving image files from / to disk
+===============================================
+
+Images can be very large, and therefore take up a large amount of
+memory, or processor / system time when loading the image from disk.
+
+We would like to be able to create and look at an image (and not the
+image data) without incurring the full cost of the load from disk.
+
+So, the image object can be lightweight::
+
+   import nifti
+   img = nifti.load('some_image.nii')
+
+In this case, the ``img`` object has not yet loaded the data from disk.
+We may use the ``get_data()`` method to get the data, or something fancy
+with the ``data`` attribute to delay loading until we access the data.
+
+
+
+
+Have a 'dirty' flag, which, if set, would tell you that the image might not correspond to the disk file.
+  Set this flag when anyone asks for the data, on the basis that the user may then do something to the data and you can't know if they have.
+11:04 AM Michael: right
+11:05 AM me: Otherwise, cache the header and the affine transform. When asking to return a filename, or similar, check the current header and current affine (the header may be separate from the affine for an SPM image) against their cached copies, if they are the same and the 'dirty' flag is not set, we know that the filename is OK.
+11:06 AM Michael: well, at least for those attribs
+  what about extensions?
+ me: The user can somehow set the 'dirty' flag directly to say 'just assume they are the same'.
+  I guess, we'd have to cache those too. Or reread the header.
+11:07 AM Michael: that could be a space wasting procedure
+  extensions could have any size
+11:08 AM me: Or always assume dirty if there are extensions. Or always assume dirty if the extensions are large.
+11:09 AM I see the checks as magic behind the scenes stuff that do some safe optimization (in the sense that we are not resaving the data if that is not necessary), but drops back to the default (resaving the data) if there is any uncertainty, or the cost is too high to be able to check.
+11:10 AM Michael: right
+  i assume that is with cluster computing right?
+  with shared data
+ me: Then put an explicit interface on top to allow you to override the magic stuff if you can guess better than the computer.
+11:11 AM I hadn't thought about cluster computing, This was only the case of:
+  img = nifti.load('my_file.nii')
+  fsl.realign(img1, img2)
+  (in fsl realign)
+11:12 AM fname1 = nifti.as_file(img1)
+ Michael: i see
+ me: where fname1 would be the original file if we hadn't done anything to the img, or a temporary save otherwise.
+11:14 AM Michael: yeah, but same for cluster applications
+11:15 AM if you pass an image to an e.g. parallel motion correction function
+  or slcietiming
+  slicetiming
+  each node could pull the data from a local disk instead of multiplying it over the network
+11:16 AM but interface-wise it would be the same
+11:18 AM me: Not sure I have quite understood. Maybe you mean that, when passing an image to a node, the master could check if the img was identical to something on file and pass a lightweight shell round the image instead of the full image in memory, relying on the node pulling the image from disk when it uses it.
+ Michael: yes
+  ah I forgot that you always have the data loaded
+11:19 AM me: No, not at first - that's what img.get_data() does. And that would set the 'cannot trust this as being the same as on disk' flag.
+11:20 AM Michael: right, so there is no need for a lightweight wrapper
+  the 'empty' image is the wrapper itself
+ me: Yes, right; the image before .get_data() is lightweight.
