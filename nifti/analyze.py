@@ -1117,7 +1117,9 @@ class AnalyzeImage(spatialimages.SpatialImage):
         slope, inter, mn, mx = adapt_header(hdr, data)
         hdrf = allopen(files['header'], 'wb')
         hdr.write_header_to(hdrf)
-        if not is_pair:
+        if is_pair:
+            imgf = allopen(files['image'], 'wb')
+        else: # single file for header and image
             imgf = hdrf
             # streams like bz2 do not allow seeks, even forward.  We
             # check where to go, and write zeros up until the data part
@@ -1126,8 +1128,6 @@ class AnalyzeImage(spatialimages.SpatialImage):
             diff = offset-hdrf.tell()
             if diff > 0:
                 hdrf.write('\x00' * diff)
-        else:
-            imgf = allopen(files['image'], 'wb')
         write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
         self._files = files

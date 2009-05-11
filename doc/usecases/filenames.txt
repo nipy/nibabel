@@ -106,9 +106,8 @@ In this last case, there is obviously not a valid filename::
 
    assert img.get_filename() is None
    
-===========
- Questions
-===========
+Questions
+=========
 
 Can we set the filename from the class ``__init__()``?  For example::
 
