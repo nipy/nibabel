@@ -43,3 +43,4 @@ def test_eg_img():
     yield assert_equal, data.shape, (91,109, 91)
     yield assert_equal, data.min(), 0.0
     yield assert_equal, data.max(), 1.0
+    yield assert_equal, data.mean(), 1.0
