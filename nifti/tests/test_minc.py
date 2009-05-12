@@ -7,7 +7,6 @@ import numpy as np
 from scipy.io.netcdf import netcdf_file as netcdf
 
 import nifti.minc as minc
-reload(minc)
 
 from nose.tools import assert_true, assert_equal, assert_false
 from numpy.testing import assert_array_equal
@@ -18,7 +17,7 @@ def setup_module():
     fd, _fname = tempfile.mkstemp('.mnc')
     url = 'http://cirl.berkeley.edu/mb312/example_images/minc/avg152T1.mnc'
     urllib.urlretrieve(url, _fname)
-    mnc = minc.MINCHeader(netcdf(_fname, 'r'))
+    mnc = minc.MincHeader(netcdf(_fname, 'r'))
     
 
 def teardown_module():

@@ -24,7 +24,7 @@ class netcdf_fileobj(netcdf):
 class MincError(Exception):
     pass
 
-class MINCHeader(object):
+class MincHeader(object):
     def __init__(self, mincfile, endianness=None, check=True):
         self.endianness = '>'
         self._mincfile = mincfile
@@ -104,8 +104,11 @@ class MINCHeader(object):
 
     def _normalize(self, data):
         """
+
+        http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node13.html
+        
         MINC normalization uses "image-min" and "image-max" variables to
-        map the data from the valid range of the NC_TYPE to the range
+        map the data from the valid range of the image to the range
         specified by "image-min" and "image-max".
 
         The "image-max" and "image-min" are variables that describe the
@@ -121,9 +124,12 @@ class MINCHeader(object):
         image_max = self._mincfile.variables['image-max']
         image_min = self._mincfile.variables['image-min']
         if image_max.dimensions != image_min.dimensions:
-            raise ValueError('"image-max" and "image-min" do not '
+            raise MincError('"image-max" and "image-min" do not '
                              'have the same dimensions')
         nscales = len(image_max.dimensions)
+        if nscales == 0:
+            raise MincError('Do not know how to handle '
+                            'zero dim scaling')
         img_dims = self._image.dimensions
         if image_max.dimensions != img_dims[:nscales]:
             raise MincError('image-max and image dimensions '
@@ -155,8 +161,8 @@ class MINCHeader(object):
         return self._normalize(self.get_unscaled_data())
     
 
-class MINCImage(SpatialImage):
-    _header_maker = MINCHeader
+class MincImage(SpatialImage):
+    _header_maker = MincHeader
     
     def _set_header(self, header):
         self._header = header
@@ -165,7 +171,6 @@ class MINCImage(SpatialImage):
         ''' Lazy load of data '''
         if not self._data is None:
             return self._data
-        cdf = self._header
         self._data = self._header.get_scaled_data()
         return self._data
 
@@ -207,4 +212,4 @@ class MINCImage(SpatialImage):
         return klass.from_filespec(filespec)
 
 
-load = MINCImage.load
+load = MincImage.load
