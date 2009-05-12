@@ -21,6 +21,8 @@ class netcdf_fileobj(netcdf):
         self._buffer = fileobj
         self._parse()
 
+class MincError(Exception):
+    pass
 
 class MINCHeader(object):
     def __init__(self, mincfile, endianness=None, check=True):
@@ -43,9 +45,6 @@ class MINCHeader(object):
                 raise ValueError('Irregular spacing not supported')
         image_max = self._mincfile.variables['image-max']
         image_min = self._mincfile.variables['image-min']
-        if image_max.dimensions != image_min.dimensions:
-            raise ValueError('"image-max" and "image-min" do not '
-                             'have the same dimensions')
 
     def get_data_shape(self):
         return self._image.shape
@@ -80,71 +79,79 @@ class MINCHeader(object):
         return aff
 
     def get_unscaled_data(self):
-        return np.asarray(self._image)
+        dtype = self.get_data_dtype()
+        return np.asarray(self._image).view(dtype)
+
+    def _get_valid_range(self):
+        ''' Return valid range for image data
+
+        The valid range can come from the image 'valid_range' or
+        image 'valid_min' and 'valid_max', or, failing that, from the
+        data type range
+        '''
+        ddt = self.get_data_dtype()
+        info = np.iinfo(ddt.type)
+        try:
+            valid_range = self._image.valid_range
+        except AttributeError:
+            try:
+                valid_range = [self._image.valid_min,
+                               self._image.valid_max]
+            except AttributeError:
+                valid_range = [info.min, info.max]
+        if valid_range[0] < info.min or valid_range[1] > info.max:
+            raise ValueError('Valid range outside input '
+                             'data type range')
+        return np.asarray(valid_range, dtype=np.float)
 
     def _normalize(self, data):
         """
-        MINC normalization:
-
-        Otherwise, it uses "image-min" and "image-max" variables
-        to map the data from the valid range of the NC_TYPE to the
-        range specified by "image-min" and "image-max".
-
-        If self.norm_range is not None, it is used in place of the
-        builtin default valid ranges of the NC_TYPEs. If the NC_TYPE
-        is NC_FLOAT or NC_DOUBLE, then the transformation is only done if 
-        self.norm_range is not None, otherwise the data is untransformed.
+        MINC normalization uses "image-min" and "image-max" variables to
+        map the data from the valid range of the NC_TYPE to the range
+        specified by "image-min" and "image-max".
 
         The "image-max" and "image-min" are variables that describe the
         "max" and "min" of image over some dimensions of "image".
 
-        The usual case is that "image" has dimensions ["zspace", "yspace", "xspace"]
-        and "image-max" has dimensions ["zspace"]. In this case, the
-        normalization is defined by the following transformation:
-
-        for i in range(d.shape[0]):
-            d[i] = (clip((d - norm_range[i]).astype(float) / 
-                         (norm_range[i] - norm_range[i]), 0, 1) * 
-                         (image_max[i] - image_min[i]) + image_min[i])
-
+        The usual case is that "image" has dimensions ["zspace",
+        "yspace", "xspace"] and "image-max" has dimensions
+        ["zspace"]. 
         """
         ddt = self.get_data_dtype()
         if ddt.type in np.sctypes['float']:
             return data
-        info = np.iinfo(ddt.type)
-        vrange = [info.min, info.max]
         image_max = self._mincfile.variables['image-max']
         image_min = self._mincfile.variables['image-min']
-        imdims = self._image.dimensions
-        dims = self._mincfile.dimensions
-        axes = [list(imdims).index(d) for d in image_max.dimensions]  
-        shape = [dims[d] for d in image_max.dimensions]
-        indices = np.indices(shape)
-        indices.shape = (indices.shape[0], np.product(indices.shape[1:]))
+        if image_max.dimensions != image_min.dimensions:
+            raise ValueError('"image-max" and "image-min" do not '
+                             'have the same dimensions')
+        nscales = len(image_max.dimensions)
+        img_dims = self._image.dimensions
+        if image_max.dimensions != img_dims[:nscales]:
+            raise MincError('image-max and image dimensions '
+                            'do not match')
+        valid_range = self._get_valid_range()
+        out_data = np.empty(data.shape, np.float)
 
-        out_data = np.zeros(data.shape, np.float)
-        vdiff = float(vrange[1] - vrange[0])
-        for index in indices.T:
-            slice_ = []
-            aslice_ = []
-            iaxis = 0
-	    for idim, dim in enumerate(imdims):
-                if idim not in axes:
-                    slice_.append(slice(0,dims[dim],1))
-                else:
-                    slice_.append(slice(index[iaxis], index[iaxis]+1,1))
-                    aslice_.append(slice(index[iaxis], index[iaxis]+1,1))
-                    iaxis += 1
-            try:
-                _image_min = image_min[aslice_]
-                _image_max = image_max[aslice_]
-            except IndexError:
-                _image_min = image_min.getValue()
-                _image_max = image_max.getValue()
-            out_data[slice_] = np.clip(
-                (data[slice_] - vrange[0]).astype(float) / vdiff,
-                0.0, 1.1) * (_image_max-_image_min) + image_min
-	return out_data
+        def _norm_slice(sdef):
+            imax = image_max[sdef]
+            imin = image_min[sdef]
+            in_data = np.clip(data[sdef], *valid_range)
+            dmin = valid_range[0]
+            dmax = valid_range[1]
+            sc = (imax-imin) / (dmax-dmin)
+            return in_data * sc + (imin - dmin * sc)
+
+        if nscales == 1:
+            for i in range(data.shape[0]):
+                out_data[i] = _norm_slice(i)
+        elif nscales == 2:
+            for i in range(data.shape[0]):
+                for j in range(data.shape[1]):
+                    out_data[i,j] = _norm_slice((i,j))
+        else:
+            raise MincError('More than two scaling dimensions')
+        return out_data
 
     def get_scaled_data(self):
         return self._normalize(self.get_unscaled_data())

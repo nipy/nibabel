@@ -29,9 +29,9 @@ def test_eg_img():
     yield assert_equal, mnc.get_data_dtype().type, np.uint8
     yield assert_equal, mnc.get_data_shape(), (91,109, 91)
     yield assert_equal, mnc.get_zooms(), (2.0, 2.0, 2.0)
-    aff = np.array([[2.0, 0, 0, 0],
-                    [0, 2.0, 0, 0],
-                    [0, 0, 2.0, 0],
+    aff = np.array([[0, 0, 2.0, -90],
+                    [0, 2.0, 0, -126],
+                    [2.0, 0, 0, -72],
                     [0, 0, 0, 1]])
     yield assert_array_equal, mnc.get_best_affine(), aff
     data = mnc.get_unscaled_data()
@@ -41,4 +41,5 @@ def test_eg_img():
     img = minc.load(_fname)
     data = img.get_data()
     yield assert_equal, data.shape, (91,109, 91)
-    
+    yield assert_equal, data.min(), 0.0
+    yield assert_equal, data.max(), 1.0
