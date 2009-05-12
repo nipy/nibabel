@@ -29,8 +29,11 @@ class MincHeader(object):
         self.endianness = '>'
         self._mincfile = mincfile
         self._image = mincfile.variables['image']
+        self._dim_names = self._image.dimensions
         self._dims = [self._mincfile.variables[s]
-                      for s in self._image.dimensions]
+                      for s in self._dim_names]
+        self._spatial_dims = [name for name in self._dim_names
+                             if name.endswith('space')]
         if check:
             self.check_fix()
 
@@ -63,16 +66,21 @@ class MincHeader(object):
             [float(dim.step) for dim in self._dims])
 
     def get_best_affine(self):
-        zooms = self.get_zooms()
+        if len(self._spatial_dims) < 3:
+            raise MincError('Less than 3 spatial dims, '
+                            'cannot make 3D affine')
         rot_mat = np.eye(3)
+        steps = np.zeros((3,))
         starts = np.zeros((3,))
-        for i, dim in enumerate(self._dims):
+        dim_names = list(self._dim_names) # for indexing in loop
+        for i, name in enumerate(self._spatial_dims):
+            dim = self._dims[dim_names.index(name)]
             rot_mat[:,i] = dim.direction_cosines
+            steps[i] = dim.step
             starts[i] = dim.start
         origin = np.dot(rot_mat, starts)
-        rz = rot_mat * zooms
         aff = np.eye(4)
-        aff[:3,:3] = rot_mat * zooms
+        aff[:3,:3] = rot_mat * steps
         aff[:3,3] = origin
         return aff
 
@@ -127,22 +135,23 @@ class MincHeader(object):
             raise MincError('"image-max" and "image-min" do not '
                              'have the same dimensions')
         nscales = len(image_max.dimensions)
-        if nscales == 0:
-            raise MincError('Do not know how to handle '
-                            'zero dim scaling')
-        img_dims = self._image.dimensions
-        if image_max.dimensions != img_dims[:nscales]:
+        if image_max.dimensions != self._dim_names[:nscales]:
             raise MincError('image-max and image dimensions '
                             'do not match')
-        valid_range = self._get_valid_range()
+        dmin, dmax = self._get_valid_range()
+
+        if nscales == 0:
+            imax = np.asarray(image_max)
+            imin = np.asarray(image_min)
+            sc = (imax-imin) / (dmax-dmin)
+            return np.clip(data, dmin, dmax) * sc + (imin - dmin * sc)
+            
         out_data = np.empty(data.shape, np.float)
 
         def _norm_slice(sdef):
             imax = image_max[sdef]
             imin = image_min[sdef]
-            in_data = np.clip(data[sdef], *valid_range)
-            dmin = valid_range[0]
-            dmax = valid_range[1]
+            in_data = np.clip(data[sdef], dmin, dmax)
             sc = (imax-imin) / (dmax-dmin)
             return in_data * sc + (imin - dmin * sc)
 

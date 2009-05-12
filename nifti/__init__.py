@@ -51,8 +51,10 @@ import nifti.analyze as ana
 import nifti.spm99analyze as spm99
 import nifti.spm2analyze as spm2
 import nifti.nifti1 as ni1
+import nifti.minc as minc
 from nifti.analyze import AnalyzeHeader, AnalyzeImage
 from nifti.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from nifti.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nifti.nifti1 import Nifti1Header, Nifti1Image
+from nifti.minc import MincHeader, MincImage
 from nifti.funcs import squeeze_image, concat_images
