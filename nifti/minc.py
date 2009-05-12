@@ -43,8 +43,6 @@ class MINCHeader(object):
         for dim in self._dims:
             if dim.spacing != 'regular__':
                 raise ValueError('Irregular spacing not supported')
-        image_max = self._mincfile.variables['image-max']
-        image_min = self._mincfile.variables['image-min']
 
     def get_data_shape(self):
         return self._image.shape
