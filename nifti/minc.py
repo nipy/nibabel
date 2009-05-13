@@ -66,12 +66,10 @@ class MincHeader(object):
             [float(dim.step) for dim in self._dims])
 
     def get_best_affine(self):
-        if len(self._spatial_dims) < 3:
-            raise MincError('Less than 3 spatial dims, '
-                            'cannot make 3D affine')
-        rot_mat = np.eye(3)
-        steps = np.zeros((3,))
-        starts = np.zeros((3,))
+        nspatial = len(self._spatial_dims)
+        rot_mat = np.eye(nspatial)
+        steps = np.zeros((nspatial,))
+        starts = np.zeros((nspatial,))
         dim_names = list(self._dim_names) # for indexing in loop
         for i, name in enumerate(self._spatial_dims):
             dim = self._dims[dim_names.index(name)]
@@ -79,9 +77,9 @@ class MincHeader(object):
             steps[i] = dim.step
             starts[i] = dim.start
         origin = np.dot(rot_mat, starts)
-        aff = np.eye(4)
-        aff[:3,:3] = rot_mat * steps
-        aff[:3,3] = origin
+        aff = np.eye(nspatial+1)
+        aff[:nspatial,:nspatial] = rot_mat * steps
+        aff[:nspatial,nspatial] = origin
         return aff
 
     def get_unscaled_data(self):
@@ -176,6 +174,13 @@ class MincImage(SpatialImage):
     def _set_header(self, header):
         self._header = header
 
+    def get_affine(self):
+        ''' Get affine, correcting for spatial dims '''
+        aff = self._header.get_best_affine()
+        if aff.shape != (4,4):
+            raise MincError('Image does not have 3 spatial dimensions')
+        return aff
+        
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
