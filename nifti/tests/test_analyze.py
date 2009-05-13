@@ -58,36 +58,35 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         yield assert_equal, self.header_class._dtype.itemsize, 348
     
     def test_empty(self):
-        eh = self.header_class()
-        yield assert_true, len(eh.binaryblock) == 348
-        hdr_data = eh.header_data
-        yield assert_true, hdr_data['sizeof_hdr'] == 348
-        yield assert_true, np.all(hdr_data['dim'][1:] == 1)
-        yield assert_true, hdr_data['dim'][0] == 0        
-        yield assert_true, np.all(hdr_data['pixdim'] == 1)
-        yield assert_true, hdr_data['datatype'] == 16 # float32
-        yield assert_true, hdr_data['bitpix'] == 32
+        hdr = self.header_class()
+        yield assert_true, len(hdr.binaryblock) == 348
+        yield assert_true, hdr['sizeof_hdr'] == 348
+        yield assert_true, np.all(hdr['dim'][1:] == 1)
+        yield assert_true, hdr['dim'][0] == 0        
+        yield assert_true, np.all(hdr['pixdim'] == 1)
+        yield assert_true, hdr['datatype'] == 16 # float32
+        yield assert_true, hdr['bitpix'] == 32
 
     def test_checks(self):
         # Test header checks
-        hdr_data_t = self.header_class().header_data
-        def dxer(hdr_data):
-            binblock = hdr_data.tostring()
+        hdr_t = self.header_class()
+        def dxer(hdr):
+            binblock = hdr.binaryblock
             return self.header_class.diagnose_binaryblock(binblock)
-        yield assert_equal, dxer(hdr_data_t), ''
-        hdr_data = hdr_data_t.copy()
-        hdr_data['sizeof_hdr'] = 1
-        yield assert_equal, dxer(hdr_data), 'sizeof_hdr should be 348'
-        hdr_data = hdr_data_t.copy()
-        hdr_data['datatype'] = 0
-        yield assert_equal, dxer(hdr_data), 'data code 0 not supported\nbitpix does not match datatype'
-        hdr_data = hdr_data_t.copy()
-        hdr_data['bitpix'] = 0
-        yield assert_equal, dxer(hdr_data), 'bitpix does not match datatype'
+        yield assert_equal, dxer(hdr_t), ''
+        hdr = hdr_t.copy()
+        hdr['sizeof_hdr'] = 1
+        yield assert_equal, dxer(hdr), 'sizeof_hdr should be 348'
+        hdr = hdr_t.copy()
+        hdr['datatype'] = 0
+        yield assert_equal, dxer(hdr), 'data code 0 not supported\nbitpix does not match datatype'
+        hdr = hdr_t.copy()
+        hdr['bitpix'] = 0
+        yield assert_equal, dxer(hdr), 'bitpix does not match datatype'
         for i in (1,2,3):
-            hdr_data = hdr_data_t.copy()
-            hdr_data['pixdim'][i] = -1
-            yield assert_equal, dxer(hdr_data), 'pixdim[1,2,3] should be positive'
+            hdr = hdr_t.copy()
+            hdr['pixdim'][i] = -1
+            yield assert_equal, dxer(hdr), 'pixdim[1,2,3] should be positive'
 
     def test_datatype(self):
         ehdr = self.header_class()
@@ -113,8 +112,7 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         fileobj = open(self.example_file, 'rb')
         hdr = self.header_class.from_fileobj(fileobj, check=False)
         yield assert_equal, hdr.endianness, '>'
-        hdr_data = hdr.header_data
-        yield assert_equal, hdr_data['sizeof_hdr'], 348
+        yield assert_equal, hdr['sizeof_hdr'], 348
 
     def test_orientation(self):
         # Test flips

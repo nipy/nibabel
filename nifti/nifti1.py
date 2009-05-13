@@ -936,7 +936,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> unpair_hdr.get_data_offset()
         352
         '''
-        hdr = self.__class__(self.binaryblock, self.endianness)
+        hdr = self.copy()
         if not is_pair:
             # one file version
             if hdr['magic'] == 'n+1':

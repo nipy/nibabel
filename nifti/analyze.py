@@ -32,9 +32,9 @@ Headers also implement general mappingness:
 Basic attributes of the header object are::
 
     .endianness (read only)
-    .binaryblock (read_only)
-    .header_data (read only)
-    
+    .binaryblock (read only)
+    .structarr (read only)
+
 Class attributes are::
 
     .default_x_flip
@@ -48,7 +48,7 @@ with methods::
     .get_best_affine()
     .check_fix()
     .as_byteswapped(endianness)
-    .write_header_to(fileobj)
+    .write_to(fileobj)
     .__str__
     .__eq__
     .__ne__
@@ -277,6 +277,7 @@ class AnalyzeHeader(object):
                              dtype=dt,
                              buffer=binaryblock)
         self._header_data = hdr.copy()
+        self.check = check
         if check:
             self.check_fix()
         return
@@ -323,18 +324,25 @@ class AnalyzeHeader(object):
         if self._header_data.dtype.isnative:
             return native_code
         return swapped_code
-    
-    @property
-    def header_data(self):
-        ''' header data, with data fields
 
-        Examples
-        --------
-        >>> hdr1 = AnalyzeHeader() # an empty header
-        >>> sz = hdr1.header_data['sizeof_hdr']
+    def copy(self):
+        ''' Return copy of header
+
+        >>> hdr = AnalyzeHeader()
+        >>> hdr['dim'][0]
+        0
+        >>> hdr['dim'][0] = 2
+        >>> hdr2 = hdr.copy()
+        >>> hdr2 is hdr
+        False
+        >>> hdr['dim'][0] = 3
+        >>> hdr2['dim'][0]
+        2
         '''
-        return self._header_data
-
+        return self.__class__(
+                self.binaryblock,
+                self.endianness, check=False)
+    
     def __eq__(self, other):
         ''' equality between two headers defined by mapping
         
@@ -449,7 +457,7 @@ class AnalyzeHeader(object):
 
         A valid native header is guessed native
 
-        >>> hdr_data = hdr.header_data.copy()
+        >>> hdr_data = hdr.structarr.copy()
         >>> hdr._guessed_endian(hdr_data) == native_code
         True
 
@@ -523,6 +531,19 @@ class AnalyzeHeader(object):
         hdr_data['bitpix'] = 32
         return hdr_data
 
+    @property
+    def structarr(self):
+        ''' header data, with data fields
+
+        Examples
+        --------
+        >>> hdr1 = AnalyzeHeader() # an empty header
+        >>> sz = hdr1.structarr['sizeof_hdr']
+        '''
+        return self._header_data
+
+
+
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
         ''' Return read header with given or guessed endiancode
@@ -551,12 +572,12 @@ class AnalyzeHeader(object):
 
         You can write to the resulting object data
 
-        >>> hdr2.header_data['dim'][1] = 1
+        >>> hdr2['dim'][1] = 1
         '''
         raw_str = fileobj.read(klass._dtype.itemsize)
         return klass(raw_str, endianness, check)
 
-    def write_header_to(self, fileobj):
+    def write_to(self, fileobj):
         ''' Write header to fileobj
 
         Write starts at fileobj current file position.
@@ -575,7 +596,7 @@ class AnalyzeHeader(object):
         >>> hdr = AnalyzeHeader()
         >>> import StringIO
         >>> str_io = StringIO.StringIO()
-        >>> hdr.write_header_to(str_io)
+        >>> hdr.write_to(str_io)
         >>> hdr.binaryblock == str_io.getvalue()
         True
         '''
@@ -696,7 +717,7 @@ class AnalyzeHeader(object):
         If you write to the resulting byteswapped data, it does not
         change the original.
 
-        >>> bs_hdr.header_data['dim'][1] = 2
+        >>> bs_hdr['dim'][1] = 2
         >>> bs_hdr == hdr
         False
 
@@ -717,9 +738,7 @@ class AnalyzeHeader(object):
         else:
             endianness = endian_codes[endianness]
         if endianness == current:
-            return self.__class__(
-                self.binaryblock,
-                self.endianness, check=False)
+            return self.copy()
         hdr_data = self._header_data.byteswap()
         return self.__class__(hdr_data.tostring(),
                               endianness,
@@ -1116,7 +1135,7 @@ class AnalyzeImage(spatialimages.SpatialImage):
         hdr = self.get_header().for_file_pair(is_pair)
         slope, inter, mn, mx = adapt_header(hdr, data)
         hdrf = allopen(files['header'], 'wb')
-        hdr.write_header_to(hdrf)
+        hdr.write_to(hdrf)
         if is_pair:
             imgf = allopen(files['image'], 'wb')
         else: # single file for header and image

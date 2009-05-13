@@ -28,7 +28,7 @@ class _TestBinaryHeader(object):
         hdr = self.header_class()
         # binaryblock has length given by header data dtype
         binblock = hdr.binaryblock
-        yield assert_equal, len(binblock), hdr.header_data.dtype.itemsize
+        yield assert_equal, len(binblock), hdr.structarr.dtype.itemsize
         # an empty header has shape (0,) - like an empty array (np.array([]))
         yield assert_equal, hdr.get_data_shape(), (0,)
         # The affine is always homogenous 3D regardless of shape. The
@@ -59,7 +59,7 @@ class _TestBinaryHeader(object):
     def test_mappingness(self):
         hdr = self.header_class()
         yield assert_raises, ValueError, hdr.__setitem__, 'nonexistent key', 0.1
-        hdr_dt = hdr.header_data.dtype
+        hdr_dt = hdr.structarr.dtype
         keys = hdr.keys()
         yield assert_equal, keys, list(hdr)
         vals = hdr.values()
@@ -91,7 +91,7 @@ class _TestBinaryHeader(object):
         # Check guesses of endian
         eh = self.header_class()
         yield assert_equal, eh.endianness, native_code
-        hdr_data = eh.header_data.copy()
+        hdr_data = eh.structarr.copy()
         hdr_data = hdr_data.byteswap(swapped_code)
         eh_swapped = self.header_class(hdr_data.tostring())
         yield assert_equal, eh_swapped.endianness, swapped_code
@@ -99,19 +99,19 @@ class _TestBinaryHeader(object):
     def test_from_to_fileobj(self):
         hdr = self.header_class()
         str_io = StringIO()
-        hdr.write_header_to(str_io)
+        hdr.write_to(str_io)
         yield assert_equal, str_io.getvalue(), hdr.binaryblock
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
         yield assert_equal, hdr2.endianness, native_code
         yield assert_equal, hdr2.binaryblock, hdr.binaryblock
 
-    def test_header_data(self):
-        # header_data attribute also read only
+    def test_structarr(self):
+        # structarr attribute also read only
         hdr = self.header_class()
-        hdr_fs = hdr.header_data
+        hdr_fs = hdr.structarr
         yield (assert_raises, AttributeError,
-               hdr.__setattr__, 'header_data', 0)
+               hdr.__setattr__, 'structarr', 0)
 
     def test_binaryblock(self):
         # Test get of binaryblock
