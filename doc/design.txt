@@ -25,6 +25,34 @@ Headers contain two types of information:
    interested in what the 'real world' is.  Neither MINC (1.x) nor
    Analyze stores this, but NIfTI can.
 
+Howto data
+----------
+
+In order to get data out of files, any image reader will need either -
+the header itself, or selected fields from the header.
+
+Different images can make use of different parts of the header, because
+the images will work with only a specified set of headers - as dictated
+by the image itself.
+
+* in-file data numeric type - ``io_dtype``.  This has no necessary
+  relation to the dtype of the data in memory, because scaling factors
+  may be applied.  For reading, we may not need this as part of the
+  public interface, we can just use it internally to cast the read
+  memory to an array.  Setting this attribute will change the output
+  dtype on writing.  ECAT file format can have different dtypes per
+  frame; for reading, we just cast up to a dtype that can hold all the
+  frame dtypes; for writing, we may just write as one type, or disallow
+  writing altogether.
+* array shape - ``shape``. This may be read (see below :ref:`Lightweight
+  Image`).  Maybe it does not make sense to write this directly, but
+  write it from the routine that writes the data (which has a shape).
+* byte offset - ``offset`` at which data starts.  This is not relevant
+  for the way we currently read MINC files for example - and may not be
+  relevant for ECAT files, in the sense that it may be the offset to
+  only one of the frames in the image, and the frames are of different
+  length.
+
 
 Images
 ======
@@ -91,6 +119,16 @@ The image contains the full data array (or a reference to it).  This can
 be very large, and the image can contain the only reference to the data,
 so this is the *heavyweight* image version.
 
+For this version, getting the shape of the image could be::
+
+   shape = img.data.shape
+
+or::
+
+   shape = img.shape
+
+where ``img.shape`` will just return ``img.data.shape``
+
 Lightweight image
 -----------------
 
@@ -107,4 +145,22 @@ data iff we need it.
 This is the *lightweight* image version, and only arises when there is
 some version of the image on disk.
 
+For the lightweight image, we may want to look at ``img.shape`` without
+loading all the data (it will be known, from the header).  
+
+Empty image
+-----------
+
+This is a reminder of Souheil Inati's use-case - the iterative write.
+Perhaps something like::
+
+    empty_image = Nifti1Image.empty_image(shape=(64,64,30,150), affine=np.eye(4))
+    empty_image.set_filespec('some_image.nii.gz')
+    empty_image.write_header()
+    for i in range(150):
+        slicer = (slice(None),)*3 + (i,)
+        data = np.random.normal(size=(64,64,30))
+        empty_image.write_image_slice(data, slicer)
+
+ 
 
