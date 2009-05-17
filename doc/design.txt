@@ -148,8 +148,6 @@ The ``format`` object deals with this action.  That is, the ``data``
 object will have a pointer to the ``format` attribute in some form -
 perhaps in the form of a ``self.get_data`` function.
 
-For the lightweight image, we may want to look at ``img.shape`` without
-loading all the data (it will be known, from the header).  
 
 Empty image
 -----------
