@@ -88,7 +88,7 @@ We think of an image as being the association of:
    preference for the first dimension of an array being the slowest
    changing on disk, and the instinct that time, rather than space, will
    usually be the slowest changing dimension on disk, but we didn't want
-   to break the NItTI and SPM conventions, on the basis of this
+   to break the NIfTI and SPM conventions, on the basis of this
    instinct, because the instinct is difficult to explain to people who
    don't have it.
 
@@ -106,7 +106,7 @@ image format API, of which more later.
 This immediately suggests the following interface::
 
    img = Image(data, affine=None, output_space=None, 
-         meta=None, format=None)
+         meta=None, format=None, filename=None)
 
 The output space is a string
 
@@ -124,11 +124,16 @@ might imagine these methods::
    img.save(filename=None, format=None)
    img.as_file(filemaker=None, format=None)
    
-The last returns the image as saved to disk; the image might completely
-correspond to something on disk, in which case it may return its own
-filename, or it might not correspond to something on disk, in which case
-it saves itself to disk with the given format, and returns the filename
-it has used. 
+and some things that formats generally support like::
+
+   img.write_header(filename=None)
+   img.write_data(data=None, filename=None, slicedef=None)
+   
+``img.as_file`` returns the image as saved to disk; the image might
+completely correspond to something on disk, in which case it may return
+its own filename, or it might not correspond to something on disk, in
+which case it saves itself to disk with the given format, and returns
+the filename it has used.
 
 Data proxies - and lightweight images
 -------------------------------------
@@ -145,7 +150,9 @@ the on-disk version of the array.
 
 The ``format`` object deals with this action.  That is, the ``data``
 object will have a pointer to the ``format`` attribute in some form -
-perhaps in the form of a ``self.get_data`` function.
+perhaps in the form of a ``format.get_data`` method.
+
+Of course, this is an optimization, and does not affect the interface for the ``Image`` (although it might affect the interface for ``Format``.
 
 
 Empty image
@@ -154,13 +161,99 @@ Empty image
 This is a reminder of Souheil Inati's use-case - the iterative write.
 Perhaps something like::
 
-    empty_image = Nifti1Image.empty_image(shape=(64,64,30,150), affine=np.eye(4))
+    empty_image = Image.empty(shape=(64,64,30,150), affine=np.eye(4))
     empty_image.set_filespec('some_image.nii.gz')
     empty_image.write_header()
     for i in range(150):
         slicer = (slice(None),)*3 + (i,)
         data = np.random.normal(size=(64,64,30))
-        empty_image.write_image_slice(data, slicer)
+        empty_image.write_data(data, slice=slicer)
 
- 
+
+Images and files and filenames
+------------------------------
+
+Various image formats can have more than one filename per image.  NIfTI
+is the obvious example because it can be either a single file::
+
+  some_image.nii
+
+or a pair of files (like Analyze)::
+
+  some_image.img
+  some_image.hdr
+
+SPM Analyze adds an optional extra data file in Matlab ``.mat`` format::
+
+  some_image.img
+  some_image.hdr
+  some_image.mat
+
+Of course there are rules / rules-of-thumb as to what extensions these
+various filenames can be. 
+
+We may want to associate an image with a filename or set of filenames.
+BUt we may also want to be able to associate images with file-like
+objects, such as open files, or anything else that implements a file
+protocol.  
+
+The image ``format`` will know what the ``image`` needs in terms of
+files.  For example, a single file NIfTI image will need a single
+filename or single file-like object, whereas a NIfTI pair will need two
+files and two file-like objects.
+
+Let's call a full specification of what the format needs a *filedef*.
+For the moment, let's imagine that is a dictionary with keys ``image``,
+``header``, and optional ``mat``.  The values can be filenames or
+file-like objects.  A *filespec* is some argument or set of arguments
+that allow us to fully specify a *filedef*.  
+
+The simple case of a single-file NIfTI image::
+
+   img = Image(data, filespec='some_image.nii')
+   img.filedef == {'image': 'some_image.nii',
+                   'header': 'some_image.nii'}
+
+In this case, we haven't specified the format, and the Image constructor
+tries to work out the format from the filespec.
+
+Consider::
+
+   img = Image(data, filespec='some_image.nii', 
+               format=Nifti1SingleFormat)
+
+also OK.  But::
+
+   img = Image(data, filespec='some_image.nii', format=AnalyzeFormat)
+
+might raise an error.
+
+For SPM analyze format:
+
+   img = Image(data, filespec='some_image.img', format=AnalyzeFormat)
+   img.filedef == {'image': 'some_image.img',
+                   'header': 'some_image.hdr'}
+
+Now, for file-like objects::
+
+   fobj = open('some_image.nii')
+   img = Image(data, filespec=fobj)
+   img.filedef == {'image': fobj,
+                   'header': fobj}
+
+might work - although the Image constructor would have to be smart
+enough to work out that this was ``Nifti1SingleFormat``.  Or it might be
+the default.
+
+   img = Image(data, filespec=fobj, format=AnalyzeFormat)
+
+might raise an error, on the lines of::
+
+   FormatError('Need image and header file-like objects for Analyze')
+
+- or it might just assume that you mean for the image and the header to
+  be the same file.  Perhaps that is too implicit.
+
+
+
 
