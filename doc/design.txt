@@ -1,3 +1,4 @@
+.. -*- mode: rst -*-
 =================================
  Images, headers and code design
 =================================
@@ -97,53 +98,55 @@ So, our image likely has::
    img.data
    img.affine
    img.output_space
+   img.meta
+   img.format
 
-Lightweight and heavyweight images
-==================================
+where meta is a dictionary and format is an object that implements the
+image format API, of which more later.
 
-Heavyweight image
------------------
+This immediately suggests the following interface::
 
-We've immediately got something obvious for our image class::
+   img = Image(data, affine=None, output_space=None, 
+         meta=None, format=None)
 
-   img = Image(data, affine, output_space)
+The output space is a string
 
-If we're constructing an image in memory, all is simple::
+   img.output_space == 'mni'
 
-   data = img.data
-   affine = img.affine
+When there is no known output space, it is ``None``.
 
-just does attribute access.
+The ``format`` attribute is part of the bridge pattern.  That is, the
+``format`` object provides the implementation for things that an image
+might want to do, or have done to it.  The format will differ depending
+on the input or output type.  What might we want to do to an image? We
+might imagine these methods::
 
-The image contains the full data array (or a reference to it).  This can
-be very large, and the image can contain the only reference to the data,
-so this is the *heavyweight* image version.
+   img.load(filename, format=None) # class method
+   img.save(filename=None, format=None)
+   img.as_file(filemaker=None, format=None)
+   
+The last returns the image as saved to disk; the image might completely
+correspond to something on disk, in which case it may return its own
+filename, or it might not correspond to something on disk, in which case
+it saves itself to disk with the given format, and returns the filename
+it has used. 
 
-For this version, getting the shape of the image could be::
+Data proxies - and lightweight images
+-------------------------------------
 
-   shape = img.data.shape
+A particular use-case is where we want to part-load the image, but we do
+not yet want all the data, as the data can be very large and slow to
+load, or take up a lot of memory.
 
-or::
+For that case, the ``data`` attribute is a proxy object, subclassing
+ndarray, that knows to load itself when the data is accessed.
 
-   shape = img.shape
+The proxy object implements at least ``.shape``, but otherwise defers to
+the on-disk version of the array.
 
-where ``img.shape`` will just return ``img.data.shape``
-
-Lightweight image
------------------
-
-However, when we load an image from disk, we often want to - for
-example - look at the affine, or the shape, before either deleting the
-image object in memory, or passing the image filename to some other
-routine - such as FSL.  In this case we will want to delay a full load of the data because we may not need it, and it is very expensive::
-
-   img = load('some_filename.nii')
-
-Where ``img`` will have some delayed reference scheme for reading the
-data iff we need it.
-
-This is the *lightweight* image version, and only arises when there is
-some version of the image on disk.
+The ``format`` object deals with this action.  That is, the ``data``
+object will have a pointer to the ``format` attribute in some form -
+perhaps in the form of a ``self.get_data`` function.
 
 For the lightweight image, we may want to look at ``img.shape`` without
 loading all the data (it will be known, from the header).  
