@@ -45,9 +45,7 @@ by the image itself.
   frame; for reading, we just cast up to a dtype that can hold all the
   frame dtypes; for writing, we may just write as one type, or disallow
   writing altogether.
-* array shape - ``shape``. This may be read (see below :ref:`Lightweight
-  Image`).  Maybe it does not make sense to write this directly, but
-  write it from the routine that writes the data (which has a shape).
+* array shape - ``shape``.  
 * byte offset - ``offset`` at which data starts.  This is not relevant
   for the way we currently read MINC files for example - and may not be
   relevant for ECAT files, in the sense that it may be the offset to
