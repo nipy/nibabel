@@ -144,7 +144,7 @@ The proxy object implements at least ``.shape``, but otherwise defers to
 the on-disk version of the array.
 
 The ``format`` object deals with this action.  That is, the ``data``
-object will have a pointer to the ``format` attribute in some form -
+object will have a pointer to the ``format`` attribute in some form -
 perhaps in the form of a ``self.get_data`` function.
 
 
