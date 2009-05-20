@@ -7,3 +7,4 @@
 
    filenames
    loading_saving
+   spm_use
