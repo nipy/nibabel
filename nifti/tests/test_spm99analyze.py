@@ -52,3 +52,8 @@ def test_checks():
     hdr['scl_slope'] = np.inf
     yield assert_equal, dxer(hdr.binaryblock), 'scale slope is inf; should !=0 and be finite'
     
+
+def test_origin_affine():
+    # check that origin affine works, only
+    hdr = Spm99AnalyzeHeader()
+    aff = hdr.get_origin_affine()

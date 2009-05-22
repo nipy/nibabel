@@ -19,7 +19,7 @@ header_dtype = np.dtype(spm99.header_key_dtd +
                         spm99.data_history_dtd)
     
 
-class Spm2AnalyzeHeader(spm99.SpmAnalyzeHeader):
+class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     ''' SPM2 header; adds possibility of reading, but not writing DC
     offset for data'''
     

@@ -243,6 +243,9 @@ Simple resampling from an image:
        0.0020   -0.0017
 
 
+This is to speed up optimization in registration - where the optimizer
+needs the derivatives.
+
 ``spm_sample_vol`` always works in voxel coordinates.  If you want some
 other coordinates, you would transform them yourself.  For example,
 world coordinates according to the affine looks like:
