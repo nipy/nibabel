@@ -32,7 +32,7 @@ class Image(object):
     * save(filespec=None)
     * get_filespec()
     * set_filespec(filespec) 
-    * is_file()
+    * same_as_filename()
 
     Class attributes:
 
@@ -63,13 +63,15 @@ class Image(object):
         if io is None:
             io = self.default_io_class()
         self.io = io
+        # lay down flag to show changes in IO
+        self._io_hash = io.get_hash()
         self._mode = None
         self.mode = mode
         
     @property
     def filename(self):
         filespec = self.get_filespec()
-        return filespec['image']
+        return filespec.filename
 
     def mode():
         def fget(self):
@@ -89,28 +91,26 @@ class Image(object):
         self.io.set_filespec(filespec)
         
     def save(self, filespec=None, io=None):
-        if filespec is None:
-            filespec = self.filespec
-        if io is None:
-            io = self.io
-        return io.to_filespec(filespec)
+        io.save_image(self, filespec, io)
 
+    @classmethod
     def from_io(klass, io):
-        io = io.copy()
-        data = io.get_data_proxy()
-        affine = io.get_affine()
-        output_space = io.get_output_space()
-        return klass(data,
-                     affine,
-                     output_space,
-                     {},
-                     filespec = None,
-                     io=io)
+        return io.as_image(klass)
                      
-    def is_file(self):
+    def same_as_filename(self, filename=None):
         ''' True if image in memory is same as image on disk '''
-        return False # we don't handle this yet
-   
+        fname = self.filename
+        if fname is None:
+            return False
+        if filename:
+            if filename != fname:
+                return False
+        # first, check if io has changed
+        if self._io_hash != self.io.get_hash():
+            return False
+        # Then get io to check image against itself
+        return self.io.same_as_image(self)
+    
 
 def load(filespec, maker=Image, io=None):
     if io is None:
@@ -121,4 +121,4 @@ def load(filespec, maker=Image, io=None):
 
 
 def save(img, filespec=None, io=None):
-    return img.save(filespec, io)
+    img.save(filespec, io)

@@ -44,7 +44,7 @@ By use case.
     >>> fp, fname = tempfile.mkstemp('.nii')
     >>> data = np.arange(24).reshape((2,3,4))
     >>> img = Image(data)
-    >>> img.get_filename() is None
+    >>> img.filename is None
     True
     >>> img.save()
     Traceback (most recent call last):
@@ -55,15 +55,19 @@ By use case.
        ...
     ImageError: no filespec to save to
     >>> img2 = save(img, 'some_image.nii') # type guessed from filename
-    >>> img2.get_filename() == fname
+    >>> img2.filename == fname
     True
-    >>> img.get_filename() is None # still
+    >>> img.filename is None # still
     True
+    >>> img.filename = 'some_filename.nii' # read only property
+    Traceback (most recent call last):
+       ...
+    AttributeError: can't set attribute
 
     Load, futz, save
 
     >>> img3 = load(fname, mode='r')
-    >>> img3.get_filename() == fname
+    >>> img3.filename == fname
     True
     >>> np.all(img3.data == data)
     True
