@@ -92,9 +92,10 @@ By use case.
 
     This is an example where you do need the io API
 
-    >>> from nifti.ioimps import imp_from_filespec
+    >>> from nifti.ioimps import guessed_imp
     >>> fp, fname3 = tempfile.mkstemp('.nii')
-    >>> ioimp = imp_from_filespec(fname3)
+    >>> ioimp = guessed_imp(fname3)
+    >>> ioimg.set_data_dtype(np.float)
     >>> ioimp.set_data_shape((2,3,4)) # set_data_shape method
     >>> slice_def = (slice(None), slice(None), 0)
     >>> ioimp.write_slice(data[slice_def], slice_def) # write_slice method
