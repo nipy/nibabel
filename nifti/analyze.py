@@ -199,6 +199,21 @@ class AnalyzeHeader(object):
     # data scaling capabilities
     has_data_slope = False
     has_data_intercept = False
+
+    @classmethod
+    def from_mapping(klass,
+                 field_mapping=None,
+                 endianness=None,
+                 check=True):
+        '''  Initialize header from mapping '''
+        obj = klass(obj, endianness=endianness, check=check)
+        #self._header_data = self._empty_headerdata(endianness)
+        if not field_mapping is None:
+            for key, value in field_mapping:
+                obj._header_data[key] = value
+        #obj.check = check
+        if check:
+            self.check_fix()
     
     def __init__(self,
                  binaryblock=None,
@@ -539,10 +554,12 @@ class AnalyzeHeader(object):
         --------
         >>> hdr1 = AnalyzeHeader() # an empty header
         >>> sz = hdr1.structarr['sizeof_hdr']
+        >>> hdr1.structarr = None
+        Traceback (most recent call last):
+           ...
+        AttributeError: can't set attribute
         '''
         return self._header_data
-
-
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):

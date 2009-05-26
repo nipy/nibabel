@@ -3,6 +3,7 @@ import urllib
 import tempfile
 
 import numpy as np
+import numpy.testing.decorators as dec
 
 from scipy.io.netcdf import netcdf_file as netcdf
 
@@ -11,20 +12,22 @@ import nifti.minc as minc
 from nose.tools import assert_true, assert_equal, assert_false
 from numpy.testing import assert_array_equal
 
+_, mnc_fname = tempfile.mkstemp('.mnc')
+mnc_url = 'http://cirl.berkeley.edu/mb312/example_images/minc/avg152T1.mnc'
+no_image = False
+download_done = True
+try:
+    urllib.urlretrieve(mnc_url, mnc_fname)
+except IOError:
+    no_image = True
+    download_done = False
 
-def setup_module():
-    global _fname, mnc
-    fd, _fname = tempfile.mkstemp('.mnc')
-    url = 'http://cirl.berkeley.edu/mb312/example_images/minc/avg152T1.mnc'
-    urllib.urlretrieve(url, _fname)
-    mnc = minc.MincHeader(netcdf(_fname, 'r'))
-    
+no_image = False
+mnc_fname = '/home/mb312/tmp/canonical/avg152T1.mnc'
 
-def teardown_module():
-    os.unlink(_fname)
-
-
+@dec.skipif(no_image)
 def test_eg_img():
+    mnc = minc.MincHeader(netcdf(mnc_fname, 'r'))
     yield assert_equal, mnc.get_data_dtype().type, np.uint8
     yield assert_equal, mnc.get_data_shape(), (91, 109, 91)
     yield assert_equal, mnc.get_zooms(), (2.0, 2.0, 2.0)
@@ -37,9 +40,14 @@ def test_eg_img():
     yield assert_equal, data.shape, (91,109, 91)
     data = mnc.get_scaled_data()
     yield assert_equal, data.shape, (91,109, 91)
-    img = minc.load(_fname)
+    img = minc.load(mnc_fname)
     data = img.get_data()
     yield assert_equal, data.shape, (91,109, 91)
     yield assert_equal, data.min(), 0.0
     yield assert_equal, data.max(), 1.0
     yield np.testing.assert_array_almost_equal, data.mean(), 0.27396803, 8
+
+
+def teardown_module():
+    if download_done:
+        os.unlink(mnc_fname)
