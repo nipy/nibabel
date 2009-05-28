@@ -1,6 +1,8 @@
 import nifti.volumeutils as vu
 import nifti.spm2analyze as spm2
 import nifti.nifti1 as nifti1
+import nifti.minc as minc
+
 
 def load(filespec, *args, **kwargs):
     ''' Load file given filespec, guessing at file type
@@ -28,6 +30,9 @@ def load(filespec, *args, **kwargs):
                 break
         if fname.endswith('.nii'):
             return nifti1.load(filespec, *args, **kwargs)
+        if fname.endswith('.mnc'):
+            return minc.load(filespec, *args, **kwargs)
+    # Not a string, or not recognized as nii or mnc
     files = nifti1.Nifti1Image.filespec_to_files(filespec)
     hdr = nifti1.Nifti1Header.from_fileobj(
         vu.allopen(files['header']),

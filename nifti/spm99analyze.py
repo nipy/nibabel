@@ -262,8 +262,10 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             M = np.dot(np.diag([-1,1,1,1]), mat)
         else:
             M = mat
-        sio.savemat(mfobj, {'M': M, 'mat': mat})
+        # use matlab 4 format to allow gzipped write without error
+        sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
         mfobj.close()
+
 
 load = Spm99AnalyzeImage.load
 save = Spm99AnalyzeImage.save
