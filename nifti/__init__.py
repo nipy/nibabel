@@ -20,21 +20,21 @@ image data is made available via NumPy arrays.
 
 Quickstart::
 
-   import volumeimages as vi
+   import nifti
 
-   img1 = vi.load('my_file.nii')
-   img2 = vi.load('other_file.nii.gz')
-   img3 = vi.load('spm_file.img')
+   img1 = nifti.load('my_file.nii')
+   img2 = nifti.load('other_file.nii.gz')
+   img3 = nifti.load('spm_file.img')
 
    data = img1.get_data()
    affine = img1.get_affine()
 
    print img1
 
-   vi.save(img1, 'my_file_copy.nii.gz')
+   nifti.save(img1, 'my_file_copy.nii.gz')
 
-   new_image = vi.Nifti1Image(data, affine)
-   vi.save(new_image, 'new_image.nii.gz')
+   new_image = nifti.Nifti1Image(data, affine)
+   nifti.save(new_image, 'new_image.nii.gz')
 """
 
 __docformat__ = 'restructuredtext'

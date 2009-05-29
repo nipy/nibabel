@@ -1,4 +1,4 @@
-''' Defaults for volumeimages '''
+''' Defaults for images and headers '''
 
 import logging
 
