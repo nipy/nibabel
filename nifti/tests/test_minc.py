@@ -8,7 +8,6 @@ import numpy.testing.decorators as dec
 from scipy.io.netcdf import netcdf_file as netcdf
 
 import nifti
-import nifti.minc as minc
 
 from nose.tools import assert_true, assert_equal, assert_false
 from numpy.testing import assert_array_equal
@@ -31,7 +30,7 @@ def teardown_module():
 
 @dec.skipif(no_image)
 def test_eg_img():
-    mnc = minc.MincHeader(netcdf(mnc_fname, 'r'))
+    mnc = nifti.MincHeader(netcdf(mnc_fname, 'r'))
     yield assert_equal, mnc.get_data_dtype().type, np.uint8
     yield assert_equal, mnc.get_data_shape(), (91, 109, 91)
     yield assert_equal, mnc.get_zooms(), (2.0, 2.0, 2.0)
@@ -44,7 +43,7 @@ def test_eg_img():
     yield assert_equal, data.shape, (91,109, 91)
     data = mnc.get_scaled_data()
     yield assert_equal, data.shape, (91,109, 91)
-    img = minc.load(mnc_fname)
+    img = nifti.load(mnc_fname)
     data = img.get_data()
     yield assert_equal, data.shape, (91,109, 91)
     yield assert_equal, data.min(), 0.0
