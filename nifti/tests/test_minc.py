@@ -7,6 +7,7 @@ import numpy.testing.decorators as dec
 
 from scipy.io.netcdf import netcdf_file as netcdf
 
+import nifti
 import nifti.minc as minc
 
 from nose.tools import assert_true, assert_equal, assert_false
@@ -14,16 +15,19 @@ from numpy.testing import assert_array_equal
 
 _, mnc_fname = tempfile.mkstemp('.mnc')
 mnc_url = 'http://cirl.berkeley.edu/mb312/example_images/minc/avg152T1.mnc'
-no_image = False
-download_done = True
 try:
     urllib.urlretrieve(mnc_url, mnc_fname)
 except IOError:
-    no_image = True
     download_done = False
-
-no_image = False
-mnc_fname = '/home/mb312/tmp/canonical/avg152T1.mnc'
+    mnc_fname = '/home/mb312/tmp/canonical/avg152T1.mnc'
+    no_image = not os.path.isfile(mnc_fname)
+else:
+    download_done = True
+    no_image = False
+    
+def teardown_module():
+    if download_done:
+        os.unlink(mnc_fname)
 
 @dec.skipif(no_image)
 def test_eg_img():
@@ -46,8 +50,13 @@ def test_eg_img():
     yield assert_equal, data.min(), 0.0
     yield assert_equal, data.max(), 1.0
     yield np.testing.assert_array_almost_equal, data.mean(), 0.27396803, 8
-
-
-def teardown_module():
-    if download_done:
-        os.unlink(mnc_fname)
+    # check dict-like stuff
+    keys = mnc.keys()
+    values = mnc.values()
+    for i, key in enumerate(keys):
+        yield assert_equal, values[i], mnc[key]
+    items = mnc.items()
+    # check if mnc can be converted to nifti
+    ni_img = nifti.Nifti1Image.from_image(img)
+    yield assert_array_equal, ni_img.get_affine(), aff
+    yield assert_array_equal, ni_img.get_data(), data

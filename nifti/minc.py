@@ -24,6 +24,7 @@ class netcdf_fileobj(netcdf):
 class MincError(Exception):
     pass
 
+
 class MincHeader(object):
     def __init__(self, mincfile, endianness=None, check=True):
         self.endianness = '>'
@@ -36,6 +37,37 @@ class MincHeader(object):
                              if name.endswith('space')]
         if check:
             self.check_fix()
+
+    def __getitem__(self, name):
+        """
+        Get a field's value from the MINC file.
+
+        It first checks in variables, then attributes
+        and finally the dimensions of the MINC file.
+
+        """
+        mnc = self._mincfile
+        for dict_like in (mnc.variables, mnc.attributes, mnc.dimensions):
+            try:
+                return dict_like[name]
+            except KeyError:
+                pass
+        raise KeyError('"%s" not found in variables, '
+                       'attributes or dimensions of MINC file')
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def keys(self):
+        return list(self._mincfile.variables.keys() +
+                    self._mincfile.attributes.keys() +
+                    self._mincfile.dimensions.keys())
+
+    def values(self):
+        return [self[key] for key in self]
+
+    def items(self):
+        return zip(self.keys(), self.values())
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):

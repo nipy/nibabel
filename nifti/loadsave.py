@@ -33,7 +33,11 @@ def load(filespec, *args, **kwargs):
         if fname.endswith('.mnc'):
             return minc.load(filespec, *args, **kwargs)
     # Not a string, or not recognized as nii or mnc
-    files = nifti1.Nifti1Image.filespec_to_files(filespec)
+    try:
+        files = nifti1.Nifti1Image.filespec_to_files(filespec)
+    except ValueError:
+        raise RuntimeError('Cannot work out file type of "%s"' %
+                           filespec)
     hdr = nifti1.Nifti1Header.from_fileobj(
         vu.allopen(files['header']),
         check=False)
