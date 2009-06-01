@@ -1,6 +1,4 @@
-import os
-import urllib
-import tempfile
+from os.path import join as pjoin
 
 import numpy as np
 import numpy.testing.decorators as dec
@@ -12,24 +10,17 @@ import nifti
 from nose.tools import assert_true, assert_equal, assert_false
 from numpy.testing import assert_array_equal
 
-_, mnc_fname = tempfile.mkstemp('.mnc')
-mnc_url = 'http://cirl.berkeley.edu/mb312/example_images/minc/avg152T1.mnc'
 try:
-    urllib.urlretrieve(mnc_url, mnc_fname)
-except IOError:
-    download_done = False
-    mnc_fname = '/home/mb312/tmp/canonical/avg152T1.mnc'
-    no_image = not os.path.isfile(mnc_fname)
+    import imagedata
+except ImportError:
+    decimg = dec.skipif(True, 'no imagedata package on python path')
 else:
-    download_done = True
-    no_image = False
+    decimg = lambda x : x
     
-def teardown_module():
-    if download_done:
-        os.unlink(mnc_fname)
 
-@dec.skipif(no_image)
+@decimg
 def test_eg_img():
+    mnc_fname = pjoin(imagedata.minc_path, 'avg152T1.mnc')
     mnc = nifti.MincHeader(netcdf(mnc_fname, 'r'))
     yield assert_equal, mnc.get_data_dtype().type, np.uint8
     yield assert_equal, mnc.get_data_shape(), (91, 109, 91)
@@ -43,6 +34,7 @@ def test_eg_img():
     yield assert_equal, data.shape, (91,109, 91)
     data = mnc.get_scaled_data()
     yield assert_equal, data.shape, (91,109, 91)
+    # Check highest level load of minc works
     img = nifti.load(mnc_fname)
     data = img.get_data()
     yield assert_equal, data.shape, (91,109, 91)
