@@ -10,9 +10,9 @@ from nifti.volumeutils import Recoder, make_dt_codes, \
      HeaderDataError, HeaderTypeError, allopen
 from nifti.batteryrunners import Report
 from nifti.quaternions import fillpositive, quat2mat, mat2quat
-import nifti.analyze as analyze
+from nifti import analyze # module import
 from nifti.spm99analyze import SpmAnalyzeHeader
-import nifti.filetuples as filetuples
+from nifti import filetuples # module import
 from nifti.spatialimages import SpatialImage
 
 # nifti1 flat header definition for Analyze-like first 348 bytes

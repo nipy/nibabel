@@ -3,10 +3,8 @@
 import numpy as np
 
 from nifti.volumeutils import HeaderDataError, HeaderTypeError
-
 from nifti.batteryrunners import Report
-
-import  nifti.spm99analyze as spm99
+from nifti import spm99analyze as spm99 # module import
 
 image_dimension_dtd = spm99.image_dimension_dtd[:]
 image_dimension_dtd[

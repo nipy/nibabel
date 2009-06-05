@@ -102,9 +102,9 @@ from nifti.volumeutils import pretty_mapping, endian_codes, \
 
 from nifti.header_ufuncs import read_data, write_data, adapt_header
 
-import nifti.imageglobals as imageglobals
-import nifti.spatialimages as spatialimages
-import nifti.filetuples as filetuples
+from nifti import imageglobals as imageglobals
+from nifti.spatialimages import SpatialImage
+from nifti import filetuples # module import
 
 from nifti.batteryrunners import BatteryRunner, Report
 
@@ -1055,7 +1055,7 @@ class AnalyzeHeader(object):
         return ret
 
 
-class AnalyzeImage(spatialimages.SpatialImage):
+class AnalyzeImage(SpatialImage):
     _header_maker = AnalyzeHeader
 
     def get_data(self):
