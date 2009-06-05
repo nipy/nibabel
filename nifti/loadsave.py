@@ -1,7 +1,8 @@
-import nifti.volumeutils as vu
-import nifti.spm2analyze as spm2
-import nifti.nifti1 as nifti1
-import nifti.minc as minc
+# module imports
+from nifti import volumeutils as vu
+from nifti import spm2analyze as spm2
+from nifti import nifti1
+from nifti import minc
 
 
 def load(filespec, *args, **kwargs):
