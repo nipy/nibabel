@@ -15,6 +15,12 @@ _dt_dict = {
     ('i','signed__'): np.int32,
     }
 
+# See http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
+_default_dir_cos = {
+    'xspace': [1,0,0],
+    'yspace': [0,1,0],
+    'zspace': [0,0,1]}
+
 
 class netcdf_fileobj(netcdf):
     def __init__(self, fileobj):
@@ -105,7 +111,11 @@ class MincHeader(object):
         dim_names = list(self._dim_names) # for indexing in loop
         for i, name in enumerate(self._spatial_dims):
             dim = self._dims[dim_names.index(name)]
-            rot_mat[:,i] = dim.direction_cosines
+            try:
+                dir_cos = dim.direction_cosines
+            except AttributeError:
+                dir_cos = _default_dir_cos[name]
+            rot_mat[:,i] = dir_cos
             steps[i] = dim.step
             starts[i] = dim.start
         origin = np.dot(rot_mat, starts)
