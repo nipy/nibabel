@@ -37,6 +37,9 @@ class MincHeader(object):
         self._mincfile = mincfile
         self._image = mincfile.variables['image']
         self._dim_names = self._image.dimensions
+        # The code below will error with vector_dimensions.  See:
+        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node3.html
+        # http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node11.html
         self._dims = [self._mincfile.variables[s]
                       for s in self._dim_names]
         self._spatial_dims = [name for name in self._dim_names
@@ -81,6 +84,8 @@ class MincHeader(object):
         return klass(ncdf_obj, endianness, check)
 
     def check_fix(self):
+        # We don't currently support irregular spacing
+        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
         for dim in self._dims:
             if dim.spacing != 'regular__':
                 raise ValueError('Irregular spacing not supported')
@@ -169,6 +174,10 @@ class MincHeader(object):
         ddt = self.get_data_dtype()
         if ddt.type in np.sctypes['float']:
             return data
+        # the MINC standard appears to allow the following variables to
+        # be undefined.
+        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node16.html
+        # It wasn't immediately obvious what the defaults were.
         image_max = self._mincfile.variables['image-max']
         image_min = self._mincfile.variables['image-min']
         if image_max.dimensions != image_min.dimensions:
