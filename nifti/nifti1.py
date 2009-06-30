@@ -173,6 +173,22 @@ intent_codes = Recoder((
     (2005, 'shape', ())),
                        fields=('code', 'label', 'parameters'))
 
+# NIfTI header extension type codes (ECODE)
+# see nifti1_io.h for a complete list of all known extensions and
+# references to their description or contacts of the respective
+# initiators
+extension_codes = Recoder((
+    (0, "ignore"),
+    (2, "dicom"),
+    (4, "afni"),
+    (6, "comment"),
+    (8, "xcede"),
+    (10, "jimdiminfo"),
+    (12, "workflow_fwds"),
+    (14, "freesurfer"),
+    (16, "pypickle")
+    ))
+
 
 class Nifti1Header(SpmAnalyzeHeader):
     ''' Class for NIFTI1 header '''
@@ -1124,6 +1140,55 @@ class Nifti1Image(analyze.AnalyzeImage):
                              'look like Nifti1' % filespec)
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
+
+    @classmethod
+    def from_files(klass, files):
+        fname = files['header']
+        fileobj = allopen(fname)
+        header = klass._header_maker.from_fileobj(fileobj)
+        # assume the fileptr is just after header (magic field)
+
+        # but now recycle fileobj to parse potential header extensions
+        # try reading the next 4 bytes after the initial header
+        extension_status = fileobj.read(4)
+        if not len(extension_status):
+            # if there is nothing the NIfTI standard requires to assume zeros
+            extension_status = np.zeros((4,), dtype=np.int8)
+        else:
+            extension_status = np.fromstring(extension_status, dtype=np.int8)
+
+        # NIfTI1 says: if first element is non-zero there are extensions present
+        if not extension_status[0]:
+            extra=None
+        else:
+            # place extensions in a list of 2-tuples (ecode, evalue)
+            extensions = []
+            # read until the whole header is parsed (each extension is a multiple
+            # of 16 bytes) or in case of a separate header file till the end
+            # (break inside the body)
+            # XXX not sure if the separate header behavior is sane
+            while header['vox_offset'] - fileobj.tell() >= 16 \
+                  or header['vox_offset'] == 0:
+                # the next 8 bytes should have esize and ecode
+                ext_def = fileobj.read(8)
+                if not len(ext_def):
+                    raise HeaderDataError('failed to read extension')
+                ext_def = np.fromstring(ext_def, dtype=np.int32)
+                # be extra verbose
+                esize = ext_def[0] - 8 # esize includes the 8 bytes already read
+                ecode = ext_def[1]
+                # read extension itself
+                evalue = fileobj.read(esize)
+                # XXX maybe add some kind of mangling of the extension content for
+                # known types
+                # but for now just store it raw
+                extensions.append((ecode, evalue))
+            extra = {'extensions': extensions}
+
+        affine = header.get_best_affine()
+        ret =  klass(None, affine, header=header, extra=extra)
+        ret._files = files
+        return ret
 
     def _update_header(self):
         ''' Harmonize header with image data and affine
