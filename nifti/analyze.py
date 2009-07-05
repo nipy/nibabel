@@ -1138,7 +1138,7 @@ class AnalyzeImage(SpatialImage):
         '''
         files = self.filespec_to_files(filespec)
         self.to_files(files)
-    
+
     def to_files(self, files=None):
         ''' Write image to files passed, or self._files
         '''

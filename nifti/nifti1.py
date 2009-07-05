@@ -15,6 +15,8 @@ from nifti.spm99analyze import SpmAnalyzeHeader
 from nifti import filetuples # module import
 from nifti.spatialimages import SpatialImage
 
+from nifti.header_ufuncs import write_data, adapt_header
+
 # nifti1 flat header definition for Analyze-like first 348 bytes
 header_dtd = [
     ('sizeof_hdr', 'i4'), # must be 348
@@ -187,7 +189,110 @@ extension_codes = Recoder((
     (12, "workflow_fwds"),
     (14, "freesurfer"),
     (16, "pypickle")
-    ))
+    ),
+    fields=('code', 'label'))
+
+
+class Nifti1Extension(object):
+    """
+    Base class for NIfTI1 extensions. Knows its size and how to write itself to
+    a file. Each extension type could have its own subclass that provides
+    mangling functionality, e.g. AFNI-xml extension parsing ...
+    """
+    def __init__(self, code, content):
+        # XXX add safety layer, potentially with value mangling
+        self._code = extension_codes.code[code]
+        self._content = content
+
+    def get_sizeondisk(self):
+        """Return the size of the extension in the NIfTI file.
+        """
+        # need raw value size plus 8 bytes for esize and ecode
+        size = len(self._content)
+        size += 8
+        # extensions have to be a multiple of 16 bytes in size
+        size += size % 16
+        return size
+
+    def __repr__(self):
+        s = "Nifti1Extension('%s', '%s')" \
+                % (extension_codes.label[self._code], self._content)
+        return s
+
+    def write_to(self, fileobj):
+        ''' Write header extensions to fileobj
+
+        Write starts at fileobj current file position.
+
+        Parameters
+        ----------
+        fileobj : file-like object
+           Should implement ``write`` method
+
+        Returns
+        -------
+        None
+        '''
+        # write esize and ecode first
+        fileobj.write(np.array((self.get_sizeondisk(), self._code),
+                               dtype=np.int32).tostring())
+        # followed by the actual extension content
+        # XXX if mangling upon load is implemented, it should be reverted here
+        fileobj.write(self._content)
+        # be nice and zero out remaining part of the extension till the
+        # next 16 byte border (take initial 8 bytes for esize and ecode
+        # into account!
+        fileobj.write('\x00' * ((len(self._content) + 8) % 16))
+
+
+class Nifti1Extensions(list):
+    """
+    Simple extension collection, implemented as a list-subclass.
+    """
+    def count(self, ecode):
+        """Returns the number of extensions matching a given *ecode*.
+
+        Parameter
+        ---------
+          code : int | str
+            The ecode can be specified either literal or as numerical value.
+        """
+        count = 0
+        code = extension_codes.code[ecode]
+        for e in self:
+            if e.code == code:
+                count += 1
+        return count
+
+    def get_sizeondisk(self):
+        """Return the size of the complete header extensions in the NIfTI file.
+        """
+        # add four bytes for the NIfTI extension flag!
+        return np.sum([e.get_sizeondisk() for e in self]) + 4
+
+    def write_to(self, fileobj):
+        ''' Write header extensions to fileobj
+
+        Write starts at fileobj current file position.
+
+        Parameters
+        ----------
+        fileobj : file-like object
+           Should implement ``write`` method
+
+        Returns
+        -------
+        None
+        '''
+        # not extensions -> nothing to do
+        if not len(self):
+            return
+
+        # since we have extensions write the appropriate flag
+        fileobj.write(np.array((1,0,0,0), dtype=np.int8).tostring())
+        # and now each extension
+        for e in self:
+            e.write_to(fileobj)
 
 
 class Nifti1Header(SpmAnalyzeHeader):
@@ -1161,8 +1266,7 @@ class Nifti1Image(analyze.AnalyzeImage):
         if not extension_status[0]:
             extra=None
         else:
-            # place extensions in a list of 2-tuples (ecode, evalue)
-            extensions = []
+            extensions = Nifti1Extensions()
             # read until the whole header is parsed (each extension is a multiple
             # of 16 bytes) or in case of a separate header file till the end
             # (break inside the body)
@@ -1182,13 +1286,62 @@ class Nifti1Image(analyze.AnalyzeImage):
                 # XXX maybe add some kind of mangling of the extension content for
                 # known types
                 # but for now just store it raw
-                extensions.append((ecode, evalue))
+                extensions.append(Nifti1Extension(ecode, evalue))
             extra = {'extensions': extensions}
 
         affine = header.get_best_affine()
         ret =  klass(None, affine, header=header, extra=extra)
         ret._files = files
         return ret
+
+    def to_files(self, files=None):
+        ''' Write image to files passed, or self._files
+        '''
+        # XXX the whole method is candidate for refactoring, since it started as
+        # verbatim copy of AnalyzeImage.to_files()
+        if files is None:
+            files = self._files
+            if files is None:
+                raise ValueError('Need files to write data')
+        data = self.get_data()
+        # Adapt header to possible two<->one file difference
+        is_pair = files['header'] != files['image']
+
+        hdr = self.get_header().for_file_pair(is_pair)
+
+        # if any extensions, figure out necessary vox_offset for extensions to
+        # fit
+        if self.extra.has_key('extensions') and len(self.extra['extensions']):
+            hdr['vox_offset'] = len(hdr.binaryblock) \
+                                + self.extra['extensions'].get_sizeondisk()
+
+        slope, inter, mn, mx = adapt_header(hdr, data)
+        hdrf = allopen(files['header'], 'wb')
+        hdr.write_to(hdrf)
+
+        # write all extensions to file
+        # assumes that the file ptr is right after the magic string
+        if not self.extra.has_key('extensions'):
+            # no extensions: be nice and write appropriate flag
+            hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
+        else:
+            self.extra['extensions'].write_to(hdrf)
+
+        if is_pair:
+            imgf = allopen(files['image'], 'wb')
+        else: # single file for header and image
+            imgf = hdrf
+        # streams like bz2 do not allow seeks, even forward.  We
+            # check where to go, and write zeros up until the data part
+            # of the file
+            offset = hdr.get_data_offset()
+            diff = offset-hdrf.tell()
+            if diff > 0:
+                hdrf.write('\x00' * diff)
+        write_data(hdr, data, imgf, inter, slope, mn, mx)
+        self._header = hdr
+        self._files = files
+
 
     def _update_header(self):
         ''' Harmonize header with image data and affine

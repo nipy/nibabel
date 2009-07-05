@@ -22,12 +22,17 @@ class NiftiImage(Nifti1Image):
             raise NotImplementedError
 
         elif type(source) in (str, unicode):
-            # basically mimic from_filespec() + from_files()
+            # load image
             files = Nifti1Image.filespec_to_files(source)
-            header = Nifti1Image._header_maker.from_fileobj(
-                        allopen(files['header']))
-            affine = header.get_best_affine()
-            Nifti1Image.__init__(self, None, affine, header)
+            img = Nifti1Image.from_files(files)
+
+            # and init from temp image without assigning the data, for lazy
+            # loading
+            Nifti1Image.__init__(self,
+                                 None,
+                                 img.get_affine(),
+                                 img.get_header(),
+                                 img.extra)
 
             # store filenames? yes! otherwise get_data() will refuse to access
             # the data since it doesn't know where to get the image from

@@ -68,6 +68,7 @@ class FileIOTests(unittest.TestCase):
         """
         md5_orig = md5sum(image_file)
         self.nimg.save(self.fp.name)
+        self.nimg.save('failed.nii.gz')
         md5_io =  md5sum(self.fp.name)
 
         # ASK MATTHEW: Fails since all extensions get stripped
@@ -84,12 +85,12 @@ class FileIOTests(unittest.TestCase):
 #        self.failUnlessEqual(md5_orig, md5_io)
 #
 #
-#    def testDataAccess(self):
-#        # test two points
-#        self.failUnlessEqual(self.nimg.data[1,12,59,49], 509)
-#        self.failUnlessEqual(self.nimg.data[0,4,17,42], 435)
-#
-#
+    def testDataAccess(self):
+        # test two points
+        self.failUnlessEqual(self.nimg.data[1,12,59,49], 509)
+        self.failUnlessEqual(self.nimg.data[0,4,17,42], 435)
+
+
 #    def testDataOwnership(self):
 #        # assign data, but no copying
 #        data = self.nimg.data
