@@ -204,6 +204,12 @@ class Nifti1Extension(object):
         self._code = extension_codes.code[code]
         self._content = content
 
+    def get_code(self):
+        return self._code
+
+    def get_content(self):
+        return self._content
+
     def get_sizeondisk(self):
         """Return the size of the extension in the NIfTI file.
         """
@@ -218,6 +224,13 @@ class Nifti1Extension(object):
         s = "Nifti1Extension('%s', '%s')" \
                 % (extension_codes.label[self._code], self._content)
         return s
+
+    def __eq__(self, other):
+        if self._code != other._code \
+           or self._content != other._content:
+            return False
+        else:
+            return True
 
     def write_to(self, fileobj):
         ''' Write header extensions to fileobj
@@ -260,15 +273,29 @@ class Nifti1Extensions(list):
         count = 0
         code = extension_codes.code[ecode]
         for e in self:
-            if e.code == code:
+            if e.get_code() == code:
                 count += 1
         return count
+
+    def get_codes(self):
+        return [e.get_code() for e in self]
 
     def get_sizeondisk(self):
         """Return the size of the complete header extensions in the NIfTI file.
         """
         # add four bytes for the NIfTI extension flag!
         return np.sum([e.get_sizeondisk() for e in self]) + 4
+
+    def __repr__(self):
+        s = "Nifti1Extensions(%s)" \
+                % ', '.join([str(e) for e in self])
+        return s
+
+    def __eq__(self, other):
+        for i, e in enumerate(self):
+            if not e == other[i]:
+                return False
+        return True
 
     def write_to(self, fileobj):
         ''' Write header extensions to fileobj
@@ -1169,6 +1196,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 if not offset % 16:
                     return ret
                 else:
+                    # XXX Michael wonders, if this warning really valid? NIfTI
+                    # says that each extension's length has to be a multiple of
+                    # 16, therefore the test should be (offset-352) % 16 and
+                    # not offset % 16, or does SPM have additional artifical
+                    # limitations?
                     ret.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
                     ret.level = 30
@@ -1283,10 +1315,8 @@ class Nifti1Image(analyze.AnalyzeImage):
                 ecode = ext_def[1]
                 # read extension itself
                 evalue = fileobj.read(esize)
-                # XXX maybe add some kind of mangling of the extension content for
-                # known types
-                # but for now just store it raw
-                extensions.append(Nifti1Extension(ecode, evalue))
+                # store raw extension content, but strip trailing NULL chars
+                extensions.append(Nifti1Extension(ecode, evalue.rstrip('\x00')))
             extra = {'extensions': extensions}
 
         affine = header.get_best_affine()
