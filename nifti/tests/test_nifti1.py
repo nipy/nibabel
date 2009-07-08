@@ -7,13 +7,14 @@ from StringIO import StringIO
 import numpy as np
 
 from numpy.testing import assert_array_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_raises, ok_
 
 import nifti.testing as vit
 
 from nifti.volumeutils import HeaderDataError
 import nifti.nifti1 as nifti1
-from nifti.nifti1 import Nifti1Header, Nifti1Image, data_type_codes
+from nifti.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
+        data_type_codes, extension_codes
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
 from test_analyze import TestAnalyzeHeader
@@ -21,6 +22,7 @@ from test_analyze import TestAnalyzeHeader
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')
 header_file = os.path.join(data_path, 'nifti1.hdr')
+image_file = os.path.join(data_path, 'example4d.nii.gz')
 
 # Example transformation matrix
 R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]] # rotation matrix
@@ -275,3 +277,59 @@ def test_nifti1_images():
             yield assert_equal, img3.get_header(), img.get_header()
         finally:
             os.unlink(fname)
+
+
+def test_extension_basics():
+    raw = '123'
+    ext = Nifti1Extension('comment', raw)
+    ok_(ext.get_sizeondisk() == 16)
+    ok_(ext.get_content() == raw)
+    ok_(ext.get_code() == 6)
+
+
+def test_extension_codes():
+    for k in extension_codes.keys():
+        ext = Nifti1Extension(k, 'somevalue')
+
+
+def test_nifti_extensions():
+    nim = load(image_file)
+    # basic checks of the available extensions
+    ext = nim.extra['extensions']
+    ok_(len(ext) == 2)
+    ok_(ext.count('comment') == 2)
+    ok_(ext.count('afni') == 0)
+    ok_(ext.get_codes() == [6, 6])
+    ok_((ext.get_sizeondisk() - 4) % 16 == 0)
+    # first extension should be short one
+    ok_(ext[0].get_content() == 'extcomment1')
+
+    # add one
+    afniext = Nifti1Extension('afni', '<xml></xml>')
+    ext.append(afniext)
+    ok_(ext.get_codes() == [6, 6, 4])
+    ok_(ext.count('comment') == 2)
+    ok_(ext.count('afni') == 1)
+    ok_((ext.get_sizeondisk() - 4) % 16 == 0)
+
+    # delete one
+    del ext[1]
+    ok_(ext.get_codes() == [6, 4])
+    ok_(ext.count('comment') == 1)
+    ok_(ext.count('afni') == 1)
+
+
+def test_loadsavecycle():
+    nim = load(image_file)
+    # ensure we have extensions
+    ok_(nim.extra.has_key('extensions'))
+    ok_(len(nim.extra['extensions']))
+    # write into the air ;-)
+    stio = StringIO()
+    files = {'header': stio, 'image': stio}
+    nim.to_files(files)
+    stio.seek(0)
+    # reload
+    lnim = Nifti1Image.from_files(files)
+    ok_(lnim.extra.has_key('extensions'))
+    ok_(nim.extra['extensions'] == lnim.extra['extensions'])

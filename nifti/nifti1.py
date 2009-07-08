@@ -18,50 +18,51 @@ from nifti.spatialimages import SpatialImage
 from nifti.header_ufuncs import write_data, adapt_header
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
+# first number in comments indicates offset in file header in bytes
 header_dtd = [
-    ('sizeof_hdr', 'i4'), # must be 348
-    ('data_type', 'S10'), # unused
-    ('db_name', 'S18'),   # unused
-    ('extents', 'i4'),    # unused
-    ('session_error', 'i2'), # unused
-    ('regular', 'S1'),    # unused
-    ('dim_info', 'u1'),   # MRI slice ordering code
-    ('dim', 'i2', 8),     # data array dimensions
-    ('intent_p1', 'f4'),  # first intent parameter
-    ('intent_p2', 'f4'),  # second intent parameter
-    ('intent_p3', 'f4'),  # third intent parameter
-    ('intent_code', 'i2'),# NIFTI intent code
-    ('datatype', 'i2'),   # it's the datatype
-    ('bitpix', 'i2'),     # number of bits per voxel
-    ('slice_start', 'i2'),# first slice index  
-    ('pixdim', 'f4', 8),  # grid spacings (units below)
-    ('vox_offset', 'f4'), # offset to data in image file
-    ('scl_slope', 'f4'),  # data scaling slope
-    ('scl_inter', 'f4'),  # data scaling intercept
-    ('slice_end', 'i2'),  # last slice index
-    ('slice_code', 'u1'), # slice timing order
-    ('xyzt_units', 'u1'), # inits of pixdim[1..4]
-    ('cal_max', 'f4'),    # max display intensity
-    ('cal_min', 'f4'),    # min display intensity
-    ('slice_duration', 'f4'), # time for 1 slice
-    ('toffset', 'f4'),   # time axis shift
-    ('glmax', 'i4'),     # unused
-    ('glmin', 'i4'),     # unused
-    ('descrip', 'S80'),  # any text
-    ('aux_file', 'S24'), # auxiliary filename
-    ('qform_code', 'i2'), # xform code
-    ('sform_code', 'i2'), # xform code
-    ('quatern_b', 'f4'), # quaternion b param
-    ('quatern_c', 'f4'), # quaternion c param
-    ('quatern_d', 'f4'), # quaternion d param
-    ('qoffset_x', 'f4'), # quaternion x shift
-    ('qoffset_y', 'f4'), # quaternion y shift
-    ('qoffset_z', 'f4'), # quaternion z shift
-    ('srow_x', 'f4', 4), # 1st row affine transform
-    ('srow_y', 'f4', 4), # 2nd row affine transform
-    ('srow_z', 'f4', 4), # 3rd row affine transform
-    ('intent_name', 'S16'), # name or meaning of data
-    ('magic', 'S4')      # must be 'ni1\0' or 'n+1\0'
+    ('sizeof_hdr', 'i4'), # 0; must be 348
+    ('data_type', 'S10'), # 4; unused
+    ('db_name', 'S18'),   # 14; unused
+    ('extents', 'i4'),    # 32; unused
+    ('session_error', 'i2'), # 36; unused
+    ('regular', 'S1'),    # 38; unused
+    ('dim_info', 'u1'),   # 39; MRI slice ordering code
+    ('dim', 'i2', 8),     # 40; data array dimensions
+    ('intent_p1', 'f4'),  # 56; first intent parameter
+    ('intent_p2', 'f4'),  # 60; second intent parameter
+    ('intent_p3', 'f4'),  # 64; third intent parameter
+    ('intent_code', 'i2'),# 68; NIFTI intent code
+    ('datatype', 'i2'),   # 70; it's the datatype
+    ('bitpix', 'i2'),     # 72; number of bits per voxel
+    ('slice_start', 'i2'),# 74; first slice index  
+    ('pixdim', 'f4', 8),  # 76; grid spacings (units below)
+    ('vox_offset', 'f4'), # 108; offset to data in image file
+    ('scl_slope', 'f4'),  # 112; data scaling slope
+    ('scl_inter', 'f4'),  # 116; data scaling intercept
+    ('slice_end', 'i2'),  # 120; last slice index
+    ('slice_code', 'u1'), # 122; slice timing order
+    ('xyzt_units', 'u1'), # 123; inits of pixdim[1..4]
+    ('cal_max', 'f4'),    # 124; max display intensity
+    ('cal_min', 'f4'),    # 128; min display intensity
+    ('slice_duration', 'f4'), # 132; time for 1 slice
+    ('toffset', 'f4'),   # 136; time axis shift
+    ('glmax', 'i4'),     # 140; unused
+    ('glmin', 'i4'),     # 144; unused
+    ('descrip', 'S80'),  # 148; any text
+    ('aux_file', 'S24'), # 228; auxiliary filename
+    ('qform_code', 'i2'), # 252; xform code
+    ('sform_code', 'i2'), # 254; xform code
+    ('quatern_b', 'f4'), # 256; quaternion b param
+    ('quatern_c', 'f4'), # 260; quaternion c param
+    ('quatern_d', 'f4'), # 264; quaternion d param
+    ('qoffset_x', 'f4'), # 268; quaternion x shift
+    ('qoffset_y', 'f4'), # 272; quaternion y shift
+    ('qoffset_z', 'f4'), # 276; quaternion z shift
+    ('srow_x', 'f4', 4), # 280; 1st row affine transform
+    ('srow_y', 'f4', 4), # 296; 2nd row affine transform
+    ('srow_z', 'f4', 4), # 312; 3rd row affine transform
+    ('intent_name', 'S16'), # 328; name or meaning of data
+    ('magic', 'S4')      # 344; must be 'ni1\0' or 'n+1\0'
     ]
 
 # Full header numpy dtype
@@ -175,54 +176,101 @@ intent_codes = Recoder((
     (2005, 'shape', ())),
                        fields=('code', 'label', 'parameters'))
 
-# NIfTI header extension type codes (ECODE)
-# see nifti1_io.h for a complete list of all known extensions and
-# references to their description or contacts of the respective
-# initiators
-extension_codes = Recoder((
-    (0, "ignore"),
-    (2, "dicom"),
-    (4, "afni"),
-    (6, "comment"),
-    (8, "xcede"),
-    (10, "jimdiminfo"),
-    (12, "workflow_fwds"),
-    (14, "freesurfer"),
-    (16, "pypickle")
-    ),
-    fields=('code', 'label'))
-
 
 class Nifti1Extension(object):
-    """
-    Base class for NIfTI1 extensions. Knows its size and how to write itself to
-    a file. Each extension type could have its own subclass that provides
-    mangling functionality, e.g. AFNI-xml extension parsing ...
+    """Baseclass for NIfTI1 header extensions.
+
+    This class is sufficient to handle very simple text-based extensions, such
+    as `comment`. More sophisticated extensions should/will be supported by
+    dedicated subclasses.
     """
     def __init__(self, code, content):
-        # XXX add safety layer, potentially with value mangling
-        self._code = extension_codes.code[code]
-        self._content = content
+        """
+        Parameters
+        ----------
+        code : int|str
+          Canonical extension code as defined in the NIfTI standard, given
+          either as integer or corresponding label
+          (see :data:`~nifti.nifti1.extension_codes`)
+        content : str
+          Extension content as read from the NIfTI file header. This content is
+          converted into a runtime representation.
+        """
+        try:
+            self._code = extension_codes.code[code]
+        except KeyError:
+            # XXX or fail or at least complain?
+            self._code = code
+        self._content = self._unmangle(content)
+
+    def _unmangle(self, value):
+        """Convert the extension content into its runtime representation.
+
+        The default implementation does nothing at all.
+
+        Parameters
+        ----------
+        value : str
+          Extension content as read from file.
+
+        Returns
+        -------
+        The same object that was passed as `value`.
+
+        Notes
+        -----
+        Subclasses should reimplement this method to provide the desired
+        unmangling procedure and may return any type of object.
+        """
+        return value
+
+    def _mangle(self, value):
+        """Convert the extension content into NIfTI file header representation.
+
+        The default implementation does nothing at all.
+
+        Parameters
+        ----------
+        value : str
+          Extension content in runtime form.
+
+        Returns
+        -------
+        str
+
+        Notes
+        -----
+        Subclasses should reimplement this method to provide the desired
+        mangling procedure.
+        """
+        return value
 
     def get_code(self):
+        """Return the canonical extension type code."""
         return self._code
 
     def get_content(self):
+        """Return the extension content in its runtime representation."""
         return self._content
 
     def get_sizeondisk(self):
         """Return the size of the extension in the NIfTI file.
         """
         # need raw value size plus 8 bytes for esize and ecode
-        size = len(self._content)
+        size = len(self._mangle(self._content))
         size += 8
-        # extensions have to be a multiple of 16 bytes in size
-        size += size % 16
+        # extensions size has to be a multiple of 16 bytes
+        size += 16 - (size % 16)
         return size
 
     def __repr__(self):
-        s = "Nifti1Extension('%s', '%s')" \
-                % (extension_codes.label[self._code], self._content)
+        try:
+            code = extension_codes.label[self._code]
+        except KeyError:
+            # deal with unknown codes
+            code = self._code
+
+        s = "Nifti1Extension('%s', '%s')" % (code, self._content)
         return s
 
     def __eq__(self, other):
@@ -246,21 +294,39 @@ class Nifti1Extension(object):
         -------
         None
         '''
+        extstart = fileobj.tell()
+        rawsize = self.get_sizeondisk()
         # write esize and ecode first
-        fileobj.write(np.array((self.get_sizeondisk(), self._code),
+        fileobj.write(np.array((rawsize, self._code),
                                dtype=np.int32).tostring())
         # followed by the actual extension content
         # XXX if mangling upon load is implemented, it should be reverted here
-        fileobj.write(self._content)
+        fileobj.write(self._mangle(self._content))
         # be nice and zero out remaining part of the extension till the
-        # next 16 byte border (take initial 8 bytes for esize and ecode
-        # into account!
-        fileobj.write('\x00' * ((len(self._content) + 8) % 16))
+        # next 16 byte border
+        fileobj.write('\x00' * (extstart + rawsize - fileobj.tell()))
+
+
+# NIfTI header extension type codes (ECODE)
+# see nifti1_io.h for a complete list of all known extensions and
+# references to their description or contacts of the respective
+# initiators
+extension_codes = Recoder((
+    (0, "ignore", Nifti1Extension),
+    (2, "dicom", Nifti1Extension),
+    (4, "afni", Nifti1Extension),
+    (6, "comment", Nifti1Extension),
+    (8, "xcede", Nifti1Extension),
+    (10, "jimdiminfo", Nifti1Extension),
+    (12, "workflow_fwds", Nifti1Extension),
+    (14, "freesurfer", Nifti1Extension),
+    (16, "pypickle", Nifti1Extension)
+    ),
+    fields=('code', 'label', 'handler'))
 
 
 class Nifti1Extensions(list):
-    """
-    Simple extension collection, implemented as a list-subclass.
+    """Simple extension collection, implemented as a list-subclass.
     """
     def count(self, ecode):
         """Returns the number of extensions matching a given *ecode*.
@@ -278,6 +344,7 @@ class Nifti1Extensions(list):
         return count
 
     def get_codes(self):
+        """Return a list of the extension code of all available extensions"""
         return [e.get_code() for e in self]
 
     def get_sizeondisk(self):
@@ -473,7 +540,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def set_sform(self, affine, code=None):
         ''' Set sform transform from 4x4 affine
-        
+
         Parameters
         ----------
         hdr : nifti1 header
@@ -574,7 +641,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def get_slope_inter(self):
         ''' Get data scaling (slope) and DC offset (intercept) from header data
-    
+
         Parameters
         ----------
         self : header object
@@ -621,7 +688,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def set_slope_inter(self, slope, inter):
         self._header_data['scl_slope'] = slope
         self._header_data['scl_inter'] = inter
-        
+
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
 
@@ -787,7 +854,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Returns
         -------
         None
-        
+
         Examples
         --------
         >>> hdr = Nifti1Header()
@@ -889,7 +956,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             code_repr,
             'slice_code',
             self._slice_order_codes)
-    
+
     def get_slice_times(self):
         ''' Get slice times from slice timing information
 
@@ -1052,11 +1119,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         -------
         hdr : Nifti1Header
            copied and possibly modified header
-        
+
         Examples
         --------
         The header starts off as being for a single file
-        
+
         >>> hdr = Nifti1Header()
         >>> str(hdr['magic'])
         'n+1'
@@ -1064,7 +1131,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         352
 
         But we can switch it to be for two files (a pair)
-        
+
         >>> pair_hdr = hdr.for_file_pair()
         >>> str(pair_hdr['magic'])
         'ni1'
@@ -1072,12 +1139,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         0
 
         The original header is not affected (a copy is returned)
-        
+
         >>> hdr.get_data_offset()
         352
 
         Back to single again
-        
+
         >>> unpair_hdr = pair_hdr.for_file_pair(False)
         >>> str(unpair_hdr['magic'])
         'n+1'
@@ -1100,7 +1167,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['magic'] = 'ni1'
         hdr['vox_offset'] = 0
         return hdr
-    
+
     def _slice_time_order(self, slabel, n_slices):
         ''' Supporting function to give time order of slices from label '''
         if slabel == 'sequential increasing':
@@ -1164,7 +1231,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         else:
             ret.level = 30
         return ret
-    
+
     @staticmethod
     def _chk_qfac(hdr, fix=True):
         ret = Report(hdr, HeaderDataError)
@@ -1311,12 +1378,25 @@ class Nifti1Image(analyze.AnalyzeImage):
                     raise HeaderDataError('failed to read extension')
                 ext_def = np.fromstring(ext_def, dtype=np.int32)
                 # be extra verbose
-                esize = ext_def[0] - 8 # esize includes the 8 bytes already read
                 ecode = ext_def[1]
-                # read extension itself
-                evalue = fileobj.read(esize)
+                esize = ext_def[0]
+                if esize % 16:
+                    raise HeaderDataError(
+                            'extension size is not a multiple of 16 bytes')
+                # read extension itself; esize includes the 8 bytes already read
+                evalue = fileobj.read(esize - 8)
                 # store raw extension content, but strip trailing NULL chars
-                extensions.append(Nifti1Extension(ecode, evalue.rstrip('\x00')))
+                evalue = evalue.rstrip('\x00')
+                # 'extension_codes' also knows the best implementation to handle
+                # a particular extension type
+                try:
+                    ext = extension_codes.handler[ecode](ecode, evalue)
+                except KeyError:
+                    # unknown extension type
+                    # XXX complain or fail or go with a generic extension
+                    ext = Nifti1Extension(ecode, evalue)
+
+                extensions.append(ext)
             extra = {'extensions': extensions}
 
         affine = header.get_best_affine()
@@ -1356,6 +1436,7 @@ class Nifti1Image(analyze.AnalyzeImage):
             hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
         else:
             self.extra['extensions'].write_to(hdrf)
+
 
         if is_pair:
             imgf = allopen(files['image'], 'wb')
