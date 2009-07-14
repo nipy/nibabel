@@ -388,6 +388,82 @@ class Nifti1Extensions(list):
         for e in self:
             e.write_to(fileobj)
 
+    @classmethod
+    def from_fileobj(klass, fileobj, size):
+        '''Read header extensions from a fileobj
+
+        Parameters
+        ----------
+        fileobj : file-like object
+          It is assumed to be positions right after the NIfTI magic field.
+        size : int
+          Number of bytes to read. If negative, fileobj will be read till its
+          end.
+
+        Returns
+        -------
+          An extension list. This list might be empty in case not extensions
+          were present in fileobj.
+        '''
+        # make empty extension list
+        extensions = klass()
+        # assume the fileptr is just after header (magic field)
+        # try reading the next 4 bytes after the initial header
+        extension_status = fileobj.read(4)
+        if not len(extension_status):
+            # if there is nothing the NIfTI standard requires to assume zeros
+            extension_status = np.zeros((4,), dtype=np.int8)
+        else:
+            extension_status = np.fromstring(extension_status, dtype=np.int8)
+
+        # NIfTI1 says: if first element is non-zero there are extensions present
+        # if not there is nothing left to do
+        if not extension_status[0]:
+            return extensions
+
+        # note that we read the extension flag
+        if not size < 0:
+            size = size - 4
+        # read until the whole header is parsed (each extension is a multiple
+        # of 16 bytes) or in case of a separate header file till the end
+        # (break inside the body)
+        # XXX not sure if the separate header behavior is sane
+        while size >= 16 or size < 0:
+            # the next 8 bytes should have esize and ecode
+            ext_def = fileobj.read(8)
+            # nothing was read and instructed to read till the end
+            # -> assume all extensions where parsed and break
+            if not len(ext_def) and size < 0:
+                break
+            # otherwise there should be a full extension header
+            if not len(ext_def) == 8:
+                raise HeaderDataError('failed to read extension header')
+            ext_def = np.fromstring(ext_def, dtype=np.int32)
+            # be extra verbose
+            ecode = ext_def[1]
+            esize = ext_def[0]
+            if esize % 16:
+                raise HeaderDataError(
+                        'extension size is not a multiple of 16 bytes')
+            # read extension itself; esize includes the 8 bytes already read
+            evalue = fileobj.read(esize - 8)
+            if not len(evalue) == esize - 8:
+                raise HeaderDataError('failed to read extension content')
+            # note that we read a full extension
+            size -= esize
+            # store raw extension content, but strip trailing NULL chars
+            evalue = evalue.rstrip('\x00')
+            # 'extension_codes' also knows the best implementation to handle
+            # a particular extension type
+            try:
+                ext = extension_codes.handler[ecode](ecode, evalue)
+            except KeyError:
+                # unknown extension type
+                # XXX complain or fail or go with a generic extension
+                ext = Nifti1Extension(ecode, evalue)
+            extensions.append(ext)
+        return extensions
+
 
 class Nifti1Header(SpmAnalyzeHeader):
     ''' Class for NIFTI1 header '''
@@ -1350,53 +1426,19 @@ class Nifti1Image(analyze.AnalyzeImage):
         fname = files['header']
         fileobj = allopen(fname)
         header = klass._header_maker.from_fileobj(fileobj)
+        extra = None
+
+        # handle extensions
         # assume the fileptr is just after header (magic field)
-
-        # but now recycle fileobj to parse potential header extensions
-        # try reading the next 4 bytes after the initial header
-        extension_status = fileobj.read(4)
-        if not len(extension_status):
-            # if there is nothing the NIfTI standard requires to assume zeros
-            extension_status = np.zeros((4,), dtype=np.int8)
+        # determine how much to read when parsing the extensions
+        if header['vox_offset'] == 0:
+            # read till the end of the header
+            extsize = -1
         else:
-            extension_status = np.fromstring(extension_status, dtype=np.int8)
-
-        # NIfTI1 says: if first element is non-zero there are extensions present
-        if not extension_status[0]:
-            extra=None
-        else:
-            extensions = Nifti1Extensions()
-            # read until the whole header is parsed (each extension is a multiple
-            # of 16 bytes) or in case of a separate header file till the end
-            # (break inside the body)
-            # XXX not sure if the separate header behavior is sane
-            while header['vox_offset'] - fileobj.tell() >= 16 \
-                  or header['vox_offset'] == 0:
-                # the next 8 bytes should have esize and ecode
-                ext_def = fileobj.read(8)
-                if not len(ext_def):
-                    raise HeaderDataError('failed to read extension')
-                ext_def = np.fromstring(ext_def, dtype=np.int32)
-                # be extra verbose
-                ecode = ext_def[1]
-                esize = ext_def[0]
-                if esize % 16:
-                    raise HeaderDataError(
-                            'extension size is not a multiple of 16 bytes')
-                # read extension itself; esize includes the 8 bytes already read
-                evalue = fileobj.read(esize - 8)
-                # store raw extension content, but strip trailing NULL chars
-                evalue = evalue.rstrip('\x00')
-                # 'extension_codes' also knows the best implementation to handle
-                # a particular extension type
-                try:
-                    ext = extension_codes.handler[ecode](ecode, evalue)
-                except KeyError:
-                    # unknown extension type
-                    # XXX complain or fail or go with a generic extension
-                    ext = Nifti1Extension(ecode, evalue)
-
-                extensions.append(ext)
+            extsize = header['vox_offset'] - fileobj.tell()
+        extensions = Nifti1Extensions.from_fileobj(fileobj, extsize)
+        # XXX maybe always do that?
+        if len(extensions):
             extra = {'extensions': extensions}
 
         affine = header.get_best_affine()
