@@ -101,7 +101,7 @@ So, our image likely has::
    img.format
 
 where meta is a dictionary and format is an object that implements the
-image format API, of which more later.
+image format API - see :ref:`image-formats`
 
 This immediately suggests the following interface::
 
@@ -152,7 +152,9 @@ The ``format`` object deals with this action.  That is, the ``data``
 object will have a pointer to the ``format`` attribute in some form -
 perhaps in the form of a ``format.get_data`` method.
 
-Of course, this is an optimization, and does not affect the interface for the ``Image`` (although it might affect the interface for ``Format``.
+Of course, this is an optimization, and does not affect the interface
+for the ``Image`` (although it might affect the interface for
+``Format``.
 
 
 Empty image
@@ -193,7 +195,7 @@ Of course there are rules / rules-of-thumb as to what extensions these
 various filenames can be. 
 
 We may want to associate an image with a filename or set of filenames.
-BUt we may also want to be able to associate images with file-like
+But we may also want to be able to associate images with file-like
 objects, such as open files, or anything else that implements a file
 protocol.  
 
