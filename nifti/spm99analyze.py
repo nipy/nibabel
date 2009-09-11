@@ -225,7 +225,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         mats = sio.loadmat(matf)
         if 'mat' in mats: # this overrides a 'M', and includes any flip
             mat = mats['mat']
-            if mat.ndim > 3:
+            if mat.ndim > 2:
                 warnings.warn('More than one affine in "mat" matrix, '
                               'using first')
                 mat = mat[:,:,0]
