@@ -1,4 +1,5 @@
 ''' Header reading functions for SPM version of analyze format '''
+import warnings
 import numpy as np
 
 from nifti.volumeutils import HeaderDataError, HeaderTypeError, \
@@ -223,7 +224,13 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             return ret
         mats = sio.loadmat(matf)
         if 'mat' in mats: # this overrides a 'M', and includes any flip
-            ret._affine = mats['mat']
+            mat = mats['mat']
+            if mat.ndim > 3:
+                warnings.warn('More than one affine in "mat" matrix, '
+                              'using first')
+                mat = mat[:,:,0]
+            ret._affine = mat
+            return ret
         elif 'M' in mats: # the 'M' matrix does not include flips
             hdr = ret._header
             if hdr.default_x_flip:
