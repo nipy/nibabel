@@ -72,7 +72,7 @@ class FileIOTests(unittest.TestCase):
         md5_io =  md5sum(self.fp.name)
 
         # ASK MATTHEW: Fails since all extensions get stripped
-        #self.failUnlessEqual(md5_orig, md5_io)
+        self.failUnlessEqual(md5_orig, md5_io)
 
 
 #    def testUnicodeLoadSaveCycle(self):
