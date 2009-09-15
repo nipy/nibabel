@@ -13,11 +13,22 @@ they are applied on the left of the vector.  For example:
 
 import numpy as np
 
-def fillpositive(xyz):
+MAX_FLOAT = np.maximum_sctype(np.float)
+FLOAT_EPS = np.finfo(np.float).eps
+
+
+def fillpositive(xyz, w2_thresh=None):
     ''' Compute unit quaternion from last 3 values
+    
     Parameters
     ----------
-    xyz : iterable containing 3 values
+    xyz : iterable
+       iterable containing 3 values, corresponding to quaternion x, y, z
+    w2_thresh : None or float, optional
+       threshold to use to determine if w squared is really negative.
+       If None (default) then w2_thresh set equal to
+       ``-np.finfo(xyz.dtype).eps``, if possible, otherwise
+       ``-np.finfo(np.float).eps``
 
     Returns
     -------
@@ -58,14 +69,23 @@ def fillpositive(xyz):
     # Check inputs (force error if < 3 values)
     if len(xyz) != 3:
         raise ValueError('xyz should have length 3')
+    # If necessary, guess precision of input
+    if w2_thresh is None:
+        try: # trap errors for non-array, integer array
+            w2_thresh = -np.finfo(xyz.dtype).eps
+        except AttributeError, ValueError:
+            w2_thresh = -FLOAT_EPS
     # Use maximum precision
-    dt = np.maximum_sctype(np.float)
-    xyz = np.asarray(xyz, dtype=dt)
+    xyz = np.asarray(xyz, dtype=MAX_FLOAT)
     # Calculate w
     w2 = 1.0 - np.dot(xyz, xyz)
     if w2 < 0:
-        raise ValueError('w should be positive')
-    return np.r_[np.sqrt(w2), xyz]
+        if w2 < w2_thresh:
+            raise ValueError('w2 should be positive, but is %f' % w2)
+        w = 0
+    else:
+        w = np.sqrt(w2)
+    return np.r_[w, xyz]
 
 def quat2mat(q):
     ''' Calculate rotation matrix corresponding to quaternion
