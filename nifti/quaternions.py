@@ -73,7 +73,7 @@ def fillpositive(xyz, w2_thresh=None):
     if w2_thresh is None:
         try: # trap errors for non-array, integer array
             w2_thresh = -np.finfo(xyz.dtype).eps
-        except AttributeError, ValueError:
+        except (AttributeError, ValueError):
             w2_thresh = -FLOAT_EPS
     # Use maximum precision
     xyz = np.asarray(xyz, dtype=MAX_FLOAT)
@@ -86,6 +86,7 @@ def fillpositive(xyz, w2_thresh=None):
     else:
         w = np.sqrt(w2)
     return np.r_[w, xyz]
+
 
 def quat2mat(q):
     ''' Calculate rotation matrix corresponding to quaternion
@@ -133,9 +134,11 @@ def quat2mat(q):
     wX = w*X; wY = w*Y; wZ = w*Z
     xX = x*X; xY = x*Y; xZ = x*Z
     yY = y*Y; yZ = y*Z; zZ = z*Z
-    return np.array([[1.0-(yY+zZ), xY+wZ, xZ-wY],
-                     [xY-wZ, 1.0-(xX+zZ), yZ+wX],
-                     [xZ+wY, yZ-wX, 1.0-(xX+yY)]])
+    return np.array(
+           [[ 1.0-(yY+zZ), xY-wZ, xZ+wY ],
+            [ xY+wZ, 1.0-(xX+zZ), yZ-wX ],
+            [ xZ-wY, yZ+wX, 1.0-(xX+yY) ]])
+
 
 def mat2quat(M):
     ''' Calculate quaternion corresponding to given rotation matrix
@@ -181,13 +184,13 @@ def mat2quat(M):
     True
 
     '''
-    r11,r12,r13,r21,r22,r23,r31,r32,r33=M.flat
+    Qxx,Qyx,Qzx,Qxy,Qyy,Qzy,Qxz,Qyz,Qzz=M.flat
     # Fill only lower half of symmetric matrix
     K = np.array([
-        [r11-r22-r33, 0, 0, 0],
-        [r21+r12, r22-r11-r33, 0, 0],
-        [r31+r13, r32+r23, r33-r11-r22, 0],
-        [r23-r32, r31-r13, r12-r21, r11+r22+r33]]) / 3
+        [Qxx-Qyy-Qzz, 0, 0, 0],
+        [Qyx+Qxy, Qyy-Qxx-Qzz, 0, 0],
+        [Qzx+Qxz, Qzy+Qyz, Qzz-Qxx-Qyy, 0],
+        [Qyz-Qzy, Qzx-Qxz, Qxy-Qyx, Qxx+Qyy+Qzz]]) / 3
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
     # Select largest eigenvector, reorder
@@ -198,7 +201,6 @@ def mat2quat(M):
         q *= -1
     return q
 
-# Routines below only used for testing, thus far
 
 def mult(q1, q2):
     ''' Multiply two quaternions
@@ -220,19 +222,85 @@ def mult(q1, q2):
     z = w1*z2 + z1*w2 + x1*y2 - y1*x2
     return np.array([w, x, y, z])
 
+
 def conjugate(q):
+    ''' Conjugate of quaternion 
+
+    Parameters
+    ----------
+    q : 4 element sequence
+       w, i, j, k of quaternion
+
+    Returns
+    -------
+    conjq : array shape (4,)
+       w, i, j, k of conjugate of `q`
+    '''
     return np.array(q) * np.array([1.0,-1,-1,-1])
 
+
 def norm(q):
+    ''' Return norm of quaternion 
+
+    Parameters
+    ----------
+    q : 4 element sequence
+       w, i, j, k of quaternion
+
+    Returns
+    -------
+    n : scalar
+       quaternion norm
+    '''    
     return np.dot(q,q)
 
+
 def isunit(q):
+    ''' Return True is this is very nearly a unit quaternion '''
     return np.allclose(norm(q),1)
 
+
 def inverse(q):
+    ''' Return multiplicative inverse of quaternion `q`
+
+    Parameters
+    ----------
+    q : 4 element sequence
+       w, i, j, k of quaternion
+
+    Returns
+    -------
+    invq : array shape (4,)
+       w, i, j, k of quaternion inverse
+    '''
     return conjugate(q) / norm(q)
+
 
 def eye():
     ''' Return identity quaternion '''
     return np.array([1.0,0,0,0])
 
+
+def rotate_vector(v, q):
+    ''' Apply transformation in quaternion `q` to vector `v`
+
+    Parameters
+    ----------
+    v : 3 element sequence
+       3 dimensional vector
+    q : 4 element sequence
+       w, i, j, k of quaternion
+
+    Returns
+    -------
+    vdash : array shape (3,)
+       `v` rotated by quaternion `q`
+
+    Notes
+    -----
+    See: http://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
+    
+    '''
+    varr = np.zeros((4,))
+    varr[1:] = v
+    return mult(q, mult(varr, conjugate(q)))[1:]
