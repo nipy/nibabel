@@ -353,7 +353,9 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
                         shape=shape,
                         order=order,
                         offset=offset)
-    except (AttributeError, TypeError): # then read data
+        # The error raised by memmap, for different file types, has
+        # changed in different incarnations of the numpy routine
+    except (AttributeError, TypeError, ValueError): # then read data
         infile.seek(offset)
         if len(shape) == 0:
             return np.array([])
