@@ -17,36 +17,36 @@ from nose.tools import assert_raises, assert_true, assert_false, \
 from numpy.testing import assert_array_almost_equal
 
 import nifti.quaternions as nq
+import nifti.eulerangles as nea
 
 def euler2mat(z=0, y=0, x=0):
     ''' Return matrices for give rotations around z, y and x axes
     '''
+    Ms = []
     if z:
         cosz = np.cos(z)
         sinz = np.sin(z)
-        M = np.array([
-            [cosz, sinz, 0],
-            [-sinz, cosz, 0],
-            [0, 0, 1]])
-    else:
-        M = np.eye(3)
+        Ms.append(np.array(
+                [[cosz, sinz, 0],
+                 [-sinz, cosz, 0],
+                 [0, 0, 1]])
     if y:
         cosy = np.cos(y)
         siny = np.sin(y)
-        My = np.array([
-            [cosy, 0, -siny],
-            [0, 1, 0],
-            [siny, 0, cosy]])
-        M = np.dot(My, M)
+        Ms.append(np.array(
+                    [[cosy, 0, -siny],
+                     [0, 1, 0],
+                     [siny, 0, cosy]]))
     if x:
         cosx = np.cos(x)
         sinx = np.sin(x)
-        Mx = np.array([
-            [1, 0, 0],
-            [0, cosx, sinx],
-            [0, -sinx, cosx]])
-        M = np.dot(Mx, M)
-    return M
+        Ms.append(np.array(
+                    [[1, 0, 0],
+                     [0, cosx, sinx],
+                     [0, -sinx, cosx]])
+    if Ms:
+        return reduce(np.dot, Ms)
+    return np.eye(4)
 
 # Example rotations '''
 eg_rots = []
@@ -57,7 +57,7 @@ xs = np.arange(*params)
 for z in zs:
     for y in ys:
         for x in xs:
-            eg_rots.append(euler2mat(z,y,x))
+            eg_rots.append(nea.euler2mat(z,y,x))
 # Example quaternions (from rotations)
 eg_quats = []
 for M in eg_rots:

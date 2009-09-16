@@ -1,6 +1,9 @@
 '''
 Functions to operate on, or return, quaternions
 
+Quaternions here consist of 4 values ``w, x, y, z``, where ``w`` is the
+real (scalar) part, and ``x, y, z`` are the complex (vector) part. 
+
 Note - rotation matrices here apply to column vectors, that is,
 they are applied on the left of the vector.  For example:
 
@@ -25,14 +28,14 @@ def fillpositive(xyz, w2_thresh=None):
     xyz : iterable
        iterable containing 3 values, corresponding to quaternion x, y, z
     w2_thresh : None or float, optional
-       threshold to use to determine if w squared is really negative.
+       threshold to determine if w squared is really negative.
        If None (default) then w2_thresh set equal to
        ``-np.finfo(xyz.dtype).eps``, if possible, otherwise
        ``-np.finfo(np.float).eps``
 
     Returns
     -------
-    wxyz : array
+    wxyz : array shape (4,)
          Full 4 values of quaternion
 
     Notes
@@ -157,9 +160,9 @@ def mat2quat(M):
     -----    
     Method claimed to be robust to numerical errors in M
 
-    Constructs quaternion by calculating maximum eigenvector for
-    matrix K (constructed from input *M*.  Although this is not
-    tested, a maximum eigenvalue of 1 corresponds to a valid rotation.
+    Constructs quaternion by calculating maximum eigenvector for matrix
+    K (constructed from input `M`).  Although this is not tested, a
+    maximum eigenvalue of 1 corresponds to a valid rotation.
 
     A quaternion q*-1 corresponds to the same rotation as q; thus the
     sign of the reconstructed quaternion is arbitrary, and we return
@@ -184,6 +187,9 @@ def mat2quat(M):
     True
 
     '''
+    # Qyx refers to the contribution of the y input vector component to
+    # the x output vector component.  Qyx is therefore the same as
+    # M[0,1].  The notation is from the article cited above.
     Qxx,Qyx,Qzx,Qxy,Qyy,Qzy,Qxz,Qyz,Qzz=M.flat
     # Fill only lower half of symmetric matrix
     K = np.array([
@@ -193,7 +199,7 @@ def mat2quat(M):
         [Qyz-Qzy, Qzx-Qxz, Qxy-Qyx, Qxx+Qyy+Qzz]]) / 3
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
-    # Select largest eigenvector, reorder
+    # Select largest eigenvector, reorder to w,x,y,z quaternion
     q = vecs[[3, 0, 1, 2],np.argmax(vals)]
     # Prefer quaternion with positive w
     # (q * -1 corresponds to same rotation as q)
@@ -213,6 +219,10 @@ def mult(q1, q2):
     Returns
     -------
     q12 : shape (4,) array
+
+    Notes
+    -----
+    See : http://en.wikipedia.org/wiki/Quaternions#Hamilton_product
     '''
     w1, x1, y1, z1 = q1
     w2, x2, y2, z2 = q2
