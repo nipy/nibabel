@@ -42,11 +42,17 @@ for z in zs:
             eg_rots.append((x, y, z))
 
 
-def trans_quat(quat):
+def our_quat(tquat):
     # converts from transformations quaternion order to ours
-    x, y, z, w = quat
+    x, y, z, w = tquat
     return [w, x, y, z]
     
+
+def trans_quat(oquat):
+    # converts from our quaternion to transformations order
+    w, x, y, z = oquat
+    return [x, y, z, w]
+
 
 def test_quaternion_imps():
     for x, y, z in eg_rots:
@@ -58,7 +64,7 @@ def test_quaternion_imps():
         M44 = np.eye(4)
         M44[:3,:3] = M
         tQ = quaternion_from_rotation_matrix(M44)
-        yield assert_true, nq.nearly_equivalent(trans_quat(quat), tQ)
+        yield assert_true, nq.nearly_equivalent(quat, our_quat(tQ))
 
 
 def test_euler_imps():
@@ -68,4 +74,4 @@ def test_euler_imps():
         yield assert_array_almost_equal, M1, M2
         q1 = quaternion_from_euler(z, y, x, 'szyx')
         q2 = nea.euler2quat(z, y, x)
-        yield assert_true, nq.nearly_equivalent(trans_quat(q1), q2)
+        yield assert_true, nq.nearly_equivalent(our_quat(q1), q2)
