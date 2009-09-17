@@ -57,19 +57,19 @@ import math
 import numpy as np
 
 
-def euler2mat(x=0, y=0, z=0):
+def euler2mat(z=0, y=0, x=0):
     ''' Return matrix for rotations around z, y and x axes
 
     Uses the z, then y, then x convention above
 
     Parameters
     ----------
-    x : scalar
-       Rotation angle in radians around x-axis (performed last)
-    y : scalar
-       Rotation angle in radians around y-axis
     z : scalar
        Rotation angle in radians around z-axis (performed first)
+    y : scalar
+       Rotation angle in radians around y-axis
+    x : scalar
+       Rotation angle in radians around x-axis (performed last)
 
     Returns
     -------
@@ -114,34 +114,34 @@ def mat2euler(M):
 
     Returns
     -------
-    x : scalar
-    y : scalar
     z : scalar
-       Rotations in radians around x, y, z axes, respectively
+    y : scalar
+    x : scalar
+       Rotations in radians around z, y, x axes, respectively
 
     Notes
     -----
-    From Diebel (2006) page 12 (but note transpose)
-
+    Derived using Sympy expression for z then y then x rotation matrix,
+    see ``eulerangles.py`` in ``derivations`` subdirectory
     '''
     M = np.asarray(M)
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
-    return math.atan2(-r23, r33), math.asin(r13), math.atan2(-r12, r11)
+    return math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
 
     
-def euler2quat(x=0, y=0, z=0):
+def euler2quat(z=0, y=0, x=0):
     ''' Return quaternion corresponding to these Euler angles
 
     Uses the z, then y, then x convention above
 
     Parameters
     ----------
-    x : scalar
-       Rotation angle in radians around x-axis (performed last)
-    y : scalar
-       Rotation angle in radians around y-axis
     z : scalar
        Rotation angle in radians around z-axis (performed first)
+    y : scalar
+       Rotation angle in radians around y-axis
+    x : scalar
+       Rotation angle in radians around x-axis (performed last)
 
     Returns
     -------
@@ -150,32 +150,22 @@ def euler2quat(x=0, y=0, z=0):
 
     Notes
     -----
-    From Diebel 2006 page 12
+    Formula from Sympy - see ``eulerangles.py`` in ``derivations``
+    subdirectory
     '''
-    x = x/2.0
-    y = y/2.0
     z = z/2.0
-    co = math.cos(x)
-    so = math.sin(x)
-    ct = math.cos(y)
-    st = math.sin(y)
-    cu = math.cos(z)
-    su = math.sin(z)
+    y = y/2.0
+    x = x/2.0
+    cz = math.cos(z)
+    sz = math.sin(z)
+    cy = math.cos(y)
+    sy = math.sin(y)
+    cx = math.cos(x)
+    sx = math.sin(x)
     return np.array([
-             co*ct*cu + so*st*su,
-            -co*st*su + ct*cu*so,
-             co*cu*st + so*ct*su,
-             co*ct*su-so*cu*st])
+             cx*cy*cz - sx*sy*sz,
+             cx*sy*sz + cy*cz*sx,
+             cx*cz*sy - sx*cy*sz,
+             cx*cy*sz + sx*cz*sy])
 
              
-def euler2quat2(x=0, y=0, z=0):
-    ''' Euler to quaternion using axis / angle quaternions for xyz '''
-    import nifti.quaternions as nq
-    # Make 4x3 array, where columns are x, y, z axis quaternions, and
-    # rows are (real, vector 0,1,2) of quaternion.
-    xyz_half = np.array([x, y, z]) / 2.0
-    quat_vectors = np.diag(np.sin(xyz_half)) # vectors already normalized
-    quat_scalars = np.cos(xyz_half)
-    quats = np.concatenate(np.atleast_2d(quat_scalars, quat_vectors))
-    # Reduce quaternion multiply over (z, y, x) ordering
-    return reduce(nq.mult, quats.T[::-1])

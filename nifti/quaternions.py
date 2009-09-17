@@ -314,3 +314,39 @@ def rotate_vector(v, q):
     varr = np.zeros((4,))
     varr[1:] = v
     return mult(q, mult(varr, conjugate(q)))[1:]
+
+
+def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
+    ''' Returns True if `q1` and `q2` give near equivalent tranforms
+
+    q1 may be nearly numerically equal to q2, or nearly equal to q2 * -1
+    (becuase a quaternion multiplied by -1 gives the same transform).
+
+    Parameters
+    ----------
+    q1 : 4 element sequence
+       w, x, y, z of first quaternion
+    q2 : 4 element sequence
+       w, x, y, z of second quaternion
+    
+    Returns
+    -------
+    equiv : bool
+       True if `q1` and `q2` are nearly equivalent, False otherwise
+
+    Examples
+    --------
+    >>> q1 = [1, 0, 0, 0]
+    >>> nearly_equivalent(q1, [0, 1, 0, 0])
+    False
+    >>> nearly_equivalent(q1, [1, 0, 0, 0])
+    True
+    >>> nearly_equivalent(q1, [-1, 0, 0, 0])
+    True
+    '''
+    q1 = np.array(q1)
+    q2 = np.array(q2)
+    if np.allclose(q1, q2, rtol, atol):
+        return True
+    return np.allclose(q1 * -1, q2, rtol, atol)
+

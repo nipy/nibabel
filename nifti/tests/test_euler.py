@@ -8,7 +8,7 @@ import nifti.quaternions as nq
 
 from nose.tools import assert_true, assert_false, assert_equal
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 # Example rotations '''
 eg_rots = []
@@ -49,40 +49,52 @@ def z_only(z):
                  [0, 0, 1]])
 
 
-def sympy_euler(x, y, z):
-    # The whole matrix formula for 1,2,3 from Sympy
-    phi = x
-    theta = y
-    psi = z
+def sympy_euler(z, y, x):
+    # The whole matrix formula for z,y,x rotations from Sympy
     cos = math.cos
     sin = math.sin
-    return np.array([
-            [cos(psi)*cos(theta), -cos(theta)*sin(psi), sin(theta)],
-            [cos(phi)*sin(psi) + cos(psi)*sin(phi)*sin(theta), cos(phi)*cos(psi) - sin(phi)*sin(psi)*sin(theta), -cos(theta)*sin(phi)],
-            [sin(phi)*sin(psi) - cos(phi)*cos(psi)*sin(theta), cos(psi)*sin(phi) + cos(phi)*sin(psi)*sin(theta),  cos(phi)*cos(theta)]])
+    # the following copy / pasted from Sympy - see derivations subdirectory
+    return [
+        [                       cos(y)*cos(z),                       -cos(y)*sin(z),         sin(y)],
+        [cos(x)*sin(z) + cos(z)*sin(x)*sin(y), cos(x)*cos(z) - sin(x)*sin(y)*sin(z), -cos(y)*sin(x)],
+        [sin(x)*sin(z) - cos(x)*cos(z)*sin(y), cos(z)*sin(x) + cos(x)*sin(y)*sin(z),  cos(x)*cos(y)]
+        ]
 
 
-def test_convention():
+def test_euler_mat():
     M = nea.euler2mat()
     yield assert_array_equal, M, np.eye(3)
     for x, y, z in eg_rots:
-        M1 = nea.euler2mat(x, y, z)
-        M2 = sympy_euler(x, y, z)
+        M1 = nea.euler2mat(z, y, x)
+        M2 = sympy_euler(z, y, x)
         yield assert_array_almost_equal, M1, M2
         M3 = np.dot(x_only(x), np.dot(y_only(y), z_only(z)))
         yield assert_array_almost_equal, M1, M3
-        xp, yp, zp = nea.mat2euler(M1)
+        zp, yp, xp = nea.mat2euler(M1)
         # The parameters may not be the same as input, but they give the
         # same rotation matrix
-        M4 = nea.euler2mat(xp, yp, zp)
+        M4 = nea.euler2mat(zp, yp, xp)
         yield assert_array_almost_equal, M1, M4
 
 
-# Quaternion conversion seems to give - a wrong answer
-@dec.knownfailureif(True)
+def sympy_euler2quat(z=0, y=0, x=0):
+    # direct formula for z,y,x quaternion rotations using sympy
+    # see derivations subfolder
+    cos = math.cos
+    sin = math.sin
+    # the following copy / pasted from Sympy output
+    return (cos(0.5*x)*cos(0.5*y)*cos(0.5*z) - sin(0.5*x)*sin(0.5*y)*sin(0.5*z),
+            cos(0.5*x)*sin(0.5*y)*sin(0.5*z) + cos(0.5*y)*cos(0.5*z)*sin(0.5*x),
+            cos(0.5*x)*cos(0.5*z)*sin(0.5*y) - cos(0.5*y)*sin(0.5*x)*sin(0.5*z),
+            cos(0.5*x)*cos(0.5*y)*sin(0.5*z) + cos(0.5*z)*sin(0.5*x)*sin(0.5*y))
+
+
 def test_quats():
     for x, y, z in eg_rots:
-        M1 = nea.euler2mat(x, y, z)
+        M1 = nea.euler2mat(z, y, x)
         quatM = nq.mat2quat(M1)
-        quat = nea.euler2quat2(x, y, z)
-        yield assert_array_almost_equal, quatM, quat
+        quat = nea.euler2quat(z, y, x)
+        yield nq.nearly_equivalent, quatM, quat
+        quatS = sympy_euler2quat(z, y, x)
+        yield nq.nearly_equivalent, quat, quatS
+        
