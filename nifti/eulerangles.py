@@ -160,9 +160,21 @@ def euler2quat(x=0, y=0, z=0):
     st = math.sin(y)
     cu = math.cos(z)
     su = math.sin(z)
-    raise NotImplementedError('Function gives incorrect answers')
     return np.array([
              co*ct*cu + so*st*su,
             -co*st*su + ct*cu*so,
              co*cu*st + so*ct*su,
              co*ct*su-so*cu*st])
+
+             
+def euler2quat2(x=0, y=0, z=0):
+    ''' Euler to quaternion using axis / angle quaternions for xyz '''
+    import nifti.quaternions as nq
+    # Make 4x3 array, where columns are x, y, z axis quaternions, and
+    # rows are (real, vector 0,1,2) of quaternion.
+    xyz_half = np.array([x, y, z]) / 2.0
+    quat_vectors = np.diag(np.sin(xyz_half)) # vectors already normalized
+    quat_scalars = np.cos(xyz_half)
+    quats = np.concatenate(np.atleast_2d(quat_scalars, quat_vectors))
+    # Reduce quaternion multiply over (z, y, x) ordering
+    return reduce(nq.mult, quats.T[::-1])

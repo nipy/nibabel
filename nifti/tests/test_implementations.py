@@ -73,6 +73,6 @@ def test_quaternion_imps():
 @dec.knownfailureif(True)
 def test_euler_imps():
     for x, y, z in eg_rots:
-        M1 = rotation_matrix_from_euler(x,y,z,'szyx')[:3,:3]
+        M1 = rotation_matrix_from_euler(z, y, x,'szyx')[:3,:3]
         M2 = nea.euler2mat(x, y, z)
         yield assert_array_almost_equal, M1, M2
