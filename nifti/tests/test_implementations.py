@@ -9,7 +9,8 @@ import sys
 _my_path, _ = os.path.split(__file__)
 sys.path.append(_my_path)
 from transformations import rotation_matrix_from_quaternion, \
-    quaternion_from_rotation_matrix, rotation_matrix_from_euler
+    quaternion_from_rotation_matrix, rotation_matrix_from_euler, \
+    quaternion_from_euler
 sys.path.remove(_my_path)
 
 from nose.tools import assert_true, assert_equal
@@ -69,10 +70,11 @@ def test_quaternion_imps():
         yield assert_true, quat_equal(trans_quat(quat), tQ)
 
 
-# Cannot work out danged transformation Eulers
-@dec.knownfailureif(True)
 def test_euler_imps():
     for x, y, z in eg_rots:
         M1 = rotation_matrix_from_euler(z, y, x,'szyx')[:3,:3]
         M2 = nea.euler2mat(x, y, z)
         yield assert_array_almost_equal, M1, M2
+        q1 = quaternion_from_euler(z, y, x, 'szyx')
+        q2 = nea.euler2quat(x, y, z)
+        yield assert_true, quat_equal(trans_quat(q1), q2)

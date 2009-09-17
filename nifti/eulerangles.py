@@ -81,23 +81,23 @@ def euler2mat(x=0, y=0, z=0):
         cosz = math.cos(z)
         sinz = math.sin(z)
         Ms.append(np.array(
-                [[cosz, sinz, 0],
-                 [-sinz, cosz, 0],
+                [[cosz, -sinz, 0],
+                 [sinz, cosz, 0],
                  [0, 0, 1]]))
     if y:
         cosy = math.cos(y)
         siny = math.sin(y)
         Ms.append(np.array(
-                [[cosy, 0, -siny],
+                [[cosy, 0, siny],
                  [0, 1, 0],
-                 [siny, 0, cosy]]))
+                 [-siny, 0, cosy]]))
     if x:
         cosx = math.cos(x)
         sinx = math.sin(x)
         Ms.append(np.array(
                 [[1, 0, 0],
-                 [0, cosx, sinx],
-                 [0, -sinx, cosx]]))
+                 [0, cosx, -sinx],
+                 [0, sinx, cosx]]))
     if Ms:
         return reduce(np.dot, Ms[::-1])
     return np.eye(3)
@@ -121,12 +121,12 @@ def mat2euler(M):
 
     Notes
     -----
-    From Diebel (2006) page 12
+    From Diebel (2006) page 12 (but note transpose)
 
     '''
     M = np.asarray(M)
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
-    return math.atan2(r23, r33), -math.asin(r13), math.atan2(r12, r11)
+    return math.atan2(-r23, r33), math.asin(r13), math.atan2(-r12, r11)
 
     
 def euler2quat(x=0, y=0, z=0):
