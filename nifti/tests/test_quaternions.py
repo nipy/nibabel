@@ -19,35 +19,6 @@ from numpy.testing import assert_array_almost_equal
 import nifti.quaternions as nq
 import nifti.eulerangles as nea
 
-def euler2mat(z=0, y=0, x=0):
-    ''' Return matrices for give rotations around z, y and x axes
-    '''
-    Ms = []
-    if z:
-        cosz = np.cos(z)
-        sinz = np.sin(z)
-        Ms.append(np.array(
-                [[cosz, sinz, 0],
-                 [-sinz, cosz, 0],
-                 [0, 0, 1]])
-    if y:
-        cosy = np.cos(y)
-        siny = np.sin(y)
-        Ms.append(np.array(
-                    [[cosy, 0, -siny],
-                     [0, 1, 0],
-                     [siny, 0, cosy]]))
-    if x:
-        cosx = np.cos(x)
-        sinx = np.sin(x)
-        Ms.append(np.array(
-                    [[1, 0, 0],
-                     [0, cosx, sinx],
-                     [0, -sinx, cosx]])
-    if Ms:
-        return reduce(np.dot, Ms)
-    return np.eye(4)
-
 # Example rotations '''
 eg_rots = []
 params = (-pi,pi,pi/3)
