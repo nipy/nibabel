@@ -34,17 +34,18 @@ Thus (to repeat), the Euler angle vector [ ``phi``, ``theta``, ``psi``
 axis, followed by a rotation of ``theta`` around the ``y`` axis,
 followed by a rotation of ``psi`` around the ``x`` axis.
 
-We also specify, for our rotations, that the axes are static (stay in
-the same place when the rotations are applied, with the body moving
-within the axes) and therefore not dynamic (dynamic means that the axes
-move with the body).
+We also specify, for our rotations, that the axes are in a static frame
+(the axes stay in the same place as the successive rotations are
+applied, rather than moving with the rotations). 
 
 In published and online descriptions of Euler angles, the order in which
-the rotations are specified in the Euler angle vector, differs from source to
-source.  For example, sometimes the first angle in the vector is the
-first to be applied.  Here we follow Diebel (2006) in applying the
-rotation angles / axes in the reverse order to that specified in the
-vector (``psi`` followed by ``theta`` followed by ``phi``). 
+the rotations are specified in the Euler angle vector, differs from
+source to source.  For example, sometimes the first angle in the vector
+is the first to be applied.  Here we follow Diebel (2006) in applying
+the rotation angles / axes in the reverse order to that specified in the
+vector.  That is just to repeat that, for an Euler angle vector [
+``phi``, ``theta``, ``psi`` ], we apply ``psi`` followed by ``theta``
+followed by ``phi``).
 
 The convention of rotation around ``z``, followed by rotation around
 ``y``, followed by rotation around ``x``, is known as "xyz",
