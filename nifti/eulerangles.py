@@ -80,7 +80,7 @@ import math
 import numpy as np
 
 
-_FLOAT_EPS = np.finfo(float).eps * 4.0
+_FLOAT_EPS_4 = np.finfo(float).eps * 4.0
 
 
 def euler2mat(z=0, y=0, x=0):
@@ -139,8 +139,8 @@ def mat2euler(M, cy_thresh=None):
     M : array-like, shape (3,3)
     cy_thresh : None or scalar, optional
        threshold below which to give up on straightforward arctan for
-       estimating x rotation.  If None (default) estimate from precision
-       of input.
+       estimating x rotation.  If None (default), estimate from
+       precision of input.
 
     Returns
     -------
@@ -152,31 +152,49 @@ def mat2euler(M, cy_thresh=None):
     Notes
     -----
     If there was no numerical error, the routine could be derived using
-    Sympy expression for z then y then x rotation matrix, see
-    ``eulerangles.py`` in ``derivations`` subdirectory, as::
+    Sympy expression for z then y then x rotation matrix, (see
+    ``eulerangles.py`` in ``derivations`` subdirectory)::
 
-       math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
+      [                       cos(y)*cos(z),                       -cos(y)*sin(z),         sin(y)],
+      [cos(x)*sin(z) + cos(z)*sin(x)*sin(y), cos(x)*cos(z) - sin(x)*sin(y)*sin(z), -cos(y)*sin(x)],
+      [sin(x)*sin(z) - cos(x)*cos(z)*sin(y), cos(z)*sin(x) + cos(x)*sin(y)*sin(z),  cos(x)*cos(y)]
 
-    The difference here is from ``transformations.py`` by Christoph
-    Gohlke, http://www.lfd.uci.edu/~gohlke/ released under a BSD license. 
+    with the obvious derivations for z, y, and x
+
+       z = atan2(-r12, r11)
+       y = asin(r13)
+       x = atan2(-r23, r33)
+
+    Problems arise when cos(y) is close to zero, because both of::
+
+       z = atan2(cos(y)*sin(z), cos(y)*cos(z))
+       x = atan2(cos(y)*sin(x), cos(x)*cos(y))
+
+    will be close to atan2(0, 0), and highly unstable.
+
+    The ``cy`` fix for numerical instability below is from
+    Graphics Gems IV, specifically EulerAngles.c by Ken Shoemake, and
+    deals with the case where cos(y) is close to zero.
+
+    See: http://www.graphicsgems.org/
     '''
     M = np.asarray(M)
     if cy_thresh is None:
         try:
             cy_thresh = np.finfo(M.dtype).eps * 4
         except ValueError:
-            cy_thresh = _FLOAT_EPS
+            cy_thresh = _FLOAT_EPS_4
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
-    # by inspection, cy is
-    # sqrt((cos(y)*cos(z))**2 + (cos(x)*cos(y))**2)
+    # cy: sqrt((cos(y)*cos(z))**2 + (cos(x)*cos(y))**2)
     cy = math.sqrt(r33*r33 + r23*r23)
-    if cy > cy_thresh:
-        z = math.atan2(-r12,  r11)
-        y = math.atan2(r13,  cy)
-        x = math.atan2(-r23, r33)
-    else:
-        z = math.atan2(r21,  r22)
-        y = math.atan2(r13,  cy)
+    if cy > cy_thresh: # cos(y) not close to zero, standard form
+        z = math.atan2(-r12,  r11) # atan2(cos(y)*sin(z), cos(y)*cos(z))
+        y = math.atan2(r13,  cy) # atan2(sin(y), cy)
+        x = math.atan2(-r23, r33) # atan2(cos(y)*sin(x), cos(x)*cos(y))
+    else: # cos(y) (close to) zero, so x will be close to 0.0 (see above)
+        # thus r21 -> sin(z), r22 -> cos(z) and
+        z = math.atan2(r21,  r22) 
+        y = math.atan2(r13,  cy) # atan2(sin(y), cy)
         x = 0.0
     return z, y, x
 
@@ -246,7 +264,7 @@ def quat2euler(q):
     large.
     '''
     # delayed import to avoid cyclic dependencies
-    import nifti.quaternion as nq
+    import nifti.quaternions as nq
     return mat2euler(nq.quat2mat(q))
 
     
@@ -272,7 +290,9 @@ def angle_axis2euler(theta, vector, is_normalized=False):
 
     Examples
     --------
-    >>> angle_axis2euler(0, [1, 0, 0])
+    >>> z, y, x = angle_axis2euler(0, [1, 0, 0])
+    >>> np.allclose((z, y, x), 0)
+    True
     
     Notes
     -----

@@ -2,6 +2,7 @@
 
 import math
 import numpy as np
+from numpy import pi
 
 import nifti.eulerangles as nea
 import nifti.quaternions as nq
@@ -10,15 +11,14 @@ from nose.tools import assert_true, assert_false, assert_equal
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+FLOAT_EPS = np.finfo(np.float).eps
+
 # Example rotations '''
 eg_rots = []
-params = (-np.pi,np.pi,np.pi/2)
-xs = np.arange(*params)
-ys = np.arange(*params)
-zs = np.arange(*params)
-for x in xs:
-    for y in ys:
-        for z in zs:
+params = np.arange(-pi*2,pi*2.5,pi/2)
+for x in params:
+    for y in params:
+        for z in params:
             eg_rots.append((x, y, z))
 
 
@@ -88,22 +88,32 @@ def sympy_euler2quat(z=0, y=0, x=0):
             cos(0.5*x)*cos(0.5*z)*sin(0.5*y) - cos(0.5*y)*sin(0.5*x)*sin(0.5*z),
             cos(0.5*x)*cos(0.5*y)*sin(0.5*z) + cos(0.5*z)*sin(0.5*x)*sin(0.5*y))
 
-            
-def test_quat2euler():
-    # Test for a numerical error in euler2mat
-    z, y, x = -np.pi / 2, -np.pi / 2, -np.pi
-    M1 = nea.euler2mat(z, y, x)
-    zp, yp, xp = nea.mat2euler(M1)
-    M2 = nea.euler2mat(zp, yp, xp)
-    yield assert_array_almost_equal, M1, M2
-    quat = nea.euler2quat(z, y, x)
-    M3 = nq.quat2mat(quat)
-    yield assert_array_almost_equal, M1, M3
-    zp, yp, xp = nea.mat2euler(M3)
-    M4 = nea.euler2mat(zp, yp, xp)
-    yield assert_array_almost_equal, M1, M4
-    
-            
+
+def crude_mat2euler(M):
+    ''' The simplest possible - ignoring atan2 instability '''
+    r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
+    return math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
+
+
+def test_euler_instability():
+    # Test for numerical errors in mat2euler
+    # problems arise for cos(y) near 0
+    po2 = pi / 2
+    zyx = po2, po2, po2
+    M = nea.euler2mat(*zyx)
+    # Round trip
+    M_back = nea.euler2mat(*nea.mat2euler(M))
+    yield assert_true, np.allclose(M, M_back)
+    # disturb matrix slightly
+    M_e = M - FLOAT_EPS
+    # round trip to test - OK
+    M_e_back = nea.euler2mat(*nea.mat2euler(M_e))
+    yield assert_true, np.allclose(M_e, M_e_back)
+    # not so with crude routine
+    M_e_back = nea.euler2mat(*crude_mat2euler(M_e))
+    yield assert_false, np.allclose(M_e, M_e_back)
+
+
 def test_quats():
     for x, y, z in eg_rots:
         M1 = nea.euler2mat(z, y, x)
