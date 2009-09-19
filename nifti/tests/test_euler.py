@@ -61,6 +61,40 @@ def sympy_euler(z, y, x):
         ]
 
 
+def is_valid_rotation(M):
+    if not np.allclose(np.linalg.det(M), 1):
+        return False
+    return np.allclose(np.eye(3), np.dot(M, M.T))
+
+
+def test_basic_euler():
+    # some example rotations, in radians
+    zr = 0.05
+    yr = -0.4
+    xr = 0.2
+    # Rotation matrix composing the three rotations
+    M = nea.euler2mat(zr, yr, xr)
+    # Corresponding individual rotation matrices
+    M1 = nea.euler2mat(zr)
+    M2 = nea.euler2mat(0, yr)
+    M3 = nea.euler2mat(0, 0, xr)
+    # which are all valid rotation matrices
+    yield assert_true, is_valid_rotation(M)
+    yield assert_true, is_valid_rotation(M1)
+    yield assert_true, is_valid_rotation(M2)
+    yield assert_true, is_valid_rotation(M3)
+    # Full matrix is composition of three individual matrices
+    yield assert_true, np.allclose(M, np.dot(M3, np.dot(M2, M1)))
+    # Rotations can be specified with named args, default 0
+    yield assert_true, np.all(nea.euler2mat(zr) == nea.euler2mat(z=zr))
+    yield assert_true, np.all(nea.euler2mat(0, yr) == nea.euler2mat(y=yr))
+    yield assert_true, np.all(nea.euler2mat(0, 0, xr) == nea.euler2mat(x=xr))
+    # Applying an opposite rotation same as inverse (the inverse is
+    # the same as the transpose, but just for clarity)
+    yield assert_true, np.allclose(nea.euler2mat(x=-xr),
+                       np.linalg.inv(nea.euler2mat(x=xr)))
+
+        
 def test_euler_mat():
     M = nea.euler2mat()
     yield assert_array_equal, M, np.eye(3)

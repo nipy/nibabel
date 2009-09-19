@@ -101,6 +101,36 @@ def euler2mat(z=0, y=0, x=0):
     -------
     M : array shape (3,3)
        Rotation matrix giving same rotation as for given angles
+
+    Examples
+    --------
+    >>> zrot = 1.3 # radians
+    >>> yrot = -0.1
+    >>> xrot = 0.2
+    >>> M = euler2mat(zrot, yrot, xrot)
+    >>> M.shape
+    (3, 3)
+
+    The output rotation matrix is equal to the composition of the
+    individual rotations
+    
+    >>> M1 = euler2mat(zrot)
+    >>> M2 = euler2mat(0, yrot)
+    >>> M3 = euler2mat(0, 0, xrot)
+    >>> composed_M = np.dot(M3, np.dot(M2, M1))
+    >>> np.allclose(M, composed_M)
+    True
+
+    You can specify rotations by named arguments
+    
+    >>> np.all(M3 == euler2mat(x=xrot))
+    True
+    
+    Appling M to a vector - the vector is a column vector, or a matrix
+    where each column represents a vector
+    
+    >>> vec = np.array([1, 0, 0]).reshape((3,1))
+    >>> v2 = np.dot(M, vec)
     '''
     Ms = []
     if z:
