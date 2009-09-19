@@ -96,6 +96,20 @@ def quat_around_axis(theta, axis):
             st2 * axis[2])
 
 
+def quat2mat(quat):
+    ''' Symbolic conversion from quaternion to rotation matrix
+
+    For a unit quaternion
+    
+    From: http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    '''
+    w, x, y, z = quat
+    return Matrix([
+            [1 - 2*y*y-2*z*z, 2*x*y - 2*z*w, 2*x*z+2*y*w],
+            [2*x*y+2*z*w, 1-2*x*x-2*z*z, 2*y*z-2*x*w],
+            [2*x*z-2*y*w, 2*y*z+2*x*w, 1-2*x*x-2*y*y]])
+
+
 # Formula for rotation matrix given Euler angles and z, y, x ordering
 M_zyx = (x_rotation(Symbol('x')) *
          y_rotation(Symbol('y')) *

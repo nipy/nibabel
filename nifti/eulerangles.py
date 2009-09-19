@@ -80,6 +80,9 @@ import math
 import numpy as np
 
 
+_FLOAT_EPS = np.finfo(float).eps * 4.0
+
+
 def euler2mat(z=0, y=0, x=0):
     ''' Return matrix for rotations around z, y and x axes
 
@@ -126,7 +129,7 @@ def euler2mat(z=0, y=0, x=0):
     return np.eye(3)
 
 
-def mat2euler(M):
+def mat2euler(M, cy_thresh=None):
     ''' Discover Euler angle vector from 3x3 matrix
 
     Uses the conventions above.
@@ -134,6 +137,10 @@ def mat2euler(M):
     Parameters
     ----------
     M : array-like, shape (3,3)
+    cy_thresh : None or scalar, optional
+       threshold below which to give up on straightforward arctan for
+       estimating x rotation.  If None (default) estimate from precision
+       of input.
 
     Returns
     -------
@@ -144,12 +151,34 @@ def mat2euler(M):
 
     Notes
     -----
-    Derived using Sympy expression for z then y then x rotation matrix,
-    see ``eulerangles.py`` in ``derivations`` subdirectory
+    If there was no numerical error, the routine could be derived using
+    Sympy expression for z then y then x rotation matrix, see
+    ``eulerangles.py`` in ``derivations`` subdirectory, as::
+
+       math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
+
+    The difference here is from ``transformations.py`` by Christoph
+    Gohlke, http://www.lfd.uci.edu/~gohlke/ released under a BSD license. 
     '''
     M = np.asarray(M)
+    if cy_thresh is None:
+        try:
+            cy_thresh = np.finfo(M.dtype).eps * 4
+        except ValueError:
+            cy_thresh = _FLOAT_EPS
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
-    return math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
+    # by inspection, cy is
+    # sqrt((cos(y)*cos(z))**2 + (cos(x)*cos(y))**2)
+    cy = math.sqrt(r33*r33 + r23*r23)
+    if cy > cy_thresh:
+        z = math.atan2(-r12,  r11)
+        y = math.atan2(r13,  cy)
+        x = math.atan2(-r23, r33)
+    else:
+        z = math.atan2(r21,  r22)
+        y = math.atan2(r13,  cy)
+        x = 0.0
+    return z, y, x
 
     
 def euler2quat(z=0, y=0, x=0):
@@ -191,4 +220,68 @@ def euler2quat(z=0, y=0, x=0):
              cx*cz*sy - sx*cy*sz,
              cx*cy*sz + sx*cz*sy])
 
-             
+
+def quat2euler(q):
+    ''' Return Euler angles corresponding to quaternion `q`
+
+    Parameters
+    ----------
+    q : 4 element sequence
+       w, x, y, z of quaternion
+
+    Returns
+    -------
+    z : scalar
+       Rotation angle in radians around z-axis (performed first)
+    y : scalar
+       Rotation angle in radians around y-axis
+    x : scalar
+       Rotation angle in radians around x-axis (performed last)
+
+    Notes
+    -----
+    It's possible to reduce the amount of calculation a little, by
+    combining parts of the ``quat2mat`` and ``mat2euler`` functions, but
+    the reduction in computation is small, and the code repetition is
+    large.
+    '''
+    # delayed import to avoid cyclic dependencies
+    import nifti.quaternion as nq
+    return mat2euler(nq.quat2mat(q))
+
+    
+def angle_axis2euler(theta, vector, is_normalized=False):
+    ''' Convert angle, axis pair to Euler angles
+
+    Parameters
+    ----------
+    theta : scalar
+       angle of rotation
+    vector : 3 element sequence
+       vector specifying axis for rotation.
+    is_normalized : bool, optional
+       True if vector is already normalized (has norm of 1).  Default
+       False
+
+    Returns
+    -------
+    z : scalar
+    y : scalar
+    x : scalar
+       Rotations in radians around z, y, x axes, respectively
+
+    Examples
+    --------
+    >>> angle_axis2euler(0, [1, 0, 0])
+    
+    Notes
+    -----
+    It's possible to reduce the amount of calculation a little, by
+    combining parts of the ``angle_axis2mat`` and ``mat2euler``
+    functions, but the reduction in computation is small, and the code
+    repetition is large.
+    '''
+    # delayed import to avoid cyclic dependencies
+    import nifti.quaternions as nq
+    M = nq.angle_axis2mat(theta, vector, is_normalized)
+    return mat2euler(M)

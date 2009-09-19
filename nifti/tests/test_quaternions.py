@@ -14,14 +14,14 @@ except ImportError:
 from nose.tools import assert_raises, assert_true, assert_false, \
     assert_equal
 
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 import nifti.quaternions as nq
 import nifti.eulerangles as nea
 
 # Example rotations '''
 eg_rots = []
-params = (-pi,pi,pi/3)
+params = (-pi,pi,pi/2)
 zs = np.arange(*params)
 ys = np.arange(*params)
 xs = np.arange(*params)
@@ -38,11 +38,11 @@ eg_pairs = zip(eg_rots, eg_quats)
 
 # Set of arbitrary unit quaternions
 unit_quats = set()
-params = (-2,3)
-for w in range(*params):
-    for x in range(*params):
-        for y in range(*params):
-            for z in range(*params):
+params = range(-2,3)
+for w in params:
+    for x in params:
+        for y in params:
+            for z in params:
                 q = (w, x, y, z)
                 Nq = np.sqrt(np.dot(q, q))
                 if not Nq == 0:
@@ -75,6 +75,20 @@ def test_conjugate():
     # Returns float type
     yield assert_true, cq.dtype.kind == 'f'
 
+
+def test_quat2mat():
+    # also tested in roundtrip case below
+    M = nq.quat2mat([1, 0, 0, 0])
+    yield assert_array_almost_equal, M, np.eye(3)
+    M = nq.quat2mat([3, 0, 0, 0])
+    yield assert_array_almost_equal, M, np.eye(3)
+    M = nq.quat2mat([0, 1, 0, 0])
+    yield assert_array_almost_equal, M, np.diag([1, -1, -1])
+    M = nq.quat2mat([0, 2, 0, 0])
+    yield assert_array_almost_equal, M, np.diag([1, -1, -1])
+    M = nq.quat2mat([0, 0, 0, 0])
+    yield assert_array_almost_equal, M, np.eye(3)
+    
 
 def test_inverse():
     # Takes sequence
@@ -146,3 +160,23 @@ def test_quaternion_reconstruction():
         posm = np.allclose(q, qt)
         negm = np.allclose(q, -qt)
         yield assert_true, posm or negm
+
+
+def test_angle_axis2quat():
+    q = nq.angle_axis2quat(0, [1, 0, 0])
+    yield assert_array_equal, q, [1, 0, 0, 0]
+    q = nq.angle_axis2quat(np.pi, [1, 0, 0])
+    yield assert_array_almost_equal, q, [0, 1, 0, 0]
+    q = nq.angle_axis2quat(np.pi, [1, 0, 0], True)
+    yield assert_array_almost_equal, q, [0, 1, 0, 0]
+    q = nq.angle_axis2quat(np.pi, [2, 0, 0], False)
+    yield assert_array_almost_equal, q, [0, 1, 0, 0]
+
+
+def test_angle_axis():
+    for M, q in eg_pairs:
+        theta, vec = nq.quat2angle_axis(q)
+        q2 = nq.angle_axis2quat(theta, vec)
+        yield nq.nearly_equivalent, q, q2
+        aa_mat = nq.angle_axis2mat(theta, vec)
+        yield assert_array_almost_equal, aa_mat, M

@@ -1,5 +1,8 @@
 '''
-Functions to operate on, or return, quaternions
+Functions to operate on, or return, quaternions.
+
+The module also includes functions for the closely related angle, axis
+pair as a specification for rotation.
 
 Quaternions here consist of 4 values ``w, x, y, z``, where ``w`` is the
 real (scalar) part, and ``x, y, z`` are the complex (vector) part. 
@@ -14,6 +17,7 @@ they are applied on the left of the vector.  For example:
 >>> tvec = np.dot(M, vec)
 '''
 
+import math
 import numpy as np
 
 MAX_FLOAT = np.maximum_sctype(np.float)
@@ -124,13 +128,11 @@ def quat2mat(q):
     >>> np.allclose(M, np.diag([1, -1, -1]))
     True
     '''
-    qa = np.array(q)
-    Nq = np.dot(qa, qa)
-    if Nq > 0.0:
-        s = 2/Nq
-    else:
-        s = 0.0
     w, x, y, z = q
+    Nq = w*w + x*x + y*y + z*z
+    if Nq == 0.0:
+        return np.eye(3)
+    s = 2.0/Nq
     X = x*s
     Y = y*s
     Z = z*s
@@ -189,7 +191,7 @@ def mat2quat(M):
     '''
     # Qyx refers to the contribution of the y input vector component to
     # the x output vector component.  Qyx is therefore the same as
-    # M[0,1].  The notation is from the article cited above.
+    # M[0,1].  The notation is from the Wikipedia article.
     Qxx,Qyx,Qzx,Qxy,Qyy,Qzy,Qxz,Qyz,Qzz=M.flat
     # Fill only lower half of symmetric matrix
     K = np.array([
@@ -350,3 +352,131 @@ def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
         return True
     return np.allclose(q1 * -1, q2, rtol, atol)
 
+
+def angle_axis2quat(theta, vector, is_normalized=False):
+    ''' Quaternion for rotation of angle `theta` around `vector`
+
+    Parameters
+    ----------
+    theta : scalar
+       angle of rotation
+    vector : 3 element sequence
+       vector specifying axis for rotation.
+    is_normalized : bool, optional
+       True if vector is already normalized (has norm of 1).  Default
+       False
+
+    Returns
+    -------
+    quat : 4 element sequence of symbols
+       quaternion giving specified rotation
+
+    Examples
+    --------
+    >>> q = angle_axis2quat(np.pi, [1, 0, 0])
+    >>> np.allclose(q, [0, 1, 0,  0])
+    True
+    
+    Notes
+    -----
+    Formula from http://mathworld.wolfram.com/EulerParameters.html
+    '''
+    vector = np.array(vector)
+    if not is_normalized:
+        vector /= math.sqrt(np.dot(vector, vector))
+    t2 = theta / 2.0
+    st2 = math.sin(t2)
+    return np.concatenate(([math.cos(t2)],
+                           vector * st2))
+
+
+def angle_axis2mat(theta, vector, is_normalized=False):
+    ''' Rotation matrix of angle `theta` around `vector`
+
+    Parameters
+    ----------
+    theta : scalar
+       angle of rotation
+    vector : 3 element sequence
+       vector specifying axis for rotation.
+    is_normalized : bool, optional
+       True if vector is already normalized (has norm of 1).  Default
+       False
+
+    Returns
+    -------
+    mat : array shape (3,3)
+       rotation matrix specified rotation
+
+    Notes
+    -----
+    From: http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle
+    '''
+    x, y, z = vector
+    if not is_normalized:
+        n = math.sqrt(x*x + y*y + z*z)
+        x = x/n
+        y = y/n
+        z = z/n
+    c = math.cos(theta); s = math.sin(theta); C = 1-c
+    xs = x*s;   ys = y*s;   zs = z*s
+    xC = x*C;   yC = y*C;   zC = z*C
+    xyC = x*yC; yzC = y*zC; zxC = z*xC
+    return np.array([
+            [ x*xC+c,   xyC-zs,   zxC+ys ],
+            [ xyC+zs,   y*yC+c,   yzC-xs ],
+            [ zxC-ys,   yzC+xs,   z*zC+c ]])
+
+
+def quat2angle_axis(quat, identity_thresh=None):
+    ''' Convert quaternion to rotation of angle around axis
+
+    Parameters
+    ----------
+    quat : 4 element sequence
+       w, x, y, z forming quaternion
+    identity_thresh : None or scalar, optional
+       threshold below which the norm of the vector part of the
+       quaternion (x, y, z) is deemed to be 0, leading to the identity
+       rotation.  None (the default) leads to a threshold estimated
+       based on the precision of the input.
+       
+    Returns
+    -------
+    theta : scalar
+       angle of rotation
+    vector : array shape (3,)
+       axis around which rotation occurs
+
+    Examples
+    --------
+    >>> theta, vec = quat2angle_axis([0, 1, 0, 0])
+    >>> np.allclose(theta, np.pi)
+    True
+    >>> vec
+    array([ 1.,  0.,  0.])
+
+    If this is an identity rotation, we return a zero angle and an
+    arbitrary vector
+    
+    >>> quat2angle_axis([1, 0, 0, 0])
+    (0.0, array([ 1.,  0.,  0.]))
+
+    Notes
+    -----
+    A quaternion for which x, y, z are all equal to 0, is an identity
+    rotation.  In this case we return a 0 angle and an  arbitrary 
+    vector, here [1, 0, 0]
+    '''
+    w, x, y, z = quat
+    vec = np.asarray([x, y, z])
+    if identity_thresh is None:
+        try:
+            identity_thresh = np.finfo(vec.dtype).eps * 3
+        except ValueError: # integer type
+            identity_thresh = FLOAT_EPS * 3
+    n = math.sqrt(x*x + y*y + z*z)
+    if n < identity_thresh: 
+        # if vec is nearly 0,0,0, this is an identity rotation
+        return 0.0, np.array([1.0, 0, 0])
+    return  2 * math.acos(w), vec / n

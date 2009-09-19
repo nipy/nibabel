@@ -88,7 +88,22 @@ def sympy_euler2quat(z=0, y=0, x=0):
             cos(0.5*x)*cos(0.5*z)*sin(0.5*y) - cos(0.5*y)*sin(0.5*x)*sin(0.5*z),
             cos(0.5*x)*cos(0.5*y)*sin(0.5*z) + cos(0.5*z)*sin(0.5*x)*sin(0.5*y))
 
-
+            
+def test_quat2euler():
+    # Test for a numerical error in euler2mat
+    z, y, x = -np.pi / 2, -np.pi / 2, -np.pi
+    M1 = nea.euler2mat(z, y, x)
+    zp, yp, xp = nea.mat2euler(M1)
+    M2 = nea.euler2mat(zp, yp, xp)
+    yield assert_array_almost_equal, M1, M2
+    quat = nea.euler2quat(z, y, x)
+    M3 = nq.quat2mat(quat)
+    yield assert_array_almost_equal, M1, M3
+    zp, yp, xp = nea.mat2euler(M3)
+    M4 = nea.euler2mat(zp, yp, xp)
+    yield assert_array_almost_equal, M1, M4
+    
+            
 def test_quats():
     for x, y, z in eg_rots:
         M1 = nea.euler2mat(z, y, x)
@@ -97,4 +112,9 @@ def test_quats():
         yield nq.nearly_equivalent, quatM, quat
         quatS = sympy_euler2quat(z, y, x)
         yield nq.nearly_equivalent, quat, quatS
+        zp, yp, xp = nea.quat2euler(quat)
+        # The parameters may not be the same as input, but they give the
+        # same rotation matrix
+        M2 = nea.euler2mat(zp, yp, xp)
+        yield assert_array_almost_equal, M1, M2
         
