@@ -191,8 +191,8 @@ def mat2euler(M, cy_thresh=None):
         z = math.atan2(-r12,  r11) # atan2(cos(y)*sin(z), cos(y)*cos(z))
         y = math.atan2(r13,  cy) # atan2(sin(y), cy)
         x = math.atan2(-r23, r33) # atan2(cos(y)*sin(x), cos(x)*cos(y))
-    else: # cos(y) (close to) zero, so x will be close to 0.0 (see above)
-        # thus r21 -> sin(z), r22 -> cos(z) and
+    else: # cos(y) (close to) zero, so x -> 0.0 (see above)
+        # so r21 -> sin(z), r22 -> cos(z) and
         z = math.atan2(r21,  r22) 
         y = math.atan2(r13,  cy) # atan2(sin(y), cy)
         x = 0.0
@@ -266,6 +266,40 @@ def quat2euler(q):
     # delayed import to avoid cyclic dependencies
     import nifti.quaternions as nq
     return mat2euler(nq.quat2mat(q))
+
+
+def euler2angle_axis(z=0, y=0, x=0):
+    ''' Return angle, axis corresponding to these Euler angles
+
+    Uses the z, then y, then x convention above
+
+    Parameters
+    ----------
+    z : scalar
+       Rotation angle in radians around z-axis (performed first)
+    y : scalar
+       Rotation angle in radians around y-axis
+    x : scalar
+       Rotation angle in radians around x-axis (performed last)
+
+    Returns
+    -------
+    theta : scalar
+       angle of rotation
+    vector : array shape (3,)
+       axis around which rotation occurs
+
+    Examples
+    --------
+    >>> theta, vec = euler2angle_axis(0, 1.5, 0)
+    >>> theta
+    1.5
+    >>> np.allclose(vec, [0, 1, 0])
+    True
+    '''
+    # delayed import to avoid cyclic dependencies
+    import nifti.quaternions as nq
+    return nq.quat2angle_axis(euler2quat(z, y, x))
 
     
 def angle_axis2euler(theta, vector, is_normalized=False):

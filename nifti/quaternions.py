@@ -319,7 +319,7 @@ def rotate_vector(v, q):
 
 
 def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
-    ''' Returns True if `q1` and `q2` give near equivalent tranforms
+    ''' Returns True if `q1` and `q2` give near equivalent transforms
 
     q1 may be nearly numerically equal to q2, or nearly equal to q2 * -1
     (becuase a quaternion multiplied by -1 gives the same transform).
