@@ -225,11 +225,15 @@ def mat2euler(M, cy_thresh=None):
 
     will be close to atan2(0, 0), and highly unstable.
 
-    The ``cy`` fix for numerical instability below is from
-    Graphics Gems IV, specifically EulerAngles.c by Ken Shoemake, and
-    deals with the case where cos(y) is close to zero.
+    The ``cy`` fix for numerical instability below is from: *Graphics
+    Gems IV*, Paul Heckbert (editor), Academic Press, 1994, ISBN:
+    0123361559.  Specifically it comes from EulerAngles.c by Ken
+    Shoemake, and deals with the case where cos(y) is close to zero:
 
     See: http://www.graphicsgems.org/
+
+    The code appears to be licensed (from the website) as "can be used
+    without restrictions".
     '''
     M = np.asarray(M)
     if cy_thresh is None:
