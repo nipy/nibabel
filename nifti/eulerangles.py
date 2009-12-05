@@ -205,8 +205,7 @@ def mat2euler(M, cy_thresh=None):
     Notes
     -----
     If there was no numerical error, the routine could be derived using
-    Sympy expression for z then y then x rotation matrix, (see
-    ``eulerangles.py`` in ``derivations`` subdirectory)::
+    Sympy expression for z then y then x rotation matrix, which is::
 
       [                       cos(y)*cos(z),                       -cos(y)*sin(z),         sin(y)],
       [cos(x)*sin(z) + cos(z)*sin(x)*sin(y), cos(x)*cos(z) - sin(x)*sin(y)*sin(z), -cos(y)*sin(x)],
@@ -277,8 +276,7 @@ def euler2quat(z=0, y=0, x=0):
 
     Notes
     -----
-    Formula from Sympy - see ``eulerangles.py`` in ``derivations``
-    subdirectory
+    Formula from Sympy
     '''
     z = z/2.0
     y = y/2.0
