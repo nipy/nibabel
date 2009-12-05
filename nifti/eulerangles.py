@@ -276,7 +276,16 @@ def euler2quat(z=0, y=0, x=0):
 
     Notes
     -----
-    Formula from Sympy
+    We can derive this formula in Sympy using:
+
+    1. Formula giving quaternion corresponding to rotation of theta radians
+       about arbitrary axis:
+       http://mathworld.wolfram.com/EulerParameters.html
+    2. Generated formulae from 1.) for quaternions corresponding to
+       theta radians rotations about ``x, y, z`` axes
+    3. Apply quaternion multiplication formula - 
+       http://en.wikipedia.org/wiki/Quaternions#Hamilton_product - to
+       formulae from 2.) to give formula for combined rotations. 
     '''
     z = z/2.0
     y = y/2.0
