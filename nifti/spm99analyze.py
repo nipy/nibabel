@@ -72,7 +72,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
             hdr['scl_slope'] = 1
             ret.fix_msg = 'setting scalefactor "scale" to 1'
         else:
-            ret.level = 30
+            ret.problem_level = 30
         return ret
 
 
@@ -207,7 +207,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         if fix:
             ret.fix_msg = 'leaving as set, ignoring for affine'
         else:
-            ret.level = 20
+            ret.problem_level = 20
         return ret
 
 

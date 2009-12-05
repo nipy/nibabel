@@ -15,11 +15,11 @@ To run checks and fixes, returning fixed object, problem report object, with pos
    >>> fixed_obj, report_seq = btrun.check_fix(obj, checks)
 
 Reports are iterable things, where the elements in the iterations are
-``Problems``, with attributes ``obj``, ``error``, ``level``, ``problem_msg``,
-and possibly empty ``fix_msg``.  The ``level`` is an integer, giving
-the level of remaining problem, from 0 (no problem) to 50 (very bad
-problem).  The ``error`` can be one of ``None`` if no error to
-suggest, or an Exception class that the user might consider raising
+``Problems``, with attributes ``obj``, ``error``, ``problem_level``,
+``problem_msg``, and possibly empty ``fix_msg``.  The ``problem_level`` is an
+integer, giving the level of remaining problem, from 0 (no problem) to
+50 (very bad problem).  The ``error`` can be one of ``None`` if no error
+to suggest, or an Exception class that the user might consider raising
 for this sitation.  The ``problem_msg`` and ``fix_msg`` are human
 readable strings that should explain what happened.
 
@@ -39,11 +39,11 @@ For example, for the Analyze header, we need to check the datatype::
         try:
             dtype = AnalyzeHeader._data_type_codes.dtype[code]
         except KeyError:
-            ret.level = 40
+            ret.problem_level = 40
             ret.problem_msg = 'data code not recognized'
         else:
             if dtype.type is np.void:
-                ret.level = 40
+                ret.problem_level = 40
                 ret.problem_msg = 'data code not supported'
         if fix:
             ret.fix_problem_msg = 'not attempting fix'
@@ -57,7 +57,7 @@ For example, for the Analyze header, we need to check the datatype::
         try:
             dt = AnalyzeHeader._data_type_codes.dtype[code]
         except KeyError:
-            ret.level = 10
+            ret.problem_level = 10
             ret.problem_msg = 'no valid datatype to fix bitpix'
         bitpix = dt.itemsize * 8
         ret = Report(hdr)
@@ -65,10 +65,10 @@ For example, for the Analyze header, we need to check the datatype::
             return ret
         ret.problem_msg = 'bitpix does not match datatype')
         if not fix:
-            ret.level = 10
+            ret.problem_level = 10
             return ret
         hdr['bitpix'] = bitpix # inplace modification
-        ret.level = 0
+        ret.problem_level = 0
         ret.fix_msg = 'setting bitpix to match datatype'
         return ret
 
@@ -83,7 +83,7 @@ For example, for the Analyze header, we need to check the datatype::
             hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
             ret.fix_msg = 'setting to abs of pixdim values'
             return ret
-        ret.level = 40
+        ret.problem_level = 40
         return ret
 
 '''        
@@ -107,7 +107,7 @@ def chk1(obj, fix=True):
         obj['testkey'] = 1
         ret.fix_msg = 'added "testkey"'
     else:
-        ret.level = 20
+        ret.problem_level = 20
     return ret
 
 def chk2(obj, fix=True):
@@ -122,7 +122,7 @@ def chk2(obj, fix=True):
             obj['testkey'] = 1
             ret.fix_msg = 'added "testkey"'
         else:
-            ret.level = 20
+            ret.problem_level = 20
         return ret
     if ok:
         return ret
@@ -132,7 +132,7 @@ def chk2(obj, fix=True):
         ret.fix_msg = 'set "testkey" to 0'
         obj['testkey'] = 0
     else:
-        ret.level = 10
+        ret.problem_level = 10
     return ret
 
 def chk_warn(obj, fix=True):
@@ -144,7 +144,7 @@ def chk_warn(obj, fix=True):
         obj['anotherkey'] = 'a string'
         ret.fix_msg = 'added "anotherkey"'
     else:
-        ret.level = 30
+        ret.problem_level = 30
     return ret
 
 def chk_error(obj, fix=True):
@@ -156,7 +156,7 @@ def chk_error(obj, fix=True):
         obj['anotherkey'] = 'a string'
         ret.fix_msg = 'added "anotherkey"'
     else:
-        ret.level = 40
+        ret.problem_level = 40
     return ret
 
 
@@ -180,7 +180,7 @@ def test_report_strings():
     rep = Report('', ValueError, 20, 'msg', 'fix')
     rep.write_raise(str_io)
     yield assert_equal, str_io.getvalue(), ''
-    rep.level = 30
+    rep.problem_level = 30
     rep.write_raise(str_io)
     yield assert_equal, str_io.getvalue(), 'Level 30: msg; fix\n'
     str_io.truncate(0)
@@ -191,7 +191,7 @@ def test_report_strings():
     rep.fix_msg = 'fix'
     str_io.truncate(0)
     # If we drop the level, nothing goes to the log
-    rep.level = 20
+    rep.problem_level = 20
     rep.write_raise(str_io)
     yield assert_equal, str_io.getvalue(), ''
     # Unless we set the default log level in the call
@@ -217,10 +217,11 @@ def test_logging():
     rep = Report('', ValueError, 20, 'msg', 'fix')
     str_io = StringIO()
     logger = logging.getLogger('test.logger')
+    logger.setLevel(30) # defaultish level
     logger.addHandler(logging.StreamHandler(str_io))
     rep.log_raise(logger)
     yield assert_equal, str_io.getvalue(), ''
-    rep.level = 30
+    rep.problem_level = 30
     rep.log_raise(logger)
     yield assert_equal, str_io.getvalue(), 'msg; fix\n'
     str_io.truncate(0)

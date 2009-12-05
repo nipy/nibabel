@@ -1291,7 +1291,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr['scl_slope'] = 1
             ret.fix_msg = 'setting "scl_slope" to 1'
         else:
-            ret.level = 30
+            ret.problem_level = 30
         return ret
 
     @staticmethod
@@ -1305,7 +1305,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr['scl_inter'] = 0
             ret.fix_msg = 'setting "scl_inter" to 0'
         else:
-            ret.level = 30
+            ret.problem_level = 30
         return ret
 
     @staticmethod
@@ -1318,7 +1318,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr['pixdim'][0] = 1
             ret.fix_msg = 'setting qfac to 1'
         else:
-            ret.level = 20
+            ret.problem_level = 20
         return ret
 
     @staticmethod
@@ -1331,7 +1331,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                 return ret
             ret.problem_msg = ('vox offset should be 0 (is %s)'
                                'with two-file nifti images' % offset)
-            ret.level = 40
+            ret.problem_level = 40
             if fix: 
                 ret.fix_msg = 'leaving at current value'
         elif magic == 'n+1': # one file
@@ -1346,7 +1346,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                     # limitations?
                     ret.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
-                    ret.level = 30
+                    ret.problem_level = 30
                     if fix:
                         ret.fix_msg = 'leaving at current value'
                     return ret
@@ -1356,10 +1356,10 @@ class Nifti1Header(SpmAnalyzeHeader):
                 hdr['vox_offset'] = 352                
                 ret.fix_msg = 'setting to minimum value of 352'
             else:
-                ret.level = 50
+                ret.problem_level = 50
         else: # unrecognized nii magic string, oh dear
             ret.problem_msg = 'magic string %s is not valid' % magic
-            ret.level = 50
+            ret.problem_level = 50
             if fix:
                 ret.fix_msg = 'leaving as is, but future errors are likely'
         return ret
@@ -1375,7 +1375,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr['qform_code'] = 0
             ret.fix_msg = 'setting to 0'
         else:
-            ret.level = 30
+            ret.problem_level = 30
         return ret
 
     @classmethod
@@ -1389,7 +1389,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr['sform_code'] = 0
             ret.fix_msg = 'setting to 0'
         else:
-            ret.level = 30
+            ret.problem_level = 30
         return ret
 
 
