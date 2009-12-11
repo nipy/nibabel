@@ -140,17 +140,15 @@ def test_eye():
     yield assert_true, np.allclose(nq.quat2mat(qi), np.eye(3))
 
 
-@slow
 def test_qrotate():
     vecs = np.eye(3)
     for vec in np.eye(3):
         for M, q in eg_pairs:
             vdash = nq.rotate_vector(vec, q)
-            vM = np.dot(M, vec.reshape(3,1))[:,0]
+            vM = np.dot(M, vec)
             yield assert_array_almost_equal, vdash, vM
 
 
-@slow
 def test_quaternion_reconstruction():
     # Test reconstruction of arbitrary unit quaternions
     for q in unit_quats:

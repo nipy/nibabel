@@ -130,7 +130,7 @@ def quat2mat(q):
     '''
     w, x, y, z = q
     Nq = w*w + x*x + y*y + z*z
-    if Nq == 0.0:
+    if Nq < FLOAT_EPS:
         return np.eye(3)
     s = 2.0/Nq
     X = x*s
@@ -198,7 +198,7 @@ def mat2quat(M):
         [Qxx-Qyy-Qzz, 0, 0, 0],
         [Qyx+Qxy, Qyy-Qxx-Qzz, 0, 0],
         [Qzx+Qxz, Qzy+Qyz, Qzz-Qxx-Qyy, 0],
-        [Qyz-Qzy, Qzx-Qxz, Qxy-Qyx, Qxx+Qyy+Qzz]]) / 3
+        [Qyz-Qzy, Qzx-Qxz, Qxy-Qyx, Qxx+Qyy+Qzz]]) / 3.0
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
     # Select largest eigenvector, reorder to w,x,y,z quaternion
