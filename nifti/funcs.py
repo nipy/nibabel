@@ -91,3 +91,31 @@ def concat_images(images):
     klass = img0.__class__
     return klass(out_data, affine, header)
 
+
+def four_to_three(img):
+    ''' Create 3D images from 4D image by slicing over last axis
+
+    Parameters
+    ----------
+    img :  image
+       4D image instance of some class with methods ``get_data``,
+       ``get_header`` and ``get_affine``, and a class constructor
+       allowing Klass(data, affine, header)
+
+    Returns
+    -------
+    imgs : list
+       list of 3D images
+    '''
+    arr = img.get_data()
+    header = img.get_header()
+    affine = img.get_affine()
+    image_maker = img.__class__
+    if arr.ndim != 4:
+        raise ValueError('Expecting four dimensions')
+    imgs = []
+    for i in range(arr.shape[3]):
+        arr3d = arr[...,i]
+        img3d = image_maker(arr3d, affine, header)
+        imgs.append(img3d)
+    return imgs

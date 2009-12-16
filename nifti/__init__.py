@@ -14,9 +14,9 @@ Python. The :class:`~nifti.image.NiftiImage` class provides pythonic
 access to the full header information and for a maximum of interoperability the
 image data is made available via NumPy arrays.
 
-==============
- Volumeimages
-==============
+===============================
+ pynifti python implementation
+===============================
 
 Quickstart::
 
@@ -59,4 +59,4 @@ from nifti.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from nifti.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nifti.nifti1 import Nifti1Header, Nifti1Image
 from nifti.minc import MincHeader, MincImage
-from nifti.funcs import squeeze_image, concat_images
+from nifti.funcs import squeeze_image, concat_images, four_to_three
