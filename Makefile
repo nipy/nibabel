@@ -78,7 +78,7 @@ testmanual: build
 
 
 coverage: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-coverage
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-coverage --cover-package=nibabel
 
 
 #
