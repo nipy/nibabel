@@ -12,14 +12,14 @@ databases, or file-like objects.
 An image can exist without a filename, when we create the image in memory::
 
    import numpy as np
-   import nifti
+   import nibabel
    data = np.arange(24).reshape((2,3,4))
-   img = nifti.Nifti1Image(data, np.eye(4))
+   img = nibabel.Nifti1Image(data, np.eye(4))
 
 Some images will have filenames.  For example, if we load an image from
 disk, there is a natural association with the filename::
 
-   img = nifti.load('somefile.nii')
+   img = nibabel.load('somefile.nii')
 
 We could get the filenames with one of::
 
@@ -51,7 +51,7 @@ In this case I think getters and setters are more pleasant.
 The filename should probably follow the image around even if the image
 in memory has diverged very far from the image on disk::
 
-   img = nifti.load('somefile.nii')
+   img = nibabel.load('somefile.nii')
    idata = img.get_data()
    idata[:] = 0
    hdr = img.get_header()
@@ -62,7 +62,7 @@ The ``set_filename`` method follows a standard algorithm for deciding on
 filenames based on a template name.  Imagine a hidden attribute,
 ``_files``, like this::
 
-   img = nifti.load('somefile.img')
+   img = nibabel.load('somefile.img')
    assert set(img._files.keys()) == set(['header', 'image'])
    assert img._files['image'] == 'somefile.img'
    assert img._files['header'] == 'somefile.hdr'
@@ -77,7 +77,7 @@ binary DICOM file.  How would that work? The current ``SpatialImage``
 implementation goes like this::
 
    files = {'image':'dicom_file.dcm', 'header':'dicom_file.hdr'}
-   img = nifti.Nifti1Image.from_files(files)
+   img = nibabel.Nifti1Image.from_files(files)
 
 In this case, what to do with ``get_filename``.  Consider this situation::
 
@@ -86,7 +86,7 @@ In this case, what to do with ``get_filename``.  Consider this situation::
 Seems reasonable.  How about this?::
 
    files = {'image':'dicom_file', 'header':'dicom_file.hdr'}
-   img = nifti.Nifti1Image.from_files(files)
+   img = nibabel.Nifti1Image.from_files(files)
    assert img.get_filename() == 'dicom_file'
    img.set_filename('dicom_file')
    assert img.get_filename() = 'dicom_file.nii'
@@ -99,7 +99,7 @@ wrapping some other storage mechanism in file-like objects::
 
    from StringIO import StringIO
    files = {'image':StringIO(), 'header':StringIO()}
-   img = nifti.Nifti1Image(data, np.eye(4))
+   img = nibabel.Nifti1Image(data, np.eye(4))
    img.to_files(files)
    
 In this last case, there is obviously not a valid filename::
@@ -111,17 +111,17 @@ Questions
 
 Can we set the filename from the class ``__init__()``?  For example::
 
-   img = nifti.Nifti1Image(data, np.eye(4), filename='my_image.nii')
+   img = nibabel.Nifti1Image(data, np.eye(4), filename='my_image.nii')
 
 If so, does it just use ``set_filename`` - i.e. is this confusing?::
 
-   img = nifti.Nifti1Image(data, np.eye(4), filename='my_image')
+   img = nibabel.Nifti1Image(data, np.eye(4), filename='my_image')
    assert img.get_filename() == 'my_image.nii'
 
 Can we also set what I have called ``_files`` from the ``init``?::
 
    files = {'image':'dicom_file', 'header':'dicom_file.hdr'}
-   img = nifti.Nifti1Image(data, np.eye(4), files=files)
+   img = nibabel.Nifti1Image(data, np.eye(4), files=files)
 
 Probably not, the ``Nifti1Image.from_files`` constructor seems to cover
 that one.

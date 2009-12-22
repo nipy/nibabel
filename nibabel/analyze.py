@@ -86,27 +86,27 @@ would raise some error, with output to logging (see below).
 We set the error level (the level of problem that the ``check=True``
 versions will accept as OK) from global defaults::
 
-   nifti.imageglobals.error_level = 30
+   nibabel.imageglobals.error_level = 30
 
 The same for logging::
 
-   nifti.logger = logger
+   nibabel.logger = logger
 
 '''
 
 import numpy as np
 
-from nifti.volumeutils import pretty_mapping, endian_codes, \
+from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, allopen
 
-from nifti.header_ufuncs import read_data, write_data, adapt_header
+from nibabel.header_ufuncs import read_data, write_data, adapt_header
 
-from nifti import imageglobals as imageglobals
-from nifti.spatialimages import SpatialImage
-from nifti import filetuples # module import
+from nibabel import imageglobals as imageglobals
+from nibabel.spatialimages import SpatialImage
+from nibabel import filetuples # module import
 
-from nifti.batteryrunners import BatteryRunner, Report
+from nibabel.batteryrunners import BatteryRunner, Report
 
 # Sub-parts of standard analyze header from 
 # Mayo dbh.h file

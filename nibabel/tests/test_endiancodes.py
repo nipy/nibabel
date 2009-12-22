@@ -6,7 +6,7 @@ import numpy as np
 
 from nose.tools import assert_raises, assert_true
 
-from nifti.volumeutils import endian_codes, \
+from nibabel.volumeutils import endian_codes, \
      native_code, swapped_code
 
 def test_native_swapped():

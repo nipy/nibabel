@@ -6,15 +6,15 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nifti.testing import assert_equal, assert_true, assert_false, \
+from nibabel.testing import assert_equal, assert_true, assert_false, \
      assert_raises, assert_not_equal
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nifti.volumeutils import swapped_code, \
+from nibabel.volumeutils import swapped_code, \
      native_code, HeaderDataError
 
-from nifti.header_ufuncs import read_data, \
+from nibabel.header_ufuncs import read_data, \
     write_data, write_scaled_data
 
 class _TestBinaryHeader(object):

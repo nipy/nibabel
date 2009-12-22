@@ -6,16 +6,16 @@ Author: Matthew Brett
 import numpy as np
 import numpy.linalg as npl
 
-from nifti.volumeutils import Recoder, make_dt_codes, \
+from nibabel.volumeutils import Recoder, make_dt_codes, \
      HeaderDataError, HeaderTypeError, allopen
-from nifti.batteryrunners import Report
-from nifti.quaternions import fillpositive, quat2mat, mat2quat
-from nifti import analyze # module import
-from nifti.spm99analyze import SpmAnalyzeHeader
-from nifti import filetuples # module import
-from nifti.spatialimages import SpatialImage
+from nibabel.batteryrunners import Report
+from nibabel.quaternions import fillpositive, quat2mat, mat2quat
+from nibabel import analyze # module import
+from nibabel.spm99analyze import SpmAnalyzeHeader
+from nibabel import filetuples # module import
+from nibabel.spatialimages import SpatialImage
 
-from nifti.header_ufuncs import write_data, adapt_header
+from nibabel.header_ufuncs import write_data, adapt_header
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -191,7 +191,7 @@ class Nifti1Extension(object):
         code : int|str
           Canonical extension code as defined in the NIfTI standard, given
           either as integer or corresponding label
-          (see :data:`~nifti.nifti1.extension_codes`)
+          (see :data:`~nibabel.nifti1.extension_codes`)
         content : str
           Extension content as read from the NIfTI file header. This content is
           converted into a runtime representation.

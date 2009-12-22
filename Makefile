@@ -66,11 +66,11 @@ test: unittest testmanual
 
 
 ut-%: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti/tests/test_$*.py
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests nibabel/tests/test_$*.py
 
 
 unittest: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests nifti --with-doctest
+	@PYTHONPATH=.:$(PYTHONPATH) nosetests nibabel --with-doctest
 
 testmanual: build
 # go into data, because docs assume now data dir

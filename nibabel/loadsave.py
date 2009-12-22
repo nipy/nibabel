@@ -1,8 +1,8 @@
 # module imports
-from nifti import volumeutils as vu
-from nifti import spm2analyze as spm2
-from nifti import nifti1
-from nifti import minc
+from nibabel import volumeutils as vu
+from nibabel import spm2analyze as spm2
+from nibabel import nifti1
+from nibabel import minc
 
 
 def load(filespec, *args, **kwargs):

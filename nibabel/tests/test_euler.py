@@ -4,8 +4,8 @@ import math
 import numpy as np
 from numpy import pi
 
-import nifti.eulerangles as nea
-import nifti.quaternions as nq
+import nibabel.eulerangles as nea
+import nibabel.quaternions as nq
 
 from nose.tools import assert_true, assert_false, assert_equal
 

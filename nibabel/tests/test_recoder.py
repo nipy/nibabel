@@ -2,7 +2,7 @@
 
 from nose.tools import assert_equal, assert_raises
 
-from nifti.volumeutils import Recoder
+from nibabel.volumeutils import Recoder
 
 def test_recoder():
     # simplest case, no aliases

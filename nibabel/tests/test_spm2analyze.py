@@ -1,6 +1,6 @@
 ''' Tests for SPM2 header stuff '''
 
-from nifti.spm2analyze import Spm2AnalyzeHeader
+from nibabel.spm2analyze import Spm2AnalyzeHeader
 
 from test_spm99analyze import TestSpm99AnalyzeHeader
 

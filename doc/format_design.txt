@@ -40,9 +40,9 @@ simplicity, and to make clear that the data load may take a long time.
 Example code::
 
    import numpy as np
-   from nifti import Image
-   from nifti.formats import Nifti1
-   from nifti.ref import mni
+   from nibabel import Image
+   from nibabel.formats import Nifti1
+   from nibabel.ref import mni
    arr = np.arange(24).reshape(2,3,4)
    img = Image(data = arr)
    assert img.affine is None
@@ -101,7 +101,7 @@ objects.
 With this model, we may often find ourselves using the Format object for
 format-specific tasks::
 
-   from nifti.formats import Nifti1
+   from nibabel.formats import Nifti1
    fmt = Nifti1.from_filename('some_file.nii')
    fmt.set_qform(np.eye(4))
    fmt.set_sform(np.eye(4) * 2)

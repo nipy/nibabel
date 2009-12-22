@@ -20,21 +20,21 @@ image data is made available via NumPy arrays.
 
 Quickstart::
 
-   import nifti
+   import nibabel
 
-   img1 = nifti.load('my_file.nii')
-   img2 = nifti.load('other_file.nii.gz')
-   img3 = nifti.load('spm_file.img')
+   img1 = nibabel.load('my_file.nii')
+   img2 = nibabel.load('other_file.nii.gz')
+   img3 = nibabel.load('spm_file.img')
 
    data = img1.get_data()
    affine = img1.get_affine()
 
    print img1
 
-   nifti.save(img1, 'my_file_copy.nii.gz')
+   nibabel.save(img1, 'my_file_copy.nii.gz')
 
-   new_image = nifti.Nifti1Image(data, affine)
-   nifti.save(new_image, 'new_image.nii.gz')
+   new_image = nibabel.Nifti1Image(data, affine)
+   nibabel.save(new_image, 'new_image.nii.gz')
 """
 
 __docformat__ = 'restructuredtext'
@@ -47,16 +47,16 @@ __version__ = '0.20090303.1'
 
 
 # module imports
-from nifti import analyze as ana
-from nifti import spm99analyze as spm99
-from nifti import spm2analyze as spm2
-from nifti import nifti1 as ni1
-from nifti import minc
+from nibabel import analyze as ana
+from nibabel import spm99analyze as spm99
+from nibabel import spm2analyze as spm2
+from nibabel import nifti1 as ni1
+from nibabel import minc
 # object imports
-from nifti.loadsave import load, save
-from nifti.analyze import AnalyzeHeader, AnalyzeImage
-from nifti.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
-from nifti.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-from nifti.nifti1 import Nifti1Header, Nifti1Image
-from nifti.minc import MincHeader, MincImage
-from nifti.funcs import squeeze_image, concat_images, four_to_three
+from nibabel.loadsave import load, save
+from nibabel.analyze import AnalyzeHeader, AnalyzeImage
+from nibabel.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
+from nibabel.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
+from nibabel.nifti1 import Nifti1Header, Nifti1Image
+from nibabel.minc import MincHeader, MincImage
+from nibabel.funcs import squeeze_image, concat_images, four_to_three

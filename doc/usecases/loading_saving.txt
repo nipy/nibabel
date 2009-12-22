@@ -14,8 +14,8 @@ image data) without incurring the full cost of the load from disk.
 
 So, the image object can be lightweight::
 
-   import nifti
-   img = nifti.load('some_image.nii')
+   import nibabel
+   img = nibabel.load('some_image.nii')
 
 In this case, the ``img`` object has not yet loaded the data from disk.
 We may use the ``get_data()`` method to get the data, or something fancy
@@ -31,8 +31,8 @@ For example, we often need to get filenames for images when passing
 images to external programs. Imagine a realignment::
 
    import nipy
-   img1 = nifti.load('meanfunctional.nii')
-   img2 = nifti.load('anatomical.nii')
+   img1 = nibabel.load('meanfunctional.nii')
+   img2 = nibabel.load('anatomical.nii')
    realigner = nipy.interfaces.fsl.flirt()
    params = realigner.run(source=img1, target=img2)
 
@@ -68,17 +68,17 @@ you that the image might not correspond to the disk file.  We set this
 flag when anyone asks for the data, on the basis that the user may then
 do something to the data and you can't know if they have::
 
-   img = nifti.load('some_image.nii')
+   img = nibabel.load('some_image.nii')
    data = img.get_data()
    data[:] = 0
-   img2 = nifti.load('some_image.nii')
+   img2 = nibabel.load('some_image.nii')
    assert not np.all(img2.get_data() == img.get_data())
 
 The image consists of the data, the affine and a header.  In order to
 keep track of the header and affine, we could cache them when loading
 the image::
 
-   img = nifti.load('some_image.nii')
+   img = nibabel.load('some_image.nii')
    hdr = img.get_header()
    assert img._cache['header'] == img.get_header()
    hdr.set_data_dtype(np.complex64)
@@ -96,7 +96,7 @@ with large header extensions are *not* the same as for on disk.
 
 The user can override the result of these checks directly::
 
-   img = nifti.load('some_image.nii')
+   img = nibabel.load('some_image.nii')
    assert img.is_dirty == False
    hdr = img.get_header()
    hdr.set_data_dtype(np.complex64)

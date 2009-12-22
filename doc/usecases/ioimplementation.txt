@@ -39,8 +39,8 @@ By use case.
     Creating array image, saving
 
     >>> import tempfile
-    >>> from nifti.images import Image
-    >>> from nifti import load, save
+    >>> from nibabel.images import Image
+    >>> from nibabel import load, save
     >>> fp, fname = tempfile.mkstemp('.nii')
     >>> data = np.arange(24).reshape((2,3,4))
     >>> img = Image(data)
@@ -96,7 +96,7 @@ By use case.
 
     This is an example where you do need the io API
 
-    >>> from nifti.ioimps import guessed_imp
+    >>> from nibabel.ioimps import guessed_imp
     >>> fp, fname3 = tempfile.mkstemp('.nii')
     >>> ioimp = guessed_imp(fname3)
     >>> ioimg.set_data_dtype(np.float)

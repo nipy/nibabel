@@ -328,7 +328,7 @@ def quat2euler(q):
     large.
     '''
     # delayed import to avoid cyclic dependencies
-    import nifti.quaternions as nq
+    import nibabel.quaternions as nq
     return mat2euler(nq.quat2mat(q))
 
 
@@ -362,7 +362,7 @@ def euler2angle_axis(z=0, y=0, x=0):
     True
     '''
     # delayed import to avoid cyclic dependencies
-    import nifti.quaternions as nq
+    import nibabel.quaternions as nq
     return nq.quat2angle_axis(euler2quat(z, y, x))
 
     
@@ -400,6 +400,6 @@ def angle_axis2euler(theta, vector, is_normalized=False):
     repetition is large.
     '''
     # delayed import to avoid cyclic dependencies
-    import nifti.quaternions as nq
+    import nibabel.quaternions as nq
     M = nq.angle_axis2mat(theta, vector, is_normalized)
     return mat2euler(M)

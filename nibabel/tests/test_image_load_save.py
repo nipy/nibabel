@@ -7,14 +7,14 @@ from StringIO import StringIO
 
 import numpy as np
 
-import nifti as nf
-import nifti.analyze as ana
-import nifti.spm99analyze as spm99
-import nifti.spm2analyze as spm2
-import nifti.nifti1 as ni1
-import nifti.loadsave as nils
+import nibabel as nf
+import nibabel.analyze as ana
+import nibabel.spm99analyze as spm99
+import nibabel.spm2analyze as spm2
+import nibabel.nifti1 as ni1
+import nibabel.loadsave as nils
 
-from nifti.volumeutils import native_code, swapped_code
+from nibabel.volumeutils import native_code, swapped_code
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises

@@ -5,7 +5,7 @@
 A draft.
 '''
 
-import nifti.ioimps as ioimps
+import nibabel.ioimps as ioimps
 
 class ImageError(Exception):
     pass

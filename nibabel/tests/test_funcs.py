@@ -4,9 +4,9 @@ from StringIO import StringIO
 
 import numpy as np
 
-import nifti as nf
+import nibabel as nf
 
-from nifti.funcs import concat_images
+from nibabel.funcs import concat_images
 
 from numpy.testing import assert_array_equal
 from nose.tools import assert_true, assert_equal, assert_raises

@@ -5,7 +5,7 @@ import numpy.testing.decorators as dec
 
 from scipy.io.netcdf import netcdf_file as netcdf
 
-from nifti import load, MincHeader, Nifti1Image
+from nibabel import load, MincHeader, Nifti1Image
 
 from nose.tools import assert_true, assert_equal, assert_false
 from numpy.testing import assert_array_equal

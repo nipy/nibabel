@@ -14,7 +14,7 @@
 import sys, os, re
 import numpy as N
 # also import pynifti itself to get the version string
-import nifti
+import nibabel
 
 try:
     import matplotlib
@@ -285,9 +285,9 @@ copyright = '2006-2009, Michael Hanke'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = nifti.__version__
+version = nibabel.__version__
 # The full version, including alpha/beta/rc tags.
-release = nifti.__version__
+release = nibabel.__version__
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

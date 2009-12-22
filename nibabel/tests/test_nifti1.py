@@ -9,11 +9,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import assert_true, assert_equal, assert_raises, ok_
 
-import nifti.testing as vit
+import nibabel.testing as vit
 
-from nifti.volumeutils import HeaderDataError
-import nifti.nifti1 as nifti1
-from nifti.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
+from nibabel.volumeutils import HeaderDataError
+import nibabel.nifti1 as nifti1
+from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
         data_type_codes, extension_codes
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH

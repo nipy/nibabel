@@ -33,15 +33,15 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nifti.testing import assert_equal, assert_true, assert_false, \
+from nibabel.testing import assert_equal, assert_true, assert_false, \
      assert_raises
 
 from numpy.testing import assert_array_equal
 
-from nifti.volumeutils import HeaderDataError, HeaderTypeError
+from nibabel.volumeutils import HeaderDataError, HeaderTypeError
 
-from nifti.analyze import AnalyzeHeader, AnalyzeImage
-from nifti.header_ufuncs import read_data, write_data, write_scaled_data
+from nibabel.analyze import AnalyzeHeader, AnalyzeImage
+from nibabel.header_ufuncs import read_data, write_data, write_scaled_data
 
 from test_binary import _TestBinaryHeader
 

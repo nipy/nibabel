@@ -22,7 +22,7 @@ and class methods::
     
 '''
 
-from nifti.headers import Header
+from nibabel.headers import Header
 
 class BinaryHeader(Header):
     pass

@@ -38,6 +38,5 @@ setup(name       = 'nibabel',
         "everything the C library can do), it already provides access to " \
         "the most important features of the NIfTI-1 data format and " \
         "libniftiio capabilities.",
-    packages     = ['nifti'],
-    scripts      = glob('bin/*'),
+    packages     = ['nibabel'],
     )
