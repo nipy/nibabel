@@ -22,9 +22,9 @@ from numpy.distutils.core import setup
 # Version scheme is:
 # 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
 
-setup(name       = 'pynifti',
+setup(name       = 'nibabel',
     version      = '0.2009xxxx.1',
-    author       = 'Michael Hanke and Matthew Brett',
+    author       = 'Matthew Brett and Michael Hanke',
     author_email = 'PyNIfTI List <pkg-exppsy-pynifti@lists.alioth.debian.org>',
     license      = 'MIT License',
     url          = 'http://niftilib.sf.net/pynifti',
