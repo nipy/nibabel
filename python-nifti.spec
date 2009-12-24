@@ -1,8 +1,8 @@
-%define modname pynifti
-Name:           python-nifti
+%define modname nibabel
+Name:           python-nibabel
 URL:            http://niftilib.sf.net/pynifti/
-Summary:        Python interface to the NIfTI I/O libraries
-Version:        0.20090303.1
+Summary:        Access a multitude of neuroimaging data formats
+Version:        1.0.0
 Release:        1
 License:        MIT License
 Group:          Development/Libraries/Python
@@ -19,15 +19,10 @@ BuildRequires:  atlas lapack
 BuildRequires:  python-numpy
 Requires:       python-numpy
 %endif  
-BuildRequires:  python-devel swig nifticlib-devel
-BuildRequires:  zlib-devel
-Requires:       nifticlib
-BuildRequires:  gcc-c++
+BuildRequires:  python-devel
 
 %description
-Using PyNIfTI one can easily read and write NIfTI and ANALYZE images from
-within Python. The NiftiImage class provides Python-style access to the full
-header information. Image data is made available via NumPy arrays.
+ADD ME
 
 %prep
 %setup -q -n %{modname}-%{version}

@@ -39,11 +39,8 @@ Quickstart::
 
 __docformat__ = 'restructuredtext'
 
-# expose the two main classes
-#from nifti.image import NiftiImage, MemMappedNiftiImage
-
 # canonical version string
-__version__ = '0.20090303.1'
+__version__ = '1.0.0'
 
 
 # module imports
