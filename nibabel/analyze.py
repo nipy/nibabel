@@ -1224,8 +1224,7 @@ class AnalyzeImage(SpatialImage):
     def save(klass, img, filename):
         warnings.warn('``save`` class method is deprecated\n'
                       'You probably want the ``to_filename`` instance '
-                      'method, or the module-level ``save``, or \n'
-                      'the ``instance_to_filename`` class method',
+                      'method, or the module-level ``save`` function',
                       DeprecationWarning)
         klass.instance_to_filename(img, filename)
 
