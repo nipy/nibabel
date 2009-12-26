@@ -125,4 +125,4 @@ class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
 
 
 load = Spm2AnalyzeImage.load
-save = Spm2AnalyzeImage.save
+save = Spm2AnalyzeImage.instance_to_filename

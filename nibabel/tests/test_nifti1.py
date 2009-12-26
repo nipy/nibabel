@@ -270,7 +270,7 @@ def test_nifti1_images():
     for ext in ('.gz', '.bz2'):
         try:
             _, fname = tempfile.mkstemp('.nii' + ext)
-            img.to_filespec(fname)
+            img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
             yield assert_true, isinstance(img3, img.__class__)
             yield assert_array_equal, img3.get_data(), data

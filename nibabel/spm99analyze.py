@@ -274,4 +274,4 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
 
 load = Spm99AnalyzeImage.load
-save = Spm99AnalyzeImage.save
+save = Spm99AnalyzeImage.instance_to_filename

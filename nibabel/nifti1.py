@@ -1520,4 +1520,4 @@ class Nifti1Image(analyze.AnalyzeImage):
 
 
 load = Nifti1Image.load
-save = Nifti1Image.save
+save = Nifti1Image.instance_to_filename

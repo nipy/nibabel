@@ -94,6 +94,8 @@ The same for logging::
 
 '''
 
+import warnings
+
 import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
@@ -1133,10 +1135,27 @@ class AnalyzeImage(SpatialImage):
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
-    def to_filespec(self, filespec):
-        ''' Write image to files given by filespec
+    def to_filespec(self, filename):
+        warnings.warn('``to_filespec`` is deprecated, please '
+                      'use ``to_filename`` instead',
+                      DeprecationWarning)
+        self.to_filename(filename)
+
+    def to_filename(self, filename):
+        ''' Write image to files implied by filename string
+
+        Paraameters
+        -----------
+        filename : str
+           filename to which to save image.  We will parse `filename`
+           with ``filespec_to_files`` to work out names for image,
+           header etc.
+
+        Returns
+        -------
+        None
         '''
-        files = self.filespec_to_files(filespec)
+        files = self.filespec_to_files(filename)
         self.to_files(files)
 
     def to_files(self, files=None):
@@ -1202,10 +1221,19 @@ class AnalyzeImage(SpatialImage):
         return klass.from_filespec(filespec)
 
     @classmethod
-    def save(klass, img, filespec):
+    def save(klass, img, filename):
+        warnings.warn('``save`` class method is deprecated\n'
+                      'You probably want the ``to_filename`` instance '
+                      'method, or the module-level ``save``, or \n'
+                      'the ``instance_to_filename`` class method',
+                      DeprecationWarning)
+        klass.instance_to_filename(img, filename)
+
+    @classmethod
+    def instance_to_filename(klass, img, filename):
         img = klass.from_image(img)
-        img.to_filespec(filespec)
+        img.to_filename(filename)
 
 
 load = AnalyzeImage.load
-save = AnalyzeImage.save
+save = AnalyzeImage.instance_to_filename
