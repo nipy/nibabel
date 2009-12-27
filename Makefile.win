@@ -1,4 +1,4 @@
-# Makefile to build PyNIfTI under Windows using a standard Python
+# Makefile to build NiBabel under Windows using a standard Python
 # distribution and MinGW
 #
 # Adjust this path to match the version and location of your Python

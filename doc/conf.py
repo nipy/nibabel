@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# PyNIfTI documentation build configuration file, created by
+# NiBabel documentation build configuration file, created by
 # sphinx-quickstart on Sun May  4 09:06:06 2008.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -13,7 +13,7 @@
 
 import sys, os, re
 import numpy as N
-# also import pynifti itself to get the version string
+# also import nibabel itself to get the version string
 import nibabel
 
 try:
@@ -94,7 +94,7 @@ def smoothName(s):
 
 def segmentItemList(lines, name):
     """Parse the lines of a block into segment items of the format
-    used in PyMVPA::
+    used in NiBabel::
 
       name[: type]
         (multiline) description
@@ -278,7 +278,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 
 # General substitutions.
-project = 'PyNIfTI'
+project = 'NiBabel'
 copyright = '2006-2009, Michael Hanke'
 
 # The default replacements for |version| and |release|, also used in various
@@ -322,7 +322,7 @@ pygments_style = 'sphinx'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'pynifti.css'
+html_style = 'nibabel.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -363,7 +363,7 @@ html_use_modindex = False
 #html_use_opensearch = False
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PyNIfTIdoc'
+htmlhelp_basename = 'NiBabeldoc'
 
 
 # Options for LaTeX output
@@ -378,7 +378,7 @@ latex_font_size = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('manual', 'PyNIfTI-Manual.tex', 'PyNIfTI Manual',
+  ('manual', 'NiBabel-Manual.tex', 'NiBabel Manual',
    'Michael~Hanke', 'manual'),
 ]
 

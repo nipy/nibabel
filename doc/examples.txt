@@ -2,7 +2,7 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   #
-  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   See COPYING file distributed along with the NiBabel package for the
   #   copyright and license terms.
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -12,11 +12,11 @@
 Examples
 ********
 
-The next sections contains some examples showing ways to use PyNIfTI to
+The next sections contains some examples showing ways to use NiBabel to
 read and write imaging data from within Python to be able to process it with
 some random Python library.
 
-All examples assume that you have imported the PyNIfTI module by invoking:
+All examples assume that you have imported the NiBabel module by invoking:
 
   >>> from cnifti import *
 
@@ -36,7 +36,7 @@ and we've got the path to the nifti example data:
 Loading and saving NIfTI files
 ==============================
 
-First we will open the tiny example NIfTI file that is included in the PyNIfTI
+First we will open the tiny example NIfTI file that is included in the NiBabel
 source tarball. No filename extension is necessary as libniftiio determines it
 automatically:
 
@@ -253,20 +253,20 @@ that displays a statistical map and one could click on some activated voxel
 and the peristimulus signal timecourse of some condition in that voxel would
 be displayed.
 
-This can easily be done by using ``pynifti_pst`` and ``FSLView``.
+This can easily be done by using ``nibabel_pst`` and ``FSLView``.
 
-``pynifti_pst`` comes with a manpage that explains all options and arguments.
-Basically ``pynifti_pst`` needs a 4d image (e.g. an fMRI timeseries; possibly
+``nibabel_pst`` comes with a manpage that explains all options and arguments.
+Basically ``nibabel_pst`` needs a 4d image (e.g. an fMRI timeseries; possibly
 preprocessed/filtered) and some stimulus onset information. This information
 can either be given directly on the command line or is read from files.
 Additionally one can specify onsets as volume numbers or as onset times.
 
-``pynifti_pst`` understands the FSL custom EV file format so one can easily
+``nibabel_pst`` understands the FSL custom EV file format so one can easily
 use those files as input.
 
 An example call could look like this::
 
-  pynifti_pst --times --nvols 5 -p uf92.feat/filtered_func_data.nii.gz \
+  nibabel_pst --times --nvols 5 -p uf92.feat/filtered_func_data.nii.gz \
       pst_cond_a.nii.gz uf92.feat/custom_timing_files/ev1.txt \
       uf92.feat/custom_timing_files/ev2.txt
 
@@ -281,7 +281,7 @@ volume.
 
 .. figure:: pics/fslview_pst.png
 
-   FSLView with ``pynifti_pst`` example.
+   FSLView with ``nibabel_pst`` example.
 
 This call produces a simple 4d NIfTI image that can be loaded into FSLView as
 any other timeseries. The following call can be used to display an FSL zmap

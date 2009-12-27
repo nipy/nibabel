@@ -2,20 +2,20 @@
 #ex: set sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#   See COPYING file distributed along with the PyNIfTI package for the
+#   See COPYING file distributed along with the NiBabel package for the
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """This module provides Python bindings to the NIfTI data format.
 
-The PyNIfTI module is a Python interface to the NIfTI I/O libraries. Using
-PyNIfTI, one can easily read and write NIfTI and ANALYZE images from within
+The NiBabel module is a Python interface to the NIfTI I/O libraries. Using
+NiBabel, one can easily read and write NIfTI and ANALYZE images from within
 Python. The :class:`~nifti.image.NiftiImage` class provides pythonic
 access to the full header information and for a maximum of interoperability the
 image data is made available via NumPy arrays.
 
 ===============================
- pynifti python implementation
+ nibabel python implementation
 ===============================
 
 Quickstart::

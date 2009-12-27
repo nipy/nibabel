@@ -2,7 +2,7 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   #
-  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   See COPYING file distributed along with the NiBabel package for the
   #   copyright and license terms.
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -13,10 +13,10 @@
 Installation
 ************
 
-It should be fairly easy to get PyNIfTI running on any system. For the most
+It should be fairly easy to get NiBabel running on any system. For the most
 popular platforms and operating systems there are binary packages provided in
 the respective native packaging format (DEB, RPM or installers). On all other
-systems PyNIfTI has to be compiled from source -- which should also be pretty
+systems NiBabel has to be compiled from source -- which should also be pretty
 straightforward.
 
 
@@ -28,22 +28,22 @@ Binary packages
 GNU/Linux
 ---------
 
-PyNIfTI is available in recent versions of the Debian (since lenny) and
+NiBabel is available in recent versions of the Debian (since lenny) and
 Ubuntu (since gutsy in universe) distributions. The name of the binary package
 is ``python-nifti`` in both cases.
 
-* PyNIfTI `versions in Debian`_
+* NiBabel `versions in Debian`_
 
-* PyNIfTI `versions in Ubuntu`_
+* NiBabel `versions in Ubuntu`_
 
 Binary packages for some additional Debian and (K)Ubuntu versions are also
 available. Please visit `Michael Hanke's APT repository`_ to read about how
-you have to setup your system to retrieve the PyNIfTI package via your package
+you have to setup your system to retrieve the NiBabel package via your package
 manager and stay in sync with future releases.
 
 If you are using Debian lenny (or later) or Ubuntu gutsy (or later) or you
 have configured your system for `Michael Hanke's APT repository`_ all you
-have to do to install PyNIfTI is this::
+have to do to install NiBabel is this::
 
   apt-get update
   apt-get install python-nifti
@@ -64,7 +64,7 @@ packages first download it from the `OpenSUSE software website`_. Please note,
 that this site does not only offer OpenSUSE packages, but also binaries for
 other distributions, including: CentOS 5, Fedora 9-10, Mandriva 2007-2008, RedHat
 Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE 10.2 up to 11.0.  Once
-downloaded, open a console and invoke (the example command refers to PyMVPA
+downloaded, open a console and invoke (the example command refers to NiBabel
 0.3.1)::
 
   rpm -i python-nifti-0.20080710.1-4.1.i386.rpm
@@ -72,7 +72,7 @@ downloaded, open a console and invoke (the example command refers to PyMVPA
 The OpenSUSE website also offers `1-click-installations`_ for distributions
 supporting it.
 
-A more convenient way to install PyNIfTI and automatically receive software
+A more convenient way to install NiBabel and automatically receive software
 updates is to included one of the `RPM-package repositories`_ in the system's
 package management configuration. For e.g. OpenSUSE 11.0, simply use Yast to add
 another repository, using the following URL:
@@ -80,7 +80,7 @@ another repository, using the following URL:
   http://download.opensuse.org/repositories/home:/hankem/openSUSE_11.0/
 
 For other distributions use the respective package managers (e.g. Yum) to setup
-the repository URL.  The repositories include all core dependencies of PyNIfTI,
+the repository URL.  The repositories include all core dependencies of NiBabel,
 if they are not available from other repositories
 of the respective distribution. There are two different repository groups, one
 for `Suse and Mandriva-related packages`_ and another one for `Fedora, Redhat
@@ -114,13 +114,13 @@ In addition you'll need NumPy_. Download a matching NumPy windows installer for
 your Python version (in this case 2.5) from the `SciPy download page`_ and
 install it.
 
-PyNIfTI does not come with the required `zlib` library, so you also need to
+NiBabel does not come with the required `zlib` library, so you also need to
 download and install it. A binary installer is available from the `GnuWin32
 project`_. Install it in some arbitrary folder (just the binaries nothing
 else), find the `zlib1.dll` file in the `bin` subdirectory and move it in the
 Windows `system32` directory.
 
-Now, you can use the PyNIfTI windows installer to install PyNIfTI on your
+Now, you can use the NiBabel windows installer to install NiBabel on your
 system.  As always: click *Next* as long as necessary and finally *Finish*.  If
 done, verify that everything went fine by opening a command promt and start
 Python by typing `python` and hit enter. Now you should see the Python prompt.
@@ -145,17 +145,17 @@ APT which are used in most GNU/Linux distributions. However, rather than
 installing binary packages, it compiles software from source on the target
 machine. 
 
-*The MacPort of PyNIfTI is kindly maintained by James Kyle <jameskyle@ucla.edu>.*
+*The MacPort of NiBabel is kindly maintained by James Kyle <jameskyle@ucla.edu>.*
 
 .. _MacPorts: http://www.macports.org
 
-In the context of PyNIfTI MacPorts is much easier to handle than the previously
+In the context of NiBabel MacPorts is much easier to handle than the previously
 available installer for Macs.  Although the initial overhead to setup MacPorts
-on a machine is higher than simply installing PyNIfTI using the former
+on a machine is higher than simply installing NiBabel using the former
 installer, MacPorts saves the user a significant amount of time (in the long
 run). This is due to the fact that this framework will not only take care of
-updating a PyNIfTI installation automatically whenever a new release is
-available. It will also provide many of the optional dependencies of PyNIfTI
+updating a NiBabel installation automatically whenever a new release is
+available. It will also provide many of the optional dependencies of NiBabel
 (e.g. NumPy_, nifticlibs) in the same environment and therefore abolishes the
 need to manually check dozens of websites for updates and deal with an
 unbelievable number of different installation methods.
@@ -180,10 +180,10 @@ A typical `.bash_profile` set up for MacPorts might look like::
 Be sure to source your .bash_profile or close Terminal.app and reopen it for
 these changes to take effect.
 
-Once MacPorts is installed and your environment is properly configured, PyNIfTI
+Once MacPorts is installed and your environment is properly configured, NiBabel
 is installed using a single command::
 
-  > $ sudo port install py25-pynifti
+  > $ sudo port install py25-nibabel
 
 If this is your first time using MacPorts Python 2.5 will be automatically
 installed for you. However, an additional step is needed::
@@ -196,12 +196,12 @@ MacPorts has the ability of installing several Python versions at a time, the
 `/opt/local/bin/python`) points to your preferred version.
 
 Upon success, open a terminal window and start Python by typing `python` and
-hit return. Now try to import the PyNIfTI module by doing:
+hit return. Now try to import the NiBabel module by doing:
 
   >>> import nifti
   >>>
 
-If no error messages appear, you have succesfully installed PyNIfTI.
+If no error messages appear, you have succesfully installed NiBabel.
 
 
 .. _requirements:
@@ -210,7 +210,7 @@ If no error messages appear, you have succesfully installed PyNIfTI.
 Compile from source
 ===================
 
-If no binary packages are provided for your platfom, you can build PyNIfTI from
+If no binary packages are provided for your platfom, you can build NiBabel from
 source. It needs a few things to build and run properly:
 
 *  Python_ 2.4 or greater
@@ -218,7 +218,7 @@ source. It needs a few things to build and run properly:
 *  SWIG_ 1.3.29 (or later)
 *  `NIfTI C libraries`_
      Proper developer packages are prefered, but for convenience reasons a
-     minimal copy is included in the PyNIfTI source package.
+     minimal copy is included in the NiBabel source package.
 
 .. _NumPy: http://numpy.scipy.org
 .. _SWIG: http://www.swig.org
@@ -226,24 +226,24 @@ source. It needs a few things to build and run properly:
 Get the sources
 ---------------
 
-Since June 2007 PyNIfTI is part of the niftilibs_ family. The source code of
-PyNIfTI releases can be obtained from the corresponding Sourceforge_ project
+Since June 2007 NiBabel is part of the niftilibs_ family. The source code of
+NiBabel releases can be obtained from the corresponding Sourceforge_ project
 site. Alternatively, one can also download a tarball of the latest development
-snapshot_ (i.e. the current state of the *master* branch of the PyNIfTI source
+snapshot_ (i.e. the current state of the *master* branch of the NiBabel source
 code repository).
 
 .. _Sourceforge: http://sourceforge.net/
 .. _snapshot:  http://git.debian.org/?p=pkg-exppsy/pynifti.git;a=snapshot;h=refs/heads/master;sf=tgz
 
-If you want to have access to both, the full PyNIfTI history and the latest
-development code, you can use the PyNIfTI Git_ repository on the Alioth_
+If you want to have access to both, the full NiBabel history and the latest
+development code, you can use the NiBabel Git_ repository on the Alioth_
 server, a service kindly provided by the `Debian project`_.
 To view the repository, please point your web browser to gitweb:
 
   http://git.debian.org/?p=pkg-exppsy/pynifti.git
 
 The gitweb browser also allows to download arbitrary development snapshots
-of PyNIfTI. For a full clone (aka checkout) of the PyNIfTI repository simply
+of NiBabel. For a full clone (aka checkout) of the NiBabel repository simply
 do::
 
   git clone http://git.debian.org/git/pkg-exppsy/pynifti.git
@@ -261,7 +261,7 @@ Make sure that the compiled nifticlibs and the corresponding headers are
 available to your compiler. If they are located in a custom directory, you
 might have to specify ``--include-dirs`` and ``--library-dirs`` options to
 the build command below. In case, you want to build and use the nifticlibs
-copy that is shipped with PyNIfTI, this is automatically done for you.
+copy that is shipped with NiBabel, this is automatically done for you.
 
 Once you have downloaded the sources, extract the tarball and enter the root
 directory of the extracted sources. If you *do not* have the nifticlibs
@@ -300,7 +300,7 @@ Building on Windows Systems
 
 On Windows the whole situation is a little more tricky, as the system doesn't
 come with a compiler by default. Nevertheless, it is easily possible to build
-PyNIfTI from source. One could use the Microsoft compiler that comes with
+NiBabel from source. One could use the Microsoft compiler that comes with
 Visual Studio to do it, but as this is commercial software and not everybody
 has access to it, I will outline a way that exclusively involves free and open
 source software.
@@ -315,9 +315,9 @@ choose to install the `current` package. You will need the *MinGW base tools*,
 section, we will assume that MinGW got installed in `C:\\MinGW` and the
 directory `C:\\MinGW\\bin` has been added to the `PATH` environment variable,
 to be able to easily access all MinGW tools. Note, that it is not necessary to
-install `MSYS`_ to build PyNIfTI, but it might handy to have it.
+install `MSYS`_ to build NiBabel, but it might handy to have it.
 
-In addition, PyNIfTI needs the developer version of the `zlib` library, so you
+In addition, NiBabel needs the developer version of the `zlib` library, so you
 also need to download and install it. A binary installer is available from the
 `GnuWin32 project`_. It is best to install it into the same directory as MinGW
 (i.e. `C:\\MinGW` in this example), as all paths will be automatically
@@ -329,8 +329,8 @@ downloaded and add the root directory of the extracted sources to the `PATH`
 environment variable (make sure that this directory contains `swig.exe`, if
 not, you haven't downloaded `swigwin`).
 
-Now, we are ready to build PyNIfTI. The easiest way to do this, is to make use
-of the `Makefile.win` that is shipped with PyNIfTI to build a binary installer
+Now, we are ready to build NiBabel. The easiest way to do this, is to make use
+of the `Makefile.win` that is shipped with NiBabel to build a binary installer
 package (`.exe`). Make sure, that the settings at the top of `Makefile.win`
 (the file is located in the root directory of the source distribution)
 correspond to your Python installation -- if not, first adjust them accordingly
@@ -365,15 +365,15 @@ Otherwise follow the :ref:`general build instructions <buildfromsource>`.
 MacOS X and MacPython
 ---------------------
 
-When you are comiling PyNIfTI on MacOS X and want to use it with MacPython,
+When you are comiling NiBabel on MacOS X and want to use it with MacPython,
 please make sure that the NIfTI C libraries are compiled as fat binaries
-(compiled for both *ppc* and *i386*). Otherwise PyNIfTI extensions will not
+(compiled for both *ppc* and *i386*). Otherwise NiBabel extensions will not
 compile.
 
 One can achieve this by adding both architectures to the ``CFLAGS`` definition
 in the toplevel Makefile of the NIfTI C library source code or in the file
 `3rd/nifticlibs/Makefile` if you are using the nifticlibs copy that is shipped
-with the PyNIfTI sources. Like this::
+with the NiBabel sources. Like this::
 
   CFLAGS=-Wall -O2 -I. -DHAVE_ZLIB -arch ppc -arch i386
 
@@ -384,6 +384,6 @@ Troubleshooting
 If you get an error when importing the ``nifti`` module in Python
 complaining about missing symbols your niftiio library contains references to
 some unresolved symbols. Try adding ``znzlib`` and ``zlib`` to the
-linker options the PyNIfTI ``setup.py``, like this::
+linker options the NiBabel ``setup.py``, like this::
 
   libraries = [ 'niftiio', 'znz', 'z' ],

@@ -2,18 +2,18 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   #
-  #   See COPYING file distributed along with the PyMVPA package for the
+  #   See COPYING file distributed along with the NiBabel package for the
   #   copyright and license terms.
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 **********************************
- PDF version of the PyNIfTI Manual
+ PDF version of the NiBabel Manual
 **********************************
 
 The PDF version of the manual is available for download_.
 
-.. _download: PyNIfTI-Manual.pdf
+.. _download: NiBabel-Manual.pdf
 
 
 .. toctree::

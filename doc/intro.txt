@@ -2,7 +2,7 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   #
-  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   See COPYING file distributed along with the NiBabel package for the
   #   copyright and license terms.
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -10,7 +10,7 @@
 .. _intro:
 
 *********************************************
-What is NIfTI and what do I need PyNIfTI for?
+What is NIfTI and what do I need NiBabel for?
 *********************************************
 
 NIfTI
@@ -58,36 +58,36 @@ able to combine as many tools as necessary to solve a given problem
 .. _RPy: http://rpy.sourceforge.net/
 
 
-PyNIfTI
+NiBabel
 =======
 
-PyNIfTI aims to provide easy access to NIfTI images from within Python. It uses
+NiBabel aims to provide easy access to NIfTI images from within Python. It uses
 SWIG_-generated wrappers for the NIfTI reference library and provides the
 :class:`~nifti.image.NiftiImage` class for Python-style access to the
 image data.
 
-While PyNIfTI is not yet complete (i.e. doesn't support everything the
+While NiBabel is not yet complete (i.e. doesn't support everything the
 C library can do), it already provides access to the most important features
 of the NIfTI-1 data format and *libniftiio* capabilities. The following
 features are currently implemented:
 
 
 
-* PyNIfTI can read and write any file format supported by libniftiio. This
+* NiBabel can read and write any file format supported by libniftiio. This
   includes NIfTI (single and pairs) as well as ANALYZE files, both also in
   gzipped versions.
 
-* PyNIfTI provides fast and convenient access to the image data via NumPy_
+* NiBabel provides fast and convenient access to the image data via NumPy_
   arrays. This should enable users to process image data with most (if not
   all) numerical routines available for Python. The NumPy array automatically
   uses a datatype corresponding to the NIfTI image data -- no unnecessary
   upcasting is performed.
 
-* PyNIfTI provides full read and write access to the NIfTI header data. Header
+* NiBabel provides full read and write access to the NIfTI header data. Header
   information can be exported to a Python dictionary and can also be updated
   by using information from a dictionary.
 
-* Besides accessing NIfTI data from files, PyNIfTI is able to create NIfTI
+* Besides accessing NIfTI data from files, NiBabel is able to create NIfTI
   images from NumPy arrays. The appropriate NIfTI header information is
   determined from the array properties. Additional header information can be
   optionally specified -- making it easy to clone NIfTI images if necessary,
@@ -101,7 +101,7 @@ features are currently implemented:
 * All properties are accessible via Python-style datatypes: A 4x4 matrix is
   an array not 16 individual numbers.
 
-* PyNIfTI should be resonably fast. Image data will only be loaded into the
+* NiBabel should be resonably fast. Image data will only be loaded into the
   memory if necessary. Simply opening a NIfTI file to access some header data
   is performed with virtually no delay independent of the size of the image.
   Unless image resizing or datatype conversion must be performed the image
@@ -109,12 +109,12 @@ features are currently implemented:
   therefore memory won't be wasted memory with redundant copies of the image
   data.
 
-* Additionally PyNIfTI can access uncompressed NIfTI or ANALYZE files by
+* Additionally NiBabel can access uncompressed NIfTI or ANALYZE files by
   providing memory-mapped access to them via NumPy's memmap arrays. In this
   mode it is possible to modified existing files of any size without having
   to load them in memory first.
 
-* PyNIfTI allows to embed arbitrary additional information into the NIfTI file
+* NiBabel allows to embed arbitrary additional information into the NIfTI file
   header.
 
 .. _SWIG: http://www.swig.org
@@ -124,15 +124,15 @@ features are currently implemented:
 Scripts
 =======
 
-Some functions provided by PyNIfTI also might be useful outside the Python
+Some functions provided by NiBabel also might be useful outside the Python
 environment and it might be useful to export them via some command line scripts.
 
-Currently there is only one: ``pynifti_pst`` (pst: peristimulus timecourse).
+Currently there is only one: ``nibabel_pst`` (pst: peristimulus timecourse).
 Using this script one can compute the signal timecourse for a certain condition
 for all voxels in a volume at once. Although it is done by simply averaging the
 timecourses of the involved events (nothing fancy), this might nevertheless be
 useful for exploring a dataset and accompanies similar tools like FSL's
-``tsplot``.  The output of ``pynifti_pst`` can be loaded into FSLView to
+``tsplot``.  The output of ``nibabel_pst`` can be loaded into FSLView to
 simultaneously look at statistics and signal timecourses. Please see the
 corresponding example below.
 
@@ -140,7 +140,7 @@ corresponding example below.
 Known issues
 ============
 
-PyNIfTI currently ignores the origin field of ANALYZE files - it is neither
+NiBabel currently ignores the origin field of ANALYZE files - it is neither
 read nor written. A possible workaround is to convert ANALYZE files into the
 NIfTI format using FSL's ``fslchfiletype``.
 
