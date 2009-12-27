@@ -45,7 +45,7 @@ Making an affine when there is no stored affine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If there is no affine information, we have to make some best-guess
-affine for the image.. In this case, the image is assumed to be saved
+affine for the image. In this case, the image is assumed to be saved
 (fastest to slowest changing) in X, Y, Z dimension order, and we
 construct a 4x4 affine ``aff`` where ``aff[:3,:3]`` is a diagonal matrix
 with the X, Y, Z zooms (voxel sizes) as entries - ``diag(aff)``.  The
@@ -93,23 +93,23 @@ Affines for Analyze, SPM analyze, and NIFTI
 Analyze images can't have an affine, so the above always applies to
 Analyze images.
 
-Spm99 images are unpleasantly confusing, because they may have an
-affine stored in a 'image.mat' file, in a matrix called 'M', but the
+SPM99 images are unpleasantly confusing, because they may have an
+affine stored in a 'some_image.mat' file, in a matrix called 'M', but the
 affine for the image, is given by (from the code above)
 ``np.dot(x_flipper, M)`` - that is - the affine gives the
 transformations to be applied before any left-right flipping, where
 left-right flipping is determined by the ``default_x_flip`` above.
 Horrible.
 
-Spm2 images are a bit more straightforward, in that there may be an
-affine, again stored in the 'image.mat' file, but, if the image has
+SPM2 images are a bit more straightforward, in that there may be an
+affine, again stored in the 'some_image.mat' file, but, if the image has
 been written in SPM2, or by us, in SPM2 format, then there should be a
 'mat' matrix in that file, that has the full affine, which is
 unaffected by the ``default_x_flip``.   However, if we are loading
 what appears to be an SPM99 image, that only has a mat file with an
 'M' matrix, we apply the default flip as above.
 
-Whenever we save an SPM99 image, we save an SPM2-like .mat file, with
+Whenever we save an SPM99 image, we save an SPM2-like ``.mat`` file, with
 both the flip-specifying 'mat' matrix, and the pre-flip 'M' matrix,
 because this is still backwards compatible, and might be less liable
 to chaos if someone changes the default flip setting.
