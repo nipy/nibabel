@@ -102,7 +102,8 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, allopen
 
-from nibabel.header_ufuncs import read_data, write_data, adapt_header
+from nibabel.header_ufuncs import read_data, read_unscaled_data, \
+    write_data, adapt_header
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage
@@ -1073,6 +1074,41 @@ class AnalyzeImage(SpatialImage):
         self._data = read_data(self._header, allopen(fname))
         return self._data
 
+    def get_unscaled_data(self):
+        """ Return image data without image scaling applied
+
+        Summary: please use the ``get_data`` method instead of this
+        method unless you are sure what you are doing, and that you will
+        only be using image formats for which this method exists and
+        returns sensible results.
+        
+        Use this method with care; the modified Analyze-type formats
+        such as SPM formats, and nifti1, specify that the image data
+        array, as they are expecting to return it, is given by the raw
+        data on disk, multiplied by a scalefactor and maybe with the
+        addition of a constant.  This method returns the data on the
+        disk, without these format-specific scalings applied.  Please
+        use this method only if you absolutely need the unscaled data,
+        and the magnitude of the data, as given by the scalefactor, is
+        not relevant to your application.  The Analyze-type formats have
+        a single scalefactor +/- offset per image on disk. If you do not
+        care about the absolute values, and will be removing the mean
+        from the data, then the unscaled values will have preserved
+        intensity ratios compared to the mean-centered scaled data.
+        However, this is not necessarily true of other formats with more
+        complicated scaling - such as MINC.
+
+        Note that - unlike the scaled ``get_data`` method, we do not
+        cache the array, to minimize the memory taken by the object.
+        """
+        if not self._files:
+            return None
+        try:
+            fname = self._files['image']
+        except KeyError:
+            return None
+        return read_unscaled_data(self._header, allopen(fname))
+        
     def get_header(self):
         ''' Return header
 
