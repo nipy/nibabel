@@ -2,14 +2,14 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   #
-  #   See COPYING file distributed along with the PyNIfTI package for the
+  #   See COPYING file distributed along with the NiBabel package for the
   #   copyright and license terms.
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 
-The PyNIfTI module is a Python_ interface to the `NIfTI I/O libraries`_.  Using
-PyNIfTI, one can easily read and write NIfTI and ANALYZE images from within
+The NiBabel module is a Python_ interface to the `NIfTI I/O libraries`_.  Using
+NiBabel, one can easily read and write NIfTI and ANALYZE images from within
 Python. The :class:`~nifti.image.NiftiImage` class provides pythonic access to
 the full header information and for a maximum of interoperability the image
 data is made available via NumPy_ arrays.
@@ -33,8 +33,8 @@ Documentation
 Author and License
 ==================
 
-PyNIfTI is written and maintained by `Michael Hanke`_. The author is grateful
-to the following people who have contributed to PyNIfTI (in order of
+NiBabel is written and maintained by `Michael Hanke`_. The author is grateful
+to the following people who have contributed to NiBabel (in order of
 appearance):
 
 * `Yaroslav O. Halchenko`_
@@ -45,7 +45,7 @@ appearance):
 .. _Yaroslav O. Halchenko: http://www.onerussian.com
 .. _Gaël Varoquaux: http://gael-varoquaux.info/
 
-PyNIfTI is free-software (beer and speech) and covered by the `MIT License`_.
+NiBabel is free-software (beer and speech) and covered by the `MIT License`_.
 This applies to all source code, documentation, examples and snippets inside
 the source distribution (including this website). Please see the
 :ref:`appendix of the manual <license>` for the copyright statement and the
@@ -63,7 +63,7 @@ Binary packages
 Binary packages are available for:
 
 * Debian and Ubuntu (:ref:`installation instructions <install_debian>`)
-    PyMVPA is an `official Debian package`_ (`python-nifti`).
+    NiBabel is an `official Debian package`_ (`python-nifti`).
     Additionally, backports for some Debian and Ubuntu releases are also
     available. Please read the `package repository instructions`_ to learn
     about how to obtain them.
@@ -77,14 +77,14 @@ Binary packages are available for:
     `1-click-installations`_.
 
 * MacOS X (:ref:`installation instructions <install_macos>`)
-    PyNIfTI is available from the MacPorts_ framework.
+    NiBabel is available from the MacPorts_ framework.
 
 * Windows (:ref:`installation instructions <install_win>`)
     An installer for Python 2.5 is available from the `download area`_.
 
 If there are no binary packages for your particular operating system or
 platform, you need to compile your own. The manual contains :ref:`instructions
-<buildfromsource>` to build PyNIfTI in various environments.
+<buildfromsource>` to build NiBabel in various environments.
 
 .. _MacPorts: http://www.macports.org
 .. _official Debian package: http://packages.debian.org/python-nifti
@@ -98,27 +98,27 @@ platform, you need to compile your own. The manual contains :ref:`instructions
 Source code
 -----------
 
-Source code tarballs of PyNIfTI releases are available from the `download
+Source code tarballs of NiBabel releases are available from the `download
 area`_. Alternatively, one can also download a tarball of the latest
 development snapshot_ (i.e. the current state of the *master* branch of the
-PyNIfTI source code repository).
+NiBabel source code repository).
 
-To get access to both the full PyNIfTI history and the latest
-development code, the PyNIfTI Git_ repository is publicly available. To view the
+To get access to both the full NiBabel history and the latest
+development code, the NiBabel Git_ repository is publicly available. To view the
 repository, please point your webbrowser to gitweb:
 http://git.debian.org/?p=pkg-exppsy/pynifti.git
 
-To clone (aka checkout) the PyNIfTI repository simply do:
+To clone (aka checkout) the NiBabel repository simply do:
 
 ::
 
   git clone git://git.debian.org/git/pkg-exppsy/pynifti.git
 
 After a short while you will have a `pynifti` directory below your current
-working directory, that contains the PyNIfTI repository.
+working directory, that contains the NiBabel repository.
 
 More detailed instructions on :ref:`installation requirements <requirements>`
-and on how to :ref:`build PyNIfTI from source <buildfromsource>` are provided
+and on how to :ref:`build NiBabel from source <buildfromsource>` are provided
 in the manual.
 
 
@@ -132,7 +132,7 @@ Support
 =======
 
 If you have problems installing the software or questions about usage,
-documentation or something else related to PyNIfTI, you can post to the PyNIfTI
+documentation or something else related to NiBabel, you can post to the NiBabel
 mailing list.
 
 :Mailing list: pkg-exppsy-pynifti@lists.alioth.debian.org [subscription_,
@@ -141,7 +141,7 @@ mailing list.
 It is recommended that all users subscribe to the mailing list.  The mailing
 list is the preferred way to announce changes and additions to the project. The
 mailing list archive can also be searched using the *mailing list archive
-search* located in the sidebar of the PyNIfTI home page.
+search* located in the sidebar of the NiBabel home page.
 
 .. _subscription: http://lists.alioth.debian.org/mailman/listinfo/pkg-exppsy-pynifti
 .. _archive: http://lists.alioth.debian.org/pipermail/pkg-exppsy-pynifti/

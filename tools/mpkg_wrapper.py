@@ -2,11 +2,11 @@
 #ex: set sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#   See COPYING file distributed along with the PyNIfTI package for the
+#   See COPYING file distributed along with the NiBabel package for the
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Simple wrapper to use setuptools extension bdist_mpkg with PyNIfTI
+"""Simple wrapper to use setuptools extension bdist_mpkg with NiBabel
 distutils setup.py.
 
 This script is a minimal version of a wrapper script shipped with the
