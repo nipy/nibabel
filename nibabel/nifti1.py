@@ -82,7 +82,7 @@ _added_dtdefs = ( # code, label, dtype definition
     (512, 'uint16', np.uint16),
     (768, 'uint32', np.uint32),
     (1024,'int64', np.int64),
-    (1280, 'int64', np.uint64),
+    (1280, 'uint64', np.uint64),
     (1536, 'float128', _float128t), # Only numpy defined on 64 bit
     (1792, 'complex128', np.complex128),
     (2048, 'complex256', _complex256t), # 64 bit again
