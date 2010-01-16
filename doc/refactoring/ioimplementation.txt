@@ -99,7 +99,7 @@ By use case.
     >>> from nibabel.ioimps import guessed_imp
     >>> fp, fname3 = tempfile.mkstemp('.nii')
     >>> ioimp = guessed_imp(fname3)
-    >>> ioimg.set_data_dtype(np.float)
+    >>> ioimp.set_data_dtype(np.float)
     >>> ioimp.set_data_shape((2,3,4)) # set_data_shape method
     >>> slice_def = (slice(None), slice(None), 0)
     >>> ioimp.write_slice(data[slice_def], slice_def) # write_slice method

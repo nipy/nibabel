@@ -6,51 +6,47 @@ world space.  It also has a ``header`` - some standard set of meta-data
 that is specific to the image format - and ``extra`` - a dictionary
 container for any other metadata.
 
-It has attributes::
+It has attributes:
 
-    extra
-    filename (read only)
+   * extra
     
-and methods::
+methods:
 
-    .get_data()
-    .get_affine()
-    .get_header()
-    .to_files() # writes image out to passed or
-    .get_raw_data()
-    .write_data(fileobj)
-    .write_raw_data(fileobj)
+   * .get_data()
+   * .get_affine()
+   * .get_header()
+   * .get_shape()
+   * .set_shape(shape)
+   * .to_filename(fname) - writes data to filename(s) derived from
+     ``fname``, where the derivation may differ between formats.
+   * 
 
 There are several ways of writing data.
 =======================================
 
 There is the usual way, which is the default::
 
-    img.write_data(data, fileobj)
+    img.to_filename(fname)
 
-and that is, to take the data array, ``data``, and cast it to the
-datatype the header expects, setting any available header scaling
+and that is, to take the data encapsulated by the image and cast it to
+the datatype the header expects, setting any available header scaling
 into the header to help the data match.
 
 You can get the data out again with of::
 
     img.get_data(fileobj)
 
-Less commonly, you might want to fetch out the unscaled array via
-the header::
+Less commonly, for some image types that support it, you might want to
+fetch out the unscaled array via the header::
 
-    unscaled_data = img.get_raw_data(fileobj)
-
-then do something with it.  Then put it back again::
-
-    img.write_raw_data(modifed_unscaled_data, fileobj)
+    unscaled_data = img.get_unscaled_data()
 
 Sometimes you might to avoid any loss of precision by making the
 data type the same as the input::
 
     hdr = img.get_header()
     hdr.set_data_dtype(data.dtype)
-    img.write_data(data, fileobj)
+    img.to_filename(fname)
 
 '''
 
