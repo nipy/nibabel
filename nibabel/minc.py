@@ -256,11 +256,6 @@ class MincImage(SpatialImage):
         return self._header.get_data_dtype()
     
     @classmethod
-    def from_filespec(klass, filespec):
-        files = klass.filespec_to_files(filespec)
-        return klass.from_files(files)
-    
-    @classmethod
     def from_files(klass, files):
         fname = files['image']
         header = klass._header_maker.from_fileobj(allopen(fname))
@@ -269,20 +264,9 @@ class MincImage(SpatialImage):
         ret._files = files
         return ret
     
-    @classmethod
-    def from_image(klass, img):
-        return klass(img.get_data(),
-                     img.get_affine(),
-                     img.get_header(),
-                     img.extra)
-    
     @staticmethod
     def filespec_to_files(filespec):
         return {'image':filespec}
         
-    @classmethod
-    def load(klass, filespec):
-        return klass.from_filespec(filespec)
-
 
 load = MincImage.load

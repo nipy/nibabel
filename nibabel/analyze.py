@@ -19,7 +19,8 @@ the header.  The containing object manages the filenames, and
 therefore must know how to predict image filenames from header
 filenames, whether these are different, and so on.
 
-You can access and set fields of a particular header type using standard __getitem__ / __setitem__ syntax:
+You can access and set fields of a particular header type using standard
+__getitem__ / __setitem__ syntax:
 
     hdr['field'] = 10
 
@@ -1137,11 +1138,6 @@ class AnalyzeImage(SpatialImage):
         self._header.set_data_dtype(dtype)
     
     @classmethod
-    def from_filespec(klass, filespec):
-        files = klass.filespec_to_files(filespec)
-        return klass.from_files(files)
-    
-    @classmethod
     def from_files(klass, files):
         fname = files['header']
         header = klass._header_maker.from_fileobj(allopen(fname))
@@ -1149,14 +1145,6 @@ class AnalyzeImage(SpatialImage):
         ret =  klass(None, affine, header)
         ret._files = files
         return ret
-    
-    @classmethod
-    def from_image(klass, img):
-        orig_hdr = img.get_header()
-        return klass(img.get_data(),
-                     img.get_affine(),
-                     img.get_header(),
-                     img.extra)
     
     @staticmethod
     def filespec_to_files(filespec):
@@ -1170,29 +1158,6 @@ class AnalyzeImage(SpatialImage):
                              'Analyze ' % filespec)
         files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
-
-    def to_filespec(self, filename):
-        warnings.warn('``to_filespec`` is deprecated, please '
-                      'use ``to_filename`` instead',
-                      DeprecationWarning)
-        self.to_filename(filename)
-
-    def to_filename(self, filename):
-        ''' Write image to files implied by filename string
-
-        Paraameters
-        -----------
-        filename : str
-           filename to which to save image.  We will parse `filename`
-           with ``filespec_to_files`` to work out names for image,
-           header etc.
-
-        Returns
-        -------
-        None
-        '''
-        files = self.filespec_to_files(filename)
-        self.to_files(files)
 
     def to_files(self, files=None):
         ''' Write image to files passed, or self._files
@@ -1251,23 +1216,6 @@ class AnalyzeImage(SpatialImage):
             RZS = self._affine[:3,:3]
             vox = np.sqrt(np.sum(RZS * RZS, axis=0))
             hdr['pixdim'][1:4] = vox
-        
-    @classmethod
-    def load(klass, filespec):
-        return klass.from_filespec(filespec)
-
-    @classmethod
-    def save(klass, img, filename):
-        warnings.warn('``save`` class method is deprecated\n'
-                      'You probably want the ``to_filename`` instance '
-                      'method, or the module-level ``save`` function',
-                      DeprecationWarning)
-        klass.instance_to_filename(img, filename)
-
-    @classmethod
-    def instance_to_filename(klass, img, filename):
-        img = klass.from_image(img)
-        img.to_filename(filename)
 
 
 load = AnalyzeImage.load

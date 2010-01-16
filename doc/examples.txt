@@ -115,7 +115,7 @@ preserving as much header information as possible
   [ 4 32 32 16 10  1  1  1]
   >>> # a filename in our temporary directory
   >>> fname = pjoin(tmpdir, 'part.hdr.gz')
-  >>> nim2.to_filespec(fname)
+  >>> nim2.to_filename(fname)
 
 The :class:`~nifti.image.NiftiImage` constructor takes a dictionary with header
 information as an optional argument. Settings that are not determined by the

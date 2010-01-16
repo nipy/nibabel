@@ -214,8 +214,8 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
     _header_maker = Spm99AnalyzeHeader
     @classmethod
-    def from_filespec(klass, filespec):
-        ret = super(Spm99AnalyzeImage, klass).from_filespec(filespec)
+    def from_filename(klass, filename):
+        ret = super(Spm99AnalyzeImage, klass).from_filename(filename)
         import scipy.io as sio
         matf = ret._files['mat']
         try:
