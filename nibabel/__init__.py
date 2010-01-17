@@ -57,3 +57,4 @@ from nibabel.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nibabel.nifti1 import Nifti1Header, Nifti1Image
 from nibabel.minc import MincHeader, MincImage
 from nibabel.funcs import squeeze_image, concat_images, four_to_three
+from nibabel.affines import io_orientation
