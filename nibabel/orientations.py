@@ -70,8 +70,6 @@ def apply_orientation(arr, ornt):
     -------
     t_arr : ndarray
        array `arr` transformed according to ornt
-    transformation_affine : (4,4) ndarray
-       affine matrix mapping coordinates in `t_arr` to those in `arr`
     '''
     t_arr = np.asarray(arr)
     ornt = np.asarray(ornt)
@@ -83,7 +81,7 @@ def apply_orientation(arr, ornt):
     full_transpose = np.arange(t_arr.ndim)
     full_transpose[:3] = ornt[:,0]
     t_arr = t_arr.transpose(full_transpose)
-    return t_arr, orientation_affine(ornt, shape)
+    return t_arr
 
 
 def orientation_affine(ornt, shape):

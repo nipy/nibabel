@@ -1,4 +1,4 @@
-''' Testing for affines module '''
+''' Testing for orientations module '''
 
 import numpy as np
 
@@ -10,6 +10,36 @@ from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
                              apply_orientation)
 
 from nibabel.testing import parametric
+
+in_arrs = (np.eye(4),
+           [[0,0,1,0],
+            [0,1,0,0],
+            [1,0,0,0],
+            [0,0,0,1]],
+           [[0,1,0,0],
+            [0,0,1,0],
+            [1,0,0,0],
+            [0,0,0,1]],
+           [[1,1,0,0],
+            [1,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]]
+           )
+out_ornts = ([[0,1],
+              [1,1],
+              [2,1]],
+             [[2,1],
+              [1,1],
+              [0,1]],
+             [[2,1],
+              [0,1],
+              [1,1]],
+             [[0,1],
+              [1,1],
+              [2,1]]
+             )
+in_arrs = [np.array(arr) for arr in in_arrs]
+out_ornts = [np.array(ornt) for ornt in out_ornts]
 
 
 def same_transform(taff, ornt, shape):
@@ -23,8 +53,7 @@ def same_transform(taff, ornt, shape):
     size = np.prod(shape)
     arr = np.arange(size).reshape(shape)
     # apply ornt transformations
-    t_arr, taff2 = apply_orientation(arr, ornt)
-    assert np.all(taff2 == taff)
+    t_arr = apply_orientation(arr, ornt)
     # get all point indices in arr
     i,j,k = shape
     arr_pts = np.mgrid[:i,:j,:k].reshape((3,-1))
@@ -41,14 +70,10 @@ def same_transform(taff, ornt, shape):
 
 @parametric
 def test_apply():
-    # most tests are in the ``same_transform`` function, where we
-    # run a lot of orientation tests via test_io_orientation
+    # most tests are in ``same_transform`` above
+    a = np.arange(24).reshape((2,3,4))
     # Test 4D
-    a = np.arange(24).reshape((2,3,4,1))
-    ornt = [[0,1],
-            [1,1],
-            [2,1]]
-    t_arr, t_aff = apply_orientation(a, ornt)
+    t_arr = apply_orientation(a[:,:,:,None], ornt)
     yield assert_equal, t_arr.ndim, 4
 
 
@@ -78,24 +103,6 @@ def test_flip_axis():
 @parametric
 def test_io_orientation():
     shape = (2,3,4)
-    in_arrs = (np.eye(4),
-               np.array([[0,0,1,0],
-                         [0,1,0,0],
-                         [1,0,0,0],
-                         [0,0,0,1]]),
-               np.array([[0,1,0,0],
-                         [0,0,1,0],
-                         [1,0,0,0],
-                         [0,0,0,1]]))
-    out_ornts = (np.array([[0,1],
-                           [1,1],
-                           [2,1]]),
-                 np.array([[2,1],
-                           [1,1],
-                           [0,1]]),
-                 np.array([[2,1],
-                           [0,1],
-                           [1,1]]))
     for in_arr, out_ornt in zip(in_arrs, out_ornts):
         ornt = io_orientation(in_arr)
         yield assert_array_equal(ornt, out_ornt)
@@ -112,16 +119,4 @@ def test_io_orientation():
             yield assert_array_equal(ornt, ex_ornt)
             taff = orientation_affine(ornt, shape)
             yield assert_true(same_transform(taff, ornt, shape))
-    # tie breaks?
-    arr = [[1,1,0,0],
-           [1,1,0,0],
-           [0,0,1,0],
-           [0,0,0,1]]
-    exo = [[0,1],
-           [1,1],
-           [2,1]]
-    ornt = io_orientation(arr)
-    yield assert_array_equal(ornt, exo)
-    taff = orientation_affine(ornt, shape)
-    yield assert_true(same_transform(taff, ornt, shape))
            
