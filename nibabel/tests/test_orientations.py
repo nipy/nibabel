@@ -11,7 +11,7 @@ from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
 
 from nibabel.testing import parametric
 
-in_arrs = (np.eye(4),
+IN_ARRS = (np.eye(4),
            [[0,0,1,0],
             [0,1,0,0],
             [1,0,0,0],
@@ -25,7 +25,7 @@ in_arrs = (np.eye(4),
             [0,0,1,0],
             [0,0,0,1]]
            )
-out_ornts = ([[0,1],
+OUT_ORNTS = ([[0,1],
               [1,1],
               [2,1]],
              [[2,1],
@@ -38,8 +38,8 @@ out_ornts = ([[0,1],
               [1,1],
               [2,1]]
              )
-in_arrs = [np.array(arr) for arr in in_arrs]
-out_ornts = [np.array(ornt) for ornt in out_ornts]
+IN_ARRS = [np.array(arr) for arr in IN_ARRS]
+OUT_ORNTS = [np.array(ornt) for ornt in OUT_ORNTS]
 
 
 def same_transform(taff, ornt, shape):
@@ -103,7 +103,7 @@ def test_flip_axis():
 @parametric
 def test_io_orientation():
     shape = (2,3,4)
-    for in_arr, out_ornt in zip(in_arrs, out_ornts):
+    for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS):
         ornt = io_orientation(in_arr)
         yield assert_array_equal(ornt, out_ornt)
         taff = orientation_affine(ornt, shape)
