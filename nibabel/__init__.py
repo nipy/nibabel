@@ -56,6 +56,7 @@ from nibabel.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from nibabel.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nibabel.nifti1 import Nifti1Header, Nifti1Image
 from nibabel.minc import MincHeader, MincImage
-from nibabel.funcs import squeeze_image, concat_images, four_to_three
+from nibabel.funcs import (squeeze_image, concat_images, four_to_three,
+                           as_closest_xyz)
 from nibabel.affines import (io_orientation, orientation_affine, flip_axis,
                              apply_orientation)

@@ -154,19 +154,24 @@ def as_closest_xyz(img, enforce_diag=False):
     if np.all(ornt == [[0,1],
                        [1,1],
                        [2,1]]): # canonical already
-        return img
+        # however, the affine may not be diagonal
+        if not enforce_diag or _aff_is_diag(aff):
+            return img
     shape = img.get_shape()
     t_aff = orientation_affine(ornt, shape)
-    out_off = np.dot(aff, t_aff)
+    out_aff = np.dot(aff, t_aff)
     # check if we are going to end up with something diagonal
-    if enforce_diagonal:
-        rzs_aff = out_aff[:3,:3]
-        if not np.allclose(rzs_aff, np.diag(rzs_aff)):
+    if enforce_diag:
+        if not _aff_is_diag(aff):
             raise OrientationError('Transformed affine is not diagonal')
     # we need to transform the data
     arr = img.get_data()
     t_arr = apply_orientation(arr, ornt)
     return img.__class__(t_arr, out_aff, img.get_header())
 
-       
-    
+
+def _aff_is_diag(aff):
+    ''' Utility function returning True if affine is nearly diagonal '''
+    rzs_aff = aff[:3,:3]
+    return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
+

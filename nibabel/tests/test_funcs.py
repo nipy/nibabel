@@ -6,10 +6,14 @@ import numpy as np
 
 import nibabel as nf
 
-from nibabel.funcs import concat_images
+from nibabel.funcs import concat_images, as_closest_xyz, OrientationError
+from nibabel.nifti1 import Nifti1Image
 
 from numpy.testing import assert_array_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false,
+                        assert_equal, assert_raises)
+from nibabel.testing import parametric
+
 
 def test_concat():
     shape = (1,2,5)
@@ -28,5 +32,28 @@ def test_concat():
     img2 = nf.Nifti1Image(data1.T, affine)
     yield assert_raises, ValueError, concat_images, [img0, img2]
 
-    
-    
+
+@parametric
+def test_closest_xyz():
+    arr = np.arange(24).reshape((2,3,4,1))
+    # no funky stuff, returns same thing
+    img = Nifti1Image(arr, np.eye(4))
+    xyz_img = as_closest_xyz(img)
+    yield assert_true(img is xyz_img)
+    # a axis flip
+    img = Nifti1Image(arr, np.diag([-1,1,1,1]))
+    xyz_img = as_closest_xyz(img)
+    yield assert_false(img is xyz_img)
+    out_arr = xyz_img.get_data()
+    yield assert_array_equal(out_arr, np.flipud(arr))
+    # no error for enforce_diag in this case
+    xyz_img = as_closest_xyz(img, True)
+    # but there is if the affine is not diagonal
+    aff = np.eye(4)
+    aff[0,1] = 0.1
+    # although it's more or less canonical already
+    img = Nifti1Image(arr, aff)
+    xyz_img = as_closest_xyz(img)
+    yield assert_true(img is xyz_img)
+    # it's still not diagnonal
+    yield assert_raises(OrientationError, as_closest_xyz, img, True)

@@ -70,7 +70,8 @@ def same_transform(taff, ornt, shape):
 
 @parametric
 def test_apply():
-    # most tests are in ``same_transform`` above
+    # most tests are in ``same_transform`` above, via the
+    # test_io_orientations. 
     a = np.arange(24).reshape((2,3,4))
     # Test 4D
     t_arr = apply_orientation(a[:,:,:,None], ornt)
