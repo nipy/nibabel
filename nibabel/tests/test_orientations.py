@@ -6,7 +6,7 @@ from nose.tools import assert_true, assert_equal
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.affines import (io_orientation, orientation_affine, flip_axis,
+from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
                              apply_orientation)
 
 from nibabel.testing import parametric
