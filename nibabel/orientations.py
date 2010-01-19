@@ -47,7 +47,7 @@ def io_orientation(affine, tol=None):
     # extract the underlying rotation matrix
     RZS = affine[:n,:m]
     zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
-    RS = np.dot(RZS, np.diag(zooms))
+    RS = RZS / zooms
     # Transform below is polar decomposition, returning the closest
     # shearless matrix R to RS
     P, S, Qs = npl.svd(RS)
