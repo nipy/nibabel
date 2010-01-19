@@ -2,11 +2,7 @@
 import numpy as np
 
 from .orientations import (io_orientation, orientation_affine, flip_axis,
-                             apply_orientation)
-
-
-class OrientationError(Exception):
-    pass
+                            apply_orientation, OrientationError)
 
 
 def squeeze_image(img):
@@ -129,8 +125,10 @@ def four_to_three(img):
     return imgs
 
 
-def as_closest_xyz(img, enforce_diag=False):
-    ''' Return `img` with data reordered to be closest to XYZ order
+def as_closest_canonical(img, enforce_diag=False):
+    ''' Return `img` with data reordered to be closest to canonical
+
+    Canonical order is the ordering of the output axes.
 
     Parameters
     ----------
@@ -144,7 +142,7 @@ def as_closest_xyz(img, enforce_diag=False):
     canonical_img : ``spatialimage``
        Version of `img` where the underlying array may have been
        reordered and / or flipped so that axes 0,1,2 are those axes in
-       the input data that are, respectively, closest to X, Y, Z spatial
+       the input data that are, respectively, closest to the output axis
        orientation.  We modify the affine accordingly.  If `img` is
        already has the correct data ordering, we just return `img`
        unmodified.
@@ -155,15 +153,15 @@ def as_closest_xyz(img, enforce_diag=False):
                        [1,1],
                        [2,1]]): # canonical already
         # however, the affine may not be diagonal
-        if not enforce_diag or _aff_is_diag(aff):
-            return img
+        if enforce_diag and not _aff_is_diag(aff):
+            raise OrientationError('Transformed affine is not diagonal')
+        return img
     shape = img.get_shape()
     t_aff = orientation_affine(ornt, shape)
     out_aff = np.dot(aff, t_aff)
     # check if we are going to end up with something diagonal
-    if enforce_diag:
-        if not _aff_is_diag(aff):
-            raise OrientationError('Transformed affine is not diagonal')
+    if enforce_diag and not _aff_is_diag(aff):
+        raise OrientationError('Transformed affine is not diagonal')
     # we need to transform the data
     arr = img.get_data()
     t_arr = apply_orientation(arr, ornt)

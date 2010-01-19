@@ -4,18 +4,32 @@ import numpy as np
 import numpy.linalg as npl
 
 
-def io_orientation(affine):
-    ''' Return orientation of input axes in terms of output axes
-    for an affine transformation from m dimensions to n dimensions.
+class OrientationError(Exception):
+    pass
+
+
+def io_orientation(affine, tol=None):
+    ''' Orientation of input axes in terms of output axes for `affine`
+    
+    Valid for an affine transformation from ``m`` dimensions to ``n``
+    dimensions (``affine.shape == (n+1, m+1)``). 
 
     The calculated orientations can be used to transform associated
-    arrays to best match the output orientations. If n > m,
-    then some of the output axes should be considered dropped
-    in this orientation.
+    arrays to best match the output orientations. If ``n`` > ``m``, then
+    some of the output axes should be considered dropped in this
+    orientation.
 
     Parameters
     ----------
     affine : (n+1,m+1) ndarray-like
+       Transformation affine from ``m`` inputs to ``n`` outputs.
+       Usually this will be a shape (4,4) matrix, transforming 3 inputs
+       to 3 outputs, but the code also handles the more general case
+     tol : {None, float}, optional
+        threshold below which SVD values of the affine are considered
+        zero. If `tol` is None, and ``S`` is an array with singular
+        values for `affine`, and ``eps`` is the epsilon value for
+        datatype of ``S``, then `tol` set to ``S.max() * eps``.
 
     Returns
     -------
@@ -24,10 +38,9 @@ def io_orientation(affine):
        closest corresponding output axis, and the second value is 1 if
        the input axis is in the same direction as the corresponding
        output axis, , and -1 if it is in the opposite direction, to the
-       corresponding output axis.
-       if a row is [np.nan, np.nan], which can happen when n > m,
-       then this row should be considered dropped.
-
+       corresponding output axis.  If a row is [np.nan, np.nan], which
+       can happen when n > m, then this row should be considered
+       dropped.
     '''
     affine = np.asarray(affine)
     n, m = affine.shape[0]-1, affine.shape[1]-1
@@ -35,30 +48,22 @@ def io_orientation(affine):
     RZS = affine[:n,:m]
     zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
     RS = np.dot(RZS, np.diag(zooms))
-
     # Transform below is polar decomposition, returning the closest
-    # shearless matrix R to RS (XXX is "shearless" the right term here?)
-
+    # shearless matrix R to RS
     P, S, Qs = npl.svd(RS)
-
-    # Threshold the singular values to 
-    # determine the rank. 
-    # XXX is this tolerance sufficient?
-    keep = (S/S.max() > 1.0e-12)
+    # Threshold the singular values to determine the rank.
+    if tol is None:
+        tol = S.max() * np.finfo(S.dtype).eps
+    keep = (S > tol)
     R = np.dot(P[:,keep], Qs[keep])
-
-    # the matrix R is such that np.dot(R,R.T) is projection onto
-    # the columns of P[:,keep] and np.dot(R.T,R) is projection onto
-    # the rows of Qs[keep].
-
-    # R (== np.dot(R, np.eye(3))) gives rotation of the unit input
-    # vectors to output coordinates.  Therefore, the row index of abs max
-    # R[:,N], is the output axis changing most as input
+    # the matrix R is such that np.dot(R,R.T) is projection onto the
+    # columns of P[:,keep] and np.dot(R.T,R) is projection onto the rows
+    # of Qs[keep].  R (== np.dot(R, np.eye(m))) gives rotation of the
+    # unit input vectors to output coordinates.  Therefore, the row
+    # index of abs max R[:,N], is the output axis changing most as input
     # axis N changes.  In case there are ties, we choose the axes
     # iteratively, removing used axes from consideration as we go
-
     ornt = np.ones((n,2), dtype=np.int8)*np.nan
-
     for in_ax in range(m):
         col = R[:,in_ax]
         if not np.alltrue(np.equal(col, 0)):
@@ -74,9 +79,11 @@ def io_orientation(affine):
             R[out_ax,:] = 0
     return ornt
 
+
 def _ornt_to_affine(orientations):
     ''' Create affine transformation matrix determined by orientations.
-    This transformation will simply flip and possibly drop some
+    
+    This transformation will simply flip, transpose, and possibly drop some
     coordinates.
 
     Parameters
@@ -85,41 +92,31 @@ def _ornt_to_affine(orientations):
        one row per input axis, where the first value in each row is the
        closest corresponding output axis, and the second value is 1 if
        the input axis is in the same direction as the corresponding
-       output axis, , and -1 if it is in the opposite direction, to the
-       corresponding output axis.
-       if a row has first entry np.nan,
-       then this axis is dropped from the output.
+       output axis, and -1 if it is in the opposite direction, to the
+       corresponding output axis.  If a row has first entry np.nan, then
+       this axis is dropped from the output.
 
     Returns
     -------
     affine : (m+1,n+1) ndarray
        matrix representing flipping / dropping axes. m is equal to the 
        number of rows of orientations[:,0] that are not np.nan
-
     '''
     ornt = np.asarray(orientations)
     n = ornt.shape[0]
     keep = ~np.isnan(ornt[:,1])
-
-    # these are the coordinate axes that do have a matching
-    # output column in the orientation
-
-    # that is, if the 2nd row is [np.nan, np.nan]
-    # then the orientation indicates that no output axes
-    # of an affine with this orientation matches the 2nd
-    # coordinate axis. this would happen if the 2nd
-    # row of the affine that generated ornt was [0,0,0,*]
-
+    # These are the input coordinate axes that do have a matching output
+    # column in the orientation.  That is, if the 2nd row is [np.nan,
+    # np.nan] then the orientation indicates that no output axes of an
+    # affine with this orientation matches the 2nd input coordinate
+    # axis.  This would happen if the 2nd row of the affine that
+    # generated ornt was [0,0,0,*]
     axes_kept = np.arange(n)[keep] 
-    
     m = keep.sum(0)
-
-    # the matrix P represents the affine transform
-    # impled by ornt. if all entries of ornt
-    # are not np.nan, then P is square 
-    # otherwise it has more columns than rows
-    # indicating some coordinates were dropped
-
+    # the matrix P represents the affine transform impled by ornt. If
+    # all entries of ornt are not np.nan, then P is square otherwise it
+    # has more columns than rows indicating some coordinates were
+    # dropped
     P = np.zeros((m+1,n+1))
     P[-1,-1] = 1
     for idx in range(m):
@@ -146,18 +143,19 @@ def apply_orientation(arr, ornt):
 
     Returns
     -------
-    t_arr : ndarray of data 
-       array `arr` transformed according to ornt
-
+    t_arr : ndarray
+       data array `arr` transformed according to ornt
     '''
-
     t_arr = np.asarray(arr)
     ornt = np.asarray(ornt)
     n = ornt.shape[0]
-    assert t_arr.ndim >= n
+    if t_arr.ndim < n:
+        raise OrientationError('Data array has fewer dimensions than '
+                               'orientation')
     # no coordinates can be dropped for applying the orientations
-    assert not np.any(np.isnan(ornt[:,0]))
-
+    if np.any(np.isnan(ornt[:,0])):
+        raise OrientationError('Cannot drop coordinates when '
+                               'applying orientation to data')
     shape = t_arr.shape
     # apply ornt transformations
     for ax, flip in enumerate(ornt[:,1]):
@@ -167,6 +165,7 @@ def apply_orientation(arr, ornt):
     full_transpose[:n] = ornt[:,0]
     t_arr = t_arr.transpose(full_transpose)
     return t_arr
+
 
 def orientation_affine(ornt, shape):
     ''' Affine transform resulting from transforms implied in `ornt`
@@ -211,6 +210,7 @@ def orientation_affine(ornt, shape):
     center_trans = -(shape-1) / 2.0
     undo_flip[:n,n] = (ornt[:,1] * center_trans) - center_trans
     return np.dot(undo_flip, undo_reorder)
+
 
 def flip_axis(arr, axis=0):
     ''' Flip contents of `axis` in array `arr`
