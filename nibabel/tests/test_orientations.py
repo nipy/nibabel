@@ -6,12 +6,12 @@ from nose.tools import assert_true, assert_equal
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
+from nipy.io.imageformats.orientations import (io_orientation, orientation_affine, flip_axis, _ornt_to_affine,
                              apply_orientation)
 
-from nibabel.testing import parametric
+from nipy.testing import parametric
 
-IN_ARRS = (np.eye(4),
+IN_ARRS = [np.eye(4),
            [[0,0,1,0],
             [0,1,0,0],
             [1,0,0,0],
@@ -20,12 +20,17 @@ IN_ARRS = (np.eye(4),
             [0,0,1,0],
             [1,0,0,0],
             [0,0,0,1]],
-           [[1,1,0,0],
-            [1,1,0,0],
+           [[3,1,0,0],
+            [1,3,0,0],
             [0,0,1,0],
-            [0,0,0,1]]
-           )
-OUT_ORNTS = ([[0,1],
+            [0,0,0,1]],
+           [[1,3,0,0],
+            [3,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]],
+           ]
+
+OUT_ORNTS = [[[0,1],
               [1,1],
               [2,1]],
              [[2,1],
@@ -36,11 +41,34 @@ OUT_ORNTS = ([[0,1],
               [1,1]],
              [[0,1],
               [1,1],
-              [2,1]]
-             )
+              [2,1]],
+             [[1,1],
+              [0,1],
+              [2,1]],
+            ]
+
+IN_ARRS = IN_ARRS + [[[np.cos(np.pi/6+i*np.pi/2),np.sin(np.pi/6+i*np.pi/2),0,0], 
+                      [-np.sin(np.pi/6+i*np.pi/2),np.cos(np.pi/6+i*np.pi/2),0,0],
+                      [0,0,1,0],
+                      [0,0,0,1]] for i in range(4)]
+
+OUT_ORNTS = OUT_ORNTS + [[[0,1],
+                          [1,1],
+                          [2,1]],
+                         [[1,-1],
+                          [0,1],
+                          [2,1]],
+                         [[0,-1],
+                          [1,-1],
+                          [2,1]],
+                         [[1,1],
+                          [0,-1],
+                          [2,1]]
+                         ]
+
+                         
 IN_ARRS = [np.array(arr) for arr in IN_ARRS]
 OUT_ORNTS = [np.array(ornt) for ornt in OUT_ORNTS]
-
 
 def same_transform(taff, ornt, shape):
     # Applying transformations implied by `ornt` to a made-up array
@@ -115,9 +143,76 @@ def test_io_orientation():
             # flip the input axis in affine
             arr[:,axno] *= -1
             # check that result shows flip
-            ex_ornt[axno, 1] = -1
+            ex_ornt[axno, 1] *= -1
             ornt = io_orientation(arr)
             yield assert_array_equal(ornt, ex_ornt)
             taff = orientation_affine(ornt, shape)
             yield assert_true(same_transform(taff, ornt, shape))
            
+def test_drop_coord():
+    # given a 5x4 affine from slicing an fmri,
+    # the orientations code should easily reorder and drop the t
+    # axis
+
+    # this affine has output coordinates '-y','z','x' and is at t=16
+
+    sliced_fmri_affine = np.array([[0,-1,0,3],
+                                   [0,0,2,5],
+                                   [3,0,0,4],
+                                   [0,0,0,16],
+                                   [0,0,0,1]])
+
+    ornt = io_orientation(sliced_fmri_affine)
+    affine_that_drops_t_reorders_and_flips = _ornt_to_affine(ornt)
+
+    final_affine = np.dot(affine_that_drops_t_reorders_and_flips, 
+                          sliced_fmri_affine)
+
+    # the output will be diagonal
+    # with the 'y' row having been flipped and the 't' row dropped
+
+    assert_array_equal(final_affine, 
+                       np.array([[3,0,0,4],
+                                 [0,1,0,-3],
+                                 [0,0,2,5],
+                                 [0,0,0,1]]))
+
+def test_ornt_to_affine():
+    # this orientation indicates that the first output
+    # axis of the affine is closest to the vector [0,0,-1],
+    # the last is closest to [1,0,0] and 
+    # that the y coordinate ([0,1,0]) is dropped
+
+    ornt = [[2,-1],
+            [np.nan,np.nan],
+            [0,1]]
+
+    # the reordering/flipping is represented by an affine that 
+    # takes the 3rd output coordinate and maps it to the
+    # first, takes the 3rd, maps it to first and flips it
+
+    A = np.array([[0,0,-1,0],
+                  [1,0,0,0],
+                  [0,0,0,1]])
+
+    assert_array_equal(A, _ornt_to_affine(ornt))
+
+    # a more complicated example. only the 1st, 3rd and 6th
+    # coordinates appear in the output
+
+    ornt = [[3,-1],
+            [np.nan,np.nan],
+            [0,1],
+            [np.nan,np.nan],
+            [np.nan,np.nan],
+            [1,-1]]
+
+    B = np.array([[0,0,0,-1,0,0,0],
+                  [1,0,0,0,0,0,0],
+                  [0,-1,0,0,0,0,0],
+                  [0,0,0,0,0,0,1]])
+
+    assert_array_equal(B, _ornt_to_affine(ornt))
+
+
+    
