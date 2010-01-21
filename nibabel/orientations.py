@@ -162,7 +162,8 @@ def apply_orientation(arr, ornt):
         if flip == -1:
             t_arr = flip_axis(t_arr, axis=ax)
     full_transpose = np.arange(t_arr.ndim)
-    full_transpose[:n] = ornt[:,0]
+    # ornt indicates the transpose that has occurred - we reverse it
+    full_transpose[:n] = np.argsort(ornt[:,0])
     t_arr = t_arr.transpose(full_transpose)
     return t_arr
 
@@ -204,8 +205,9 @@ def orientation_affine(ornt, shape):
     # ornt implies a flip, followed by a transpose.   We need the affine
     # that inverts these.  Thus we need the affine that first undoes the
     # effect of the transpose, then undoes the effects of the flip.
-    reversed_ordering = np.argsort(ornt[:,0])
-    undo_reorder = np.eye(n+1)[list(reversed_ordering) + [n],:]
+    # ornt indicates the transpose that has occurred to get the current
+    # ordering, relative to canonical, so we just use that
+    undo_reorder = np.eye(n+1)[list(ornt[:,0]) + [n],:]
     undo_flip = np.diag(list(ornt[:,1]) + [1.0])
     center_trans = -(shape-1) / 2.0
     undo_flip[:n,n] = (ornt[:,1] * center_trans) - center_trans

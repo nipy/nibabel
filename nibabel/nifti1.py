@@ -1458,19 +1458,15 @@ class Nifti1Image(analyze.AnalyzeImage):
         data = self.get_data()
         # Adapt header to possible two<->one file difference
         is_pair = files['header'] != files['image']
-
         hdr = self.get_header().for_file_pair(is_pair)
-
         # if any extensions, figure out necessary vox_offset for extensions to
         # fit
         if self.extra.has_key('extensions') and len(self.extra['extensions']):
             hdr['vox_offset'] = len(hdr.binaryblock) \
                                 + self.extra['extensions'].get_sizeondisk()
-
         slope, inter, mn, mx = adapt_header(hdr, data)
         hdrf = allopen(files['header'], 'wb')
         hdr.write_to(hdrf)
-
         # write all extensions to file
         # assumes that the file ptr is right after the magic string
         if not self.extra.has_key('extensions'):
@@ -1478,13 +1474,11 @@ class Nifti1Image(analyze.AnalyzeImage):
             hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
         else:
             self.extra['extensions'].write_to(hdrf)
-
-
         if is_pair:
             imgf = allopen(files['image'], 'wb')
         else: # single file for header and image
             imgf = hdrf
-        # streams like bz2 do not allow seeks, even forward.  We
+            # streams like bz2 do not allow seeks, even forward.  We
             # check where to go, and write zeros up until the data part
             # of the file
             offset = hdr.get_data_offset()
