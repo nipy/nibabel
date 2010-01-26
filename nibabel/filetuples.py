@@ -7,8 +7,18 @@ class FileTuplesError(Exception):
 
 
 class FileTuples(object):
-    ''' Class to accept and check filenames for compatibility with
-    standard'''
+    ''' Class to check and contain files with standard filenames
+
+    You initialize it wil a definition of what file types the instance
+    should expect, with associated extensions.  The typical case is the
+    Analyze image, that expects and 'image' file type, with, extension
+    ``.img``, and a 'header' file type, with extension ``.hdr``.
+
+    You use it by calling ``obj.types_filenames(fname_template)``, with
+    some filename as input.  This returns a dictionary, with keys of the
+    file types, and values derived from the ``fname_template``.
+    '''
+    
     def __init__(self, types=(),
                  default_type=None, 
                  ignored_suffixes=(),
@@ -17,7 +27,7 @@ class FileTuples(object):
 
         Parameters
         ----------
-        types : sequence of sequences, iptional
+        types : sequence of sequences, optional
             sequence of (name, extension) sequences defining types
         default_type : None or string, optional
             string identifying name (above) of default type, when type
@@ -181,12 +191,12 @@ class FileTuples(object):
                     # is ignored). It's confusing to change
                     # this to test.img.gz, or test.gz.img, so error
                     raise FileTuplesError(
-                        'Confusing gnored suffix %s without extension'
+                        'Confusing ignored suffix %s without extension'
                         % ignored)
         else: # not enforcing extensions
             # if there's an extension, we set the filename directly
             # from input.  Also, if there was no extension, but an
-            # ignored suffixes ('test.gz' type case), we set the
+            # ignored suffix ('test.gz' type case), we set the
             # filename directly.  Otherwise (no extension, no ignored
             # suffix), we stay with the default, which is to add the
             # default extensions according to type.
