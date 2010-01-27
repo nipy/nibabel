@@ -108,7 +108,7 @@ from nibabel.header_ufuncs import read_data, read_unscaled_data, \
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage
-from nibabel import filetuples # module import
+from nibabel.filename_parser import types_filenames, TypesFilenamesError
 
 from nibabel.batteryrunners import BatteryRunner, Report
 
@@ -1148,15 +1148,12 @@ class AnalyzeImage(SpatialImage):
     
     @staticmethod
     def filespec_to_files(filespec):
-        ftups = filetuples.FileTuples(
-            (('header', '.hdr'),('image', '.img')),
-            ignored_suffixes = ('.gz', '.bz2'))
         try:
-            ftups.set_filenames(filespec)
-        except filetuples.FileTuplesError:
+            files = types_filenames(filespec,
+                                    (('header', '.hdr'),('image', '.img')))
+        except TypesFilenamesError:
             raise ValueError('Filespec "%s" does not look like '
                              'Analyze ' % filespec)
-        files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
     def to_files(self, files=None):

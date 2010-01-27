@@ -5,7 +5,7 @@ import numpy as np
 from nibabel.volumeutils import HeaderDataError, HeaderTypeError, \
     allopen
 
-from nibabel import filetuples # module import
+from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.batteryrunners import Report
 from nibabel import analyze # module import
 
@@ -243,16 +243,14 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     
     @staticmethod
     def filespec_to_files(filespec):
-        ftups = filetuples.FileTuples(
-            (('header', '.hdr'),('image', '.img'),('mat', '.mat')),
-            ignored_suffixes = ('.gz', '.bz2'))
         try:
-            ftups.set_filenames(filespec)
-        except filetuples.FileTuplesError:
-            raise ValueError('Strange filespec "%s"' % filespec)
-        files = dict(zip(
-                ('header', 'image', 'mat'),
-                ftups.get_filenames()))
+            files = types_filenames(filespec,
+                                    (('header', '.hdr'),
+                                     ('image', '.img'),
+                                     ('mat','.mat')))
+        except TypesFilenamesError:
+            raise ValueError('Filespec "%s" does not look like '
+                             'Spm99Analyze ' % filespec)
         return files
 
     def to_files(self, files=None):

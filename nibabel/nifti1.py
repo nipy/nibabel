@@ -12,7 +12,7 @@ from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel import filetuples # module import
+from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.spatialimages import SpatialImage
 
 from nibabel.header_ufuncs import write_data, adapt_header
@@ -1401,24 +1401,17 @@ class Nifti1Image(analyze.AnalyzeImage):
 
     @staticmethod
     def filespec_to_files(filespec):
-        ft1 = filetuples.FileTuples(
-            (('header', '.nii'), ('image', '.nii')),
-            ignored_suffixes=('.gz', '.bz2')
-            )
-        ft2 = filetuples.FileTuples(
-            (('header', '.hdr'), ('image', '.img')),
-            ignored_suffixes=('.gz', '.bz2')
-            )
-        for ftups in (ft1, ft2):
+        single_tes = (('header', '.nii'), ('image', '.nii'))
+        pair_tes = (('header', '.hdr'), ('image', '.img'))
+        for types_exts in (single_tes, pair_tes):
             try:
-                ftups.set_filenames(filespec)
-            except filetuples.FileTuplesError:
+                files = types_filenames(filespec, types_exts)
+            except TypesFilenamesError:
                 continue
             break
         else:
             raise ValueError('Filespec "%s" does not '
                              'look like Nifti1' % filespec)
-        files = dict(zip(('header', 'image'), ftups.get_filenames()))
         return files
 
     @classmethod
