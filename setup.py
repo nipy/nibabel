@@ -12,6 +12,8 @@
 __docformat__ = 'restructuredtext'
 
 from numpy.distutils.core import setup
+from glob import glob
+import os
 
 setup(name       = 'nibabel',
     version      = '1.0.0',
@@ -21,5 +23,9 @@ setup(name       = 'nibabel',
     url          = 'http://niftilib.sf.net/pynifti',
     description  = 'Access a multitude of neuroimaging data formats',
     long_description = "",
-    packages     = ['nibabel'],
+    packages     = ['nibabel',
+                    'nibabel.testing',
+                    'nibabel.tests'],
+    data_files   = [('nibabel/tests/data',
+                     glob(os.path.join('nibabel', 'tests', 'data', '*')))],
     )
