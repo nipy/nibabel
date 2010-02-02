@@ -162,7 +162,7 @@ deb-dev-autochangelog: check-debian
 		 --allow-lower-version "NiBabel development snapshot."
 
 deb-mergedev:
-	git merge --no-commit origin/debian/dev
+	git merge --no-commit origin/dist/debian/dev
 
 orig-src: distclean distclean
 	# clean existing dist dir first to have a single source tarball to process
