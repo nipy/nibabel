@@ -1,0 +1,5 @@
+#!/bin/bash
+
+path=$(dirname $0)
+
+valgrind  --tool=memcheck --leak-check=full --suppressions=$path/valgrind-python.supp python $*
