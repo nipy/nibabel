@@ -7,14 +7,15 @@
 License
 *******
 
-The PyNIfTI package, including all examples, code snippets and attached
+The nibabel package, including all examples, code snippets and attached
 documentation is covered by the MIT license.
 
 ::
 
   The MIT License
 
-  Copyright (c) 2006-2009 Michael Hanke
+  Copyright (c) 2006-2009 Michael Hanke <michael.hanke@gmail.com>
+  Copyright (c)      2009 Matthew Brett <matthew.brett@gmail.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal

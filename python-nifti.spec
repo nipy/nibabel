@@ -1,0 +1,56 @@
+%define modname nibabel
+Name:           python-nibabel
+URL:            http://niftilib.sf.net/pynifti/
+Summary:        Access a multitude of neuroimaging data formats
+Version:        1.0.0
+Release:        1
+License:        MIT License
+Group:          Development/Libraries/Python
+Source:         %{modname}_%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-root
+%if %{defined fedora_version} || %{defined rhel_version} || %{defined centos_version}  
+BuildRequires:  numpy
+Requires:       numpy
+%if %{defined fedora_version}
+BuildRequires:  atlas lapack
+%endif
+%else  
+%{py_requires}
+BuildRequires:  python-numpy
+Requires:       python-numpy
+%endif  
+BuildRequires:  python-devel
+
+%description
+ADD ME
+
+%prep
+%setup -q -n %{modname}-%{version}
+
+%build
+export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
+python setup.py build
+make unittest
+
+%install
+python setup.py install --prefix=%{_prefix} --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+
+%clean
+rm -rf %{buildroot}
+
+%files -f INSTALLED_FILES
+%defattr(0644,root,root,0755)
+
+
+%changelog
+* Tue Mar 3 2009 - Michael Hanke <michael.hanke@gmail.com> - 0.20090303.1-1
+  New bugfix release.
+
+* Thu Feb 5 2009 - Michael Hanke <michael.hanke@gmail.com> - 0.20090205.1-1
+  New upstream version.
+
+* Fri Oct 17 2008 - Michael Hanke <michael.hanke@gmail.com> - 0.20081017.1-1
+  New upstream version.
+
+* Sat Oct 4 2008 - Michael Hanke <michael.hanke@gmail.com> - 0.20080710.1-1
+- Initial release

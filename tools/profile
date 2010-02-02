@@ -1,0 +1,124 @@
+#!/usr/bin/python
+#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+#ex: set sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""""""
+
+__docformat__ = 'restructuredtext'
+
+import sys, os
+
+from optparse import OptionParser
+from os import environ, path
+
+if __name__ == "__main__":
+
+    usage = """Usage: %s [options] <python module> ...
+    """ % sys.argv[0]
+
+
+    # default options
+    convert2kcache = True
+    displaykcachegrinder = True
+    printstats = False
+    pfilename = None
+    pstatsfilename = None
+    profilelines = True
+    profilelevel = 10                   # how many most hungry to list in stats
+    run = True                          # either to run profiling at all
+
+    removed = sys.argv.pop(0)
+
+    if not len(sys.argv):
+            print usage
+            sys.exit(1)
+
+    while sys.argv[0].startswith('-'):
+        if sys.argv[0] in ["-l", "--level"]:
+            profilelevel = int(sys.argv[1])
+            sys.argv.pop(0)
+        elif sys.argv[0] in ["-o", "--output-file"]:
+            pfilename = sys.argv[1]
+            sys.argv.pop(0)
+        elif sys.argv[0] in ["-O", "--output-statsfile"]:
+            pstatsfilename = sys.argv[1]
+            sys.argv.pop(0)
+        elif sys.argv[0] in ["-s", "--stats"]:
+            printstats = True
+            convert2kcache = False
+            displaykcachegrinder = False
+        elif sys.argv[0] in ["-n", "--no-run"]:
+            run = False
+        elif sys.argv[0] in ["-P", "--no-profilelines"]:
+            profilelines = False
+        elif sys.argv[0] in ["-K", "--no-kcache"]:
+            convert2kcache = False
+            displaykcachegrinder = False
+        else:
+            print usage
+            sys.exit(1)
+        sys.argv.pop(0)
+
+    cmdname = sys.argv[0]
+    dirname = path.dirname(cmdname)
+    (root, ext) = path.splitext(path.basename(cmdname))
+
+    sys.path.append(dirname)
+
+    # now do profiling
+    import hotshot
+
+    if pfilename is None:
+        pfilename = cmdname + ".prof"
+
+    if run:
+        exec "import %s as runnable" % root
+
+        if not runnable.__dict__.has_key('main'):
+            print "OOPS: file/module %s has no function main defined" \
+                       % cmdname
+            sys.exit(1)
+
+        prof = hotshot.Profile(pfilename, lineevents=profilelines)
+
+        try:
+            # actually return values are never setup
+            # since unittest.main sys.exit's
+            results = prof.runcall( runnable.main )
+        except SystemExit:
+            pass
+
+        print "Saving profile data into %s" % pfilename
+        prof.close()
+
+
+    if printstats or pstatsfilename:
+        import hotshot.stats
+        print "Loading profile file to print statistics"
+        stats = hotshot.stats.load(pfilename)
+        if printstats:
+            stats.strip_dirs()
+            stats.sort_stats('time', 'calls')
+            stats.print_stats(profilelevel)
+        if pstatsfilename:
+            stats.dump_stats(pstatsfilename)
+
+    kfilename = pfilename + ".kcache"
+    if convert2kcache:
+        cmd = "hotshot2calltree -o %s %s" % (kfilename, pfilename)
+        if os.system(cmd):
+            print "!!! Make sure to install kcachegrind-converters ;-)"
+            sys.exit(1)
+
+    if displaykcachegrinder:
+        if os.system('kcachegrind %s' % kfilename):
+            print "!!! Make sure to install kcachegrind ;-)"
+            sys.exit(1)
+
+else:
+    print "Go away -- nothing to look here for as a module"
