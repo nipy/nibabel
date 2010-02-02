@@ -1,3 +1,9 @@
+nibabel (1.0-1) UNRELEASED; urgency=low
+
+  * Bumped Debian Standards-version to 3.8.4, no changes necessary.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Tue, 02 Feb 2010 17:09:42 -0500
+
 pynifti (0.20090303.1-1) unstable; urgency=low
 
   * New upstream bugfix release (Closes: #517920).
