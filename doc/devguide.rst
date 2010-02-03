@@ -101,3 +101,20 @@ the algorithms with implications to the performance or validity of results.
 
 It may list references to 3rd party bugtrackers, in case the reported bugs
 match the criteria listed above.
+
+
+Releases
+========
+
+Right after each release the master branch should be tagged with an annotated
+(or/and signed) tag, naming the intended next version, plus an 'upstream/'
+prefix and 'dev' suffix. For example 'upstream/1.0.0.dev' means "development
+start for upcoming version 1.0.0.
+
+This tag is used in the Makefile rules to create development snapshot releases
+to create proper versions for those. The will name the last available annotated
+tag, the number of commits since that, and an abbrevated SHA1. See the docs of
+``git describe`` for more info.
+
+Please take a look at the Makefile rules ``devel-src``, ``devel-dsc`` and
+``orig-src``.
