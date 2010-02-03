@@ -798,10 +798,16 @@ class Nifti1Header(SpmAnalyzeHeader):
         slice = (info >> 4) & 3
         if freq:
             freq -= 1
+        else:
+            freq = None
         if phase:
             phase -= 1
+        else:
+            phase = None
         if slice:
             slice -= 1
+        else:
+            slice = None
         return (freq, phase, slice)
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
