@@ -2,3 +2,4 @@ include AUTHOR COPYING Makefile* MANIFEST.in setup*
 include Changelog TODO
 recursive-include doc *
 recursive-include bin *
+recursive-include tools *
