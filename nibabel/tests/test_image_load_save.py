@@ -98,26 +98,34 @@ def test_save_load():
         yield assert_true, isinstance(re_img, ni1.Nifti1Image)
         yield assert_array_equal, re_img.get_data(), data
         yield assert_array_equal, re_img.get_affine(), affine
-        spm2.save(img, sifn)
-        re_img2 = nils.load(sifn)
-        yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
-        yield assert_array_equal, re_img2.get_data(), data
-        yield assert_array_equal, re_img2.get_affine(), affine
-        spm99.save(img, sifn)
-        re_img3 = nils.load(sifn)
-        yield assert_true, isinstance(re_img3, spm99.Spm99AnalyzeImage)
-        yield assert_array_equal, re_img3.get_data(), data
-        yield assert_array_equal, re_img3.get_affine(), affine
-        ni1.save(re_img3, nifn)
+        try:
+            import scipy.io as __
+            spm2.save(img, sifn)
+            re_img2 = nils.load(sifn)
+            yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
+            yield assert_array_equal, re_img2.get_data(), data
+            yield assert_array_equal, re_img2.get_affine(), affine
+            spm99.save(img, sifn)
+            re_img3 = nils.load(sifn)
+            yield assert_true, isinstance(re_img3, spm99.Spm99AnalyzeImage)
+            yield assert_array_equal, re_img3.get_data(), data
+            yield assert_array_equal, re_img3.get_affine(), affine
+            ni1.save(re_img3, nifn)
+        except ImportError:
+            # ignore if there is no matfile reader, and restart
+            pass
         re_img = nils.load(nifn)
         yield assert_true, isinstance(re_img, ni1.Nifti1Image)
         yield assert_array_equal, re_img.get_data(), data
         yield assert_array_equal, re_img.get_affine(), affine
     finally:
         os.unlink(nifn)
-        os.unlink(sifn)
-        os.unlink(sifn[:-4] + '.hdr')
-        os.unlink(sifn[:-4] + '.mat')
+        if os.path.exists(sifn):
+            os.unlink(sifn)
+        if os.path.exists(sifn[:-4] + '.hdr'):
+            os.unlink(sifn[:-4] + '.hdr')
+        if os.path.exists(sifn[:-4] + '.mat'):
+            os.unlink(sifn[:-4] + '.mat')
 
 
 def test_two_to_one():
