@@ -9,9 +9,8 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 clean::
 	$(MAKE) distclean
 
-build/python-nifti::
+build/python-nibabel-snapshot::
 	$(MAKE) unittest
-	$(MAKE) htmldoc
 
 
 # install directly into package directory
@@ -19,6 +18,4 @@ DEB_DESTDIR = $(CURDIR)/debian/python-nibabel-snapshot
 # immediately useable documentation
 # and exemplar data (they are small excerpts anyways)
 DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt .js .json .rtc .par .bin
-# doc contents
-DEB_INSTALL_DOCS_python-nifti := build/html
 
