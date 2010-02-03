@@ -667,7 +667,7 @@ def finite_range(arr):
     return mn, mx
 
 
-class UnsupportedDataType():
+class UnsupportedDataType(Exception):
     ''' Class to indicated data type not supported '''
     pass
 
