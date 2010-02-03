@@ -11,7 +11,7 @@ Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
 DM-Upload-Allowed: yes
 
 Package: python-nibabel-snapshot
-Architecture: any
+Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
