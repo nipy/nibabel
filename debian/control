@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.38), swig (>= 1.3.29), python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext, python-sphinx
+Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.5), python-support (>= 0.6), python-numpy-ext, python-sphinx
 Standards-Version: 3.8.4
 Homepage: http://niftilib.sourceforge.net/pynifti/
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
@@ -15,7 +15,5 @@ Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
-Description: Python interface to the NIfTI I/O libraries
- Using PyNIfTI one can easily read and write NIfTI and ANALYZE images from
- within Python. The NiftiImage class provides Python-style access to the full
- header information. Image data is made available via NumPy arrays.
+Description: Python bindings to various neuroimaging data formats
+ None
