@@ -1,7 +1,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, orientation_affine, flip_axis,
+from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
                             apply_orientation, OrientationError)
 
 
