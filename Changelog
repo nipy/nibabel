@@ -11,18 +11,24 @@ visiting the URL::
 
   http://bugs.debian.org/<bug id>
 
+'Close gh-' statements refer to GitHub issues that are available at::
+
+  http://github.com/hanke/nibabel/issues
+
 The full VCS changelog is available here:
 
-  http://git.debian.org/?p=pkg-exppsy/pynifti.git;a=shortlog;h=upstream
+  http://github.com/hanke/nibabel/commits/master
 
 
 Unreleased changes
   Changes described here are not yet released, but available from VCS
   repository.
 
-  * Added support for COMPLEX64 datatype.
-  * Bugfix: Ensure consistent mapping between NIfTI and NumPy datatypes.
-
+  * This is a complete rewrite of a pure-Python module to access various
+    neuroimaging data formats. It replaces the now obsolete PyNIfTI.
+  * Support for SPM-style ANALYZE images.
+  * MINC format support.
+  * Comprehensive unittest suite.
 
 
 Releases
