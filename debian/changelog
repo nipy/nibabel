@@ -1,4 +1,4 @@
-nibabel (1.0-1) UNRELEASED; urgency=low
+nibabel-snapshot (1.0-1) UNRELEASED; urgency=low
 
   * Bumped Debian Standards-version to 3.8.4, no changes necessary.
   * The new code is pure-Python. Binary package is arch:all 
