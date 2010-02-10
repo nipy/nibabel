@@ -16,6 +16,25 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.testing import parametric
 
 
+@parametric
+def test_highest():
+    # test high-level interface to filesets
+    arr = np.zeros((2,3,4))
+    aff = np.eye(4)
+    img = Nifti1Image(arr, aff)
+    # single image
+    img.set_filename('test')
+    yield assert_equal(img.get_filename(), 'test.nii')
+    yield assert_equal(img.files['image'].filename, 'test.nii')
+    yield assert_raises(KeyError, img.files.__getitem__, 'header')
+    # pair
+    img.files = NiftiFilePair()
+    img.set_filename('test')
+    yield assert_equal(img.get_filename(), 'test.img')
+    yield assert_equal(img.files['image'].filename, 'test.img')
+    yield assert_equal(img.files['header'].filename, 'test.hdr')
+    
+
 def test_interface():
     # test interface for filesets
     types = ('f1', 'f2')
@@ -42,5 +61,6 @@ def test_interface():
         os.remove(fname)
 
 
-# disable test for now
+# disable tests for now
 test_interface.__test__ = False
+test_highest.__test__ = False
