@@ -964,7 +964,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         icode = intent_codes.code[code]
         p_descr = intent_codes.parameters[code]
         if len(params) and len(params) != len(p_descr):
-            raise HeaderDataError('Need params of form %s, or empty' % (p_descr,))
+            raise HeaderDataError('Need params of form %s, or empty'
+                                  % (p_descr,))
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
@@ -1403,32 +1404,16 @@ class Nifti1Header(SpmAnalyzeHeader):
         return ret
 
 
-class Nifti1Image(analyze.AnalyzeImage):
+class Nifti1Pair(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
 
     def _set_header(self, header=None):
         SpatialImage._set_header(self, header)
 
-    @staticmethod
-    def filespec_to_files(filespec):
-        single_tes = (('header', '.nii'), ('image', '.nii'))
-        pair_tes = (('header', '.hdr'), ('image', '.img'))
-        for types_exts in (single_tes, pair_tes):
-            try:
-                files = types_filenames(filespec, types_exts)
-            except TypesFilenamesError:
-                continue
-            break
-        else:
-            raise ValueError('Filespec "%s" does not '
-                             'look like Nifti1' % filespec)
-        return files
-
     @classmethod
     def from_files(klass, files):
-        fname = files['header']
-        fileobj = allopen(fname)
-        header = klass._header_maker.from_fileobj(fileobj)
+        fobj = files['header'].get_prepare_fileobj()
+        header = klass._header_maker.from_fileobj(fobj)
         extra = None
 
         # handle extensions
@@ -1443,23 +1428,21 @@ class Nifti1Image(analyze.AnalyzeImage):
         # XXX maybe always do that?
         if len(extensions):
             extra = {'extensions': extensions}
-
         affine = header.get_best_affine()
         ret =  klass(None, affine, header=header, extra=extra)
-        ret._files = files
+        ret.files = files
         return ret
 
     def to_files(self, files=None):
-        ''' Write image to files passed, or self._files
+        ''' Write image to files passed, or self.files
         '''
         # XXX the whole method is candidate for refactoring, since it started as
         # verbatim copy of AnalyzeImage.to_files()
         if files is None:
-            files = self._files
-            if files is None:
-                raise ValueError('Need files to write data')
+            files = self.files
         data = self.get_data()
         # Adapt header to possible two<->one file difference
+        raise NotImplementedError('still working on this')
         is_pair = files['header'] != files['image']
         hdr = self.get_header().for_file_pair(is_pair)
         # if any extensions, figure out necessary vox_offset for extensions to
@@ -1516,5 +1499,8 @@ class Nifti1Image(analyze.AnalyzeImage):
             hdr.set_qform(self._affine)
 
 
+class Nifti1Image(Nifti1Pair):
+    files_types = (('image', '.nii'),)
+    
 load = Nifti1Image.load
 save = Nifti1Image.instance_to_filename

@@ -233,6 +233,7 @@ class MincHeader(object):
 
 class MincImage(SpatialImage):
     _header_maker = MincHeader
+    files_types = (('image', '.mnc'),)
     
     def _set_header(self, header):
         self._header = header
@@ -261,16 +262,12 @@ class MincImage(SpatialImage):
     
     @classmethod
     def from_files(klass, files):
-        fname = files['image']
-        header = klass._header_maker.from_fileobj(allopen(fname))
+        fobj = files['image'].get_prepare_fileobj()
+        header = klass._header_maker.from_fileobj(fobj)
         affine = header.get_best_affine()
         ret =  klass(None, affine, header)
-        ret._files = files
+        ret.files = files
         return ret
     
-    @staticmethod
-    def filespec_to_files(filespec):
-        return {'image':filespec}
-        
 
 load = MincImage.load

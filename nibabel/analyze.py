@@ -107,7 +107,7 @@ from nibabel.header_ufuncs import read_data, read_unscaled_data, \
     write_data, adapt_header
 
 from nibabel import imageglobals as imageglobals
-from nibabel.spatialimages import SpatialImage
+from nibabel.spatialimages import SpatialImage, ImageDataError
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
 
 from nibabel.batteryrunners import BatteryRunner, Report
@@ -1061,18 +1061,21 @@ class AnalyzeHeader(object):
 
 class AnalyzeImage(SpatialImage):
     _header_maker = AnalyzeHeader
-
+    files_types = (('image','.img'), ('header','.hdr'))
+    
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
             return self._data
-        if not self._files:
-            return None
         try:
-            fname = self._files['image']
+            image_fileholder = self.files['image']
         except KeyError:
-            return None
-        self._data = read_data(self._header, allopen(fname))
+            raise ImageDataError('no data and no file to load from')
+        try:
+            fileobj = image_fileholder.get_prepare_fileobj()
+        except FileHolderError:
+            raise ImageDataError('no data and no file to load from')
+        self._data = read_data(self._header, fileobj)
         return self._data
 
     def get_unscaled_data(self):
@@ -1102,13 +1105,15 @@ class AnalyzeImage(SpatialImage):
         Note that - unlike the scaled ``get_data`` method, we do not
         cache the array, to minimize the memory taken by the object.
         """
-        if not self._files:
-            return None
         try:
-            fname = self._files['image']
+            image_fileholder = self.files['image']
         except KeyError:
-            return None
-        return read_unscaled_data(self._header, allopen(fname))
+            raise ImageDataError('no file to load from')
+        try:
+            fileobj = image_fileholder.get_prepare_fileobj()
+        except FileHolderError:
+            raise ImageDataError('no file to load from')
+        return read_unscaled_data(self._header, fileobj)
         
     def get_header(self):
         ''' Return header
@@ -1139,51 +1144,27 @@ class AnalyzeImage(SpatialImage):
     
     @classmethod
     def from_files(klass, files):
-        fname = files['header']
-        header = klass._header_maker.from_fileobj(allopen(fname))
+        fobj = files['header'].get_prepare_fileobj()
+        header = klass._header_maker.from_fileobj(fobj)
         affine = header.get_best_affine()
         ret =  klass(None, affine, header)
-        ret._files = files
+        ret.files = files
         return ret
     
-    @staticmethod
-    def filespec_to_files(filespec):
-        try:
-            files = types_filenames(filespec,
-                                    (('header', '.hdr'),('image', '.img')))
-        except TypesFilenamesError:
-            raise ValueError('Filespec "%s" does not look like '
-                             'Analyze ' % filespec)
-        return files
-
     def to_files(self, files=None):
-        ''' Write image to files passed, or self._files
+        ''' Write image to files passed, or self.files
         '''
         if files is None:
-            files = self._files
-            if files is None:
-                raise ValueError('Need files to write data')
+            files = self.files
         data = self.get_data()
-        # Adapt header to possible two<->one file difference
-        is_pair = files['header'] != files['image']
-        hdr = self.get_header().for_file_pair(is_pair)
+        hdr = self.get_header()
         slope, inter, mn, mx = adapt_header(hdr, data)
-        hdrf = allopen(files['header'], 'wb')
+        hdrf = files['header'].get_prepare_fileobj(mode='wb')
         hdr.write_to(hdrf)
-        if is_pair:
-            imgf = allopen(files['image'], 'wb')
-        else: # single file for header and image
-            imgf = hdrf
-            # streams like bz2 do not allow seeks, even forward.  We
-            # check where to go, and write zeros up until the data part
-            # of the file
-            offset = hdr.get_data_offset()
-            diff = offset-hdrf.tell()
-            if diff > 0:
-                hdrf.write('\x00' * diff)
+        imgf = files['image'].get_prepare_fileobj(mode='wb')
         write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
-        self._files = files
+        self.files = files
 
     def _update_header(self):
         ''' Harmonize header with image data and affine

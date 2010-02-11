@@ -213,6 +213,10 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
     _header_maker = Spm99AnalyzeHeader
+    files_types = (('image', '.img'),
+                   ('header', '.hdr'),
+                   ('mat','.mat'))
+
     @classmethod
     def from_filename(klass, filename):
         ret = super(Spm99AnalyzeImage, klass).from_filename(filename)
@@ -241,25 +245,12 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
     
-    @staticmethod
-    def filespec_to_files(filespec):
-        try:
-            files = types_filenames(filespec,
-                                    (('header', '.hdr'),
-                                     ('image', '.img'),
-                                     ('mat','.mat')))
-        except TypesFilenamesError:
-            raise ValueError('Filespec "%s" does not look like '
-                             'Spm99Analyze ' % filespec)
-        return files
-
     def to_files(self, files=None):
         super(Spm99AnalyzeImage, self).to_files(files)
         if self._affine is None:
             return
         import scipy.io as sio
-        matfname = self._files['mat']
-        mfobj = allopen(matfname, 'wb')
+        fobj = files['header'].get_prepare_fileobj(mode='wb')
         mat = self._affine
         hdr = self._header
         if hdr.default_x_flip:

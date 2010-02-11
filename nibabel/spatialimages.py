@@ -75,9 +75,16 @@ data type the same as the input::
 
 import warnings
 
+from nibabel.fileholders import FileHolder, FileHolderError
+
+class ImageDataError(Exception):
+    pass
+
 
 class SpatialImage(object):
     _header_maker = dict
+    files_types = (('image', None),)
+    
     ''' Template class for images '''
     def __init__(self, data, affine, header=None, extra=None):
         if extra is None:
@@ -86,7 +93,7 @@ class SpatialImage(object):
         self._affine = affine
         self.extra = extra
         self._set_header(header)
-        self._files = {}
+        self.files = self.__class__.null_files()
         
     def __str__(self):
         shape = self.get_shape()
@@ -152,10 +159,19 @@ class SpatialImage(object):
     def from_image(klass, img):
         raise NotImplementedError
 
-    @staticmethod
-    def filespec_to_files(filespec):
-        raise NotImplementedError
-    
+    @classmethod
+    def filespec_to_files(klass, filespec):
+        try:
+            filenames = types_filenames(filespec,
+                                        klass.files_types)
+        except TypesFilenamesError:
+            raise ValueError('Filespec "%s" does not look right for '
+                             'class %s ' % (filespec, klass))
+        files = {}
+        for key, fname in filenames.items():
+            files[key] = FileHolder(filename=fname)
+        return files
+
     def to_filename(self, filename):
         ''' Write image to files implied by filename string
 
@@ -181,6 +197,26 @@ class SpatialImage(object):
 
     def to_files(self, files=None):
         raise NotImplementedError
+
+    @classmethod
+    def null_files(klass):
+        ''' Class method to make empty files holder for this image type
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        files : dict
+           dict with string keys given by klass.files_types, and values
+           of type FileHolder, where FileHolder objects have default
+           values. 
+        '''
+        files = {}
+        for key, ext in klass.files_types:
+            files[key] = FileHolder()
+        return files
 
     @classmethod
     def load(klass, filename):
