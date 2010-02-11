@@ -15,7 +15,7 @@ from nibabel.spm99analyze import SpmAnalyzeHeader
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.spatialimages import SpatialImage
 
-from nibabel.header_ufuncs import write_data, adapt_header
+from nibabel.header_ufuncs import write_data
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -1406,7 +1406,8 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 class Nifti1Pair(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
-
+    _is_pair = True
+    
     def _set_header(self, header=None):
         SpatialImage._set_header(self, header)
 
@@ -1415,7 +1416,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
         fobj = files['header'].get_prepare_fileobj()
         header = klass._header_maker.from_fileobj(fobj)
         extra = None
-
         # handle extensions
         # assume the fileptr is just after header (magic field)
         # determine how much to read when parsing the extensions
@@ -1433,25 +1433,25 @@ class Nifti1Pair(analyze.AnalyzeImage):
         ret.files = files
         return ret
 
-    def to_files(self, files=None):
-        ''' Write image to files passed, or self.files
+    def to_files(self):
+        ''' Write image to contained ``self.files``
         '''
         # XXX the whole method is candidate for refactoring, since it started as
         # verbatim copy of AnalyzeImage.to_files()
-        if files is None:
-            files = self.files
         data = self.get_data()
         # Adapt header to possible two<->one file difference
-        raise NotImplementedError('still working on this')
-        is_pair = files['header'] != files['image']
-        hdr = self.get_header().for_file_pair(is_pair)
+        hdr = self.get_header().for_file_pair(self._is_pair)
         # if any extensions, figure out necessary vox_offset for extensions to
         # fit
         if self.extra.has_key('extensions') and len(self.extra['extensions']):
             hdr['vox_offset'] = len(hdr.binaryblock) \
                                 + self.extra['extensions'].get_sizeondisk()
-        slope, inter, mn, mx = adapt_header(hdr, data)
-        hdrf = allopen(files['header'], 'wb')
+        slope, inter, mn, mx = hdr.scaling_from_data(data)
+        if slope is None:
+            hdr.set_slope_inter(1.0, 0.0)
+        else:
+            hdr.set_slope_inter(slope, inter)
+        hdrf = files['header'].get_prepare_fileobj(mode='wb')
         hdr.write_to(hdrf)
         # write all extensions to file
         # assumes that the file ptr is right after the magic string
@@ -1460,13 +1460,13 @@ class Nifti1Pair(analyze.AnalyzeImage):
             hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
         else:
             self.extra['extensions'].write_to(hdrf)
-        if is_pair:
+        if self._is_pair:
             imgf = allopen(files['image'], 'wb')
         else: # single file for header and image
             imgf = hdrf
-            # streams like bz2 do not allow seeks, even forward.  We
-            # check where to go, and write zeros up until the data part
-            # of the file
+            # streams like bz2 do not allow write seeks, even forward.
+            # We check where to go, and write zeros up until the data
+            # part of the file
             offset = hdr.get_data_offset()
             diff = offset-hdrf.tell()
             if diff > 0:
@@ -1492,7 +1492,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> np.all(hdr.get_sform() == affine)
         True
         '''
-        super(Nifti1Image, self)._update_header()
+        super(Nifti1Pair, self)._update_header()
         hdr = self._header
         if not self._affine is None:
             hdr.set_sform(self._affine)
@@ -1501,6 +1501,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
 class Nifti1Image(Nifti1Pair):
     files_types = (('image', '.nii'),)
-    
+    _is_pair = False
+
+
 load = Nifti1Image.load
 save = Nifti1Image.instance_to_filename

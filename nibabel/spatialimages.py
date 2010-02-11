@@ -20,7 +20,7 @@ methods:
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
    * to_files() - save image to files with which the image is already
-     associated.  Or ``img.to_files(files)`` saves to the files passed.
+     associated.
 
 classmethods:
 
@@ -43,18 +43,15 @@ You can load the data into an image from file with::
 
    img.from_filename(fname)
 
-The image stores its associated files in a rather secretive way.  In
+The image stores its associated files in its ``files`` attribute.  In
 order to just save an image, for which you know there is an associated
 filename, or other storage, you can do::
 
    img.to_files()
 
-alternatively, you can pass in the needed files yourself, into this
-method, as an argument.
-
 You can get the data out again with of::
 
-    img.get_data(fileobj)
+    img.get_data()
 
 Less commonly, for some image types that support it, you might want to
 fetch out the unscaled array via the header::
@@ -75,6 +72,7 @@ data type the same as the input::
 
 import warnings
 
+from nibabel.filename_parser import types_filenames
 from nibabel.fileholders import FileHolder, FileHolderError
 
 class ImageDataError(Exception):
@@ -140,6 +138,45 @@ class SpatialImage(object):
             elif key not in self.extra:
                 self.extra[key] = value
 
+    def get_filename(self):
+        ''' Fetch the image filename
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        fname : None or str
+           Returns None if there is no filename, or a filename string.
+           If an image may have several filenames assoctiated with it
+           (e.g Analyze ``.img, .hdr`` pair) then we return the more
+           characteristic filename (the ``.img`` filename in the case of
+           Analyze') 
+        '''
+        # which filename is returned depends on the ordering of the
+        # 'files_types' class attribute - we return the name
+        # corresponding to the first in that tuple
+        characteristic_type = self.files_types[0][0]
+        return self.files[characteristic_type].filename
+        
+    def set_filename(self, filename):
+        ''' Sets the files in the object from a given filename
+
+        The different image formats may check whether the filename has
+        an extension characteristic of the format, and raise an error if
+        not. 
+        
+        Parameters
+        ----------
+        filename : str
+           If the image format only has one file associated with it,
+           this will be the only filename set into the image ``.files``
+           attribute. Otherwise, the image instance will try and guess
+           the other filenames from this given filename.
+        '''
+        self.files = self.__class__.filespec_to_files(filename)
+
     @classmethod
     def from_filename(klass, filename):
         files = klass.filespec_to_files(filename)
@@ -195,7 +232,7 @@ class SpatialImage(object):
                       DeprecationWarning)
         self.to_filename(filename)
 
-    def to_files(self, files=None):
+    def to_files(self):
         raise NotImplementedError
 
     @classmethod

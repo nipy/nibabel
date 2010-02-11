@@ -40,8 +40,10 @@ from numpy.testing import assert_array_equal
 
 from nibabel.volumeutils import HeaderDataError, HeaderTypeError
 
-from nibabel.analyze import AnalyzeHeader, AnalyzeImage
-from nibabel.header_ufuncs import read_data, write_data, write_scaled_data
+from nibabel.analyze import AnalyzeHeader, AnalyzeImage, ImageDataError
+from nibabel.header_ufuncs import read_data, write_data, write_scaled_data, \
+    can_cast
+from nibabel.testing import parametric
 
 from test_binary import _TestBinaryHeader
 
@@ -165,9 +167,10 @@ def test_scaling():
     rdata = read_data(hdr, S)
     yield assert_false, np.allclose(data_p5, rdata)
 
-    
+
+@parametric
 def test_images():
     img = AnalyzeImage(None, None)
-    yield assert_equal, img.get_data(), None
-    yield assert_equal, img.get_affine(), None
-    yield assert_equal, img.get_header(), AnalyzeHeader()
+    yield assert_raises(ImageDataError, img.get_data)
+    yield assert_equal(img.get_affine(), None)
+    yield assert_equal(img.get_header(), AnalyzeHeader())

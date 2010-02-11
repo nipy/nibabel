@@ -1,4 +1,7 @@
 # module imports
+import os
+
+from nibabel.filename_parser import types_filenames
 from nibabel import volumeutils as vu
 from nibabel import spm2analyze as spm2
 from nibabel import nifti1
@@ -10,8 +13,8 @@ def load(filename, *args, **kwargs):
 
     Parameters
     ----------
-    filename : string or file-like
-       specification of filename or file to load
+    filename : string
+       specification of file to load
     *args
     **kwargs
        arguments to pass to image load function
@@ -22,25 +25,24 @@ def load(filename, *args, **kwargs):
        Image of guessed type
 
     '''
-    # Try and guess file type from filename
-    if isinstance(filename, basestring):
-        fname = filename
-        for ending in ('.gz', '.bz2'):
-            if filename.endswith(ending):
-                fname = fname[:-len(ending)]
-                break
-        if fname.endswith('.nii'):
-            return nifti1.load(filename, *args, **kwargs)
-        if fname.endswith('.mnc'):
-            return minc.load(filename, *args, **kwargs)
-    # Not a string, or not recognized as nii or mnc
-    try:
-        files = nifti1.Nifti1Image.filespec_to_files(filename)
-    except ValueError:
+    fname = filename
+    for ending in ('.gz', '.bz2'):
+        if filename.endswith(ending):
+            fname = fname[:-len(ending)]
+            break
+    froot, ext = os.path.splitext(fname)
+    if ext == '.nii':
+        return nifti1.load(filename, *args, **kwargs)
+    if ext == '.mnc':
+        return minc.load(filename, *args, **kwargs)
+    if not not ext in ('.img', '.hdr'):
         raise RuntimeError('Cannot work out file type of "%s"' %
                            filename)
+    # might be nifti pair or analyze of some sort
+    files_types = (('image','.img'), ('header','.hdr'))
+    filenames = types_filenames(filename, files_types)
     hdr = nifti1.Nifti1Header.from_fileobj(
-        vu.allopen(files['header']),
+        vu.allopen(filenames['header']),
         check=False)
     magic = hdr['magic']
     if magic in ('ni1', 'n+1'):

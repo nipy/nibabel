@@ -1,5 +1,9 @@
 ''' Header and image for the basic Mayo Analyze format
 
+=======================
+ Generic header format
+=======================
+
 The basic principle of the header object is that it manages and
 contains header information.  Each header type may have different
 attributes that can be set.  Some headers can contain only subsets of
@@ -11,7 +15,7 @@ The attributes and methods of the object guarantee that the set values
 will be consistent and valid with the header standard, in some sense.
 The object API therefore gives "safe" access to the header.  You can
 reach all the named fields in the header directly with the
-``header_data`` attribute.  If you futz with these, the object
+``structarr`` attribute.  If you futz with these, the object
 makes no guarantee that the data in the header are consistent.
 
 Headers do not have filenames, they refer only the block of data in
@@ -29,6 +33,31 @@ Headers also implement general mappingness:
     hdr.keys()
     hdr.items()
     hdr.values()
+
+The Analyze and derived formats are also ''binary headers''.  Binary
+headers are specialized headers in that they are represented internally
+with a numpy structured array.
+
+This binary representation means that there are additional properties
+and methods:
+
+Properties::
+
+    .endianness (read only)
+    .binaryblock (read only)
+    .structarr (read only)
+
+Methods::
+
+    .as_byteswapped(endianness)
+
+and class methods::
+
+    .diagnose_binaryblock
+
+===========================
+ The Analzye header format
+===========================
     
 Basic attributes of the header object are::
 
@@ -101,15 +130,16 @@ import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
-     make_dt_codes, HeaderDataError, HeaderTypeError, allopen
+     make_dt_codes, HeaderDataError, HeaderTypeError, allopen, \
+     calculate_scale
 
 from nibabel.header_ufuncs import read_data, read_unscaled_data, \
-    write_data, adapt_header
+    write_data, can_cast
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
-
+from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
 
 # Sub-parts of standard analyze header from 
@@ -211,11 +241,9 @@ class AnalyzeHeader(object):
                  check=True):
         '''  Initialize header from mapping '''
         obj = klass(obj, endianness=endianness, check=check)
-        #self._header_data = self._empty_headerdata(endianness)
         if not field_mapping is None:
             for key, value in field_mapping:
                 obj._header_data[key] = value
-        #obj.check = check
         if check:
             self.check_fix()
     
@@ -971,6 +999,45 @@ class AnalyzeHeader(object):
         hdr['vox_offset'] = 0
         return hdr
 
+    def scaling_from_data(self, data):
+        ''' Calculate slope, intercept, min, max from data given header
+
+        Check that the data can be sensibly adapted to this header data
+        dtype.  If the header type does support useful scaling to allow
+        this, raise a HeaderTypeError.
+
+        Parameters
+        ----------
+        data : array-like
+           array of data for which to calculate scaling etc
+
+        Returns
+        -------
+        divslope : None or scalar
+           divisor for data, after subtracting intercept.  If None, then
+           there are no valid data
+        intercept : None or scalar
+           number to subtract from data before writing. 
+        mn : None or scalar
+           data minimum to write, None means use data minimum
+        mx : None or scalar
+           data maximum to write, None means use data maximum
+        '''
+        data = np.asarray(data)
+        out_dtype = self.get_data_dtype()
+        if not can_cast(data.dtype.type,
+                        out_dtype.type,
+                        self.has_data_intercept,
+                        self.has_data_slope):
+            raise HeaderTypeError('Cannot cast data to header dtype without'
+                                  ' large potential loss in precision')
+        if not self.has_data_slope:
+            return 1.0, 0.0, None, None
+        return calculate_scale(
+            data,
+            out_dtype,
+            self.has_data_intercept)
+
     def _get_code_field(self, code_repr, fieldname, recoder):
         ''' Returns representation of field given recoder and code_repr
         '''
@@ -1151,14 +1218,16 @@ class AnalyzeImage(SpatialImage):
         ret.files = files
         return ret
     
-    def to_files(self, files=None):
-        ''' Write image to files passed, or self.files
+    def to_files(self):
+        ''' Write image to contained ``self.files``
         '''
-        if files is None:
-            files = self.files
         data = self.get_data()
         hdr = self.get_header()
-        slope, inter, mn, mx = adapt_header(hdr, data)
+        slope, inter, mn, mx = hdr.scaling_from_data(data)
+        if slope is None:
+            hdr.set_slope_inter(1.0, 0.0)
+        else:
+            hdr.set_slope_inter(slope, inter)
         hdrf = files['header'].get_prepare_fileobj(mode='wb')
         hdr.write_to(hdrf)
         imgf = files['image'].get_prepare_fileobj(mode='wb')

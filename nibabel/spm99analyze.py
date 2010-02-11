@@ -245,8 +245,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
     
-    def to_files(self, files=None):
-        super(Spm99AnalyzeImage, self).to_files(files)
+    def to_files(self):
+        super(Spm99AnalyzeImage, self).to_files()
         if self._affine is None:
             return
         import scipy.io as sio

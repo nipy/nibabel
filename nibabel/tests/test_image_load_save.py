@@ -28,6 +28,7 @@ def round_trip(img):
     img2 = nf.Nifti1Image.from_files(files)
     return img2
 
+
 def test_conversion():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
