@@ -265,7 +265,7 @@ class MincImage(SpatialImage):
         fobj = files['image'].get_prepare_fileobj()
         header = klass._header_maker.from_fileobj(fobj)
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header)
+        ret =  klass(None, affine, header,files=files)
         ret.files = files
         return ret
     

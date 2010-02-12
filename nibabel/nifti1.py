@@ -1432,8 +1432,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if len(extensions):
             extra = {'extensions': extensions}
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header=header, extra=extra)
-        ret.files = files
+        ret =  klass(None, affine, header=header, extra=extra, files=files)
+        ret._data_file_cache = files['image'].get_prepare_fileobj()
         return ret
 
     def to_files(self):

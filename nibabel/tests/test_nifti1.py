@@ -332,6 +332,6 @@ def test_loadsave_cycle():
     nim.to_files()
     stio.seek(0)
     # reload
-    lnim = Nifti1Image.from_files(img.files)
+    lnim = Nifti1Image.from_files(nim.files)
     ok_(lnim.extra.has_key('extensions'))
     ok_(nim.extra['extensions'] == lnim.extra['extensions'])

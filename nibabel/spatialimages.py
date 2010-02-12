@@ -94,6 +94,7 @@ class SpatialImage(object):
         if files is None:
             files = self.__class__.make_files()
         self.files = files
+        # attribute to allow image data to be read from a cached file
         self._data_file_cache = None
         
     def __str__(self):

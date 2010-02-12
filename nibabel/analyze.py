@@ -129,7 +129,7 @@ import numpy as np
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, \
-     calculate_scale
+     calculate_scale, allopen
 
 from nibabel.header_ufuncs import read_data, read_unscaled_data, \
     write_data, can_cast
@@ -1127,15 +1127,16 @@ class AnalyzeHeader(object):
 class AnalyzeImage(SpatialImage):
     _header_maker = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
-    
+
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
             return self._data
-        if self._data_file_cache is None
+        if self._data_file_cache is None:
             raise ImageDataError('no data and no file to load from')
         fileobj = allopen(self._data_file_cache)
         self._data = read_data(self._header, fileobj)
+        self._data_file_cache = None
         return self._data
 
     def get_unscaled_data(self):
@@ -1207,8 +1208,8 @@ class AnalyzeImage(SpatialImage):
         fobj = files['header'].get_prepare_fileobj()
         header = klass._header_maker.from_fileobj(fobj)
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header)
-        ret.files = files
+        ret = klass(None, affine, header, files=files)
+        ret._data_file_cache = files['image'].get_prepare_fileobj()
         return ret
     
     def to_files(self):
