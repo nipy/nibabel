@@ -85,6 +85,24 @@ class SpatialImage(object):
     
     ''' Template class for images '''
     def __init__(self, data, affine, header=None, extra=None, files=None):
+        ''' Initialize image
+
+        Parameters
+        ----------
+        data : array-like
+           image data.  It should be some object that retuns an array
+           from ``np.asanyarray``
+        affine : (4,4) array
+           homogenous affine giving relationship between voxel
+           coordinates and world coordinates
+        header : None or mapping or header instance, optional
+           metadata for this image format
+        extra : None or mapping, optional
+           metadata to associate with image that cannot be stored in the
+           metadata of this image type
+        files : mapping, optional
+           mapping giving file information for this image format
+        '''
         self._data = data
         self._affine = affine
         if extra is None:
