@@ -72,8 +72,10 @@ data type the same as the input::
 
 import warnings
 
-from nibabel.filename_parser import types_filenames
-from nibabel.fileholders import FileHolder, FileHolderError
+import numpy as np
+
+from nibabel.filename_parser import types_filenames, TypesFilenamesError
+from nibabel.fileholders import FileHolder
 
 class ImageDataError(Exception):
     pass
@@ -112,8 +114,6 @@ class SpatialImage(object):
         if files is None:
             files = self.__class__.make_files()
         self.files = files
-        # attribute to allow image data to be read from a cached file
-        self._data_file_cache = None
         
     def __str__(self):
         shape = self.get_shape()
@@ -127,7 +127,9 @@ class SpatialImage(object):
                 '%s' % self._header))
 
     def get_data(self):
-        return self._data
+        if self._data is None:
+            raise ImageDataError('No data in this image')
+        return np.asanyarray(self._data)
 
     def get_shape(self):
         if self._data:
@@ -213,9 +215,6 @@ class SpatialImage(object):
         klass.from_filespec(filespec)
 
     def from_files(klass, files):
-        raise NotImplementedError
-
-    def from_image(klass, img):
         raise NotImplementedError
 
     @classmethod

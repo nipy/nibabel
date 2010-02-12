@@ -138,6 +138,7 @@ from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
 from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
+from nibabel.arrayproxy import AnalyzeArrayProxy
 
 # Sub-parts of standard analyze header from 
 # Mayo dbh.h file
@@ -1128,17 +1129,22 @@ class AnalyzeImage(SpatialImage):
     _header_maker = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
 
-    def get_data(self):
-        ''' Lazy load of data '''
-        if not self._data is None:
-            return self._data
-        if self._data_file_cache is None:
-            raise ImageDataError('no data and no file to load from')
-        fileobj = allopen(self._data_file_cache)
-        self._data = read_data(self._header, fileobj)
-        self._data_file_cache = None
-        return self._data
+    @classmethod
+    def from_data_file(klass,
+                       file_like,
+                       affine,
+                       header=None,
+                       extra=None,
+                       files=None):
+        ''' Class method initializer to initialize from data file
 
+        We use a proxy to implement the caching of the data read, and
+        for the data shape.  
+        '''
+        obj = klass(None, affine, header, extra, files)
+        obj._data = AnalyzeArrayProxy(file_like, obj.get_header())
+        return obj
+        
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
 
@@ -1208,9 +1214,11 @@ class AnalyzeImage(SpatialImage):
         fobj = files['header'].get_prepare_fileobj()
         header = klass._header_maker.from_fileobj(fobj)
         affine = header.get_best_affine()
-        ret = klass(None, affine, header, files=files)
-        ret._data_file_cache = files['image'].get_prepare_fileobj()
-        return ret
+        fobj = files['image'].get_prepare_fileobj()
+        return klass.from_data_file(fobj,
+                                    affine,
+                                    header,
+                                    files=files)
     
     def to_files(self):
         ''' Write image to contained ``self.files``

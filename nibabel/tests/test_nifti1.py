@@ -306,7 +306,6 @@ def test_nifti_extensions():
     ok_((ext.get_sizeondisk() - 4) % 16 == 0)
     # first extension should be short one
     ok_(ext[0].get_content() == 'extcomment1')
-
     # add one
     afniext = Nifti1Extension('afni', '<xml></xml>')
     ext.append(afniext)
@@ -314,7 +313,6 @@ def test_nifti_extensions():
     ok_(ext.count('comment') == 2)
     ok_(ext.count('afni') == 1)
     ok_((ext.get_sizeondisk() - 4) % 16 == 0)
-
     # delete one
     del ext[1]
     ok_(ext.get_codes() == [6, 4])

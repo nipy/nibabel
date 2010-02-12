@@ -1432,9 +1432,12 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if len(extensions):
             extra = {'extensions': extensions}
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header=header, extra=extra, files=files)
-        ret._data_file_cache = files['image'].get_prepare_fileobj()
-        return ret
+        fobj = files['image'].get_prepare_fileobj()
+        return klass.from_data_file(fobj,
+                                    affine,
+                                    header,
+                                    extra,
+                                    files=files)
 
     def to_files(self):
         ''' Write image to contained ``self.files``
