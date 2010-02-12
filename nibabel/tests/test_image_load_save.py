@@ -19,12 +19,14 @@ from nibabel.volumeutils import native_code, swapped_code
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises
 
+from nibabel.testing import parametric
+
 
 def round_trip(img):
     # round trip a nifti single
     sio = StringIO()
     img.files['image'].fileobj = sio
-    img.to_files(files)
+    img.to_files()
     img2 = nf.Nifti1Image.from_files(img.files)
     return img2
 
@@ -100,7 +102,11 @@ def test_save_load():
         yield assert_array_equal, re_img.get_data(), data
         yield assert_array_equal, re_img.get_affine(), affine
         try:
-            import scipy.io as __
+            import scipy.io
+        except ImportError:
+            # ignore if there is no matfile reader, and restart
+            pass
+        else:
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
             yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
@@ -112,9 +118,6 @@ def test_save_load():
             yield assert_array_equal, re_img3.get_data(), data
             yield assert_array_equal, re_img3.get_affine(), affine
             ni1.save(re_img3, nifn)
-        except ImportError:
-            # ignore if there is no matfile reader, and restart
-            pass
         re_img = nils.load(nifn)
         yield assert_true, isinstance(re_img, ni1.Nifti1Image)
         yield assert_array_equal, re_img.get_data(), data
@@ -158,8 +161,9 @@ def test_two_to_one():
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
     yield assert_equal(ana_img.get_header()['vox_offset'], 0)
-    files = {'header':str_io, 'image':str_io}
-    img.to_files(files)
+    str_io = StringIO()
+    img.files['image'].fileobj = str_io
+    img.to_files()
     yield assert_equal(img.get_header()['vox_offset'], 352)
     aimg = ana.AnalyzeImage.from_image(img)
     yield assert_equal(aimg.get_header()['vox_offset'], 0)
@@ -179,9 +183,9 @@ def test_negative_load_save():
     hdr.set_data_dtype(np.int16)
     img = nf.Nifti1Image(data, affine, hdr)
     str_io = StringIO()
-    files = {'header':str_io,'image':str_io}
-    img.to_files(files)
+    img.files['image'].fileobj = str_io
+    img.to_files()
     str_io.seek(0)
-    re_img = nf.Nifti1Image.from_files(files)
+    re_img = nf.Nifti1Image.from_files(img.files)
     yield assert_array_almost_equal, re_img.get_data(), data, 4
 

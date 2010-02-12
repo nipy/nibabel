@@ -221,7 +221,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     def from_filename(klass, filename):
         ret = super(Spm99AnalyzeImage, klass).from_filename(filename)
         import scipy.io as sio
-        matf = ret._files['mat']
+        matf = ret.files['mat'].get_prepare_fileobj()
         try:
             matf = allopen(matf)
         except IOError:
@@ -250,7 +250,6 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         if self._affine is None:
             return
         import scipy.io as sio
-        fobj = self.files['header'].get_prepare_fileobj(mode='wb')
         mat = self._affine
         hdr = self._header
         if hdr.default_x_flip:

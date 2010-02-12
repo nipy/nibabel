@@ -35,7 +35,7 @@ def load(filename, *args, **kwargs):
         return nifti1.load(filename, *args, **kwargs)
     if ext == '.mnc':
         return minc.load(filename, *args, **kwargs)
-    if not not ext in ('.img', '.hdr'):
+    if not ext in ('.img', '.hdr'):
         raise RuntimeError('Cannot work out file type of "%s"' %
                            filename)
     # might be nifti pair or analyze of some sort

@@ -34,6 +34,7 @@ A = np.eye(4)
 A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
+
 class TestNiftiHeader(_TSAH):
     header_class = Nifti1Header
     example_file = header_file
