@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from nibabel.volumeutils import HeaderDataError, HeaderTypeError
+from nibabel.volumeutils import HeaderDataError
 from nibabel.batteryrunners import Report
 from nibabel import spm99analyze as spm99 # module import
 

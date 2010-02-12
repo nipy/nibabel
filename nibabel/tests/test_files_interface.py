@@ -24,7 +24,7 @@ def test_files_images():
     arr = np.zeros((2,3,4))
     aff = np.eye(4)
     for klass in nib.image_classes.values():
-        files = klass.null_files()
+        files = klass.make_files()
         for key, value in files.items():
             yield assert_false(value.has_file())
             yield assert_equal(value.pos, 0)

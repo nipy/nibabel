@@ -5,7 +5,7 @@ import numpy as np
 from nibabel.volumeutils import HeaderDataError, HeaderTypeError, \
     allopen
 
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
+from nibabel.filename_parser import types_filenames
 from nibabel.batteryrunners import Report
 from nibabel import analyze # module import
 
@@ -250,7 +250,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         if self._affine is None:
             return
         import scipy.io as sio
-        fobj = files['header'].get_prepare_fileobj(mode='wb')
+        fobj = self.files['header'].get_prepare_fileobj(mode='wb')
         mat = self._affine
         hdr = self._header
         if hdr.default_x_flip:
@@ -258,6 +258,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         else:
             M = mat
         # use matlab 4 format to allow gzipped write without error
+        mfobj = self.files['mat'].get_prepare_fileobj(mode='wb')
         sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
         mfobj.close()
 

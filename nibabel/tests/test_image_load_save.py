@@ -21,11 +21,11 @@ from nose.tools import assert_true, assert_equal, assert_raises
 
 
 def round_trip(img):
+    # round trip a nifti single
     sio = StringIO()
-    files = {'header':sio, 'image':sio}
+    img.files['image'].fileobj = sio
     img.to_files(files)
-    sio.seek(0)
-    img2 = nf.Nifti1Image.from_files(files)
+    img2 = nf.Nifti1Image.from_files(img.files)
     return img2
 
 
@@ -129,6 +129,7 @@ def test_save_load():
             os.unlink(sifn[:-4] + '.mat')
 
 
+@parametric
 def test_two_to_one():
     # test going from two to one file in save
     shape = (2, 4, 6)
@@ -136,32 +137,38 @@ def test_two_to_one():
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     affine[:3,3] = [3,2,1]
+    # single file format
     img = ni1.Nifti1Image(data, affine)
-    yield assert_equal, img.get_header()['magic'], 'n+1'
+    yield assert_equal(img.get_header()['magic'], 'n+1')
     str_io = StringIO()
-    files = {'header':str_io, 'image':str_io}
-    img.to_files(files)
-    yield assert_equal, img.get_header()['magic'], 'n+1'
-    yield assert_equal, img.get_header()['vox_offset'], 352
-    str_io2 = StringIO()
-    files['image'] = str_io2
-    img.to_files(files)
-    yield assert_equal, img.get_header()['magic'], 'ni1'
-    yield assert_equal, img.get_header()['vox_offset'], 0
-    # same for from_image
+    img.files['image'].fileobj = str_io
+    # check that the single format vox offset is set correctly
+    img.to_files()
+    yield assert_equal(img.get_header()['magic'], 'n+1')
+    yield assert_equal(img.get_header()['vox_offset'], 352)
+    # make a new pair image, with the single image header
+    pimg = ni1.Nifti1Pair(data, affine, img.get_header())
+    isio = StringIO()
+    hsio = StringIO()
+    pimg.files['image'].fileobj = isio
+    pimg.files['header'].fileobj = hsio
+    pimg.to_files()
+    yield assert_equal(pimg.get_header()['magic'], 'ni1')
+    yield assert_equal(pimg.get_header()['vox_offset'], 0)
+    # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    yield assert_equal, ana_img.get_header()['vox_offset'], 0
+    yield assert_equal(ana_img.get_header()['vox_offset'], 0)
     files = {'header':str_io, 'image':str_io}
     img.to_files(files)
-    yield assert_equal, img.get_header()['vox_offset'], 352
+    yield assert_equal(img.get_header()['vox_offset'], 352)
     aimg = ana.AnalyzeImage.from_image(img)
-    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    yield assert_equal(aimg.get_header()['vox_offset'], 0)
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    yield assert_equal(aimg.get_header()['vox_offset'], 0)
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    yield assert_equal, aimg.get_header()['vox_offset'], 0
+    yield assert_equal(aimg.get_header()['vox_offset'], 0)
     nfimg = ni1.Nifti1Image.from_image(img)
-    yield assert_equal, nfimg.get_header()['vox_offset'], 352
+    yield assert_equal(nfimg.get_header()['vox_offset'], 352)
 
 
 def test_negative_load_save():

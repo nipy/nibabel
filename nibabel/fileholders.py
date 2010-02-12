@@ -60,7 +60,7 @@ class FileHolder(object):
             obj = self.fileobj
             obj.seek(self.pos)
         elif self.filename is not None:
-            obj = allopen(filename, *args, **kwargs)
+            obj = allopen(self.filename, *args, **kwargs)
             if self.pos != 0:
                 obj.seek(self.pos)
         else:

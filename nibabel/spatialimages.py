@@ -84,14 +84,17 @@ class SpatialImage(object):
     files_types = (('image', None),)
     
     ''' Template class for images '''
-    def __init__(self, data, affine, header=None, extra=None):
-        if extra is None:
-            extra = {}
+    def __init__(self, data, affine, header=None, extra=None, files=None):
         self._data = data
         self._affine = affine
+        if extra is None:
+            extra = {}
         self.extra = extra
         self._set_header(header)
-        self.files = self.__class__.null_files()
+        if files is None:
+            files = self.__class__.make_files()
+        self.files = files
+        self._data_file_cache = None
         
     def __str__(self):
         shape = self.get_shape()
@@ -223,8 +226,8 @@ class SpatialImage(object):
         -------
         None
         '''
-        files = self.filespec_to_files(filename)
-        self.to_files(files)
+        self.files = self.filespec_to_files(filename)
+        self.to_files()
 
     def to_filespec(self, filename):
         warnings.warn('``to_filespec`` is deprecated, please '
@@ -236,23 +239,34 @@ class SpatialImage(object):
         raise NotImplementedError
 
     @classmethod
-    def null_files(klass):
-        ''' Class method to make empty files holder for this image type
+    def make_files(klass, mapping=None):
+        ''' Class method to make files holder for this image type
 
         Parameters
         ----------
-        None
-
+        mapping : None or mapping, optional
+           mapping with keys corresponding to image file types (such as
+           'image', 'header' etc, depending on image class) and values
+           that are filenames or file-like.  Default is None
+           
         Returns
         -------
         files : dict
-           dict with string keys given by klass.files_types, and values
-           of type FileHolder, where FileHolder objects have default
-           values. 
+           dict with string keys given by first entry in tuples in
+           sequence klass.files_types, and values of type FileHolder,
+           where FileHolder objects have default values, other than
+           those given by `mapping`
         '''
+        if mapping is None:
+            mapping = {}
         files = {}
         for key, ext in klass.files_types:
             files[key] = FileHolder()
+            mapval = mapping.get(key, None)
+            if isinstance(mapval, basestring):
+                files[key].filename = mapval
+            elif hasattr(mapval, 'tell'):
+                files[key].fileobj = mapval
         return files
 
     @classmethod

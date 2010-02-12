@@ -7,12 +7,11 @@ import numpy as np
 import numpy.linalg as npl
 
 from nibabel.volumeutils import Recoder, make_dt_codes, \
-     HeaderDataError, HeaderTypeError, allopen
+     HeaderDataError, allopen
 from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.spatialimages import SpatialImage
 
 from nibabel.header_ufuncs import write_data
@@ -1413,7 +1412,11 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
     @classmethod
     def from_files(klass, files):
-        fobj = files['header'].get_prepare_fileobj()
+        if klass._is_pair:
+            hdr_type = 'header'
+        else:
+            hdr_type = 'image'
+        fobj = files[hdr_type].get_prepare_fileobj()
         header = klass._header_maker.from_fileobj(fobj)
         extra = None
         # handle extensions
@@ -1423,8 +1426,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
             # read till the end of the header
             extsize = -1
         else:
-            extsize = header['vox_offset'] - fileobj.tell()
-        extensions = Nifti1Extensions.from_fileobj(fileobj, extsize)
+            extsize = header['vox_offset'] - fobj.tell()
+        extensions = Nifti1Extensions.from_fileobj(fobj, extsize)
         # XXX maybe always do that?
         if len(extensions):
             extra = {'extensions': extensions}
@@ -1451,7 +1454,11 @@ class Nifti1Pair(analyze.AnalyzeImage):
             hdr.set_slope_inter(1.0, 0.0)
         else:
             hdr.set_slope_inter(slope, inter)
-        hdrf = files['header'].get_prepare_fileobj(mode='wb')
+        if self._is_pair:
+            hdr_type = 'header'
+        else:
+            hdr_type = 'image'
+        hdrf = self.files[hdr_type].get_prepare_fileobj(mode='wb')
         hdr.write_to(hdrf)
         # write all extensions to file
         # assumes that the file ptr is right after the magic string
@@ -1461,7 +1468,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         else:
             self.extra['extensions'].write_to(hdrf)
         if self._is_pair:
-            imgf = allopen(files['image'], 'wb')
+            imgf = self.files['image'].get_prepare_fileobj(mode='wb')
         else: # single file for header and image
             imgf = hdrf
             # streams like bz2 do not allow write seeks, even forward.
@@ -1473,8 +1480,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 hdrf.write('\x00' * diff)
         write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
-        self._files = files
-
 
     def _update_header(self):
         ''' Harmonize header with image data and affine

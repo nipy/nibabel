@@ -6,11 +6,6 @@ from StringIO import StringIO
 
 import numpy as np
 
-from numpy.testing import assert_array_equal
-from nose.tools import assert_true, assert_equal, assert_raises, ok_
-
-import nibabel.testing as vit
-
 from nibabel.volumeutils import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
@@ -18,6 +13,13 @@ from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
 from test_analyze import TestAnalyzeHeader
+
+from numpy.testing import assert_array_equal
+from nose.tools import assert_true, assert_equal, assert_raises, ok_
+
+import nibabel.testing as nbt
+from nibabel.testing import parametric
+
 
 data_path, _ = os.path.split(__file__)
 data_path = os.path.join(data_path, 'data')
@@ -40,15 +42,15 @@ class TestNiftiHeader(_TSAH):
         hdr = self.header_class()
         for tests in TestAnalyzeHeader.test_empty(self):
             yield tests
-        yield vit.assert_equal, hdr['magic'], 'n+1'
-        yield vit.assert_equal, hdr['scl_slope'], 1
-        yield vit.assert_equal, hdr['vox_offset'], 352
+        yield nbt.assert_equal, hdr['magic'], 'n+1'
+        yield nbt.assert_equal, hdr['scl_slope'], 1
+        yield nbt.assert_equal, hdr['vox_offset'], 352
 
     def test_from_eg_file(self):
         hdr = Nifti1Header.from_fileobj(open(self.example_file))
-        yield vit.assert_equal, hdr.endianness, '<'
-        yield vit.assert_equal, hdr['magic'], 'ni1'
-        yield vit.assert_equal, hdr['sizeof_hdr'], 348
+        yield nbt.assert_equal, hdr.endianness, '<'
+        yield nbt.assert_equal, hdr['magic'], 'ni1'
+        yield nbt.assert_equal, hdr['sizeof_hdr'], 348
 
 
 def test_datatypes():
@@ -253,28 +255,28 @@ def test_set_slice_times():
     yield assert_equal, hdr['slice_code'], 6
 
 
+@parametric
 def test_nifti1_images():
     shape = (2, 4, 6)
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
-    yield assert_equal, img.get_shape(), shape
+    yield assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
     stio = StringIO()
-    files = {'header': stio, 'image': stio}
-    img.to_files(files)
-    stio.seek(0)
-    img2 = Nifti1Image.from_files(files)
-    yield assert_array_equal, img2.get_data(), data
+    img.files['image'].fileobj = stio
+    img.to_files()
+    img2 = Nifti1Image.from_files(img.files)
+    yield assert_array_equal(img2.get_data(), data)
     for ext in ('.gz', '.bz2'):
         try:
             _, fname = tempfile.mkstemp('.nii' + ext)
             img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
-            yield assert_true, isinstance(img3, img.__class__)
-            yield assert_array_equal, img3.get_data(), data
-            yield assert_equal, img3.get_header(), img.get_header()
+            yield assert_true(isinstance(img3, img.__class__))
+            yield assert_array_equal(img3.get_data(), data)
+            yield assert_equal(img3.get_header(), img.get_header())
         finally:
             os.unlink(fname)
 
@@ -319,17 +321,17 @@ def test_nifti_extensions():
     ok_(ext.count('afni') == 1)
 
 
-def test_loadsavecycle():
+def test_loadsave_cycle():
     nim = load(image_file)
     # ensure we have extensions
     ok_(nim.extra.has_key('extensions'))
     ok_(len(nim.extra['extensions']))
     # write into the air ;-)
     stio = StringIO()
-    files = {'header': stio, 'image': stio}
-    nim.to_files(files)
+    nim.files['image'].fileobj = stio
+    nim.to_files()
     stio.seek(0)
     # reload
-    lnim = Nifti1Image.from_files(files)
+    lnim = Nifti1Image.from_files(img.files)
     ok_(lnim.extra.has_key('extensions'))
     ok_(nim.extra['extensions'] == lnim.extra['extensions'])

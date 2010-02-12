@@ -124,13 +124,11 @@ The same for logging::
 
 '''
 
-import warnings
-
 import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
-     make_dt_codes, HeaderDataError, HeaderTypeError, allopen, \
+     make_dt_codes, HeaderDataError, HeaderTypeError, \
      calculate_scale
 
 from nibabel.header_ufuncs import read_data, read_unscaled_data, \
@@ -138,7 +136,6 @@ from nibabel.header_ufuncs import read_data, read_unscaled_data, \
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
 
@@ -240,12 +237,13 @@ class AnalyzeHeader(object):
                  endianness=None,
                  check=True):
         '''  Initialize header from mapping '''
-        obj = klass(obj, endianness=endianness, check=check)
+        obj = klass(endianness=endianness, check=check)
         if not field_mapping is None:
             for key, value in field_mapping:
                 obj._header_data[key] = value
         if check:
-            self.check_fix()
+            obj.check_fix()
+        return obj
     
     def __init__(self,
                  binaryblock=None,
@@ -1134,14 +1132,9 @@ class AnalyzeImage(SpatialImage):
         ''' Lazy load of data '''
         if not self._data is None:
             return self._data
-        try:
-            image_fileholder = self.files['image']
-        except KeyError:
+        if self._data_file_cache is None
             raise ImageDataError('no data and no file to load from')
-        try:
-            fileobj = image_fileholder.get_prepare_fileobj()
-        except FileHolderError:
-            raise ImageDataError('no data and no file to load from')
+        fileobj = allopen(self._data_file_cache)
         self._data = read_data(self._header, fileobj)
         return self._data
 
@@ -1228,12 +1221,11 @@ class AnalyzeImage(SpatialImage):
             hdr.set_slope_inter(1.0, 0.0)
         else:
             hdr.set_slope_inter(slope, inter)
-        hdrf = files['header'].get_prepare_fileobj(mode='wb')
+        hdrf = self.files['header'].get_prepare_fileobj(mode='wb')
         hdr.write_to(hdrf)
-        imgf = files['image'].get_prepare_fileobj(mode='wb')
+        imgf = self.files['image'].get_prepare_fileobj(mode='wb')
         write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
-        self.files = files
 
     def _update_header(self):
         ''' Harmonize header with image data and affine
