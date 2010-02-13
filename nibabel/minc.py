@@ -22,19 +22,6 @@ _default_dir_cos = {
     'zspace': [0,0,1]}
 
 
-class netcdf_fileobj(netcdf_file):
-    def __init__(self, fileobj):
-        # Older versions of netcdf_file expected filename and mode.
-        # Newer versions allow passing of file objects.  We check
-        # whether calling netcdf_file raises a TypeError (meaning we
-        # have the old version) and deal with it if we do.
-        try:
-            super(netcdf_fileobj, self).__init__(fileobj)
-        except TypeError:
-            self._buffer = fileobj
-            self._parse()
-
-
 class MincError(Exception):
     pass
 
@@ -62,9 +49,11 @@ class MincHeader(object):
         It first checks in variables, then attributes
         and finally the dimensions of the MINC file.
 
+        Note that user attributes (not attributes of the mincfile
+        instance) are in the ``_attributes`` - er - attribute.
         """
         mnc = self._mincfile
-        for dict_like in (mnc.variables, mnc.attributes, mnc.dimensions):
+        for dict_like in (mnc.variables, mnc._attributes, mnc.dimensions):
             try:
                 return dict_like[name]
             except KeyError:
@@ -77,7 +66,7 @@ class MincHeader(object):
 
     def keys(self):
         return list(self._mincfile.variables.keys() +
-                    self._mincfile.attributes.keys() +
+                    self._mincfile._attributes.keys() +
                     self._mincfile.dimensions.keys())
 
     def values(self):
@@ -88,7 +77,7 @@ class MincHeader(object):
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ncdf_obj = netcdf_fileobj(fileobj)
+        ncdf_obj = netcdf_file(fileobj)
         return klass(ncdf_obj, endianness, check)
 
     def check_fix(self):
@@ -139,7 +128,7 @@ class MincHeader(object):
 
     def get_unscaled_data(self):
         dtype = self.get_data_dtype()
-        return np.asarray(self._image).view(dtype)
+        return np.asarray(self._image.data).view(dtype)
 
     def _get_valid_range(self):
         ''' Return valid range for image data
