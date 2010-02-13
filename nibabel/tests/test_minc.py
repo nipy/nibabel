@@ -4,11 +4,7 @@ from os.path import join as pjoin
 import numpy as np
 import numpy.testing.decorators as dec
 
-try:
-    from scipy.io.netcdf import netcdf_file as netcdf
-except ImportError:
-    # there seems to be no SciPy -- use our own copy
-    from nibabel.externals.netcdf import netcdf_file as netcdf
+from nibabel.externals.netcdf import netcdf_file as netcdf
 
 from nibabel import load, MincHeader, Nifti1Image
 

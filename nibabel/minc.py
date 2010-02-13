@@ -1,10 +1,6 @@
 import numpy as np
 
-try:
-    from scipy.io.netcdf import netcdf_file
-except ImportError:
-    # there seems to be no SciPy -- use our own copy
-    from nibabel.externals.netcdf import netcdf_file
+from nibabel.externals.netcdf import netcdf_file
 
 from nibabel.spatialimages import SpatialImage
 from nibabel.volumeutils import allopen
