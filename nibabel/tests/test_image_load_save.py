@@ -48,40 +48,41 @@ def test_conversion():
         yield assert_array_equal, img5.get_data(), data
 
 
+@parametric
 def test_save_load_endian():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
     data = np.arange(np.prod(shape)).reshape(shape)
     # Native endian image
     img = nf.Nifti1Image(data, affine)
-    yield assert_equal, img.get_header().endianness, native_code
+    yield assert_equal(img.get_header().endianness, native_code)
     img2 = round_trip(img)
-    yield assert_equal, img2.get_header().endianness, native_code
-    yield assert_array_equal, img2.get_data(), data
+    yield assert_equal(img2.get_header().endianness, native_code)
+    yield assert_array_equal(img2.get_data(), data)
     # byte swapped endian image
     bs_hdr = img.get_header().as_byteswapped()
     bs_img = nf.Nifti1Image(data, affine, bs_hdr)
-    yield assert_equal, bs_img.get_header().endianness, swapped_code
-    yield assert_array_equal, bs_img.get_data(), data
-    # Check converting to another image maintains endian
+    yield assert_equal(bs_img.get_header().endianness, native_code)
+    yield assert_array_equal(bs_img.get_data(), data)
+    # Check converting to another image 
     cbs_img = nf.AnalyzeImage.from_image(bs_img)
     cbs_hdr = cbs_img.get_header()
-    yield assert_equal, cbs_hdr.endianness, swapped_code
+    yield assert_equal(cbs_hdr.endianness, native_code)
     cbs_img2 = nf.Nifti1Image.from_image(cbs_img)
     cbs_hdr2 = cbs_img2.get_header()
-    yield assert_equal, cbs_hdr2.endianness, swapped_code
+    yield assert_equal(cbs_hdr2.endianness, native_code)
     # Try byteswapped round trip
     bs_img2 = round_trip(bs_img)
     bs_data2 = bs_img2.get_data()
-    yield assert_equal, bs_data2.dtype.byteorder, swapped_code
-    yield assert_equal, bs_img2.get_header().endianness, swapped_code
-    yield assert_array_equal, bs_data2, data
+    yield assert_equal(bs_data2.dtype.byteorder, native_code)
+    yield assert_equal(bs_img2.get_header().endianness, native_code)
+    yield assert_array_equal(bs_data2, data)
     # Now mix up byteswapped data and non-byteswapped header
     mixed_img = nf.Nifti1Image(bs_data2, affine)
-    yield assert_equal, mixed_img.get_header().endianness, native_code
+    yield assert_equal(mixed_img.get_header().endianness, native_code)
     m_img2 = round_trip(mixed_img)
-    yield assert_equal, m_img2.get_header().endianness, native_code
-    yield assert_array_equal, m_img2.get_data(), data
+    yield assert_equal(m_img2.get_header().endianness, native_code)
+    yield assert_array_equal(m_img2.get_data(), data)
     
 
 def test_save_load():

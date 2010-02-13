@@ -148,14 +148,9 @@ class SpatialImage(object):
         return self._header
 
     def _set_header(self, header=None):
+        self._header = self._header_maker()
         if header is None:
-            self._header = self._header_maker()
             return
-        # we need to replicate the endianness, for the case where we are
-        # creating an image from files, and we have not yet loaded the
-        # data.  In that case we need to have the header maintain its
-        # endianness to get the correct interpretation of the data
-        self._header = self._header_maker(endianness=header.endianness)
         for key, value in header.items():
             if key in self._header:
                 self._header[key] = value

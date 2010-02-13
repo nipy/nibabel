@@ -244,6 +244,7 @@ class AnalyzeHeader(object):
                 obj._header_data[key] = value
         if check:
             obj.check_fix()
+        obj.check = check
         return obj
     
     def __init__(self,
