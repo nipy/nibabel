@@ -177,9 +177,11 @@ def test_two_to_one():
     yield assert_equal(aimg.get_header()['vox_offset'], 352)
     nfimg = ni1.Nifti1Pair.from_image(img)
     yield assert_equal(nfimg.get_header()['vox_offset'], 352)
+    # now set the vox offset directly
     hdr = nfimg.get_header()
     hdr['vox_offset'] = 0
     yield assert_equal(nfimg.get_header()['vox_offset'], 0)
+    # check it gets properly set by the nifti single image
     nfimg = ni1.Nifti1Image.from_image(img)
     yield assert_equal(nfimg.get_header()['vox_offset'], 352)
     
