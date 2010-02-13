@@ -320,11 +320,12 @@ def test_nifti_extensions():
     ok_(ext.count('afni') == 1)
 
 
+@parametric
 def test_loadsave_cycle():
     nim = load(image_file)
     # ensure we have extensions
-    ok_(nim.extra.has_key('extensions'))
-    ok_(len(nim.extra['extensions']))
+    yield assert_true(nim.extra.has_key('extensions'))
+    yield assert_true(len(nim.extra['extensions']))
     # write into the air ;-)
     stio = StringIO()
     nim.files['image'].fileobj = stio
@@ -332,5 +333,5 @@ def test_loadsave_cycle():
     stio.seek(0)
     # reload
     lnim = Nifti1Image.from_files(nim.files)
-    ok_(lnim.extra.has_key('extensions'))
-    ok_(nim.extra['extensions'] == lnim.extra['extensions'])
+    yield assert_true(lnim.extra.has_key('extensions'))
+    yield assert_true(nim.extra['extensions'] == lnim.extra['extensions'])

@@ -149,14 +149,6 @@ class SpatialImage(object):
 
     def _set_header(self, header=None):
         raise NotImplementedError
-        self._header = self._header_maker()
-        if header is None:
-            return
-        for key, value in header.items():
-            if key in self._header:
-                self._header[key] = value
-            elif key not in self.extra:
-                self.extra[key] = value
 
     def get_filename(self):
         ''' Fetch the image filename

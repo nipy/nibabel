@@ -1506,18 +1506,20 @@ class Nifti1Image(Nifti1Pair):
     _is_pair = False
 
     def _update_header(self):
+        ''' Harmonize header with image data and affine '''
         super(Nifti1Image, self)._update_header()
         hdr = self._header
         hdr['magic'] = 'n+1'
         # make sure that there is space for the header
-        vox_offset = 352
         # if any extensions, figure out necessary vox_offset for
         # extensions to fit
         if (self.extra.has_key('extensions') and
             len(self.extra['extensions'])):
-            vox_offset += self.extra['extensions'].get_sizeondisk()
-        if hdr['vox_offset'] < vox_offset:
-            hdr['vox_offset'] = vox_offset
+            min_vox_offset = 348 + self.extra['extensions'].get_sizeondisk()
+        else:
+            min_vox_offset = 352
+        if hdr['vox_offset'] < min_vox_offset:
+            hdr['vox_offset'] = min_vox_offset
         
             
 load = Nifti1Image.load

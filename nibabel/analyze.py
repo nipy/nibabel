@@ -1164,14 +1164,14 @@ class AnalyzeImage(SpatialImage):
                        header=None,
                        extra=None,
                        files=None):
-        ''' Class method initializer to initialize from data file
+        ''' Class method create mew instance from data file
 
         We use a proxy to implement the caching of the data read, and
         for the data shape.  
         '''
-        obj = klass(None, affine, header, extra, files)
-        obj._data = AnalyzeArrayProxy(file_like, obj.get_header())
-        return obj
+        data_hdr, _ = klass._header_maker.from_mapping(header)
+        data = AnalyzeArrayProxy(file_like, data_hdr)
+        return klass(data, affine, header, extra, files)
         
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
