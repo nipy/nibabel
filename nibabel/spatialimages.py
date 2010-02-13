@@ -148,6 +148,7 @@ class SpatialImage(object):
         return self._header
 
     def _set_header(self, header=None):
+        raise NotImplementedError
         self._header = self._header_maker()
         if header is None:
             return

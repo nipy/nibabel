@@ -157,25 +157,33 @@ def test_two_to_one():
     pimg.files['image'].fileobj = isio
     pimg.files['header'].fileobj = hsio
     pimg.to_files()
+    # the offset remains the same
     yield assert_equal(pimg.get_header()['magic'], 'ni1')
-    yield assert_equal(pimg.get_header()['vox_offset'], 0)
+    yield assert_equal(pimg.get_header()['vox_offset'], 352)
+    yield assert_array_equal(pimg.get_data(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    yield assert_equal(ana_img.get_header()['vox_offset'], 0)
+    yield assert_equal(ana_img.get_header()['vox_offset'], 352)
+    # back to the single image, save it again to a stringio
     str_io = StringIO()
     img.files['image'].fileobj = str_io
     img.to_files()
     yield assert_equal(img.get_header()['vox_offset'], 352)
     aimg = ana.AnalyzeImage.from_image(img)
-    yield assert_equal(aimg.get_header()['vox_offset'], 0)
+    yield assert_equal(aimg.get_header()['vox_offset'], 352)
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    yield assert_equal(aimg.get_header()['vox_offset'], 0)
+    yield assert_equal(aimg.get_header()['vox_offset'], 352)
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    yield assert_equal(aimg.get_header()['vox_offset'], 0)
+    yield assert_equal(aimg.get_header()['vox_offset'], 352)
+    nfimg = ni1.Nifti1Pair.from_image(img)
+    yield assert_equal(nfimg.get_header()['vox_offset'], 352)
+    hdr = nfimg.get_header()
+    hdr['vox_offset'] = 0
+    yield assert_equal(nfimg.get_header()['vox_offset'], 0)
     nfimg = ni1.Nifti1Image.from_image(img)
     yield assert_equal(nfimg.get_header()['vox_offset'], 352)
-
-
+    
+    
 def test_negative_load_save():
     shape = (1,2,5)
     data = np.arange(10).reshape(shape) - 10.0

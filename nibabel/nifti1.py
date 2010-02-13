@@ -1407,9 +1407,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
     _is_pair = True
     
-    def _set_header(self, header=None):
-        SpatialImage._set_header(self, header)
-
     @classmethod
     def from_files(klass, files):
         if klass._is_pair:
@@ -1442,16 +1439,12 @@ class Nifti1Pair(analyze.AnalyzeImage):
     def to_files(self):
         ''' Write image to contained ``self.files``
         '''
-        # XXX the whole method is candidate for refactoring, since it started as
-        # verbatim copy of AnalyzeImage.to_files()
+        # XXX the whole method is candidate for refactoring, since it
+        # started as verbatim copy of AnalyzeImage.to_files()
         data = self.get_data()
-        # Adapt header to possible two<->one file difference
-        hdr = self.get_header().for_file_pair(self._is_pair)
-        # if any extensions, figure out necessary vox_offset for extensions to
-        # fit
-        if self.extra.has_key('extensions') and len(self.extra['extensions']):
-            hdr['vox_offset'] = len(hdr.binaryblock) \
-                                + self.extra['extensions'].get_sizeondisk()
+        # Note that get header updates header from image data by calling
+        # _update_header
+        hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
         if slope is None:
             hdr.set_slope_inter(1.0, 0.0)
@@ -1502,6 +1495,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         '''
         super(Nifti1Pair, self)._update_header()
         hdr = self._header
+        hdr['magic'] = 'ni1'
         if not self._affine is None:
             hdr.set_sform(self._affine)
             hdr.set_qform(self._affine)
@@ -1511,6 +1505,20 @@ class Nifti1Image(Nifti1Pair):
     files_types = (('image', '.nii'),)
     _is_pair = False
 
-
+    def _update_header(self):
+        super(Nifti1Image, self)._update_header()
+        hdr = self._header
+        hdr['magic'] = 'n+1'
+        # make sure that there is space for the header
+        vox_offset = 352
+        # if any extensions, figure out necessary vox_offset for
+        # extensions to fit
+        if (self.extra.has_key('extensions') and
+            len(self.extra['extensions'])):
+            vox_offset += self.extra['extensions'].get_sizeondisk()
+        if hdr['vox_offset'] < vox_offset:
+            hdr['vox_offset'] = vox_offset
+        
+            
 load = Nifti1Image.load
 save = Nifti1Image.instance_to_filename

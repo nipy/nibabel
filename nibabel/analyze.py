@@ -232,21 +232,6 @@ class AnalyzeHeader(object):
     has_data_slope = False
     has_data_intercept = False
 
-    @classmethod
-    def from_mapping(klass,
-                 field_mapping=None,
-                 endianness=None,
-                 check=True):
-        '''  Initialize header from mapping '''
-        obj = klass(endianness=endianness, check=check)
-        if not field_mapping is None:
-            for key, value in field_mapping:
-                obj._header_data[key] = value
-        if check:
-            obj.check_fix()
-        obj.check = check
-        return obj
-    
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
@@ -329,6 +314,48 @@ class AnalyzeHeader(object):
             self.check_fix()
         return
 
+    @classmethod
+    def from_mapping(klass,
+                 mapping=None,
+                 endianness=None,
+                 check=True):
+        '''  Initialize header from mapping
+
+        Parameters
+        ----------
+        mapping : None or mapping
+           mapping defining field values. Only needs to implment
+           ``items`` method.
+        endianness : {None, '<', '>'}
+           endianness of output header.  None (default) gives system
+           endian
+        check : {True, False}
+           whether to check header for integrity after filling field
+           values from mapping
+
+        Returns
+        -------
+        hdr : header instance
+           fresh header instance where any field values corresponding to
+           keys in `mapping` have been set with corresponding value from
+           `mapping`
+        extra : dict
+           dictionary containing any key, value pairs from `mapping`
+           that had no corresponding key in header object
+        '''
+        obj = klass(endianness=endianness, check=check)
+        extra = {}
+        if not mapping is None:
+            for key, value in mapping.items():
+                if key in obj:
+                    obj[key] = value
+                else:
+                    extra[key] = value
+        if check:
+            obj.check_fix()
+        obj.check = check
+        return obj, extra
+    
     @property
     def binaryblock(self):
         ''' binary block of data as string
@@ -1192,17 +1219,10 @@ class AnalyzeImage(SpatialImage):
         return self._header
 
     def _set_header(self, header=None):
-        # Pick up case of nifti image -> analyze
-        try:
-            header = header.for_file_pair()
-        except AttributeError:
-            pass
-        super(AnalyzeImage, self)._set_header(header)
-
+        self._header, self._extra = self._header_maker.from_mapping(header)
+            
     def get_shape(self):
-        if not self._data is None:
-            return self._data.shape
-        return self._header.get_data_shape()
+        return self._data.shape
     
     def get_data_dtype(self):
         return self._header.get_data_dtype()

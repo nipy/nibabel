@@ -33,8 +33,8 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises
+from nibabel.testing import assert_equal, assert_not_equal, \
+    assert_true, assert_false, assert_raises
 
 from numpy.testing import assert_array_equal
 
@@ -174,3 +174,18 @@ def test_images():
     yield assert_raises(ImageDataError, img.get_data)
     yield assert_equal(img.get_affine(), None)
     yield assert_equal(img.get_header(), AnalyzeHeader())
+
+
+@parametric
+def test_from_mapping():
+    ehdr = AnalyzeHeader()
+    hdr, extra = AnalyzeHeader.from_mapping()
+    yield assert_equal(hdr, ehdr)
+    yield assert_equal(extra, {})
+    hdr, extra = AnalyzeHeader.from_mapping({'descrip':'something'})
+    yield assert_not_equal(hdr, ehdr)
+    yield assert_equal(extra, {})
+    hdr, extra = AnalyzeHeader.from_mapping({'descrip':'something',
+                                             'improbable': 1})
+    yield assert_not_equal(hdr, ehdr)
+    yield assert_equal(extra, {'improbable':1})
