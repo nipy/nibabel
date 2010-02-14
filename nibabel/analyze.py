@@ -214,6 +214,14 @@ _dtdefs = ( # code, conversion function, equivalent dtype, aliases
 data_type_codes = make_dt_codes(_dtdefs)
 
 
+def is_analyze_header(obj):
+    ''' Return True if this appears to be an Analyze-type header '''
+    try:
+        return obj.is_analyze_header
+    except AttributeError:
+        return False
+
+
 class AnalyzeHeader(object):
     ''' Class for basic analyze header
 
@@ -221,6 +229,9 @@ class AnalyzeHeader(object):
     scaling
     
     '''
+    # flag to indetify analyze-type headers
+    is_analyze_header = True
+    
     # Copies of module-level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
@@ -339,22 +350,28 @@ class AnalyzeHeader(object):
            fresh header instance where any field values corresponding to
            keys in `mapping` have been set with corresponding value from
            `mapping`
-        extra : dict
-           dictionary containing any key, value pairs from `mapping`
-           that had no corresponding key in header object
+
+        Raises
+        ------
+        KeyError when keys in mapping are not in header, unless mapping
+        is explicitly of Analyze type, in which case we silently discard
+        keys that do not match.  We do this because we know that
+        Analyze-type fields with the same name have the same meaning
+        across different Analyze sub-types
         '''
         obj = klass(endianness=endianness, check=check)
-        extra = {}
         if not mapping is None:
+            is_ana = is_analyze_header(mapping)
             for key, value in mapping.items():
-                if key in obj:
+                try:
                     obj[key] = value
-                else:
-                    extra[key] = value
+                except ValueError:
+                    if not is_ana:
+                        raise KeyError('key %s not in header' % key)
         if check:
             obj.check_fix()
         obj.check = check
-        return obj, extra
+        return obj
     
     @property
     def binaryblock(self):
@@ -1156,6 +1173,7 @@ class AnalyzeHeader(object):
 class AnalyzeImage(SpatialImage):
     _header_maker = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
+    _compressed_exts = ('.gz', '.bz2')
 
     @classmethod
     def from_data_file(klass,
@@ -1169,7 +1187,7 @@ class AnalyzeImage(SpatialImage):
         We use a proxy to implement the caching of the data read, and
         for the data shape.  
         '''
-        data_hdr, _ = klass._header_maker.from_mapping(header)
+        data_hdr  = klass._header_maker.from_mapping(header)
         data = AnalyzeArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, files)
         
@@ -1219,7 +1237,7 @@ class AnalyzeImage(SpatialImage):
         return self._header
 
     def _set_header(self, header=None):
-        self._header, self._extra = self._header_maker.from_mapping(header)
+        self._header = self._header_maker.from_mapping(header)
             
     def get_shape(self):
         return self._data.shape
@@ -1256,6 +1274,34 @@ class AnalyzeImage(SpatialImage):
         imgf = self.files['image'].get_prepare_fileobj(mode='wb')
         write_data(hdr, data, imgf, inter, slope, mn, mx)
         self._header = hdr
+
+    @classmethod
+    def from_image(klass, img):
+        ''' Create new instance of own class from `img`
+
+        This is a class method.  For Analyze-type images as source
+        ('img`) and as target, we can use the commonalities of the
+        Analyze images to copy the header information safely.
+        
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``spatialimage`` -
+           specifically ``get_data``, ``get_affine``, ``get_header``,
+           and ``extra``.
+
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        '''
+        hdr = img.get_header()
+        if not is_analyze_header(hdr):
+            hdr = None
+        return klass(img.get_data(),
+                     img.get_affine(),
+                     hdr,
+                     extra=img.extra)
 
     def _update_header(self):
         ''' Harmonize header with image data and affine

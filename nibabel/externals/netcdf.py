@@ -45,8 +45,15 @@ otherwise the key would be inserted into userspace attributes.
 
 To create a NetCDF file::
 
+Make a temporary file for testing:
+
+    >>> from tempfile import mkstemp
+    >>> fd, fname = mkstemp('.nc')
+
+Write to it:
+
     >>> import time
-    >>> f = netcdf_file('simple.nc', 'w')
+    >>> f = netcdf_file(fname, 'w')
     >>> f.history = 'Created for a test'
     >>> f.createDimension('time', 10)
     >>> time = f.createVariable('time', 'i', ('time',))
@@ -56,7 +63,7 @@ To create a NetCDF file::
 
 To read the NetCDF file we just created::
 
-    >>> f = netcdf_file('simple.nc', 'r')
+    >>> f = netcdf_file(fname, 'r')
     >>> print f.history
     Created for a test
     >>> time = f.variables['time']
@@ -68,6 +75,11 @@ To read the NetCDF file we just created::
     9
     >>> f.close()
 
+ Delete our temporary file:
+
+    >>> import os
+    >>> os.unlink(fname)
+ 
 TODO:
  * properly implement ``_FillValue``.
  * implement Jeff Whitaker's patch for masked variables.

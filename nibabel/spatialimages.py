@@ -84,6 +84,7 @@ class ImageDataError(Exception):
 class SpatialImage(object):
     _header_maker = dict
     files_types = (('image', None),)
+    _compressed_exts = ()
     
     ''' Template class for images '''
     def __init__(self, data, affine, header=None, extra=None, files=None):
@@ -209,7 +210,8 @@ class SpatialImage(object):
     def filespec_to_files(klass, filespec):
         try:
             filenames = types_filenames(filespec,
-                                        klass.files_types)
+                                        klass.files_types,
+                                        trailing_suffixes=klass._compressed_exts)
         except TypesFilenamesError:
             raise ValueError('Filespec "%s" does not look right for '
                              'class %s ' % (filespec, klass))
@@ -309,13 +311,17 @@ class SpatialImage(object):
     def from_image(klass, img):
         ''' Create new instance of own class from `img`
 
-        This is a class method
+        This is a class method.  Note that, for this general method, we
+        throw away the header from the image passed in, on the basis
+        that we cannot predict whether it is convertible in general.
+        Sub-classes can override this class method to try and use the
+        information from the passed header. 
         
         Parameters
         ----------
         img : ``spatialimage`` instance
            In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header`` and
+           specifically ``get_data``, ``get_affine``,  and
            ``extra``.
 
         Returns
@@ -325,6 +331,5 @@ class SpatialImage(object):
         '''
         return klass(img.get_data(),
                      img.get_affine(),
-                     img.get_header(),
-                     img.extra)
+                     extra=img.extra)
     

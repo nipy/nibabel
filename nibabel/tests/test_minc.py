@@ -7,8 +7,8 @@ import numpy.testing.decorators as dec
 from nibabel.externals.netcdf import netcdf_file as netcdf
 
 from nibabel import load, MincHeader, Nifti1Image
-
-from nose.tools import assert_true, assert_equal, assert_false
+from nose.tools import assert_true, assert_equal, assert_false, \
+    assert_raises
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.testing import parametric
 
@@ -51,3 +51,10 @@ def test_eg_img():
     ni_img = Nifti1Image.from_image(img)
     yield assert_array_equal(ni_img.get_affine(), aff)
     yield assert_array_equal(ni_img.get_data(), data)
+
+
+@parametric
+def test_compressed():
+    # we can't read minc compreesed, raise error
+    yield assert_raises(ValueError, load, 'test.mnc.gz')
+    yield assert_raises(ValueError, load, 'test.mnc.bz2')

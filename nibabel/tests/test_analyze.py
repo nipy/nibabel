@@ -179,13 +179,11 @@ def test_images():
 @parametric
 def test_from_mapping():
     ehdr = AnalyzeHeader()
-    hdr, extra = AnalyzeHeader.from_mapping()
+    hdr = AnalyzeHeader.from_mapping()
     yield assert_equal(hdr, ehdr)
-    yield assert_equal(extra, {})
-    hdr, extra = AnalyzeHeader.from_mapping({'descrip':'something'})
+    hdr = AnalyzeHeader.from_mapping({'descrip':'something'})
     yield assert_not_equal(hdr, ehdr)
-    yield assert_equal(extra, {})
-    hdr, extra = AnalyzeHeader.from_mapping({'descrip':'something',
-                                             'improbable': 1})
-    yield assert_not_equal(hdr, ehdr)
-    yield assert_equal(extra, {'improbable':1})
+    yield assert_raises(KeyError,
+                        AnalyzeHeader.from_mapping,
+                        {'descrip':'something',
+                         'improbable': 1})
