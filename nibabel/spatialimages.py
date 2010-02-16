@@ -109,7 +109,7 @@ work:
    >>> # write, read it again
    >>> img2.to_files()
    >>> img3 = nib.AnalyzeImage.from_files(files)
-   >>> np.all(img2.get_data() == data)
+   >>> np.all(img3.get_data() == data)
    True
 
 '''

@@ -1293,24 +1293,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         ret = Report(hdr, HeaderDataError)
         magic = hdr['magic']
         offset = hdr['vox_offset']
-        if magic == 'ni1': # two files
-            if offset == 0:
-                return ret
-            ret.problem_msg = ('vox offset should be 0 (is %s)'
-                               'with two-file nifti images' % offset)
-            ret.problem_level = 40
-            if fix: 
-                ret.fix_msg = 'leaving at current value'
-        elif magic == 'n+1': # one file
+        if magic == 'n+1': # one file
             if offset >= 352:
                 if not offset % 16:
                     return ret
                 else:
-                    # XXX Michael wonders, if this warning really valid? NIfTI
-                    # says that each extension's length has to be a multiple of
-                    # 16, therefore the test should be (offset-352) % 16 and
-                    # not offset % 16, or does SPM have additional artifical
-                    # limitations?
+                    # SPM uses memory mapping to read the data, and
+                    # apparently this has to start on 16 byte boundaries
                     ret.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
                     ret.problem_level = 30
@@ -1324,7 +1313,8 @@ class Nifti1Header(SpmAnalyzeHeader):
                 ret.fix_msg = 'setting to minimum value of 352'
             else:
                 ret.problem_level = 50
-        else: # unrecognized nii magic string, oh dear
+        elif magic != 'ni1': # two files
+            # unrecognized nii magic string, oh dear
             ret.problem_msg = 'magic string %s is not valid' % magic
             ret.problem_level = 50
             if fix:

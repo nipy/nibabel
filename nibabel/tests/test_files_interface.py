@@ -9,6 +9,7 @@ from cStringIO import StringIO
 import numpy as np
 
 import nibabel as nib
+from nibabel.fileholders import FileHolderError
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
@@ -37,8 +38,8 @@ def test_files_images():
     
 
 @parametric
-def test_highest():
-    # test high-level interface to filesets
+def test_files_interface():
+    # test high-level interface to files mapping
     arr = np.zeros((2,3,4))
     aff = np.eye(4)
     img = nib.Nifti1Image(arr, aff)
@@ -64,7 +65,7 @@ def test_highest():
     img = nib.Nifti1Pair(arr, aff)
     img.files['image'].fileobj = StringIO()
     # no header yet
-    yield assert_raises(FilesError, img.to_files)
+    yield assert_raises(FileHolderError, img.to_files)
     img.files['header'].fileobj = StringIO()
     img.to_files() # saves to files
     img2 = nib.Nifti1Pair.from_files(img.files)
@@ -72,32 +73,27 @@ def test_highest():
     yield assert_array_equal(img2.get_data(), img.get_data())
     
 
-def test_interface():
-    # test interface for filesets
-    types = ('f1', 'f2')
-    class C(FileSet):
-        types = types
-    c = C()
-    for key in types:
-        yield assert_equal(c.get_filename(key), None)
-        yield assert_equal(c.get_fileobj(key), None)
-        yield assert_equal(c.get_start_pos(key), 0)
-    # fileobj interface
-    stio = StringIO()
-    stio.write('aaa')
-    c.set_fileobj('f1', stio)
-    yield assert_equal(c.get_filename('f1'), None)
-    yield assert_equal(c.get_fileobj('f1'), stio)
-    yield assert_equal(c.get_start_pos('f1'), 3)
-    # filename interface
-    try:
-        fd, fname = mkstemp()
-        c.set_filename('f1', fname)
-        yield assert_equal(c.get_filename('f1'), fname)
-    finally:
-        os.remove(fname)
-
-
-# disable tests for now
-test_interface.__test__ = False
-test_highest.__test__ = False
+@parametric
+def test_round_trip():
+   # write an image to files
+   from StringIO import StringIO
+   data = np.arange(24).reshape((2,3,4))
+   aff = np.eye(4)
+   for klass in (nib.AnalyzeImage,
+                 nib.Spm99AnalyzeImage,
+                 nib.Spm2AnalyzeImage,
+                 nib.Nifti1Pair,
+                 nib.Nifti1Image):
+       files = klass.make_files()
+       for key in files:
+           files[key].fileobj = StringIO()
+       img = klass(data, aff)
+       img.files = files
+       img.to_files()
+       # read it back again from the written files
+       img2 = klass.from_files(files)
+       yield assert_array_equal(img2.get_data(), data)
+       # write, read it again
+       img2.to_files()
+       img3 = klass.from_files(files)
+       yield assert_array_equal(img3.get_data(), data)
