@@ -126,7 +126,7 @@ class ImageDataError(Exception):
 
 
 class SpatialImage(object):
-    _header_maker = dict
+    _header_class = dict
     files_types = (('image', None),)
     _compressed_exts = ()
     
@@ -181,10 +181,10 @@ class SpatialImage(object):
             return self._data.shape
 
     def get_data_dtype(self):
-        raise NotImplementedError
-
+        return self._header.get_data_dtype()
+    
     def set_data_dtype(self, dtype):
-        raise NotImplementedError
+        self._header.set_data_dtype(dtype)
 
     def get_affine(self):
         return self._affine

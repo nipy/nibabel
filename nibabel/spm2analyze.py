@@ -121,7 +121,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
 
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
-    _header_maker = Spm2AnalyzeHeader
+    _header_class = Spm2AnalyzeHeader
 
 
 load = Spm2AnalyzeImage.load

@@ -1139,12 +1139,16 @@ class AnalyzeHeader(object):
 
 
 class AnalyzeImage(SpatialImage):
-    _header_maker = AnalyzeHeader
+    _header_class = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
     class ImageArrayProxy(ArrayProxy):
-        ''' Analyze-type implemention of array proxy protocol '''
+        ''' Analyze-type implemention of array proxy protocol
+
+        The array proxy allows us to freeze the passed fileobj and
+        header such that it returns the expected data array.
+        '''
         def _read_data(self):
             fileobj = allopen(self.file_like)
             data = read_data(self.header, fileobj)
@@ -1164,7 +1168,7 @@ class AnalyzeImage(SpatialImage):
         We use a proxy to implement the caching of the data read, and
         for the data shape.  
         '''
-        data_hdr  = klass._header_maker.from_mapping(header)
+        data_hdr  = klass._header_class.from_mapping(header)
         data = klass.ImageArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, files)
         
@@ -1214,24 +1218,30 @@ class AnalyzeImage(SpatialImage):
         return self._header
 
     def _set_header(self, header=None):
-        self._header = self._header_maker.from_mapping(header)
+        self._header = self._header_class.from_mapping(header)
             
     def get_shape(self):
         return self._data.shape
     
-    def get_data_dtype(self):
-        return self._header.get_data_dtype()
-    
-    def set_data_dtype(self, dtype):
-        self._header.set_data_dtype(dtype)
-
     @staticmethod
     def _get_open_files(files, mode='rb'):
+        ''' Utitlity method to open necessary files for read/write
+
+        This method is to allow for formats (nifti single in particular)
+        that may have the same file for header and image
+        '''
         hdrf = files['header'].get_prepare_fileobj(mode=mode)
         imgf = files['image'].get_prepare_fileobj(mode=mode)
         return hdrf, imgf
 
     def _close_filenames(self, files, hdrf, imgf):
+        ''' Utitlity method to close any files no longer required
+
+        Called by the image writing routines. 
+
+        This method is to allow for formats (nifti single in particular)
+        that may have the same file for header and image
+        '''
         if files['header'].fileobj is None: # was filename
             hdrf.close()
         if files['image'].fileobj is None: # was filename
@@ -1242,7 +1252,7 @@ class AnalyzeImage(SpatialImage):
         ''' class method to create image from mapping in `files ``
         '''
         hdrf, imgf = klass._get_open_files(files, 'rb')
-        header = klass._header_maker.from_fileobj(hdrf)
+        header = klass._header_class.from_fileobj(hdrf)
         affine = header.get_best_affine()
         return klass.from_data_file(imgf,
                                     affine,
@@ -1250,6 +1260,18 @@ class AnalyzeImage(SpatialImage):
                                     files=files)
 
     def _write_header(self, header_file, header, slope, inter):
+        ''' Utility routine to write header
+
+        Parameters
+        ----------
+        header_file : file-like
+           file-like object implementing ``write``, open for writing
+        header : header object
+        slope : None or float
+           slope for data scaling
+        inter : None or float
+           intercept for data scaling
+        '''
         header.set_slope_inter(slope, inter)
         header.write_to(header_file)
 

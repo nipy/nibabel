@@ -1351,12 +1351,12 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 
 class Nifti1Pair(analyze.AnalyzeImage):
-    _header_maker = Nifti1Header
+    _header_class = Nifti1Header
     
     @classmethod
     def from_files(klass, files):
         hdrf, imgf = klass._get_open_files(files, 'rb')
-        header = klass._header_maker.from_fileobj(hdrf)
+        header = klass._header_class.from_fileobj(hdrf)
         extra = None
         # handle extensions
         # assume the fileptr is just after header (magic field)
