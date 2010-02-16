@@ -1211,67 +1211,6 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['slice_duration'] = duration
         hdr['slice_code'] = slice_order_codes.code[label]
 
-    def for_file_pair(self, is_pair=True):
-        ''' Adapt header to separate or same image and header file
-
-        Parameters
-        ----------
-        is_pair : bool, optional
-           True if adapting header to file pair state, False for single
-
-        Returns
-        -------
-        hdr : Nifti1Header
-           copied and possibly modified header
-
-        Examples
-        --------
-        The header starts off as being for a single file
-
-        >>> hdr = Nifti1Header()
-        >>> str(hdr['magic'])
-        'n+1'
-        >>> hdr.get_data_offset()
-        352
-
-        But we can switch it to be for two files (a pair)
-
-        >>> pair_hdr = hdr.for_file_pair()
-        >>> str(pair_hdr['magic'])
-        'ni1'
-        >>> pair_hdr.get_data_offset()
-        0
-
-        The original header is not affected (a copy is returned)
-
-        >>> hdr.get_data_offset()
-        352
-
-        Back to single again
-
-        >>> unpair_hdr = pair_hdr.for_file_pair(False)
-        >>> str(unpair_hdr['magic'])
-        'n+1'
-        >>> unpair_hdr.get_data_offset()
-        352
-        '''
-        hdr = self.copy()
-        if not is_pair:
-            # one file version
-            if hdr['magic'] == 'n+1':
-                if hdr['vox_offset'] < 352:
-                    hdr['vox_offset'] = 352
-                return hdr
-            hdr['magic'] = 'n+1'
-            hdr['vox_offset'] = 352
-            return hdr
-        # two file version
-        if hdr['magic'] == 'ni1':
-            return hdr
-        hdr['magic'] = 'ni1'
-        hdr['vox_offset'] = 0
-        return hdr
-
     def _slice_time_order(self, slabel, n_slices):
         ''' Supporting function to give time order of slices from label '''
         if slabel == 'sequential increasing':

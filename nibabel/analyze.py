@@ -1011,58 +1011,6 @@ class AnalyzeHeader(object):
             raise HeaderTypeError('Cannot set slope or intercept '
                                   'for Analyze headers')
 
-    def for_file_pair(self, is_pair=True):
-        ''' Adapt header to separate or same image and header file
-
-        This is a rare and exotic case for Analyze files, common for
-        Nifti1.  For Analyze, we only need to check that, if the file is
-        single, then the data offset is large enough to leave room for
-        the header.
-        
-        Parameters
-        ----------
-        is_pair : bool, optional
-           True if adapting header to file pair state, False for single
-
-        Returns
-        -------
-        hdr : header
-           copied and possibly modified header
-        
-        Examples
-        --------
-        The header starts off as being for two files
-        
-        >>> hdr = AnalyzeHeader()
-        >>> hdr.get_data_offset()
-        0
-
-        This is the same as the default behavior for this method
-        
-        >>> pair_hdr = hdr.for_file_pair()
-        >>> pair_hdr.get_data_offset()
-        0
-
-        But we can switch it to be for one
-        
-        >>> unpair_hdr = hdr.for_file_pair(False)
-        >>> unpair_hdr.get_data_offset()
-        352
-
-        The original header is not affected (a copy is returned)
-        
-        >>> hdr.get_data_offset()
-        0
-        '''
-        hdr = self.__class__(self.binaryblock, self.endianness)
-        if not is_pair:
-            if hdr['vox_offset'] < 352:
-                hdr['vox_offset'] = 352
-            return hdr
-        # two file version
-        hdr['vox_offset'] = 0
-        return hdr
-
     def scaling_from_data(self, data):
         ''' Calculate slope, intercept, min, max from data given header
 
