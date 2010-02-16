@@ -7,10 +7,10 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.header_ufuncs import read_unscaled_data, read_data, \
     write_data, write_scaled_data
 
-from nibabel.spm99analyze import Spm99AnalyzeHeader
+from nibabel.spm99analyze import Spm99AnalyzeHeader, HeaderTypeError
 
 from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises
+     assert_raises, parametric
 
 from test_analyze import TestAnalyzeHeader as _TAH
 
@@ -57,3 +57,14 @@ def test_origin_affine():
     # check that origin affine works, only
     hdr = Spm99AnalyzeHeader()
     aff = hdr.get_origin_affine()
+
+
+@parametric
+def test_slope_inter():
+    hdr = Spm99AnalyzeHeader()
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(2.2)
+    yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 0.0))
+    hdr.set_slope_inter(None)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.2, 1.1)

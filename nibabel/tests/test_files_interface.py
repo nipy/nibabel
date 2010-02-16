@@ -26,11 +26,13 @@ def test_files_images():
     for klass in nib.image_classes.values():
         files = klass.make_files()
         for key, value in files.items():
-            yield assert_false(value.has_file())
+            yield assert_equal(value.filename, None)
+            yield assert_equal(value.fileobj, None)
             yield assert_equal(value.pos, 0)
         img = klass(arr, aff)
         for key, value in img.files.items():
-            yield assert_false(value.has_file())
+            yield assert_equal(value.filename, None)
+            yield assert_equal(value.fileobj, None)
             yield assert_equal(value.pos, 0)
     
 

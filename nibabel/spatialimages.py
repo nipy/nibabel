@@ -68,6 +68,50 @@ data type the same as the input::
     hdr.set_data_dtype(data.dtype)
     img.to_filename(fname)
 
+Files interface
+===============
+
+The image has an attribute ``files``.  This is a mapping, that has keys
+corresponding to the file types that an image needs for storage.  For
+example, the Analyze data format needs an ``image`` and a ``header``
+file type for storage:
+
+   >>> import nibabel as nib
+   >>> data = np.arange(24).reshape((2,3,4))
+   >>> img = nib.AnalyzeImage(data, np.eye(4))
+   >>> sorted(img.files)
+   ['header', 'image']
+
+The values of ``files`` are not in fact files but objects with
+attributes ``filename``, ``fileobj`` and ``pos``.
+
+The reason for this interface, is that the contents of files has to
+contain enough information so that an existing image instance can save
+itself back to the files pointed to in ``files``.   When a file holder
+holds active file-like objects, then these may be affected by the
+initial file read; in this case, the contains file-like objects need to
+carry the position at which a write (with ``to_files``) should place the
+data.   The ``files`` contents should therefore be such, that this will
+work:
+
+   >>> # write an image to files
+   >>> from StringIO import StringIO
+   >>> files = nib.AnalyzeImage.make_files()
+   >>> files['image'].fileobj = StringIO()
+   >>> files['header'].fileobj = StringIO()
+   >>> img = nib.AnalyzeImage(data, np.eye(4))
+   >>> img.files = files
+   >>> img.to_files()
+   >>> # read it back again from the written files
+   >>> img2 = nib.AnalyzeImage.from_files(files)
+   >>> np.all(img2.get_data() == data)
+   True
+   >>> # write, read it again
+   >>> img2.to_files()
+   >>> img3 = nib.AnalyzeImage.from_files(files)
+   >>> np.all(img2.get_data() == data)
+   True
+
 '''
 
 import warnings

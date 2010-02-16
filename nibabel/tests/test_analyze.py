@@ -187,3 +187,14 @@ def test_from_mapping():
                         AnalyzeHeader.from_mapping,
                         {'descrip':'something',
                          'improbable': 1})
+
+
+@parametric
+def test_slope_inter():
+    hdr = AnalyzeHeader()
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(None)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(1.0)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)

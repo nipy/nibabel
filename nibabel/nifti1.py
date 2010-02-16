@@ -760,7 +760,25 @@ class Nifti1Header(SpmAnalyzeHeader):
             dc_offset = 0.0
         return scale, dc_offset
 
-    def set_slope_inter(self, slope, inter):
+    def set_slope_inter(self, slope, inter=0.0):
+        ''' Set slope and / or intercept into header
+
+        Set slope and intercept for image data, such that, if the image
+        data is ``arr``, then the scaled image data will be ``(arr *
+        slope) + inter``
+
+        Parameters
+        ----------
+        slope : None or float
+           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
+           scaling of the image data).  If `slope` is not, we ignore the
+           passed value of `inter`
+        inter : float, optional
+           intercept
+        '''
+        if slope is None:
+            slope = 1.0
+            inter = 0.0
         self._header_data['scl_slope'] = slope
         self._header_data['scl_inter'] = inter
 
@@ -1405,16 +1423,11 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 class Nifti1Pair(analyze.AnalyzeImage):
     _header_maker = Nifti1Header
-    _is_pair = True
     
     @classmethod
     def from_files(klass, files):
-        if klass._is_pair:
-            hdr_type = 'header'
-        else:
-            hdr_type = 'image'
-        fobj = files[hdr_type].get_prepare_fileobj()
-        header = klass._header_maker.from_fileobj(fobj)
+        hdrf, imgf = klass._get_open_files(files, 'rb')
+        header = klass._header_maker.from_fileobj(hdrf)
         extra = None
         # handle extensions
         # assume the fileptr is just after header (magic field)
@@ -1423,59 +1436,28 @@ class Nifti1Pair(analyze.AnalyzeImage):
             # read till the end of the header
             extsize = -1
         else:
-            extsize = header['vox_offset'] - fobj.tell()
-        extensions = Nifti1Extensions.from_fileobj(fobj, extsize)
+            extsize = header['vox_offset'] - hdrf.tell()
+        extensions = Nifti1Extensions.from_fileobj(hdrf, extsize)
         # XXX maybe always do that?
         if len(extensions):
             extra = {'extensions': extensions}
         affine = header.get_best_affine()
-        fobj = files['image'].get_prepare_fileobj()
-        return klass.from_data_file(fobj,
+        return klass.from_data_file(imgf,
                                     affine,
                                     header,
                                     extra,
                                     files=files)
 
-    def to_files(self):
-        ''' Write image to contained ``self.files``
-        '''
-        # XXX the whole method is candidate for refactoring, since it
-        # started as verbatim copy of AnalyzeImage.to_files()
-        data = self.get_data()
-        # Note that get header updates header from image data by calling
-        # _update_header
-        hdr = self.get_header()
-        slope, inter, mn, mx = hdr.scaling_from_data(data)
-        if slope is None:
-            hdr.set_slope_inter(1.0, 0.0)
-        else:
-            hdr.set_slope_inter(slope, inter)
-        if self._is_pair:
-            hdr_type = 'header'
-        else:
-            hdr_type = 'image'
-        hdrf = self.files[hdr_type].get_prepare_fileobj(mode='wb')
-        hdr.write_to(hdrf)
-        # write all extensions to file
-        # assumes that the file ptr is right after the magic string
+    def _write_header(self, header_file, header, slope, inter):
+        super(Nifti1Pair, self)._write_header(header_file,
+                                              header,
+                                              slope,
+                                              inter)
         if not self.extra.has_key('extensions'):
             # no extensions: be nice and write appropriate flag
-            hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
+            header_file.write(np.array((0,0,0,0), dtype=np.int8).tostring())
         else:
-            self.extra['extensions'].write_to(hdrf)
-        if self._is_pair:
-            imgf = self.files['image'].get_prepare_fileobj(mode='wb')
-        else: # single file for header and image
-            imgf = hdrf
-            # streams like bz2 do not allow write seeks, even forward.
-            # We check where to go, and write zeros up until the data
-            # part of the file
-            offset = hdr.get_data_offset()
-            diff = offset-hdrf.tell()
-            if diff > 0:
-                hdrf.write('\x00' * diff)
-        write_data(hdr, data, imgf, inter, slope, mn, mx)
-        self._header = hdr
+            self.extra['extensions'].write_to(header_file)
 
     def _update_header(self):
         ''' Harmonize header with image data and affine
@@ -1503,16 +1485,38 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
 class Nifti1Image(Nifti1Pair):
     files_types = (('image', '.nii'),)
-    _is_pair = False
+
+    @staticmethod
+    def _get_open_files(files, mode='rb'):
+        hdrf = files['image'].get_prepare_fileobj(mode=mode)
+        return hdrf, hdrf
+
+    def _close_filenames(self, files, hdrf, imgf):
+        if files['image'].fileobj is None: # was filename
+            imgf.close()
+    
+    def _write_header(self, header_file, header, slope, inter):
+        super(Nifti1Image, self)._write_header(header_file,
+                                               header,
+                                               slope,
+                                               inter)
+        # We need to set the header offset ready for writing the image.
+        # Streams like bz2 do not allow write seeks, even forward.  We
+        # check where to go, and write zeros up until the data part of
+        # the file
+        offset = header.get_data_offset()
+        diff = offset-header_file.tell()
+        if diff > 0:
+            header_file.write('\x00' * diff)
 
     def _update_header(self):
         ''' Harmonize header with image data and affine '''
         super(Nifti1Image, self)._update_header()
         hdr = self._header
         hdr['magic'] = 'n+1'
-        # make sure that there is space for the header
-        # if any extensions, figure out necessary vox_offset for
-        # extensions to fit
+        # make sure that there is space for the header.  If any
+        # extensions, figure out necessary vox_offset for extensions to
+        # fit
         if (self.extra.has_key('extensions') and
             len(self.extra['extensions'])):
             min_vox_offset = 348 + self.extra['extensions'].get_sizeondisk()
@@ -1520,7 +1524,7 @@ class Nifti1Image(Nifti1Pair):
             min_vox_offset = 352
         if hdr['vox_offset'] < min_vox_offset:
             hdr['vox_offset'] = min_vox_offset
-        
-            
+
+
 load = Nifti1Image.load
 save = Nifti1Image.instance_to_filename

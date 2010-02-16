@@ -25,15 +25,11 @@ class FileHolder(object):
            class).  Default is None
         pos : int, optional
            position in filename or fileobject at which to start reading
-           data; defaults to 0
+           or writing data; defaults to 0
         '''
         self.filename = filename
         self.fileobj = fileobj
         self.pos=pos
-
-    def has_file(self):
-        ''' Return True if filename or fileobj are set '''
-        return self.filename is not None or self.fileobj is not None
 
     def get_prepare_fileobj(self, *args, **kwargs):
         ''' Return fileobj if present, or return fileobj from filename

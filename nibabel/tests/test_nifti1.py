@@ -9,12 +9,12 @@ import numpy as np
 from nibabel.volumeutils import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
-        data_type_codes, extension_codes
+    data_type_codes, extension_codes
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
 from test_analyze import TestAnalyzeHeader
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises, ok_
 
 import nibabel.testing as nbt
@@ -335,3 +335,15 @@ def test_loadsave_cycle():
     lnim = Nifti1Image.from_files(nim.files)
     yield assert_true(lnim.extra.has_key('extensions'))
     yield assert_true(nim.extra['extensions'] == lnim.extra['extensions'])
+
+
+@parametric
+def test_slope_inter():
+    hdr = Nifti1Header()
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(2.2)
+    yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 0.0))
+    hdr.set_slope_inter(None)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(2.2, 1.1)
+    yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 1.1))

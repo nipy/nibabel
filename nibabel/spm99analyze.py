@@ -49,7 +49,28 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         inter = 0.0
         return slope, inter
 
-    def set_slope_inter(self, slope, inter):
+    def set_slope_inter(self, slope, inter=0.0):
+        ''' Set slope and / or intercept into header
+
+        Set slope and intercept for image data, such that, if the image
+        data is ``arr``, then the scaled image data will be ``(arr *
+        slope) + inter``
+
+        Note that the SPM Analyze header can't save an intercept value,
+        and we raise an error for ``inter != 0``
+
+        Parameters
+        ----------
+        slope : None or float
+           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
+           scaling of the image data).  If `slope` is not, we ignore the
+           passed value of `inter`
+        inter : float, optional
+           intercept
+        '''
+        if slope is None:
+            slope = 1.0
+            inter = 0.0
         self._header_data['scl_slope'] = slope
         if inter:
             raise HeaderTypeError('Cannot set non-zero intercept '
@@ -218,15 +239,16 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                    ('mat','.mat'))
 
     @classmethod
-    def from_filename(klass, filename):
-        ret = super(Spm99AnalyzeImage, klass).from_filename(filename)
+    def from_files(klass, files):
+        ret = super(Spm99AnalyzeImage, klass).from_files(files)
         import scipy.io as sio
-        matf = ret.files['mat'].get_prepare_fileobj()
         try:
-            matf = allopen(matf)
+            matf = files['mat'].get_prepare_fileobj()
         except IOError:
             return ret
         mats = sio.loadmat(matf)
+        if files['mat'].filename is not None: # was filename
+            matf.close()
         if 'mat' in mats: # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
@@ -245,21 +267,34 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
     
-    def to_files(self):
-        super(Spm99AnalyzeImage, self).to_files()
-        if self._affine is None:
+    def to_files(self, files=None):
+        ''' Write image to `files` or contained ``self.files``
+
+        Extends Analyze ``to_files`` method by writing ``mat`` file
+
+        Parameters
+        ----------
+        files : None or mapping, optional
+           files mapping.  If None (default) use object's ``files``
+           attribute instead
+        '''
+        if files is None:
+            files = self.files
+        super(Spm99AnalyzeImage, self).to_files(files)
+        mat = self._affine
+        if mat is None:
             return
         import scipy.io as sio
-        mat = self._affine
         hdr = self._header
         if hdr.default_x_flip:
             M = np.dot(np.diag([-1,1,1,1]), mat)
         else:
             M = mat
         # use matlab 4 format to allow gzipped write without error
-        mfobj = self.files['mat'].get_prepare_fileobj(mode='wb')
+        mfobj = files['mat'].get_prepare_fileobj(mode='wb')
         sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
-        mfobj.close()
+        if files['mat'].filename is not None: # was filename
+            mfobj.close()
 
 
 load = Spm99AnalyzeImage.load

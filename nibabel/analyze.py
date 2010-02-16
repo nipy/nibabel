@@ -138,7 +138,7 @@ from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
 from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
-from nibabel.arrayproxy import AnalyzeArrayProxy
+from nibabel.arrayproxy import ArrayProxy
 
 # Sub-parts of standard analyze header from 
 # Mayo dbh.h file
@@ -985,8 +985,28 @@ class AnalyzeHeader(object):
         '''
         return 1.0, 0.0
 
-    def set_slope_inter(self, slope, inter):
-        ''' Set raises error for Analyze header '''
+    def set_slope_inter(self, slope, inter=0.0):
+        ''' Set slope and / or intercept into header
+
+        Set slope and intercept for image data, such that, if the image
+        data is ``arr``, then the scaled image data will be ``(arr *
+        slope) + inter``
+
+        Note that trying to set not-default values raises error for
+        Analyze header - which cannot contain slope or intercept terms.
+
+        Parameters
+        ----------
+        slope : None or float
+           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
+           scaling of the image data).  If `slope` is not, we ignore the
+           passed value of `inter`
+        inter : float, optional
+           intercept
+        '''
+        if slope is None:
+            slope = 1.0
+            inter = 0.0
         if slope != 1.0 or inter:
             raise HeaderTypeError('Cannot set slope or intercept '
                                   'for Analyze headers')
@@ -1175,6 +1195,15 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
+    class ImageArrayProxy(ArrayProxy):
+        ''' Analyze-type implemention of array proxy protocol '''
+        def _read_data(self):
+            fileobj = allopen(self.file_like)
+            data = read_data(self.header, fileobj)
+            if isinstance(self.file_like, basestring): # filename
+                fileobj.close()
+            return data
+
     @classmethod
     def from_data_file(klass,
                        file_like,
@@ -1188,7 +1217,7 @@ class AnalyzeImage(SpatialImage):
         for the data shape.  
         '''
         data_hdr  = klass._header_maker.from_mapping(header)
-        data = AnalyzeArrayProxy(file_like, data_hdr)
+        data = klass.ImageArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, files)
         
     def get_unscaled_data(self):
@@ -1247,33 +1276,55 @@ class AnalyzeImage(SpatialImage):
     
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
-    
+
+    @staticmethod
+    def _get_open_files(files, mode='rb'):
+        hdrf = files['header'].get_prepare_fileobj(mode=mode)
+        imgf = files['image'].get_prepare_fileobj(mode=mode)
+        return hdrf, imgf
+
+    def _close_filenames(self, files, hdrf, imgf):
+        if files['header'].fileobj is None: # was filename
+            hdrf.close()
+        if files['image'].fileobj is None: # was filename
+            imgf.close()
+
     @classmethod
     def from_files(klass, files):
-        fobj = files['header'].get_prepare_fileobj()
-        header = klass._header_maker.from_fileobj(fobj)
+        ''' class method to create image from mapping in `files ``
+        '''
+        hdrf, imgf = klass._get_open_files(files, 'rb')
+        header = klass._header_maker.from_fileobj(hdrf)
         affine = header.get_best_affine()
-        fobj = files['image'].get_prepare_fileobj()
-        return klass.from_data_file(fobj,
+        return klass.from_data_file(imgf,
                                     affine,
                                     header,
                                     files=files)
-    
-    def to_files(self):
-        ''' Write image to contained ``self.files``
+
+    def _write_header(self, header_file, header, slope, inter):
+        header.set_slope_inter(slope, inter)
+        header.write_to(header_file)
+
+    def to_files(self, files=None):
+        ''' Write image to `files` or contained ``self.files``
+
+        Parameters
+        ----------
+        files : None or mapping, optional
+           files mapping.  If None (default) use object's ``files``
+           attribute instead
         '''
+        if files is None:
+            files = self.files
         data = self.get_data()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
-        if slope is None:
-            hdr.set_slope_inter(1.0, 0.0)
-        else:
-            hdr.set_slope_inter(slope, inter)
-        hdrf = self.files['header'].get_prepare_fileobj(mode='wb')
-        hdr.write_to(hdrf)
-        imgf = self.files['image'].get_prepare_fileobj(mode='wb')
+        hdrf, imgf = self._get_open_files(files, 'wb')
+        self._write_header(hdrf, hdr, slope, inter)
         write_data(hdr, data, imgf, inter, slope, mn, mx)
+        self._close_filenames(files, hdrf, imgf)
         self._header = hdr
+        self.files = files
 
     @classmethod
     def from_image(klass, img):
