@@ -1217,6 +1217,12 @@ class AnalyzeImage(SpatialImage):
         self._update_header()
         return self._header
 
+    def get_data_dtype(self):
+        return self._header.get_data_dtype()
+    
+    def set_data_dtype(self, dtype):
+        self._header.set_data_dtype(dtype)
+
     def _set_header(self, header=None):
         self._header = self._header_class.from_mapping(header)
             

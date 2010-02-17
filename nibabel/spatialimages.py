@@ -181,10 +181,10 @@ class SpatialImage(object):
             return self._data.shape
 
     def get_data_dtype(self):
-        return self._header.get_data_dtype()
-    
+        raise NotImplementedError
+
     def set_data_dtype(self, dtype):
-        self._header.set_data_dtype(dtype)
+        raise NotImplementedError
 
     def get_affine(self):
         return self._affine
