@@ -246,12 +246,12 @@ class MincImage(SpatialImage):
         return self._header.get_data_dtype()
     
     @classmethod
-    def from_files(klass, files):
-        fobj = files['image'].get_prepare_fileobj()
+    def from_file_map(klass, file_map):
+        fobj = file_map['image'].get_prepare_fileobj()
         header = klass._header_class.from_fileobj(fobj)
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header,files=files)
-        ret.files = files
+        ret =  klass(None, affine, header,file_map=file_map)
+        ret.file_map = file_map
         return ret
     
 

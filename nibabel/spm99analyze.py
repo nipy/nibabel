@@ -239,15 +239,15 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                    ('mat','.mat'))
 
     @classmethod
-    def from_files(klass, files):
-        ret = super(Spm99AnalyzeImage, klass).from_files(files)
+    def from_file_map(klass, file_map):
+        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map)
         import scipy.io as sio
         try:
-            matf = files['mat'].get_prepare_fileobj()
+            matf = file_map['mat'].get_prepare_fileobj()
         except IOError:
             return ret
         mats = sio.loadmat(matf)
-        if files['mat'].filename is not None: # was filename
+        if file_map['mat'].filename is not None: # was filename
             matf.close()
         if 'mat' in mats: # this overrides a 'M', and includes any flip
             mat = mats['mat']
@@ -267,20 +267,20 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
     
-    def to_files(self, files=None):
-        ''' Write image to `files` or contained ``self.files``
+    def to_file_map(self, file_map=None):
+        ''' Write image to `file_map` or contained ``self.file_map``
 
-        Extends Analyze ``to_files`` method by writing ``mat`` file
+        Extends Analyze ``to_file_map`` method by writing ``mat`` file
 
         Parameters
         ----------
-        files : None or mapping, optional
-           files mapping.  If None (default) use object's ``files``
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
            attribute instead
         '''
-        if files is None:
-            files = self.files
-        super(Spm99AnalyzeImage, self).to_files(files)
+        if file_map is None:
+            file_map = self.file_map
+        super(Spm99AnalyzeImage, self).to_file_map(file_map)
         mat = self._affine
         if mat is None:
             return
@@ -291,9 +291,9 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         else:
             M = mat
         # use matlab 4 format to allow gzipped write without error
-        mfobj = files['mat'].get_prepare_fileobj(mode='wb')
+        mfobj = file_map['mat'].get_prepare_fileobj(mode='wb')
         sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
-        if files['mat'].filename is not None: # was filename
+        if file_map['mat'].filename is not None: # was filename
             mfobj.close()
 
 

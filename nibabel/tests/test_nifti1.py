@@ -266,9 +266,9 @@ def test_nifti1_images():
     yield assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
     stio = StringIO()
-    img.files['image'].fileobj = stio
-    img.to_files()
-    img2 = Nifti1Image.from_files(img.files)
+    img.file_map['image'].fileobj = stio
+    img.to_file_map()
+    img2 = Nifti1Image.from_file_map(img.file_map)
     yield assert_array_equal(img2.get_data(), data)
     for ext in ('.gz', '.bz2'):
         try:
@@ -328,11 +328,11 @@ def test_loadsave_cycle():
     yield assert_true(len(nim.extra['extensions']))
     # write into the air ;-)
     stio = StringIO()
-    nim.files['image'].fileobj = stio
-    nim.to_files()
+    nim.file_map['image'].fileobj = stio
+    nim.to_file_map()
     stio.seek(0)
     # reload
-    lnim = Nifti1Image.from_files(nim.files)
+    lnim = Nifti1Image.from_file_map(nim.file_map)
     yield assert_true(lnim.extra.has_key('extensions'))
     yield assert_true(nim.extra['extensions'] == lnim.extra['extensions'])
 

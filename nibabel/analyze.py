@@ -227,7 +227,6 @@ class AnalyzeHeader(object):
 
     Implements zoom-only setting of affine transform, and no image
     scaling
-    
     '''
     # flag to indetify analyze-type headers
     is_analyze_header = True
@@ -768,7 +767,6 @@ class AnalyzeHeader(object):
     def set_data_shape(self, shape):
         ''' Set shape of data '''
         dims = self._header_data['dim']
-        prev_ndims = dims[0]
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims        
@@ -1162,7 +1160,7 @@ class AnalyzeImage(SpatialImage):
                        affine,
                        header=None,
                        extra=None,
-                       files=None):
+                       file_map=None):
         ''' Class method create mew instance from data file
 
         We use a proxy to implement the caching of the data read, and
@@ -1170,7 +1168,7 @@ class AnalyzeImage(SpatialImage):
         '''
         data_hdr  = klass._header_class.from_mapping(header)
         data = klass.ImageArrayProxy(file_like, data_hdr)
-        return klass(data, affine, header, extra, files)
+        return klass(data, affine, header, extra, file_map)
         
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
@@ -1200,7 +1198,7 @@ class AnalyzeImage(SpatialImage):
         cache the array, to minimize the memory taken by the object.
         """
         try:
-            image_fileholder = self.files['image']
+            image_fileholder = self.file_map['image']
         except KeyError:
             raise ImageDataError('no file to load from')
         try:
@@ -1230,40 +1228,40 @@ class AnalyzeImage(SpatialImage):
         return self._data.shape
     
     @staticmethod
-    def _get_open_files(files, mode='rb'):
-        ''' Utitlity method to open necessary files for read/write
+    def _get_open_files(file_map, mode='rb'):
+        ''' Utility method to open necessary files for read/write
 
         This method is to allow for formats (nifti single in particular)
         that may have the same file for header and image
         '''
-        hdrf = files['header'].get_prepare_fileobj(mode=mode)
-        imgf = files['image'].get_prepare_fileobj(mode=mode)
+        hdrf = file_map['header'].get_prepare_fileobj(mode=mode)
+        imgf = file_map['image'].get_prepare_fileobj(mode=mode)
         return hdrf, imgf
 
-    def _close_filenames(self, files, hdrf, imgf):
-        ''' Utitlity method to close any files no longer required
+    def _close_filenames(self, file_map, hdrf, imgf):
+        ''' Utility method to close any files no longer required
 
         Called by the image writing routines. 
 
         This method is to allow for formats (nifti single in particular)
         that may have the same file for header and image
         '''
-        if files['header'].fileobj is None: # was filename
+        if file_map['header'].fileobj is None: # was filename
             hdrf.close()
-        if files['image'].fileobj is None: # was filename
+        if file_map['image'].fileobj is None: # was filename
             imgf.close()
 
     @classmethod
-    def from_files(klass, files):
-        ''' class method to create image from mapping in `files ``
+    def from_file_map(klass, file_map):
+        ''' class method to create image from mapping in `file_map ``
         '''
-        hdrf, imgf = klass._get_open_files(files, 'rb')
+        hdrf, imgf = klass._get_open_files(file_map, 'rb')
         header = klass._header_class.from_fileobj(hdrf)
         affine = header.get_best_affine()
         return klass.from_data_file(imgf,
                                     affine,
                                     header,
-                                    files=files)
+                                    file_map=file_map)
 
     def _write_header(self, header_file, header, slope, inter):
         ''' Utility routine to write header
@@ -1281,26 +1279,26 @@ class AnalyzeImage(SpatialImage):
         header.set_slope_inter(slope, inter)
         header.write_to(header_file)
 
-    def to_files(self, files=None):
-        ''' Write image to `files` or contained ``self.files``
+    def to_file_map(self, file_map=None):
+        ''' Write image to `file_map` or contained ``self.file_map``
 
         Parameters
         ----------
-        files : None or mapping, optional
-           files mapping.  If None (default) use object's ``files``
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
            attribute instead
         '''
-        if files is None:
-            files = self.files
+        if file_map is None:
+            file_map = self.file_map
         data = self.get_data()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
-        hdrf, imgf = self._get_open_files(files, 'wb')
+        hdrf, imgf = self._get_open_files(file_map, 'wb')
         self._write_header(hdrf, hdr, slope, inter)
         write_data(hdr, data, imgf, inter, slope, mn, mx)
-        self._close_filenames(files, hdrf, imgf)
+        self._close_filenames(file_map, hdrf, imgf)
         self._header = hdr
-        self.files = files
+        self.file_map = file_map
 
     @classmethod
     def from_image(klass, img):

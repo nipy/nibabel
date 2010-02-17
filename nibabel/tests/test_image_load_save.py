@@ -25,9 +25,9 @@ from nibabel.testing import parametric
 def round_trip(img):
     # round trip a nifti single
     sio = StringIO()
-    img.files['image'].fileobj = sio
-    img.to_files()
-    img2 = nf.Nifti1Image.from_files(img.files)
+    img.file_map['image'].fileobj = sio
+    img.to_file_map()
+    img2 = nf.Nifti1Image.from_file_map(img.file_map)
     return img2
 
 
@@ -145,18 +145,18 @@ def test_two_to_one():
     img = ni1.Nifti1Image(data, affine)
     yield assert_equal(img.get_header()['magic'], 'n+1')
     str_io = StringIO()
-    img.files['image'].fileobj = str_io
+    img.file_map['image'].fileobj = str_io
     # check that the single format vox offset is set correctly
-    img.to_files()
+    img.to_file_map()
     yield assert_equal(img.get_header()['magic'], 'n+1')
     yield assert_equal(img.get_header()['vox_offset'], 352)
     # make a new pair image, with the single image header
     pimg = ni1.Nifti1Pair(data, affine, img.get_header())
     isio = StringIO()
     hsio = StringIO()
-    pimg.files['image'].fileobj = isio
-    pimg.files['header'].fileobj = hsio
-    pimg.to_files()
+    pimg.file_map['image'].fileobj = isio
+    pimg.file_map['header'].fileobj = hsio
+    pimg.to_file_map()
     # the offset remains the same
     yield assert_equal(pimg.get_header()['magic'], 'ni1')
     yield assert_equal(pimg.get_header()['vox_offset'], 352)
@@ -166,8 +166,8 @@ def test_two_to_one():
     yield assert_equal(ana_img.get_header()['vox_offset'], 352)
     # back to the single image, save it again to a stringio
     str_io = StringIO()
-    img.files['image'].fileobj = str_io
-    img.to_files()
+    img.file_map['image'].fileobj = str_io
+    img.to_file_map()
     yield assert_equal(img.get_header()['vox_offset'], 352)
     aimg = ana.AnalyzeImage.from_image(img)
     yield assert_equal(aimg.get_header()['vox_offset'], 352)
@@ -194,9 +194,9 @@ def test_negative_load_save():
     hdr.set_data_dtype(np.int16)
     img = nf.Nifti1Image(data, affine, hdr)
     str_io = StringIO()
-    img.files['image'].fileobj = str_io
-    img.to_files()
+    img.file_map['image'].fileobj = str_io
+    img.to_file_map()
     str_io.seek(0)
-    re_img = nf.Nifti1Image.from_files(img.files)
+    re_img = nf.Nifti1Image.from_file_map(img.file_map)
     yield assert_array_almost_equal, re_img.get_data(), data, 4
 

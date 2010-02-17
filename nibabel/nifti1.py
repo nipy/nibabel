@@ -1354,8 +1354,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
     _header_class = Nifti1Header
     
     @classmethod
-    def from_files(klass, files):
-        hdrf, imgf = klass._get_open_files(files, 'rb')
+    def from_file_map(klass, file_map):
+        hdrf, imgf = klass._get_open_files(file_map, 'rb')
         header = klass._header_class.from_fileobj(hdrf)
         extra = None
         # handle extensions
@@ -1375,7 +1375,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                                     affine,
                                     header,
                                     extra,
-                                    files=files)
+                                    file_map=file_map)
 
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Pair, self)._write_header(header_file,
@@ -1416,12 +1416,12 @@ class Nifti1Image(Nifti1Pair):
     files_types = (('image', '.nii'),)
 
     @staticmethod
-    def _get_open_files(files, mode='rb'):
-        hdrf = files['image'].get_prepare_fileobj(mode=mode)
+    def _get_open_files(file_map, mode='rb'):
+        hdrf = file_map['image'].get_prepare_fileobj(mode=mode)
         return hdrf, hdrf
 
-    def _close_filenames(self, files, hdrf, imgf):
-        if files['image'].fileobj is None: # was filename
+    def _close_filenames(self, file_map, hdrf, imgf):
+        if file_map['image'].fileobj is None: # was filename
             imgf.close()
     
     def _write_header(self, header_file, header, slope, inter):
