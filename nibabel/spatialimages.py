@@ -121,6 +121,59 @@ import numpy as np
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.fileholders import FileHolder
 
+
+class Header(object):
+    ''' Template class to implement header protocol '''
+    def __init__(self,
+                 dtype=np.dtype(np.float32),
+                 shape=np.zeros((3,)),
+                 vox_sizes=np.ones((3,))):
+        self._dtype = dtype
+        self._shape = shape
+        self._vox_sizes = vox_sizes
+
+    def copy(self):
+        return self.__class__(self._dtype, self._shape, self._vox_sizes)
+
+    def get_data_dtype(self):
+        return self._dtype
+
+    def set_data_dtype(self, dtype):
+        self._dtype = dtype
+
+    def get_data_shape(self):
+        return self._shape
+
+    def set_data_shape(self, shape):
+        self._shape = shape
+
+    def get_zooms(self):
+        ndim = len(self._shape)
+        nzs = np.min([ndim, len(self._vox_sizes)])
+        zooms = np.ones((ndim,))
+        zooms[:nzs] = self._vox_sizes[:nzs]
+        return zooms
+
+    def set_zooms(self, zooms):
+        self._vox_sizes = zooms
+
+    def get_default_affine(self):
+        pass
+
+    def data_from_fileobj(self, fileobj):
+        pass
+
+    @classmethod
+    def from_header(klass, header=None):
+        if header is None:
+            return klass()
+        if isinstance(header, klass):
+            return header.copy()
+        return klass(header.get_data_dtype(),
+                     header.get_data_shape(),
+                     header.get_zooms())
+
+
 class ImageDataError(Exception):
     pass
 
