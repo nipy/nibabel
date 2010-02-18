@@ -129,10 +129,11 @@ import numpy as np
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, \
-     calculate_scale, allopen, shape_zoom_affine
+     calculate_scale, allopen, shape_zoom_affine, \
+     scale_array_to_file
 
 from nibabel.header_ufuncs import read_data, read_unscaled_data, \
-    write_data, can_cast
+    can_cast
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
@@ -1275,6 +1276,41 @@ class AnalyzeImage(SpatialImage):
         header.set_slope_inter(slope, inter)
         header.write_to(header_file)
 
+    def _write_image(self, image_file, data, header, slope, inter, mn, mx):
+        ''' Utility routine to write image
+
+        Parameters
+        ----------
+        image_file : file-like
+           file-like object implementing ``seek`` or ``tell``, and
+           ``write``
+        data : array-like
+           array to write
+        header : analyze-type header object
+           header
+        slope : None or float
+           scale factor for `data` so that written data is ``data /
+           slope + inter``.  None means no valid data
+        inter : float
+           intercept (see above)
+        mn : None or float
+           minimum to scale data to.  None means use data minimum
+        max : None or float
+           maximum to scale data to.  None means use data maximum
+
+        Returns
+        -------
+        None
+        '''
+        shape = header.get_data_shape()
+        if data.shape != shape:
+            raise HeaderDataError('Data should be shape (%s)' %
+                                  ', '.join(str(s) for s in shape))
+        offset = header.get_data_offset()
+        out_dtype = header.get_data_dtype()
+        scale_array_to_file(data, image_file, out_dtype, offset,
+                            inter, slope, mn, mx)
+
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
 
@@ -1291,7 +1327,7 @@ class AnalyzeImage(SpatialImage):
         slope, inter, mn, mx = hdr.scaling_from_data(data)
         hdrf, imgf = self._get_open_files(file_map, 'wb')
         self._write_header(hdrf, hdr, slope, inter)
-        write_data(hdr, data, imgf, inter, slope, mn, mx)
+        self._write_image(imgf, data, hdr, slope, inter, mn, mx)
         self._close_filenames(file_map, hdrf, imgf)
         self._header = hdr
         self.file_map = file_map

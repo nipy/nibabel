@@ -463,6 +463,63 @@ def array_to_file(data, out_dtype, fileobj,
             fileobj.write(dslice.astype(out_dtype).tostring())
 
 
+def scale_array_to_file(data,
+                        fileobj,
+                        out_dtype,
+                        offset,
+                        intercept=0.0,
+                        divslope=1.0,
+                        mn=None,
+                        mx=None):
+    ''' Write ``data`` to ``fileobj`` coercing to header dtype
+
+    Parameters
+    ----------
+    data : array-like
+       data to write; should match header defined shape.  Data is
+       coerced to dtype matching header by simple ``astype``.
+    fileobj : file-like object
+       Object with file interface, implementing ``write`` and ``seek``
+    out_dtype : dtype instance
+       dtype of data to write
+    offset : int
+       file position at which to start reading data
+    intercept : scalar, optional
+       scalar to subtract from data, before dividing by ``divslope``.
+       Default is 0.0
+    divslope : None or scalar, optional
+       scalefactor to *divide* data by before writing.  Default
+       is 1.0.  If None, image has no valid data, zeros are written
+    mn : scalar, optional
+       minimum threshold in (unscaled) data, such that all data below
+       this value are set to this value. Default is None (no threshold)
+    mx : scalar, optional
+       maximum threshold in (unscaled) data, such that all data above
+       this value are set to this value. Default is None (no threshold)
+
+    Examples
+    --------
+    >>> from StringIO import StringIO
+    >>> str_io = StringIO()
+    >>> data = np.arange(6).reshape(1,2,3)
+    >>> scale_array_to_file(data, str_io, np.float64, 0)
+    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+    True
+    '''
+    data = np.asarray(data)
+    out_dtype = np.dtype(out_dtype)
+    try:
+        fileobj.seek(offset)
+    except IOError, msg:
+        if fileobj.tell() != offset:
+            raise IOError(msg)
+    if divslope is None: # No valid data
+        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        return
+    array_to_file(data, out_dtype, fileobj, intercept, divslope,
+                  mn, mx)
+
+
 def calculate_scale(data, out_dtype, allow_intercept):
     ''' Calculate scaling and optional intercept for data
 
