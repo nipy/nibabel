@@ -6,29 +6,6 @@ from volumeutils import array_from_file, array_to_file, \
     calculate_scale, can_cast, scale_array_to_file
 
 
-def read_unscaled_data(hdr, fileobj):
-    ''' Read raw (unscaled) data from ``fileobj``
-
-    Parameters
-    ----------
-    hdr : header
-       analyze-like header implementing ``get_data_dtype``,
-       ``get_data_shape`` and ``get_data_offset``.
-    fileobj : file-like
-       Must be open, and implement ``read`` and ``seek`` methods
-
-    Returns
-    -------
-    arr : array-like
-       an array like object (that might be an ndarray),
-       implementing at least slicing.
-    '''
-    dtype = hdr.get_data_dtype()
-    shape = hdr.get_data_shape()
-    offset = hdr.get_data_offset()
-    return array_from_file(shape, dtype, fileobj, offset)
-
-
 def read_data(hdr, fileobj):
     ''' Read data from ``fileobj`` given ``hdr``
 
@@ -47,8 +24,13 @@ def read_data(hdr, fileobj):
        implementing at least slicing.
 
     '''
+    # read unscaled data
+    dtype = hdr.get_data_dtype()
+    shape = hdr.get_data_shape()
+    offset = hdr.get_data_offset()
+    data = array_from_file(shape, dtype, fileobj, offset)
+    # get scalings from header
     slope, inter = hdr.get_slope_inter()
-    data = read_unscaled_data(hdr, fileobj)
     if slope is None:
         return data
     # The data may be from a memmap, and not writeable

@@ -132,8 +132,7 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      calculate_scale, allopen, shape_zoom_affine, \
      scale_array_to_file
 
-from nibabel.header_ufuncs import read_data, read_unscaled_data, \
-    can_cast
+from nibabel.header_ufuncs import read_data, can_cast
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
@@ -1202,7 +1201,10 @@ class AnalyzeImage(SpatialImage):
             fileobj = image_fileholder.get_prepare_fileobj()
         except FileHolderError:
             raise ImageDataError('no file to load from')
-        return read_unscaled_data(self._header, fileobj)
+        dtype = hdr.get_data_dtype()
+        shape = hdr.get_data_shape()
+        offset = hdr.get_data_offset()
+        return array_from_file(shape, dtype, fileobj, offset)
         
     def get_header(self):
         ''' Return header
