@@ -129,7 +129,7 @@ import numpy as np
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, \
-     calculate_scale, allopen
+     calculate_scale, allopen, shape_zoom_affine
 
 from nibabel.header_ufuncs import read_data, read_unscaled_data, \
     write_data, can_cast
@@ -875,15 +875,11 @@ class AnalyzeHeader(object):
                [ 0.,  0.,  0.,  1.]])
         '''
         hdr = self._header_data
-        zooms = (hdr['pixdim'][1:4].copy())
-        if self.default_x_flip:
-            zooms[0] *= -1
-        # Get translations from center of image
-        origin = (hdr['dim'][1:4]-1) / 2.0
-        aff = np.eye(4)
-        aff[:3,:3] = np.diag(zooms)
-        aff[:3,-1] = -origin * zooms
-        return aff
+        dims = hdr['dim']
+        ndim = dims[0]
+        return shape_zoom_affine(hdr['dim'][1:ndim+1],
+                                 hdr['pixdim'][1:ndim+1],
+                                 self.default_x_flip)
 
     get_best_affine = get_base_affine
     

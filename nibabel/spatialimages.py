@@ -120,48 +120,66 @@ import numpy as np
 
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.fileholders import FileHolder
+from nibabel.volumeutils import shape_zoom_affine, HeaderDataError
 
 
 class Header(object):
     ''' Template class to implement header protocol '''
+    default_x_flip = True
+    
     def __init__(self,
-                 dtype=np.dtype(np.float32),
-                 shape=np.zeros((3,)),
-                 vox_sizes=np.ones((3,))):
-        self._dtype = dtype
-        self._shape = shape
-        self._vox_sizes = vox_sizes
+                 dtype=np.float32,
+                 shape=(),
+                 zooms=()):
+        self.set_io_dtype(dtype)
+        self.set_data_shape(shape)
+        self.set_zooms(zooms)
 
     def copy(self):
-        return self.__class__(self._dtype, self._shape, self._vox_sizes)
+        ''' Copy object to independent representation
 
-    def get_data_dtype(self):
+        The copy should not be affected by any changes to the original
+        object. 
+        '''
+        return self.__class__(self._dtype, self._shape, self._zooms)
+
+    def get_io_dtype(self):
         return self._dtype
 
-    def set_data_dtype(self, dtype):
-        self._dtype = dtype
+    def set_io_dtype(self, dtype):
+        self._dtype = np.dtype(dtype)
 
     def get_data_shape(self):
         return self._shape
 
     def set_data_shape(self, shape):
-        self._shape = shape
+        self._shape = tuple([int(s) for s in shape])
 
     def get_zooms(self):
-        ndim = len(self._shape)
-        nzs = np.min([ndim, len(self._vox_sizes)])
-        zooms = np.ones((ndim,))
-        zooms[:nzs] = self._vox_sizes[:nzs]
-        return zooms
+        return self._zooms
 
     def set_zooms(self, zooms):
-        self._vox_sizes = zooms
+        zooms = tuple([float(z) for z in zooms])
+        shape = self.get_data_shape()
+        ndim = len(shape)
+        if len(zooms) != ndim:
+            raise HeaderDataError('Expecting %d zoom values for ndim %d'
+                                  % (ndim, ndim))
+        if np.any(zooms < 0):
+            raise HeaderDataError('zooms must be positive')
+        self._zooms = zooms
 
-    def get_default_affine(self):
-        pass
+    def get_base_affine(self):
+        shape = self.get_data_shape()
+        zooms = self.get_zooms()
+        return shape_zoom_affine(shape, zooms,
+                                 self.default_x_flip)
+
+    get_default_affine = get_base_affine
 
     def data_from_fileobj(self, fileobj):
-        pass
+        data = np.fromfile(fileobj, dtype=self.get_io_dtype)
+        return data.reshape(self.get_data_shape())
 
     @classmethod
     def from_header(klass, header=None):
@@ -169,7 +187,7 @@ class Header(object):
             return klass()
         if isinstance(header, klass):
             return header.copy()
-        return klass(header.get_data_dtype(),
+        return klass(header.get_io_dtype(),
                      header.get_data_shape(),
                      header.get_zooms())
 
@@ -229,7 +247,8 @@ class SpatialImage(object):
             raise ImageDataError('No data in this image')
         return np.asanyarray(self._data)
 
-    def get_shape(self):
+    @property
+    def shape(self):
         if self._data:
             return self._data.shape
 

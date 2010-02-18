@@ -169,7 +169,4 @@ def write_scaled_data(hdr, data, fileobj):
     '''
     slope, inter, mn, mx = hdr.scaling_from_data(data)
     write_data(hdr, data, fileobj, inter, slope, mn, mx)
-    if slope is None:
-        hdr.set_slope_inter(1.0, 0.0)
-    else:
-        hdr.set_slope_inter(slope, inter)
+    hdr.set_slope_inter(slope, inter)

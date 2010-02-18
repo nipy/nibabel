@@ -4,8 +4,8 @@ import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.header_ufuncs import read_unscaled_data, read_data, \
-    write_data, write_scaled_data
+from nibabel.header_ufuncs import read_data, \
+    write_scaled_data
 
 from nibabel.spm99analyze import Spm99AnalyzeHeader, HeaderTypeError
 

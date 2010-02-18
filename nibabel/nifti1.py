@@ -7,14 +7,11 @@ import numpy as np
 import numpy.linalg as npl
 
 from nibabel.volumeutils import Recoder, make_dt_codes, \
-     HeaderDataError, allopen
+     HeaderDataError
 from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel.spatialimages import SpatialImage
-
-from nibabel.header_ufuncs import write_data
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
