@@ -118,6 +118,7 @@ def test_array_to_file():
                              np.dtype(np.int64), nan2zero=False)
     yield assert_array_equal(data_back, arr.astype(np.int64))
     # check that non-zero file offset works
+    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     str_io = StringIO()
     str_io.write('a' * 42)
     array_to_file(arr, str_io, np.float, 42)
@@ -128,7 +129,11 @@ def test_array_to_file():
     array_to_file(arr.astype(np.int16), str_io)
     data_back = array_from_file(arr.shape, np.int16, str_io)
     yield assert_array_equal(data_back, arr.astype(np.int16))
-    
+    # that, if there is no valid data, we get zeros
+    str_io = StringIO()
+    array_to_file(arr + np.inf, str_io, np.int32, 0, 0.0, None)
+    data_back = array_from_file(arr.shape, np.int32, str_io)
+    yield assert_array_equal(data_back, np.zeros(arr.shape))
     
     
 def write_return(data, fileobj, out_dtype, *args, **kwargs):

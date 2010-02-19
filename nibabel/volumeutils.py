@@ -438,6 +438,11 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     True
     '''
     data = np.asarray(data)
+    in_dtype = data.dtype
+    if out_dtype is None:
+        out_dtype = in_dtype
+    else:
+        out_dtype = np.dtype(out_dtype)
     try:
         fileobj.seek(offset)
     except IOError, msg:
@@ -446,11 +451,6 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if divslope is None: # No valid data
         fileobj.write('\x00' * (data.size*out_dtype.itemsize))
         return
-    in_dtype = data.dtype
-    if out_dtype is None:
-        out_dtype = in_dtype
-    else:
-        out_dtype = np.dtype(out_dtype)
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
                 out_dtype not in floating_point_types)
