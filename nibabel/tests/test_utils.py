@@ -117,6 +117,18 @@ def test_array_to_file():
     data_back = write_return(arr, str_io,
                              np.dtype(np.int64), nan2zero=False)
     yield assert_array_equal(data_back, arr.astype(np.int64))
+    # check that non-zero file offset works
+    str_io = StringIO()
+    str_io.write('a' * 42)
+    array_to_file(arr, str_io, np.float, 42)
+    data_back = array_from_file(arr.shape, np.float, str_io, 42)
+    yield assert_array_equal(data_back, arr.astype(np.float))
+    # that default dtype is input dtype
+    str_io = StringIO()
+    array_to_file(arr.astype(np.int16), str_io)
+    data_back = array_from_file(arr.shape, np.int16, str_io)
+    yield assert_array_equal(data_back, arr.astype(np.int16))
+    
     
     
 def write_return(data, fileobj, out_dtype, *args, **kwargs):

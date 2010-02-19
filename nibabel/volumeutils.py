@@ -308,14 +308,14 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     return True
 
 
-def array_from_file(shape, dtype, infile, offset=0, order='F'):
+def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     ''' Get array from file with specified shape, dtype and file offset
 
     Parameters
     ----------
     shape : sequence
         sequence specifying output array shape
-    dtype : numpy dtype
+    in_dtype : numpy dtype
         fully specified numpy dtype, including correct endianness
     infile : file-like
         open file-like object implementing at least read() and seek()
@@ -346,9 +346,10 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
     >>> np.all(arr == arr2)
     True
     '''
+    in_dtype = np.dtype(in_dtype)
     try: # Try memmapping file on disk
         arr = np.memmap(infile,
-                        dtype,
+                        in_dtype,
                         mode='r',
                         shape=shape,
                         order=order,
@@ -359,7 +360,7 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
         infile.seek(offset)
         if len(shape) == 0:
             return np.array([])
-        datasize = int(np.prod(shape) * dtype.itemsize)
+        datasize = int(np.prod(shape) * in_dtype.itemsize)
         if datasize == 0:
             return np.array([])
         data_str = infile.read(datasize)
@@ -368,7 +369,7 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
                   % (datasize, len(data_str))
             raise ValueError(msg)
         arr = np.ndarray(shape,
-                         dtype,
+                         in_dtype,
                          buffer=data_str,
                          order=order)
     return arr
