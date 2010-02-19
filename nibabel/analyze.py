@@ -130,9 +130,9 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, hdr_getterfunc, \
      make_dt_codes, HeaderDataError, HeaderTypeError, \
      calculate_scale, allopen, shape_zoom_affine, \
-     scale_array_to_file
+     array_to_file, can_cast
 
-from nibabel.header_ufuncs import read_data, can_cast
+from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
 from nibabel.spatialimages import SpatialImage, ImageDataError
@@ -993,8 +993,8 @@ class AnalyzeHeader(object):
         ----------
         slope : None or float
            If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is not, we ignore the
-           passed value of `inter`
+           scaling of the image data).  If `slope` is None, we ignore
+           the passed value of `inter`
         inter : float, optional
            intercept
         '''
@@ -1310,8 +1310,8 @@ class AnalyzeImage(SpatialImage):
                                   ', '.join(str(s) for s in shape))
         offset = header.get_data_offset()
         out_dtype = header.get_data_dtype()
-        scale_array_to_file(data, image_file, out_dtype, offset,
-                            inter, slope, mn, mx)
+        array_to_file(data, image_file, out_dtype, offset,
+                      inter, slope, mn, mx)
 
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``

@@ -12,7 +12,7 @@ from nibabel.testing import assert_equal, assert_true, assert_false, \
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from nibabel.volumeutils import swapped_code, \
-     native_code, HeaderDataError, scale_array_to_file
+     native_code, HeaderDataError, array_to_file
 
 from nibabel.header_ufuncs import read_data, write_scaled_data
 
@@ -280,7 +280,7 @@ class _TestBinaryHeader(object):
         def _write_data(hdr, data, fileobj):
             out_dtype = hdr.get_data_dtype()
             offset = hdr.get_data_offset()
-            scale_array_to_file(data, fileobj, out_dtype, offset)
+            array_to_file(data, fileobj, out_dtype, offset)
         _write_data(hdr, data, S3)
         data_back = read_data(hdr, S3)
         yield assert_array_almost_equal, data, data_back

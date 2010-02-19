@@ -39,11 +39,10 @@ from nibabel.testing import assert_equal, assert_not_equal, \
 from numpy.testing import assert_array_equal
 
 from nibabel.volumeutils import HeaderDataError, HeaderTypeError, \
-    scale_array_to_file
+    array_to_file, can_cast
 
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage, ImageDataError
-from nibabel.header_ufuncs import read_data, write_scaled_data, \
-    can_cast
+from nibabel.header_ufuncs import read_data, write_scaled_data
 from nibabel.testing import parametric
 
 from test_binary import _TestBinaryHeader
@@ -162,7 +161,7 @@ def test_scaling():
     def _write_data(hdr, data, fileobj):
         out_dtype = hdr.get_data_dtype()
         offset = hdr.get_data_offset()
-        scale_array_to_file(data, fileobj, out_dtype, offset)
+        array_to_file(data, fileobj, out_dtype, offset)
     _write_data(hdr, data, S)
     rdata = read_data(hdr, S)
     yield assert_true, np.allclose(data, rdata)

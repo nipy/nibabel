@@ -2,8 +2,7 @@
 import numpy as np
 
 from volumeutils import array_from_file, array_to_file, \
-    HeaderDataError, HeaderTypeError, \
-    calculate_scale, can_cast, scale_array_to_file
+    HeaderDataError
 
 
 def read_data(hdr, fileobj):
@@ -90,6 +89,5 @@ def write_scaled_data(hdr, data, fileobj):
                               ', '.join(str(s) for s in shape))
     offset = hdr.get_data_offset()
     out_dtype = hdr.get_data_dtype()
-    scale_array_to_file(data, fileobj, out_dtype,
-                        offset, inter, slope, mn, mx)
+    array_to_file(data, fileobj, out_dtype, offset, inter, slope, mn, mx)
     hdr.set_slope_inter(slope, inter)

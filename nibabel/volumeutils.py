@@ -374,26 +374,33 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
     return arr
 
 
-def array_to_file(data, out_dtype, fileobj, 
+def array_to_file(data, fileobj, out_dtype=None, offset=0,
                   intercept=0.0, divslope=1.0, 
                   mn=None, mx=None, order='F', nan2zero=True):
-    ''' Helper function for writing possibly scaled arrays to disk
+    ''' Helper function for writing arrays to disk
+
+    Writes arrays as scaled by `intercept` and `divslope`, and clipped
+    at (prescaling) `mn` minimum, and `mx` maximum. 
 
     Parameters
     ----------
     data : array
        array to write
-    out_dtype : dtype
-       dtype to write array as
     fileobj : file-like
-       file-like object implementing ``write`` method.  The fileobj
-       should be initialized to start writing at the correct location
+       file-like object implementing ``write`` method.
+    out_dtype : None or dtype, optional
+       dtype to write array as.  Data array will be coerced to this
+       dtype before writing. If None (default) then use input data
+       type. 
+    offset : int, optional
+       offset into fileobj at which to start writing data. Default is
+       0. 
     intercept : scalar, optional
        scalar to subtract from data, before dividing by ``divslope``.
        Default is 0.0
-    divslope : scalar, optional
+    divslope : None or scalar, optional
        scalefactor to *divide* data by before writing.  Default
-       is 1.0.
+       is 1.0. If None, there is no valid data, we write zeros.
     mn : scalar, optional
        minimum threshold in (unscaled) data, such that all data below
        this value are set to this value. Default is None (no threshold)
@@ -413,28 +420,40 @@ def array_to_file(data, out_dtype, fileobj,
     >>> from StringIO import StringIO
     >>> sio = StringIO()
     >>> data = np.arange(10, dtype=np.float)
-    >>> array_to_file(data, np.float, sio)
+    >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data, np.int16, sio)
+    >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data.byteswap(), np.float, sio)
+    >>> array_to_file(data.byteswap(), sio, np.float)
     >>> sio.getvalue() == data.byteswap().tostring('F')
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data, np.float, sio, order='C')
+    >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tostring('C')
     True
     '''
-    out_dtype = np.dtype(out_dtype)
+    data = np.asarray(data)
+    try:
+        fileobj.seek(offset)
+    except IOError, msg:
+        if fileobj.tell() != offset:
+            raise IOError(msg)
+    if divslope is None: # No valid data
+        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        return
+    in_dtype = data.dtype
+    if out_dtype is None:
+        out_dtype = in_dtype
+    else:
+        out_dtype = np.dtype(out_dtype)
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
                 out_dtype not in floating_point_types)
     needs_copy = nan2zero or mx or mn or intercept or divslope !=1.0
-    in_dtype = data.dtype
     if data.ndim < 2: # a little hack to allow 1D arrays in loop below
         data = [data]
     elif order == 'F':
@@ -463,63 +482,6 @@ def array_to_file(data, out_dtype, fileobj,
             fileobj.write(dslice.astype(out_dtype).tostring())
 
 
-def scale_array_to_file(data,
-                        fileobj,
-                        out_dtype,
-                        offset,
-                        intercept=0.0,
-                        divslope=1.0,
-                        mn=None,
-                        mx=None):
-    ''' Write ``data`` to ``fileobj`` coercing to header dtype
-
-    Parameters
-    ----------
-    data : array-like
-       data to write; should match header defined shape.  Data is
-       coerced to dtype matching header by simple ``astype``.
-    fileobj : file-like object
-       Object with file interface, implementing ``write`` and ``seek``
-    out_dtype : dtype instance
-       dtype of data to write
-    offset : int
-       file position at which to start reading data
-    intercept : scalar, optional
-       scalar to subtract from data, before dividing by ``divslope``.
-       Default is 0.0
-    divslope : None or scalar, optional
-       scalefactor to *divide* data by before writing.  Default
-       is 1.0.  If None, image has no valid data, zeros are written
-    mn : scalar, optional
-       minimum threshold in (unscaled) data, such that all data below
-       this value are set to this value. Default is None (no threshold)
-    mx : scalar, optional
-       maximum threshold in (unscaled) data, such that all data above
-       this value are set to this value. Default is None (no threshold)
-
-    Examples
-    --------
-    >>> from StringIO import StringIO
-    >>> str_io = StringIO()
-    >>> data = np.arange(6).reshape(1,2,3)
-    >>> scale_array_to_file(data, str_io, np.float64, 0)
-    >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
-    True
-    '''
-    data = np.asarray(data)
-    out_dtype = np.dtype(out_dtype)
-    try:
-        fileobj.seek(offset)
-    except IOError, msg:
-        if fileobj.tell() != offset:
-            raise IOError(msg)
-    if divslope is None: # No valid data
-        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
-        return
-    array_to_file(data, out_dtype, fileobj, intercept, divslope,
-                  mn, mx)
-
-
 def calculate_scale(data, out_dtype, allow_intercept):
     ''' Calculate scaling and optional intercept for data
 
@@ -543,7 +505,6 @@ def calculate_scale(data, out_dtype, allow_intercept):
     mx : None or float
        minimum of finite value in data, or None if this will not
        be used to threshold data
-
     '''
     default_ret = (1.0, 0.0, None, None)
     in_dtype = data.dtype

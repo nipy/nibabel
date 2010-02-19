@@ -14,35 +14,38 @@ from numpy.testing import assert_array_almost_equal, \
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
+from nibabel.testing import parametric
 
+
+@parametric
 def test_array_from_file():
     shape = (2,3,4)
     dtype = np.dtype(np.float32)
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     # Check on string buffers
     offset = 0
-    yield assert_true, buf_chk(in_arr, StringIO(), None, offset)
+    yield assert_true(buf_chk(in_arr, StringIO(), None, offset))
     offset = 10
-    yield assert_true, buf_chk(in_arr, StringIO(), None, offset)
+    yield assert_true(buf_chk(in_arr, StringIO(), None, offset))
     # check on real file
     fd, fname = tempfile.mkstemp()
     try:
         # fortran ordered
         out_buf = file(fname, 'wb')
         in_buf = file(fname, 'rb')
-        yield assert_true, buf_chk(in_arr, out_buf, in_buf, offset)
+        yield assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
         # Drop offset to check that shape's not coming from file length
         out_buf.seek(0)
         in_buf.seek(0)
         offset = 5
-        yield assert_true, buf_chk(in_arr, out_buf, in_buf, offset)
+        yield assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
     finally:
         os.remove(fname)
     # Make sure empty shape, and zero length, give empty arrays
     arr = array_from_file((), np.dtype('f8'), StringIO())
-    yield assert_equal, len(arr), 0
+    yield assert_equal(len(arr), 0)
     arr = array_from_file((0,), np.dtype('f8'), StringIO())
-    yield assert_equal, len(arr), 0
+    yield assert_equal(len(arr), 0)
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
@@ -61,6 +64,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
     return np.allclose(in_arr, arr)
 
 
+@parametric
 def test_array_to_file():
     arr = np.arange(10).reshape(5,2)
     str_io = StringIO()
@@ -72,49 +76,52 @@ def test_array_to_file():
                 scale, intercept, mn, mx = calculate_scale(arr,
                                                            ndt,
                                                            allow_intercept)
-                data_back = write_return(arr, str_io, ndt, intercept, scale)
-                yield assert_array_almost_equal, arr, data_back
+                data_back = write_return(arr, str_io, ndt,
+                                         0, intercept, scale)
+                yield assert_array_almost_equal(arr, data_back)
     ndt = np.dtype(np.float)
     arr = np.array([0.0, 1.0, 2.0])
     # intercept
-    data_back = write_return(arr, str_io, ndt, 1.0)
-    yield assert_array_equal, data_back, arr-1    
+    data_back = write_return(arr, str_io, ndt, 0, 1.0)
+    yield assert_array_equal(data_back, arr-1)
     # scaling
-    data_back = write_return(arr, str_io, ndt, 1.0, 2.0)
-    yield assert_array_equal, data_back, (arr-1) / 2.0
+    data_back = write_return(arr, str_io, ndt, 0, 1.0, 2.0)
+    yield assert_array_equal(data_back, (arr-1) / 2.0)
     # min thresholding
-    data_back = write_return(arr, str_io, ndt, 0.0, 1.0, 1.0)
-    yield assert_array_equal, data_back, [1.0, 1.0, 2.0]
+    data_back = write_return(arr, str_io, ndt, 0, 0.0, 1.0, 1.0)
+    yield assert_array_equal(data_back, [1.0, 1.0, 2.0])
     # max thresholding
-    data_back = write_return(arr, str_io, ndt, 0.0, 1.0, 0.0, 1.0)
-    yield assert_array_equal, data_back, [0.0, 1.0, 1.0]
+    data_back = write_return(arr, str_io, ndt, 0, 0.0, 1.0, 0.0, 1.0)
+    yield assert_array_equal(data_back, [0.0, 1.0, 1.0])
     # order makes not difference in 1D case
     data_back = write_return(arr, str_io, ndt, order='C')
-    yield assert_array_equal, data_back, [0.0, 1.0, 2.0]
+    yield assert_array_equal(data_back, [0.0, 1.0, 2.0])
     # but does in the 2D case
     arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     data_back = write_return(arr, str_io, ndt, order='F')
-    yield assert_array_equal, data_back, arr
+    yield assert_array_equal(data_back, arr)
     data_back = write_return(arr, str_io, ndt, order='C')
-    yield assert_array_equal, data_back, arr.T
+    yield assert_array_equal(data_back, arr.T)
     # nans set to 0 for integer output case, not float
     arr = np.array([[np.nan, 0],[0, np.nan]])
     data_back = write_return(arr, str_io, ndt) # float, thus no effect
-    yield assert_array_equal, data_back, arr
+    yield assert_array_equal(data_back, arr)
     # True is the default, but just to show its possible
     data_back = write_return(arr, str_io, ndt, nan2zero=True) 
-    yield assert_array_equal, data_back, arr
-    data_back = write_return(arr, str_io, np.dtype(np.int64), nan2zero=True) 
-    yield assert_array_equal, data_back, [[0, 0],[0, 0]]
+    yield assert_array_equal(data_back, arr)
+    data_back = write_return(arr, str_io,
+                             np.dtype(np.int64), nan2zero=True) 
+    yield assert_array_equal(data_back, [[0, 0],[0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
-    data_back = write_return(arr, str_io, np.dtype(np.int64), nan2zero=False) 
-    yield assert_array_equal, data_back, arr.astype(np.int64)
+    data_back = write_return(arr, str_io,
+                             np.dtype(np.int64), nan2zero=False)
+    yield assert_array_equal(data_back, arr.astype(np.int64))
     
     
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
-    array_to_file(data, out_dtype, fileobj, *args, **kwargs)
+    array_to_file(data, fileobj, out_dtype, *args, **kwargs)
     data = array_from_file(data.shape, out_dtype, fileobj)
     return data
 
