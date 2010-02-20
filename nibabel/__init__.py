@@ -62,4 +62,4 @@ from nibabel.funcs import (squeeze_image, concat_images, four_to_three,
 from nibabel.orientations import (io_orientation, orientation_affine,
                                   flip_axis, OrientationError,
                                   apply_orientation)
-from nibabel.imageclasses import image_classes
+from nibabel.imageclasses import class_map

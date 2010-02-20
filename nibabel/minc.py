@@ -223,13 +223,6 @@ class MincImage(SpatialImage):
     def _set_header(self, header):
         self._header = header
 
-    def get_affine(self):
-        ''' Get affine, correcting for spatial dims '''
-        aff = self._header.get_best_affine()
-        if aff.shape != (4,4):
-            raise MincError('Image does not have 3 spatial dimensions')
-        return aff
-        
     def get_data(self):
         ''' Lazy load of data '''
         if not self._data is None:
@@ -250,6 +243,8 @@ class MincImage(SpatialImage):
         fobj = file_map['image'].get_prepare_fileobj()
         header = klass._header_class.from_fileobj(fobj)
         affine = header.get_best_affine()
+        if affine.shape != (4,4):
+            raise MincError('Image does not have 3 spatial dimensions')
         ret =  klass(None, affine, header,file_map=file_map)
         ret.file_map = file_map
         return ret
