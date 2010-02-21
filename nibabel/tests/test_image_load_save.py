@@ -54,7 +54,7 @@ def test_conversion():
 def test_save_load_endian():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
-    data = np.arange(np.prod(shape)).reshape(shape)
+    data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
     # Native endian image
     img = nib.Nifti1Image(data, affine)
     yield assert_equal(img.get_header().endianness, native_code)
@@ -205,7 +205,7 @@ def test_negative_load_save():
 def test_filename_save():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
-    data = np.arange(np.prod(shape)).reshape(shape)
+    data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
     for r_class_def in nib.class_map.values():
         r_class = r_class_def['class']
         img = r_class(data, affine)

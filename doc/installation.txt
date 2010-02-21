@@ -126,7 +126,7 @@ done, verify that everything went fine by opening a command promt and start
 Python by typing `python` and hit enter. Now you should see the Python prompt.
 Import the nifti module, which should cause no error messages::
 
-  >>> import nifti
+  >>> import nibabel
   >>>
 
 .. _SciPy download page: http://scipy.org/Download
@@ -198,7 +198,7 @@ MacPorts has the ability of installing several Python versions at a time, the
 Upon success, open a terminal window and start Python by typing `python` and
 hit return. Now try to import the NiBabel module by doing:
 
-  >>> import nifti
+  >>> import nibabel
   >>>
 
 If no error messages appear, you have succesfully installed NiBabel.
@@ -288,11 +288,10 @@ It should look similar to this::
   Python 2.4.4 (#2, Oct 20 2006, 00:23:25)
   [GCC 4.1.2 20061015 (prerelease) (Debian 4.1.1-16.1)] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
-  >>> import nifti
+  >>> import nibabel
   >>>
 
 .. _Python: http://www.python.org
-.. _NIfTI C libraries: http://niftilib.sourceforge.net
 
 
 Building on Windows Systems

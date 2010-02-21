@@ -159,4 +159,20 @@ def test_read_data():
     fobj.seek(0)
     data2 = hdr.data_from_fileobj(fobj)
     yield assert_array_equal(data, data2)
+
+
+@parametric
+def test_data_default():
+    # check that the default dtype comes from the data if the header is
+    # None
+    data = np.arange(24, dtype=np.int32).reshape((2,3,4))
+    affine = np.eye(4)
+    img = SpatialImage(data, affine)
+    yield assert_equal(data.dtype, img.get_data_dtype())
+    bs_data = data.byteswap().newbyteorder()
+    img = SpatialImage(bs_data, affine)
+    yield assert_equal(bs_data.dtype, img.get_data_dtype())
+    header = Header()
+    img = SpatialImage(data, affine, header)
+    yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
     

@@ -77,7 +77,7 @@ example, the Analyze data format needs an ``image`` and a ``header``
 file type for storage:
 
    >>> import nibabel as nib
-   >>> data = np.arange(24).reshape((2,3,4))
+   >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
    >>> img = nib.AnalyzeImage(data, np.eye(4))
    >>> sorted(img.file_map)
    ['header', 'image']
@@ -275,6 +275,9 @@ class SpatialImage(object):
             extra = {}
         self.extra = extra
         self._header = self._header_class.from_header(header)
+        # if header not specified, get data type from input array
+        if header is None and hasattr(data, 'dtype'):
+            self._header.set_data_dtype(data.dtype)
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map

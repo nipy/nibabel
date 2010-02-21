@@ -214,3 +214,21 @@ def test_slope_inter():
     hdr.set_slope_inter(1.0)
     yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
     yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+
+
+@parametric
+def test_data_default():
+    # check that the default dtype comes from the data if the header is
+    # None, and that unsupported dtypes raise an error
+    img_klass = AnalyzeImage
+    hdr_klass = AnalyzeHeader
+    data = np.arange(24, dtype=np.int32).reshape((2,3,4))
+    affine = np.eye(4)
+    img = img_klass(data, affine)
+    yield assert_equal(data.dtype, img.get_data_dtype())
+    header = hdr_klass()
+    img = img_klass(data, affine, header)
+    yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+    # analyze does not support uint32
+    data = np.arange(24, dtype=np.uint32).reshape((2,3,4))
+    yield assert_raises(HeaderDataError, img_klass, data, affine)

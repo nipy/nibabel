@@ -78,7 +78,7 @@ def test_files_interface():
 def test_round_trip():
    # write an image to files
    from StringIO import StringIO
-   data = np.arange(24).reshape((2,3,4))
+   data = np.arange(24, dtype='i4').reshape((2,3,4))
    aff = np.eye(4)
    for klass in (nib.AnalyzeImage,
                  nib.Spm99AnalyzeImage,

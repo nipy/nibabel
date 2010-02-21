@@ -234,9 +234,30 @@ def pretty_mapping(mapping, getterfunc=None):
 
 
 def make_dt_codes(codes):
-    ''' Create full dt codes object from datatype codes '''
-    dt_codes = [list(vals) + [np.dtype(vals[-1])] for vals in codes]
-    return Recoder(dt_codes, fields=('code', 'label', 'type', 'dtype'))
+    ''' Create full dt codes object from datatype codes
+
+    Include created numpy dtype (from numpy type) and opposite endian
+    numpy dtype
+
+    Parameters
+    ----------
+    codes : sequence of (3,) sequences
+       contained sequences are data type code, data type name, and numpy
+       type (such as ``np.float32``).
+
+    Returns
+    -------
+    rec : ``Recoder`` instance
+       Recoder that, by default, returns ``code`` when indexed with any
+       of the corresponding code, name, type, dtype, or swapped dtype
+    '''
+    dt_codes = []
+    for code, name, np_type in codes:
+        dt_codes.append((code, name, np_type,
+                         np.dtype(np_type),
+                         np.dtype(np_type).newbyteorder('S')))
+    return Recoder(dt_codes,
+                   fields=('code', 'label', 'type', 'dtype', 'sw_dtype'))
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
