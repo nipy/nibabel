@@ -129,11 +129,13 @@ class Header(object):
     
     def __init__(self,
                  dtype=np.float32,
-                 shape=(),
-                 zooms=()):
+                 shape=(0,),
+                 zooms=None):
         self.set_io_dtype(dtype)
+        self._zooms = ()
         self.set_data_shape(shape)
-        self.set_zooms(zooms)
+        if not zooms is None:
+            self.set_zooms(zooms)
 
     def copy(self):
         ''' Copy object to independent representation
@@ -153,8 +155,15 @@ class Header(object):
         return self._shape
 
     def set_data_shape(self, shape):
+        ndim = len(shape)
+        if ndim == 0:
+            shape = (0,)
+            ndim = 1
         self._shape = tuple([int(s) for s in shape])
-
+        # set any unset zooms to 1.0
+        nzs = min(len(self._zooms), ndim)
+        self._zooms = self._zooms[:nzs] + (1.0,) * (ndim-nzs)
+        
     def get_zooms(self):
         return self._zooms
 

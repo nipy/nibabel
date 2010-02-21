@@ -162,16 +162,16 @@ class _TestBinaryHeader(object):
             yield (assert_raises, HeaderDataError,
                   hdr.set_zooms, (-1,) * L)
         # reducing the dimensionality of the array and then increasing
-        # it again reveals the concealed higher-dimensional zooms
-        # from the earlier 'set'
+        # it again reverts the previously set zoom values to 1.0
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
+        yield assert_array_equal, hdr.get_zooms(), (1,1,1)
         hdr.set_zooms((4,5,6))
         yield assert_array_equal, hdr.get_zooms(), (4,5,6)
         hdr.set_data_shape((1,2))
         yield assert_array_equal, hdr.get_zooms(), (4,5)
         hdr.set_data_shape((1,2,3))
-        yield assert_array_equal, hdr.get_zooms(), (4,5,6)
+        yield assert_array_equal, hdr.get_zooms(), (4,5,1)
         # Setting affine changes zooms
         hdr.set_data_shape((1,2,3))
         hdr.set_zooms((1,1,1))

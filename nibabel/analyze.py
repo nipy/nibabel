@@ -765,12 +765,23 @@ class AnalyzeHeader(object):
         return tuple(int(d) for d in dims[1:ndims+1])
 
     def set_data_shape(self, shape):
-        ''' Set shape of data '''
+        ''' Set shape of data
+
+        If ``ndims == len(shape)`` then we set zooms for dimensions higher than
+        ``ndims`` to 1.0
+        
+        Parameters
+        ----------
+        shape : sequence
+           sequence of integers specifying data array shape
+
+        '''
         dims = self._header_data['dim']
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims        
         dims[1:ndims+1] = shape
+        self._header_data['pixdim'][ndims+1:] = 1.0
         
     def as_byteswapped(self, endianness=None):
         ''' return new byteswapped header object with given ``endianness``
