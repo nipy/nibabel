@@ -120,7 +120,22 @@ import numpy as np
 
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
 from nibabel.fileholders import FileHolder
-from nibabel.volumeutils import shape_zoom_affine, HeaderDataError
+from nibabel.volumeutils import shape_zoom_affine
+
+
+class UnsupportedDataType(Exception):
+    ''' Class to indicate data type not supported '''
+    pass
+
+
+class HeaderDataError(Exception):
+    ''' Class to indicate error in getting or setting header data '''
+    pass
+
+
+class HeaderTypeError(Exception):
+    ''' Class to indicate error in parameters into header functions '''
+    pass
 
 
 class Header(object):

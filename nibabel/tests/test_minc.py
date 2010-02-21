@@ -11,10 +11,8 @@ from nibabel.spatialimages import ImageFileError
 from nose.tools import assert_true, assert_equal, assert_false, \
     assert_raises
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nibabel.testing import parametric
+from nibabel.testing import parametric, data_path
 
-data_path, _ = os.path.split(__file__)
-data_path = os.path.join(data_path, 'data')
 mnc_fname = os.path.join(data_path, 'tiny.mnc')
    
 

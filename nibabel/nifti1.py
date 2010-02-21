@@ -6,8 +6,8 @@ Author: Matthew Brett
 import numpy as np
 import numpy.linalg as npl
 
-from nibabel.volumeutils import Recoder, make_dt_codes, \
-     HeaderDataError
+from nibabel.volumeutils import Recoder, make_dt_codes
+from nibabel.spatialimages import HeaderDataError
 from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import

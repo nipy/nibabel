@@ -1,8 +1,9 @@
 '''  Ufunc-like functions operating on Analyze headers '''
 import numpy as np
 
-from volumeutils import array_from_file, array_to_file, \
-    HeaderDataError
+from nibabel.volumeutils import array_from_file, array_to_file
+
+from nibabel.spatialimages import HeaderDataError
 
 
 def read_data(hdr, fileobj):

@@ -5,7 +5,7 @@
 import numpy as np
 
 import nibabel as nib
-from nibabel.volumeutils import HeaderDataError, HeaderTypeError
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises

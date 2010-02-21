@@ -38,17 +38,16 @@ from nibabel.testing import assert_equal, assert_not_equal, \
 
 from numpy.testing import assert_array_equal
 
-from nibabel.volumeutils import HeaderDataError, HeaderTypeError, \
-    array_to_file, can_cast
+from nibabel.volumeutils import array_to_file, can_cast
 
-from nibabel.analyze import AnalyzeHeader, AnalyzeImage, ImageDataError
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+    ImageDataError
+from nibabel.analyze import AnalyzeHeader, AnalyzeImage
 from nibabel.header_ufuncs import read_data, write_scaled_data
-from nibabel.testing import parametric
+from nibabel.testing import parametric, data_path
 
 from test_binary import _TestBinaryHeader
 
-data_path, _ = os.path.split(__file__)
-data_path = os.path.join(data_path, 'data')
 header_file = os.path.join(data_path, 'analyze.hdr')
 
 

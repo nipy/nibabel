@@ -6,23 +6,20 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.volumeutils import HeaderDataError
+from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
     data_type_codes, extension_codes
-
-from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
-from test_analyze import TestAnalyzeHeader
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises, ok_
 
 import nibabel.testing as nbt
-from nibabel.testing import parametric
+from nibabel.testing import parametric, data_path
 
+from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
+from test_analyze import TestAnalyzeHeader
 
-data_path, _ = os.path.split(__file__)
-data_path = os.path.join(data_path, 'data')
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 

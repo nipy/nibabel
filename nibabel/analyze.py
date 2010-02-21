@@ -127,15 +127,17 @@ The same for logging::
 import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
-     native_code, swapped_code, hdr_getterfunc, \
-     make_dt_codes, HeaderDataError, HeaderTypeError, \
+     native_code, swapped_code, \
+     make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
      array_to_file, can_cast
+
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+    ImageDataError, SpatialImage
 
 from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
-from nibabel.spatialimages import SpatialImage, ImageDataError
 from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
 from nibabel.arrayproxy import ArrayProxy
@@ -850,9 +852,15 @@ class AnalyzeHeader(object):
         ''' Return string representation for printing '''
         summary = "%s object, endian='%s'" % (self.__class__,
                                               self.endianness)
+        def _getter(obj, key):
+            # Look for any 'get_<name>' methods
+            try:
+                return obj.__getattribute__('get_' + key)()
+            except (AttributeError, HeaderDataError):
+                return obj[key]
         return '\n'.join(
             [summary,
-             pretty_mapping(self, hdr_getterfunc)])
+             pretty_mapping(self, _getter)])
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields

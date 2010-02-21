@@ -2,10 +2,8 @@
 import warnings
 import numpy as np
 
-from nibabel.volumeutils import HeaderDataError, HeaderTypeError, \
-    allopen
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError
 
-from nibabel.filename_parser import types_filenames
 from nibabel.batteryrunners import Report
 from nibabel import analyze # module import
 

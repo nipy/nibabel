@@ -6,15 +6,14 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises, assert_not_equal
+from nibabel.volumeutils import swapped_code, native_code, array_to_file
+from nibabel.spatialimages import HeaderDataError
+from nibabel.header_ufuncs import read_data, write_scaled_data
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.volumeutils import swapped_code, \
-     native_code, HeaderDataError, array_to_file
-
-from nibabel.header_ufuncs import read_data, write_scaled_data
+from nibabel.testing import assert_equal, assert_true, assert_false, \
+     assert_raises, assert_not_equal
 
 
 class _TestBinaryHeader(object):

@@ -233,16 +233,6 @@ def pretty_mapping(mapping, getterfunc=None):
     return '\n'.join(out)
 
 
-def hdr_getterfunc(obj, key):
-    ''' Getter function for keys or methods of form 'get_<key'
-    '''
-    # Look for any 'get_<name>' methods
-    try:
-        return obj.__getattribute__('get_' + key)()
-    except (AttributeError, HeaderDataError):
-        return obj[key]
-
-
 def make_dt_codes(codes):
     ''' Create full dt codes object from datatype codes '''
     dt_codes = [list(vals) + [np.dtype(vals[-1])] for vals in codes]
@@ -684,21 +674,6 @@ def finite_range(arr):
             mx = max(np.max(tmp), mx)
             mn = min(np.min(tmp), mn)
     return mn, mx
-
-
-class UnsupportedDataType(Exception):
-    ''' Class to indicate data type not supported '''
-    pass
-
-
-class HeaderDataError(Exception):
-    ''' Class to indicate error in getting or setting header data '''
-    pass
-
-
-class HeaderTypeError(Exception):
-    ''' Class to indicate error in parameters into header functions '''
-    pass
 
 
 def allopen(fname, *args, **kwargs):
