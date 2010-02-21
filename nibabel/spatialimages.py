@@ -138,15 +138,33 @@ class Header(object):
     default_x_flip = True
     
     def __init__(self,
-                 dtype=np.float32,
+                 io_dtype=np.float32,
                  shape=(0,),
                  zooms=None):
-        self.set_io_dtype(dtype)
+        self.set_io_dtype(io_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
         if not zooms is None:
             self.set_zooms(zooms)
 
+    @classmethod
+    def from_header(klass, header=None):
+        if header is None:
+            return klass()
+        if isinstance(header, klass):
+            return header.copy()
+        return klass(header.get_io_dtype(),
+                     header.get_data_shape(),
+                     header.get_zooms())
+
+    def __eq__(self, other):
+        return (self.get_io_dtype() == other.get_io_dtype() and
+                self.get_data_shape() == other.get_data_shape() and
+                self.get_zooms() == other.get_zooms())
+
+    def __ne__(self, other):
+        return not self == other
+    
     def copy(self):
         ''' Copy object to independent representation
 
@@ -197,19 +215,18 @@ class Header(object):
 
     get_default_affine = get_base_affine
 
-    def data_from_fileobj(self, fileobj):
-        data = np.fromfile(fileobj, dtype=self.get_io_dtype)
-        return data.reshape(self.get_data_shape())
+    def data_to_fileobj(self, data, fileobj):
+        ''' Write image data to file in fortran order '''
+        dtype = self.get_io_dtype()
+        fileobj.write(data.astype(dtype).tostring(order='F'))
 
-    @classmethod
-    def from_header(klass, header=None):
-        if header is None:
-            return klass()
-        if isinstance(header, klass):
-            return header.copy()
-        return klass(header.get_io_dtype(),
-                     header.get_data_shape(),
-                     header.get_zooms())
+    def data_from_fileobj(self, fileobj):
+        ''' Read data in fortran order '''
+        dtype = self.get_io_dtype()
+        shape = self.get_data_shape()
+        data_size = np.prod(shape) * dtype.itemsize
+        data_str = fileobj.read(data_size)
+        return np.ndarray(shape, dtype, data_str, order='F')
 
 
 class ImageDataError(Exception):
