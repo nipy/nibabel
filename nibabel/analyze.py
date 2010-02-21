@@ -776,7 +776,6 @@ class AnalyzeHeader(object):
         ----------
         shape : sequence
            sequence of integers specifying data array shape
-
         '''
         dims = self._header_data['dim']
         ndims = len(shape)
@@ -914,7 +913,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr.get_zooms()
-        ()
+        (1.0,)
         >>> hdr.set_data_shape((1,2))
         >>> hdr.get_zooms()
         (1.0, 1.0)
@@ -926,7 +925,7 @@ class AnalyzeHeader(object):
         dims = hdr['dim']
         ndim = dims[0]
         if ndim == 0:
-            return ()
+            return (1.0,)
         pixdims = hdr['pixdim']
         return tuple(pixdims[1:ndim+1])
     
@@ -1393,7 +1392,7 @@ class AnalyzeImage(SpatialImage):
         >>> hdr.get_data_shape()
         (0,)
         >>> hdr.get_zooms()
-        ()
+        (1.0,)
         >>> np.all(hdr.get_best_affine() == np.diag([-1,1,1,1]))
         True
         >>> img._update_header()

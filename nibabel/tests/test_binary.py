@@ -37,7 +37,7 @@ class _TestBinaryHeader(object):
         # origin field, and the center of the image.
         yield assert_array_equal, np.diag(hdr.get_base_affine()), [-1,1,1,1]
         # But zooms only go with number of dimensions
-        yield assert_equal, hdr.get_zooms(), ()
+        yield assert_equal, hdr.get_zooms(), (1.0,)
         # Endianness will be native by default for empty header
         yield assert_equal, hdr.endianness, native_code
         # But you can change this if you want
@@ -171,6 +171,10 @@ class _TestBinaryHeader(object):
         yield assert_array_equal, hdr.get_zooms(), (4,5)
         hdr.set_data_shape((1,2,3))
         yield assert_array_equal, hdr.get_zooms(), (4,5,1)
+        # setting shape to () results in shape (0,)
+        hdr.set_data_shape(())
+        yield assert_array_equal, hdr.get_data_shape(), (0,)
+        yield assert_array_equal, hdr.get_zooms(), (1.0,)
         # Setting affine changes zooms
         hdr.set_data_shape((1,2,3))
         hdr.set_zooms((1,1,1))

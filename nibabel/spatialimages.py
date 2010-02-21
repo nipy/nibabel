@@ -123,11 +123,6 @@ from nibabel.fileholders import FileHolder
 from nibabel.volumeutils import shape_zoom_affine
 
 
-class UnsupportedDataType(Exception):
-    ''' Class to indicate data type not supported '''
-    pass
-
-
 class HeaderDataError(Exception):
     ''' Class to indicate error in getting or setting header data '''
     pass
@@ -172,8 +167,9 @@ class Header(object):
     def set_data_shape(self, shape):
         ndim = len(shape)
         if ndim == 0:
-            shape = (0,)
-            ndim = 1
+            self._shape = (0,)
+            self._zooms = (1.0,)
+            return
         self._shape = tuple([int(s) for s in shape])
         # set any unset zooms to 1.0
         nzs = min(len(self._zooms), ndim)
