@@ -138,10 +138,10 @@ class Header(object):
     default_x_flip = True
     
     def __init__(self,
-                 io_dtype=np.float32,
+                 data_dtype=np.float32,
                  shape=(0,),
                  zooms=None):
-        self.set_io_dtype(io_dtype)
+        self.set_data_dtype(data_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
         if not zooms is None:
@@ -151,14 +151,21 @@ class Header(object):
     def from_header(klass, header=None):
         if header is None:
             return klass()
-        if isinstance(header, klass):
+        if type(header) == klass:
             return header.copy()
-        return klass(header.get_io_dtype(),
+        return klass(header.get_data_dtype(),
                      header.get_data_shape(),
                      header.get_zooms())
 
+    @classmethod
+    def from_fileobj(klass, fileobj):
+        raise NotImplementedError
+
+    def write_to(self, fileobj):
+        raise NotImplementedError
+
     def __eq__(self, other):
-        return (self.get_io_dtype() == other.get_io_dtype() and
+        return (self.get_data_dtype() == other.get_data_dtype() and
                 self.get_data_shape() == other.get_data_shape() and
                 self.get_zooms() == other.get_zooms())
 
@@ -173,10 +180,10 @@ class Header(object):
         '''
         return self.__class__(self._dtype, self._shape, self._zooms)
 
-    def get_io_dtype(self):
+    def get_data_dtype(self):
         return self._dtype
 
-    def set_io_dtype(self, dtype):
+    def set_data_dtype(self, dtype):
         self._dtype = np.dtype(dtype)
 
     def get_data_shape(self):
@@ -217,12 +224,12 @@ class Header(object):
 
     def data_to_fileobj(self, data, fileobj):
         ''' Write image data to file in fortran order '''
-        dtype = self.get_io_dtype()
+        dtype = self.get_data_dtype()
         fileobj.write(data.astype(dtype).tostring(order='F'))
 
     def data_from_fileobj(self, fileobj):
         ''' Read data in fortran order '''
-        dtype = self.get_io_dtype()
+        dtype = self.get_data_dtype()
         shape = self.get_data_shape()
         data_size = np.prod(shape) * dtype.itemsize
         data_str = fileobj.read(data_size)
@@ -238,7 +245,7 @@ class ImageFileError(Exception):
 
 
 class SpatialImage(object):
-    _header_class = dict
+    _header_class = Header
     files_types = (('image', None),)
     _compressed_exts = ()
     
@@ -267,7 +274,7 @@ class SpatialImage(object):
         if extra is None:
             extra = {}
         self.extra = extra
-        self._set_header(header)
+        self._header = self._header_class.from_header(header)
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
@@ -294,19 +301,16 @@ class SpatialImage(object):
             return self._data.shape
 
     def get_data_dtype(self):
-        raise NotImplementedError
-
+        return self._header.get_data_dtype()
+    
     def set_data_dtype(self, dtype):
-        raise NotImplementedError
+        self._header.set_data_dtype(dtype)
 
     def get_affine(self):
         return self._affine
 
     def get_header(self):
         return self._header
-
-    def _set_header(self, header=None):
-        raise NotImplementedError
 
     def get_filename(self):
         ''' Fetch the image filename
@@ -490,19 +494,13 @@ class SpatialImage(object):
         
     @classmethod
     def from_image(klass, img):
-        ''' Create new instance of own class from `img`
+        ''' Class method to create new instance of own class from `img`
 
-        This is a class method.  Note that, for this general method, we
-        throw away the header from the image passed in, on the basis
-        that we cannot predict whether it is convertible in general.
-        Sub-classes can override this class method to try and use the
-        information from the passed header. 
-        
         Parameters
         ----------
         img : ``spatialimage`` instance
            In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``,  and
+           specifically ``get_data``, ``get_affine``, ``get_header`` and
            ``extra``.
 
         Returns
@@ -512,5 +510,6 @@ class SpatialImage(object):
         '''
         return klass(img.get_data(),
                      img.get_affine(),
-                     extra=img.extra)
+                     klass._header_class.from_header(img.get_header()),
+                     extra=img.extra.copy())
     

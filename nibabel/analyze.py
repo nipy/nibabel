@@ -216,23 +216,12 @@ _dtdefs = ( # code, conversion function, equivalent dtype, aliases
 data_type_codes = make_dt_codes(_dtdefs)
 
 
-def is_analyze_header(obj):
-    ''' Return True if this appears to be an Analyze-type header '''
-    try:
-        return obj.is_analyze_header
-    except AttributeError:
-        return False
-
-
 class AnalyzeHeader(object):
     ''' Class for basic analyze header
 
     Implements zoom-only setting of affine transform, and no image
     scaling
     '''
-    # flag to indetify analyze-type headers
-    is_analyze_header = True
-    
     # Copies of module-level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
@@ -327,53 +316,81 @@ class AnalyzeHeader(object):
         return
 
     @classmethod
-    def from_mapping(klass,
-                 mapping=None,
-                 endianness=None,
-                 check=True):
-        '''  Initialize header from mapping
+    def from_header(klass, header=None, check=True):
+        ''' Class method to create header from another header
 
         Parameters
         ----------
-        mapping : None or mapping
-           mapping defining field values. Only needs to implment
-           ``items`` method.
-        endianness : {None, '<', '>'}
-           endianness of output header.  None (default) gives system
-           endian
+        header : ``Header`` instance or mapping
+           a header of this class, or another class of header for
+           conversion to this type
         check : {True, False}
-           whether to check header for integrity after filling field
-           values from mapping
+           whether to check header for integrity
 
         Returns
         -------
         hdr : header instance
-           fresh header instance where any field values corresponding to
-           keys in `mapping` have been set with corresponding value from
-           `mapping`
-
-        Raises
-        ------
-        KeyError when keys in mapping are not in header, unless mapping
-        is explicitly of Analyze type, in which case we silently discard
-        keys that do not match.  We do this because we know that
-        Analyze-type fields with the same name have the same meaning
-        across different Analyze sub-types
+           fresh header instance of our own class
         '''
-        obj = klass(endianness=endianness, check=check)
-        if not mapping is None:
-            is_ana = is_analyze_header(mapping)
-            for key, value in mapping.items():
-                try:
-                    obj[key] = value
-                except ValueError:
-                    if not is_ana:
-                        raise KeyError('key %s not in header' % key)
+        # make fresh header instance
+        if type(header) == klass:
+            return header.copy()
+        obj = klass(check=check)
+        if header is None:
+            return obj
+        try: # check if there is a specific conversion routine
+            mapping = header.as_analyze_map()
+        except AttributeError:
+            # most basic conversion
+            obj.set_data_dtype(header.get_data_dtype())
+            obj.set_data_shape(header.get_data_shape())
+            obj.set_zooms(header.get_zooms())
+            return obj
+        # header is convertible from a field mapping
+        for key, value in mapping.items():
+            try:
+                obj[key] = value
+            except (ValueError, KeyError):
+                # the presence of the mapping certifies the fields as
+                # being of the same meaning as for Analyze types
+                pass
         if check:
             obj.check_fix()
-        obj.check = check
         return obj
     
+    @classmethod
+    def from_fileobj(klass, fileobj, endianness=None, check=True):
+        ''' Return read header with given or guessed endiancode
+
+        Parameters
+        ----------
+        fileobj : file-like object
+           Needs to implement ``read`` method
+        endianness : None or endian code, optional
+           Code specifying endianness of read data
+
+        Returns
+        -------
+        hdr : AnalyzeHeader object
+           AnalyzeHeader object initialized from data in fileobj
+           
+        Examples
+        --------
+        >>> import StringIO
+        >>> hdr = AnalyzeHeader()
+        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
+        >>> fileobj.seek(0)
+        >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
+        >>> hdr2.binaryblock == hdr.binaryblock
+        True
+
+        You can write to the resulting object data
+
+        >>> hdr2['dim'][1] = 1
+        '''
+        raw_str = fileobj.read(klass._dtype.itemsize)
+        return klass(raw_str, endianness, check)
+
     @property
     def binaryblock(self):
         ''' binary block of data as string
@@ -391,6 +408,31 @@ class AnalyzeHeader(object):
         348
         '''
         return self._header_data.tostring()
+
+    def write_to(self, fileobj):
+        ''' Write header to fileobj
+
+        Write starts at fileobj current file position.
+        
+        Parameters
+        ----------
+        fileobj : file-like object
+           Should implement ``write`` method
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        >>> hdr = AnalyzeHeader()
+        >>> import StringIO
+        >>> str_io = StringIO.StringIO()
+        >>> hdr.write_to(str_io)
+        >>> hdr.binaryblock == str_io.getvalue()
+        True
+        '''
+        fileobj.write(self.binaryblock)
 
     @property
     def endianness(self):
@@ -638,64 +680,6 @@ class AnalyzeHeader(object):
         '''
         return self._header_data
 
-    @classmethod
-    def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ''' Return read header with given or guessed endiancode
-
-        Parameters
-        ----------
-        fileobj : file-like object
-           Needs to implement ``read`` method
-        endianness : None or endian code, optional
-           Code specifying endianness of read data
-
-        Returns
-        -------
-        hdr : AnalyzeHeader object
-           AnalyzeHeader object initialized from data in fileobj
-           
-        Examples
-        --------
-        >>> import StringIO
-        >>> hdr = AnalyzeHeader()
-        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
-        >>> fileobj.seek(0)
-        >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
-        >>> hdr2.binaryblock == hdr.binaryblock
-        True
-
-        You can write to the resulting object data
-
-        >>> hdr2['dim'][1] = 1
-        '''
-        raw_str = fileobj.read(klass._dtype.itemsize)
-        return klass(raw_str, endianness, check)
-
-    def write_to(self, fileobj):
-        ''' Write header to fileobj
-
-        Write starts at fileobj current file position.
-        
-        Parameters
-        ----------
-        fileobj : file-like object
-           Should implement ``write`` method
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> import StringIO
-        >>> str_io = StringIO.StringIO()
-        >>> hdr.write_to(str_io)
-        >>> hdr.binaryblock == str_io.getvalue()
-        True
-        '''
-        fileobj.write(self.binaryblock)
-
     def get_data_dtype(self):
         ''' Get numpy dtype for data
 
@@ -704,7 +688,7 @@ class AnalyzeHeader(object):
         code = int(self._header_data['datatype'])
         dtype = self._data_type_codes.dtype[code]
         return dtype.newbyteorder(self.endianness)
-    
+
     def set_data_dtype(self, datatype):
         ''' Set numpy dtype for data from code or dtype or type
         
@@ -945,37 +929,10 @@ class AnalyzeHeader(object):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1:ndim+1] = zooms[:]
+
+    def as_analyze_map(self):
+        return self
         
-    def get_datatype(self, code_repr='label'):
-        ''' Return representation of datatype code
-
-        This method returns the datatype code, or a string label for the
-        code.  Usually you are more interested in the data dtype.  To do
-        that more useful thing, use ``get_data_dtype``
-        
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of datatype code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        datatype_code : string or integer
-            string label for datatype code or code
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr['datatype'] = 4 # int16
-        >>> hdr.get_datatype()
-        'int16'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'datatype',
-            self._data_type_codes)
-
     def get_data_offset(self):
         ''' Return offset into data file to read data
 
@@ -1180,7 +1137,7 @@ class AnalyzeImage(SpatialImage):
         We use a proxy to implement the caching of the data read, and
         for the data shape.  
         '''
-        data_hdr  = klass._header_class.from_mapping(header)
+        data_hdr  = klass._header_class.from_header(header)
         data = klass.ImageArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, file_map)
         
@@ -1238,9 +1195,6 @@ class AnalyzeImage(SpatialImage):
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
-    def _set_header(self, header=None):
-        self._header = self._header_class.from_mapping(header)
-            
     def get_shape(self):
         return self._data.shape
     
@@ -1351,34 +1305,6 @@ class AnalyzeImage(SpatialImage):
         self._close_filenames(file_map, hdrf, imgf)
         self._header = hdr
         self.file_map = file_map
-
-    @classmethod
-    def from_image(klass, img):
-        ''' Create new instance of own class from `img`
-
-        This is a class method.  For Analyze-type images as source
-        ('img`) and as target, we can use the commonalities of the
-        Analyze images to copy the header information safely.
-        
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header``,
-           and ``extra``.
-
-        Returns
-        -------
-        cimg : ``spatialimage`` instance
-           Image, of our own class
-        '''
-        hdr = img.get_header()
-        if not is_analyze_header(hdr):
-            hdr = None
-        return klass(img.get_data(),
-                     img.get_affine(),
-                     hdr,
-                     extra=img.extra)
 
     def _update_header(self):
         ''' Harmonize header with image data and affine

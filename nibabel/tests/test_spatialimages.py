@@ -20,23 +20,23 @@ from nibabel.testing import data_path, parametric
 def test_header_init():
     # test the basic header
     hdr = Header()
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float32))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float32))
     yield assert_equal(hdr.get_data_shape(), (0,))
     yield assert_equal(hdr.get_zooms(), (1.0,))
     hdr = Header(np.float64)
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float64))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float64))
     yield assert_equal(hdr.get_data_shape(), (0,))
     yield assert_equal(hdr.get_zooms(), (1.0,))
     hdr = Header(np.float64, shape=(1,2,3))
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float64))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float64))
     yield assert_equal(hdr.get_data_shape(), (1,2,3))
     yield assert_equal(hdr.get_zooms(), (1.0, 1.0, 1.0))
     hdr = Header(np.float64, shape=(1,2,3), zooms=None)
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float64))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float64))
     yield assert_equal(hdr.get_data_shape(), (1,2,3))
     yield assert_equal(hdr.get_zooms(), (1.0, 1.0, 1.0))
     hdr = Header(np.float64, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float64))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float64))
     yield assert_equal(hdr.get_data_shape(), (1,2,3))
     yield assert_equal(hdr.get_zooms(), (3.0, 2.0, 1.0))
 
@@ -54,12 +54,12 @@ def test_from_header():
     yield assert_equal(hdr, copy)
     yield assert_false(hdr is copy)
     class C(object):
-        def get_io_dtype(self): return np.dtype('u2')
+        def get_data_dtype(self): return np.dtype('u2')
         def get_data_shape(self): return (5,4,3)
         def get_zooms(self): return (10.0, 9.0, 8.0)
     converted = Header.from_header(C())
     yield assert_true(isinstance(converted, Header))
-    yield assert_equal(converted.get_io_dtype(), np.dtype('u2'))
+    yield assert_equal(converted.get_data_dtype(), np.dtype('u2'))
     yield assert_equal(converted.get_data_shape(), (5,4,3))
     yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
     
@@ -91,9 +91,9 @@ def test_copy():
     hdr.set_zooms((4,5,6))
     yield assert_equal(hdr.get_zooms(), (4,5,6))
     yield assert_equal(hdr_copy.get_zooms(), (3,2,1))
-    hdr.set_io_dtype(np.uint8)
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.uint8))
-    yield assert_equal(hdr_copy.get_io_dtype(), np.dtype(np.float64))
+    hdr.set_data_dtype(np.uint8)
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.uint8))
+    yield assert_equal(hdr_copy.get_data_dtype(), np.dtype(np.float64))
     
 
 @parametric
@@ -122,13 +122,13 @@ def test_shape_zooms():
     
 
 @parametric
-def test_io_dtype():
+def test_data_dtype():
     hdr = Header()
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float32))
-    hdr.set_io_dtype(np.float64)
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.float64))
-    hdr.set_io_dtype('u2')
-    yield assert_equal(hdr.get_io_dtype(), np.dtype(np.uint16))
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float32))
+    hdr.set_data_dtype(np.float64)
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.float64))
+    hdr.set_data_dtype('u2')
+    yield assert_equal(hdr.get_data_dtype(), np.dtype(np.uint16))
 
 
 @parametric

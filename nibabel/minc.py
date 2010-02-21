@@ -3,7 +3,6 @@ import numpy as np
 from nibabel.externals.netcdf import netcdf_file
 
 from nibabel.spatialimages import SpatialImage
-from nibabel.volumeutils import allopen
 
 _dt_dict = {
     ('b','unsigned'): np.uint8,
@@ -26,9 +25,14 @@ class MincError(Exception):
     pass
 
 
-class MincHeader(object):
-    def __init__(self, mincfile, endianness=None, check=True):
-        self.endianness = '>'
+class MincFile(object):
+    ''' Class to wrap MINC file
+
+    Although it has some of the same methods as a ``Header``, we use
+    this only when reading a MINC file, to pull out useful header
+    information, and for the method of reading the data out
+    '''
+    def __init__(self, mincfile):
         self._mincfile = mincfile
         self._image = mincfile.variables['image']
         self._dim_names = self._image.dimensions
@@ -37,59 +41,14 @@ class MincHeader(object):
         # http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node11.html
         self._dims = [self._mincfile.variables[s]
                       for s in self._dim_names]
-        self._spatial_dims = [name for name in self._dim_names
-                             if name.endswith('space')]
-        if check:
-            self.check_fix()
-
-    def __getitem__(self, name):
-        """
-        Get a field's value from the MINC file.
-
-        It first checks in variables, then attributes
-        and finally the dimensions of the MINC file.
-
-        Note that user attributes (not attributes of the mincfile
-        instance) are in the ``_attributes`` - er - attribute.
-        """
-        mnc = self._mincfile
-        for dict_like in (mnc.variables, mnc._attributes, mnc.dimensions):
-            try:
-                return dict_like[name]
-            except KeyError:
-                pass
-        raise KeyError('"%s" not found in variables, '
-                       'attributes or dimensions of MINC file')
-
-    def __iter__(self):
-        return iter(self.keys())
-
-    def keys(self):
-        return list(self._mincfile.variables.keys() +
-                    self._mincfile._attributes.keys() +
-                    self._mincfile.dimensions.keys())
-
-    def values(self):
-        return [self[key] for key in self]
-
-    def items(self):
-        return zip(self.keys(), self.values())
-
-    @classmethod
-    def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ncdf_obj = netcdf_file(fileobj)
-        return klass(ncdf_obj, endianness, check)
-
-    def check_fix(self):
         # We don't currently support irregular spacing
         # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
         for dim in self._dims:
             if dim.spacing != 'regular__':
                 raise ValueError('Irregular spacing not supported')
+        self._spatial_dims = [name for name in self._dim_names
+                             if name.endswith('space')]
 
-    def get_data_shape(self):
-        return self._image.shape
-        
     def get_data_dtype(self):
         typecode = self._image.typecode()
         if typecode == 'f':
@@ -101,11 +60,14 @@ class MincHeader(object):
             dtt = _dt_dict[(typecode, signtype)]
         return np.dtype(dtt).newbyteorder('>')
 
+    def get_data_shape(self):
+        return self._image.data.shape
+
     def get_zooms(self):
         return tuple(
             [float(dim.step) for dim in self._dims])
 
-    def get_best_affine(self):
+    def get_affine(self):
         nspatial = len(self._spatial_dims)
         rot_mat = np.eye(nspatial)
         steps = np.zeros((nspatial,))
@@ -125,10 +87,6 @@ class MincHeader(object):
         aff[:nspatial,:nspatial] = rot_mat * steps
         aff[:nspatial,nspatial] = origin
         return aff
-
-    def get_unscaled_data(self):
-        dtype = self.get_data_dtype()
-        return np.asarray(self._image.data).view(dtype)
 
     def _get_valid_range(self):
         ''' Return valid range for image data
@@ -153,7 +111,7 @@ class MincHeader(object):
         return np.asarray(valid_range, dtype=np.float)
 
     def _normalize(self, data):
-        """
+        """ Scale image data with recorded scalefactors
 
         http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node13.html
         
@@ -185,13 +143,11 @@ class MincHeader(object):
             raise MincError('image-max and image dimensions '
                             'do not match')
         dmin, dmax = self._get_valid_range()
-
         if nscales == 0:
             imax = np.asarray(image_max)
             imin = np.asarray(image_min)
             sc = (imax-imin) / (dmax-dmin)
             return np.clip(data, dmin, dmax) * sc + (imin - dmin * sc)
-            
         out_data = np.empty(data.shape, np.float)
 
         def _norm_slice(sdef):
@@ -213,41 +169,51 @@ class MincHeader(object):
         return out_data
 
     def get_scaled_data(self):
-        return self._normalize(self.get_unscaled_data())
+        dtype = self.get_data_dtype()
+        data =  np.asarray(self._image.data).view(dtype)
+        return self._normalize(data)
     
 
 class MincImage(SpatialImage):
-    _header_class = MincHeader
+    ''' Class for MINC images
+
+    The MINC image class uses the default header type, rather than a
+    specific MINC header type - and reads the relevant information from
+    the MINC file on load.
+    '''
     files_types = (('image', '.mnc'),)
-    
-    def _set_header(self, header):
-        self._header = header
 
-    def get_data(self):
-        ''' Lazy load of data '''
-        if not self._data is None:
+    class ImageArrayProxy(object):
+        ''' Minc implemention of array proxy protocol
+
+        The array proxy allows us to freeze the passed fileobj and
+        header such that it returns the expected data array.
+        '''
+        def __init__(self, minc_file):
+            self.minc_file = minc_file
+            self._data = None
+            self.shape = minc_file.get_data_shape()
+            
+        def __array__(self):
+            ''' Cached read of data from file '''
+            if self._data is None:
+                self._data = self.minc_file.get_scaled_data()
             return self._data
-        self._data = self._header.get_scaled_data()
-        return self._data
 
-    def get_shape(self):
-        if not self._data is None:
-            return self._data.shape
-        return self._header.get_data_shape()
-    
-    def get_data_dtype(self):
-        return self._header.get_data_dtype()
-    
+
     @classmethod
     def from_file_map(klass, file_map):
         fobj = file_map['image'].get_prepare_fileobj()
-        header = klass._header_class.from_fileobj(fobj)
-        affine = header.get_best_affine()
+        minc_file = MincFile(netcdf_file(fobj))
+        affine = minc_file.get_affine()
         if affine.shape != (4,4):
             raise MincError('Image does not have 3 spatial dimensions')
-        ret =  klass(None, affine, header,file_map=file_map)
-        ret.file_map = file_map
-        return ret
+        data_dtype = minc_file.get_data_dtype()
+        shape = minc_file.get_data_shape()
+        zooms = minc_file.get_zooms()
+        header = klass._header_class(data_dtype, shape, zooms)
+        data = klass.ImageArrayProxy(minc_file)
+        return  MincImage(data, affine, header, extra=None, file_map=file_map)
     
 
 load = MincImage.load

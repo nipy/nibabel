@@ -42,8 +42,6 @@ def test_conversion():
         for r_class_def in nib.class_map.values():
             r_class = r_class_def['class']
             img = r_class(data, affine)
-            if not r_class_def['rw']: # can't modify this class
-                continue
             img.set_data_dtype(npt)
             for w_class_def in nib.class_map.values():
                 w_class = w_class_def['class']
@@ -66,20 +64,24 @@ def test_save_load_endian():
     # byte swapped endian image
     bs_hdr = img.get_header().as_byteswapped()
     bs_img = nib.Nifti1Image(data, affine, bs_hdr)
-    yield assert_equal(bs_img.get_header().endianness, native_code)
+    yield assert_equal(bs_img.get_header().endianness, swapped_code)
+    # of course the data is the same because it's not written to disk
     yield assert_array_equal(bs_img.get_data(), data)
-    # Check converting to another image 
+    # Check converting to another image
     cbs_img = nib.AnalyzeImage.from_image(bs_img)
+    # this will make the header native by doing the header conversion
     cbs_hdr = cbs_img.get_header()
     yield assert_equal(cbs_hdr.endianness, native_code)
+    # and the byte order follows it back into another image
     cbs_img2 = nib.Nifti1Image.from_image(cbs_img)
     cbs_hdr2 = cbs_img2.get_header()
     yield assert_equal(cbs_hdr2.endianness, native_code)
     # Try byteswapped round trip
     bs_img2 = round_trip(bs_img)
     bs_data2 = bs_img2.get_data()
-    yield assert_equal(bs_data2.dtype.byteorder, native_code)
-    yield assert_equal(bs_img2.get_header().endianness, native_code)
+    # now the data dtype was swapped endian, so the read data is too
+    yield assert_equal(bs_data2.dtype.byteorder, swapped_code)
+    yield assert_equal(bs_img2.get_header().endianness, swapped_code)
     yield assert_array_equal(bs_data2, data)
     # Now mix up byteswapped data and non-byteswapped header
     mixed_img = nib.Nifti1Image(bs_data2, affine)
@@ -98,9 +100,9 @@ def test_save_load():
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     try:
-        _, nifn = mkstemp('.nii')
-        # this somewhat unsafe, because we will make .hdr and .mat files too
-        _, sifn = mkstemp('.img')
+        pth = mkdtemp()
+        nifn = pjoin(pth, 'an_image.nii')
+        sifn = pjoin(pth, 'another_image.img')
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
         yield assert_true, isinstance(re_img, ni1.Nifti1Image)
@@ -128,13 +130,7 @@ def test_save_load():
         yield assert_array_equal, re_img.get_data(), data
         yield assert_array_equal, re_img.get_affine(), affine
     finally:
-        os.unlink(nifn)
-        if os.path.exists(sifn):
-            os.unlink(sifn)
-        if os.path.exists(sifn[:-4] + '.hdr'):
-            os.unlink(sifn[:-4] + '.hdr')
-        if os.path.exists(sifn[:-4] + '.mat'):
-            os.unlink(sifn[:-4] + '.mat')
+        shutil.rmtree(pth)
 
 
 @parametric

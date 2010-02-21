@@ -180,16 +180,29 @@ def test_images():
 
 
 @parametric
-def test_from_mapping():
-    ehdr = AnalyzeHeader()
-    hdr = AnalyzeHeader.from_mapping()
-    yield assert_equal(hdr, ehdr)
-    hdr = AnalyzeHeader.from_mapping({'descrip':'something'})
-    yield assert_not_equal(hdr, ehdr)
-    yield assert_raises(KeyError,
-                        AnalyzeHeader.from_mapping,
-                        {'descrip':'something',
-                         'improbable': 1})
+def test_from_header():
+    # check from header class method.
+    klass = AnalyzeHeader
+    empty = klass.from_header()
+    yield assert_equal(klass(), empty)
+    empty = klass.from_header(None)
+    yield assert_equal(klass(), empty)
+    hdr = klass()
+    hdr.set_data_dtype(np.float64)
+    hdr.set_data_shape((1,2,3))
+    hdr.set_zooms((3.0, 2.0, 1.0))
+    copy = klass.from_header(hdr)
+    yield assert_equal(hdr, copy)
+    yield assert_false(hdr is copy)
+    class C(object):
+        def get_data_dtype(self): return np.dtype('i2')
+        def get_data_shape(self): return (5,4,3)
+        def get_zooms(self): return (10.0, 9.0, 8.0)
+    converted = klass.from_header(C())
+    yield assert_true(isinstance(converted, klass))
+    yield assert_equal(converted.get_data_dtype(), np.dtype('i2'))
+    yield assert_equal(converted.get_data_shape(), (5,4,3))
+    yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
 
 
 @parametric
