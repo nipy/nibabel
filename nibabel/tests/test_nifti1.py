@@ -9,10 +9,11 @@ import numpy as np
 from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
-    data_type_codes, extension_codes
+    data_type_codes, extension_codes, slice_order_codes
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises, ok_
+from nose.tools import assert_true, assert_false, assert_equal, \
+    assert_raises, ok_
 
 import nibabel.testing as nbt
 from nibabel.testing import parametric, data_path
@@ -179,11 +180,70 @@ def test_checked():
     yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
 '''
     
-    
+@parametric
 def test_dim_info():
     ehdr = Nifti1Header()
-    ehdr.set_dim_info(0, 2, 1)
-    yield assert_true, ehdr.get_dim_info() == (0, 2, 1)
+    yield assert_true(ehdr.get_dim_info() == (None, None, None))
+    for info in ((0,2,1),
+                 (None, None, None),
+                 (0,2,None),
+                 (0,None,None),
+                 (None,2,1),
+                 (None, None,1),
+                 ):
+        ehdr.set_dim_info(*info)
+        yield assert_true(ehdr.get_dim_info() == info)
+
+
+@parametric
+def test_slice_times():
+    hdr = Nifti1Header()
+    # error if slice dimension not specified
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)
+    hdr.set_dim_info(slice=2)
+    # error if slice dimension outside shape
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)
+    hdr.set_data_shape((1, 1, 7))
+    # error if slice duration not set
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)    
+    hdr.set_slice_duration(0.1)
+    # We need a function to print out the Nones and floating point
+    # values in a predictable way, for the tests below.
+    _stringer = lambda val: val is not None and '%2.1f' % val or None
+    _print_me = lambda s: map(_stringer, s)
+    #The following examples are from the nifti1.h documentation.
+    hdr['slice_code'] = slice_order_codes['sequential increasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()), 
+                       ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
+    hdr['slice_start'] = 1
+    hdr['slice_end'] = 5
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
+    hdr['slice_code'] = slice_order_codes['sequential decreasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
+    hdr['slice_code'] = slice_order_codes['alternating increasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
+    hdr['slice_code'] = slice_order_codes['alternating decreasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
+    hdr['slice_code'] = slice_order_codes['alternating increasing 2']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
+    hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
+    # test set
+    hdr = Nifti1Header()
+    hdr.set_dim_info(slice=2)
+    hdr.set_data_shape([1, 1, 7])
+    hdr.set_slice_duration(0.1)
+    times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
+    hdr.set_slice_times(times)
+    yield assert_equal(hdr.get_slice_code(), 'alternating decreasing')
+    yield assert_equal(hdr['slice_start'], 1)
+    yield assert_equal(hdr['slice_end'], 5)
 
 
 def test_intents():

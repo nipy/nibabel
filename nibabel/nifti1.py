@@ -782,7 +782,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
 
-        Returns
+        Returnss
         -------
         freq : {None,0,1,2}
            Which data array axis is freqency encode direction
@@ -1111,8 +1111,16 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         hdr = self._header_data
         _, _, slice_dim = self.get_dim_info()
+        if slice_dim is None:
+            raise HeaderDataError('Slice dimension not set in header '
+                                  'dim_info')
         shape = self.get_data_shape()
-        slice_len = shape[slice_dim]
+        try:
+            slice_len = shape[slice_dim]
+        except IndexError:
+            raise HeaderDataError('Slice dimension index (%s) outside '
+                                  'shape tuple (%s)'
+                                  % (slice_dim, shape))
         duration = self.get_slice_duration()
         slabel = self.get_slice_code()
         if slabel == 'unknown':
