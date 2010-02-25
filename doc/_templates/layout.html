@@ -1,19 +1,18 @@
 {% extends "!layout.html" %}
 
 {% block extrahead %}
-  <meta name="keywords" content="python, neuroscience, nifti, analyze, nifticlib, fsl">
+  <meta name="keywords" content="python, neuroscience, nifti, analyze, minc, nipy, spm, fsl">
   <link REL="icon" HREF="/_images/favicon.png" TYPE="image/png">
 {% endblock %}
 
 {% block rootrellink %}
-  <li><a href="http://niftilib.sourceforge.net" target="_blank">NIfTI Libraries</a> |&nbsp;</li>
   <li><a href="{{ pathto('index') }}">NiBabel Home</a> |&nbsp;</li>
   <li><a href="{{ pathto('contents') }}">Documentation</a> &raquo;</li>
 {% endblock %}
 
 {% block relbar1 %}
   <div id="header">
-  NiBabel - Pythonic access to NIfTI and ANALYZE files
+  NiBabel - Pythonic access to medical image files
   </div>
 {{ super() }}
 {% endblock %}

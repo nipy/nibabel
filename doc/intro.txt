@@ -38,7 +38,7 @@ conversion from DICOM images into the NIfTI format.
 We don't use it in ``nibabel``, but libnifti_ provides a reference
 implementation of a C library to read, write and manipulate NIfTI
 images. The library source code is put into the public domain and a
-corresponding project is hosted at SourceForge_.
+corresponding project is hosted at the `libnifti Sourceforge`_ site.
 
 In addition to the C library, there is also an IO library written in Java and
 Matlab functions to make use of NIfTI files from within Matlab.
@@ -47,7 +47,7 @@ Matlab functions to make use of NIfTI files from within Matlab.
 .. _NIfTI Data Format Working Group: http://nifti.nimh.nih.gov/dfwg/beyond-nifti-1
 .. _dicomnifti: http://cbi.nyu.edu/software/dinifti.php
 .. _libnifti: http://niftilib.sf.net/niftilib_overview.html
-.. _SourceForge: http://sourceforge.net/projects/niftilib
+.. _libnifti SourceForge: http://sourceforge.net/projects/niftilib
 
 
 Python
@@ -69,17 +69,13 @@ able to combine as many tools as necessary to solve a given problem
 .. _RPy: http://rpy.sourceforge.net/
 
 
-NiBabel
-=======
+NiBabel and NIfTI
+=================
 
-NiBabel aims to provide easy access to NIfTI images from within Python.
-At the moment it is a pure Python package and so does not need to be
-compiled.
-
-While NiBabel is not yet complete (i.e. doesn't support everything the
-C library can do), it already provides access to the most important features
-of the NIfTI-1 data format and *libniftiio* capabilities. The following
-features are currently implemented:
+NiBabel is not yet complete (i.e. doesn't support everything the
+libnifti_ C package does), it already provides access to the most
+important features of the NIfTI-1 data format and *libniftiio*
+capabilities. The following features are currently implemented:
 
 * NiBabel can read and write a variety of file formats. This includes
   NIfTI (single and pairs) as well as ANALYZE files, both also in
