@@ -244,10 +244,24 @@ def test_slice_times():
     yield assert_raises(HeaderDataError,
                         hdr.set_slice_times,
                         times[:-1]) # wrong length
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        (None,) * len(times)) # all None
+    n_mid_times = times[:]
+    n_mid_times[3] = None
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        n_mid_times) # None in middle
+    funny_times = times[:]
+    funny_times[3] = 0.05
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        funny_times) # can't get single slice duration
     hdr.set_slice_times(times)
     yield assert_equal(hdr.get_slice_code(), 'alternating decreasing')
     yield assert_equal(hdr['slice_start'], 1)
     yield assert_equal(hdr['slice_end'], 5)
+    yield assert_array_almost_equal(hdr['slice_duration'], 0.1)
 
 
 def test_intents():
