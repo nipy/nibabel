@@ -237,9 +237,13 @@ def test_slice_times():
     # test set
     hdr = Nifti1Header()
     hdr.set_dim_info(slice=2)
-    hdr.set_data_shape([1, 1, 7])
-    hdr.set_slice_duration(0.1)
+    # need slice dim to correspond with shape
     times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
+    yield assert_raises(HeaderDataError, hdr.set_slice_times, times)
+    hdr.set_data_shape([1, 1, 7])
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        times[:-1]) # wrong length
     hdr.set_slice_times(times)
     yield assert_equal(hdr.get_slice_code(), 'alternating decreasing')
     yield assert_equal(hdr['slice_start'], 1)

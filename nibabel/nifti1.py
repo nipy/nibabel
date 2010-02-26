@@ -1058,6 +1058,23 @@ class Nifti1Header(SpmAnalyzeHeader):
             'slice_code',
             self._slice_order_codes)
 
+    def get_n_slices(self):
+        ''' Return the number of slices
+        '''
+        hdr = self._header_data
+        _, _, slice_dim = self.get_dim_info()
+        if slice_dim is None:
+            raise HeaderDataError('Slice dimension not set in header '
+                                  'dim_info')
+        shape = self.get_data_shape()
+        try:
+            slice_len = shape[slice_dim]
+        except IndexError:
+            raise HeaderDataError('Slice dimension index (%s) outside '
+                                  'shape tuple (%s)'
+                                  % (slice_dim, shape))
+        return slice_len
+
     def get_slice_times(self):
         ''' Get slice times from slice timing information
 
@@ -1110,17 +1127,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
         '''
         hdr = self._header_data
-        _, _, slice_dim = self.get_dim_info()
-        if slice_dim is None:
-            raise HeaderDataError('Slice dimension not set in header '
-                                  'dim_info')
-        shape = self.get_data_shape()
-        try:
-            slice_len = shape[slice_dim]
-        except IndexError:
-            raise HeaderDataError('Slice dimension index (%s) outside '
-                                  'shape tuple (%s)'
-                                  % (slice_dim, shape))
+        slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
         slabel = self.get_slice_code()
         if slabel == 'unknown':
@@ -1167,9 +1174,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         # Check if number of slices matches header
         hdr = self._header_data
-        _, _, slice_dim = self.get_dim_info()
-        shape = self.get_data_shape()
-        slice_len = shape[slice_dim]
+        slice_len = self.get_n_slices()
         if slice_len != len(slice_times):
             raise HeaderDataError('Number of slice times does not '
                                   'match number of slices')
