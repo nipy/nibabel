@@ -173,8 +173,6 @@ deb-mergedev:
 orig-src: distclean distclean
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
-	# check versions
-	grep -iR 'version[ ]*[=:]' * | $(PYTHON) tools/checkversion.py
 	# let python create the source tarball
 	$(PYTHON) setup.py sdist --formats=gztar
 	# rename to proper Debian orig source tarball and move upwards
