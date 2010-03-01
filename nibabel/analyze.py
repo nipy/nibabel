@@ -837,6 +837,12 @@ class AnalyzeHeader(object):
         summary = "%s object, endian='%s'" % (self.__class__,
                                               self.endianness)
         def _getter(obj, key):
+            # datacode has no getter, but its own representation
+            if key == 'datatype':
+                return obj._get_code_field(
+                    'label',
+                    'datatype',
+                    obj._data_type_codes)
             # Look for any 'get_<name>' methods
             try:
                 return obj.__getattribute__('get_' + key)()

@@ -13,7 +13,7 @@ from nibabel.header_ufuncs import read_data, write_scaled_data
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises, assert_not_equal
+     assert_raises, assert_not_equal, parametric
 
 
 class _TestBinaryHeader(object):
@@ -68,10 +68,7 @@ class _TestBinaryHeader(object):
             yield assert_array_equal, hdr[key], val
 
     def test_str(self):
-        hdr = self.header_class()
-        # Check something returns from str
-        S = hdr.__str__()
-        yield assert_true, len(S)>0
+        pass
 
     def test_endianness(self):
         # endianness is a read only property

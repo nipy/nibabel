@@ -129,6 +129,14 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         aff[0]*=-1
         yield assert_array_equal, hdr.get_base_affine(), aff
 
+    def test_str(self):
+        hdr = self.header_class()
+        # Check something returns from str
+        S = hdr.__str__()
+        yield assert_true, len(S)>0
+        # check the datacode recoding
+        yield assert_true, 'datatype       : float32' in S
+
 
 def test_best_affine():
     hdr = AnalyzeHeader()
