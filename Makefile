@@ -134,7 +134,7 @@ upload-website: website
 
 pylint: distclean
 	# do distclean first to silence SWIG's sins
-	pylint --rcfile doc/misc/pylintrc nifti
+	PYTHONPATH=.:$(PYTHONPATH) pylint --rcfile doc/misc/pylintrc nibabel
 
 
 #
