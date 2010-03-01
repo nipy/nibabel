@@ -29,7 +29,7 @@ class FileHolder(object):
         '''
         self.filename = filename
         self.fileobj = fileobj
-        self.pos=pos
+        self.pos = pos
 
     def get_prepare_fileobj(self, *args, **kwargs):
         ''' Return fileobj if present, or return fileobj from filename

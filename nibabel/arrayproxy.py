@@ -6,7 +6,7 @@ class ArrayProxy(object):
         self.header = header.copy()
         self._data = None
         self.shape = header.get_data_shape()
-        
+
     def __array__(self):
         ''' Cached read of data from file '''
         if self._data is None:

@@ -58,7 +58,7 @@ and class methods::
 ===========================
  The Analzye header format
 ===========================
-    
+
 Basic attributes of the header object are::
 
     .endianness (read only)
@@ -68,9 +68,9 @@ Basic attributes of the header object are::
 Class attributes are::
 
     .default_x_flip
-    
+
 with methods::
-    
+
     .get/set_data_shape
     .get/set_data_dtype
     .get/set_zooms
@@ -87,7 +87,7 @@ and class methods::
 
     .diagnose_binaryblock(string)
     .from_fileobj(fileobj)
-    
+
 More sophisticated headers can add more methods and attributes.
 
 =================
@@ -142,7 +142,7 @@ from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
 from nibabel.arrayproxy import ArrayProxy
 
-# Sub-parts of standard analyze header from 
+# Sub-parts of standard analyze header from
 # Mayo dbh.h file
 header_key_dtd = [
     ('sizeof_hdr', 'i4'),
@@ -195,11 +195,11 @@ data_history_dtd = [
     ]
 
 # Full header numpy dtype combined across sub-fields
-header_dtype = np.dtype(header_key_dtd + image_dimension_dtd + 
+header_dtype = np.dtype(header_key_dtd + image_dimension_dtd +
                         data_history_dtd)
 
 _dtdefs = ( # code, conversion function, equivalent dtype, aliases
-    (0, 'none', np.void), 
+    (0, 'none', np.void),
     (1, 'binary', np.void), # 1 bit per voxel, needs thought
     (2, 'uint8', np.uint8),
     (4, 'int16', np.int16),
@@ -225,7 +225,7 @@ class AnalyzeHeader(object):
     # Copies of module-level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
-    
+
     # default x flip
     default_x_flip = True
 
@@ -250,7 +250,7 @@ class AnalyzeHeader(object):
         check : bool, optional
             Whether to check content of header in initialization.
             Default is True.
-            
+
         Examples
 	--------
         >>> hdr1 = AnalyzeHeader() # an empty header
@@ -264,7 +264,7 @@ class AnalyzeHeader(object):
 
         We can set the binary block directly via this initialization.
         Here we get it from the header we have just made
-        
+
         >>> binblock2 = hdr1.binaryblock
         >>> hdr2 = AnalyzeHeader(binblock2)
         >>> hdr2.get_data_shape()
@@ -278,7 +278,7 @@ class AnalyzeHeader(object):
         You can pass valid opposite endian headers with the
         ``endianness`` parameter. Even empty headers can have
         endianness
-        
+
         >>> hdr3 = AnalyzeHeader(endianness=swapped_code)
         >>> hdr3.endianness == swapped_code
         True
@@ -357,7 +357,7 @@ class AnalyzeHeader(object):
         if check:
             obj.check_fix()
         return obj
-    
+
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
         ''' Return read header with given or guessed endiancode
@@ -373,7 +373,7 @@ class AnalyzeHeader(object):
         -------
         hdr : AnalyzeHeader object
            AnalyzeHeader object initialized from data in fileobj
-           
+
         Examples
         --------
         >>> import StringIO
@@ -413,7 +413,7 @@ class AnalyzeHeader(object):
         ''' Write header to fileobj
 
         Write starts at fileobj current file position.
-        
+
         Parameters
         ----------
         fileobj : file-like object
@@ -476,10 +476,10 @@ class AnalyzeHeader(object):
         return self.__class__(
                 self.binaryblock,
                 self.endianness, check=False)
-    
+
     def __eq__(self, other):
         ''' equality between two headers defined by mapping
-        
+
         Examples
         --------
         >>> hdr = AnalyzeHeader()
@@ -502,7 +502,7 @@ class AnalyzeHeader(object):
             return this_bb == other.binaryblock
         other_bb = other._header_data.byteswap().tostring()
         return this_bb == other_bb
-        
+
     def __ne__(self, other):
         ''' equality between two headers defined by ``header_data``
 
@@ -520,7 +520,7 @@ class AnalyzeHeader(object):
         True
         '''
         return self._header_data[item]
-    
+
     def __setitem__(self, item, value):
         ''' Set values in header data
 
@@ -535,11 +535,11 @@ class AnalyzeHeader(object):
 
     def __iter__(self):
         return iter(self.keys())
-            
+
     def keys(self):
         ''' Return keys from header data'''
         return list(self._dtype.names)
-    
+
     def values(self):
         ''' Return values from header data'''
         data = self._header_data
@@ -566,7 +566,7 @@ class AnalyzeHeader(object):
         reports = battrun.check_only(hdr)
         return '\n'.join([report.message
                           for report in reports if report.message])
-                                         
+
     def _guessed_endian(self, hdr):
         ''' Guess intended endianness from mapping-like ``hdr``
 
@@ -634,7 +634,7 @@ class AnalyzeHeader(object):
         True
 
         This is overridden by the ``dim``[0] value though:
-        
+
         >>> hdr_data['sizeof_hdr'] = 1543569408
         >>> hdr_data['dim'][0] = 1
         >>> hdr._guessed_endian(hdr_data) == native_code
@@ -645,7 +645,7 @@ class AnalyzeHeader(object):
             if hdr['sizeof_hdr'] == 1543569408:
                 return swapped_code
             return native_code
-        elif 1<=dim0<=7:
+        elif 1 <= dim0 <= 7:
             return native_code
         return swapped_code
 
@@ -659,7 +659,7 @@ class AnalyzeHeader(object):
         hdr_data = np.zeros((), dtype=dt)
         hdr_data['sizeof_hdr'] = 348
         hdr_data['dim'] = 1
-        hdr_data['dim'][0] = 0        
+        hdr_data['dim'][0] = 0
         hdr_data['pixdim'] = 1
         hdr_data['datatype'] = 16 # float32
         hdr_data['bitpix'] = 32
@@ -691,7 +691,7 @@ class AnalyzeHeader(object):
 
     def set_data_dtype(self, datatype):
         ''' Set numpy dtype for data from code or dtype or type
-        
+
         Examples
         --------
         >>> hdr = AnalyzeHeader()
@@ -755,7 +755,7 @@ class AnalyzeHeader(object):
 
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
-        
+
         Parameters
         ----------
         shape : sequence
@@ -764,10 +764,10 @@ class AnalyzeHeader(object):
         dims = self._header_data['dim']
         ndims = len(shape)
         dims[:] = 1
-        dims[0] = ndims        
+        dims[0] = ndims
         dims[1:ndims+1] = shape
         self._header_data['pixdim'][ndims+1:] = 1.0
-        
+
     def as_byteswapped(self, endianness=None):
         ''' return new byteswapped header object with given ``endianness``
 
@@ -800,7 +800,7 @@ class AnalyzeHeader(object):
         False
         >>> bs_hdr == hdr
         True
-        
+
         If you write to the resulting byteswapped data, it does not
         change the original.
 
@@ -884,7 +884,7 @@ class AnalyzeHeader(object):
                                  self.default_x_flip)
 
     get_best_affine = get_base_affine
-    
+
     def get_zooms(self):
         ''' Get zooms from header
 
@@ -912,7 +912,7 @@ class AnalyzeHeader(object):
             return (1.0,)
         pixdims = hdr['pixdim']
         return tuple(pixdims[1:ndim+1])
-    
+
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
 
@@ -932,7 +932,7 @@ class AnalyzeHeader(object):
 
     def as_analyze_map(self):
         return self
-        
+
     def get_data_offset(self):
         ''' Return offset into data file to read data
 
@@ -998,7 +998,7 @@ class AnalyzeHeader(object):
            divisor for data, after subtracting intercept.  If None, then
            there are no valid data
         intercept : None or scalar
-           number to subtract from data before writing. 
+           number to subtract from data before writing.
         mn : None or scalar
            data minimum to write, None means use data minimum
         mx : None or scalar
@@ -1028,7 +1028,7 @@ class AnalyzeHeader(object):
         if code_repr == 'label':
             return recoder.label[code]
         raise TypeError('code_repr should be "label" or "code"')
-        
+
     @classmethod
     def _get_checks(klass):
         ''' Return sequence of check functions for this class '''
@@ -1038,7 +1038,7 @@ class AnalyzeHeader(object):
                 klass._chk_pixdims)
 
     ''' Check functions in format expected by BatteryRunner class '''
-    
+
     @staticmethod
     def _chk_sizeof_hdr(hdr, fix=True):
         ret = Report(hdr, HeaderDataError)
@@ -1135,12 +1135,12 @@ class AnalyzeImage(SpatialImage):
         ''' Class method create mew instance from data file
 
         We use a proxy to implement the caching of the data read, and
-        for the data shape.  
+        for the data shape.
         '''
         data_hdr  = klass._header_class.from_header(header)
         data = klass.ImageArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, file_map)
-        
+
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
 
@@ -1148,7 +1148,7 @@ class AnalyzeImage(SpatialImage):
         method unless you are sure what you are doing, and that you will
         only be using image formats for which this method exists and
         returns sensible results.
-        
+
         Use this method with care; the modified Analyze-type formats
         such as SPM formats, and nifti1, specify that the image data
         array, as they are expecting to return it, is given by the raw
@@ -1180,7 +1180,7 @@ class AnalyzeImage(SpatialImage):
         shape = hdr.get_data_shape()
         offset = hdr.get_data_offset()
         return array_from_file(shape, dtype, fileobj, offset)
-        
+
     def get_header(self):
         ''' Return header
 
@@ -1191,13 +1191,13 @@ class AnalyzeImage(SpatialImage):
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()
-    
+
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
     def get_shape(self):
         return self._data.shape
-    
+
     @staticmethod
     def _get_open_files(file_map, mode='rb'):
         ''' Utility method to open necessary files for read/write
@@ -1212,7 +1212,7 @@ class AnalyzeImage(SpatialImage):
     def _close_filenames(self, file_map, hdrf, imgf):
         ''' Utility method to close any files no longer required
 
-        Called by the image writing routines. 
+        Called by the image writing routines.
 
         This method is to allow for formats (nifti single in particular)
         that may have the same file for header and image
@@ -1331,7 +1331,7 @@ class AnalyzeImage(SpatialImage):
         if not self._data is None:
             hdr.set_data_shape(self._data.shape)
         if not self._affine is None:
-            RZS = self._affine[:3,:3]
+            RZS = self._affine[:3, :3]
             vox = np.sqrt(np.sum(RZS * RZS, axis=0))
             hdr['pixdim'][1:4] = vox
 
