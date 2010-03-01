@@ -116,11 +116,12 @@ would raise some error, with output to logging (see below).
 We set the error level (the level of problem that the ``check=True``
 versions will accept as OK) from global defaults::
 
-   nibabel.imageglobals.error_level = 30
+   import nibabel as nib
+   nib.imageglobals.error_level = 30
 
 The same for logging::
 
-   nibabel.logger = logger
+   nib.logger = logger
 
 '''
 

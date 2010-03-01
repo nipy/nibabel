@@ -20,21 +20,21 @@ image data is made available via NumPy arrays.
 
 Quickstart::
 
-   import nibabel
+   import nibabel as nib
 
-   img1 = nibabel.load('my_file.nii')
-   img2 = nibabel.load('other_file.nii.gz')
-   img3 = nibabel.load('spm_file.img')
+   img1 = nib.load('my_file.nii')
+   img2 = nib.load('other_file.nii.gz')
+   img3 = nib.load('spm_file.img')
 
    data = img1.get_data()
    affine = img1.get_affine()
 
    print img1
 
-   nibabel.save(img1, 'my_file_copy.nii.gz')
+   nib.save(img1, 'my_file_copy.nii.gz')
 
-   new_image = nibabel.Nifti1Image(data, affine)
-   nibabel.save(new_image, 'new_image.nii.gz')
+   new_image = nib.Nifti1Image(data, affine)
+   nib.save(new_image, 'new_image.nii.gz')
 """
 
 __docformat__ = 'restructuredtext'
