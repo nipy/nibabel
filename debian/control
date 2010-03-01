@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy-ext
+Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy, python-nose
 Standards-Version: 3.8.4
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
@@ -12,7 +12,7 @@ DM-Upload-Allowed: yes
 
 Package: python-nibabel-snapshot
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, python-numpy-ext, libjs-jquery
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, libjs-jquery, python-scipy
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: Python bindings to various neuroimaging data formats
