@@ -5,7 +5,7 @@ The module also includes functions for the closely related angle, axis
 pair as a specification for rotation.
 
 Quaternions here consist of 4 values ``w, x, y, z``, where ``w`` is the
-real (scalar) part, and ``x, y, z`` are the complex (vector) part. 
+real (scalar) part, and ``x, y, z`` are the complex (vector) part.
 
 Note - rotation matrices here apply to column vectors, that is,
 they are applied on the left of the vector.  For example:
@@ -26,7 +26,7 @@ FLOAT_EPS = np.finfo(np.float).eps
 
 def fillpositive(xyz, w2_thresh=None):
     ''' Compute unit quaternion from last 3 values
-    
+
     Parameters
     ----------
     xyz : iterable
@@ -52,7 +52,7 @@ def fillpositive(xyz, w2_thresh=None):
     w = 0 corresponds to a 180 degree rotation
 
     The unit quaternion specifies that np.dot(wxyz, wxyz) == 1.
-    
+
     If w is positive (assumed here), w is given by:
 
     w = np.sqrt(1.0-(x*x+y*y+z*z))
@@ -115,7 +115,7 @@ def quat2mat(q):
 
     References
     ----------
-    Algorithm from 
+    Algorithm from
     http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
 
     Examples
@@ -159,7 +159,7 @@ def mat2quat(M):
       closest quaternion to input matrix, having positive q[0]
 
     Notes
-    -----    
+    -----
     Method claimed to be robust to numerical errors in M
 
     Constructs quaternion by calculating maximum eigenvector for matrix
@@ -169,7 +169,7 @@ def mat2quat(M):
     A quaternion q*-1 corresponds to the same rotation as q; thus the
     sign of the reconstructed quaternion is arbitrary, and we return
     quaternions with positive w (q[0]).
-    
+
     References
     ----------
      * http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
@@ -192,20 +192,21 @@ def mat2quat(M):
     # Qyx refers to the contribution of the y input vector component to
     # the x output vector component.  Qyx is therefore the same as
     # M[0,1].  The notation is from the Wikipedia article.
-    Qxx,Qyx,Qzx,Qxy,Qyy,Qzy,Qxz,Qyz,Qzz=M.flat
+    Qxx, Qyx, Qzx, Qxy, Qyy, Qzy, Qxz, Qyz, Qzz = M.flat
     # Fill only lower half of symmetric matrix
     K = np.array([
-        [Qxx-Qyy-Qzz, 0, 0, 0],
-        [Qyx+Qxy, Qyy-Qxx-Qzz, 0, 0],
-        [Qzx+Qxz, Qzy+Qyz, Qzz-Qxx-Qyy, 0],
-        [Qyz-Qzy, Qzx-Qxz, Qxy-Qyx, Qxx+Qyy+Qzz]]) / 3.0
+        [Qxx - Qyy - Qzz, 0,               0,               0              ],
+        [Qyx + Qxy,       Qyy - Qxx - Qzz, 0,               0              ],
+        [Qzx + Qxz,       Qzy + Qyz,       Qzz - Qxx - Qyy, 0              ],
+        [Qyz - Qzy,       Qzx - Qxz,       Qxy - Qyx,       Qxx + Qyy + Qzz]]
+        ) / 3.0
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
     # Select largest eigenvector, reorder to w,x,y,z quaternion
-    q = vecs[[3, 0, 1, 2],np.argmax(vals)]
+    q = vecs[[3, 0, 1, 2], np.argmax(vals)]
     # Prefer quaternion with positive w
     # (q * -1 corresponds to same rotation as q)
-    if q[0]<0:
+    if q[0] < 0:
         q *= -1
     return q
 
@@ -236,7 +237,7 @@ def mult(q1, q2):
 
 
 def conjugate(q):
-    ''' Conjugate of quaternion 
+    ''' Conjugate of quaternion
 
     Parameters
     ----------
@@ -248,11 +249,11 @@ def conjugate(q):
     conjq : array shape (4,)
        w, i, j, k of conjugate of `q`
     '''
-    return np.array(q) * np.array([1.0,-1,-1,-1])
+    return np.array(q) * np.array([1.0, -1, -1, -1])
 
 
 def norm(q):
-    ''' Return norm of quaternion 
+    ''' Return norm of quaternion
 
     Parameters
     ----------
@@ -263,13 +264,13 @@ def norm(q):
     -------
     n : scalar
        quaternion norm
-    '''    
-    return np.dot(q,q)
+    '''
+    return np.dot(q, q)
 
 
 def isunit(q):
     ''' Return True is this is very nearly a unit quaternion '''
-    return np.allclose(norm(q),1)
+    return np.allclose(norm(q), 1)
 
 
 def inverse(q):
@@ -311,7 +312,7 @@ def rotate_vector(v, q):
     Notes
     -----
     See: http://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
-    
+
     '''
     varr = np.zeros((4,))
     varr[1:] = v
@@ -330,7 +331,7 @@ def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
        w, x, y, z of first quaternion
     q2 : 4 element sequence
        w, x, y, z of second quaternion
-    
+
     Returns
     -------
     equiv : bool
@@ -376,7 +377,7 @@ def angle_axis2quat(theta, vector, is_normalized=False):
     >>> q = angle_axis2quat(np.pi, [1, 0, 0])
     >>> np.allclose(q, [0, 1, 0,  0])
     True
-    
+
     Notes
     -----
     Formula from http://mathworld.wolfram.com/EulerParameters.html
@@ -440,7 +441,7 @@ def quat2angle_axis(quat, identity_thresh=None):
        quaternion (x, y, z) is deemed to be 0, leading to the identity
        rotation.  None (the default) leads to a threshold estimated
        based on the precision of the input.
-       
+
     Returns
     -------
     theta : scalar
@@ -458,14 +459,14 @@ def quat2angle_axis(quat, identity_thresh=None):
 
     If this is an identity rotation, we return a zero angle and an
     arbitrary vector
-    
+
     >>> quat2angle_axis([1, 0, 0, 0])
     (0.0, array([ 1.,  0.,  0.]))
 
     Notes
     -----
     A quaternion for which x, y, z are all equal to 0, is an identity
-    rotation.  In this case we return a 0 angle and an  arbitrary 
+    rotation.  In this case we return a 0 angle and an  arbitrary
     vector, here [1, 0, 0]
     '''
     w, x, y, z = quat
@@ -476,7 +477,7 @@ def quat2angle_axis(quat, identity_thresh=None):
         except ValueError: # integer type
             identity_thresh = FLOAT_EPS * 3
     n = math.sqrt(x*x + y*y + z*z)
-    if n < identity_thresh: 
+    if n < identity_thresh:
         # if vec is nearly 0,0,0, this is an identity rotation
         return 0.0, np.array([1.0, 0, 0])
     return  2 * math.acos(w), vec / n

@@ -61,19 +61,19 @@ class Recoder(object):
     def __init__(self, codes, fields=('code',)):
         ''' Create recoder object
 
-	``codes`` give a sequence of code, alias sequences
-	``fields`` are names by which the entries in these sequences can be
-	accessed.
+    ``codes`` give a sequence of code, alias sequences
+    ``fields`` are names by which the entries in these sequences can be
+    accessed.
 
-	By default ``fields`` gives the first column the name
-	"code".  The first column is the vector of first entries
-	in each of the sequences found in ``codes``.  Thence you can
-	get the equivalent first column value with ob.code[value],
-	where value can be a first column value, or a value in any of
-	the other columns in that sequence. 
+    By default ``fields`` gives the first column the name
+    "code".  The first column is the vector of first entries
+    in each of the sequences found in ``codes``.  Thence you can
+    get the equivalent first column value with ob.code[value],
+    where value can be a first column value, or a value in any of
+    the other columns in that sequence.
 
-	You can give other columns names too, and access them in the
-	same way - see the examples in the class docstring. 
+    You can give other columns names too, and access them in the
+    same way - see the examples in the class docstring.
 
         Parameters
         ----------
@@ -92,12 +92,12 @@ class Recoder(object):
             self.__dict__[name] = {}
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
-        
+
     def add_codes(self, codes):
         ''' Add codes to object
 
-	>>> codes = ((1, 'one'), (2, 'two'))
-	>>> rc = Recoder(codes)
+        >>> codes = ((1, 'one'), (2, 'two'))
+        >>> rc = Recoder(codes)
         >>> rc.value_set() == set((1,2))
         True
         >>> rc.add_codes(((3, 'three'), (1, 'first')))
@@ -108,34 +108,34 @@ class Recoder(object):
             for val in vals:
                 for ind, name in enumerate(self.fields):
                     self.__dict__[name][val] = vals[ind]
-        
-        
+
+
     def __getitem__(self, key):
         ''' Return value from field1 dictionary (first column of values)
 
-	Returns same value as ``obj.field1[key]`` and, with the
+        Returns same value as ``obj.field1[key]`` and, with the
         default initializing ``fields`` argument of fields=('code',),
         this will return the same as ``obj.code[key]``
 
-	>>> codes = ((1, 'one'), (2, 'two'))
-	>>> Recoder(codes)['two']
-	2
+        >>> codes = ((1, 'one'), (2, 'two'))
+        >>> Recoder(codes)['two']
+        2
         '''
         return self.field1[key]
 
     def keys(self):
-    	''' Return all available code and alias values 
+        ''' Return all available code and alias values
 
-	Returns same value as ``obj.field1.keys()`` and, with the
+        Returns same value as ``obj.field1.keys()`` and, with the
         default initializing ``fields`` argument of fields=('code',),
         this will return the same as ``obj.code.keys()``
 
-	>>> codes = ((1, 'one'), (2, 'two'), (1, 'repeat value'))
-	>>> k = Recoder(codes).keys()
-	>>> k.sort() # Just to guarantee order for doctest output
-	>>> k
-	[1, 2, 'one', 'repeat value', 'two']
-	'''
+        >>> codes = ((1, 'one'), (2, 'two'), (1, 'repeat value'))
+        >>> k = Recoder(codes).keys()
+        >>> k.sort() # Just to guarantee order for doctest output
+        >>> k
+        [1, 2, 'one', 'repeat value', 'two']
+        '''
         return self.field1.keys()
 
     def value_set(self, name=None):
@@ -143,7 +143,7 @@ class Recoder(object):
 
         By default, the column is the first column.
 
-	Returns same values as ``set(obj.field1.values())`` and,
+        Returns same values as ``set(obj.field1.values())`` and,
         with the default initializing``fields`` argument of
         fields=('code',), this will return the same as
         ``set(obj.code.values())``
@@ -160,7 +160,7 @@ class Recoder(object):
         >>> rc = Recoder(codes, fields=('code', 'label'))
         >>> rc.value_set('label') == set(('one', 'two', 'repeat value'))
         True
-        
+
         '''
         if name is None:
             d = self.field1
@@ -168,13 +168,13 @@ class Recoder(object):
             d = self.__dict__[name]
         return set(d.values())
 
-    
+
 # Endian code aliases
 endian_codes = Recoder(endian_codes)
 
 
 def pretty_mapping(mapping, getterfunc=None):
-    ''' Make pretty string from mapping 
+    ''' Make pretty string from mapping
 
     Adjusts text column to print values on basis of longest key.
     Probably only sensible if keys are mainly strings.
@@ -191,7 +191,7 @@ def pretty_mapping(mapping, getterfunc=None):
        callable taking two arguments, ``obj`` and ``key`` where ``obj``
        is the passed mapping.  If None, just use ``lambda obj, key:
        obj[key]``
-    
+
     Returns
     -------
     str : string
@@ -330,9 +330,9 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
         fully specified numpy dtype, including correct endianness
     infile : file-like
         open file-like object implementing at least read() and seek()
-    offset : int, optional 
+    offset : int, optional
         offset in bytes into infile to start reading array
-	data. Default is 0
+        data. Default is 0
     order : {'F', 'C'} string
         order in which to write data.  Default is 'F' (fortran order).
 
@@ -387,12 +387,12 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
 
 def array_to_file(data, fileobj, out_dtype=None, offset=0,
-                  intercept=0.0, divslope=1.0, 
+                  intercept=0.0, divslope=1.0,
                   mn=None, mx=None, order='F', nan2zero=True):
     ''' Helper function for writing arrays to disk
 
     Writes arrays as scaled by `intercept` and `divslope`, and clipped
-    at (prescaling) `mn` minimum, and `mx` maximum. 
+    at (prescaling) `mn` minimum, and `mx` maximum.
 
     Parameters
     ----------
@@ -403,10 +403,10 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     out_dtype : None or dtype, optional
        dtype to write array as.  Data array will be coerced to this
        dtype before writing. If None (default) then use input data
-       type. 
+       type.
     offset : int, optional
        offset into fileobj at which to start writing data. Default is
-       0. 
+       0.
     intercept : scalar, optional
        scalar to subtract from data, before dividing by ``divslope``.
        Default is 0.0
@@ -465,7 +465,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
                 out_dtype not in floating_point_types)
-    needs_copy = nan2zero or mx or mn or intercept or divslope !=1.0
+    needs_copy = nan2zero or mx or mn or intercept or divslope != 1.0
     if data.ndim < 2: # a little hack to allow 1D arrays in loop below
         data = [data]
     elif order == 'F':
@@ -510,7 +510,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
     scaling : None or float
        scalefactor to divide into data.  None if no valid data
     intercept : None or float
-       intercept to subtract from data.  None if no valid data    
+       intercept to subtract from data.  None if no valid data
     mn : None or float
        minimum of finite value in data or None if this will not
        be used to threshold data
@@ -605,7 +605,7 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
     The large integers lead to python long types as max / min for type.
     To contain the rounding error, we need to use the maximum numpy
     float types when casting to float.
-    
+
     '''
     if mn > mx:
         raise ValueError('min value > max value')
@@ -656,7 +656,7 @@ def finite_range(arr):
        minimum of values in (flattened) array
     mx : scalar
        maximum of values in (flattened) array
-       
+
     Examples
     --------
     >>> a = np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]])
@@ -794,6 +794,6 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     # Get translations from center of image
     origin = (shape-1) / 2.0
     aff = np.eye(4)
-    aff[:3,:3] = np.diag(zooms)
-    aff[:3,-1] = -origin * zooms
+    aff[:3, :3] = np.diag(zooms)
+    aff[:3, -1] = -origin * zooms
     return aff

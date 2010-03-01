@@ -64,7 +64,7 @@ def squeeze_image(img):
         return klass.from_image(img)
     for bdim in shape[3::][::-1]:
         if bdim == 1:
-           slen-=1
+            slen -= 1
         else:
             break
     if slen == len(shape):
@@ -135,7 +135,7 @@ def four_to_three(img):
         raise ValueError('Expecting four dimensions')
     imgs = []
     for i in range(arr.shape[3]):
-        arr3d = arr[...,i]
+        arr3d = arr[..., i]
         img3d = image_maker(arr3d, affine, header)
         imgs.append(img3d)
     return imgs
@@ -152,7 +152,7 @@ def as_closest_canonical(img, enforce_diag=False):
     enforce_diag : {False, True}, optional
        If True, before transforming image, check if the resulting image
        affine will be close to diagonal, and if not, raise an error
-    
+
     Returns
     -------
     canonical_img : ``spatialimage``
@@ -165,7 +165,7 @@ def as_closest_canonical(img, enforce_diag=False):
     '''
     aff = img.get_affine()
     ornt = io_orientation(aff)
-    if np.all(ornt == [[0,1],
+    if np.all(ornt == [[0, 1],
                        [1,1],
                        [2,1]]): # canonical already
         # however, the affine may not be diagonal
@@ -186,6 +186,6 @@ def as_closest_canonical(img, enforce_diag=False):
 
 def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
-    rzs_aff = aff[:3,:3]
+    rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
 

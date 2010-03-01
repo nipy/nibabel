@@ -10,9 +10,9 @@ class OrientationError(Exception):
 
 def io_orientation(affine, tol=None):
     ''' Orientation of input axes in terms of output axes for `affine`
-    
+
     Valid for an affine transformation from ``m`` dimensions to ``n``
-    dimensions (``affine.shape == (n+1, m+1)``). 
+    dimensions (``affine.shape == (n+1, m+1)``).
 
     The calculated orientations can be used to transform associated
     arrays to best match the output orientations. If ``n`` > ``m``, then
@@ -45,7 +45,7 @@ def io_orientation(affine, tol=None):
     affine = np.asarray(affine)
     n, m = affine.shape[0]-1, affine.shape[1]-1
     # extract the underlying rotation matrix
-    RZS = affine[:n,:m]
+    RZS = affine[:n, :m]
     zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
     RS = RZS / zooms
     # Transform below is polar decomposition, returning the closest
@@ -55,7 +55,7 @@ def io_orientation(affine, tol=None):
     if tol is None:
         tol = S.max() * np.finfo(S.dtype).eps
     keep = (S > tol)
-    R = np.dot(P[:,keep], Qs[keep])
+    R = np.dot(P[:, keep], Qs[keep])
     # the matrix R is such that np.dot(R,R.T) is projection onto the
     # columns of P[:,keep] and np.dot(R.T,R) is projection onto the rows
     # of Qs[keep].  R (== np.dot(R, np.eye(m))) gives rotation of the
@@ -63,26 +63,26 @@ def io_orientation(affine, tol=None):
     # index of abs max R[:,N], is the output axis changing most as input
     # axis N changes.  In case there are ties, we choose the axes
     # iteratively, removing used axes from consideration as we go
-    ornt = np.ones((n,2), dtype=np.int8)*np.nan
+    ornt = np.ones((n, 2), dtype=np.int8) * np.nan
     for in_ax in range(m):
-        col = R[:,in_ax]
+        col = R[:, in_ax]
         if not np.alltrue(np.equal(col, 0)):
             out_ax = np.argmax(np.abs(col))
-            ornt[in_ax,0] = out_ax
+            ornt[in_ax, 0] = out_ax
             assert col[out_ax] != 0
             if col[out_ax] < 0:
-                ornt[in_ax,1] = -1
+                ornt[in_ax, 1] = -1
             else:
-                ornt[in_ax,1] = 1
+                ornt[in_ax, 1] = 1
             # remove the identified axis from further consideration, by
             # zeroing out the corresponding row in R
-            R[out_ax,:] = 0
+            R[out_ax, :] = 0
     return ornt
 
 
 def _ornt_to_affine(orientations):
     ''' Create affine transformation matrix determined by orientations.
-    
+
     This transformation will simply flip, transpose, and possibly drop some
     coordinates.
 
@@ -99,26 +99,26 @@ def _ornt_to_affine(orientations):
     Returns
     -------
     affine : (m+1,n+1) ndarray
-       matrix representing flipping / dropping axes. m is equal to the 
+       matrix representing flipping / dropping axes. m is equal to the
        number of rows of orientations[:,0] that are not np.nan
     '''
     ornt = np.asarray(orientations)
     n = ornt.shape[0]
-    keep = ~np.isnan(ornt[:,1])
+    keep = ~np.isnan(ornt[:, 1])
     # These are the input coordinate axes that do have a matching output
     # column in the orientation.  That is, if the 2nd row is [np.nan,
     # np.nan] then the orientation indicates that no output axes of an
     # affine with this orientation matches the 2nd input coordinate
     # axis.  This would happen if the 2nd row of the affine that
     # generated ornt was [0,0,0,*]
-    axes_kept = np.arange(n)[keep] 
+    axes_kept = np.arange(n)[keep]
     m = keep.sum(0)
     # the matrix P represents the affine transform impled by ornt. If
     # all entries of ornt are not np.nan, then P is square otherwise it
     # has more columns than rows indicating some coordinates were
     # dropped
-    P = np.zeros((m+1,n+1))
-    P[-1,-1] = 1
+    P = np.zeros((m + 1, n + 1))
+    P[-1, -1] = 1
     for idx in range(m):
         axs, flip = ornt[axes_kept[idx]]
         P[idx, axs] = flip
@@ -153,17 +153,17 @@ def apply_orientation(arr, ornt):
         raise OrientationError('Data array has fewer dimensions than '
                                'orientation')
     # no coordinates can be dropped for applying the orientations
-    if np.any(np.isnan(ornt[:,0])):
+    if np.any(np.isnan(ornt[:, 0])):
         raise OrientationError('Cannot drop coordinates when '
                                'applying orientation to data')
     shape = t_arr.shape
     # apply ornt transformations
-    for ax, flip in enumerate(ornt[:,1]):
+    for ax, flip in enumerate(ornt[:, 1]):
         if flip == -1:
             t_arr = flip_axis(t_arr, axis=ax)
     full_transpose = np.arange(t_arr.ndim)
     # ornt indicates the transpose that has occurred - we reverse it
-    full_transpose[:n] = np.argsort(ornt[:,0])
+    full_transpose[:n] = np.argsort(ornt[:, 0])
     t_arr = t_arr.transpose(full_transpose)
     return t_arr
 
@@ -175,7 +175,7 @@ def orientation_affine(ornt, shape):
     transforms implied by `ornt` (more below), to get ``tarr``.
     ``tarr`` may have a different shape ``shape_prime``.  This routine
     returns the affine that will take a array coordinate for ``tarr``
-    and give you the corresponding array coordinate in ``arr``.  
+    and give you the corresponding array coordinate in ``arr``.
 
     Parameters
     ----------
@@ -207,10 +207,10 @@ def orientation_affine(ornt, shape):
     # effect of the transpose, then undoes the effects of the flip.
     # ornt indicates the transpose that has occurred to get the current
     # ordering, relative to canonical, so we just use that
-    undo_reorder = np.eye(n+1)[list(ornt[:,0]) + [n],:]
-    undo_flip = np.diag(list(ornt[:,1]) + [1.0])
-    center_trans = -(shape-1) / 2.0
-    undo_flip[:n,n] = (ornt[:,1] * center_trans) - center_trans
+    undo_reorder = np.eye(n + 1)[list(ornt[:, 0]) + [n], :]
+    undo_flip = np.diag(list(ornt[:, 1]) + [1.0])
+    center_trans = -(shape - 1) / 2.0
+    undo_flip[:n, n] = (ornt[:, 1] * center_trans) - center_trans
     return np.dot(undo_flip, undo_reorder)
 
 

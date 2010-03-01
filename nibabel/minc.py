@@ -79,13 +79,13 @@ class MincFile(object):
                 dir_cos = dim.direction_cosines
             except AttributeError:
                 dir_cos = _default_dir_cos[name]
-            rot_mat[:,i] = dir_cos
+            rot_mat[:, i] = dir_cos
             steps[i] = dim.step
             starts[i] = dim.start
         origin = np.dot(rot_mat, starts)
         aff = np.eye(nspatial+1)
-        aff[:nspatial,:nspatial] = rot_mat * steps
-        aff[:nspatial,nspatial] = origin
+        aff[:nspatial, :nspatial] = rot_mat * steps
+        aff[:nspatial, nspatial] = origin
         return aff
 
     def _get_valid_range(self):
@@ -114,7 +114,7 @@ class MincFile(object):
         """ Scale image data with recorded scalefactors
 
         http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node13.html
-        
+
         MINC normalization uses "image-min" and "image-max" variables to
         map the data from the valid range of the image to the range
         specified by "image-min" and "image-max".
@@ -124,7 +124,7 @@ class MincFile(object):
 
         The usual case is that "image" has dimensions ["zspace",
         "yspace", "xspace"] and "image-max" has dimensions
-        ["zspace"]. 
+        ["zspace"].
         """
         ddt = self.get_data_dtype()
         if ddt.type in np.sctypes['float']:
@@ -163,7 +163,7 @@ class MincFile(object):
         elif nscales == 2:
             for i in range(data.shape[0]):
                 for j in range(data.shape[1]):
-                    out_data[i,j] = _norm_slice((i,j))
+                    out_data[i, j] = _norm_slice((i,j))
         else:
             raise MincError('More than two scaling dimensions')
         return out_data
@@ -172,7 +172,7 @@ class MincFile(object):
         dtype = self.get_data_dtype()
         data =  np.asarray(self._image.data).view(dtype)
         return self._normalize(data)
-    
+
 
 class MincImage(SpatialImage):
     ''' Class for MINC images
@@ -193,7 +193,7 @@ class MincImage(SpatialImage):
             self.minc_file = minc_file
             self._data = None
             self.shape = minc_file.get_data_shape()
-            
+
         def __array__(self):
             ''' Cached read of data from file '''
             if self._data is None:
@@ -206,7 +206,7 @@ class MincImage(SpatialImage):
         fobj = file_map['image'].get_prepare_fileobj()
         minc_file = MincFile(netcdf_file(fobj))
         affine = minc_file.get_affine()
-        if affine.shape != (4,4):
+        if affine.shape != (4, 4):
             raise MincError('Image does not have 3 spatial dimensions')
         data_dtype = minc_file.get_data_dtype()
         shape = minc_file.get_data_shape()
@@ -214,6 +214,6 @@ class MincImage(SpatialImage):
         header = klass._header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
         return  MincImage(data, affine, header, extra=None, file_map=file_map)
-    
+
 
 load = MincImage.load

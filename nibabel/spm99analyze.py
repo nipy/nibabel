@@ -30,7 +30,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     ''' Basic scaling Spm Analyze header '''
     # Copies of module level definitions
     _dtype = header_dtype
-    
+
     # data scaling capabilities
     has_data_slope = True
     has_data_intercept = False
@@ -73,12 +73,12 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         if inter:
             raise HeaderTypeError('Cannot set non-zero intercept '
                                   'for SPM headers')
-        
+
     @classmethod
     def _get_checks(klass):
         checks = super(SpmAnalyzeHeader, klass)._get_checks()
         return checks + (klass._chk_scale,)
-        
+
     @staticmethod
     def _chk_scale(hdr, fix=True):
         ret = Report(hdr, HeaderDataError)
@@ -146,15 +146,15 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         if (np.any(origin) and
             np.all(origin > -dims) and np.all(origin < dims*2)):
             origin = origin-1
-        else:    
+        else:
             origin = (dims-1) / 2.0
         aff = np.eye(4)
-        aff[:3,:3] = np.diag(zooms)
-        aff[:3,-1] = -origin * zooms
+        aff[:3, :3] = np.diag(zooms)
+        aff[:3, -1] = -origin * zooms
         return aff
 
     get_best_affine = get_origin_affine
-    
+
     def set_origin_from_affine(self, affine):
         ''' Set SPM origin to header from affine matrix.
 
@@ -163,12 +163,12 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
  	be used in aligning the image to some standard position - a
  	proxy for a full translation vector that was usually stored in
  	a separate matlab .mat file.
-        
+
 	Nifti uses the space occupied by the SPM ``origin`` field for
         important other information (the transform codes), so writing
         the origin will make the header a confusing Nifti file.  If
         you work with both Analyze and Nifti, you should probably
-        avoid doing this. 
+        avoid doing this.
 
         Parameters
         ----------
@@ -200,12 +200,12 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  0.,  1., -4.],
                [ 0.,  0.,  0.,  1.]])
         '''
-        if affine.shape != (4,4):
+        if affine.shape != (4, 4):
             raise ValueError('Need 4x4 affine to set')
         hdr = self._header_data
-        RZS = affine[:3,:3]
+        RZS = affine[:3, :3]
         Z = np.sqrt(np.sum(RZS * RZS, axis=0))
-        T = affine[:3,3]
+        T = affine[:3, 3]
         # Remember that the origin is for matlab (1-based) indexing
         hdr['origin'][:3] = -T / Z + 1
 
@@ -213,7 +213,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     def _get_checks(klass):
         checks = super(Spm99AnalyzeHeader, klass)._get_checks()
         return checks + (klass._chk_origin,)
-        
+
     @staticmethod
     def _chk_origin(hdr, fix=True):
         ret = Report(hdr, HeaderDataError)
@@ -252,19 +252,19 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             if mat.ndim > 2:
                 warnings.warn('More than one affine in "mat" matrix, '
                               'using first')
-                mat = mat[:,:,0]
+                mat = mat[:, :, 0]
             ret._affine = mat
             return ret
         elif 'M' in mats: # the 'M' matrix does not include flips
             hdr = ret._header
             if hdr.default_x_flip:
-                ret._affine = np.dot(np.diag([-1,1,1,1]), mats['M'])
+                ret._affine = np.dot(np.diag([-1, 1, 1, 1]), mats['M'])
             else:
                 ret._affine = mats['M']
         else:
             raise ValueError('mat file found but no "mat" or "M" in it')
         return ret
-    
+
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
 
@@ -285,7 +285,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         import scipy.io as sio
         hdr = self._header
         if hdr.default_x_flip:
-            M = np.dot(np.diag([-1,1,1,1]), mat)
+            M = np.dot(np.diag([-1, 1, 1, 1]), mat)
         else:
             M = mat
         # use matlab 4 format to allow gzipped write without error

@@ -41,7 +41,7 @@ def types_filenames(template_fname, types_exts,
     types_fnames : dict
        dict with types as keys, and generated filenames as values.  The
        types are given by the first elements of the tuples in
-       `types_exts`. 
+       `types_exts`.
 
     Examples
     --------
@@ -51,14 +51,14 @@ def types_filenames(template_fname, types_exts,
     True
 
     Bare file roots without extensions get them added
-    
+
     >>> tfns = types_filenames('/path/test', types_exts)
     >>> tfns == {'t1': '/path/test.ext1', 't2': '/path/test.ext2'}
     True
 
     With enforce_extensions == False, allow first type to have any
     extension.
-    
+
     >>> tfns = types_filenames('/path/test.funny', types_exts,
     ...                        enforce_extensions=False)
     >>> tfns == {'t1': '/path/test.funny', 't2': '/path/test.ext2'}
@@ -173,7 +173,7 @@ def splitext_addext(filename, addexts=('.gz', '.bz2')):
     ('fname', '.ext', '')
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
-    ''' 
+    '''
     for ext in addexts:
         if filename.endswith(ext):
             filename = filename[:-(len(ext))]

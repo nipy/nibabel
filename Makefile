@@ -128,13 +128,17 @@ upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
 		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/nibabel/
 
+upload-htmldoc: htmldoc
+	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
+		web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+
 #
 # Sources
 #
 
 pylint: distclean
 	# do distclean first to silence SWIG's sins
-	pylint --rcfile doc/misc/pylintrc nifti
+	PYTHONPATH=.:$(PYTHONPATH) pylint --rcfile doc/misc/pylintrc nibabel
 
 
 #
@@ -173,8 +177,6 @@ deb-mergedev:
 orig-src: distclean distclean
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
-	# check versions
-	grep -iR 'version[ ]*[=:]' * | $(PYTHON) tools/checkversion.py
 	# let python create the source tarball
 	$(PYTHON) setup.py sdist --formats=gztar
 	# rename to proper Debian orig source tarball and move upwards

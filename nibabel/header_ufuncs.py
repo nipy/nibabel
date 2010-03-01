@@ -35,7 +35,7 @@ def read_data(hdr, fileobj):
         return data
     # The data may be from a memmap, and not writeable
     if slope:
-        if slope !=1.0:
+        if slope != 1.0:
             try:
                 data *= slope
             except ValueError:

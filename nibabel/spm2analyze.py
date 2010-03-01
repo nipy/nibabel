@@ -15,15 +15,15 @@ image_dimension_dtd[
 header_dtype = np.dtype(spm99.header_key_dtd +
                         image_dimension_dtd +
                         spm99.data_history_dtd)
-    
+
 
 class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     ''' SPM2 header; adds possibility of reading, but not writing DC
     offset for data'''
-    
+
     # Copies of module level definitions
     _dtype = header_dtype
-    
+
     def get_slope_inter(self):
         ''' Get data scaling (slope) and offset (intercept) from header data
 
