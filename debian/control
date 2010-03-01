@@ -14,6 +14,7 @@ Package: python-nibabel-snapshot
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, libjs-jquery, python-scipy
 Provides: ${python:Provides}
+Conflicts: python-nibabel
 XB-Python-Version: ${python:Versions}
 Description: Python bindings to various neuroimaging data formats
  None
