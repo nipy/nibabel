@@ -5,18 +5,24 @@ WWW_DIR=build/website
 DOCSRC_DIR=doc
 
 #
+# The Python executable to be used
+#
+PYTHON = python
+NOSETESTS = $(PYTHON) $(shell which nosetests)
+
+#
 # Determine details on the Python/system
 #
 
-PYVER := $(shell python -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
+PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 DISTUTILS_PLATFORM := \
 	$(shell \
-		python -c "import distutils.util; print distutils.util.get_platform()")
+		$(PYTHON) -c "import distutils.util; print distutils.util.get_platform()")
 
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
 DEBCHANGELOG_VERSION = $(shell dpkg-parsechangelog | egrep ^Version | cut -d ' ' -f 2,2 | cut -d '-' -f 1,1)
-SETUPPY_VERSION = $(shell python setup.py -V)
+SETUPPY_VERSION = $(shell $(PYTHON) setup.py -V)
 #
 # Automatic development version
 #
@@ -33,8 +39,8 @@ RELEASE_VERSION ?= $(SETUPPY_VERSION)
 all: build
 
 build: 
-	python setup.py config --noisy
-	python setup.py build
+	$(PYTHON) setup.py config --noisy
+	$(PYTHON) setup.py build
 
 
 #
@@ -79,19 +85,19 @@ test: unittest testmanual
 
 
 ut-%: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests nibabel/tests/test_$*.py
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel/tests/test_$*.py
 
 
 unittest: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests nibabel --with-doctest
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel --with-doctest
 
 testmanual: build
 # go into data, because docs assume now data dir
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-doctest --doctest-extension=.txt doc
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.txt doc
 
 
 coverage: build
-	@PYTHONPATH=.:$(PYTHONPATH) nosetests --with-coverage --cover-package=nibabel
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-coverage --cover-package=nibabel
 
 
 #
@@ -168,9 +174,9 @@ orig-src: distclean distclean
 	# clean existing dist dir first to have a single source tarball to process
 	-rm -rf dist
 	# check versions
-	grep -iR 'version[ ]*[=:]' * | python tools/checkversion.py
+	grep -iR 'version[ ]*[=:]' * | $(PYTHON) tools/checkversion.py
 	# let python create the source tarball
-	python setup.py sdist --formats=gztar
+	$(PYTHON) setup.py sdist --formats=gztar
 	# rename to proper Debian orig source tarball and move upwards
 	# to keep it out of the Debian diff
 	tbname=$$(basename $$(ls -1 dist/*tar.gz)) ; ln -s $${tbname} ../nibabel-snapshot_$(DEV_VERSION).orig.tar.gz
@@ -204,7 +210,7 @@ deb-src: check-debian distclean
 
 
 bdist_rpm:
-	python setup.py bdist_rpm \
+	$(PYTHON) setup.py bdist_rpm \
 	  --doc-files "doc" \
 	  --packager "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>" \
 	  --vendor "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>"
@@ -212,7 +218,7 @@ bdist_rpm:
 
 # build MacOS installer -- depends on patched bdist_mpkg for Leopard
 bdist_mpkg:
-	python tools/mpkg_wrapper.py setup.py install
+	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
 
 .PHONY: orig-src pylint

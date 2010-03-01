@@ -1,53 +1,73 @@
 # module imports
+import os
+
+from nibabel.filename_parser import types_filenames, splitext_addext
 from nibabel import volumeutils as vu
 from nibabel import spm2analyze as spm2
 from nibabel import nifti1
 from nibabel import minc
+from nibabel.spatialimages import ImageFileError
+from nibabel.imageclasses import class_map, ext_map
 
 
-def load(filename, *args, **kwargs):
+def load(filename):
     ''' Load file given filename, guessing at file type
 
     Parameters
     ----------
-    filename : string or file-like
-       specification of filename or file to load
-    *args
-    **kwargs
-       arguments to pass to image load function
+    filename : string
+       specification of file to load
 
     Returns
     -------
     img : ``SpatialImage``
        Image of guessed type
-
     '''
-    # Try and guess file type from filename
-    if isinstance(filename, basestring):
-        fname = filename
-        for ending in ('.gz', '.bz2'):
-            if filename.endswith(ending):
-                fname = fname[:-len(ending)]
-                break
-        if fname.endswith('.nii'):
-            return nifti1.load(filename, *args, **kwargs)
-        if fname.endswith('.mnc'):
-            return minc.load(filename, *args, **kwargs)
-    # Not a string, or not recognized as nii or mnc
+    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     try:
-        files = nifti1.Nifti1Image.filespec_to_files(filename)
-    except ValueError:
-        raise RuntimeError('Cannot work out file type of "%s"' %
-                           filename)
-    hdr = nifti1.Nifti1Header.from_fileobj(
-        vu.allopen(files['header']),
-        check=False)
-    magic = hdr['magic']
-    if magic in ('ni1', 'n+1'):
-        return nifti1.load(filename, *args, **kwargs)
-    return spm2.load(filename, *args, **kwargs)
+        img_type = ext_map[ext]
+    except KeyError:
+        raise ImageFileError('Cannot work out file type of "%s"' %
+                             filename)
+    if ext in ('.nii', '.mnc'):
+        klass = class_map[img_type]['class']
+    else:
+        # might be nifti pair or analyze of some sort
+        files_types = (('image','.img'), ('header','.hdr'))
+        filenames = types_filenames(filename, files_types)
+        hdr = nifti1.Nifti1Header.from_fileobj(
+            vu.allopen(filenames['header']),
+            check=False)
+        if hdr['magic'] in ('ni1', 'n+1'):
+            # allow goofy nifti single magic for pair
+            klass = nifti1.Nifti1Pair
+        else:
+            klass =  spm2.Spm2AnalyzeImage
+    return klass.from_filename(filename)
 
 
 def save(img, filename):
-    ''' Save an image to file without changing format'''
-    img.to_filename(filename)
+    ''' Save an image to file adapting format to `filename`
+
+    Parameters
+    ----------
+    img : ``SpatialImage``
+       image to save
+    filename : str
+       filename (often implying filenames) to which to save `img`.
+
+    Returns
+    -------
+    None
+    '''
+    try:
+        img.to_filename(filename)
+    except ImageFileError:
+        pass
+    else:
+        return
+    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    img_type = ext_map[ext]
+    klass = class_map[img_type]['class']
+    converted = klass.from_image(img)
+    converted.to_filename(filename)

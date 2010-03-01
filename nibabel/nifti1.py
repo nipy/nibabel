@@ -6,16 +6,12 @@ Author: Matthew Brett
 import numpy as np
 import numpy.linalg as npl
 
-from nibabel.volumeutils import Recoder, make_dt_codes, \
-     HeaderDataError, HeaderTypeError, allopen
+from nibabel.volumeutils import Recoder, make_dt_codes
+from nibabel.spatialimages import HeaderDataError
 from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
-from nibabel.spatialimages import SpatialImage
-
-from nibabel.header_ufuncs import write_data, adapt_header
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -761,14 +757,32 @@ class Nifti1Header(SpmAnalyzeHeader):
             dc_offset = 0.0
         return scale, dc_offset
 
-    def set_slope_inter(self, slope, inter):
+    def set_slope_inter(self, slope, inter=0.0):
+        ''' Set slope and / or intercept into header
+
+        Set slope and intercept for image data, such that, if the image
+        data is ``arr``, then the scaled image data will be ``(arr *
+        slope) + inter``
+
+        Parameters
+        ----------
+        slope : None or float
+           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
+           scaling of the image data).  If `slope` is not, we ignore the
+           passed value of `inter`
+        inter : float, optional
+           intercept
+        '''
+        if slope is None:
+            slope = 1.0
+            inter = 0.0
         self._header_data['scl_slope'] = slope
         self._header_data['scl_inter'] = inter
 
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
 
-        Returns
+        Returnss
         -------
         freq : {None,0,1,2}
            Which data array axis is freqency encode direction
@@ -796,9 +810,19 @@ class Nifti1Header(SpmAnalyzeHeader):
         freq = info & 3
         phase = (info >> 2) & 3
         slice = (info >> 4) & 3
-        return (freq-1 if freq else None,
-                phase-1 if phase else None,
-                slice-1 if slice else None)
+        if freq:
+            freq -= 1
+        else:
+            freq = None
+        if phase:
+            phase -= 1
+        else:
+            phase = None
+        if slice:
+            slice -= 1
+        else:
+            slice = None
+        return (freq, phase, slice)
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
@@ -954,7 +978,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         icode = intent_codes.code[code]
         p_descr = intent_codes.parameters[code]
         if len(params) and len(params) != len(p_descr):
-            raise HeaderDataError('Need params of form %s, or empty' % (p_descr,))
+            raise HeaderDataError('Need params of form %s, or empty'
+                                  % (p_descr,))
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
@@ -1033,6 +1058,23 @@ class Nifti1Header(SpmAnalyzeHeader):
             'slice_code',
             self._slice_order_codes)
 
+    def get_n_slices(self):
+        ''' Return the number of slices
+        '''
+        hdr = self._header_data
+        _, _, slice_dim = self.get_dim_info()
+        if slice_dim is None:
+            raise HeaderDataError('Slice dimension not set in header '
+                                  'dim_info')
+        shape = self.get_data_shape()
+        try:
+            slice_len = shape[slice_dim]
+        except IndexError:
+            raise HeaderDataError('Slice dimension index (%s) outside '
+                                  'shape tuple (%s)'
+                                  % (slice_dim, shape))
+        return slice_len
+
     def get_slice_times(self):
         ''' Get slice times from slice timing information
 
@@ -1085,9 +1127,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
         '''
         hdr = self._header_data
-        _, _, slice_dim = self.get_dim_info()
-        shape = self.get_data_shape()
-        slice_len = shape[slice_dim]
+        slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
         slabel = self.get_slice_code()
         if slabel == 'unknown':
@@ -1134,9 +1174,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         # Check if number of slices matches header
         hdr = self._header_data
-        _, _, slice_dim = self.get_dim_info()
-        shape = self.get_data_shape()
-        slice_len = shape[slice_dim]
+        slice_len = self.get_n_slices()
         if slice_len != len(slice_times):
             raise HeaderDataError('Number of slice times does not '
                                   'match number of slices')
@@ -1182,67 +1220,6 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['slice_end'] = slice_end
         hdr['slice_duration'] = duration
         hdr['slice_code'] = slice_order_codes.code[label]
-
-    def for_file_pair(self, is_pair=True):
-        ''' Adapt header to separate or same image and header file
-
-        Parameters
-        ----------
-        is_pair : bool, optional
-           True if adapting header to file pair state, False for single
-
-        Returns
-        -------
-        hdr : Nifti1Header
-           copied and possibly modified header
-
-        Examples
-        --------
-        The header starts off as being for a single file
-
-        >>> hdr = Nifti1Header()
-        >>> str(hdr['magic'])
-        'n+1'
-        >>> hdr.get_data_offset()
-        352
-
-        But we can switch it to be for two files (a pair)
-
-        >>> pair_hdr = hdr.for_file_pair()
-        >>> str(pair_hdr['magic'])
-        'ni1'
-        >>> pair_hdr.get_data_offset()
-        0
-
-        The original header is not affected (a copy is returned)
-
-        >>> hdr.get_data_offset()
-        352
-
-        Back to single again
-
-        >>> unpair_hdr = pair_hdr.for_file_pair(False)
-        >>> str(unpair_hdr['magic'])
-        'n+1'
-        >>> unpair_hdr.get_data_offset()
-        352
-        '''
-        hdr = self.copy()
-        if not is_pair:
-            # one file version
-            if hdr['magic'] == 'n+1':
-                if hdr['vox_offset'] < 352:
-                    hdr['vox_offset'] = 352
-                return hdr
-            hdr['magic'] = 'n+1'
-            hdr['vox_offset'] = 352
-            return hdr
-        # two file version
-        if hdr['magic'] == 'ni1':
-            return hdr
-        hdr['magic'] = 'ni1'
-        hdr['vox_offset'] = 0
-        return hdr
 
     def _slice_time_order(self, slabel, n_slices):
         ''' Supporting function to give time order of slices from label '''
@@ -1326,24 +1303,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         ret = Report(hdr, HeaderDataError)
         magic = hdr['magic']
         offset = hdr['vox_offset']
-        if magic == 'ni1': # two files
-            if offset == 0:
-                return ret
-            ret.problem_msg = ('vox offset should be 0 (is %s)'
-                               'with two-file nifti images' % offset)
-            ret.problem_level = 40
-            if fix: 
-                ret.fix_msg = 'leaving at current value'
-        elif magic == 'n+1': # one file
+        if magic == 'n+1': # one file
             if offset >= 352:
                 if not offset % 16:
                     return ret
                 else:
-                    # XXX Michael wonders, if this warning really valid? NIfTI
-                    # says that each extension's length has to be a multiple of
-                    # 16, therefore the test should be (offset-352) % 16 and
-                    # not offset % 16, or does SPM have additional artifical
-                    # limitations?
+                    # SPM uses memory mapping to read the data, and
+                    # apparently this has to start on 16 byte boundaries
                     ret.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
                     ret.problem_level = 30
@@ -1357,7 +1323,8 @@ class Nifti1Header(SpmAnalyzeHeader):
                 ret.fix_msg = 'setting to minimum value of 352'
             else:
                 ret.problem_level = 50
-        else: # unrecognized nii magic string, oh dear
+        elif magic != 'ni1': # two files
+            # unrecognized nii magic string, oh dear
             ret.problem_msg = 'magic string %s is not valid' % magic
             ret.problem_level = 50
             if fix:
@@ -1393,34 +1360,14 @@ class Nifti1Header(SpmAnalyzeHeader):
         return ret
 
 
-class Nifti1Image(analyze.AnalyzeImage):
-    _header_maker = Nifti1Header
-
-    def _set_header(self, header=None):
-        SpatialImage._set_header(self, header)
-
-    @staticmethod
-    def filespec_to_files(filespec):
-        single_tes = (('header', '.nii'), ('image', '.nii'))
-        pair_tes = (('header', '.hdr'), ('image', '.img'))
-        for types_exts in (single_tes, pair_tes):
-            try:
-                files = types_filenames(filespec, types_exts)
-            except TypesFilenamesError:
-                continue
-            break
-        else:
-            raise ValueError('Filespec "%s" does not '
-                             'look like Nifti1' % filespec)
-        return files
-
+class Nifti1Pair(analyze.AnalyzeImage):
+    _header_class = Nifti1Header
+    
     @classmethod
-    def from_files(klass, files):
-        fname = files['header']
-        fileobj = allopen(fname)
-        header = klass._header_maker.from_fileobj(fileobj)
+    def from_file_map(klass, file_map):
+        hdrf, imgf = klass._get_open_files(file_map, 'rb')
+        header = klass._header_class.from_fileobj(hdrf)
         extra = None
-
         # handle extensions
         # assume the fileptr is just after header (magic field)
         # determine how much to read when parsing the extensions
@@ -1428,60 +1375,28 @@ class Nifti1Image(analyze.AnalyzeImage):
             # read till the end of the header
             extsize = -1
         else:
-            extsize = header['vox_offset'] - fileobj.tell()
-        extensions = Nifti1Extensions.from_fileobj(fileobj, extsize)
+            extsize = header['vox_offset'] - hdrf.tell()
+        extensions = Nifti1Extensions.from_fileobj(hdrf, extsize)
         # XXX maybe always do that?
         if len(extensions):
             extra = {'extensions': extensions}
-
         affine = header.get_best_affine()
-        ret =  klass(None, affine, header=header, extra=extra)
-        ret._files = files
-        return ret
+        return klass.from_data_file(imgf,
+                                    affine,
+                                    header,
+                                    extra,
+                                    file_map=file_map)
 
-    def to_files(self, files=None):
-        ''' Write image to files passed, or self._files
-        '''
-        # XXX the whole method is candidate for refactoring, since it started as
-        # verbatim copy of AnalyzeImage.to_files()
-        if files is None:
-            files = self._files
-            if files is None:
-                raise ValueError('Need files to write data')
-        data = self.get_data()
-        # Adapt header to possible two<->one file difference
-        is_pair = files['header'] != files['image']
-        hdr = self.get_header().for_file_pair(is_pair)
-        # if any extensions, figure out necessary vox_offset for extensions to
-        # fit
-        if self.extra.has_key('extensions') and len(self.extra['extensions']):
-            hdr['vox_offset'] = len(hdr.binaryblock) \
-                                + self.extra['extensions'].get_sizeondisk()
-        slope, inter, mn, mx = adapt_header(hdr, data)
-        hdrf = allopen(files['header'], 'wb')
-        hdr.write_to(hdrf)
-        # write all extensions to file
-        # assumes that the file ptr is right after the magic string
+    def _write_header(self, header_file, header, slope, inter):
+        super(Nifti1Pair, self)._write_header(header_file,
+                                              header,
+                                              slope,
+                                              inter)
         if not self.extra.has_key('extensions'):
             # no extensions: be nice and write appropriate flag
-            hdrf.write(np.array((0,0,0,0), dtype=np.int8).tostring())
+            header_file.write(np.array((0,0,0,0), dtype=np.int8).tostring())
         else:
-            self.extra['extensions'].write_to(hdrf)
-        if is_pair:
-            imgf = allopen(files['image'], 'wb')
-        else: # single file for header and image
-            imgf = hdrf
-            # streams like bz2 do not allow seeks, even forward.  We
-            # check where to go, and write zeros up until the data part
-            # of the file
-            offset = hdr.get_data_offset()
-            diff = offset-hdrf.tell()
-            if diff > 0:
-                hdrf.write('\x00' * diff)
-        write_data(hdr, data, imgf, inter, slope, mn, mx)
-        self._header = hdr
-        self._files = files
-
+            self.extra['extensions'].write_to(header_file)
 
     def _update_header(self):
         ''' Harmonize header with image data and affine
@@ -1499,11 +1414,55 @@ class Nifti1Image(analyze.AnalyzeImage):
         >>> np.all(hdr.get_sform() == affine)
         True
         '''
-        super(Nifti1Image, self)._update_header()
+        super(Nifti1Pair, self)._update_header()
         hdr = self._header
+        hdr['magic'] = 'ni1'
         if not self._affine is None:
             hdr.set_sform(self._affine)
             hdr.set_qform(self._affine)
+
+
+class Nifti1Image(Nifti1Pair):
+    files_types = (('image', '.nii'),)
+
+    @staticmethod
+    def _get_open_files(file_map, mode='rb'):
+        hdrf = file_map['image'].get_prepare_fileobj(mode=mode)
+        return hdrf, hdrf
+
+    def _close_filenames(self, file_map, hdrf, imgf):
+        if file_map['image'].fileobj is None: # was filename
+            imgf.close()
+    
+    def _write_header(self, header_file, header, slope, inter):
+        super(Nifti1Image, self)._write_header(header_file,
+                                               header,
+                                               slope,
+                                               inter)
+        # We need to set the header offset ready for writing the image.
+        # Streams like bz2 do not allow write seeks, even forward.  We
+        # check where to go, and write zeros up until the data part of
+        # the file
+        offset = header.get_data_offset()
+        diff = offset-header_file.tell()
+        if diff > 0:
+            header_file.write('\x00' * diff)
+
+    def _update_header(self):
+        ''' Harmonize header with image data and affine '''
+        super(Nifti1Image, self)._update_header()
+        hdr = self._header
+        hdr['magic'] = 'n+1'
+        # make sure that there is space for the header.  If any
+        # extensions, figure out necessary vox_offset for extensions to
+        # fit
+        if (self.extra.has_key('extensions') and
+            len(self.extra['extensions'])):
+            min_vox_offset = 348 + self.extra['extensions'].get_sizeondisk()
+        else:
+            min_vox_offset = 352
+        if hdr['vox_offset'] < min_vox_offset:
+            hdr['vox_offset'] = min_vox_offset
 
 
 load = Nifti1Image.load

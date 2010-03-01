@@ -1,7 +1,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, orientation_affine, flip_axis,
+from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
                             apply_orientation, OrientationError)
 
 
@@ -78,8 +78,23 @@ def squeeze_image(img):
                  img.extra)
 
 
-def concat_images(images):
-    ''' Concatenate images in list to single image, along last dimension '''
+def concat_images(images, check_affines=True):
+    ''' Concatenate images in list to single image, along last dimension
+
+    Parameters
+    ----------
+    images : sequence
+       sequence of ``SpatialImage``s
+    check_affines : {True, False}, optional
+       If True, then check that all the affines for `images` are nearly
+       the same, raising a ``ValueError`` otherwise.  Default is True
+
+    Returns
+    -------
+    concat_img : ``SpatialImage``
+       New image resulting from concatenating `images` across last
+       dimension
+    '''
     n_imgs = len(images)
     img0 = images[0]
     i0shape = img0.get_shape()
@@ -88,8 +103,9 @@ def concat_images(images):
     out_shape = (n_imgs, ) + i0shape
     out_data = np.empty(out_shape)
     for i, img in enumerate(images):
-        if not np.all(img.get_affine() == affine):
-            raise ValueError('Affines do not match')
+        if check_affines:
+            if not np.all(img.get_affine() == affine):
+                raise ValueError('Affines do not match')
         out_data[i] = img.get_data()
     out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
     klass = img0.__class__

@@ -6,21 +6,21 @@ from StringIO import StringIO
 
 import numpy as np
 
-from numpy.testing import assert_array_equal
-from nose.tools import assert_true, assert_equal, assert_raises, ok_
-
-import nibabel.testing as vit
-
-from nibabel.volumeutils import HeaderDataError
+from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, Nifti1Extension, \
-        data_type_codes, extension_codes
+    data_type_codes, extension_codes, slice_order_codes
+
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+from nose.tools import assert_true, assert_false, assert_equal, \
+    assert_raises, ok_
+
+import nibabel.testing as nbt
+from nibabel.testing import parametric, data_path
 
 from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
 from test_analyze import TestAnalyzeHeader
 
-data_path, _ = os.path.split(__file__)
-data_path = os.path.join(data_path, 'data')
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
@@ -32,6 +32,7 @@ A = np.eye(4)
 A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
+
 class TestNiftiHeader(_TSAH):
     header_class = Nifti1Header
     example_file = header_file
@@ -40,15 +41,15 @@ class TestNiftiHeader(_TSAH):
         hdr = self.header_class()
         for tests in TestAnalyzeHeader.test_empty(self):
             yield tests
-        yield vit.assert_equal, hdr['magic'], 'n+1'
-        yield vit.assert_equal, hdr['scl_slope'], 1
-        yield vit.assert_equal, hdr['vox_offset'], 352
+        yield nbt.assert_equal, hdr['magic'], 'n+1'
+        yield nbt.assert_equal, hdr['scl_slope'], 1
+        yield nbt.assert_equal, hdr['vox_offset'], 352
 
     def test_from_eg_file(self):
         hdr = Nifti1Header.from_fileobj(open(self.example_file))
-        yield vit.assert_equal, hdr.endianness, '<'
-        yield vit.assert_equal, hdr['magic'], 'ni1'
-        yield vit.assert_equal, hdr['sizeof_hdr'], 348
+        yield nbt.assert_equal, hdr.endianness, '<'
+        yield nbt.assert_equal, hdr['magic'], 'ni1'
+        yield nbt.assert_equal, hdr['sizeof_hdr'], 348
 
 
 def test_datatypes():
@@ -179,11 +180,88 @@ def test_checked():
     yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
 '''
     
-    
+@parametric
 def test_dim_info():
     ehdr = Nifti1Header()
-    ehdr.set_dim_info(0, 2, 1)
-    yield assert_true, ehdr.get_dim_info() == (0, 2, 1)
+    yield assert_true(ehdr.get_dim_info() == (None, None, None))
+    for info in ((0,2,1),
+                 (None, None, None),
+                 (0,2,None),
+                 (0,None,None),
+                 (None,2,1),
+                 (None, None,1),
+                 ):
+        ehdr.set_dim_info(*info)
+        yield assert_true(ehdr.get_dim_info() == info)
+
+
+@parametric
+def test_slice_times():
+    hdr = Nifti1Header()
+    # error if slice dimension not specified
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)
+    hdr.set_dim_info(slice=2)
+    # error if slice dimension outside shape
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)
+    hdr.set_data_shape((1, 1, 7))
+    # error if slice duration not set
+    yield assert_raises(HeaderDataError, hdr.get_slice_times)    
+    hdr.set_slice_duration(0.1)
+    # We need a function to print out the Nones and floating point
+    # values in a predictable way, for the tests below.
+    _stringer = lambda val: val is not None and '%2.1f' % val or None
+    _print_me = lambda s: map(_stringer, s)
+    #The following examples are from the nifti1.h documentation.
+    hdr['slice_code'] = slice_order_codes['sequential increasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()), 
+                       ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
+    hdr['slice_start'] = 1
+    hdr['slice_end'] = 5
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
+    hdr['slice_code'] = slice_order_codes['sequential decreasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
+    hdr['slice_code'] = slice_order_codes['alternating increasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
+    hdr['slice_code'] = slice_order_codes['alternating decreasing']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
+    hdr['slice_code'] = slice_order_codes['alternating increasing 2']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
+    hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
+    yield assert_equal(_print_me(hdr.get_slice_times()),
+        [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
+    # test set
+    hdr = Nifti1Header()
+    hdr.set_dim_info(slice=2)
+    # need slice dim to correspond with shape
+    times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
+    yield assert_raises(HeaderDataError, hdr.set_slice_times, times)
+    hdr.set_data_shape([1, 1, 7])
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        times[:-1]) # wrong length
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        (None,) * len(times)) # all None
+    n_mid_times = times[:]
+    n_mid_times[3] = None
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        n_mid_times) # None in middle
+    funny_times = times[:]
+    funny_times[3] = 0.05
+    yield assert_raises(HeaderDataError,
+                        hdr.set_slice_times,
+                        funny_times) # can't get single slice duration
+    hdr.set_slice_times(times)
+    yield assert_equal(hdr.get_slice_code(), 'alternating decreasing')
+    yield assert_equal(hdr['slice_start'], 1)
+    yield assert_equal(hdr['slice_end'], 5)
+    yield assert_array_almost_equal(hdr['slice_duration'], 0.1)
 
 
 def test_intents():
@@ -253,28 +331,28 @@ def test_set_slice_times():
     yield assert_equal, hdr['slice_code'], 6
 
 
+@parametric
 def test_nifti1_images():
     shape = (2, 4, 6)
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
-    yield assert_equal, img.get_shape(), shape
+    yield assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
     stio = StringIO()
-    files = {'header': stio, 'image': stio}
-    img.to_files(files)
-    stio.seek(0)
-    img2 = Nifti1Image.from_files(files)
-    yield assert_array_equal, img2.get_data(), data
+    img.file_map['image'].fileobj = stio
+    img.to_file_map()
+    img2 = Nifti1Image.from_file_map(img.file_map)
+    yield assert_array_equal(img2.get_data(), data)
     for ext in ('.gz', '.bz2'):
         try:
             _, fname = tempfile.mkstemp('.nii' + ext)
             img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
-            yield assert_true, isinstance(img3, img.__class__)
-            yield assert_array_equal, img3.get_data(), data
-            yield assert_equal, img3.get_header(), img.get_header()
+            yield assert_true(isinstance(img3, img.__class__))
+            yield assert_array_equal(img3.get_data(), data)
+            yield assert_equal(img3.get_header(), img.get_header())
         finally:
             os.unlink(fname)
 
@@ -303,7 +381,6 @@ def test_nifti_extensions():
     ok_((ext.get_sizeondisk() - 4) % 16 == 0)
     # first extension should be short one
     ok_(ext[0].get_content() == 'extcomment1')
-
     # add one
     afniext = Nifti1Extension('afni', '<xml></xml>')
     ext.append(afniext)
@@ -311,7 +388,6 @@ def test_nifti_extensions():
     ok_(ext.count('comment') == 2)
     ok_(ext.count('afni') == 1)
     ok_((ext.get_sizeondisk() - 4) % 16 == 0)
-
     # delete one
     del ext[1]
     ok_(ext.get_codes() == [6, 4])
@@ -319,17 +395,30 @@ def test_nifti_extensions():
     ok_(ext.count('afni') == 1)
 
 
-def test_loadsavecycle():
+@parametric
+def test_loadsave_cycle():
     nim = load(image_file)
     # ensure we have extensions
-    ok_(nim.extra.has_key('extensions'))
-    ok_(len(nim.extra['extensions']))
+    yield assert_true(nim.extra.has_key('extensions'))
+    yield assert_true(len(nim.extra['extensions']))
     # write into the air ;-)
     stio = StringIO()
-    files = {'header': stio, 'image': stio}
-    nim.to_files(files)
+    nim.file_map['image'].fileobj = stio
+    nim.to_file_map()
     stio.seek(0)
     # reload
-    lnim = Nifti1Image.from_files(files)
-    ok_(lnim.extra.has_key('extensions'))
-    ok_(nim.extra['extensions'] == lnim.extra['extensions'])
+    lnim = Nifti1Image.from_file_map(nim.file_map)
+    yield assert_true(lnim.extra.has_key('extensions'))
+    yield assert_true(nim.extra['extensions'] == lnim.extra['extensions'])
+
+
+@parametric
+def test_slope_inter():
+    hdr = Nifti1Header()
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(2.2)
+    yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 0.0))
+    hdr.set_slope_inter(None)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(2.2, 1.1)
+    yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 1.1))

@@ -233,20 +233,31 @@ def pretty_mapping(mapping, getterfunc=None):
     return '\n'.join(out)
 
 
-def hdr_getterfunc(obj, key):
-    ''' Getter function for keys or methods of form 'get_<key'
-    '''
-    # Look for any 'get_<name>' methods
-    try:
-        return obj.__getattribute__('get_' + key)()
-    except (AttributeError, HeaderDataError):
-        return obj[key]
-
-
 def make_dt_codes(codes):
-    ''' Create full dt codes object from datatype codes '''
-    dt_codes = [list(vals) + [np.dtype(vals[-1])] for vals in codes]
-    return Recoder(dt_codes, fields=('code', 'label', 'type', 'dtype'))
+    ''' Create full dt codes object from datatype codes
+
+    Include created numpy dtype (from numpy type) and opposite endian
+    numpy dtype
+
+    Parameters
+    ----------
+    codes : sequence of (3,) sequences
+       contained sequences are data type code, data type name, and numpy
+       type (such as ``np.float32``).
+
+    Returns
+    -------
+    rec : ``Recoder`` instance
+       Recoder that, by default, returns ``code`` when indexed with any
+       of the corresponding code, name, type, dtype, or swapped dtype
+    '''
+    dt_codes = []
+    for code, name, np_type in codes:
+        dt_codes.append((code, name, np_type,
+                         np.dtype(np_type),
+                         np.dtype(np_type).newbyteorder('S')))
+    return Recoder(dt_codes,
+                   fields=('code', 'label', 'type', 'dtype', 'sw_dtype'))
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
@@ -308,14 +319,14 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     return True
 
 
-def array_from_file(shape, dtype, infile, offset=0, order='F'):
+def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     ''' Get array from file with specified shape, dtype and file offset
 
     Parameters
     ----------
     shape : sequence
         sequence specifying output array shape
-    dtype : numpy dtype
+    in_dtype : numpy dtype
         fully specified numpy dtype, including correct endianness
     infile : file-like
         open file-like object implementing at least read() and seek()
@@ -346,9 +357,10 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
     >>> np.all(arr == arr2)
     True
     '''
+    in_dtype = np.dtype(in_dtype)
     try: # Try memmapping file on disk
         arr = np.memmap(infile,
-                        dtype,
+                        in_dtype,
                         mode='r',
                         shape=shape,
                         order=order,
@@ -359,7 +371,7 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
         infile.seek(offset)
         if len(shape) == 0:
             return np.array([])
-        datasize = int(np.prod(shape) * dtype.itemsize)
+        datasize = int(np.prod(shape) * in_dtype.itemsize)
         if datasize == 0:
             return np.array([])
         data_str = infile.read(datasize)
@@ -368,32 +380,39 @@ def array_from_file(shape, dtype, infile, offset=0, order='F'):
                   % (datasize, len(data_str))
             raise ValueError(msg)
         arr = np.ndarray(shape,
-                         dtype,
+                         in_dtype,
                          buffer=data_str,
                          order=order)
     return arr
 
 
-def array_to_file(data, out_dtype, fileobj, 
+def array_to_file(data, fileobj, out_dtype=None, offset=0,
                   intercept=0.0, divslope=1.0, 
                   mn=None, mx=None, order='F', nan2zero=True):
-    ''' Helper function for writing possibly scaled arrays to disk
+    ''' Helper function for writing arrays to disk
+
+    Writes arrays as scaled by `intercept` and `divslope`, and clipped
+    at (prescaling) `mn` minimum, and `mx` maximum. 
 
     Parameters
     ----------
     data : array
        array to write
-    out_dtype : dtype
-       dtype to write array as
     fileobj : file-like
-       file-like object implementing ``write`` method.  The fileobj
-       should be initialized to start writing at the correct location
+       file-like object implementing ``write`` method.
+    out_dtype : None or dtype, optional
+       dtype to write array as.  Data array will be coerced to this
+       dtype before writing. If None (default) then use input data
+       type. 
+    offset : int, optional
+       offset into fileobj at which to start writing data. Default is
+       0. 
     intercept : scalar, optional
        scalar to subtract from data, before dividing by ``divslope``.
        Default is 0.0
-    divslope : scalar, optional
+    divslope : None or scalar, optional
        scalefactor to *divide* data by before writing.  Default
-       is 1.0.
+       is 1.0. If None, there is no valid data, we write zeros.
     mn : scalar, optional
        minimum threshold in (unscaled) data, such that all data below
        this value are set to this value. Default is None (no threshold)
@@ -413,28 +432,40 @@ def array_to_file(data, out_dtype, fileobj,
     >>> from StringIO import StringIO
     >>> sio = StringIO()
     >>> data = np.arange(10, dtype=np.float)
-    >>> array_to_file(data, np.float, sio)
+    >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data, np.int16, sio)
+    >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data.byteswap(), np.float, sio)
+    >>> array_to_file(data.byteswap(), sio, np.float)
     >>> sio.getvalue() == data.byteswap().tostring('F')
     True
     >>> sio.truncate(0)
-    >>> array_to_file(data, np.float, sio, order='C')
+    >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tostring('C')
     True
     '''
-    out_dtype = np.dtype(out_dtype)
+    data = np.asarray(data)
+    in_dtype = data.dtype
+    if out_dtype is None:
+        out_dtype = in_dtype
+    else:
+        out_dtype = np.dtype(out_dtype)
+    try:
+        fileobj.seek(offset)
+    except IOError, msg:
+        if fileobj.tell() != offset:
+            raise IOError(msg)
+    if divslope is None: # No valid data
+        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        return
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
                 out_dtype not in floating_point_types)
     needs_copy = nan2zero or mx or mn or intercept or divslope !=1.0
-    in_dtype = data.dtype
     if data.ndim < 2: # a little hack to allow 1D arrays in loop below
         data = [data]
     elif order == 'F':
@@ -486,7 +517,6 @@ def calculate_scale(data, out_dtype, allow_intercept):
     mx : None or float
        minimum of finite value in data, or None if this will not
        be used to threshold data
-
     '''
     default_ret = (1.0, 0.0, None, None)
     in_dtype = data.dtype
@@ -667,21 +697,6 @@ def finite_range(arr):
     return mn, mx
 
 
-class UnsupportedDataType():
-    ''' Class to indicated data type not supported '''
-    pass
-
-
-class HeaderDataError(Exception):
-    ''' Class to indicate error in getting or setting header data '''
-    pass
-
-
-class HeaderTypeError(Exception):
-    ''' Class to indicate error in parameters into header functions '''
-    pass
-
-
 def allopen(fname, *args, **kwargs):
     ''' Generic file-like object open
 
@@ -716,3 +731,69 @@ def allopen(fname, *args, **kwargs):
         opener = open
     return opener(fname, *args, **kwargs)
 
+
+def shape_zoom_affine(shape, zooms, x_flip=True):
+    ''' Get affine implied by given shape and zooms
+
+    We get the translations from the center of the image (implied by
+    `shape`).
+
+    Parameters
+    ----------
+    shape : (N,) array-like
+       shape of image data. ``N`` is the number of dimensions
+    zooms : (N,) array-like
+       zooms (voxel sizes) of the image
+    x_flip : {True, False}
+       whether to flip the X row of the affine.  Corresponds to
+       radiological storage on disk.
+
+    Returns
+    -------
+    aff : (4,4) array
+       affine giving correspondance of voxel coordinates to mm
+       coordinates, taking the center of the image as origin
+
+    Examples
+    --------
+    >>> shape = (3, 5, 7)
+    >>> zooms = (3, 2, 1)
+    >>> shape_zoom_affine((3, 5, 7), (3, 2, 1))
+    array([[-3.,  0.,  0.,  3.],
+           [ 0.,  2.,  0., -4.],
+           [ 0.,  0.,  1., -3.],
+           [ 0.,  0.,  0.,  1.]])
+    >>> shape_zoom_affine((3, 5), (3, 2))
+    array([[-3.,  0.,  0.,  3.],
+           [ 0.,  2.,  0., -4.],
+           [ 0.,  0.,  1., -0.],
+           [ 0.,  0.,  0.,  1.]])
+    >>> shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
+    array([[ 3.,  0.,  0., -3.],
+           [ 0.,  2.,  0., -4.],
+           [ 0.,  0.,  1., -3.],
+           [ 0.,  0.,  0.,  1.]])
+    '''
+    shape = np.asarray(shape)
+    zooms = np.array(zooms) # copy because of flip below
+    ndims = len(shape)
+    if ndims != len(zooms):
+        raise ValueError('Should be same length of zooms and shape')
+    if ndims >= 3:
+        shape = shape[:3]
+        zooms = zooms[:3]
+    else:
+        full_shape = np.ones((3,))
+        full_zooms = np.ones((3,))
+        full_shape[:ndims] = shape[:]
+        full_zooms[:ndims] = zooms[:]
+        shape = full_shape
+        zooms = full_zooms
+    if x_flip:
+        zooms[0] *= -1
+    # Get translations from center of image
+    origin = (shape-1) / 2.0
+    aff = np.eye(4)
+    aff[:3,:3] = np.diag(zooms)
+    aff[:3,-1] = -origin * zooms
+    return aff

@@ -6,16 +6,15 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises, assert_not_equal
+from nibabel.volumeutils import swapped_code, native_code, array_to_file
+from nibabel.spatialimages import HeaderDataError
+from nibabel.header_ufuncs import read_data, write_scaled_data
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.volumeutils import swapped_code, \
-     native_code, HeaderDataError
+from nibabel.testing import assert_equal, assert_true, assert_false, \
+     assert_raises, assert_not_equal
 
-from nibabel.header_ufuncs import read_data, \
-    write_data, write_scaled_data
 
 class _TestBinaryHeader(object):
     ''' Class implements tests for binary headers
@@ -38,7 +37,7 @@ class _TestBinaryHeader(object):
         # origin field, and the center of the image.
         yield assert_array_equal, np.diag(hdr.get_base_affine()), [-1,1,1,1]
         # But zooms only go with number of dimensions
-        yield assert_equal, hdr.get_zooms(), ()
+        yield assert_equal, hdr.get_zooms(), (1.0,)
         # Endianness will be native by default for empty header
         yield assert_equal, hdr.endianness, native_code
         # But you can change this if you want
@@ -162,16 +161,20 @@ class _TestBinaryHeader(object):
             yield (assert_raises, HeaderDataError,
                   hdr.set_zooms, (-1,) * L)
         # reducing the dimensionality of the array and then increasing
-        # it again reveals the concealed higher-dimensional zooms
-        # from the earlier 'set'
+        # it again reverts the previously set zoom values to 1.0
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
+        yield assert_array_equal, hdr.get_zooms(), (1,1,1)
         hdr.set_zooms((4,5,6))
         yield assert_array_equal, hdr.get_zooms(), (4,5,6)
         hdr.set_data_shape((1,2))
         yield assert_array_equal, hdr.get_zooms(), (4,5)
         hdr.set_data_shape((1,2,3))
-        yield assert_array_equal, hdr.get_zooms(), (4,5,6)
+        yield assert_array_equal, hdr.get_zooms(), (4,5,1)
+        # setting shape to () results in shape (0,)
+        hdr.set_data_shape(())
+        yield assert_array_equal, hdr.get_data_shape(), (0,)
+        yield assert_array_equal, hdr.get_zooms(), (1.0,)
         # Setting affine changes zooms
         hdr.set_data_shape((1,2,3))
         hdr.set_zooms((1,1,1))
@@ -277,12 +280,16 @@ class _TestBinaryHeader(object):
         S3 = StringIO()
         # Analyze header cannot do scaling, but, if not scaling,
         # AnalyzeHeader is OK
-        write_data(hdr, data, S3)
+        def _write_data(hdr, data, fileobj):
+            out_dtype = hdr.get_data_dtype()
+            offset = hdr.get_data_offset()
+            array_to_file(data, fileobj, out_dtype, offset)
+        _write_data(hdr, data, S3)
         data_back = read_data(hdr, S3)
         yield assert_array_almost_equal, data, data_back
         # But, the data won't always be same as input if not scaling
         data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        write_data(hdr, data, S3)
+        _write_data(hdr, data, S3)
         data_back = read_data(hdr, S3)
         yield assert_false, np.allclose(data, data_back)
 

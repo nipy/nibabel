@@ -1,5 +1,9 @@
 ''' Header and image for the basic Mayo Analyze format
 
+=======================
+ Generic header format
+=======================
+
 The basic principle of the header object is that it manages and
 contains header information.  Each header type may have different
 attributes that can be set.  Some headers can contain only subsets of
@@ -11,7 +15,7 @@ The attributes and methods of the object guarantee that the set values
 will be consistent and valid with the header standard, in some sense.
 The object API therefore gives "safe" access to the header.  You can
 reach all the named fields in the header directly with the
-``header_data`` attribute.  If you futz with these, the object
+``structarr`` attribute.  If you futz with these, the object
 makes no guarantee that the data in the header are consistent.
 
 Headers do not have filenames, they refer only the block of data in
@@ -29,6 +33,31 @@ Headers also implement general mappingness:
     hdr.keys()
     hdr.items()
     hdr.values()
+
+The Analyze and derived formats are also ''binary headers''.  Binary
+headers are specialized headers in that they are represented internally
+with a numpy structured array.
+
+This binary representation means that there are additional properties
+and methods:
+
+Properties::
+
+    .endianness (read only)
+    .binaryblock (read only)
+    .structarr (read only)
+
+Methods::
+
+    .as_byteswapped(endianness)
+
+and class methods::
+
+    .diagnose_binaryblock
+
+===========================
+ The Analzye header format
+===========================
     
 Basic attributes of the header object are::
 
@@ -95,22 +124,23 @@ The same for logging::
 
 '''
 
-import warnings
-
 import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
-     native_code, swapped_code, hdr_getterfunc, \
-     make_dt_codes, HeaderDataError, HeaderTypeError, allopen
+     native_code, swapped_code, \
+     make_dt_codes,  \
+     calculate_scale, allopen, shape_zoom_affine, \
+     array_to_file, can_cast
 
-from nibabel.header_ufuncs import read_data, read_unscaled_data, \
-    write_data, adapt_header
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+    ImageDataError, SpatialImage
+
+from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
-from nibabel.spatialimages import SpatialImage
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
-
+from nibabel.fileholders import FileHolderError
 from nibabel.batteryrunners import BatteryRunner, Report
+from nibabel.arrayproxy import ArrayProxy
 
 # Sub-parts of standard analyze header from 
 # Mayo dbh.h file
@@ -191,7 +221,6 @@ class AnalyzeHeader(object):
 
     Implements zoom-only setting of affine transform, and no image
     scaling
-    
     '''
     # Copies of module-level definitions
     _dtype = header_dtype
@@ -204,21 +233,6 @@ class AnalyzeHeader(object):
     has_data_slope = False
     has_data_intercept = False
 
-    @classmethod
-    def from_mapping(klass,
-                 field_mapping=None,
-                 endianness=None,
-                 check=True):
-        '''  Initialize header from mapping '''
-        obj = klass(obj, endianness=endianness, check=check)
-        #self._header_data = self._empty_headerdata(endianness)
-        if not field_mapping is None:
-            for key, value in field_mapping:
-                obj._header_data[key] = value
-        #obj.check = check
-        if check:
-            self.check_fix()
-    
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
@@ -301,6 +315,82 @@ class AnalyzeHeader(object):
             self.check_fix()
         return
 
+    @classmethod
+    def from_header(klass, header=None, check=True):
+        ''' Class method to create header from another header
+
+        Parameters
+        ----------
+        header : ``Header`` instance or mapping
+           a header of this class, or another class of header for
+           conversion to this type
+        check : {True, False}
+           whether to check header for integrity
+
+        Returns
+        -------
+        hdr : header instance
+           fresh header instance of our own class
+        '''
+        # make fresh header instance
+        if type(header) == klass:
+            return header.copy()
+        obj = klass(check=check)
+        if header is None:
+            return obj
+        try: # check if there is a specific conversion routine
+            mapping = header.as_analyze_map()
+        except AttributeError:
+            # most basic conversion
+            obj.set_data_dtype(header.get_data_dtype())
+            obj.set_data_shape(header.get_data_shape())
+            obj.set_zooms(header.get_zooms())
+            return obj
+        # header is convertible from a field mapping
+        for key, value in mapping.items():
+            try:
+                obj[key] = value
+            except (ValueError, KeyError):
+                # the presence of the mapping certifies the fields as
+                # being of the same meaning as for Analyze types
+                pass
+        if check:
+            obj.check_fix()
+        return obj
+    
+    @classmethod
+    def from_fileobj(klass, fileobj, endianness=None, check=True):
+        ''' Return read header with given or guessed endiancode
+
+        Parameters
+        ----------
+        fileobj : file-like object
+           Needs to implement ``read`` method
+        endianness : None or endian code, optional
+           Code specifying endianness of read data
+
+        Returns
+        -------
+        hdr : AnalyzeHeader object
+           AnalyzeHeader object initialized from data in fileobj
+           
+        Examples
+        --------
+        >>> import StringIO
+        >>> hdr = AnalyzeHeader()
+        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
+        >>> fileobj.seek(0)
+        >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
+        >>> hdr2.binaryblock == hdr.binaryblock
+        True
+
+        You can write to the resulting object data
+
+        >>> hdr2['dim'][1] = 1
+        '''
+        raw_str = fileobj.read(klass._dtype.itemsize)
+        return klass(raw_str, endianness, check)
+
     @property
     def binaryblock(self):
         ''' binary block of data as string
@@ -318,6 +408,31 @@ class AnalyzeHeader(object):
         348
         '''
         return self._header_data.tostring()
+
+    def write_to(self, fileobj):
+        ''' Write header to fileobj
+
+        Write starts at fileobj current file position.
+        
+        Parameters
+        ----------
+        fileobj : file-like object
+           Should implement ``write`` method
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        >>> hdr = AnalyzeHeader()
+        >>> import StringIO
+        >>> str_io = StringIO.StringIO()
+        >>> hdr.write_to(str_io)
+        >>> hdr.binaryblock == str_io.getvalue()
+        True
+        '''
+        fileobj.write(self.binaryblock)
 
     @property
     def endianness(self):
@@ -565,64 +680,6 @@ class AnalyzeHeader(object):
         '''
         return self._header_data
 
-    @classmethod
-    def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ''' Return read header with given or guessed endiancode
-
-        Parameters
-        ----------
-        fileobj : file-like object
-           Needs to implement ``read`` method
-        endianness : None or endian code, optional
-           Code specifying endianness of read data
-
-        Returns
-        -------
-        hdr : AnalyzeHeader object
-           AnalyzeHeader object initialized from data in fileobj
-           
-        Examples
-        --------
-        >>> import StringIO
-        >>> hdr = AnalyzeHeader()
-        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
-        >>> fileobj.seek(0)
-        >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
-        >>> hdr2.binaryblock == hdr.binaryblock
-        True
-
-        You can write to the resulting object data
-
-        >>> hdr2['dim'][1] = 1
-        '''
-        raw_str = fileobj.read(klass._dtype.itemsize)
-        return klass(raw_str, endianness, check)
-
-    def write_to(self, fileobj):
-        ''' Write header to fileobj
-
-        Write starts at fileobj current file position.
-        
-        Parameters
-        ----------
-        fileobj : file-like object
-           Should implement ``write`` method
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> import StringIO
-        >>> str_io = StringIO.StringIO()
-        >>> hdr.write_to(str_io)
-        >>> hdr.binaryblock == str_io.getvalue()
-        True
-        '''
-        fileobj.write(self.binaryblock)
-
     def get_data_dtype(self):
         ''' Get numpy dtype for data
 
@@ -631,7 +688,7 @@ class AnalyzeHeader(object):
         code = int(self._header_data['datatype'])
         dtype = self._data_type_codes.dtype[code]
         return dtype.newbyteorder(self.endianness)
-    
+
     def set_data_dtype(self, datatype):
         ''' Set numpy dtype for data from code or dtype or type
         
@@ -694,13 +751,22 @@ class AnalyzeHeader(object):
         return tuple(int(d) for d in dims[1:ndims+1])
 
     def set_data_shape(self, shape):
-        ''' Set shape of data '''
+        ''' Set shape of data
+
+        If ``ndims == len(shape)`` then we set zooms for dimensions higher than
+        ``ndims`` to 1.0
+        
+        Parameters
+        ----------
+        shape : sequence
+           sequence of integers specifying data array shape
+        '''
         dims = self._header_data['dim']
-        prev_ndims = dims[0]
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims        
         dims[1:ndims+1] = shape
+        self._header_data['pixdim'][ndims+1:] = 1.0
         
     def as_byteswapped(self, endianness=None):
         ''' return new byteswapped header object with given ``endianness``
@@ -769,9 +835,15 @@ class AnalyzeHeader(object):
         ''' Return string representation for printing '''
         summary = "%s object, endian='%s'" % (self.__class__,
                                               self.endianness)
+        def _getter(obj, key):
+            # Look for any 'get_<name>' methods
+            try:
+                return obj.__getattribute__('get_' + key)()
+            except (AttributeError, HeaderDataError):
+                return obj[key]
         return '\n'.join(
             [summary,
-             pretty_mapping(self, hdr_getterfunc)])
+             pretty_mapping(self, _getter)])
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields
@@ -805,15 +877,11 @@ class AnalyzeHeader(object):
                [ 0.,  0.,  0.,  1.]])
         '''
         hdr = self._header_data
-        zooms = (hdr['pixdim'][1:4].copy())
-        if self.default_x_flip:
-            zooms[0] *= -1
-        # Get translations from center of image
-        origin = (hdr['dim'][1:4]-1) / 2.0
-        aff = np.eye(4)
-        aff[:3,:3] = np.diag(zooms)
-        aff[:3,-1] = -origin * zooms
-        return aff
+        dims = hdr['dim']
+        ndim = dims[0]
+        return shape_zoom_affine(hdr['dim'][1:ndim+1],
+                                 hdr['pixdim'][1:ndim+1],
+                                 self.default_x_flip)
 
     get_best_affine = get_base_affine
     
@@ -829,7 +897,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr.get_zooms()
-        ()
+        (1.0,)
         >>> hdr.set_data_shape((1,2))
         >>> hdr.get_zooms()
         (1.0, 1.0)
@@ -841,7 +909,7 @@ class AnalyzeHeader(object):
         dims = hdr['dim']
         ndim = dims[0]
         if ndim == 0:
-            return ()
+            return (1.0,)
         pixdims = hdr['pixdim']
         return tuple(pixdims[1:ndim+1])
     
@@ -861,37 +929,10 @@ class AnalyzeHeader(object):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1:ndim+1] = zooms[:]
+
+    def as_analyze_map(self):
+        return self
         
-    def get_datatype(self, code_repr='label'):
-        ''' Return representation of datatype code
-
-        This method returns the datatype code, or a string label for the
-        code.  Usually you are more interested in the data dtype.  To do
-        that more useful thing, use ``get_data_dtype``
-        
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of datatype code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        datatype_code : string or integer
-            string label for datatype code or code
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr['datatype'] = 4 # int16
-        >>> hdr.get_datatype()
-        'int16'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'datatype',
-            self._data_type_codes)
-
     def get_data_offset(self):
         ''' Return offset into data file to read data
 
@@ -913,63 +954,70 @@ class AnalyzeHeader(object):
         '''
         return 1.0, 0.0
 
-    def set_slope_inter(self, slope, inter):
-        ''' Set raises error for Analyze header '''
+    def set_slope_inter(self, slope, inter=0.0):
+        ''' Set slope and / or intercept into header
+
+        Set slope and intercept for image data, such that, if the image
+        data is ``arr``, then the scaled image data will be ``(arr *
+        slope) + inter``
+
+        Note that trying to set not-default values raises error for
+        Analyze header - which cannot contain slope or intercept terms.
+
+        Parameters
+        ----------
+        slope : None or float
+           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
+           scaling of the image data).  If `slope` is None, we ignore
+           the passed value of `inter`
+        inter : float, optional
+           intercept
+        '''
+        if slope is None:
+            slope = 1.0
+            inter = 0.0
         if slope != 1.0 or inter:
             raise HeaderTypeError('Cannot set slope or intercept '
                                   'for Analyze headers')
 
-    def for_file_pair(self, is_pair=True):
-        ''' Adapt header to separate or same image and header file
+    def scaling_from_data(self, data):
+        ''' Calculate slope, intercept, min, max from data given header
 
-        This is a rare and exotic case for Analyze files, common for
-        Nifti1.  For Analyze, we only need to check that, if the file is
-        single, then the data offset is large enough to leave room for
-        the header.
-        
+        Check that the data can be sensibly adapted to this header data
+        dtype.  If the header type does support useful scaling to allow
+        this, raise a HeaderTypeError.
+
         Parameters
         ----------
-        is_pair : bool, optional
-           True if adapting header to file pair state, False for single
+        data : array-like
+           array of data for which to calculate scaling etc
 
         Returns
         -------
-        hdr : header
-           copied and possibly modified header
-        
-        Examples
-        --------
-        The header starts off as being for two files
-        
-        >>> hdr = AnalyzeHeader()
-        >>> hdr.get_data_offset()
-        0
-
-        This is the same as the default behavior for this method
-        
-        >>> pair_hdr = hdr.for_file_pair()
-        >>> pair_hdr.get_data_offset()
-        0
-
-        But we can switch it to be for one
-        
-        >>> unpair_hdr = hdr.for_file_pair(False)
-        >>> unpair_hdr.get_data_offset()
-        352
-
-        The original header is not affected (a copy is returned)
-        
-        >>> hdr.get_data_offset()
-        0
+        divslope : None or scalar
+           divisor for data, after subtracting intercept.  If None, then
+           there are no valid data
+        intercept : None or scalar
+           number to subtract from data before writing. 
+        mn : None or scalar
+           data minimum to write, None means use data minimum
+        mx : None or scalar
+           data maximum to write, None means use data maximum
         '''
-        hdr = self.__class__(self.binaryblock, self.endianness)
-        if not is_pair:
-            if hdr['vox_offset'] < 352:
-                hdr['vox_offset'] = 352
-            return hdr
-        # two file version
-        hdr['vox_offset'] = 0
-        return hdr
+        data = np.asarray(data)
+        out_dtype = self.get_data_dtype()
+        if not can_cast(data.dtype.type,
+                        out_dtype.type,
+                        self.has_data_intercept,
+                        self.has_data_slope):
+            raise HeaderTypeError('Cannot cast data to header dtype without'
+                                  ' large potential loss in precision')
+        if not self.has_data_slope:
+            return 1.0, 0.0, None, None
+        return calculate_scale(
+            data,
+            out_dtype,
+            self.has_data_intercept)
 
     def _get_code_field(self, code_repr, fieldname, recoder):
         ''' Returns representation of field given recoder and code_repr
@@ -1060,21 +1108,39 @@ class AnalyzeHeader(object):
 
 
 class AnalyzeImage(SpatialImage):
-    _header_maker = AnalyzeHeader
+    _header_class = AnalyzeHeader
+    files_types = (('image','.img'), ('header','.hdr'))
+    _compressed_exts = ('.gz', '.bz2')
 
-    def get_data(self):
-        ''' Lazy load of data '''
-        if not self._data is None:
-            return self._data
-        if not self._files:
-            return None
-        try:
-            fname = self._files['image']
-        except KeyError:
-            return None
-        self._data = read_data(self._header, allopen(fname))
-        return self._data
+    class ImageArrayProxy(ArrayProxy):
+        ''' Analyze-type implemention of array proxy protocol
 
+        The array proxy allows us to freeze the passed fileobj and
+        header such that it returns the expected data array.
+        '''
+        def _read_data(self):
+            fileobj = allopen(self.file_like)
+            data = read_data(self.header, fileobj)
+            if isinstance(self.file_like, basestring): # filename
+                fileobj.close()
+            return data
+
+    @classmethod
+    def from_data_file(klass,
+                       file_like,
+                       affine,
+                       header=None,
+                       extra=None,
+                       file_map=None):
+        ''' Class method create mew instance from data file
+
+        We use a proxy to implement the caching of the data read, and
+        for the data shape.  
+        '''
+        data_hdr  = klass._header_class.from_header(header)
+        data = klass.ImageArrayProxy(file_like, data_hdr)
+        return klass(data, affine, header, extra, file_map)
+        
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
 
@@ -1102,13 +1168,18 @@ class AnalyzeImage(SpatialImage):
         Note that - unlike the scaled ``get_data`` method, we do not
         cache the array, to minimize the memory taken by the object.
         """
-        if not self._files:
-            return None
         try:
-            fname = self._files['image']
+            image_fileholder = self.file_map['image']
         except KeyError:
-            return None
-        return read_unscaled_data(self._header, allopen(fname))
+            raise ImageDataError('no file to load from')
+        try:
+            fileobj = image_fileholder.get_prepare_fileobj()
+        except FileHolderError:
+            raise ImageDataError('no file to load from')
+        dtype = hdr.get_data_dtype()
+        shape = hdr.get_data_shape()
+        offset = hdr.get_data_offset()
+        return array_from_file(shape, dtype, fileobj, offset)
         
     def get_header(self):
         ''' Return header
@@ -1118,72 +1189,122 @@ class AnalyzeImage(SpatialImage):
         self._update_header()
         return self._header
 
-    def _set_header(self, header=None):
-        # Pick up case of nifti image -> analyze
-        try:
-            header = header.for_file_pair()
-        except AttributeError:
-            pass
-        super(AnalyzeImage, self)._set_header(header)
-
-    def get_shape(self):
-        if not self._data is None:
-            return self._data.shape
-        return self._header.get_data_shape()
-    
     def get_data_dtype(self):
         return self._header.get_data_dtype()
     
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
-    
-    @classmethod
-    def from_files(klass, files):
-        fname = files['header']
-        header = klass._header_maker.from_fileobj(allopen(fname))
-        affine = header.get_best_affine()
-        ret =  klass(None, affine, header)
-        ret._files = files
-        return ret
+
+    def get_shape(self):
+        return self._data.shape
     
     @staticmethod
-    def filespec_to_files(filespec):
-        try:
-            files = types_filenames(filespec,
-                                    (('header', '.hdr'),('image', '.img')))
-        except TypesFilenamesError:
-            raise ValueError('Filespec "%s" does not look like '
-                             'Analyze ' % filespec)
-        return files
+    def _get_open_files(file_map, mode='rb'):
+        ''' Utility method to open necessary files for read/write
 
-    def to_files(self, files=None):
-        ''' Write image to files passed, or self._files
+        This method is to allow for formats (nifti single in particular)
+        that may have the same file for header and image
         '''
-        if files is None:
-            files = self._files
-            if files is None:
-                raise ValueError('Need files to write data')
+        hdrf = file_map['header'].get_prepare_fileobj(mode=mode)
+        imgf = file_map['image'].get_prepare_fileobj(mode=mode)
+        return hdrf, imgf
+
+    def _close_filenames(self, file_map, hdrf, imgf):
+        ''' Utility method to close any files no longer required
+
+        Called by the image writing routines. 
+
+        This method is to allow for formats (nifti single in particular)
+        that may have the same file for header and image
+        '''
+        if file_map['header'].fileobj is None: # was filename
+            hdrf.close()
+        if file_map['image'].fileobj is None: # was filename
+            imgf.close()
+
+    @classmethod
+    def from_file_map(klass, file_map):
+        ''' class method to create image from mapping in `file_map ``
+        '''
+        hdrf, imgf = klass._get_open_files(file_map, 'rb')
+        header = klass._header_class.from_fileobj(hdrf)
+        affine = header.get_best_affine()
+        return klass.from_data_file(imgf,
+                                    affine,
+                                    header,
+                                    file_map=file_map)
+
+    def _write_header(self, header_file, header, slope, inter):
+        ''' Utility routine to write header
+
+        Parameters
+        ----------
+        header_file : file-like
+           file-like object implementing ``write``, open for writing
+        header : header object
+        slope : None or float
+           slope for data scaling
+        inter : None or float
+           intercept for data scaling
+        '''
+        header.set_slope_inter(slope, inter)
+        header.write_to(header_file)
+
+    def _write_image(self, image_file, data, header, slope, inter, mn, mx):
+        ''' Utility routine to write image
+
+        Parameters
+        ----------
+        image_file : file-like
+           file-like object implementing ``seek`` or ``tell``, and
+           ``write``
+        data : array-like
+           array to write
+        header : analyze-type header object
+           header
+        slope : None or float
+           scale factor for `data` so that written data is ``data /
+           slope + inter``.  None means no valid data
+        inter : float
+           intercept (see above)
+        mn : None or float
+           minimum to scale data to.  None means use data minimum
+        max : None or float
+           maximum to scale data to.  None means use data maximum
+
+        Returns
+        -------
+        None
+        '''
+        shape = header.get_data_shape()
+        if data.shape != shape:
+            raise HeaderDataError('Data should be shape (%s)' %
+                                  ', '.join(str(s) for s in shape))
+        offset = header.get_data_offset()
+        out_dtype = header.get_data_dtype()
+        array_to_file(data, image_file, out_dtype, offset,
+                      inter, slope, mn, mx)
+
+    def to_file_map(self, file_map=None):
+        ''' Write image to `file_map` or contained ``self.file_map``
+
+        Parameters
+        ----------
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead
+        '''
+        if file_map is None:
+            file_map = self.file_map
         data = self.get_data()
-        # Adapt header to possible two<->one file difference
-        is_pair = files['header'] != files['image']
-        hdr = self.get_header().for_file_pair(is_pair)
-        slope, inter, mn, mx = adapt_header(hdr, data)
-        hdrf = allopen(files['header'], 'wb')
-        hdr.write_to(hdrf)
-        if is_pair:
-            imgf = allopen(files['image'], 'wb')
-        else: # single file for header and image
-            imgf = hdrf
-            # streams like bz2 do not allow seeks, even forward.  We
-            # check where to go, and write zeros up until the data part
-            # of the file
-            offset = hdr.get_data_offset()
-            diff = offset-hdrf.tell()
-            if diff > 0:
-                hdrf.write('\x00' * diff)
-        write_data(hdr, data, imgf, inter, slope, mn, mx)
+        hdr = self.get_header()
+        slope, inter, mn, mx = hdr.scaling_from_data(data)
+        hdrf, imgf = self._get_open_files(file_map, 'wb')
+        self._write_header(hdrf, hdr, slope, inter)
+        self._write_image(imgf, data, hdr, slope, inter, mn, mx)
+        self._close_filenames(file_map, hdrf, imgf)
         self._header = hdr
-        self._files = files
+        self.file_map = file_map
 
     def _update_header(self):
         ''' Harmonize header with image data and affine
@@ -1197,7 +1318,7 @@ class AnalyzeImage(SpatialImage):
         >>> hdr.get_data_shape()
         (0,)
         >>> hdr.get_zooms()
-        ()
+        (1.0,)
         >>> np.all(hdr.get_best_affine() == np.diag([-1,1,1,1]))
         True
         >>> img._update_header()

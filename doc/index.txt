@@ -8,15 +8,12 @@
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 
-The NiBabel module is a Python_ interface to the `NIfTI I/O libraries`_.  Using
-NiBabel, one can easily read and write NIfTI and ANALYZE images from within
-Python. The :class:`~nifti.image.NiftiImage` class provides pythonic access to
-the full header information and for a maximum of interoperability the image
-data is made available via NumPy_ arrays.
-
-.. _Python: http://www.python.org
-.. _NIfTI I/O libraries: http://niftilib.sf.net
-.. _NumPy: http://numpy.scipy.org
+The NiBabel module is a Python_ package for reading and writing a
+variety of medical image formats.  Using NiBabel, one can easily read
+and write NIfTI and ANALYZE images from within Python. The
+:class:`~nibabel.Nifti1Image` class provides access to the full header
+information and for a maximum of interoperability the image data is made
+available via NumPy_ arrays.
 
 Documentation
 =============
@@ -33,9 +30,9 @@ Documentation
 Author and License
 ==================
 
-NiBabel is written and maintained by `Michael Hanke`_. The author is grateful
-to the following people who have contributed to NiBabel (in order of
-appearance):
+NiBabel is written and maintained by `Michael Hanke`_ and Matthew
+Brett. The authors are grateful to the following people who have
+contributed to NiBabel (in order of appearance):
 
 * `Yaroslav O. Halchenko`_
 * Chris Burns
@@ -51,26 +48,24 @@ the source distribution (including this website). Please see the
 :ref:`appendix of the manual <license>` for the copyright statement and the
 full text of the license.
 
-.. _MIT License: http://www.opensource.org/licenses/mit-license.php
-
-
 Download
 ========
 
 Binary packages
 ---------------
 
-Binary packages are available for:
+You probably won't need a binary package because NiBabel is pure Python.
+However, there will be packages for:
 
 * Debian and Ubuntu (:ref:`installation instructions <install_debian>`)
-    NiBabel is an `official Debian package`_ (`python-nifti`).
+    NiBabel is an `official Debian package`_ (`python-nibabel`).
     Additionally, backports for some Debian and Ubuntu releases are also
     available. Please read the `package repository instructions`_ to learn
     about how to obtain them.
 
 * RPM-based GNU/Linux distributions (:ref:`installation instructions <install_rpm>`)
     RPM packages are provided through the `OpenSUSE Build Service`_. The
-    currently supported distributions include: CentOS 5, Fedora 9-10, Mandriva
+    supported distributions may include: CentOS 5, Fedora 9-10, Mandriva
     2007-2008, RedHat Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE
     10.2 up to 11.0. The build service supports RPM-package repositories (`Suse
     and Mandriva-related`_ and `Fedora, Redhat and CentOS-related`_) and
@@ -82,17 +77,12 @@ Binary packages are available for:
 * Windows (:ref:`installation instructions <install_win>`)
     An installer for Python 2.5 is available from the `download area`_.
 
-If there are no binary packages for your particular operating system or
-platform, you need to compile your own. The manual contains :ref:`instructions
-<buildfromsource>` to build NiBabel in various environments.
 
-.. _MacPorts: http://www.macports.org
-.. _official Debian package: http://packages.debian.org/python-nifti
+.. _official Debian package: http://packages.debian.org/python-nibabel
 .. _package repository instructions: http://apsy.gse.uni-magdeburg.de/main/index.psp?sec=1&page=hanke/debian&lang=en
 .. _Suse and Mandriva-related: http://download.opensuse.org/repositories/home:/hankem/
 .. _Fedora, Redhat and CentOS-related: http://download.opensuse.org/repositories/home://hankem://rh5/
-.. _1-click-installations: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nifti
-.. _OpenSUSE Build Service: https://build.opensuse.org/
+.. _1-click-installations: http://software.opensuse.org/search?baseproject=ALL&p=1&q=python-nibabel
 
 
 Source code
@@ -100,21 +90,21 @@ Source code
 
 Source code tarballs of NiBabel releases are available from the `download
 area`_. Alternatively, one can also download a tarball of the latest
-development snapshot_ (i.e. the current state of the *master* branch of the
-NiBabel source code repository).
+development snapshot (i.e. the current state of the *master* branch of the
+NiBabel source code repository) - see http://github.com/hanke/nibabel/archives/master
 
 To get access to both the full NiBabel history and the latest
-development code, the NiBabel Git_ repository is publicly available. To view the
-repository, please point your webbrowser to gitweb:
-http://git.debian.org/?p=pkg-exppsy/pynifti.git
+development code, the NiBabel Git_ repository is publicly available. To
+view the repository, please point your webbrowser at Michael's `nibabel
+github`_ page.
 
 To clone (aka checkout) the NiBabel repository simply do:
 
 ::
 
-  git clone git://git.debian.org/git/pkg-exppsy/pynifti.git
+  git clone http://github.com/hanke/nibabel.git
 
-After a short while you will have a `pynifti` directory below your current
+After a short while you will have a ``nibabel`` directory below your current
 working directory, that contains the NiBabel repository.
 
 More detailed instructions on :ref:`installation requirements <requirements>`
@@ -123,9 +113,6 @@ in the manual.
 
 
 .. _download area: http://alioth.debian.org/frs/?group_id=30954
-.. _Git: http://git.or.cz/
-.. _snapshot:  http://git.debian.org/?p=pkg-exppsy/pynifti.git;a=snapshot;h=refs/heads/master;sf=tgz
-
 
 
 Support
@@ -145,3 +132,5 @@ search* located in the sidebar of the NiBabel home page.
 
 .. _subscription: http://lists.alioth.debian.org/mailman/listinfo/pkg-exppsy-pynifti
 .. _archive: http://lists.alioth.debian.org/pipermail/pkg-exppsy-pynifti/
+
+.. include:: links_names.txt
