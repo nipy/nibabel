@@ -8,9 +8,8 @@
    __not_case_sensitive__, so only one target definition is needed for
    nipy, NIPY, Nipy, etc...
 
-.. _nibabel: http://github.com/hanke/nibabel
-.. _`nibabel github`: http://github.com/hanke/nibabel
 .. _nipy: http://neuroimaging.scipy.org
+.. _`NIPY developer resources`: http://nipy.sourceforge.net/devel
 .. _`Brain Imaging Center`: http://bic.berkeley.edu/
 
 .. Documentation tools
@@ -24,22 +23,18 @@
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
-.. _MIT License: http://www.opensource.org/licenses/mit-license.php
 
 .. Working process
 .. _pynifti: http://niftilib.sourceforge.net/pynifti/
 .. _nifticlibs: http://nifti.nimh.nih.gov
 .. _nifti: http://nifti.nimh.nih.gov
+.. _`nipy sourceforge`: http://nipy.sourceforge.net/
+.. _sourceforge: http://nipy.sourceforge.net/
 .. _`nipy launchpad`: https://launchpad.net/nipy
 .. _launchpad: https://launchpad.net/
 .. _`nipy trunk`: https://code.launchpad.net/~nipy-developers/nipy/trunk
 .. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
 .. _`nipy bugs`: https://bugs.launchpad.net/nipy
-
-.. Packaging
-.. _MacPorts: http://www.macports.org
-.. _OpenSUSE Build Service: https://build.opensuse.org/
-.. _sourceforge: http://sourceforge.net/
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
@@ -55,22 +50,24 @@
 .. _emacs_python_mode: http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 .. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
 .. _bazaar: http://bazaar-vcs.org/
+.. _subversion: http://subversion.tigris.org/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
-.. _SWIG: http://www.swig.org
 
 .. Other python projects
-.. _numpy: http://www.scipy.org
+.. _numpy: http://www.scipy.org/NumPy
 .. _scipy: http://www.scipy.org
 .. _ipython: http://ipython.scipy.org
 .. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
 .. _matplotlib: http://matplotlib.sourceforge.net
-.. _pythonxy: http://www.pythonxy.com
 .. _ETS: http://code.enthought.com/projects/tool-suite.php
 .. _`Enthought Tool Suite`: http://code.enthought.com/projects/tool-suite.php
 .. _python: http://www.python.org
 .. _mayavi: http://mayavi.sourceforge.net/
 .. _sympy: http://code.google.com/p/sympy/
+.. _networkx: http://networkx.lanl.gov/
+.. _pythonxy: http://www.pythonxy.com/
+.. _EPD: http://www.enthought.com/products/epd.php
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
@@ -85,14 +82,12 @@
 .. _FSL: http://www.fmrib.ox.ac.uk/fsl
 .. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
 .. _voxbo: http://www.voxbo.org
-.. _MINC: http://en.wikibooks.org/wiki/MINC
-.. _Analyze: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 
 .. General software
 .. _gcc: http://gcc.gnu.org
 .. _xcode: http://developer.apple.com/TOOLS/xcode
 .. _mingw: http://www.mingw.org
-.. _cygwin: http://cygwin.com
+.. _macports: http://www.macports.org/
 
 .. Functional imaging labs
 .. _`functional imaging laboratory`: http://www.fil.ion.ucl.ac.uk
