@@ -75,7 +75,7 @@ categories:
   * *BK* : breaks something and/or tests fail
   * *PL* : making pylint happier
   * *DOC*: for all kinds of documentation related commits
-
+  * *TEST*: for adding or changing tests
 
 Merges
 ------

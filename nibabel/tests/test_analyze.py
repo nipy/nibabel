@@ -33,20 +33,21 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises
+from nibabel.testing import assert_equal, assert_not_equal, \
+    assert_true, assert_false, assert_raises
 
 from numpy.testing import assert_array_equal
 
-from nibabel.volumeutils import HeaderDataError, HeaderTypeError
+from nibabel.volumeutils import array_to_file, can_cast
 
+from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+    ImageDataError
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage
-from nibabel.header_ufuncs import read_data, write_data, write_scaled_data
+from nibabel.header_ufuncs import read_data, write_scaled_data
+from nibabel.testing import parametric, data_path
 
 from test_binary import _TestBinaryHeader
 
-data_path, _ = os.path.split(__file__)
-data_path = os.path.join(data_path, 'data')
 header_file = os.path.join(data_path, 'analyze.hdr')
 
 
@@ -156,18 +157,78 @@ def test_scaling():
            hdr, data, StringIO())
     # unless we aren't scaling, in which case we convert the floats to
     # integers and write
-    write_data(hdr, data, S)
+    def _write_data(hdr, data, fileobj):
+        out_dtype = hdr.get_data_dtype()
+        offset = hdr.get_data_offset()
+        array_to_file(data, fileobj, out_dtype, offset)
+    _write_data(hdr, data, S)
     rdata = read_data(hdr, S)
     yield assert_true, np.allclose(data, rdata)
     # This won't work for floats that aren't close to integers
     data_p5 = data + 0.5
-    write_data(hdr, data_p5, S)
+    _write_data(hdr, data_p5, S)
     rdata = read_data(hdr, S)
     yield assert_false, np.allclose(data_p5, rdata)
 
-    
+
+@parametric
 def test_images():
     img = AnalyzeImage(None, None)
-    yield assert_equal, img.get_data(), None
-    yield assert_equal, img.get_affine(), None
-    yield assert_equal, img.get_header(), AnalyzeHeader()
+    yield assert_raises(ImageDataError, img.get_data)
+    yield assert_equal(img.get_affine(), None)
+    yield assert_equal(img.get_header(), AnalyzeHeader())
+
+
+@parametric
+def test_from_header():
+    # check from header class method.
+    klass = AnalyzeHeader
+    empty = klass.from_header()
+    yield assert_equal(klass(), empty)
+    empty = klass.from_header(None)
+    yield assert_equal(klass(), empty)
+    hdr = klass()
+    hdr.set_data_dtype(np.float64)
+    hdr.set_data_shape((1,2,3))
+    hdr.set_zooms((3.0, 2.0, 1.0))
+    copy = klass.from_header(hdr)
+    yield assert_equal(hdr, copy)
+    yield assert_false(hdr is copy)
+    class C(object):
+        def get_data_dtype(self): return np.dtype('i2')
+        def get_data_shape(self): return (5,4,3)
+        def get_zooms(self): return (10.0, 9.0, 8.0)
+    converted = klass.from_header(C())
+    yield assert_true(isinstance(converted, klass))
+    yield assert_equal(converted.get_data_dtype(), np.dtype('i2'))
+    yield assert_equal(converted.get_data_shape(), (5,4,3))
+    yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
+
+
+@parametric
+def test_slope_inter():
+    hdr = AnalyzeHeader()
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(None)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    hdr.set_slope_inter(1.0)
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+
+
+@parametric
+def test_data_default():
+    # check that the default dtype comes from the data if the header is
+    # None, and that unsupported dtypes raise an error
+    img_klass = AnalyzeImage
+    hdr_klass = AnalyzeHeader
+    data = np.arange(24, dtype=np.int32).reshape((2,3,4))
+    affine = np.eye(4)
+    img = img_klass(data, affine)
+    yield assert_equal(data.dtype, img.get_data_dtype())
+    header = hdr_klass()
+    img = img_klass(data, affine, header)
+    yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+    # analyze does not support uint32
+    data = np.arange(24, dtype=np.uint32).reshape((2,3,4))
+    yield assert_raises(HeaderDataError, img_klass, data, affine)

@@ -50,14 +50,16 @@ from nibabel import spm2analyze as spm2
 from nibabel import nifti1 as ni1
 from nibabel import minc
 # object imports
+from nibabel.fileholders import FileHolder, FileHolderError
 from nibabel.loadsave import load, save
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage
 from nibabel.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from nibabel.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-from nibabel.nifti1 import Nifti1Header, Nifti1Image
-from nibabel.minc import MincHeader, MincImage
+from nibabel.nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
+from nibabel.minc import MincImage
 from nibabel.funcs import (squeeze_image, concat_images, four_to_three,
                            as_closest_canonical)
 from nibabel.orientations import (io_orientation, orientation_affine,
                                   flip_axis, OrientationError,
                                   apply_orientation)
+from nibabel.imageclasses import class_map

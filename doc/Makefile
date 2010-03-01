@@ -22,6 +22,7 @@ help:
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  changes   to make an overview over all changed/added/deprecated items"
 	@echo "  linkcheck to check all external links for integrity"
+	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
 clean:
 	-rm -rf $(BUILDROOT)/*
@@ -69,3 +70,8 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDROOT)/linkcheck/output.txt."
+
+doctest:
+	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDROOT)/doctest
+	@echo "Testing of doctests in the sources finished, look at the " \
+	      "results in _build/doctest/output.txt."
