@@ -128,6 +128,10 @@ upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
 		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/nibabel/
 
+upload-htmldoc: htmldoc
+	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
+		web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+
 #
 # Sources
 #

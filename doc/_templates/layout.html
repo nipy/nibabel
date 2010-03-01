@@ -13,14 +13,15 @@
 {% endblock %}
 
 {% block header %}
-<div style="background-color: white; text-align: left; padding-left: 150px; padding-bottom:70px; padding-top:30px; background-image: url(_static/nipy-logo-bg-138x120.png); background-repeat: no-repeat;">
-	<h1>NiBabel</h1><h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging formats</h3>
+<div style="background-color: white; text-align: left; padding-left: 150px; padding-bottom:50px; padding-top:20px; background-image: url({{ pathto('_static/nipy-logo-bg-138x120.png',1) }}); background-repeat: no-repeat;">
+<h1>NiBabel</h1>
+<h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
 </div>
 {% endblock %}
 
 {% block sidebarsearch %}
 {{ super() }}
-<p><img src="_static/reggie.png" alt="Reggie -- the one" /></p>
+<p><img src="{{ pathto('_static/reggie.png',1) }}" alt="Reggie -- the one" /></p>
 {% endblock %}
 
 {% block relbar2 %}{% endblock %}

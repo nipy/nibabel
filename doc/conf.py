@@ -31,7 +31,6 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.pngmath',
               'sphinx.ext.inheritance_diagram',
               'numpydoc',
-              'ipython_console_highlighting',
               'only_directives',
               ]
 
@@ -48,8 +47,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'nibabel'
-copyright = u'2006, nibabel authors'
+project = u'NiBabel'
+copyright = u'2006-2010, NiBabel Authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -201,8 +200,8 @@ htmlhelp_basename = 'nibabeldoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('documentation', 'nibabel.tex', u'nibabel Documentation',
-   u'nibabel authors', 'manual'),
+  ('documentation', 'nibabel.tex', u'NiBabel Documentation',
+   u'NiBabel Authors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

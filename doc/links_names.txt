@@ -23,6 +23,7 @@
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
+.. _MIT License: http://www.opensource.org/licenses/mit-license.php
 
 .. Working process
 .. _pynifti: http://niftilib.sourceforge.net/pynifti/
@@ -100,7 +101,17 @@
 .. General information links
 .. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
 .. _`wikipedia PET`: http://en.wikipedia.org/wiki/Positron_emission_tomography
+.. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
+.. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
+.. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 
 .. Mathematical methods
 .. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
 .. _`wikipedia PCA`: http://en.wikipedia.org/wiki/Principal_component_analysis
+
+.. People
+.. _Matthew Brett: https://cirl.berkeley.edu/mb312/
+.. _Yaroslav O. Halchenko: http://www.onerussian.com
+.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
+.. _Gaël Varoquaux: http://gael-varoquaux.info/
+
