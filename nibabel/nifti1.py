@@ -761,19 +761,10 @@ class Nifti1Header(SpmAnalyzeHeader):
         freq = info & 3
         phase = (info >> 2) & 3
         slice = (info >> 4) & 3
-        if freq:
-            freq -= 1
-        else:
-            freq = None
-        if phase:
-            phase -= 1
-        else:
-            phase = None
-        if slice:
-            slice -= 1
-        else:
-            slice = None
-        return (freq, phase, slice)
+        return (freq-1 if freq else None,
+            phase-1 if phase else None,
+            slice-1 if slice else None)
+
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
