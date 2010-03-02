@@ -56,7 +56,7 @@ and class methods::
     .diagnose_binaryblock
 
 ===========================
- The Analzye header format
+ The Analyze header format
 ===========================
 
 Basic attributes of the header object are::
@@ -226,7 +226,8 @@ class AnalyzeHeader(object):
     # Copies of module-level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
-
+    # fields with recoders for their values
+    _field_recoders = {'datatype': data_type_codes}
     # default x flip
     default_x_flip = True
 
@@ -837,20 +838,41 @@ class AnalyzeHeader(object):
         summary = "%s object, endian='%s'" % (self.__class__,
                                               self.endianness)
         def _getter(obj, key):
-            # datacode has no getter, but its own representation
-            if key == 'datatype':
-                return obj._get_code_field(
-                    'label',
-                    'datatype',
-                    obj._data_type_codes)
-            # Look for any 'get_<name>' methods
             try:
-                return obj.__getattribute__('get_' + key)()
-            except (AttributeError, HeaderDataError):
+                return obj.get_field_label(key)
+            except ValueError:
                 return obj[key]
+        
         return '\n'.join(
             [summary,
              pretty_mapping(self, _getter)])
+
+    def get_field_label(self, fieldname):
+        ''' Returns label for coded field
+
+        A coded field is an int field containing codes that stand for
+        discrete values that also have string labels.
+
+        Parameters
+        ----------
+        fieldname : str
+           name of header field to get label for
+
+        Returns
+        -------
+        label : str
+           label for code value in header field `fieldname`
+
+        Examples
+        --------
+        >>> hdr = AnalyzeHeader()
+        >>> hdr.get_field_label('datatype')
+        'float32'
+        '''
+        if not fieldname in self._field_recoders:
+            raise ValueError('%s not a coded field' % fieldname)
+        code = int(self._header_data[fieldname])
+        return self._field_recoders[fieldname].label[code]
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields
@@ -1025,16 +1047,6 @@ class AnalyzeHeader(object):
             data,
             out_dtype,
             self.has_data_intercept)
-
-    def _get_code_field(self, code_repr, fieldname, recoder):
-        ''' Returns representation of field given recoder and code_repr
-        '''
-        code = int(self._header_data[fieldname])
-        if code_repr == 'code':
-            return code
-        if code_repr == 'label':
-            return recoder.label[code]
-        raise TypeError('code_repr should be "label" or "code"')
 
     @classmethod
     def _get_checks(klass):

@@ -258,7 +258,8 @@ def test_slice_times():
                         hdr.set_slice_times,
                         funny_times) # can't get single slice duration
     hdr.set_slice_times(times)
-    yield assert_equal(hdr.get_slice_code(), 'alternating decreasing')
+    yield assert_equal(hdr.get_field_label('slice_code'),
+                       'alternating decreasing')
     yield assert_equal(hdr['slice_start'], 1)
     yield assert_equal(hdr['slice_end'], 5)
     yield assert_array_almost_equal(hdr['slice_duration'], 0.1)
@@ -422,3 +423,22 @@ def test_slope_inter():
     yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
     hdr.set_slope_inter(2.2, 1.1)
     yield assert_array_almost_equal(hdr.get_slope_inter(), (2.2, 1.1))
+
+
+@parametric
+def test_recoded_fields():
+    hdr = Nifti1Header()
+    yield assert_equal(hdr.get_field_label('qform_code'), 'unknown')
+    hdr['qform_code'] = 3
+    yield assert_equal(hdr.get_field_label('qform_code'), 'talairach')
+    yield assert_equal(hdr.get_field_label('sform_code'), 'unknown')
+    hdr['sform_code'] = 3
+    yield assert_equal(hdr.get_field_label('sform_code'), 'talairach')
+    yield assert_equal(hdr.get_field_label('intent_code'), 'none')
+    hdr.set_intent('t test', (10,), name='some score')
+    yield assert_equal(hdr.get_field_label('intent_code'), 't test')
+    yield assert_equal(hdr.get_field_label('slice_code'), 'unknown')
+    hdr['slice_code'] = 4 # alternating decreasing
+    yield assert_equal(hdr.get_field_label('slice_code'),
+                       'alternating decreasing')
+
