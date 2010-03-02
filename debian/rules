@@ -12,12 +12,8 @@ clean::
 install/python-nibabel-snapshot::
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	for buildver in $(shell pyversions -vr); do \
-		if [ "$$buildver" = "2.4" ]; then \
-			echo "I: Not running unittests with Python $$buildver (tests themselves are not compatible)."; \
-		else \
-			echo "I: Running NiBabel unittests using python$$buildver"; \
-			$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
-		fi ; \
+		echo "I: Running NiBabel unittests using python$$buildver"; \
+		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
 	done
 endif
 

@@ -3,12 +3,13 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy, python-nose, python-scipy
+Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy
 Standards-Version: 3.8.4
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
 DM-Upload-Allowed: yes
+XS-Python-Version: >= 2.5
 
 Package: python-nibabel-snapshot
 Architecture: all
