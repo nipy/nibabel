@@ -11,8 +11,8 @@ general this is the problem of whether the affine should consider
 proceeding within the data down an X line as being from left to right,
 or right to left.
 
-To solve this, we have a ``default_x_flip`` flag that can be True or False.
-True means assume radiological.
+To solve this, we have a ``default_x_flip`` flag that can be True or
+False.  True means assume radiological.
 
 If the image is 3D, and the X, Y and Z zooms are x, y, and z, then::
 
@@ -139,6 +139,30 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         rexp = re.compile('^datatype +: float32', re.MULTILINE)
         yield assert_true, rexp.search(S) is not None
 
+    def test_from_header(self):
+        # check from header class method.
+        klass = self.header_class
+        empty = klass.from_header()
+        yield assert_equal, klass(), empty
+        empty = klass.from_header(None)
+        yield assert_equal, klass(), empty
+        hdr = klass()
+        hdr.set_data_dtype(np.float64)
+        hdr.set_data_shape((1,2,3))
+        hdr.set_zooms((3.0, 2.0, 1.0))
+        copy = klass.from_header(hdr)
+        yield assert_equal, hdr, copy
+        yield assert_false, hdr is copy
+        class C(object):
+            def get_data_dtype(self): return np.dtype('i2')
+            def get_data_shape(self): return (5,4,3)
+            def get_zooms(self): return (10.0, 9.0, 8.0)
+        converted = klass.from_header(C())
+        yield assert_true, isinstance(converted, klass)
+        yield assert_equal, converted.get_data_dtype(), np.dtype('i2')
+        yield assert_equal, converted.get_data_shape(), (5,4,3)
+        yield assert_equal, converted.get_zooms(), (10.0,9.0,8.0)
+        
 
 def test_best_affine():
     hdr = AnalyzeHeader()
@@ -187,32 +211,6 @@ def test_images():
     yield assert_raises(ImageDataError, img.get_data)
     yield assert_equal(img.get_affine(), None)
     yield assert_equal(img.get_header(), AnalyzeHeader())
-
-
-@parametric
-def test_from_header():
-    # check from header class method.
-    klass = AnalyzeHeader
-    empty = klass.from_header()
-    yield assert_equal(klass(), empty)
-    empty = klass.from_header(None)
-    yield assert_equal(klass(), empty)
-    hdr = klass()
-    hdr.set_data_dtype(np.float64)
-    hdr.set_data_shape((1,2,3))
-    hdr.set_zooms((3.0, 2.0, 1.0))
-    copy = klass.from_header(hdr)
-    yield assert_equal(hdr, copy)
-    yield assert_false(hdr is copy)
-    class C(object):
-        def get_data_dtype(self): return np.dtype('i2')
-        def get_data_shape(self): return (5,4,3)
-        def get_zooms(self): return (10.0, 9.0, 8.0)
-    converted = klass.from_header(C())
-    yield assert_true(isinstance(converted, klass))
-    yield assert_equal(converted.get_data_dtype(), np.dtype('i2'))
-    yield assert_equal(converted.get_data_shape(), (5,4,3))
-    yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
 
 
 @parametric

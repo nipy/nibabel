@@ -109,8 +109,13 @@ def test_sform():
     ehdr.set_sform(A, xfas['aligned'])
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
 
+
 '''
 def test_checked():
+    HC = Nifti1Header
+    def check_cf(hdr, log_level, error_level, fixed):
+        # return tests for check_fix
+        hdr = HC.from_header(hdr, 
     ehf = vn.empty_header
     ckdf = vn.checked
     sso = sys.stdout
@@ -179,6 +184,7 @@ def test_checked():
     yield assert_equal, ehc.sform_code, 0
     yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
 '''
+
     
 @parametric
 def test_dim_info():

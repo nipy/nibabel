@@ -312,7 +312,6 @@ class AnalyzeHeader(object):
                              dtype=dt,
                              buffer=binaryblock)
         self._header_data = hdr.copy()
-        self.check = check
         if check:
             self.check_fix()
         return
@@ -334,9 +333,13 @@ class AnalyzeHeader(object):
         hdr : header instance
            fresh header instance of our own class
         '''
-        # make fresh header instance
+        # own type, return copy
         if type(header) == klass:
-            return header.copy()
+            obj = header.copy()
+            if check:
+                obj.check_fix()
+            return obj
+        # not own type, make fresh header instance
         obj = klass(check=check)
         if header is None:
             return obj
