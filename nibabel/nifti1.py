@@ -30,7 +30,7 @@ header_dtd = [
     ('intent_code', 'i2'),# 68; NIFTI intent code
     ('datatype', 'i2'),   # 70; it's the datatype
     ('bitpix', 'i2'),     # 72; number of bits per voxel
-    ('slice_start', 'i2'),# 74; first slice index  
+    ('slice_start', 'i2'),# 74; first slice index
     ('pixdim', 'f4', 8),  # 76; grid spacings (units below)
     ('vox_offset', 'f4'), # 108; offset to data in image file
     ('scl_slope', 'f4'),  # 112; data scaling slope
@@ -101,7 +101,7 @@ xform_codes = Recoder(( # code, label
 
 # unit codes
 unit_codes = Recoder(( # code, label
-    (0, 'unknown'), 
+    (0, 'unknown'),
     (1, 'meter'),
     (2, 'mm'),
     (3, 'micron'),
@@ -379,7 +379,7 @@ class Nifti1Extensions(list):
             return
 
         # since we have extensions write the appropriate flag
-        fileobj.write(np.array((1,0,0,0), dtype=np.int8).tostring())
+        fileobj.write(np.array((1, 0, 0, 0), dtype=np.int8).tostring())
         # and now each extension
         for e in self:
             e.write_to(fileobj)
@@ -466,10 +466,13 @@ class Nifti1Header(SpmAnalyzeHeader):
     # Copies of module level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
-    _xform_codes = xform_codes
-    _unit_codes = unit_codes
-    _intent_codes = intent_codes
-    _slice_order_codes = slice_order_codes
+
+    # fields with recoders for their values
+    _field_recoders = {'datatype': data_type_codes,
+                       'qform_code': xform_codes,
+                       'sform_code': xform_codes,
+                       'intent_code': intent_codes,
+                       'slice_code': slice_order_codes}
 
     # data scaling capabilities
     has_data_slope = True
@@ -510,14 +513,14 @@ class Nifti1Header(SpmAnalyzeHeader):
         if np.any(vox) < 0:
             raise HeaderDataError('pixdims[1,2,3] should be positive')
         qfac = hdr['pixdim'][0]
-        if qfac not in (-1,1):
+        if qfac not in (-1, 1):
             raise HeaderDataError('qfac (pixdim[0]) should be 1 or -1')
         vox[-1] *= qfac
         S = np.diag(vox)
         M = np.dot(R, S)
         out = np.eye(4)
-        out[0:3,0:3] = M
-        out[0:3,3] = [hdr['qoffset_x'], hdr['qoffset_y'], hdr['qoffset_z']]
+        out[0:3, 0:3] = M
+        out[0:3, 3] = [hdr['qoffset_x'], hdr['qoffset_y'], hdr['qoffset_z']]
         return out
 
     def set_qform(self, affine, code=None):
@@ -572,12 +575,12 @@ class Nifti1Header(SpmAnalyzeHeader):
             if code == 0:
                 hdr['qform_code'] = 1
         else:
-            code = self._xform_codes[code]
+            code = self._field_recoders['qform_code'][code]
             hdr['qform_code'] = code
-        if not affine.shape == (4,4):
+        if not affine.shape == (4, 4):
             raise TypeError('Need 4x4 affine as input')
-        trans = affine[:3,3]
-        RZS = affine[:3,:3]
+        trans = affine[:3, 3]
+        RZS = affine[:3, :3]
         zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
         R = RZS / zooms
         # Set qfac to make R determinant positive
@@ -585,7 +588,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             qfac = 1
         else:
             qfac = -1
-            R[:,-1] *= -1
+            R[:, -1] *= -1
         # Make R orthogonal (to allow quaternion representation)
         # The orthogonal representation enforces orthogonal axes
         # (a subtle requirement of the NIFTI format qform transform)
@@ -598,16 +601,16 @@ class Nifti1Header(SpmAnalyzeHeader):
         # Set into header
         hdr['qoffset_x'], hdr['qoffset_y'], hdr['qoffset_z'] = trans
         hdr['pixdim'][0] = qfac
-        hdr['pixdim'][1:4] = zooms 
+        hdr['pixdim'][1:4] = zooms
         hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d'] = quat[1:]
 
     def get_sform(self):
         ''' Return sform 4x4 affine matrix from header '''
         hdr = self._header_data
         out = np.eye(4)
-        out[0,:] = hdr['srow_x'][:]
-        out[1,:] = hdr['srow_y'][:]
-        out[2,:] = hdr['srow_z'][:]
+        out[0, :] = hdr['srow_x'][:]
+        out[1, :] = hdr['srow_y'][:]
+        out[2, :] = hdr['srow_z'][:]
         return out
 
     def set_sform(self, affine, code=None):
@@ -653,63 +656,11 @@ class Nifti1Header(SpmAnalyzeHeader):
             if code == 0:
                 hdr['sform_code'] = 1
         else:
-            code = self._xform_codes[code]
+            code = self._field_recoders['sform_code'][code]
             hdr['sform_code'] = code
-        hdr['srow_x'][:] = affine[0,:]
-        hdr['srow_y'][:] = affine[1,:]
-        hdr['srow_z'][:] = affine[2,:]
-
-    def get_qform_code(self, code_repr='label'):
-        ''' Return representation of qform code
-
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of intent code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        qform_code : string or integer
-            string label for qform code or code
-
-        Examples
-        --------
-        >>> hdr = Nifti1Header()
-        >>> hdr['qform_code'] = 3
-        >>> hdr.get_qform_code()
-        'talairach'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'qform_code',
-            self._xform_codes)
-
-    def get_sform_code(self, code_repr='label'):
-        ''' Return representation of sform code
-
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of intent code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        sform_code : string or integer
-            string label for sform code or code
-
-        Examples
-        --------
-        >>> hdr = Nifti1Header()
-        >>> hdr['sform_code'] = 3
-        >>> hdr.get_sform_code()
-        'talairach'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'sform_code',
-            self._xform_codes)
+        hdr['srow_x'][:] = affine[0, :]
+        hdr['srow_y'][:] = affine[1, :]
+        hdr['srow_z'][:] = affine[2, :]
 
     def get_slope_inter(self):
         ''' Get data scaling (slope) and DC offset (intercept) from header data
@@ -871,32 +822,6 @@ class Nifti1Header(SpmAnalyzeHeader):
             info = info | (((slice+1) & 3) << 4)
         self._header_data['dim_info'] = info
 
-    def get_intent_code(self, code_repr='label'):
-        ''' Return representation of intent code
-
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of intent code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        intent_code : string or integer
-            string label for intent code or code
-
-        Examples
-        --------
-        >>> hdr = Nifti1Header()
-        >>> hdr.set_intent('t test', (10,), name='some score')
-        >>> hdr.get_intent_code()
-        't test'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'intent_code',
-            self._intent_codes)
-
     def get_intent(self, code_repr='label'):
         ''' Get intent code, parameters and name
 
@@ -925,11 +850,17 @@ class Nifti1Header(SpmAnalyzeHeader):
         (3, (10.0,), 'some score')
         '''
         hdr = self._header_data
+        recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
-        recode = self.get_intent_code(code_repr)
-        n_params = len(self._intent_codes.parameters[code])
+        if code_repr == 'code':
+            label = code
+        elif code_repr == 'label':
+            label = recoder.label[code]
+        else:
+            raise TypeError('repr can be "label" or "code"')
+        n_params = len(recoder.parameters[code])
         params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
-        return recode, tuple(params), str(hdr['intent_name'])
+        return label, tuple(params), str(hdr['intent_name'])
 
     def set_intent(self, code, params=(), name=''):
         ''' Set the intent code, parameters and name
@@ -1032,32 +963,6 @@ class Nifti1Header(SpmAnalyzeHeader):
                                   'for duration to be valid')
         self._header_data['slice_duration'] = duration
 
-    def get_slice_code(self, code_repr='label'):
-        ''' Return representation of slice order code
-
-        Parameters
-        ----------
-        code_repr : string
-           string giving output form of slice order code representation.
-           Default is 'label'; use 'code' for integer representation.
-
-        Returns
-        -------
-        slice_code : string or integer
-            string label for slice ordering code or code
-
-        Examples
-        --------
-        >>> hdr = Nifti1Header()
-        >>> hdr['slice_code'] = 4 # alternating decreasing
-        >>> hdr.get_slice_code()
-        'alternating decreasing'
-        '''
-        return self._get_code_field(
-            code_repr,
-            'slice_code',
-            self._slice_order_codes)
-
     def get_n_slices(self):
         ''' Return the number of slices
         '''
@@ -1129,7 +1034,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._header_data
         slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
-        slabel = self.get_slice_code()
+        slabel = self.get_field_label('slice_code')
         if slabel == 'unknown':
             raise HeaderDataError('Cannot get slice times when '
                                   'Slice code is "unknown"')
@@ -1165,7 +1070,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_slice_duration(0.1)
         >>> times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
         >>> hdr.set_slice_times(times)
-        >>> hdr.get_slice_code()
+        >>> hdr.get_field_label('slice_code')
         'alternating decreasing'
         >>> int(hdr['slice_start'])
         1
@@ -1205,7 +1110,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         st_order = np.round(np.array(timed) / duration)
         # Check if slice times fit known schemes
         n_timed = len(timed)
-        labels = self._slice_order_codes.value_set('label')
+        so_recoder = self._field_recoders['slice_code']
+        labels = so_recoder.value_set('label')
         labels.remove('unknown')
         for label in labels:
             if np.all(st_order == self._slice_time_order(
@@ -1228,13 +1134,15 @@ class Nifti1Header(SpmAnalyzeHeader):
         elif slabel == 'sequential decreasing':
             sp_ind_time_order = range(n_slices)[::-1]
         elif slabel == 'alternating increasing':
-            sp_ind_time_order = range(0,n_slices,2) + range(1, n_slices, 2)
+            sp_ind_time_order = range(0, n_slices, 2) + range(1, n_slices, 2)
         elif slabel == 'alternating decreasing':
-            sp_ind_time_order = range(n_slices-1,-1,-2) + range(n_slices-2,-1,-2)
+            sp_ind_time_order = range(n_slices - 1, -1, -2) \
+                                + range(n_slices -2 , -1, -2)
         elif slabel == 'alternating increasing 2':
-            sp_ind_time_order = range(1,n_slices,2) + range(0, n_slices, 2)
+            sp_ind_time_order = range(1, n_slices, 2) + range(0, n_slices, 2)
         elif slabel == 'alternating decreasing 2':
-            sp_ind_time_order = range(n_slices-2,-1,-2) + range(n_slices-1,-1,-2)
+            sp_ind_time_order = range(n_slices - 2, -1, -2) \
+                                + range(n_slices - 1, -1, -2)
         else:
             raise HeaderDataError('We do not handle slice ordering "%s"'
                                   % slabel)
@@ -1319,7 +1227,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             ret.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
             if fix:
-                hdr['vox_offset'] = 352                
+                hdr['vox_offset'] = 352
                 ret.fix_msg = 'setting to minimum value of 352'
             else:
                 ret.problem_level = 50
@@ -1333,27 +1241,23 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def _chk_qform_code(klass, hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
-        code = int(hdr['qform_code'])
-        if int(hdr['qform_code']) in klass._xform_codes.value_set():
-            return ret
-        ret.problem_msg = 'qform code %d not valid' % code
-        if fix:
-            hdr['qform_code'] = 0
-            ret.fix_msg = 'setting to 0'
-        else:
-            ret.problem_level = 30
-        return ret
+        return klass._chk_xform_code('qform_code', hdr, fix)
 
     @classmethod
     def _chk_sform_code(klass, hdr, fix=True):
+        return klass._chk_xform_code('sform_code', hdr, fix)
+
+    @classmethod
+    def _chk_xform_code(klass, code_type, hdr, fix):
+        # utility method for sform and qform codes
         ret = Report(hdr, HeaderDataError)
-        code = int(hdr['sform_code'])
-        if int(hdr['sform_code']) in klass._xform_codes.value_set():
+        code = int(hdr[code_type])
+        recoder = klass._field_recoders[code_type]
+        if code in recoder.value_set():
             return ret
-        ret.problem_msg = 'sform code %d not valid' % code
+        ret.problem_msg = '%s %d not valid' % (code_type, code)
         if fix:
-            hdr['sform_code'] = 0
+            hdr[code_type] = 0
             ret.fix_msg = 'setting to 0'
         else:
             ret.problem_level = 30
@@ -1362,7 +1266,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 class Nifti1Pair(analyze.AnalyzeImage):
     _header_class = Nifti1Header
-    
+
     @classmethod
     def from_file_map(klass, file_map):
         hdrf, imgf = klass._get_open_files(file_map, 'rb')
@@ -1394,7 +1298,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                                               inter)
         if not self.extra.has_key('extensions'):
             # no extensions: be nice and write appropriate flag
-            header_file.write(np.array((0,0,0,0), dtype=np.int8).tostring())
+            header_file.write(np.array((0, 0, 0, 0), dtype=np.int8).tostring())
         else:
             self.extra['extensions'].write_to(header_file)
 
@@ -1433,7 +1337,7 @@ class Nifti1Image(Nifti1Pair):
     def _close_filenames(self, file_map, hdrf, imgf):
         if file_map['image'].fileobj is None: # was filename
             imgf.close()
-    
+
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Image, self)._write_header(header_file,
                                                header,

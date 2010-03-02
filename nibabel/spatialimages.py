@@ -9,7 +9,7 @@ container for any other metadata.
 It has attributes:
 
    * extra
-    
+
 methods:
 
    * .get_data()
@@ -136,7 +136,7 @@ class HeaderTypeError(Exception):
 class Header(object):
     ''' Template class to implement header protocol '''
     default_x_flip = True
-    
+
     def __init__(self,
                  data_dtype=np.float32,
                  shape=(0,),
@@ -171,12 +171,12 @@ class Header(object):
 
     def __ne__(self, other):
         return not self == other
-    
+
     def copy(self):
         ''' Copy object to independent representation
 
         The copy should not be affected by any changes to the original
-        object. 
+        object.
         '''
         return self.__class__(self._dtype, self._shape, self._zooms)
 
@@ -199,7 +199,7 @@ class Header(object):
         # set any unset zooms to 1.0
         nzs = min(len(self._zooms), ndim)
         self._zooms = self._zooms[:nzs] + (1.0,) * (ndim-nzs)
-        
+
     def get_zooms(self):
         return self._zooms
 
@@ -248,7 +248,7 @@ class SpatialImage(object):
     _header_class = Header
     files_types = (('image', None),)
     _compressed_exts = ()
-    
+
     ''' Template class for images '''
     def __init__(self, data, affine, header=None, extra=None, file_map=None):
         ''' Initialize image
@@ -281,7 +281,7 @@ class SpatialImage(object):
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
-        
+
     def __str__(self):
         shape = self.get_shape()
         affine = self.get_affine()
@@ -305,7 +305,7 @@ class SpatialImage(object):
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()
-    
+
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
@@ -329,21 +329,21 @@ class SpatialImage(object):
            If an image may have several filenames assoctiated with it
            (e.g Analyze ``.img, .hdr`` pair) then we return the more
            characteristic filename (the ``.img`` filename in the case of
-           Analyze') 
+           Analyze')
         '''
         # which filename is returned depends on the ordering of the
         # 'files_types' class attribute - we return the name
         # corresponding to the first in that tuple
         characteristic_type = self.files_types[0][0]
         return self.file_map[characteristic_type].filename
-        
+
     def set_filename(self, filename):
         ''' Sets the files in the object from a given filename
 
         The different image formats may check whether the filename has
         an extension characteristic of the format, and raise an error if
-        not. 
-        
+        not.
+
         Parameters
         ----------
         filename : str
@@ -358,7 +358,7 @@ class SpatialImage(object):
     def from_filename(klass, filename):
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map)
-    
+
     @classmethod
     def from_filespec(klass, img, filespec):
         warnings.warn('``from_filespec`` class method is deprecated\n'
@@ -444,7 +444,7 @@ class SpatialImage(object):
            mapping with keys corresponding to image file types (such as
            'image', 'header' etc, depending on image class) and values
            that are filenames or file-like.  Default is None
-           
+
         Returns
         -------
         file_map : dict
@@ -494,7 +494,7 @@ class SpatialImage(object):
         '''
         img = klass.from_image(img)
         img.to_filename(filename)
-        
+
     @classmethod
     def from_image(klass, img):
         ''' Class method to create new instance of own class from `img`
@@ -515,4 +515,4 @@ class SpatialImage(object):
                      img.get_affine(),
                      klass._header_class.from_header(img.get_header()),
                      extra=img.extra.copy())
-    
+

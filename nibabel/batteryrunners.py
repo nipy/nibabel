@@ -40,25 +40,25 @@ class Report(object):
            Error to raise if raising error for this check.  If None,
            no error can be raised for this check (it was probably
            normal).
-	problem_level : int
+        problem_level : int
            level of problem.  From 0 (no problem) to 50 (severe
            problem).  If the report originates from a fix, then this
            is the level of the problem remaining after the fix.
            Default is 0
-	problem_msg : string
+        problem_msg : string
            String describing problem detected. Default is ''
-	fix_msg : string
+        fix_msg : string
            String describing any fix applied.  Default is ''.
 
-	Examples
-	--------
+        Examples
+        --------
         >>> rep = Report()
         >>> rep.problem_level
         0
         >>> rep = Report((), TypeError, 10)
         >>> rep.problem_level
         10
-	   
+
         '''
         self.obj = obj
         self.error = error

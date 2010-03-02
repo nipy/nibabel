@@ -22,7 +22,7 @@ class_map = {
                     'rw': True},
     'nifti_pair': {'class': Nifti1Pair,
                    'ext': '.img',
-                    'has_affine': True,                   
+                    'has_affine': True,
                    'rw': True},
     'nifti_single': {'class': Nifti1Image,
                      'ext': '.nii',

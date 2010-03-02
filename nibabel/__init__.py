@@ -6,35 +6,35 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""This module provides Python bindings to the NIfTI data format.
+"""This package provides read and write access to some common
+neuroimaging file formats.
 
-The NiBabel module is a Python interface to the NIfTI I/O libraries. Using
-NiBabel, one can easily read and write NIfTI and ANALYZE images from within
-Python. The :class:`~nifti.image.NiftiImage` class provides pythonic
-access to the full header information and for a maximum of interoperability the
-image data is made available via NumPy arrays.
+The various image format classes give full or selective access to header
+(meta) information and access to the image data is made available via
+NumPy arrays.
 
-===============================
- nibabel python implementation
-===============================
+============
+ Quickstart
+============
 
-Quickstart::
+::
 
-   import nibabel
+   import nibabel as nib
 
-   img1 = nibabel.load('my_file.nii')
-   img2 = nibabel.load('other_file.nii.gz')
-   img3 = nibabel.load('spm_file.img')
+   img1 = nib.load('my_file.nii')
+   img2 = nib.load('other_file.nii.gz')
+   img3 = nib.load('spm_file.img')
 
    data = img1.get_data()
    affine = img1.get_affine()
 
    print img1
 
-   nibabel.save(img1, 'my_file_copy.nii.gz')
+   nib.save(img1, 'my_file_copy.nii.gz')
 
-   new_image = nibabel.Nifti1Image(data, affine)
-   nibabel.save(new_image, 'new_image.nii.gz')
+   new_image = nib.Nifti1Image(data, affine)
+   nib.save(new_image, 'new_image.nii.gz')
+
 """
 
 __docformat__ = 'restructuredtext'
@@ -62,4 +62,4 @@ from nibabel.funcs import (squeeze_image, concat_images, four_to_three,
 from nibabel.orientations import (io_orientation, orientation_affine,
                                   flip_axis, OrientationError,
                                   apply_orientation)
-from nibabel.imageclasses import class_map
+from nibabel.imageclasses import class_map, ext_map

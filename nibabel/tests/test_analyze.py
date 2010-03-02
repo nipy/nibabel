@@ -30,6 +30,7 @@ so the saved zoom will not constrain the affine.
 
 import os
 from StringIO import StringIO
+import re
 
 import numpy as np
 
@@ -128,6 +129,15 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         yield assert_false, hdr.default_x_flip
         aff[0]*=-1
         yield assert_array_equal, hdr.get_base_affine(), aff
+
+    def test_str(self):
+        hdr = self.header_class()
+        # Check something returns from str
+        S = hdr.__str__()
+        yield assert_true, len(S)>0
+        # check the datacode recoding
+        rexp = re.compile('^datatype +: float32', re.MULTILINE)
+        yield assert_true, rexp.search(S) is not None
 
 
 def test_best_affine():
