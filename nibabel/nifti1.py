@@ -850,9 +850,14 @@ class Nifti1Header(SpmAnalyzeHeader):
         (3, (10.0,), 'some score')
         '''
         hdr = self._header_data
-        code = int(hdr['intent_code'])
         recoder = self._field_recoders['intent_code']
-        label = recoder.label[code]
+        code = int(hdr['intent_code'])
+        if code_repr == 'code':
+            label = code
+        elif code_repr == 'label':
+            label = recoder.label[code]
+        else:
+            raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code])
         params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
         return label, tuple(params), str(hdr['intent_name'])
