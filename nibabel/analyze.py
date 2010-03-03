@@ -1086,6 +1086,8 @@ class AnalyzeHeader(object):
             if dtype.type is np.void:
                 ret.problem_level = 40
                 ret.problem_msg = 'data code %d not supported' % code
+            else:
+                return ret
         if fix:
             ret.fix_msg = 'not attempting fix'
         return ret

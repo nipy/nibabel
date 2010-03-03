@@ -1,4 +1,98 @@
-''' Battery runner classes and Report classes '''
+''' Battery runner classes and Report classes
+
+These classes / objects are for generic checking / fixing batteries
+
+The class will run a series of checks.
+
+The checks may run fixes on the passed object, but if so the object has
+to be mutable.
+
+See below for what ``checks`` are.
+
+To run checks only, and return problem report objects::
+
+   btrun = BatteryRunner(checks)
+   report_seq =  btrun.check_only(obj)
+
+To run checks and fixes, returning fixed object, problem report object,
+with possible fix messages::
+
+   fixed_obj, report_seq = btrun.check_fix(obj)
+
+Reports are iterable things, where the elements in the iterations are
+``Problems``, with attributes ``obj``, ``error``, ``problem_level``,
+``problem_msg``, and possibly empty ``fix_msg``.  The ``problem_level``
+is an integer, giving the level of problem, from 0 (no problem) to 50
+(very bad problem).  The levels follow the log levels from the logging
+module.  The ``error`` can be one of ``None`` if no error to suggest, or
+an Exception class that the user might consider raising for this
+sitation.  The ``problem_msg`` and ``fix_msg`` are human readable
+strings that should explain what happened.
+
+The checks are a sequence of callables, looking like this::
+
+   report = chk(obj, fix=False)
+
+or::
+
+   report_seq = chk(obj, fix=True)
+
+For example, for the Analyze header, we need to check the datatype::
+
+    def chk_datatype(hdr, fix=True):
+        ret = Report(hdr, HeaderDataError)
+        code = int(hdr['datatype'])
+        try:
+            dtype = AnalyzeHeader._data_type_codes.dtype[code]
+        except KeyError:
+            ret.problem_level = 40
+            ret.problem_msg = 'data code not recognized'
+        else:
+            if dtype.type is np.void:
+                ret.problem_level = 40
+                ret.problem_msg = 'data code not supported'
+            else:
+                return ret
+        if fix:
+            ret.fix_problem_msg = 'not attempting fix'
+        return ret
+
+    # or the bitpix
+
+    def chk_bitpix(hdr, fix=True):
+        ret = Report(hdr, HeaderDataError)
+        code = int(hdr['datatype'])
+        try:
+            dt = AnalyzeHeader._data_type_codes.dtype[code]
+        except KeyError:
+            ret.problem_level = 10
+            ret.problem_msg = 'no valid datatype to fix bitpix'
+        bitpix = dt.itemsize * 8
+        ret = Report(hdr)
+        if bitpix == hdr['bitpix']:
+            return ret
+        ret.problem_level = 10
+        ret.problem_msg = 'bitpix does not match datatype')
+        if not fix:
+            return ret
+        hdr['bitpix'] = bitpix # inplace modification
+        ret.fix_msg = 'setting bitpix to match datatype'
+        return ret
+
+    # or the pixdims
+
+    def chk_pixdims(hdr, fix=True):
+        ret = Report(hdr, HeaderDataError)
+        if not np.any(hdr['pixdim'][1:4] < 0):
+            return ret
+        ret.problem_level = 40
+        ret.problem_msg = 'pixdim[1,2,3] should be positive'
+        if fix:
+            hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
+            ret.fix_msg = 'setting to abs of pixdim values'
+        return ret
+
+'''
 
 class BatteryRunner(object):
 
@@ -120,11 +214,10 @@ class Report(object):
         error_level : int, optional
            If ``self.problem_level`` >= `error_level`, raise error
         '''
+        logger.log(self.problem_level, self.message)
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
-                logger.log(self.problem_level, self.problem_msg)
                 raise self.error(self.problem_msg)
-        logger.log(self.problem_level, self.message)
 
     def write_raise(self, stream, error_level=40, log_level=30):
         if self.problem_level >= log_level:
