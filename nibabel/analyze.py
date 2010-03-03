@@ -1117,13 +1117,31 @@ class AnalyzeHeader(object):
     @staticmethod
     def _chk_pixdims(hdr, fix=True):
         ret = Report(hdr, HeaderDataError)
-        if not np.any(hdr['pixdim'][1:4] < 0):
+        pixdims = hdr['pixdim']
+        spat_dims = pixdims[1:4]
+        if not np.any(spat_dims <= 0):
             return ret
-        ret.problem_level = 35
-        ret.problem_msg = 'pixdim[1,2,3] should be positive'
+        neg_dims = spat_dims < 0
+        zero_dims = spat_dims == 0
+        pmsgs = []
+        fmsgs = []
+        if np.any(zero_dims):
+            level = 30
+            pmsgs.append('pixdim[1,2,3] should be non-zero')
+            if fix:
+                spat_dims[zero_dims] = 1
+                fmsgs.append('setting 0 dims to 1')
+        if np.any(neg_dims):
+            level = 35
+            pmsgs.append('pixdim[1,2,3] should be positive')
+            if fix:
+                spat_dims = np.abs(spat_dims)
+                fmsgs.append('setting to abs of pixdim values')
+        ret.problem_level = level
+        ret.problem_msg = ' and '.join(pmsgs)
         if fix:
-            hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
-            ret.fix_msg = 'setting to abs of pixdim values'
+            pixdims[1:4] = spat_dims
+            ret.fix_msg = ' and '.join(fmsgs)
         return ret
 
 

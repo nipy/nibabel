@@ -162,6 +162,25 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         yield assert_equal(message, 'pixdim[1,2,3] should be positive; '
                            'setting to abs of pixdim values')
         yield assert_raises(*raiser)
+        hdr = HC()
+        hdr['pixdim'][1] = 0 # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['pixdim'][1], 1)
+        yield assert_equal(message, 'pixdim[1,2,3] should be '
+                           'non-zero; setting 0 dims to 1')
+        yield assert_raises(*raiser)
+        # both
+        hdr = HC()
+        hdr['pixdim'][1] = 0 # severity 30
+        hdr['pixdim'][2] = -2 # severity 35
+        fhdr, message, raiser = _log_chk(hdr, 35)
+        yield assert_equal(fhdr['pixdim'][1], 1)
+        yield assert_equal(fhdr['pixdim'][2], 2)
+        yield assert_equal(message, 'pixdim[1,2,3] should be '
+                           'non-zero and pixdim[1,2,3] should '
+                           'be positive; setting 0 dims to 1 '
+                           'and setting to abs of pixdim values')
+        yield assert_raises(*raiser)
 
     def test_datatype(self):
         ehdr = self.header_class()
