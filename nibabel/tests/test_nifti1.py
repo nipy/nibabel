@@ -14,15 +14,15 @@ from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_false, assert_equal, \
-    assert_raises, ok_
+    assert_raises
 
 from nibabel.testing import parametric, data_path
 
-from test_spm2analyze import TestSpm2AnalyzeHeader as _TSAH
-from test_analyze import TestAnalyzeHeader
+import test_analyze as tana
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
+
 
 # Example transformation matrix
 R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]] # rotation matrix
@@ -33,13 +33,13 @@ A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
 
-class TestNiftiHeader(_TSAH):
+class TestNiftiHeader(tana.TestAnalyzeHeader):
     header_class = Nifti1Header
     example_file = header_file
 
     def test_empty(self):
         hdr = self.header_class()
-        for tests in TestAnalyzeHeader.test_empty(self):
+        for tests in tana.TestAnalyzeHeader.test_empty(self):
             yield tests
         yield assert_equal(hdr['magic'], 'n+1')
         yield assert_equal(hdr['scl_slope'], 1)
@@ -50,6 +50,12 @@ class TestNiftiHeader(_TSAH):
         yield assert_equal(hdr.endianness, '<')
         yield assert_equal(hdr['magic'], 'ni1')
         yield assert_equal(hdr['sizeof_hdr'], 348)
+
+
+class TestNifti1Image(tana.AnalyzeImage):
+    # class for testing images
+    image_class = Nifti1Image
+    header_class = Nifti1Header
 
 
 def test_datatypes():
@@ -220,7 +226,8 @@ def test_slice_times():
     #The following examples are from the nifti1.h documentation.
     hdr['slice_code'] = slice_order_codes['sequential increasing']
     yield assert_equal(_print_me(hdr.get_slice_times()), 
-                       ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
+                       ['0.0', '0.1', '0.2', '0.3', '0.4',
+                        '0.5', '0.6'])
     hdr['slice_start'] = 1
     hdr['slice_end'] = 5
     yield assert_equal(_print_me(hdr.get_slice_times()),
@@ -371,6 +378,7 @@ def test_nifti1_images():
             yield assert_equal(img3.get_header(), img.get_header())
         finally:
             os.unlink(fname)
+
 
 @parametric
 def test_extension_basics():

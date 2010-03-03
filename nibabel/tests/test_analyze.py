@@ -45,7 +45,7 @@ from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage
 from nibabel.header_ufuncs import read_data, write_scaled_data
-from nibabel.testing import parametric, data_path
+from nibabel.testing import parametric, data_path, ParametricTestCase
 
 from test_binary import _TestBinaryHeader, _write_data
 
@@ -166,6 +166,36 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         yield assert_equal(converted.get_data_dtype(), np.dtype('i2'))
         yield assert_equal(converted.get_data_shape(), (5,4,3))
         yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
+
+
+class TestAnalyzeImage(ParametricTestCase):
+    # class for testing images
+    image_class = AnalyzeImage
+    header_class = AnalyzeHeader
+    
+    def test_images(self):
+        img = self.image_class(None, None)
+        yield assert_raises(ImageDataError, img.get_data)
+        yield assert_equal(img.get_affine(), None)
+        yield assert_equal(img.get_header(), self.header_class())
+
+    def test_data_default(self):
+        # check that the default dtype comes from the data if the header
+        # is None, and that unsupported dtypes raise an error
+        img_klass = self.image_class
+        hdr_klass = self.header_class
+        data = np.arange(24, dtype=np.int32).reshape((2,3,4))
+        affine = np.eye(4)
+        img = img_klass(data, affine)
+        yield assert_equal(data.dtype, img.get_data_dtype())
+        header = hdr_klass()
+        img = img_klass(data, affine, header)
+        yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+        # analyze does not support uint32
+        data = np.arange(24, dtype=np.uint32).reshape((2,3,4))
+        yield assert_raises(HeaderDataError, img_klass, data, affine)
+
+
         
 
 @parametric
@@ -209,14 +239,6 @@ def test_scaling():
 
 
 @parametric
-def test_images():
-    img = AnalyzeImage(None, None)
-    yield assert_raises(ImageDataError, img.get_data)
-    yield assert_equal(img.get_affine(), None)
-    yield assert_equal(img.get_header(), AnalyzeHeader())
-
-
-@parametric
 def test_slope_inter():
     hdr = AnalyzeHeader()
     yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
@@ -227,19 +249,3 @@ def test_slope_inter():
     yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
 
 
-@parametric
-def test_data_default():
-    # check that the default dtype comes from the data if the header is
-    # None, and that unsupported dtypes raise an error
-    img_klass = AnalyzeImage
-    hdr_klass = AnalyzeHeader
-    data = np.arange(24, dtype=np.int32).reshape((2,3,4))
-    affine = np.eye(4)
-    img = img_klass(data, affine)
-    yield assert_equal(data.dtype, img.get_data_dtype())
-    header = hdr_klass()
-    img = img_klass(data, affine, header)
-    yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
-    # analyze does not support uint32
-    data = np.arange(24, dtype=np.uint32).reshape((2,3,4))
-    yield assert_raises(HeaderDataError, img_klass, data, affine)

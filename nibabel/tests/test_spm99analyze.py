@@ -7,14 +7,16 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.header_ufuncs import read_data, \
     write_scaled_data
 
-from nibabel.spm99analyze import Spm99AnalyzeHeader, HeaderTypeError
+from nibabel.spm99analyze import Spm99AnalyzeHeader, \
+    Spm99AnalyzeImage, HeaderTypeError
 
 from nibabel.testing import assert_equal, assert_true, assert_false, \
      assert_raises, parametric
 
-from test_analyze import TestAnalyzeHeader as _TAH
+import test_analyze
 
-class TestSpm99AnalyzeHeader(_TAH):
+
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
     header_class = Spm99AnalyzeHeader
 
     def test_empty(self):
@@ -37,6 +39,12 @@ class TestSpm99AnalyzeHeader(_TAH):
         data_back2 = read_data(hdr, S3)
         yield assert_array_equal(data_back, data_back2, 4)
 
+
+class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
+    # class for testing images
+    image_class = Spm99AnalyzeImage
+    header_class = Spm99AnalyzeHeader
+    
 
 @parametric
 def test_checks():
