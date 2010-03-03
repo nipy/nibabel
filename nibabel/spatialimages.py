@@ -245,7 +245,7 @@ class ImageFileError(Exception):
 
 
 class SpatialImage(object):
-    _header_class = Header
+    header_class = Header
     files_types = (('image', None),)
     _compressed_exts = ()
 
@@ -274,7 +274,7 @@ class SpatialImage(object):
         if extra is None:
             extra = {}
         self.extra = extra
-        self._header = self._header_class.from_header(header)
+        self._header = self.header_class.from_header(header)
         # if header not specified, get data type from input array
         if header is None and hasattr(data, 'dtype'):
             self._header.set_data_dtype(data.dtype)
@@ -513,6 +513,6 @@ class SpatialImage(object):
         '''
         return klass(img.get_data(),
                      img.get_affine(),
-                     klass._header_class.from_header(img.get_header()),
+                     klass.header_class.from_header(img.get_header()),
                      extra=img.extra.copy())
 

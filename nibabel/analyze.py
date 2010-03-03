@@ -1130,7 +1130,7 @@ class AnalyzeHeader(object):
 
 
 class AnalyzeImage(SpatialImage):
-    _header_class = AnalyzeHeader
+    header_class = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
@@ -1159,7 +1159,7 @@ class AnalyzeImage(SpatialImage):
         We use a proxy to implement the caching of the data read, and
         for the data shape.
         '''
-        data_hdr  = klass._header_class.from_header(header)
+        data_hdr  = klass.header_class.from_header(header)
         data = klass.ImageArrayProxy(file_like, data_hdr)
         return klass(data, affine, header, extra, file_map)
 
@@ -1249,7 +1249,7 @@ class AnalyzeImage(SpatialImage):
         ''' class method to create image from mapping in `file_map ``
         '''
         hdrf, imgf = klass._get_open_files(file_map, 'rb')
-        header = klass._header_class.from_fileobj(hdrf)
+        header = klass.header_class.from_fileobj(hdrf)
         affine = header.get_best_affine()
         return klass.from_data_file(imgf,
                                     affine,

@@ -231,7 +231,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
-    _header_class = Spm99AnalyzeHeader
+    header_class = Spm99AnalyzeHeader
     files_types = (('image', '.img'),
                    ('header', '.hdr'),
                    ('mat','.mat'))
