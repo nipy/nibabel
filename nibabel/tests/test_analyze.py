@@ -171,19 +171,19 @@ class TestAnalyzeHeader(_TestBinaryHeader):
 class TestAnalyzeImage(ParametricTestCase):
     # class for testing images
     image_class = AnalyzeImage
-    header_class = AnalyzeHeader
     
     def test_images(self):
         img = self.image_class(None, None)
         yield assert_raises(ImageDataError, img.get_data)
         yield assert_equal(img.get_affine(), None)
-        yield assert_equal(img.get_header(), self.header_class())
+        yield assert_equal(img.get_header(),
+                           self.image_class.header_class())
 
     def test_data_default(self):
         # check that the default dtype comes from the data if the header
         # is None, and that unsupported dtypes raise an error
         img_klass = self.image_class
-        hdr_klass = self.header_class
+        hdr_klass = self.image_class.header_class
         data = np.arange(24, dtype=np.int32).reshape((2,3,4))
         affine = np.eye(4)
         img = img_klass(data, affine)

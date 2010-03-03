@@ -11,7 +11,6 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
 class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):
     # class for testing images
     image_class = Spm2AnalyzeImage
-    header_class = Spm2AnalyzeHeader
     
 
 def test_origin_affine():

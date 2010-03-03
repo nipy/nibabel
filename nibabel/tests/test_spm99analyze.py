@@ -43,7 +43,6 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images
     image_class = Spm99AnalyzeImage
-    header_class = Spm99AnalyzeHeader
     
 
 @parametric

@@ -55,7 +55,6 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
 class TestNifti1Image(tana.AnalyzeImage):
     # class for testing images
     image_class = Nifti1Image
-    header_class = Nifti1Header
 
 
 def test_datatypes():
