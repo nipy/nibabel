@@ -765,7 +765,6 @@ class Nifti1Header(SpmAnalyzeHeader):
             phase-1 if phase else None,
             slice-1 if slice else None)
 
-
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
 
@@ -1139,6 +1138,12 @@ class Nifti1Header(SpmAnalyzeHeader):
                                   % slabel)
         return np.argsort(sp_ind_time_order)
 
+    def _set_format_specifics(self):
+        ''' Utility routine to set format specific header stuff '''
+        self._header_data['magic'] = 'n+1'
+        if self._header_data['vox_offset'] < 352:
+            self._header_data['vox_offset'] = 352
+
     ''' Checks only below here '''
 
     @classmethod
@@ -1250,8 +1255,23 @@ class Nifti1Header(SpmAnalyzeHeader):
         return ret
 
 
+class Nifti1PairHeader(Nifti1Header):
+    ''' Class for nifti1 pair header '''
+    def _empty_headerdata(self, endianness=None):
+        ''' Create empty header binary block with given endianness '''
+        hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
+        hdr_data['scl_slope'] = 1
+        hdr_data['magic'] = 'ni1'
+        hdr_data['vox_offset'] = 0
+        return hdr_data
+
+    def _set_format_specifics(self):
+        ''' Utility routine to set format specific header stuff '''
+        self._header_data['magic'] = 'ni1'
+
+
 class Nifti1Pair(analyze.AnalyzeImage):
-    header_class = Nifti1Header
+    header_class = Nifti1PairHeader
 
     @classmethod
     def from_file_map(klass, file_map):
@@ -1313,6 +1333,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
 
 class Nifti1Image(Nifti1Pair):
+    header_class = Nifti1Header
     files_types = (('image', '.nii'),)
 
     @staticmethod

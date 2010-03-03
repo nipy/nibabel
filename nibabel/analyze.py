@@ -359,9 +359,14 @@ class AnalyzeHeader(object):
                 # the presence of the mapping certifies the fields as
                 # being of the same meaning as for Analyze types
                 pass
+        obj._set_format_specifics()
         if check:
             obj.check_fix()
         return obj
+
+    def _set_format_specifics(self):
+        ''' Utility routine to set format specific header stuff '''
+        pass
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
