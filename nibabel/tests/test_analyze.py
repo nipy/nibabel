@@ -31,6 +31,7 @@ so the saved zoom will not constrain the affine.
 import os
 from StringIO import StringIO
 import re
+import logging
 
 import numpy as np
 
@@ -50,6 +51,33 @@ from nibabel.testing import parametric, data_path, ParametricTestCase
 from test_binary import _TestBinaryHeader, _write_data
 
 header_file = os.path.join(data_path, 'analyze.hdr')
+
+
+def _log_chk(hdr, level):
+    # utility function to check header checking / logging
+    str_io = StringIO()
+    logger = logging.getLogger('test.logger')
+    handler = logging.StreamHandler(str_io)
+    logger.addHandler(handler)
+    str_io.truncate(0)
+    logger.setLevel(level+1)
+    e_lev = level+1
+    hdrc = hdr.copy()
+    hdrc.check_fix(logger=logger, error_level=e_lev)
+    assert(str_io.getvalue() == '')
+    logger.setLevel(level-1)
+    hdrc = hdr.copy()
+    hdrc.check_fix(logger=logger, error_level=e_lev)
+    assert(str_io.getvalue() != '')
+    message = str_io.getvalue().strip()
+    logger.removeHandler(handler)
+    hdrc2 = hdr.copy()
+    raiser = (HeaderDataError,
+              hdrc2.check_fix,
+              logger,
+              level)
+    return hdrc, message, raiser
+
 
 
 class TestAnalyzeHeader(_TestBinaryHeader):
@@ -93,6 +121,47 @@ class TestAnalyzeHeader(_TestBinaryHeader):
             hdr['pixdim'][i] = -1
             yield assert_equal(dxer(hdr),
                                'pixdim[1,2,3] should be positive')
+
+    def test_log_checks(self):
+        # Test logging, fixing, errors for header checking
+        HC = self.header_class
+        # magic
+        hdr = HC()
+        hdr['sizeof_hdr'] = 350 # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['sizeof_hdr'], 348)
+        yield assert_equal(message, 'sizeof_hdr should be 348; set sizeof_hdr to 348')
+        yield assert_raises(*raiser)
+        # datatype not recognized
+        hdr = HC()
+        hdr['datatype'] = -1 # severity 40
+        fhdr, message, raiser = _log_chk(hdr, 40)
+        yield assert_equal(message, 'data code -1 not recognized; '
+                           'not attempting fix')
+        yield assert_raises(*raiser)
+        # datatype not supported
+        hdr['datatype'] = 255 # severity 40
+        fhdr, message, raiser = _log_chk(hdr, 40)
+        yield assert_equal(message, 'data code 255 not supported; '
+                           'not attempting fix')
+        yield assert_raises(*raiser)
+        # bitpix
+        hdr = HC()
+        hdr['datatype'] = 16 # float32
+        hdr['bitpix'] = 16 # severity 10
+        fhdr, message, raiser = _log_chk(hdr, 10)
+        yield assert_equal(fhdr['bitpix'], 32)
+        yield assert_equal(message, 'bitpix does not match datatype; '
+                           'setting bitpix to match datatype')
+        yield assert_raises(*raiser)
+        # pixdim positive
+        hdr = HC()
+        hdr['pixdim'][1] = -2 # severity 35
+        fhdr, message, raiser = _log_chk(hdr, 35)
+        yield assert_equal(fhdr['pixdim'][1], 2)
+        yield assert_equal(message, 'pixdim[1,2,3] should be positive; '
+                           'setting to abs of pixdim values')
+        yield assert_raises(*raiser)
 
     def test_datatype(self):
         ehdr = self.header_class()

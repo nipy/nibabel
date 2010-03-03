@@ -1066,12 +1066,11 @@ class AnalyzeHeader(object):
         ret = Report(hdr, HeaderDataError)
         if hdr['sizeof_hdr'] == 348:
             return ret
+        ret.problem_level = 30
         ret.problem_msg = 'sizeof_hdr should be 348'
         if fix:
             hdr['sizeof_hdr'] = 348
             ret.fix_msg = 'set sizeof_hdr to 348'
-        else:
-            ret.problem_level = 30
         return ret
 
     @classmethod
@@ -1088,7 +1087,7 @@ class AnalyzeHeader(object):
                 ret.problem_level = 40
                 ret.problem_msg = 'data code %d not supported' % code
         if fix:
-            ret.fix_problem_msg = 'not attempting fix'
+            ret.fix_msg = 'not attempting fix'
         return ret
 
     @classmethod
@@ -1104,15 +1103,13 @@ class AnalyzeHeader(object):
                 ret.fix_msg = 'no way to fix bitpix'
             return ret
         bitpix = dt.itemsize * 8
-        ret = Report(hdr)
         if bitpix == hdr['bitpix']:
             return ret
+        ret.problem_level = 10
         ret.problem_msg = 'bitpix does not match datatype'
         if fix:
             hdr['bitpix'] = bitpix # inplace modification
             ret.fix_msg = 'setting bitpix to match datatype'
-        else:
-            ret.problem_level = 10
         return ret
 
     @staticmethod
@@ -1120,12 +1117,11 @@ class AnalyzeHeader(object):
         ret = Report(hdr, HeaderDataError)
         if not np.any(hdr['pixdim'][1:4] < 0):
             return ret
+        ret.problem_level = 35
         ret.problem_msg = 'pixdim[1,2,3] should be positive'
         if fix:
             hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
             ret.fix_msg = 'setting to abs of pixdim values'
-        else:
-            ret.problem_level = 40
         return ret
 
 

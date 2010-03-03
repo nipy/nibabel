@@ -120,10 +120,11 @@ class Report(object):
         error_level : int, optional
            If ``self.problem_level`` >= `error_level`, raise error
         '''
-        logger.log(self.problem_level, self.message)
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
+                logger.log(self.problem_level, self.problem_msg)
                 raise self.error(self.problem_msg)
+        logger.log(self.problem_level, self.message)
 
     def write_raise(self, stream, error_level=40, log_level=30):
         if self.problem_level >= log_level:

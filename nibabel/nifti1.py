@@ -1162,12 +1162,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         scale = hdr['scl_slope']
         if scale and np.isfinite(scale):
             return ret
+        ret.problem_level = 30
         ret.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
         if fix:
             hdr['scl_slope'] = 1
             ret.fix_msg = 'setting "scl_slope" to 1'
-        else:
-            ret.problem_level = 30
         return ret
 
     @staticmethod
@@ -1176,12 +1175,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         scale = hdr['scl_inter']
         if np.isfinite(scale):
             return ret
+        ret.problem_level = 30
         ret.problem_msg = '"scl_inter" is %s; should be finite' % scale
         if fix:
             hdr['scl_inter'] = 0
             ret.fix_msg = 'setting "scl_inter" to 0'
-        else:
-            ret.problem_level = 30
         return ret
 
     @staticmethod
@@ -1189,12 +1187,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         ret = Report(hdr, HeaderDataError)
         if hdr['pixdim'][0] in (-1, 1):
             return ret
+        ret.problem_level = 20
         ret.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or -1'
         if fix:
             hdr['pixdim'][0] = 1
             ret.fix_msg = 'setting qfac to 1'
-        else:
-            ret.problem_level = 20
         return ret
 
     @staticmethod
@@ -1215,17 +1212,16 @@ class Nifti1Header(SpmAnalyzeHeader):
                     if fix:
                         ret.fix_msg = 'leaving at current value'
                     return ret
+            ret.problem_level = 40
             ret.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
             if fix:
                 hdr['vox_offset'] = 352
                 ret.fix_msg = 'setting to minimum value of 352'
-            else:
-                ret.problem_level = 50
         elif magic != 'ni1': # two files
             # unrecognized nii magic string, oh dear
-            ret.problem_msg = 'magic string %s is not valid' % magic
-            ret.problem_level = 50
+            ret.problem_msg = 'magic string "%s" is not valid' % magic
+            ret.problem_level = 45
             if fix:
                 ret.fix_msg = 'leaving as is, but future errors are likely'
         return ret
@@ -1246,12 +1242,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         recoder = klass._field_recoders[code_type]
         if code in recoder.value_set():
             return ret
+        ret.problem_level = 30
         ret.problem_msg = '%s %d not valid' % (code_type, code)
         if fix:
             hdr[code_type] = 0
             ret.fix_msg = 'setting to 0'
-        else:
-            ret.problem_level = 30
         return ret
 
 

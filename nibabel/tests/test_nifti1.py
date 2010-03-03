@@ -19,6 +19,7 @@ from nose.tools import assert_true, assert_false, assert_equal, \
 from nibabel.testing import parametric, data_path
 
 import test_analyze as tana
+from test_analyze import _log_chk
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
@@ -50,6 +51,58 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
         yield assert_equal(hdr.endianness, '<')
         yield assert_equal(hdr['magic'], 'ni1')
         yield assert_equal(hdr['sizeof_hdr'], 348)
+
+    def test_nifti_log_checks(self):
+        # in addition to analyze header checks
+        HC = self.header_class
+        # intercept and slope
+        hdr = HC()
+        hdr['scl_slope'] = 0
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 1)
+        yield assert_equal(message, '"scl_slope" is 0.0; should !=0 '
+                           'and be finite; setting "scl_slope" to 1')
+        hdr = HC()
+        hdr['scl_inter'] = np.nan # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message, '"scl_inter" is nan; should be '
+                           'finite; setting "scl_inter" to 0')
+        yield assert_raises(*raiser)
+        # qfac
+        hdr = HC()
+        hdr['pixdim'][0] = 0
+        fhdr, message, raiser = _log_chk(hdr, 20)
+        yield assert_equal(fhdr['pixdim'][0], 1)
+        yield assert_equal(message, 'pixdim[0] (qfac) should be 1 '
+                           '(default) or -1; setting qfac to 1')
+        # magic and offset
+        hdr = HC()
+        hdr['magic'] = 'ooh'
+        fhdr, message, raiser = _log_chk(hdr, 45)
+        yield assert_equal(fhdr['magic'], 'ooh')
+        yield assert_equal(message, 'magic string "ooh" is not valid; '
+                           'leaving as is, but future errors are likely')
+        hdr['magic'] = 'n+1' # single file needs suitable offset
+        hdr['vox_offset'] = 0
+        fhdr, message, raiser = _log_chk(hdr, 40)
+        yield assert_equal(fhdr['vox_offset'], 352)
+        yield assert_equal(message, 'vox offset 0 too low for single '
+                           'file nifti1; setting to minimum value '
+                           'of 352')
+        # qform, sform
+        hdr = HC()
+        hdr['qform_code'] = -1
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['qform_code'], 0)
+        yield assert_equal(message, 'qform_code -1 not valid; '
+                           'setting to 0')
+        hdr = HC()
+        hdr['sform_code'] = -1
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['sform_code'], 0)
+        yield assert_equal(message, 'sform_code -1 not valid; '
+                           'setting to 0')
 
 
 class TestNifti1Image(tana.AnalyzeImage):

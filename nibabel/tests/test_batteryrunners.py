@@ -102,12 +102,11 @@ def chk1(obj, fix=True):
     ret = Report(obj, KeyError)
     if obj.has_key('testkey'):
         return ret
+    ret.problem_level = 20
     ret.problem_msg = 'no "testkey"'
     if fix:
         obj['testkey'] = 1
         ret.fix_msg = 'added "testkey"'
-    else:
-        ret.problem_level = 20
     return ret
 
 def chk2(obj, fix=True):
