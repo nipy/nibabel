@@ -37,8 +37,8 @@ explain what happened.
  More about ``checks``
 =======================
 
-The checks are a sequence of callables, where the elements of the
-sequence are checks like ``chk`` below, such that::
+Checks are callables returning objects and reports, like ``chk`` below,
+such that::
 
    obj, report = chk(obj, fix=False)
    obj, report = chk(obj, fix=True)
@@ -63,7 +63,7 @@ For example, for the Analyze header, we need to check the datatype::
             rep.fix_problem_msg = 'not attempting fix'
         return hdr, rep
 
-    # or the bitpix
+or the bitpix::
 
     def chk_bitpix(hdr, fix=True):
         rep = Report(HeaderDataError)
@@ -84,7 +84,7 @@ For example, for the Analyze header, we need to check the datatype::
             rep.fix_msg = 'setting bitpix to match datatype'
         return hdr, ret
 
-    # or the pixdims
+or the pixdims::
 
     def chk_pixdims(hdr, fix=True):
         rep = Report(hdr, HeaderDataError)
@@ -109,7 +109,8 @@ class BatteryRunner(object):
         ----------
         checks : sequence
            sequence of checks, where checks are callables matching
-           signature ``obj, rep = chk(obj, fix=False)``
+           signature ``obj, rep = chk(obj, fix=False)``.  Checks are run
+           in the order they are passed.
 
         Examples
         --------

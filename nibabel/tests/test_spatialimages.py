@@ -13,7 +13,8 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import data_path, parametric
+from nibabel.testing import data_path, parametric, \
+    ParametricTestCase
 
 
 @parametric
@@ -116,9 +117,13 @@ def test_shape_zooms():
     yield assert_equal(hdr.get_zooms(), (1.0,))
     # zooms of wrong lengths raise error
     yield assert_raises(HeaderDataError, hdr.set_zooms, (4.0, 3.0))
-    yield assert_raises(HeaderDataError, hdr.set_zooms, (4.0, 3.0, 2.0, 1.0))
+    yield assert_raises(HeaderDataError,
+                        hdr.set_zooms,
+                        (4.0, 3.0, 2.0, 1.0))
     # as do negative zooms
-    yield assert_raises(HeaderDataError, hdr.set_zooms, (4.0, 3.0, -2.0))
+    yield assert_raises(HeaderDataError,
+                        hdr.set_zooms,
+                        (4.0, 3.0, -2.0))
     
 
 @parametric
@@ -145,7 +150,8 @@ def test_affine():
                                      [0,2,0,-1],
                                      [0,0,1,-1],
                                      [0,0,0,1]])
-    yield assert_array_equal(hdr.get_base_affine(), hdr.get_default_affine())
+    yield assert_array_equal(hdr.get_base_affine(),
+                             hdr.get_default_affine())
 
 
 @parametric
@@ -161,18 +167,26 @@ def test_read_data():
     yield assert_array_equal(data, data2)
 
 
-@parametric
-def test_data_default():
-    # check that the default dtype comes from the data if the header is
-    # None
-    data = np.arange(24, dtype=np.int32).reshape((2,3,4))
-    affine = np.eye(4)
-    img = SpatialImage(data, affine)
-    yield assert_equal(data.dtype, img.get_data_dtype())
-    bs_data = data.byteswap().newbyteorder()
-    img = SpatialImage(bs_data, affine)
-    yield assert_equal(bs_data.dtype, img.get_data_dtype())
-    header = Header()
-    img = SpatialImage(data, affine, header)
-    yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+class TestSpatialImage(ParametricTestCase):
+    # class for testing images
+    image_class = SpatialImage
     
+    def test_images(self):
+        img = self.image_class(None, None)
+        yield assert_raises(ImageDataError, img.get_data)
+        yield assert_equal(img.get_affine(), None)
+        yield assert_equal(img.get_header(),
+                           self.image_class.header_class())
+
+    def test_data_default(self):
+        # check that the default dtype comes from the data if the header
+        # is None, and that unsupported dtypes raise an error
+        img_klass = self.image_class
+        hdr_klass = self.image_class.header_class
+        data = np.arange(24, dtype=np.int32).reshape((2,3,4))
+        affine = np.eye(4)
+        img = img_klass(data, affine)
+        yield assert_equal(data.dtype, img.get_data_dtype())
+        header = hdr_klass()
+        img = img_klass(data, affine, header)
+        yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
