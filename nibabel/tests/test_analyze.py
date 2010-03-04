@@ -130,7 +130,8 @@ class TestAnalyzeHeader(_TestBinaryHeader):
         hdr['sizeof_hdr'] = 350 # severity 30
         fhdr, message, raiser = _log_chk(hdr, 30)
         yield assert_equal(fhdr['sizeof_hdr'], 348)
-        yield assert_equal(message, 'sizeof_hdr should be 348; set sizeof_hdr to 348')
+        yield assert_equal(message, 'sizeof_hdr should be 348; '
+                           'set sizeof_hdr to 348')
         yield assert_raises(*raiser)
         # datatype not recognized
         hdr = HC()

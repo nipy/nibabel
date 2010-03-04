@@ -1162,97 +1162,97 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_sform_code)
 
     @staticmethod
-    def _chk_scale_slope(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_scale_slope(hdr, fix=False):
+        rep = Report(HeaderDataError)
         scale = hdr['scl_slope']
         if scale and np.isfinite(scale):
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
         if fix:
             hdr['scl_slope'] = 1
-            ret.fix_msg = 'setting "scl_slope" to 1'
-        return ret
+            rep.fix_msg = 'setting "scl_slope" to 1'
+        return hdr, rep
 
     @staticmethod
-    def _chk_scale_inter(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_scale_inter(hdr, fix=False):
+        rep = Report(HeaderDataError)
         scale = hdr['scl_inter']
         if np.isfinite(scale):
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '"scl_inter" is %s; should be finite' % scale
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '"scl_inter" is %s; should be finite' % scale
         if fix:
             hdr['scl_inter'] = 0
-            ret.fix_msg = 'setting "scl_inter" to 0'
-        return ret
+            rep.fix_msg = 'setting "scl_inter" to 0'
+        return hdr, rep
 
     @staticmethod
-    def _chk_qfac(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_qfac(hdr, fix=False):
+        rep = Report(HeaderDataError)
         if hdr['pixdim'][0] in (-1, 1):
-            return ret
-        ret.problem_level = 20
-        ret.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or -1'
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or -1'
         if fix:
             hdr['pixdim'][0] = 1
-            ret.fix_msg = 'setting qfac to 1'
-        return ret
+            rep.fix_msg = 'setting qfac to 1'
+        return hdr, rep
 
     @staticmethod
-    def _chk_magic_offset(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_magic_offset(hdr, fix=False):
+        rep = Report(HeaderDataError)
         magic = hdr['magic']
         offset = hdr['vox_offset']
         if magic == 'n+1': # one file
             if offset >= 352:
                 if not offset % 16:
-                    return ret
+                    return hdr, rep
                 else:
                     # SPM uses memory mapping to read the data, and
                     # apparently this has to start on 16 byte boundaries
-                    ret.problem_msg = ('vox offset (=%s) not divisible '
+                    rep.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
-                    ret.problem_level = 30
+                    rep.problem_level = 30
                     if fix:
-                        ret.fix_msg = 'leaving at current value'
-                    return ret
-            ret.problem_level = 40
-            ret.problem_msg = ('vox offset %d too low for '
+                        rep.fix_msg = 'leaving at current value'
+                    return hdr, rep
+            rep.problem_level = 40
+            rep.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
             if fix:
                 hdr['vox_offset'] = 352
-                ret.fix_msg = 'setting to minimum value of 352'
+                rep.fix_msg = 'setting to minimum value of 352'
         elif magic != 'ni1': # two files
             # unrecognized nii magic string, oh dear
-            ret.problem_msg = 'magic string "%s" is not valid' % magic
-            ret.problem_level = 45
+            rep.problem_msg = 'magic string "%s" is not valid' % magic
+            rep.problem_level = 45
             if fix:
-                ret.fix_msg = 'leaving as is, but future errors are likely'
-        return ret
+                rep.fix_msg = 'leaving as is, but future errors are likely'
+        return hdr, rep
 
     @classmethod
-    def _chk_qform_code(klass, hdr, fix=True):
+    def _chk_qform_code(klass, hdr, fix=False):
         return klass._chk_xform_code('qform_code', hdr, fix)
 
     @classmethod
-    def _chk_sform_code(klass, hdr, fix=True):
+    def _chk_sform_code(klass, hdr, fix=False):
         return klass._chk_xform_code('sform_code', hdr, fix)
 
     @classmethod
     def _chk_xform_code(klass, code_type, hdr, fix):
         # utility method for sform and qform codes
-        ret = Report(hdr, HeaderDataError)
+        rep = Report(HeaderDataError)
         code = int(hdr[code_type])
         recoder = klass._field_recoders[code_type]
         if code in recoder.value_set():
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '%s %d not valid' % (code_type, code)
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '%s %d not valid' % (code_type, code)
         if fix:
             hdr[code_type] = 0
-            ret.fix_msg = 'setting to 0'
-        return ret
+            rep.fix_msg = 'setting to 0'
+        return hdr, rep
 
 
 class Nifti1PairHeader(Nifti1Header):

@@ -2,95 +2,100 @@
 
 These classes / objects are for generic checking / fixing batteries
 
-The class will run a series of checks.
+The ``BatteryRunner`` class will run a series of checks on a single
+object.
 
-The checks may run fixes on the passed object, but if so the object has
-to be mutable.
+A check is a callable, of signature ``func(obj, fix=False)`` which
+returns a tuple ``(obj, Report)`` for ``func(obj, False)`` or
+``func(obj, True)``, where the obj may be a modified object, or a
+different object, if ``fix==True``. 
 
-See below for what ``checks`` are.
+To run checks only, and return problem report objects:
 
-To run checks only, and return problem report objects::
+>>> def chk(obj, fix=False): # minimal check
+...     return obj, Report()
+>>> btrun = BatteryRunner((chk,))
+>>> reports = btrun.check_only('a string')
 
-   btrun = BatteryRunner(checks)
-   report_seq =  btrun.check_only(obj)
+To run checks and fixes, returning fixed object and problem report
+sequence, with possible fix messages:
 
-To run checks and fixes, returning fixed object, problem report object,
-with possible fix messages::
-
-   fixed_obj, report_seq = btrun.check_fix(obj)
+>>> fixed_obj, report_seq = btrun.check_fix('a string')
 
 Reports are iterable things, where the elements in the iterations are
-``Problems``, with attributes ``obj``, ``error``, ``problem_level``,
+``Problems``, with attributes ``error``, ``problem_level``,
 ``problem_msg``, and possibly empty ``fix_msg``.  The ``problem_level``
 is an integer, giving the level of problem, from 0 (no problem) to 50
 (very bad problem).  The levels follow the log levels from the logging
-module.  The ``error`` can be one of ``None`` if no error to suggest, or
-an Exception class that the user might consider raising for this
-sitation.  The ``problem_msg`` and ``fix_msg`` are human readable
-strings that should explain what happened.
+module (e.g 40 equivalent to "error" level, 50 to "critical").  The
+``error`` can be one of ``None`` if no error to suggest, or an Exception
+class that the user might consider raising for this sitation.  The
+``problem_msg`` and ``fix_msg`` are human readable strings that should
+explain what happened.
 
-The checks are a sequence of callables, looking like this::
+=======================
+ More about ``checks``
+=======================
 
-   report = chk(obj, fix=False)
+The checks are a sequence of callables, where the elements of the
+sequence are checks like ``chk`` below, such that::
 
-or::
-
-   report_seq = chk(obj, fix=True)
+   obj, report = chk(obj, fix=False)
+   obj, report = chk(obj, fix=True)
 
 For example, for the Analyze header, we need to check the datatype::
 
     def chk_datatype(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+        rep = Report(hdr, HeaderDataError)
         code = int(hdr['datatype'])
         try:
             dtype = AnalyzeHeader._data_type_codes.dtype[code]
         except KeyError:
-            ret.problem_level = 40
-            ret.problem_msg = 'data code not recognized'
+            rep.problem_level = 40
+            rep.problem_msg = 'data code not recognized'
         else:
             if dtype.type is np.void:
-                ret.problem_level = 40
-                ret.problem_msg = 'data code not supported'
+                rep.problem_level = 40
+                rep.problem_msg = 'data code not supported'
             else:
-                return ret
+                return hdr, rep
         if fix:
-            ret.fix_problem_msg = 'not attempting fix'
-        return ret
+            rep.fix_problem_msg = 'not attempting fix'
+        return hdr, rep
 
     # or the bitpix
 
     def chk_bitpix(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+        rep = Report(HeaderDataError)
         code = int(hdr['datatype'])
         try:
             dt = AnalyzeHeader._data_type_codes.dtype[code]
         except KeyError:
-            ret.problem_level = 10
-            ret.problem_msg = 'no valid datatype to fix bitpix'
+            rep.problem_level = 10
+            rep.problem_msg = 'no valid datatype to fix bitpix'
+            return hdr, rep
         bitpix = dt.itemsize * 8
-        ret = Report(hdr)
         if bitpix == hdr['bitpix']:
-            return ret
-        ret.problem_level = 10
-        ret.problem_msg = 'bitpix does not match datatype')
-        if not fix:
-            return ret
-        hdr['bitpix'] = bitpix # inplace modification
-        ret.fix_msg = 'setting bitpix to match datatype'
-        return ret
+            return hdr, rep
+        rep.problem_level = 10
+        rep.problem_msg = 'bitpix does not match datatype')
+        if fix:
+            hdr['bitpix'] = bitpix # inplace modification
+            rep.fix_msg = 'setting bitpix to match datatype'
+        return hdr, ret
 
     # or the pixdims
 
     def chk_pixdims(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+        rep = Report(hdr, HeaderDataError)
         if not np.any(hdr['pixdim'][1:4] < 0):
-            return ret
-        ret.problem_level = 40
-        ret.problem_msg = 'pixdim[1,2,3] should be positive'
+            return hdr, rep
+        rep.problem_level = 40
+        rep.problem_msg = 'pixdim[1,2,3] should be positive'
         if fix:
             hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
-            ret.fix_msg = 'setting to abs of pixdim values'
-        return ret
+            rep.fix_msg = 'setting to abs of pixdim values'
+        return hdr, rep
 
 '''
 
@@ -102,14 +107,14 @@ class BatteryRunner(object):
     def check_only(self, obj):
         reports = []
         for check in self._checks:
-            reports.append(check(obj, False))
+            obj, rep = check(obj, False)
+            reports.append(rep)
         return reports
 
     def check_fix(self, obj):
         reports = []
         for check in self._checks:
-            report = check(obj, True)
-            obj = report.obj
+            obj, report = check(obj, True)
             reports.append(report)
         return obj, reports
 
@@ -119,8 +124,7 @@ class BatteryRunner(object):
 
 class Report(object):
     def __init__(self,
-                 obj=None,
-                 error=None,
+                 error=Exception,
                  problem_level=0,
                  problem_msg='',
                  fix_msg=''):
@@ -128,8 +132,6 @@ class Report(object):
 
         Parameters
         ----------
-        obj : object
-           object tested, possibly fixed.  Default is None
         error : None or Exception
            Error to raise if raising error for this check.  If None,
            no error can be raised for this check (it was probably
@@ -149,12 +151,10 @@ class Report(object):
         >>> rep = Report()
         >>> rep.problem_level
         0
-        >>> rep = Report((), TypeError, 10)
+        >>> rep = Report(TypeError, 10)
         >>> rep.problem_level
         10
-
         '''
-        self.obj = obj
         self.error = error
         self.problem_level = problem_level
         self.problem_msg = problem_msg
@@ -220,6 +220,19 @@ class Report(object):
                 raise self.error(self.problem_msg)
 
     def write_raise(self, stream, error_level=40, log_level=30):
+        ''' Write report to `stream`
+
+        Parameters
+        ----------
+        stream : file-like
+           implementing ``write`` method
+        error_level : int, optional
+           level at which to raise error for problem detected in
+           ``self``
+        log_level : int, optional
+           Such that if `log_level` is >= ``self.problem_level`` we
+           write the report to `stream`, otherwise we write nothing. 
+        '''
         if self.problem_level >= log_level:
             stream.write('Level %s: %s\n' %
                          (self.problem_level, self.message))

@@ -1067,65 +1067,65 @@ class AnalyzeHeader(object):
     ''' Check functions in format expected by BatteryRunner class '''
 
     @staticmethod
-    def _chk_sizeof_hdr(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_sizeof_hdr(hdr, fix=False):
+        rep = Report(HeaderDataError)
         if hdr['sizeof_hdr'] == 348:
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = 'sizeof_hdr should be 348'
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = 'sizeof_hdr should be 348'
         if fix:
             hdr['sizeof_hdr'] = 348
-            ret.fix_msg = 'set sizeof_hdr to 348'
-        return ret
+            rep.fix_msg = 'set sizeof_hdr to 348'
+        return hdr, rep
 
     @classmethod
-    def _chk_datatype(klass, hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_datatype(klass, hdr, fix=False):
+        rep = Report(HeaderDataError)
         code = int(hdr['datatype'])
         try:
             dtype = klass._data_type_codes.dtype[code]
         except KeyError:
-            ret.problem_level = 40
-            ret.problem_msg = 'data code %d not recognized' % code
+            rep.problem_level = 40
+            rep.problem_msg = 'data code %d not recognized' % code
         else:
             if dtype.type is np.void:
-                ret.problem_level = 40
-                ret.problem_msg = 'data code %d not supported' % code
+                rep.problem_level = 40
+                rep.problem_msg = 'data code %d not supported' % code
             else:
-                return ret
+                return hdr, rep
         if fix:
-            ret.fix_msg = 'not attempting fix'
-        return ret
+            rep.fix_msg = 'not attempting fix'
+        return hdr, rep
 
     @classmethod
-    def _chk_bitpix(klass, hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_bitpix(klass, hdr, fix=False):
+        rep = Report(HeaderDataError)
         code = int(hdr['datatype'])
         try:
             dt = klass._data_type_codes.dtype[code]
         except KeyError:
-            ret.problem_level = 10
-            ret.problem_msg = 'no valid datatype to fix bitpix'
+            rep.problem_level = 10
+            rep.problem_msg = 'no valid datatype to fix bitpix'
             if fix:
-                ret.fix_msg = 'no way to fix bitpix'
-            return ret
+                rep.fix_msg = 'no way to fix bitpix'
+            return hdr, rep
         bitpix = dt.itemsize * 8
         if bitpix == hdr['bitpix']:
-            return ret
-        ret.problem_level = 10
-        ret.problem_msg = 'bitpix does not match datatype'
+            return hdr, rep
+        rep.problem_level = 10
+        rep.problem_msg = 'bitpix does not match datatype'
         if fix:
             hdr['bitpix'] = bitpix # inplace modification
-            ret.fix_msg = 'setting bitpix to match datatype'
-        return ret
+            rep.fix_msg = 'setting bitpix to match datatype'
+        return hdr, rep
 
     @staticmethod
-    def _chk_pixdims(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_pixdims(hdr, fix=False):
+        rep = Report(HeaderDataError)
         pixdims = hdr['pixdim']
         spat_dims = pixdims[1:4]
         if not np.any(spat_dims <= 0):
-            return ret
+            return hdr, rep
         neg_dims = spat_dims < 0
         zero_dims = spat_dims == 0
         pmsgs = []
@@ -1142,12 +1142,12 @@ class AnalyzeHeader(object):
             if fix:
                 spat_dims = np.abs(spat_dims)
                 fmsgs.append('setting to abs of pixdim values')
-        ret.problem_level = level
-        ret.problem_msg = ' and '.join(pmsgs)
+        rep.problem_level = level
+        rep.problem_msg = ' and '.join(pmsgs)
         if fix:
             pixdims[1:4] = spat_dims
-            ret.fix_msg = ' and '.join(fmsgs)
-        return ret
+            rep.fix_msg = ' and '.join(fmsgs)
+        return hdr, rep
 
 
 class AnalyzeImage(SpatialImage):
