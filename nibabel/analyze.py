@@ -846,7 +846,7 @@ class AnalyzeHeader(object):
                                               self.endianness)
         def _getter(obj, key):
             try:
-                return obj.get_field_label(key)
+                return obj.get_value_label(key)
             except ValueError:
                 return obj[key]
         
@@ -854,7 +854,7 @@ class AnalyzeHeader(object):
             [summary,
              pretty_mapping(self, _getter)])
 
-    def get_field_label(self, fieldname):
+    def get_value_label(self, fieldname):
         ''' Returns label for coded field
 
         A coded field is an int field containing codes that stand for
@@ -873,7 +873,7 @@ class AnalyzeHeader(object):
         Examples
         --------
         >>> hdr = AnalyzeHeader()
-        >>> hdr.get_field_label('datatype')
+        >>> hdr.get_value_label('datatype')
         'float32'
         '''
         if not fieldname in self._field_recoders:

@@ -997,7 +997,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._header_data
         slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
-        slabel = self.get_field_label('slice_code')
+        slabel = self.get_value_label('slice_code')
         if slabel == 'unknown':
             raise HeaderDataError('Cannot get slice times when '
                                   'Slice code is "unknown"')
@@ -1033,7 +1033,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_slice_duration(0.1)
         >>> times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
         >>> hdr.set_slice_times(times)
-        >>> hdr.get_field_label('slice_code')
+        >>> hdr.get_value_label('slice_code')
         'alternating decreasing'
         >>> int(hdr['slice_start'])
         1
