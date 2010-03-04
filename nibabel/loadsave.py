@@ -1,13 +1,12 @@
 # module imports
-import os
-
 from nibabel.filename_parser import types_filenames, splitext_addext
 from nibabel import volumeutils as vu
 from nibabel import spm2analyze as spm2
 from nibabel import nifti1
-from nibabel import minc
+from nibabel.fileholders import FileHolderError
 from nibabel.spatialimages import ImageFileError
 from nibabel.imageclasses import class_map, ext_map
+from nibabel.header_ufuncs import read_data
 
 
 def load(filename):
@@ -71,3 +70,64 @@ def save(img, filename):
     klass = class_map[img_type]['class']
     converted = klass.from_image(img)
     converted.to_filename(filename)
+
+
+def read_img_data(img, prefer='scaled'):
+    """ Read data from image associated with files
+
+    Parameters
+    ----------
+    img : ``SpatialImage``
+       Image with valid image file in ``img.file_map``.  Unlike the
+       ``img.get_data()`` method, this function returns the data read
+       from the image file, as specified by the *current* image header
+       and *current* image files. 
+    prefer : str, optional
+       Can be 'scaled' - in which case we return the data with the
+       scaling suggested by the format, or 'unscaled', in which case we
+       return, if we can, the raw data from the image file, without the
+       scaling applied.
+
+    Returns
+    -------
+    arr : ndarray
+       array as read from file, given parameters in header
+
+    Notes
+    -----
+    Summary: please use the ``get_data`` method of `img` instead of this
+    function unless you are sure what you are doing.
+
+    In general, you will probably prefer ``prefer='scaled'``, because
+    this gives the data as the image format expects to return it. 
+
+    Use `prefer` == 'unscaled' with care; the modified Analyze-type
+    formats such as SPM formats, and nifti1, specify that the image data
+    array is given by the raw data on disk, multiplied by a scalefactor
+    and maybe with the addition of a constant.  This function, with
+    ``unscaled`` returns the data on the disk, without these
+    format-specific scalings applied.  Please use this funciton only if
+    you absolutely need the unscaled data, and the magnitude of the
+    data, as given by the scalefactor, is not relevant to your
+    application.  The Analyze-type formats have a single scalefactor +/-
+    offset per image on disk. If you do not care about the absolute
+    values, and will be removing the mean from the data, then the
+    unscaled values will have preserved intensity ratios compared to the
+    mean-centered scaled data.  However, this is not necessarily true of
+    other formats with more complicated scaling - such as MINC.
+    """
+    image_fileholder = img.file_map['image']
+    try:
+        fileobj = image_fileholder.get_prepare_fileobj()
+    except FileHolderError:
+        raise ImageFileError('No image file specified for this image')
+    hdr = img.get_header()
+    if prefer == 'scaled':
+        scaled = True
+    elif prefer == 'unscaled':
+        scaled = False
+    else:
+        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
+    return read_data(hdr, fileobj, scaled)
+
+

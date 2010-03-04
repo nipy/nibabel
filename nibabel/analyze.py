@@ -124,8 +124,6 @@ The same for logging::
    nib.logger = logger
 
 '''
-from copy import deepcopy
-
 import numpy as np
 
 from nibabel.volumeutils import pretty_mapping, endian_codes, \
@@ -140,7 +138,7 @@ from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
 from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
-from nibabel.fileholders import FileHolderError
+from nibabel.fileholders import FileHolderError, copy_file_map
 from nibabel.batteryrunners import BatteryRunner, Report
 from nibabel.arrayproxy import ArrayProxy
 
@@ -1169,52 +1167,9 @@ class AnalyzeImage(SpatialImage):
                 fileobj.close()
             return data
 
-    def get_unscaled_data(self):
-        """ Return image data without image scaling applied
-
-        Summary: please use the ``get_data`` method instead of this
-        method unless you are sure what you are doing, and that you will
-        only be using image formats for which this method exists and
-        returns sensible results.
-
-        Use this method with care; the modified Analyze-type formats
-        such as SPM formats, and nifti1, specify that the image data
-        array, as they are expecting to return it, is given by the raw
-        data on disk, multiplied by a scalefactor and maybe with the
-        addition of a constant.  This method returns the data on the
-        disk, without these format-specific scalings applied.  Please
-        use this method only if you absolutely need the unscaled data,
-        and the magnitude of the data, as given by the scalefactor, is
-        not relevant to your application.  The Analyze-type formats have
-        a single scalefactor +/- offset per image on disk. If you do not
-        care about the absolute values, and will be removing the mean
-        from the data, then the unscaled values will have preserved
-        intensity ratios compared to the mean-centered scaled data.
-        However, this is not necessarily true of other formats with more
-        complicated scaling - such as MINC.
-
-        Note that - unlike the scaled ``get_data`` method, we do not
-        cache the array, to minimize the memory taken by the object.
-        """
-        if self._load_cache is None:
-            raise ImageDataError(
-                'this image does not appear to have been '
-                'loaded from files; cannot read unscaled '
-                'data')
-        image_fileholder = self._load_cache['file_map']['image']
-        fileobj = image_fileholder.get_prepare_fileobj()
-        hdr = self._load_cache['header']
-        dtype = hdr.get_data_dtype()
-        shape = hdr.get_data_shape()
-        offset = hdr.get_data_offset()
-        return array_from_file(shape, dtype, fileobj, offset)
-
     def get_header(self):
         ''' Return header
-
-        Update header to match data, affine etc in object
         '''
-        self._update_header()
         return self._header
 
     def get_data_dtype(self):
@@ -1262,7 +1217,7 @@ class AnalyzeImage(SpatialImage):
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
-                           'file_map': deepcopy(file_map)}
+                           'file_map': copy_file_map(file_map)}
         return img
 
     def _write_header(self, header_file, header, slope, inter):
@@ -1328,6 +1283,7 @@ class AnalyzeImage(SpatialImage):
         if file_map is None:
             file_map = self.file_map
         data = self.get_data()
+        self.update_header()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
         hdrf, imgf = self._get_open_files(file_map, 'wb')
@@ -1337,22 +1293,16 @@ class AnalyzeImage(SpatialImage):
         self._header = hdr
         self.file_map = file_map
 
-    def _update_header(self):
+    def update_header(self):
         ''' Harmonize header with image data and affine
 
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = AnalyzeImage(data, affine)
+        >>> hdr = img.get_header()
         >>> img.get_shape()
         (2, 3, 4)
-        >>> hdr = img._header
-        >>> hdr.get_data_shape()
-        (0,)
-        >>> hdr.get_zooms()
-        (1.0,)
-        >>> np.all(hdr.get_best_affine() == np.diag([-1,1,1,1]))
-        True
-        >>> img._update_header()
+        >>> img.update_header()
         >>> hdr.get_data_shape()
         (2, 3, 4)
         >>> hdr.get_zooms()

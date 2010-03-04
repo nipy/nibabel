@@ -46,6 +46,8 @@ from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage
 from nibabel.header_ufuncs import read_data, write_scaled_data
+from nibabel.loadsave import read_img_data
+
 from nibabel.testing import parametric, data_path, ParametricTestCase
 
 import test_binary as tb
@@ -333,12 +335,17 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         yield assert_equal(img2.shape, shape)
         yield assert_equal(img2.get_data_dtype().type, np.int16)
         hdr = img2.get_header()
-        hdr.set_data_shape((3,4,5))
+        hdr.set_data_shape((3,2,2))
+        yield assert_equal(hdr.get_data_shape(), (3,2,2))
         hdr.set_data_dtype(np.uint8)
+        yield assert_equal(hdr.get_data_dtype(), np.dtype(np.uint8))
         yield assert_array_equal(img2.get_data(), data)
-        # now check from unscaled data
-        us_data = img2.get_unscaled_data()
-        yield assert_equal(us_data.shape, shape)
+        # now check read_img_data function - here we do see the changed
+        # header
+        sc_data = read_img_data(img2)
+        yield assert_equal(sc_data.shape, (3,2,2))
+        us_data = read_img_data(img2, prefer='unscaled')
+        yield assert_equal(us_data.shape, (3,2,2))
         
 
 @parametric

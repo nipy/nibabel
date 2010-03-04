@@ -276,13 +276,20 @@ class SpatialImage(object):
             extra = {}
         self.extra = extra
         self._header = self.header_class.from_header(header)
-        # if header not specified, get data type from input array
-        if header is None and hasattr(data, 'dtype'):
-            self._header.set_data_dtype(data.dtype)
+        # if header not specified, get data type from input array and
+        # set any stuff we can from the image
+        if header is None:
+            if hasattr(data, 'dtype'):
+                self._header.set_data_dtype(data.dtype)
+            self.update_header()
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
         self._load_cache = None
+
+    def update_header(self):
+        ''' Update header from information in image'''
+        pass
 
     def __str__(self):
         shape = self.get_shape()

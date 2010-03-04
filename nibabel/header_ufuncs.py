@@ -6,7 +6,7 @@ from nibabel.volumeutils import array_from_file, array_to_file
 from nibabel.spatialimages import HeaderDataError
 
 
-def read_data(hdr, fileobj):
+def read_data(hdr, fileobj, scaled=True):
     ''' Read data from ``fileobj`` given ``hdr``
 
     Parameters
@@ -16,13 +16,14 @@ def read_data(hdr, fileobj):
        requirements for ``read_unscaled_data``
     fileobj : file-like
        Must be open, and implement ``read`` and ``seek`` methods
-
+    scaled : str, optional
+       If True, apply format scaling to data
+       
     Returns
     -------
     arr : array-like
        an array like object (that might be an ndarray),
        implementing at least slicing.
-
     '''
     # read unscaled data
     dtype = hdr.get_data_dtype()
@@ -31,7 +32,7 @@ def read_data(hdr, fileobj):
     data = array_from_file(shape, dtype, fileobj, offset)
     # get scalings from header
     slope, inter = hdr.get_slope_inter()
-    if slope is None:
+    if not scaled or slope is None:
         return data
     # The data may be from a memmap, and not writeable
     if slope:

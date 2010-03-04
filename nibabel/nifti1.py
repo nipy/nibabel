@@ -2,8 +2,6 @@
 
 Author: Matthew Brett
 '''
-from copy import deepcopy
-
 import numpy as np
 import numpy.linalg as npl
 
@@ -13,6 +11,7 @@ from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
+from nibabel.fileholders import copy_file_map
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -1270,7 +1269,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         img = klass(data, affine, header, extra, file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
-                           'file_map': deepcopy(file_map)}
+                           'file_map': copy_file_map(file_map)}
         return img
 
     def _write_header(self, header_file, header, slope, inter):
@@ -1284,10 +1283,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
         else:
             self.extra['extensions'].write_to(header_file)
 
-    def _update_header(self):
+    def update_header(self):
         ''' Harmonize header with image data and affine
 
-        See AnalyzeImage._update_header for more examples
+        See AnalyzeImage.update_header for more examples
 
         Examples
         --------
@@ -1300,7 +1299,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> np.all(hdr.get_sform() == affine)
         True
         '''
-        super(Nifti1Pair, self)._update_header()
+        super(Nifti1Pair, self).update_header()
         hdr = self._header
         hdr['magic'] = 'ni1'
         if not self._affine is None:
@@ -1335,9 +1334,9 @@ class Nifti1Image(Nifti1Pair):
         if diff > 0:
             header_file.write('\x00' * diff)
 
-    def _update_header(self):
+    def update_header(self):
         ''' Harmonize header with image data and affine '''
-        super(Nifti1Image, self)._update_header()
+        super(Nifti1Image, self).update_header()
         hdr = self._header
         hdr['magic'] = 'n+1'
         # make sure that there is space for the header.  If any
