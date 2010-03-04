@@ -18,7 +18,7 @@ image_dimension_dtd[
 data_history_dtd = analyze.data_history_dtd[:]
 data_history_dtd[
     data_history_dtd.index(('originator', 'S10'))
-    ] = ('origin', 'i2', 5)
+    ] = ('origin', 'i2', (5,))
 
 # Full header numpy dtype combined across sub-fields
 header_dtype = np.dtype(header_key_dtd +

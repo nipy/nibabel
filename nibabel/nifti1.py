@@ -23,7 +23,7 @@ header_dtd = [
     ('session_error', 'i2'), # 36; unused
     ('regular', 'S1'),    # 38; unused
     ('dim_info', 'u1'),   # 39; MRI slice ordering code
-    ('dim', 'i2', 8),     # 40; data array dimensions
+    ('dim', 'i2', (8,)),     # 40; data array dimensions
     ('intent_p1', 'f4'),  # 56; first intent parameter
     ('intent_p2', 'f4'),  # 60; second intent parameter
     ('intent_p3', 'f4'),  # 64; third intent parameter
@@ -31,7 +31,7 @@ header_dtd = [
     ('datatype', 'i2'),   # 70; it's the datatype
     ('bitpix', 'i2'),     # 72; number of bits per voxel
     ('slice_start', 'i2'),# 74; first slice index
-    ('pixdim', 'f4', 8),  # 76; grid spacings (units below)
+    ('pixdim', 'f4', (8,)),  # 76; grid spacings (units below)
     ('vox_offset', 'f4'), # 108; offset to data in image file
     ('scl_slope', 'f4'),  # 112; data scaling slope
     ('scl_inter', 'f4'),  # 116; data scaling intercept
@@ -54,9 +54,9 @@ header_dtd = [
     ('qoffset_x', 'f4'), # 268; quaternion x shift
     ('qoffset_y', 'f4'), # 272; quaternion y shift
     ('qoffset_z', 'f4'), # 276; quaternion z shift
-    ('srow_x', 'f4', 4), # 280; 1st row affine transform
-    ('srow_y', 'f4', 4), # 296; 2nd row affine transform
-    ('srow_z', 'f4', 4), # 312; 3rd row affine transform
+    ('srow_x', 'f4', (4,)), # 280; 1st row affine transform
+    ('srow_y', 'f4', (4,)), # 296; 2nd row affine transform
+    ('srow_z', 'f4', (4,)), # 312; 3rd row affine transform
     ('intent_name', 'S16'), # 328; name or meaning of data
     ('magic', 'S4')      # 344; must be 'ni1\0' or 'n+1\0'
     ]
