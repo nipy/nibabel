@@ -2,6 +2,7 @@
 
 Author: Matthew Brett
 '''
+from copy import deepcopy
 
 import numpy as np
 import numpy.linalg as npl
@@ -1291,11 +1292,13 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if len(extensions):
             extra = {'extensions': extensions}
         affine = header.get_best_affine()
-        return klass.from_data_file(imgf,
-                                    affine,
-                                    header,
-                                    extra,
-                                    file_map=file_map)
+        hdr_copy = header.copy()
+        data = klass.ImageArrayProxy(imgf, hdr_copy)
+        img = klass(data, affine, header, extra, file_map)
+        img._load_cache = {'header': hdr_copy,
+                           'affine': affine.copy(),
+                           'file_map': deepcopy(file_map)}
+        return img
 
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Pair, self)._write_header(header_file,

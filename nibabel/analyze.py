@@ -124,6 +124,7 @@ The same for logging::
    nib.logger = logger
 
 '''
+from copy import deepcopy
 
 import numpy as np
 
@@ -131,7 +132,7 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, \
      make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
-     array_to_file, can_cast
+     array_to_file, array_from_file, can_cast
 
 from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError, SpatialImage
@@ -1168,22 +1169,6 @@ class AnalyzeImage(SpatialImage):
                 fileobj.close()
             return data
 
-    @classmethod
-    def from_data_file(klass,
-                       file_like,
-                       affine,
-                       header=None,
-                       extra=None,
-                       file_map=None):
-        ''' Class method create mew instance from data file
-
-        We use a proxy to implement the caching of the data read, and
-        for the data shape.
-        '''
-        data_hdr  = klass.header_class.from_header(header)
-        data = klass.ImageArrayProxy(file_like, data_hdr)
-        return klass(data, affine, header, extra, file_map)
-
     def get_unscaled_data(self):
         """ Return image data without image scaling applied
 
@@ -1211,14 +1196,14 @@ class AnalyzeImage(SpatialImage):
         Note that - unlike the scaled ``get_data`` method, we do not
         cache the array, to minimize the memory taken by the object.
         """
-        try:
-            image_fileholder = self.file_map['image']
-        except KeyError:
-            raise ImageDataError('no file to load from')
-        try:
-            fileobj = image_fileholder.get_prepare_fileobj()
-        except FileHolderError:
-            raise ImageDataError('no file to load from')
+        if self._load_cache is None:
+            raise ImageDataError(
+                'this image does not appear to have been '
+                'loaded from files; cannot read unscaled '
+                'data')
+        image_fileholder = self._load_cache['file_map']['image']
+        fileobj = image_fileholder.get_prepare_fileobj()
+        hdr = self._load_cache['header']
         dtype = hdr.get_data_dtype()
         shape = hdr.get_data_shape()
         offset = hdr.get_data_offset()
@@ -1272,10 +1257,13 @@ class AnalyzeImage(SpatialImage):
         hdrf, imgf = klass._get_open_files(file_map, 'rb')
         header = klass.header_class.from_fileobj(hdrf)
         affine = header.get_best_affine()
-        return klass.from_data_file(imgf,
-                                    affine,
-                                    header,
-                                    file_map=file_map)
+        hdr_copy = header.copy()
+        data = klass.ImageArrayProxy(imgf, hdr_copy)
+        img = klass(data, affine, header, file_map=file_map)
+        img._load_cache = {'header': hdr_copy,
+                           'affine': affine.copy(),
+                           'file_map': deepcopy(file_map)}
+        return img
 
     def _write_header(self, header_file, header, slope, inter):
         ''' Utility routine to write header

@@ -9,8 +9,8 @@ import numpy as np
 from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
-    Nifti1Extension, data_type_codes, extension_codes, \
-    slice_order_codes
+    Nifti1Pair, Nifti1Extension, data_type_codes, \
+    extension_codes, slice_order_codes
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_false, assert_equal, \
@@ -105,9 +105,13 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
                            'setting to 0')
 
 
-class TestNifti1Image(tana.AnalyzeImage):
+class TestNifti1Image(tana.TestAnalyzeImage):
     # class for testing images
     image_class = Nifti1Image
+
+
+class TestNifti1Pair(tana.TestAnalyzeImage):
+    image_class = Nifti1Pair
 
 
 def test_datatypes():

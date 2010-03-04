@@ -250,7 +250,8 @@ class SpatialImage(object):
     _compressed_exts = ()
 
     ''' Template class for images '''
-    def __init__(self, data, affine, header=None, extra=None, file_map=None):
+    def __init__(self, data, affine, header=None,
+                 extra=None, file_map=None):
         ''' Initialize image
 
         Parameters
@@ -281,6 +282,7 @@ class SpatialImage(object):
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
+        self._load_cache = None
 
     def __str__(self):
         shape = self.get_shape()
