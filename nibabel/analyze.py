@@ -130,17 +130,17 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, \
      make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
-     array_to_file, array_from_file, can_cast
+     array_to_file, array_from_file, can_cast, \
+     floating_point_types
 
 from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError, SpatialImage
-
-from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
 from nibabel.fileholders import FileHolderError, copy_file_map
 from nibabel.batteryrunners import BatteryRunner, Report
 from nibabel.arrayproxy import ArrayProxy
+
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -554,13 +554,23 @@ class AnalyzeHeader(object):
         data = self.raw_data_from_fileobj(fileobj)
         # get scalings from header
         slope, inter = self.get_slope_inter()
-        if slope is None:
+        if slope is None or (slope==1.0 and not inter):
             return data
-        if slope:
-            if slope != 1.0:
+        # in-place multiplication and addition on integer types leads to
+        # integer output types, and disastrous integer rounding.
+        # We'd like to do inplace if we can, to save memory
+        is_flt = data.dtype.type in floating_point_types
+        if slope != 1.0:
+            if is_flt:
                 data *= slope
-            if inter:
+            else:
+                data = data * slope
+                is_flt = True
+        if inter:
+            if is_flt:
                 data += inter
+            else:
+                data = data + inter
         return data
 
     def data_to_fileobj(self, data, fileobj):
@@ -1252,7 +1262,7 @@ class AnalyzeImage(SpatialImage):
         '''
         def _read_data(self):
             fileobj = allopen(self.file_like)
-            data = read_data(self.header, fileobj)
+            data = self.header.data_from_fileobj(fileobj)
             if isinstance(self.file_like, basestring): # filename
                 fileobj.close()
             return data

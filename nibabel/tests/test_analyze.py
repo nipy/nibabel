@@ -45,7 +45,6 @@ from nibabel.volumeutils import array_to_file, can_cast
 from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError
 from nibabel.analyze import AnalyzeHeader, AnalyzeImage
-from nibabel.header_ufuncs import read_data, write_scaled_data
 from nibabel.loadsave import read_img_data
 
 from nibabel.testing import parametric, data_path, ParametricTestCase
@@ -282,22 +281,23 @@ def test_scaling():
     data = np.ones(shape, dtype=np.float64)
     S = StringIO()
     # Writing to float datatype doesn't need scaling
-    write_scaled_data(hdr, data, S)
-    rdata = read_data(hdr, S)
+    hdr.data_to_fileobj(data, S)
+    rdata = hdr.data_from_fileobj(S)
     yield assert_true(np.allclose(data, rdata))
     # Writing to integer datatype does, and raises an error
     hdr.set_data_dtype(np.int32)
-    yield assert_raises(HeaderTypeError, write_scaled_data,
-           hdr, data, StringIO())
+    yield assert_raises(HeaderTypeError,
+                        hdr.data_to_fileobj,
+                        data, StringIO())
     # unless we aren't scaling, in which case we convert the floats to
     # integers and write
     _write_data(hdr, data, S)
-    rdata = read_data(hdr, S)
+    rdata = hdr.data_from_fileobj(S)
     yield assert_true(np.allclose(data, rdata))
     # This won't work for floats that aren't close to integers
     data_p5 = data + 0.5
     _write_data(hdr, data_p5, S)
-    rdata = read_data(hdr, S)
+    rdata = hdr.data_from_fileobj(S)
     yield assert_false(np.allclose(data_p5, rdata))
 
 

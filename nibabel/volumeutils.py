@@ -1,6 +1,8 @@
 ''' Utility functions for analyze-like formats '''
 
 import sys
+import gzip
+import bz2
 
 import numpy as np
 
@@ -361,7 +363,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     try: # Try memmapping file on disk
         arr = np.memmap(infile,
                         in_dtype,
-                        mode='r',
+                        mode='c',
                         shape=shape,
                         order=order,
                         offset=offset)
@@ -383,6 +385,14 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          in_dtype,
                          buffer=data_str,
                          order=order)
+        # for some types, we can write to the string buffer without
+        # worrying, but others we can't. 
+        if isinstance(infile, (file,
+                               gzip.GzipFile,
+                               bz2.BZ2File)):
+            arr.flags.writeable = True
+        else:
+            arr = arr.copy()
     return arr
 
 
@@ -718,14 +728,12 @@ def allopen(fname, *args, **kwargs):
             len(args) < 2 and
             not 'compresslevel' in kwargs):
             kwargs['compresslevel'] = default_compresslevel
-        import gzip
         opener = gzip.open
     elif fname.endswith('.bz2'):
         if ('w' in mode and
             len(args) < 3 and
             not 'compresslevel' in kwargs):
             kwargs['compresslevel'] = default_compresslevel
-        import bz2
         opener = bz2.BZ2File
     else:
         opener = open
