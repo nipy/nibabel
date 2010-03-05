@@ -36,6 +36,10 @@ def types_filenames(template_fname, types_exts,
     enforce_extensions : {True, False}, optional
         If True, raise an error when attempting to set value to
         type which has the wrong extension
+    match_case : bool, optional
+       If True, match case of extensions and trailing suffixes when
+       searching in `template_fname`, otherwise do case-insensitive
+       match.
 
     Returns
     -------
@@ -71,10 +75,10 @@ def types_filenames(template_fname, types_exts,
     if template_fname.endswith('.'):
         template_fname = template_fname[:-1]
     filename, found_ext, ignored, guessed_name = \
-              _parse_filename(template_fname,
-                              types_exts,
-                              trailing_suffixes,
-                              match_case)
+              parse_filename(template_fname,
+                             types_exts,
+                             trailing_suffixes,
+                             match_case)
     # Flag cases where we just set the input name directly
     direct_set_name = None
     if enforce_extensions:
@@ -116,41 +120,86 @@ def types_filenames(template_fname, types_exts,
     return tfns
 
 
-def _parse_filename(filename,
-                    types_exts,
-                    trailing_suffixes,
-                    match_case=False):
+def parse_filename(filename,
+                   types_exts,
+                   trailing_suffixes,
+                   match_case=False):
     ''' Splits filename into tuple of
     (fileroot, extension, trailing_suffix, guessed_name)
 
+    Parameters
+    ----------
+    filename : str
+       filename in which to search for type extensions
+    types_exts : sequence of sequences
+       sequence of (name, extension) str sequences defining type to
+       extension mapping.
+    trailing_suffixes : sequence of strings
+        suffixes that should be ignored when looking for
+        extensions
+    match_case : bool, optional
+       If True, match case of extensions and trailing suffixes when
+       searching in `filename`, otherwise do case-insensitive match.
+
+    Returns
+    -------
+    pth : str
+       path with any matching extensions or trailing suffixes removed
+    ext : str
+       If there were any matching extensions, in `types_exts` return
+       that; otherwise return extension derived from
+       ``os.path.splitext``.
+    trailing : str
+       If there were any matching `trailing_suffixes` return that
+       matching suffix, otherwise ''
+    guessed_type : str
+       If we found a matching extension in `types_exts` return the
+       corresponding ``type``
+
+    Examples
+    --------
     >>> types_exts = (('t1', 'ext1'),('t2', 'ext2'))
-    >>> _parse_filename('/path/fname.funny', types_exts, ())
+    >>> parse_filename('/path/fname.funny', types_exts, ())
     ('/path/fname', '.funny', None, None)
-    >>> _parse_filename('/path/fnameext2', types_exts, ())
+    >>> parse_filename('/path/fnameext2', types_exts, ())
     ('/path/fname', 'ext2', None, 't2')
-    >>> _parse_filename('/path/fnameext2', types_exts, ('.gz',))
+    >>> parse_filename('/path/fnameext2', types_exts, ('.gz',))
     ('/path/fname', 'ext2', None, 't2')
-    >>> _parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
+    >>> parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
     ('/path/fname', 'ext2', '.gz', 't2')
     '''
     ignored = None
+    if match_case:
+        endswith = _endswith
+    else:
+        endswith = _iendswith
     for ext in trailing_suffixes:
-        if filename.endswith(ext):
-            filename = filename[:-(len(ext))]
-            ignored = ext
+        if endswith(filename, ext):
+            extpos = -len(ext)
+            ignored = filename[extpos:]
+            filename = filename[:extpos]
             break
     guessed_name = None
     found_ext = None
     tem = dict(types_exts)
     for name, ext in types_exts:
-        if ext and filename.endswith(ext):
-            filename = filename[:-(len(ext))]
+        if ext and endswith(filename, ext):
+            extpos = -len(ext)
+            found_ext = filename[extpos:]
+            filename = filename[:extpos]
             guessed_name = name
-            found_ext = ext
             break
     else:
         filename, found_ext = os.path.splitext(filename)
     return (filename, found_ext, ignored, guessed_name)
+
+
+def _endswith(whole, end):
+    return whole.endswith(end)
+
+
+def _iendswith(whole, end):
+    return whole.lower().endswith(end.lower())
 
 
 def splitext_addext(filename,
@@ -164,7 +213,10 @@ def splitext_addext(filename,
     ----------
     filename : str
        filename that may end in any or none of `addexts`
-
+    match_case : bool, optional
+       If True, match case of `addexts` and `filename`, otherwise do
+       case-insensitive match. 
+       
     Returns
     -------
     froot : str
@@ -184,10 +236,15 @@ def splitext_addext(filename,
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
     '''
+    if match_case:
+        endswith = _endswith
+    else:
+        endswith = _iendswith
     for ext in addexts:
-        if filename.endswith(ext):
-            filename = filename[:-(len(ext))]
-            addext = ext
+        if endswith(filename, ext):
+            extpos = -len(ext)
+            addext = filename[extpos:]
+            filename = filename[:extpos]
             break
     else:
         addext = ''
