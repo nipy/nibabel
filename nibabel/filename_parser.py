@@ -8,7 +8,8 @@ class TypesFilenamesError(Exception):
 
 def types_filenames(template_fname, types_exts,
                     trailing_suffixes=('.gz', '.bz2'),
-                    enforce_extensions=True):
+                    enforce_extensions=True,
+                    match_case=False):
     ''' Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
@@ -65,11 +66,15 @@ def types_filenames(template_fname, types_exts,
     True
     '''
     if not isinstance(template_fname, basestring):
-        raise TypesFilenamesError('Need file name as input to set_filenames')
+        raise TypesFilenamesError('Need file name as input '
+                                  'to set_filenames')
     if template_fname.endswith('.'):
         template_fname = template_fname[:-1]
     filename, found_ext, ignored, guessed_name = \
-              _parse_filename(template_fname, types_exts, trailing_suffixes)
+              _parse_filename(template_fname,
+                              types_exts,
+                              trailing_suffixes,
+                              match_case)
     # Flag cases where we just set the input name directly
     direct_set_name = None
     if enforce_extensions:
@@ -111,7 +116,10 @@ def types_filenames(template_fname, types_exts,
     return tfns
 
 
-def _parse_filename(filename, types_exts, trailing_suffixes):
+def _parse_filename(filename,
+                    types_exts,
+                    trailing_suffixes,
+                    match_case=False):
     ''' Splits filename into tuple of
     (fileroot, extension, trailing_suffix, guessed_name)
 
@@ -145,7 +153,9 @@ def _parse_filename(filename, types_exts, trailing_suffixes):
     return (filename, found_ext, ignored, guessed_name)
 
 
-def splitext_addext(filename, addexts=('.gz', '.bz2')):
+def splitext_addext(filename,
+                    addexts=('.gz', '.bz2'),
+                    match_case=False):
     ''' Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 
     where ``.gz`` may be any of passed `addext` trailing suffixes.

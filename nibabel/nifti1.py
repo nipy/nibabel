@@ -134,7 +134,8 @@ intent_codes = Recoder((
     (8, 'binomial', ('p1 = number of trials', 'p2 = probability per trial')),
     # Prob(x) = (p1 choose x) * p2^x * (1-p2)^(p1-x), for x=0,1,...,p1
     (9, 'gamma', ('p1 = shape, p2 = scale', 2)), # 2 parameter gamma
-    (10, 'poisson', ('p1 = mean',)), # Density(x) proportional to x^(p1-1) * exp(-p2*x)
+    (10, 'poisson', ('p1 = mean',)), # Density(x) proportional to
+                                     # x^(p1-1) * exp(-p2*x)
     (11, 'normal', ('p1 = mean', 'p2 = standard deviation',)),
     (12, 'non central f test', ('p1 = numerator DOF',
                                 'p2 = denominator DOF',
@@ -148,7 +149,7 @@ intent_codes = Recoder((
     (19, 'chi', ('p1 = DOF',)),
     # p1 = 1 = 'half normal' distribution
     # p1 = 2 = Rayleigh distribution
-    # p1 = 3 = Maxwell-Boltzmann distribution.                  */
+    # p1 = 3 = Maxwell-Boltzmann distribution.
     (20, 'inverse gaussian', ('pi = mu', 'p2 = lambda')),
     (21, 'extreme value 1', ('p1 = location', 'p2 = scale')),
     (22, 'p value', ()),

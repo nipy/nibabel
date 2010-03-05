@@ -519,6 +519,96 @@ class AnalyzeHeader(object):
         '''
         return not self == other
 
+    def raw_data_from_fileobj(self, fileobj):
+        ''' Read unscaled data array from `fileobj`
+
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           unscaled data array
+        '''
+        dtype = self.get_data_dtype()
+        shape = self.get_data_shape()
+        offset = self.get_data_offset()
+        return array_from_file(shape, dtype, fileobj, offset)
+
+    def data_from_fileobj(self, fileobj):
+        ''' Read scaled data array from `fileobj`
+
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           scaled data array
+        '''
+        # read unscaled data
+        data = self.raw_data_from_fileobj(fileobj)
+        # get scalings from header
+        slope, inter = self.get_slope_inter()
+        if slope is None:
+            return data
+        if slope:
+            if slope != 1.0:
+                data *= slope
+            if inter:
+                data += inter
+        return data
+
+    def data_to_fileobj(self, data, fileobj):
+        ''' Write `data` to `fileobj`, maybe modifying `self`
+
+        In writing the data, we match the header to the written data, by
+        setting the header scaling factors.  Thus we modify `self` in
+        the process of writing the data.
+
+        Parameters
+        ----------
+        data : array-like
+           data to write; should match header defined shape
+        fileobj : file-like object
+           Object with file interface, implementing ``write`` and
+           ``seek``
+
+        Examples
+        --------
+        >>> from nibabel.analyze import AnalyzeHeader
+        >>> hdr = AnalyzeHeader()
+        >>> hdr.set_data_shape((1, 2, 3))
+        >>> hdr.set_data_dtype(np.float64)
+        >>> from StringIO import StringIO
+        >>> str_io = StringIO()
+        >>> data = np.arange(6).reshape(1,2,3)
+        >>> hdr.data_to_fileobj(data, str_io)
+        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+        True
+        '''
+        data = np.asarray(data)
+        slope, inter, mn, mx = self.scaling_from_data(data)
+        shape = self.get_data_shape()
+        if data.shape != shape:
+            raise HeaderDataError('Data should be shape (%s)' %
+                                  ', '.join(str(s) for s in shape))
+        offset = self.get_data_offset()
+        out_dtype = self.get_data_dtype()
+        array_to_file(data,
+                      fileobj,
+                      out_dtype,
+                      offset,
+                      inter,
+                      slope,
+                      mn,
+                      mx)
+        self.set_slope_inter(slope, inter)
+
     def __getitem__(self, item):
         ''' Return values from header data
 
