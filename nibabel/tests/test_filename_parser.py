@@ -87,6 +87,20 @@ def test_filenames():
     yield assert_equal(tfns,
                        {'image': 'test.gz',
                         'header': 'test.hdr.gz'})
+    # case (in)sensitivity, and effect of uppercase, lowercase
+    tfns = types_filenames('test.IMG', types_exts)
+    yield assert_equal(tfns,
+                       {'image': 'test.IMG',
+                        'header': 'test.HDR'})
+    tfns = types_filenames('test.img',
+                           (('image', '.IMG'), ('header', '.HDR')))
+    yield assert_equal(tfns,
+                       {'header': 'test.hdr',
+                        'image': 'test.img'})
+    tfns = types_filenames('test.IMG.Gz', types_exts)
+    yield assert_equal(tfns,
+                       {'image': 'test.IMG.Gz',
+                        'header': 'test.HDR.Gz'})
 
 
 @parametric

@@ -84,7 +84,7 @@ def types_filenames(template_fname, types_exts,
     if enforce_extensions:
         if guessed_name is None:
             # no match - maybe there was no extension atall or the
-            # wrong extension
+            # wrong extension. In either case we raise an error
             if found_ext:
                 # an extension, but the wrong one
                 raise TypesFilenamesError(
@@ -97,23 +97,35 @@ def types_filenames(template_fname, types_exts,
                 raise TypesFilenamesError(
                     'Confusing ignored suffix %s without extension'
                     % ignored)
-    else: # not enforcing extensions
-        # if there's an extension, we set the filename directly
-        # from input.  Also, if there was no extension, but an
-        # ignored suffix ('test.gz' type case), we set the
-        # filename directly.  Otherwise (no extension, no ignored
-        # suffix), we stay with the default, which is to add the
-        # default extensions according to type.
+        # if we've got to here, we have a guessed name and a found
+        # extension. 
+    else: # not enforcing extensions. If there's an extension, we set the
+        # filename directly from input, for the first types_exts type
+        # only.  Also, if there was no extension, but an ignored suffix
+        # ('test.gz' type case), we set the filename directly.
+        # Otherwise (no extension, no ignored suffix), we stay with the
+        # default, which is to add the default extensions according to
+        # type.
         if found_ext or ignored:
             direct_set_name = types_exts[0][0]
     tfns = {}
+    # now we have an extension case matching problem.  For example, if
+    # we've found .IMG as the extension, we want .HDR as the matching
+    # one.  Let's only do this when the extension is all upper or all
+    # lower case.
+    proc_ext = lambda s : s
+    if found_ext:
+        if found_ext == found_ext.upper():
+            proc_ext = lambda s : s.upper()
+        elif found_ext == found_ext.lower():
+            proc_ext = lambda s : s.lower()
     for name, ext in types_exts:
         if name == direct_set_name:
             tfns[name] = template_fname
             continue
         fname = filename
         if ext:
-            fname += ext
+            fname += proc_ext(ext)
         if ignored:
             fname += ignored
         tfns[name] = fname
