@@ -6,7 +6,6 @@ from nibabel import nifti1
 from nibabel.fileholders import FileHolderError
 from nibabel.spatialimages import ImageFileError
 from nibabel.imageclasses import class_map, ext_map
-from nibabel.header_ufuncs import read_data
 
 
 def load(filename):

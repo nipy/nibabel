@@ -4,9 +4,6 @@ import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.header_ufuncs import read_data, \
-    write_scaled_data
-
 from nibabel.spm99analyze import Spm99AnalyzeHeader, \
     Spm99AnalyzeImage, HeaderTypeError
 
@@ -33,11 +30,11 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         S3 = StringIO()
         data = np.arange(6, dtype=np.float64).reshape((1,2,3))
         # This uses scaling
-        write_scaled_data(hdr, data, S3)
-        data_back = read_data(hdr, S3)
+        hdr.data_to_fileobj(data, S3)
+        data_back = hdr.data_from_fileobj(S3)
         yield assert_array_almost_equal(data, data_back, 4)
         # This is exactly the same call, just testing it works twice
-        data_back2 = read_data(hdr, S3)
+        data_back2 = hdr.data_from_fileobj(S3)
         yield assert_array_equal(data_back, data_back2, 4)
 
     def test_origin_checks(self):
