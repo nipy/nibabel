@@ -97,7 +97,7 @@ class _TestBinaryHeader(ParametricTestCase):
         ''' Its use in initialization tested in the init tests.
         Endianness gives endian interpretation of binary data. It is
         read only because the only common use case is to set the
-        endianness on initialization(or occasionally byteswapping the
+        endianness on initialization (or occasionally byteswapping the
         data) - but this is done via via the as_byteswapped method
         '''
         hdr = self.header_class()

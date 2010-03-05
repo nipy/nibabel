@@ -9,8 +9,8 @@ import numpy as np
 from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
-    Nifti1Extension, data_type_codes, extension_codes, \
-    slice_order_codes
+    Nifti1Pair, Nifti1Extension, data_type_codes, \
+    extension_codes, slice_order_codes
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_false, assert_equal, \
@@ -105,9 +105,13 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
                            'setting to 0')
 
 
-class TestNifti1Image(tana.AnalyzeImage):
+class TestNifti1Image(tana.TestAnalyzeImage):
     # class for testing images
     image_class = Nifti1Image
+
+
+class TestNifti1Pair(tana.TestAnalyzeImage):
+    image_class = Nifti1Pair
 
 
 def test_datatypes():
@@ -168,82 +172,6 @@ def test_sform():
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
 
 
-'''
-def test_checked():
-    HC = Nifti1Header
-    def check_cf(hdr, log_level, error_level, fixed):
-        # return tests for check_fix
-        hdr = HC.from_header(hdr, 
-    ehf = vn.empty_header
-    ckdf = vn.checked
-    sso = sys.stdout
-    # test header gives no warnings at any severity
-    log = StringIO()
-    hdr2 = ckdf(hdr, log=log, severity=0.0)
-    yield assert_equal, log.tell(), 0
-    # our headers may break it though
-    eh = ehf()
-    eh['sizeof_hdr'] = 350 # severity 2.0
-    ehc = ckdf(eh, sso, 2.1)
-    yield assert_equal, ehc.sizeof_hdr, 348
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 2.0
-    eh = ehf()
-    eh.pixdim[0] = 0 # severity 1.0
-    ehc = ckdf(eh, sso, 1.1)
-    yield assert_equal, ehc.pixdim[0], 1
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 1.0
-    eh = ehf()
-    eh.pixdim[1] = -1 # severity 4.0
-    ehc = ckdf(eh, sso, 4.1)
-    yield assert_equal, ehc.pixdim[1], 1
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 4.0
-    eh = ehf()
-    eh.datatype = -1 # severity 9.0
-    ehc = ckdf(eh, sso, 9.1)
-    yield assert_equal, ehc.datatype, -1 # left as is
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 9.0
-    eh = ehf()
-    eh.datatype = 2
-    eh.bitpix = 16 # severity 1.0
-    ehc = ckdf(eh, sso, 1.1)
-    yield assert_equal, ehc.bitpix, 8 
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 1.0
-    eh = ehf()
-    eh.magic = 'ni1'
-    eh.vox_offset = 1 # severity 8.0
-    ehc = ckdf(eh, sso, 8.1)
-    yield assert_equal, ehc.vox_offset, 1
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 8.0
-    eh.magic = 'n+1'
-    # vox offset now wrong for single file - severity 9.0
-    ehc = ckdf(eh, sso, 9.1)
-    yield assert_equal, ehc.vox_offset, 352
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 9.0
-    eh.vox_offset = 353
-    # now theoretically valid but not for SPM -> 3.0
-    ehc = ckdf(eh, sso, 3.1)
-    yield assert_equal, ehc.vox_offset, 353
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
-    # bad magic - severity 9.5
-    eh = ehf()
-    eh.magic = 'nul'
-    ehc = ckdf(eh, sso, 9.6)
-    yield assert_equal, ehc.magic, 'nul' # leave
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 9.5
-    # qform, sform transforms, severity 3.0
-    eh = ehf()
-    eh.qform_code = -1
-    ehc = ckdf(eh, sso, 3.1)
-    yield assert_equal, ehc.qform_code, 0
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
-    eh = ehf()
-    eh.sform_code = -1
-    ehc = ckdf(eh, sso, 3.1)
-    yield assert_equal, ehc.sform_code, 0
-    yield assert_raises, HeaderDataError, ckdf, eh, None, 3.0
-'''
-
-    
 @parametric
 def test_dim_info():
     ehdr = Nifti1Header()
@@ -323,7 +251,7 @@ def test_slice_times():
                         hdr.set_slice_times,
                         funny_times) # can't get single slice duration
     hdr.set_slice_times(times)
-    yield assert_equal(hdr.get_field_label('slice_code'),
+    yield assert_equal(hdr.get_value_label('slice_code'),
                        'alternating decreasing')
     yield assert_equal(hdr['slice_start'], 1)
     yield assert_equal(hdr['slice_end'], 5)
@@ -508,17 +436,17 @@ def test_slope_inter():
 @parametric
 def test_recoded_fields():
     hdr = Nifti1Header()
-    yield assert_equal(hdr.get_field_label('qform_code'), 'unknown')
+    yield assert_equal(hdr.get_value_label('qform_code'), 'unknown')
     hdr['qform_code'] = 3
-    yield assert_equal(hdr.get_field_label('qform_code'), 'talairach')
-    yield assert_equal(hdr.get_field_label('sform_code'), 'unknown')
+    yield assert_equal(hdr.get_value_label('qform_code'), 'talairach')
+    yield assert_equal(hdr.get_value_label('sform_code'), 'unknown')
     hdr['sform_code'] = 3
-    yield assert_equal(hdr.get_field_label('sform_code'), 'talairach')
-    yield assert_equal(hdr.get_field_label('intent_code'), 'none')
+    yield assert_equal(hdr.get_value_label('sform_code'), 'talairach')
+    yield assert_equal(hdr.get_value_label('intent_code'), 'none')
     hdr.set_intent('t test', (10,), name='some score')
-    yield assert_equal(hdr.get_field_label('intent_code'), 't test')
-    yield assert_equal(hdr.get_field_label('slice_code'), 'unknown')
+    yield assert_equal(hdr.get_value_label('intent_code'), 't test')
+    yield assert_equal(hdr.get_value_label('slice_code'), 'unknown')
     hdr['slice_code'] = 4 # alternating decreasing
-    yield assert_equal(hdr.get_field_label('slice_code'),
+    yield assert_equal(hdr.get_value_label('slice_code'),
                        'alternating decreasing')
 

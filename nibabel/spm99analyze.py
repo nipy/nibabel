@@ -80,19 +80,18 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         return checks + (klass._chk_scale,)
 
     @staticmethod
-    def _chk_scale(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_scale(hdr, fix=False):
+        rep = Report(HeaderDataError)
         scale = hdr['scl_slope']
         if scale and np.isfinite(scale):
-            return ret
-        ret.problem_msg = ('scale slope is %s; should !=0 and be finite'
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = ('scale slope is %s; should !=0 and be finite'
                            % scale)
         if fix:
             hdr['scl_slope'] = 1
-            ret.fix_msg = 'setting scalefactor "scale" to 1'
-        else:
-            ret.problem_level = 30
-        return ret
+            rep.fix_msg = 'setting scalefactor "scl_slope" to 1'
+        return hdr, rep
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
@@ -215,19 +214,18 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         return checks + (klass._chk_origin,)
 
     @staticmethod
-    def _chk_origin(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_origin(hdr, fix=False):
+        rep = Report(HeaderDataError)
         origin = hdr['origin'][0:3]
         dims = hdr['dim'][1:4]
         if (not np.any(origin) or
             (np.all(origin > -dims) and np.all(origin < dims*2))):
-            return ret
-        ret.problem_msg = 'very large origin values relative to dims'
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'very large origin values relative to dims'
         if fix:
-            ret.fix_msg = 'leaving as set, ignoring for affine'
-        else:
-            ret.problem_level = 20
-        return ret
+            rep.fix_msg = 'leaving as set, ignoring for affine'
+        return hdr, rep
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):

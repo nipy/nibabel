@@ -13,65 +13,62 @@ from nibabel.testing import assert_true, assert_false, \
 
 
 # define some trivial functions as checks
-def chk1(obj, fix=True):
-    ret = Report(obj, KeyError)
+def chk1(obj, fix=False):
+    rep = Report(KeyError)
     if obj.has_key('testkey'):
-        return ret
-    ret.problem_level = 20
-    ret.problem_msg = 'no "testkey"'
+        return obj, ret
+    rep.problem_level = 20
+    rep.problem_msg = 'no "testkey"'
     if fix:
         obj['testkey'] = 1
-        ret.fix_msg = 'added "testkey"'
-    return ret
+        rep.fix_msg = 'added "testkey"'
+    return obj, rep
 
 
-def chk2(obj, fix=True):
+def chk2(obj, fix=False):
     # Can return different codes for different errors in same check
-    ret = Report(obj)
+    rep = Report()
     try:
         ok = obj['testkey'] == 0
     except KeyError:
-        ret.problem_level = 20
-        ret.problem_msg = 'no "testkey"'
-        ret.error = KeyError
+        rep.problem_level = 20
+        rep.problem_msg = 'no "testkey"'
+        rep.error = KeyError
         if fix:
             obj['testkey'] = 1
-            ret.fix_msg = 'added "testkey"'
-        return ret
+            rep.fix_msg = 'added "testkey"'
+        return obj, rep
     if ok:
-        return ret
-    ret.problem_level = 10
-    ret.problem_msg = '"testkey" != 0'
-    ret.error = ValueError
+        return obj, rep
+    rep.problem_level = 10
+    rep.problem_msg = '"testkey" != 0'
+    rep.error = ValueError
     if fix:
-        ret.fix_msg = 'set "testkey" to 0'
+        rep.fix_msg = 'set "testkey" to 0'
         obj['testkey'] = 0
-    return ret
+    return obj, rep
 
 
-def chk_warn(obj, fix=True):
-    ret = Report(obj, KeyError)
-    if obj.has_key('anotherkey'):
-        return ret
-    ret.problem_msg = 'no "anotherkey"'
-    if fix:
-        obj['anotherkey'] = 'a string'
-        ret.fix_msg = 'added "anotherkey"'
-    else:
-        ret.problem_level = 30
-    return ret
+def chk_warn(obj, fix=False):
+    rep = Report(KeyError)
+    if not obj.has_key('anotherkey'):
+        rep.problem_level = 30
+        rep.problem_msg = 'no "anotherkey"'
+        if fix:
+            obj['anotherkey'] = 'a string'
+            rep.fix_msg = 'added "anotherkey"'
+    return obj, rep
 
 
-def chk_error(obj, fix=True):
-    ret = Report(obj, KeyError)
-    if obj.has_key('thirdkey'):
-        return ret
-    ret.problem_level = 40
-    ret.problem_msg = 'no "thirdkey"'
-    if fix:
-        obj['anotherkey'] = 'a string'
-        ret.fix_msg = 'added "anotherkey"'
-    return ret
+def chk_error(obj, fix=False):
+    rep = Report(KeyError)
+    if not obj.has_key('thirdkey'):
+        rep.problem_level = 40
+        rep.problem_msg = 'no "thirdkey"'
+        if fix:
+            obj['anotherkey'] = 'a string'
+            rep.fix_msg = 'added "anotherkey"'
+    return obj, rep
 
 
 @parametric
@@ -86,6 +83,12 @@ def test_init_basic():
 
 
 @parametric
+def test_init_report():
+    rep = Report()
+    yield assert_equal(rep, Report(Exception, 0, '', ''))
+    
+
+@parametric
 def test_report_strings():
     rep = Report()
     yield assert_not_equal(rep.__str__(), '')
@@ -93,7 +96,7 @@ def test_report_strings():
     str_io = StringIO()
     rep.write_raise(str_io)
     yield assert_equal(str_io.getvalue(), '')
-    rep = Report('', ValueError, 20, 'msg', 'fix')
+    rep = Report(ValueError, 20, 'msg', 'fix')
     rep.write_raise(str_io)
     yield assert_equal(str_io.getvalue(), '')
     rep.problem_level = 30
@@ -131,7 +134,7 @@ def test_report_strings():
 
 @parametric
 def test_logging():
-    rep = Report('', ValueError, 20, 'msg', 'fix')
+    rep = Report(ValueError, 20, 'msg', 'fix')
     str_io = StringIO()
     logger = logging.getLogger('test.logger')
     logger.setLevel(30) # defaultish level
@@ -149,15 +152,13 @@ def test_checks():
     battrun = BatteryRunner((chk1,))
     reports = battrun.check_only({})
     yield assert_equal(reports[0],
-                       Report({},
-                              KeyError,
+                       Report(KeyError,
                               20,
                               'no "testkey"',
                               ''))
     obj, reports = battrun.check_fix({})    
     yield assert_equal(reports[0],
-                       Report({'testkey':1},
-                              KeyError,
+                       Report(KeyError,
                               20,
                               'no "testkey"',
                               'added "testkey"'))
@@ -165,14 +166,12 @@ def test_checks():
     battrun = BatteryRunner((chk1,chk2))
     reports = battrun.check_only({})
     yield assert_equal(reports[0],
-                       Report({},
-                              KeyError,
+                       Report(KeyError,
                               20,
                               'no "testkey"',
                               ''))
     yield assert_equal(reports[1],
-                       Report({},
-                              KeyError,
+                       Report(KeyError,
                               20,
                               'no "testkey"',
                               ''))
@@ -182,14 +181,12 @@ def test_checks():
     # (and final) dictionary
     output_obj = {'testkey':0}
     yield assert_equal(reports[0],
-                       Report(output_obj,
-                              KeyError,
+                       Report(KeyError,
                               20,
                               'no "testkey"',
                               'added "testkey"'))
     yield assert_equal(reports[1],
-                       Report(output_obj,
-                              ValueError,
+                       Report(ValueError,
                               10,
                               '"testkey" != 0',
                               'set "testkey" to 0'))

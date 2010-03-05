@@ -2,7 +2,6 @@
 
 Author: Matthew Brett
 '''
-
 import numpy as np
 import numpy.linalg as npl
 
@@ -12,6 +11,7 @@ from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
 from nibabel import analyze # module import
 from nibabel.spm99analyze import SpmAnalyzeHeader
+from nibabel.fileholders import copy_file_map
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -134,7 +134,8 @@ intent_codes = Recoder((
     (8, 'binomial', ('p1 = number of trials', 'p2 = probability per trial')),
     # Prob(x) = (p1 choose x) * p2^x * (1-p2)^(p1-x), for x=0,1,...,p1
     (9, 'gamma', ('p1 = shape, p2 = scale', 2)), # 2 parameter gamma
-    (10, 'poisson', ('p1 = mean',)), # Density(x) proportional to x^(p1-1) * exp(-p2*x)
+    (10, 'poisson', ('p1 = mean',)), # Density(x) proportional to
+                                     # x^(p1-1) * exp(-p2*x)
     (11, 'normal', ('p1 = mean', 'p2 = standard deviation',)),
     (12, 'non central f test', ('p1 = numerator DOF',
                                 'p2 = denominator DOF',
@@ -148,7 +149,7 @@ intent_codes = Recoder((
     (19, 'chi', ('p1 = DOF',)),
     # p1 = 1 = 'half normal' distribution
     # p1 = 2 = Rayleigh distribution
-    # p1 = 3 = Maxwell-Boltzmann distribution.                  */
+    # p1 = 3 = Maxwell-Boltzmann distribution.
     (20, 'inverse gaussian', ('pi = mu', 'p2 = lambda')),
     (21, 'extreme value 1', ('p1 = location', 'p2 = scale')),
     (22, 'p value', ()),
@@ -989,42 +990,15 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_dim_info(slice=2)
         >>> hdr.set_data_shape((1, 1, 7))
         >>> hdr.set_slice_duration(0.1)
-
-        We need a function to print out the Nones and floating point
-        values in a predictable way, for the tests below.
-
-        >>> _stringer = lambda val: val is not None and '%2.1f' % val or None
-        >>> _print_me = lambda s: map(_stringer, s)
-
-        The following examples are from the nifti1.h documentation.
-
         >>> hdr['slice_code'] = slice_order_codes['sequential increasing']
-        >>> _print_me(hdr.get_slice_times())
-        ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6']
-        >>> hdr['slice_start'] = 1
-        >>> hdr['slice_end'] = 5
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.0', '0.1', '0.2', '0.3', '0.4', None]
-        >>> hdr['slice_code'] = slice_order_codes['sequential decreasing']
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.4', '0.3', '0.2', '0.1', '0.0', None]
-        >>> hdr['slice_code'] = slice_order_codes['alternating increasing']
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.0', '0.3', '0.1', '0.4', '0.2', None]
-        >>> hdr['slice_code'] = slice_order_codes['alternating decreasing']
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.2', '0.4', '0.1', '0.3', '0.0', None]
-        >>> hdr['slice_code'] = slice_order_codes['alternating increasing 2']
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.2', '0.0', '0.3', '0.1', '0.4', None]
-        >>> hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
-        >>> _print_me(hdr.get_slice_times())
-        [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
+        >>> slice_times = hdr.get_slice_times()
+        >>> np.allclose(slice_times, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        True
         '''
         hdr = self._header_data
         slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
-        slabel = self.get_field_label('slice_code')
+        slabel = self.get_value_label('slice_code')
         if slabel == 'unknown':
             raise HeaderDataError('Cannot get slice times when '
                                   'Slice code is "unknown"')
@@ -1060,7 +1034,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_slice_duration(0.1)
         >>> times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
         >>> hdr.set_slice_times(times)
-        >>> hdr.get_field_label('slice_code')
+        >>> hdr.get_value_label('slice_code')
         'alternating decreasing'
         >>> int(hdr['slice_start'])
         1
@@ -1162,97 +1136,97 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_sform_code)
 
     @staticmethod
-    def _chk_scale_slope(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_scale_slope(hdr, fix=False):
+        rep = Report(HeaderDataError)
         scale = hdr['scl_slope']
         if scale and np.isfinite(scale):
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
         if fix:
             hdr['scl_slope'] = 1
-            ret.fix_msg = 'setting "scl_slope" to 1'
-        return ret
+            rep.fix_msg = 'setting "scl_slope" to 1'
+        return hdr, rep
 
     @staticmethod
-    def _chk_scale_inter(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_scale_inter(hdr, fix=False):
+        rep = Report(HeaderDataError)
         scale = hdr['scl_inter']
         if np.isfinite(scale):
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '"scl_inter" is %s; should be finite' % scale
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '"scl_inter" is %s; should be finite' % scale
         if fix:
             hdr['scl_inter'] = 0
-            ret.fix_msg = 'setting "scl_inter" to 0'
-        return ret
+            rep.fix_msg = 'setting "scl_inter" to 0'
+        return hdr, rep
 
     @staticmethod
-    def _chk_qfac(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_qfac(hdr, fix=False):
+        rep = Report(HeaderDataError)
         if hdr['pixdim'][0] in (-1, 1):
-            return ret
-        ret.problem_level = 20
-        ret.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or -1'
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or -1'
         if fix:
             hdr['pixdim'][0] = 1
-            ret.fix_msg = 'setting qfac to 1'
-        return ret
+            rep.fix_msg = 'setting qfac to 1'
+        return hdr, rep
 
     @staticmethod
-    def _chk_magic_offset(hdr, fix=True):
-        ret = Report(hdr, HeaderDataError)
+    def _chk_magic_offset(hdr, fix=False):
+        rep = Report(HeaderDataError)
         magic = hdr['magic']
         offset = hdr['vox_offset']
         if magic == 'n+1': # one file
             if offset >= 352:
                 if not offset % 16:
-                    return ret
+                    return hdr, rep
                 else:
                     # SPM uses memory mapping to read the data, and
                     # apparently this has to start on 16 byte boundaries
-                    ret.problem_msg = ('vox offset (=%s) not divisible '
+                    rep.problem_msg = ('vox offset (=%s) not divisible '
                                        'by 16, not SPM compatible' % offset)
-                    ret.problem_level = 30
+                    rep.problem_level = 30
                     if fix:
-                        ret.fix_msg = 'leaving at current value'
-                    return ret
-            ret.problem_level = 40
-            ret.problem_msg = ('vox offset %d too low for '
+                        rep.fix_msg = 'leaving at current value'
+                    return hdr, rep
+            rep.problem_level = 40
+            rep.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
             if fix:
                 hdr['vox_offset'] = 352
-                ret.fix_msg = 'setting to minimum value of 352'
+                rep.fix_msg = 'setting to minimum value of 352'
         elif magic != 'ni1': # two files
             # unrecognized nii magic string, oh dear
-            ret.problem_msg = 'magic string "%s" is not valid' % magic
-            ret.problem_level = 45
+            rep.problem_msg = 'magic string "%s" is not valid' % magic
+            rep.problem_level = 45
             if fix:
-                ret.fix_msg = 'leaving as is, but future errors are likely'
-        return ret
+                rep.fix_msg = 'leaving as is, but future errors are likely'
+        return hdr, rep
 
     @classmethod
-    def _chk_qform_code(klass, hdr, fix=True):
+    def _chk_qform_code(klass, hdr, fix=False):
         return klass._chk_xform_code('qform_code', hdr, fix)
 
     @classmethod
-    def _chk_sform_code(klass, hdr, fix=True):
+    def _chk_sform_code(klass, hdr, fix=False):
         return klass._chk_xform_code('sform_code', hdr, fix)
 
     @classmethod
     def _chk_xform_code(klass, code_type, hdr, fix):
         # utility method for sform and qform codes
-        ret = Report(hdr, HeaderDataError)
+        rep = Report(HeaderDataError)
         code = int(hdr[code_type])
         recoder = klass._field_recoders[code_type]
         if code in recoder.value_set():
-            return ret
-        ret.problem_level = 30
-        ret.problem_msg = '%s %d not valid' % (code_type, code)
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = '%s %d not valid' % (code_type, code)
         if fix:
             hdr[code_type] = 0
-            ret.fix_msg = 'setting to 0'
-        return ret
+            rep.fix_msg = 'setting to 0'
+        return hdr, rep
 
 
 class Nifti1PairHeader(Nifti1Header):
@@ -1291,11 +1265,13 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if len(extensions):
             extra = {'extensions': extensions}
         affine = header.get_best_affine()
-        return klass.from_data_file(imgf,
-                                    affine,
-                                    header,
-                                    extra,
-                                    file_map=file_map)
+        hdr_copy = header.copy()
+        data = klass.ImageArrayProxy(imgf, hdr_copy)
+        img = klass(data, affine, header, extra, file_map)
+        img._load_cache = {'header': hdr_copy,
+                           'affine': affine.copy(),
+                           'file_map': copy_file_map(file_map)}
+        return img
 
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Pair, self)._write_header(header_file,
@@ -1308,10 +1284,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
         else:
             self.extra['extensions'].write_to(header_file)
 
-    def _update_header(self):
+    def update_header(self):
         ''' Harmonize header with image data and affine
 
-        See AnalyzeImage._update_header for more examples
+        See AnalyzeImage.update_header for more examples
 
         Examples
         --------
@@ -1324,7 +1300,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> np.all(hdr.get_sform() == affine)
         True
         '''
-        super(Nifti1Pair, self)._update_header()
+        super(Nifti1Pair, self).update_header()
         hdr = self._header
         hdr['magic'] = 'ni1'
         if not self._affine is None:
@@ -1359,9 +1335,9 @@ class Nifti1Image(Nifti1Pair):
         if diff > 0:
             header_file.write('\x00' * diff)
 
-    def _update_header(self):
+    def update_header(self):
         ''' Harmonize header with image data and affine '''
-        super(Nifti1Image, self)._update_header()
+        super(Nifti1Image, self).update_header()
         hdr = self._header
         hdr['magic'] = 'n+1'
         # make sure that there is space for the header.  If any

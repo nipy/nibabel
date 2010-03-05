@@ -14,6 +14,7 @@ from nibabel.testing import assert_equal, assert_true, assert_false, \
      assert_raises, parametric
 
 import test_analyze
+from test_analyze import _log_chk
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -39,6 +40,43 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         data_back2 = read_data(hdr, S3)
         yield assert_array_equal(data_back, data_back2, 4)
 
+    def test_origin_checks(self):
+        HC = self.header_class
+        # origin
+        hdr = HC()
+        hdr.data_shape = [1,1,1]
+        hdr['origin'][0] = 101 # severity 20
+        fhdr, message, raiser = _log_chk(hdr, 20)
+        yield assert_equal(fhdr, hdr)
+        yield assert_equal(message, 'very large origin values '
+                           'relative to dims; leaving as set, '
+                           'ignoring for affine')
+        yield assert_raises(*raiser)
+        # diagnose binary block
+        dxer = self.header_class.diagnose_binaryblock
+        yield assert_equal(dxer(hdr.binaryblock),
+                           'very large origin values '
+                           'relative to dims')
+
+    def test_spm_scale_checks(self):
+        # checks for scale
+        hdr = self.header_class()
+        hdr['scl_slope'] = np.nan
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 1)
+        yield assert_equal(message, 'scale slope is nan; '
+                           'should !=0 and be finite; '
+                           'setting scalefactor "scl_slope" to 1')
+        yield assert_raises(*raiser)
+        dxer = self.header_class.diagnose_binaryblock
+        yield assert_equal(dxer(hdr.binaryblock),
+                           'scale slope is nan; '
+                           'should !=0 and be finite')
+        hdr['scl_slope'] = np.inf
+        yield assert_equal(dxer(hdr.binaryblock),
+                           'scale slope is inf; '
+                           'should !=0 and be finite')
+
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images
@@ -46,24 +84,6 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     
 
 @parametric
-def test_checks():
-    # Test extra checks for spm99
-    dxer = Spm99AnalyzeHeader.diagnose_binaryblock
-    hdr = Spm99AnalyzeHeader()
-    hdr.data_shape = [1,1,1]
-    yield assert_equal(dxer(hdr.binaryblock), '')
-    hdr['origin'][0] = 101
-    yield assert_equal(dxer(hdr.binaryblock),
-                       'very large origin values relative to dims')
-    hdr['origin'] = 0
-    hdr['scl_slope'] = 0
-    yield assert_equal(dxer(hdr.binaryblock),
-                       'scale slope is 0.0; should !=0 and be finite')
-    hdr['scl_slope'] = np.inf
-    yield assert_equal(dxer(hdr.binaryblock),
-                       'scale slope is inf; should !=0 and be finite')
-    
-
 def test_origin_affine():
     # check that origin affine works, only
     hdr = Spm99AnalyzeHeader()

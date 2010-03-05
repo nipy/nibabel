@@ -2,7 +2,8 @@
 
 from StringIO import StringIO
 
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
+from nibabel.filename_parser import types_filenames, \
+    TypesFilenamesError, parse_filename, splitext_addext
 
 from nose.tools import assert_equal, assert_true, assert_false, \
      assert_raises
@@ -86,3 +87,62 @@ def test_filenames():
     yield assert_equal(tfns,
                        {'image': 'test.gz',
                         'header': 'test.hdr.gz'})
+
+
+@parametric
+def test_parse_filename():
+    types_exts = (('t1', 'ext1'),('t2', 'ext2'))
+    exp_in_outs = (
+        (('/path/fname.funny', ()),
+         ('/path/fname', '.funny', None, None)),
+        (('/path/fnameext2', ()),
+         ('/path/fname', 'ext2', None, 't2')),
+        (('/path/fnameext2', ('.gz',)),
+         ('/path/fname', 'ext2', None, 't2')),
+        (('/path/fnameext2.gz', ('.gz',)),
+         ('/path/fname', 'ext2', '.gz', 't2'))
+        )
+    for inps, exps in exp_in_outs:
+        pth, sufs = inps
+        res = parse_filename(pth, types_exts, sufs)
+        yield assert_equal(res, exps)
+        upth = pth.upper()
+        uexps = (exps[0].upper(), exps[1].upper(),
+                 exps[2].upper() if exps[2] else None,
+                 exps[3])
+        res = parse_filename(upth, types_exts, sufs)
+        yield assert_equal(res, uexps)
+    # test case sensitivity
+    res = parse_filename('/path/fnameext2.GZ',
+                         types_exts,
+                         ('.gz',), False) # case insensitive again
+    yield assert_equal(res, ('/path/fname', 'ext2', '.GZ', 't2'))
+    res = parse_filename('/path/fnameext2.GZ',
+                         types_exts,
+                         ('.gz',), True) # case sensitive
+    yield assert_equal(res, ('/path/fnameext2', '.GZ', None, None))
+    res = parse_filename('/path/fnameEXT2.gz',
+                         types_exts,
+                         ('.gz',), False) # case insensitive
+    yield assert_equal(res, ('/path/fname', 'EXT2', '.gz', 't2'))
+    res = parse_filename('/path/fnameEXT2.gz',
+                         types_exts,
+                         ('.gz',), True) # case sensitive
+    yield assert_equal(res, ('/path/fnameEXT2', '', '.gz', None))
+
+
+@parametric
+def test_splitext_addext():
+    res = splitext_addext('fname.ext.gz')
+    yield assert_equal(res, ('fname', '.ext', '.gz'))
+    res = splitext_addext('fname.ext')
+    yield assert_equal(res, ('fname', '.ext', ''))
+    res = splitext_addext('fname.ext.foo', ('.foo', '.bar'))
+    yield assert_equal(res, ('fname', '.ext', '.foo'))
+    res = splitext_addext('fname.ext.FOO', ('.foo', '.bar'))
+    yield assert_equal(res, ('fname', '.ext', '.FOO'))
+    # case sensitive
+    res = splitext_addext('fname.ext.FOO', ('.foo', '.bar'), True)
+    yield assert_equal(res, ('fname.ext', '.FOO', ''))
+    
+
