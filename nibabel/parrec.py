@@ -13,7 +13,7 @@ _hdr_key_dict = {
     'Series Type': ('series_type',),
     'Acquisition nr': ('acq_nr', int),
     'Reconstruction nr': ('recon_nr', int),
-    'Scan Duration [sec]': ('scan_duration', int),
+    'Scan Duration [sec]': ('scan_duration', float),
     'Max. number of cardiac phases': ('max_cardiac_phases', int),
     'Max. number of echoes': ('max_echoes', int),
     'Max. number of slices/locations': ('max_slices', int),
@@ -100,6 +100,22 @@ _slice_orientation_codes = {
 class PARRECError(Exception):
     pass
 
+
+class RECFile(object):
+    def __init__(self, fobj, dtype, shape):
+        self._fobj = fobj
+        self._dtype = dtype
+        self._shape = shape
+
+    def get_data(self):
+        self._fobj.seek(0)
+        data = np.fromfile(self._fobj, self._dtype)
+        print data.shape
+        data.shape = self._shape
+        # data is now [dynamics x slices x (in-plane matrix)]
+        # XXX for now assume AXIAL, but needs to become more flexible
+        data = np.transpose(data, [2, 3, 1, 0])
+        return data
 
 class PARFile(object):
     def __init__(self, fobj):
@@ -190,6 +206,9 @@ class PARFile(object):
         #           x   y   z
         ang_rad = self._hdr_defs['angulation'] * np.pi / 180.0
 
+        # FOV -- turn into rl, ap, fh
+        fov = self._hdr_defs['fov'][[2,0,1]]
+
         # slice orientation for the whole image series
         slice_orientation = _slice_orientation_codes[
                     self._get_unqiue_image_prop('slice orientation')[0]]
@@ -229,50 +248,167 @@ class PARFile(object):
         slice_thickness = self._get_unqiue_image_prop('slice thickness')[0]
         slice_gap = self._get_unqiue_image_prop('slice gap')[0]
         voxsize_inplane = self._get_unqiue_image_prop('pixel spacing')
-        # voxel size (x, y, z)
+
+        # come up with proper scaling and shift
+        # voxel size (rl, ap, fh)
         voxsize = np.ones(3)
-        # come up with proper scaling
+        # scaler is voxelsize + inter slice gap
+        scaler = np.ones(3)
         if slice_orientation == 'sagital':
-            voxsize[1:] = voxsize_inplane            # Y x Z
-            voxsize[0] = slice_thickness + slice_gap # X
+            scaler[1:] = voxsize_inplane            # AP x FH
+            scaler[0] = slice_thickness + slice_gap # RL
+            voxsize[1:] = voxsize_inplane            # AP x FH
+            voxsize[0] = slice_thickness             # RL
         elif slice_orientation == 'transversal':
-            voxsize[:2] = voxsize_inplane            # X x Y
-            voxsize[2] = slice_thickness + slice_gap # Z
+            scaler[:2] = voxsize_inplane            # AP x RL
+            scaler[2] = slice_thickness + slice_gap # FH
+            voxsize[:2] = voxsize_inplane            # AP x RL
+            voxsize[2] = slice_thickness             # FH
         elif slice_orientation == 'coronal':
-            voxsize[::2] = voxsize_inplane           # X x Z
-            voxsize[1] = slice_thickness + slice_gap # Y
+            scaler[::2] = voxsize_inplane           # RL x FH
+            scaler[1] = slice_thickness + slice_gap # AP
+            voxsize[::2] = voxsize_inplane           # RL x FH
+            voxsize[1] = slice_thickness             # AP
         else:
             raise PARRECError("Unknown slice orientation (%s).")
 
+        # we have rl, ap, fh, but we want lr, pa, fh
+        flipit = np.mat([[ -1,  0, 0],
+                         [  0, -1, 0],
+                         [  0,  0, 1]])
+        rot = flipit * rot
+
+        # ijk origin should be: Anterior, Right, Foot
+        # qform should point to the center of the voxel
+        fov_center_offset = voxsize/2 - fov/2
+
+        # need to rotate this offset into scanner space
+        fov_center_offset = np.dot(rot, fov_center_offset)
+
         # get the scaling by voxelsize and slice thickness (incl. gap)
-        scaled = rot.T * np.mat(np.diag(voxsize))
+        scaled = rot * np.mat(np.diag(scaler))
 
-        # rotation has order ap,fh,rl, that is y,z,x -> reorder into x,y,z
-        # inplane is ap x fh
-        flipit = np.mat([[0,0,1],[-1,0,0],[0,-1,0]])
-        scaled = scaled * flipit
-        # offset of FOV center to ijk origin
-        # need to reorder fov spec into x,y,z!
-        fov_origin = (self._hdr_defs['fov'][[2,0,1]] / 2.0) / voxsize
-        # rotate into scanner space
-        fov_origin_rot = fov_origin * scaled
-        # get offset of rotated ijk origin from iso-center of the scanner
-        # need to reorder offset spec into x,y,z!
-        offset = fov_origin_rot - self._hdr_defs['off_center'][[2,0,1]]
+        # compose the affine
+        aff = np.eye(4)
+        aff[:3,:3] = scaled
+        # qform should point to the center of the voxel
+        aff[:3,3] = fov_center_offset
 
-        # XXX incomplete, ugly, wrong, drives me mad
-        return scaled
+        print aff
+        return aff
+        
+        
+        print aff
+        rot_nibabel = euler2mat(ang_rad[1], ang_rad[0], ang_rad[2])
+        print np.linalg.det(rot_nibabel)
+        rot = np.eye(4)
+        rot[:3,:3] = rot_nibabel
+        print rot
+        aff = np.dot(rot, aff)
+        print aff
+        print np.linalg.det(aff[:3,:3])
+
+        print np.sqrt(np.sum(aff * aff, axis=0))
+        print np.sqrt(np.sum(rot * rot, axis=0))
+        return aff
+
+
+    def get_data_shape(self):
+        # e.g. number of volumes
+        ndynamics = len(np.unique(self._image_defs['dynamic scan number']))
+        nslices = len(np.unique(self._image_defs['slice number']))
+        if not nslices == self._hdr_defs['max_slices']:
+            raise PARRECError("Header inconsistency: Found %i slices, "
+                              "but header claims to have %i."
+                              % (nslices, self._hdr_defs['max_slices']))
+
+        inplane_shape = self._get_unqiue_image_prop('recon resolution')
+        return (ndynamics, nslices,) + tuple(inplane_shape)
+
+
+    def get_data_dtype(self):
+        nbits = self._get_unqiue_image_prop('image pixel size')[0]
+        return np.typeDict['int' + str(nbits)]
+
+
+    def get_data_scaling(self):
+        # from the PAR defintion:
+        #
+        # === PIXEL VALUES =====================================================
+        #  PV = value in REC,  FP = floating point value, DV = value on console
+        #  RS = rescale slope, RI = rescale intercept,    SS = scale slope
+        #  DV = PV * RS + RI   FP = DV / (RS * SS)
+
+        # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
+        #      out which one means what
+
+        # slopes (one per image)
+        slope = 1 / self._image_defs['scale slope']
+        # intercepts (one per image)
+        intercept = self._image_defs['rescale intercept'] \
+                    / (self._image_defs['rescale slope']
+                            *  self._image_defs['scale slope'])
+        nbits = self._get_unqiue_image_prop('image pixel size')[0]
+        return (slope, intercept)
+
+
+    def get_slice_orientation(self):
+        return _slice_orientation_codes[
+                    self._get_unqiue_image_prop('slice orientation')[0]]
 
 
 class PARRECImage(SpatialImage):
     files_types = (('image', '.rec'), ('header', '.par'))
 
+    class ImageArrayProxy(object):
+        def __init__(self, rec_fobj, par_file):
+            self._rec_fobj = rec_fobj
+            self._par_file = par_file
+            self._data = None
+
+        def __array__(self):
+            ''' Cached read of data from file '''
+            if self._data is None:
+                pf = self._par_file
+                self._rec_fobj.seek(0)
+                data = np.fromfile(self._rec_fobj,
+                                   pf.get_data_dtype())
+                data.shape = pf.get_data_shape()
+                slice_orient = pf.get_slice_orientation()
+
+                # need to reorder axis to match nibabels x,y,z,t convention
+                # data comes as [dynamics x slices x (in-plane matrix)]
+                if slice_orient == 'transversal':
+                    # get: t, FH, AP, RL
+                    # do: RL, AP, FH, t
+                    data = np.transpose(data, [3, 2, 1, 0])
+                elif slice_orient == 'sagital':
+                    data = np.transpose(data, [1, 2, 3, 0])
+                elif slice_orient == 'coronal':
+                    data = np.transpose(data, [2, 1, 3, 0])
+                else:
+                    raise PARRECError("Unknown slice orientation '%s'."
+                                      % slice_orient)
+                self._data = data
+            return self._data
+
+
     @classmethod
     def from_file_map(klass, file_map):
-        hdrfobj = file_map['header'].get_prepare_fileobj()
-        hdr_file = PARFile(hdrfobj)
-        print hdr_file.get_affine()
-        return hdr_file
+        hdr_fobj = file_map['header'].get_prepare_fileobj()
+        rec_fobj = file_map['image'].get_prepare_fileobj()
+        hdr_file = PARFile(hdr_fobj)
+        print hdr_file.get_slice_orientation()
+        data = klass.ImageArrayProxy(rec_fobj, hdr_file)
+        return  klass(data, hdr_file.get_affine(), None, extra=None, file_map=file_map)
+        #print hdr_file.get_data_shape()
+        #print hdr_file.get_slice_orientation()
+        #rec_file = RECFile(file_map['image'].get_prepare_fileobj(),
+        #                   hdr_file.get_data_dtype(),
+        #                   hdr_file.get_data_shape())
+        #data = rec_file.get_data()
+        #from nibabel.nifti1 import Nifti1Image, save
+        #save(Nifti1Image(data, np.eye(4)), 'mytest.nii.gz')
         #affine = minc_file.get_affine()
         #if affine.shape != (4, 4):
         #    raise MincError('Image does not have 3 spatial dimensions')
@@ -285,3 +421,5 @@ class PARRECImage(SpatialImage):
 
 
 load = PARRECImage.load
+#PYTHONPATH=. python -c "import numpy as np; from nibabel.parrec import load; from nibabel.nifti1 import Nifti1Image, save; img=load('owntest/Dylan_Nifti_header_fMRI_07_1-FEEPI.PAR'); save(Nifti1Image(img.get_data(), np.eye(4)), 'mytest.nii.gz')"
+
