@@ -1,8 +1,13 @@
+
+import warnings
 import numpy as np
 
 from nibabel.spatialimages import SpatialImage
 from nibabel.eulerangles import euler2mat
 from nibabel.volumeutils import Recoder
+
+# PAR header versions we claim to understand
+supported_versions = ['V4.2']
 
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
@@ -44,10 +49,8 @@ _hdr_key_dict = {
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
     }
 
-
 # header items order per image definition line
-# values are: (shortname[, dtype[, shape]])
-_image_props_list = [
+image_def_dtd = [
     ('slice number', int),
     ('echo number', int,),
     ('dynamic scan number', int,),
@@ -83,14 +86,14 @@ _image_props_list = [
     ('maximum RR-interval', int,), 
     ('TURBO factor', int,),
     ('Inversion delay', float),
-    ('diffusion b value number', int,),         # (imagekey!)
-    ('gradient orientation number', int,),      # (imagekey!)
-    ('contrast type',),
-    ('diffusion anisotropy type',),
+    ('diffusion b value number', int,),    # (imagekey!)
+    ('gradient orientation number', int,), # (imagekey!)
+    ('contrast type', 'S30'),              # XXX might be too short?
+    ('diffusion anisotropy type', 'S30'),  # XXX might be too short?
     ('diffusion', float, (3,)),
-    ('label type', int,),                       # (imagekey!)
+    ('label type', int,),                  # (imagekey!)
     ]
-
+image_def_dtype = np.dtype(image_def_dtd)
 
 # slice orientation codes
 slice_orientation_codes = Recoder((# code, label
@@ -121,22 +124,32 @@ class RECFile(object):
 
 class PARFile(object):
     def __init__(self, fobj):
-        hdr = {}
-        image_def = dict(zip([p[0] for p in _image_props_list],
-                             [[] for i in xrange(len(_image_props_list))]))
-        # compute the number of props that must appear on each line
-        # given the header layout defined above
-        must_have_items_nr = 0
-        for p in _image_props_list:
-            if len(p) < 3:
-                must_have_items_nr += 1
-            else:
-                must_have_items_nr += np.prod(p[2])
+        # containers for relevant header lines
+        general_info = {}
+        image_info = []
+        version = None
+
+        # single pass through the header
         for line in fobj:
+            # no junk
+            line = line.strip()
             if line.startswith('#'):
-                continue
+                # try to get the header version
+                if line.count('image export tool'):
+                    version = line.split()[-1]
+                    if not version in supported_versions:
+                        warnings.warn(
+                              "PAR/REC version '%s' is currently not "
+                              "supported -- making an attempt to read "
+                              "nevertheless. Please email the NiBabel "
+                              "mailing list, if you are interested in "
+                              "adding support for this version."
+                              % version)
+                else:
+                    # just a comment
+                    continue
             elif line.startswith('.'):
-                # read 'general information'
+                # read 'general information' and store in a dict
                 first_colon = line[1:].find(':') + 1
                 key = line[1:first_colon].strip()
                 value = line[first_colon + 1:].strip()
@@ -150,42 +163,43 @@ class PARFile(object):
                     # array with dtype and shape
                     value = np.fromstring(value, props[1], sep=' ')
                     value.shape = props[2]
-                hdr[props[0]] = value
-            elif line.strip():
-                # read image definition
-                items = line.split()
-                if len(items) != must_have_items_nr:
-                    raise PARRECError(
-                        "Unexpected number of properties per image definition. "
-                        "Got: %i, expected: %i"
-                        % (len(items), len(_image_props_list)))
-                item_counter = 0
-                for i, props in enumerate(_image_props_list):
-                    if len(props) == 1:
-                        # simple string
-                        image_def[props[0]].append(items[item_counter])
-                        item_counter += 1
-                    elif len(props) == 2:
-                        # prop with dtype
-                        image_def[props[0]].append(props[1](items[item_counter]))
-                        item_counter += 1
-                    elif len(props) == 3:
-                        nelements = np.prod(props[2])
-                        # array prop with dtype
-                        # get as many elements as necessary
-                        itms = items[item_counter:item_counter+nelements]
-                        # convert to array with dtype
-                        value = np.fromstring(" ".join(itms), props[1], sep=' ')
-                        # store
-                        image_def[props[0]].append(value)
-                        item_counter += nelements
+                general_info[props[0]] = value
+            elif line:
+                # anything else is an image definition: store for later
+                # processing
+                image_info.append(line)
 
         # postproc image def props
-        for key in image_def:
-            image_def[key] = np.array(image_def[key])
+        # create an array for all image defs
+        image_defs = np.zeros(len(image_info), dtype=image_def_dtype)
 
-        self._hdr_defs = hdr
-        self._image_defs = image_def
+        # for every image definition
+        for i, line in enumerate(image_info):
+            items = line.split()
+            item_counter = 0
+            # for all image properties we know about
+            for props in image_def_dtd:
+                if np.issubdtype(image_defs[props[0]].dtype, str):
+                    # simple string
+                    image_defs[props[0]][i] = items[item_counter]
+                    item_counter += 1
+                elif len(props) == 2:
+                    # prop with numerical dtype
+                    image_defs[props[0]][i] = props[1](items[item_counter])
+                    item_counter += 1
+                elif len(props) == 3:
+                    # array prop with dtype
+                    nelements = np.prod(props[2])
+                    # get as many elements as necessary
+                    itms = items[item_counter:item_counter + nelements]
+                    # convert to array with dtype
+                    value = np.fromstring(" ".join(itms), props[1], sep=' ')
+                    # store
+                    image_defs[props[0]][i] = value
+                    item_counter += nelements
+
+        self._hdr_defs = general_info
+        self._image_defs = image_defs
 
 
     def _get_unqiue_image_prop(self, name):
