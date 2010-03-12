@@ -459,6 +459,11 @@ class PARRECHeader(Header):
         """
         # e.g. number of volumes
         ndynamics = len(np.unique(self._image_defs['dynamic scan number']))
+        # DTI volumes (b-values-1 x directions)
+        # there is some awkward exception to this rule for b-values > 2
+        # XXX need to get test image...
+        ndtivolumes = (self._general_info['max_diffusion_values'] - 1) \
+                        * self._general_info['max_gradient_orient']
         nslices = len(np.unique(self._image_defs['slice number']))
         if not nslices == self._general_info['max_slices']:
             raise PARRECError("Header inconsistency: Found %i slices, "
@@ -466,7 +471,14 @@ class PARRECHeader(Header):
                               % (nslices, self._general_info['max_slices']))
 
         inplane_shape = self._get_unique_image_prop('recon resolution')
-        return (ndynamics, nslices,) + tuple(inplane_shape)
+
+        # there should not be both: multiple dynamics and DTI
+        if ndynamics > 1:
+            return (ndynamics, nslices,) + tuple(inplane_shape)
+        elif ndtivolumes > 1:
+            return (ndtivolumes, nslices,) + tuple(inplane_shape)
+        else:
+            return (nslices,) + tuple(inplane_shape)
 
 
     def get_data_scaling(self):
