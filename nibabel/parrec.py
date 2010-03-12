@@ -2,6 +2,7 @@ import numpy as np
 
 from nibabel.spatialimages import SpatialImage
 from nibabel.eulerangles import euler2mat
+from nibabel.volumeutils import Recoder
 
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
@@ -91,11 +92,12 @@ _image_props_list = [
     ]
 
 
-_slice_orientation_codes = {
-    1: 'transversal',
-    2: 'sagital',
-    3: 'coronal'
-    }
+# slice orientation codes
+slice_orientation_codes = Recoder((# code, label
+    (1, 'transversal'),
+    (2, 'sagital'),
+    (3, 'coronal')), fields=('code', 'label'))
+
 
 class PARRECError(Exception):
     pass
@@ -210,8 +212,7 @@ class PARFile(object):
         fov = self._hdr_defs['fov'][[2,0,1]]
 
         # slice orientation for the whole image series
-        slice_orientation = _slice_orientation_codes[
-                    self._get_unqiue_image_prop('slice orientation')[0]]
+        slice_orientation = self.get_slice_orientation()
 
         # R2AGUI approach is this, but it comes with remarks ;-)
         # % trying to incorporate AP FH RL rotation angles: determined using some 
@@ -270,7 +271,8 @@ class PARFile(object):
             voxsize[::2] = voxsize_inplane           # RL x FH
             voxsize[1] = slice_thickness             # AP
         else:
-            raise PARRECError("Unknown slice orientation (%s).")
+            raise PARRECError("Unknown slice orientation (%s)."
+                              % slice_orientation)
 
         # we have rl, ap, fh, but we want lr, pa, fh
         flipit = np.mat([[ -1,  0, 0],
@@ -296,8 +298,8 @@ class PARFile(object):
 
         print aff
         return aff
-        
-        
+
+
         print aff
         rot_nibabel = euler2mat(ang_rad[1], ang_rad[0], ang_rad[2])
         print np.linalg.det(rot_nibabel)
@@ -353,7 +355,7 @@ class PARFile(object):
 
 
     def get_slice_orientation(self):
-        return _slice_orientation_codes[
+        return slice_orientation_codes.label[
                     self._get_unqiue_image_prop('slice orientation')[0]]
 
 
