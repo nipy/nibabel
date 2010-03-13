@@ -130,17 +130,17 @@ from nibabel.volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, \
      make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
-     array_to_file, array_from_file, can_cast
+     array_to_file, array_from_file, can_cast, \
+     floating_point_types
 
 from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError, SpatialImage
-
-from nibabel.header_ufuncs import read_data
 
 from nibabel import imageglobals as imageglobals
 from nibabel.fileholders import FileHolderError, copy_file_map
 from nibabel.batteryrunners import BatteryRunner, Report
 from nibabel.arrayproxy import ArrayProxy
+
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -518,6 +518,106 @@ class AnalyzeHeader(object):
         For examples, see ``__eq__`` method docstring
         '''
         return not self == other
+
+    def raw_data_from_fileobj(self, fileobj):
+        ''' Read unscaled data array from `fileobj`
+
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           unscaled data array
+        '''
+        dtype = self.get_data_dtype()
+        shape = self.get_data_shape()
+        offset = self.get_data_offset()
+        return array_from_file(shape, dtype, fileobj, offset)
+
+    def data_from_fileobj(self, fileobj):
+        ''' Read scaled data array from `fileobj`
+
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           scaled data array
+        '''
+        # read unscaled data
+        data = self.raw_data_from_fileobj(fileobj)
+        # get scalings from header
+        slope, inter = self.get_slope_inter()
+        if slope is None or (slope==1.0 and not inter):
+            return data
+        # in-place multiplication and addition on integer types leads to
+        # integer output types, and disastrous integer rounding.
+        # We'd like to do inplace if we can, to save memory
+        is_flt = data.dtype.type in floating_point_types
+        if slope != 1.0:
+            if is_flt:
+                data *= slope
+            else:
+                data = data * slope
+                is_flt = True
+        if inter:
+            if is_flt:
+                data += inter
+            else:
+                data = data + inter
+        return data
+
+    def data_to_fileobj(self, data, fileobj):
+        ''' Write `data` to `fileobj`, maybe modifying `self`
+
+        In writing the data, we match the header to the written data, by
+        setting the header scaling factors.  Thus we modify `self` in
+        the process of writing the data.
+
+        Parameters
+        ----------
+        data : array-like
+           data to write; should match header defined shape
+        fileobj : file-like object
+           Object with file interface, implementing ``write`` and
+           ``seek``
+
+        Examples
+        --------
+        >>> from nibabel.analyze import AnalyzeHeader
+        >>> hdr = AnalyzeHeader()
+        >>> hdr.set_data_shape((1, 2, 3))
+        >>> hdr.set_data_dtype(np.float64)
+        >>> from StringIO import StringIO
+        >>> str_io = StringIO()
+        >>> data = np.arange(6).reshape(1,2,3)
+        >>> hdr.data_to_fileobj(data, str_io)
+        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+        True
+        '''
+        data = np.asarray(data)
+        slope, inter, mn, mx = self.scaling_from_data(data)
+        shape = self.get_data_shape()
+        if data.shape != shape:
+            raise HeaderDataError('Data should be shape (%s)' %
+                                  ', '.join(str(s) for s in shape))
+        offset = self.get_data_offset()
+        out_dtype = self.get_data_dtype()
+        array_to_file(data,
+                      fileobj,
+                      out_dtype,
+                      offset,
+                      inter,
+                      slope,
+                      mn,
+                      mx)
+        self.set_slope_inter(slope, inter)
 
     def __getitem__(self, item):
         ''' Return values from header data
@@ -1162,7 +1262,7 @@ class AnalyzeImage(SpatialImage):
         '''
         def _read_data(self):
             fileobj = allopen(self.file_like)
-            data = read_data(self.header, fileobj)
+            data = self.header.data_from_fileobj(fileobj)
             if isinstance(self.file_like, basestring): # filename
                 fileobj.close()
             return data

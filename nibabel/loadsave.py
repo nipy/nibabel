@@ -6,7 +6,6 @@ from nibabel import nifti1
 from nibabel.fileholders import FileHolderError
 from nibabel.spatialimages import ImageFileError
 from nibabel.imageclasses import class_map, ext_map
-from nibabel.header_ufuncs import read_data
 
 
 def load(filename):
@@ -121,13 +120,12 @@ def read_img_data(img, prefer='scaled'):
         fileobj = image_fileholder.get_prepare_fileobj()
     except FileHolderError:
         raise ImageFileError('No image file specified for this image')
-    hdr = img.get_header()
-    if prefer == 'scaled':
-        scaled = True
-    elif prefer == 'unscaled':
-        scaled = False
-    else:
+    if prefer not in ('scaled', 'unscaled'):
         raise ValueError('Invalid string "%s" for "prefer"' % prefer)
-    return read_data(hdr, fileobj, scaled)
-
-
+    hdr = img.get_header()
+    if prefer == 'unscaled':
+        try:
+            return hdr.raw_data_from_fileobj(fileobj)
+        except AttributeError:
+            pass
+    return hdr.data_from_fileobj(fileobj)
