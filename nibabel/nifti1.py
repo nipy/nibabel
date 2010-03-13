@@ -541,11 +541,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         Notes
         -----
         The qform transform only encodes translations, rotations and
-        zooms. If there are shear components to the *affine* transform,
+        zooms. If there are shear components to the `affine` transform,
         the written qform gives the closest approximation where the
         rotation matrix is orthogonal. This is to allow quaternion
-        representation. The orthogonal representation enforces orthogonal
-        axes.
+        representation. The orthogonal representation enforces
+        orthogonal axes.
 
         Examples
         --------
