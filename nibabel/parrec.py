@@ -356,7 +356,7 @@ class PARRECHeader(Header):
         return zooms
 
 
-    def get_affine(self, origin='scanner_center'):
+    def get_affine(self, origin='scanner'):
         """Compute affine transformation into scanner space.
 
         The method only considers global rotation and offset settings in the
@@ -365,9 +365,9 @@ class PARRECHeader(Header):
 
         Parameters
         ----------
-        origin : {'scanner_center', 'fov_center'}
+        origin : {'scanner', 'fov'}
           Transformation origin. By default the transformation is computed
-          relative to the scanner's iso center. If 'fov_center' is requested
+          relative to the scanner's iso center. If 'fov' is requested
           the transformation origin will be the center of the field of view
           instead.
 
@@ -440,9 +440,9 @@ class PARRECHeader(Header):
         aff[:3,:3] = scaled
         # offset
         aff[:3,3] = fov_center_offset
-        if origin == 'fov_center':
+        if origin == 'fov':
             pass
-        elif origin == 'scanner_center':
+        elif origin == 'scanner':
             # offset to scanner's iso center (always in ap, fh, rl)
             # -- turn into rl, ap, fh
             aff[:3,3] += self._general_info['off_center'][[2,0,1]]
@@ -493,13 +493,15 @@ class PARRECHeader(Header):
         # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
         #      out which one means what
 
-        # slopes (one per image)
-        slope = 1 / self._image_defs['scale slope']
-        # intercepts (one per image)
-        intercept = self._image_defs['rescale intercept'] \
-                    / (self._image_defs['rescale slope']
-                            *  self._image_defs['scale slope'])
-        nbits = self._get_unique_image_prop('image pixel size')[0]
+        # although the is a per-image scaling in the header, it looks like
+        # there is just one unique factor and intercept per whole image series
+        scale_slope = self._get_unique_image_prop('scale slope')
+        rescale_slope = self._get_unique_image_prop('rescale slope')
+        rescale_intercept = self._get_unique_image_prop('rescale intercept')
+        # actual slopes per definition above
+        slope = 1 / scale_slope
+        # actual intercept per definition above
+        intercept = rescale_intercept / (rescale_slope * scale_slope)
         return (slope, intercept)
 
 
@@ -534,6 +536,10 @@ class PARRECHeader(Header):
 
 
     def raw_data_from_fileobj(self, fileobj):
+        """Returns memmap array of raw unscaled image data.
+
+        Array axes correspond to x,y,z,t.
+        """
         # memmap the data -- it is guaranteed to be uncompressed and all
         # properties are known
         data = np.memmap(fileobj,
@@ -553,11 +559,17 @@ class PARRECHeader(Header):
 
 
     def data_from_fileobj(self, fileobj):
+        """Returns scaled image data.
+
+        Behaves identical to `PARRECHeader.raw_data_from_fileobj()`, but
+        returns scaled image data. This causes the images data to be loaded into
+        memory.
+        """
         unscaled = self.raw_data_from_fileobj(fileobj)
-        slopes, intercepts = self.get_data_scaling()
-        unscaled *= slopes
-        unscaled += intercepts
-        return unscaled
+        slope, intercept = self.get_data_scaling()
+        scaled = unscaled * slope
+        scaled += intercept
+        return scaled
 
 
 
