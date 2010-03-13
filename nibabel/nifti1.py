@@ -1112,6 +1112,23 @@ class Nifti1Header(SpmAnalyzeHeader):
                                   % slabel)
         return np.argsort(sp_ind_time_order)
 
+    def get_xyzt_units(self):
+        xyz_code = self.structarr['xyzt_units'] % 8
+        t_code = self.structarr['xyzt_units'] - xyz_code
+        return (unit_codes.label[xyz_code],
+                unit_codes.label[t_code])
+
+    def set_xyzt_units(self, xyz=None, t=None):
+        if xyz is None:
+            xyz = 0
+        if t is None:
+            t = 0
+        xyz_code = self.structarr['xyzt_units'] % 8
+        t_code = self.structarr['xyzt_units'] - xyz_code
+        xyz_code = unit_codes[xyz]
+        t_code = unit_codes[t]
+        self.structarr['xyzt_units'] = xyz_code + t_code
+
     def _set_format_specifics(self):
         ''' Utility routine to set format specific header stuff '''
         self._header_data['magic'] = 'n+1'

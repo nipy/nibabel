@@ -434,6 +434,16 @@ def test_slope_inter():
 
 
 @parametric
+def test_xyzt_units():
+    hdr = Nifti1Header()
+    yield assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+    hdr.set_xyzt_units('mm', 'sec')
+    yield assert_equal(hdr.get_xyzt_units(), ('mm', 'sec'))
+    hdr.set_xyzt_units()
+    yield assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+
+
+@parametric
 def test_recoded_fields():
     hdr = Nifti1Header()
     yield assert_equal(hdr.get_value_label('qform_code'), 'unknown')
