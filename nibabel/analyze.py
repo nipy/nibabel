@@ -154,14 +154,14 @@ header_key_dtd = [
     ('hkey_un0', 'S1')
     ]
 image_dimension_dtd = [
-    ('dim', 'i2', 8),
+    ('dim', 'i2', (8,)),
     ('vox_units', 'S4'),
     ('cal_units', 'S8'),
     ('unused1', 'i2'),
     ('datatype', 'i2'),
     ('bitpix', 'i2'),
     ('dim_un0', 'i2'),
-    ('pixdim', 'f4', 8),
+    ('pixdim', 'f4', (8,)),
     ('vox_offset', 'f4'),
     ('funused1', 'f4'),
     ('funused2', 'f4'),
