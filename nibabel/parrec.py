@@ -533,6 +533,34 @@ class PARRECHeader(Header):
         return self._slice_orientation
 
 
+    def raw_data_from_fileobj(self, fileobj):
+        # memmap the data -- it is guaranteed to be uncompressed and all
+        # properties are known
+        data = np.memmap(fileobj,
+                         dtype=self.get_data_dtype(),
+                         mode='c', # copy-on-write
+                         shape=self.get_data_shape_in_file())
+        # need to reorder axis to match nibabels x,y,z,t convention
+        # data comes as
+        # [dynamics/directions x slices x (in-plane matrix)]
+        # first three axis should be spatial
+        axis_order = np.zeros(len(data.shape), dtype='int')
+        axis_order[:3] = self.spatial_axis_order()
+        if len(axis_order) > 3:
+            # we have one more axis, need the shift indices
+            axis_order[:3] += 1
+        return np.transpose(data, axis_order)
+
+
+    def data_from_fileobj(self, fileobj):
+        unscaled = self.raw_data_from_fileobj(fileobj)
+        slopes, intercepts = self.get_data_scaling()
+        unscaled *= slopes
+        unscaled += intercepts
+        return unscaled
+
+
+
 class PARRECImage(SpatialImage):
     """PAR/REC image"""
     header_class = PARRECHeader
@@ -547,25 +575,14 @@ class PARRECImage(SpatialImage):
         def __array__(self):
             ''' Cached read of data from file '''
             if self._data is None:
-                hdr = self._hdr
-                self._rec_fobj.seek(0)
-                # memmap the data -- it is guaranteed to be uncompressed and all
-                # properties are known
-                data = np.memmap(self._rec_fobj,
-                                 dtype=hdr.get_data_dtype(),
-                                 mode='c', # copy-on-write
-                                 shape=hdr.get_data_shape_in_file())
-                # need to reorder axis to match nibabels x,y,z,t convention
-                # data comes as
-                # [dynamics/directions x slices x (in-plane matrix)]
-                # first three axis should be spatial
-                axis_order = np.zeros(len(data.shape), dtype='int')
-                axis_order[:3] = hdr.spatial_axis_order()
-                if len(axis_order) > 3:
-                    # we have one more axis, need the shift indices
-                    axis_order[:3] += 1
-                self._data = np.transpose(data, axis_order)
+                self._data = self._hdr.data_from_fileobj(self._rec_fobj)
             return self._data
+
+        @property
+        def shape(self):
+            # embedded header knows it, without having to touch the data
+            return self._hdr.get_data_shape()
+
 
     @classmethod
     def from_file_map(klass, file_map):
@@ -573,7 +590,11 @@ class PARRECImage(SpatialImage):
         rec_fobj = file_map['image'].get_prepare_fileobj()
         hdr = PARRECHeader.from_fileobj(hdr_fobj)
         data = klass.ImageArrayProxy(rec_fobj, hdr)
-        return  klass(data, hdr.get_affine(), header=hdr, extra=None, file_map=file_map)
+        return klass(data,
+                     hdr.get_affine(),
+                     header=hdr,
+                     extra=None,
+                     file_map=file_map)
 
 
 load = PARRECImage.load
