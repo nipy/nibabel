@@ -1,0 +1,134 @@
+#!/usr/bin/env python
+"""PAR/REC to NIfTI converter
+"""
+
+from optparse import OptionParser, Option
+import sys
+import os
+import nibabel
+import nibabel.parrec as pr
+import nibabel.nifti1 as nifti1
+from nibabel.loadsave import read_img_data
+from nibabel.filename_parser import splitext_addext
+
+# global verbosity switch
+verbose_switch = False
+
+
+def get_opt_parser():
+    # use module docstring for help output
+    p = OptionParser(
+                usage="%s [OPTIONS] <PAR files>\n\n" % sys.argv[0] + __doc__,
+                version="%prog " + nibabel.__version__)
+
+    p.add_option(
+        Option("-v", "--verbose", action="store_true",
+               dest="verbose", default=False,
+               help="Make some noise."))
+    p.add_option(
+        Option("-o", "--output-dir",
+               action="store", type="string", dest="outdir",
+               default=None,
+               help=\
+"""Destination directory for NIfTI files. Default: current directory."""))
+    p.add_option(
+        Option("-c", "--compressed", action="store_true",
+               dest="compressed", default=False,
+               help="Whether to write compressed NIfTI files or not."))
+    p.add_option(
+        Option("--origin", action="store",
+               dest="origin", default="scanner",
+               help=\
+"""Reference point of the q-form transformation of the NIfTI image. If 'scanner'
+the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
+coordinate will be the center of the recorded volume (field of view). Default:
+'scanner'."""))
+    p.add_option(
+        Option("--minmax", action="store",
+               dest="minmax", default="parse",
+               help=\
+"""Mininum and maximum settings to be stored in the NIfTI header. If 'parse',
+the scaled data is scanned for the actual minimum and maximum. To bypass this
+potentially slow and memory intensive step (the data has to be scaled and fully
+loaded into memory), fixed values can be provided as comma-separated pair,
+e.g. 5.4,120.4 (Note, there must not be whitespace between them). Default:
+'parse'."""))
+
+    return p
+
+
+def verbose(msg, indent=0):
+    if verbose_switch:
+
+        print "%s%s" % (' ' * indent, msg)
+
+def error(msg, exit_code):
+    print msg
+    sys.exit(exit_code)
+
+
+def main():
+    parser = get_opt_parser()
+    (opts, infiles) = parser.parse_args()
+
+    global verbose_switch
+    verbose_switch = opts.verbose
+
+    if not opts.origin in ['scanner', 'fov']:
+        error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
+
+    for infile in infiles:
+        verbose('Processing %s' % infile)
+        # load the PAR header
+        pr_img = pr.load(infile)
+        pr_hdr = pr_img.get_header()
+        # get the raw unscaled data form the REC file
+        raw_data = read_img_data(pr_img, prefer='unscaled')
+
+        # compute affine with desired origin
+        affine = pr_hdr.get_affine(origin=opts.origin)
+
+        # create a nifti image instance -- to get a matching header
+        nimg = nifti1.Nifti1Image(raw_data, affine)
+        nhdr = nimg.get_header()
+        # move properties into this header
+        nhdr.set_slope_inter(*pr_hdr.get_data_scaling())
+        if opts.minmax == 'parse':
+            verbose('Scanning scaled data for min/max values')
+            # scan the data minimum and maximum
+            scaled_data = pr_img.get_data()
+            nhdr.structarr['cal_min'] = scaled_data.min()
+            nhdr.structarr['cal_max'] = scaled_data.max()
+        else:
+            min_, max_ = opts.minmax.split(',')
+            nhdr.structarr['cal_min'] = float(min_)
+            nhdr.structarr['cal_max'] = float(max_)
+
+        # image description
+        descr = "%s;%s;%s;%s" % (
+                    pr_hdr._general_info['exam_name'],
+                    pr_hdr._general_info['patient_name'],
+                    pr_hdr._general_info['exam_date'].replace(' ',''),
+                    pr_hdr._general_info['protocol_name'])
+        nhdr.structarr['descrip'] = descr[:80]
+
+        # XXX store units
+        print nhdr
+
+        # figure out the output filename
+        outfilename = splitext_addext(os.path.basename(infile))[0]
+        if opts.compressed:
+            outfilename += '.nii.gz'
+        else:
+            outfilename += '.nii'
+
+        if not opts.outdir is None:
+            # set output path
+            outfilename = os.path.join(opts.outdir, outfilename)
+
+        verbose('Writing %s' % outfilename)
+        nifti1.save(nimg, outfilename)
+
+
+if __name__ == '__main__':
+    main()

@@ -416,6 +416,28 @@ def test_loadsave_cycle():
     yield assert_true(lnim.extra.has_key('extensions'))
     yield assert_equal(nim.extra['extensions'],
                        lnim.extra['extensions'])
+    # build int16 image
+    data = np.ones((2,3,4,5), dtype='int16')
+    img = Nifti1Image(data, np.eye(4))
+    hdr = img.get_header()
+    yield assert_equal(hdr.get_data_dtype(), np.int16)
+    # default should have no scaling
+    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    # set scaling
+    hdr.set_slope_inter(2, 8)
+    yield assert_equal(hdr.get_slope_inter(), (2, 8))
+    # now build new image with updated header
+    wnim = Nifti1Image(data, np.eye(4), header=hdr)
+    yield assert_equal(wnim.get_data_dtype(), np.int16)
+    yield assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
+    # write into the air again ;-)
+    stio = StringIO()
+    wnim.file_map['image'].fileobj = stio
+    wnim.to_file_map()
+    stio.seek(0)
+    lnim = Nifti1Image.from_file_map(wnim.file_map)
+    yield assert_equal(lnim.get_data_dtype(), np.int16)
+    yield assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
 
 @parametric
@@ -431,6 +453,16 @@ def test_slope_inter():
     hdr.set_slope_inter(2.2, 1.1)
     yield assert_array_almost_equal(hdr.get_slope_inter(),
                                     (2.2, 1.1))
+
+
+@parametric
+def test_xyzt_units():
+    hdr = Nifti1Header()
+    yield assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+    hdr.set_xyzt_units('mm', 'sec')
+    yield assert_equal(hdr.get_xyzt_units(), ('mm', 'sec'))
+    hdr.set_xyzt_units()
+    yield assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
 
 
 @parametric
