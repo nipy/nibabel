@@ -68,9 +68,13 @@ def test_dwi_params():
     g = q / b
     yield assert_array_almost_equal(b, expected_params[0])
     yield assert_array_almost_equal(g, expected_params[1])
-    # regression test against probably correct value
-    yield assert_array_almost_equal(
-        vector_norm(didr.get_q_vector(data_1000)), 992.050502443)
-    # B0 -> 0
-    yield assert_array_almost_equal(
-        vector_norm(didr.get_q_vector(data_0)), 0)
+    
+@parametric
+def test_get_dwi_paradigm():
+    datadir="/home/ian/data/20100114_195840/Series_012_CBU_DTI_64D_1A/"
+    dcm_dir=glob(datadir+"*.dcm")
+    big_b = []
+    for dcm_file in dcm_dir:
+        data_file = dicom.read_file(dcm_file)
+        big_b.append(vector_norm(didr.get_q_vector(data_file)))
+    print big_b 

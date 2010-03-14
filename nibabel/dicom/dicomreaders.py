@@ -179,9 +179,7 @@ def get_b_matrix(dcm_data):
     # transpose is its inverse
     R = np.c_[iop, snv].T
     assert _fairly_close(np.eye(3), np.dot(R, R.T))
-    # because B results from V dot V.T, the rotation B is given by R dot
-    # V dot V.T dot R.T == R dot B dot R.T
-    return np.dot(R, np.dot(B, R.T))
+    return np.dot(R.T, np.dot(B,R))
 
 
 def get_q_vector(dcm_data):
