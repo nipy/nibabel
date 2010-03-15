@@ -88,7 +88,8 @@ def main():
         # compute affine with desired origin
         affine = pr_hdr.get_affine(origin=opts.origin)
 
-        # create a nifti image instance -- to get a matching header
+        # create an intermediate nifti image instance -- to get a matching
+        # header
         nimg = nifti1.Nifti1Image(raw_data, affine)
         nhdr = nimg.get_header()
         # move properties into this header
@@ -112,7 +113,15 @@ def main():
                     pr_hdr._general_info['protocol_name'])
         nhdr.structarr['descrip'] = descr[:80]
 
-        # XXX store units
+        if pr_hdr._general_info['max_dynamics'] > 1:
+            # fMRI
+            nhdr.structarr['pixdim'][4] = pr_hdr._general_info['repetition_time']
+            # store units -- always mm and msec
+            nhdr.set_xyzt_units('mm', 'msec')
+        else:
+            # anatomical or DTI
+            nhdr.set_xyzt_units('mm', 'unknown')
+
         print nhdr
 
         # figure out the output filename
@@ -125,6 +134,9 @@ def main():
         if not opts.outdir is None:
             # set output path
             outfilename = os.path.join(opts.outdir, outfilename)
+
+        # create the final image instance with the complete header
+        nimg = nifti1.Nifti1Image(raw_data, affine, header=nhdr)
 
         verbose('Writing %s' % outfilename)
         nifti1.save(nimg, outfilename)
