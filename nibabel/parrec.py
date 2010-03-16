@@ -235,18 +235,9 @@ class PARRECHeader(Header):
         dtype = np.typeDict[
                     'int'
                     + str(self._get_unique_image_prop('image pixel size')[0])]
-
-        # reorder data shape
-        fdshape = np.array(self.get_data_shape_in_file())
-        dshape = fdshape.copy()
-        if len(fdshape) > 3:
-            # 4D file, but first three axis have to be spatial
-            dshape[:3] = fdshape[1:][self.spatial_axis_order()]
-            dshape[3] = fdshape[0]
-
         Header.__init__(self,
                         data_dtype=dtype,
-                        shape=dshape,
+                        shape=self.get_data_shape_in_file(),
                         zooms=self._get_zooms()
                        )
 
@@ -301,19 +292,14 @@ class PARRECHeader(Header):
         Returns
         -------
         Array
-          Axis order in the array is (x,y,z) or (rl, ap, fh).
         """
         # slice orientation for the whole image series
-        slice_orientation = self.get_slice_orientation()
         slice_thickness = self._get_unique_image_prop('slice thickness')[0]
         voxsize_inplane = self._get_unique_image_prop('pixel spacing')
-
-        # voxel size (slice x (inplane))
-        voxsize = np.array((slice_thickness,
-                            voxsize_inplane[0],
-                            voxsize_inplane[1]))
-        # voxel size (rl, ap, fh), i.e. (x,y,z)
-        return voxsize[self.spatial_axis_order()]
+        voxsize = np.array((voxsize_inplane[0],
+                            voxsize_inplane[1],
+                            slice_thickness))
+        return voxsize
 
 
     def get_ndim(self):
@@ -328,31 +314,20 @@ class PARRECHeader(Header):
     def _get_zooms(self):
         """Compute image zooms from header data.
 
-        Spatial axis are first three in (x,y,z) or (rl,ap,fh) order.
+        Spatial axis are first three.
         """
         # slice orientation for the whole image series
-        slice_orientation = self.get_slice_orientation()
         slice_gap = self._get_unique_image_prop('slice gap')[0]
-
         # scaling per image axis
         zooms = np.ones(self.get_ndim())
         # spatial axes correspond to voxelsize + inter slice gap
-        # voxel size (rl, ap, fh), i.e. (x,y,z)
+        # voxel size (inplaneX, inplaneY, slices)
         zooms[:3] = self.get_voxel_size()
-        if slice_orientation == 'sagital':
-            zooms[0] += slice_gap # slices along RL
-        elif slice_orientation == 'transversal':
-            zooms[2] += slice_gap # slices along FH
-        elif slice_orientation == 'coronal':
-            zooms[1] += slice_gap # slices along AP
-        else:
-            raise PARRECError("Unknown slice orientation (%s)."
-                              % slice_orientation)
+        zooms[2] += slice_gap
         # time axis?
         if len(zooms) > 3  and self._general_info['max_dynamics'] > 1:
             # DTI also has 4D
             zooms[3] = self._general_info['repetition_time']
-
         return zooms
 
 
@@ -378,14 +353,9 @@ class PARRECHeader(Header):
         """
         # hdr has deg, we need radian
         # order is [ap, fh, rl]
-        #           x   y   z
         ang_rad = self._general_info['angulation'] * np.pi / 180.0
-
-        # FOV (always in ap, fh, rl) -- turn into rl, ap, fh
-        fov = self._general_info['fov'][[2,0,1]]
-
-        # slice orientation for the whole image series
-        slice_orientation = self.get_slice_orientation()
+        # need to rotate back from what was given in the file
+        ang_rad *= -1
 
         # R2AGUI approach is this, but it comes with remarks ;-)
         # % trying to incorporate AP FH RL rotation angles: determined using some 
@@ -419,11 +389,28 @@ class PARRECHeader(Header):
         assert(np.all(rot_r2agui == rot_nibabel))
         rot = rot_nibabel
 
-        # we have rl, ap, fh, but we want lr, pa, fh
-        flipit = np.mat([[ -1,  0, 0],
-                         [  0, -1, 0],
-                         [  0,  0, 1]])
-        rot = flipit * rot
+        # FOV (always in ap, fh, rl)
+        fov = self._general_info['fov']
+        # voxel size always (inplaneX, inplaneY, slicethickness (without gap))
+        voxsize = self.get_voxel_size()
+
+        slice_orientation = self.get_slice_orientation()
+        if slice_orientation == 'sagital':
+            # inplane: AP, FH   slices: RL
+            recfg_data_axis = np.mat([[  0,  0,  1],
+                                      [ -1,  0,  0],
+                                      [  0, -1,  0]])
+            # fov is already like the data
+            fov = fov
+        elif slice_orientation == 'transversal':
+            raise NotImplementedError
+        elif slice_orientation == 'coronal':
+            raise NotImplementedError
+        else:
+            raise PARRECError("Unknown slice orientation (%s)."
+                              % slice_orientation)
+
+        rot = rot * recfg_data_axis
 
         # ijk origin should be: Anterior, Right, Foot
         # qform should point to the center of the voxel
@@ -455,7 +442,7 @@ class PARRECHeader(Header):
         Returns
         -------
         tuple
-          (ndynamics/ndirections, nslices, inplaneX, inplaneY)
+          (inplaneX, inplaneY, nslices, ndynamics/ndirections)
         """
         # e.g. number of volumes
         ndynamics = len(np.unique(self._image_defs['dynamic scan number']))
@@ -470,15 +457,15 @@ class PARRECHeader(Header):
                               "but header claims to have %i."
                               % (nslices, self._general_info['max_slices']))
 
-        inplane_shape = self._get_unique_image_prop('recon resolution')
+        inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
 
         # there should not be both: multiple dynamics and DTI
         if ndynamics > 1:
-            return (ndynamics, nslices,) + tuple(inplane_shape)
+            return inplane_shape + (nslices, ndynamics)
         elif ndtivolumes > 1:
-            return (ndtivolumes, nslices,) + tuple(inplane_shape)
+            return inplane_shape + (nslices, ndtivolumes)
         else:
-            return (nslices,) + tuple(inplane_shape)
+            return tuple(inplane_shape) + (nslices,)
 
 
     def get_data_scaling(self):
@@ -542,20 +529,13 @@ class PARRECHeader(Header):
         """
         # memmap the data -- it is guaranteed to be uncompressed and all
         # properties are known
+        # read in Fortran order to have spatial axes first
         data = np.memmap(fileobj,
                          dtype=self.get_data_dtype(),
                          mode='c', # copy-on-write
-                         shape=self.get_data_shape_in_file())
-        # need to reorder axis to match nibabels x,y,z,t convention
-        # data comes as
-        # [dynamics/directions x slices x (in-plane matrix)]
-        # first three axis should be spatial
-        axis_order = np.zeros(len(data.shape), dtype='int')
-        axis_order[:3] = self.spatial_axis_order()
-        if len(axis_order) > 3:
-            # we have one more axis, need the shift indices
-            axis_order[:3] += 1
-        return np.transpose(data, axis_order)
+                         shape=self.get_data_shape_in_file(),
+                         order='F')
+        return data
 
 
     def data_from_fileobj(self, fileobj):
