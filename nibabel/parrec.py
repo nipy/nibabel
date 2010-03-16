@@ -492,22 +492,6 @@ class PARRECHeader(Header):
         return (slope, intercept)
 
 
-    def spatial_axis_order(self):
-        """Return the order of spatial axes in the REC file to match (x,y,z).
-        """
-        # data has: slice x (inplane matrix), i.e. 0,1,2
-        slice_orientation = self.get_slice_orientation()
-        if slice_orientation == 'sagital':
-            return [0, 1, 2]
-        elif slice_orientation == 'transversal':
-            return [2, 1, 0]
-        elif slice_orientation == 'coronal':
-            return [1, 0, 2]
-        else:
-            raise PARRECError("Unknown slice orientation (%s)."
-                              % slice_orientation)
-
-
     def get_slice_orientation(self):
         """Returns the slice orientation label.
 
