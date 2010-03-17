@@ -403,9 +403,19 @@ class PARRECHeader(Header):
             # fov is already like the data
             fov = fov
         elif slice_orientation == 'transversal':
-            raise NotImplementedError
+            # inplane: RL, AP   slices: FH
+            recfg_data_axis = np.mat([[ -1,  0,  0],
+                                      [  0, -1,  0],
+                                      [  0,  0,  1]])
+            # fov is already like the data
+            fov = fov[[2,0,1]]
         elif slice_orientation == 'coronal':
-            raise NotImplementedError
+            # inplane: RL, FH   slices: AP
+            recfg_data_axis = np.mat([[ -1,  0,  0],
+                                      [  0,  0, -1],
+                                      [  0, -1,  0]])
+            # fov is already like the data
+            fov = fov[[2,1,0]]
         else:
             raise PARRECError("Unknown slice orientation (%s)."
                               % slice_orientation)
@@ -431,8 +441,9 @@ class PARRECHeader(Header):
             pass
         elif origin == 'scanner':
             # offset to scanner's iso center (always in ap, fh, rl)
-            # -- turn into rl, ap, fh
-            aff[:3,3] += self.general_info['off_center'][[2,0,1]]
+            # -- turn into rl, ap, fh and then lr, pa, fh
+            iso_offset = self.general_info['off_center'][[2,0,1]] * [-1,-1,0]
+            aff[:3,3] += iso_offset
         return aff
 
 
