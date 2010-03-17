@@ -225,8 +225,8 @@ class PARRECHeader(Header):
           Structured array with image definitions from the PAR file (as returned
           by `parse_PAR_header()`).
         """
-        self._general_info = info
-        self._image_defs = image_defs
+        self.general_info = info
+        self.image_defs = image_defs
         self._slice_orientation = None
 
         # charge with basic properties to be able to use base class
@@ -259,8 +259,8 @@ class PARRECHeader(Header):
 
     def copy(self):
         return PARRECHeader(
-                copy.deepcopy(self._general_info),
-                self._image_defs.copy())
+                copy.deepcopy(self.general_info),
+                self.image_defs.copy())
 
 
     def _get_unique_image_prop(self, name):
@@ -274,7 +274,7 @@ class PARRECHeader(Header):
         ------
         If there is more than a single unique value a `PARRECError` is raised.
         """
-        prop = self._image_defs[name]
+        prop = self.image_defs[name]
         if len(prop.shape) > 1:
             uprops = [np.unique(prop[i]) for i in range(len(prop.shape))]
         else:
@@ -304,8 +304,8 @@ class PARRECHeader(Header):
 
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
-        if self._general_info['max_dynamics'] > 1 \
-           or self._general_info['max_gradient_orient'] > 1:
+        if self.general_info['max_dynamics'] > 1 \
+           or self.general_info['max_gradient_orient'] > 1:
             return 4
         else:
             return 3
@@ -325,9 +325,9 @@ class PARRECHeader(Header):
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
         # time axis?
-        if len(zooms) > 3  and self._general_info['max_dynamics'] > 1:
+        if len(zooms) > 3  and self.general_info['max_dynamics'] > 1:
             # DTI also has 4D
-            zooms[3] = self._general_info['repetition_time']
+            zooms[3] = self.general_info['repetition_time']
         return zooms
 
 
@@ -353,7 +353,7 @@ class PARRECHeader(Header):
         """
         # hdr has deg, we need radian
         # order is [ap, fh, rl]
-        ang_rad = self._general_info['angulation'] * np.pi / 180.0
+        ang_rad = self.general_info['angulation'] * np.pi / 180.0
         # need to rotate back from what was given in the file
         ang_rad *= -1
 
@@ -390,7 +390,7 @@ class PARRECHeader(Header):
         rot = rot_nibabel
 
         # FOV (always in ap, fh, rl)
-        fov = self._general_info['fov']
+        fov = self.general_info['fov']
         # voxel size always (inplaneX, inplaneY, slicethickness (without gap))
         voxsize = self.get_voxel_size()
 
@@ -432,7 +432,7 @@ class PARRECHeader(Header):
         elif origin == 'scanner':
             # offset to scanner's iso center (always in ap, fh, rl)
             # -- turn into rl, ap, fh
-            aff[:3,3] += self._general_info['off_center'][[2,0,1]]
+            aff[:3,3] += self.general_info['off_center'][[2,0,1]]
         return aff
 
 
@@ -445,17 +445,17 @@ class PARRECHeader(Header):
           (inplaneX, inplaneY, nslices, ndynamics/ndirections)
         """
         # e.g. number of volumes
-        ndynamics = len(np.unique(self._image_defs['dynamic scan number']))
+        ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
         # DTI volumes (b-values-1 x directions)
         # there is some awkward exception to this rule for b-values > 2
         # XXX need to get test image...
-        ndtivolumes = (self._general_info['max_diffusion_values'] - 1) \
-                        * self._general_info['max_gradient_orient']
-        nslices = len(np.unique(self._image_defs['slice number']))
-        if not nslices == self._general_info['max_slices']:
+        ndtivolumes = (self.general_info['max_diffusion_values'] - 1) \
+                        * self.general_info['max_gradient_orient']
+        nslices = len(np.unique(self.image_defs['slice number']))
+        if not nslices == self.general_info['max_slices']:
             raise PARRECError("Header inconsistency: Found %i slices, "
                               "but header claims to have %i."
-                              % (nslices, self._general_info['max_slices']))
+                              % (nslices, self.general_info['max_slices']))
 
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
 
