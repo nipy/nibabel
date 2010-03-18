@@ -55,7 +55,12 @@ has to be scaled and fully loaded into memory), fixed values can be provided as
 space-separated pair, e.g. '5.4 120.4'. It is possible to set a fixed minimum
 as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
     p.set_defaults(minmax=('parse', 'parse'))
-
+    p.add_option(
+        Option("--store-header", action="store_true",
+               dest="store_header", default=False,
+               help=\
+"""If set, all information from the PAR header is stored in an extension of
+the NIfTI file header. Default: off"""))
     return p
 
 
@@ -90,8 +95,7 @@ def main():
         # compute affine with desired origin
         affine = pr_hdr.get_affine(origin=opts.origin)
 
-        # create an intermediate nifti image instance -- to get a matching
-        # header
+        # create an nifti image instance -- to get a matching header
         nimg = nifti1.Nifti1Image(raw_data, affine)
         nhdr = nimg.get_header()
 
@@ -108,6 +112,19 @@ def main():
         else:
             nhdr.structarr['cal_max'] = float(opts.minmax[1])
 
+        # container for potential NIfTI1 header extensions
+        exts = nifti1.Nifti1Extensions()
+
+        if opts.store_header:
+            # dump the full PAR header content into an extension
+            fobj = open(infile, 'r')
+            hdr_dump = fobj.read()
+            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
+            fobj.close()
+            exts.append(dump_ext)
+
+        # put any extensions into the image
+        nimg.extra['extensions'] = exts
 
         # image description
         descr = "%s;%s;%s;%s" % (
