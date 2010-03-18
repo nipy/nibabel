@@ -45,15 +45,15 @@ the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
 coordinate will be the center of the recorded volume (field of view). Default:
 'scanner'."""))
     p.add_option(
-        Option("--minmax", action="store",
-               dest="minmax", default="parse",
-               help=\
-"""Mininum and maximum settings to be stored in the NIfTI header. If 'parse',
-the scaled data is scanned for the actual minimum and maximum. To bypass this
-potentially slow and memory intensive step (the data has to be scaled and fully
-loaded into memory), fixed values can be provided as comma-separated pair,
-e.g. 5.4,120.4 (Note, there must not be whitespace between them). Default:
-'parse'."""))
+        Option("--minmax", action="store", nargs=2,
+               dest="minmax", help=\
+"""Mininum and maximum settings to be stored in the NIfTI header. If any of
+them is set to 'parse', the scaled data is scanned for the actual minimum and
+maximum. To bypass this potentially slow and memory intensive step (the data
+has to be scaled and fully loaded into memory), fixed values can be provided as
+space-separated pair, e.g. '5.4 120.4'. It is possible to set a fixed minimum
+as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
+    p.set_defaults(minmax=('parse', 'parse'))
 
     return p
 
@@ -94,16 +94,19 @@ def main():
         nimg = nifti1.Nifti1Image(raw_data, affine)
         nhdr = nimg.get_header()
 
-        if opts.minmax == 'parse':
-            verbose('Scanning scaled data for min/max values')
-            # scan the data minimum and maximum
+        if 'parse' in opts.minmax:
+            # need to get the scaled data
+            verbose('Load and scale the data to determine value range')
             scaled_data = pr_img.get_data()
+        if opts.minmax[0] == 'parse':
             nhdr.structarr['cal_min'] = scaled_data.min()
+        else:
+            nhdr.structarr['cal_min'] = float(opts.minmax[0])
+        if opts.minmax[1] == 'parse':
             nhdr.structarr['cal_max'] = scaled_data.max()
         else:
-            min_, max_ = opts.minmax.split(',')
-            nhdr.structarr['cal_min'] = float(min_)
-            nhdr.structarr['cal_max'] = float(max_)
+            nhdr.structarr['cal_max'] = float(opts.minmax[1])
+
 
         # image description
         descr = "%s;%s;%s;%s" % (
