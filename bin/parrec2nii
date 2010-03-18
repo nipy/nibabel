@@ -5,6 +5,7 @@
 from optparse import OptionParser, Option
 import sys
 import os
+import gzip
 import numpy as np
 import nibabel
 import nibabel.parrec as pr
@@ -125,24 +126,29 @@ def main():
             # anatomical or DTI
             nhdr.set_xyzt_units('mm', 'unknown')
 
-        # figure out the output filename
-        outfilename = splitext_addext(os.path.basename(infile))[0]
-        if opts.compressed:
-            outfilename += '.nii.gz'
-        else:
-            outfilename += '.nii'
-
-        if not opts.outdir is None:
-            # set output path
-            outfilename = os.path.join(opts.outdir, outfilename)
-
         # get original scaling
         slope, intercept = pr_hdr.get_data_scaling()
         nhdr.set_slope_inter(slope, intercept)
 
-        verbose('Writing %s' % outfilename)
+        # finalize the header: set proper data offset, pixdims, ...
+        nimg.update_header()
+
+        # figure out the output filename
+        outfilename = splitext_addext(os.path.basename(infile))[0]
+        if not opts.outdir is None:
+            # set output path
+            outfilename = os.path.join(opts.outdir, outfilename)
+
         # prep a file
-        outfile = open(outfilename, 'w')
+        if opts.compressed:
+            verbose('Using gzip compression')
+            outfilename += '.nii.gz'
+            outfile = gzip.open(outfilename, 'w')
+        else:
+            outfilename += '.nii'
+            outfile = open(outfilename, 'w')
+
+        verbose('Writing %s' % outfilename)
         # first write the header
         nimg._write_header(outfile, nhdr, slope, intercept)
         # now the data itself, but prevent any casting or scaling
