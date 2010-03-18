@@ -5,6 +5,7 @@
 from optparse import OptionParser, Option
 import sys
 import os
+import numpy as np
 import nibabel
 import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
@@ -92,8 +93,7 @@ def main():
         # header
         nimg = nifti1.Nifti1Image(raw_data, affine)
         nhdr = nimg.get_header()
-        # move properties into this header
-        nhdr.set_slope_inter(*pr_hdr.get_data_scaling())
+
         if opts.minmax == 'parse':
             verbose('Scanning scaled data for min/max values')
             # scan the data minimum and maximum
@@ -107,22 +107,20 @@ def main():
 
         # image description
         descr = "%s;%s;%s;%s" % (
-                    pr_hdr._general_info['exam_name'],
-                    pr_hdr._general_info['patient_name'],
-                    pr_hdr._general_info['exam_date'].replace(' ',''),
-                    pr_hdr._general_info['protocol_name'])
+                    pr_hdr.general_info['exam_name'],
+                    pr_hdr.general_info['patient_name'],
+                    pr_hdr.general_info['exam_date'].replace(' ',''),
+                    pr_hdr.general_info['protocol_name'])
         nhdr.structarr['descrip'] = descr[:80]
 
-        if pr_hdr._general_info['max_dynamics'] > 1:
+        if pr_hdr.general_info['max_dynamics'] > 1:
             # fMRI
-            nhdr.structarr['pixdim'][4] = pr_hdr._general_info['repetition_time']
+            nhdr.structarr['pixdim'][4] = pr_hdr.general_info['repetition_time']
             # store units -- always mm and msec
             nhdr.set_xyzt_units('mm', 'msec')
         else:
             # anatomical or DTI
             nhdr.set_xyzt_units('mm', 'unknown')
-
-        print nhdr
 
         # figure out the output filename
         outfilename = splitext_addext(os.path.basename(infile))[0]
@@ -135,11 +133,23 @@ def main():
             # set output path
             outfilename = os.path.join(opts.outdir, outfilename)
 
-        # create the final image instance with the complete header
-        nimg = nifti1.Nifti1Image(raw_data, affine, header=nhdr)
+        # get original scaling
+        slope, intercept = pr_hdr.get_data_scaling()
+        nhdr.set_slope_inter(slope, intercept)
 
         verbose('Writing %s' % outfilename)
-        nifti1.save(nimg, outfilename)
+        # prep a file
+        outfile = open(outfilename, 'w')
+        # first write the header
+        nimg._write_header(outfile, nhdr, slope, intercept)
+        # now the data itself, but prevent any casting or scaling
+        nibabel.volumeutils.array_to_file(
+                raw_data,
+                outfile,
+                offset=nhdr.get_data_offset())
+        # done
+        outfile.close()
+
 
 
 if __name__ == '__main__':
