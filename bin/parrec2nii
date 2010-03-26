@@ -61,6 +61,14 @@ as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
                help=\
 """If set, all information from the PAR header is stored in an extension of
 the NIfTI file header. Default: off"""))
+    p.add_option(
+        Option("--scaling", action="store", dest="scaling", default='dv',
+               help=\
+"""Choose data scaling setting. The PAR header defines two different data
+scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
+values). Either one can be chosen, or scaling can be disabled completely
+('off').  Note that neither method will actually scale the data, but just store
+the corresponding settings in the NIfTI header. Default: 'dv'"""))
     return p
 
 
@@ -101,8 +109,13 @@ def main():
 
         if 'parse' in opts.minmax:
             # need to get the scaled data
-            verbose('Load and scale the data to determine value range')
-            scaled_data = pr_img.get_data()
+            verbose('Load (and scale) the data to determine value range')
+            if opts.scaling == 'off':
+                scaled_data = raw_data
+            else:
+                slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+                scaled_data = slope * raw_data
+                scaled_data += intercept
         if opts.minmax[0] == 'parse':
             nhdr.structarr['cal_min'] = scaled_data.min()
         else:
@@ -144,8 +157,12 @@ def main():
             nhdr.set_xyzt_units('mm', 'unknown')
 
         # get original scaling
-        slope, intercept = pr_hdr.get_data_scaling()
-        nhdr.set_slope_inter(slope, intercept)
+        if opts.scaling == 'off':
+            slope = 1.0
+            intercept = 0.0
+        else:
+            slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+            nhdr.set_slope_inter(slope, intercept)
 
         # finalize the header: set proper data offset, pixdims, ...
         nimg.update_header()
