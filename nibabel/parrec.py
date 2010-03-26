@@ -479,15 +479,27 @@ class PARRECHeader(Header):
             return tuple(inplane_shape) + (nslices,)
 
 
-    def get_data_scaling(self):
-        """Returns scaling slope and intercept per image definition."""
-        # from the PAR defintion:
-        #
-        # === PIXEL VALUES =====================================================
-        #  PV = value in REC,  FP = floating point value, DV = value on console
-        #  RS = rescale slope, RI = rescale intercept,    SS = scale slope
-        #  DV = PV * RS + RI   FP = DV / (RS * SS)
+    def get_data_scaling(self, method="dv"):
+        """Returns scaling slope and intercept.
 
+        Parameters
+        ----------
+        method : {'fp', 'dv'}
+          Scaling settings to be reported -- see notes below.
+
+        Notes
+        -----
+        The PAR header contains two different scaling settings: 'dv' (value on
+        console) and 'fp' (floating point value). Here is how they are defined:
+
+        PV: value in REC
+        RS: rescale slope
+        RI: rescale intercept
+        SS: scale slope
+
+        DV = PV * RS + RI
+        FP = DV / (RS * SS)
+        """
         # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
         #      out which one means what
 
@@ -496,10 +508,17 @@ class PARRECHeader(Header):
         scale_slope = self._get_unique_image_prop('scale slope')
         rescale_slope = self._get_unique_image_prop('rescale slope')
         rescale_intercept = self._get_unique_image_prop('rescale intercept')
-        # actual slopes per definition above
-        slope = 1 / scale_slope
-        # actual intercept per definition above
-        intercept = rescale_intercept / (rescale_slope * scale_slope)
+
+        if method == 'dv':
+            slope = rescale_slope
+            intercept = rescale_intercept
+        elif method == 'fp':
+            # actual slopes per definition above
+            slope = 1 / scale_slope
+            # actual intercept per definition above
+            intercept = rescale_intercept / (rescale_slope * scale_slope)
+        else:
+            raise ValueError("Unknown scling method '%s'." % method)
         return (slope, intercept)
 
 
