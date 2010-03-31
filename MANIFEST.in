@@ -1,4 +1,4 @@
-include AUTHOR COPYING Makefile* MANIFEST.in setup*
+include AUTHOR COPYING Makefile* MANIFEST.in setup* README.rst
 include Changelog TODO
 recursive-include doc *
 recursive-include bin *
