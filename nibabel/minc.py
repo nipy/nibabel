@@ -211,7 +211,7 @@ class MincImage(SpatialImage):
         data_dtype = minc_file.get_data_dtype()
         shape = minc_file.get_data_shape()
         zooms = minc_file.get_zooms()
-        header = klass._header_class(data_dtype, shape, zooms)
+        header = klass.header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
         return  MincImage(data, affine, header, extra=None, file_map=file_map)
 

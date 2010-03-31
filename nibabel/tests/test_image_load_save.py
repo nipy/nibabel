@@ -186,6 +186,7 @@ def test_two_to_one():
     yield assert_equal(nfimg.get_header()['vox_offset'], 352)
     
     
+@parametric
 def test_negative_load_save():
     shape = (1,2,5)
     data = np.arange(10).reshape(shape) - 10.0
@@ -198,7 +199,7 @@ def test_negative_load_save():
     img.to_file_map()
     str_io.seek(0)
     re_img = nib.Nifti1Image.from_file_map(img.file_map)
-    yield assert_array_almost_equal, re_img.get_data(), data, 4
+    yield assert_array_almost_equal(re_img.get_data(), data, 4)
 
 
 @parametric

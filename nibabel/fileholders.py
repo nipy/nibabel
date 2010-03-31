@@ -1,5 +1,7 @@
 ''' Fileholder class '''
 
+from copy import copy
+
 from nibabel.volumeutils import allopen
 
 
@@ -62,3 +64,24 @@ class FileHolder(object):
         else:
             raise FileHolderError('No filename or fileobj present')
         return obj
+
+
+def copy_file_map(file_map):
+    ''' Copy mapping of fileholders given by `file_map`
+
+    Parameters
+    ----------
+    file_map : mapping
+       mapping of ``FileHolder` instances
+
+    Returns
+    -------
+    fm_copy : dict
+       Copy of `file_map`, using shallow copy of ``FileHolder``s
+
+    '''
+    fm_copy = {}
+    for key, fh in file_map.items():
+        fm_copy[key] = copy(fh)
+    return fm_copy
+    

@@ -1,41 +1,5 @@
 Matthew's TODO
--------------
+--------------
 
-Refactor to move recognition of void datatypes to something generic,
-maybe in volumeutils module.
 
-Reconsider problem of setting files needing header change on save
-(currently in analyze image to_files method and nifti update_metadata
-method).
 
-Consider removing update metadata in favor of always doing this update
-with get_metadata().
-
-Consider splitting data read into:
-
-hdr.read_raw_data(fileobj)
-
-and 
-
-def read_data(self, fileobj):
-   rdata = self.read_raw_data(fileobj)
-   return self.apply_data_scaling(data)
-
-For data write, not so sure.  Might look like:
-
-def write_raw_data(self, data, fileobj, scaler=None):
-    # cast, write, apply scaler if present
-
-def write_data(self, data, fileobj):
-    func = self.get_data_scaler(data)
-    self.write_raw_data(self, data, fileobj, func)
-    self[scl_inter'] = -func(0.0)
-    self['scl_slope'] = 1/func(1.0)
-    
-def get_data_scaler(self, data):
-   data = np.asarray(data)
-   in_dtype = data.dtype
-   out_dtype = self.get_data_dtype()
-   if not can_cast(in_dtype, out_dtype, self._has_data_slope, self._has_data_intercept):
-      raise HeaderDataError('Cannot safely cast these data to %s dtype' % out_dtype)
-   # Then calculate scale, intercept and put into a function

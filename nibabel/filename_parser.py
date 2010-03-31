@@ -8,7 +8,8 @@ class TypesFilenamesError(Exception):
 
 def types_filenames(template_fname, types_exts,
                     trailing_suffixes=('.gz', '.bz2'),
-                    enforce_extensions=True):
+                    enforce_extensions=True,
+                    match_case=False):
     ''' Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
@@ -35,6 +36,10 @@ def types_filenames(template_fname, types_exts,
     enforce_extensions : {True, False}, optional
         If True, raise an error when attempting to set value to
         type which has the wrong extension
+    match_case : bool, optional
+       If True, match case of extensions and trailing suffixes when
+       searching in `template_fname`, otherwise do case-insensitive
+       match.
 
     Returns
     -------
@@ -65,17 +70,21 @@ def types_filenames(template_fname, types_exts,
     True
     '''
     if not isinstance(template_fname, basestring):
-        raise TypesFilenamesError('Need file name as input to set_filenames')
+        raise TypesFilenamesError('Need file name as input '
+                                  'to set_filenames')
     if template_fname.endswith('.'):
         template_fname = template_fname[:-1]
     filename, found_ext, ignored, guessed_name = \
-              _parse_filename(template_fname, types_exts, trailing_suffixes)
+              parse_filename(template_fname,
+                             types_exts,
+                             trailing_suffixes,
+                             match_case)
     # Flag cases where we just set the input name directly
     direct_set_name = None
     if enforce_extensions:
         if guessed_name is None:
             # no match - maybe there was no extension atall or the
-            # wrong extension
+            # wrong extension. In either case we raise an error
             if found_ext:
                 # an extension, but the wrong one
                 raise TypesFilenamesError(
@@ -88,64 +97,126 @@ def types_filenames(template_fname, types_exts,
                 raise TypesFilenamesError(
                     'Confusing ignored suffix %s without extension'
                     % ignored)
-    else: # not enforcing extensions
-        # if there's an extension, we set the filename directly
-        # from input.  Also, if there was no extension, but an
-        # ignored suffix ('test.gz' type case), we set the
-        # filename directly.  Otherwise (no extension, no ignored
-        # suffix), we stay with the default, which is to add the
-        # default extensions according to type.
+        # if we've got to here, we have a guessed name and a found
+        # extension. 
+    else: # not enforcing extensions. If there's an extension, we set the
+        # filename directly from input, for the first types_exts type
+        # only.  Also, if there was no extension, but an ignored suffix
+        # ('test.gz' type case), we set the filename directly.
+        # Otherwise (no extension, no ignored suffix), we stay with the
+        # default, which is to add the default extensions according to
+        # type.
         if found_ext or ignored:
             direct_set_name = types_exts[0][0]
     tfns = {}
+    # now we have an extension case matching problem.  For example, if
+    # we've found .IMG as the extension, we want .HDR as the matching
+    # one.  Let's only do this when the extension is all upper or all
+    # lower case.
+    proc_ext = lambda s : s
+    if found_ext:
+        if found_ext == found_ext.upper():
+            proc_ext = lambda s : s.upper()
+        elif found_ext == found_ext.lower():
+            proc_ext = lambda s : s.lower()
     for name, ext in types_exts:
         if name == direct_set_name:
             tfns[name] = template_fname
             continue
         fname = filename
         if ext:
-            fname += ext
+            fname += proc_ext(ext)
         if ignored:
             fname += ignored
         tfns[name] = fname
     return tfns
 
 
-def _parse_filename(filename, types_exts, trailing_suffixes):
+def parse_filename(filename,
+                   types_exts,
+                   trailing_suffixes,
+                   match_case=False):
     ''' Splits filename into tuple of
     (fileroot, extension, trailing_suffix, guessed_name)
 
+    Parameters
+    ----------
+    filename : str
+       filename in which to search for type extensions
+    types_exts : sequence of sequences
+       sequence of (name, extension) str sequences defining type to
+       extension mapping.
+    trailing_suffixes : sequence of strings
+        suffixes that should be ignored when looking for
+        extensions
+    match_case : bool, optional
+       If True, match case of extensions and trailing suffixes when
+       searching in `filename`, otherwise do case-insensitive match.
+
+    Returns
+    -------
+    pth : str
+       path with any matching extensions or trailing suffixes removed
+    ext : str
+       If there were any matching extensions, in `types_exts` return
+       that; otherwise return extension derived from
+       ``os.path.splitext``.
+    trailing : str
+       If there were any matching `trailing_suffixes` return that
+       matching suffix, otherwise ''
+    guessed_type : str
+       If we found a matching extension in `types_exts` return the
+       corresponding ``type``
+
+    Examples
+    --------
     >>> types_exts = (('t1', 'ext1'),('t2', 'ext2'))
-    >>> _parse_filename('/path/fname.funny', types_exts, ())
+    >>> parse_filename('/path/fname.funny', types_exts, ())
     ('/path/fname', '.funny', None, None)
-    >>> _parse_filename('/path/fnameext2', types_exts, ())
+    >>> parse_filename('/path/fnameext2', types_exts, ())
     ('/path/fname', 'ext2', None, 't2')
-    >>> _parse_filename('/path/fnameext2', types_exts, ('.gz',))
+    >>> parse_filename('/path/fnameext2', types_exts, ('.gz',))
     ('/path/fname', 'ext2', None, 't2')
-    >>> _parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
+    >>> parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
     ('/path/fname', 'ext2', '.gz', 't2')
     '''
     ignored = None
+    if match_case:
+        endswith = _endswith
+    else:
+        endswith = _iendswith
     for ext in trailing_suffixes:
-        if filename.endswith(ext):
-            filename = filename[:-(len(ext))]
-            ignored = ext
+        if endswith(filename, ext):
+            extpos = -len(ext)
+            ignored = filename[extpos:]
+            filename = filename[:extpos]
             break
     guessed_name = None
     found_ext = None
     tem = dict(types_exts)
     for name, ext in types_exts:
-        if ext and filename.endswith(ext):
-            filename = filename[:-(len(ext))]
+        if ext and endswith(filename, ext):
+            extpos = -len(ext)
+            found_ext = filename[extpos:]
+            filename = filename[:extpos]
             guessed_name = name
-            found_ext = ext
             break
     else:
         filename, found_ext = os.path.splitext(filename)
     return (filename, found_ext, ignored, guessed_name)
 
 
-def splitext_addext(filename, addexts=('.gz', '.bz2')):
+def _endswith(whole, end):
+    return whole.endswith(end)
+
+
+def _iendswith(whole, end):
+    return whole.lower().endswith(end.lower())
+
+
+def splitext_addext(filename,
+                    addexts=('.gz', '.bz2'),
+                    match_case=False):
     ''' Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 
     where ``.gz`` may be any of passed `addext` trailing suffixes.
@@ -154,7 +225,10 @@ def splitext_addext(filename, addexts=('.gz', '.bz2')):
     ----------
     filename : str
        filename that may end in any or none of `addexts`
-
+    match_case : bool, optional
+       If True, match case of `addexts` and `filename`, otherwise do
+       case-insensitive match. 
+       
     Returns
     -------
     froot : str
@@ -174,10 +248,15 @@ def splitext_addext(filename, addexts=('.gz', '.bz2')):
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
     '''
+    if match_case:
+        endswith = _endswith
+    else:
+        endswith = _iendswith
     for ext in addexts:
-        if filename.endswith(ext):
-            filename = filename[:-(len(ext))]
-            addext = ext
+        if endswith(filename, ext):
+            extpos = -len(ext)
+            addext = filename[extpos:]
+            filename = filename[:extpos]
             break
     else:
         addext = ''

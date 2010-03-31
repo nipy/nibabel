@@ -245,12 +245,13 @@ class ImageFileError(Exception):
 
 
 class SpatialImage(object):
-    _header_class = Header
+    header_class = Header
     files_types = (('image', None),)
     _compressed_exts = ()
 
     ''' Template class for images '''
-    def __init__(self, data, affine, header=None, extra=None, file_map=None):
+    def __init__(self, data, affine, header=None,
+                 extra=None, file_map=None):
         ''' Initialize image
 
         Parameters
@@ -274,13 +275,21 @@ class SpatialImage(object):
         if extra is None:
             extra = {}
         self.extra = extra
-        self._header = self._header_class.from_header(header)
+        self._header = self.header_class.from_header(header)
         # if header not specified, get data type from input array
-        if header is None and hasattr(data, 'dtype'):
-            self._header.set_data_dtype(data.dtype)
+        if header is None:
+            if hasattr(data, 'dtype'):
+                self._header.set_data_dtype(data.dtype)
+        # make header correspond with image and affine
+        self.update_header()
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
+        self._load_cache = None
+
+    def update_header(self):
+        ''' Update header from information in image'''
+        pass
 
     def __str__(self):
         shape = self.get_shape()
@@ -513,6 +522,6 @@ class SpatialImage(object):
         '''
         return klass(img.get_data(),
                      img.get_affine(),
-                     klass._header_class.from_header(img.get_header()),
+                     klass.header_class.from_header(img.get_header()),
                      extra=img.extra.copy())
 
