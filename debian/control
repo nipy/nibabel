@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy
+Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy, help2man
 Standards-Version: 3.8.4
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
@@ -24,3 +24,6 @@ Description: Python bindings to various neuroimaging data formats
   * MINC
   * NIfTI
   * PAR/REC
+ .
+ This package also provides a commandline tool for conversion of PAR/REC to
+ NIfTI images.

@@ -19,3 +19,8 @@
 ## and exemplar data (they are small excerpts anyway)
 override_dh_compress:
 	dh_compress -X.py -X.html -X.css -X.jpg -X.txt -X.js -X.json -X.rtc -X.par -X.bin
+
+override_dh_installman:
+	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
+	dh_installman build/parrec2nii.1
