@@ -29,4 +29,5 @@ setup(name       = 'nibabel',
                     'nibabel.tests'],
     data_files   = [('nibabel/tests/data',
                      glob(os.path.join('nibabel', 'tests', 'data', '*')))],
+    scripts      = [os.path.join('bin', 'parrec2nii')]
     )
