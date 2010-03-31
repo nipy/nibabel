@@ -1,27 +1,21 @@
 #!/usr/bin/make -f
 # -*- mode: makefile; coding: utf-8 -*-
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-DEB_PYTHON_SYSTEM = pysupport
-DEB_PYTHON_MODULE_PACKAGE = python-nibabel-snapshot
-include /usr/share/cdbs/1/class/python-distutils.mk
+# one ring to rule them all ...
+%:
+# need to enforce distutils, since we also have a makefile
+	dh $@ --buildsystem=python_distutils
 
-clean::
-	$(MAKE) distclean
+# enable when we believe that the tests should pass
+#override_dh_auto_test:
+#ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+#	for buildver in $(shell pyversions -vr); do \
+#		echo "I: Running NiBabel unittests using python$$buildver"; \
+#		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
+#	done
+#endif
 
-install/python-nibabel-snapshot::
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	for buildver in $(shell pyversions -vr); do \
-		echo "I: Running NiBabel unittests using python$$buildver"; \
-		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
-	done
-endif
-
-
-
-# install directly into package directory
-DEB_DESTDIR = $(CURDIR)/debian/python-nibabel-snapshot
-# immediately useable documentation
-# and exemplar data (they are small excerpts anyways)
-DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt .js .json .rtc .par .bin
-
+## immediately useable documentation
+## and exemplar data (they are small excerpts anyway)
+override_dh_compress:
+	dh_compress -X.py -X.html -X.css -X.jpg -X.txt -X.js -X.json -X.rtc -X.par -X.bin

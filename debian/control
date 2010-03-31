@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy
+Build-Depends: debhelper (>= 7.2.18), python-all-dev (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy
 Standards-Version: 3.8.4
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
@@ -18,4 +18,9 @@ Provides: ${python:Provides}
 Conflicts: python-nibabel
 XB-Python-Version: ${python:Versions}
 Description: Python bindings to various neuroimaging data formats
- None
+ Currently supported formats are:
+ .
+  * ANALYZE (including SPM2 and SPM99 variants)
+  * MINC
+  * NIfTI
+  * PAR/REC
