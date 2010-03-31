@@ -4,7 +4,7 @@
 # one ring to rule them all ...
 %:
 # need to enforce distutils, since we also have a makefile
-	dh $@ --buildsystem=python_distutils
+	dh $@ --buildsystem=python_distutils --builddirectory=build
 
 # enable when we believe that the tests should pass
 #override_dh_auto_test:
@@ -24,3 +24,7 @@ override_dh_installman:
 	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
 		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
 	dh_installman build/parrec2nii.1
+
+override_dh_clean:
+	-rm -rf build
+	dh_clean
