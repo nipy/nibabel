@@ -46,6 +46,17 @@ def test_array_from_file():
     yield assert_equal(len(arr), 0)
     arr = array_from_file((0,), np.dtype('f8'), StringIO())
     yield assert_equal(len(arr), 0)
+    # Check error from small file
+    yield assert_raises(IOError, array_from_file,
+                        shape, dtype, StringIO())
+    # check on real file
+    fd, fname = tempfile.mkstemp()
+    try:
+        in_buf = file(fname, 'rb')
+        yield assert_raises(IOError, array_from_file,
+                            shape, dtype, in_buf)
+    finally:
+        os.remove(fname)
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):

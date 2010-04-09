@@ -378,9 +378,14 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
             return np.array([])
         data_str = infile.read(datasize)
         if len(data_str) != datasize:
-            msg = 'Expected %s bytes, got %s bytes from file' \
-                  % (datasize, len(data_str))
-            raise ValueError(msg)
+            if hasattr(infile, 'name'):
+                file_str = 'file "%s"' % infile.name
+            else:
+                file_str = 'file object'
+            msg = 'Expected %s bytes, got %s bytes from %s\n' \
+                  % (datasize, len(data_str), file_str) + \
+                  ' - could the file be damaged?'
+            raise IOError(msg)
         arr = np.ndarray(shape,
                          in_dtype,
                          buffer=data_str,
