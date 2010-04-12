@@ -26,6 +26,11 @@ Unreleased changes
 Releases
 ~~~~~~~~
 
+* 0.20100412.1 (Mon, 12 Apr 2010)
+  * Bugfix: Unfortunate interaction between Python garbage collection and C
+    library caused memory problems. Thanks to Yaroslav Halchenko for the
+    diagnose and fix.
+
 * 0.20090303.1 (Tue, 3 Mar 2009)
   * Bugfix: Updating the NIfTI header from a dictionary was broken.
   * Bugfix: Removed left-over print statement in extension code.
