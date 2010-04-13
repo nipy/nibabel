@@ -2,8 +2,10 @@ pynifti (0.20100412.1-1) unstable; urgency=low
 
   * New upstream bugfix release.
   * Bump Standards-version to 3.8.4.0 -- no changes necessary.
+  * No longer build PDF version of the manual and removing texlive
+    as build-dependency.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Mon, 12 Apr 2010 20:13:20 -0400
+ -- Michael Hanke <michael.hanke@gmail.com>  Mon, 12 Apr 2010 20:38:25 -0400
 
 pynifti (0.20090303.1-1) unstable; urgency=low
 
