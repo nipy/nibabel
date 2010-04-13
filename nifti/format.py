@@ -189,6 +189,10 @@ class NiftiFormat(object):
 
 
     def __del__(self):
+        # enforce del on extensions wrapper so Python GC doesn't try
+        # to free it up later on causing writes to freed memory.
+        del self.extensions
+
         if self.__nimg:
             ncl.nifti_image_free(self.__nimg)
 
