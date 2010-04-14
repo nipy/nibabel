@@ -1,56 +1,41 @@
-""" Testing reading DICOM files
-
+""" Testing DICOM wrappers
 """
+
+from os.path import join as pjoin
+import gzip
 
 import numpy as np
 
-from .. import dicomreaders as didr
+import dicom
 
-from .test_dicomwrappers import (EXPECTED_AFFINE,
-                                 DATA)
+from .. import dicomwrappers as didw
+from .. import dicomreaders as didr
+from ...core.geometry import vector_norm
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-<<<<<<< HEAD
-from dipy.testing import parametric
+from ...testing import parametric, IO_DATA_PATH
 
-data_path = pjoin(os.path.dirname(__file__), 'data')
+DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
 
-data_file = pjoin(data_path, 'siemens_dwi_0.dcm.gz')
-data_0 = dicom.read_file(gzip.open(data_file))
-data_file = pjoin(data_path, 'siemens_dwi_1000.dcm.gz')
-data_1000 = dicom.read_file(gzip.open(data_file))
+DATA = dicom.read_file(gzip.open(DATA_FILE))
 
 # this affine from our converted image was shown to match our image
 # spatially with an image from SPM DICOM conversion. We checked the
 # matching with SPM check reg.
-expected_affine = np.array(
+EXPECTED_AFFINE = np.array(
     [[ -1.796875, 0, 0, 115],
      [0, -1.79684984, -0.01570896, 135.028779],
      [0, -0.00940843750, 2.99995887, -78.710481],
      [0, 0, 0, 1]])
 
 # from Guys and Matthew's SPM code, with Y flip reversed
-expected_params = [992.05050247, (0.99997450,
+EXPECTED_PARAMS = [992.05050247, (0.99997450,
                                   0.00507649,
                                   -0.005023611)]
-
-
-@parametric
-def test_wrapper_from_data():
-    # test wrapper from data, wrapper from file
-    for dw in (didw.wrapper_from_data(data),
-               didw.wrapper_from_file(data_file)):
-        yield assert_equal(dw.get('InstanceNumber'), 2)
-        yield assert_equal(dw.get('AcquisitionNumber'), 2)
-        yield assert_raises(KeyError, dw.__getitem__, 'not an item')
-        yield assert_true(dw.is_mosaic)
-        yield assert_array_almost_equal(
-            np.dot(didr.DPCS_TO_TAL, dw.get_affine()),
-            expected_affine)
 
 
 @parametric
@@ -74,34 +59,37 @@ def test_wrappers():
                   didw.SiemensWrapper,
                   didw.MosaicWrapper
                   ):
-        dw = maker(data)
+        dw = maker(DATA)
         yield assert_equal(dw.get('InstanceNumber'), 2)
         yield assert_equal(dw.get('AcquisitionNumber'), 2)
         yield assert_raises(KeyError, dw.__getitem__, 'not an item')
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
         yield assert_true(dw.is_mosaic)
-=======
-from dipy.testing import parametric, IO_DATA_PATH
->>>>>>> RF - moved tests around and renamed constants
 
 
 @parametric
-def test_read_dwi():
-<<<<<<< HEAD
-    img = didr.mosaic_to_nii(data_1000)
-=======
-    img = didr.mosaic_to_nii(DATA)
->>>>>>> RF - moved tests around and renamed constants
-    arr = img.get_data()
-    yield assert_equal(arr.shape, (128,128,48))
-    yield assert_array_almost_equal(img.get_affine(), EXPECTED_AFFINE)
+def test_wrapper_from_data():
+    # test wrapper from data, wrapper from file
+    for dw in (didw.wrapper_from_data(DATA),
+               didw.wrapper_from_file(DATA_FILE)):
+        yield assert_equal(dw.get('InstanceNumber'), 2)
+        yield assert_equal(dw.get('AcquisitionNumber'), 2)
+        yield assert_raises(KeyError, dw.__getitem__, 'not an item')
+        yield assert_true(dw.is_mosaic)
+        yield assert_array_almost_equal(
+            np.dot(didr.DPCS_TO_TAL, dw.get_affine()),
+            EXPECTED_AFFINE)
 
 
 @parametric
-def test_read_dwis():
-    data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH, '*.dcm.gz')
-    yield assert_equal(data.ndim, 4)
-    yield assert_equal(aff.shape, (4,4))
-    yield assert_equal(bs.shape, (2,))
-    yield assert_equal(gs.shape, (2,3))
-    yield assert_raises(IOError, didr.read_mosaic_dwi_dir, 'improbable')
+def test_dwi_params():
+    dw = didw.wrapper_from_data(DATA)
+    b_matrix = dw.b_matrix
+    yield assert_equal(b_matrix.shape, (3,3))
+    q = dw.q_vector
+    b = vector_norm(q)
+    g = q / b
+    yield assert_array_almost_equal(b, EXPECTED_PARAMS[0])
+    yield assert_array_almost_equal(g, EXPECTED_PARAMS[1])
+
+
