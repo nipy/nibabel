@@ -113,6 +113,7 @@ class GiftiEncoding:
     
     # not specified
     encodings["GZipBase64Binary"] = 3
+    encodings["ASCII"] = 1
     
     GIFTI_ENCODING_UNDEF  = 0
     GIFTI_ENCODING_ASCII  = 1

@@ -3,6 +3,7 @@
 from xml.dom.minidom import parse, parseString
 from gifti import GiftiImage, GiftiMetaData, GiftiLabelTable, GiftiDataArray
 from util import GiftiIntentCode, GiftiDataType, GiftiEncoding, GiftiEndian, GiftiArrayIndexOrder
+import numpy
 
 def parse_metadata(dom_node):
     """ Parse metadata information and return a dictionary """
@@ -31,28 +32,36 @@ def read_data_block(encoding, data):
 
     import base64
     import gzip
-    import StringIO
+    from StringIO import StringIO
         
     if encoding == 1:
         # GIFTI_ENCODING_ASCII
-        pass
+        
+        c = StringIO(data)
+        da = numpy.loadtxt(c)
+        print da
+        return da
+        
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
+        
         pass
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
         
-        # decoding based on Encoding (and endianness?)
-        decoded_data = base64.b64decode(data)
+        decoded_data = base64.decodestring(data)
         
-        filelike_string = StringIO.StringIO(decoded_data)
+        filelike_string = StringIO(decoded_data)
+        
+        # decoding based on Encoding (and endianness?)
         
         # unzip
-        f = gzip.GzipFile('asdsa', fileobj=filelike_string)
+        #f = gzip.GzipFile('asdsa', fileobj=filelike_string)
+        f = gzip.open(filelike_string)
         content = f.read()
         f.close()
         filelike_string.close()
-        da.data = content
+        return content
         
         
     elif encoding == 4:
@@ -109,7 +118,7 @@ def parse_dataarray(dom_node):
         data = data_node.childNodes[0].data
         
         # XXX correct parsing
-        #read_data_block(da.encoding, data)
+        read_data_block(da.encoding, data)
         
     return da
 
@@ -161,5 +170,6 @@ def parse_gifti_file(fname):
         
     return img
     
-img = parse_gifti_file('datasets/rh.shape.curv.gii')
+# img = parse_gifti_file('datasets/rh.shape.curv.gii')
+img = parse_gifti_file('datasets/ascii.gii')
     
