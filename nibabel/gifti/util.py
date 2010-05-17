@@ -186,8 +186,8 @@ def get_endianness():
         # this is big endian
         return GiftiEndian.GIFTI_ENDIAN_BIG
     
-GiftiType2npyType = \
-{GiftiDataType.NIFTI_TYPE_COMPLEX128 : numpy.dtype('complex128'),
+GiftiType2npyType = { \
+ GiftiDataType.NIFTI_TYPE_COMPLEX128 : numpy.dtype('complex128'),
  GiftiDataType.NIFTI_TYPE_COMPLEX64 : numpy.dtype('complex64'),
  GiftiDataType.NIFTI_TYPE_FLOAT32 : numpy.dtype('float32'),
  GiftiDataType.NIFTI_TYPE_FLOAT64 : numpy.dtype('float64'),
@@ -200,7 +200,19 @@ GiftiType2npyType = \
  GiftiDataType.NIFTI_TYPE_UINT64 : numpy.dtype('uint64'),
  GiftiDataType.NIFTI_TYPE_UINT8 : numpy.dtype('uint8'),
  #GiftiDataType.NIFTI_TYPE_RGB24 : rgb.fields_rgb, # See below
- #GiftiDataType.NIFTI_TYPE_RGBA32 : rgb.fields_rgba
+ #GiftiDataType.NIFTI_TYPE_RGBA32 : rgb.fields_rgba,
+ 2048 : numpy.dtype('complex128'),
+ 32 : numpy.dtype('complex64'),
+ 16 : numpy.dtype('float32'),
+ 64 : numpy.dtype('float64'),
+ 4 : numpy.dtype('int16'),
+ 8 : numpy.dtype('int32'),
+ 1024 : numpy.dtype('int64'),
+ 256 : numpy.dtype('int8'),
+ 512 : numpy.dtype('uint16'),
+ 768 : numpy.dtype('uint32'),
+ 1280 : numpy.dtype('uint64'),
+ 2 : numpy.dtype('uint8'),
  }
 
 # what about rgbs?

@@ -13,6 +13,10 @@ class GiftiMetaData(object):
     # convert: Name - Value --> Key - Value
     data = {}
     
+    def __init__(self):
+        
+        self.data = {}
+    
     
 class GiftiNVPairs(object):
     
@@ -45,23 +49,40 @@ class GiftiDataArray(object):
     ext_offset = None # c_longlong XXX
     
     meta = GiftiMetaData
-
     data = None
-    
-    nvals = None # longlong
-    nbyper = int
-    
-    numCS = int
     coordsys = GiftiCoordSystem
     
-    ex_atrs = GiftiNVPairs
+    #numCS = int
+    #nvals = None # longlong
+    #nbyper = int
+    #ex_atrs = GiftiNVPairs
+    
+    def __init__(self):
+        
+        self.dims = []
+        
 
 class GiftiImage(object):
     
     numDA = int
     version = str
+    filename = str
     
     meta = GiftiMetaData
+    
+    # list of GiftiDataArray
+    darrays = []
+        
+    labeltable = GiftiLabelTable
+    
+    #darray = GiftiDataArray
+    #swapped = int
+    #ex_atrs = GiftiNVPairs
+    
+    def __init__(self):
+        
+        self.darrays = []
+
     # add getter and setter methods?
     def get_metadata(self):
         
@@ -76,15 +97,6 @@ class GiftiImage(object):
         
         self.meta = meta
     
-    
-    labeltable = GiftiLabelTable
-    darray = GiftiDataArray
-    swapped = int
-    ex_atrs = GiftiNVPairs
-    
-    # list of GiftiDataArray
-    darrays = []
-    
     def add_gifti_data_array(self, dataarr):
         self.darrays.append(dataarr)
         # XXX sanity checks
@@ -94,17 +106,16 @@ class GiftiImage(object):
         # XXX update
     
     
-    
-class GiftiGlobals(object):
-    
-    verb = int
-
-class GiftiTypeEle(object):
-    
-    type = int
-    nbyper = int
-    swapsize = int
-    name = str
+#class GiftiGlobals(object):
+#    
+#    verb = int
+#
+#class GiftiTypeEle(object):
+#    
+#    type = int
+#    nbyper = int
+#    swapsize = int
+#    name = str
 
 
 ##############
@@ -116,12 +127,12 @@ def loadImage(filename):
         import os.path
 	if not os.path.exists(filename):
 		raise IOError("No such file or directory: '%s'" % filename)
-                
-        # create GiftiImage
-        # set the .filename
-        # return it
-        pass
-
+        else:
+            from parse_gifti import parse_gifti_file
+            giifile = parse_gifti_file(filename)
+            giifile.filename = filename
+            return giifile
+        
 def saveImage(image, filename):
 	""" Save the current image to a new file
         

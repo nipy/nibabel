@@ -2,7 +2,8 @@
 
 from xml.dom.minidom import parse, parseString
 from gifti import GiftiImage, GiftiMetaData, GiftiLabelTable, GiftiDataArray
-from util import GiftiIntentCode, GiftiDataType, GiftiEncoding, GiftiEndian, GiftiArrayIndexOrder
+from util import GiftiIntentCode, GiftiDataType, GiftiEncoding, GiftiEndian, \
+                GiftiArrayIndexOrder, GiftiType2npyType
 import numpy
 
 def parse_metadata(dom_node):
@@ -27,45 +28,54 @@ def parse_metadata(dom_node):
                     meta.data[name] = value
     return meta
 
-def read_data_block(encoding, data):
+def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
 
+    # XXX: how to incorporate endianness?
+
     import base64
-    import gzip
+    import zlib
     from StringIO import StringIO
-        
+    
+    if ordering == 1:
+        ord = 'C'
+    elif ordering == 2:
+        ord = 'F'
+    else:
+        ord = 'C'
+    
     if encoding == 1:
         # GIFTI_ENCODING_ASCII
         
         c = StringIO(data)
         da = numpy.loadtxt(c)
-        print da
         return da
         
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
+
+        dec = base64.decodestring(data)
         
-        pass
+        dt = GiftiType2npyType[datatype]
+        sh = tuple(shape)
+        
+        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+
+        
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
+
+        dec = base64.decodestring(data)
+        zdec = zlib.decompress(dec)
         
-        decoded_data = base64.decodestring(data)
+        dt = GiftiType2npyType[datatype]
+        sh = tuple(shape)
         
-        filelike_string = StringIO(decoded_data)
-        
-        # decoding based on Encoding (and endianness?)
-        
-        # unzip
-        #f = gzip.GzipFile('asdsa', fileobj=filelike_string)
-        f = gzip.open(filelike_string)
-        content = f.read()
-        f.close()
-        filelike_string.close()
-        return content
-        
-        
+        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
+        # XXX: to be implemented. In what format are the external files?
         pass
     else:
         return 0
@@ -93,6 +103,9 @@ def parse_dataarray(dom_node):
         if dom_node.hasAttribute(di):
             da.dims.append(int(dom_node.getAttribute(di)))
 
+    # dimensionality has to correspond to the number of DimX given
+    assert len(da.dims) == da.num_dim
+
     if dom_node.hasAttribute("Encoding"):
         da.encoding = GiftiEncoding.encodings[dom_node.getAttribute("Encoding")]
 
@@ -117,9 +130,10 @@ def parse_dataarray(dom_node):
         
         data = data_node.childNodes[0].data
         
-        # XXX correct parsing
-        read_data_block(da.encoding, data)
+        # XXX sanity check if all required attributes are set
         
+        da.data = read_data_block(da.encoding, da.endian, da.ind_ord, da.datatype, da.dims, data)
+            
     return da
 
     
@@ -170,6 +184,4 @@ def parse_gifti_file(fname):
         
     return img
     
-# img = parse_gifti_file('datasets/rh.shape.curv.gii')
-img = parse_gifti_file('datasets/ascii.gii')
     
