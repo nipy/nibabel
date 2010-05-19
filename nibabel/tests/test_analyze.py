@@ -38,7 +38,8 @@ import numpy as np
 from nibabel.testing import assert_equal, assert_not_equal, \
     assert_true, assert_false, assert_raises
 
-from numpy.testing import assert_array_equal
+from numpy.testing import (assert_array_equal,
+                           assert_array_almost_equal)
 
 from nibabel.volumeutils import array_to_file, can_cast
 
@@ -258,6 +259,34 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
         yield assert_equal(converted.get_data_dtype(), np.dtype('i2'))
         yield assert_equal(converted.get_data_shape(), (5,4,3))
         yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
+
+
+    def test_base_affine(self):
+        klass = self.header_class
+        hdr = klass()
+        hdr.set_data_shape((3, 5, 7))
+        hdr.set_zooms((3, 2, 1))
+        yield assert_true(hdr.default_x_flip)
+        yield assert_array_almost_equal(
+            hdr.get_base_affine(),
+            [[-3.,  0.,  0.,  3.],
+             [ 0.,  2.,  0., -4.],
+             [ 0.,  0.,  1., -3.],
+             [ 0.,  0.,  0.,  1.]])
+        hdr.set_data_shape((3, 5))
+        yield assert_array_almost_equal(
+            hdr.get_base_affine(),
+            [[-3.,  0.,  0.,  3.],
+             [ 0.,  2.,  0., -4.],
+             [ 0.,  0.,  1., -0.],
+             [ 0.,  0.,  0.,  1.]])
+        hdr.set_data_shape((3, 5, 7))
+        yield assert_array_almost_equal(
+            hdr.get_base_affine(),
+            [[-3.,  0.,  0.,  3.],
+             [ 0.,  2.,  0., -4.],
+             [ 0.,  0.,  1., -3.],
+             [ 0.,  0.,  0.,  1.]])
 
 
 @parametric

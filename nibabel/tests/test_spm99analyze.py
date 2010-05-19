@@ -87,10 +87,41 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
 
 @parametric
 def test_origin_affine():
-    # check that origin affine works, only
     hdr = Spm99AnalyzeHeader()
     aff = hdr.get_origin_affine()
-
+    yield assert_array_equal(aff, hdr.get_base_affine())
+    hdr.set_data_shape((3, 5, 7))
+    hdr.set_zooms((3, 2, 1))
+    yield assert_true(hdr.default_x_flip)
+    yield assert_array_almost_equal(
+        hdr.get_origin_affine(), # from center of image
+        [[-3.,  0.,  0.,  3.],
+         [ 0.,  2.,  0., -4.],
+         [ 0.,  0.,  1., -3.],
+         [ 0.,  0.,  0.,  1.]])
+    hdr['origin'][:3] = [3,4,5]
+    yield assert_array_almost_equal(
+        hdr.get_origin_affine(), # using origin
+        [[-3.,  0.,  0.,  6.],
+         [ 0.,  2.,  0., -6.],
+         [ 0.,  0.,  1., -4.],
+         [ 0.,  0.,  0.,  1.]])
+    hdr['origin'] = 0 # unset origin
+    hdr.set_data_shape((3, 5))
+    yield assert_array_almost_equal(
+        hdr.get_origin_affine(),
+        [[-3.,  0.,  0.,  3.],
+         [ 0.,  2.,  0., -4.],
+         [ 0.,  0.,  1., -0.],
+         [ 0.,  0.,  0.,  1.]])
+    hdr.set_data_shape((3, 5, 7))
+    yield assert_array_almost_equal(
+        hdr.get_origin_affine(), # from center of image
+        [[-3.,  0.,  0.,  3.],
+         [ 0.,  2.,  0., -4.],
+         [ 0.,  0.,  1., -3.],
+         [ 0.,  0.,  0.,  1.]])
+    
 
 @parametric
 def test_slope_inter():

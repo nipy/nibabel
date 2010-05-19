@@ -47,8 +47,10 @@ To create a NetCDF file::
 
 Make a temporary file for testing:
 
-    >>> from tempfile import mkstemp
-    >>> fd, fname = mkstemp('.nc')
+    >>> import os
+    >>> from tempfile import mkdtemp
+    >>> tmp_pth = mkdtemp()
+    >>> fname = os.path.join(tmp_pth, 'test.nc')
 
 Write to it:
 
@@ -75,10 +77,11 @@ To read the NetCDF file we just created::
     9
     >>> f.close()
 
- Delete our temporary file:
+ Delete our temporary directory and file:
 
-    >>> import os
+    >>> del f, time # needed for windows unlink
     >>> os.unlink(fname)
+    >>> os.rmdir(tmp_pth)
  
 TODO:
  * properly implement ``_FillValue``.

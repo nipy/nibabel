@@ -12,7 +12,8 @@ from nibabel.volumeutils import (array_from_file,
                                  array_to_file,
                                  calculate_scale,
                                  scale_min_max,
-                                 can_cast, allopen)
+                                 can_cast, allopen,
+                                 shape_zoom_affine)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -248,4 +249,28 @@ def test_allopen():
     yield assert_true(fobj is sobj)
     # mode is gently ignored
     fobj = allopen(sobj, mode='r')
+
+
+@parametric
+def test_shape_zoom_affine():
+    shape = (3, 5, 7)
+    zooms = (3, 2, 1)
+    res = shape_zoom_affine((3, 5, 7), (3, 2, 1))
+    exp = np.array([[-3.,  0.,  0.,  3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -3.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
+    res = shape_zoom_affine((3, 5), (3, 2))
+    exp = np.array([[-3.,  0.,  0.,  3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -0.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
+    res = shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
+    exp = np.array([[ 3.,  0.,  0., -3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -3.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
 

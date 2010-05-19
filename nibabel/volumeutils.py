@@ -678,8 +678,8 @@ def finite_range(arr):
     >>> finite_range(a)
     (-1.0, 1.0)
     >>> a = np.array([[np.nan],[np.nan]])
-    >>> finite_range(a)
-    (inf, -inf)
+    >>> finite_range(a) == (np.inf, -np.inf)
+    True
     >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
     >>> finite_range(a)
     (-3, 4)
@@ -776,11 +776,6 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     array([[-3.,  0.,  0.,  3.],
            [ 0.,  2.,  0., -4.],
            [ 0.,  0.,  1., -3.],
-           [ 0.,  0.,  0.,  1.]])
-    >>> shape_zoom_affine((3, 5), (3, 2))
-    array([[-3.,  0.,  0.,  3.],
-           [ 0.,  2.,  0., -4.],
-           [ 0.,  0.,  1., -0.],
            [ 0.,  0.,  0.,  1.]])
     >>> shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
     array([[ 3.,  0.,  0., -3.],

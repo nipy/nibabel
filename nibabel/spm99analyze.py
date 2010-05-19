@@ -121,12 +121,6 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  0.,  1., -4.],
                [ 0.,  0.,  0.,  1.]])
         >>> hdr['origin'] = 0 # unset origin
-        >>> hdr.set_data_shape((3, 5))
-        >>> hdr.get_origin_affine()
-        array([[-3.,  0.,  0.,  3.],
-               [ 0.,  2.,  0., -4.],
-               [ 0.,  0.,  1., -0.],
-               [ 0.,  0.,  0.,  1.]])
         >>> hdr.set_data_shape((3, 5, 7))
         >>> hdr.get_origin_affine() # from center of image
         array([[-3.,  0.,  0.,  3.],
