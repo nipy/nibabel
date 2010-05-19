@@ -728,6 +728,7 @@ def allopen(fname, *args, **kwargs):
         mode = kwargs['mode']
     else:
         mode = 'rb'
+        args = (mode,)
     if fname.endswith('.gz'):
         if ('w' in mode and
             len(args) < 2 and

@@ -8,11 +8,14 @@ import numpy as np
 
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nibabel.volumeutils import array_from_file, \
-    array_to_file, calculate_scale, scale_min_max, can_cast
+from nibabel.volumeutils import (array_from_file,
+                                 array_to_file,
+                                 calculate_scale,
+                                 scale_min_max,
+                                 can_cast, allopen)
 
-from numpy.testing import assert_array_almost_equal, \
-    assert_array_equal
+from numpy.testing import (assert_array_almost_equal,
+                           assert_array_equal)
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
@@ -227,4 +230,22 @@ def test_can_cast():
         yield assert_equal, scale_res, can_cast(intype, outtype, False, True)
         yield assert_equal, all_res, can_cast(intype, outtype, True, True)
         
-        
+
+@parametric
+def test_allopen():
+    # Test default mode is 'rb'
+    fobj = allopen(__file__)
+    yield assert_equal(fobj.mode, 'rb')
+    # That we can set it
+    fobj = allopen(__file__, 'r')
+    yield assert_equal(fobj.mode, 'r')
+    # with keyword arguments
+    fobj = allopen(__file__, mode='r')
+    yield assert_equal(fobj.mode, 'r')
+    # fileobj returns fileobj
+    sobj = StringIO()
+    fobj = allopen(sobj)
+    yield assert_true(fobj is sobj)
+    # mode is gently ignored
+    fobj = allopen(sobj, mode='r')
+
