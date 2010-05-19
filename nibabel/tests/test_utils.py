@@ -1,10 +1,12 @@
 ''' Test for volumeutils module '''
-
+from __future__ import with_statement
 import os
 from StringIO import StringIO
 import tempfile
 
 import numpy as np
+
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nibabel.volumeutils import array_from_file, \
     array_to_file, calculate_scale, scale_min_max, can_cast
@@ -28,8 +30,8 @@ def test_array_from_file():
     offset = 10
     yield assert_true(buf_chk(in_arr, StringIO(), None, offset))
     # check on real file
-    fd, fname = tempfile.mkstemp()
-    try:
+    fname = 'test.bin'
+    with InTemporaryDirectory() as tmpdir:
         # fortran ordered
         out_buf = file(fname, 'wb')
         in_buf = file(fname, 'rb')
@@ -39,8 +41,7 @@ def test_array_from_file():
         in_buf.seek(0)
         offset = 5
         yield assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
-    finally:
-        os.remove(fname)
+        del out_buf, in_buf
     # Make sure empty shape, and zero length, give empty arrays
     arr = array_from_file((), np.dtype('f8'), StringIO())
     yield assert_equal(len(arr), 0)
@@ -51,12 +52,14 @@ def test_array_from_file():
                         shape, dtype, StringIO())
     # check on real file
     fd, fname = tempfile.mkstemp()
-    try:
-        in_buf = file(fname, 'rb')
-        yield assert_raises(IOError, array_from_file,
+    with InTemporaryDirectory():
+        open(fname, 'wb').write('1')
+        in_buf = open(fname, 'rb')
+        # For windows this will raise a WindowsError from mmap, Unices
+        # appear to raise an IOError
+        yield assert_raises(Exception, array_from_file,
                             shape, dtype, in_buf)
-    finally:
-        os.remove(fname)
+        del in_buf
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):

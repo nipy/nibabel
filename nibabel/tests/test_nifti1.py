@@ -1,4 +1,5 @@
 ''' Tests for nifti reading package '''
+from __future__ import with_statement
 import os
 import tempfile
 
@@ -6,6 +7,7 @@ from StringIO import StringIO
 
 import numpy as np
 
+from nibabel.tmpdirs import InTemporaryDirectory
 from nibabel.spatialimages import HeaderDataError
 import nibabel.nifti1 as nifti1
 from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
@@ -64,10 +66,12 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
                            'and be finite; setting "scl_slope" to 1')
         hdr = HC()
         hdr['scl_inter'] = np.nan # severity 30
+        # NaN string representation can be odd on windows
+        nan_str = '%s' % np.nan
         fhdr, message, raiser = _log_chk(hdr, 30)
         yield assert_equal(fhdr['scl_inter'], 0)
-        yield assert_equal(message, '"scl_inter" is nan; should be '
-                           'finite; setting "scl_inter" to 0')
+        yield assert_equal(message, '"scl_inter" is %s; should be '
+                           'finite; setting "scl_inter" to 0' % nan_str)
         yield assert_raises(*raiser)
         # qfac
         hdr = HC()
@@ -348,16 +352,17 @@ def test_nifti1_images():
     img.to_file_map()
     img2 = Nifti1Image.from_file_map(img.file_map)
     yield assert_array_equal(img2.get_data(), data)
-    for ext in ('.gz', '.bz2'):
-        try:
-            _, fname = tempfile.mkstemp('.nii' + ext)
+    with InTemporaryDirectory() as tmpdir:
+        for ext in ('.gz', '.bz2'):
+            fname = os.path.join(tmpdir, 'test.nii' + ext)
             img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
             yield assert_true(isinstance(img3, img.__class__))
             yield assert_array_equal(img3.get_data(), data)
             yield assert_equal(img3.get_header(), img.get_header())
-        finally:
-            os.unlink(fname)
+            # del to avoid windows errors of form 'The process cannot
+            # access the file because it is being used'
+            del img3
 
 
 @parametric

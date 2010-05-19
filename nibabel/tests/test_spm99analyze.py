@@ -59,20 +59,25 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         # checks for scale
         hdr = self.header_class()
         hdr['scl_slope'] = np.nan
+        # NaN and Inf string representation can be odd on windows, so we
+        # check against the representation on this system
         fhdr, message, raiser = _log_chk(hdr, 30)
         yield assert_equal(fhdr['scl_slope'], 1)
-        yield assert_equal(message, 'scale slope is nan; '
+        yield assert_equal(message, 'scale slope is %s; '
                            'should !=0 and be finite; '
-                           'setting scalefactor "scl_slope" to 1')
+                           'setting scalefactor "scl_slope" to 1' %
+                           np.nan)
         yield assert_raises(*raiser)
         dxer = self.header_class.diagnose_binaryblock
         yield assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is nan; '
-                           'should !=0 and be finite')
+                           'scale slope is %s; '
+                           'should !=0 and be finite' % np.nan)
         hdr['scl_slope'] = np.inf
+        # Inf string representation can be odd on windows
         yield assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is inf; '
-                           'should !=0 and be finite')
+                           'scale slope is %s; '
+                           'should !=0 and be finite'
+                           % np.inf)
 
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
