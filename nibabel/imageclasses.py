@@ -6,6 +6,14 @@ from nibabel.nifti1 import Nifti1Pair, Nifti1Image
 from nibabel.minc import MincImage
 from nibabel.volumeutils import Recoder
 
+# If we don't have scipy, then we cannot write SPM format files
+try:
+    import scipy.io
+except ImportError:
+    have_scipy = False
+else:
+    have_scipy = True
+
 # mapping of names to classes and class functionality
 class_map = {
     'analyze': {'class': AnalyzeImage,
@@ -15,11 +23,11 @@ class_map = {
     'spm99analyze': {'class': Spm99AnalyzeImage,
                      'ext': '.img',
                      'has_affine': True,
-                     'rw': True},
+                     'rw': have_scipy},
     'spm2analyze': {'class': Spm2AnalyzeImage,
                     'ext': '.img',
                     'has_affine': True,
-                    'rw': True},
+                    'rw': have_scipy},
     'nifti_pair': {'class': Nifti1Pair,
                    'ext': '.img',
                     'has_affine': True,

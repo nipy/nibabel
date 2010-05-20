@@ -80,11 +80,9 @@ def test_round_trip():
    from StringIO import StringIO
    data = np.arange(24, dtype='i4').reshape((2,3,4))
    aff = np.eye(4)
-   for klass in (nib.AnalyzeImage,
-                 nib.Spm99AnalyzeImage,
-                 nib.Spm2AnalyzeImage,
-                 nib.Nifti1Pair,
-                 nib.Nifti1Image):
+   klasses = [val['class'] for key, val in nib.class_map.items()
+              if val['rw']]
+   for klass in klasses:
        file_map = klass.make_file_map()
        for key in file_map:
            file_map[key].fileobj = StringIO()
