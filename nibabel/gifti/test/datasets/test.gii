@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
+<GIFTI Version="1.0"  NumberOfDataArrays="2">
+   <MetaData>
+      <MD>
+         <Name><![CDATA[gifticlib-version]]></Name>
+         <Value><![CDATA[gifti library version 1.0, 13 May, 2008]]></Value>
+      </MD>
+   </MetaData>
+   <LabelTable/>
+   <DataArray Intent="NIFTI_INTENT_POINTSET"
+              DataType="NIFTI_TYPE_FLOAT64"
+              ArrayIndexingOrder="RowMajorOrder"
+              Dimensionality="2"
+              Dim0="3"
+              Dim1="3"
+              Encoding="GZipBase64Binary"
+              Endian="LittleEndian"
+              ExternalFileName=""
+              ExternalFileOffset="">
+      <MetaData/>
+      <CoordinateSystemTransformMatrix>
+         <DataSpace><![CDATA[a]]></DataSpace>
+         <TransformedSpace><![CDATA[b]]></TransformedSpace>
+         <MatrixData>
+            1.000000 0.000000 0.000000 0.000000 
+            0.000000 1.000000 0.000000 0.000000 
+            0.000000 0.000000 1.000000 0.000000 
+            0.000000 0.000000 0.000000 1.000000 
+         </MatrixData>
+      </CoordinateSystemTransformMatrix>
+      <Data>eJybNRMETtrPAtM37Y3B4DKU/gylBR1gfAYogKj/CNXH6AAAAOoafQ==</Data>
+   </DataArray>
+   <DataArray Intent="NIFTI_INTENT_TRIANGLE"
+              DataType="NIFTI_TYPE_INT32"
+              ArrayIndexingOrder="RowMajorOrder"
+              Dimensionality="2"
+              Dim0="1"
+              Dim1="3"
+              Encoding="GZipBase64Binary"
+              Endian="LittleEndian"
+              ExternalFileName=""
+              ExternalFileOffset="">
+      <MetaData/>
+      <Data>eJxjYGBgYARiJiAGAAAcAAQ=</Data>
+   </DataArray>
+</GIFTI>
