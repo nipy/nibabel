@@ -11,16 +11,17 @@ class GiftiMetaData(object):
     
     # added attribute
     # convert: Name - Value --> Key - Value
-    data = {}
+     #data = {}
     
     def __init__(self):
-        
-        self.data = {}
+                
+        # create a list of GiftiNVPairs objects containing the Name and the Value
+        self.data = []
     
     
 class GiftiNVPairs(object):
     
-    length = int
+    #length = int
     name = str
     value = str
 
@@ -48,7 +49,7 @@ class GiftiDataArray(object):
     ext_fname = str
     ext_offset = None # c_longlong XXX
     
-    meta = GiftiMetaData
+    
     data = None
     coordsys = GiftiCoordSystem
     
@@ -60,7 +61,7 @@ class GiftiDataArray(object):
     def __init__(self):
         
         self.dims = []
-        
+        self.meta = GiftiMetaData()
 
 class GiftiImage(object):
     
@@ -68,12 +69,12 @@ class GiftiImage(object):
     version = str
     filename = str
     
-    meta = GiftiMetaData
+    #meta = GiftiMetaData
     
     # list of GiftiDataArray
-    darrays = []
+    #darrays = []
         
-    labeltable = GiftiLabelTable
+    
     
     #darray = GiftiDataArray
     #swapped = int
@@ -82,11 +83,14 @@ class GiftiImage(object):
     def __init__(self):
         
         self.darrays = []
+        self.meta = GiftiMetaData()
+        #self.labeltable = GiftiLabelTable()
+        
 
     # add getter and setter methods?
     def get_metadata(self):
         
-        return meta
+        return self.meta
     
     def set_metadata(self, meta):
         
@@ -128,9 +132,8 @@ def loadImage(filename):
 	if not os.path.exists(filename):
 		raise IOError("No such file or directory: '%s'" % filename)
         else:
-            from parse_gifti import parse_gifti_file
-            giifile = parse_gifti_file(filename)
-            giifile.filename = filename
+            import parse_gifti_fast as pg
+            giifile = pg.parse_gifti_file(filename)
             return giifile
         
 def saveImage(image, filename):
