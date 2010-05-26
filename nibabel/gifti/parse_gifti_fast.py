@@ -4,14 +4,9 @@ from util import *
 from numpy import loadtxt
 import numpy
 
-parser = ParserCreate()
+parser = None
 img = None
-parser.buffer_text = True
-parser.buffer_size = 5000000
-HANDLER_NAMES = [
-    'StartElementHandler', 'EndElementHandler',
-    'CharacterDataHandler',
-    ]
+out = None
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
@@ -66,6 +61,8 @@ class Outputter:
     nvpair = None
     da = None
     coordsys = None
+    lata = None
+    label = None
     
     # where to write CDATA:
     write_to = None
@@ -110,8 +107,19 @@ class Outputter:
                 self.write_to = 'Value'
         
         elif name == 'LabelTable':
+            
+            self.lata = GiftiLabelTable()
+            
             self.fsm_state.append('LabelTable')
-            # XXX update
+            
+        elif name == 'Label':
+            
+            self.label = GiftiLabel()
+            
+            if attrs.has_key("Index"):
+                self.label.index = int(attrs["Index"])
+                
+            self.write_to = 'Label'
             
         elif name == 'DataArray':
             
@@ -208,10 +216,14 @@ class Outputter:
                 
             # remove reference
             self.nvpair = None
-            
+
         elif name == 'LabelTable':
             self.fsm_state.pop()
-            # XXX update
+            
+            # add labeltable
+            img.labeltable = self.lata
+            self.lata = None
+            
         elif name == 'DataArray':
             self.fsm_state.pop()
         elif name == 'CoordinateSystemTransformMatrix':
@@ -229,14 +241,15 @@ class Outputter:
             self.write_to = None
         elif name == 'Data':
             self.write_to = None
+        elif name == 'Label':
+            self.lata.labels.append(self.label)
+            self.label = None
+            self.write_to = None
+            
 
 
     def CharacterDataHandler(self, data):
-        #
-        #if data:
-        #    print 'Character data:'
-        #    print '\t', repr(data)
-        # print 'Read: ', data
+        
         if self.write_to == 'Name':
             data = data.strip()
             self.nvpair.name = data
@@ -260,18 +273,30 @@ class Outputter:
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian, \
                                           da_tmp.ind_ord, da_tmp.datatype, \
                                           da_tmp.dims, data)
+        elif self.write_to == 'Label':
+            self.label.label = data
             
-
-out = Outputter()
-for name in HANDLER_NAMES:
-    setattr(parser, name, getattr(out, name))
-    
+   
 def parse_gifti_file(fname):
 
     datasource = open(fname,'r')
     global img
-    img = None
+    global parser
+    global out
     
+    img = None
+    parser = ParserCreate()
+    parser.buffer_text = True
+    parser.buffer_size = 5000000
+    HANDLER_NAMES = [
+    'StartElementHandler', 'EndElementHandler',
+    'CharacterDataHandler',
+    ]
+    out = Outputter()
+    for name in HANDLER_NAMES:
+        setattr(parser, name, getattr(out, name))
+
+
     try:
         parser.ParseFile(datasource)
     except ExpatError:

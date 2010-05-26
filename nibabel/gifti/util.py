@@ -90,6 +90,50 @@ class GiftiIntentCode:
     NIFTI_INTENT_RGBA_VECTOR = 2004
     NIFTI_INTENT_SHAPE = 2005
     
+    intents_inv = {
+    0 : "NIFTI_INTENT_NONE",
+    3 : "NIFTI_INTENT_TTEST",
+    4 : "NIFTI_INTENT_FTEST",
+    5 : "NIFTI_INTENT_ZSCORE",
+    6 : "NIFTI_INTENT_CHISQ",
+    7 : "NIFTI_INTENT_BETA",
+    8 : "NIFTI_INTENT_BINOM",
+    9 : "NIFTI_INTENT_GAMMA",
+    10 : "NIFTI_INTENT_POISSON",
+    11 : "NIFTI_INTENT_NORMAL",
+    12 : "NIFTI_INTENT_FTEST_NONC",
+    13 : "NIFTI_INTENT_CHISQ_NONC",
+    14 : "NIFTI_INTENT_LOGISTIC",
+    15 : "NIFTI_INTENT_LAPLACE",
+    16 : "NIFTI_INTENT_UNIFORM",
+    17 : "NIFTI_INTENT_TTEST_NONC",
+    18 : "NIFTI_INTENT_WEIBULL",
+    19 : "NIFTI_INTENT_CHI",
+    20 : "NIFTI_INTENT_INVGAUSS",
+    21 : "NIFTI_INTENT_EXTVAL",
+    22 : "NIFTI_INTENT_PVAL",
+    23 : "NIFTI_INTENT_LOGPVAL",
+    24 : "NIFTI_INTENT_LOG10PVAL",
+    2 : "NIFTI_FIRST_STATCODE",
+    22 : "NIFTI_LAST_STATCODE",
+    1001 : "NIFTI_INTENT_ESTIMATE",
+    1002 : "NIFTI_INTENT_LABEL",
+    1003 : "NIFTI_INTENT_NEURONAME",
+    1004 : "NIFTI_INTENT_GENMATRIX",
+    1005 : "NIFTI_INTENT_SYMMATRIX",
+    1006 : "NIFTI_INTENT_DISPVECT",
+    1007 : "NIFTI_INTENT_VECTOR",
+    1008 : "NIFTI_INTENT_POINTSET",
+    1009 : "NIFTI_INTENT_TRIANGLE",
+    1010 : "NIFTI_INTENT_QUATERNION",
+    1011 : "NIFTI_INTENT_DIMLESS",
+    2001 : "NIFTI_INTENT_TIMESERIES",
+    2002 : "NIFTI_INTENT_NODE_INDEX",
+    2003 : "NIFTI_INTENT_RGB_VECTOR",
+    2004 : "NIFTI_INTENT_RGBA_VECTOR",
+    2005 : "NIFTI_INTENT_SHAPE"
+    }
+    
 class GiftiArrayIndexOrder:
     
     ordering = {}
@@ -99,6 +143,10 @@ class GiftiArrayIndexOrder:
     RowMajorOrder = 1
     ColumnMajorOrder = 2
     
+    ordering_inv = {
+    1 : "RowMajorOrder",
+    2 : "ColumnMajorOrder"
+    }
     
     
 class GiftiEncoding:
@@ -121,6 +169,14 @@ class GiftiEncoding:
     GIFTI_ENCODING_B64GZ  = 3
     GIFTI_ENCODING_EXTBIN = 4
     GIFTI_ENCODING_MAX    = 4
+    
+    encodings_inv = {
+    0 : "GIFTI_ENCODING_UNDEF",
+    1 : "GIFTI_ENCODING_ASCII",
+    2 : "GIFTI_ENCODING_B64BIN",
+    3 : "GIFTI_ENCODING_B64GZ",
+    4 : "GIFTI_ENCODING_EXTBIN"
+    }
 
 class GiftiEndian:
     endian = {}
@@ -137,6 +193,12 @@ class GiftiEndian:
     GIFTI_ENDIAN_BIG   = 1
     GIFTI_ENDIAN_LITTLE= 2
     GIFTI_ENDIAN_MAX   = 2
+    
+    endian_inv = {
+    0 : "GIFTI_ENDIAN_UNDEF",
+    1 : "GIFTI_ENDIAN_BIG",
+    2 : "GIFTI_ENDIAN_LITTLE"
+    }
     
 class GiftiDataType:
     datatypes = {}
@@ -173,6 +235,25 @@ class GiftiDataType:
     NIFTI_TYPE_COMPLEX128 = 1792
     NIFTI_TYPE_COMPLEX256 = 2048   #  Python cannot handle 128-bit floats
     NIFTI_TYPE_RGBA32     = 2304
+
+    datatypes_inv =  {
+    2 : "NIFTI_TYPE_UINT8",
+    4 : "NIFTI_TYPE_INT16",
+    8 : "NIFTI_TYPE_INT32",
+    16 : "NIFTI_TYPE_FLOAT32",
+    32 : "NIFTI_TYPE_COMPLEX64",
+    64 : "NIFTI_TYPE_FLOAT64",
+    128 : "NIFTI_TYPE_RGB24",
+    256 : "NIFTI_TYPE_INT8",
+    512 : "NIFTI_TYPE_UINT16",
+    768 : "NIFTI_TYPE_UINT32",
+    1024 : "NIFTI_TYPE_INT64",
+    1280 : "NIFTI_TYPE_UINT64",
+    1536 : "NIFTI_TYPE_FLOAT128",
+    1792 : "NIFTI_TYPE_COMPLEX128",
+    2048 : "NIFTI_TYPE_COMPLEX256",
+    2304 : "NIFTI_TYPE_RGBA32"
+    }
 
 #  Some helper functions
 def get_endianness():
@@ -215,7 +296,7 @@ GiftiType2npyType = { \
  2 : numpy.dtype('uint8'),
  }
 
-# what about rgbs?
+# what about rgbs? XXX
 
 #from numpy import uint8
 #class rgb:
