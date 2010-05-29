@@ -499,7 +499,7 @@ class PARRECHeader(Header):
         rescale_slope = self._get_unique_image_prop('rescale slope')
         rescale_intercept = self._get_unique_image_prop('rescale intercept')
         # actual slopes per definition above
-        slope = 1 / scale_slope
+        slope = 1.0 / scale_slope
         # actual intercept per definition above
         intercept = rescale_intercept / (rescale_slope * scale_slope)
         return (slope, intercept)
