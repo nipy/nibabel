@@ -198,7 +198,9 @@ class Outputter:
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
-            assert len(self.fsm_state) == 0
+            # assert len(self.fsm_state) == 0
+            print self.fsm_state
+            
         elif name == 'MetaData':
             self.fsm_state.pop()
         elif name == 'MD':
@@ -285,6 +287,9 @@ def parse_gifti_file(fname):
     global out
     
     img = None
+    out = None
+    parser = None
+    
     parser = ParserCreate()
     parser.buffer_text = True
     parser.buffer_size = 5000000

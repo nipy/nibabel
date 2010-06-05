@@ -101,6 +101,8 @@ class GiftiDataArray(object):
             print 'Coordinate System:'
             print self.coordsys.print_summary()
 
+    def get_meta_as_dict(self):
+        return self.meta.get_data_as_dict()
 
 class GiftiImage(object):
     
