@@ -362,7 +362,7 @@ class NiftiFormat(object):
         # add dummy one to row vector
         coord_ = N.r_[coord, [1.0]]
         # apply affine transformation
-        result = N.dot(self.qform, coord_)
+        result = N.dot(self.sform, coord_)
         # return 3D coordinates
         return result[0:-1]
 

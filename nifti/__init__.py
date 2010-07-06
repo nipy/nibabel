@@ -21,4 +21,4 @@ __docformat__ = 'restructuredtext'
 from nifti.image import NiftiImage, MemMappedNiftiImage
 
 # canonical version string
-__version__ = '0.20100412.1'
+__version__ = '0.20100607.1'
