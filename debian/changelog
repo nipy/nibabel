@@ -1,3 +1,11 @@
+pynifti (0.20100607.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * Switch maintainer to the NeuroDebian team, keep previous uploaders.
+  * Update dates in debian/copyright.
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Tue, 06 Jul 2010 12:03:57 -0400
+
 pynifti (0.20100412.1-1) unstable; urgency=low
 
   * New upstream bugfix release.
