@@ -1,7 +1,11 @@
 
-import gifti as gi
+try:
+    import nibabel.gifti as gi
+    from cviewer.io.gifti import gifti as ge
+except ImportError:
+    from nose import SkipTest
+    raise SkipTest
 
-from cviewer.io.gifti import gifti as ge
 import time
 
 now = time.time()
