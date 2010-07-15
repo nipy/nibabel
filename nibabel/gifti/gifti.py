@@ -190,13 +190,13 @@ class GiftiImage(object):
 
 def loadImage(filename):
     """ Load a Gifti image from a file """
-        import os.path
+    import os.path
     if not os.path.exists(filename):
         raise IOError("No such file or directory: '%s'" % filename)
-        else:
-            import parse_gifti_fast as pg
-            giifile = pg.parse_gifti_file(filename)
-            return giifile
+    else:
+        import parse_gifti_fast as pg
+        giifile = pg.parse_gifti_file(filename)
+        return giifile
 
 def saveImage(image, filename):
     """ Save the current image to a new file
@@ -228,7 +228,7 @@ def saveImage(image, filename):
         # do a validation
         # save GiftiImage to filename
 
-        pass
+    pass
 
 
 ##############
