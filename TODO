@@ -1,5 +1,61 @@
-Matthew's TODO
+Stephan's TODO
 --------------
 
+ GiftiImage
+ --------------
+ 
+ .get_data()
+ .get_header()
+ 
+ .showSummary()
+ 
+ .arrays
+ .getArraysFromIntent()
+ 
+ - Add or remove from the DataArray list with addDataArray_fromarray and
+  removeLastArray.
+- Manage the label list trough get/setLabels or the 'labels' property
+- Save to a file with 'save'
 
+ GiftiHeader
+ --------------
 
+ GiftiCoordSystem
+ ----------------
+ GiftiCoordSystem represents an affine mapping from one space to another.
+
+From the spec:
+"For a DataArray with an Intent NIFTI_INTENT_POINTSET, this element
+describes the stereotaxic space of the data before and after the
+application of a transformation matrix.
+The most common stereotaxic space is the Talairach Space
+which has its origin at the anterior commissure and the negative X, Y,
+and Z axes correspond to left, posterior, and inferior respectively."
+
+Here the affine matrix is available as a (4,4) numpy array named 'xform'.
+The names of the spaces are available as *string* in 'dataspace' and
+'xformspace'. Standard string (defined in nifti1.h) includes
+"NIFTI_XFORM_UNKNOWN", "NIFTI_XFORM_SCANNER_ANAT", "NIFTI_XFORM_ALIGNED_ANAT"
+"NIFTI_XFORM_TALAIRACH", "NIFTI_XFORM_MNI_152"
+
+ 
+ GiftiDataArray
+ --------------
+GiftiDataArray represents one Gifti 'DataArray' (or DA) structure, ie. an
+array of values, with optional meta-data and coordinate system.
+
+.get_data()
+.intent
+.coordsys
+.get_meta()
+
+.def _addCoordSys(self, dataspace = None, xformspace = None, transformMatrix = None):
+	""" Add a new coordinate system to the list """
+	pygiftiio.gifti_add_empty_CS(self)
+	cs = self._coordsys[self.numCS-1].contents
+	if transformMatrix != None:
+		cs.xform.flat = transformMatrix
+	cs.dataspace, cs.xformspace = dataspace, xformspace
+        
+
+.update_meta_from_dict()
