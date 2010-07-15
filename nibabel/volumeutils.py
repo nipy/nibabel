@@ -378,9 +378,14 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
             return np.array([])
         data_str = infile.read(datasize)
         if len(data_str) != datasize:
-            msg = 'Expected %s bytes, got %s bytes from file' \
-                  % (datasize, len(data_str))
-            raise ValueError(msg)
+            if hasattr(infile, 'name'):
+                file_str = 'file "%s"' % infile.name
+            else:
+                file_str = 'file object'
+            msg = 'Expected %s bytes, got %s bytes from %s\n' \
+                  % (datasize, len(data_str), file_str) + \
+                  ' - could the file be damaged?'
+            raise IOError(msg)
         arr = np.ndarray(shape,
                          in_dtype,
                          buffer=data_str,
@@ -673,8 +678,8 @@ def finite_range(arr):
     >>> finite_range(a)
     (-1.0, 1.0)
     >>> a = np.array([[np.nan],[np.nan]])
-    >>> finite_range(a)
-    (inf, -inf)
+    >>> finite_range(a) == (np.inf, -np.inf)
+    True
     >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
     >>> finite_range(a)
     (-3, 4)
@@ -723,6 +728,7 @@ def allopen(fname, *args, **kwargs):
         mode = kwargs['mode']
     else:
         mode = 'rb'
+        args = (mode,)
     if fname.endswith('.gz'):
         if ('w' in mode and
             len(args) < 2 and
@@ -770,11 +776,6 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     array([[-3.,  0.,  0.,  3.],
            [ 0.,  2.,  0., -4.],
            [ 0.,  0.,  1., -3.],
-           [ 0.,  0.,  0.,  1.]])
-    >>> shape_zoom_affine((3, 5), (3, 2))
-    array([[-3.,  0.,  0.,  3.],
-           [ 0.,  2.,  0., -4.],
-           [ 0.,  0.,  1., -0.],
            [ 0.,  0.,  0.,  1.]])
     >>> shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
     array([[ 3.,  0.,  0., -3.],

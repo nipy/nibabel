@@ -1,16 +1,22 @@
 ''' Test for volumeutils module '''
-
+from __future__ import with_statement
 import os
 from StringIO import StringIO
 import tempfile
 
 import numpy as np
 
-from nibabel.volumeutils import array_from_file, \
-    array_to_file, calculate_scale, scale_min_max, can_cast
+from nibabel.tmpdirs import InTemporaryDirectory
 
-from numpy.testing import assert_array_almost_equal, \
-    assert_array_equal
+from nibabel.volumeutils import (array_from_file,
+                                 array_to_file,
+                                 calculate_scale,
+                                 scale_min_max,
+                                 can_cast, allopen,
+                                 shape_zoom_affine)
+
+from numpy.testing import (assert_array_almost_equal,
+                           assert_array_equal)
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
@@ -28,8 +34,8 @@ def test_array_from_file():
     offset = 10
     yield assert_true(buf_chk(in_arr, StringIO(), None, offset))
     # check on real file
-    fd, fname = tempfile.mkstemp()
-    try:
+    fname = 'test.bin'
+    with InTemporaryDirectory() as tmpdir:
         # fortran ordered
         out_buf = file(fname, 'wb')
         in_buf = file(fname, 'rb')
@@ -39,13 +45,25 @@ def test_array_from_file():
         in_buf.seek(0)
         offset = 5
         yield assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
-    finally:
-        os.remove(fname)
+        del out_buf, in_buf
     # Make sure empty shape, and zero length, give empty arrays
     arr = array_from_file((), np.dtype('f8'), StringIO())
     yield assert_equal(len(arr), 0)
     arr = array_from_file((0,), np.dtype('f8'), StringIO())
     yield assert_equal(len(arr), 0)
+    # Check error from small file
+    yield assert_raises(IOError, array_from_file,
+                        shape, dtype, StringIO())
+    # check on real file
+    fd, fname = tempfile.mkstemp()
+    with InTemporaryDirectory():
+        open(fname, 'wb').write('1')
+        in_buf = open(fname, 'rb')
+        # For windows this will raise a WindowsError from mmap, Unices
+        # appear to raise an IOError
+        yield assert_raises(Exception, array_from_file,
+                            shape, dtype, in_buf)
+        del in_buf
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
@@ -213,4 +231,46 @@ def test_can_cast():
         yield assert_equal, scale_res, can_cast(intype, outtype, False, True)
         yield assert_equal, all_res, can_cast(intype, outtype, True, True)
         
-        
+
+@parametric
+def test_allopen():
+    # Test default mode is 'rb'
+    fobj = allopen(__file__)
+    yield assert_equal(fobj.mode, 'rb')
+    # That we can set it
+    fobj = allopen(__file__, 'r')
+    yield assert_equal(fobj.mode, 'r')
+    # with keyword arguments
+    fobj = allopen(__file__, mode='r')
+    yield assert_equal(fobj.mode, 'r')
+    # fileobj returns fileobj
+    sobj = StringIO()
+    fobj = allopen(sobj)
+    yield assert_true(fobj is sobj)
+    # mode is gently ignored
+    fobj = allopen(sobj, mode='r')
+
+
+@parametric
+def test_shape_zoom_affine():
+    shape = (3, 5, 7)
+    zooms = (3, 2, 1)
+    res = shape_zoom_affine((3, 5, 7), (3, 2, 1))
+    exp = np.array([[-3.,  0.,  0.,  3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -3.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
+    res = shape_zoom_affine((3, 5), (3, 2))
+    exp = np.array([[-3.,  0.,  0.,  3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -0.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
+    res = shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
+    exp = np.array([[ 3.,  0.,  0., -3.],
+                    [ 0.,  2.,  0., -4.],
+                    [ 0.,  0.,  1., -3.],
+                    [ 0.,  0.,  0.,  1.]])
+    yield assert_array_almost_equal(res, exp)
+

@@ -1,10 +1,9 @@
 ''' Tests for loader function '''
-
+from __future__ import with_statement
 import os
 from os.path import join as pjoin
 import shutil
 from tempfile import mkstemp, mkdtemp
-
 from StringIO import StringIO
 
 import numpy as np
@@ -15,6 +14,8 @@ import nibabel.spm99analyze as spm99
 import nibabel.spm2analyze as spm2
 import nibabel.nifti1 as ni1
 import nibabel.loadsave as nils
+
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nibabel.volumeutils import native_code, swapped_code
 
@@ -91,6 +92,7 @@ def test_save_load_endian():
     yield assert_array_equal(m_img2.get_data(), data)
     
 
+@parametric
 def test_save_load():
     shape = (2, 4, 6)
     npt = np.float32
@@ -99,15 +101,19 @@ def test_save_load():
     affine[:3,3] = [3,2,1]
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
-    try:
+    with InTemporaryDirectory() as pth:
         pth = mkdtemp()
         nifn = pjoin(pth, 'an_image.nii')
         sifn = pjoin(pth, 'another_image.img')
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
-        yield assert_true, isinstance(re_img, ni1.Nifti1Image)
-        yield assert_array_equal, re_img.get_data(), data
-        yield assert_array_equal, re_img.get_affine(), affine
+        yield assert_true(isinstance(re_img, ni1.Nifti1Image))
+        yield assert_array_equal(re_img.get_data(), data)
+        yield assert_array_equal(re_img.get_affine(), affine)
+        # These and subsequent del statements are to prevent confusing
+        # windows errors when trying to open files or delete the
+        # temporary directory. 
+        del re_img
         try:
             import scipy.io
         except ImportError:
@@ -116,21 +122,23 @@ def test_save_load():
         else:
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
-            yield assert_true, isinstance(re_img2, spm2.Spm2AnalyzeImage)
-            yield assert_array_equal, re_img2.get_data(), data
-            yield assert_array_equal, re_img2.get_affine(), affine
+            yield assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
+            yield assert_array_equal(re_img2.get_data(), data)
+            yield assert_array_equal(re_img2.get_affine(), affine)
+            del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
-            yield assert_true, isinstance(re_img3, spm99.Spm99AnalyzeImage)
-            yield assert_array_equal, re_img3.get_data(), data
-            yield assert_array_equal, re_img3.get_affine(), affine
+            yield assert_true(isinstance(re_img3,
+                                         spm99.Spm99AnalyzeImage))
+            yield assert_array_equal(re_img3.get_data(), data)
+            yield assert_array_equal(re_img3.get_affine(), affine)
             ni1.save(re_img3, nifn)
+            del re_img3
         re_img = nils.load(nifn)
-        yield assert_true, isinstance(re_img, ni1.Nifti1Image)
-        yield assert_array_equal, re_img.get_data(), data
-        yield assert_array_equal, re_img.get_affine(), affine
-    finally:
-        shutil.rmtree(pth)
+        yield assert_true(isinstance(re_img, ni1.Nifti1Image))
+        yield assert_array_equal(re_img.get_data(), data)
+        yield assert_array_equal(re_img.get_affine(), affine)
+        del re_img
 
 
 @parametric
@@ -220,5 +228,8 @@ def test_filename_save():
                 nib.save(img, fname)
                 rt_img = nib.load(fname)
                 yield assert_array_almost_equal(rt_img.get_data(), data)
+                # delete image to allow file close.  Otherwise windows
+                # raises an error when trying to delete the directory
+                del rt_img
             finally:
                 shutil.rmtree(pth)

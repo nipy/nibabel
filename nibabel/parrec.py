@@ -514,7 +514,7 @@ class PARRECHeader(Header):
             intercept = rescale_intercept
         elif method == 'fp':
             # actual slopes per definition above
-            slope = 1 / scale_slope
+            slope = 1.0 / scale_slope
             # actual intercept per definition above
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
