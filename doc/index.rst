@@ -31,6 +31,7 @@ authors are grateful to the following people who have contributed to NiBabel
 * `Yaroslav O. Halchenko`_
 * Chris Burns
 * `Gaël Varoquaux`_
+* `Stephan Gerhard`_
 
 License
 =======

@@ -114,4 +114,5 @@
 .. _Yaroslav O. Halchenko: http://www.onerussian.com
 .. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
 .. _Gaël Varoquaux: http://gael-varoquaux.info/
+.. _Stephan Gerhard: http://www.connectome.ch/wiki/User:Stephan.Gerhard
 
