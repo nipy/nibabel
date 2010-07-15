@@ -25,6 +25,7 @@ from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_false, assert_equal, \
     assert_raises
+from nose import SkipTest
 
 from nibabel.testing import parametric, data_path
 
@@ -452,7 +453,8 @@ def test_loadsave_cycle():
     yield assert_equal(lnim.get_data_dtype(), np.int16)
     # the test below does not pass, because the slope and inter are
     # always reset from the data, by the image write
-    #yield assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
+    raise SkipTest
+    yield assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
 
 @parametric
