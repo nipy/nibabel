@@ -1,11 +1,3 @@
-# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
-# vi: set ft=python sts=4 ts=4 sw=4 et:
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-#
-#   See COPYING file distributed along with the NiBabel package for the
-#   copyright and license terms.
-#
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
 ========
 numpydoc
@@ -20,7 +12,7 @@ It will:
 - Renumber references.
 - Extract the signature from the docstring, if it can't be determined otherwise.
 
-.. [1] http://projects.scipy.org/scipy/numpy/wiki/CodingStyleGuidelines#docstring-standard
+.. [1] http://projects.scipy.org/numpy/wiki/CodingStyleGuidelines#docstring-standard
 
 """
 
