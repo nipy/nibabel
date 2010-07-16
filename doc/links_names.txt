@@ -104,6 +104,7 @@
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
+.. _GIFTI: http://www.nitrc.org/projects/gifti
 
 .. Mathematical methods
 .. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
@@ -112,7 +113,7 @@
 .. People
 .. _Matthew Brett: https://cirl.berkeley.edu/mb312/
 .. _Yaroslav O. Halchenko: http://www.onerussian.com
-.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
+.. _Michael Hanke: http://mih.voxindeserto.de
 .. _Gaël Varoquaux: http://gael-varoquaux.info/
-.. _Stephan Gerhard: http://www.connectome.ch/wiki/User:Stephan.Gerhard
+.. _Stephan Gerhard: http://www.unidesign.ch
 
