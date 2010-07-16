@@ -21,8 +21,8 @@ class TemporaryDirectory(object):
     Upon exiting the context, the directory and everthing contained
     in it are removed.
     
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> with TemporaryDirectory() as tmpdir:
     ...     fname = os.path.join(tmpdir, 'example_file.txt')
@@ -51,8 +51,8 @@ class TemporaryDirectory(object):
 class InTemporaryDirectory(TemporaryDirectory):
     ''' Create, return, and change directory to a temporary directory
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> my_cwd = os.getcwd()
     >>> with InTemporaryDirectory() as tmpdir:

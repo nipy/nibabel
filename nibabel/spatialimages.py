@@ -425,8 +425,8 @@ class SpatialImage(object):
     def to_filename(self, filename):
         ''' Write image to files implied by filename string
 
-        Paraameters
-        -----------
+        Parameters
+        ----------
         filename : str
            filename to which to save image.  We will parse `filename`
            with ``filespec_to_file_map`` to work out names for image,

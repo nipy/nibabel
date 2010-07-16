@@ -336,8 +336,8 @@ class Nifti1Extensions(list):
     def count(self, ecode):
         """Returns the number of extensions matching a given *ecode*.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
           code : int | str
             The ecode can be specified either literal or as numerical value.
         """
