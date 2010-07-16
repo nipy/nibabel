@@ -742,7 +742,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
 
-        Returnss
+        Returns
         -------
         freq : {None,0,1,2}
            Which data array axis is freqency encode direction
