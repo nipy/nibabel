@@ -16,7 +16,8 @@ PyNIfTI_.
 Documentation
 =============
 
-* :ref:`User Documentation <contents>` (**the** documentation)
+* :ref:`User Documentation <contents>` (manual)
+* :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Development Changelog <changelog>` (see what has changed)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)
