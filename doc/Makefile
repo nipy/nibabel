@@ -11,7 +11,7 @@ PAPER         =
 BUILDROOT       = ../build
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDROOT)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ALLSPHINXOPTS   = -d $(BUILDROOT)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck
 
 help:
@@ -26,8 +26,17 @@ help:
 
 clean:
 	-rm -rf $(BUILDROOT)/*
+	-rm -rf source/generated generate-stamp
 
-html:
+generate: generate-stamp
+generate-stamp:
+	mkdir -p $(BUILDROOT)
+	PYTHONPATH=$(CURDIR)/sphinxext:$(CURDIR)/..:$(PYTHONPATH) \
+		python sphinxext/autosummary/generate.py \
+		-t sphinxext/autosummary/templates -o source/generated source/*.rst
+	@touch $@
+
+html: generate
 	mkdir -p $(BUILDROOT)/html $(BUILDROOT)/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDROOT)/html
 	@echo

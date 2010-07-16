@@ -16,4 +16,4 @@ Contents:
 
    users/index
    devel/index
-   api/index
+   api

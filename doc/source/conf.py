@@ -26,7 +26,7 @@ import nibabel
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.append(os.path.abspath('sphinxext'))
+sys.path.append(os.path.abspath('../sphinxext'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -38,9 +38,18 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.todo',
               'sphinx.ext.pngmath',
               'sphinx.ext.inheritance_diagram',
+              # we have a local copy of autosummary from the unreleased sphinx
+              # 1.0 -- reason: the 0.6 extension creates half-empty summaries
+              'autosummary',
+              # we have a local copy of the extension, imported from NumPy 1.3
+              # this also includes the docscrape* extensions
               'numpydoc',
               'only_directives',
               ]
+
+# the following doesn't work with sphinx < 1.0, but will make a separate
+# sphinx-autogen run obsolete in the future
+#autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -79,6 +88,9 @@ today_fmt = '%B %d, %Y, %H:%M PDT'
 
 # List of documents that shouldn't be included in the build.
 unused_docs = ['api/generated/gen']
+
+# what to put into API doc (just class doc, just init, or both
+autoclass_content = 'both'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
