@@ -33,11 +33,11 @@ def io_orientation(affine, tol=None):
        Transformation affine from ``m`` inputs to ``n`` outputs.
        Usually this will be a shape (4,4) matrix, transforming 3 inputs
        to 3 outputs, but the code also handles the more general case
-     tol : {None, float}, optional
-        threshold below which SVD values of the affine are considered
-        zero. If `tol` is None, and ``S`` is an array with singular
-        values for `affine`, and ``eps`` is the epsilon value for
-        datatype of ``S``, then `tol` set to ``S.max() * eps``.
+    tol : {None, float}, optional
+       threshold below which SVD values of the affine are considered
+       zero. If `tol` is None, and ``S`` is an array with singular
+       values for `affine`, and ``eps`` is the epsilon value for
+       datatype of ``S``, then `tol` set to ``S.max() * eps``.
 
     Returns
     -------

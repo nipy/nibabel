@@ -80,12 +80,12 @@ def copy_file_map(file_map):
     Parameters
     ----------
     file_map : mapping
-       mapping of ``FileHolder` instances
+       mapping of ``FileHolder`` instances
 
     Returns
     -------
     fm_copy : dict
-       Copy of `file_map`, using shallow copy of ``FileHolder``s
+       Copy of `file_map`, using shallow copy of ``FileHolder``\s
 
     '''
     fm_copy = {}

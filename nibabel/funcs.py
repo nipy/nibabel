@@ -92,7 +92,7 @@ def concat_images(images, check_affines=True):
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage``s
+       sequence of ``SpatialImage``\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True

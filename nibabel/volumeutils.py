@@ -71,19 +71,19 @@ class Recoder(object):
     def __init__(self, codes, fields=('code',)):
         ''' Create recoder object
 
-    ``codes`` give a sequence of code, alias sequences
-    ``fields`` are names by which the entries in these sequences can be
-    accessed.
+        ``codes`` give a sequence of code, alias sequences
+        ``fields`` are names by which the entries in these sequences can be
+        accessed.
 
-    By default ``fields`` gives the first column the name
-    "code".  The first column is the vector of first entries
-    in each of the sequences found in ``codes``.  Thence you can
-    get the equivalent first column value with ob.code[value],
-    where value can be a first column value, or a value in any of
-    the other columns in that sequence.
+        By default ``fields`` gives the first column the name
+        "code".  The first column is the vector of first entries
+        in each of the sequences found in ``codes``.  Thence you can
+        get the equivalent first column value with ob.code[value],
+        where value can be a first column value, or a value in any of
+        the other columns in that sequence.
 
-    You can give other columns names too, and access them in the
-    same way - see the examples in the class docstring.
+        You can give other columns names too, and access them in the
+        same way - see the examples in the class docstring.
 
         Parameters
         ----------
