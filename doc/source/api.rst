@@ -32,6 +32,7 @@ Image Utilities
    :toctree: generated
 
    eulerangles
+   funcs
    imageclasses
    imageglobals
    loadsave
@@ -51,5 +52,4 @@ Miscellaneous Helpers
    batteryrunners
    fileholders
    filename_parser
-   funcs
    tmpdirs
