@@ -23,3 +23,33 @@ File Formats
    minc
    nifti1
    parrec
+
+
+Image Utilities
+===============
+
+.. autosummary::
+   :toctree: generated
+
+   eulerangles
+   imageclasses
+   imageglobals
+   loadsave
+   orientations
+   quaternions
+   spatialimages
+   volumeutils
+
+
+Miscellaneous Helpers
+=====================
+
+.. autosummary::
+   :toctree: generated
+
+   arrayproxy
+   batteryrunners
+   fileholders
+   filename_parser
+   funcs
+   tmpdirs
