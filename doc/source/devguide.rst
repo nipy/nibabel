@@ -13,6 +13,9 @@
 NiBabel Developer Guidelines
 ****************************
 
+.. toctree::
+
+   refactoring/index
 
 Documentation
 =============

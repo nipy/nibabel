@@ -16,8 +16,9 @@ PyNIfTI_.
 Documentation
 =============
 
-* :ref:`User Documentation <contents>` (manual)
+* :ref:`User Documentation <manual>` (manual)
 * :ref:`API Documentation <api>` (comprehensive reference)
+* :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
 * :ref:`Development Changelog <changelog>` (see what has changed)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)
@@ -85,4 +86,6 @@ search* located in the sidebar of the NiBabel home page.
 .. toctree::
    :hidden:
 
-   documentation
+   manual
+   devguide
+   api
