@@ -94,7 +94,7 @@ unittest: build
 
 testmanual: build
 # go into data, because docs assume now data dir
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.txt doc
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst doc/source/ doc/source/usecases
 
 
 coverage: build
