@@ -141,8 +141,6 @@ machine.
 
 *The MacPort of NiBabel is kindly maintained by James Kyle <jameskyle@ucla.edu>.*
 
-.. _MacPorts: http://www.macports.org
-
 In the context of NiBabel MacPorts is much easier to handle than the previously
 available installer for Macs.  Although the initial overhead to setup MacPorts
 on a machine is higher than simply installing NiBabel using the former

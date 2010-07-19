@@ -36,6 +36,7 @@
 .. _`nipy trunk`: https://code.launchpad.net/~nipy-developers/nipy/trunk
 .. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
 .. _`nipy bugs`: https://bugs.launchpad.net/nipy
+.. _nibabel github: http://github.com/hanke/nibabel
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
