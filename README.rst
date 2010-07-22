@@ -8,3 +8,4 @@ PyNIfTI_.
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 .. _PyNIfTI: http://niftilib.sourceforge.net/pynifti/
+.. _GIFTI: http://www.nitrc.org/projects/gifti
