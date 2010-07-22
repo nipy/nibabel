@@ -41,22 +41,11 @@ the source distribution (including this website). Please see the
 :ref:`appendix of the manual <license>` for the copyright statement and the
 full text of the license.
 
-Download
-========
+Download and Installation
+=========================
 
-NiBabel hasn't been released yet. If you want to have it, you need to
-check out the `code repository on github`_.
-
-.. _code repository on github: http://github.com/hanke/nibabel
-
-To clone (aka checkout) the NiBabel repository simply do:
-
-::
-
-  git clone http://github.com/hanke/nibabel.git
-
-After a short while you will have a ``nibabel`` directory below your current
-working directory, that contains the NiBabel repository.
+Please find detailed :ref:`download and installation instructions
+<installation>` in the manual.
 
 
 Support

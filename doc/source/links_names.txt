@@ -37,6 +37,7 @@
 .. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
 .. _`nipy bugs`: https://bugs.launchpad.net/nipy
 .. _nibabel github: http://github.com/hanke/nibabel
+.. _sourceforge download page: http://sourceforge.net/projects/nipy/files
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
@@ -98,6 +99,7 @@
 .. Other organizations
 .. _enthought: <http://www.enthought.com>
 .. _kitware: http://www.kitware.com
+.. _NeuroDebian: http://neuro.debian.net
 
 .. General information links
 .. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
