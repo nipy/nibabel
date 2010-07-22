@@ -7,11 +7,7 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-
-NiBabel is a pure-\ Python_ package for reading and writing a variety of medical and
-neuro-imaging file formats. This includes: ANALYZE_ (plain, SPM99, SPM2),
-GIFTI_, NIfTI1_, MINC_, as well as PAR/REC. NiBabel is the successor of
-PyNIfTI_.
+.. include:: ../../README.rst
 
 Documentation
 =============
