@@ -13,7 +13,7 @@ Author: Matthew Brett
 import numpy as np
 import numpy.linalg as npl
 
-from nibabel.volumeutils import Recoder, make_dt_codes
+from nibabel.volumeutils import Recoder, make_dt_codes, endian_codes
 from nibabel.spatialimages import HeaderDataError
 from nibabel.batteryrunners import Report
 from nibabel.quaternions import fillpositive, quat2mat, mat2quat
@@ -285,7 +285,7 @@ class Nifti1Extension(object):
         else:
             return True
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
 
         Write starts at fileobj current file position.
@@ -294,6 +294,8 @@ class Nifti1Extension(object):
         ----------
         fileobj : file-like object
            Should implement ``write`` method
+        byteswap : boolean
+          Flag if byteswapping the data is required.
 
         Returns
         -------
@@ -302,8 +304,10 @@ class Nifti1Extension(object):
         extstart = fileobj.tell()
         rawsize = self.get_sizeondisk()
         # write esize and ecode first
-        fileobj.write(np.array((rawsize, self._code),
-                               dtype=np.int32).tostring())
+        extinfo = np.array((rawsize, self._code), dtype=np.int32)
+        if byteswap:
+            extinfo = extinfo.byteswap()
+        fileobj.write(extinfo.tostring())
         # followed by the actual extension content
         # XXX if mangling upon load is implemented, it should be reverted here
         fileobj.write(self._mangle(self._content))
@@ -369,7 +373,7 @@ class Nifti1Extensions(list):
                 return False
         return True
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
 
         Write starts at fileobj current file position.
@@ -378,6 +382,8 @@ class Nifti1Extensions(list):
         ----------
         fileobj : file-like object
            Should implement ``write`` method
+        byteswap : boolean
+          Flag if byteswapping the data is required.
 
         Returns
         -------
@@ -391,10 +397,10 @@ class Nifti1Extensions(list):
         fileobj.write(np.array((1, 0, 0, 0), dtype=np.int8).tostring())
         # and now each extension
         for e in self:
-            e.write_to(fileobj)
+            e.write_to(fileobj, byteswap)
 
     @classmethod
-    def from_fileobj(klass, fileobj, size):
+    def from_fileobj(klass, fileobj, size, byteswap):
         '''Read header extensions from a fileobj
 
         Parameters
@@ -404,6 +410,8 @@ class Nifti1Extensions(list):
         size : int
           Number of bytes to read. If negative, fileobj will be read till its
           end.
+        byteswap : boolean
+          Flag if byteswapping the read data is required.
 
         Returns
         -------
@@ -420,6 +428,8 @@ class Nifti1Extensions(list):
             extension_status = np.zeros((4,), dtype=np.int8)
         else:
             extension_status = np.fromstring(extension_status, dtype=np.int8)
+            if byteswap:
+                extension_status = extension_status.byteswap()
 
         # NIfTI1 says: if first element is non-zero there are extensions present
         # if not there is nothing left to do
@@ -444,6 +454,8 @@ class Nifti1Extensions(list):
             if not len(ext_def) == 8:
                 raise HeaderDataError('failed to read extension header')
             ext_def = np.fromstring(ext_def, dtype=np.int32)
+            if byteswap:
+                ext_def = ext_def.byteswap()
             # be extra verbose
             ecode = ext_def[1]
             esize = ext_def[0]
@@ -1285,7 +1297,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
             extsize = -1
         else:
             extsize = header['vox_offset'] - hdrf.tell()
-        extensions = Nifti1Extensions.from_fileobj(hdrf, extsize)
+        extensions = Nifti1Extensions.from_fileobj(
+                        hdrf, extsize,
+                        endian_codes['native'] != header.endianness)
         # XXX maybe always do that?
         if len(extensions):
             extra = {'extensions': extensions}
@@ -1307,7 +1321,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
             # no extensions: be nice and write appropriate flag
             header_file.write(np.array((0, 0, 0, 0), dtype=np.int8).tostring())
         else:
-            self.extra['extensions'].write_to(header_file)
+            self.extra['extensions'].write_to(
+                        header_file,
+                        endian_codes['native'] != header.endianness)
 
     def update_header(self):
         ''' Harmonize header with image data and affine
