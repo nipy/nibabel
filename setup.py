@@ -15,13 +15,13 @@ import os
 import sys
 from glob import glob
 
+from distutils.core import setup
+
 # For some commands, use setuptools.  
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb', 
             'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
-    # setup_egg imports setuptools setup, thus monkeypatching distutils.  Note
-    # that we have to import our own setup after this so we catch the
-    # monkeypatched version
+    # setup_egg imports setuptools setup, thus monkeypatching distutils. 
     from setup_egg import extra_setuptools_args
 
 # extra_setuptools_args can be defined from the line above, but it can
@@ -32,8 +32,6 @@ if not 'extra_setuptools_args' in globals():
 
 
 def main(**extra_args):
-    # Import late so we catch setuptools monkeypatched distutils setup
-    from numpy.distutils.core import setup
     setup(name       = 'nibabel',
         version      = '1.0.0',
         author       = 'Matthew Brett and Michael Hanke',
