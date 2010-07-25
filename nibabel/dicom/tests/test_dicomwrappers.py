@@ -1,7 +1,7 @@
 """ Testing DICOM wrappers
 """
 
-from os.path import join as pjoin
+from os.path import join as pjoin, dirname
 import gzip
 
 import numpy as np
@@ -16,8 +16,9 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ...testing import parametric, IO_DATA_PATH
+from ...testing import parametric 
 
+IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
 DATA = dicom.read_file(gzip.open(DATA_FILE))
 DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')

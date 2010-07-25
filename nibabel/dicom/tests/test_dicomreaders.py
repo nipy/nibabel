@@ -8,6 +8,7 @@ from .. import dicomreaders as didr
 
 from .test_dicomwrappers import (EXPECTED_AFFINE,
                                  EXPECTED_PARAMS,
+                                 IO_DATA_PATH,
                                  DATA)
 
 from nose.tools import assert_true, assert_false, \
@@ -15,7 +16,7 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import parametric, IO_DATA_PATH
+from ...testing import parametric
 
 
 @parametric

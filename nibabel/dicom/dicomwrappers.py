@@ -18,7 +18,7 @@ import numpy as np
 
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def
-from .utils import allopen
+from ..volumeutils import allopen
 from ..onetime import setattr_on_read as one_time
 
 

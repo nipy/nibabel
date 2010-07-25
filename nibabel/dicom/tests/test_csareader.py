@@ -15,9 +15,9 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ...testing import parametric, IO_DATA_PATH
+from ...testing import parametric
 
-from .test_dicomwrappers import DATA
+from .test_dicomwrappers import IO_DATA_PATH, DATA
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin')).read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin')).read()
