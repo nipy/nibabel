@@ -814,3 +814,36 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     aff[:3, :3] = np.diag(zooms)
     aff[:3, -1] = -origin * zooms
     return aff
+
+
+def rec2dict(rec):
+    ''' Convert recarray to dictionary
+
+    Also converts scalar values to scalars
+
+    Parameters
+    ----------
+    rec : ndarray
+       structured ndarray
+
+    Returns
+    -------
+    dct : dict
+       dict with key, value pairs as for `rec`
+
+    Examples
+    --------
+    >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
+    >>> d = rec2dict(r)
+    >>> d == {'x': 0, 's': ''}
+    True
+    '''
+    dct = {}
+    for key in rec.dtype.fields:
+        val = rec[key]
+        try:
+            val = np.asscalar(val)
+        except ValueError:
+            pass
+        dct[key] = val
+    return dct

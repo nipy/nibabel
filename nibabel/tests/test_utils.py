@@ -21,7 +21,8 @@ from nibabel.volumeutils import (array_from_file,
                                  calculate_scale,
                                  scale_min_max,
                                  can_cast, allopen,
-                                 shape_zoom_affine)
+                                 shape_zoom_affine,
+                                 rec2dict)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -133,10 +134,10 @@ def test_array_to_file():
     data_back = write_return(arr, str_io, ndt) # float, thus no effect
     yield assert_array_equal(data_back, arr)
     # True is the default, but just to show its possible
-    data_back = write_return(arr, str_io, ndt, nan2zero=True) 
+    data_back = write_return(arr, str_io, ndt, nan2zero=True)
     yield assert_array_equal(data_back, arr)
     data_back = write_return(arr, str_io,
-                             np.dtype(np.int64), nan2zero=True) 
+                             np.dtype(np.int64), nan2zero=True)
     yield assert_array_equal(data_back, [[0, 0],[0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
@@ -160,8 +161,8 @@ def test_array_to_file():
     array_to_file(arr + np.inf, str_io, np.int32, 0, 0.0, None)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     yield assert_array_equal(data_back, np.zeros(arr.shape))
-    
-    
+
+
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
     array_to_file(data, fileobj, out_dtype, *args, **kwargs)
@@ -238,7 +239,7 @@ def test_can_cast():
         yield assert_equal, def_res, can_cast(intype, outtype)
         yield assert_equal, scale_res, can_cast(intype, outtype, False, True)
         yield assert_equal, all_res, can_cast(intype, outtype, True, True)
-        
+
 
 @parametric
 def test_allopen():
@@ -282,3 +283,9 @@ def test_shape_zoom_affine():
                     [ 0.,  0.,  0.,  1.]])
     yield assert_array_almost_equal(res, exp)
 
+
+@parametric
+def test_rec2dict():
+    r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
+    d = rec2dict(r)
+    yield assert_equal(d, {'x': 0, 's': ''})

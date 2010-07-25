@@ -13,10 +13,10 @@
 Installation
 ************
 
-It should be easy to get NiBabel running on any system. For some popular
+It should be easy to get NiBabel running on any system. For the most popular
 platforms and operating systems there are binary packages provided in the
 respective native packaging format (DEB, RPM or installers). On all other
-systems NiBabel has to be installed from source -- which should also be pretty
+systems NiBabel has to be compiled from source -- which should also be pretty
 straightforward.
 
 
