@@ -21,12 +21,14 @@ File Formats
    :toctree: generated
 
    analyze
+   dicom
    spm2analyze
    spm99analyze
    gifti
    minc
    nifti1
    parrec
+   trackvis
 
 
 Image Utilities
@@ -56,4 +58,5 @@ Miscellaneous Helpers
    batteryrunners
    fileholders
    filename_parser
+   onetime
    tmpdirs

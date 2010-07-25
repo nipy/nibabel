@@ -9,5 +9,6 @@ NiBabel Manual
   installation
   gettingstarted
   usecases/index
+  dicom/dicom
   legal
   changelog
