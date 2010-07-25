@@ -399,7 +399,8 @@ class NiftiFormat(object):
 
         # assign remaining dim vector
         for i in range(7):
-            dim[i+1] = target_dim[i]
+            # cast to prevent type issues with the IntArray swig container
+            dim[i+1] = int(target_dim[i])
 
         # expand dim vector
         self.raw_nimg.ndim = dim[0]
