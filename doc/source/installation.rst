@@ -7,15 +7,17 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+.. XXX Package links and build instructions still nifti XXX
+
 .. _installation:
 
 ************
 Installation
 ************
 
-It should be easy to get NiBabel running on any system. For the most
-popular platforms and operating systems there are binary packages provided in
-the respective native packaging format (DEB, RPM or installers). On all other
+It should be easy to get NiBabel running on any system. For the most popular
+platforms and operating systems there are binary packages provided in the
+respective native packaging format (DEB, RPM or installers). On all other
 systems NiBabel has to be compiled from source -- which should also be pretty
 straightforward.
 
@@ -62,10 +64,10 @@ Additionally, there are binary packages for several RPM-based distributions,
 provided through the `OpenSUSE Build Service`_. To install one of these
 packages first download it from the `OpenSUSE software website`_. Please note,
 that this site does not only offer OpenSUSE packages, but also binaries for
-other distributions, including: CentOS 5, Fedora 9-10, Mandriva 2007-2008, RedHat
-Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE 10.2 up to 11.0.  Once
-downloaded, open a console and invoke (the example command refers to NiBabel
-0.3.1)::
+other distributions, including: CentOS 5, Fedora 9-10, Mandriva 2007-2008,
+RedHat Enterprise Linux 5, SUSE Linux Enterprise 10, OpenSUSE 10.2 up to 11.0.
+Once downloaded, open a console and invoke (the example command refers to
+NiBabel 0.3.1)::
 
   rpm -i python-nifti-0.20080710.1-4.1.i386.rpm
 
