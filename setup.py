@@ -11,7 +11,7 @@
 
 __docformat__ = 'restructuredtext'
 
-import os
+from os.path import join as pjoin
 import sys
 from glob import glob
 
@@ -35,18 +35,21 @@ def main(**extra_args):
     setup(name       = 'nibabel',
           version      = '1.0.0',
           author       = 'Matthew Brett and Michael Hanke',
-          author_email = 'NiBabel List <pkg-exppsy-pynifti@lists.alioth.debian.org>',
+          author_email = 'nipy-devel@neuroimaging.scipy.org',
           license      = 'MIT License',
-          url          = 'http://niftilib.sf.net/pynifti',
+          url          = 'http://nipy.org/nibabel',
           description  = 'Access a multitude of neuroimaging data formats',
           long_description = "",
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.dicom',
+                          'nibabel.dicom.tests',
                           'nibabel.testing',
                           'nibabel.tests'],
-          data_files   = [('nibabel/tests/data',
-                           glob(os.path.join('nibabel', 'tests', 'data', '*')))],
-          scripts      = [os.path.join('bin', 'parrec2nii')],
+          package_data = {'nibabel':
+                          [pjoin('tests', 'data', '*'),
+                           pjoin('dicom', 'tests', 'data', '*')]},
+          scripts      = [pjoin('bin', 'parrec2nii')],
           **extra_args
          )
 
