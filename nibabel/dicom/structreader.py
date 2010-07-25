@@ -110,5 +110,3 @@ class Unpacker(object):
             end = start + n_bytes
         self.ptr = end
         return self.buf[start:end]
-        
-

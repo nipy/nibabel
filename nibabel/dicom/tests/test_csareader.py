@@ -30,7 +30,7 @@ def test_csa_header_read():
     yield assert_equal(csa.get_csa_header(DATA,'series')['n_tags'],65)
     yield assert_raises(ValueError, csa.get_csa_header, DATA,'xxxx')
     yield assert_true(csa.is_mosaic(hdr))
-    
+
 
 @parametric
 def test_csas0():
@@ -57,7 +57,7 @@ def test_csa_params():
         yield assert_equal(n_o_m, 48)
         snv = csa.get_slice_normal(csa_info)
         yield assert_equal(snv.shape, (3,))
-        yield assert_true(np.allclose(1, 
+        yield assert_true(np.allclose(1,
                 np.sqrt((snv * snv).sum())))
         amt = csa.get_acq_mat_txt(csa_info)
         yield assert_equal(amt, '128p*128')
@@ -72,7 +72,7 @@ def test_csa_params():
     b_matrix = csa.get_b_matrix(csa_info)
     yield assert_equal(b_matrix.shape, (3,3))
     # check (by absence of error) that the B matrix is positive
-    # semi-definite. 
+    # semi-definite.
     q = dwp.B2q(b_matrix)
     b_value = csa.get_b_value(csa_info)
     yield assert_equal(b_value, 1000)

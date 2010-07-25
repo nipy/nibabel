@@ -15,7 +15,7 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from dipy.testing import parametric, IO_DATA_PATH
+from nibabel.testing import parametric, IO_DATA_PATH
 
 
 @parametric
@@ -36,4 +36,3 @@ def test_read_dwis():
                                     (np.zeros((3,)) + np.nan,
                                      EXPECTED_PARAMS[1]))
     yield assert_raises(IOError, didr.read_mosaic_dwi_dir, 'improbable')
-    

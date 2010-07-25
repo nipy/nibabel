@@ -9,7 +9,7 @@ For calculated attributes, we return None where needed data is missing.
 It seemed strange to raise an error during attribute processing, other
 than an AttributeError - breaking the 'properties manifesto'.   So, any
 procesing that needs to raise an error, should be in a method, rather
-than in a property, or property-like thing. 
+than in a property, or property-like thing.
 '''
 
 import operator
@@ -17,10 +17,9 @@ import operator
 import numpy as np
 
 from . import csareader as csar
-from .dwiparams import B2q
-from ..core.geometry import nearest_pos_semi_def
+from .dwiparams import B2q, nearest_pos_semi_def
 from .utils import allopen
-from ..core.onetime import setattr_on_read as one_time
+from ..onetime import setattr_on_read as one_time
 
 
 class WrapperError(Exception):
@@ -39,7 +38,7 @@ def wrapper_from_file(file_like, *args, **kwargs):
     **kwargs : keyword
         args to ``dicom.read_file`` command.  ``force=True`` might be a
         likely keyword argument.
-        
+
     Returns
     -------
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
@@ -59,7 +58,7 @@ def wrapper_from_data(dcm_data):
     dcm_data : ``dicom.dataset.Dataset`` instance or similar
        Object allowing attribute access, with DICOM attributes.
        Probably a dataset as read by ``pydicom``.
-       
+
     Returns
     -------
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
@@ -82,7 +81,7 @@ class Wrapper(object):
     * get_data()
     * get_pixel_array()
     * is_same_series(other)
-    * __getitem__ : return attributes from `dcm_data` 
+    * __getitem__ : return attributes from `dcm_data`
     * get(key[, default]) - as usual given __getitem__ above
 
     Attributes and things that look like attributes:
@@ -101,7 +100,7 @@ class Wrapper(object):
     is_mosaic = False
     b_matrix = None
     q_vector = None
-    
+
     def __init__(self, dcm_data=None):
         ''' Initialize wrapper
 
@@ -110,7 +109,7 @@ class Wrapper(object):
         dcm_data : None or object, optional
            object should allow attribute access.  Usually this will be
            a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file.   If None, just make an empty dict. 
+           DICOM file.   If None, just make an empty dict.
         '''
         if dcm_data is None:
             dcm_data = {}
@@ -124,7 +123,7 @@ class Wrapper(object):
         if None in shape:
             return None
         return shape
-    
+
     @one_time
     def image_orient_patient(self):
         ''' Note that this is _not_ LR flipped '''
@@ -143,7 +142,7 @@ class Wrapper(object):
     @one_time
     def rotation_matrix(self):
         ''' Return rotation matrix between array indices and mm
-        
+
         Note that we swap the two columns of the 'ImageOrientPatient'
         when we create the rotation matrix.  This is takes into account
         the slightly odd ij transpose construction of the DICOM
@@ -206,8 +205,8 @@ class Wrapper(object):
         ''' A number that is higher for higher slices in Z
 
         Comparing this number between two adjacent slices should give a
-        difference equal to the voxel size in Z. 
-        
+        difference equal to the voxel size in Z.
+
         See doc/theory/dicom_orientation for description
         '''
         ipp = self.image_position
@@ -225,7 +224,7 @@ class Wrapper(object):
     def series_signature(self):
         ''' Signature for matching slices into series
 
-        We use `signature` in ``self.is_same_series(other)``.  
+        We use `signature` in ``self.is_same_series(other)``.
 
         Returns
         -------
@@ -248,7 +247,7 @@ class Wrapper(object):
         signature['iop'] = (self.image_orient_patient, none_or_close)
         signature['vox'] = (self.voxel_sizes, none_or_close)
         return signature
-    
+
     def __getitem__(self, key):
         ''' Return values from DICOM object'''
         try:
@@ -294,7 +293,7 @@ class Wrapper(object):
             return self['pixel_array']
         except KeyError:
             raise WrapperError('Cannot find data in DICOM')
-    
+
     def get_data(self):
         ''' Get scaled image data from DICOMs
 
@@ -305,7 +304,7 @@ class Wrapper(object):
         -------
         data : array
            array with data as scaled from any scaling in the DICOM
-           fields. 
+           fields.
         '''
         return self._scale_data(self.get_pixel_array())
 
@@ -322,7 +321,7 @@ class Wrapper(object):
         -------
         tf : bool
            True if `other` might be in the same series as `self`, False
-           otherwise. 
+           otherwise.
         '''
         # compare signature dictionaries.  The dictionaries each contain
         # comparison rules, we prefer our own when we have them.  If a
@@ -376,7 +375,7 @@ class SiemensWrapper(Wrapper):
         ''' Initialize Siemens wrapper
 
         The Siemens-specific information is in the `csa_header`, either
-        passed in here, or read from the input `dcm_data`. 
+        passed in here, or read from the input `dcm_data`.
 
         Parameters
         ----------
@@ -419,7 +418,7 @@ class SiemensWrapper(Wrapper):
             ice = ice[:6] + ice[8:9]
         signature['ICE_Dims'] = (ice, lambda x, y: x == y)
         return signature
-    
+
     @one_time
     def b_matrix(self):
         ''' Get DWI B matrix referring to voxel space
@@ -427,7 +426,7 @@ class SiemensWrapper(Wrapper):
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         B : (3,3) array or None
@@ -454,7 +453,7 @@ class SiemensWrapper(Wrapper):
         # V dot V.T dot R.T == R dot B dot R.T
         B_vox = np.dot(R, np.dot(B, R.T))
         # fix presumed rounding errors in the B matrix by making it positive
-        # semi-definite. 
+        # semi-definite.
         return nearest_pos_semi_def(B_vox)
 
     @one_time
@@ -496,12 +495,12 @@ class MosaicWrapper(SiemensWrapper):
     * mosaic_size : float
     '''
     is_mosaic = True
-    
+
     def __init__(self, dcm_data=None, csa_header=None, n_mosaic=None):
         ''' Initialize Siemens Mosaic wrapper
 
         The Siemens-specific information is in the `csa_header`, either
-        passed in here, or read from the input `dcm_data`. 
+        passed in here, or read from the input `dcm_data`.
 
         Parameters
         ----------
@@ -529,7 +528,7 @@ class MosaicWrapper(SiemensWrapper):
                                    'Siemans mosiac data?')
         self.n_mosaic = n_mosaic
         self.mosaic_size = np.ceil(np.sqrt(n_mosaic))
-        
+
     @one_time
     def image_shape(self):
         ''' Return image shape as returned by ``get_data()`` '''
@@ -542,13 +541,13 @@ class MosaicWrapper(SiemensWrapper):
         return (int(rows / mosaic_size),
                 int(cols / mosaic_size),
                 self.n_mosaic)
-                
+
     @one_time
     def image_position(self):
         ''' Return position of first voxel in data block
 
         Adjusts Siemans mosaic position vector for bug in mosaic format
-        position.  See ``dicom_mosaic`` in doc/theory for details. 
+        position.  See ``dicom_mosaic`` in doc/theory for details.
 
         Parameters
         ----------
@@ -566,7 +565,7 @@ class MosaicWrapper(SiemensWrapper):
         pix_spacing = self.get('PixelSpacing')
         if None in (ipp, md_rows, md_cols, iop, pix_spacing):
             return None
-        # size of mosaic array before rearranging to 3D. 
+        # size of mosaic array before rearranging to 3D.
         md_rc = np.array([md_rows, md_cols])
         # size of slice array after reshaping to 3D
         rd_rc = md_rc / self.mosaic_size
@@ -577,7 +576,7 @@ class MosaicWrapper(SiemensWrapper):
         # see dicom_orientation doc
         Q = np.fliplr(iop) * pix_spacing
         return ipp + np.dot(Q, vox_trans_fixes[:,None]).ravel()
-    
+
     def get_data(self):
         ''' Get scaled image data from DICOMs
 
@@ -587,7 +586,7 @@ class MosaicWrapper(SiemensWrapper):
         -------
         data : array
            array with data as scaled from any scaling in the DICOM
-           fields. 
+           fields.
         '''
         shape = self.image_shape
         if shape is None:
@@ -617,7 +616,7 @@ def none_or_close(val1, val2, rtol=1e-5, atol=1e-6):
        Relative tolerance; see ``np.allclose``
     atol : float, optional
        Absolute tolerance; see ``np.allclose``
-       
+
     Returns
     -------
     tf : bool

@@ -3,8 +3,6 @@ import glob
 
 import numpy as np
 
-from ..core.geometry import vector_norm
-
 from .dicomwrappers import (wrapper_from_data, wrapper_from_file)
 
 
@@ -53,8 +51,8 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False):
        is ``*.dcm``
     check_is_dwi : bool, optional
        If True, raises an error if we don't find DWI information in the
-       DICOM headers. 
-       
+       DICOM headers.
+
     Returns
     -------
     data : 4D array
@@ -65,7 +63,7 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False):
        affine relating 3D voxel space in data to RAS world space
     b_values : (N,) array
        b values for each acquisition.  nan if we did not find diffusion
-       information for these images. 
+       information for these images.
     unit_gradients : (N, 3) array
        gradient directions of unit length for each acquisition.  (nan,
        nan, nan) if we did not find diffusion information.
@@ -92,7 +90,7 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False):
             b = np.nan
             g = np.ones((3,)) + np.nan
         else:
-            b = vector_norm(q)
+            b = np.sqrt(np.sum(q * q)) # vector norm
             g = q / b
         b_values.append(b)
         gradients.append(g)

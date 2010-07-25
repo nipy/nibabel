@@ -10,7 +10,6 @@ import dicom
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
-from ...core.geometry import vector_norm
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
@@ -90,7 +89,7 @@ def test_dwi_params():
     b_matrix = dw.b_matrix
     yield assert_equal(b_matrix.shape, (3,3))
     q = dw.q_vector
-    b = vector_norm(q)
+    b = np.sqrt(np.sum(q * q)) # vector norm
     g = q / b
     yield assert_array_almost_equal(b, EXPECTED_PARAMS[0])
     yield assert_array_almost_equal(g, EXPECTED_PARAMS[1])
