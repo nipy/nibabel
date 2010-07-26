@@ -206,16 +206,28 @@ def saveImage(image, filename):
 
     Note that the Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
-        Generic GIFTI File    .gii
-        Coordinates           .coord.gii
-        Functional            .func.gii
-        Labels                .label.gii
-        RGB or RGBA           .rgba.gii
-        Shape                 .shape.gii
-        Surface               .surf.gii
-        Tensors               .tensor.gii
-        Time Series           .time.gii
-        Topology              .topo.gii"""
+
+    .gii
+        Generic GIFTI File
+    .coord.gii
+        Coordinates
+    .func.gii
+        Functional
+    .label.gii
+        Labels
+    .rgba.gii
+        RGB or RGBA
+    .shape.gii
+        Shape
+    .surf.gii
+        Surface
+    .tensor.gii
+        Tensors
+    .time.gii
+        Time Series
+    .topo.gii
+        Topology
+    """
 
     #if not image.version:
     #   t = pygiftiio.gifticlib_version()
