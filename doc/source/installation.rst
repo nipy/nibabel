@@ -48,6 +48,7 @@ NiBabel from source. It needs a few things to run properly:
 *  Python_ 2.5 or greater
 *  NumPy_
 *  SciPy_ (for SPM-ANALYZE support)
+*  PyDICOM_ (for DICOM support)
 
 
 Get the sources
