@@ -12,7 +12,7 @@ import numpy
 #  Dictionary access as well as direct access to the values in order to
 #  provide as many accessor methods as possible.
 
-class GiftiIntentCode:
+class GiftiIntentCode(object):
     intents = {}
     intents["NIFTI_INTENT_NONE"] = 0
     intents["NIFTI_INTENT_TTEST"] = 3
@@ -142,7 +142,7 @@ class GiftiIntentCode:
     2005 : "NIFTI_INTENT_SHAPE"
     }
 
-class GiftiArrayIndexOrder:
+class GiftiArrayIndexOrder(object):
 
     ordering = {}
     ordering["RowMajorOrder"] = 1
@@ -157,7 +157,7 @@ class GiftiArrayIndexOrder:
     }
 
 
-class GiftiEncoding:
+class GiftiEncoding(object):
 
     encodings = {}
     encodings["GIFTI_ENCODING_UNDEF"]  = 0
@@ -186,7 +186,7 @@ class GiftiEncoding:
     4 : "GIFTI_ENCODING_EXTBIN"
     }
 
-class GiftiEndian:
+class GiftiEndian(object):
     endian = {}
     endian["GIFTI_ENDIAN_UNDEF"] = 0
     endian["GIFTI_ENDIAN_BIG"]   = 1
@@ -208,7 +208,7 @@ class GiftiEndian:
     2 : "GIFTI_ENDIAN_LITTLE"
     }
 
-class GiftiDataType:
+class GiftiDataType(object):
     datatypes = {}
     datatypes["NIFTI_TYPE_UINT8"]      = 2
     datatypes["NIFTI_TYPE_INT16"]      = 4

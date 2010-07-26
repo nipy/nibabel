@@ -61,7 +61,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     else:
         return 0
 
-class Outputter:
+class Outputter(object):
 
     # finite state machine stack
     fsm_state = []
