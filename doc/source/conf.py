@@ -43,6 +43,7 @@ extensions = ['sphinx.ext.autodoc',
               'autosummary',
               # we have a local copy of the extension, imported from NumPy 1.3
               # this also includes the docscrape* extensions
+              'math_dollar', # has to go before numpydoc
               'numpydoc',
               'only_directives',
               ]
