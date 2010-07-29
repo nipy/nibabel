@@ -1,14 +1,14 @@
 ''' Classes to wrap DICOM objects and files
 
-The wrappers encapsulate the capcbilities of the different DICOM
+The wrappers encapsulate the capabilities of the different DICOM
 formats.
 
-They also allow dictionary-like access to named fiields.
+They also allow dictionary-like access to named fields.
 
 For calculated attributes, we return None where needed data is missing.
 It seemed strange to raise an error during attribute processing, other
 than an AttributeError - breaking the 'properties manifesto'.   So, any
-procesing that needs to raise an error, should be in a method, rather
+processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 '''
 
@@ -217,7 +217,7 @@ class Wrapper(object):
 
     @one_time
     def instance_number(self):
-        ''' Just becase we use this a lot for sorting '''
+        ''' Just because we use this a lot for sorting '''
         return self.get('InstanceNumber')
 
     @one_time
@@ -486,7 +486,7 @@ class MosaicWrapper(SiemensWrapper):
     in a mosaic similar to a light-box print.
 
     We need to allow for this when getting the data and (because of an
-    idiosyncracy in the way Siemens stores the images) calculating the
+    idiosyncrasy in the way Siemens stores the images) calculating the
     position of the first voxel.
 
     Adds attributes:
@@ -514,7 +514,7 @@ class MosaicWrapper(SiemensWrapper):
            mapping giving values for Siemens CSA image sub-header.
         n_mosaic : None or int, optional
            number of images in mosaic.  If None, try to get this number
-           fron `csa_header`.  If this fails, raise an error
+           from `csa_header`.  If this fails, raise an error
         '''
         SiemensWrapper.__init__(self, dcm_data, csa_header)
         if n_mosaic is None:
@@ -525,7 +525,7 @@ class MosaicWrapper(SiemensWrapper):
             if n_mosaic is None or n_mosaic == 0:
                 raise WrapperError('No valid mosaic number in CSA '
                                    'header; is this really '
-                                   'Siemans mosiac data?')
+                                   'Siemens mosiac data?')
         self.n_mosaic = n_mosaic
         self.mosaic_size = np.ceil(np.sqrt(n_mosaic))
 
@@ -546,7 +546,7 @@ class MosaicWrapper(SiemensWrapper):
     def image_position(self):
         ''' Return position of first voxel in data block
 
-        Adjusts Siemans mosaic position vector for bug in mosaic format
+        Adjusts Siemens mosaic position vector for bug in mosaic format
         position.  See ``dicom_mosaic`` in doc/theory for details.
 
         Parameters
