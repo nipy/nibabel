@@ -1,16 +1,40 @@
 """nibabel version information"""
 
-# Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-_version_major = 1
-_version_minor = 0
+_version_major = 0
+_version_minor = 9
 _version_micro = 0
+is_release = False
+
+# Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s" % (_version_major, _version_minor, _version_micro)
 
+# If not release, try and pull version description from git
+if not is_release:
+    # run git describe to describe current version
+    import os
+    import subprocess
+    dir = os.path.dirname(__file__)
+    proc = subprocess.Popen('git describe --match "[0-9]*"',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=dir, shell=True)
+    rev_str, errcode = proc.communicate()
+    # if we have a version, check that it makes sense relative to the stated
+    # version, otherwise we may have mis-tagged.
+    if rev_str:
+        rev_str = rev_str.strip()
+        if not rev_str.startswith(__version__):
+            raise RuntimeError('Expecting git version description "%s" '
+                               'to start with static version string "%s"'
+                               % (rev_str, __version__))
+        __version__ = rev_str
+    else:
+        __version__ += '.dev'
 
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
                "Intended Audience :: Science/Research",
-               "License :: OSI Approved :: BSD License",
+               "License :: OSI Approved :: MIT License",
                "Operating System :: OS Independent",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
