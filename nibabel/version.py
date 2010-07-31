@@ -1,5 +1,9 @@
-"""nibabel version information"""
+""" This file contains defines parameters for nibabel that we use to fill
+settings in setup.py, the nibabel top-level docstring, and for building the
+docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
+"""
 
+# nibabel version information
 _version_major = 0
 _version_minor = 9
 _version_micro = 0
@@ -29,7 +33,7 @@ if not is_release:
                                % (rev_str, __version__))
         __version__ = rev_str
     else:
-        __version__ += '.dev'
+        __version__ += '-dev'
 
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
