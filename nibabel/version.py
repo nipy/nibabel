@@ -17,7 +17,11 @@ if not is_release:
     # run git describe to describe current version
     import os
     import subprocess
-    dir = os.path.dirname(__file__)
+    # if we're being exec'ed from setup, we need to set our own path
+    if __file__ == 'setup.py':
+        dir = 'nibabel'
+    else:
+        dir = os.path.dirname(__file__)
     proc = subprocess.Popen('git describe --match "[0-9]*"',
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,

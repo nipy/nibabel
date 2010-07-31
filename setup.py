@@ -9,11 +9,13 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Build helper."""
 
-__docformat__ = 'restructuredtext'
-
+import os
 from os.path import join as pjoin
 import sys
-from glob import glob
+
+# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
+# update it when the contents of directories change.
+if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
@@ -31,15 +33,26 @@ if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
 
+# Get version and release info, which is all stored in nibabel/version.py
+ver_file = os.path.join('nibabel', 'version.py')
+print ver_file
+execfile(ver_file)
+
 def main(**extra_args):
-    setup(name       = 'nibabel',
-          version      = '1.0.0',
-          author       = 'Matthew Brett and Michael Hanke',
-          author_email = 'nipy-devel@neuroimaging.scipy.org',
-          license      = 'MIT License',
-          url          = 'http://nipy.org/nibabel',
-          description  = 'Access a multitude of neuroimaging data formats',
-          long_description = "",
+    setup(name=NAME,
+          maintainer=MAINTAINER,
+          maintainer_email=MAINTAINER_EMAIL,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          url=URL,
+          download_url=DOWNLOAD_URL,
+          license=LICENSE,
+          classifiers=CLASSIFIERS,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          platforms=PLATFORMS,
+          version=VERSION,
+          requires=REQUIRES,
           packages     = ['nibabel',
                           'nibabel.externals',
                           'nibabel.dicom',
