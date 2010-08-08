@@ -15,7 +15,7 @@ if _version_extra == '-dev':
     # The next line allows git archive to dump the tag into this
     # string.  This should never happen to the file while still in the git
     # repository.
-    archived_commit = '$Format: %h'
+    archived_commit = '$Format: %h$'
     if not archived_commit.startswith('$Format'): # it has been substituted
         _version_extra += archived_commit
     elif __name__ != '__main__': # we're being imported rather than exec'ed
