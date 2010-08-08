@@ -10,7 +10,7 @@ _version_micro = 0
 _version_extra = '-dev'
 
 # If the version extra above is '-dev' we need to append the short form of the
-# commit hash.  
+# commit hash.
 if _version_extra == '-dev':
     # The next line allows git archive to dump the tag into this
     # string.  This should never happen to the file while still in the git
@@ -34,8 +34,6 @@ if _version_extra == '-dev':
                                     stderr=subprocess.PIPE,
                                     cwd=cwd, shell=True)
             repo_commit, _ = proc.communicate()
-            # if we have a version, check that it makes sense relative to the stated
-            # version, otherwise we may have mis-tagged.
             if repo_commit:
                 repo_commit = repo_commit.strip()
                 _version_extra += repo_commit
