@@ -32,10 +32,26 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
+from distutils.command.build_py import build_py
+
+class MyBuildPy(build_py):
+    ''' Subclass to write commit data into installation tree '''
+    def run(self):
+        build_py.run(self)
+        import subprocess
+        proc = subprocess.Popen('git rev-parse --short HEAD',
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                shell=True)
+        repo_commit, _ = proc.communicate()
+        if repo_commit:
+            pth = pjoin(self.build_lib, 'nibabel', '_commit_hash.txt')
+            file(pth, 'wt').write(repo_commit)
+
+cmdclass = {'build_py': MyBuildPy}
 
 # Get version and release info, which is all stored in nibabel/version.py
 ver_file = os.path.join('nibabel', 'version.py')
-print ver_file
 execfile(ver_file)
 
 def main(**extra_args):
@@ -63,6 +79,7 @@ def main(**extra_args):
                           [pjoin('tests', 'data', '*'),
                            pjoin('dicom', 'tests', 'data', '*')]},
           scripts      = [pjoin('bin', 'parrec2nii')],
+          cmdclass = cmdclass,
           **extra_args
          )
 

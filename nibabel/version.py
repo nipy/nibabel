@@ -3,41 +3,48 @@ settings in setup.py, the nibabel top-level docstring, and for building the
 docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
 """
 
-# nibabel version information
+# nibabel version information.  An empty _version_extra corresponds to a release
 _version_major = 0
 _version_minor = 9
 _version_micro = 0
-is_release = False
+_version_extra = '-dev'
+
+# If the version extra above is '-dev' we need to append the short form of the
+# commit hash.  
+if _version_extra == '-dev':
+    # The next line allows git archive to dump the tag into this
+    # string.  This should never happen to the file while still in the git
+    # repository.
+    archived_commit = '$Format: %h'
+    if not archived_commit.startswith('$Format'): # it has been substituted
+        _version_extra += archived_commit
+    elif __name__ != '__main__': # we're being imported rather than exec'ed
+        # we might have been installed from a repository directory, in which
+        # case we look for a generated commit hash text file
+        import os
+        cwd = os.path.dirname(__file__)
+        pth = os.path.join(cwd, '_commit_hash.txt')
+        if os.path.isfile(pth):
+            repo_commit = file(pth).read().strip()
+            _version_extra += repo_commit
+        else: # maybe we are in a repository
+            import subprocess
+            proc = subprocess.Popen('git rev-parse --short HEAD',
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    cwd=cwd, shell=True)
+            repo_commit, _ = proc.communicate()
+            # if we have a version, check that it makes sense relative to the stated
+            # version, otherwise we may have mis-tagged.
+            if repo_commit:
+                repo_commit = repo_commit.strip()
+                _version_extra += repo_commit
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-__version__ = "%s.%s.%s" % (_version_major, _version_minor, _version_micro)
-
-# If not release, try and pull version description from git
-if not is_release:
-    # run git describe to describe current version
-    import os
-    import subprocess
-    # if we're being exec'ed from setup, we need to set our own path
-    if __file__ == 'setup.py':
-        dir = 'nibabel'
-    else:
-        dir = os.path.dirname(__file__)
-    proc = subprocess.Popen('git describe --match "[0-9]*"',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=dir, shell=True)
-    rev_str, errcode = proc.communicate()
-    # if we have a version, check that it makes sense relative to the stated
-    # version, otherwise we may have mis-tagged.
-    if rev_str:
-        rev_str = rev_str.strip()
-        if not rev_str.startswith(__version__):
-            raise RuntimeError('Expecting git version description "%s" '
-                               'to start with static version string "%s"'
-                               % (rev_str, __version__))
-        __version__ = rev_str
-    else:
-        __version__ += '-dev'
+__version__ = "%s.%s.%s%s" % (_version_major,
+                              _version_minor,
+                              _version_micro,
+                              _version_extra)
 
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
