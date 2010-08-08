@@ -18,10 +18,19 @@ Compiling dcm2nii
 Follow the download / install instructions at the
 http://www.lazarus.freepascal.org/ site.  I was on a Mac, and folowed the
 instructions here:
-http://wiki.lazarus.freepascal.org/Installing_Lazarus_on_MacOS_X .  Open
-``<mricron>/dcm2nii/dcm2nii.lpi`` using the Lazarus GUI.  Inspiration for
-building also came from the ``debian/rules`` file in Michael Hanke's mricron
-debian package: http://neuro.debian.net/debian/pool/main/m/mricron/
+http://wiki.lazarus.freepascal.org/Installing_Lazarus_on_MacOS_X .  Default
+build with version 0.9.28.2 gave an error linking against Carbon, so I needed to
+download a snapshot of fixed Lazarus 0.9.28.3 from
+http://www.hu.freepascal.org/lazarus . Open ``<mricron>/dcm2nii/dcm2nii.lpi``
+using the Lazarus GUI.  Follow instructions for compiler setup in the mricron
+``Readme.txt``; in particular I set other compiler options to::
+
+     -k-macosx_version_min -k10.5
+     -XR/Developer/SDKs/MacOSX10.5.sdk/
+
+Further inspiration for building also came from the ``debian/rules`` file in
+Michael Hanke's mricron debian package:
+http://neuro.debian.net/debian/pool/main/m/mricron/
 
 Some tag modifications
 ======================
