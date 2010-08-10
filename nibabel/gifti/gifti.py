@@ -67,6 +67,9 @@ class GiftiCoordSystem(object):
     xformspace = str
     xform = None # will be numpy array
 
+    # XXX: implement init? or as get_identity_gifti_coord_system() as method?
+    # see trackvis
+
     def print_summary(self):
 
         print 'Dataspace: ', self.dataspace
@@ -92,6 +95,20 @@ class GiftiDataArray(object):
 
         self.dims = []
         self.meta = GiftiMetaData()
+
+    @classmethod
+    def from_array(clss, darray, intent, datatype, coordsys):
+        
+        cda = GiftiDataArray()
+        # XXX: to continue
+        # create new dataarray
+        # setting the properties given or default
+        # return objects
+#def GiftiDataArray_fromarray(self, data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+#    """ Returns as GiftiDataArray from a Numpy array with a given intent code and
+#    encoding """
+#    pass
+        return cda
 
     def print_summary(self):
 
@@ -125,7 +142,29 @@ class GiftiImage(object):
         self.meta = GiftiMetaData()
         self.labeltable = GiftiLabelTable()
 
-    # add getter and setter methods?
+    @classmethod
+    def from_array(cls):
+        pass
+    
+    @classmethod
+    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
+                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
+                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+        pass
+    
+#def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+#    """ Returns a GiftiImage from a Numpy array with a given intent code and
+#    encoding """
+#    pass
+
+#def GiftiImage_fromTriangles(vertices, triangles, cs = None, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+#    """ Returns a GiftiImage from two numpy arrays representing the vertices
+#    and the triangles. Additionally defining the coordinate system and encoding """
+#    pass
+
+
+    # XXX: add getter and setter methods?
+    # 
     def get_metadata(self):
 
         return self.meta
@@ -240,24 +279,5 @@ def saveImage(image, filename):
         # do a validation
         # save GiftiImage to filename
 
-    pass
+    raise NotImplementedError("Writing Gifti Images is not implemented yet.")
 
-
-##############
-# special purpose GiftiImage / GiftiDataArray creation methods
-##############
-
-#def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#    """ Returns a GiftiImage from a Numpy array with a given intent code and
-#    encoding """
-#    pass
-#
-#def GiftiImage_fromTriangles(vertices, triangles, cs = None, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#    """ Returns a GiftiImage from two numpy arrays representing the vertices
-#    and the triangles. Additionally defining the coordinate system and encoding """
-#    pass
-#
-#def GiftiDataArray_fromarray(self, data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#    """ Returns as GiftiDataArray from a Numpy array with a given intent code and
-#    encoding """
-#    pass

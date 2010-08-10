@@ -17,3 +17,5 @@
    parse_gifti_fast
    util
 """
+
+# from _gifti import *
