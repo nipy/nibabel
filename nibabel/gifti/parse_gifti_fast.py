@@ -56,8 +56,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
-        # XXX: to be implemented. In what format are the external files?
-        pass
+        raise NotImplementedError("In what format are the external files?")
     else:
         return 0
 
@@ -76,7 +75,6 @@ class Outputter(object):
     # where to write CDATA:
     write_to = None
 
-
     def StartElementHandler(self, name, attrs):
         #print 'Start element:\n\t', repr(name), attrs
         global img
@@ -86,21 +84,15 @@ class Outputter(object):
             img = GiftiImage()
             if attrs.has_key('Version'):
                 img.version = attrs['Version']
-
             if attrs.has_key('NumberOfDataArrays'):
                 img.numDA = attrs['NumberOfDataArrays']
-
             self.fsm_state.append('GIFTI')
 
-
         elif name == 'MetaData':
-
             self.fsm_state.append('MetaData')
 
         elif name == 'MD':
-
             self.nvpair = GiftiNVPairs()
-
             self.fsm_state.append('MD')
 
         elif name == 'Name':
@@ -116,36 +108,25 @@ class Outputter(object):
                 self.write_to = 'Value'
 
         elif name == 'LabelTable':
-
             self.lata = GiftiLabelTable()
-
             self.fsm_state.append('LabelTable')
 
         elif name == 'Label':
-
             self.label = GiftiLabel()
-
             if attrs.has_key("Index"):
                 self.label.index = int(attrs["Index"])
-
             self.write_to = 'Label'
 
         elif name == 'DataArray':
-
             self.da = GiftiDataArray()
-
             if attrs.has_key("Intent"):
                 self.da.intent = GiftiIntentCode.intents[attrs["Intent"]]
-
             if attrs.has_key("DataType"):
                 self.da.datatype = GiftiDataType.datatypes[attrs["DataType"]]
-
             if attrs.has_key("ArrayIndexingOrder"):
                 self.da.ind_ord = GiftiArrayIndexOrder.ordering[attrs["ArrayIndexingOrder"]]
-
             if attrs.has_key("Dimensionality"):
                 self.da.num_dim = int(attrs["Dimensionality"])
-
             for i in range(self.da.num_dim):
                 di = "Dim%s" % str(i)
                 if attrs.has_key(di):
@@ -153,29 +134,20 @@ class Outputter(object):
 
             # dimensionality has to correspond to the number of DimX given
             assert len(self.da.dims) == self.da.num_dim
-
             if attrs.has_key("Encoding"):
                 self.da.encoding = GiftiEncoding.encodings[attrs["Encoding"]]
-
             if attrs.has_key("Endian"):
                 self.da.endian = GiftiEndian.endian[attrs["Endian"]]
-
             if attrs.has_key("ExternalFileName"):
                 self.da.ext_fname = attrs["ExternalFileName"]
-
             if attrs.has_key("ExternalFileOffset"):
                 self.da.ext_offset = attrs["ExternalFileOffset"]
-
             img.darrays.append(self.da)
-
             self.fsm_state.append('DataArray')
 
         elif name == 'CoordinateSystemTransformMatrix':
-
             self.coordsys = GiftiCoordSystem()
-
             img.darrays[-1].coordsys = self.coordsys
-
             self.fsm_state.append('CoordinateSystemTransformMatrix')
 
         elif name == 'DataSpace':
@@ -258,7 +230,6 @@ class Outputter(object):
             self.write_to = None
 
 
-
     def CharacterDataHandler(self, data):
 
         if self.write_to == 'Name':
@@ -310,11 +281,10 @@ def parse_gifti_file(fname):
     for name in HANDLER_NAMES:
         setattr(parser, name, getattr(out, name))
 
-
     try:
         parser.ParseFile(datasource)
     except ExpatError:
-        print 'An error occured while parsing Gifti file.'
+        print 'An expat error occured while parsingthe  Gifti file.'
 
     # update filename
     img.filename = fname
