@@ -10,8 +10,9 @@
 from xml.parsers.expat import ParserCreate, ExpatError
 from gifti import *
 from util import *
-from numpy import loadtxt
+
 import numpy
+import numpy as np
 
 parser = None
 img = None
@@ -36,7 +37,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     if encoding == 1:
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
-        da = numpy.loadtxt(c)
+        da = np.loadtxt(c)
         return da
 
     elif encoding == 2:
@@ -44,7 +45,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dec = base64.decodestring(data)
         dt = GiftiType2npyType[datatype]
         sh = tuple(shape)
-        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
@@ -52,7 +53,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         zdec = zlib.decompress(dec)
         dt = GiftiType2npyType[datatype]
         sh = tuple(shape)
-        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
@@ -120,11 +121,11 @@ class Outputter(object):
         elif name == 'DataArray':
             self.da = GiftiDataArray()
             if attrs.has_key("Intent"):
-                self.da.intent = GiftiIntentCode.intents[attrs["Intent"]]
+                self.da.intent = intent_codes.code[attrs["Intent"]]
             if attrs.has_key("DataType"):
-                self.da.datatype = GiftiDataType.datatypes[attrs["DataType"]]
+                self.da.datatype = data_type_codes.code[attrs["DataType"]]
             if attrs.has_key("ArrayIndexingOrder"):
-                self.da.ind_ord = GiftiArrayIndexOrder.ordering[attrs["ArrayIndexingOrder"]]
+                self.da.ind_ord = array_index_order_codes.code[attrs["ArrayIndexingOrder"]]
             if attrs.has_key("Dimensionality"):
                 self.da.num_dim = int(attrs["Dimensionality"])
             for i in range(self.da.num_dim):
@@ -135,9 +136,9 @@ class Outputter(object):
             # dimensionality has to correspond to the number of DimX given
             assert len(self.da.dims) == self.da.num_dim
             if attrs.has_key("Encoding"):
-                self.da.encoding = GiftiEncoding.encodings[attrs["Encoding"]]
+                self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
             if attrs.has_key("Endian"):
-                self.da.endian = GiftiEndian.endian[attrs["Endian"]]
+                self.da.endian = gifti_endian_codes.code[attrs["Endian"]]
             if attrs.has_key("ExternalFileName"):
                 self.da.ext_fname = attrs["ExternalFileName"]
             if attrs.has_key("ExternalFileOffset"):
@@ -238,17 +239,17 @@ class Outputter(object):
         elif self.write_to == 'Value':
             data = data.strip()
             self.nvpair.value = data
-        elif self.write_to == 'DataSpace':
+        elif self.write_to == '':
             data = data.strip()
-            self.coordsys.dataspace = data
+            self.coordsys.dataspace = xform_codes.code[data]
         elif self.write_to == 'TransformedSpace':
             data = data.strip()
-            self.coordsys.xformspace = data
+            self.coordsys.xformspace = xform_codes.code[data]
         elif self.write_to == 'MatrixData':
             # conversion to numpy array
             from StringIO import StringIO
             c = StringIO(data)
-            self.coordsys.xform = loadtxt(c)
+            self.coordsys.xform = np.loadtxt(c)
             c.close()
         elif self.write_to == 'Data':
             da_tmp = img.darrays[-1]

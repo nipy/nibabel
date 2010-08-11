@@ -10,6 +10,9 @@
 # Stephan Gerhard, May 2010
 
 from util import *
+from StringIO import StringIO
+import numpy as np
+
 
 class GiftiMetaData(object):
 
@@ -27,6 +30,17 @@ class GiftiMetaData(object):
             self.data_as_dict[ele.name] = ele.value
 
         return self.data_as_dict
+
+    def to_xml(self):
+        res = "<MetaData>\n"
+        for ele in self.data:
+            nvpair = """<MD>
+\t<Name><![CDATA[%s]]></Name>
+\t<Value><![CDATA[%s]]></Value>
+</MD>\n""" % (ele.name, ele.value)
+            res = res + nvpair
+        res = res + "</MetaData>\n" 
+        return res
 
     def print_summary(self):
         print self.get_data_as_dict()
@@ -63,17 +77,36 @@ class GiftiLabel(object):
 
 class GiftiCoordSystem(object):
 
-    dataspace = str
-    xformspace = str
+    dataspace = int
+    xformspace = int
     xform = None # will be numpy array
 
     # XXX: implement init? or as get_identity_gifti_coord_system() as method?
     # see trackvis
 
+    def to_xml(self):
+        
+        res = """
+         <CoordinateSystemTransformMatrix>
+         <DataSpace><![CDATA[%s]]></DataSpace>
+         <TransformedSpace><![CDATA[%s]]></TransformedSpace>
+         """ % (xform_codes.niistring[self.dataspace], \
+                xform_codes.niistring[self.xformspace])
+         
+        e = StringIO()
+        np.savetxt(e, self.xfrom)
+        e.seek(0)
+        res = res + "<MatrixData>"
+        res = res + e.read()
+        e.close()
+        res = res + "<MatrixData>"
+        res = res + "</CoordinateSystemTransformMatrix>" 
+        return res
+
     def print_summary(self):
 
-        print 'Dataspace: ', self.dataspace
-        print 'XFormSpace: ', self.xformspace
+        print 'Dataspace: ', xform_codes.niistring[self.dataspace]
+        print 'XFormSpace: ', xform_codes.niistring[self.xformspace]
         print 'Affine Transformation Matrix: \n', self.xform
 
 class GiftiDataArray(object):
@@ -86,18 +119,21 @@ class GiftiDataArray(object):
     encoding = int
     endian = int
     ext_fname = str
-    ext_offset = None
+    ext_offset = int
 
     data = None
     coordsys = None # GiftiCoordSystem()
-
+    # XXX: missing metadata
+    
     def __init__(self):
 
         self.dims = []
         self.meta = GiftiMetaData()
+        self.ext_fname = ''
+        self.ext_offset = ''
 
     @classmethod
-    def from_array(clss, darray, intent, datatype, coordsys):
+    def from_array(cls, darray, intent, datatype, coordsys):
         
         cda = GiftiDataArray()
         # XXX: to continue
@@ -109,6 +145,49 @@ class GiftiDataArray(object):
 #    encoding """
 #    pass
         return cda
+
+    def to_xml(self):
+        
+        result = ""
+        result = result + self.to_xml_open()
+        
+        # write metadata
+        
+        
+        # XXX: write coord sys
+        
+        
+        # write data arrays (loop)
+        
+        result = result + self.to_xml_close()
+        return result
+
+    def to_xml_open(self):
+        out = """<DataArray Intent="%s"
+\tDataType="%s"
+\tArrayIndexingOrder="%s"
+\tDimensionality="%s"
+%s\tEncoding="%s"
+\tEndian="%s"
+\tExternalFileName="%s"
+\tExternalFileOffset="%s">\n"""
+        di = ""
+        for i, n in enumerate(self.dims):
+            di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
+             
+        return out % (intent_codes.niistring[self.intent], \
+                      data_type_codes.niistring[self.datatype], \
+                      array_index_order_codes.label[self.ind_ord], \
+                      str(self.num_dim), \
+                      str(di), \
+                      gifti_encoding_codes.code[self.encoding], \
+                      gifti_endian_codes.code[self.endian], \
+                      self.ext_fname,
+                      str(self.ext_offset),
+                      )
+              
+    def to_xml_close(self):
+        return "</DataArray>\n"
 
     def print_summary(self):
 
@@ -222,62 +301,4 @@ class GiftiImage(object):
             print da.print_summary()
         print '----end----'
 
-
-##############
-# General Gifti Input - Output to the filesystem
-##############
-
-def loadImage(filename):
-    """ Load a Gifti image from a file """
-    import os.path
-    if not os.path.exists(filename):
-        raise IOError("No such file or directory: '%s'" % filename)
-    else:
-        import parse_gifti_fast as pg
-        giifile = pg.parse_gifti_file(filename)
-        return giifile
-
-def saveImage(image, filename):
-    """ Save the current image to a new file
-
-    If the image was created using array data (not loaded from a file) one
-    has to specify a filename
-
-    Note that the Gifti spec suggests using the following suffixes to your
-    filename when saving each specific type of data:
-
-    .gii
-        Generic GIFTI File
-    .coord.gii
-        Coordinates
-    .func.gii
-        Functional
-    .label.gii
-        Labels
-    .rgba.gii
-        RGB or RGBA
-    .shape.gii
-        Shape
-    .surf.gii
-        Surface
-    .tensor.gii
-        Tensors
-    .time.gii
-        Time Series
-    .topo.gii
-        Topology
-    """
-
-    #if not image.version:
-    #   t = pygiftiio.gifticlib_version()
-    #   versionstr = t[t.find("version ")+8:t.find(", ")]
-    #   float(versionstr) # raise an exception should the format change in the future :-)
-    #   image.version = versionstr
-
-        # how to handle gifticlib? because we use pure python independent of the clib
-
-        # do a validation
-        # save GiftiImage to filename
-
-    raise NotImplementedError("Writing Gifti Images is not implemented yet.")
 
