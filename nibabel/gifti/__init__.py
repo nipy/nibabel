@@ -19,3 +19,5 @@
 """
 
 # from _gifti import *
+
+from giftiio import loadImage, saveImage
