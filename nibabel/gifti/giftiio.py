@@ -5,7 +5,7 @@ from parse_gifti_fast import *
 # General Gifti Input - Output to the filesystem
 ##############
 
-def loadImage(filename):
+def read(filename):
     """ Load a Gifti image from a file """
     import os.path
     if not os.path.exists(filename):
@@ -14,7 +14,7 @@ def loadImage(filename):
         giifile = parse_gifti_file(filename)
         return giifile
 
-def saveImage(image, filename):
+def write(image, filename):
     """ Save the current image to a new file
 
     If the image was created using array data (not loaded from a file) one
