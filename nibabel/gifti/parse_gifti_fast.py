@@ -21,8 +21,6 @@ out = None
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
 
-    # XXX: how to incorporate endianness?
-
     import base64
     import zlib
     from StringIO import StringIO
@@ -203,7 +201,6 @@ class Outputter(object):
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
 
-
         elif name == 'MetaData':
             self.fsm_state.pop()
             
@@ -216,7 +213,6 @@ class Outputter(object):
                 img.darrays[-1].meta = self.meta_da
                 self.meta_da = None
                 
-            
         elif name == 'MD':
             self.fsm_state.pop()
 
@@ -225,29 +221,6 @@ class Outputter(object):
             
             elif not self.meta_da is None and self.meta_global == None:
                 self.meta_da.data.append(self.nvpair)
-                
-#                
-#            # add nvpair to correct metadata
-#            print "========="
-#            print 'where to write metadata?'
-#            print 'current nvpari', self.nvpair.name
-#            print 'fsmstate', self.fsm_state
-#            print 'global meta', img.meta
-#            if len(img.darrays)>0:
-#                print 'darray meta', img.darrays[-1].meta
-#            print 'darrays', img.darrays
-#            
-#            # case for either Gifti MetaData or DataArray Metadata
-#            if self.fsm_state[-2] == 'DataArray' and self.fsm_state[-1] == 'MetaData':
-#                # append to last DataArray
-#                img.darrays[-1].meta.data.append(self.nvpair)
-#                print "Write do DATARRAY", img.darrays[-1].meta.data
-#                print "show meta", img.meta.get_data_as_dict()
-#            else:
-#                # Gifti MetaData
-#                img.meta.data.append(self.nvpair)
-#                print "WRITE to global META", img.meta.data
-                
                 
             # remove reference
             self.nvpair = None
@@ -336,7 +309,7 @@ def parse_gifti_file(fname):
     try:
         parser.ParseFile(datasource)
     except ExpatError:
-        print 'An expat error occured while parsingthe  Gifti file.'
+        print 'An expat error occured while parsing the  Gifti file.'
 
     # update filename
     img.filename = fname
