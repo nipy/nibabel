@@ -43,7 +43,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
         dec = base64.decodestring(data)
-        dt = GiftiType2npyType[datatype]
+        dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
 
@@ -51,7 +51,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_B64GZ
         dec = base64.decodestring(data)
         zdec = zlib.decompress(dec)
-        dt = GiftiType2npyType[datatype]
+        dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
 
@@ -72,6 +72,9 @@ class Outputter(object):
     coordsys = None
     lata = None
     label = None
+    
+    meta_global = None
+    meta_da = None
 
     # where to write CDATA:
     write_to = None
@@ -91,6 +94,14 @@ class Outputter(object):
 
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
+
+            # if this metadata tag is first, create img.meta
+            if len(self.fsm_state) == 2:
+                self.meta_global = GiftiMetaData()
+            else:
+                # otherwise, create darray.meta
+                self.meta_da = GiftiMetaData()
+                
 
         elif name == 'MD':
             self.nvpair = GiftiNVPairs()
@@ -152,6 +163,7 @@ class Outputter(object):
                 self.da.ext_fname = attrs["ExternalFileName"]
             if attrs.has_key("ExternalFileOffset"):
                 self.da.ext_offset = attrs["ExternalFileOffset"]
+            
             img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
 
@@ -190,23 +202,53 @@ class Outputter(object):
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
-            print self.fsm_state
+
 
         elif name == 'MetaData':
             self.fsm_state.pop()
+            
+            if len(self.fsm_state) == 1:
+                # only Gifti there, so this was a closing global
+                # metadata tag
+                img.meta = self.meta_global
+                self.meta_global = None
+            else:
+                img.darrays[-1].meta = self.meta_da
+                self.meta_da = None
+                
+            
         elif name == 'MD':
             self.fsm_state.pop()
 
-            # add nvpair to correct metadata
-
-            # case for either Gifti MetaData or DataArray Metadata
-            if self.fsm_state[1] == 'MetaData':
-                # Gifti MetaData
-                img.meta.data.append(self.nvpair)
-            elif self.fsm_state[1] == 'DataArray' and self.fsm_state[2] == 'MetaData':
-                # append to last DataArray
-                img.darrays[-1].meta.data.append(self.nvpair)
-
+            if not self.meta_global is None and self.meta_da == None:
+                self.meta_global.data.append(self.nvpair)
+            
+            elif not self.meta_da is None and self.meta_global == None:
+                self.meta_da.data.append(self.nvpair)
+                
+#                
+#            # add nvpair to correct metadata
+#            print "========="
+#            print 'where to write metadata?'
+#            print 'current nvpari', self.nvpair.name
+#            print 'fsmstate', self.fsm_state
+#            print 'global meta', img.meta
+#            if len(img.darrays)>0:
+#                print 'darray meta', img.darrays[-1].meta
+#            print 'darrays', img.darrays
+#            
+#            # case for either Gifti MetaData or DataArray Metadata
+#            if self.fsm_state[-2] == 'DataArray' and self.fsm_state[-1] == 'MetaData':
+#                # append to last DataArray
+#                img.darrays[-1].meta.data.append(self.nvpair)
+#                print "Write do DATARRAY", img.darrays[-1].meta.data
+#                print "show meta", img.meta.get_data_as_dict()
+#            else:
+#                # Gifti MetaData
+#                img.meta.data.append(self.nvpair)
+#                print "WRITE to global META", img.meta.data
+                
+                
             # remove reference
             self.nvpair = None
 
@@ -248,7 +290,7 @@ class Outputter(object):
         elif self.write_to == 'Value':
             data = data.strip()
             self.nvpair.value = data
-        elif self.write_to == '':
+        elif self.write_to == 'DataSpace':
             data = data.strip()
             self.coordsys.dataspace = xform_codes.code[data]
         elif self.write_to == 'TransformedSpace':
