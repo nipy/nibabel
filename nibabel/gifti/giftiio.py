@@ -1,9 +1,16 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+# General Gifti Input - Output to and from the filesystem
+# Stephan Gerhard, August 2010
+##############
 
 from parse_gifti_fast import *
-
-##############
-# General Gifti Input - Output to the filesystem
-##############
 
 def read(filename):
     """ Load a Gifti image from a file """
@@ -45,15 +52,7 @@ def write(image, filename):
         Topology
     """
 
-    #if not image.version:
-    #   t = pygiftiio.gifticlib_version()
-    #   versionstr = t[t.find("version ")+8:t.find(", ")]
-    #   float(versionstr) # raise an exception should the format change in the future :-)
-    #   image.version = versionstr
+    f = open(filename, 'w')
+    f.write(image.to_xml())
+    f.close()
 
-        # how to handle gifticlib? because we use pure python independent of the clib
-
-        # do a validation
-        # save GiftiImage to filename
-
-    raise NotImplementedError("Writing Gifti Images is not implemented yet.")

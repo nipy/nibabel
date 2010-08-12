@@ -6,8 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-# Gifti IO
-# Stephan Gerhard, May 2010
 
 from util import *
 from StringIO import StringIO
@@ -40,6 +38,10 @@ class GiftiMetaData(object):
         return self.data_as_dict
 
     def to_xml(self):
+        
+        if len(self.data) == 0:
+            return "<MetaData/>\n"
+        
         res = "<MetaData>\n"
         for ele in self.data:
             nvpair = """<MD>
@@ -65,7 +67,6 @@ class GiftiNVPairs(object):
 class GiftiLabelTable(object):
 
     def __init__(self):
-
         self.labels = []
 
     def get_labels_as_dict(self):
@@ -75,10 +76,24 @@ class GiftiLabelTable(object):
         return self.labels_as_dict
 
     def to_xml(self):
+        
+        if len(self.labels) == 0:
+            return "<LabelTable/>\n"
+        
         res = "<LabelTable>\n"
         for ele in self.labels:
-            lab = """\t<Label Index="%s" Red="%s" Green="%s" Blue="%s" Alpha="%s"><![CDATA[%s]]></Label>\n""" % \
-                (str(ele.index), str(ele.red), str(ele.green), str(ele.blue), str(ele.alpha), ele.label)
+            col = ''
+            if not ele.red is None:
+                col += ' Red="%s"' % str(ele.red)
+            if not ele.green is None:
+                col += ' Green="%s"' % str(ele.green)
+            if not ele.blue is None:
+                col += ' Blue="%s"' % str(ele.blue)
+            if not ele.alpha is None:
+                col += ' Alpha="%s"' % str(ele.alpha)
+                
+            lab = """\t<Label Index="%s"%s><![CDATA[%s]]></Label>\n""" % \
+                (str(ele.index), col, ele.label)
             res = res + lab
         res = res + "</LabelTable>\n" 
         return res
@@ -101,8 +116,8 @@ class GiftiLabel(object):
     blue = float
     alpha = float
     
-    def __init__(self, index = 0, label = '', red = 0.0,\
-                  green = 0.0, blue = 0.0, alpha = 1.0):
+    def __init__(self, index = 0, label = '', red = None,\
+                  green = None, blue = None, alpha = None):
         self.index = index
         self.label = label
         
@@ -136,6 +151,9 @@ class GiftiCoordSystem(object):
 
     def to_xml(self):
         
+        if self.xform is None:
+            return "<CoordinateSystemTransformMatrix/>\n"
+        
         res = """
          <CoordinateSystemTransformMatrix>
          <DataSpace><![CDATA[%s]]></DataSpace>
@@ -144,7 +162,7 @@ class GiftiCoordSystem(object):
                 xform_codes.niistring[self.xformspace])
          
         e = StringIO()
-        np.savetxt(e, self.xfrom)
+        np.savetxt(e, self.xform)
         e.seek(0)
         res = res + "<MatrixData>"
         res = res + e.read()
@@ -158,6 +176,49 @@ class GiftiCoordSystem(object):
         print 'Dataspace: ', xform_codes.niistring[self.dataspace]
         print 'XFormSpace: ', xform_codes.niistring[self.xformspace]
         print 'Affine Transformation Matrix: \n', self.xform
+
+def data_tag(dataarray, encoding):
+    """ Creates the data tag depending on the required encoding """
+  
+    import base64
+    import zlib
+    
+    # XXX: format = gifti_encoding_codes.format[encoding] 
+    c = StringIO()
+    # np.savetxt(c, dataarray, format)
+    np.savetxt(c, dataarray)
+    c.seek(0)
+    
+    if encoding == 1:
+        # GIFTI_ENCODING_ASCII
+        da = c.read()
+        
+    elif encoding == 2:
+        # GIFTI_ENCODING_B64BIN
+        cout = StringIO()
+        base64.encode(c, cout)
+        da = cout.read()
+
+    elif encoding == 3:
+        # GIFTI_ENCODING_B64GZ
+        cout = StringIO()
+        base64.encode(c, cout)
+        cout.seek(0)
+        enc = cout.read()
+        da = zlib.compress(enc)
+        
+#          File "/home/stephan/Dev/PyWorkspace/nibabel/nibabel/gifti/gifti.py", line 250, in to_xml
+#    result += data_tag(self.data, self.encoding)
+#UnicodeDecodeError: 'ascii' codec can't decode byte 0x9c in position 7: ordinal not in range(128)
+
+    elif encoding == 4:
+        # GIFTI_ENCODING_EXTBIN
+        raise NotImplementedError("In what format are the external files?")
+        da = ''
+    else:
+        da = ''
+        
+    return "<Data>"+da+"</Data>\n"
 
 class GiftiDataArray(object):
 
@@ -210,7 +271,7 @@ class GiftiDataArray(object):
             result += self.coordsys.to_xml()
         
         # write data array depending on the encoding
-        result += "<Data></Data>\n"
+        result += data_tag(self.data, self.encoding)
         
         result = result + self.to_xml_close()
         return result
