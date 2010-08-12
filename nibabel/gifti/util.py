@@ -49,7 +49,7 @@ dtdefs = ( # code, label, dtype definition, niistring
     (2304, 'RGBA', np.dtype([('R','u1'),
                     ('G', 'u1'),
                     ('B', 'u1'),
-                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32")
+                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
     )
 
 # XXX: do i need the extensions provided by volumeutils.make_dt_codes()

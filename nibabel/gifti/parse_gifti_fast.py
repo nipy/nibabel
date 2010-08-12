@@ -116,6 +116,15 @@ class Outputter(object):
             self.label = GiftiLabel()
             if attrs.has_key("Index"):
                 self.label.index = int(attrs["Index"])
+            if attrs.has_key("Red"):
+                self.label.red = float(attrs["Red"])
+            if attrs.has_key("Green"):
+                self.label.green = float(attrs["Green"])
+            if attrs.has_key("Blue"):
+                self.label.blue = float(attrs["Blue"])
+            if attrs.has_key("Alpha"):
+                self.label.alpha = float(attrs["Alpha"])
+            
             self.write_to = 'Label'
 
         elif name == 'DataArray':
@@ -257,7 +266,7 @@ class Outputter(object):
                                           da_tmp.ind_ord, da_tmp.datatype, \
                                           da_tmp.dims, data)
         elif self.write_to == 'Label':
-            self.label.label = data
+            self.label.label = data.strip()
 
 
 def parse_gifti_file(fname):
