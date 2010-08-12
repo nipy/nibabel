@@ -18,8 +18,10 @@ class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
     
-    def __init__(self, nvpairlist = []):
-        self.data = nvpairlist
+    def __init__(self, nvpair = None):
+        self.data = []
+        if not nvpair is None:
+            self.data.append(nvpair)
 
     @classmethod
     def from_dict(cls, data_dict):
