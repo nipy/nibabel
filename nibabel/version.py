@@ -3,40 +3,60 @@ settings in setup.py, the nibabel top-level docstring, and for building the
 docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
 """
 
-# nibabel version information.  An empty _version_extra corresponds to a release
+# nibabel version information.  An empty _version_extra corresponds to a
+# full release.  '-dev' as a _version_extra string means this is a development
+# version, and we append the git commit hash short form so we know what code
+# state this is.
 _version_major = 0
 _version_minor = 9
 _version_micro = 0
 _version_extra = '-dev'
 
+# The next line allows 'git archive' to dump the tag into this string.  This
+# should never happen to the file while still in the git repository.
+_maybe_subst_hash = '$Format:%h$'
+
+def get_commit_hash():
+    ''' Get short form of commit hash for appending to _version_extra
+
+    We get this from (in order of preference):
+
+    * A substituted value in ``_maybe_subst_hash``
+    * The text in a file '_commit_hash.txt' in the same directory as this file
+      (iff we are being imported)
+    * git's output, if we are in a git repository
+
+    Otherwise we return the empty string
+    '''
+    if not _maybe_subst_hash.startswith('$Format'): # it has been substituted
+        return _maybe_subst_hash
+    if __name__ == '__main__':
+        # we are being executed probably from setup.py
+        cwd = None
+    else:
+        # we are being imported
+        import os
+        cwd = os.path.dirname(__file__)
+        # Try and get commit from written commit text file
+        pth = os.path.join(cwd, '_commit_hash.txt')
+        if os.path.isfile(pth):
+            return file(pth).read().strip()
+    # maybe we are in a repository
+    import subprocess
+    proc = subprocess.Popen('git rev-parse --short HEAD',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=cwd, shell=True)
+    repo_commit, _ = proc.communicate()
+    if repo_commit:
+        return repo_commit.strip()
+    return ''
+
+
 # If the version extra above is '-dev' we need to append the short form of the
 # commit hash.
 if _version_extra == '-dev':
-    # The next line allows git archive to dump the tag into this
-    # string.  This should never happen to the file while still in the git
-    # repository.
-    archived_commit = '$Format:%h$'
-    if not archived_commit.startswith('$Format'): # it has been substituted
-        _version_extra += archived_commit
-    elif __name__ != '__main__': # we're being imported rather than exec'ed
-        # we might have been installed from a repository directory, in which
-        # case we look for a generated commit hash text file
-        import os
-        cwd = os.path.dirname(__file__)
-        pth = os.path.join(cwd, '_commit_hash.txt')
-        if os.path.isfile(pth):
-            repo_commit = file(pth).read().strip()
-            _version_extra += repo_commit
-        else: # maybe we are in a repository
-            import subprocess
-            proc = subprocess.Popen('git rev-parse --short HEAD',
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    cwd=cwd, shell=True)
-            repo_commit, _ = proc.communicate()
-            if repo_commit:
-                repo_commit = repo_commit.strip()
-                _version_extra += repo_commit
+    _version_extra += get_commit_hash()
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
