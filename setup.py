@@ -44,6 +44,7 @@ def main(**extra_args):
                           'nibabel.externals',
                           'nibabel.dicom',
                           'nibabel.dicom.tests',
+                          'nibabel.gifti',
                           'nibabel.testing',
                           'nibabel.tests'],
           package_data = {'nibabel':
