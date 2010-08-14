@@ -224,4 +224,10 @@ bdist_mpkg:
 	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
 
+# Print out info for possible install methods
+check_version_info:
+	$(PYTHON) tools/test_pkg_install_info.py nibabel
+
+
 .PHONY: orig-src pylint
+

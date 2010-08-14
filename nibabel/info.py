@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from ConfigParser import ConfigParser
 
@@ -20,7 +21,7 @@ def pkg_commit_hash(pkg_path):
     * A written commit hash value in ``install_hash`
     * git's output, if we are in a git repository
 
-    If all these fail, we raise an error
+    If all these fail, we return a not-found placeholder tuple
 
     Parameters
     ----------
@@ -54,15 +55,29 @@ def pkg_commit_hash(pkg_path):
     repo_commit, _ = proc.communicate()
     if repo_commit:
         return 'repository', repo_commit.strip()
-    raise RuntimeError('Cannot find hash information')
+    return '(none found)', '<not found>'
 
 
 def get_pkg_info(pkg_path):
-    ''' Return string describing the context of this package
+    ''' Return dict describing the context of this package
 
+    Parameters
+    ----------
+    pkg_path : str
+       path containing __init__.py for package
+
+    Returns
+    -------
+    context : dict
+       with named parameters of interest
     '''
-    return '''Configuration for %s:
-
-Commit hash source: %s
-Commit hash: %s''' % (pkg_path,) + pkg_commit_hash(pkg_path)
-
+    src, hsh = pkg_commit_hash(pkg_path)
+    import numpy
+    return dict(
+        pkg_path=pkg_path,
+        commit_source=src,
+        commit_hash=hsh,
+        sys_version=sys.version,
+        sys_executable=sys.executable,
+        sys_platform=sys.platform,
+        np_version=numpy.__version__)

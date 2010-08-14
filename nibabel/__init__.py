@@ -7,6 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import os
+
 from .version import __version__, long_description as __doc__
 __doc__ += """
  Quickstart
@@ -56,4 +58,5 @@ from numpy.testing import Tester
 test = Tester().test
 del Tester
 
-from .info import get_pkg_info
+from .info import get_pkg_info as _get_pkg_info
+get_info = lambda : _get_pkg_info(os.path.dirname(__file__))

@@ -48,7 +48,7 @@ class MyBuildPy(build_py):
         # We write the installation commit even if it's empty
         cfg_parser = ConfigParser()
         cfg_parser.read(os.path.join('nibabel', 'COMMIT_INFO.txt'))
-        cfg_parser.set('commit hash', 'install', repo_commit)
+        cfg_parser.set('commit hash', 'install_hash', repo_commit)
         out_pth = pjoin(self.build_lib, 'nibabel', 'COMMIT_INFO.txt')
         cfg_parser.write(open(out_pth, 'wt'))
 
@@ -81,7 +81,8 @@ def main(**extra_args):
                           'nibabel.tests'],
           package_data = {'nibabel':
                           [pjoin('tests', 'data', '*'),
-                           pjoin('dicom', 'tests', 'data', '*')]},
+                           pjoin('dicom', 'tests', 'data', '*'),
+                          ]},
           scripts      = [pjoin('bin', 'parrec2nii')],
           cmdclass = cmdclass,
           **extra_args
