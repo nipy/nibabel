@@ -55,3 +55,5 @@ from . import trackvis
 from numpy.testing import Tester
 test = Tester().test
 del Tester
+
+from .info import get_pkg_info

@@ -12,6 +12,7 @@
 import os
 from os.path import join as pjoin
 import sys
+from ConfigParser import ConfigParser
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
@@ -44,9 +45,12 @@ class MyBuildPy(build_py):
                                 stderr=subprocess.PIPE,
                                 shell=True)
         repo_commit, _ = proc.communicate()
-        if repo_commit:
-            pth = pjoin(self.build_lib, 'nibabel', '_commit_hash.txt')
-            file(pth, 'wt').write(repo_commit)
+        # We write the installation commit even if it's empty
+        cfg_parser = ConfigParser()
+        cfg_parser.read(os.path.join('nibabel', 'COMMIT_INFO.txt'))
+        cfg_parser.set('commit hash', 'install', repo_commit)
+        out_pth = pjoin(self.build_lib, 'nibabel', 'COMMIT_INFO.txt')
+        cfg_parser.write(open(out_pth, 'wt'))
 
 cmdclass = {'build_py': MyBuildPy}
 
