@@ -4,13 +4,13 @@ from StringIO import StringIO
 
 import numpy as np
 
-import nibabel.trackvis as tv
+from .. import trackvis as tv
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 @parametric

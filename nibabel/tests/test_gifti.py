@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 try:
-    import nibabel.gifti as gi
+    from .. import gifti as gi
     from cviewer.io.gifti import gifti as ge
 except ImportError:
     from nose import SkipTest

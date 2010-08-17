@@ -14,11 +14,11 @@ from nose.tools import assert_true, assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.orientations import (io_orientation, orientation_affine,
-                                  flip_axis, _ornt_to_affine,
-                                  apply_orientation, OrientationError)
+from ..orientations import (io_orientation, orientation_affine,
+                            flip_axis, _ornt_to_affine,
+                            apply_orientation, OrientationError)
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 IN_ARRS = [np.eye(4),

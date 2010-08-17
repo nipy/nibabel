@@ -24,8 +24,8 @@ from nose.tools import assert_raises, assert_true, assert_false, \
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-import nibabel.quaternions as nq
-import nibabel.eulerangles as nea
+from .. import quaternions as nq
+from .. import eulerangles as nea
 
 # Example rotations '''
 eg_rots = []

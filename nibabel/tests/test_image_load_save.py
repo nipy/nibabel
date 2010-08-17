@@ -23,14 +23,14 @@ import nibabel.spm2analyze as spm2
 import nibabel.nifti1 as ni1
 import nibabel.loadsave as nils
 
-from nibabel.tmpdirs import InTemporaryDirectory
+from ..tmpdirs import InTemporaryDirectory
 
-from nibabel.volumeutils import native_code, swapped_code
+from ..volumeutils import native_code, swapped_code
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 def round_trip(img):

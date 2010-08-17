@@ -13,7 +13,7 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.spatialimages import Header, SpatialImage, \
+from ..spatialimages import Header, SpatialImage, \
     HeaderDataError, ImageDataError, ImageFileError
 
 from nose.tools import assert_true, assert_false, \
@@ -21,7 +21,7 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import data_path, parametric, \
+from ..testing import data_path, parametric, \
     ParametricTestCase
 
 

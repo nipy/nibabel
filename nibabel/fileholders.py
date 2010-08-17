@@ -10,7 +10,7 @@
 
 from copy import copy
 
-from nibabel.volumeutils import allopen
+from .volumeutils import allopen
 
 
 class FileHolderError(Exception):

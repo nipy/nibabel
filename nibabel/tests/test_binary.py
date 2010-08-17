@@ -17,13 +17,14 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.volumeutils import swapped_code, native_code, array_to_file
-from nibabel.spatialimages import HeaderDataError
+from ..volumeutils import swapped_code, native_code, array_to_file
+from ..spatialimages import HeaderDataError
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises, assert_not_equal, parametric, ParametricTestCase
+from ..testing import (assert_equal, assert_true, assert_false,
+                       assert_raises, assert_not_equal, parametric,
+                       ParametricTestCase)
 
 
 def _write_data(hdr, data, fileobj):
@@ -31,7 +32,7 @@ def _write_data(hdr, data, fileobj):
     out_dtype = hdr.get_data_dtype()
     offset = hdr.get_data_offset()
     array_to_file(data, fileobj, out_dtype, offset)
-    
+
 
 class _TestBinaryHeader(ParametricTestCase):
     ''' Class implements tests for binary headers

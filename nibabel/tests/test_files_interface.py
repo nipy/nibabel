@@ -17,14 +17,14 @@ from cStringIO import StringIO
 import numpy as np
 
 import nibabel as nib
-from nibabel.fileholders import FileHolderError
+from ..fileholders import FileHolderError
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 @parametric
@@ -44,7 +44,7 @@ def test_files_images():
             yield assert_equal(value.filename, None)
             yield assert_equal(value.fileobj, None)
             yield assert_equal(value.pos, 0)
-    
+
 
 @parametric
 def test_files_interface():

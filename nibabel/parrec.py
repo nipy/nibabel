@@ -19,9 +19,9 @@ import warnings
 import numpy as np
 import copy
 
-from nibabel.spatialimages import SpatialImage, Header
-from nibabel.eulerangles import euler2mat
-from nibabel.volumeutils import Recoder
+from .spatialimages import SpatialImage, Header
+from .eulerangles import euler2mat
+from .volumeutils import Recoder
 
 # PAR header versions we claim to understand
 supported_versions = ['V4.2']
