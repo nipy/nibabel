@@ -197,19 +197,19 @@ def data_tag(dataarray, encoding):
         # GIFTI_ENCODING_B64BIN
         cout = StringIO()
         base64.encode(c, cout)
+        cout.seek(0)
         da = cout.read()
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
-        cout = StringIO()
-        base64.encode(c, cout)
-        cout.seek(0)
-        enc = cout.read()
-        da = zlib.compress(enc)
         
-#          File "/home/stephan/Dev/PyWorkspace/nibabel/nibabel/gifti/gifti.py", line 250, in to_xml
-#    result += data_tag(self.data, self.encoding)
-#UnicodeDecodeError: 'ascii' codec can't decode byte 0x9c in position 7: ordinal not in range(128)
+        # first compress
+        comp = zlib.compress(c.read().strip())
+        c = StringIO(comp)
+        out = StringIO()
+        base64.encode(c, out)
+        out.seek(0)
+        da = out.read()
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
@@ -351,10 +351,10 @@ class GiftiImage(object):
         pass
     
     @classmethod
-    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
-                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
-                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-        pass
+#    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
+#                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
+#                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+#        pass
     
 #def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
 #    """ Returns a GiftiImage from a Numpy array with a given intent code and
