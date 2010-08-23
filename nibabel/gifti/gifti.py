@@ -11,7 +11,6 @@ from util import *
 from StringIO import StringIO
 import numpy as np
 
-
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
@@ -154,21 +153,19 @@ class GiftiCoordSystem(object):
         if self.xform is None:
             return "<CoordinateSystemTransformMatrix/>\n"
         
-        res = """
-         <CoordinateSystemTransformMatrix>
-         <DataSpace><![CDATA[%s]]></DataSpace>
-         <TransformedSpace><![CDATA[%s]]></TransformedSpace>
-         """ % (xform_codes.niistring[self.dataspace], \
+        res = """<CoordinateSystemTransformMatrix>
+\t<DataSpace><![CDATA[%s]]></DataSpace>
+\t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n""" % (xform_codes.niistring[self.dataspace], \
                 xform_codes.niistring[self.xformspace])
          
         e = StringIO()
-        np.savetxt(e, self.xform)
+        np.savetxt(e, self.xform, '%10.6f')
         e.seek(0)
-        res = res + "<MatrixData>"
+        res = res + "<MatrixData>\n"
         res = res + e.read()
         e.close()
-        res = res + "<MatrixData>"
-        res = res + "</CoordinateSystemTransformMatrix>" 
+        res = res + "</MatrixData>\n"
+        res = res + "</CoordinateSystemTransformMatrix>\n" 
         return res
 
     def print_summary(self):
@@ -177,48 +174,48 @@ class GiftiCoordSystem(object):
         print 'XFormSpace: ', xform_codes.niistring[self.xformspace]
         print 'Affine Transformation Matrix: \n', self.xform
 
-def data_tag(dataarray, encoding):
+def data_tag(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding """
   
     import base64
     import zlib
     
-    # XXX: format = gifti_encoding_codes.format[encoding] 
-    c = StringIO()
-    # np.savetxt(c, dataarray, format)
-    np.savetxt(c, dataarray)
-    c.seek(0)
-    
-    if encoding == 1:
-        # GIFTI_ENCODING_ASCII
+    if ordering == 1:
+        ord = 'C'
+    elif ordering == 2:
+        ord = 'F'
+    else:
+        ord = 'C'
+        
+    if encoding == "GIFTI_ENCODING_ASCII":
+        c = StringIO()
+        # np.savetxt(c, dataarray, format, delimiter for columns)
+        np.savetxt(c, dataarray, datatype, ' ')
+        c.seek(0)
         da = c.read()
         
-    elif encoding == 2:
-        # GIFTI_ENCODING_B64BIN
+    elif encoding == "GIFTI_ENCODING_B64BIN":
         cout = StringIO()
-        base64.encode(c, cout)
+        base64.encode(dataarray.tostring(ord), cout)
         cout.seek(0)
         da = cout.read()
 
-    elif encoding == 3:
-        # GIFTI_ENCODING_B64GZ
-        
+    elif encoding == "GIFTI_ENCODING_B64GZ":        
         # first compress
-        comp = zlib.compress(c.read().strip())
+        comp = zlib.compress(dataarray.tostring(ord))
         c = StringIO(comp)
         out = StringIO()
         base64.encode(c, out)
         out.seek(0)
         da = out.read()
 
-    elif encoding == 4:
-        # GIFTI_ENCODING_EXTBIN
+    elif encoding == "GIFTI_ENCODING_EXTBIN":
         raise NotImplementedError("In what format are the external files?")
         da = ''
     else:
         da = ''
         
-    return "<Data>"+da+"</Data>\n"
+    return "<Data>\n"+da+"</Data>\n"
 
 class GiftiDataArray(object):
 
@@ -244,17 +241,61 @@ class GiftiDataArray(object):
         self.ext_offset = ''
 
     @classmethod
-    def from_array(cls, darray, intent, datatype, coordsys):
+    def from_array(cls, darray, intent, \
+                   datatype = None, \
+                   encoding = "GIFTI_ENCODING_B64GZ", \
+                   endian = "GIFTI_ENDIAN_LITTLE", \
+                   coordsys = None, \
+                   ordering = "RowMajorOrder", \
+                   meta = {}):
+        """ Creates a new Gifti data array
         
+        Parameters
+        ----------
+        darray : ndarray
+            NumPy data array
+        intent : string
+            NIFTI intent codes, see util.intent_codes
+        datatype : string
+            NIFTI data type codes, see util.data_type_codes
+            If None, the datatype of the NumPy array is taken.
+        encoding : string, default: GIFTI_ENCODING_B64GZ
+            Encoding of the data, see util.gifti_encoding_codes
+        endian : string, default: GIFTI_ENDIAN_LITTLE
+            The Endianness to store the data array.
+            Should correspond to the machine endianness.
+        coordsys : GiftiCoordSystem, optional
+            If None, a identity transformation is taken.
+        ordering : string, default: RowMajorOrder
+            The ordering of the array. see util.array_index_order_codes
+        meta : dict, optional
+            A dictionary for metadata information
+            
+        Returns
+        -------
+        da : GiftiDataArray
+        
+        """
         cda = GiftiDataArray()
-        # XXX: to continue
-        # create new dataarray
-        # setting the properties given or default
-        # return objects
-        #def GiftiDataArray_fromarray(self, data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-        #    """ Returns as GiftiDataArray from a Numpy array with a given intent code and
-        #    encoding """
-        #    pass
+        
+        cda.data = darray
+        cda.num_dim = len(darray.shape)
+        cda.dims = list(darray.shape)
+        if datatype == None:
+            cda.datatype = data_type_codes.code[darray.dtype.type]
+        else:
+            cda.datatype = data_type_codes.code[datatype]
+        cda.intent = intent_codes.code[intent]
+        cda.encoding = gifti_encoding_codes.code[encoding]
+        cda.endian = gifti_endian_codes.code[endian]
+        
+        if coordsys == None:
+            cda.coordsys = GiftiCoordSystem()
+        else:
+            cda.coordsys = coordsys
+        cda.ind_ord = array_index_order_codes.code[ordering]
+        cda.meta = GiftiMetaData.from_dict(meta)
+
         return cda
 
     def to_xml(self):
@@ -270,8 +311,17 @@ class GiftiDataArray(object):
         if not self.coordsys is None:
             result += self.coordsys.to_xml()
         
+        # check if the set endianness corresponds to the endianness of the machine
+        # throw an exception if it does not correspond
+        from sys import byteorder
+        if not byteorder == gifti_endian_codes.byteorder[self.endian]:
+            raise RuntimeError("Data array endianness setting does not correspond to machine endianness!")
+        
         # write data array depending on the encoding
-        result += data_tag(self.data, self.encoding)
+        result += data_tag(self.data, \
+                           gifti_encoding_codes.giistring[self.encoding],\
+                           data_type_codes.fmt[self.datatype],\
+                           self.ind_ord)
         
         result = result + self.to_xml_close()
         return result
@@ -305,13 +355,13 @@ class GiftiDataArray(object):
 
     def print_summary(self):
 
-        print 'Intent: ', GiftiIntentCode.intents_inv[self.intent]
-        print 'DataType: ', GiftiDataType.datatypes_inv[self.datatype]
-        print 'ArrayIndexingOrder: ', GiftiArrayIndexOrder.ordering_inv[self.ind_ord]
+        print 'Intent: ', intent_codes.niistring[self.intent]
+        print 'DataType: ', data_type_codes.niistring[self.datatype]
+        print 'ArrayIndexingOrder: ', array_index_order_codes.label[self.ind_ord]
         print 'Dimensionality: ', self.num_dim
         print 'Dimensions: ', self.dims
-        print 'Encoding: ', GiftiEncoding.encodings_inv[self.encoding]
-        print 'Endian: ', GiftiEndian.endian_inv[self.endian]
+        print 'Encoding: ', gifti_encoding_codes.giistring[self.encoding]
+        print 'Endian: ', gifti_endian_codes.giistring[self.endian]
         print 'ExternalFileName: ', self.ext_fname
         print 'ExternalFileOffset: ', self.ext_offset
         if not self.coordsys == None:
@@ -349,22 +399,19 @@ class GiftiImage(object):
     @classmethod
     def from_array(cls):
         pass
-    
-    @classmethod
-#    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
-#                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
-#                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#        pass
-    
 #def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
 #    """ Returns a GiftiImage from a Numpy array with a given intent code and
 #    encoding """
-#    pass
 
-#def GiftiImage_fromTriangles(vertices, triangles, cs = None, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
+    
+    @classmethod
+    def from_vertices_and_triangles(cls):
+        pass
+#    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
+#                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
+#                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
 #    """ Returns a GiftiImage from two numpy arrays representing the vertices
 #    and the triangles. Additionally defining the coordinate system and encoding """
-#    pass
 
 
     def get_metadata(self):
@@ -380,13 +427,10 @@ class GiftiImage(object):
         self.darrays.append(dataarr)
         self.numDA += 1
 
-
     def remove_gifti_data_array(self, dataarr):
         # XXX type checks
         self.darrays.remove(dataarr)
         self.numDA -= 1
-        
-
 
     def remove_gifti_data_array_by_intent(self, intent):
         """ Removes all the data arrays with the given intent type """

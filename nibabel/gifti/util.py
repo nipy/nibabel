@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-import numpy
+
 from nibabel.volumeutils import Recoder
 import numpy as np
 
@@ -27,33 +27,34 @@ except AttributeError:
     _complex256t = np.void
     
 dtdefs = ( # code, label, dtype definition, niistring, XXX: format for store in txt
-    (0, 'none', np.void, ""),
-    (1, 'binary', np.void, ""), # 1 bit per voxel, needs thought
-    (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8"),
-    (4, 'int16', np.int16, "NIFTI_TYPE_INT16"),
-    (8, 'int32', np.int32, "NIFTI_TYPE_INT32"),
-    (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32"),
-    (32, 'complex64', np.complex64, "NIFTI_TYPE_COMPLEX64"), # numpy complex format?
-    (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64"),
+    (0, 'none', np.void, "", ""),
+    (1, 'binary', np.void, "", ""), # 1 bit per voxel, needs thought
+    (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8", "%i"),
+    (4, 'int16', np.int16, "NIFTI_TYPE_INT16", "%i"),
+    (8, 'int32', np.int32, "NIFTI_TYPE_INT32", "%i"),
+    (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32", "%10.6f"),
+    (32, 'complex64', np.complex64, "NIFTI_TYPE_COMPLEX64", "%10.6f"), # numpy complex format?
+    (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64", "%10.6f"),
     (128, 'RGB', np.dtype([('R','u1'),
                   ('G', 'u1'),
-                  ('B', 'u1')]), "NIFTI_TYPE_RGB24"),
-    (256, 'int8', np.int8, "NIFTI_TYPE_INT8"),
-    (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16"),
-    (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32"),
-    (1024,'int64', np.int64, "NIFTI_TYPE_INT64"),
-    (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64"),
-    (1536, 'float128', _float128t, "NIFTI_TYPE_FLOAT128"), # Only numpy defined on 64 bit
-    (1792, 'complex128', np.complex128, "NIFTI_TYPE_COMPLEX128"),
-    (2048, 'complex256', _complex256t, "NIFTI_TYPE_COMPLEX256"), # 64 bit again
+                  ('B', 'u1')]), "NIFTI_TYPE_RGB24", ""),
+    (256, 'int8', np.int8, "NIFTI_TYPE_INT8", "%i"),
+    (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16", "%i"),
+    (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32", "%i"),
+    (1024,'int64', np.int64, "NIFTI_TYPE_INT64", "%i"),
+    (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64", "%i"),
+    (1536, 'float128', _float128t, "NIFTI_TYPE_FLOAT128", "%10.6f"), # Only numpy defined on 64 bit
+    (1792, 'complex128', np.complex128, "NIFTI_TYPE_COMPLEX128", "%10.6f"),
+    (2048, 'complex256', _complex256t, "NIFTI_TYPE_COMPLEX256", "%10.6f"), # 64 bit again
     (2304, 'RGBA', np.dtype([('R','u1'),
                     ('G', 'u1'),
                     ('B', 'u1'),
-                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
+                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32", ""),
     )
 
+
 # XXX: do i need the extensions provided by volumeutils.make_dt_codes()
-data_type_codes = Recoder( dtdefs,  fields=('code', 'label', 'type', 'niistring') )
+data_type_codes = Recoder( dtdefs,  fields=('code', 'label', 'type', 'niistring', 'fmt') )
 
 
 array_index_order_codes = Recoder((
@@ -73,10 +74,10 @@ gifti_encoding_codes = Recoder((
 
 
 gifti_endian_codes = Recoder((
-                            (0, "GIFTI_ENDIAN_UNDEF", "Undef"),
-                            (1, "GIFTI_ENDIAN_BIG", "BigEndian"),
-                            (2, "GIFTI_ENDIAN_LITTLE", "LittleEndian"),
-                              ), fields = ('code', 'giistring', 'specs'))
+                            (0, "GIFTI_ENDIAN_UNDEF", "Undef", "undef"),
+                            (1, "GIFTI_ENDIAN_BIG", "BigEndian", "big"),
+                            (2, "GIFTI_ENDIAN_LITTLE", "LittleEndian", "little"),
+                              ), fields = ('code', 'giistring', 'specs', 'byteorder'))
 
 intent_codes = Recoder((
     # code, label, parameters description tuple
