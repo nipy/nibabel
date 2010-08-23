@@ -43,7 +43,11 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dec = base64.decodestring(data)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        newarr = np.fromstring(zdec, dtype = dt, sep = '\n', count = c)
+        if len(newarr.shape) == len(sh):
+            return newarr
+        else:
+            return newarr.reshape(sh, order = ord)
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
@@ -51,7 +55,11 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        return np.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        newarr = np.fromstring(zdec, dtype = dt)
+        if len(newarr.shape) == len(sh):
+            return newarr
+        else:
+            return newarr.reshape(sh, order = ord)
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
@@ -284,9 +292,10 @@ class Outputter(object):
             self.label.label = data.strip()
 
 
-def parse_gifti_file(fname):
+def parse_gifti_file(fname, buffer_size = 35000000):
 
     datasource = open(fname,'r')
+    
     global img
     global parser
     global out
@@ -297,7 +306,7 @@ def parse_gifti_file(fname):
 
     parser = ParserCreate()
     parser.buffer_text = True
-    parser.buffer_size = 35000000
+    parser.buffer_size = buffer_size
     HANDLER_NAMES = [
     'StartElementHandler', 'EndElementHandler',
     'CharacterDataHandler',

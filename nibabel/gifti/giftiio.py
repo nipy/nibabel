@@ -56,3 +56,4 @@ def write(image, filename):
     f.write(image.to_xml())
     f.close()
 
+    

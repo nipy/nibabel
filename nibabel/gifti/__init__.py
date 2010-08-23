@@ -18,7 +18,9 @@
    util
 """
 
-# from _gifti import *
+import warnings
+
+warnings.warn("This module has not been tested completely. Please report issues that might come up on the nipy-devel mailinglist")
 
 from giftiio import read, write
 from gifti import *
