@@ -16,7 +16,7 @@ object.
 A check is a callable, of signature ``func(obj, fix=False)`` which
 returns a tuple ``(obj, Report)`` for ``func(obj, False)`` or
 ``func(obj, True)``, where the obj may be a modified object, or a
-different object, if ``fix==True``. 
+different object, if ``fix==True``.
 
 To run checks only, and return problem report objects:
 

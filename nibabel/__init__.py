@@ -6,13 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""This package provides read and write access to some common neuroimaging file
-formats.
 
-The various image format classes give full or selective access to header (meta)
-information and access to the image data is made available via NumPy arrays.
+import os
 
-============
+from .version import __version__, long_description as __doc__
+__doc__ += """
  Quickstart
 ============
 
@@ -33,15 +31,7 @@ information and access to the image data is made available via NumPy arrays.
 
    new_image = nib.Nifti1Image(data, affine)
    nib.save(new_image, 'new_image.nii.gz')
-
 """
-
-__docformat__ = 'restructuredtext'
-
-# canonical version string
-__version__ = '1.0.0'
-
-
 # module imports
 from . import analyze as ana
 from . import spm99analyze as spm99
@@ -63,3 +53,10 @@ from .orientations import (io_orientation, orientation_affine,
                                   apply_orientation)
 from .imageclasses import class_map, ext_map
 from . import trackvis
+
+from numpy.testing import Tester
+test = Tester().test
+del Tester
+
+from .info import get_pkg_info as _get_pkg_info
+get_info = lambda : _get_pkg_info(os.path.dirname(__file__))

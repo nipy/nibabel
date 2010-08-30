@@ -10,10 +10,10 @@
 import warnings
 import numpy as np
 
-from nibabel.spatialimages import HeaderDataError, HeaderTypeError
+from .spatialimages import HeaderDataError, HeaderTypeError
 
-from nibabel.batteryrunners import Report
-from nibabel import analyze # module import
+from .batteryrunners import Report
+from . import analyze # module import
 
 ''' Support subtle variations of SPM version of Analyze '''
 header_key_dtd = analyze.header_key_dtd

@@ -8,15 +8,14 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for volumeutils module '''
 from __future__ import with_statement
-import os
 from StringIO import StringIO
 import tempfile
 
 import numpy as np
 
-from nibabel.tmpdirs import InTemporaryDirectory
+from ..tmpdirs import InTemporaryDirectory
 
-from nibabel.volumeutils import (array_from_file,
+from ..volumeutils import (array_from_file,
                                  array_to_file,
                                  calculate_scale,
                                  scale_min_max,
@@ -29,7 +28,7 @@ from numpy.testing import (assert_array_almost_equal,
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 @parametric

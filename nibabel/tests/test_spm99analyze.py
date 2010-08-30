@@ -12,14 +12,14 @@ import numpy as np
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.spm99analyze import Spm99AnalyzeHeader, \
+from ..spm99analyze import Spm99AnalyzeHeader, \
     Spm99AnalyzeImage, HeaderTypeError
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
+from ..testing import assert_equal, assert_true, assert_false, \
      assert_raises, parametric
 
-import test_analyze
-from test_analyze import _log_chk
+from . import test_analyze
+from .test_analyze import _log_chk
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -30,7 +30,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
             yield tests
         hdr = self.header_class()
         yield assert_equal(hdr['scl_slope'], 1)
-    
+
     def test_scaling(self):
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
@@ -91,7 +91,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images
     image_class = Spm99AnalyzeImage
-    
+
 
 @parametric
 def test_origin_affine():
@@ -129,7 +129,7 @@ def test_origin_affine():
          [ 0.,  2.,  0., -4.],
          [ 0.,  0.,  1., -3.],
          [ 0.,  0.,  0.,  1.]])
-    
+
 
 @parametric
 def test_slope_inter():
