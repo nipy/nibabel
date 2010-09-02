@@ -82,8 +82,8 @@ class DataError(Exception):
     pass
 
 
-def read(fileobj):
-    ''' Read trackvis file, return header, streamlines
+def read(fileobj, as_generator=False):
+    ''' Read trackvis file, return streamlines, header
 
     Parameters
     ----------
@@ -91,11 +91,15 @@ def read(fileobj):
        If string, a filename; otherwise an open file-like object
        pointing to trackvis file (and ready to read from the beginning
        of the trackvis header data)
+    as_generator : bool, optional
+       Whether to return tracks as sequence (False, default) or as a generator
+       (True).
 
     Returns
     -------
-    streamlines : sequence
-       sequence of 3 element sequences with elements:
+    streamlines : sequence or generator
+       Returns sequence if `as_generator` is False, generator if True.  Value is
+       sequence or generator of 3 element sequences with elements:
 
        #. points : ndarray shape (N,3)
           where N is the number of points
@@ -142,42 +146,45 @@ def read(fileobj):
     pt_size = f4dt.itemsize * pt_cols
     ps_size = f4dt.itemsize * n_p
     i_fmt = endianness + 'i'
-    streamlines = []
     stream_count = hdr['n_count']
     if stream_count < 0:
         raise HeaderError('Unexpected negative n_count')
-    n_streams = 0
-    # For case where there are no scalars or no properties
-    scalars = None
-    ps = None
-    while(True):
-        n_str = fileobj.read(4)
-        if len(n_str) < 4:
-            if stream_count:
-                raise HeaderError(
-                    'Expecting %s points, found only %s' % (
-                            stream_count, n_streams))
-            break
-        n_pts = struct.unpack(i_fmt, n_str)[0]
-        pts_str = fileobj.read(n_pts * pt_size)
-        pts = np.ndarray(
-            shape = (n_pts, pt_cols),
-            dtype = f4dt,
-            buffer = pts_str)
-        if n_p:
-            ps_str = fileobj.read(ps_size)
-            ps = np.ndarray(
-                shape = (n_p,),
+    def track_gen():
+        n_streams = 0
+        # For case where there are no scalars or no properties
+        scalars = None
+        ps = None
+        while True:
+            n_str = fileobj.read(4)
+            if len(n_str) < 4:
+                if stream_count:
+                    raise HeaderError(
+                        'Expecting %s points, found only %s' % (
+                                stream_count, n_streams))
+                break
+            n_pts = struct.unpack(i_fmt, n_str)[0]
+            pts_str = fileobj.read(n_pts * pt_size)
+            pts = np.ndarray(
+                shape = (n_pts, pt_cols),
                 dtype = f4dt,
-                buffer = ps_str)
-        xyz = pts[:,:3]
-        if n_s:
-            scalars = pts[:,3:]
-        streamlines.append((xyz, scalars, ps))
-        n_streams += 1
-        # deliberately misses case where stream_count is 0
-        if n_streams == stream_count:
-            break
+                buffer = pts_str)
+            if n_p:
+                ps_str = fileobj.read(ps_size)
+                ps = np.ndarray(
+                    shape = (n_p,),
+                    dtype = f4dt,
+                    buffer = ps_str)
+            xyz = pts[:,:3]
+            if n_s:
+                scalars = pts[:,3:]
+            yield (xyz, scalars, ps)
+            n_streams += 1
+            # deliberately misses case where stream_count is 0
+            if n_streams == stream_count:
+                raise StopIteration
+    streamlines = track_gen()
+    if not as_generator:
+        streamlines = list(streamlines)
     return streamlines, hdr
 
 
