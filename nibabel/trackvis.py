@@ -1,6 +1,7 @@
 """ Read and write trackvis files
 """
 import struct
+import itertools
 
 import numpy as np
 import numpy.linalg as npl
@@ -189,7 +190,7 @@ def read(fileobj, as_generator=False):
 
 
 def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
-    ''' Write header and `streamlines` to trackvis file `fileobj` 
+    ''' Write header and `streamlines` to trackvis file `fileobj`
 
     The parameters from the streamlines override conflicting parameters
     in the `hdr_mapping` information.  In particular, the number of
@@ -201,8 +202,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     fileobj : filename or file-like
        If filename, open file as 'wb', otherwise `fileobj` should be an
        open file-like object, with a ``write`` method.
-    streamlines : sequence
-       sequence of 3 element sequences with elements:
+    streamlines : iterable
+       iterable returning 3 element sequences with elements:
 
        #. points : ndarray shape (N,3)
           where N is the number of points
@@ -211,6 +212,10 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
        #. properties : None or ndarray shape (P,)
           where P is the number of properties
 
+       If `streamlines` has a ``len`` (for example, it is a list or a tuple),
+       then we can write the number of streamlines into the header.  Otherwise
+       we write 0 for the number of streamlines (a valid trackvis header) and
+       write streamlines into the file until the iterable is exhausted
     hdr_mapping : None, ndarray or mapping, optional
        Information for filling header fields.  Can be something
        dict-like (implementing ``items``) or a structured numpy array
@@ -223,16 +228,20 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     -------
     None
     '''
-    # First work out guessed endianness from input data
+    # Process streams, return iterable etc
+    streamlines, streams0, n_streams, st_endian = _streams2streams_params(streamlines)
     if endianness is None:
-        endianness = _endian_from_streamlines(streamlines)
+        endianness = st_endian
     # fill in a new header from mapping-like
     hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
     # put calculated data into header
-    stream_count = len(streamlines)
-    hdr['n_count'] = stream_count
-    if stream_count:
-        pts, scalars, props = streamlines[0]
+    # If we can work out the number of streamlines, write this
+    if n_streams is None:
+        n_streams = 0
+    hdr['n_count'] = n_streams
+    # If there are streamlines, get number of scalars and properties
+    if not streams0 is None:
+        pts, scalars, props = streams0
         # calculate number of scalars
         if scalars:
             n_s = scalars.shape[1]
@@ -248,10 +257,11 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     # write header
     fileobj = allopen(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
-    if not stream_count:
+    if streams0 is None:
         return
     f4dt = np.dtype(endianness + 'f4')
     i_fmt = endianness + 'i'
+    # Add back the read first streamline to the sequence
     for pts, scalars, props in streamlines:
         n_pts, n_coords = pts.shape
         if n_coords != 3:
@@ -277,11 +287,22 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
             fileobj.write(props.tostring())
 
 
-def _endian_from_streamlines(streamlines):
-    if len(streamlines) == 0:
-        return native_code
-    endian = streamlines[0][0].dtype.byteorder
-    return endian_codes[endian]
+def _streams2streams_params(streams):
+    # Take sequence or iterable, pull off first element, detect length if this
+    # is a sequence, and endianness. Return streams as iterator, first element
+    # (or None if empty), stream length (or None, if iterator and length is
+    # undetermined), and endian code for streams
+    try:
+        stream_len = len(streams)
+    except TypeError: # iterable
+        stream_len = None
+    stream_iter = iter(streams)
+    try:
+        stream0 = stream_iter.next()
+    except StopIteration: # empty sequence or iterable
+        return iter([]), None, 0, native_code
+    endian = endian_codes[stream0[0].dtype.byteorder]
+    return itertools.chain([stream0], stream_iter), stream0, stream_len, endian
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -462,7 +483,10 @@ class TrackvisFile(object):
                  filename=None):
         self.streamlines = streamlines
         if endianness is None:
-            endianness = _endian_from_streamlines(streamlines)
+            # Process streams, return iterable etc
+            st_iter, streams0, n_streams, st_endian = \
+                    _streams2streams_params(streamlines)
+            endianness = st_endian
         self.header = _hdr_from_mapping(None, mapping, endianness)
         self.endianness = endianness
         self.filename = filename
