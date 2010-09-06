@@ -229,15 +229,24 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     None
     '''
     # Process streams, return iterable etc
-    streamlines, streams0, n_streams, st_endian = _streams2streams_params(streamlines)
-    if endianness is None:
-        endianness = st_endian
+    try:
+        n_streams = len(streamlines)
+    except TypeError: # iterable; we don't know the number of streams
+        n_streams = 0
+    stream_iter = iter(streamlines)
+    try:
+        streams0 = stream_iter.next()
+    except StopIteration: # empty sequence or iterable
+        streams0 = None
+        if endianness is None:
+            endianness = native_code
+    else:
+       streamlines = itertools.chain([streams0], stream_iter)
+       if endianness is None:
+           endianness = endian_codes[streams0[0].dtype.byteorder]
     # fill in a new header from mapping-like
     hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
     # put calculated data into header
-    # If we can work out the number of streamlines, write this
-    if n_streams is None:
-        n_streams = 0
     hdr['n_count'] = n_streams
     # If there are streamlines, get number of scalars and properties
     if not streams0 is None:
@@ -285,24 +294,6 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())
-
-
-def _streams2streams_params(streams):
-    # Take sequence or iterable, pull off first element, detect length if this
-    # is a sequence, and endianness. Return streams as iterator, first element
-    # (or None if empty), stream length (or None, if iterator and length is
-    # undetermined), and endian code for streams
-    try:
-        stream_len = len(streams)
-    except TypeError: # iterable
-        stream_len = None
-    stream_iter = iter(streams)
-    try:
-        stream0 = stream_iter.next()
-    except StopIteration: # empty sequence or iterable
-        return iter([]), None, 0, native_code
-    endian = endian_codes[stream0[0].dtype.byteorder]
-    return itertools.chain([stream0], stream_iter), stream0, stream_len, endian
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -474,19 +465,42 @@ def aff_to_hdr(affine, trk_hdr):
     trk_hdr['image_orientation_patient'] = R[:,0:2].T.ravel()
 
 
+class TrackvisFileError(Exception):
+    pass
+
+
 class TrackvisFile(object):
-    ''' Convenience class to encapsulate trackviz file information '''
+    ''' Convenience class to encapsulate trackviz file information
+
+    Parameters
+    ----------
+    streamlines : sequence
+       sequence of streamlines.  This object does not accept generic iterables
+       as input because these can be consumed and make the object unusable.
+       Please use the function interface to work with generators / iterables
+    mapping : None or mapping
+       Mapping defining header attributes
+    endianness : {None, '<', '>'}
+       Set here explicit endianness if required.  Endianness otherwise inferred
+       from `streamlines`
+    filename : None or str
+       filename
+    '''
     def __init__(self,
                  streamlines,
                  mapping=None,
                  endianness=None,
                  filename=None):
+        try:
+            n_streams = len(streamlines)
+        except TypeError:
+            raise TrackvisFileError('Need sequence for streamlines input')
         self.streamlines = streamlines
         if endianness is None:
-            # Process streams, return iterable etc
-            st_iter, streams0, n_streams, st_endian = \
-                    _streams2streams_params(streamlines)
-            endianness = st_endian
+            if n_streams > 0:
+                endianness = endian_codes[streamlines[0].dtype.byteorder]
+            else:
+                endianness = native_code
         self.header = _hdr_from_mapping(None, mapping, endianness)
         self.endianness = endianness
         self.filename = filename

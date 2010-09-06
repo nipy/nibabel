@@ -199,3 +199,7 @@ def test_tv_class():
     affine[:3,3] = [10,11,12]
     tvf.set_affine(affine)
     yield assert_true(np.all(tvf.get_affine() == affine))
+    # Test that we raise an error with an iterator
+    yield assert_raises(tv.TrackvisFileError,
+                        tv.TrackvisFile,
+                        iter([]))
