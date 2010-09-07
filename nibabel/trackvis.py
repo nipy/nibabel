@@ -228,25 +228,25 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     -------
     None
     '''
-    # Process streams, return iterable etc
-    try:
-        n_streams = len(streamlines)
-    except TypeError: # iterable; we don't know the number of streams
-        n_streams = 0
     stream_iter = iter(streamlines)
     try:
         streams0 = stream_iter.next()
     except StopIteration: # empty sequence or iterable
         streams0 = None
-        if endianness is None:
+    if endianness is None:
+        if streams0 is None:
             endianness = native_code
-    else:
-       streamlines = itertools.chain([streams0], stream_iter)
-       if endianness is None:
-           endianness = endian_codes[streams0[0].dtype.byteorder]
+        else: # At least one streamline
+            endianness = endian_codes[streams0[0].dtype.byteorder]
     # fill in a new header from mapping-like
     hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
-    # put calculated data into header
+    # Try and get number of streams from streamlines.  If this is an iterable,
+    # we don't have a len, so we write 0 for length.  This is a valid trackvis
+    # header meaning, keep reading until you run out of data 
+    try:
+        n_streams = len(streamlines)
+    except TypeError: # iterable; we don't know the number of streams
+        n_streams = 0
     hdr['n_count'] = n_streams
     # If there are streamlines, get number of scalars and properties
     if not streams0 is None:
@@ -271,7 +271,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     f4dt = np.dtype(endianness + 'f4')
     i_fmt = endianness + 'i'
     # Add back the read first streamline to the sequence
-    for pts, scalars, props in streamlines:
+    for pts, scalars, props in itertools.chain([streams0], stream_iter):
         n_pts, n_coords = pts.shape
         if n_coords != 3:
             raise ValueError('pts should have 3 columns')
