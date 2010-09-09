@@ -217,7 +217,7 @@ class Wrapper(object):
 
     @one_time
     def instance_number(self):
-        ''' Just becase we use this a lot for sorting '''
+        ''' Just because we use this a lot for sorting '''
         return self.get('InstanceNumber')
 
     @one_time
