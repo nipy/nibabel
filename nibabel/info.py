@@ -25,7 +25,7 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
 
-description  = 'Access a multitude of neuroimaging data formats',
+description  = 'Access a multitude of neuroimaging data formats'
 
 # Note: this long_description is actually a copy/paste from the top-level
 # README.txt, so that it shows up nicely on PyPI.  So please remember to edit
@@ -68,3 +68,8 @@ MICRO               = _version_micro
 ISRELEASE           = _version_extra == ''
 VERSION             = __version__
 REQUIRES            = ["numpy"]
+
+# versions
+NUMPY_MIN_VERSION='1.0'
+PYDICOM_MIN_VERSION='0.9.4-1'
+
