@@ -54,8 +54,8 @@ class MyBuildPy(build_py):
 
 cmdclass = {'build_py': MyBuildPy}
 
-# Get version and release info, which is all stored in nibabel/version.py
-ver_file = os.path.join('nibabel', 'version.py')
+# Get version and release info, which is all stored in nibabel/info.py
+ver_file = os.path.join('nibabel', 'info.py')
 execfile(ver_file)
 
 def main(**extra_args):
