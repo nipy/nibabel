@@ -41,7 +41,7 @@ def setup_environment():
 
 
 def teardown_environment():
-    """Restore things that were remebered by the setup_environment function
+    """Restore things that were remembered by the setup_environment function
     """
     orig_env = GIVEN_ENV['env']
     for key in env.keys():
@@ -221,7 +221,7 @@ def test_find_data_dir():
 @with_environment
 def test_make_datasource():
     pkg_def = dict(
-        name = 'pkg')
+        relpath = 'pkg')
     with TemporaryDirectory() as tmpdir:
         nibd.get_data_path = lambda : [tmpdir]
         yield (assert_raises,
@@ -251,7 +251,7 @@ def test_bomber():
 @with_environment
 def test_datasource_or_bomber():
     pkg_def = dict(
-        name = 'pkg')
+        relpath = 'pkg')
     with TemporaryDirectory() as tmpdir:
         nibd.get_data_path = lambda : [tmpdir]
         ds = datasource_or_bomber(pkg_def)

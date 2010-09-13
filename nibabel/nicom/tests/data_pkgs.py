@@ -3,11 +3,13 @@
 from ... import data as nibd
 
 PUBLIC_PKG_DEF = dict(
-    name = 'nipy-dicom_public',
+    relpath = 'nipy/dicom/public',
+    name = 'nipy-dicom-public',
     version = '0.1')
 
 PRIVATE_PKG_DEF = dict(
-    name = 'nipy-dicom_private',
+    relpath = 'nipy/dicom/private',
+    name = 'nipy-dicom-private',
     version = '0.1')
 
 

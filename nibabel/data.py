@@ -239,12 +239,12 @@ def make_datasource(pkg_def, **kwargs):
 
     `data_path` is the only allowed keyword argument.
 
-    `pkg_def` is a dictionary with at least one key - 'name'.  'name' is a
-    string which may be contain hyphens e.g. ``nipy-templates``.
+    `pkg_def` is a dictionary with at least one key - 'relpath'.  'relpath' is a
+    relative path with unix forward slash separators.
 
     The relative path to the data is found with::
 
-        names = pkg_def['name'].split('-')
+        names = pkg_def['name'].split('/')
         rel_path = os.path.join(names)
 
     We search for this relative path in the list of paths given by `data_path`.
@@ -255,11 +255,12 @@ def make_datasource(pkg_def, **kwargs):
     Parameters
     ----------
     pkg_def : dict
-       dict containing at least the key 'name'.  If the name contains hyphens
-       these as taken as directory separators, so we find the relative path to
-       the data with ``rel_pth = pkg_def['name'].replace('-', os.path.sep)``.
-       `pkg_def` can also contain a key 'install hint' that we use in the
-       returned error message from trying to use the resulting datasource
+       dict containing at least the key 'relpath'. 'relpath' is the data path of
+       the package relative to `data_path`.  It is in unix path format (using
+       forward slashes as directory separators).  `pkg_def` can also contain
+       optional keys 'name' (the name of the package), and / or a key 'install
+       hint' that we use in the returned error message from trying to use the
+       resulting datasource
     data_path : sequence of strings or None, optional
        sequence of paths in which to search for data.  If None (the
        default), then use ``get_data_path()``
@@ -274,21 +275,20 @@ def make_datasource(pkg_def, **kwargs):
     data_path = kwargs.get('data_path')
     if data_path is None:
         data_path = get_data_path()
-    name = pkg_def['name']
-    names = name.split('-')
+    unix_relpath = pkg_def['relpath']
+    names = unix_relpath.split('/')
     try:
         pth = find_data_dir(data_path, *names)
     except DataError, exception:
         pth = [pjoin(this_data_path, *names)
                 for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = '''%(exc)s;
-Is it possible you have not installed a data package?
-From the names, maybe you need data package "%(name)s"?
-
-%(pkg_hint)s''' % dict(exc=exception,
-                      name=name,
-                      pkg_hint=pkg_hint)
+        msg = ('%s; Is it possible you have not installed a data package?' %
+               exception)
+        if 'name' in pkg_def:
+            msg += '\n\nYou may need the package "%s"' % pkg_def['name']
+        if not pkg_hint is None:
+            msg += '\n\n%s' % pkg_hint
         raise DataError(msg)
     return VersionedDatasource(pth)
 
@@ -321,34 +321,37 @@ def datasource_or_bomber(pkg_def, **options):
     Parameters
     ----------
     pkg_def : dict
-       dict containing at least key 'name'. Can optioanlly have key 'install
-       hint' (for helpful error messages) and 'min version' giving the minimum
-       necessary version string for the package.
+       dict containing at least key 'relpath'. Can optioanlly have keys 'name'
+       (package name),  'install hint' (for helpful error messages) and 'min
+       version' giving the minimum necessary version string for the package.
     data_path : sequence of strings or None, optional
 
     Returns
     -------
     ds : datasource or ``Bomber`` instance
     '''
-    name = pkg_def['name']
+    unix_relpath = pkg_def['relpath']
     version = pkg_def.get('min version')
     pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-    names = name.split('-')
-    rel_path = os.path.sep.join(names)
+    names = unix_relpath.split('/')
+    sys_relpath = os.path.sep.join(names)
     try:
         ds = make_datasource(pkg_def, **options)
     except DataError, exception:
-        return Bomber(rel_path, exception)
+        return Bomber(sys_relpath, exception)
     # check version
     if (version is None or
         LooseVersion(ds.version) >= LooseVersion(version)):
         return ds
-    pkg_name = '-'.join(names)
+    if 'name' in pkg_def:
+        pkg_name = pkg_def['name']
+    else:
+        pkg_name = 'data at ' + unix_relpath
     msg = ('%(name)s is version %(pkg_version)s but we need '
            'version >= %(req_version)s\n\n%(pkg_hint)s' %
-           dict(name=name,
+           dict(name=pkg_name,
                 pkg_version=ds.version,
                 req_version=version,
                 pkg_hint=pkg_hint))
-    return Bomber(rel_path, DataError(msg))
+    return Bomber(sys_relpath, DataError(msg))
 
