@@ -19,6 +19,8 @@ respective native packaging format (DEB, RPM or installers). On all other
 systems NiBabel has to be compiled from source -- which should also be pretty
 straightforward.
 
+To run all of the tests, you may need some extra data packages - see
+:ref:`installing-data`. 
 
 Installer and packages
 ======================
