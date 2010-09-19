@@ -74,7 +74,25 @@ def test_round_trip():
     tv.write(out_f, streams, {})
     out_f.seek(0)
     streams2, hdr = tv.read(out_f)
-    yield assert_true, streamlist_equal(streams, streams2)
+    assert_true(streamlist_equal(streams, streams2))
+    # test that we can get out and pass in generators
+    out_f.seek(0)
+    streams3, hdr = tv.read(out_f, as_generator=True)
+    # check this is a generator rather than a list
+    assert_true(hasattr(streams3, 'next'))
+    # but that it results in the same output
+    assert_true(streamlist_equal(streams, list(streams3)))
+    # write back in
+    out_f.seek(0)
+    streams3, hdr = tv.read(out_f, as_generator=True)
+    # Now we need a new file object, because we're still using the old one for
+    # our generator
+    out_f_write = StringIO()
+    tv.write(out_f_write, streams3, {})
+    # and re-read just to check
+    out_f_write.seek(0)
+    streams2, hdr = tv.read(out_f_write)
+    assert_true(streamlist_equal(streams, streams2))
 
 
 @parametric
@@ -181,3 +199,7 @@ def test_tv_class():
     affine[:3,3] = [10,11,12]
     tvf.set_affine(affine)
     yield assert_true(np.all(tvf.get_affine() == affine))
+    # Test that we raise an error with an iterator
+    yield assert_raises(tv.TrackvisFileError,
+                        tv.TrackvisFile,
+                        iter([]))
