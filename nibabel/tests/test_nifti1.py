@@ -18,8 +18,8 @@ from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1Image,
-                      Nifti1Pair, Nifti1Extension, data_type_codes,
-                      extension_codes, slice_order_codes)
+                      Nifti1Pair, Nifti1Extension, Nifti1Extensions,
+                      data_type_codes, extension_codes, slice_order_codes)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
@@ -387,38 +387,49 @@ def test_extension_codes():
         ext = Nifti1Extension(k, 'somevalue')
 
 
-@parametric
+def test_extension_list():
+    ext_c0 = Nifti1Extensions()
+    ext_c1 = Nifti1Extensions()
+    assert_equal(ext_c0, ext_c1)
+    ext = Nifti1Extension('comment', '123')
+    ext_c1.append(ext)
+    assert_false(ext_c0 == ext_c1)
+    ext_c0.append(ext)
+    assert_true(ext_c0 == ext_c1)
+
+
 def test_nifti_extensions():
     nim = load(image_file)
     # basic checks of the available extensions
-    ext = nim.extra['extensions']
-    yield assert_true(len(ext) == 2)
-    yield assert_true(ext.count('comment') == 2)
-    yield assert_true(ext.count('afni') == 0)
-    yield assert_true(ext.get_codes() == [6, 6])
-    yield assert_true((ext.get_sizeondisk() - 4) % 16 == 0)
+    hdr = nim.get_header()
+    exts_container = hdr.extensions
+    assert_true(len(exts_container) == 2)
+    assert_true(exts_container.count('comment') == 2)
+    assert_true(exts_container.count('afni') == 0)
+    assert_true(exts_container.get_codes() == [6, 6])
+    assert_true((exts_container.get_sizeondisk() - 4) % 16 == 0)
     # first extension should be short one
-    yield assert_true(ext[0].get_content() == 'extcomment1')
+    assert_true(exts_container[0].get_content() == 'extcomment1')
     # add one
     afniext = Nifti1Extension('afni', '<xml></xml>')
-    ext.append(afniext)
-    yield assert_true(ext.get_codes() == [6, 6, 4])
-    yield assert_true(ext.count('comment') == 2)
-    yield assert_true(ext.count('afni') == 1)
-    yield assert_true((ext.get_sizeondisk() - 4) % 16 == 0)
+    exts_container.append(afniext)
+    assert_true(exts_container.get_codes() == [6, 6, 4])
+    assert_true(exts_container.count('comment') == 2)
+    assert_true(exts_container.count('afni') == 1)
+    assert_true((exts_container.get_sizeondisk() - 4) % 16 == 0)
     # delete one
-    del ext[1]
-    yield assert_true(ext.get_codes() == [6, 4])
-    yield assert_true(ext.count('comment') == 1)
-    yield assert_true(ext.count('afni') == 1)
+    del exts_container[1]
+    assert_true(exts_container.get_codes() == [6, 4])
+    assert_true(exts_container.count('comment') == 1)
+    assert_true(exts_container.count('afni') == 1)
 
 
-@parametric
 def test_loadsave_cycle():
     nim = load(image_file)
     # ensure we have extensions
-    yield assert_true(nim.extra.has_key('extensions'))
-    yield assert_true(len(nim.extra['extensions']))
+    hdr = nim.get_header()
+    exts_container = hdr.extensions
+    assert_true(len(exts_container) > 0)
     # write into the air ;-)
     stio = StringIO()
     nim.file_map['image'].fileobj = stio
@@ -426,34 +437,35 @@ def test_loadsave_cycle():
     stio.seek(0)
     # reload
     lnim = Nifti1Image.from_file_map(nim.file_map)
-    yield assert_true(lnim.extra.has_key('extensions'))
-    yield assert_equal(nim.extra['extensions'],
-                       lnim.extra['extensions'])
+    hdr = lnim.get_header()
+    lexts_container = hdr.extensions
+    assert_equal(exts_container,
+                 lexts_container)
     # build int16 image
     data = np.ones((2,3,4,5), dtype='int16')
     img = Nifti1Image(data, np.eye(4))
     hdr = img.get_header()
-    yield assert_equal(hdr.get_data_dtype(), np.int16)
+    assert_equal(hdr.get_data_dtype(), np.int16)
     # default should have no scaling
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
     # set scaling
     hdr.set_slope_inter(2, 8)
-    yield assert_equal(hdr.get_slope_inter(), (2, 8))
+    assert_equal(hdr.get_slope_inter(), (2, 8))
     # now build new image with updated header
     wnim = Nifti1Image(data, np.eye(4), header=hdr)
-    yield assert_equal(wnim.get_data_dtype(), np.int16)
-    yield assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
+    assert_equal(wnim.get_data_dtype(), np.int16)
+    assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
     # write into the air again ;-)
     stio = StringIO()
     wnim.file_map['image'].fileobj = stio
     wnim.to_file_map()
     stio.seek(0)
     lnim = Nifti1Image.from_file_map(wnim.file_map)
-    yield assert_equal(lnim.get_data_dtype(), np.int16)
+    assert_equal(lnim.get_data_dtype(), np.int16)
     # the test below does not pass, because the slope and inter are
     # always reset from the data, by the image write
     raise SkipTest
-    yield assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
+    assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
 
 @parametric
