@@ -261,7 +261,7 @@ class AnalyzeHeader(object):
             Default is True.
 
         Examples
-	--------
+        --------
         >>> hdr1 = AnalyzeHeader() # an empty header
         >>> hdr1.endianness == native_code
         True
@@ -366,6 +366,8 @@ class AnalyzeHeader(object):
                 # the presence of the mapping certifies the fields as
                 # being of the same meaning as for Analyze types
                 pass
+        # set any fields etc that are specific to this format (overriden by
+        # sub-classes)
         obj._set_format_specifics()
         if check:
             obj.check_fix()
@@ -957,7 +959,7 @@ class AnalyzeHeader(object):
                 return obj.get_value_label(key)
             except ValueError:
                 return obj[key]
-        
+
         return '\n'.join(
             [summary,
              pretty_mapping(self, _getter)])
