@@ -429,7 +429,7 @@ def test_nifti_extensions():
     assert_true(exts_container.count('comment') == 2)
     assert_true(exts_container.count('afni') == 0)
     assert_true(exts_container.get_codes() == [6, 6])
-    assert_true((exts_container.get_sizeondisk() - 4) % 16 == 0)
+    assert_true((exts_container.get_sizeondisk()) % 16 == 0)
     # first extension should be short one
     assert_true(exts_container[0].get_content() == 'extcomment1')
     # add one
@@ -438,7 +438,7 @@ def test_nifti_extensions():
     assert_true(exts_container.get_codes() == [6, 6, 4])
     assert_true(exts_container.count('comment') == 2)
     assert_true(exts_container.count('afni') == 1)
-    assert_true((exts_container.get_sizeondisk() - 4) % 16 == 0)
+    assert_true((exts_container.get_sizeondisk()) % 16 == 0)
     # delete one
     del exts_container[1]
     assert_true(exts_container.get_codes() == [6, 4])

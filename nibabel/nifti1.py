@@ -357,8 +357,7 @@ class Nifti1Extensions(list):
     def get_sizeondisk(self):
         """Return the size of the complete header extensions in the NIfTI file.
         """
-        # add four bytes for the NIfTI extension flag!
-        return np.sum([e.get_sizeondisk() for e in self]) + 4
+        return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
         s = "Nifti1Extensions(%s)" \
@@ -534,9 +533,15 @@ class Nifti1Header(SpmAnalyzeHeader):
         return hdr
 
     def write_to(self, fileobj):
+        # First check that vox offset is large enough
+        if self.is_single:
+            vox_offset = self._header_data['vox_offset']
+            min_vox_offset = 352 + self.extensions.get_sizeondisk()
+            if vox_offset < min_vox_offset:
+                raise HeaderDataError('vox offset of %d, but need at least %d'
+                                      % (vox_offset, min_vox_offset))
         super(Nifti1Header, self).write_to(fileobj)
-        n_exts = len(self.extensions)
-        if n_exts == 0:
+        if len(self.extensions) == 0:
             # If single file, write required 0 stream to signal no extensions
             if self.is_single:
                 fileobj.write('\x00' * 4)
@@ -1408,11 +1413,7 @@ class Nifti1Image(Nifti1Pair):
         # make sure that there is space for the header.  If any
         # extensions, figure out necessary vox_offset for extensions to
         # fit
-        if (self.extra.has_key('extensions') and
-            len(self.extra['extensions'])):
-            min_vox_offset = 348 + self.extra['extensions'].get_sizeondisk()
-        else:
-            min_vox_offset = 352
+        min_vox_offset = 352 + hdr.extensions.get_sizeondisk()
         if hdr['vox_offset'] < min_vox_offset:
             hdr['vox_offset'] = min_vox_offset
 
