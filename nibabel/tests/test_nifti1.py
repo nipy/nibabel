@@ -17,7 +17,7 @@ import numpy as np
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
 from .. import nifti1 as nifti1
-from ..nifti1 import (load, Nifti1Header, Nifti1Image,
+from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                       data_type_codes, extension_codes, slice_order_codes)
 
@@ -44,17 +44,17 @@ A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
 
-class TestNiftiHeader(tana.TestAnalyzeHeader):
-    header_class = Nifti1Header
+class TestNifti1PairHeader(tana.TestAnalyzeHeader):
+    header_class = Nifti1PairHeader
     example_file = header_file
 
     def test_empty(self):
         hdr = self.header_class()
         for tests in tana.TestAnalyzeHeader.test_empty(self):
             yield tests
-        yield assert_equal(hdr['magic'], 'n+1')
+        yield assert_equal(hdr['magic'], 'ni1')
         yield assert_equal(hdr['scl_slope'], 1)
-        yield assert_equal(hdr['vox_offset'], 352)
+        yield assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
         hdr = Nifti1Header.from_fileobj(open(self.example_file))
@@ -115,6 +115,28 @@ class TestNiftiHeader(tana.TestAnalyzeHeader):
         yield assert_equal(fhdr['sform_code'], 0)
         yield assert_equal(message, 'sform_code -1 not valid; '
                            'setting to 0')
+
+
+class TestNifti1SingleHeader(TestNifti1PairHeader):
+
+    header_class = Nifti1Header
+
+    def test_empty(self):
+        hdr = self.header_class()
+        for tests in tana.TestAnalyzeHeader.test_empty(self):
+            yield tests
+        yield assert_equal(hdr['magic'], 'n+1')
+        yield assert_equal(hdr['scl_slope'], 1)
+        yield assert_equal(hdr['vox_offset'], 352)
+
+    def test_binblock_is_file(self):
+        # Override test that binary string is the same as the file on disk; in
+        # the case of the single file version of the header, we need to append
+        # the extension string (4 0s)
+        hdr = self.header_class()
+        str_io = StringIO()
+        hdr.write_to(str_io)
+        assert_equal(str_io.getvalue(), hdr.binaryblock + '\x00' * 4)
 
 
 class TestNifti1Image(tana.TestAnalyzeImage):
