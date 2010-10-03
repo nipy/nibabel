@@ -114,6 +114,10 @@ pdfdoc: build
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
+gitwash-update: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
+
+
 #
 # Website
 #

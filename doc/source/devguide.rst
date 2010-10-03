@@ -14,8 +14,10 @@ NiBabel Developer Guidelines
 ****************************
 
 .. toctree::
+    :maxdepth: 2
 
-   refactoring/index
+    gitwash/index
+    refactoring/index
 
 Documentation
 =============
