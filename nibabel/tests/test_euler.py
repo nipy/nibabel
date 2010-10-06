@@ -12,8 +12,8 @@ import math
 import numpy as np
 from numpy import pi
 
-import nibabel.eulerangles as nea
-import nibabel.quaternions as nq
+from .. import eulerangles as nea
+from .. import quaternions as nq
 
 from nose.tools import assert_true, assert_false, assert_equal
 
@@ -38,7 +38,7 @@ def x_only(x):
          [0, cosx, -sinx],
          [0, sinx, cosx]])
 
-                 
+
 def y_only(y):
     cosy = np.cos(y)
     siny = np.sin(y)

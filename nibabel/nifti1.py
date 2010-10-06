@@ -7,19 +7,17 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading / writing functions for nifti1 image format
-
-Author: Matthew Brett
 '''
 import numpy as np
 import numpy.linalg as npl
 
-from nibabel.volumeutils import Recoder, make_dt_codes, endian_codes
-from nibabel.spatialimages import HeaderDataError
-from nibabel.batteryrunners import Report
-from nibabel.quaternions import fillpositive, quat2mat, mat2quat
-from nibabel import analyze # module import
-from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel.fileholders import copy_file_map
+from .volumeutils import Recoder, make_dt_codes, endian_codes
+from .spatialimages import HeaderDataError
+from .batteryrunners import Report
+from .quaternions import fillpositive, quat2mat, mat2quat
+from . import analyze # module import
+from .spm99analyze import SpmAnalyzeHeader
+from .fileholders import copy_file_map
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes

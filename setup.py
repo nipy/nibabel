@@ -9,11 +9,13 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Build helper."""
 
-__docformat__ = 'restructuredtext'
-
+import os
 from os.path import join as pjoin
 import sys
-from glob import glob
+
+# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
+# update it when the contents of directories change.
+if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
@@ -30,27 +32,50 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
+from nisext.sexts import get_build_cmd, package_check
+cmdclass = {'build_py': get_build_cmd('nibabel')}
+
+# Get version and release info, which is all stored in nibabel/info.py
+ver_file = os.path.join('nibabel', 'info.py')
+execfile(ver_file)
+
+# Do dependency checking
+package_check('numpy', NUMPY_MIN_VERSION)
+package_check('dicom', PYDICOM_MIN_VERSION, optional=True)
+if 'setuptools' in sys.modules:
+    extra_setuptools_args['extras_require'] = dict(
+        doc='Sphinx>=0.3',
+        test='nose>=0.10.1',
+        nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
 
 def main(**extra_args):
-    setup(name       = 'nibabel',
-          version      = '1.0.0',
-          author       = 'Matthew Brett and Michael Hanke',
-          author_email = 'nipy-devel@neuroimaging.scipy.org',
-          license      = 'MIT License',
-          url          = 'http://nipy.org/nibabel',
-          description  = 'Access a multitude of neuroimaging data formats',
-          long_description = "",
+    setup(name=NAME,
+          maintainer=MAINTAINER,
+          maintainer_email=MAINTAINER_EMAIL,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          url=URL,
+          download_url=DOWNLOAD_URL,
+          license=LICENSE,
+          classifiers=CLASSIFIERS,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          platforms=PLATFORMS,
+          version=VERSION,
+          requires=REQUIRES,
           packages     = ['nibabel',
                           'nibabel.externals',
-                          'nibabel.dicom',
-                          'nibabel.dicom.tests',
                           'nibabel.gifti',
+                          'nibabel.nicom',
+                          'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests'],
           package_data = {'nibabel':
                           [pjoin('tests', 'data', '*'),
-                           pjoin('dicom', 'tests', 'data', '*')]},
+                           pjoin('nicom', 'tests', 'data', '*'),
+                          ]},
           scripts      = [pjoin('bin', 'parrec2nii')],
+          cmdclass = cmdclass,
           **extra_args
          )
 

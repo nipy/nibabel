@@ -126,9 +126,9 @@ import warnings
 
 import numpy as np
 
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
-from nibabel.fileholders import FileHolder
-from nibabel.volumeutils import shape_zoom_affine
+from .filename_parser import types_filenames, TypesFilenamesError
+from .fileholders import FileHolder
+from .volumeutils import shape_zoom_affine
 
 
 class HeaderDataError(Exception):

@@ -8,9 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import numpy as np
 
-from nibabel.externals.netcdf import netcdf_file
+from .externals.netcdf import netcdf_file
 
-from nibabel.spatialimages import SpatialImage
+from .spatialimages import SpatialImage
 
 _dt_dict = {
     ('b','unsigned'): np.uint8,

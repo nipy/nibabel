@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """DICOM reader
 
-.. currentmodule:: nibabel.dicom
+.. currentmodule:: nibabel.nicom
 
 .. autosummary::
    :toctree: ../generated

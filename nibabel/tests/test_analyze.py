@@ -43,20 +43,20 @@ import logging
 
 import numpy as np
 
-from nibabel.testing import assert_equal, assert_not_equal, \
+from ..testing import assert_equal, assert_not_equal, \
     assert_true, assert_false, assert_raises
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
 
-from nibabel.volumeutils import array_to_file, can_cast
+from ..volumeutils import array_to_file, can_cast
 
-from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+from ..spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError
-from nibabel.analyze import AnalyzeHeader, AnalyzeImage
-from nibabel.loadsave import read_img_data
+from ..analyze import AnalyzeHeader, AnalyzeImage
+from ..loadsave import read_img_data
 
-from nibabel.testing import parametric, data_path, ParametricTestCase
+from ..testing import parametric, data_path, ParametricTestCase
 
 import test_binary as tb
 from test_binary import _write_data

@@ -1,6 +1,7 @@
 """ Read and write trackvis files
 """
 import struct
+import itertools
 
 import numpy as np
 import numpy.linalg as npl
@@ -82,8 +83,8 @@ class DataError(Exception):
     pass
 
 
-def read(fileobj):
-    ''' Read trackvis file, return header, streamlines
+def read(fileobj, as_generator=False):
+    ''' Read trackvis file, return streamlines, header
 
     Parameters
     ----------
@@ -91,11 +92,15 @@ def read(fileobj):
        If string, a filename; otherwise an open file-like object
        pointing to trackvis file (and ready to read from the beginning
        of the trackvis header data)
+    as_generator : bool, optional
+       Whether to return tracks as sequence (False, default) or as a generator
+       (True).
 
     Returns
     -------
-    streamlines : sequence
-       sequence of 3 element sequences with elements:
+    streamlines : sequence or generator
+       Returns sequence if `as_generator` is False, generator if True.  Value is
+       sequence or generator of 3 element sequences with elements:
 
        #. points : ndarray shape (N,3)
           where N is the number of points
@@ -142,47 +147,50 @@ def read(fileobj):
     pt_size = f4dt.itemsize * pt_cols
     ps_size = f4dt.itemsize * n_p
     i_fmt = endianness + 'i'
-    streamlines = []
     stream_count = hdr['n_count']
     if stream_count < 0:
         raise HeaderError('Unexpected negative n_count')
-    n_streams = 0
-    # For case where there are no scalars or no properties
-    scalars = None
-    ps = None
-    while(True):
-        n_str = fileobj.read(4)
-        if len(n_str) < 4:
-            if stream_count:
-                raise HeaderError(
-                    'Expecting %s points, found only %s' % (
-                            stream_count, n_streams))
-            break
-        n_pts = struct.unpack(i_fmt, n_str)[0]
-        pts_str = fileobj.read(n_pts * pt_size)
-        pts = np.ndarray(
-            shape = (n_pts, pt_cols),
-            dtype = f4dt,
-            buffer = pts_str)
-        if n_p:
-            ps_str = fileobj.read(ps_size)
-            ps = np.ndarray(
-                shape = (n_p,),
+    def track_gen():
+        n_streams = 0
+        # For case where there are no scalars or no properties
+        scalars = None
+        ps = None
+        while True:
+            n_str = fileobj.read(4)
+            if len(n_str) < 4:
+                if stream_count:
+                    raise HeaderError(
+                        'Expecting %s points, found only %s' % (
+                                stream_count, n_streams))
+                break
+            n_pts = struct.unpack(i_fmt, n_str)[0]
+            pts_str = fileobj.read(n_pts * pt_size)
+            pts = np.ndarray(
+                shape = (n_pts, pt_cols),
                 dtype = f4dt,
-                buffer = ps_str)
-        xyz = pts[:,:3]
-        if n_s:
-            scalars = pts[:,3:]
-        streamlines.append((xyz, scalars, ps))
-        n_streams += 1
-        # deliberately misses case where stream_count is 0
-        if n_streams == stream_count:
-            break
+                buffer = pts_str)
+            if n_p:
+                ps_str = fileobj.read(ps_size)
+                ps = np.ndarray(
+                    shape = (n_p,),
+                    dtype = f4dt,
+                    buffer = ps_str)
+            xyz = pts[:,:3]
+            if n_s:
+                scalars = pts[:,3:]
+            yield (xyz, scalars, ps)
+            n_streams += 1
+            # deliberately misses case where stream_count is 0
+            if n_streams == stream_count:
+                raise StopIteration
+    streamlines = track_gen()
+    if not as_generator:
+        streamlines = list(streamlines)
     return streamlines, hdr
 
 
 def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
-    ''' Write header and `streamlines` to trackvis file `fileobj` 
+    ''' Write header and `streamlines` to trackvis file `fileobj`
 
     The parameters from the streamlines override conflicting parameters
     in the `hdr_mapping` information.  In particular, the number of
@@ -194,8 +202,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     fileobj : filename or file-like
        If filename, open file as 'wb', otherwise `fileobj` should be an
        open file-like object, with a ``write`` method.
-    streamlines : sequence
-       sequence of 3 element sequences with elements:
+    streamlines : iterable
+       iterable returning 3 element sequences with elements:
 
        #. points : ndarray shape (N,3)
           where N is the number of points
@@ -204,6 +212,10 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
        #. properties : None or ndarray shape (P,)
           where P is the number of properties
 
+       If `streamlines` has a ``len`` (for example, it is a list or a tuple),
+       then we can write the number of streamlines into the header.  Otherwise
+       we write 0 for the number of streamlines (a valid trackvis header) and
+       write streamlines into the file until the iterable is exhausted
     hdr_mapping : None, ndarray or mapping, optional
        Information for filling header fields.  Can be something
        dict-like (implementing ``items``) or a structured numpy array
@@ -216,16 +228,29 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     -------
     None
     '''
-    # First work out guessed endianness from input data
+    stream_iter = iter(streamlines)
+    try:
+        streams0 = stream_iter.next()
+    except StopIteration: # empty sequence or iterable
+        streams0 = None
     if endianness is None:
-        endianness = _endian_from_streamlines(streamlines)
+        if streams0 is None:
+            endianness = native_code
+        else: # At least one streamline
+            endianness = endian_codes[streams0[0].dtype.byteorder]
     # fill in a new header from mapping-like
     hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
-    # put calculated data into header
-    stream_count = len(streamlines)
-    hdr['n_count'] = stream_count
-    if stream_count:
-        pts, scalars, props = streamlines[0]
+    # Try and get number of streams from streamlines.  If this is an iterable,
+    # we don't have a len, so we write 0 for length.  This is a valid trackvis
+    # header meaning, keep reading until you run out of data 
+    try:
+        n_streams = len(streamlines)
+    except TypeError: # iterable; we don't know the number of streams
+        n_streams = 0
+    hdr['n_count'] = n_streams
+    # If there are streamlines, get number of scalars and properties
+    if not streams0 is None:
+        pts, scalars, props = streams0
         # calculate number of scalars
         if scalars:
             n_s = scalars.shape[1]
@@ -241,11 +266,12 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     # write header
     fileobj = allopen(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
-    if not stream_count:
+    if streams0 is None:
         return
     f4dt = np.dtype(endianness + 'f4')
     i_fmt = endianness + 'i'
-    for pts, scalars, props in streamlines:
+    # Add back the read first streamline to the sequence
+    for pts, scalars, props in itertools.chain([streams0], stream_iter):
         n_pts, n_coords = pts.shape
         if n_coords != 3:
             raise ValueError('pts should have 3 columns')
@@ -268,13 +294,6 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())
-
-
-def _endian_from_streamlines(streamlines):
-    if len(streamlines) == 0:
-        return native_code
-    endian = streamlines[0][0].dtype.byteorder
-    return endian_codes[endian]
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -446,16 +465,42 @@ def aff_to_hdr(affine, trk_hdr):
     trk_hdr['image_orientation_patient'] = R[:,0:2].T.ravel()
 
 
+class TrackvisFileError(Exception):
+    pass
+
+
 class TrackvisFile(object):
-    ''' Convenience class to encapsulate trackviz file information '''
+    ''' Convenience class to encapsulate trackviz file information
+
+    Parameters
+    ----------
+    streamlines : sequence
+       sequence of streamlines.  This object does not accept generic iterables
+       as input because these can be consumed and make the object unusable.
+       Please use the function interface to work with generators / iterables
+    mapping : None or mapping
+       Mapping defining header attributes
+    endianness : {None, '<', '>'}
+       Set here explicit endianness if required.  Endianness otherwise inferred
+       from `streamlines`
+    filename : None or str
+       filename
+    '''
     def __init__(self,
                  streamlines,
                  mapping=None,
                  endianness=None,
                  filename=None):
+        try:
+            n_streams = len(streamlines)
+        except TypeError:
+            raise TrackvisFileError('Need sequence for streamlines input')
         self.streamlines = streamlines
         if endianness is None:
-            endianness = _endian_from_streamlines(streamlines)
+            if n_streams > 0:
+                endianness = endian_codes[streamlines[0].dtype.byteorder]
+            else:
+                endianness = native_code
         self.header = _hdr_from_mapping(None, mapping, endianness)
         self.endianness = endianness
         self.filename = filename

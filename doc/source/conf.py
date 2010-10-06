@@ -30,6 +30,10 @@ sys.path.append(os.path.abspath('../sphinxext'))
 
 # -- General configuration -----------------------------------------------------
 
+# We load the nibabel release info into a dict by explicit execution
+rel = {}
+execfile('../../nibabel/version.py', rel)
+
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
@@ -43,6 +47,7 @@ extensions = ['sphinx.ext.autodoc',
               'autosummary',
               # we have a local copy of the extension, imported from NumPy 1.3
               # this also includes the docscrape* extensions
+              'math_dollar', # has to go before numpydoc
               'numpydoc',
               'only_directives',
               'math_dollar',
@@ -66,7 +71,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2010, NiBabel Authors'
+copyright = u'2006-2010, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

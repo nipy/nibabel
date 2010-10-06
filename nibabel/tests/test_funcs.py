@@ -14,13 +14,13 @@ import numpy as np
 
 import nibabel as nf
 
-from nibabel.funcs import concat_images, as_closest_canonical, OrientationError
-from nibabel.nifti1 import Nifti1Image
+from ..funcs import concat_images, as_closest_canonical, OrientationError
+from ..nifti1 import Nifti1Image
 
 from numpy.testing import assert_array_equal
 from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_raises)
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 @parametric

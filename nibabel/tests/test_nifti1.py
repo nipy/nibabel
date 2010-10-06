@@ -9,28 +9,27 @@
 ''' Tests for nifti reading package '''
 from __future__ import with_statement
 import os
-import tempfile
 
 from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.spatialimages import HeaderDataError
-import nibabel.nifti1 as nifti1
-from nibabel.nifti1 import load, Nifti1Header, Nifti1Image, \
-    Nifti1Pair, Nifti1Extension, data_type_codes, \
-    extension_codes, slice_order_codes
+from ..tmpdirs import InTemporaryDirectory
+from ..spatialimages import HeaderDataError
+from .. import nifti1 as nifti1
+from ..nifti1 import (load, Nifti1Header, Nifti1Image,
+                      Nifti1Pair, Nifti1Extension, data_type_codes,
+                      extension_codes, slice_order_codes)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_false, assert_equal, \
-    assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal,
+                        assert_raises)
 from nose import SkipTest
 
-from nibabel.testing import parametric, data_path
+from ..testing import parametric, data_path
 
-import test_analyze as tana
-from test_analyze import _log_chk
+from . import test_analyze as tana
+from .test_analyze import _log_chk
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')

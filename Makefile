@@ -228,4 +228,15 @@ bdist_mpkg:
 	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
 
+# Print out info for possible install methods
+check-version-info:
+	$(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
+
+
+# Update nisext subtree from remote
+update-nisext:
+	git fetch nisext
+	git merge --squash -s subtree --no-commit nisext/master
+
 .PHONY: orig-src pylint
+

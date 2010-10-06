@@ -9,8 +9,8 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
-                            apply_orientation, OrientationError)
+from .orientations import (io_orientation, orientation_affine, flip_axis,
+                           apply_orientation, OrientationError)
 
 
 def squeeze_image(img):
