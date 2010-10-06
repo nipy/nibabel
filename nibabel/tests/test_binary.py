@@ -127,11 +127,23 @@ class _TestBinaryHeader(ParametricTestCase):
         hdr = self.header_class()
         str_io = StringIO()
         hdr.write_to(str_io)
-        yield assert_equal(str_io.getvalue(), hdr.binaryblock)
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
         yield assert_equal(hdr2.endianness, native_code)
         yield assert_equal(hdr2.binaryblock, hdr.binaryblock)
+
+    def test_binblock_is_file(self):
+        # Checks that the binary string respresentation is the whole of the
+        # header file.  This is true for Analyze types, but not true Nifti
+        # single file headers, for example, because they will have extension
+        # strings following.  More generally, there may be other perhaps
+        # optional data after the binary block, in which case you will need to
+        # override this test
+        hdr = self.header_class()
+        str_io = StringIO()
+        hdr.write_to(str_io)
+        assert_equal(str_io.getvalue(), hdr.binaryblock)
+
 
     def test_structarr(self):
         # structarr attribute also read only
