@@ -7,12 +7,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Define supported image classes and names '''
-from nibabel.analyze import AnalyzeImage
-from nibabel.spm99analyze import Spm99AnalyzeImage
-from nibabel.spm2analyze import Spm2AnalyzeImage
-from nibabel.nifti1 import Nifti1Pair, Nifti1Image
-from nibabel.minc import MincImage
-from nibabel.volumeutils import Recoder
+from .analyze import AnalyzeImage
+from .spm99analyze import Spm99AnalyzeImage
+from .spm2analyze import Spm2AnalyzeImage
+from .nifti1 import Nifti1Pair, Nifti1Image
+from .minc import MincImage
+from .volumeutils import Recoder
 
 # If we don't have scipy, then we cannot write SPM format files
 try:

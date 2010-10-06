@@ -12,15 +12,15 @@ from os.path import join as pjoin
 import numpy as np
 import numpy.testing.decorators as dec
 
-from nibabel.externals.netcdf import netcdf_file as netcdf
+from ..externals.netcdf import netcdf_file as netcdf
 
-from nibabel import load, Nifti1Image
-from nibabel.minc import MincImage, MincFile
-from nibabel.spatialimages import ImageFileError
+from .. import load, Nifti1Image
+from ..minc import MincImage, MincFile
+from ..spatialimages import ImageFileError
 from nose.tools import assert_true, assert_equal, assert_false, \
     assert_raises
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nibabel.testing import parametric, data_path
+from ..testing import parametric, data_path
 
 mnc_fname = os.path.join(data_path, 'tiny.mnc')
 mnc_shape = (10,20,20)

@@ -217,7 +217,7 @@ class Wrapper(object):
 
     @one_time
     def instance_number(self):
-        ''' Just becase we use this a lot for sorting '''
+        ''' Just because we use this a lot for sorting '''
         return self.get('InstanceNumber')
 
     @one_time
@@ -587,19 +587,37 @@ class MosaicWrapper(SiemensWrapper):
         data : array
            array with data as scaled from any scaling in the DICOM
            fields.
-        '''
+
+	Notes
+	-----
+	The apparent image in the DICOM file is a 2D array that consists of blocks,
+	that are the output 2D slices.  Let's call the original array the *slab*, and
+	the contained slices *slices*.   The slices are of pixel dimension
+	``n_slice_rows`` x ``n_slice_cols``.  The slab is of pixel dimension
+	``n_slab_rows`` x ``n_slab_cols``.  Because the arrangement of blocks in the
+	slab is defined as being square, the number of blocks per slab row and slab
+	column is the same.  Let ``n_blocks`` be the number of blocks contained in the
+	slab.  There is also ``n_slices`` - the number of slices actually collected,
+	some number <= ``n_blocks``.  We have the value ``n_slices`` from the
+	'NumberOfImagesInMosaic' field of the Siemens private (CSA) header.
+	``n_row_blocks`` and ``n_col_blocks`` are therefore given by
+	``ceil(sqrt(n_slices))``, and ``n_blocks`` is ``n_row_blocks ** 2``.  Also
+	``n_slice_rows == n_slab_rows / n_row_blocks``, etc.  Using these numbers we
+	can therefore reconstruct the slices from the 2D DICOM pixel array.
+	'''
         shape = self.image_shape
         if shape is None:
             raise WrapperError('No valid information for image shape')
-        n_rows, n_cols, n_mosaic = shape
-        mosaic_size = self.mosaic_size
+        n_slice_rows, n_slice_cols, n_mosaic = shape
+        n_slab_rows = self.mosaic_size
+	n_blocks = n_slab_rows ** 2
         data = self.get_pixel_array()
-        v4=data.reshape(mosaic_size,n_rows,
-                        mosaic_size,n_cols)
+        v4=data.reshape(n_slab_rows, n_slice_rows,
+                        n_slab_rows, n_slice_cols)
         # move the mosaic dims to the end
         v4=v4.transpose((1,3,0,2))
         # pool mosaic-generated dims
-        v3=v4.reshape((n_rows, n_cols, mosaic_size*mosaic_size))
+        v3=v4.reshape((n_slice_rows, n_slice_cols, n_blocks))
         # delete any padding slices
         v3 = v3[...,:n_mosaic]
         return self._scale_data(v3)

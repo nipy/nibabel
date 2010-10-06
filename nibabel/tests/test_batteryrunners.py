@@ -6,18 +6,19 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for BatterRunner and Report objects
+''' Tests for BatteryRunner and Report objects
 
-'''        
+'''
 
 from StringIO import StringIO
 
 import logging
 
-from nibabel.batteryrunners import BatteryRunner, Report
+from ..batteryrunners import BatteryRunner, Report
 
-from nibabel.testing import assert_true, assert_false, \
-     assert_equal, assert_not_equal, assert_raises, parametric
+from ..testing import (assert_true, assert_false,
+                       assert_equal, assert_not_equal,
+                       assert_raises, parametric)
 
 
 # define some trivial functions as checks

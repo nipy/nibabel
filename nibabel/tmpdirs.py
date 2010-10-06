@@ -57,7 +57,7 @@ class InTemporaryDirectory(TemporaryDirectory):
     >>> my_cwd = os.getcwd()
     >>> with InTemporaryDirectory() as tmpdir:
     ...     assert os.getcwd() != my_cwd
-    ...     assert os.getcwd() == tmpdir
+    ...     assert os.path.samefile(os.getcwd(), tmpdir)
     >>> os.path.exists(tmpdir)
     False
     >>> os.getcwd() == my_cwd

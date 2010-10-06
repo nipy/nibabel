@@ -134,20 +134,20 @@ The same for logging::
 '''
 import numpy as np
 
-from nibabel.volumeutils import pretty_mapping, endian_codes, \
+from .volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, \
      make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
      array_to_file, array_from_file, can_cast, \
      floating_point_types
 
-from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+from .spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError, SpatialImage
 
-from nibabel import imageglobals as imageglobals
-from nibabel.fileholders import FileHolderError, copy_file_map
-from nibabel.batteryrunners import BatteryRunner, Report
-from nibabel.arrayproxy import ArrayProxy
+from . import imageglobals as imageglobals
+from .fileholders import FileHolderError, copy_file_map
+from .batteryrunners import BatteryRunner, Report
+from .arrayproxy import ArrayProxy
 
 
 # Sub-parts of standard analyze header from
