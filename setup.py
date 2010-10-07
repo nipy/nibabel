@@ -70,10 +70,16 @@ def main(**extra_args):
                           'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests'],
-          package_data = {'nibabel':
-                          [pjoin('tests', 'data', '*'),
-                           pjoin('nicom', 'tests', 'data', '*'),
-                          ]},
+          # this has no effect for me (on python 2.6) -- even changing to
+          # data_files doesn't get this stuff included in the source
+          # distribution -- not sure if it has something to do with the magic
+          # above, but distutils is surely the worst piece of code in all of
+          # python -- moving things into MANIFEST.in but this is admittedly
+          # only a workaround to get things started -- not a solution
+          #package_data = {'nibabel':
+          #                [pjoin('tests', 'data', '*'),
+          #                 pjoin('nicom', 'tests', 'data', '*'),
+          #                ]},
           scripts      = [pjoin('bin', 'parrec2nii')],
           cmdclass = cmdclass,
           **extra_args
