@@ -71,5 +71,5 @@ REQUIRES            = ["numpy"]
 
 # versions
 NUMPY_MIN_VERSION='1.0'
-PYDICOM_MIN_VERSION='0.9.4-1'
+PYDICOM_MIN_VERSION='0.9.5'
 
