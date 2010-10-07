@@ -7,13 +7,13 @@
 	dh $@ --buildsystem=python_distutils --builddirectory=build
 
 # enable when we believe that the tests should pass
-#override_dh_auto_test:
-#ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-#	for buildver in $(shell pyversions -vr); do \
-#		echo "I: Running NiBabel unittests using python$$buildver"; \
-#		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
-#	done
-#endif
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	for buildver in $(shell pyversions -vr); do \
+		echo "I: Running NiBabel unittests using python$$buildver"; \
+		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
+	done
+endif
 
 ## immediately useable documentation
 ## and exemplar data (they are small excerpts anyway)
