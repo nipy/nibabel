@@ -50,6 +50,7 @@ extensions = ['sphinx.ext.autodoc',
               'math_dollar', # has to go before numpydoc
               'numpydoc',
               'only_directives',
+              'math_dollar',
               ]
 
 # the following doesn't work with sphinx < 1.0, but will make a separate
@@ -225,7 +226,7 @@ htmlhelp_basename = 'nibabeldoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('documentation', 'nibabel.tex', u'NiBabel Documentation',
+  ('index', 'nibabel.tex', u'NiBabel Documentation',
    u'NiBabel Authors', 'manual'),
 ]
 

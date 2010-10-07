@@ -3,7 +3,7 @@ HTML_DIR=build/html
 LATEX_DIR=build/latex
 WWW_DIR=build/website
 DOCSRC_DIR=doc
-
+SF_USER ?= matthewbrett
 #
 # The Python executable to be used
 #
@@ -114,6 +114,10 @@ pdfdoc: build
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
+gitwash-update: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
+
+
 #
 # Website
 #
@@ -131,7 +135,7 @@ upload-website: website
 
 upload-htmldoc: htmldoc
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
-		web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+		$(SF_USER),nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
 
 #
 # Sources

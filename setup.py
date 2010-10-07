@@ -65,6 +65,7 @@ def main(**extra_args):
           requires=REQUIRES,
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.gifti',
                           'nibabel.nicom',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
