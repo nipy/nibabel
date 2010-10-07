@@ -7,3 +7,4 @@ recursive-include tools *
 # enough to accomplish this herculean task
 recursive-include nibabel/tests/data *
 recursive-include nibabel/nicom/tests/data *
+include nibabel/COMMIT_INFO.txt

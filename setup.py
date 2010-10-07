@@ -69,7 +69,10 @@ def main(**extra_args):
                           'nibabel.nicom',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
-                          'nibabel.tests'],
+                          'nibabel.tests',
+                          # required in setup.py, hence needs to go into source
+                          # dist
+                          'nisext'],
           # this has no effect for me (on python 2.6) -- even changing to
           # data_files doesn't get this stuff included in the source
           # distribution -- not sure if it has something to do with the magic
