@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Michael Hanke <michael.hanke@gmail.com>
 Uploaders: Yaroslav Halchenko <yoh@debian.org>
 Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy, python-nose, python-scipy, help2man
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
