@@ -1,11 +1,19 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading functions for SPM version of analyze format '''
 import warnings
 import numpy as np
 
-from nibabel.spatialimages import HeaderDataError, HeaderTypeError
+from .spatialimages import HeaderDataError, HeaderTypeError
 
-from nibabel.batteryrunners import Report
-from nibabel import analyze # module import
+from .batteryrunners import Report
+from . import analyze # module import
 
 ''' Support subtle variations of SPM version of Analyze '''
 header_key_dtd = analyze.header_key_dtd
@@ -121,12 +129,6 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  0.,  1., -4.],
                [ 0.,  0.,  0.,  1.]])
         >>> hdr['origin'] = 0 # unset origin
-        >>> hdr.set_data_shape((3, 5))
-        >>> hdr.get_origin_affine()
-        array([[-3.,  0.,  0.,  3.],
-               [ 0.,  2.,  0., -4.],
-               [ 0.,  0.,  1., -0.],
-               [ 0.,  0.,  0.,  1.]])
         >>> hdr.set_data_shape((3, 5, 7))
         >>> hdr.get_origin_affine() # from center of image
         array([[-3.,  0.,  0.,  3.],

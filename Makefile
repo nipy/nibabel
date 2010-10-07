@@ -3,7 +3,7 @@ HTML_DIR=build/html
 LATEX_DIR=build/latex
 WWW_DIR=build/website
 DOCSRC_DIR=doc
-
+SF_USER ?= matthewbrett
 #
 # The Python executable to be used
 #
@@ -48,6 +48,7 @@ build:
 #
 
 clean:
+	$(MAKE) -C doc clean
 	-rm -rf build
 	-rm *-stamp
 
@@ -93,7 +94,7 @@ unittest: build
 
 testmanual: build
 # go into data, because docs assume now data dir
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.txt doc
+	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst doc/source/ doc/source/usecases
 
 
 coverage: build
@@ -113,6 +114,10 @@ pdfdoc: build
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
+gitwash-update: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
+
+
 #
 # Website
 #
@@ -130,7 +135,7 @@ upload-website: website
 
 upload-htmldoc: htmldoc
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
-		web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+		$(SF_USER),nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
 
 #
 # Sources
@@ -223,4 +228,15 @@ bdist_mpkg:
 	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
 
+# Print out info for possible install methods
+check-version-info:
+	$(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
+
+
+# Update nisext subtree from remote
+update-nisext:
+	git fetch nisext
+	git merge --squash -s subtree --no-commit nisext/master
+
 .PHONY: orig-src pylint
+

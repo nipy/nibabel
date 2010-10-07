@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 '''
 Functions to operate on, or return, quaternions.
 
@@ -172,11 +180,11 @@ def mat2quat(M):
 
     References
     ----------
-     * http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
-     * Bar-Itzhack, Itzhack Y. (2000), "New method for extracting the
-    quaternion from a rotation matrix", AIAA Journal of Guidance,
-    Control and Dynamics 23(6):1085-1087 (Engineering Note), ISSN
-    0731-5090
+    * http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    * Bar-Itzhack, Itzhack Y. (2000), "New method for extracting the
+      quaternion from a rotation matrix", AIAA Journal of Guidance,
+      Control and Dynamics 23(6):1085-1087 (Engineering Note), ISSN
+      0731-5090
 
     Examples
     --------

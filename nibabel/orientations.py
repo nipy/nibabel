@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for calculating and applying affine orientations '''
 
 import numpy as np
@@ -25,11 +33,11 @@ def io_orientation(affine, tol=None):
        Transformation affine from ``m`` inputs to ``n`` outputs.
        Usually this will be a shape (4,4) matrix, transforming 3 inputs
        to 3 outputs, but the code also handles the more general case
-     tol : {None, float}, optional
-        threshold below which SVD values of the affine are considered
-        zero. If `tol` is None, and ``S`` is an array with singular
-        values for `affine`, and ``eps`` is the epsilon value for
-        datatype of ``S``, then `tol` set to ``S.max() * eps``.
+    tol : {None, float}, optional
+       threshold below which SVD values of the affine are considered
+       zero. If `tol` is None, and ``S`` is an array with singular
+       values for `affine`, and ``eps`` is the epsilon value for
+       datatype of ``S``, then `tol` set to ``S.max() * eps``.
 
     Returns
     -------

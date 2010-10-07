@@ -1,8 +1,16 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Fileholder class '''
 
 from copy import copy
 
-from nibabel.volumeutils import allopen
+from .volumeutils import allopen
 
 
 class FileHolderError(Exception):
@@ -72,12 +80,12 @@ def copy_file_map(file_map):
     Parameters
     ----------
     file_map : mapping
-       mapping of ``FileHolder` instances
+       mapping of ``FileHolder`` instances
 
     Returns
     -------
     fm_copy : dict
-       Copy of `file_map`, using shallow copy of ``FileHolder``s
+       Copy of `file_map`, using shallow copy of ``FileHolder``\s
 
     '''
     fm_copy = {}

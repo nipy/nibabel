@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test binary header objects like Analyze, Nifti...
 
 This is a root testing class, used in the Analyze and other tests as a
@@ -9,13 +17,14 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.volumeutils import swapped_code, native_code, array_to_file
-from nibabel.spatialimages import HeaderDataError
+from ..volumeutils import swapped_code, native_code, array_to_file
+from ..spatialimages import HeaderDataError
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import assert_equal, assert_true, assert_false, \
-     assert_raises, assert_not_equal, parametric, ParametricTestCase
+from ..testing import (assert_equal, assert_true, assert_false,
+                       assert_raises, assert_not_equal, parametric,
+                       ParametricTestCase)
 
 
 def _write_data(hdr, data, fileobj):
@@ -23,7 +32,7 @@ def _write_data(hdr, data, fileobj):
     out_dtype = hdr.get_data_dtype()
     offset = hdr.get_data_offset()
     array_to_file(data, fileobj, out_dtype, offset)
-    
+
 
 class _TestBinaryHeader(ParametricTestCase):
     ''' Class implements tests for binary headers
@@ -118,11 +127,23 @@ class _TestBinaryHeader(ParametricTestCase):
         hdr = self.header_class()
         str_io = StringIO()
         hdr.write_to(str_io)
-        yield assert_equal(str_io.getvalue(), hdr.binaryblock)
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
         yield assert_equal(hdr2.endianness, native_code)
         yield assert_equal(hdr2.binaryblock, hdr.binaryblock)
+
+    def test_binblock_is_file(self):
+        # Checks that the binary string respresentation is the whole of the
+        # header file.  This is true for Analyze types, but not true Nifti
+        # single file headers, for example, because they will have extension
+        # strings following.  More generally, there may be other perhaps
+        # optional data after the binary block, in which case you will need to
+        # override this test
+        hdr = self.header_class()
+        str_io = StringIO()
+        hdr.write_to(str_io)
+        assert_equal(str_io.getvalue(), hdr.binaryblock)
+
 
     def test_structarr(self):
         # structarr attribute also read only

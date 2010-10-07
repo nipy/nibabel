@@ -1,8 +1,16 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import numpy as np
 
-from nibabel.externals.netcdf import netcdf_file
+from .externals.netcdf import netcdf_file
 
-from nibabel.spatialimages import SpatialImage
+from .spatialimages import SpatialImage
 
 _dt_dict = {
     ('b','unsigned'): np.uint8,

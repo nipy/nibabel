@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utility functions for analyze-like formats '''
 
 import sys
@@ -63,19 +71,19 @@ class Recoder(object):
     def __init__(self, codes, fields=('code',)):
         ''' Create recoder object
 
-    ``codes`` give a sequence of code, alias sequences
-    ``fields`` are names by which the entries in these sequences can be
-    accessed.
+        ``codes`` give a sequence of code, alias sequences
+        ``fields`` are names by which the entries in these sequences can be
+        accessed.
 
-    By default ``fields`` gives the first column the name
-    "code".  The first column is the vector of first entries
-    in each of the sequences found in ``codes``.  Thence you can
-    get the equivalent first column value with ob.code[value],
-    where value can be a first column value, or a value in any of
-    the other columns in that sequence.
+        By default ``fields`` gives the first column the name
+        "code".  The first column is the vector of first entries
+        in each of the sequences found in ``codes``.  Thence you can
+        get the equivalent first column value with ob.code[value],
+        where value can be a first column value, or a value in any of
+        the other columns in that sequence.
 
-    You can give other columns names too, and access them in the
-    same way - see the examples in the class docstring.
+        You can give other columns names too, and access them in the
+        same way - see the examples in the class docstring.
 
         Parameters
         ----------
@@ -378,9 +386,14 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
             return np.array([])
         data_str = infile.read(datasize)
         if len(data_str) != datasize:
-            msg = 'Expected %s bytes, got %s bytes from file' \
-                  % (datasize, len(data_str))
-            raise ValueError(msg)
+            if hasattr(infile, 'name'):
+                file_str = 'file "%s"' % infile.name
+            else:
+                file_str = 'file object'
+            msg = 'Expected %s bytes, got %s bytes from %s\n' \
+                  % (datasize, len(data_str), file_str) + \
+                  ' - could the file be damaged?'
+            raise IOError(msg)
         arr = np.ndarray(shape,
                          in_dtype,
                          buffer=data_str,
@@ -673,8 +686,8 @@ def finite_range(arr):
     >>> finite_range(a)
     (-1.0, 1.0)
     >>> a = np.array([[np.nan],[np.nan]])
-    >>> finite_range(a)
-    (inf, -inf)
+    >>> finite_range(a) == (np.inf, -np.inf)
+    True
     >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
     >>> finite_range(a)
     (-3, 4)
@@ -723,6 +736,7 @@ def allopen(fname, *args, **kwargs):
         mode = kwargs['mode']
     else:
         mode = 'rb'
+        args = (mode,)
     if fname.endswith('.gz'):
         if ('w' in mode and
             len(args) < 2 and
@@ -771,11 +785,6 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
            [ 0.,  2.,  0., -4.],
            [ 0.,  0.,  1., -3.],
            [ 0.,  0.,  0.,  1.]])
-    >>> shape_zoom_affine((3, 5), (3, 2))
-    array([[-3.,  0.,  0.,  3.],
-           [ 0.,  2.,  0., -4.],
-           [ 0.,  0.,  1., -0.],
-           [ 0.,  0.,  0.,  1.]])
     >>> shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
     array([[ 3.,  0.,  0., -3.],
            [ 0.,  2.,  0., -4.],
@@ -805,3 +814,36 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     aff[:3, :3] = np.diag(zooms)
     aff[:3, -1] = -origin * zooms
     return aff
+
+
+def rec2dict(rec):
+    ''' Convert recarray to dictionary
+
+    Also converts scalar values to scalars
+
+    Parameters
+    ----------
+    rec : ndarray
+       structured ndarray
+
+    Returns
+    -------
+    dct : dict
+       dict with key, value pairs as for `rec`
+
+    Examples
+    --------
+    >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
+    >>> d = rec2dict(r)
+    >>> d == {'x': 0, 's': ''}
+    True
+    '''
+    dct = {}
+    for key in rec.dtype.fields:
+        val = rec[key]
+        try:
+            val = np.asscalar(val)
+        except ValueError:
+            pass
+        dct[key] = val
+    return dct

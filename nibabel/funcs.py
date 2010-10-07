@@ -1,8 +1,16 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Processor functions for images '''
 import numpy as np
 
-from nibabel.orientations import (io_orientation, orientation_affine, flip_axis,
-                            apply_orientation, OrientationError)
+from .orientations import (io_orientation, orientation_affine, flip_axis,
+                           apply_orientation, OrientationError)
 
 
 def squeeze_image(img):
@@ -84,7 +92,7 @@ def concat_images(images, check_affines=True):
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage``s
+       sequence of ``SpatialImage``\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True

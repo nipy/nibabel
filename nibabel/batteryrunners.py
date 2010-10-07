@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Battery runner classes and Report classes
 
 These classes / objects are for generic checking / fixing batteries
@@ -8,7 +16,7 @@ object.
 A check is a callable, of signature ``func(obj, fix=False)`` which
 returns a tuple ``(obj, Report)`` for ``func(obj, False)`` or
 ``func(obj, True)``, where the obj may be a modified object, or a
-different object, if ``fix==True``. 
+different object, if ``fix==True``.
 
 To run checks only, and return problem report objects:
 

@@ -1,8 +1,7 @@
+*.kpf
 *-stamp
-*/*/*-stamp
 build
 *.swp
 *.pyc
 *.pyo
-nifti/_clib.so
-nifti/clib.py
+nibabel.egg-info/

@@ -3,9 +3,12 @@
 
 .. _license:
 
-*******
-License
-*******
+**********************
+Copyright and Licenses
+**********************
+
+NiBabel
+=======
 
 The nibabel package, including all examples, code snippets and attached
 documentation is covered by the MIT license.
@@ -36,9 +39,8 @@ documentation is covered by the MIT license.
   THE SOFTWARE.
 
 
-**************
 3rd Party Code
-**************
+==============
 
 Some code distributed within the nibabel sources was developed by other
 projects. This code is distributed under its respective licenses that are

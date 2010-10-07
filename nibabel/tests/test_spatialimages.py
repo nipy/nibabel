@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Testing spatialimages
 
 """
@@ -5,7 +13,7 @@ from StringIO import StringIO
 
 import numpy as np
 
-from nibabel.spatialimages import Header, SpatialImage, \
+from ..spatialimages import Header, SpatialImage, \
     HeaderDataError, ImageDataError, ImageFileError
 
 from nose.tools import assert_true, assert_false, \
@@ -13,7 +21,7 @@ from nose.tools import assert_true, assert_false, \
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import data_path, parametric, \
+from ..testing import data_path, parametric, \
     ParametricTestCase
 
 

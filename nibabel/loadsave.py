@@ -1,11 +1,19 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
-from nibabel.filename_parser import types_filenames, splitext_addext
-from nibabel import volumeutils as vu
-from nibabel import spm2analyze as spm2
-from nibabel import nifti1
-from nibabel.fileholders import FileHolderError
-from nibabel.spatialimages import ImageFileError
-from nibabel.imageclasses import class_map, ext_map
+from .filename_parser import types_filenames, splitext_addext
+from . import volumeutils as vu
+from . import spm2analyze as spm2
+from . import nifti1
+from .fileholders import FileHolderError
+from .spatialimages import ImageFileError
+from .imageclasses import class_map, ext_map
 
 
 def load(filename):

@@ -1,10 +1,26 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Define supported image classes and names '''
-from nibabel.analyze import AnalyzeImage
-from nibabel.spm99analyze import Spm99AnalyzeImage
-from nibabel.spm2analyze import Spm2AnalyzeImage
-from nibabel.nifti1 import Nifti1Pair, Nifti1Image
-from nibabel.minc import MincImage
-from nibabel.volumeutils import Recoder
+from .analyze import AnalyzeImage
+from .spm99analyze import Spm99AnalyzeImage
+from .spm2analyze import Spm2AnalyzeImage
+from .nifti1 import Nifti1Pair, Nifti1Image
+from .minc import MincImage
+from .volumeutils import Recoder
+
+# If we don't have scipy, then we cannot write SPM format files
+try:
+    import scipy.io
+except ImportError:
+    have_scipy = False
+else:
+    have_scipy = True
 
 # mapping of names to classes and class functionality
 class_map = {
@@ -15,11 +31,11 @@ class_map = {
     'spm99analyze': {'class': Spm99AnalyzeImage,
                      'ext': '.img',
                      'has_affine': True,
-                     'rw': True},
+                     'rw': have_scipy},
     'spm2analyze': {'class': Spm2AnalyzeImage,
                     'ext': '.img',
                     'has_affine': True,
-                    'rw': True},
+                    'rw': have_scipy},
     'nifti_pair': {'class': Nifti1Pair,
                    'ext': '.img',
                     'has_affine': True,

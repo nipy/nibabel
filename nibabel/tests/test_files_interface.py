@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Testing filesets - a draft
 
 """
@@ -9,14 +17,14 @@ from cStringIO import StringIO
 import numpy as np
 
 import nibabel as nib
-from nibabel.fileholders import FileHolderError
+from ..fileholders import FileHolderError
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nibabel.testing import parametric
+from ..testing import parametric
 
 
 @parametric
@@ -36,7 +44,7 @@ def test_files_images():
             yield assert_equal(value.filename, None)
             yield assert_equal(value.fileobj, None)
             yield assert_equal(value.pos, 0)
-    
+
 
 @parametric
 def test_files_interface():
@@ -80,11 +88,9 @@ def test_round_trip():
    from StringIO import StringIO
    data = np.arange(24, dtype='i4').reshape((2,3,4))
    aff = np.eye(4)
-   for klass in (nib.AnalyzeImage,
-                 nib.Spm99AnalyzeImage,
-                 nib.Spm2AnalyzeImage,
-                 nib.Nifti1Pair,
-                 nib.Nifti1Image):
+   klasses = [val['class'] for key, val in nib.class_map.items()
+              if val['rw']]
+   for klass in klasses:
        file_map = klass.make_file_map()
        for key in file_map:
            file_map[key].fileobj = StringIO()

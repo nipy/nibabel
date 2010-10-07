@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
 NetCDF reader/writer module.
 
@@ -47,8 +55,10 @@ To create a NetCDF file::
 
 Make a temporary file for testing:
 
-    >>> from tempfile import mkstemp
-    >>> fd, fname = mkstemp('.nc')
+    >>> import os
+    >>> from tempfile import mkdtemp
+    >>> tmp_pth = mkdtemp()
+    >>> fname = os.path.join(tmp_pth, 'test.nc')
 
 Write to it:
 
@@ -75,10 +85,11 @@ To read the NetCDF file we just created::
     9
     >>> f.close()
 
- Delete our temporary file:
+ Delete our temporary directory and file:
 
-    >>> import os
+    >>> del f, time # needed for windows unlink
     >>> os.unlink(fname)
+    >>> os.rmdir(tmp_pth)
  
 TODO:
  * properly implement ``_FillValue``.

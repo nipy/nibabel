@@ -1,17 +1,23 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading / writing functions for nifti1 image format
-
-Author: Matthew Brett
 '''
 import numpy as np
 import numpy.linalg as npl
 
-from nibabel.volumeutils import Recoder, make_dt_codes
-from nibabel.spatialimages import HeaderDataError
-from nibabel.batteryrunners import Report
-from nibabel.quaternions import fillpositive, quat2mat, mat2quat
-from nibabel import analyze # module import
-from nibabel.spm99analyze import SpmAnalyzeHeader
-from nibabel.fileholders import copy_file_map
+from .volumeutils import Recoder, make_dt_codes, endian_codes
+from .spatialimages import HeaderDataError
+from .batteryrunners import Report
+from .quaternions import fillpositive, quat2mat, mat2quat
+from . import analyze # module import
+from .spm99analyze import SpmAnalyzeHeader
+from .fileholders import copy_file_map
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -277,7 +283,7 @@ class Nifti1Extension(object):
         else:
             return True
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
 
         Write starts at fileobj current file position.
@@ -286,6 +292,8 @@ class Nifti1Extension(object):
         ----------
         fileobj : file-like object
            Should implement ``write`` method
+        byteswap : boolean
+          Flag if byteswapping the data is required.
 
         Returns
         -------
@@ -294,8 +302,10 @@ class Nifti1Extension(object):
         extstart = fileobj.tell()
         rawsize = self.get_sizeondisk()
         # write esize and ecode first
-        fileobj.write(np.array((rawsize, self._code),
-                               dtype=np.int32).tostring())
+        extinfo = np.array((rawsize, self._code), dtype=np.int32)
+        if byteswap:
+            extinfo = extinfo.byteswap()
+        fileobj.write(extinfo.tostring())
         # followed by the actual extension content
         # XXX if mangling upon load is implemented, it should be reverted here
         fileobj.write(self._mangle(self._content))
@@ -328,8 +338,8 @@ class Nifti1Extensions(list):
     def count(self, ecode):
         """Returns the number of extensions matching a given *ecode*.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
           code : int | str
             The ecode can be specified either literal or as numerical value.
         """
@@ -347,8 +357,7 @@ class Nifti1Extensions(list):
     def get_sizeondisk(self):
         """Return the size of the complete header extensions in the NIfTI file.
         """
-        # add four bytes for the NIfTI extension flag!
-        return np.sum([e.get_sizeondisk() for e in self]) + 4
+        return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
         s = "Nifti1Extensions(%s)" \
@@ -356,12 +365,14 @@ class Nifti1Extensions(list):
         return s
 
     def __eq__(self, other):
+        if len(self) != len(other):
+            return False
         for i, e in enumerate(self):
             if not e == other[i]:
                 return False
         return True
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
 
         Write starts at fileobj current file position.
@@ -370,61 +381,41 @@ class Nifti1Extensions(list):
         ----------
         fileobj : file-like object
            Should implement ``write`` method
+        byteswap : boolean
+          Flag if byteswapping the data is required.
 
         Returns
         -------
         None
         '''
-        # not extensions -> nothing to do
-        if not len(self):
-            return
-
-        # since we have extensions write the appropriate flag
-        fileobj.write(np.array((1, 0, 0, 0), dtype=np.int8).tostring())
-        # and now each extension
         for e in self:
-            e.write_to(fileobj)
+            e.write_to(fileobj, byteswap)
 
     @classmethod
-    def from_fileobj(klass, fileobj, size):
+    def from_fileobj(klass, fileobj, size, byteswap):
         '''Read header extensions from a fileobj
 
         Parameters
         ----------
         fileobj : file-like object
-          It is assumed to be positions right after the NIfTI magic field.
+            We begin reading the extensions at the current file position
         size : int
-          Number of bytes to read. If negative, fileobj will be read till its
-          end.
+            Number of bytes to read. If negative, fileobj will be read till its
+            end.
+        byteswap : boolean
+            Flag if byteswapping the read data is required.
 
         Returns
         -------
-          An extension list. This list might be empty in case not extensions
-          were present in fileobj.
+        An extension list. This list might be empty in case not extensions
+        were present in fileobj.
         '''
         # make empty extension list
         extensions = klass()
-        # assume the fileptr is just after header (magic field)
-        # try reading the next 4 bytes after the initial header
-        extension_status = fileobj.read(4)
-        if not len(extension_status):
-            # if there is nothing the NIfTI standard requires to assume zeros
-            extension_status = np.zeros((4,), dtype=np.int8)
-        else:
-            extension_status = np.fromstring(extension_status, dtype=np.int8)
-
-        # NIfTI1 says: if first element is non-zero there are extensions present
-        # if not there is nothing left to do
-        if not extension_status[0]:
-            return extensions
-
-        # note that we read the extension flag
-        if not size < 0:
-            size = size - 4
+        # assume the file pointer is at the beginning of any extensions.
         # read until the whole header is parsed (each extension is a multiple
         # of 16 bytes) or in case of a separate header file till the end
         # (break inside the body)
-        # XXX not sure if the separate header behavior is sane
         while size >= 16 or size < 0:
             # the next 8 bytes should have esize and ecode
             ext_def = fileobj.read(8)
@@ -436,6 +427,8 @@ class Nifti1Extensions(list):
             if not len(ext_def) == 8:
                 raise HeaderDataError('failed to read extension header')
             ext_def = np.fromstring(ext_def, dtype=np.int32)
+            if byteswap:
+                ext_def = ext_def.byteswap()
             # be extra verbose
             ecode = ext_def[1]
             esize = ext_def[0]
@@ -463,7 +456,18 @@ class Nifti1Extensions(list):
 
 
 class Nifti1Header(SpmAnalyzeHeader):
-    ''' Class for NIFTI1 header '''
+    ''' Class for NIFTI1 header 
+    
+    The NIFTI1 header has many more coded fields than the simpler Analyze
+    variants.  Nifti1 headers also have extensions.
+
+    Nifti allows the header to be a separate file, as part of a nifti image /
+    header pair, or to precede the data in a single file.  The object needs to
+    know which type it is, in order to manage the voxel offset pointing to the
+    data, extension reading, and writing the correct magic string.
+
+    This class handles the header-preceding-data case.
+    '''
     # Copies of module level definitions
     _dtype = header_dtype
     _data_type_codes = data_type_codes
@@ -479,6 +483,74 @@ class Nifti1Header(SpmAnalyzeHeader):
     has_data_slope = True
     has_data_intercept = True
 
+    # Extension class; should implement __call__ for contruction, and
+    # ``from_fileobj`` for reading from file
+    exts_klass = Nifti1Extensions
+
+    # Signal whether this is single (header + data) file
+    is_single = True
+
+    def __init__(self,
+                 binaryblock=None,
+                 endianness=None,
+                 check=True,
+                 extensions=()):
+        ''' Initialize header from binary data block and extensions
+        '''
+        super(Nifti1Header, self).__init__(binaryblock,
+                                           endianness,
+                                           check)
+        self.extensions = self.exts_klass(extensions)
+
+    def copy(self):
+        ''' Return copy of header
+
+        Take reference to extensions as well as copy of header contents
+        '''
+        return self.__class__(
+            self.binaryblock,
+            self.endianness, 
+            False,
+            self.extensions)
+
+    @classmethod
+    def from_fileobj(klass, fileobj, endianness=None, check=True):
+        raw_str = fileobj.read(klass._dtype.itemsize)
+        hdr = klass(raw_str, endianness, check)
+        # Read next 4 bytes to see if we have extensions.  The nifti standard
+        # has this as a 4 byte string; if the first value is not zero, then we
+        # have extensions.  
+        extension_status = fileobj.read(4)
+        if len(extension_status) < 4 or extension_status[0] == '\x00':
+            return hdr
+        # If this is a detached header file read to end
+        if not klass.is_single:
+            extsize = -1
+        else: # otherwise read until the beginning of the data
+            extsize = hdr._header_data['vox_offset'] - fileobj.tell()
+        byteswap = endian_codes['native'] != hdr.endianness
+        hdr.extensions = klass.exts_klass.from_fileobj(fileobj, extsize, byteswap)
+        return hdr
+
+    def write_to(self, fileobj):
+        # First check that vox offset is large enough
+        if self.is_single:
+            vox_offset = self._header_data['vox_offset']
+            min_vox_offset = 352 + self.extensions.get_sizeondisk()
+            if vox_offset < min_vox_offset:
+                raise HeaderDataError('vox offset of %d, but need at least %d'
+                                      % (vox_offset, min_vox_offset))
+        super(Nifti1Header, self).write_to(fileobj)
+        if len(self.extensions) == 0:
+            # If single file, write required 0 stream to signal no extensions
+            if self.is_single:
+                fileobj.write('\x00' * 4)
+            return
+        # Signal there are extensions that follow
+        fileobj.write('\x01\x00\x00\x00')
+        byteswap = endian_codes['native'] != self.endianness
+        self.extensions.write_to(fileobj, byteswap)
+
     def get_best_affine(self):
         ''' Select best of available transforms '''
         hdr = self._header_data
@@ -492,8 +564,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         ''' Create empty header binary block with given endianness '''
         hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
         hdr_data['scl_slope'] = 1
-        hdr_data['magic'] = 'n+1'
-        hdr_data['vox_offset'] = 352
+        if self.is_single:
+            hdr_data['magic'] = 'n+1'
+            hdr_data['vox_offset'] = 352
+        else:
+            hdr_data['magic'] = 'ni1'
+            hdr_data['vox_offset'] = 0
         return hdr_data
 
     def get_qform_quaternion(self):
@@ -734,7 +810,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
 
-        Returnss
+        Returns
         -------
         freq : {None,0,1,2}
            Which data array axis is freqency encode direction
@@ -1131,9 +1207,12 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def _set_format_specifics(self):
         ''' Utility routine to set format specific header stuff '''
-        self._header_data['magic'] = 'n+1'
-        if self._header_data['vox_offset'] < 352:
-            self._header_data['vox_offset'] = 352
+        if self.is_single:
+            self._header_data['magic'] = 'n+1'
+            if self._header_data['vox_offset'] < 352:
+                self._header_data['vox_offset'] = 352
+        else:
+            self._header_data['magic'] = 'ni1'
 
     ''' Checks only below here '''
 
@@ -1248,17 +1327,8 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 class Nifti1PairHeader(Nifti1Header):
     ''' Class for nifti1 pair header '''
-    def _empty_headerdata(self, endianness=None):
-        ''' Create empty header binary block with given endianness '''
-        hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
-        hdr_data['scl_slope'] = 1
-        hdr_data['magic'] = 'ni1'
-        hdr_data['vox_offset'] = 0
-        return hdr_data
-
-    def _set_format_specifics(self):
-        ''' Utility routine to set format specific header stuff '''
-        self._header_data['magic'] = 'ni1'
+    # Signal whether this is single (header + data) file
+    is_single = False
 
 
 class Nifti1Pair(analyze.AnalyzeImage):
@@ -1269,18 +1339,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
         hdrf, imgf = klass._get_open_files(file_map, 'rb')
         header = klass.header_class.from_fileobj(hdrf)
         extra = None
-        # handle extensions
-        # assume the fileptr is just after header (magic field)
-        # determine how much to read when parsing the extensions
-        if header['vox_offset'] == 0:
-            # read till the end of the header
-            extsize = -1
-        else:
-            extsize = header['vox_offset'] - hdrf.tell()
-        extensions = Nifti1Extensions.from_fileobj(hdrf, extsize)
-        # XXX maybe always do that?
-        if len(extensions):
-            extra = {'extensions': extensions}
         affine = header.get_best_affine()
         hdr_copy = header.copy()
         data = klass.ImageArrayProxy(imgf, hdr_copy)
@@ -1295,11 +1353,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
                                               header,
                                               slope,
                                               inter)
-        if not self.extra.has_key('extensions'):
-            # no extensions: be nice and write appropriate flag
-            header_file.write(np.array((0, 0, 0, 0), dtype=np.int8).tostring())
-        else:
-            self.extra['extensions'].write_to(header_file)
 
     def update_header(self):
         ''' Harmonize header with image data and affine
@@ -1360,11 +1413,7 @@ class Nifti1Image(Nifti1Pair):
         # make sure that there is space for the header.  If any
         # extensions, figure out necessary vox_offset for extensions to
         # fit
-        if (self.extra.has_key('extensions') and
-            len(self.extra['extensions'])):
-            min_vox_offset = 348 + self.extra['extensions'].get_sizeondisk()
-        else:
-            min_vox_offset = 352
+        min_vox_offset = 352 + hdr.extensions.get_sizeondisk()
         if hdr['vox_offset'] < min_vox_offset:
             hdr['vox_offset'] = min_vox_offset
 

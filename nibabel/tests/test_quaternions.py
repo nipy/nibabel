@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test quaternion calculations '''
 
 import numpy as np
@@ -16,8 +24,8 @@ from nose.tools import assert_raises, assert_true, assert_false, \
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-import nibabel.quaternions as nq
-import nibabel.eulerangles as nea
+from .. import quaternions as nq
+from .. import eulerangles as nea
 
 # Example rotations '''
 eg_rots = []

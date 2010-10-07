@@ -1,11 +1,19 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for Euler angles '''
 
 import math
 import numpy as np
 from numpy import pi
 
-import nibabel.eulerangles as nea
-import nibabel.quaternions as nq
+from .. import eulerangles as nea
+from .. import quaternions as nq
 
 from nose.tools import assert_true, assert_false, assert_equal
 
@@ -30,7 +38,7 @@ def x_only(x):
          [0, cosx, -sinx],
          [0, sinx, cosx]])
 
-                 
+
 def y_only(y):
     cosy = np.cos(y)
     siny = np.sin(y)

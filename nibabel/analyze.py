@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header and image for the basic Mayo Analyze format
 
 =======================
@@ -126,20 +134,20 @@ The same for logging::
 '''
 import numpy as np
 
-from nibabel.volumeutils import pretty_mapping, endian_codes, \
+from .volumeutils import pretty_mapping, endian_codes, \
      native_code, swapped_code, \
      make_dt_codes,  \
      calculate_scale, allopen, shape_zoom_affine, \
      array_to_file, array_from_file, can_cast, \
      floating_point_types
 
-from nibabel.spatialimages import HeaderDataError, HeaderTypeError, \
+from .spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError, SpatialImage
 
-from nibabel import imageglobals as imageglobals
-from nibabel.fileholders import FileHolderError, copy_file_map
-from nibabel.batteryrunners import BatteryRunner, Report
-from nibabel.arrayproxy import ArrayProxy
+from . import imageglobals as imageglobals
+from .fileholders import FileHolderError, copy_file_map
+from .batteryrunners import BatteryRunner, Report
+from .arrayproxy import ArrayProxy
 
 
 # Sub-parts of standard analyze header from
@@ -253,7 +261,7 @@ class AnalyzeHeader(object):
             Default is True.
 
         Examples
-	--------
+        --------
         >>> hdr1 = AnalyzeHeader() # an empty header
         >>> hdr1.endianness == native_code
         True
@@ -358,6 +366,8 @@ class AnalyzeHeader(object):
                 # the presence of the mapping certifies the fields as
                 # being of the same meaning as for Analyze types
                 pass
+        # set any fields etc that are specific to this format (overriden by
+        # sub-classes)
         obj._set_format_specifics()
         if check:
             obj.check_fix()
@@ -949,7 +959,7 @@ class AnalyzeHeader(object):
                 return obj.get_value_label(key)
             except ValueError:
                 return obj[key]
-        
+
         return '\n'.join(
             [summary,
              pretty_mapping(self, _getter)])
@@ -994,18 +1004,6 @@ class AnalyzeHeader(object):
         >>> hdr.set_zooms((3, 2, 1))
         >>> hdr.default_x_flip
         True
-        >>> hdr.get_base_affine() # from center of image
-        array([[-3.,  0.,  0.,  3.],
-               [ 0.,  2.,  0., -4.],
-               [ 0.,  0.,  1., -3.],
-               [ 0.,  0.,  0.,  1.]])
-        >>> hdr.set_data_shape((3, 5))
-        >>> hdr.get_base_affine()
-        array([[-3.,  0.,  0.,  3.],
-               [ 0.,  2.,  0., -4.],
-               [ 0.,  0.,  1., -0.],
-               [ 0.,  0.,  0.,  1.]])
-        >>> hdr.set_data_shape((3, 5, 7))
         >>> hdr.get_base_affine() # from center of image
         array([[-3.,  0.,  0.,  3.],
                [ 0.,  2.,  0., -4.],

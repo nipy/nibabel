@@ -1,10 +1,18 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading functions for SPM2 version of analyze format '''
 
 import numpy as np
 
-from nibabel.spatialimages import HeaderDataError
-from nibabel.batteryrunners import Report
-from nibabel import spm99analyze as spm99 # module import
+from .spatialimages import HeaderDataError
+from .batteryrunners import Report
+from . import spm99analyze as spm99 # module import
 
 image_dimension_dtd = spm99.image_dimension_dtd[:]
 image_dimension_dtd[
