@@ -32,8 +32,8 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
-from nisext.sexts import get_build_cmd, package_check
-cmdclass = {'build_py': get_build_cmd('nibabel')}
+from nisext.sexts import get_comrec_build, package_check
+cmdclass = {'build_py': get_comrec_build('nibabel')}
 
 # Get version and release info, which is all stored in nibabel/info.py
 ver_file = os.path.join('nibabel', 'info.py')
