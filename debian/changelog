@@ -1,10 +1,11 @@
-nibabel-snapshot (0.9.0~dev-1) UNRELEASED; urgency=low
+nibabel-snapshot (1.0.0~dev-1) UNRELEASED; urgency=low
 
+  * New upstream release. This new code is pure-Python. Binary package is
+    now arch:all.
   * Bumped Debian Standards-version to 3.9.1, no changes necessary.
-  * The new code is pure-Python. Binary package is arch:all 
   * Switched packaging to debhelper's 'dh'.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Thu, 07 Oct 2010 09:28:42 -0400
+ -- Michael Hanke <michael.hanke@gmail.com>  Fri, 08 Oct 2010 13:57:34 -0400
 
 pynifti (0.20090303.1-1) unstable; urgency=low
 
