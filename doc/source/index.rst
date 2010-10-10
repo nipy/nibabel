@@ -15,6 +15,8 @@ Documentation
 * :ref:`User Documentation <manual>` (manual)
 * :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
+* :ref:`Developer discussions <chap_devdiscuss>` (arcane discussions about code
+  design)
 * :ref:`Development Changelog <changelog>` (see what has changed)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)

@@ -13,11 +13,13 @@
 NiBabel Developer Guidelines
 ****************************
 
+NiBabel source code
+===================
+
 .. toctree::
     :maxdepth: 2
 
     gitwash/index
-    refactoring/index
 
 Documentation
 =============
@@ -86,10 +88,11 @@ Merges
 ------
 
 For easy tracking of what changes were absorbed during merge, we
-advice to enable merge summary within git:
+advise that you enable merge summaries within git:
 
   git-config merge.summary true
 
+See :ref:`configure-git` for more detail.
 
 Changelog
 =========
