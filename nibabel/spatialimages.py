@@ -381,12 +381,12 @@ class SpatialImage(object):
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_filespec(klass, img, filespec):
+    def from_filespec(klass, filespec):
         warnings.warn('``from_filespec`` class method is deprecated\n'
                       'Please use the ``from_filename`` class method '
                       'instead',
-                      DeprecationWarning)
-        klass.from_filespec(filespec)
+                      DeprecationWarning, stacklevel=2)
+        klass.from_filename(filespec)
 
     @classmethod
     def from_file_map(klass, file_map):
@@ -397,7 +397,7 @@ class SpatialImage(object):
         warnings.warn('``from_files`` class method is deprecated\n'
                       'Please use the ``from_file_map`` class method '
                       'instead',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         return klass.from_file_map(file_map)
 
     @classmethod
@@ -419,7 +419,7 @@ class SpatialImage(object):
         warnings.warn('``filespec_to_files`` class method is deprecated\n'
                       'Please use the ``filespec_to_file_map`` class method '
                       'instead',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         return klass.filespec_to_file_map(filespec)
 
     def to_filename(self, filename):
@@ -442,7 +442,7 @@ class SpatialImage(object):
     def to_filespec(self, filename):
         warnings.warn('``to_filespec`` is deprecated, please '
                       'use ``to_filename`` instead',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         self.to_filename(filename)
 
     def to_file_map(self, file_map=None):
@@ -452,7 +452,7 @@ class SpatialImage(object):
         warnings.warn('``to_files`` method is deprecated\n'
                       'Please use the ``to_file_map`` method '
                       'instead',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         self.to_file_map(file_map)
 
     @classmethod
@@ -495,7 +495,7 @@ class SpatialImage(object):
         warnings.warn('``save`` class method is deprecated\n'
                       'You probably want the ``to_filename`` instance '
                       'method, or the module-level ``save`` function',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         klass.instance_to_filename(img, filename)
 
     @classmethod
