@@ -32,7 +32,7 @@ sys.path.append(os.path.abspath('../sphinxext'))
 
 # We load the nibabel release info into a dict by explicit execution
 rel = {}
-execfile('../../nibabel/version.py', rel)
+execfile('../../nibabel/info.py', rel)
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
