@@ -1,3 +1,7 @@
+.. -*- rest -*-
+.. vim:syntax=rest
+
+
 =======
 NiBabel
 =======
