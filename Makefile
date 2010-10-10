@@ -133,9 +133,12 @@ upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
 		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/nibabel/
 
-upload-htmldoc: htmldoc
+# This one udates for the specific user named at the top of the makefile
+upload-htmldoc: htmldoc upload-htmldoc-$(SF_USER)
+
+upload-htmldoc-%: htmldoc
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
-		$(SF_USER),nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+		$*,nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
 
 #
 # Sources
