@@ -18,6 +18,7 @@ Documentation
 * :ref:`Developer discussions <chap_devdiscuss>` (arcane discussions about code
   design)
 * :ref:`Development Changelog <changelog>` (see what has changed)
+* :ref:`DICOM concepts <dicom>` (details about implementing DICOM reading)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)
 
