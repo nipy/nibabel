@@ -63,6 +63,7 @@ def main(**extra_args):
           platforms=PLATFORMS,
           version=VERSION,
           requires=REQUIRES,
+          provides=PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
                           'nibabel.gifti',
@@ -73,16 +74,16 @@ def main(**extra_args):
                           # required in setup.py, hence needs to go into source
                           # dist
                           'nisext'],
-          # this has no effect for me (on python 2.6) -- even changing to
-          # data_files doesn't get this stuff included in the source
+          # The package_data spec has no effect for me (on python 2.6) -- even
+          # changing to data_files doesn't get this stuff included in the source
           # distribution -- not sure if it has something to do with the magic
           # above, but distutils is surely the worst piece of code in all of
-          # python -- moving things into MANIFEST.in but this is admittedly
+          # python -- duplicating things into MANIFEST.in but this is admittedly
           # only a workaround to get things started -- not a solution
-          #package_data = {'nibabel':
-          #                [pjoin('tests', 'data', '*'),
-          #                 pjoin('nicom', 'tests', 'data', '*'),
-          #                ]},
+          package_data = {'nibabel':
+                          [pjoin('tests', 'data', '*'),
+                           pjoin('nicom', 'tests', 'data', '*'),
+                          ]},
           scripts      = [pjoin('bin', 'parrec2nii')],
           cmdclass = cmdclass,
           **extra_args

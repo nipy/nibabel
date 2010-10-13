@@ -50,6 +50,11 @@ The various image format classes give full or selective access to header (meta)
 information and access to the image data is made available via NumPy arrays.
 """
 
+# versions for dependencies
+NUMPY_MIN_VERSION='1.2'
+PYDICOM_MIN_VERSION='0.9.5'
+
+# Main setup parameters
 NAME                = 'nibabel'
 MAINTAINER          = "Matthew Brett and Michael Hanke"
 MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
@@ -67,8 +72,5 @@ MINOR               = _version_minor
 MICRO               = _version_micro
 ISRELEASE           = _version_extra == ''
 VERSION             = __version__
-REQUIRES            = ["numpy"]
-
-# versions
-NUMPY_MIN_VERSION='1.2'
-PYDICOM_MIN_VERSION='0.9.5'
+PROVIDES            = ["nibabel"]
+REQUIRES            = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
