@@ -1,19 +1,32 @@
-.. This (-*- rst -*-) format file contains commonly used link targets
+.. -*- rst -*-
+.. vim: ft=rst
+
+.. This rst format file contains commonly used link targets
    and name substitutions.  It may be included in many files,
    therefore it should only contain link targets and name
    substitutions.  Try grepping for "^\.\. _" to find plausible
    candidates for this list.  
 
+
 .. NOTE: reST targets are
    __not_case_sensitive__, so only one target definition is needed for
    nipy, NIPY, Nipy, etc...
 
-.. _nipy: http://nipy.org
+.. nibabel
+.. _nibabel: http://nipy.org/nibabel
+.. _`nibabel github`: http://github.com/nipy/nibabel
+.. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _nibabel pypi: http://pypi.python.org/pypi/nibabel
+
+.. other related projects
+.. _nipy community: http://nipy.org
+.. _nipy: http://nipy.org/nipy
 .. _`Brain Imaging Center`: http://bic.berkeley.edu/
 .. _dipy: http://nipy.org/dipy
 .. _`dipy github`: http://github.com/Garyfallidis/dipy
-.. _nibabel: http://nipy.sourceforge.net/nibabel
-.. _nipy development guidelines: http://nipy.sourceforge.net/devel
+.. _nibabel: http://nipy.org/nibabel
+.. _nipy development guidelines: http://nipy.org/devel
+.. _`nipy github`: http://github.com/nipy/nipy
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -28,6 +41,9 @@
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
 
+.. Installation
+.. _pypi: http://pypi.python.org/pypi
+
 .. Working process
 .. _pynifti: http://niftilib.sourceforge.net/pynifti/
 .. _nifticlibs: http://nifti.nimh.nih.gov
@@ -36,10 +52,9 @@
 .. _sourceforge: http://nipy.sourceforge.net/
 .. _`nipy launchpad`: https://launchpad.net/nipy
 .. _launchpad: https://launchpad.net/
-.. _`nipy trunk`: https://code.launchpad.net/~nipy-developers/nipy/trunk
+.. _`nipy trunk`: http://code.launchpad.net/~nipy-developers/nipy/trunk
 .. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
 .. _`nipy bugs`: https://bugs.launchpad.net/nipy
-.. _nibabel github: http://github.com/hanke/nibabel
 .. _sourceforge download page: http://sourceforge.net/projects/nipy/files
 
 .. Code support stuff
@@ -65,6 +80,8 @@
 .. _numpy: http://www.scipy.org/NumPy
 .. _scipy: http://www.scipy.org
 .. _ipython: http://ipython.scipy.org
+.. _`ipython github`: http://github.com/ipython/ipython
+.. _`ipython mailing list`: http://mail.scipy.org/mailman/listinfo/IPython-dev
 .. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
 .. _matplotlib: http://matplotlib.sourceforge.net
 .. _pythonxy: http://www.pythonxy.com
@@ -76,6 +93,7 @@
 .. _sympy: http://code.google.com/p/sympy/
 .. _networkx: http://networkx.lanl.gov/
 .. _setuptools: http://pypi.python.org/pypi/setuptools
+.. _distribute: http://packages.python.org/distribute
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
@@ -124,6 +142,7 @@
 .. _enthought: <http://www.enthought.com>
 .. _kitware: http://www.kitware.com
 .. _NeuroDebian: http://neuro.debian.net
+.. _nitrc: http://www.nitrc.org
 
 .. General information links
 .. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging

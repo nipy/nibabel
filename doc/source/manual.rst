@@ -8,6 +8,5 @@ NiBabel Manual
 
   installation
   gettingstarted
-  dicom/dicom
   legal
   changelog
