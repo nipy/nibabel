@@ -15,3 +15,4 @@ Contents:
    dicom_mosaic
    siemens_csa
    spm_dicom
+   dcm2nii_algorithms

@@ -75,4 +75,5 @@ search* located in the sidebar of the NiBabel home page.
 
    manual
    devguide
+   devdiscuss
    api
