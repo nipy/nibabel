@@ -70,6 +70,5 @@ VERSION             = __version__
 REQUIRES            = ["numpy"]
 
 # versions
-NUMPY_MIN_VERSION='1.0'
+NUMPY_MIN_VERSION='1.2'
 PYDICOM_MIN_VERSION='0.9.5'
-
