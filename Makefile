@@ -235,6 +235,9 @@ bdist_mpkg:
 check-version-info:
 	$(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
 
+# Run tests from installed code
+installed-tests:
+	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
 
 # Update nisext subtree from remote
 update-nisext:
