@@ -50,6 +50,7 @@
 ################
 build            # setup.py working directory
 _build           # sphinx build directory
+MANIFEST
 ./dist           # setup.py dist directory
 ./*.egg-info     # Egg metadata
 ./.shelf         # The shelf plugin uses this dir
