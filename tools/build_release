@@ -22,5 +22,6 @@ for d in ['build','dist',pjoin('docs','build'),pjoin('docs','dist')]:
 c('./setup.py sdist --formats=gztar,zip')
 
 # Build eggs
-#c('python2.5 ./setupegg.py bdist_egg')
-c('python2.6 ./setup_egg.py bdist_egg')
+for version in ['2.5', '2.6', '2.7']:
+    cmd='python'+version+' ./setup_egg.py bdist_egg'
+    stat = os.system(cmd)
