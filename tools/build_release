@@ -23,4 +23,4 @@ c('./setup.py sdist --formats=gztar,zip')
 
 # Build eggs
 #c('python2.5 ./setupegg.py bdist_egg')
-c('python2.6 ./setupegg.py bdist_egg')
+c('python2.6 ./setup_egg.py bdist_egg')
