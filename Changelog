@@ -6,11 +6,8 @@
 NiBabel Development Changelog
 -----------------------------
 
-Modifications are done by Michael Hanke, if not indicated otherwise. 'Closes'
-statement IDs refer to the Debian bug tracking system and can be queried by
-visiting the URL::
-
-  http://bugs.debian.org/<bug id>
+NiBabel is the successor to the much-loved PyNifti package. Here we list the
+releases for both packages.
 
 'Close gh-' statements refer to GitHub issues that are available at::
 
@@ -20,20 +17,49 @@ The full VCS changelog is available here:
 
   http://github.com/hanke/nibabel/commits/master
 
-
-Unreleased changes
-  Changes described here are not yet released, but available from VCS
-  repository.
-
-  * This is a complete rewrite of a pure-Python module to access various
-    neuroimaging data formats. It replaces the now obsolete PyNIfTI.
-  * Support for SPM-style ANALYZE images.
-  * MINC format support.
-  * Comprehensive unittest suite.
-
-
 Releases
 ~~~~~~~~
+
+NiBabel
++++++++
+
+Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
+(MH).
+
+* 1.0.0 (Thursday, 13, Oct 2010)
+
+  * This is the first public release of the NiBabel package.
+  * NiBabel is a complete rewrite of the PyNifti package in pure python.  It was
+    designed to make the code simpler and easier to work with. Like PyNifti,
+    NiBabel has fairly comprehensive NIfTI read and write support.
+  * Extended support for SPM Analyze images, including orientation affines from
+    matlab ``.mat`` files.
+  * Basic support for simple MINC 1.0 files (MB).  Please let us know if you
+    have MINC files that we don't support well.
+  * Support for reading and writing PAR/REC images (MH)
+  * Very preliminary, limited and highly experimental DICOM reading support (MB,
+    Ian Nimmo Smith).
+  * Some functions (`nibabel.funcs`) for basic image shape changes, including
+    the ability to transform to the image with data closest to the cononical
+    image orientation (first axis left-to-right, second back-to-front, third
+    down-to-up) (MB, Jonathan Taylor)
+  * Gifti format read and write support (preliminary) (Stephen Gerhard) 
+  * Added utilities to use nipy-style data packages, by rip then edit of nipy
+    data package code (MB)
+  * Some improvements to release support (Jarrod Millman, MB, Fernando Perez)
+  * Huge downward step in the quality and coverage by the docs, caused by MB,
+    mostly fixed by a lot of good work by MH.
+  * NiBabel will not work with Python < 2.5, and we haven't even tested it with
+    Python 3.  We will get to it soon...
+
+PyNifti
++++++++
+
+Modifications are done by Michael Hanke, if not indicated otherwise. 'Closes'
+statement IDs refer to the Debian bug tracking system and can be queried by
+visiting the URL::
+
+  http://bugs.debian.org/<bug id>
 
 * 0.20090303.1 (Tue, 3 Mar 2009)
 
