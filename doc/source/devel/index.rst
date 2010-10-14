@@ -11,4 +11,4 @@ Developer documentation page
 
     devguide
     devdiscuss
-    make-release
+    make_release
