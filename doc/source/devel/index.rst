@@ -1,9 +1,14 @@
 .. -*- mode: rst -*-
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
 
-.. toctree::
-   :hidden:
+.. _devindex:
 
-   devguide
-   devdiscuss
-   make-release
+Developer documentation page
+============================
+
+.. toctree::
+    :maxdepth: 2
+
+    devguide
+    devdiscuss
+    make-release
