@@ -75,7 +75,7 @@ search* located in the sidebar of the NiBabel home page.
    :hidden:
 
    manual
-   devguide
-   devdiscuss
+   devel/devguide
+   devel/devdiscuss
    dicom/dicom
    api

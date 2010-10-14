@@ -19,7 +19,7 @@ NiBabel source code
 .. toctree::
     :maxdepth: 2
 
-    gitwash/index
+    ../gitwash/index
 
 Documentation
 =============
