@@ -72,3 +72,4 @@ Thumbs.db
 # Things specific to this project #
 ###################################
 nibabel.egg-info/
+doc/source/generated
