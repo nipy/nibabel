@@ -37,6 +37,7 @@ Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
   * Basic support for simple MINC 1.0 files (MB).  Please let us know if you
     have MINC files that we don't support well.
   * Support for reading and writing PAR/REC images (MH)
+  * ``parrec2nii`` script to convert PAR/REC images to NIfTI format (MH)
   * Very preliminary, limited and highly experimental DICOM reading support (MB,
     Ian Nimmo Smith).
   * Some functions (`nibabel.funcs`) for basic image shape changes, including
