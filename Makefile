@@ -239,6 +239,10 @@ check-version-info:
 installed-tests:
 	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
 
+# Run tests from installed code
+sdist-tests:
+	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
+
 # Update nisext subtree from remote
 update-nisext:
 	git fetch nisext
