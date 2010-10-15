@@ -13,6 +13,7 @@ The typical use for this module is as a makefile target, as in::
 
 import os
 from os.path import join as pjoin
+from glob import glob
 import shutil
 import tempfile
 import zipfile
@@ -23,8 +24,16 @@ my_call = partial(call, shell=True)
 
 PY_LIB_SDIR = 'pylib'
 
-def sys_print_info(mod_name, pkg_path):
-    ''' Run info print in own process in anonymous path
+def run_mod_cmd(mod_name, pkg_path, cmd):
+    ''' Run command in own process in anonymous path
+
+    Parameters
+    ----------
+    mod_name : str
+        Name of module to import - e.g. 'nibabel'
+    pkg_path : str
+        directory containing `mod_name` package.  Typically that will be the
+        directory containing the e.g. 'nibabel' directory.
     '''
     cwd = os.getcwd()
     tmpdir = tempfile.mkdtemp()
@@ -33,10 +42,10 @@ def sys_print_info(mod_name, pkg_path):
         my_call('python -c "import sys; sys.path.insert(1,\'%s\'); '
                 'import %s;'
                 'print %s.__file__;'
-                'print %s.get_info()"' % (pkg_path,
-                                          mod_name,
-                                          mod_name,
-                                          mod_name))
+                '%s"' % (pkg_path,
+                         mod_name,
+                         mod_name,
+                         cmd))
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmpdir)
@@ -131,8 +140,6 @@ def contexts_print_info(mod_name, repo_path, install_path):
        path into which to install temporary installations
     '''
     site_pkgs_path = os.path.join(install_path, PY_LIB_SDIR)
-    py_lib_locs = ' --install-purelib=%s --install-platlib=%s' % (
-        site_pkgs_path, site_pkgs_path)
     # first test archive
     pwd = os.path.abspath(os.getcwd())
     out_fname = pjoin(install_path, 'test.zip')
@@ -146,19 +153,20 @@ def contexts_print_info(mod_name, repo_path, install_path):
     site_pkgs_path = install_from_to(install_from,
                                      install_path,
                                      PY_LIB_SDIR)
-    sys_print_info(mod_name, site_pkgs_path)
+    cmd_str = 'print %s.get_info()' % mod_name
+    run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
     # now test install into a directory from the repository
     site_pkgs_path = install_from_to(repo_path,
                                      install_path,
                                      PY_LIB_SDIR)
-    sys_print_info(mod_name, site_pkgs_path)
+    run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
     # Take the opportunity to audit the py files
     repo_mod_path = os.path.join(repo_path, mod_name)
     install_mod_path = os.path.join(site_pkgs_path, mod_name)
     print 'Files not taken across by the installation:'
     print check_installed_files(repo_mod_path, install_mod_path)
     # test from development tree
-    sys_print_info(mod_name, repo_path)
+    run_mod_cmd(mod_name, repo_path, cmd_str)
     return
 
 
@@ -181,3 +189,64 @@ def info_from_here(mod_name):
         shutil.rmtree(install_path)
 
 
+def tests_installed(mod_name, source_path=None):
+    """ Install from `source_path` into temporary directory; run tests
+
+    Parameters
+    ----------
+    mod_name : str
+        name of module - e.g. 'nibabel'
+    source_path : None or str
+        Path from which to install.  If None, defaults to working directory
+    """
+    if source_path is None:
+        source_path = os.path.abspath(os.getcwd())
+    install_path = tempfile.mkdtemp()
+    try:
+        site_pkgs_path = install_from_to(source_path,
+                                         install_path,
+                                         PY_LIB_SDIR)
+        run_mod_cmd(mod_name, site_pkgs_path, mod_name + '.test()')
+    finally:
+        shutil.rmtree(install_path)
+
+# Tell nose this is not a test
+tests_installed.__test__ = False
+
+
+def tests_from_zip(mod_name, zip_fname):
+    """ Runs test from sdist zip source archive """
+    install_path = tempfile.mkdtemp()
+    try:
+        zip_extract_all(zip_fname, install_path)
+        pkg_dirs = glob(pjoin(install_path, mod_name + "*"))
+        if len(pkg_dirs) != 1:
+            raise OSError('There must be one and only one package dir')
+        pkg_contents = pjoin(install_path, pkg_dirs[0])
+        tests_installed(mod_name, pkg_contents)
+    finally:
+        shutil.rmtree(install_path)
+
+tests_from_zip.__test__ = False
+
+
+def sdist_tests(mod_name, repo_path=None):
+    """ Make sdist zip, install from it, and run tests """
+    pwd = os.path.abspath(os.getcwd())
+    if repo_path is None:
+        repo_path = pwd
+    install_path = tempfile.mkdtemp()
+    try:
+        os.chdir(repo_path)
+        my_call('python setup.py sdist --formats=zip --dist-dir='
+                + install_path)
+        zip_fnames = glob(pjoin(install_path, mod_name + "*.zip"))
+        if len(zip_fnames) != 1:
+            raise OSError('There must be one and only one zip file, '
+                          'but I found "%s"' % ': '.join(zip_fnames))
+        tests_from_zip(mod_name, zip_fnames[0])
+    finally:
+        os.chdir(pwd)
+        shutil.rmtree(install_path)
+
+sdist_tests.__test__ = False

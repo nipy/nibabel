@@ -1,3 +1,6 @@
+.. -*- rest -*-
+.. vim:syntax=rest
+
 =======
 NiBabel
 =======
@@ -16,6 +19,20 @@ PyNIfTI_.
 The various image format classes give full or selective access to header (meta)
 information and access to the image data is made available via NumPy arrays.
 
+Website
+=======
+
+Current information can always be found at the NIPY nibabel website::
+
+    http://nipy.org/nibabel
+
+Mailing Lists
+=============
+
+Please see the developer's list here::
+
+    http://mail.scipy.org/mailman/listinfo/nipy-devel
+
 Code
 ====
 
@@ -30,3 +47,11 @@ You can find our sources and single-click downloads:
 .. _Documentation: http://nipy.org/nibabel
 .. _current trunk: http://github.com/nipy/nibabel/archives/master
 .. _available releases: http://github.com/nipy/nibabel/downloads
+
+License
+=======
+
+Nibabel is licensed under the terms of the MIT license. Some code included with
+nibabel is licensed under the BSD license.  Please the COPYING file in the
+nibabel distribution.
+

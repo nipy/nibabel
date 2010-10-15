@@ -13,17 +13,39 @@
 Installation
 ************
 
-It should be easy to get NiBabel running on any system. For the most popular
-platforms and operating systems there are binary packages provided in the
-respective native packaging format (DEB, RPM or installers). On all other
-systems NiBabel has to be compiled from source -- which should also be pretty
-straightforward.
+NiBabel is a pure python package at the moment, and it should be easy to get
+NiBabel running on any system. For the most popular platforms and operating
+systems there should be packages in the respective native packaging format
+(DEB, RPM or installers). On other systems you can install NiBabel using
+``easy_install`` or by downloading the source package and running the usual
+``python setup.py install``.
 
-To run all of the tests, you may need some extra data packages - see
-:ref:`installing-data`. 
+.. This remark below is not yet true; comment to avoid confusion
+   To run all of the tests, you may need some extra data packages - see
+   :ref:`installing-data`.
 
 Installer and packages
 ======================
+
+.. _install_pypi:
+
+The python package index
+------------------------
+
+NiBabel is available via `pypi`_.  If you already have setuptools_ or
+distribute_ installed, you can run::
+
+    easy_install nibabel
+
+to download nibabel and its dependencies.  Alternatively go to the `nibabel
+pypi`_ page and select the source distribution you want.  Download the
+distribution, unpack it, and then, from the unpacked directory, run::
+
+    python setup.py install
+
+or (if you need root permission to install on a unix system)::
+
+    sudo python setup.py install
 
 .. _install_debian:
 
@@ -37,21 +59,23 @@ installing NiBabel is::
   apt-get update
   apt-get install python-nibabel
 
-.. _NeuroDebian package: http://neuro.debian.net/pkgs/python-nibabel-snapshot.html
-
-
+.. _NeuroDebian package: http://neuro.debian.net/pkgs/python-nibabel.html
 
 Install from source
 ===================
 
 If no installer or package is provided for your platfom, you can install
-NiBabel from source. It needs a few things to run properly:
+NiBabel from source.
+
+Requirements
+------------
 
 *  Python_ 2.5 or greater
-*  NumPy_
-*  SciPy_ (for SPM-ANALYZE support)
-*  PyDICOM_ (for DICOM support)
-
+*  NumPy_ 1.2 or greater
+*  SciPy_ (for full SPM-ANALYZE support)
+*  PyDICOM_ 0.9.5 or greater (for DICOM support)
+*  nose_ 0.11 or greater (to run the tests)
+*  sphinx_ (to build the documentation)
 
 Get the sources
 ---------------
@@ -66,8 +90,13 @@ If you want to have access to the full NiBabel history and the latest
 development code, do a full clone (aka checkout) of the NiBabel
 repository::
 
+  git clone git://github.com/nipy/nibabel.git
+
+or::
+
   git clone http://github.com/nipy/nibabel.git
 
+(The first will be faster, the second more likely to work behind a firewall).
 
 Installation
 ------------

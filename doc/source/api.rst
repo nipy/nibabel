@@ -21,11 +21,11 @@ File Formats
    :toctree: generated
 
    analyze
-   dicom
    spm2analyze
    spm99analyze
    gifti
    minc
+   nicom
    nifti1
    parrec
    trackvis

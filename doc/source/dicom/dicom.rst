@@ -15,3 +15,10 @@ Contents:
    dicom_mosaic
    siemens_csa
    spm_dicom
+
+.. these documents not yet ready for public advertisement
+
+.. toctree::
+    :hidden:
+
+    dcm2nii_algorithms

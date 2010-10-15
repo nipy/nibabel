@@ -11,8 +11,8 @@ import os
 
 from .info import __version__, long_description as __doc__
 __doc__ += """
- Quickstart
-============
+Quickstart
+==========
 
 ::
 
@@ -31,6 +31,8 @@ __doc__ += """
 
    new_image = nib.Nifti1Image(data, affine)
    nib.save(new_image, 'new_image.nii.gz')
+
+For more detailed information see the :ref:`manual`.
 """
 # module imports
 from . import analyze as ana

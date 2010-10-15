@@ -9,7 +9,8 @@ docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
 _version_major = 1
 _version_minor = 0
 _version_micro = 0
-_version_extra = '.dev'
+# _version_extra = '.dev'
+_version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
@@ -48,8 +49,49 @@ PyNIfTI_.
 
 The various image format classes give full or selective access to header (meta)
 information and access to the image data is made available via NumPy arrays.
+
+Website
+=======
+
+Current information can always be found at the NIPY nibabel website::
+
+    http://nipy.org/nibabel
+
+Mailing Lists
+=============
+
+Please see the developer's list here::
+
+    http://mail.scipy.org/mailman/listinfo/nipy-devel
+
+Code
+====
+
+You can find our sources and single-click downloads:
+
+* `Main repository`_ on Github.
+* Documentation_ for all releases and current development tree.
+* Download as a tar/zip file the `current trunk`_.
+* Downloads of all `available releases`_.
+
+.. _main repository: http://github.com/nipy/nibabel
+.. _Documentation: http://nipy.org/nibabel
+.. _current trunk: http://github.com/nipy/nibabel/archives/master
+.. _available releases: http://github.com/nipy/nibabel/downloads
+
+License
+=======
+
+Nibabel is licensed under the terms of the MIT license. Some code included with
+nibabel is licensed under the BSD license.  Please the COPYING file in the
+nibabel distribution.
 """
 
+# versions for dependencies
+NUMPY_MIN_VERSION='1.2'
+PYDICOM_MIN_VERSION='0.9.5'
+
+# Main setup parameters
 NAME                = 'nibabel'
 MAINTAINER          = "Matthew Brett and Michael Hanke"
 MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
@@ -67,9 +109,5 @@ MINOR               = _version_minor
 MICRO               = _version_micro
 ISRELEASE           = _version_extra == ''
 VERSION             = __version__
-REQUIRES            = ["numpy"]
-
-# versions
-NUMPY_MIN_VERSION='1.0'
-PYDICOM_MIN_VERSION='0.9.5'
-
+PROVIDES            = ["nibabel"]
+REQUIRES            = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
