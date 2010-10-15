@@ -6,6 +6,13 @@
 # need to enforce distutils, since we also have a makefile
 	dh $@ --buildsystem=python_distutils --builddirectory=build
 
+override_dh_auto_build:
+	dh_auto_build
+	# and docs
+	$(MAKE) htmldoc
+	# but remove jquery copy (later on link to Debian's version)
+	rm build/html/_static/jquery.js build/html/objects.inv
+
 # enable when we believe that the tests should pass
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -26,5 +33,5 @@ override_dh_installman:
 	dh_installman build/parrec2nii.1
 
 override_dh_clean:
-	-rm -rf build
+	$(MAKE) clean
 	dh_clean
