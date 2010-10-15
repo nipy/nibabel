@@ -2,24 +2,44 @@ Description: Disable the unit tests on Debian lenny, because they need NumPy 1.2
   which is not available.
 Forwarded: not-needed
 Author: Michael Hanke <michael.hanke@gmail.com>
-diff --git a/debian/control b/debian/control
-index e43d240..45034ca 100644
---- a/debian/control
-+++ b/debian/control
-@@ -3,7 +3,7 @@ Section: python
- Priority: extra
- Maintainer: NeuroDebian Team <team@neuro.debian.net>
- Uploaders: Michael Hanke <michael.hanke@gmail.com>, Yaroslav Halchenko <debian@onerussian.com>
--Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1.2), python-nose, python-scipy, help2man, python-sphinx
-+Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1), python-nose, python-scipy, help2man, python-sphinx
- Standards-Version: 3.9.1
- Homepage: http://nipy.sourceforge.net/nibabel
- Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
+diff --git a/nibabel/info.py b/nibabel/info.py
+index d05485f..081d6fb 100644
+--- a/nibabel/info.py
++++ b/nibabel/info.py
+@@ -88,7 +88,7 @@ nibabel distribution.
+ """
+ 
+ # versions for dependencies
+-NUMPY_MIN_VERSION='1.2'
++NUMPY_MIN_VERSION='1.0'
+ PYDICOM_MIN_VERSION='0.9.5'
+ 
+ # Main setup parameters
+diff --git a/debian/python-nibabel-doc.docs b/debian/python-nibabel-doc.docs
+index 6d28621..e69de29 100644
+--- a/debian/python-nibabel-doc.docs
++++ b/debian/python-nibabel-doc.docs
+@@ -1 +0,0 @@
+-build/html
 diff --git a/debian/rules b/debian/rules
-index e930b26..ce4a0ad 100755
+index e930b26..f75e5ba 100755
 --- a/debian/rules
 +++ b/debian/rules
-@@ -21,8 +21,8 @@ override_dh_auto_build:
+@@ -8,21 +8,14 @@
+ 
+ override_dh_auto_build:
+ 	dh_auto_build
+-	# and docs
+-	$(MAKE) htmldoc
+-	# but remove jquery copy (later on link to Debian's version)
+-	-rm build/html/_static/jquery.js
+-	# objects inventory is of no use for the package
+-	-rm build/html/objects.inv
+-	# also doc source files only consume space
+-	-rm -r build/html/_sources
++	# and docs -- nope on lenny since it needs numpy 1.2
+ 
+ # enable when we believe that the tests should pass
  override_dh_auto_test:
  ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
  	for buildver in $(shell pyversions -vr); do \
@@ -30,3 +50,28 @@ index e930b26..ce4a0ad 100755
  	done
  endif
  
+@@ -31,11 +24,6 @@ endif
+ override_dh_compress:
+ 	dh_compress -X.py -X.html -X.css -X.jpg -X.txt -X.js -X.json -X.rtc -X.par -X.bin
+ 
+-override_dh_installman:
+-	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+-		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
+-	dh_installman build/parrec2nii.1
+-
+ override_dh_clean:
+ 	$(MAKE) clean
+ 	dh_clean
+diff --git a/debian/control b/debian/control
+index e43d240..6921705 100644
+--- a/debian/control
++++ b/debian/control
+@@ -3,7 +3,7 @@ Section: python
+ Priority: extra
+ Maintainer: NeuroDebian Team <team@neuro.debian.net>
+ Uploaders: Michael Hanke <michael.hanke@gmail.com>, Yaroslav Halchenko <debian@onerussian.com>
+-Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1.2), python-nose, python-scipy, help2man, python-sphinx
++Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1), python-nose, python-scipy
+ Standards-Version: 3.9.1
+ Homepage: http://nipy.sourceforge.net/nibabel
+ Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
