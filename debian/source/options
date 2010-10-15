@@ -1,0 +1,3 @@
+# ignore changes to the commit info file, since it will always have the
+# shasum of the release tag and the repository version does not.
+extend-diff-ignore = nibabel/COMMIT_INFO.txt
