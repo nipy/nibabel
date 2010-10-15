@@ -28,8 +28,8 @@ print
 
 # Perform local backup, go to tools dir to run it.
 cd(tooldir)
-c('./make_tarball.py')
-c('mv nibabel-*.tgz %s' % nibbackupdir)
+# c('./make_tarball.py')
+# c('mv nibabel-*.tgz %s' % nibbackupdir)
 
 # Build release files
 c('./build_release %s' % nibdir)
@@ -39,14 +39,14 @@ print "Registering with PyPI..."
 cd(nibdir)
 c('./setup.py register')
 
-#### Upload all files
-###c('./setup.py sdist --formats=gztar,zip upload')
-###cd(distdir)
-###print "Uploading distribution files..."
-###c('scp * nibabel@nibabel.scipy.org:www/dist/')
-###
-###print "Uploading backup files..."
-###cd(nibbackupdir)
-###c('scp `ls -1tr *tgz | tail -1` nibabel@nibabel.scipy.org:www/backup/')
+# Upload all files
+c('./setup.py sdist --formats=gztar,zip upload')
+cd(distdir)
+#print "Uploading distribution files..."
+#c('scp * nibabel@nibabel.scipy.org:www/dist/')
+
+# print "Uploading backup files..."
+# cd(nibbackupdir)
+# c('scp `ls -1tr *tgz | tail -1` nibabel@nibabel.scipy.org:www/backup/')
 
 print "Done!"
