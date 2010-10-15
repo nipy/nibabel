@@ -1,7 +1,4 @@
 # Compulsory line, this is a version 3 file
 version=3
-
-http://sf.net/nipy nibabel-([\d\.]*)\.tar\.gz
-
-
-
+opts="filenamemangle=s/.*\/(.*)/nibabel-$1\.tar\.gz/" \
+  http://github.com/nipy/nibabel/downloads .*tarball/([\d\.a-z]+)
