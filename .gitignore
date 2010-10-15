@@ -1,8 +1,75 @@
+# Editor temporary/working/backup files #
+#########################################
+.#*
+[#]*#
+*~
+*$
+*.bak
+*.diff
+*.org
+.project
+*.rej
+.settings/
+.*.sw[nop]
+.sw[nop]
+*.tmp
+
+# Not sure what the next two are for
+*.kpf
 *-stamp
-*/*/*-stamp
-build
-*.swp
-*.pyc
-*.pyo
-nifti/_clib.so
-nifti/clib.py
+
+# Compiled source #
+###################
+*.a
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.py[oc]
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.bz2
+*.bzip2
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.tbz2
+*.tgz
+*.zip
+
+# Python files #
+################
+build            # setup.py working directory
+_build           # sphinx build directory
+MANIFEST
+./dist           # setup.py dist directory
+./*.egg-info     # Egg metadata
+./.shelf         # The shelf plugin uses this dir
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.gdb_history
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Things specific to this project #
+###################################
+nibabel.egg-info/
+doc/source/generated

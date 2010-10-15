@@ -1,55 +1,23 @@
-# Makefile to build PyNIfTI under Windows using a standard Python
-# distribution and MinGW
-#
-# Adjust this path to match the version and location of your Python
-# installation
-PYTHON_VERSION=2.5
-PYTHON_PATH=C:\\Python25
+# Makefile NiBabel under Windows using a standard Python distribution
 
-#
-# Building
-#
-
-all: build configure-inplace-use
-
-# build included 3rd party pieces (if present)
-3rd: 3rd-stamp
-3rd-stamp:
-	cd 3rd\nifticlibs & $(MAKE) -f Makefile.win
-
-
-build: 3rd build-stamp
-build-stamp:
-	set PYTHON_INCLUDE="$(PYTHON_PATH)\\include" \
-		& python setup.py build_ext -c mingw32
-
-
-installer: 3rd build
-# now build the installer
+installer: 
+	# now the installer
 	python setup.py bdist_wininst
-
-
-configure-inplace-use:
-	copy build\\lib.win32-$(PYTHON_VERSION)\\nifti\\_clib.pyd \
-		nifti
 
 #
 # Cleaning
 #
 
 clean:
-	-rmdir /S /Q build
+	-rmdir /S /Q
 	-del /S *.a *.o *.gch *.pyd
 
 #
 # Testing
 #
 
-ut-%: build configure-inplace-use
-	@set PYTHONPATH=$(CURDIR) & cd tests & python test_$*.py
-
-unittest: build configure-inplace-use
-	@set PYTHONPATH=$(CURDIR) & cd tests & python main.py
+unittest:
+	@set PYTHONPATH=$(CURDIR) & nosetests nibabel
 
 
 #

@@ -1,30 +1,41 @@
 #!/usr/bin/make -f
 # -*- mode: makefile; coding: utf-8 -*-
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-DEB_PYTHON_SYSTEM = pysupport
-DEB_PYTHON_MODULE_PACKAGE = python-nifti
-include /usr/share/cdbs/1/class/python-distutils.mk
+# one ring to rule them all ...
+%:
+# need to enforce distutils, since we also have a makefile
+	dh $@ --buildsystem=python_distutils --builddirectory=build
 
-clean::
-	$(MAKE) distclean
-
-build/python-nifti::
-	$(MAKE) unittest
+override_dh_auto_build:
+	dh_auto_build
+	# and docs
 	$(MAKE) htmldoc
-
-
-# use jquery from Debian package
-# symlinked by debhelper
-install/python-mvpa-doc::
+	# but remove jquery copy (later on link to Debian's version)
 	-rm build/html/_static/jquery.js
+	# objects inventory is of no use for the package
+	-rm build/html/objects.inv
+	# also doc source files only consume space
+	-rm -r build/html/_sources
 
+# enable when we believe that the tests should pass
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	for buildver in $(shell pyversions -vr); do \
+		echo "I: Running NiBabel unittests using python$$buildver"; \
+		$(MAKE) unittest PYTHON=python$$buildver || exit 1 ;\
+	done
+endif
 
-# install directly into package directory
-DEB_DESTDIR = $(CURDIR)/debian/python-nifti
-# immediately useable documentation
-# and exemplar data (they are small excerpts anyways)
-DEB_COMPRESS_EXCLUDE := .py .html .css .jpg .txt .js .json .rtc .par .bin
-# doc contents
-DEB_INSTALL_DOCS_python-nifti := build/html
+## immediately useable documentation
+## and exemplar data (they are small excerpts anyway)
+override_dh_compress:
+	dh_compress -X.py -X.html -X.css -X.jpg -X.txt -X.js -X.json -X.rtc -X.par -X.bin
 
+override_dh_installman:
+	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
+	dh_installman build/parrec2nii.1
+
+override_dh_clean:
+	$(MAKE) clean
+	dh_clean

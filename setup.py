@@ -1,109 +1,94 @@
 #!/usr/bin/env python
-#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
-#ex: set sts=4 ts=4 sw=4 et:
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
-#   See COPYING file distributed along with the PyNIfTI package for the
+#   See COPYING file distributed along with the NiBabel package for the
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Build helper."""
 
-__docformat__ = 'restructuredtext'
-
-
-from numpy.distutils.core import setup, Extension
-import os.path
+import os
+from os.path import join as pjoin
 import sys
-from glob import glob
 
-########################
-# Common configuration #
-########################
+# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
+# update it when the contents of directories change.
+if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
-extra_link_args = ['--Wl,--no-undefined']
-include_dirs = []
-library_dirs = []
-defines = []
-link_libs = []
-# for some additional swig flags, but see below
-swig_opts = []
-# a more reliable way to pass options to SWIG
-os.environ['SWIG_FEATURES'] = '-O -v'
+from distutils.core import setup
+
+# For some commands, use setuptools.  
+if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
+            'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
+            )).intersection(sys.argv)) > 0:
+    # setup_egg imports setuptools setup, thus monkeypatching distutils. 
+    from setup_egg import extra_setuptools_args
+
+# extra_setuptools_args can be defined from the line above, but it can
+# also be defined here because setup.py has been exec'ed from
+# setup_egg.py.
+if not 'extra_setuptools_args' in globals():
+    extra_setuptools_args = dict()
+
+from nisext.sexts import get_comrec_build, package_check
+cmdclass = {'build_py': get_comrec_build('nibabel')}
+
+# Get version and release info, which is all stored in nibabel/info.py
+ver_file = os.path.join('nibabel', 'info.py')
+execfile(ver_file)
+
+# Do dependency checking
+package_check('numpy', NUMPY_MIN_VERSION)
+package_check('dicom', PYDICOM_MIN_VERSION, optional=True)
+if 'setuptools' in sys.modules:
+    extra_setuptools_args['extras_require'] = dict(
+        doc='Sphinx>=0.3',
+        test='nose>=0.10.1',
+        nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
+
+def main(**extra_args):
+    setup(name=NAME,
+          maintainer=MAINTAINER,
+          maintainer_email=MAINTAINER_EMAIL,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          url=URL,
+          download_url=DOWNLOAD_URL,
+          license=LICENSE,
+          classifiers=CLASSIFIERS,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          platforms=PLATFORMS,
+          version=VERSION,
+          requires=REQUIRES,
+          provides=PROVIDES,
+          packages     = ['nibabel',
+                          'nibabel.externals',
+                          'nibabel.gifti',
+                          'nibabel.nicom',
+                          'nibabel.nicom.tests',
+                          'nibabel.testing',
+                          'nibabel.tests',
+                          # required in setup.py, hence needs to go into source
+                          # dist
+                          'nisext'],
+          # The package_data spec has no effect for me (on python 2.6) -- even
+          # changing to data_files doesn't get this stuff included in the source
+          # distribution -- not sure if it has something to do with the magic
+          # above, but distutils is surely the worst piece of code in all of
+          # python -- duplicating things into MANIFEST.in but this is admittedly
+          # only a workaround to get things started -- not a solution
+          package_data = {'nibabel':
+                          [pjoin('tests', 'data', '*'),
+                           pjoin('nicom', 'tests', 'data', '*'),
+                          ]},
+          scripts      = [pjoin('bin', 'parrec2nii')],
+          cmdclass = cmdclass,
+          **extra_args
+         )
 
 
-#############################
-# Check for 3rd party stuff #
-#############################
-
-# make use of the local nifticlibs copy, only if it was compiled before
-if os.path.exists(os.path.join('build', 'nifticlibs', 'libniftiio.a')):
-    include_dirs += [os.path.join('3rd', 'nifticlibs')]
-    library_dirs += [os.path.join('build', 'nifticlibs')]
-    # need to link against additional libs in case of the local static lib
-    link_libs += ['znz', 'z']
-else:
-    # try to look for nifticlibs in some place
-    if not sys.platform.startswith('win'):
-        include_dirs += ['/usr/include/nifti',
-                         '/usr/include/nifticlibs',
-                         '/usr/local/include/nifti',
-                         '/usr/local/include/nifticlibs',
-                         '/usr/local/include']
-    else:
-        # no clue on windows
-        pass
-
-
-###########################
-# Platform-specific setup #
-###########################
-
-# win32 stuff
-if sys.platform.startswith('win'):
-    os.environ['SWIG_FEATURES'] = '-DWIN32 ' + os.environ['SWIG_FEATURES']
-    defines.append(('WIN32', None))
-
-# apple stuff
-if sys.platform == "darwin":
-    extra_link_args.append("-bundle")
-
-
-##############
-# Extensions #
-##############
-
-nifticlib_ext = Extension(
-    'nifti._clib',
-    sources = ['nifti/clib.i'],
-    define_macros = defines,
-    include_dirs = include_dirs,
-    library_dirs = library_dirs,
-    libraries = ['niftiio'] + link_libs,
-    extra_link_args = extra_link_args,
-    swig_opts = swig_opts)
-
-# Notes on the setup
-# Version scheme is:
-# 0.<4-digit-year><2-digit-month><2-digit-day>.<ever-increasing-integer>
-
-setup(name       = 'pynifti',
-    version      = '0.20100607.1',
-    author       = 'Michael Hanke',
-    author_email = 'michael.hanke@gmail.com',
-    license      = 'MIT License',
-    url          = 'http://niftilib.sf.net/pynifti',
-    description  = 'Python interface for the NIfTI IO libraries',
-    long_description = \
-        "PyNIfTI aims to provide easy access to NIfTI images from within " \
-        "Python. It uses SWIG-generated wrappers for the NIfTI reference " \
-        "library and provides the NiftiImage class for Python-style " \
-        "access to the image data.\n" \
-        "While PyNIfTI is not yet complete (i.e. doesn't support " \
-        "everything the C library can do), it already provides access to " \
-        "the most important features of the NIfTI-1 data format and " \
-        "libniftiio capabilities.",
-    packages     = ['nifti'],
-    scripts      = glob('bin/*'),
-    ext_modules  = [nifticlib_ext]
-    )
+if __name__ == "__main__":
+    main(**extra_setuptools_args)

@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+"""PAR/REC to NIfTI converter
+"""
+
+from optparse import OptionParser, Option
+import sys
+import os
+import gzip
+import numpy as np
+import nibabel
+import nibabel.parrec as pr
+import nibabel.nifti1 as nifti1
+from nibabel.loadsave import read_img_data
+from nibabel.filename_parser import splitext_addext
+
+# global verbosity switch
+verbose_switch = False
+
+
+def get_opt_parser():
+    # use module docstring for help output
+    p = OptionParser(
+                usage="%s [OPTIONS] <PAR files>\n\n" % sys.argv[0] + __doc__,
+                version="%prog " + nibabel.__version__)
+
+    p.add_option(
+        Option("-v", "--verbose", action="store_true",
+               dest="verbose", default=False,
+               help="Make some noise."))
+    p.add_option(
+        Option("-o", "--output-dir",
+               action="store", type="string", dest="outdir",
+               default=None,
+               help=\
+"""Destination directory for NIfTI files. Default: current directory."""))
+    p.add_option(
+        Option("-c", "--compressed", action="store_true",
+               dest="compressed", default=False,
+               help="Whether to write compressed NIfTI files or not."))
+    p.add_option(
+        Option("--origin", action="store",
+               dest="origin", default="scanner",
+               help=\
+"""Reference point of the q-form transformation of the NIfTI image. If 'scanner'
+the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
+coordinate will be the center of the recorded volume (field of view). Default:
+'scanner'."""))
+    p.add_option(
+        Option("--minmax", action="store", nargs=2,
+               dest="minmax", help=\
+"""Mininum and maximum settings to be stored in the NIfTI header. If any of
+them is set to 'parse', the scaled data is scanned for the actual minimum and
+maximum. To bypass this potentially slow and memory intensive step (the data
+has to be scaled and fully loaded into memory), fixed values can be provided as
+space-separated pair, e.g. '5.4 120.4'. It is possible to set a fixed minimum
+as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
+    p.set_defaults(minmax=('parse', 'parse'))
+    p.add_option(
+        Option("--store-header", action="store_true",
+               dest="store_header", default=False,
+               help=\
+"""If set, all information from the PAR header is stored in an extension of
+the NIfTI file header. Default: off"""))
+    p.add_option(
+        Option("--scaling", action="store", dest="scaling", default='dv',
+               help=\
+"""Choose data scaling setting. The PAR header defines two different data
+scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
+values). Either one can be chosen, or scaling can be disabled completely
+('off').  Note that neither method will actually scale the data, but just store
+the corresponding settings in the NIfTI header. Default: 'dv'"""))
+    return p
+
+
+def verbose(msg, indent=0):
+    if verbose_switch:
+
+        print "%s%s" % (' ' * indent, msg)
+
+def error(msg, exit_code):
+    print msg
+    sys.exit(exit_code)
+
+
+def main():
+    parser = get_opt_parser()
+    (opts, infiles) = parser.parse_args()
+
+    global verbose_switch
+    verbose_switch = opts.verbose
+
+    if not opts.origin in ['scanner', 'fov']:
+        error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
+
+    for infile in infiles:
+        verbose('Processing %s' % infile)
+        # load the PAR header
+        pr_img = pr.load(infile)
+        pr_hdr = pr_img.get_header()
+        # get the raw unscaled data form the REC file
+        raw_data = read_img_data(pr_img, prefer='unscaled')
+
+        # compute affine with desired origin
+        affine = pr_hdr.get_affine(origin=opts.origin)
+
+        # create an nifti image instance -- to get a matching header
+        nimg = nifti1.Nifti1Image(raw_data, affine)
+        nhdr = nimg.get_header()
+
+        if 'parse' in opts.minmax:
+            # need to get the scaled data
+            verbose('Load (and scale) the data to determine value range')
+            if opts.scaling == 'off':
+                scaled_data = raw_data
+            else:
+                slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+                scaled_data = slope * raw_data
+                scaled_data += intercept
+        if opts.minmax[0] == 'parse':
+            nhdr.structarr['cal_min'] = scaled_data.min()
+        else:
+            nhdr.structarr['cal_min'] = float(opts.minmax[0])
+        if opts.minmax[1] == 'parse':
+            nhdr.structarr['cal_max'] = scaled_data.max()
+        else:
+            nhdr.structarr['cal_max'] = float(opts.minmax[1])
+
+        # container for potential NIfTI1 header extensions
+        exts = nifti1.Nifti1Extensions()
+
+        if opts.store_header:
+            # dump the full PAR header content into an extension
+            fobj = open(infile, 'r')
+            hdr_dump = fobj.read()
+            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
+            fobj.close()
+            exts.append(dump_ext)
+
+        # put any extensions into the image
+        nimg.extra['extensions'] = exts
+
+        # image description
+        descr = "%s;%s;%s;%s" % (
+                    pr_hdr.general_info['exam_name'],
+                    pr_hdr.general_info['patient_name'],
+                    pr_hdr.general_info['exam_date'].replace(' ',''),
+                    pr_hdr.general_info['protocol_name'])
+        nhdr.structarr['descrip'] = descr[:80]
+
+        if pr_hdr.general_info['max_dynamics'] > 1:
+            # fMRI
+            nhdr.structarr['pixdim'][4] = pr_hdr.general_info['repetition_time']
+            # store units -- always mm and msec
+            nhdr.set_xyzt_units('mm', 'msec')
+        else:
+            # anatomical or DTI
+            nhdr.set_xyzt_units('mm', 'unknown')
+
+        # get original scaling
+        if opts.scaling == 'off':
+            slope = 1.0
+            intercept = 0.0
+        else:
+            slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+            nhdr.set_slope_inter(slope, intercept)
+
+        # finalize the header: set proper data offset, pixdims, ...
+        nimg.update_header()
+
+        # figure out the output filename
+        outfilename = splitext_addext(os.path.basename(infile))[0]
+        if not opts.outdir is None:
+            # set output path
+            outfilename = os.path.join(opts.outdir, outfilename)
+
+        # prep a file
+        if opts.compressed:
+            verbose('Using gzip compression')
+            outfilename += '.nii.gz'
+            outfile = gzip.open(outfilename, 'w')
+        else:
+            outfilename += '.nii'
+            outfile = open(outfilename, 'w')
+
+        verbose('Writing %s' % outfilename)
+        # first write the header
+        nimg._write_header(outfile, nhdr, slope, intercept)
+        # now the data itself, but prevent any casting or scaling
+        nibabel.volumeutils.array_to_file(
+                raw_data,
+                outfile,
+                offset=nhdr.get_data_offset())
+        # done
+        outfile.close()
+
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,30 @@
+{% extends "!layout.html" %}
+{% set title = 'Neuroimaging in Python' %}
+
+{% block rootrellink %}
+  <li><a href="http://nipy.sourceforge.net/">Community</a> |&nbsp;</li>
+  <li><a href="{{ pathto('index') }}">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="http://projects.scipy.org/mailman/listinfo/nipy-devel">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+{% endblock %}
+
+{% block extrahead %}
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+{% endblock %}
+
+{% block header %}
+<div style="background-color: white; text-align: left; padding-left: 150px; padding-bottom:50px; padding-top:20px; background-image: url({{ pathto('_static/nipy-logo-bg-138x120.png',1) }}); background-repeat: no-repeat;">
+<h1>NiBabel</h1>
+<h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+</div>
+{% endblock %}
+
+{% block sidebarsearch %}
+{{ super() }}
+<p><img src="{{ pathto('_static/reggie.png',1) }}" alt="Reggie -- the one" /></p>
+{% endblock %}
+
+{% block relbar2 %}{% endblock %}
+
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}{% endblock %}

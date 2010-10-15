@@ -1,0 +1,112 @@
+.. -*- rst -*- 
+
+.. _image-formats:
+
+=====================
+ Images and  formats
+=====================
+
+The Image object contains (*has a*) Format object.
+
+The Image and the Format objects form a `bridge pattern
+<http://en.wikipedia.org/wiki/Bridge_pattern>`_.  In the `wikipedia
+diagram
+<http://en.wikipedia.org/wiki/File:Bridge_UML_class_diagram.svg>`_ the
+Image class plays the role of the Abstraction, and the Format plays the
+role of the implementor.
+
+The Format object provides an interface to the underlying file format. 
+
+The Image has the following methods:
+
+* img.get_data()
+* img.save(fname)
+
+It has attributes:
+
+* affine
+* world
+* io_dtype
+* format
+
+We get the data with ``get_data()``, rather than via an attribute, to
+reflect that fact that the data is read-only, and to flag the common
+case where the data load is delayed until the data is used.  The object
+can decide what it does about data caching between calls of
+``get_data()``.  Another option is to make the data a cached property or
+single-shot data descriptor; I prefer using the method call, for
+simplicity, and to make clear that the data load may take a long time.
+
+Example code::
+
+   import numpy as np
+   from nibabel import Image
+   from nibabel.formats import Nifti1
+   from nibabel.ref import mni
+   arr = np.arange(24).reshape(2,3,4)
+   img = Image(data = arr)
+   assert img.affine is None
+   assert img.world is None
+   img.affine = np.eye(4)
+   img.world = mni
+   data = img.get_data()
+   assert data.shape == (2,3,4)
+   assert np.all(data == arr)
+   # The format object is Nifti1 by default.  It's also empty
+   assert img.format.fields == Nifti1().fields
+   img.save('some_file.nii')
+
+
+Note the decoupling between the information carried by the format, and
+the information in the ``img`` instance.  The format instance, carries
+the format, as instantiated by loading from disk, or object creation,
+and is only updated on ``img.save(fname)``.  This is to allow formats
+that cannot encode either affine or world information.  If you want to
+manipulate fields or other information in the specific format, you
+probably want to instantiate the format object directly (see below).
+
+
+Format objects
+==============
+
+The API of the format object encapsulates two things:
+
+* the shared interface to underlying image formats that is used by ``Image``
+* format-specific attributes and calls
+
+The API required by ``Image`` is:
+
+* fmt.get_affine()
+* fmt.set_affine(aff)
+* fmt.get_world()
+* fmt.set_world(world)
+* fmt.get_io_dtype()
+* fmt.set_io_dtype(dtype)
+* fmt.read_data()
+* fmt.write_data(arr)
+* fmt.to_filename(fname)
+* fmt.from_filename()
+
+The last to save the format to the file(s) given by ``fname``.  We may
+also want the ability to write to sets of file objects, for testing, and
+for abstraction of the base writing layer.
+
+* fmt.to_filemap(fmap)
+* fmt.from_filemap(fmap)
+
+where ``fmap`` is a class, currently called ``FileTuple`` that contains
+mappings of file meanings (like ``image`` or ``header``) to file
+objects.
+
+With this model, we may often find ourselves using the Format object for
+format-specific tasks::
+
+   from nibabel.formats import Nifti1
+   fmt = Nifti1.from_filename('some_file.nii')
+   fmt.set_qform(np.eye(4))
+   fmt.set_sform(np.eye(4) * 2)
+   fmt.fields['descrip'] = 'some information'
+   fmt.to_filename('another_file.nii')
+
+
+

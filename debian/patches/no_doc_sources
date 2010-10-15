@@ -1,0 +1,16 @@
+Description: Do not put links to source documention source in HTML files
+  Documentation source files are not shipped in the binary package, because
+  the are not very useful and occupy space, hence these links would be broken.
+Forwarded: not-needed
+Author: Michael Hanke <michael.hanke@gmail.com>
+--- a/doc/source/conf.py
++++ b/doc/source/conf.py
+@@ -201,7 +201,7 @@
+ #html_split_index = False
+ 
+ # If true, links to the reST sources are added to the pages.
+-html_show_sourcelink = True
++html_show_sourcelink = False
+ 
+ # If true, an OpenSearch description file will be output, and all pages will
+ # contain a <link> tag referring to it.  The value of this option must be the

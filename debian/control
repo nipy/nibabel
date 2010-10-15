@@ -1,21 +1,42 @@
-Source: pynifti
+Source: nibabel
 Section: python
-Priority: optional
+Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Michael Hanke <michael.hanke@gmail.com>, Yaroslav Halchenko <debian@onerussian.com>
-Build-Depends: cdbs, debhelper (>= 5.0.38), swig (>= 1.3.29), python-all-dev (>= 2.4), python-support (>= 0.6), python-numpy, libnifti-dev (>> 1.1.0-2), python-sphinx
-Standards-Version: 3.9.0
-Homepage: http://niftilib.sourceforge.net/pynifti/
+Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1.2), python-nose, python-scipy, help2man, python-sphinx
+Standards-Version: 3.9.1
+Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
 DM-Upload-Allowed: yes
+XS-Python-Version: >= 2.5
 
-Package: python-nifti
-Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, python-numpy, libjs-jquery
+Package: python-nibabel
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python-numpy, python-scipy
+Recommends: python-dicom
+Suggests: python-nibabel-doc
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
-Description: Python interface to the NIfTI I/O libraries
- Using PyNIfTI one can easily read and write NIfTI and ANALYZE images from
- within Python. The NiftiImage class provides Python-style access to the full
- header information. Image data is made available via NumPy arrays.
+Description: Python bindings to various neuroimaging data formats
+ This package provides read and write access to some common medical and
+ neuroimaging file formats, including: ANALYZE (plain, SPM99, SPM2), GIFTI,
+ NIfTI1, MINC, as well as PAR/REC. The various image format classes give full
+ or selective access to header (meta) information and access to the image data
+ is made available via NumPy arrays.  NiBabel is the successor of PyNIfTI.
+ .
+ This package also provides a commandline tool for conversion of PAR/REC to
+ NIfTI images.
+
+Package: python-nibabel-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}, libjs-jquery
+Description: documentation for NiBabel
+ NiBabel provides read and write access to some common medical and
+ neuroimaging file formats, including: ANALYZE (plain, SPM99, SPM2), GIFTI,
+ NIfTI1, MINC, as well as PAR/REC. The various image format classes give full
+ or selective access to header (meta) information and access to the image data
+ is made available via NumPy arrays.  NiBabel is the successor of PyNIfTI.
+ .
+ This package provides the documentation in HTML format.

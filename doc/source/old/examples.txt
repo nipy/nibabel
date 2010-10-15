@@ -1,0 +1,157 @@
+.. -*- mode: rst -*-
+.. ex: set sts=4 ts=4 sw=4 et tw=79:
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  #
+  #   See COPYING file distributed along with the NiBabel package for the
+  #   copyright and license terms.
+  #
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+
+********
+Examples
+********
+
+The next sections contains some examples showing ways to use NiBabel to
+read and write imaging data from within Python to be able to process it with
+some random Python library.
+
+All examples assume that you have imported the NiBabel module by invoking:
+
+  >>> import nibabel as nib
+
+and the ``os.path.join`` and ``os.path.split``  commands with:
+
+  >>> from os.path import join as pjoin, split as psplit
+
+and we have made a temporary directory for the files we are going to write:
+
+  >>> import tempfile
+  >>> tmpdir = tempfile.mkdtemp()
+
+and we've got the path to the nifti example data:
+
+  >>> from nibabel.testing import data_path as example_data_path
+  
+Loading and saving NIfTI files
+==============================
+
+First we will open the tiny example NIfTI file that is included in the NiBabel
+source tarball. No filename extension is necessary as libniftiio determines it
+automatically:
+
+  >>> example_4d_fname = pjoin(example_data_path, 'example4d.nii.gz')
+  >>> img = nib.load(example_4d_fname)
+
+If you want to save this image as an uncompressed image simply do:
+
+  >>> # a filename in our temporary directory
+  >>> fname = pjoin(tmpdir, 'something.nii')
+  >>> nib.save(img, fname)
+
+
+NIfTI files from array data
+===========================
+
+The next code snipped demonstrates how to create a 4d NIfTI image containing
+gaussian noise. First we need to import the NumPy module
+
+  >>> import numpy as np
+
+Now we generate the noise dataset. Let's generate noise for 100 volumes with 16
+slices and a 32x32 inplane matrix.
+
+  >>> noise = np.random.randn(32, 32, 16, 100)
+
+The datatype of the array is by default ``float64``, which can be verified by:
+
+  >>> noise.dtype
+  dtype('float64')
+
+Converting this dataset into a NIfTI image is done by invoking the
+:class:`~nibabel.Nifti1Image` constructor with the noise dataset as argument:
+
+  >>> nim = nib.Nifti1Image(noise, np.eye(4))
+
+The relevant header information is extracted from the NumPy array. If you
+query the header information about the dimensionality of the image, it returns
+the desired values:
+
+  >>> print nim.get_header()['dim']
+  [  4  32  32  16 100   1   1   1]
+
+First value shows the number of dimensions in the datset: 4 (good, that's what
+we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w
+axis (NIfTI files can handle up to 7 dimensions).
+
+Also the datatype was set appropriately:
+
+  >>> print nim.get_data_dtype()
+  float64
+
+To save the noise file to disk, we can simply call the
+:meth:`~nifti.image.NiftiImage.save` method:
+
+  >>> # a filename in our temporary directory
+  >>> noise_fname = pjoin(tmpdir, 'noise.nii.gz')
+  >>> nib.save(nim, noise_fname)
+
+
+Select ROIs
+===========
+
+Suppose you want to have the first ten volumes of the noise dataset we have
+previously created in a separate file. First, we open the file:
+
+  >>> nim = nib.load(noise_fname)
+
+Now we select the first ten volumes and store them to another file, while
+preserving as much header information as possible
+
+  >>> nim2 = nib.Nifti1Image(nim.get_data()[..., :10],
+  ...                       nim.get_affine(),
+  ...                       nim.get_header())
+  >>> print nim2.get_header()['dim']
+  [ 4 32 32 16 10  1  1  1]
+  >>> # a filename in our temporary directory
+  >>> fname = pjoin(tmpdir, 'part.hdr.gz')
+  >>> nib.save(nim2, fname)
+
+The :class:`~nifti.image.NiftiImage` constructor takes a dictionary with header
+information as an optional argument. Settings that are not determined by the
+array (e.g.  size, datatype) are taken from the dictionary and stored to the
+new NIfTI image.
+
+
+Linear detrending of timeseries (SciPy module is required for this example)
+===========================================================================
+
+Let's load another 4d NIfTI file and perform a linear detrending, by fitting
+a straight line to the timeseries of each voxel and substract that fit from
+the data. Although this might sound complicated at first, thanks to the
+excellent SciPy module it is just a few lines of code. For this example we
+will first create a NIfTI image with just a single voxel and 50 timepoints
+(basically a linear function with some noise):
+
+  >>> nim = nib.Nifti1Image(
+  ...           (np.linspace(0,100) + np.random.randn(50)).reshape(1,1,1,50),
+  ...           np.eye(4))
+  >>> print nim.get_header()['dim']
+  [ 4  1  1  1 50  1  1  1]
+
+Depending on the datatype of the input image the detrending process might
+change the datatype from integer to float. As operations that change the
+(binary) size of the NIfTI image are not supported, we need to make a copy
+of the data and later create a new NIfTI image. Remember that the array has the
+time axis as its first dimension (in contrast to the NIfTI file where it is
+the 4th).
+
+  >>> from scipy import signal
+  >>> data_detrended = signal.detrend(nim.get_data(), axis=0)
+
+Finally, create a new NIfTI image using header information from the original
+source image.
+
+  >>> nim_detrended = nib.Nifti1Image(data_detrended,
+  ...                                nim.get_affine(),
+  ...                                nim.get_header())

@@ -1,6 +1,4 @@
-# PyLint configuration file for the project pynifti.
-#
-# Agreed formatting (per yoh+michael voice dialog) is camel.
+# PyLint configuration file for the project nibabel.
 #
 # This pylintrc file will use the default settings except for the
 # naming conventions, which will allow for camel case naming as found
@@ -17,28 +15,28 @@
 
 [BASIC]
 # Regular expression which should only match correct module names
-module-rgx=(([a-z][a-z0-9]*)|([A-Z][a-zA-Z0-9]+))$
+module-rgx=([a-z][a-z0-9_]*)$
 
-attr-rgx=[a-z_][a-zA-Z0-9_]{2,30}
+attr-rgx=[a-z_][a-z0-9_]{,30}
 
 # Regular expression which should only match correct class names
-class-rgx=[A-Z][a-zA-Z0-9]+$
+class-rgx=[A-Z_]+[a-zA-Z0-9]+$
 
 # Regular expression which should only match correct function names
-function-rgx=[a-z_][a-zA-Z0-9]*$
+function-rgx=[a-z_]+[a-z0-9_][a-z0-9]*$
 
 # Regular expression which should only match correct method names
-method-rgx=([a-z_]|__)[a-zA-Z0-9]*(__)?$
+method-rgx=(([a-z_]|__)[a-z0-9_]*(__)?|test[a-zA-Z0-9_]*)$
 
 # Regular expression which should only match correct argument names
-argument-rgx=[a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?$
+argument-rgx=[a-z][a-z0-9]*_*[a-z0-9]*_*[a-z0-9]*_?$
 
 # Regular expression which should only match correct variable names
-variable-rgx=([a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?||(__.*__))$
+variable-rgx=([a-z_]+[a-z0-9]*_*[a-z0-9]*_*[a-z0-9]*_?||(__[a-zA-Z0-9_]*__))$||[A-Z]+
 
 # Regular expression which should only match correct module level names
 # Default: (([A-Z_][A-Z1-9_]*)|(__.*__))$
-const-rgx=([a-z][a-zA-Z0-9]*_*[a-zA-Z0-9]*_*[a-zA-Z0-9]*_?|__.*__)$
+const-rgx=([a-z_]+[a-z0-9]*_*[a-z0-9]*_*[a-z0-9]*_?|__[a-zA-Z0-9_]*__)$||[A-Z]+
 
 
 [FORMAT]
@@ -51,18 +49,26 @@ indent-string='    '
 max-branchs = 20
 
 # some base class constructors have quite a few arguments
-max-args = 12
+max-args = 14
+
+# and due to ClassWithCollections and conditional attributes classes by default have lots
+# of attributes
+max-attributes = 14
+
+# some sci computation can't be handled efficiently without having
+#lots of locals
+max-locals = 35
 
 [MESSAGES CONTROL]
 # Disable the following PyLint messages:
 # R0903 - Not enough public methods
-# W0102 - Dangerous default value [] as argument # list of callables
 # W0105 - String statement has no effect # often used for after-line doc
 # W0142 - Used * or ** magic
 # W0232 - Class has no __init__ method
 # W0212 - Access to a protected member ... of a client class
 # W0613 - Unused argument
-disable-msg=R0903,W0142,W0102,W0105,W0212,W0613
+# E1101 - Has no member (countless false-positives)
+disable-msg=R0903,W0142,W0105,W0212,W0613,E1101
 
 [REPORTS]
 

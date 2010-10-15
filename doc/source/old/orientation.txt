@@ -1,0 +1,138 @@
+.. _image-orientation:
+
+===================
+ Image orientation
+===================
+
+Every image in ``nibabel`` has an orientation.  The orientation is the
+relationship between the voxels in the image array, and millimeters in
+some space.  
+
+Affines as orientation
+----------------------
+
+Orientations are expressed by 4 by 4 affine arrays.  4x4 affine arrays
+give, in homogenous coordinates, the relationship between the
+coordinates in the voxel array, and millimeters.  Let is say that I have
+a simple affine like this:
+
+>>> import numpy as np
+>>> aff = np.diag((2, 3, 4, 1))
+>>> aff[:3,3] = [10, 11, 12]
+
+And I have a voxel coordinate:
+
+>>> coord = np.array([3, 2, 1])
+
+then the millimeter coordinate for that voxel is given by:
+
+>>> # add extra 1 for homogenous coordinates
+>>> homogenous_coord = np.concatenate((coord, [1]))
+>>> mm_coord = np.dot(aff, homogenous_coord)[:3]
+>>> mm_coord
+array([16, 17, 16])
+
+Affines and image formats
+-------------------------
+
+Some image formats (such as nifti) allow storage of affine or
+affine-like image orientation, and some do not (such as Analyze).  Almost
+all image formats allow you to save an image without any affine
+information.  Most image orientation problems arise for images that do
+not have full affine information, and we have to guess.
+
+Making an affine when there is no stored affine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If there is no affine information, we have to make some best-guess
+affine for the image. In this case, the image is assumed to be saved
+(fastest to slowest changing) in X, Y, Z dimension order, and we
+construct a 4x4 affine ``aff`` where ``aff[:3,:3]`` is a diagonal matrix
+with the X, Y, Z zooms (voxel sizes) as entries - ``diag(aff)``.  The
+translation part of the affine ``aff[:3, 3]`` is such that the central
+voxel in the image is at 0, 0, 0 mm (this is not completely true for SPM
+images, with may have encoded a particular voxel as the origiin using
+the ``origin`` field of the SPM version of the Analyze header).
+
+The left-right orientation of the image in this case boils down to
+whether the first voxel in the image (and in any x line) is the
+left-most voxel or the right-most voxel.   If it is the left-most, the
+image is said to be in 'neurological' orientation, and if it is the
+right-most, it's in 'radiological' orientation.   These terms only
+make sense in this case, where there is no affine, and we are assuming
+X, Y, Z data storage on disk.
+
+If we deem the image to be 'neurological' then the guessed affine
+above will be correct, as a transform from voxel coordinates to mm
+coordinates.  If it is 'radiological', then we need to multiply the
+'X' zoom (``aff[0,0]``) by -1, and adjust the X translation
+(``aff[0,3]``) accordingly.
+
+In ``nibabel`` we assume that any image without an affine has been
+stored in radiological order on disk - and thus the guessed affine needs
+a left-right flip.  This is true for all Analyze-type image formats
+(Analyze, SPM analyze, nifti).
+
+If you want to change this (please don't unless you are absolutely
+sure what you are doing), the default is encoded in the
+``default_x_flip`` class variable where True corresponds to
+'radiological' and False corresponds to 'neurological'.
+
+If you want to load images that are in neurological disk format, I
+strongly suggest that, instead of changing this default, you adjust
+the affine after loading, as in::
+
+    img = nibabel.load('some_image.img')
+    aff = img.get_affine()
+    x_flipper = np.diag([-1,1,1,1])
+    lr_img = nibabel.Nifti1Image(img.get_data, np.dot(x_flipper, aff), img.get_header())
+
+Affines for Analyze, SPM analyze, and NIFTI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Analyze images can't have an affine, so the above always applies to
+Analyze images.
+
+SPM99 images are unpleasantly confusing, because they may have an
+affine stored in a 'some_image.mat' file, in a matrix called 'M', but the
+affine for the image, is given by (from the code above)
+``np.dot(x_flipper, M)`` - that is - the affine gives the
+transformations to be applied before any left-right flipping, where
+left-right flipping is determined by the ``default_x_flip`` above.
+Horrible.
+
+SPM2 images are a bit more straightforward, in that there may be an
+affine, again stored in the 'some_image.mat' file, but, if the image has
+been written in SPM2, or by us, in SPM2 format, then there should be a
+'mat' matrix in that file, that has the full affine, which is
+unaffected by the ``default_x_flip``.   However, if we are loading
+what appears to be an SPM99 image, that only has a mat file with an
+'M' matrix, we apply the default flip as above.
+
+Whenever we save an SPM99 image, we save an SPM2-like ``.mat`` file, with
+both the flip-specifying 'mat' matrix, and the pre-flip 'M' matrix,
+because this is still backwards compatible, and might be less liable
+to chaos if someone changes the default flip setting.
+
+Then, we have nifti, which can store two affines, the ``qform`` and
+the ``sform``.  If the ``sform`` is present, we load that, otherwise,
+if the ``qform`` is present, we use that. Either of these affines
+fully specifies orientation, that is, they ignore any settings of
+``default_x_flip``.   If the nifti has neither a ``qform`` or an
+``sform``, we guess at the affine with the algorithm above, and the
+``default_x_flip`` comes into play again.
+
+Note that, for nifti images without affines, we don't followw the nifti
+standard.  In the nifti standard, if an image does not have an affine,
+then the affine is deemed to be ``diag([xs, ys, zs, 1])`` where ``xs,
+ys, zs`` are the X, Y and Z zooms (voxel sizes) respectively.  This
+array has no concept of left-right flipping corresponding to
+radiological orientation, and assumes the image origin (voxel
+corresponding to 0, 0, 0 in millimeters) is the first voxel in the
+image.  ``nibabel`` differs from the nifti standard, for images without
+affines, in using the center of the image as the origin, and flipping
+left-right by default.  We chose this break from the standard because
+that is what SPM does with non-affine niftis, and because it seemed more
+sensible, and because it's more consistent with what we do with SPM
+non-nifti images (not surprisingly).
+

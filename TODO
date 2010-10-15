@@ -1,63 +1,64 @@
-* Implement support for slice timing related NIfTI information.
+.. -*- rest -*-
+.. vim:syntax=rest
 
-* Implement support for intent codes.
+Stephan's TODO
+--------------
 
-* Valgrind reports a memory leak. It seems to be releated to some
-  string operation on the header data, as it also happens when image
-  data from ndarrays is used and never saved to file or inserted into the
-  Nifti image struct. However, so far I do not yet fully understand it.
+ GiftiImage
+ --------------
+ 
+ .get_data()
+ .get_header()
+ 
+ .showSummary()
+ 
+ .arrays
+ .getArraysFromIntent()
+ 
+ - Add or remove from the DataArray list with addDataArray_fromarray and
+  removeLastArray.
+- Manage the label list trough get/setLabels or the 'labels' property
+- Save to a file with 'save'
 
-Yarik's wishes sorted - please remove or fulfill:
--------------------------------------------------
+ GiftiHeader
+ --------------
 
-- as it is now: getHeader returns a header dictionary which is not
-   binded to the object. so direct manipulation to it such as
+ GiftiCoordSystem
+ ----------------
+ GiftiCoordSystem represents an affine mapping from one space to another.
 
-   inNifti.header['bla']='bleh'
-   are lost and the only way to introduce a change to the field seems
-   to operate as
-   h = inNifti.header
-   h['bla'] = 'bleh'
-   inNifti.header = h
-   which is at least should be documented in capital letters! ;-)
+From the spec:
+"For a DataArray with an Intent NIFTI_INTENT_POINTSET, this element
+describes the stereotaxic space of the data before and after the
+application of a transformation matrix.
+The most common stereotaxic space is the Talairach Space
+which has its origin at the anterior commissure and the negative X, Y,
+and Z axes correspond to left, posterior, and inferior respectively."
 
-   Proposed solution:
+Here the affine matrix is available as a (4,4) numpy array named 'xform'.
+The names of the spaces are available as *string* in 'dataspace' and
+'xformspace'. Standard string (defined in nifti1.h) includes
+"NIFTI_XFORM_UNKNOWN", "NIFTI_XFORM_SCANNER_ANAT", "NIFTI_XFORM_ALIGNED_ANAT"
+"NIFTI_XFORM_TALAIRACH", "NIFTI_XFORM_MNI_152"
 
-   introduce private __header, which would result in singleton behavior
-   of getHeader -- on first call it does all the querying from
-   self.__nimg and nhdr2dict,
-   but on consequtive calls - simply return __header.
+ 
+ GiftiDataArray
+ --------------
+GiftiDataArray represents one Gifti 'DataArray' (or DA) structure, ie. an
+array of values, with optional meta-data and coordinate system.
 
-   may be nhdr (result of _nim2nhdr) should be also stored as __nhdr
-   to avoid consequtive invocations of a costly function
+.get_data()
+.intent
+.coordsys
+.get_meta()
 
-    Then updateHeader should
-    * allow not specified hdrdict (default to None)
-    * not query __nimg if __header/__nhdr is not None
-      and simply use nhdr=self.__nhdr
-    * if hdrdict=None (ie not specified) make a copy
-      hdrdict == self.__header.copy(), so del commands
-      dont' do evil things, and proceed further ;-)
+.def _addCoordSys(self, dataspace = None, xformspace = None, transformMatrix = None):
+	""" Add a new coordinate system to the list """
+	pygiftiio.gifti_add_empty_CS(self)
+	cs = self._coordsys[self.numCS-1].contents
+	if transformMatrix != None:
+		cs.xform.flat = transformMatrix
+	cs.dataspace, cs.xformspace = dataspace, xformspace
+        
 
-   save method also should invoke updateHeader I guess so that if
-   there were any changes to the header dictionary, they get saved..
-
-   Michael's comment:
-   ------------------
-      Although this would be nice to have, I really think it could be the
-      source of some ugly bugs. Maintaining a separate copy of the header means
-      that PyNifit has to keep track of all possible dependencies between the
-      image properties by itself, instead of relying on the nifticlib to do.
-      this. I'd prefer to implement as much accessor methods or properties as
-      necessary to make calls to the header property superflous.
-
-      BTW: The same behavior is true for the qform and sform properties
-      (including their inverse versions).
-
-
-Possibly wrong/incorrect/wontfix suggestions:
----------------------------------------------
-
-- [gs]etVoxDims should work with all dimensions up to 7 as they are
-   defined in nifti1_io.h
-   hanke: maybe, but that would mix different units, which I'd rather not do.
+.update_meta_from_dict()
