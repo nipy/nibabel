@@ -62,6 +62,15 @@ visiting the URL::
 
   http://bugs.debian.org/<bug id>
 
+* 0.20100706.1 (Tue, 6 Jul 2010)
+  * Bugfix: NiftiFormat.vx2s() used the qform not the sform. Thanks to Tom
+    Holroyd for reporting.
+
+* 0.20100412.1 (Mon, 12 Apr 2010)
+  * Bugfix: Unfortunate interaction between Python garbage collection and C
+    library caused memory problems. Thanks to Yaroslav Halchenko for the
+    diagnose and fix.
+
 * 0.20090303.1 (Tue, 3 Mar 2009)
 
   * Bugfix: Updating the NIfTI header from a dictionary was broken.
