@@ -29,6 +29,7 @@ Description: Python bindings to various neuroimaging data formats
  NIfTI images.
 
 Package: python-nibabel-doc
+Section: doc
 Architecture: all
 Depends: ${misc:Depends}, libjs-jquery
 Description: documentation for NiBabel
