@@ -41,12 +41,16 @@ installs it to a temporary directory, and runs the tests of that install.
 Release checklist
 =================
 
-* Review the open list of `issues <http://github.com/nipy/nibabel/issues>`_
+* Review the open list of `issues <http://github.com/nipy/nibabel/issues>`_ .
+  Check whether there are outstanding issues that can be closed, and whether
+  there are any issues that should delay the release.  Label them !
 
 * Review and update the release notes.  Review and update the :file:`Changelog`
-  file.  Get a partial list of contributors::
+  file.  Get a partial list of contributors with something like::
 
-      git log "$@" | grep '^Author' | cut -d' ' -f 2- | sort | uniq
+      git log 0.9.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
+
+  where ``0.9.0`` was the last release tag name.
 
   Then manually go over the *git log* to make sure the release notes are
   as complete as possible and that every contributor was recognized.
@@ -75,18 +79,36 @@ Release checklist
 
     git tag -am 'First public release' 1.0.0
 
-* Branch to maintainance::
+* Now the version number is OK, push the docs to sourceforge with::
 
-    git co -b maint/1.0.0
+    make upload-htmldoc-mysfusername
 
-  Set ``_version_extra`` back to ``.dev`` and bump ``_version_micro`` by 1.
-  Commmit.  Push.
+  where ``mysfusername`` is obviously your own sourceforge username.
 
-* Start next development series::
+* Set up maintenance / development branches
 
-    git co main-master
+  If this is this is a full release you need to set up two branches, one for
+  further substantial development (often called 'trunk') and another for
+  maintenance releases.
 
-  then restore ``.dev`` to ``_version_extra``, and bump ``_version_minor`` by 1.
+  * Branch to maintainance::
+
+      git co -b maint/1.0.0
+
+    Set ``_version_extra`` back to ``.dev`` and bump ``_version_micro`` by 1.
+    Thus the maintenance series will have version numbers like - say - '1.0.1.dev'
+    until the next maintenance release - say '1.0.1'.  Commit.
+
+  * Start next development series::
+
+      git co main-master
+
+    then restore ``.dev`` to ``_version_extra``, and bump ``_version_minor`` by 1.
+    Thus the development series ('trunk') will have a version number here of
+    '1.1.0.dev' and the next full release will be '1.1.0'.
+
+  If this is just a maintenance release from ``maint/1.0.0`` or similar, just
+  tag and set the version number to - say - ``1.0.2.dev``.
 
 * Make next development release tag
 
@@ -96,11 +118,10 @@ Release checklist
     For example 'upstream/1.0.0.dev' means "development start
     for upcoming version 1.0.0.
 
-    This tag is used in the Makefile rules to create development
-    snapshot releases to create proper versions for those. The
-    will name the last available annotated tag, the number of
-    commits since that, and an abbrevated SHA1. See the docs of
-    ``git describe`` for more info.
+    This tag is used in the Makefile rules to create development snapshot
+    releases to create proper versions for those. The version derives its name
+    from the last available annotated tag, the number of commits since that, and
+    an abbrevated SHA1. See the docs of ``git describe`` for more info.
 
     Please take a look at the Makefile rules ``devel-src``,
     ``devel-dsc`` and ``orig-src``.
