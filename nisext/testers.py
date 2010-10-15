@@ -210,6 +210,9 @@ def tests_installed(mod_name, source_path=None):
     finally:
         shutil.rmtree(install_path)
 
+# Tell nose this is not a test
+tests_installed.__test__ = False
+
 
 def tests_from_zip(mod_name, zip_fname):
     """ Runs test from sdist zip source archive """
@@ -223,6 +226,8 @@ def tests_from_zip(mod_name, zip_fname):
         tests_installed(mod_name, pkg_contents)
     finally:
         shutil.rmtree(install_path)
+
+tests_from_zip.__test__ = False
 
 
 def sdist_tests(mod_name, repo_path=None):
@@ -244,3 +249,4 @@ def sdist_tests(mod_name, repo_path=None):
         os.chdir(pwd)
         shutil.rmtree(install_path)
 
+sdist_tests.__test__ = False
