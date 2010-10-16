@@ -13,6 +13,8 @@
 .*.sw[nop]
 .sw[nop]
 *.tmp
+.project
+.pydevproject
 
 # Not sure what the next two are for
 *.kpf
