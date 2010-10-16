@@ -32,7 +32,7 @@ sys.path.append(os.path.abspath('../sphinxext'))
 
 # We load the nibabel release info into a dict by explicit execution
 rel = {}
-execfile('../../nibabel/version.py', rel)
+execfile('../../nibabel/info.py', rel)
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -50,6 +50,7 @@ extensions = ['sphinx.ext.autodoc',
               'math_dollar', # has to go before numpydoc
               'numpydoc',
               'only_directives',
+              'math_dollar',
               ]
 
 # the following doesn't work with sphinx < 1.0, but will make a separate
@@ -225,7 +226,7 @@ htmlhelp_basename = 'nibabeldoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('documentation', 'nibabel.tex', u'NiBabel Documentation',
+  ('index', 'nibabel.tex', u'NiBabel Documentation',
    u'NiBabel Authors', 'manual'),
 ]
 

@@ -32,8 +32,8 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
-from nisext.sexts import get_build_cmd, package_check
-cmdclass = {'build_py': get_build_cmd('nibabel')}
+from nisext.sexts import get_comrec_build, package_check
+cmdclass = {'build_py': get_comrec_build('nibabel')}
 
 # Get version and release info, which is all stored in nibabel/info.py
 ver_file = os.path.join('nibabel', 'info.py')
@@ -63,13 +63,23 @@ def main(**extra_args):
           platforms=PLATFORMS,
           version=VERSION,
           requires=REQUIRES,
+          provides=PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.gifti',
                           'nibabel.nicom',
                           'nibabel.nicom.tests',
-                          'nibabel.gifti',
                           'nibabel.testing',
-                          'nibabel.tests'],
+                          'nibabel.tests',
+                          # required in setup.py, hence needs to go into source
+                          # dist
+                          'nisext'],
+          # The package_data spec has no effect for me (on python 2.6) -- even
+          # changing to data_files doesn't get this stuff included in the source
+          # distribution -- not sure if it has something to do with the magic
+          # above, but distutils is surely the worst piece of code in all of
+          # python -- duplicating things into MANIFEST.in but this is admittedly
+          # only a workaround to get things started -- not a solution
           package_data = {'nibabel':
                           [pjoin('tests', 'data', '*'),
                            pjoin('nicom', 'tests', 'data', '*'),

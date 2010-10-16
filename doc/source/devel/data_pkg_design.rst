@@ -162,7 +162,7 @@ NIPY-related packages such as ``pbrain``).  The ``data`` subdirectory of
 ``config.ini`` file, that has at least an entry like this::
 
   [DEFAULT]
-  version = 0.1
+  version = 0.2
 
 giving the version of the data package.
 
@@ -189,9 +189,8 @@ For the example above this will result in these subdirectories::
 because ``nipy`` is both the project, and the package to which the data
 relates.
 
-If you install to a particular location, you will need to add that location to
-the output of ``nipy.data.get_data_path()`` using one of the mechanisms above,
-for example, in your system configuration::
+If you install to a particular location, you will need to add that
+location to the output of ``nipy.data.get_data_path()`` using one of the mechanisms above, for example, in your system configuration::
 
    export NIPY_DATA_PATH=/my/prefix/share/nipy
 
@@ -215,8 +214,8 @@ contents::
 Current implementation
 ``````````````````````
 
-This section describes how we (the nibabel package) implement data packages
-at the moment.
+This section describes how we (the nipy community) implement data packages at
+the moment.
 
 The data in the data packages will not usually be under source control.  This is
 because images don't compress very well, and any change in the data will result
@@ -226,7 +225,7 @@ the data files aren't going to change, then a repository could work OK.
 The data packages will be available at a central release location.  For
 now this will be: http://nipy.sourceforge.net/data-packages/ .
 
-A package, such as ``nipy-templates-0.1.tar.gz`` will have the following
+A package, such as ``nipy-templates-0.2.tar.gz`` will have the following
 sort of structure::
 
 
@@ -236,6 +235,8 @@ sort of structure::
     |-- MANIFEST.in
     `-- templates
         |-- ICBM152
+        |   |-- 1mm
+        |   |   `-- T1_brain.nii.gz
         |   `-- 2mm
         |       `-- T1.nii.gz
         |-- colin27
@@ -246,14 +247,14 @@ sort of structure::
 
 There should be only one ``nipy/packagename`` directory delivered by a
 particular package.  For example, this package installs
-``nipy/templates``, but does not contain ``nipy/data``.  
+``nipy/templates``, but does not contain ``nipy/data``.
 
 Making a new package tarball is simply:
 
 #. Downloading and unpacking e.g ``nipy-templates-0.1.tar.gz`` to form
    the directory structure above.
 #. Making any changes to the directory
-#. Running ``setup.py sdist`` to recreate the package.  
+#. Running ``setup.py sdist`` to recreate the package.
 
 The process of making a release should be:
 
@@ -264,8 +265,7 @@ The process of making a release should be:
 There is an example nipy data package ``nipy-examplepkg`` in the
 ``examples`` directory of the NIPY repository.
 
-The machinery for creating and maintaining data packages is available with::
-   
-   svn co https://nipy.svn.sourceforge.net/svnroot/nipy/data-packaging/trunk
+The machinery for creating and maintaining data packages is available at
+http://github.com/nipy/data-packaging
 
 See the ``README.txt`` file there for more information.

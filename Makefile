@@ -3,7 +3,7 @@ HTML_DIR=build/html
 LATEX_DIR=build/latex
 WWW_DIR=build/website
 DOCSRC_DIR=doc
-
+SF_USER ?= matthewbrett
 #
 # The Python executable to be used
 #
@@ -114,6 +114,10 @@ pdfdoc: build
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
+gitwash-update: build
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
+
+
 #
 # Website
 #
@@ -129,9 +133,12 @@ upload-website: website
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
 		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/nibabel/
 
-upload-htmldoc: htmldoc
+# This one udates for the specific user named at the top of the makefile
+upload-htmldoc: htmldoc upload-htmldoc-$(SF_USER)
+
+upload-htmldoc-%: htmldoc
 	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
-		web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+		$*,nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
 
 #
 # Sources
@@ -228,6 +235,13 @@ bdist_mpkg:
 check-version-info:
 	$(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
 
+# Run tests from installed code
+installed-tests:
+	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
+
+# Run tests from installed code
+sdist-tests:
+	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
 
 # Update nisext subtree from remote
 update-nisext:

@@ -16,9 +16,12 @@ Documentation
 * :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
 * :ref:`Development Changelog <changelog>` (see what has changed)
+* :ref:`DICOM concepts <dicom>` (details about implementing DICOM reading)
 * :ref:`genindex` (access by keywords)
 * :ref:`search` (online and offline full-text search)
 
+See also the :ref:`Developer documentation page <devindex>` for development
+discussions, release procedure and more.
 
 Authors and Contributors
 ========================
@@ -47,7 +50,6 @@ Download and Installation
 Please find detailed :ref:`download and installation instructions
 <installation>` in the manual.
 
-
 Support
 =======
 
@@ -72,5 +74,6 @@ search* located in the sidebar of the NiBabel home page.
    :hidden:
 
    manual
-   devguide
+   devel/index
+   dicom/dicom
    api
