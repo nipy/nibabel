@@ -263,11 +263,21 @@ def make_dt_codes(codes):
     '''
     dt_codes = []
     for code, name, np_type in codes:
-        dt_codes.append((code, name, np_type,
-                         np.dtype(np_type),
-                         np.dtype(np_type).newbyteorder('S')))
+        this_dt = np.dtype(np_type)
+        # To satisfy an oddness in numpy dtype hashing, we need to add the dtype
+        # with native order as well as the default dtype (=) order
+        dt_codes.append((code, name,
+                         np_type,
+                         this_dt,
+                         this_dt.newbyteorder(native_code),
+                         this_dt.newbyteorder(swapped_code)))
     return Recoder(dt_codes,
-                   fields=('code', 'label', 'type', 'dtype', 'sw_dtype'))
+                   fields=('code',
+                           'label',
+                           'type',
+                           'dtype',
+                           'native_dtype',
+                           'sw_dtype'))
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
