@@ -32,12 +32,14 @@ DATA_FUNCS = {}
 def setup_data_env():
     setup_environment()
     global DATA_FUNCS
+    DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
     DATA_FUNCS['path_func'] = nibd.get_data_path
 
 
 def teardown_data_env():
     teardown_environment()
+    nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
     nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
     nibd.get_data_path = DATA_FUNCS['path_func']
 
@@ -135,7 +137,9 @@ def test_data_path():
         del env[DATA_KEY]
     if USER_KEY in env:
         del os.environ[USER_KEY]
+    fake_user_dir = '/user/path'
     nibd.get_nipy_system_dir = lambda : ''
+    nibd.get_nipy_user_dir = lambda : fake_user_dir
     # now we should only have anything pointed to in the user's dir
     old_pth = get_data_path()
     # We should have only sys.prefix and, iff sys.prefix == /usr,
@@ -144,8 +148,7 @@ def test_data_path():
     def_dirs = [pjoin(sys.prefix, 'share', 'nipy')]
     if sys.prefix == '/usr':
         def_dirs.append(pjoin('/usr/local', 'share', 'nipy'))
-    home_nipy = pjoin(os.path.expanduser('~'), '.nipy')
-    assert_equal(old_pth, def_dirs + [home_nipy])
+    assert_equal(old_pth, def_dirs + ['/user/path'])
     # then we'll try adding some of our own
     tst_pth = '/a/path' + os.path.pathsep + '/b/ path'
     tst_list = ['/a/path', '/b/ path']
@@ -161,9 +164,9 @@ def test_data_path():
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s' % tst_pth)
-        os.environ[USER_KEY] = tmpdir
+        nibd.get_nipy_user_dir = lambda : tmpdir
         assert_equal(get_data_path(), tst_list + def_dirs + [tmpdir])
-    del os.environ[USER_KEY]
+    nibd.get_nipy_user_dir = lambda : fake_user_dir
     assert_equal(get_data_path(), old_pth)
     # with some trepidation, the system config files
     with TemporaryDirectory() as tmpdir:
