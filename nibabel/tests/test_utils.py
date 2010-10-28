@@ -16,12 +16,14 @@ import numpy as np
 from ..tmpdirs import InTemporaryDirectory
 
 from ..volumeutils import (array_from_file,
-                                 array_to_file,
-                                 calculate_scale,
-                                 scale_min_max,
-                                 can_cast, allopen,
-                                 shape_zoom_affine,
-                                 rec2dict)
+                           array_to_file,
+                           calculate_scale,
+                           scale_min_max,
+                           can_cast, allopen,
+                           make_dt_codes,
+                           native_code,
+                           shape_zoom_affine,
+                           rec2dict)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -288,3 +290,25 @@ def test_rec2dict():
     r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     d = rec2dict(r)
     yield assert_equal(d, {'x': 0, 's': ''})
+
+
+def test_dtypes():
+    # numpy - at least up to 1.5.1 - has odd behavior for hashing -
+    # specifically:
+    # In [9]: hash(dtype('<f4')) == hash(dtype('<f4').newbyteorder('<'))
+    # Out[9]: False
+    # In [10]: dtype('<f4') == dtype('<f4').newbyteorder('<')
+    # Out[10]: True
+    # where '<' is the native byte order
+    dt_defs = ((16, 'float32', np.float32),)
+    dtr = make_dt_codes(dt_defs)
+    # These of course should pass regardless of dtype
+    assert_equal(dtr[np.float32], 16)
+    assert_equal(dtr['float32'], 16)
+    # These also pass despite dtype issue
+    assert_equal(dtr[np.dtype(np.float32)], 16)
+    assert_equal(dtr[np.dtype('f4')], 16)
+    assert_equal(dtr[np.dtype('f4').newbyteorder('S')], 16)
+    # But this one used to fail
+    assert_equal(dtr[np.dtype('f4').newbyteorder(native_code)], 16)
+
