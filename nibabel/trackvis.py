@@ -227,6 +227,32 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     Returns
     -------
     None
+
+    Examples
+    --------
+    >>> from StringIO import StringIO
+    >>> file_obj = StringIO()
+    >>> pts0 = np.random.uniform(size=(10,3))
+    >>> pts1 = np.random.uniform(size=(10,3))
+    >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
+    >>> write(file_obj, streamlines)
+    >>> file_obj.seek(0)
+    >>> streams, hdr = read(file_obj)
+    >>> len(streams)
+    2
+
+    If there are too many streamlines to fit in memory, you can pass an iterable
+    thing instead of a list
+
+    >>> file_obj = StringIO()
+    >>> def gen():
+    ...     yield (pts0, None, None)
+    ...     yield (pts0, None, None)
+    >>> write(file_obj, gen())
+    >>> file_obj.seek(0)
+    >>> streams, hdr = read(file_obj)
+    >>> len(streams)
+    2
     '''
     stream_iter = iter(streamlines)
     try:
