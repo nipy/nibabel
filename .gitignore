@@ -52,8 +52,8 @@ build/
 _build
 MANIFEST
 dist/
-./*.egg-info
-./.shelf
+*.egg-info/
+.shelf
 
 # Logs and databases #
 ######################
@@ -71,5 +71,4 @@ Thumbs.db
 
 # Things specific to this project #
 ###################################
-nibabel.egg-info/
 doc/source/generated
