@@ -266,14 +266,20 @@ class SpatialImage(object):
                  extra=None, file_map=None):
         ''' Initialize image
 
+        The image is a combination of (array, affine matrix, header), with
+        optional metadata in `extra`, and filename / file-like objects contained
+        in the `file_map` mapping.
+
         Parameters
         ----------
         data : array-like
            image data.  It should be some object that retuns an array
            from ``np.asanyarray``
-        affine : (4,4) array
-           homogenous affine giving relationship between voxel
-           coordinates and world coordinates
+        affine : None or (4,4) array-like
+           homogenous affine giving relationship between voxel coordinates and
+           world coordinates.  Affine can also be None.  In this case,
+           ``obj.get_affine()`` also returns None, and the affine as written to
+           disk will depend on the file format.
         header : None or mapping or header instance, optional
            metadata for this image format
         extra : None or mapping, optional
@@ -283,6 +289,13 @@ class SpatialImage(object):
            mapping giving file information for this image format
         '''
         self._data = data
+        if not affine is None:
+            # Check that affine is array-like 4,4.  Maybe this is too strict at
+            # this abstract level, but so far I think all image formats we know
+            # do need 4,4.
+            affine = np.asarray(affine)
+            if not affine.shape == (4,4):
+                raise ValueError('Affine should be shape 4,4')
         self._affine = affine
         if extra is None:
             extra = {}

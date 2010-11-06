@@ -383,7 +383,21 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         yield assert_equal(sc_data.shape, (3,2,2))
         us_data = read_img_data(img2, prefer='unscaled')
         yield assert_equal(us_data.shape, (3,2,2))
-        
+
+    def test_affine_44(self):
+        IC = self.image_class
+        shape = (2,3,4)
+        data = np.arange(24, dtype=np.int16).reshape(shape)
+        affine = np.diag([2, 3, 4, 1])
+        # OK - affine correct shape
+        img = IC(data, affine)
+        yield assert_array_equal(affine, img.get_affine())
+        # OK - affine can be array-like
+        img = IC(data, affine.tolist())
+        yield assert_array_equal(affine, img.get_affine())
+        # Not OK - affine wrong shape
+        yield assert_raises(ValueError, IC, data, np.diag([2, 3, 4]))
+
 
 @parametric
 def test_unsupported():
