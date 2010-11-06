@@ -12,7 +12,7 @@ import numpy as np
 import numpy.linalg as npl
 
 from .volumeutils import Recoder, make_dt_codes, endian_codes
-from .spatialimages import HeaderDataError
+from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze # module import
@@ -1404,5 +1404,41 @@ class Nifti1Image(Nifti1Pair):
             hdr['vox_offset'] = min_vox_offset
 
 
-load = Nifti1Image.load
-save = Nifti1Image.instance_to_filename
+def load(filename):
+    """ Load nifti1 single or pair from `filename`
+
+    Parameters
+    ----------
+    filename : str
+        filename of image to be loaded
+
+    Returns
+    -------
+    img : Nifti1Image or Nifti1Pair
+        nifti1 single or pair image instance
+
+    Raises
+    ------
+    ImageFileError: if `filename` doesn't look like nifti1
+    IOError : if `filename` does not exist
+    """
+    try:
+        img = Nifti1Image.load(filename)
+    except ImageFileError:
+        return Nifti1Pair.load(filename)
+    return img
+
+
+def save(img, filename):
+    """ Save nifti1 single or pair to `filename`
+
+    Parameters
+    ----------
+    filename : str
+        filename to which to save image
+    """
+    try:
+        Nifti1Image.instance_to_filename(img, filename)
+    except ImageFileError:
+        Nifti1Pair.instance_to_filename(img, filename)
+

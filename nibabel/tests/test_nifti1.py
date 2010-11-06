@@ -26,6 +26,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 from nose import SkipTest
 
+from ..tmpdirs import InTemporaryDirectory
 from ..testing import parametric, data_path
 
 from . import test_analyze as tana
@@ -531,3 +532,18 @@ def test_recoded_fields():
     yield assert_equal(hdr.get_value_label('slice_code'),
                        'alternating decreasing')
 
+
+def test_load():
+    # test module level load.  We try to load a nii and an .img and a .hdr and
+    # expect to get a nifti back of single or pair type
+    arr = np.arange(24).reshape((2,3,4))
+    aff = np.diag([2, 3, 4, 1])
+    simg = Nifti1Image(arr, aff)
+    pimg = Nifti1Pair(arr, aff)
+    with InTemporaryDirectory():
+        nifti1.save(simg, 'test.nii')
+        assert_array_equal(arr, nifti1.load('test.nii').get_data())
+        nifti1.save(simg, 'test.img')
+        assert_array_equal(arr, nifti1.load('test.img').get_data())
+        nifti1.save(simg, 'test.hdr')
+        assert_array_equal(arr, nifti1.load('test.hdr').get_data())
