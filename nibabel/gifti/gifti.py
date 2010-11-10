@@ -396,17 +396,17 @@ class GiftiImage(object):
         self.numDA = len(self.darrays)
         self.version = version
 
-    @classmethod
-    def from_array(cls):
-        pass
+#    @classmethod
+#    def from_array(cls):
+#        pass
 #def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
 #    """ Returns a GiftiImage from a Numpy array with a given intent code and
 #    encoding """
 
     
-    @classmethod
-    def from_vertices_and_triangles(cls):
-        pass
+#    @classmethod
+#    def from_vertices_and_triangles(cls):
+#        pass
 #    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
 #                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
 #                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
@@ -418,9 +418,21 @@ class GiftiImage(object):
         return self.meta
 
     def set_metadata(self, meta):
-        # XXX type checks
-        self.meta = meta
-        print "New Metadata set. Be aware of changing coordinate transformation!"
+        """ Set the metadata for the GiftiImage
+        
+        Parameters
+        ----------
+        meta : GiftiMetaData
+        
+        Returns
+        -------
+        None
+        """
+        if isinstance(meta, gi.GiftiMetadata):
+            self.meta = meta
+            print "New Metadata set. Be aware of changing coordinate transformation!"
+        else:
+            print "Not a valid GiftiMetaData instance"
 
     def add_gifti_data_array(self, dataarr):
         # XXX type checks

@@ -7,13 +7,25 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # General Gifti Input - Output to and from the filesystem
-# Stephan Gerhard, August 2010
+# Stephan Gerhard, Oktober 2010
 ##############
 
 from parse_gifti_fast import *
 
 def read(filename):
-    """ Load a Gifti image from a file """
+    """ Load a Gifti image from a file
+    
+    Parameters
+    ----------
+    filename : string
+        The Gifti file to open, it has usually ending .gii
+        
+    Returns
+    -------
+    img : GiftiImage
+        Returns a GiftiImage
+        
+     """
     import os.path
     if not os.path.exists(filename):
         raise IOError("No such file or directory: '%s'" % filename)
@@ -24,10 +36,20 @@ def read(filename):
 def write(image, filename):
     """ Save the current image to a new file
 
-    If the image was created using array data (not loaded from a file) one
-    has to specify a filename
+    Parameters
+    ----------
+    image : GiftiImage
+        A GiftiImage instance to store 
+    filename : string
+        Filename to store the Gifti file to
 
-    Note that the Gifti spec suggests using the following suffixes to your
+    Returns
+    -------
+    None
+    
+    Notes
+    -----
+    The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
 
     .gii
