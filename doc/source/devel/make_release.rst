@@ -97,7 +97,10 @@ Release checklist
 
     Set ``_version_extra`` back to ``.dev`` and bump ``_version_micro`` by 1.
     Thus the maintenance series will have version numbers like - say - '1.0.1.dev'
-    until the next maintenance release - say '1.0.1'.  Commit.
+    until the next maintenance release - say '1.0.1'.  Commit. Don't forget to
+    push upstream with something like::
+
+      git push upstream maint/1.0.0 --set-upstream
 
   * Start next development series::
 
