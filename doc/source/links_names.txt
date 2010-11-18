@@ -94,6 +94,7 @@
 .. _networkx: http://networkx.lanl.gov/
 .. _setuptools: http://pypi.python.org/pypi/setuptools
 .. _distribute: http://packages.python.org/distribute
+.. _datapkg: http://okfn.org/projects/datapkg
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
@@ -134,6 +135,12 @@
 .. _ITK: http://www.itk.org/
 .. _swig: http://www.swig.org
 
+.. version control
+.. _git: http://git-scm.com
+.. _mercurial: http://mercurial.selenic.com
+.. _bzr: http://bazaar.canonical.com
+.. _subversion: http://subversion.apache.org
+
 .. Functional imaging labs
 .. _`functional imaging laboratory`: http://www.fil.ion.ucl.ac.uk
 .. _FMRIB: http://www.fmrib.ox.ac.uk
@@ -170,6 +177,9 @@
 .. _`wikipedia shear matrix`: http://en.wikipedia.org/wiki/Shear_matrix
 .. _`wikipedia reflection`: http://en.wikipedia.org/wiki/Reflection_(mathematics)
 .. _`wikipedia direction cosine`: http://en.wikipedia.org/wiki/Direction_cosine
+
+.. philosophy
+.. _0SAGA: http://nipyworld.blogspot.com/2010/11/0saga-software-model.html
 
 .. People
 .. _Matthew Brett: https://cirl.berkeley.edu/mb312/
