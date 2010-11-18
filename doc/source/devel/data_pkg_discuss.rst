@@ -1,4 +1,4 @@
-.. _data-pkg-discuss:
+.. _data-package-discuss:
 
 Principles of data package NG
 =============================
@@ -122,8 +122,8 @@ in the package.
 Package installation
 --------------------
 
-We install a package when we get some instantation and place it on local storage,
-such that we can *discover* the package on our own (local) system.
+We install a package when we get some instantiation and place it on local
+storage, such that we can *discover* the package on our own (local) system.
 
 Data and metadata
 -----------------

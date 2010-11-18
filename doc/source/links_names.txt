@@ -62,7 +62,6 @@
 .. _pylint: http://www.logilab.org/project/pylint
 .. _pyflakes: http://divmod.org/trac/wiki/DivmodPyflakes
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
-.. _git: http://git.or.cz/
 .. _github: http://github.com
 .. _flymake: http://flymake.sourceforge.net/
 .. _rope: http://rope.sourceforge.net/
@@ -71,8 +70,6 @@
 .. _ECB: http://ecb.sourceforge.net/
 .. _emacs_python_mode: http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 .. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
-.. _bazaar: http://bazaar-vcs.org/
-.. _subversion: http://subversion.tigris.org/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
 
