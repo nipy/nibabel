@@ -414,11 +414,27 @@ class GiftiImage(object):
 #    and the triangles. Additionally defining the coordinate system and encoding """
 
 
+    def get_labeltable(self):
+        return self.labeltable
+    
+    def set_labeltable(self, labeltable):
+        """ Set the labeltable for this GiftiImage
+        
+        Parameters
+        ----------
+        labeltable : GiftiLabelTable
+        
+        """
+        if isinstance(labeltable, GiftiLabelTable):
+            self.labeltable = labeltable
+        else:
+            print "Not a valid GiftiLabelTable instance"
+
     def get_metadata(self):
         return self.meta
 
     def set_metadata(self, meta):
-        """ Set the metadata for the GiftiImage
+        """ Set the metadata for this GiftiImage
         
         Parameters
         ----------
@@ -428,20 +444,29 @@ class GiftiImage(object):
         -------
         None
         """
-        if isinstance(meta, gi.GiftiMetadata):
+        if isinstance(meta, GiftiMetaData):
             self.meta = meta
             print "New Metadata set. Be aware of changing coordinate transformation!"
         else:
             print "Not a valid GiftiMetaData instance"
 
     def add_gifti_data_array(self, dataarr):
-        # XXX type checks
-        self.darrays.append(dataarr)
-        self.numDA += 1
+        """ Adds a data array to the GiftiImage
+        
+        Parameters
+        ----------
+        dataarr : GiftiDataArray
+        
+        """
+        if isinstance(dataarr, GiftiDataArray):
+            self.darrays.append(dataarr)
+            self.numDA += 1
+        else:
+            print "dataarr paramater must be of tzpe GiftiDataArray"
 
-    def remove_gifti_data_array(self, dataarr):
-        # XXX type checks
-        self.darrays.remove(dataarr)
+    def remove_gifti_data_array(self, ith):
+        """ Removes the ith data array element from the GiftiImage """
+        self.darrays.pop(ith)
         self.numDA -= 1
 
     def remove_gifti_data_array_by_intent(self, intent):

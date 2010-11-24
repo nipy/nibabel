@@ -14,10 +14,6 @@ from util import *
 import numpy
 import numpy as np
 
-parser = None
-img = None
-out = None
-
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
 
@@ -36,6 +32,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c)
+        da = da.astype(data_type_codes.type[datatype])
         return da
 
     elif encoding == 2:
@@ -81,27 +78,30 @@ class Outputter(object):
     
     meta_global = None
     meta_da = None
-
+    count_da = True
+    
     # where to write CDATA:
     write_to = None
-
+    img = None
+    
     def StartElementHandler(self, name, attrs):
         #print 'Start element:\n\t', repr(name), attrs
-        global img
-
+        
         if name == 'GIFTI':
             # create gifti image
-            img = GiftiImage()
+            self.img = GiftiImage()
             if attrs.has_key('Version'):
-                img.version = attrs['Version']
+                self.img.version = attrs['Version']
             if attrs.has_key('NumberOfDataArrays'):
-                img.numDA = attrs['NumberOfDataArrays']
+                self.img.numDA = int(attrs['NumberOfDataArrays'])
+                self.count_da = False
+
             self.fsm_state.append('GIFTI')
 
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
 
-            # if this metadata tag is first, create img.meta
+            # if this metadata tag is first, create self.img.meta
             if len(self.fsm_state) == 2:
                 self.meta_global = GiftiMetaData()
             else:
@@ -170,12 +170,12 @@ class Outputter(object):
             if attrs.has_key("ExternalFileOffset"):
                 self.da.ext_offset = attrs["ExternalFileOffset"]
             
-            img.darrays.append(self.da)
+            self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
 
         elif name == 'CoordinateSystemTransformMatrix':
             self.coordsys = GiftiCoordSystem()
-            img.darrays[-1].coordsys = self.coordsys
+            self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
 
         elif name == 'DataSpace':
@@ -203,7 +203,7 @@ class Outputter(object):
     def EndElementHandler(self, name):
         #print 'End element:\n\t', repr(name)
 
-        global img
+
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
@@ -215,10 +215,10 @@ class Outputter(object):
             if len(self.fsm_state) == 1:
                 # only Gifti there, so this was a closing global
                 # metadata tag
-                img.meta = self.meta_global
+                self.img.meta = self.meta_global
                 self.meta_global = None
             else:
-                img.darrays[-1].meta = self.meta_da
+                self.img.darrays[-1].meta = self.meta_da
                 self.meta_da = None
                 
         elif name == 'MD':
@@ -237,10 +237,12 @@ class Outputter(object):
             self.fsm_state.pop()
 
             # add labeltable
-            img.labeltable = self.lata
+            self.img.labeltable = self.lata
             self.lata = None
 
         elif name == 'DataArray':
+            if self.count_da:
+                self.img.numDA += 1
             self.fsm_state.pop()
         elif name == 'CoordinateSystemTransformMatrix':
             self.fsm_state.pop()
@@ -284,7 +286,7 @@ class Outputter(object):
             self.coordsys.xform = np.loadtxt(c)
             c.close()
         elif self.write_to == 'Data':
-            da_tmp = img.darrays[-1]
+            da_tmp = self.img.darrays[-1]
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian, \
                                           da_tmp.ind_ord, da_tmp.datatype, \
                                           da_tmp.dims, data)
@@ -296,14 +298,6 @@ def parse_gifti_file(fname, buffer_size = 35000000):
 
     datasource = open(fname,'r')
     
-    global img
-    global parser
-    global out
-
-    img = None
-    out = None
-    parser = None
-
     parser = ParserCreate()
     parser.buffer_text = True
     parser.buffer_size = buffer_size
@@ -321,6 +315,5 @@ def parse_gifti_file(fname, buffer_size = 35000000):
         print 'An expat error occured while parsing the  Gifti file.'
 
     # update filename
-    img.filename = fname
-
-    return img
+    out.img.filename = fname
+    return out.img

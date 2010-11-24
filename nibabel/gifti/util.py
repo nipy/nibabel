@@ -119,7 +119,7 @@ intent_codes = Recoder((
     (1005, 'symmetric matrix', ('p1 = M',), "NIFTI_INTENT_SYMMATRIX"),
     (1006, 'displacement vector', (), "NIFTI_INTENT_DISPVECT"),
     (1007, 'vector', (), "NIFTI_INTENT_VECTOR"),
-    (1008, 'poinset', (), "NIFTI_INTENT_POINTSET"),
+    (1008, 'pointset', (), "NIFTI_INTENT_POINTSET"),
     (1009, 'triangle', (), "NIFTI_INTENT_TRIANGLE"),
     (1010, 'quaternion', (), "NIFTI_INTENT_QUATERNION"),
     (1011, 'dimensionless', (), "NIFTI_INTENT_DIMLESS"),
