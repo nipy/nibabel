@@ -120,4 +120,4 @@ Or from the command line::
   git config --global merge.log true
 
 
-.. include:: git_links.inc
+.. include:: links.inc

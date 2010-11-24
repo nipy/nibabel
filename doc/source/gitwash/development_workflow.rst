@@ -22,7 +22,7 @@ Workflow summary
 This way of working really helps to keep work well organized, and in
 keeping history as clear as possible.
 
-See - for example - `linux git workflow`_. 
+See |emdash| for example |emdash| `linux git workflow`_. 
 
 Making a new feature branch
 ===========================
@@ -87,9 +87,9 @@ In more detail
 #. To commit all modified files into the local copy of your repo,, do
    ``git commit -am 'A commit message'``.  Note the ``-am`` options to
    ``commit``. The ``m`` flag just signals that you're going to type a
-   message on the command line.  The ``a`` flag - you can just take on
-   faith - or see `why the -a flag?`_ - and the helpful use-case description in
-   the `tangled working copy problem`_. The `git commit`_ manual
+   message on the command line.  The ``a`` flag |emdash| you can just take on
+   faith |emdash| or see `why the -a flag?`_ |emdash| and the helpful use-case
+   description in the `tangled working copy problem`_. The `git commit`_ manual
    page might also be useful.
 #. To push the changes up to your forked repo on github_, do a ``git
    push`` (see `git push`). 
@@ -97,12 +97,12 @@ In more detail
 Asking for code review
 ======================
 
-#. Go to your repo URL - e.g. ``http://github.com/your-user-name/nibabel``.
+#. Go to your repo URL |emdash| e.g. ``http://github.com/your-user-name/nibabel``.
 #. Click on the *Branch list* button:
 
    .. image:: branch_list.png
 
-#. Click on the *Compare* button for your feature branch - here ``my-new-feature``:
+#. Click on the *Compare* button for your feature branch |emdash| here ``my-new-feature``:
 
    .. image:: branch_list_compare.png
 
@@ -236,4 +236,4 @@ To see a linear list of commits for this branch::
 You can also look at the `network graph visualizer`_ for your github_
 repo.
 
-.. include:: git_links.inc
+.. include:: links.inc

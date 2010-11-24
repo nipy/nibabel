@@ -64,5 +64,5 @@ Just for your own satisfaction, show yourself that you now have a new
    origin	git@github.com:your-user-name/nibabel.git (fetch)
    origin	git@github.com:your-user-name/nibabel.git (push)
 
-.. include:: git_links.inc
+.. include:: links.inc
 
