@@ -10,7 +10,10 @@
 # Stephan Gerhard, Oktober 2010
 ##############
 
-from parse_gifti_fast import *
+import os
+
+from . import parse_gifti_fast as gfp
+reload(gfp)
 
 def read(filename):
     """ Load a Gifti image from a file
@@ -26,12 +29,10 @@ def read(filename):
         Returns a GiftiImage
         
      """
-    import os.path
-    if not os.path.exists(filename):
+    if not os.path.isfile(filename):
         raise IOError("No such file or directory: '%s'" % filename)
-    else:
-        giifile = parse_gifti_file(filename)
-        return giifile
+    return gfp.parse_gifti_file(filename)
+
 
 def write(image, filename):
     """ Save the current image to a new file

@@ -65,6 +65,17 @@ DATA_FILE4_darr1 = np.array([[-0.57811606],
        [-0.31101292]], dtype=np.float32)
 
 
+def test_read_ordering():
+    # DATA_FILE1 has an expected darray[0].data shape of (3,3).  However if we
+    # read another image first (DATA_FILE2) then the shape is wrong
+    # Read an image
+    img2 = gi.read(DATA_FILE2)
+    assert_equal(img2.darrays[0].data.shape, (143479, 1))
+    # Read image for which we know output shape
+    img = gi.read(DATA_FILE1)
+    assert_equal(img.darrays[0].data.shape, (3,3))
+
+
 def test_metadata():
 
     for i, dat in enumerate(datafiles):
@@ -75,6 +86,7 @@ def test_metadata():
 
         assert numda[i] == img.numDA
         assert img.version == '1.0'
+
 
 def test_dataarray1():
     

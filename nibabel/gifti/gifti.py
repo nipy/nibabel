@@ -7,9 +7,13 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from util import *
 from StringIO import StringIO
+
 import numpy as np
+
+from .util import (data_type_codes, xform_codes, intent_codes,
+                   array_index_order_codes, gifti_encoding_codes,
+                   gifti_endian_codes)
 
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
@@ -135,7 +139,7 @@ class GiftiCoordSystem(object):
 
     dataspace = int
     xformspace = int
-    xform = None # 4x4 numpy array
+    xform = np.ndarray # 4x4 numpy array
 
     def __init__(self, dataspace = 0, xformspace = 0, xform = None):
         
@@ -219,24 +223,25 @@ def data_tag(dataarray, encoding, datatype, ordering):
 
 class GiftiDataArray(object):
 
+    # These are for documentation only; we don't use these class variables
     intent = int
     datatype = int
     ind_ord = int
     num_dim = int
-    dims = []
+    dims = list
     encoding = int
     endian = int
     ext_fname = str
     ext_offset = str
-
-    data = None
-    coordsys = None # GiftiCoordSystem()
-    meta = None # GiftiMetaData()
+    data = np.ndarray
+    coordsys = GiftiCoordSystem
+    meta = GiftiMetaData
     
-    def __init__(self):
-
+    def __init__(self, data=None):
+        self.data = data
         self.dims = []
         self.meta = GiftiMetaData()
+        self.coordsys = GiftiCoordSystem()
         self.ext_fname = ''
         self.ext_offset = ''
 
@@ -276,9 +281,8 @@ class GiftiDataArray(object):
         da : GiftiDataArray
         
         """
-        cda = GiftiDataArray()
+        cda = GiftiDataArray(darray)
         
-        cda.data = darray
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype == None:
@@ -289,9 +293,7 @@ class GiftiDataArray(object):
         cda.encoding = gifti_encoding_codes.code[encoding]
         cda.endian = gifti_endian_codes.code[endian]
         
-        if coordsys == None:
-            cda.coordsys = GiftiCoordSystem()
-        else:
+        if not coordsys is None:
             cda.coordsys = coordsys
         cda.ind_ord = array_index_order_codes.code[ordering]
         cda.meta = GiftiMetaData.from_dict(meta)
@@ -378,9 +380,10 @@ class GiftiImage(object):
     version = str
     filename = str
 
-    def __init__(self, meta = None, labeltable = None, darrays = [], \
+    def __init__(self, meta = None, labeltable = None, darrays = None,
                  version = "1.0"):
-
+        if darrays is None:
+            darrays = []
         self.darrays = darrays
         
         if meta is None:
