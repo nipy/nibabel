@@ -148,7 +148,7 @@ language, and should not require a particular tool to be installed.  We hope we
 can write a spec that makes all of (creation, installation, local discovery)
 clearly defined, so that it would be simple to write an implementation.
 Obviously we're going to end up writing our own implementation, or adapting
-someone else's.
+someone else's.  datapkg_ looks like the best candidate at the moment.
 
 Issues
 ++++++
