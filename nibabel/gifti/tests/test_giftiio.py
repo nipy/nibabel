@@ -10,6 +10,7 @@
 from os.path import join as pjoin, dirname
 
 import numpy as np
+import tempfile
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -82,10 +83,10 @@ def test_metadata():
         
         img = gi.read(dat)
         me = img.get_metadata()
-        medat = me.get_data_as_dict()
+        medat = me.get_metadata()
 
-        assert numda[i] == img.numDA
-        assert img.version == '1.0'
+        assert_equal(numda[i], img.numDA)
+        assert_equal(img.version,'1.0')
 
 
 def test_dataarray1():
@@ -94,15 +95,15 @@ def test_dataarray1():
     assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
     assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
     
-    me=img.darrays[0].meta.get_data_as_dict()
+    me=img.darrays[0].meta.get_metadata()
     
-    assert me.has_key('AnatomicalStructurePrimary')
-    assert me.has_key('AnatomicalStructureSecondary')
-    assert me['AnatomicalStructurePrimary'] == 'CortexLeft'
+    assert_true(me.has_key('AnatomicalStructurePrimary'))
+    assert_true(me.has_key('AnatomicalStructureSecondary'))
+    assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
     
     assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
-    assert gi.xform_codes.niistring[img.darrays[0].coordsys.dataspace] == 'NIFTI_XFORM_TALAIRACH'
-    assert gi.xform_codes.niistring[img.darrays[0].coordsys.xformspace] == 'NIFTI_XFORM_TALAIRACH'
+    assert_equal(gi.xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
+    assert_equal(gi.xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
 
 def test_dataarray2():
     img2 = gi.read(DATA_FILE2)
@@ -117,28 +118,36 @@ def test_dataarray4():
     assert_array_almost_equal(img4.darrays[0].data[:10], DATA_FILE4_darr1)
     
 def test_readwritedata():
-    
     img = gi.read(DATA_FILE2)
-    import tempfile
     newp = pjoin(tempfile.gettempdir(), 'test.gii')
     gi.write(img, newp)
     img2 = gi.read(newp)
     
-    assert img.numDA == img2.numDA
+    assert_equal(img.numDA,img2.numDA)
     assert_array_almost_equal(img.darrays[0].data, img2.darrays[0].data)
     
-
 def test_newmetadata():
     img = gi.GiftiImage()
     
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
     img.set_metadata(newmeta)
-    myme = img.meta.get_data_as_dict()
-    assert myme.has_key('mykey')
+    myme = img.meta.get_metadata()
+    assert_true(myme.has_key('mykey'))
     
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
     img.set_metadata(newmeta)
-    myme = img.meta.get_data_as_dict()
-    assert myme.has_key('mykey1')
-    assert not myme.has_key('mykey')
+    myme = img.meta.get_metadata()
+    assert_true(myme.has_key('mykey1'))
+    assert_false(myme.has_key('mykey'))
+
+def test_getbyintent():
+    img = gi.read(DATA_FILE1)
+    da = img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
+    assert_equal(len(da), 1)
+    da = img.getArraysFromIntent("NIFTI_INTENT_TRIANGLE")
+    assert_equal(len(da), 1)
+    da = img.getArraysFromIntent("NIFTI_INTENT_CORREL")
+    assert_equal(len(da), 0)
+    assert_equal(da, [])
+    

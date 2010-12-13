@@ -320,13 +320,11 @@ def parse_gifti_file(fname, buffer_size = 35000000):
     for name in HANDLER_NAMES:
         setattr(parser, name, getattr(out, name))
 
-    print 'The imgs', out.img, out.da
     try:
         parser.ParseFile(datasource)
     except ExpatError:
         print 'An expat error occured while parsing the  Gifti file.'
 
-    print 'The imgs 2', out.img.darrays, out.da
     # update filename
     out.img.filename = fname
     return out.img

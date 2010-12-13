@@ -32,7 +32,7 @@ class GiftiMetaData(object):
             meda.data.append(nv)
         return meda
         
-    def get_data_as_dict(self):
+    def get_metadata(self):
         """ Returns metadata as dictionary """
         
         self.data_as_dict = {}
@@ -56,7 +56,7 @@ class GiftiMetaData(object):
         return res
 
     def print_summary(self):
-        print self.get_data_as_dict()
+        print self.get_metadata()
 
 class GiftiNVPairs(object):
 
@@ -371,8 +371,9 @@ class GiftiDataArray(object):
             print 'Coordinate System:'
             print self.coordsys.print_summary()
 
-    def get_meta_as_dict(self):
-        return self.meta.get_data_as_dict()
+    def get_metadata(self):
+        """ Returns metadata as dictionary """
+        return self.meta.get_metadata()
 
 class GiftiImage(object):
 
