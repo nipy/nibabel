@@ -3,9 +3,4 @@
 
 Stephan's TODO
 --------------
-
-* how to account for endianness correctly (e.g. while writing)?
-* gifti line 191, add formating (in util as well)
-* write correct gifti file name endings (giftiio.write)
-* in gifti line 200, error for encoding b64gz
-
+* testing for endianness correctly (e.g. while writing)?
