@@ -7,25 +7,24 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import base64
+import zlib
+from StringIO import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
-from gifti import *
-from util import *
-from numpy import loadtxt
-import numpy
 
-parser = None
-img = None
-out = None
+import numpy as np
+
+from . import gifti as gi
+from .util import (data_type_codes, xform_codes, intent_codes,
+                   array_index_order_codes, gifti_encoding_codes,
+                   gifti_endian_codes)
+
+
+DEBUG_PRINT = False
+
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
-
-    # XXX: how to incorporate endianness?
-
-    import base64
-    import zlib
-    from StringIO import StringIO
-
     if ordering == 1:
         ord = 'C'
     elif ordering == 2:
@@ -36,71 +35,93 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     if encoding == 1:
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
-        da = numpy.loadtxt(c)
+        da = np.loadtxt(c)
+        da = da.astype(data_type_codes.type[datatype])
         return da
 
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
         dec = base64.decodestring(data)
-        dt = GiftiType2npyType[datatype]
+        dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        newarr = np.fromstring(zdec, dtype = dt, sep = '\n', count = c)
+        if len(newarr.shape) == len(sh):
+            return newarr
+        else:
+            return newarr.reshape(sh, order = ord)
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
         dec = base64.decodestring(data)
         zdec = zlib.decompress(dec)
-        dt = GiftiType2npyType[datatype]
+        dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        return numpy.fromstring(zdec, dtype = dt).reshape(sh, order = ord)
+        newarr = np.fromstring(zdec, dtype = dt)
+        if len(newarr.shape) == len(sh):
+            return newarr
+        else:
+            return newarr.reshape(sh, order = ord)
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
-        # XXX: to be implemented. In what format are the external files?
-        pass
+        raise NotImplementedError("In what format are the external files?")
     else:
         return 0
 
 class Outputter(object):
 
-    # finite state machine stack
-    fsm_state = []
+    def __init__(self):
+        self.initialize()
 
-    # temporary constructs
-    nvpair = None
-    da = None
-    coordsys = None
-    lata = None
-    label = None
+    def initialize(self):
+        """ Initialize outputter
+        """
+        # finite state machine stack
+        self.fsm_state = []
 
-    # where to write CDATA:
-    write_to = None
+        # temporary constructs
+        self.nvpair = None
+        self.da = None
+        self.coordsys = None
+        self.lata = None
+        self.label = None
 
+        self.meta_global = None
+        self.meta_da = None
+        self.count_da = True
 
+        # where to write CDATA:
+        self.write_to = None
+        self.img = None
+    
     def StartElementHandler(self, name, attrs):
-        #print 'Start element:\n\t', repr(name), attrs
-        global img
-
+        if DEBUG_PRINT:
+            print 'Start element:\n\t', repr(name), attrs
+        
         if name == 'GIFTI':
             # create gifti image
-            img = GiftiImage()
+            self.img = gi.GiftiImage()
             if attrs.has_key('Version'):
-                img.version = attrs['Version']
-
+                self.img.version = attrs['Version']
             if attrs.has_key('NumberOfDataArrays'):
-                img.numDA = attrs['NumberOfDataArrays']
+                self.img.numDA = int(attrs['NumberOfDataArrays'])
+                self.count_da = False
 
             self.fsm_state.append('GIFTI')
 
-
         elif name == 'MetaData':
-
             self.fsm_state.append('MetaData')
 
+            # if this metadata tag is first, create self.img.meta
+            if len(self.fsm_state) == 2:
+                self.meta_global = gi.GiftiMetaData()
+            else:
+                # otherwise, create darray.meta
+                self.meta_da = gi.GiftiMetaData()
+                
+
         elif name == 'MD':
-
-            self.nvpair = GiftiNVPairs()
-
+            self.nvpair = gi.GiftiNVPairs()
             self.fsm_state.append('MD')
 
         elif name == 'Name':
@@ -116,36 +137,34 @@ class Outputter(object):
                 self.write_to = 'Value'
 
         elif name == 'LabelTable':
-
-            self.lata = GiftiLabelTable()
-
+            self.lata = gi.GiftiLabelTable()
             self.fsm_state.append('LabelTable')
 
         elif name == 'Label':
-
-            self.label = GiftiLabel()
-
+            self.label = gi.GiftiLabel()
             if attrs.has_key("Index"):
                 self.label.index = int(attrs["Index"])
-
+            if attrs.has_key("Red"):
+                self.label.red = float(attrs["Red"])
+            if attrs.has_key("Green"):
+                self.label.green = float(attrs["Green"])
+            if attrs.has_key("Blue"):
+                self.label.blue = float(attrs["Blue"])
+            if attrs.has_key("Alpha"):
+                self.label.alpha = float(attrs["Alpha"])
+            
             self.write_to = 'Label'
 
         elif name == 'DataArray':
-
-            self.da = GiftiDataArray()
-
+            self.da = gi.GiftiDataArray()
             if attrs.has_key("Intent"):
-                self.da.intent = GiftiIntentCode.intents[attrs["Intent"]]
-
+                self.da.intent = intent_codes.code[attrs["Intent"]]
             if attrs.has_key("DataType"):
-                self.da.datatype = GiftiDataType.datatypes[attrs["DataType"]]
-
+                self.da.datatype = data_type_codes.code[attrs["DataType"]]
             if attrs.has_key("ArrayIndexingOrder"):
-                self.da.ind_ord = GiftiArrayIndexOrder.ordering[attrs["ArrayIndexingOrder"]]
-
+                self.da.ind_ord = array_index_order_codes.code[attrs["ArrayIndexingOrder"]]
             if attrs.has_key("Dimensionality"):
                 self.da.num_dim = int(attrs["Dimensionality"])
-
             for i in range(self.da.num_dim):
                 di = "Dim%s" % str(i)
                 if attrs.has_key(di):
@@ -153,29 +172,21 @@ class Outputter(object):
 
             # dimensionality has to correspond to the number of DimX given
             assert len(self.da.dims) == self.da.num_dim
-
             if attrs.has_key("Encoding"):
-                self.da.encoding = GiftiEncoding.encodings[attrs["Encoding"]]
-
+                self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
             if attrs.has_key("Endian"):
-                self.da.endian = GiftiEndian.endian[attrs["Endian"]]
-
+                self.da.endian = gifti_endian_codes.code[attrs["Endian"]]
             if attrs.has_key("ExternalFileName"):
                 self.da.ext_fname = attrs["ExternalFileName"]
-
             if attrs.has_key("ExternalFileOffset"):
                 self.da.ext_offset = attrs["ExternalFileOffset"]
-
-            img.darrays.append(self.da)
-
+            
+            self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
 
         elif name == 'CoordinateSystemTransformMatrix':
-
-            self.coordsys = GiftiCoordSystem()
-
-            img.darrays[-1].coordsys = self.coordsys
-
+            self.coordsys = gi.GiftiCoordSystem()
+            self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
 
         elif name == 'DataSpace':
@@ -201,30 +212,35 @@ class Outputter(object):
 
 
     def EndElementHandler(self, name):
-        #print 'End element:\n\t', repr(name)
+        if DEBUG_PRINT:
+            print 'End element:\n\t', repr(name)
 
-        global img
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
-            print self.fsm_state
 
         elif name == 'MetaData':
             self.fsm_state.pop()
+            
+            if len(self.fsm_state) == 1:
+                # only Gifti there, so this was a closing global
+                # metadata tag
+                self.img.meta = self.meta_global
+                self.meta_global = None
+            else:
+                self.img.darrays[-1].meta = self.meta_da
+                self.meta_da = None
+                
         elif name == 'MD':
             self.fsm_state.pop()
 
-            # add nvpair to correct metadata
-
-            # case for either Gifti MetaData or DataArray Metadata
-            if self.fsm_state[1] == 'MetaData':
-                # Gifti MetaData
-                img.meta.data.append(self.nvpair)
-            elif self.fsm_state[1] == 'DataArray' and self.fsm_state[2] == 'MetaData':
-                # append to last DataArray
-                img.darrays[-1].meta.data.append(self.nvpair)
-
+            if not self.meta_global is None and self.meta_da == None:
+                self.meta_global.data.append(self.nvpair)
+            
+            elif not self.meta_da is None and self.meta_global == None:
+                self.meta_da.data.append(self.nvpair)
+                
             # remove reference
             self.nvpair = None
 
@@ -232,10 +248,12 @@ class Outputter(object):
             self.fsm_state.pop()
 
             # add labeltable
-            img.labeltable = self.lata
+            self.img.labeltable = self.lata
             self.lata = None
 
         elif name == 'DataArray':
+            if self.count_da:
+                self.img.numDA += 1
             self.fsm_state.pop()
         elif name == 'CoordinateSystemTransformMatrix':
             self.fsm_state.pop()
@@ -258,7 +276,6 @@ class Outputter(object):
             self.write_to = None
 
 
-
     def CharacterDataHandler(self, data):
 
         if self.write_to == 'Name':
@@ -269,39 +286,32 @@ class Outputter(object):
             self.nvpair.value = data
         elif self.write_to == 'DataSpace':
             data = data.strip()
-            self.coordsys.dataspace = data
+            self.coordsys.dataspace = xform_codes.code[data]
         elif self.write_to == 'TransformedSpace':
             data = data.strip()
-            self.coordsys.xformspace = data
+            self.coordsys.xformspace = xform_codes.code[data]
         elif self.write_to == 'MatrixData':
             # conversion to numpy array
             from StringIO import StringIO
             c = StringIO(data)
-            self.coordsys.xform = loadtxt(c)
+            self.coordsys.xform = np.loadtxt(c)
             c.close()
         elif self.write_to == 'Data':
-            da_tmp = img.darrays[-1]
+            da_tmp = self.img.darrays[-1]
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian, \
                                           da_tmp.ind_ord, da_tmp.datatype, \
                                           da_tmp.dims, data)
         elif self.write_to == 'Label':
-            self.label.label = data
+            self.label.label = data.strip()
 
 
-def parse_gifti_file(fname):
+def parse_gifti_file(fname, buffer_size = 35000000):
 
     datasource = open(fname,'r')
-    global img
-    global parser
-    global out
-
-    img = None
-    out = None
-    parser = None
-
+    
     parser = ParserCreate()
     parser.buffer_text = True
-    parser.buffer_size = 35000000
+    parser.buffer_size = buffer_size
     HANDLER_NAMES = [
     'StartElementHandler', 'EndElementHandler',
     'CharacterDataHandler',
@@ -310,13 +320,11 @@ def parse_gifti_file(fname):
     for name in HANDLER_NAMES:
         setattr(parser, name, getattr(out, name))
 
-
     try:
         parser.ParseFile(datasource)
     except ExpatError:
-        print 'An error occured while parsing Gifti file.'
+        print 'An expat error occured while parsing the  Gifti file.'
 
     # update filename
-    img.filename = fname
-
-    return img
+    out.img.filename = fname
+    return out.img

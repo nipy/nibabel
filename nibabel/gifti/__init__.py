@@ -13,7 +13,9 @@
 .. autosummary::
    :toctree: ../generated
 
+   giftiio
    gifti
-   parse_gifti_fast
-   util
 """
+
+from giftiio import read, write
+from gifti import *
