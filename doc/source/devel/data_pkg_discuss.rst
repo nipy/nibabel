@@ -53,7 +53,7 @@ package.  By actual, I mean stuff that can be read as bytes.  As we add and
 remove data from the package, the *instantiation* changes.  This is the same
 kind of idea as a *revision* in version control. An instantiation does not need
 to be released, any more than a particular revision of some software needs to be
-released.
+released.  This is what datapkg_ refers to a as a *distribution*.
 
 Package instantiation identifier
 --------------------------------
@@ -82,8 +82,6 @@ A release might be a package instantiation that one person has:
 
 #. Labeled
 #. Made available to other people
-
-This might be what datapkg_ refers to as a *distribution*.
 
 Label source
 ------------
