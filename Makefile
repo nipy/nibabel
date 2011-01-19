@@ -243,10 +243,5 @@ installed-tests:
 sdist-tests:
 	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
 
-# Update nisext subtree from remote
-update-nisext:
-	git fetch nisext
-	git merge --squash -s subtree --no-commit nisext/master
-
 .PHONY: orig-src pylint
 
