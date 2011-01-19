@@ -71,9 +71,9 @@ def main(**extra_args):
                           'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests',
-                          # required in setup.py, hence needs to go into source
-                          # dist
-                          'nisext'],
+                          # install nisext as its own package
+                          'nisext',
+                          'nisext.tests'],
           # The package_data spec has no effect for me (on python 2.6) -- even
           # changing to data_files doesn't get this stuff included in the source
           # distribution -- not sure if it has something to do with the magic

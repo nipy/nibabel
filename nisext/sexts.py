@@ -107,7 +107,7 @@ def package_check(pkg_name, version=None,
          'missing opt': 'Missing optional package "%s"',
          'opt suffix' : '; you may get run-time errors',
          'version too old': 'You have version %s of package "%s"'
-         ' but we need version >= %s', }
+                            ' but we need version >= %s', }
     msgs.update(messages)
     try:
         __import__(pkg_name)
@@ -125,12 +125,11 @@ def package_check(pkg_name, version=None,
         raise RuntimeError('Cannot find version for %s' % pkg_name)
     if checker(have_version) < checker(version):
         if optional:
-            log.warn(msgs['version too old'] + msgs['opt suffix'],
-                     have_version,
-                     pkg_name,
-                     version)
+            log.warn(msgs['version too old'] % (have_version,
+                                                pkg_name,
+                                                version)
+                     + msgs['opt suffix'])
         else:
-            raise RuntimeError(msgs['version too old'],
-                               have_version,
-                               pkg_name,
-                               version)
+            raise RuntimeError(msgs['version too old'] % (have_version,
+                                                          pkg_name,
+                                                          version))
