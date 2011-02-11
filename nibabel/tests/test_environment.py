@@ -3,7 +3,7 @@
 
 import os
 from os import environ as env
-from os.path import join as pjoin
+from os.path import join as pjoin, abspath
 import sys
 
 import numpy as np
@@ -63,7 +63,7 @@ def test_user_dir():
         exp = pjoin(home_dir, '_nipy')
     assert_equal(exp, nibe.get_nipy_user_dir())
     env[USER_KEY] = '/a/path'
-    assert_equal('/a/path', nibe.get_nipy_user_dir())
+    assert_equal(abspath('/a/path'), nibe.get_nipy_user_dir())
 
 
 def test_sys_dir():
