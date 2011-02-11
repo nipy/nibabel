@@ -235,7 +235,7 @@ def test_filename_save():
         (Spm2AnalyzeImage, '.nii', Nifti1Image),
         (Spm2AnalyzeImage, '.img', Spm2AnalyzeImage),
         (Spm99AnalyzeImage, '.nii', Nifti1Image),
-        (Spm99AnalyzeImage, '.img', Spm99AnalyzeImage),
+        (Spm99AnalyzeImage, '.img', Spm2AnalyzeImage),
         (AnalyzeImage, '.nii', Nifti1Image),
         (AnalyzeImage, '.img', Spm2AnalyzeImage),
     )
@@ -255,7 +255,7 @@ def test_filename_save():
             nib.save(img, fname)
             rt_img = nib.load(fname)
             assert_array_almost_equal(rt_img.get_data(), data)
-            assert_true(isinstance(rt_img, loadklass))
+            assert_true(type(rt_img) is loadklass)
             # delete image to allow file close.  Otherwise windows
             # raises an error when trying to delete the directory
             del rt_img
