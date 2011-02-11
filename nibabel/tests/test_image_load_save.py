@@ -121,9 +121,8 @@ def test_save_load():
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     with InTemporaryDirectory() as pth:
-        pth = mkdtemp()
-        nifn = pjoin(pth, 'an_image.nii')
-        sifn = pjoin(pth, 'another_image.img')
+        nifn = 'an_image.nii'
+        sifn = 'another_image.img'
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
         yield assert_true(isinstance(re_img, ni1.Nifti1Image))
