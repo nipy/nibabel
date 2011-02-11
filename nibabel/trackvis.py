@@ -125,13 +125,6 @@ def read(fileobj, as_generator=False):
     if str(hdr['id_string'])[:5] != 'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
-    version = hdr['version']
-    if version not in (1, 2):
-        raise HeaderError('Reader only supports versions 1 and 2')
-    if version == 1:
-        hdr = np.ndarray(shape=(),
-                         dtype=header_1_dtype,
-                         buffer=hdr_str)
     if hdr['hdr_size'] == 1000:
         endianness = native_code
     else:
@@ -140,6 +133,16 @@ def read(fileobj, as_generator=False):
             raise HeaderError('Invalid hdr_size of %s'
                               % hdr['hdr_size'])
         endianness = swapped_code
+    # Check version and adapt structure accordingly
+    version = hdr['version']
+    if version not in (1, 2):
+        raise HeaderError('Reader only supports versions 1 and 2')
+    if version == 1: # make a new header with the same data
+        hdr = np.ndarray(shape=(),
+                         dtype=header_1_dtype,
+                         buffer=hdr_str)
+        if endianness == swapped_code:
+            hdr = hdr.newbyteorder()
     n_s = hdr['n_scalars']
     n_p = hdr['n_properties']
     f4dt = np.dtype(endianness + 'f4')

@@ -5,6 +5,7 @@ from StringIO import StringIO
 import numpy as np
 
 from .. import trackvis as tv
+from ..volumeutils import swapped_code
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -46,10 +47,10 @@ def streams_equal(stream1, stream2):
         return False
     if stream1[1] is None:
         if not stream2[1] is None:
-            return false
+            return False
     if stream1[2] is None:
         if not stream2[2] is None:
-            return false
+            return False
     if not np.all(stream1[1] == stream1[1]):
         return False
     if not np.all(stream1[2] == stream1[2]):
@@ -72,6 +73,12 @@ def test_round_trip():
     xyz1 = np.tile(np.arange(5).reshape(5,1) + 10, (1, 3))
     streams = [(xyz0, None, None), (xyz1, None, None)]
     tv.write(out_f, streams, {})
+    out_f.seek(0)
+    streams2, hdr = tv.read(out_f)
+    assert_true(streamlist_equal(streams, streams2))
+    # test that we can write in different endianness and get back same result
+    out_f.seek(0)
+    tv.write(out_f, streams, {}, swapped_code)
     out_f.seek(0)
     streams2, hdr = tv.read(out_f)
     assert_true(streamlist_equal(streams, streams2))
