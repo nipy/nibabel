@@ -10,7 +10,17 @@ from StringIO import StringIO
 
 import numpy as np
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
+
+# Decorator to skip tests requiring save / load if scipy not available for mat
+# files
+try:
+    import scipy
+except ImportError:
+    have_scipy = False
+else:
+    have_scipy = True
+scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import Spm99AnalyzeHeader, \
     Spm99AnalyzeImage, HeaderTypeError
@@ -91,6 +101,11 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images
     image_class = Spm99AnalyzeImage
+
+    # Decorating the old way, before the team invented @
+    test_data_hdr_cache = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_data_hdr_cache
+    ))
 
 
 @parametric
