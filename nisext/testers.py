@@ -232,21 +232,35 @@ tests_from_zip.__test__ = False
 
 def sdist_tests(mod_name, repo_path=None):
     """ Make sdist zip, install from it, and run tests """
+    buildzip_run_tests(mod_name, 'sdist --formats=zip', '*.zip', repo_path)
+
+sdist_tests.__test__ = False
+
+
+def bdist_egg_tests(mod_name, repo_path=None):
+    """ Make bdist_egg, install from it, and run tests """
+    buildzip_run_tests(mod_name, 'bdist_egg', '*.egg', repo_path)
+
+bdist_egg_tests.__test__ = False
+
+
+def buildzip_run_tests(mod_name, setup_params, zipglob, repo_path=None):
     pwd = os.path.abspath(os.getcwd())
     if repo_path is None:
         repo_path = pwd
     install_path = tempfile.mkdtemp()
     try:
         os.chdir(repo_path)
-        my_call('python setup.py sdist --formats=zip --dist-dir='
-                + install_path)
-        zip_fnames = glob(pjoin(install_path, mod_name + "*.zip"))
-        if len(zip_fnames) != 1:
-            raise OSError('There must be one and only one zip file, '
-                          'but I found "%s"' % ': '.join(zip_fnames))
-        tests_from_zip(mod_name, zip_fnames[0])
+        my_call('python setup.py %s --dist-dir=%s'
+                % (setup_params, install_path))
+        zips = glob(pjoin(install_path, zipglob))
+        if len(zips) != 1:
+            raise OSError('There must be one and only one %s file, '
+                          'but I found "%s"' %
+                          (zipglob, ': '.join(zips)))
+        tests_from_zip(mod_name, zips[0])
     finally:
         os.chdir(pwd)
         shutil.rmtree(install_path)
 
-sdist_tests.__test__ = False
+buildzip_run_tests.__test__ = False
