@@ -1334,20 +1334,6 @@ class Nifti1PairHeader(Nifti1Header):
 class Nifti1Pair(analyze.AnalyzeImage):
     header_class = Nifti1PairHeader
 
-    @classmethod
-    def from_file_map(klass, file_map):
-        hdrf, imgf = klass._get_open_files(file_map, 'rb')
-        header = klass.header_class.from_fileobj(hdrf)
-        extra = None
-        affine = header.get_best_affine()
-        hdr_copy = header.copy()
-        data = klass.ImageArrayProxy(imgf, hdr_copy)
-        img = klass(data, affine, header, extra, file_map)
-        img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
-                           'file_map': copy_file_map(file_map)}
-        return img
-
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Pair, self)._write_header(header_file,
                                               header,
@@ -1383,13 +1369,13 @@ class Nifti1Image(Nifti1Pair):
     files_types = (('image', '.nii'),)
 
     @staticmethod
-    def _get_open_files(file_map, mode='rb'):
-        hdrf = file_map['image'].get_prepare_fileobj(mode=mode)
-        return hdrf, hdrf
+    def _get_fileholders(file_map):
+        """ Return fileholder for header and image
 
-    def _close_filenames(self, file_map, hdrf, imgf):
-        if file_map['image'].fileobj is None: # was filename
-            imgf.close()
+        For single-file niftis, the fileholder for the header and the image will
+        be the same
+        """
+        return file_map['image'], file_map['image']
 
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Image, self)._write_header(header_file,
