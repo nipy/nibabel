@@ -368,28 +368,27 @@ def test_set_slice_times():
     yield assert_equal(hdr['slice_code'], 6)
 
 
-@parametric
 def test_nifti1_images():
     shape = (2, 4, 6)
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
-    yield assert_equal(img.get_shape(), shape)
+    assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
     stio = StringIO()
     img.file_map['image'].fileobj = stio
     img.to_file_map()
     img2 = Nifti1Image.from_file_map(img.file_map)
-    yield assert_array_equal(img2.get_data(), data)
+    assert_array_equal(img2.get_data(), data)
     with InTemporaryDirectory() as tmpdir:
         for ext in ('.gz', '.bz2'):
             fname = os.path.join(tmpdir, 'test.nii' + ext)
             img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
-            yield assert_true(isinstance(img3, img.__class__))
-            yield assert_array_equal(img3.get_data(), data)
-            yield assert_equal(img3.get_header(), img.get_header())
+            assert_true(isinstance(img3, img.__class__))
+            assert_array_equal(img3.get_data(), data)
+            assert_equal(img3.get_header(), img.get_header())
             # del to avoid windows errors of form 'The process cannot
             # access the file because it is being used'
             del img3

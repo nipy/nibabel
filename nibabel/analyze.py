@@ -1377,14 +1377,21 @@ class AnalyzeImage(SpatialImage):
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
         hdr_fh, img_fh = self._get_fileholders(file_map)
+        # Check if hdr and img refer to same file; this can happen with odd
+        # analyze images but most often this is because it's a single nifti file
+        hdr_img_same = hdr_fh.same_file_as(img_fh)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
-        imgf = img_fh.get_prepare_fileobj(mode='wb')
+        if hdr_img_same:
+            imgf = hdrf
+        else:
+            imgf = img_fh.get_prepare_fileobj(mode='wb')
         self._write_header(hdrf, hdr, slope, inter)
         self._write_image(imgf, data, hdr, slope, inter, mn, mx)
         if hdr_fh.fileobj is None: # was filename
             hdrf.close()
-        if img_fh.fileobj is None: # was filename
-            imgf.close()
+        if not hdr_img_same:
+            if img_fh.fileobj is None: # was filename
+                imgf.close()
         self._header = hdr
         self.file_map = file_map
 
