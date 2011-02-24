@@ -1,5 +1,5 @@
 .. -*- mode: rst -*-
-.. vim:syntax=rest
+.. vim:syntax=rst
 
 .. _changelog:
 
@@ -25,6 +25,18 @@ NiBabel
 
 Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
 (MH).
+
+* 1.0.1 (Wednesday 23 Feb 2011)
+
+  * Bugfix release
+  * Fix bugs in tests for data package paths
+  * Fix leaks of open filehandles when loading images (thanks to Gael
+    Varoquaux for the report)
+  * Skip rw tests for SPM images when scipy not installed
+  * Fix various windows-specific file issues for tests
+  * Fix incorrect reading of byte-swapped trackvis files
+  * Workaround for odd numpy dtype comparisons leading to header errors for
+    some loaded images (thanks to Cindee Madison for the report)
 
 * 1.0.0 (Thursday, 13, Oct 2010)
 
