@@ -222,8 +222,8 @@ deb-src: check-debian distclean
 bdist_rpm:
 	$(PYTHON) setup.py bdist_rpm \
 	  --doc-files "doc" \
-	  --packager "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>" \
-	  --vendor "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>"
+	  --packager "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
+	  --vendor "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
 
 
 # build MacOS installer -- depends on patched bdist_mpkg for Leopard
@@ -242,6 +242,13 @@ installed-tests:
 # Run tests from installed code
 sdist-tests:
 	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
+
+bdist-egg-tests:
+	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
+
+source-release: clean
+	python -m compileall .
+	python setup.py sdist --formats=gztar,zip
 
 .PHONY: orig-src pylint
 

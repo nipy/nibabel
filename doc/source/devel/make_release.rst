@@ -13,18 +13,10 @@ A guide for developers who are doing a nibabel release
 Release tools
 =============
 
-In the :file:`tools` directory, among other files, you will find the following
-utilities::
-
-    tools/
-    |- build_release
-    |- release
-    |- compile.py
-    |- make_tarball.py
-    |- toollib.py
-
-There are also some release utilities in :file:`nisext/testers.py`, with
-makefile targets for their use.  The relevant targets are::
+There are some release utilities that come with nibabel_.  nibabel should
+install these as the ``nisext`` package, and the testing stuff is understandably
+in the ``testers`` module of that package.  nibabel has Makefile targets for their
+use.  The relevant targets are::
 
     make check-version-info
     make sdist-tests
@@ -35,6 +27,14 @@ is working and information parameters are set correctly.
 
 The second (``sdist-tests``) makes an sdist source distribution archive,
 installs it to a temporary directory, and runs the tests of that install.
+
+If you have a version of nibabel trunk past February 11th 2011, there will also
+be a functional make target::
+
+    make bdist-egg-tests
+
+This builds an egg (which is a zip file), hatches it (unzips the egg) and runs
+the tests from the resulting directory.
 
 .. _release-checklist:
 
@@ -55,29 +55,83 @@ Release checklist
   Then manually go over the *git log* to make sure the release notes are
   as complete as possible and that every contributor was recognized.
 
-* Make sure all tests pass::
+* Check the ``long_description`` in ``nibabel/info.py``.  Check it matches the
+  ``README`` in the root directory.
 
+* Clean::
+
+    make distclean
+
+* Make sure all tests pass (from the nibabel root directory)::
+
+    cd ..
     nosetests --with-doctest nibabel
+    cd nibabel # back to the root directory
+
+* You probably have virtualenvs for different python versions.  Check the tests
+  pass for different python versions.  Here's what that looks like for my
+  virtualenv / virtualenvwrapper setup::
+
+    cd ..
+    workon python25
+    nosetests --with-doctest nibabel
+    deactivate
+    workon python27
+    nosetests --with-doctest nibabel
+    deactivate
+    cd nibabel # back to root directory
+
+* Check on different platforms, particularly windows and PPC
+
+* Check the documentation doctests::
+
+    cd doc
+    make doctest
+    cd ..
+
+  At the moment this generates lots of errors from the autodoc documentation
+  running the doctests in the code, where the doctests pass when run in nose -
+  we should find out why this is at some point, but leave it for now.
 
 * Make sure all tests pass from sdist::
 
     make sdist-tests
 
-* First pass run :file:`build_release` from the :file:`tools` directory::
+  and bdist_egg::
 
-    cd tools
-    ./build_release
+    make bdist-egg-tests
+
+  and the three ways of installing (from tarball, repo, local in repo)::
+
+    make check-version-info
+
+  The last may not raise any errors, but you should detect in the output
+  lines of this form::
+
+    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+    /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
+    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+    Files not taken across by the installation:
+    []
+    /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
+    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
 
 * The release should now be ready.
 
 * Edit :file:`nibabel/info.py` to set ``_version_extra`` to ``''``; commit
 
-* Once everything looks good, run :file:`release` from the
-  :file:`tools` directory.
+    make distclean
+    make source-release
 
-* Tag the release with tag of form ``1.0.0``::
+* Once everything looks good, upload the source release to PyPi.  See
+  `setuptools intro`_::
 
-    git tag -am 'First public release' 1.0.0
+    python setup.py register
+    python setup.py sdist --formats=gztar,zip upload
+
+* Tag the release with tag of form ``0.5.0``::
+
+    git tag -am 'First public release' 0.5.0
 
 * Now the version number is OK, push the docs to sourceforge with::
 
@@ -131,3 +185,4 @@ Release checklist
 
 * Announce to the mailing lists.
 
+.. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html
