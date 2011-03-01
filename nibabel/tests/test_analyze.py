@@ -67,20 +67,31 @@ header_file = os.path.join(data_path, 'analyze.hdr')
 
 def _log_chk(hdr, level):
     # utility function to check header checking / logging
+    # If level == 0, this header should always be OK
     str_io = StringIO()
     logger = logging.getLogger('test.logger')
     handler = logging.StreamHandler(str_io)
     logger.addHandler(handler)
     str_io.truncate(0)
+    hdrc = hdr.copy()
+    if level == 0: # Should never log or raise error
+        logger.setLevel(0)
+        hdrc.check_fix(logger=logger, error_level=0)
+        assert_true(str_io.getvalue() == '')
+        logger.removeHandler(handler)
+        return hdrc, '', ()
+    # Non zero level, test above and below threshold
+    # Logging level above threshold, no log
     logger.setLevel(level+1)
     e_lev = level+1
-    hdrc = hdr.copy()
     hdrc.check_fix(logger=logger, error_level=e_lev)
-    assert(str_io.getvalue() == '')
+    assert_true(str_io.getvalue() == '')
+    # Logging level below threshold, log appears
+    logger.setLevel(level+1)
     logger.setLevel(level-1)
     hdrc = hdr.copy()
     hdrc.check_fix(logger=logger, error_level=e_lev)
-    assert(str_io.getvalue() != '')
+    assert_true(str_io.getvalue() != '')
     message = str_io.getvalue().strip()
     logger.removeHandler(handler)
     hdrc2 = hdr.copy()
@@ -89,7 +100,6 @@ def _log_chk(hdr, level):
               logger,
               level)
     return hdrc, message, raiser
-
 
 
 class TestAnalyzeHeader(tb._TestBinaryHeader):
@@ -338,15 +348,19 @@ def test_scaling():
     yield assert_false(np.allclose(data_p5, rdata))
 
 
-@parametric
 def test_slope_inter():
     hdr = AnalyzeHeader()
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    hdr.set_slope_inter(None)
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    hdr.set_slope_inter(1.0)
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+    assert_equal(hdr.get_slope_inter(), (None, None))
+    for slinter in ((None,),
+                    (None, None),
+                    (1.0,),
+                    (1.0, None),
+                    (None, 0),
+                    (1.0, 0)):
+        hdr.set_slope_inter(*slinter)
+        assert_equal(hdr.get_slope_inter(), (None, None))
+    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
 
 
 class TestAnalyzeImage(tsi.TestSpatialImage):

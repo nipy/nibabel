@@ -550,6 +550,11 @@ class AnalyzeHeader(object):
     def data_from_fileobj(self, fileobj):
         ''' Read scaled data array from `fileobj`
 
+        Use this routine to get the scaled image data from an image file
+        `fileobj`, given a header `self`.  "Scaled" means, with any header
+        scaling factors applied to the raw data in the file.  Use
+        `raw_data_from_fileobj` to get the raw data.
+
         Parameters
         ----------
         fileobj : file-like
@@ -559,12 +564,19 @@ class AnalyzeHeader(object):
         -------
         arr : ndarray
            scaled data array
+
+        Notes
+        -----
+        We use the header to get any scale or intercept values to apply to the
+        data.  Raw Analyze files don't have scale factors or intercepts, but
+        this routine also works with formats based on Analyze, that do have
+        scaling, such as SPM analyze formats and NIfTI.
         '''
         # read unscaled data
         data = self.raw_data_from_fileobj(fileobj)
-        # get scalings from header
+        # get scalings from header.  Value of None means not present in header
         slope, inter = self.get_slope_inter()
-        if slope is None or (slope==1.0 and not inter):
+        if slope is None or (slope==1.0 and (inter is None or inter == 0)):
             return data
         # in-place multiplication and addition on integer types leads to
         # integer output types, and disastrous integer rounding.
@@ -1086,33 +1098,30 @@ class AnalyzeHeader(object):
 
         These are not implemented for basic Analyze
         '''
-        return 1.0, 0.0
+        return None, None
 
-    def set_slope_inter(self, slope, inter=0.0):
+    def set_slope_inter(self, slope, inter=None):
         ''' Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
-        Note that trying to set not-default values raises error for
-        Analyze header - which cannot contain slope or intercept terms.
+        In this case, for Analyze images, we can't store the slope or the
+        intercept, so this method only checks that `slope` is None or 1.0, and
+        that `inter` is None or 0.
 
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is None, we ignore
-           the passed value of `inter`
-        inter : float, optional
-           intercept
+            If float, value must be 1.0 or we raise a ``HeaderTypeError``
+        inter : None or float, optional
+            If float, value must be 0.0 or we raise a ``HeaderTypeError``
         '''
-        if slope is None:
-            slope = 1.0
-            inter = 0.0
-        if slope != 1.0 or inter:
-            raise HeaderTypeError('Cannot set slope or intercept '
-                                  'for Analyze headers')
+        if (slope is None or slope == 1.0) and (inter is None or inter == 0):
+            return
+        raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
+                              'for Analyze headers')
 
     def scaling_from_data(self, data):
         ''' Calculate slope, intercept, min, max from data given header

@@ -26,7 +26,6 @@ from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 from nose import SkipTest
 
-from ..tmpdirs import InTemporaryDirectory
 from ..testing import parametric, data_path
 
 from . import test_analyze as tana
@@ -68,19 +67,56 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         HC = self.header_class
         # intercept and slope
         hdr = HC()
+        # Slope of 0 is OK
         hdr['scl_slope'] = 0
-        fhdr, message, raiser = _log_chk(hdr, 30)
-        yield assert_equal(fhdr['scl_slope'], 1)
-        yield assert_equal(message, '"scl_slope" is 0.0; should !=0 '
-                           'and be finite; setting "scl_slope" to 1')
-        hdr = HC()
-        hdr['scl_inter'] = np.nan # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 0)
+        yield assert_equal((fhdr, message), (hdr, ''))
+        # But not with non-zero intercept
+        hdr['scl_inter'] = 3
+        fhdr, message, raiser = _log_chk(hdr, 20)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           'Unused "scl_inter" is 3.0; should be 0; '
+                           'setting "scl_inter" to 0')
+        # Or not-finite intercept
+        hdr['scl_inter'] = np.nan
         # NaN string representation can be odd on windows
         nan_str = '%s' % np.nan
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = _log_chk(hdr, 20)
         yield assert_equal(fhdr['scl_inter'], 0)
-        yield assert_equal(message, '"scl_inter" is %s; should be '
-                           'finite; setting "scl_inter" to 0' % nan_str)
+        yield assert_equal(message,
+                           'Unused "scl_inter" is %s; should be 0; '
+                           'setting "scl_inter" to 0' % nan_str)
+        # Reset to usable scale
+        hdr['scl_slope'] = 1
+        # not finite inter is more of a problem
+        hdr['scl_inter'] = np.nan # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 40)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is 1.0; but "scl_inter" is %s; '
+                           '"scl_inter" should be finite; setting '
+                           '"scl_inter" to 0' % nan_str)
+        yield assert_raises(*raiser)
+        # Not finite scale also bad, generates message for scale and offset
+        hdr['scl_slope'] = np.nan
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 0)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is nan; should be finite; '
+                           'Unused "scl_inter" is nan; should be 0; '
+                           'setting "scl_slope" to 0 (no scaling); '
+                           'setting "scl_inter" to 0')
+        yield assert_raises(*raiser)
+        # Or just scale if inter is already 0
+        hdr['scl_inter'] = 0
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 0)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is nan; should be finite; '
+                           'setting "scl_slope" to 0 (no scaling)')
         yield assert_raises(*raiser)
         # qfac
         hdr = HC()
@@ -490,19 +526,21 @@ def test_loadsave_cycle():
     assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
 
-@parametric
 def test_slope_inter():
     hdr = Nifti1Header()
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    hdr.set_slope_inter(2.2)
-    yield assert_array_almost_equal(hdr.get_slope_inter(),
-                                    (2.2, 0.0))
-    hdr.set_slope_inter(None)
-    yield assert_equal(hdr.get_slope_inter(),
-                       (1.0, 0.0))
-    hdr.set_slope_inter(2.2, 1.1)
-    yield assert_array_almost_equal(hdr.get_slope_inter(),
-                                    (2.2, 1.1))
+    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    for intup, outup in (((2.0,), (2.0, 0.0)),
+                         ((None,), (None, None)),
+                         ((3.0, None), (3.0, 0.0)),
+                         ((0.0, None), (None, None)),
+                         ((None, 0.0), (None, None)),
+                         ((None, 3.0), (None, None)),
+                         ((2.0, 3.0), (2.0, 3.0))):
+        hdr.set_slope_inter(*intup)
+        assert_equal(hdr.get_slope_inter(), outup)
+        # Check set survives through checking
+        hdr = Nifti1Header.from_header(hdr, check=True)
+        assert_equal(hdr.get_slope_inter(), outup)
 
 
 @parametric
