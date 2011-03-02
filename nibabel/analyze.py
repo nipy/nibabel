@@ -1297,15 +1297,17 @@ class AnalyzeImage(SpatialImage):
         header = klass.header_class.from_fileobj(hdrf)
         if hdr_fh.fileobj is None: # was filename
             hdrf.close()
-        affine = header.get_best_affine()
         hdr_copy = header.copy()
         imgf = img_fh.fileobj
         if imgf is None:
             imgf = img_fh.filename
         data = klass.ImageArrayProxy(imgf, hdr_copy)
-        img = klass(data, affine, header, file_map=file_map)
+        # Initialize without affine to allow header to pass through unmodified
+        img = klass(data, None, header, file_map=file_map)
+        # set affine from header though
+        img._affine = header.get_best_affine()
         img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
+                           'affine': img._affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
 
