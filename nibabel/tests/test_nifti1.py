@@ -585,3 +585,33 @@ def test_load():
         assert_array_equal(arr, nifti1.load('test.img').get_data())
         nifti1.save(simg, 'test.hdr')
         assert_array_equal(arr, nifti1.load('test.hdr').get_data())
+
+
+def test_load_pixdims():
+    # Make sure load preserves separate qform, pixdims, sform
+    arr = np.arange(24).reshape((2,3,4))
+    qaff = np.diag([2, 3, 4, 1])
+    saff = np.diag([5, 6, 7, 1])
+    hdr = Nifti1Header()
+    hdr.set_qform(qaff)
+    assert_array_equal(hdr.get_qform(), qaff)
+    hdr.set_sform(saff)
+    assert_array_equal(hdr.get_sform(), saff)
+    simg = Nifti1Image(arr, None, hdr)
+    img_hdr = simg.get_header()
+    # Check qform, sform, pixdims are the same
+    assert_array_equal(img_hdr.get_qform(), qaff)
+    assert_array_equal(img_hdr.get_sform(), saff)
+    assert_array_equal(img_hdr.get_zooms(), [2,3,4])
+    # Save to stringio
+    fm = Nifti1Image.make_file_map()
+    fm['image'].fileobj = StringIO()
+    simg.to_file_map(fm)
+    # Load again
+    re_simg = Nifti1Image.from_file_map(fm)
+    assert_array_equal(re_simg.get_data(), arr)
+    # Check qform, sform, pixdims are the same
+    rimg_hdr = re_simg.get_header()
+    assert_array_equal(rimg_hdr.get_qform(), qaff)
+    assert_array_equal(rimg_hdr.get_sform(), saff)
+    assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
