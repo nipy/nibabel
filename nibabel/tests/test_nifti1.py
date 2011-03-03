@@ -628,17 +628,20 @@ def test_affines_init():
     hdr = img.get_header()
     assert_equal(hdr['qform_code'], 0)
     assert_equal(hdr['sform_code'], 2)
+    assert_array_equal(hdr.get_zooms(), [2, 3, 4])
     # This is also true for affines with header passed
     qaff = np.diag([3, 4, 5, 1])
     saff = np.diag([6, 7, 8, 1])
     hdr.set_qform(qaff, code='scanner')
     hdr.set_sform(saff, code='talairach')
+    assert_array_equal(hdr.get_zooms(), [3, 4, 5])
     img = Nifti1Image(arr, aff, hdr)
     new_hdr = img.get_header()
     # Again affine is sort of anonymous space
     assert_equal(new_hdr['qform_code'], 0)
     assert_equal(new_hdr['sform_code'], 2)
     assert_array_equal(new_hdr.get_sform(), aff)
+    assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
     # But if no affine passed, codes and matrices stay the same
     img = Nifti1Image(arr, None, hdr)
     new_hdr = img.get_header()
@@ -646,6 +649,8 @@ def test_affines_init():
     assert_array_equal(new_hdr.get_qform(), qaff)
     assert_equal(new_hdr['sform_code'], 3) # Still talairach
     assert_array_equal(new_hdr.get_sform(), saff)
+    # Pixdims as in the original header
+    assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
 
 
 
