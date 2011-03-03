@@ -222,9 +222,9 @@ def test_qform():
     yield assert_true, np.allclose(A, qA, atol=1e-5)
     yield assert_true, np.allclose(Z, ehdr['pixdim'][1:4])
     xfas = nifti1.xform_codes
-    yield assert_true, ehdr['qform_code'] == xfas['scanner']
-    ehdr.set_qform(A, 'aligned')
     yield assert_true, ehdr['qform_code'] == xfas['aligned']
+    ehdr.set_qform(A, 'scanner')
+    yield assert_true, ehdr['qform_code'] == xfas['scanner']
     ehdr.set_qform(A, xfas['aligned'])
     yield assert_true, ehdr['qform_code'] == xfas['aligned']
 
@@ -236,9 +236,9 @@ def test_sform():
     sA = ehdr.get_sform()
     yield assert_true, np.allclose(A, sA, atol=1e-5)
     xfas = nifti1.xform_codes
-    yield assert_true, ehdr['sform_code'] == xfas['scanner']
-    ehdr.set_sform(A, 'aligned')
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
+    ehdr.set_sform(A, 'scanner')
+    yield assert_true, ehdr['sform_code'] == xfas['scanner']
     ehdr.set_sform(A, xfas['aligned'])
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
 
@@ -615,3 +615,37 @@ def test_load_pixdims():
     assert_array_equal(rimg_hdr.get_qform(), qaff)
     assert_array_equal(rimg_hdr.get_sform(), saff)
     assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
+
+
+def test_affines_init():
+    # Test we are doing vaguely spec-related qform things.  The 'spec' here is
+    # some thoughts by Mark Jenkinson:
+    # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
+    arr = np.arange(24).reshape((2,3,4))
+    aff = np.diag([2, 3, 4, 1])
+    # Default is sform set, qform not set
+    img = Nifti1Image(arr, aff)
+    hdr = img.get_header()
+    assert_equal(hdr['qform_code'], 0)
+    assert_equal(hdr['sform_code'], 2)
+    # This is also true for affines with header passed
+    qaff = np.diag([3, 4, 5, 1])
+    saff = np.diag([6, 7, 8, 1])
+    hdr.set_qform(qaff, code='scanner')
+    hdr.set_sform(saff, code='talairach')
+    img = Nifti1Image(arr, aff, hdr)
+    new_hdr = img.get_header()
+    # Again affine is sort of anonymous space
+    assert_equal(new_hdr['qform_code'], 0)
+    assert_equal(new_hdr['sform_code'], 2)
+    assert_array_equal(new_hdr.get_sform(), aff)
+    # But if no affine passed, codes and matrices stay the same
+    img = Nifti1Image(arr, None, hdr)
+    new_hdr = img.get_header()
+    assert_equal(new_hdr['qform_code'], 1) # scanner
+    assert_array_equal(new_hdr.get_qform(), qaff)
+    assert_equal(new_hdr['sform_code'], 3) # Still talairach
+    assert_array_equal(new_hdr.get_sform(), saff)
+
+
+
