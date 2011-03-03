@@ -611,7 +611,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then {if current
             qform code is not 0, leave code as it is in the header; else
-            set to 1 ('scanner')}.
+            set to 2 ('aligned')}.
 
         Notes
         -----
@@ -633,8 +633,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_qform(affine)
         >>> np.all(hdr.get_qform() == affine)
         True
-        >>> int(hdr['qform_code']) # gives 1 - scanner
-        1
+        >>> int(hdr['qform_code']) # gives 2 - aligned
+        2
         >>> hdr.set_qform(affine, code='talairach')
         >>> int(hdr['qform_code'])
         3
@@ -648,8 +648,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._header_data
         if code is None:
             code = hdr['qform_code']
-            if code == 0:
-                hdr['qform_code'] = 1
+            if code == 0: # default is 'aligned'
+                hdr['qform_code'] = 2
         else:
             code = self._field_recoders['qform_code'][code]
             hdr['qform_code'] = code
@@ -701,7 +701,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then {if current
             sform code is not 0, leave code as it is in the header; else
-            set to 1 ('scanner')}.
+            set to 2 ('aligned')}.
 
         Examples
         --------
@@ -714,8 +714,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_sform(affine)
         >>> np.all(hdr.get_sform() == affine)
         True
-        >>> int(hdr['sform_code']) # gives 1 - scanner
-        1
+        >>> int(hdr['sform_code']) # gives 2 - aligned
+        2
         >>> hdr.set_sform(affine, code='talairach')
         >>> int(hdr['sform_code'])
         3
@@ -730,7 +730,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if code is None:
             code = hdr['sform_code']
             if code == 0:
-                hdr['sform_code'] = 1
+                hdr['sform_code'] = 2 # aligned
         else:
             code = self._field_recoders['sform_code'][code]
             hdr['sform_code'] = code
@@ -1376,8 +1376,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
         hdr = self._header
         hdr['magic'] = 'ni1'
         if not self._affine is None:
-            hdr.set_sform(self._affine)
-            hdr.set_qform(self._affine)
+            hdr.set_sform(self._affine, code='aligned')
+            hdr['qform_code'] = 0
 
 
 class Nifti1Image(Nifti1Pair):
