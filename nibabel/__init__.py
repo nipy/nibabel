@@ -56,9 +56,14 @@ from .orientations import (io_orientation, orientation_affine,
 from .imageclasses import class_map, ext_map
 from . import trackvis
 
-from numpy.testing import Tester
-test = Tester().test
-del Tester
+# be friendly on systems with ancient numpy -- no tests, but at least
+# importable
+try:
+    from numpy.testing import Tester
+    test = Tester().test
+    del Tester
+except ImportError:
+    def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 get_info = lambda : _get_pkg_info(os.path.dirname(__file__))
