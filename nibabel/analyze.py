@@ -680,10 +680,12 @@ class AnalyzeHeader(object):
         ''' Return items from header data'''
         return zip(self.keys(), self.values())
 
-    def check_fix(self,
-              logger=imageglobals.logger,
-              error_level=imageglobals.error_level):
+    def check_fix(self, logger=None, error_level=None):
         ''' Check header data with checks '''
+        if logger is None:
+            logger = imageglobals.logger
+        if error_level is None:
+            error_level = imageglobals.error_level
         battrun = BatteryRunner(self.__class__._get_checks())
         self, reports = battrun.check_fix(self)
         for report in reports:
