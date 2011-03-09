@@ -55,6 +55,7 @@ from ..spatialimages import HeaderDataError, HeaderTypeError, \
     ImageDataError
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..loadsave import read_img_data
+from .. import imageglobals
 
 from ..testing import parametric, data_path, ParametricTestCase
 
@@ -64,6 +65,7 @@ import test_spatialimages as tsi
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
+PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 
 def _log_chk(hdr, level):
     # utility function to check header checking / logging
@@ -189,8 +191,7 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
         hdr['pixdim'][1] = 0 # severity 30
         fhdr, message, raiser = _log_chk(hdr, 30)
         yield assert_equal(fhdr['pixdim'][1], 1)
-        yield assert_equal(message, 'pixdim[1,2,3] should be '
-                           'non-zero; setting 0 dims to 1')
+        yield assert_equal(message, PIXDIM0_MSG)
         yield assert_raises(*raiser)
         # both
         hdr = HC()
@@ -204,6 +205,30 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
                            'be positive; setting 0 dims to 1 '
                            'and setting to abs of pixdim values')
         yield assert_raises(*raiser)
+
+    def test_logger_error(self):
+        # Check that we can reset the logger and error level
+        HC = self.header_class
+        hdr = HC()
+        # Make a new logger
+        str_io = StringIO()
+        logger = logging.getLogger('test.logger')
+        logger.setLevel(30) # defaultish level
+        logger.addHandler(logging.StreamHandler(str_io))
+        # Prepare an error
+        hdr['pixdim'][1] = 0 # severity 30
+        log_cache = imageglobals.logger, imageglobals.error_level
+        try:
+            # Check log message appears in new logger
+            imageglobals.logger = logger
+            hdr.copy().check_fix()
+            assert_equal(str_io.getvalue(), PIXDIM0_MSG + '\n')
+            # Check that error_level in fact causes error to be raised
+            imageglobals.error_level = 30
+            assert_raises(HeaderDataError, hdr.copy().check_fix)
+        finally:
+            imageglobals.logger, imageglobals.error_level = log_cache
+
 
     def test_datatype(self):
         ehdr = self.header_class()
