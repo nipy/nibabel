@@ -22,5 +22,5 @@ use e.g. ``logger.level = 40``
 import logging
 
 error_level = 40
-logger = logging.getLogger('nifti.global')
+logger = logging.getLogger('nibabel.global')
 logger.addHandler(logging.StreamHandler())
