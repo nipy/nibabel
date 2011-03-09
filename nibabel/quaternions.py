@@ -87,9 +87,9 @@ def fillpositive(xyz, w2_thresh=None):
     # If necessary, guess precision of input
     if w2_thresh is None:
         try: # trap errors for non-array, integer array
-            w2_thresh = -np.finfo(xyz.dtype).eps
+            w2_thresh = -np.finfo(xyz.dtype).eps * 3
         except (AttributeError, ValueError):
-            w2_thresh = -FLOAT_EPS
+            w2_thresh = -FLOAT_EPS * 3
     # Use maximum precision
     xyz = np.asarray(xyz, dtype=MAX_FLOAT)
     # Calculate w

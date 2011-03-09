@@ -205,13 +205,14 @@ def test_quaternion():
     hdr['quatern_b'] = 0
     hdr['quatern_c'] = 0
     hdr['quatern_d'] = 0
-    yield assert_true, np.allclose(hdr.get_qform_quaternion(),
-                       [1.0, 0, 0, 0])
+    assert_true(np.allclose(hdr.get_qform_quaternion(), [1.0, 0, 0, 0]))
     hdr['quatern_b'] = 1
     hdr['quatern_c'] = 0
     hdr['quatern_d'] = 0
-    yield assert_true, np.allclose(hdr.get_qform_quaternion(),
-                       [0, 1, 0, 0])
+    assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
+    # Check threshold set correctly for float32
+    hdr['quatern_b'] = 1+np.finfo(np.float32).eps
+    assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
 
 
 def test_qform():

@@ -18,6 +18,9 @@ from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze # module import
 from .spm99analyze import SpmAnalyzeHeader
 
+# Needed for quaternion calculation
+FLOAT32_EPS_3 = -np.finfo(np.float32).eps * 3
+
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
 header_dtd = [
@@ -578,7 +581,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         hdr = self._header_data
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
-        return fillpositive(bcd)
+        # Adjust threshold to fact that source data was float32
+        return fillpositive(bcd, FLOAT32_EPS_3)
 
     def get_qform(self):
         ''' Return 4x4 affine matrix from qform parameters in header '''
