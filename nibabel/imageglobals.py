@@ -16,7 +16,12 @@ will be raised (unless someone's put some strange problem_level > 50 code in).
 ``logger`` is the default logger (python log instance)
 
 To set the log level (log message appears for problem of level >= log level),
-use e.g. ``logger.level = 40``
+use e.g. ``logger.level = 40``.
+
+As for most loggers, if ``logger.level == 0`` then a default log level is used -
+use ``logger.getEffectiveLevel()`` to see what that default is.
+
+Use ``logger.level = 1`` to see all messages.
 """
 
 import logging
