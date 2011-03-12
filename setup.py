@@ -32,12 +32,19 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
+# Python 2 to 3 build
+try:
+    from distutils.command.build_py import build_py_2to3 as build_py
+except ImportError:
+    # 2.x
+    from distutils.command.build_py import build_py
+
 from nisext.sexts import get_comrec_build, package_check
-cmdclass = {'build_py': get_comrec_build('nibabel')}
+cmdclass = {'build_py': get_comrec_build('nibabel', build_py)}
 
 # Get version and release info, which is all stored in nibabel/info.py
 ver_file = os.path.join('nibabel', 'info.py')
-execfile(ver_file)
+exec(open(ver_file).read())
 
 # Do dependency checking
 package_check('numpy', NUMPY_MIN_VERSION)

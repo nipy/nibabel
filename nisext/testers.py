@@ -41,7 +41,7 @@ def run_mod_cmd(mod_name, pkg_path, cmd):
         os.chdir(tmpdir)
         my_call('python -c "import sys; sys.path.insert(1,\'%s\'); '
                 'import %s;'
-                'print %s.__file__;'
+                'print(%s.__file__);'
                 '%s"' % (pkg_path,
                          mod_name,
                          mod_name,
@@ -153,7 +153,7 @@ def contexts_print_info(mod_name, repo_path, install_path):
     site_pkgs_path = install_from_to(install_from,
                                      install_path,
                                      PY_LIB_SDIR)
-    cmd_str = 'print %s.get_info()' % mod_name
+    cmd_str = 'print(%s.get_info())' % mod_name
     run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
     # now test install into a directory from the repository
     site_pkgs_path = install_from_to(repo_path,
@@ -163,8 +163,8 @@ def contexts_print_info(mod_name, repo_path, install_path):
     # Take the opportunity to audit the py files
     repo_mod_path = os.path.join(repo_path, mod_name)
     install_mod_path = os.path.join(site_pkgs_path, mod_name)
-    print 'Files not taken across by the installation:'
-    print check_installed_files(repo_mod_path, install_mod_path)
+    print('Files not taken across by the installation:')
+    print(check_installed_files(repo_mod_path, install_mod_path))
     # test from development tree
     run_mod_cmd(mod_name, repo_path, cmd_str)
     return

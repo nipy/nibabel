@@ -489,7 +489,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     try:
         fileobj.seek(offset)
-    except IOError, msg:
+    except IOError:
+        msg = sys.exc_info()[1] # python 2 / 3 compatibility
         if fileobj.tell() != offset:
             raise IOError(msg)
     if divslope is None: # No valid data

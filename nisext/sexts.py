@@ -1,7 +1,11 @@
 ''' Distutils / setuptools helpers '''
 
 from os.path import join as pjoin
-from ConfigParser import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
+
 
 from distutils.version import LooseVersion
 from distutils.command.build_py import build_py
