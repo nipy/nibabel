@@ -50,7 +50,7 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
-            build_py.run(self)
+            build_cmd.run(self)
             import subprocess
             proc = subprocess.Popen('git rev-parse --short HEAD',
                                     stdout=subprocess.PIPE,
