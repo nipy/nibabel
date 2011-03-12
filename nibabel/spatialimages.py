@@ -176,13 +176,16 @@ class Header(object):
     def write_to(self, fileobj):
         raise NotImplementedError
 
-    def __cmp__(self, other):
-        return cmp((self.get_data_dtype(),
-                    self.get_data_shape(),
-                    self.get_zooms()),
-                   (other.get_data_dtype(),
-                    other.get_data_shape(),
-                    other.get_zooms()))
+    def __eq__(self, other):
+        return ((self.get_data_dtype(),
+                 self.get_data_shape(),
+                 self.get_zooms()) ==
+                (other.get_data_dtype(),
+                 other.get_data_shape(),
+                 other.get_zooms()))
+
+    def __ne__(self, other):
+        return not self == other
 
     def copy(self):
         ''' Copy object to independent representation
@@ -243,9 +246,9 @@ class Header(object):
         ''' Read data in fortran order '''
         dtype = self.get_data_dtype()
         shape = self.get_data_shape()
-        data_size = np.prod(shape) * dtype.itemsize
-        data_str = fileobj.read(data_size)
-        return np.ndarray(shape, dtype, data_str, order='F')
+        data_size = int(np.prod(shape) * dtype.itemsize)
+        data_bytes = fileobj.read(data_size)
+        return np.ndarray(shape, dtype, data_bytes, order='F')
 
 
 class ImageDataError(Exception):

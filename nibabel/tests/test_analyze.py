@@ -37,7 +37,7 @@ so the saved zoom will not constrain the affine.
 '''
 
 import os
-from StringIO import StringIO
+from ..py3k import BytesIO
 import re
 import logging
 
@@ -65,7 +65,7 @@ PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 def _log_chk(hdr, level):
     # utility function to check header checking / logging
     # If level == 0, this header should always be OK
-    str_io = StringIO()
+    str_io = BytesIO()
     logger = logging.getLogger('test.logger')
     handler = logging.StreamHandler(str_io)
     logger.addHandler(handler)
@@ -206,7 +206,7 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
         HC = self.header_class
         hdr = HC()
         # Make a new logger
-        str_io = StringIO()
+        str_io = BytesIO()
         logger = logging.getLogger('test.logger')
         logger.setLevel(30) # defaultish level
         logger.addHandler(logging.StreamHandler(str_io))
@@ -343,7 +343,7 @@ def test_scaling():
     hdr.set_data_shape(shape)
     hdr.set_data_dtype(np.float32)
     data = np.ones(shape, dtype=np.float64)
-    S = StringIO()
+    S = BytesIO()
     # Writing to float datatype doesn't need scaling
     hdr.data_to_fileobj(data, S)
     rdata = hdr.data_from_fileobj(S)
@@ -352,7 +352,7 @@ def test_scaling():
     hdr.set_data_dtype(np.int32)
     assert_raises(HeaderTypeError,
                         hdr.data_to_fileobj,
-                        data, StringIO())
+                        data, BytesIO())
     # unless we aren't scaling, in which case we convert the floats to
     # integers and write
     _write_data(hdr, data, S)
@@ -391,7 +391,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         # save an image to a file map
         fm = IC.make_file_map()
         for key, value in fm.items():
-            fm[key].fileobj = StringIO()
+            fm[key].fileobj = BytesIO()
         shape = (2,3,4)
         data = np.arange(24, dtype=np.int8).reshape(shape)
         affine = np.eye(4)

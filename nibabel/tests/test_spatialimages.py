@@ -9,7 +9,7 @@
 """ Testing spatialimages
 
 """
-from StringIO import StringIO
+from ..py3k import BytesIO
 
 import numpy as np
 
@@ -156,7 +156,7 @@ def test_affine():
 
 def test_read_data():
     hdr = Header(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
-    fobj = StringIO()
+    fobj = BytesIO()
     data = np.arange(6).reshape((1,2,3))
     hdr.data_to_fileobj(data, fobj)
     assert_equal(fobj.getvalue(),

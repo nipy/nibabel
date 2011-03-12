@@ -3,6 +3,7 @@
 '''
 import numpy as np
 
+from ..py3k import ZEROB
 from .structreader import Unpacker
 
 # DICOM VR code to Python type
@@ -247,7 +248,7 @@ def nt_str(s):
     sdash : str
        s stripped to first occurence of null (0)
     '''
-    zero_pos = s.find(chr(0))
+    zero_pos = s.find(ZEROB)
     if zero_pos == -1:
         return s
     return s[:zero_pos]

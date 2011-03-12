@@ -495,7 +495,7 @@ class AnalyzeHeader(object):
                 self.binaryblock,
                 self.endianness, check=False)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         ''' equality between two headers defined by mapping
 
         Examples
@@ -517,9 +517,12 @@ class AnalyzeHeader(object):
         this_end = self.endianness
         this_bb = self.binaryblock
         if this_end == other.endianness:
-            return cmp(this_bb, other.binaryblock)
+            return this_bb == other.binaryblock
         other_bb = other._header_data.byteswap().tostring()
-        return cmp(this_bb, other_bb)
+        return this_bb == other_bb
+
+    def __ne__(self, other):
+        return not self == other
 
     def raw_data_from_fileobj(self, fileobj):
         ''' Read unscaled data array from `fileobj`

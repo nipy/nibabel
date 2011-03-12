@@ -13,7 +13,7 @@ framework for all the tests common to the Analyze types
 
 '''
 
-from StringIO import StringIO
+from ..py3k import BytesIO, ZEROB
 
 import numpy as np
 
@@ -68,9 +68,9 @@ class _TestBinaryHeader(TestCase):
         hdr = self.header_class(endianness='swapped')
         assert_equal(hdr.endianness, swapped_code)
         # Trying to read data from an empty header gives no data
-        assert_equal(len(hdr.data_from_fileobj(StringIO())), 0)
+        assert_equal(len(hdr.data_from_fileobj(BytesIO())), 0)
         # Setting no data into an empty header results in - no data
-        sfobj = StringIO()
+        sfobj = BytesIO()
         hdr.data_to_fileobj([], sfobj)
         assert_equal(sfobj.getvalue(), '')
         # Setting more data then there should be gives an error
@@ -126,7 +126,7 @@ class _TestBinaryHeader(TestCase):
 
     def test_from_to_fileobj(self):
         hdr = self.header_class()
-        str_io = StringIO()
+        str_io = BytesIO()
         hdr.write_to(str_io)
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
@@ -141,7 +141,7 @@ class _TestBinaryHeader(TestCase):
         # optional data after the binary block, in which case you will need to
         # override this test
         hdr = self.header_class()
-        str_io = StringIO()
+        str_io = BytesIO()
         hdr.write_to(str_io)
         assert_equal(str_io.getvalue(), hdr.binaryblock)
 
@@ -175,11 +175,11 @@ class _TestBinaryHeader(TestCase):
                             bb[:-1])
         assert_raises(HeaderDataError,
                             self.header_class,
-                            bb + chr(0))
+                            bb + ZEROB)
         # Checking set to true by default, and prevents nonsense being
         # set into the header. Completely zeros binary block always
         # (fairly) bad
-        bb_bad = chr(0) * len(bb)
+        bb_bad = ZEROB * len(bb)
         assert_raises(HeaderDataError,
                             self.header_class,
                             bb_bad)
@@ -295,7 +295,7 @@ class _TestBinaryHeader(TestCase):
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
         hdr.set_data_dtype(np.float32)
-        S = StringIO()
+        S = BytesIO()
         data = np.arange(6, dtype=np.float64)
         # data have to be the right shape
         assert_raises(HeaderDataError,
@@ -317,7 +317,7 @@ class _TestBinaryHeader(TestCase):
         # but with the header dtype, not the data dtype
         assert_equal(hdr.get_data_dtype(), data_back.dtype)
         # this is with native endian, not so for swapped
-        S2 = StringIO()
+        S2 = BytesIO()
         hdr2 = hdr.as_byteswapped()
         hdr2.set_data_dtype(np.float32)
         hdr2.set_data_shape((1,2,3))
@@ -333,7 +333,7 @@ class _TestBinaryHeader(TestCase):
                                data_back2.dtype.byteorder)
         # Try scaling down to integer
         hdr.set_data_dtype(np.uint8)
-        S3 = StringIO()
+        S3 = BytesIO()
         # Analyze header cannot do scaling, but, if not scaling,
         # AnalyzeHeader is OK
         _write_data(hdr, data, S3)
