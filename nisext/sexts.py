@@ -57,6 +57,8 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
                                     stderr=subprocess.PIPE,
                                     shell=True)
             repo_commit, _ = proc.communicate()
+            # Fix for python 3
+            repo_commit = str(repo_commit)
             # We write the installation commit even if it's empty
             cfg_parser = ConfigParser()
             cfg_parser.read(pjoin(pkg_dir, 'COMMIT_INFO.txt'))
