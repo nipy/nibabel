@@ -211,8 +211,8 @@ class Report(object):
         self.problem_msg = problem_msg
         self.fix_msg = fix_msg
 
-    def __eq__(self, other):
-        ''' Test for equality
+    def __cmp__(self, other):
+        ''' Compare two BatteryRunner-like objects
 
         Parameters
         ----------
@@ -229,19 +229,7 @@ class Report(object):
         >>> rep == rep3
         False
         '''
-        return (self.__dict__ == other.__dict__)
-
-    def __ne__(self, other):
-        ''' Test for equality
-
-        Parameters
-        ----------
-        other : object
-           report-like object to test equality
-
-        See __eq__ docstring for examples
-        '''
-        return (self.__dict__ != other.__dict__)
+        return cmp(self.__dict__, other.__dict__)
 
     def __str__(self):
         ''' Printable string for object '''

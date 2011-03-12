@@ -440,6 +440,15 @@ def test_extension_basics():
     yield assert_true(ext.get_code() == 6)
 
 
+def test_ext_eq():
+    ext = Nifti1Extension('comment', '123')
+    assert_true(ext == ext)
+    assert_false(ext != ext)
+    ext2 = Nifti1Extension('comment', '124')
+    assert_false(ext == ext2)
+    assert_true(ext != ext2)
+
+
 def test_extension_codes():
     for k in extension_codes.keys():
         ext = Nifti1Extension(k, 'somevalue')

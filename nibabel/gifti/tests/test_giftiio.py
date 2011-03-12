@@ -97,8 +97,8 @@ def test_dataarray1():
     
     me=img.darrays[0].meta.get_metadata()
     
-    assert_true(me.has_key('AnatomicalStructurePrimary'))
-    assert_true(me.has_key('AnatomicalStructureSecondary'))
+    assert_true('AnatomicalStructurePrimary' in me)
+    assert_true('AnatomicalStructureSecondary' in me)
     assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
     
     assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
@@ -133,13 +133,13 @@ def test_newmetadata():
     newmeta = gi.GiftiMetaData(attr)
     img.set_metadata(newmeta)
     myme = img.meta.get_metadata()
-    assert_true(myme.has_key('mykey'))
+    assert_true('mykey' in myme)
     
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
     img.set_metadata(newmeta)
     myme = img.meta.get_metadata()
-    assert_true(myme.has_key('mykey1'))
-    assert_false(myme.has_key('mykey'))
+    assert_true('mykey1' in myme)
+    assert_false('mykey' in myme)
 
 def test_getbyintent():
     img = gi.read(DATA_FILE1)

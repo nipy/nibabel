@@ -24,8 +24,8 @@ from ..testing import (assert_true, assert_false,
 # define some trivial functions as checks
 def chk1(obj, fix=False):
     rep = Report(KeyError)
-    if obj.has_key('testkey'):
-        return obj, ret
+    if 'testkey' in obj:
+        return obj, rep
     rep.problem_level = 20
     rep.problem_msg = 'no "testkey"'
     if fix:
@@ -60,7 +60,7 @@ def chk2(obj, fix=False):
 
 def chk_warn(obj, fix=False):
     rep = Report(KeyError)
-    if not obj.has_key('anotherkey'):
+    if not 'anotherkey' in obj:
         rep.problem_level = 30
         rep.problem_msg = 'no "anotherkey"'
         if fix:
@@ -71,7 +71,7 @@ def chk_warn(obj, fix=False):
 
 def chk_error(obj, fix=False):
     rep = Report(KeyError)
-    if not obj.has_key('thirdkey'):
+    if not 'thirdkey' in obj:
         rep.problem_level = 40
         rep.problem_msg = 'no "thirdkey"'
         if fix:

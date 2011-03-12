@@ -88,8 +88,7 @@ with methods::
     .as_byteswapped(endianness)
     .write_to(fileobj)
     .__str__
-    .__eq__
-    .__ne__
+    .__cmp__
 
 and class methods::
 
@@ -496,7 +495,7 @@ class AnalyzeHeader(object):
                 self.binaryblock,
                 self.endianness, check=False)
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         ''' equality between two headers defined by mapping
 
         Examples
@@ -518,16 +517,9 @@ class AnalyzeHeader(object):
         this_end = self.endianness
         this_bb = self.binaryblock
         if this_end == other.endianness:
-            return this_bb == other.binaryblock
+            return cmp(this_bb, other.binaryblock)
         other_bb = other._header_data.byteswap().tostring()
-        return this_bb == other_bb
-
-    def __ne__(self, other):
-        ''' equality between two headers defined by ``header_data``
-
-        For examples, see ``__eq__`` method docstring
-        '''
-        return not self == other
+        return cmp(this_bb, other_bb)
 
     def raw_data_from_fileobj(self, fileobj):
         ''' Read unscaled data array from `fileobj`

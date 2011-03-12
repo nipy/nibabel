@@ -176,13 +176,13 @@ class Header(object):
     def write_to(self, fileobj):
         raise NotImplementedError
 
-    def __eq__(self, other):
-        return (self.get_data_dtype() == other.get_data_dtype() and
-                self.get_data_shape() == other.get_data_shape() and
-                self.get_zooms() == other.get_zooms())
-
-    def __ne__(self, other):
-        return not self == other
+    def __cmp__(self, other):
+        return cmp((self.get_data_dtype(),
+                    self.get_data_shape(),
+                    self.get_zooms()),
+                   (other.get_data_dtype(),
+                    other.get_data_shape(),
+                    other.get_zooms()))
 
     def copy(self):
         ''' Copy object to independent representation
@@ -222,7 +222,7 @@ class Header(object):
         if len(zooms) != ndim:
             raise HeaderDataError('Expecting %d zoom values for ndim %d'
                                   % (ndim, ndim))
-        if np.any(zooms < 0):
+        if len([z for z in zooms if z < 0]):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 

@@ -13,7 +13,6 @@
 import os
 
 from . import parse_gifti_fast as gfp
-reload(gfp)
 
 def read(filename):
     """ Load a Gifti image from a file

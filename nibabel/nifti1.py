@@ -275,12 +275,9 @@ class Nifti1Extension(object):
         s = "Nifti1Extension('%s', '%s')" % (code, self._content)
         return s
 
-    def __eq__(self, other):
-        if self._code != other._code \
-           or self._content != other._content:
-            return False
-        else:
-            return True
+    def __cmp__(self, other):
+        return cmp((self._code, self._content),
+                   (other._code, other._content))
 
     def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
@@ -363,13 +360,8 @@ class Nifti1Extensions(list):
                 % ', '.join([str(e) for e in self])
         return s
 
-    def __eq__(self, other):
-        if len(self) != len(other):
-            return False
-        for i, e in enumerate(self):
-            if not e == other[i]:
-                return False
-        return True
+    def __cmp__(self, other):
+        return cmp(list(self), list(other))
 
     def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj

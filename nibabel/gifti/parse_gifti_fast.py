@@ -101,9 +101,9 @@ class Outputter(object):
         if name == 'GIFTI':
             # create gifti image
             self.img = gi.GiftiImage()
-            if attrs.has_key('Version'):
+            if 'Version' in attrs:
                 self.img.version = attrs['Version']
-            if attrs.has_key('NumberOfDataArrays'):
+            if 'NumberOfDataArrays' in attrs:
                 self.img.numDA = int(attrs['NumberOfDataArrays'])
                 self.count_da = False
 
@@ -142,43 +142,43 @@ class Outputter(object):
 
         elif name == 'Label':
             self.label = gi.GiftiLabel()
-            if attrs.has_key("Index"):
+            if "Index" in attrs:
                 self.label.index = int(attrs["Index"])
-            if attrs.has_key("Red"):
+            if "Red" in attrs:
                 self.label.red = float(attrs["Red"])
-            if attrs.has_key("Green"):
+            if "Green" in attrs:
                 self.label.green = float(attrs["Green"])
-            if attrs.has_key("Blue"):
+            if "Blue" in attrs:
                 self.label.blue = float(attrs["Blue"])
-            if attrs.has_key("Alpha"):
+            if "Alpha" in attrs:
                 self.label.alpha = float(attrs["Alpha"])
             
             self.write_to = 'Label'
 
         elif name == 'DataArray':
             self.da = gi.GiftiDataArray()
-            if attrs.has_key("Intent"):
+            if "Intent" in attrs:
                 self.da.intent = intent_codes.code[attrs["Intent"]]
-            if attrs.has_key("DataType"):
+            if "DataType" in attrs:
                 self.da.datatype = data_type_codes.code[attrs["DataType"]]
-            if attrs.has_key("ArrayIndexingOrder"):
+            if "ArrayIndexingOrder" in attrs:
                 self.da.ind_ord = array_index_order_codes.code[attrs["ArrayIndexingOrder"]]
-            if attrs.has_key("Dimensionality"):
+            if "Dimensionality" in attrs:
                 self.da.num_dim = int(attrs["Dimensionality"])
             for i in range(self.da.num_dim):
                 di = "Dim%s" % str(i)
-                if attrs.has_key(di):
+                if di in attrs:
                     self.da.dims.append(int(attrs[di]))
 
             # dimensionality has to correspond to the number of DimX given
             assert len(self.da.dims) == self.da.num_dim
-            if attrs.has_key("Encoding"):
+            if "Encoding" in attrs:
                 self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
-            if attrs.has_key("Endian"):
+            if "Endian" in attrs:
                 self.da.endian = gifti_endian_codes.code[attrs["Endian"]]
-            if attrs.has_key("ExternalFileName"):
+            if "ExternalFileName" in attrs:
                 self.da.ext_fname = attrs["ExternalFileName"]
-            if attrs.has_key("ExternalFileOffset"):
+            if "ExternalFileOffset" in attrs:
                 self.da.ext_offset = attrs["ExternalFileOffset"]
             
             self.img.darrays.append(self.da)

@@ -71,7 +71,7 @@ def test_from_header():
     yield assert_equal(converted.get_data_dtype(), np.dtype('u2'))
     yield assert_equal(converted.get_data_shape(), (5,4,3))
     yield assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
-    
+
 
 @parametric
 def test_eq():
@@ -87,7 +87,7 @@ def test_eq():
     yield assert_equal(hdr, other)
     other = Header(shape=(1,2), zooms=(2.0,3.0))
     yield assert_not_equal(hdr, other)
-    
+
 
 @parametric
 def test_copy():
@@ -103,7 +103,7 @@ def test_copy():
     hdr.set_data_dtype(np.uint8)
     yield assert_equal(hdr.get_data_dtype(), np.dtype(np.uint8))
     yield assert_equal(hdr_copy.get_data_dtype(), np.dtype(np.float64))
-    
+
 
 @parametric
 def test_shape_zooms():
@@ -132,7 +132,7 @@ def test_shape_zooms():
     yield assert_raises(HeaderDataError,
                         hdr.set_zooms,
                         (4.0, 3.0, -2.0))
-    
+
 
 @parametric
 def test_data_dtype():
@@ -178,7 +178,7 @@ def test_read_data():
 class TestSpatialImage(ParametricTestCase):
     # class for testing images
     image_class = SpatialImage
-    
+
     def test_images(self):
         img = self.image_class(None, None)
         yield assert_raises(ImageDataError, img.get_data)
