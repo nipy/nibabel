@@ -18,8 +18,6 @@ from ..orientations import (io_orientation, orientation_affine,
                             flip_axis, _ornt_to_affine,
                             apply_orientation, OrientationError)
 
-from ..testing import parametric
-
 
 IN_ARRS = [np.eye(4),
            [[0,0,1,0],
@@ -76,7 +74,7 @@ OUT_ORNTS = OUT_ORNTS + [[[0,1],
                           [2,1]]
                          ]
 
-                         
+
 IN_ARRS = [np.array(arr) for arr in IN_ARRS]
 OUT_ORNTS = [np.array(ornt) for ornt in OUT_ORNTS]
 
@@ -107,55 +105,52 @@ def same_transform(taff, ornt, shape):
     return np.all(vals == arr.ravel())
 
 
-@parametric
 def test_apply():
     # most tests are in ``same_transform`` above, via the
     # test_io_orientations. 
     a = np.arange(24).reshape((2,3,4))
     # Test 4D
     t_arr = apply_orientation(a[:,:,:,None], ornt)
-    yield assert_equal(t_arr.ndim, 4)
+    assert_equal(t_arr.ndim, 4)
     # Orientation errors
-    yield assert_raises(OrientationError,
+    assert_raises(OrientationError,
                         apply_orientation,
                         a[:,:,1], ornt)
-    yield assert_raises(OrientationError,
+    assert_raises(OrientationError,
                         apply_orientation,
                         a,
                         [[0,1],[np.nan,np.nan],[2,1]])
-                        
 
-@parametric
+
 def test_flip_axis():
     a = np.arange(24).reshape((2,3,4))
-    yield assert_array_equal(
+    assert_array_equal(
         flip_axis(a),
         np.flipud(a))
-    yield assert_array_equal(
+    assert_array_equal(
         flip_axis(a, axis=0),
         np.flipud(a))
-    yield assert_array_equal(
+    assert_array_equal(
         flip_axis(a, axis=1),
         np.fliplr(a))
     # check accepts array-like
-    yield assert_array_equal(
+    assert_array_equal(
         flip_axis(a.tolist(), axis=0),
         np.flipud(a))
     # third dimension
     b = a.transpose()
     b = np.flipud(b)
     b = b.transpose()
-    yield assert_array_equal(flip_axis(a, axis=2), b)
+    assert_array_equal(flip_axis(a, axis=2), b)
 
 
-@parametric
 def test_io_orientation():
     shape = (2,3,4)
     for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS):
         ornt = io_orientation(in_arr)
-        yield assert_array_equal(ornt, out_ornt)
+        assert_array_equal(ornt, out_ornt)
         taff = orientation_affine(ornt, shape)
-        yield assert_true(same_transform(taff, ornt, shape))
+        assert_true(same_transform(taff, ornt, shape))
         for axno in range(3):
             arr = in_arr.copy()
             ex_ornt = out_ornt.copy()
@@ -164,10 +159,10 @@ def test_io_orientation():
             # check that result shows flip
             ex_ornt[axno, 1] *= -1
             ornt = io_orientation(arr)
-            yield assert_array_equal(ornt, ex_ornt)
+            assert_array_equal(ornt, ex_ornt)
             taff = orientation_affine(ornt, shape)
-            yield assert_true(same_transform(taff, ornt, shape))
-           
+            assert_true(same_transform(taff, ornt, shape))
+
 
 def test_drop_coord():
     # given a 5x4 affine from slicing an fmri,
@@ -186,14 +181,13 @@ def test_drop_coord():
                           sliced_fmri_affine)
     # the output will be diagonal
     # with the 'y' row having been flipped and the 't' row dropped
-    assert_array_equal(final_affine, 
+    assert_array_equal(final_affine,
                        np.array([[3,0,0,4],
                                  [0,1,0,-3],
                                  [0,0,2,5],
                                  [0,0,0,1]]))
 
 
-@parametric
 def test_ornt_to_affine():
     # this orientation indicates that the first output
     # axis of the affine is closest to the vector [0,0,-1],
@@ -208,7 +202,7 @@ def test_ornt_to_affine():
     A = np.array([[0,0,-1,0],
                   [1,0,0,0],
                   [0,0,0,1]])
-    yield assert_array_equal(A, _ornt_to_affine(ornt))
+    assert_array_equal(A, _ornt_to_affine(ornt))
     # a more complicated example. only the 1st, 3rd and 6th
     # coordinates appear in the output
     ornt = [[3,-1],
@@ -221,7 +215,5 @@ def test_ornt_to_affine():
                   [1,0,0,0,0,0,0],
                   [0,-1,0,0,0,0,0],
                   [0,0,0,0,0,0,1]])
-    yield assert_array_equal(B, _ornt_to_affine(ornt))
+    assert_array_equal(B, _ornt_to_affine(ornt))
 
-
-    
