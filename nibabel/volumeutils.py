@@ -14,6 +14,8 @@ import bz2
 
 import numpy as np
 
+from .py3k import isfileobj
+
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
 swapped_code = sys_is_le and '>' or '<'
@@ -410,9 +412,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          order=order)
         # for some types, we can write to the string buffer without
         # worrying, but others we can't. 
-        if isinstance(infile, (file,
-                               gzip.GzipFile,
-                               bz2.BZ2File)):
+        if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
+                                                    bz2.BZ2File)):
             arr.flags.writeable = True
         else:
             arr = arr.copy()

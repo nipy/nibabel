@@ -13,7 +13,7 @@ framework for all the tests common to the Analyze types
 
 '''
 
-from ..py3k import BytesIO, ZEROB
+from ..py3k import BytesIO, ZEROB, asbytes
 
 import numpy as np
 
@@ -72,22 +72,23 @@ class _TestBinaryHeader(TestCase):
         # Setting no data into an empty header results in - no data
         sfobj = BytesIO()
         hdr.data_to_fileobj([], sfobj)
-        assert_equal(sfobj.getvalue(), '')
+        assert_equal(sfobj.getvalue(), asbytes(''))
         # Setting more data then there should be gives an error
         assert_raises(HeaderDataError,
-                            hdr.data_to_fileobj,
-                            np.zeros(3),
-                            sfobj)
+                      hdr.data_to_fileobj,
+                      np.zeros(3),
+                      sfobj)
         # You can also pass in a check flag, without data this has no
         # effect
         hdr = self.header_class(check=False)
 
     def test_mappingness(self):
         hdr = self.header_class()
+        hdr.__setitem__('test', 0.1)
         assert_raises(ValueError,
-                            hdr.__setitem__,
-                            'nonexistent key',
-                            0.1)
+                      hdr.__setitem__,
+                      'nonexistent key',
+                      0.1)
         hdr_dt = hdr.structarr.dtype
         keys = hdr.keys()
         assert_equal(keys, list(hdr))

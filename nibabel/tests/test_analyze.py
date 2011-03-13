@@ -37,12 +37,13 @@ so the saved zoom will not constrain the affine.
 '''
 
 import os
-from ..py3k import BytesIO
 import re
 import logging
+from StringIO import StringIO
 
 import numpy as np
 
+from ..py3k import BytesIO, asbytes
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..loadsave import read_img_data
@@ -65,7 +66,7 @@ PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 def _log_chk(hdr, level):
     # utility function to check header checking / logging
     # If level == 0, this header should always be OK
-    str_io = BytesIO()
+    str_io = StringIO()
     logger = logging.getLogger('test.logger')
     handler = logging.StreamHandler(str_io)
     logger.addHandler(handler)
@@ -74,7 +75,7 @@ def _log_chk(hdr, level):
     if level == 0: # Should never log or raise error
         logger.setLevel(0)
         hdrc.check_fix(logger=logger, error_level=0)
-        assert_true(str_io.getvalue() == '')
+        assert_equal(str_io.getvalue(), '')
         logger.removeHandler(handler)
         return hdrc, '', ()
     # Non zero level, test above and below threshold
@@ -82,7 +83,7 @@ def _log_chk(hdr, level):
     logger.setLevel(level+1)
     e_lev = level+1
     hdrc.check_fix(logger=logger, error_level=e_lev)
-    assert_true(str_io.getvalue() == '')
+    assert_equal(str_io.getvalue(), '')
     # Logging level below threshold, log appears
     logger.setLevel(level+1)
     logger.setLevel(level-1)
@@ -206,7 +207,7 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
         HC = self.header_class
         hdr = HC()
         # Make a new logger
-        str_io = BytesIO()
+        str_io = StringIO()
         logger = logging.getLogger('test.logger')
         logger.setLevel(30) # defaultish level
         logger.addHandler(logging.StreamHandler(str_io))
@@ -223,7 +224,6 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
             assert_raises(HeaderDataError, hdr.copy().check_fix)
         finally:
             imageglobals.logger, imageglobals.error_level = log_cache
-
 
     def test_datatype(self):
         ehdr = self.header_class()
@@ -297,7 +297,6 @@ class TestAnalyzeHeader(tb._TestBinaryHeader):
         assert_equal(converted.get_data_dtype(), np.dtype('i2'))
         assert_equal(converted.get_data_shape(), (5,4,3))
         assert_equal(converted.get_zooms(), (10.0,9.0,8.0))
-
 
     def test_base_affine(self):
         klass = self.header_class
