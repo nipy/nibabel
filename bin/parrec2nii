@@ -78,7 +78,7 @@ def verbose(msg, indent=0):
         print "%s%s" % (' ' * indent, msg)
 
 def error(msg, exit_code):
-    print msg
+    print  >> sys.stderr, msg
     sys.exit(exit_code)
 
 def proc_file(infile, opts):
@@ -198,7 +198,8 @@ def main():
         verbose('Processing %s' % infile)
         try:
             proc_file(infile, opts)
-        except Exception as err:
+        except Exception:
+            err = sys.exc_info()[1]
             errs.append('%s: %s' % (infile, err))
 
     if len(errs):
