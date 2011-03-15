@@ -37,6 +37,7 @@ so the saved zoom will not constrain the affine.
 '''
 
 import os
+import sys
 import re
 import logging
 from StringIO import StringIO

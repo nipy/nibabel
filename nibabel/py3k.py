@@ -32,6 +32,7 @@ if sys.version_info[0] >= 3:
     def open_latin1(filename, mode='r'):
         return open(filename, mode=mode, encoding='iso-8859-1')
     strchar = 'U'
+    ints2bytes = lambda seq : bytes(seq)
     ZEROB = bytes([0])
 else:
     import StringIO
@@ -49,6 +50,7 @@ else:
         return s.decode('ascii')
     def open_latin1(filename, mode='r'):
         return open(filename, mode=mode)
+    ints2bytes = lambda seq : ''.join(chr(i) for i in seq)
     ZEROB = chr(0)
 
 def getexception():
