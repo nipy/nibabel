@@ -553,9 +553,9 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_best_affine(self):
         ''' Select best of available transforms '''
         hdr = self._header_data
-        if hdr['sform_code']:
+        if hdr['sform_code'] != 0:
             return self.get_sform()
-        if hdr['qform_code']:
+        if hdr['qform_code'] != 0:
             return self.get_qform()
         return self.get_base_affine()
 

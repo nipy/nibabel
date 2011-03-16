@@ -198,3 +198,12 @@ class TestSpatialImage(ParametricTestCase):
         header = hdr_klass()
         img = img_klass(data, affine, header)
         yield assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+
+    def test_data_shape(self):
+        # Check shape correctly read
+        img_klass = self.image_class
+        img = img_klass(None, np.eye(4))
+        assert_true(img.shape is None)
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        assert_equal(img.shape, (2,3,4))
+
