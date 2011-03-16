@@ -321,7 +321,7 @@ class SpatialImage(object):
 
     @property
     def shape(self):
-        if self._data:
+        if not self._data is None:
             return self._data.shape
 
     def get_data_dtype(self):
