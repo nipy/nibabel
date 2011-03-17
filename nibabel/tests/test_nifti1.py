@@ -10,7 +10,7 @@
 from __future__ import with_statement
 import os
 
-from StringIO import StringIO
+from ..py3k import BytesIO, ZEROB
 
 import numpy as np
 
@@ -56,7 +56,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
-        hdr = Nifti1Header.from_fileobj(open(self.example_file))
+        hdr = Nifti1Header.from_fileobj(open(self.example_file, 'rb'))
         assert_equal(hdr.endianness, '<')
         assert_equal(hdr['magic'], 'ni1')
         assert_equal(hdr['sizeof_hdr'], 348)
@@ -169,9 +169,9 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
         # the case of the single file version of the header, we need to append
         # the extension string (4 0s)
         hdr = self.header_class()
-        str_io = StringIO()
+        str_io = BytesIO()
         hdr.write_to(str_io)
-        assert_equal(str_io.getvalue(), hdr.binaryblock + '\x00' * 4)
+        assert_equal(str_io.getvalue(), hdr.binaryblock + ZEROB * 4)
 
 
 class TestNifti1Image(tana.TestAnalyzeImage):
@@ -407,7 +407,7 @@ def test_nifti1_images():
     img = Nifti1Image(data, affine)
     assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
-    stio = StringIO()
+    stio = BytesIO()
     img.file_map['image'].fileobj = stio
     img.to_file_map()
     img2 = Nifti1Image.from_file_map(img.file_map)
@@ -491,7 +491,7 @@ def test_loadsave_cycle():
     exts_container = hdr.extensions
     assert_true(len(exts_container) > 0)
     # write into the air ;-)
-    stio = StringIO()
+    stio = BytesIO()
     nim.file_map['image'].fileobj = stio
     nim.to_file_map()
     stio.seek(0)
@@ -516,7 +516,7 @@ def test_loadsave_cycle():
     assert_equal(wnim.get_data_dtype(), np.int16)
     assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
     # write into the air again ;-)
-    stio = StringIO()
+    stio = BytesIO()
     wnim.file_map['image'].fileobj = stio
     wnim.to_file_map()
     stio.seek(0)
@@ -605,7 +605,7 @@ def test_load_pixdims():
     assert_array_equal(img_hdr.get_zooms(), [2,3,4])
     # Save to stringio
     fm = Nifti1Image.make_file_map()
-    fm['image'].fileobj = StringIO()
+    fm['image'].fileobj = BytesIO()
     simg.to_file_map(fm)
     # Load again
     re_simg = Nifti1Image.from_file_map(fm)

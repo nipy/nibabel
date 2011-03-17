@@ -308,7 +308,7 @@ class Nifti1Extension(object):
         fileobj.write(self._mangle(self._content))
         # be nice and zero out remaining part of the extension till the
         # next 16 byte border
-        fileobj.write('\x00' * (extstart + rawsize - fileobj.tell()))
+        fileobj.write(ZEROB * (extstart + rawsize - fileobj.tell()))
 
 
 # NIfTI header extension type codes (ECODE)
@@ -428,7 +428,7 @@ class Nifti1Extensions(list):
                 raise HeaderDataError(
                         'extension size is not a multiple of 16 bytes')
             # read extension itself; esize includes the 8 bytes already read
-            evalue = fileobj.read(esize - 8)
+            evalue = fileobj.read(int(esize - 8))
             if not len(evalue) == esize - 8:
                 raise HeaderDataError('failed to read extension content')
             # note that we read a full extension

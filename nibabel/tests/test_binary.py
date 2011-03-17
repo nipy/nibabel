@@ -84,13 +84,10 @@ class _TestBinaryHeader(TestCase):
 
     def test_mappingness(self):
         hdr = self.header_class()
-        if sys.version_info[0] >= 3:
-            print('Skipping due to numpy python 3 bug')
-        else:
-            assert_raises(ValueError,
-                        hdr.__setitem__,
-                        'nonexistent key',
-                        0.1)
+        assert_raises(ValueError,
+                    hdr.__setitem__,
+                    'nonexistent key',
+                    0.1)
         hdr_dt = hdr.structarr.dtype
         keys = hdr.keys()
         assert_equal(keys, list(hdr))

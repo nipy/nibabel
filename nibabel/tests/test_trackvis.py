@@ -1,9 +1,8 @@
 ''' Testing trackvis module '''
 
-from StringIO import StringIO
-
 import numpy as np
 
+from ..py3k import BytesIO
 from .. import trackvis as tv
 from ..volumeutils import swapped_code
 
@@ -14,7 +13,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 def test_write():
     streams = []
-    out_f = StringIO()
+    out_f = BytesIO()
     tv.write(out_f, [], {})
     assert_equal(out_f.getvalue(), tv.empty_header().tostring())
     out_f.truncate(0)
@@ -48,7 +47,7 @@ def test_write_scalars_props():
     scalars = np.arange(N*M).reshape((N,M)) + 100
     props = np.arange(P) + 1000
     # If scalars not same size for each point, error
-    out_f = StringIO()
+    out_f = BytesIO()
     streams = [(points, None, None),
                (points, scalars, None)]
     assert_raises(tv.DataError, tv.write, out_f, streams)
@@ -109,7 +108,7 @@ def streamlist_equal(streamlist1, streamlist2):
 
 
 def test_round_trip():
-    out_f = StringIO()
+    out_f = BytesIO()
     xyz0 = np.tile(np.arange(5).reshape(5,1), (1, 3))
     xyz1 = np.tile(np.arange(5).reshape(5,1) + 10, (1, 3))
     streams = [(xyz0, None, None), (xyz1, None, None)]
@@ -135,7 +134,7 @@ def test_round_trip():
     streams3, hdr = tv.read(out_f, as_generator=True)
     # Now we need a new file object, because we're still using the old one for
     # our generator
-    out_f_write = StringIO()
+    out_f_write = BytesIO()
     tv.write(out_f_write, streams3, {})
     # and re-read just to check
     out_f_write.seek(0)
@@ -217,7 +216,7 @@ def test_tv_class():
     assert_true(isinstance(tvf.header, np.ndarray))
     assert_equal(tvf.endianness, tv.native_code)
     assert_equal(tvf.filename, None)
-    out_f = StringIO()
+    out_f = BytesIO()
     tvf.to_file(out_f)
     assert_equal(out_f.getvalue(), tv.empty_header().tostring())
     out_f.truncate(0)

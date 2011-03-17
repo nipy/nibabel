@@ -107,19 +107,20 @@ def same_transform(taff, ornt, shape):
 
 def test_apply():
     # most tests are in ``same_transform`` above, via the
-    # test_io_orientations. 
+    # test_io_orientations
     a = np.arange(24).reshape((2,3,4))
-    # Test 4D
+    # Test 4D with an example orientation
+    ornt = OUT_ORNTS[-1]
     t_arr = apply_orientation(a[:,:,:,None], ornt)
     assert_equal(t_arr.ndim, 4)
     # Orientation errors
     assert_raises(OrientationError,
-                        apply_orientation,
-                        a[:,:,1], ornt)
+                  apply_orientation,
+                  a[:,:,1], ornt)
     assert_raises(OrientationError,
-                        apply_orientation,
-                        a,
-                        [[0,1],[np.nan,np.nan],[2,1]])
+                  apply_orientation,
+                  a,
+                  [[0,1],[np.nan,np.nan],[2,1]])
 
 
 def test_flip_axis():

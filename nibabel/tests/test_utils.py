@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for volumeutils module '''
 from __future__ import with_statement
-from StringIO import StringIO
+from ..py3k import BytesIO, asbytes
 import tempfile
 
 import numpy as np
@@ -37,15 +37,15 @@ def test_array_from_file():
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     # Check on string buffers
     offset = 0
-    assert_true(buf_chk(in_arr, StringIO(), None, offset))
+    assert_true(buf_chk(in_arr, BytesIO(), None, offset))
     offset = 10
-    assert_true(buf_chk(in_arr, StringIO(), None, offset))
+    assert_true(buf_chk(in_arr, BytesIO(), None, offset))
     # check on real file
     fname = 'test.bin'
     with InTemporaryDirectory() as tmpdir:
         # fortran ordered
-        out_buf = file(fname, 'wb')
-        in_buf = file(fname, 'rb')
+        out_buf = open(fname, 'wb')
+        in_buf = open(fname, 'rb')
         assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
         # Drop offset to check that shape's not coming from file length
         out_buf.seek(0)
@@ -54,17 +54,17 @@ def test_array_from_file():
         assert_true(buf_chk(in_arr, out_buf, in_buf, offset))
         del out_buf, in_buf
     # Make sure empty shape, and zero length, give empty arrays
-    arr = array_from_file((), np.dtype('f8'), StringIO())
+    arr = array_from_file((), np.dtype('f8'), BytesIO())
     assert_equal(len(arr), 0)
-    arr = array_from_file((0,), np.dtype('f8'), StringIO())
+    arr = array_from_file((0,), np.dtype('f8'), BytesIO())
     assert_equal(len(arr), 0)
     # Check error from small file
     assert_raises(IOError, array_from_file,
-                        shape, dtype, StringIO())
+                        shape, dtype, BytesIO())
     # check on real file
     fd, fname = tempfile.mkstemp()
     with InTemporaryDirectory():
-        open(fname, 'wb').write('1')
+        open(fname, 'wb').write(asbytes('1'))
         in_buf = open(fname, 'rb')
         # For windows this will raise a WindowsError from mmap, Unices
         # appear to raise an IOError
@@ -75,7 +75,7 @@ def test_array_from_file():
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
     ''' Write contents of in_arr into fileobj, read back, check same '''
-    instr = ' ' * offset + in_arr.tostring(order='F')
+    instr = asbytes(' ') * offset + in_arr.tostring(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None: # we're using in_buf from out_buf
@@ -91,7 +91,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
 
 def test_array_to_file():
     arr = np.arange(10).reshape(5,2)
-    str_io = StringIO()
+    str_io = BytesIO()
     for tp in (np.uint64, np.float, np.complex):
         dt = np.dtype(tp)
         for code in '<>':
@@ -143,18 +143,18 @@ def test_array_to_file():
     assert_array_equal(data_back, arr.astype(np.int64))
     # check that non-zero file offset works
     arr = np.array([[0.0, 1.0],[2.0, 3.0]])
-    str_io = StringIO()
-    str_io.write('a' * 42)
+    str_io = BytesIO()
+    str_io.write(asbytes('a') * 42)
     array_to_file(arr, str_io, np.float, 42)
     data_back = array_from_file(arr.shape, np.float, str_io, 42)
     assert_array_equal(data_back, arr.astype(np.float))
     # that default dtype is input dtype
-    str_io = StringIO()
+    str_io = BytesIO()
     array_to_file(arr.astype(np.int16), str_io)
     data_back = array_from_file(arr.shape, np.int16, str_io)
     assert_array_equal(data_back, arr.astype(np.int16))
     # that, if there is no valid data, we get zeros
-    str_io = StringIO()
+    str_io = BytesIO()
     array_to_file(arr + np.inf, str_io, np.int32, 0, 0.0, None)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, np.zeros(arr.shape))
@@ -249,7 +249,7 @@ def test_allopen():
     fobj = allopen(__file__, mode='r')
     assert_equal(fobj.mode, 'r')
     # fileobj returns fileobj
-    sobj = StringIO()
+    sobj = BytesIO()
     fobj = allopen(sobj)
     assert_true(fobj is sobj)
     # mode is gently ignored

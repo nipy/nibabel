@@ -6,9 +6,10 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from StringIO import StringIO
 
 import numpy as np
+
+from ..py3k import BytesIO
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 
@@ -43,7 +44,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
         hdr.set_data_dtype(np.int16)
-        S3 = StringIO()
+        S3 = BytesIO()
         data = np.arange(6, dtype=np.float64).reshape((1,2,3))
         # This uses scaling
         hdr.data_to_fileobj(data, S3)

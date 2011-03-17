@@ -10,7 +10,7 @@
 
 '''
 
-from StringIO import StringIO
+from ..py3k import StringIO
 
 import logging
 
@@ -92,7 +92,7 @@ def test_init_basic():
 def test_init_report():
     rep = Report()
     assert_equal(rep, Report(Exception, 0, '', ''))
-    
+
 
 def test_report_strings():
     rep = Report()
@@ -107,13 +107,13 @@ def test_report_strings():
     rep.problem_level = 30
     rep.write_raise(str_io)
     assert_equal(str_io.getvalue(), 'Level 30: msg; fix\n')
-    str_io.truncate(0)
+    str_io.truncate(0); str_io.seek(0)
     # No fix string, no fix message
     rep.fix_msg = ''
     rep.write_raise(str_io)
     assert_equal(str_io.getvalue(), 'Level 30: msg\n')
     rep.fix_msg = 'fix'
-    str_io.truncate(0)
+    str_io.truncate(0); str_io.seek(0)
     # If we drop the level, nothing goes to the log
     rep.problem_level = 20
     rep.write_raise(str_io)
@@ -121,7 +121,7 @@ def test_report_strings():
     # Unless we set the default log level in the call
     rep.write_raise(str_io, log_level=20)
     assert_equal(str_io.getvalue(), 'Level 20: msg; fix\n')
-    str_io.truncate(0)
+    str_io.truncate(0); str_io.seek(0)
     # If we set the error level down this low, we raise an error
     assert_raises(ValueError, rep.write_raise, str_io, 20)
     # But the log level wasn't low enough to do a log entry
@@ -131,7 +131,7 @@ def test_report_strings():
     assert_raises(ValueError, rep.write_raise, str_io, 20, 20)
     assert_equal(str_io.getvalue(), 'Level 20: msg; fix\n')
     # If there's no error, we can't raise
-    str_io.truncate(0)
+    str_io.truncate(0); str_io.seek(0)
     rep.error = None
     rep.write_raise(str_io, 20)
     assert_equal(str_io.getvalue(), '')
@@ -148,7 +148,7 @@ def test_logging():
     rep.problem_level = 30
     rep.log_raise(logger)
     assert_equal(str_io.getvalue(), 'msg; fix\n')
-    str_io.truncate(0)
+    str_io.truncate(0); str_io.seek(0)
 
 
 def test_checks():
