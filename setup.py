@@ -73,7 +73,9 @@ def main(**extra_args):
           provides=PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.externals.tests',
                           'nibabel.gifti',
+                          'nibabel.gifti.tests',
                           'nibabel.nicom',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
@@ -89,6 +91,7 @@ def main(**extra_args):
           # only a workaround to get things started -- not a solution
           package_data = {'nibabel':
                           [pjoin('tests', 'data', '*'),
+                           pjoin('externals', 'tests', 'data', '*'),
                            pjoin('nicom', 'tests', 'data', '*'),
                           ]},
           scripts      = [pjoin('bin', 'parrec2nii')],

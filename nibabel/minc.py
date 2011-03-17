@@ -10,6 +10,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
+from .py3k import asbytes, asstr
 from .spatialimages import SpatialImage
 
 _dt_dict = {
@@ -52,7 +53,7 @@ class MincFile(object):
         # We don't currently support irregular spacing
         # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
         for dim in self._dims:
-            if dim.spacing != 'regular__':
+            if dim.spacing != asbytes('regular__'):
                 raise ValueError('Irregular spacing not supported')
         self._spatial_dims = [name for name in self._dim_names
                              if name.endswith('space')]
@@ -64,7 +65,7 @@ class MincFile(object):
         elif typecode == 'd':
             dtt = np.dtype(np.float64)
         else:
-            signtype = self._image.signtype
+            signtype = asstr(self._image.signtype)
             dtt = _dt_dict[(typecode, signtype)]
         return np.dtype(dtt).newbyteorder('>')
 

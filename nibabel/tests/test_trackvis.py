@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..py3k import BytesIO, asbytes
 from .. import trackvis as tv
 from ..volumeutils import swapped_code
 
@@ -16,20 +16,20 @@ def test_write():
     out_f = BytesIO()
     tv.write(out_f, [], {})
     assert_equal(out_f.getvalue(), tv.empty_header().tostring())
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     # Write something not-default
     tv.write(out_f, [], {'id_string':'TRACKb'})
     # read it back
     out_f.seek(0)
     streams, hdr = tv.read(out_f)
-    assert_equal(hdr['id_string'], 'TRACKb')
+    assert_equal(hdr['id_string'], asbytes('TRACKb'))
     # check that we can pass none for the header
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     tv.write(out_f, [])
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     tv.write(out_f, [], None)
     # check that we check input values
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     assert_raises(tv.HeaderError,
            tv.write, out_f, [],{'id_string':'not OK'})
     assert_raises(tv.HeaderError,
@@ -126,7 +126,7 @@ def test_round_trip():
     out_f.seek(0)
     streams3, hdr = tv.read(out_f, as_generator=True)
     # check this is a generator rather than a list
-    assert_true(hasattr(streams3, 'next'))
+    assert_true(hasattr(streams3, 'send'))
     # but that it results in the same output
     assert_true(streamlist_equal(streams, list(streams3)))
     # write back in
@@ -146,7 +146,7 @@ def test_empty_header():
     for endian in '<>':
         for version in (1, 2):
             hdr = tv.empty_header(endian, version)
-            assert_equal(hdr['id_string'], 'TRACK')
+            assert_equal(hdr['id_string'], asbytes('TRACK'))
             assert_equal(hdr['version'], version)
             assert_equal(hdr['hdr_size'], 1000)
             assert_array_equal(
@@ -219,16 +219,16 @@ def test_tv_class():
     out_f = BytesIO()
     tvf.to_file(out_f)
     assert_equal(out_f.getvalue(), tv.empty_header().tostring())
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     # Write something not-default
     tvf = tv.TrackvisFile([], {'id_string':'TRACKb'})
     tvf.to_file(out_f)
     # read it back
     out_f.seek(0)
     tvf_back = tv.TrackvisFile.from_file(out_f)
-    assert_equal(tvf_back.header['id_string'], 'TRACKb')
+    assert_equal(tvf_back.header['id_string'], asbytes('TRACKb'))
     # check that we check input values
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     assert_raises(tv.HeaderError,
                         tv.TrackvisFile,
                         [],{'id_string':'not OK'})

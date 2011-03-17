@@ -10,7 +10,7 @@
 from __future__ import with_statement
 import os
 
-from ..py3k import BytesIO, ZEROB
+from ..py3k import BytesIO, ZEROB, asbytes
 
 import numpy as np
 
@@ -51,14 +51,14 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], 'ni1')
+        assert_equal(hdr['magic'], asbytes('ni1'))
         assert_equal(hdr['scl_slope'], 1)
         assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
         hdr = Nifti1Header.from_fileobj(open(self.example_file, 'rb'))
         assert_equal(hdr.endianness, '<')
-        assert_equal(hdr['magic'], 'ni1')
+        assert_equal(hdr['magic'], asbytes('ni1'))
         assert_equal(hdr['sizeof_hdr'], 348)
 
     def test_nifti_log_checks(self):
@@ -128,7 +128,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr = HC()
         hdr['magic'] = 'ooh'
         fhdr, message, raiser = _log_chk(hdr, 45)
-        assert_equal(fhdr['magic'], 'ooh')
+        assert_equal(fhdr['magic'], asbytes('ooh'))
         assert_equal(message, 'magic string "ooh" is not valid; '
                            'leaving as is, but future errors are likely')
         hdr['magic'] = 'n+1' # single file needs suitable offset
@@ -160,7 +160,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], 'n+1')
+        assert_equal(hdr['magic'], asbytes('n+1'))
         assert_equal(hdr['scl_slope'], 1)
         assert_equal(hdr['vox_offset'], 352)
 
@@ -329,27 +329,27 @@ def test_intents():
     ehdr = Nifti1Header()
     ehdr.set_intent('t test', (10,), name='some score')
     assert_equal(ehdr.get_intent(),
-                       ('t test', (10.0,), 'some score'))
+                 ('t test', (10.0,), asbytes('some score')))
     # invalid intent name
     assert_raises(KeyError,
-                        ehdr.set_intent, 'no intention')
+                  ehdr.set_intent, 'no intention')
     # too many parameters
     assert_raises(HeaderDataError,
-                        ehdr.set_intent, 
-                        't test', (10,10))
+                  ehdr.set_intent, 
+                  't test', (10,10))
     # too few parameters
     assert_raises(HeaderDataError,
-                        ehdr.set_intent,
-                        'f test', (10,))
+                  ehdr.set_intent,
+                  'f test', (10,))
     # check unset parameters are set to 0, and name to ''
     ehdr.set_intent('t test')
     assert_equal((ehdr['intent_p1'],
-                        ehdr['intent_p2'],
-                        ehdr['intent_p3']), (0,0,0))
-    assert_equal(ehdr['intent_name'], '')
+                  ehdr['intent_p2'],
+                  ehdr['intent_p3']), (0,0,0))
+    assert_equal(ehdr['intent_name'], asbytes(''))
     ehdr.set_intent('t test', (10,))
     assert_equal((ehdr['intent_p2'],
-                        ehdr['intent_p3']), (0,0))
+                  ehdr['intent_p3']), (0,0))
 
 
 def test_set_slice_times():
@@ -463,13 +463,13 @@ def test_nifti_extensions():
     # basic checks of the available extensions
     hdr = nim.get_header()
     exts_container = hdr.extensions
-    assert_true(len(exts_container) == 2)
-    assert_true(exts_container.count('comment') == 2)
-    assert_true(exts_container.count('afni') == 0)
-    assert_true(exts_container.get_codes() == [6, 6])
-    assert_true((exts_container.get_sizeondisk()) % 16 == 0)
+    assert_equal(len(exts_container), 2)
+    assert_equal(exts_container.count('comment'), 2)
+    assert_equal(exts_container.count('afni'), 0)
+    assert_equal(exts_container.get_codes(), [6, 6])
+    assert_equal((exts_container.get_sizeondisk()) % 16, 0)
     # first extension should be short one
-    assert_true(exts_container[0].get_content() == 'extcomment1')
+    assert_equal(exts_container[0].get_content(), asbytes('extcomment1'))
     # add one
     afniext = Nifti1Extension('afni', '<xml></xml>')
     exts_container.append(afniext)

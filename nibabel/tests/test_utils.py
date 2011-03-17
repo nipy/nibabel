@@ -282,7 +282,7 @@ def test_shape_zoom_affine():
 def test_rec2dict():
     r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     d = rec2dict(r)
-    assert_equal(d, {'x': 0, 's': ''})
+    assert_equal(d, {'x': 0, 's': asbytes('')})
 
 
 def test_dtypes():

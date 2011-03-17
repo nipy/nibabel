@@ -731,7 +731,7 @@ class netcdf_file(object):
     _pack_int32 = _pack_int
 
     def _unpack_int(self):
-        return fromstring(self.fp.read(4), '>i')[0]
+        return int(fromstring(self.fp.read(4), '>i')[0])
     _unpack_int32 = _unpack_int
 
     def _pack_int64(self, value):

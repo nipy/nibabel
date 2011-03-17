@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
+from .py3k import asbytes
 from .filename_parser import types_filenames, splitext_addext
 from . import volumeutils as vu
 from . import spm2analyze as spm2
@@ -44,7 +45,7 @@ def load(filename):
         hdr = nifti1.Nifti1Header.from_fileobj(
             vu.allopen(filenames['header']),
             check=False)
-        if hdr['magic'] in ('ni1', 'n+1'):
+        if hdr['magic'] in (asbytes('ni1'), asbytes('n+1')):
             # allow goofy nifti single magic for pair
             klass = nifti1.Nifti1Pair
         else:

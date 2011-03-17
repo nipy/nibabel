@@ -6,6 +6,7 @@ import itertools
 import numpy as np
 import numpy.linalg as npl
 
+from .py3k import asbytes
 from .volumeutils import (native_code, swapped_code, endian_codes,
                           allopen, rec2dict)
 
@@ -123,7 +124,7 @@ def read(fileobj, as_generator=False):
     hdr = np.ndarray(shape=(),
                      dtype=header_2_dtype,
                      buffer=hdr_str)
-    if str(hdr['id_string'])[:5] != 'TRACK':
+    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
     if hdr['hdr_size'] == 1000:
@@ -148,8 +149,8 @@ def read(fileobj, as_generator=False):
     n_p = hdr['n_properties']
     f4dt = np.dtype(endianness + 'f4')
     pt_cols = 3 + n_s
-    pt_size = f4dt.itemsize * pt_cols
-    ps_size = f4dt.itemsize * n_p
+    pt_size = int(f4dt.itemsize * pt_cols)
+    ps_size = int(f4dt.itemsize * n_p)
     i_fmt = endianness + 'i'
     stream_count = hdr['n_count']
     if stream_count < 0:
@@ -356,7 +357,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     for key, value in mapping.items():
         hdr[key] = value
     # check header values
-    if str(hdr['id_string'])[:5] != 'TRACK':
+    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
         raise HeaderError('Expecting TRACK as first '
                           '5 characaters of id_string')
     if hdr['version'] not in (1, 2):
@@ -368,14 +369,14 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
 
 def empty_header(endianness=None, version=2):
     ''' Empty trackvis header
-    
+
     Parameters
     ----------
     endianness : {'<','>'}, optional
        Endianness of empty header to return. Default is native endian.
     version : int, optional
        Header version.  1 or 2.  Default is 2
-      
+
     Returns
     -------
     hdr : structured array

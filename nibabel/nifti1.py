@@ -11,7 +11,7 @@
 import numpy as np
 import numpy.linalg as npl
 
-from .py3k import ZEROB, ints2bytes, asbytes
+from .py3k import ZEROB, ints2bytes, asbytes, asstr
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
@@ -276,9 +276,11 @@ class Nifti1Extension(object):
         s = "Nifti1Extension('%s', '%s')" % (code, self._content)
         return s
 
-    def __cmp__(self, other):
-        return cmp((self._code, self._content),
-                   (other._code, other._content))
+    def __eq__(self, other):
+        return (self._code, self._content) == (other._code, other._content)
+
+    def __ne__(self, other):
+        return not self == other
 
     def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
@@ -919,7 +921,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code])
         params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
-        return label, tuple(params), str(hdr['intent_name'])
+        return label, tuple(params), np.asscalar(hdr['intent_name'])
 
     def set_intent(self, code, params=(), name=''):
         ''' Set the intent code, parameters and name
@@ -1281,7 +1283,8 @@ class Nifti1Header(SpmAnalyzeHeader):
     @staticmethod
     def _chk_magic_offset(hdr, fix=False):
         rep = Report(HeaderDataError)
-        magic = hdr['magic']
+        # for ease of later string formatting, use scalar of byte string
+        magic = np.asscalar(hdr['magic'])
         offset = hdr['vox_offset']
         if magic == asbytes('n+1'): # one file
             if offset >= 352:
@@ -1304,7 +1307,8 @@ class Nifti1Header(SpmAnalyzeHeader):
                 rep.fix_msg = 'setting to minimum value of 352'
         elif magic != asbytes('ni1'): # two files
             # unrecognized nii magic string, oh dear
-            rep.problem_msg = 'magic string "%s" is not valid' % magic
+            rep.problem_msg = ('magic string "%s" is not valid' %
+                               asstr(magic))
             rep.problem_level = 45
             if fix:
                 rep.fix_msg = 'leaving as is, but future errors are likely'
