@@ -88,7 +88,8 @@ with methods::
     .as_byteswapped(endianness)
     .write_to(fileobj)
     .__str__
-    .__cmp__
+    .__eq__
+    .__ne__
 
 and class methods::
 
