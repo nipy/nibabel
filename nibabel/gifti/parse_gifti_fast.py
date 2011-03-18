@@ -41,7 +41,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
 
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
-        dec = base64.decodestring(data)
+        dec = base64.decodestring(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         newarr = np.fromstring(zdec, dtype = dt, sep = '\n', count = c)
@@ -52,7 +52,9 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
-        dec = base64.decodestring(data)
+        # convert to bytes array for python 3.2
+        # http://diveintopython3.org/strings.html#byte-arrays
+        dec = base64.decodestring(data.encode('ascii'))
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
@@ -292,7 +294,6 @@ class Outputter(object):
             self.coordsys.xformspace = xform_codes.code[data]
         elif self.write_to == 'MatrixData':
             # conversion to numpy array
-            from StringIO import StringIO
             c = StringIO(data)
             self.coordsys.xform = np.loadtxt(c)
             c.close()
@@ -307,7 +308,7 @@ class Outputter(object):
 
 def parse_gifti_file(fname, buffer_size = 35000000):
 
-    datasource = open(fname,'r')
+    datasource = open(fname,'rb')
     
     parser = ParserCreate()
     parser.buffer_text = True

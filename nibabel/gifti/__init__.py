@@ -17,5 +17,5 @@
    gifti
 """
 
-from giftiio import read, write
-from gifti import *
+from .giftiio import read, write
+from .gifti import *
