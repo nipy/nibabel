@@ -388,16 +388,16 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     Examples
     --------
     >>> from StringIO import StringIO as BytesIO
-    >>> str_io = BytesIO()
+    >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io)
+    >>> _ = bio.write(arr.tostring('F')) # outputs no in python3
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> str_io = BytesIO()
-    >>> str_io.write(' ' * 10)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io, 10)
+    >>> bio = BytesIO()
+    >>> _ = bio.write(' ' * 10) #2to3: line.replace(' ', b' ')
+    >>> _ = bio.write(arr.tostring('F'))
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
     '''
