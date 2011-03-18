@@ -141,8 +141,8 @@ from .volumeutils import pretty_mapping, endian_codes, \
      array_to_file, array_from_file, can_cast, \
      floating_point_types
 
-from .spatialimages import HeaderDataError, HeaderTypeError, \
-    ImageDataError, SpatialImage
+from .spatialimages import (HeaderDataError, HeaderTypeError,
+                            ImageDataError, SpatialImage)
 
 from . import imageglobals as imageglobals
 from .fileholders import FileHolderError, copy_file_map
@@ -395,10 +395,10 @@ class AnalyzeHeader(object):
 
         Examples
         --------
-        >>> import StringIO
+        >>> from StringIO import StringIO as BytesIO
         >>> hdr = AnalyzeHeader()
-        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
-        >>> fileobj.seek(0)
+        >>> fileobj = BytesIO(hdr.binaryblock)
+        >>> _ = fileobj.seek(0) # returns 0 in python 3
         >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
         >>> hdr2.binaryblock == hdr.binaryblock
         True
@@ -445,8 +445,8 @@ class AnalyzeHeader(object):
         Examples
         --------
         >>> hdr = AnalyzeHeader()
-        >>> import StringIO
-        >>> str_io = StringIO.StringIO()
+        >>> from StringIO import StringIO as BytesIO
+        >>> str_io = BytesIO()
         >>> hdr.write_to(str_io)
         >>> hdr.binaryblock == str_io.getvalue()
         True
@@ -612,8 +612,8 @@ class AnalyzeHeader(object):
         >>> hdr = AnalyzeHeader()
         >>> hdr.set_data_shape((1, 2, 3))
         >>> hdr.set_data_dtype(np.float64)
-        >>> from StringIO import StringIO
-        >>> str_io = StringIO()
+        >>> from StringIO import StringIO as BytesIO
+        >>> str_io = BytesIO()
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
         >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
@@ -655,7 +655,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr['descrip'] = 'description'
-        >>> str(hdr['descrip'])
+        >>> np.asscalar(hdr['descrip']) #23: bytes
         'description'
         '''
         self._header_data[item] = value

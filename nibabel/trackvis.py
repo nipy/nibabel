@@ -237,13 +237,13 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
 
     Examples
     --------
-    >>> from StringIO import StringIO
-    >>> file_obj = StringIO()
+    >>> from StringIO import StringIO as BytesIO
+    >>> file_obj = BytesIO()
     >>> pts0 = np.random.uniform(size=(10,3))
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
     >>> write(file_obj, streamlines)
-    >>> file_obj.seek(0)
+    >>> _ = file_obj.seek(0) # returns 0 in python 3
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
@@ -251,12 +251,12 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     If there are too many streamlines to fit in memory, you can pass an iterable
     thing instead of a list
 
-    >>> file_obj = StringIO()
+    >>> file_obj = BytesIO()
     >>> def gen():
     ...     yield (pts0, None, None)
     ...     yield (pts0, None, None)
     >>> write(file_obj, gen())
-    >>> file_obj.seek(0)
+    >>> _ = file_obj.seek(0)
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
@@ -387,8 +387,8 @@ def empty_header(endianness=None, version=2):
     >>> hdr = empty_header()
     >>> print hdr['version']
     2
-    >>> print hdr['id_string']
-    TRACK
+    >>> np.asscalar(hdr['id_string']) #23: bytes
+    'TRACK'
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
     >>> hdr = empty_header(swapped_code)
