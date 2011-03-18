@@ -73,9 +73,6 @@ def write(image, filename):
     .topo.gii
         Topology
     """
-
     f = open(filename, 'w')
     f.write(image.to_xml())
     f.close()
-
-    

@@ -159,9 +159,8 @@ class Recoder(object):
 
         >>> codes = ((1, 'one'), (2, 'two'), (1, 'repeat value'))
         >>> k = Recoder(codes).keys()
-        >>> k.sort() # Just to guarantee order for doctest output
-        >>> k
-        [1, 2, 'one', 'repeat value', 'two']
+        >>> set(k) == set([1, 2, 'one', 'repeat value', 'two'])
+        True
         '''
         return self.field1.keys()
 
@@ -388,14 +387,14 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> import StringIO
-    >>> str_io = StringIO.StringIO()
+    >>> from StringIO import StringIO as BytesIO
+    >>> str_io = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
     >>> str_io.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io)
     >>> np.all(arr == arr2)
     True
-    >>> str_io = StringIO.StringIO()
+    >>> str_io = BytesIO()
     >>> str_io.write(' ' * 10)
     >>> str_io.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io, 10)
@@ -486,21 +485,21 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO
-    >>> sio = StringIO()
+    >>> from StringIO import StringIO as BytesIO
+    >>> sio = BytesIO()
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
     >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data.byteswap(), sio, np.float)
     >>> sio.getvalue() == data.byteswap().tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tostring('C')
     True

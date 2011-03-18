@@ -103,10 +103,10 @@ data.  The ``file_map`` contents should therefore be such, that this will
 work:
 
    >>> # write an image to files
-   >>> from StringIO import StringIO
+   >>> from StringIO import StringIO as BytesIO
    >>> file_map = nib.AnalyzeImage.make_file_map()
-   >>> file_map['image'].fileobj = StringIO()
-   >>> file_map['header'].fileobj = StringIO()
+   >>> file_map['image'].fileobj = BytesIO()
+   >>> file_map['header'].fileobj = BytesIO()
    >>> img = nib.AnalyzeImage(data, np.eye(4))
    >>> img.file_map = file_map
    >>> img.to_file_map()
