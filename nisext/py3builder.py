@@ -83,7 +83,6 @@ def doctest_markup(in_lines):
 
     * ``from StringIO import StringIO as BytesIO`` replaced by ``from io import
       BytesIO``.
-    * ``from StringIO import StringIO`` replaced by ``from io import StringIO``.
 
     Next it looks to see if the line ends with a comment starting with ``#2to3:``.
 
@@ -94,8 +93,8 @@ def doctest_markup(in_lines):
       a variable referring to the current line number, and ``next`` is just
       ``here+1``.
     * <expr> is a python3 expression returning a processed value, where
-      ``line`` contains the line number referred to by ``here``, and ``lines``
-      is a list of all lines, such that ``lines[here]`` gives the value of
+      ``line`` contains the line referred to by line number ``here``, and
+      ``lines`` is a list of all lines. ``lines[here]`` gives the value of
       ``line``.
 
     An <expr> beginning with "replace(" we take to be short for "line.replace(".
@@ -113,22 +112,28 @@ def doctest_markup(in_lines):
 
     Examples
     --------
-    The next three lines all do the same thing. The # at the beginning disables
-    them as runnable doctests in this docstring.
+    The next three lines all do the same thing:
 
-    # >>> a = '1234567890' #2to3: here; line.replace("'12", "b'12")
-    # >>> a = '1234567890' #2to3: here; replace("'12", "b'12")
-    # >>> a = '1234567890' #2to3: here; bytes
+    >> a = '1234567890' #2to3: here; line.replace("'12", "b'12")
+    >> a = '1234567890' #2to3: here; replace("'12", "b'12")
+    >> a = '1234567890' #2to3: here; bytes
 
-    You might want to process the next line
+    and that is to give the output (e.g):
 
-    # >>> upk.unpack('2s') #2to3: next; bytes
-    # ('12',)
+    >> a = b'1234567890' #2to3: here; line.replace("'12", "b'12")
+
+    in the processed doctest.
+
+    You might want to process the line after the comment - such as test output.
+    The next test replaces "'a string'" with "b'a string'"
+
+    >> 'a string'.encode('ascii') #2to3: next; bytes
+    'a string'
 
     This might work too, to do the same thing:
 
-    # >>> upk.unpack('2s') #2to3: here+1; bytes
-    # ('12',)
+    >> 'a string'.encode('ascii') #2to3: here+1; bytes
+    'a string'
     """
     pos = 0
     lines = list(in_lines)
@@ -149,42 +154,45 @@ def doctest_markup(in_lines):
             continue
         docbits, start, marker, markup = mark_match.groups()
         pe_match = PLACE_EXPR.match(markup)
-        if pe_match:
-            place, expr = pe_match.groups()
+        if pe_match is None:
+            continue
+        # Get place, expr expressions
+        place, expr = pe_match.groups()
+        try:
+            place = eval(place, {'here': here, 'next': here+1})
+        except:
+            print('Error finding place with "%s", line "%s"; skipping' %
+                    (place, this))
+            continue
+        # Prevent processing operating on 2to3 comment part of line
+        if place == here:
+            line = start
+        else:
+            line = lines[place]
+        # Process expr
+        expr = expr.strip()
+        # Shorthand
+        if expr == 'bytes':
+            # Any strings on the given line are byte strings
+            pre, mid, post = INDENT_SPLITTER.match(line).groups()
+            res = byter(mid)
+            res = pre + res + post
+        else:
+            # If expr starts with 'replace', implies "line.replace"
+            if expr.startswith('replace('):
+                expr = 'line.' + expr
             try:
-                place = eval(place, {'here': here, 'next': here+1})
+                res = eval(expr, dict(line=line,
+                                    lines=lines))
             except:
-                print('Error finding place with "%s", line "%s"; skipping' %
-                      (place, this))
+                print('Error working on "%s" at line %d with "%s"; skipping' %
+                    (line, place, expr))
                 continue
-            # Prevent processing operating on comment
-            if place == here:
-                line = start
-            else:
-                line = lines[place]
-            expr = expr.strip()
-            # Shorthand stuff
-            if expr == 'bytes':
-                # Any strings on the given line are byte strings
-                pre, mid, post = INDENT_SPLITTER.match(line).groups()
-                res = byter(mid)
-                res = pre + res + post
-            else:
-                # If expr starts with 'replace', implies "line.replace"
-                if expr.startswith('replace('):
-                    expr = 'line.' + expr
-                try:
-                    res = eval(expr, dict(line=line,
-                                        lines=lines))
-                except:
-                    print('Error working on "%s" at line %d with "%s"; skipping' %
-                        (line, place, expr))
-                    continue
-            # Put back comment if removed
-            if place == here:
-                res = docbits + res + marker + markup
-            if res != line:
-                lines[place] = res
+        # Put back comment if removed
+        if place == here:
+            res = docbits + res + marker + markup
+        if res != line:
+            lines[place] = res
     return lines
 
 

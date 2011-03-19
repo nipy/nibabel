@@ -1,12 +1,15 @@
 """ Testing doctest markup tests
 """
 
+import sys
 from ..py3builder import doctest_markup, byter
 
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
+from numpy.testing import (assert_array_almost_equal, assert_array_equal, dec)
 
 from nose.tools import assert_true, assert_equal, assert_raises
+
+is_2 = sys.version_info[0] < 3
+skip42 = dec.skipif(is_2)
 
 
 def test_search_replace():
@@ -20,6 +23,9 @@ def test_search_replace():
     assert_equal(['>>> from io import BytesIO'], doctest_markup([line]))
     line = line + '\n'
     assert_equal(['>>> from io import BytesIO\n'], doctest_markup([line]))
+
+
+def test_replace_markup():
     # Bytes output
     marked_lines = ['any', '  some']
     assert_equal(marked_lines, doctest_markup(marked_lines))
@@ -45,6 +51,10 @@ def test_search_replace():
     assert_equal(['>>> woo #2to3: here ; replace("wow", "woo") '],
                  doctest_markup(
                      ['>>> wow #2to3: here ; replace("wow", "woo") ']))
+
+
+@skip42
+def test_byte_markup():
     assert_equal([">>> b'hello'  #2to3: here; bytes"],
                  doctest_markup(
                      [">>> 'hello'  #2to3: here; bytes"]))
@@ -52,6 +62,8 @@ def test_search_replace():
                  doctest_markup(
                      ['>>> some #2to3: next; bytes\n', "    'TRACK'\n"]))
 
+
+@skip42
 def test_byter():
     # Test bytes formatter
     assert_equal('(b"hello \' world", b\'again\')',
