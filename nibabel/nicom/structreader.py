@@ -14,15 +14,15 @@ class Unpacker(object):
 
     Examples
     --------
-    >>> a = '1234567890' #2to3: here; replace("'1", "b'1")
+    >>> a = '1234567890' #2to3: here; bytes
     >>> upk = Unpacker(a)
-    >>> upk.unpack('2s')
+    >>> upk.unpack('2s') #2to3: next; bytes
     ('12',)
-    >>> upk.unpack('2s')
+    >>> upk.unpack('2s') #2to3: next; bytes
     ('34',)
     >>> upk.ptr
     4
-    >>> upk.read(3)
+    >>> upk.read(3) #2to3: next; bytes
     '567'
     >>> upk.ptr
     7

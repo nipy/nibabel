@@ -17,17 +17,17 @@ from tempfile import template, mkdtemp
 class TemporaryDirectory(object):
     """Create and return a temporary directory.  This has the same
     behavior as mkdtemp but can be used as a context manager.
-    
+
     Upon exiting the context, the directory and everthing contained
     in it are removed.
-    
+
     Examples
     --------
     >>> import os
     >>> with TemporaryDirectory() as tmpdir:
     ...     fname = os.path.join(tmpdir, 'example_file.txt')
     ...     with open(fname, 'wt') as fobj:
-    ...         fobj.write('a string\\n')
+    ...         _ = fobj.write('a string\\n')
     >>> os.path.exists(tmpdir)
     False
     """
@@ -56,7 +56,7 @@ class InTemporaryDirectory(TemporaryDirectory):
     >>> import os
     >>> my_cwd = os.getcwd()
     >>> with InTemporaryDirectory() as tmpdir:
-    ...     open('test.txt', 'wt').write('some text')
+    ...     _ = open('test.txt', 'wt').write('some text')
     ...     assert os.path.isfile('test.txt')
     ...     assert os.path.isfile(os.path.join(tmpdir, 'test.txt'))
     >>> os.path.exists(tmpdir)

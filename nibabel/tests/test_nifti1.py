@@ -329,13 +329,13 @@ def test_intents():
     ehdr = Nifti1Header()
     ehdr.set_intent('t test', (10,), name='some score')
     assert_equal(ehdr.get_intent(),
-                 ('t test', (10.0,), asbytes('some score')))
+                 ('t test', (10.0,), 'some score'))
     # invalid intent name
     assert_raises(KeyError,
                   ehdr.set_intent, 'no intention')
     # too many parameters
     assert_raises(HeaderDataError,
-                  ehdr.set_intent, 
+                  ehdr.set_intent,
                   't test', (10,10))
     # too few parameters
     assert_raises(HeaderDataError,

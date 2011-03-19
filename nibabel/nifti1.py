@@ -921,7 +921,8 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code])
         params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
-        return label, tuple(params), np.asscalar(hdr['intent_name'])
+        name = asstr(np.asscalar(hdr['intent_name']))
+        return label, tuple(params), name
 
     def set_intent(self, code, params=(), name=''):
         ''' Set the intent code, parameters and name

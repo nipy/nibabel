@@ -395,7 +395,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     >>> np.all(arr == arr2)
     True
     >>> bio = BytesIO()
-    >>> _ = bio.write(' ' * 10) #2to3: here; replace("' '", "b' '")
+    >>> _ = bio.write(' ' * 10) #2to3: here; bytes
     >>> _ = bio.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)

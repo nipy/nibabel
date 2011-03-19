@@ -387,7 +387,7 @@ def empty_header(endianness=None, version=2):
     >>> hdr = empty_header()
     >>> print hdr['version']
     2
-    >>> np.asscalar(hdr['id_string']) #2to3: next; line.replace("'T", "b'T")
+    >>> np.asscalar(hdr['id_string']) #2to3: next; bytes
     'TRACK'
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
