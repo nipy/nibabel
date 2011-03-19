@@ -2,6 +2,8 @@
 
 from __future__ import with_statement
 import re
+import ast
+from . import codegen
 
 try:
     from distutils.command.build_py import build_py_2to3
@@ -67,9 +69,9 @@ REGGIES = (
      'from io import BytesIO'),
 )
 
-MARK_COMMENT = re.compile('(.*?)(#2to3:\s*)(.*?\s*)$', re.DOTALL)
+MARK_COMMENT = re.compile('(\s*>>>\s+)(.*?)(\s*#2to3:\s*)(.*?\s*)$', re.DOTALL)
 PLACE_EXPR = re.compile('\s*([\w+\- ]+);\s*(.*)$')
-
+INDENT_SPLITTER = re.compile('(\s*)(.*?)(\s*)$', re.DOTALL)
 
 def doctest_markup(in_lines):
     """ Process doctest comment markup on sequence of strings
@@ -123,7 +125,7 @@ def doctest_markup(in_lines):
         mark_match = MARK_COMMENT.search(this)
         if mark_match is None:
             continue
-        start, marker, markup = mark_match.groups()
+        docbits, start, marker, markup = mark_match.groups()
         pe_match = PLACE_EXPR.match(markup)
         if pe_match:
             place, expr = pe_match.groups()
@@ -142,21 +144,37 @@ def doctest_markup(in_lines):
             # Shorthand stuff
             if expr == 'bytes':
                 # Any strings on the given line are byte strings
-                raise NotImplementedError()
-            # If expr starts with 'replace', implies "line.replace"
-            if expr.startswith('replace('):
-                expr = 'line.' + expr
-            try:
-                res = eval(expr, dict(line=line,
-                                      lines=lines))
-            except:
-                print('Error working on "%s" at line %d with "%s"; skipping' %
-                      (line, place, expr))
-                continue
+                pre, mid, post = INDENT_SPLITTER.match(line).groups()
+                res = byter(mid)
+                res = pre + res + post
+            else:
+                # If expr starts with 'replace', implies "line.replace"
+                if expr.startswith('replace('):
+                    expr = 'line.' + expr
+                try:
+                    res = eval(expr, dict(line=line,
+                                        lines=lines))
+                except:
+                    print('Error working on "%s" at line %d with "%s"; skipping' %
+                        (line, place, expr))
+                    continue
             # Put back comment if removed
             if place == here:
-                res += marker + markup
+                res = docbits + res + marker + markup
             if res != line:
                 lines[place] = res
     return lines
+
+
+class RewriteStr(ast.NodeTransformer):
+    def visit_Str(self, node):
+        return ast.Bytes(node.s.encode('ascii'))
+
+
+def byter(src):
+    """ Convert strings in `src` to byte string literals
+    """
+    tree = ast.parse(src)
+    tree = RewriteStr().visit(tree)
+    return codegen.to_source(tree)
 

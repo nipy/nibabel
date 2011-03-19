@@ -1,7 +1,7 @@
 """ Testing doctest markup tests
 """
 
-from ..py3builder import doctest_markup
+from ..py3builder import doctest_markup, byter
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -45,3 +45,19 @@ def test_search_replace():
     assert_equal(['>>> woo #2to3: here ; replace("wow", "woo") '],
                  doctest_markup(
                      ['>>> wow #2to3: here ; replace("wow", "woo") ']))
+    assert_equal([">>> b'hello'  #2to3: here; bytes"],
+                 doctest_markup(
+                     [">>> 'hello'  #2to3: here; bytes"]))
+    assert_equal(['>>> some #2to3: next; bytes\n', "    b'TRACK'\n"],
+                 doctest_markup(
+                     ['>>> some #2to3: next; bytes\n', "    'TRACK'\n"]))
+
+def test_byter():
+    # Test bytes formatter
+    assert_equal('(b"hello \' world", b\'again\')',
+                 byter('("hello \' world", "again")'))
+    line = "_ = bio.write(' ' * 10)"
+    assert_equal(
+        byter(line),
+        "_ = bio.write(b' ' * 10)")
+
