@@ -1,6 +1,8 @@
 """ distutils utilities for porting to python 3 within 2-compatible tree """
 
 from __future__ import with_statement
+
+import sys
 import re
 import ast
 from . import codegen
@@ -175,7 +177,13 @@ def doctest_markup(in_lines):
         if expr == 'bytes':
             # Any strings on the given line are byte strings
             pre, mid, post = INDENT_SPLITTER.match(line).groups()
-            res = byter(mid)
+            try:
+                res = byter(mid)
+            except:
+                err = sys.exc_info()[1]
+                print('Error "%s" parsing "%s"; skipping' %
+                      (err, mid))
+                continue
             res = pre + res + post
         else:
             # If expr starts with 'replace', implies "line.replace"
