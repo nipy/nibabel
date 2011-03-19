@@ -21,8 +21,27 @@ def test_search_replace():
     line = line + '\n'
     assert_equal(['>>> from io import BytesIO\n'], doctest_markup([line]))
     # Bytes output
-    assert_equal(['any', '  some'], doctest_markup(['any', '  some']))
-    assert_equal(['any #23: bytes', '  some'],
-                 doctest_markup(['any #23: bytes', '  some']))
-    assert_equal([' >>> any #23: bytes \n', '  bsome \n'],
-                 doctest_markup([' >>> any #23: bytes \n', '  some \n']))
+    marked_lines = ['any', '  some']
+    assert_equal(marked_lines, doctest_markup(marked_lines))
+    marked_lines = ['any #2to3: here+1; line.replace("some", "boo") ',
+                    ' some ']
+    assert_equal(marked_lines, doctest_markup(marked_lines))
+    marked_lines = ['>>> any #2to3: here+1; line.replace("some", "boo") ',
+                    ' some ']
+    exp_out = ['>>> any #2to3: here+1; line.replace("some", "boo") ',
+               ' boo ']
+    assert_equal(exp_out, doctest_markup(marked_lines))
+    marked_lines = ['>>> any #2to3: next; line.replace("some", "boo") ',
+                    ' some ']
+    exp_out = ['>>> any #2to3: next; line.replace("some", "boo") ',
+               ' boo ']
+    assert_equal(exp_out, doctest_markup(marked_lines))
+    assert_equal(['>>> woo #2to3: here ; line.replace("wow", "woo") '],
+                 doctest_markup(
+                     ['>>> wow #2to3: here ; line.replace("wow", "woo") ']))
+    assert_equal(['>>> woo #2to3: here ; line.replace("wow", "woo") \n'],
+                 doctest_markup(
+                     ['>>> wow #2to3: here ; line.replace("wow", "woo") \n']))
+    assert_equal(['>>> woo #2to3: here ; replace("wow", "woo") '],
+                 doctest_markup(
+                     ['>>> wow #2to3: here ; replace("wow", "woo") ']))

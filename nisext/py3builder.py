@@ -67,10 +67,11 @@ REGGIES = (
      'from io import BytesIO'),
 )
 
-MARK_COMMENT = re.compile('#23:\s*(.*?)\s*$')
-FIRST_NW = re.compile('(\s*)(\S.*)', re.DOTALL)
+MARK_COMMENT = re.compile('(.*?)(#2to3:\s*)(.*?\s*)$', re.DOTALL)
+PLACE_EXPR = re.compile('\s*([\w+\- ]+);\s*(.*)$')
 
-def doctest_markup(lines):
+
+def doctest_markup(in_lines):
     """ Process doctest comment markup on sequence of strings
 
     The markup is very crude.  The algorithm looks for lines starting with
@@ -82,52 +83,80 @@ def doctest_markup(lines):
       BytesIO``.
     * ``from StringIO import StringIO`` replaced by ``from io import StringIO``.
 
-    Next it looks to see if the line ends with a comment starting with ``#23:``.
+    Next it looks to see if the line ends with a comment starting with ``#2to3:``.
 
-    * ``bytes`` : prepend 'b' to next output line; for when you want to show
-      output of bytes type in python 3
+    The stuff after the ``#2to3:`` marker is, of course, a little language, of
+    form <place>; <expr>
+
+    * <place> is an expression giving a line number.  In this expression, ``here`` is
+      a variable referring to the current line number, and ``next`` is just
+      ``here+1``.
+    * <expr> is a python3 expression returning a processed value, where
+      ``line`` contains the line number referred to by ``here``, and ``lines``
+      is a list of all lines, such that ``lines[here]`` gives the value of
+      ``line``.
+
+    An <expr> beginning with "replace(" we take to be short for "line.replace(".
 
     Parameters
     ----------
-    lines : sequence of str
+    in_lines : sequence of str
 
     Returns
     -------
-    newlines : sequence of str
+    out_lines : sequence of str
     """
-    newlines = []
-    lines = iter(lines)
-    while(True):
-        try:
-            line = next(lines)
-        except StopIteration:
-            break
-        if not line.lstrip().startswith('>>>'):
-            newlines.append(line)
+    pos = 0
+    lines = list(in_lines)
+    while pos < len(lines):
+        this = lines[pos]
+        here = pos
+        pos += 1
+        if not this.lstrip().startswith('>>>'):
             continue
         # Check simple regexps (no markup)
         for reg, substr in REGGIES:
-            if reg.search(line):
-                line = reg.sub(substr, line)
+            if reg.search(this):
+                lines[here] = reg.sub(substr, this)
                 break
         # Check for specific markup
-        mark_match = MARK_COMMENT.search(line)
+        mark_match = MARK_COMMENT.search(this)
         if mark_match is None:
-            newlines.append(line)
             continue
-        markup = mark_match.groups()[0]
-        # Actually we don't know what to do with markup yet
-        if markup == 'bytes':
-            newlines.append(line)
+        start, marker, markup = mark_match.groups()
+        pe_match = PLACE_EXPR.match(markup)
+        if pe_match:
+            place, expr = pe_match.groups()
             try:
-                line = next(lines)
-            except StopIteration:
-                break
-            match = FIRST_NW.match(line)
-            if match:
-                line = '%sb%s' % match.groups()
-            newlines.append(line)
-        else:
-            newlines.append(line)
-    return newlines
+                place = eval(place, {'here': here, 'next': here+1})
+            except:
+                print('Error finding place with "%s", line "%s"; skipping' %
+                      (place, this))
+                continue
+            # Prevent processing operating on comment
+            if place == here:
+                line = start
+            else:
+                line = lines[place]
+            expr = expr.strip()
+            # Shorthand stuff
+            if expr == 'bytes':
+                # Any strings on the given line are byte strings
+                raise NotImplementedError()
+            # If expr starts with 'replace', implies "line.replace"
+            if expr.startswith('replace('):
+                expr = 'line.' + expr
+            try:
+                res = eval(expr, dict(line=line,
+                                      lines=lines))
+            except:
+                print('Error working on "%s" at line %d with "%s"; skipping' %
+                      (line, place, expr))
+                continue
+            # Put back comment if removed
+            if place == here:
+                res += marker + markup
+            if res != line:
+                lines[place] = res
+    return lines
 

@@ -390,12 +390,12 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     >>> from StringIO import StringIO as BytesIO
     >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> _ = bio.write(arr.tostring('F')) # outputs no in python3
+    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
     >>> bio = BytesIO()
-    >>> _ = bio.write(' ' * 10) #2to3: line.replace(' ', b' ')
+    >>> _ = bio.write(' ' * 10) #2to3: here; replace("' '", "b' '")
     >>> _ = bio.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
@@ -869,7 +869,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''}
+    >>> d == {'x': 0, 's': ''} #2to3: here; replace("''", "b''")
     True
     '''
     dct = {}

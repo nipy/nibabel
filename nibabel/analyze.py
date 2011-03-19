@@ -655,7 +655,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr['descrip'] = 'description'
-        >>> np.asscalar(hdr['descrip']) #23: bytes
+        >>> np.asscalar(hdr['descrip']) #2to3: next; replace("'d", "b'd")
         'description'
         '''
         self._header_data[item] = value
@@ -830,15 +830,15 @@ class AnalyzeHeader(object):
         >>> hdr.set_data_dtype(np.dtype(np.uint8))
         >>> hdr.get_data_dtype()
         dtype('uint8')
-        >>> hdr.set_data_dtype('implausible')
+        >>> hdr.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "implausible" not recognized
-        >>> hdr.set_data_dtype('none')
+        >>> hdr.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "none" known but not supported
-        >>> hdr.set_data_dtype(np.void)
+        >>> hdr.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported

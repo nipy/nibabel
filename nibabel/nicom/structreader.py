@@ -14,7 +14,7 @@ class Unpacker(object):
 
     Examples
     --------
-    >>> a = '1234567890'
+    >>> a = '1234567890' #2to3: here; replace("'1", "b'1")
     >>> upk = Unpacker(a)
     >>> upk.unpack('2s')
     ('12',)
