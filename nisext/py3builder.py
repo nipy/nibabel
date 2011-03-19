@@ -100,6 +100,9 @@ def doctest_markup(in_lines):
 
     An <expr> beginning with "replace(" we take to be short for "line.replace(".
 
+    If <expr> is just 'bytes', then make all the strings in the selected line be
+    byte strings.
+
     Parameters
     ----------
     in_lines : sequence of str
@@ -107,6 +110,25 @@ def doctest_markup(in_lines):
     Returns
     -------
     out_lines : sequence of str
+
+    Examples
+    --------
+    The next three lines all do the same thing. The # at the beginning disables
+    them as runnable doctests in this docstring.
+
+    # >>> a = '1234567890' #2to3: here; line.replace("'12", "b'12")
+    # >>> a = '1234567890' #2to3: here; replace("'12", "b'12")
+    # >>> a = '1234567890' #2to3: here; bytes
+
+    You might want to process the next line
+
+    # >>> upk.unpack('2s') #2to3: next; bytes
+    # ('12',)
+
+    This might work too, to do the same thing:
+
+    # >>> upk.unpack('2s') #2to3: here+1; bytes
+    # ('12',)
     """
     pos = 0
     lines = list(in_lines)
