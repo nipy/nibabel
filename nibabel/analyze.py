@@ -395,9 +395,9 @@ class AnalyzeHeader(object):
 
         Examples
         --------
-        >>> from StringIO import StringIO as BytesIO
+        >>> from StringIO import StringIO #23dt : BytesIO
         >>> hdr = AnalyzeHeader()
-        >>> fileobj = BytesIO(hdr.binaryblock)
+        >>> fileobj = StringIO(hdr.binaryblock) #23dt : BytesIO
         >>> _ = fileobj.seek(0) # returns 0 in python 3
         >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
         >>> hdr2.binaryblock == hdr.binaryblock
@@ -445,8 +445,8 @@ class AnalyzeHeader(object):
         Examples
         --------
         >>> hdr = AnalyzeHeader()
-        >>> from StringIO import StringIO as BytesIO
-        >>> str_io = BytesIO()
+        >>> from StringIO import StringIO #23dt : BytesIO
+        >>> str_io = StringIO() #23dt : BytesIO
         >>> hdr.write_to(str_io)
         >>> hdr.binaryblock == str_io.getvalue()
         True
@@ -612,8 +612,8 @@ class AnalyzeHeader(object):
         >>> hdr = AnalyzeHeader()
         >>> hdr.set_data_shape((1, 2, 3))
         >>> hdr.set_data_dtype(np.float64)
-        >>> from StringIO import StringIO as BytesIO
-        >>> str_io = BytesIO()
+        >>> from StringIO import StringIO #23dt : BytesIO
+        >>> str_io = StringIO() #23dt : BytesIO
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
         >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
@@ -655,7 +655,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr['descrip'] = 'description'
-        >>> np.asscalar(hdr['descrip']) #2to3: next; replace("'d", "b'd")
+        >>> np.asscalar(hdr['descrip']) #23dt next : bytes
         'description'
         '''
         self._header_data[item] = value

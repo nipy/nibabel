@@ -117,10 +117,10 @@ than letting ``range(10)`` overwrite the ``time`` variable.
 To read the NetCDF file we just created:
 
     >>> f = netcdf_file(fname, 'r')
-    >>> f.history  #2to3: next; bytes
+    >>> f.history  #23dt next : bytes
     'Created for a test'
     >>> time = f.variables['time']
-    >>> time.units  #2to3: next; bytes
+    >>> time.units  #23dt next : bytes
     'days since 2008-01-01'
     >>> print time.shape
     (10,)

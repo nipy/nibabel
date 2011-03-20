@@ -61,48 +61,53 @@ def doctest_markup_files(fnames):
     for fname in fnames:
         with open(fname, 'rt') as fobj:
             res = list(fobj)
-        out = doctest_markup(res)
+        out, errs = doctest_markup(res)
+        for err_tuple in errs:
+            print('Marked line %s unchanged because "%s"' % err_tuple)
         with open(fname, 'wt') as fobj:
             fobj.write(''.join(out))
 
 
-REGGIES = (
-     (re.compile('from\s+io\s+import\s+StringIO\s+as\s+BytesIO\s*?(?=$)'),
-     'from io import BytesIO'),
-)
-
-MARK_COMMENT = re.compile('(\s*>>>\s+)(.*?)(\s*#2to3:\s*)(.*?\s*)$', re.DOTALL)
-PLACE_EXPR = re.compile('\s*([\w+\- ]+);\s*(.*)$')
+MARK_COMMENT = re.compile('(\s*>>>\s+)(.*?)(\s*#23dt\s+)(.*?\s*)$', re.DOTALL)
+PLACE_LINE_EXPRS = re.compile('\s*([\w+\- ]*):\s*(.*)$')
 INDENT_SPLITTER = re.compile('(\s*)(.*?)(\s*)$', re.DOTALL)
 
 def doctest_markup(in_lines):
     """ Process doctest comment markup on sequence of strings
 
-    The markup is very crude.  The algorithm looks for lines starting with
-    ``>>>``.  All other lines are passed through unchanged.
+    The algorithm looks for lines that start with optional whitespace followed
+    by ``>>>`` and ending with a comment starting with ``#23dt``.  The stuff
+    after the ``#23dt`` marker is the *markup* and gives instructions for
+    modifying the corresponding line or some other line.
 
-    Next it looks for known simple search replaces and does those.
+    The *markup* is of form <place-expr> : <line-expr>.  Let's say the output
+    lines are in a variable ``out_lines``.
 
-    * ``from StringIO import StringIO as BytesIO`` replaced by ``from io import
-      BytesIO``.
+    * <place-expr> is an expression giving a line number.  In this expression,
+      the two variables defined are ``here`` (giving the current line number),
+      and ``next == here+1``.  Let's call the result of <place-expr> ``place``.
+      If <place-expr> is empty (only whitespace before the colon) then ``place
+      == here``. The result of <line-expr> will replace ``lines[place]``.
+    * <line-expr> is a special value (see below) or a python3 expression
+      returning a processed value, where ``line`` contains the line referred to
+      by line number ``place``, and ``lines`` is a list of all lines.  If
+      ``place != here``, then ``line == lines[place]``.  If ``place == here``
+      then ``line`` will be the source line, minus the comment and markup.
 
-    Next it looks to see if the line ends with a comment starting with ``#2to3:``.
+    A <line-expr> beginning with "replace(" we take to be short for
+    "line.replace(".
 
-    The stuff after the ``#2to3:`` marker is, of course, a little language, of
-    form <place>; <expr>
+    Special values; if <line-expr> ==:
 
-    * <place> is an expression giving a line number.  In this expression, ``here`` is
-      a variable referring to the current line number, and ``next`` is just
-      ``here+1``.
-    * <expr> is a python3 expression returning a processed value, where
-      ``line`` contains the line referred to by line number ``here``, and
-      ``lines`` is a list of all lines. ``lines[here]`` gives the value of
-      ``line``.
+    * 'bytes': make all the strings in the selected line be byte strings. This
+      algormithm uses the ``ast`` module, so the text in which it works must be
+      valid python 3 syntax.
+    * 'BytesIO': shorthand for ``replace('StringIO', 'BytesIO')``
 
-    An <expr> beginning with "replace(" we take to be short for "line.replace(".
-
-    If <expr> is just 'bytes', then make all the strings in the selected line be
-    byte strings.
+    There is also a special non-doctest comment markup - '#23dt skip rest'.  If
+    we find that comment (with whitespace before or after) as a line in the
+    file, we just pass the rest of the file unchanged.  This is a hack to stop
+    23dt processing its own tests.
 
     Parameters
     ----------
@@ -111,97 +116,105 @@ def doctest_markup(in_lines):
     Returns
     -------
     out_lines : sequence of str
+        lines with processing applied
+    error_tuples : sequence of (str, str)
+        sequence of 2 element tuples, where the first entry in the tuple is one
+        line that generated an error during processing, and the second is the
+        explanatory message for the error.  These lines remain unchanged in
+        `out_lines`.
 
     Examples
     --------
     The next three lines all do the same thing:
 
-    >> a = '1234567890' #2to3: here; line.replace("'12", "b'12")
-    >> a = '1234567890' #2to3: here; replace("'12", "b'12")
-    >> a = '1234567890' #2to3: here; bytes
+    >> a = '1234567890' #23dt here: line.replace("'12", "b'12")
+    >> a = '1234567890' #23dt here: replace("'12", "b'12")
+    >> a = '1234567890' #23dt here: bytes
 
-    and that is to give the output (e.g):
+    and that is to result in the part before the comment changing to:
 
-    >> a = b'1234567890' #2to3: here; line.replace("'12", "b'12")
+    >> a = b'1234567890'
 
-    in the processed doctest.
+    The part after the comment (including markup) stays the same.
 
     You might want to process the line after the comment - such as test output.
     The next test replaces "'a string'" with "b'a string'"
 
-    >> 'a string'.encode('ascii') #2to3: next; bytes
+    >> 'a string'.encode('ascii') #23dt next: bytes
     'a string'
 
     This might work too, to do the same thing:
 
-    >> 'a string'.encode('ascii') #2to3: here+1; bytes
+    >> 'a string'.encode('ascii') #23dt here+1: bytes
     'a string'
     """
-    pos = 0
-    lines = list(in_lines)
-    while pos < len(lines):
-        this = lines[pos]
-        here = pos
-        pos += 1
-        if not this.lstrip().startswith('>>>'):
-            continue
-        # Check simple regexps (no markup)
-        for reg, substr in REGGIES:
-            if reg.search(this):
-                lines[here] = reg.sub(substr, this)
-                break
-        # Check for specific markup
+    out_lines = list(in_lines)[:]
+    err_tuples = []
+    for pos, this in enumerate(out_lines):
+        # Check for 'leave the rest' markup
+        if this.strip() == '#23dt skip rest':
+            break
+        # Check for docest line with markup
         mark_match = MARK_COMMENT.search(this)
         if mark_match is None:
             continue
-        docbits, start, marker, markup = mark_match.groups()
-        pe_match = PLACE_EXPR.match(markup)
-        if pe_match is None:
+        docbits, marked_line, marker, markup = mark_match.groups()
+        place_line_match = PLACE_LINE_EXPRS.match(markup)
+        if place_line_match is None:
+            msg = ('Found markup "%s" in line "%s" but wrong syntax' %
+                   (markup, this))
+            err_tuples.append((this, msg))
             continue
-        # Get place, expr expressions
-        place, expr = pe_match.groups()
-        try:
-            place = eval(place, {'here': here, 'next': here+1})
-        except:
-            print('Error finding place with "%s", line "%s"; skipping' %
-                    (place, this))
-            continue
-        # Prevent processing operating on 2to3 comment part of line
-        if place == here:
-            line = start
+        place_expr, line_expr = place_line_match.groups()
+        exec_globals = {'here': pos, 'next': pos+1}
+        if place_expr.strip() == '':
+            place = pos
         else:
-            line = lines[place]
-        # Process expr
-        expr = expr.strip()
+            try:
+                place = eval(place_expr, exec_globals)
+            except:
+                msg = ('Error finding place with "%s" in line "%s"' %
+                    (place_expr, this))
+                err_tuples.append((this, msg))
+                continue
+        # Prevent processing operating on 23dt comment part of line
+        if place == pos:
+            line = marked_line
+        else:
+            line = out_lines[place]
         # Shorthand
-        if expr == 'bytes':
+        if line_expr == 'bytes':
             # Any strings on the given line are byte strings
             pre, mid, post = INDENT_SPLITTER.match(line).groups()
             try:
                 res = byter(mid)
             except:
                 err = sys.exc_info()[1]
-                print('Error "%s" parsing "%s"; skipping' %
-                      (err, mid))
+                msg = ('Error "%s" parsing "%s"' % (err, err))
+                err_tuples.append((this, msg))
                 continue
             res = pre + res + post
         else:
-            # If expr starts with 'replace', implies "line.replace"
-            if expr.startswith('replace('):
-                expr = 'line.' + expr
+            exec_globals.update({'line': line, 'lines': out_lines})
+            # If line_expr starts with 'replace', implies "line.replace"
+            if line_expr.startswith('replace('):
+                line_expr = 'line.' + line_expr
+            elif line_expr == 'BytesIO':
+                line_expr = "line.replace('StringIO', 'BytesIO')"
             try:
-                res = eval(expr, dict(line=line,
-                                    lines=lines))
+                res = eval(line_expr, exec_globals)
             except:
-                print('Error working on "%s" at line %d with "%s"; skipping' %
-                    (line, place, expr))
+                err = sys.exc_info()[1]
+                msg = ('Error "%s" working on "%s" at line %d with "%s"' %
+                       (err, line, place, line_expr))
+                err_tuples.append((this, msg))
                 continue
         # Put back comment if removed
-        if place == here:
+        if place == pos:
             res = docbits + res + marker + markup
         if res != line:
-            lines[place] = res
-    return lines
+            out_lines[place] = res
+    return out_lines, err_tuples
 
 
 class RewriteStr(ast.NodeTransformer):
@@ -211,6 +224,16 @@ class RewriteStr(ast.NodeTransformer):
 
 def byter(src):
     """ Convert strings in `src` to byte string literals
+
+    Parameters
+    ----------
+    src : str
+        source string.  Must be valid python 3 source
+
+    Returns
+    -------
+    p_src : str
+        string with ``str`` literals replace by ``byte`` literals
     """
     tree = ast.parse(src)
     tree = RewriteStr().visit(tree)

@@ -387,15 +387,15 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> from StringIO import StringIO as BytesIO
-    >>> bio = BytesIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> bio = StringIO() #23dt : BytesIO
     >>> arr = np.arange(6).reshape(1,2,3)
     >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> bio = BytesIO()
-    >>> _ = bio.write(' ' * 10) #2to3: here; bytes
+    >>> bio = StringIO() #23dt : BytesIO
+    >>> _ = bio.write(' ' * 10) #23dt : bytes
     >>> _ = bio.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
@@ -485,8 +485,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO as BytesIO
-    >>> sio = BytesIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> sio = StringIO() #23dt : BytesIO
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
@@ -869,7 +869,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''} #2to3: here; replace("''", "b''")
+    >>> d == {'x': 0, 's': ''} #23dt : replace("''", "b''")
     True
     '''
     dct = {}
