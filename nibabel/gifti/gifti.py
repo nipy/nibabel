@@ -199,10 +199,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
         da = c.read()
         
     elif encoding == "GIFTI_ENCODING_B64BIN":
-        cout = StringIO()
-        base64.encode(dataarray.tostring(ord), cout)
-        cout.seek(0)
-        da = cout.read()
+        da = base64.encodestring(dataarray.tostring(ord))
 
     elif encoding == "GIFTI_ENCODING_B64GZ":        
         # first compress
@@ -219,7 +216,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
     else:
         da = ''
         
-    return "<Data>\n"+da+"</Data>\n"
+    return "<Data>"+da+"</Data>\n"
 
 class GiftiDataArray(object):
 
