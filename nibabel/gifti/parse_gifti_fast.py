@@ -44,7 +44,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dec = base64.decodestring(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        newarr = np.fromstring(zdec, dtype = dt, sep = '\n', count = c)
+        newarr = np.fromstring(dec, dtype = dt)
         if len(newarr.shape) == len(sh):
             return newarr
         else:
