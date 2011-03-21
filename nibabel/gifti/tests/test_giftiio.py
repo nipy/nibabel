@@ -31,9 +31,10 @@ DATA_FILE1 = pjoin(IO_DATA_PATH, 'ascii.gii')
 DATA_FILE2 = pjoin(IO_DATA_PATH, 'gzipbase64.gii')
 DATA_FILE3 = pjoin(IO_DATA_PATH, 'label.gii')
 DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
+DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4]
-numda = [2, 1, 1, 1]
+datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5]
+numda = [2, 1, 1, 1, 2]
  
 DATA_FILE1_darr1 = np.array(
        [[-16.07201 , -66.187515,  21.266994],
@@ -65,6 +66,28 @@ DATA_FILE4_darr1 = np.array([[-0.57811606],
        [-0.45624232],
        [-0.31101292]], dtype=np.float32)
 
+DATA_FILE5_darr1 = np.array([[ 155.17539978,  135.58103943,   98.30715179],
+       [ 140.33973694,  190.0491333 ,   73.24776459],
+       [ 157.3598938 ,  196.97969055,   83.65809631],
+       [ 171.46174622,  137.43661499,   78.4709549 ],
+       [ 148.54592896,   97.06752777,   65.96373749],
+       [ 123.45701599,  111.46841431,   66.3571167 ],
+       [ 135.30892944,  202.28720093,   36.38148499],
+       [ 178.28155518,  162.59469604,   37.75128937],
+       [ 178.11087036,  115.28820038,   57.17986679],
+       [ 142.81582642,   82.82115173,   31.02205276]], dtype=np.float32)
+
+
+DATA_FILE5_darr2 = np.array([[ 6402, 17923, 25602],
+       [14085, 25602, 17923],
+       [25602, 14085,  4483],
+       [17923,  1602, 14085],
+       [ 4483, 25603, 25602],
+       [25604, 25602, 25603],
+       [25602, 25604,  6402],
+       [25603,  3525, 25604],
+       [ 1123, 17922, 12168],
+       [25604, 12168, 17922]], dtype=np.int32)
 
 def test_read_ordering():
     # DATA_FILE1 has an expected darray[0].data shape of (3,3).  However if we
@@ -116,6 +139,11 @@ def test_dataarray3():
 def test_dataarray4():
     img4 = gi.read(DATA_FILE4)
     assert_array_almost_equal(img4.darrays[0].data[:10], DATA_FILE4_darr1)
+
+def test_dataarray5():
+    img3 = gi.read(DATA_FILE5)
+    assert_array_almost_equal(img3.darrays[0].data, DATA_FILE5_darr1)
+    assert_array_almost_equal(img3.darrays[1].data, DATA_FILE5_darr2)
     
 def test_readwritedata():
     img = gi.read(DATA_FILE2)
