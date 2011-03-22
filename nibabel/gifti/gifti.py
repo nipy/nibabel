@@ -196,23 +196,27 @@ def data_tag(dataarray, encoding, datatype, ordering):
     else:
         ord = 'C'
         
-    if encoding == "GIFTI_ENCODING_ASCII":
+    if encoding == gifti_encoding_codes.giistring[1] or \
+        encoding == gifti_encoding_codes.specs[1]:
         c = BytesIO()
         # np.savetxt(c, dataarray, format, delimiter for columns)
         np.savetxt(c, dataarray, datatype, ' ')
         c.seek(0)
         da = c.read()
         
-    elif encoding == "GIFTI_ENCODING_B64BIN":
+    elif encoding == gifti_encoding_codes.giistring[2] or \
+        encoding == gifti_encoding_codes.specs[2]:
         da = base64.encodestring(dataarray.tostring(ord))
 
-    elif encoding == "GIFTI_ENCODING_B64GZ":        
+    elif encoding == gifti_encoding_codes.giistring[3] or \
+        encoding == gifti_encoding_codes.specs[3]:
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
         da = base64.encodestring(comp)
         da = da.decode()
 
-    elif encoding == "GIFTI_ENCODING_EXTBIN":
+    elif encoding == gifti_encoding_codes.giistring[4] or \
+        encoding == gifti_encoding_codes.specs[4]:
         raise NotImplementedError("In what format are the external files?")
         da = ''
     else:
