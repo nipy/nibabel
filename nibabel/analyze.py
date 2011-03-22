@@ -141,8 +141,8 @@ from .volumeutils import pretty_mapping, endian_codes, \
      array_to_file, array_from_file, can_cast, \
      floating_point_types
 
-from .spatialimages import HeaderDataError, HeaderTypeError, \
-    ImageDataError, SpatialImage
+from .spatialimages import (HeaderDataError, HeaderTypeError,
+                            ImageDataError, SpatialImage)
 
 from . import imageglobals as imageglobals
 from .fileholders import FileHolderError, copy_file_map
@@ -395,10 +395,10 @@ class AnalyzeHeader(object):
 
         Examples
         --------
-        >>> import StringIO
+        >>> from StringIO import StringIO #23dt : BytesIO
         >>> hdr = AnalyzeHeader()
-        >>> fileobj = StringIO.StringIO(hdr.binaryblock)
-        >>> fileobj.seek(0)
+        >>> fileobj = StringIO(hdr.binaryblock) #23dt : BytesIO
+        >>> _ = fileobj.seek(0) # returns 0 in python 3
         >>> hdr2 = AnalyzeHeader.from_fileobj(fileobj)
         >>> hdr2.binaryblock == hdr.binaryblock
         True
@@ -445,8 +445,8 @@ class AnalyzeHeader(object):
         Examples
         --------
         >>> hdr = AnalyzeHeader()
-        >>> import StringIO
-        >>> str_io = StringIO.StringIO()
+        >>> from StringIO import StringIO #23dt : BytesIO
+        >>> str_io = StringIO() #23dt : BytesIO
         >>> hdr.write_to(str_io)
         >>> hdr.binaryblock == str_io.getvalue()
         True
@@ -523,10 +523,6 @@ class AnalyzeHeader(object):
         return this_bb == other_bb
 
     def __ne__(self, other):
-        ''' equality between two headers defined by ``header_data``
-
-        For examples, see ``__eq__`` method docstring
-        '''
         return not self == other
 
     def raw_data_from_fileobj(self, fileobj):
@@ -616,8 +612,8 @@ class AnalyzeHeader(object):
         >>> hdr = AnalyzeHeader()
         >>> hdr.set_data_shape((1, 2, 3))
         >>> hdr.set_data_dtype(np.float64)
-        >>> from StringIO import StringIO
-        >>> str_io = StringIO()
+        >>> from StringIO import StringIO #23dt : BytesIO
+        >>> str_io = StringIO() #23dt : BytesIO
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
         >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
@@ -659,7 +655,7 @@ class AnalyzeHeader(object):
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr['descrip'] = 'description'
-        >>> str(hdr['descrip'])
+        >>> np.asscalar(hdr['descrip']) #23dt next : bytes
         'description'
         '''
         self._header_data[item] = value
@@ -834,15 +830,15 @@ class AnalyzeHeader(object):
         >>> hdr.set_data_dtype(np.dtype(np.uint8))
         >>> hdr.get_data_dtype()
         dtype('uint8')
-        >>> hdr.set_data_dtype('implausible')
+        >>> hdr.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "implausible" not recognized
-        >>> hdr.set_data_dtype('none')
+        >>> hdr.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "none" known but not supported
-        >>> hdr.set_data_dtype(np.void)
+        >>> hdr.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported

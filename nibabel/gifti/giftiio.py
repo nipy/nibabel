@@ -13,7 +13,6 @@
 import os
 
 from . import parse_gifti_fast as gfp
-reload(gfp)
 
 def read(filename):
     """ Load a Gifti image from a file
@@ -74,9 +73,6 @@ def write(image, filename):
     .topo.gii
         Topology
     """
-
     f = open(filename, 'w')
     f.write(image.to_xml())
     f.close()
-
-    

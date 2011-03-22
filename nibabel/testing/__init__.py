@@ -18,8 +18,7 @@ try:
 except ImportError:
     pass
 else:
-    from lightunit import ParametricTestCase, parametric
     from nose.tools import (assert_equal, assert_not_equal,
                             assert_true, assert_false, assert_raises)
-    
+
 

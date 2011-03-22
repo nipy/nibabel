@@ -14,6 +14,8 @@ import bz2
 
 import numpy as np
 
+from .py3k import isfileobj, ZEROB
+
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
 swapped_code = sys_is_le and '>' or '<'
@@ -103,22 +105,37 @@ class Recoder(object):
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
 
-    def add_codes(self, codes):
+    def add_codes(self, code_syn_seqs):
         ''' Add codes to object
 
-        >>> codes = ((1, 'one'), (2, 'two'))
-        >>> rc = Recoder(codes)
+        Parameters
+        ----------
+        code_syn_seqs : sequence
+            sequence of sequences, where each sequence ``S = code_syn_seqs[n]``
+            for n in 0..len(code_syn_seqs), is a sequence giving values in the
+            same order as ``self.fields``.  Each S should be at least of the
+            same length as ``self.fields``.  After this call, if ``self.fields
+            == ['field1', 'field2'], then ``self.field1[S[n]] == S[0]`` for all
+            n in 0..len(S) and ``self.field2[S[n]] == S[1]`` for all n in
+            0..len(S).
+
+        Examples
+        --------
+        >>> code_syn_seqs = ((1, 'one'), (2, 'two'))
+        >>> rc = Recoder(code_syn_seqs)
         >>> rc.value_set() == set((1,2))
         True
         >>> rc.add_codes(((3, 'three'), (1, 'first')))
         >>> rc.value_set() == set((1,2,3))
         True
         '''
-        for vals in codes:
-            for val in vals:
-                for ind, name in enumerate(self.fields):
-                    self.__dict__[name][val] = vals[ind]
-
+        for code_syns in code_syn_seqs:
+            # Add all the aliases
+            for alias in code_syns:
+                # For all defined fields, make every value in the sequence be an
+                # entry to return matching index value.
+                for field_ind, field_name in enumerate(self.fields):
+                    self.__dict__[field_name][alias] = code_syns[field_ind]
 
     def __getitem__(self, key):
         ''' Return value from field1 dictionary (first column of values)
@@ -142,9 +159,8 @@ class Recoder(object):
 
         >>> codes = ((1, 'one'), (2, 'two'), (1, 'repeat value'))
         >>> k = Recoder(codes).keys()
-        >>> k.sort() # Just to guarantee order for doctest output
-        >>> k
-        [1, 2, 'one', 'repeat value', 'two']
+        >>> set(k) == set([1, 2, 'one', 'repeat value', 'two'])
+        True
         '''
         return self.field1.keys()
 
@@ -262,15 +278,23 @@ def make_dt_codes(codes):
        of the corresponding code, name, type, dtype, or swapped dtype
     '''
     dt_codes = []
+    intp_dt = np.dtype(np.intp)
     for code, name, np_type in codes:
         this_dt = np.dtype(np_type)
+        code_syns = [code, name, np_type]
+        dtypes = [this_dt]
+        # intp type is effectively same as int32 on 32 bit and int64 on 64 bit.
+        # They compare equal, but in some (all?) numpy versions, they may hash
+        # differently.  If so we need to add them
+        if this_dt == intp_dt and hash(this_dt) != hash(intp_dt):
+            dtypes.append(intp_dt)
         # To satisfy an oddness in numpy dtype hashing, we need to add the dtype
-        # with native order as well as the default dtype (=) order
-        dt_codes.append((code, name,
-                         np_type,
-                         this_dt,
-                         this_dt.newbyteorder(native_code),
-                         this_dt.newbyteorder(swapped_code)))
+        # with explicit native order as well as the default dtype (=) order
+        for dt in dtypes:
+            code_syns +=[dt,
+                         dt.newbyteorder(native_code),
+                         dt.newbyteorder(swapped_code)]
+        dt_codes.append(code_syns)
     return Recoder(dt_codes,
                    fields=('code',
                            'label',
@@ -363,17 +387,17 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> import StringIO
-    >>> str_io = StringIO.StringIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> bio = StringIO() #23dt : BytesIO
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io)
+    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> str_io = StringIO.StringIO()
-    >>> str_io.write(' ' * 10)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io, 10)
+    >>> bio = StringIO() #23dt : BytesIO
+    >>> _ = bio.write(' ' * 10) #23dt : bytes
+    >>> _ = bio.write(arr.tostring('F'))
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
     '''
@@ -410,9 +434,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          order=order)
         # for some types, we can write to the string buffer without
         # worrying, but others we can't. 
-        if isinstance(infile, (file,
-                               gzip.GzipFile,
-                               bz2.BZ2File)):
+        if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
+                                                    bz2.BZ2File)):
             arr.flags.writeable = True
         else:
             arr = arr.copy()
@@ -462,21 +485,21 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO
-    >>> sio = StringIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> sio = StringIO() #23dt : BytesIO
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
     >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data.byteswap(), sio, np.float)
     >>> sio.getvalue() == data.byteswap().tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tostring('C')
     True
@@ -489,11 +512,12 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     try:
         fileobj.seek(offset)
-    except IOError, msg:
+    except IOError:
+        msg = sys.exc_info()[1] # python 2 / 3 compatibility
         if fileobj.tell() != offset:
             raise IOError(msg)
     if divslope is None: # No valid data
-        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        fileobj.write(ZEROB * (data.size*out_dtype.itemsize))
         return
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
@@ -845,7 +869,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''}
+    >>> d == {'x': 0, 's': ''} #23dt : replace("''", "b''")
     True
     '''
     dct = {}

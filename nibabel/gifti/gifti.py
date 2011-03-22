@@ -7,7 +7,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import sys
 from StringIO import StringIO
+if sys.version_info[0] >= 3:
+    from io import BytesIO
+else:
+    BytesIO = StringIO
 
 import numpy as np
 
@@ -162,11 +167,11 @@ class GiftiCoordSystem(object):
 \t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n""" % (xform_codes.niistring[self.dataspace], \
                 xform_codes.niistring[self.xformspace])
          
-        e = StringIO()
+        e = BytesIO()
         np.savetxt(e, self.xform, '%10.6f')
         e.seek(0)
         res = res + "<MatrixData>\n"
-        res = res + e.read()
+        res = res + e.read().decode()
         e.close()
         res = res + "</MatrixData>\n"
         res = res + "</CoordinateSystemTransformMatrix>\n" 
@@ -192,7 +197,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
         ord = 'C'
         
     if encoding == "GIFTI_ENCODING_ASCII":
-        c = StringIO()
+        c = BytesIO()
         # np.savetxt(c, dataarray, format, delimiter for columns)
         np.savetxt(c, dataarray, datatype, ' ')
         c.seek(0)
@@ -207,11 +212,8 @@ def data_tag(dataarray, encoding, datatype, ordering):
     elif encoding == "GIFTI_ENCODING_B64GZ":        
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
-        c = StringIO(comp)
-        out = StringIO()
-        base64.encode(c, out)
-        out.seek(0)
-        da = out.read()
+        da = base64.encodestring(comp)
+        da = da.decode()
 
     elif encoding == "GIFTI_ENCODING_EXTBIN":
         raise NotImplementedError("In what format are the external files?")

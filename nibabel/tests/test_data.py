@@ -138,7 +138,7 @@ def test_data_path():
     if USER_KEY in env:
         del os.environ[USER_KEY]
     fake_user_dir = '/user/path'
-    nibd.get_nipy_system_dir = lambda : ''
+    nibd.get_nipy_system_dir = lambda : '/unlikely/path'
     nibd.get_nipy_user_dir = lambda : fake_user_dir
     # now we should only have anything pointed to in the user's dir
     old_pth = get_data_path()

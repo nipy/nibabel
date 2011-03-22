@@ -103,10 +103,10 @@ data.  The ``file_map`` contents should therefore be such, that this will
 work:
 
    >>> # write an image to files
-   >>> from StringIO import StringIO
+   >>> from StringIO import StringIO #23dt : BytesIO
    >>> file_map = nib.AnalyzeImage.make_file_map()
-   >>> file_map['image'].fileobj = StringIO()
-   >>> file_map['header'].fileobj = StringIO()
+   >>> file_map['image'].fileobj = StringIO() #23dt : BytesIO
+   >>> file_map['header'].fileobj = StringIO() #23dt : BytesIO
    >>> img = nib.AnalyzeImage(data, np.eye(4))
    >>> img.file_map = file_map
    >>> img.to_file_map()
@@ -177,9 +177,12 @@ class Header(object):
         raise NotImplementedError
 
     def __eq__(self, other):
-        return (self.get_data_dtype() == other.get_data_dtype() and
-                self.get_data_shape() == other.get_data_shape() and
-                self.get_zooms() == other.get_zooms())
+        return ((self.get_data_dtype(),
+                 self.get_data_shape(),
+                 self.get_zooms()) ==
+                (other.get_data_dtype(),
+                 other.get_data_shape(),
+                 other.get_zooms()))
 
     def __ne__(self, other):
         return not self == other
@@ -222,7 +225,7 @@ class Header(object):
         if len(zooms) != ndim:
             raise HeaderDataError('Expecting %d zoom values for ndim %d'
                                   % (ndim, ndim))
-        if np.any(zooms < 0):
+        if len([z for z in zooms if z < 0]):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 
@@ -243,9 +246,9 @@ class Header(object):
         ''' Read data in fortran order '''
         dtype = self.get_data_dtype()
         shape = self.get_data_shape()
-        data_size = np.prod(shape) * dtype.itemsize
-        data_str = fileobj.read(data_size)
-        return np.ndarray(shape, dtype, data_str, order='F')
+        data_size = int(np.prod(shape) * dtype.itemsize)
+        data_bytes = fileobj.read(data_size)
+        return np.ndarray(shape, dtype, data_bytes, order='F')
 
 
 class ImageDataError(Exception):

@@ -1,9 +1,8 @@
 ''' Testing trackvis module '''
 
-from StringIO import StringIO
-
 import numpy as np
 
+from ..py3k import BytesIO, asbytes
 from .. import trackvis as tv
 from ..volumeutils import swapped_code
 
@@ -11,34 +10,31 @@ from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing import parametric
 
-
-@parametric
 def test_write():
     streams = []
-    out_f = StringIO()
+    out_f = BytesIO()
     tv.write(out_f, [], {})
-    yield assert_equal(out_f.getvalue(), tv.empty_header().tostring())
-    out_f.truncate(0)
+    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    out_f.truncate(0); out_f.seek(0)
     # Write something not-default
     tv.write(out_f, [], {'id_string':'TRACKb'})
     # read it back
     out_f.seek(0)
     streams, hdr = tv.read(out_f)
-    yield assert_equal(hdr['id_string'], 'TRACKb')
+    assert_equal(hdr['id_string'], asbytes('TRACKb'))
     # check that we can pass none for the header
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     tv.write(out_f, [])
-    out_f.truncate(0)
+    out_f.truncate(0); out_f.seek(0)
     tv.write(out_f, [], None)
     # check that we check input values
-    out_f.truncate(0)
-    yield assert_raises(tv.HeaderError,
+    out_f.truncate(0); out_f.seek(0)
+    assert_raises(tv.HeaderError,
            tv.write, out_f, [],{'id_string':'not OK'})
-    yield assert_raises(tv.HeaderError,
+    assert_raises(tv.HeaderError,
            tv.write, out_f, [],{'version': 3})
-    yield assert_raises(tv.HeaderError,
+    assert_raises(tv.HeaderError,
            tv.write, out_f, [],{'hdr_size': 0})
 
 
@@ -51,7 +47,7 @@ def test_write_scalars_props():
     scalars = np.arange(N*M).reshape((N,M)) + 100
     props = np.arange(P) + 1000
     # If scalars not same size for each point, error
-    out_f = StringIO()
+    out_f = BytesIO()
     streams = [(points, None, None),
                (points, scalars, None)]
     assert_raises(tv.DataError, tv.write, out_f, streams)
@@ -112,7 +108,7 @@ def streamlist_equal(streamlist1, streamlist2):
 
 
 def test_round_trip():
-    out_f = StringIO()
+    out_f = BytesIO()
     xyz0 = np.tile(np.arange(5).reshape(5,1), (1, 3))
     xyz1 = np.tile(np.arange(5).reshape(5,1) + 10, (1, 3))
     streams = [(xyz0, None, None), (xyz1, None, None)]
@@ -130,7 +126,7 @@ def test_round_trip():
     out_f.seek(0)
     streams3, hdr = tv.read(out_f, as_generator=True)
     # check this is a generator rather than a list
-    assert_true(hasattr(streams3, 'next'))
+    assert_true(hasattr(streams3, 'send'))
     # but that it results in the same output
     assert_true(streamlist_equal(streams, list(streams3)))
     # write back in
@@ -138,7 +134,7 @@ def test_round_trip():
     streams3, hdr = tv.read(out_f, as_generator=True)
     # Now we need a new file object, because we're still using the old one for
     # our generator
-    out_f_write = StringIO()
+    out_f_write = BytesIO()
     tv.write(out_f_write, streams3, {})
     # and re-read just to check
     out_f_write.seek(0)
@@ -146,52 +142,50 @@ def test_round_trip():
     assert_true(streamlist_equal(streams, streams2))
 
 
-@parametric
 def test_empty_header():
     for endian in '<>':
         for version in (1, 2):
             hdr = tv.empty_header(endian, version)
-            yield assert_equal(hdr['id_string'], 'TRACK')
-            yield assert_equal(hdr['version'], version)
-            yield assert_equal(hdr['hdr_size'], 1000)
-            yield assert_array_equal(
+            assert_equal(hdr['id_string'], asbytes('TRACK'))
+            assert_equal(hdr['version'], version)
+            assert_equal(hdr['hdr_size'], 1000)
+            assert_array_equal(
                 hdr['image_orientation_patient'],
                 [0,0,0,0,0,0])
     hdr = tv.empty_header(version=2)
-    yield assert_array_equal(hdr['vox_to_ras'], np.zeros((4,4)))
+    assert_array_equal(hdr['vox_to_ras'], np.zeros((4,4)))
     hdr_endian = tv.endian_codes[tv.empty_header().dtype.byteorder]
-    yield assert_equal(hdr_endian, tv.native_code)
+    assert_equal(hdr_endian, tv.native_code)
 
 
-@parametric
 def test_get_affine():
     hdr = tv.empty_header()
     # default header gives useless affine
-    yield assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(tv.aff_from_hdr(hdr),
                              np.diag([0,0,0,1]))
     hdr['voxel_size'] = 1
-    yield assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(tv.aff_from_hdr(hdr),
                              np.diag([0,0,0,1]))
     # DICOM direction cosines
     hdr['image_orientation_patient'] = [1,0,0,0,1,0]
-    yield assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(tv.aff_from_hdr(hdr),
                              np.diag([-1,-1,1,1]))
     # RAS direction cosines
     hdr['image_orientation_patient'] = [-1,0,0,0,-1,0]
-    yield assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(tv.aff_from_hdr(hdr),
                              np.eye(4))
     # translations
     hdr['origin'] = [1,2,3]
     exp_aff = np.eye(4)
     exp_aff[:3,3] = [-1,-2,3]
-    yield assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(tv.aff_from_hdr(hdr),
                              exp_aff)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
     aff = np.eye(4)
     aff[:3,:] = np.arange(12).reshape(3,4)
     hdr['vox_to_ras'] = aff
-    yield assert_array_equal(tv.aff_from_hdr(hdr), aff)
+    assert_array_equal(tv.aff_from_hdr(hdr), aff)
     # mappings work too
     d = {'version': 1,
          'voxel_size': np.array([1,2,3]),
@@ -200,57 +194,55 @@ def test_get_affine():
     aff = tv.aff_from_hdr(d)
 
 
-@parametric
 def test_aff_to_hdr():
     for version in (1, 2):
         hdr = {'version': version}
         affine = np.diag([1,2,3,1])
         affine[:3,3] = [10,11,12]
         tv.aff_to_hdr(affine, hdr)
-        yield assert_array_almost_equal(tv.aff_from_hdr(hdr), affine)
+        assert_array_almost_equal(tv.aff_from_hdr(hdr), affine)
         # put flip into affine
         aff2 = affine.copy()
         aff2[:,2] *=-1
         tv.aff_to_hdr(aff2, hdr)
-        yield assert_array_almost_equal(tv.aff_from_hdr(hdr), aff2)
+        assert_array_almost_equal(tv.aff_from_hdr(hdr), aff2)
         if version == 2:
-            yield assert_array_almost_equal(hdr['vox_to_ras'], aff2)
+            assert_array_almost_equal(hdr['vox_to_ras'], aff2)
 
 
-@parametric
 def test_tv_class():
     tvf = tv.TrackvisFile([])
-    yield assert_equal(tvf.streamlines, [])
-    yield assert_true(isinstance(tvf.header, np.ndarray))
-    yield assert_equal(tvf.endianness, tv.native_code)
-    yield assert_equal(tvf.filename, None)
-    out_f = StringIO()
+    assert_equal(tvf.streamlines, [])
+    assert_true(isinstance(tvf.header, np.ndarray))
+    assert_equal(tvf.endianness, tv.native_code)
+    assert_equal(tvf.filename, None)
+    out_f = BytesIO()
     tvf.to_file(out_f)
-    yield assert_equal(out_f.getvalue(), tv.empty_header().tostring())
-    out_f.truncate(0)
+    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    out_f.truncate(0); out_f.seek(0)
     # Write something not-default
     tvf = tv.TrackvisFile([], {'id_string':'TRACKb'})
     tvf.to_file(out_f)
     # read it back
     out_f.seek(0)
     tvf_back = tv.TrackvisFile.from_file(out_f)
-    yield assert_equal(tvf_back.header['id_string'], 'TRACKb')
+    assert_equal(tvf_back.header['id_string'], asbytes('TRACKb'))
     # check that we check input values
-    out_f.truncate(0)
-    yield assert_raises(tv.HeaderError,
+    out_f.truncate(0); out_f.seek(0)
+    assert_raises(tv.HeaderError,
                         tv.TrackvisFile,
                         [],{'id_string':'not OK'})
-    yield assert_raises(tv.HeaderError,
+    assert_raises(tv.HeaderError,
                         tv.TrackvisFile,
                         [],{'version': 3})
-    yield assert_raises(tv.HeaderError,
+    assert_raises(tv.HeaderError,
                         tv.TrackvisFile,
                         [],{'hdr_size':0})
     affine = np.diag([1,2,3,1])
     affine[:3,3] = [10,11,12]
     tvf.set_affine(affine)
-    yield assert_true(np.all(tvf.get_affine() == affine))
+    assert_true(np.all(tvf.get_affine() == affine))
     # Test that we raise an error with an iterator
-    yield assert_raises(tv.TrackvisFileError,
+    assert_raises(tv.TrackvisFileError,
                         tv.TrackvisFile,
                         iter([]))
