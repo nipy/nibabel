@@ -324,7 +324,7 @@ class GiftiDataArray(object):
         
         # write data array depending on the encoding
         result += data_tag(self.data, \
-                           gifti_encoding_codes.giistring[self.encoding],\
+                           gifti_encoding_codes.specs[self.encoding],\
                            data_type_codes.fmt[self.datatype],\
                            self.ind_ord)
         
@@ -349,7 +349,7 @@ class GiftiDataArray(object):
                       array_index_order_codes.label[self.ind_ord], \
                       str(self.num_dim), \
                       str(di), \
-                      gifti_encoding_codes.giistring[self.encoding], \
+                      gifti_encoding_codes.specs[self.encoding], \
                       gifti_endian_codes.giistring[self.endian], \
                       self.ext_fname,
                       self.ext_offset,
@@ -365,7 +365,7 @@ class GiftiDataArray(object):
         print 'ArrayIndexingOrder: ', array_index_order_codes.label[self.ind_ord]
         print 'Dimensionality: ', self.num_dim
         print 'Dimensions: ', self.dims
-        print 'Encoding: ', gifti_encoding_codes.giistring[self.encoding]
+        print 'Encoding: ', gifti_encoding_codes.specs[self.encoding]
         print 'Endian: ', gifti_endian_codes.giistring[self.endian]
         print 'ExternalFileName: ', self.ext_fname
         print 'ExternalFileOffset: ', self.ext_offset
