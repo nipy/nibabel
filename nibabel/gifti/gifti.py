@@ -204,7 +204,8 @@ def data_tag(dataarray, encoding, datatype, ordering):
         c.seek(0)
         da = c.read()
         
-    elif encoding == "GIFTI_ENCODING_B64BIN":
+    elif encoding == gifti_encoding_codes.giistring[2] or \
+        encoding == gifti_encoding_codes.specs[2]:
         da = base64.encodestring(dataarray.tostring(ord))
 
     elif encoding == gifti_encoding_codes.giistring[3] or \
