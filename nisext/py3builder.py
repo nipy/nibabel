@@ -4,8 +4,6 @@ from __future__ import with_statement
 
 import sys
 import re
-import ast
-from . import codegen
 
 try:
     from distutils.command.build_py import build_py_2to3
@@ -217,11 +215,6 @@ def doctest_markup(in_lines):
     return out_lines, err_tuples
 
 
-class RewriteStr(ast.NodeTransformer):
-    def visit_Str(self, node):
-        return ast.Bytes(node.s.encode('ascii'))
-
-
 def byter(src):
     """ Convert strings in `src` to byte string literals
 
@@ -235,6 +228,11 @@ def byter(src):
     p_src : str
         string with ``str`` literals replace by ``byte`` literals
     """
+    import ast
+    from . import codegen
+    class RewriteStr(ast.NodeTransformer):
+        def visit_Str(self, node):
+            return ast.Bytes(node.s.encode('ascii'))
     tree = ast.parse(src)
     tree = RewriteStr().visit(tree)
     return codegen.to_source(tree)
