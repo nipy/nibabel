@@ -286,11 +286,16 @@ class netcdf_file(object):
 
     def close(self):
         """Closes the NetCDF file."""
-        if not self.fp.closed:
-            try:
-                self.flush()
-            finally:
-                self.fp.close()
+        try:
+            is_closed = self.fp.closed
+        except AttributeError: # gzip files don't have closed attr
+            is_closed = False
+        if is_closed:
+            return
+        try:
+            self.flush()
+        finally:
+            self.fp.close()
     __del__ = close
 
     def createDimension(self, name, length):
