@@ -506,13 +506,17 @@ class SpatialImage(object):
     def load(klass, filename):
         return klass.from_filename(filename)
 
-    @classmethod
-    def save(klass, img, filename):
-        warnings.warn('``save`` class method is deprecated\n'
-                      'You probably want the ``to_filename`` instance '
-                      'method, or the module-level ``save`` function',
-                      DeprecationWarning, stacklevel=2)
-        klass.instance_to_filename(img, filename)
+    def save(*args):
+        if len(args) == 2:
+            img, filename = args
+            img.to_filename(filename)
+        elif len(args) == 3:
+            klass, img, filename = args
+            klass.instance_to_filename(img, filename)
+        else:
+            raise TypeError(
+                "Please either provide (instance, filename) when used with "
+                "a class, or just a (filename) if used with an instance")
 
     @classmethod
     def instance_to_filename(klass, img, filename):
