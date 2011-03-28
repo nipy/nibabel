@@ -196,32 +196,33 @@ def data_tag(dataarray, encoding, datatype, ordering):
     else:
         ord = 'C'
         
-    if encoding == "GIFTI_ENCODING_ASCII":
+    if encoding == gifti_encoding_codes.giistring[1] or \
+        encoding == gifti_encoding_codes.specs[1]:
         c = BytesIO()
         # np.savetxt(c, dataarray, format, delimiter for columns)
         np.savetxt(c, dataarray, datatype, ' ')
         c.seek(0)
         da = c.read()
         
-    elif encoding == "GIFTI_ENCODING_B64BIN":
-        cout = StringIO()
-        base64.encode(dataarray.tostring(ord), cout)
-        cout.seek(0)
-        da = cout.read()
+    elif encoding == gifti_encoding_codes.giistring[2] or \
+        encoding == gifti_encoding_codes.specs[2]:
+        da = base64.encodestring(dataarray.tostring(ord))
 
-    elif encoding == "GIFTI_ENCODING_B64GZ":        
+    elif encoding == gifti_encoding_codes.giistring[3] or \
+        encoding == gifti_encoding_codes.specs[3]:
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
         da = base64.encodestring(comp)
         da = da.decode()
 
-    elif encoding == "GIFTI_ENCODING_EXTBIN":
+    elif encoding == gifti_encoding_codes.giistring[4] or \
+        encoding == gifti_encoding_codes.specs[4]:
         raise NotImplementedError("In what format are the external files?")
         da = ''
     else:
         da = ''
         
-    return "<Data>\n"+da+"</Data>\n"
+    return "<Data>"+da+"</Data>\n"
 
 class GiftiDataArray(object):
 
@@ -323,7 +324,7 @@ class GiftiDataArray(object):
         
         # write data array depending on the encoding
         result += data_tag(self.data, \
-                           gifti_encoding_codes.giistring[self.encoding],\
+                           gifti_encoding_codes.specs[self.encoding],\
                            data_type_codes.fmt[self.datatype],\
                            self.ind_ord)
         
@@ -348,7 +349,7 @@ class GiftiDataArray(object):
                       array_index_order_codes.label[self.ind_ord], \
                       str(self.num_dim), \
                       str(di), \
-                      gifti_encoding_codes.giistring[self.encoding], \
+                      gifti_encoding_codes.specs[self.encoding], \
                       gifti_endian_codes.giistring[self.endian], \
                       self.ext_fname,
                       self.ext_offset,
@@ -364,7 +365,7 @@ class GiftiDataArray(object):
         print 'ArrayIndexingOrder: ', array_index_order_codes.label[self.ind_ord]
         print 'Dimensionality: ', self.num_dim
         print 'Dimensions: ', self.dims
-        print 'Encoding: ', gifti_encoding_codes.giistring[self.encoding]
+        print 'Encoding: ', gifti_encoding_codes.specs[self.encoding]
         print 'Endian: ', gifti_endian_codes.giistring[self.endian]
         print 'ExternalFileName: ', self.ext_fname
         print 'ExternalFileOffset: ', self.ext_offset
