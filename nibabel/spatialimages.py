@@ -507,14 +507,6 @@ class SpatialImage(object):
         return klass.from_filename(filename)
 
     @classmethod
-    def save(klass, img, filename):
-        warnings.warn('``save`` class method is deprecated\n'
-                      'You probably want the ``to_filename`` instance '
-                      'method, or the module-level ``save`` function',
-                      DeprecationWarning, stacklevel=2)
-        klass.instance_to_filename(img, filename)
-
-    @classmethod
     def instance_to_filename(klass, img, filename):
         ''' Save `img` in our own format, to name implied by `filename`
 
