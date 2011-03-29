@@ -153,7 +153,6 @@ __all__ = ['netcdf_file', 'netcdf_variable']
 
 
 from operator import mul
-from functools import reduce
 from mmap import mmap, ACCESS_READ
 
 import numpy as np
