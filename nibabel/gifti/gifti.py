@@ -304,6 +304,15 @@ class GiftiDataArray(object):
         return cda
 
     def to_xml(self):
+
+        # fix endianness to machine endianness
+        from sys import byteorder
+        if byteorder == 'big':
+            print("Save as big endian")
+            self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_BIG"]
+        else:
+            print("Save as little endian")
+            self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_LITTLE"]
         
         result = ""
         result += self.to_xml_open()
@@ -315,18 +324,7 @@ class GiftiDataArray(object):
         # write coord sys
         if not self.coordsys is None:
             result += self.coordsys.to_xml()
-        
-        # check if the set endianness corresponds to the endianness of the machine
-        # throw an exception if it does not correspond
-        from sys import byteorder
-        
-        if byteorder == 'big':
-            print("Save as big endian")
-            self.endian = gifti_endian_codes.specs[1]
-        else:
-            print("Save as little endian")
-            self.endian = gifti_endian_codes.specs[2]
-            
+                    
         # write data array depending on the encoding
         result += data_tag(self.data, \
                            gifti_encoding_codes.specs[self.encoding],\
