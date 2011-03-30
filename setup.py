@@ -38,7 +38,13 @@ exec(open(ver_file).read())
 
 # Do dependency checking
 package_check('numpy', NUMPY_MIN_VERSION)
-package_check('dicom', PYDICOM_MIN_VERSION, optional=True)
+custom_pydicom_messages = {'missing opt': 'Missing optional package "%s"'
+        ' provided by package "pydicom"'
+}
+package_check('dicom',
+        PYDICOM_MIN_VERSION,
+        optional=True,
+        messages = custom_pydicom_messages)
 extra_setuptools_args = {}
 if 'setuptools' in sys.modules:
     extra_setuptools_args = dict(
