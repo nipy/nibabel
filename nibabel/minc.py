@@ -191,6 +191,7 @@ class MincImage(SpatialImage):
     the MINC file on load.
     '''
     files_types = (('image', '.mnc'),)
+    _compressed_exts = ('.gz', '.bz2')
 
     class ImageArrayProxy(object):
         ''' Minc implemention of array proxy protocol
@@ -208,7 +209,6 @@ class MincImage(SpatialImage):
             if self._data is None:
                 self._data = self.minc_file.get_scaled_data()
             return self._data
-
 
     @classmethod
     def from_file_map(klass, file_map):
