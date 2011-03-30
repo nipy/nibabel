@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import base64
+from sys import byteorder
 import zlib
 from StringIO import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
@@ -36,8 +37,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c)
-        da = da.astype(data_type_codes.type[datatype])
-        return da
+        newarr = da.astype(data_type_codes.type[datatype])
 
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
@@ -45,10 +45,8 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         newarr = np.fromstring(dec, dtype = dt)
-        if len(newarr.shape) == len(sh):
-            return newarr
-        else:
-            return newarr.reshape(sh, order = ord)
+        if len(newarr.shape) != len(sh):
+            newarr = newarr.reshape(sh, order = ord)
 
     elif encoding == 3:
         # GIFTI_ENCODING_B64GZ
@@ -59,16 +57,25 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         newarr = np.fromstring(zdec, dtype = dt)
-        if len(newarr.shape) == len(sh):
-            return newarr
-        else:
-            return newarr.reshape(sh, order = ord)
+        if len(newarr.shape) != len(sh):
+            newarr = newarr.reshape(sh, order = ord)
 
     elif encoding == 4:
         # GIFTI_ENCODING_EXTBIN
         raise NotImplementedError("In what format are the external files?")
     else:
         return 0
+        
+    # check if we need to byteswap
+    # if given endian encoding matches the encoding on the current machine
+    # do nothing, otherwise byteswap
+    # (1 is big/mac, 2 is little/other)
+    
+    if ( (endian == 1) and byteorder != 'big' ) or ( (endian == 2) and byteorder != 'little' ):
+        newarr = newarr.byteswap()
+        
+    return newarr
+    
 
 class Outputter(object):
 
