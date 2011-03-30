@@ -72,7 +72,10 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     # (1 is big/mac, 2 is little/other)
     
     if ( (endian == 1) and byteorder != 'big' ) or ( (endian == 2) and byteorder != 'little' ):
+        print("We byte swap")
         newarr = newarr.byteswap()
+    else:
+        print("No byte swap")
         
     return newarr
     
