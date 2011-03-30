@@ -319,9 +319,14 @@ class GiftiDataArray(object):
         # check if the set endianness corresponds to the endianness of the machine
         # throw an exception if it does not correspond
         from sys import byteorder
-        if not byteorder == gifti_endian_codes.byteorder[self.endian]:
-            raise RuntimeError("Data array endianness setting does not correspond to machine endianness!")
         
+        if byteorder == 'big':
+            print("Save as big endian")
+            self.endian = gifti_endian_codes.specs[1]
+        else:
+            print("Save as little endian")
+            self.endian = gifti_endian_codes.specs[2]
+            
         # write data array depending on the encoding
         result += data_tag(self.data, \
                            gifti_encoding_codes.specs[self.encoding],\
