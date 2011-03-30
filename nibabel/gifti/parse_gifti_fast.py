@@ -78,6 +78,8 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     if ( (endian == 1) and byteorder != 'big' ) or ( (endian == 2) and byteorder != 'little' ):
         print("We byte swap")
         newarr = newarr.byteswap()
+        # here, the array should be in the endianness
+        # of the current machine, update the data array accordingly
     else:
         print("No byte swap")
 
@@ -319,6 +321,14 @@ class Outputter(object):
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian, \
                                           da_tmp.ind_ord, da_tmp.datatype, \
                                           da_tmp.dims, data)
+            # update the endianness according to the
+            # current machine setting
+            from sys import byteorder
+            if byteorder == 'big':
+                self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_BIG"]
+            else:
+                self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_LITTLE"]
+                
         elif self.write_to == 'Label':
             self.label.label = data.strip()
 
