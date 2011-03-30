@@ -308,10 +308,8 @@ class GiftiDataArray(object):
         # fix endianness to machine endianness
         from sys import byteorder
         if byteorder == 'big':
-            print("Save as big endian")
             self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_BIG"]
         else:
-            print("Save as little endian")
             self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_LITTLE"]
         
         result = ""

@@ -72,20 +72,11 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     # if given endian encoding matches the encoding on the current machine
     # do nothing, otherwise byteswap
     # (1 is big/mac, 2 is little/other)
-    print("Endian", endian, "machine", byteorder)
-    print("Before")
-    print(newarr)
     if ( (endian == 1) and byteorder != 'big' ) or ( (endian == 2) and byteorder != 'little' ):
-        print("We byte swap")
         newarr = newarr.byteswap()
         # here, the array should be in the endianness
         # of the current machine, update the data array accordingly
-    else:
-        print("No byte swap")
-
-    print("After")
-    print(newarr)
-            
+        
     return newarr
     
 
