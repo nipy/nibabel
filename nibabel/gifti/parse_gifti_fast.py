@@ -37,7 +37,9 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c)
-        newarr = da.astype(data_type_codes.type[datatype])
+        da = da.astype(data_type_codes.type[datatype])
+        # independent of the endianness
+        return da
 
     elif encoding == 2:
         # GIFTI_ENCODING_B64BIN
