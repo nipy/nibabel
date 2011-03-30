@@ -287,11 +287,10 @@ class netcdf_file(object):
     def close(self):
         """Closes the NetCDF file."""
         try:
-            is_closed = self.fp.closed
+            if self.fp.closed:
+                return
         except AttributeError: # gzip files don't have closed attr
-            is_closed = False
-        if is_closed:
-            return
+            pass
         try:
             self.flush()
         finally:
