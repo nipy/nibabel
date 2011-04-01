@@ -249,13 +249,15 @@ class GiftiDataArray(object):
         self.ext_offset = ''
 
     @classmethod
-    def from_array(cls, darray, intent, \
-                   datatype = None, \
-                   encoding = "GIFTI_ENCODING_B64GZ", \
-                   endian = "GIFTI_ENDIAN_LITTLE", \
-                   coordsys = None, \
-                   ordering = "RowMajorOrder", \
-                   meta = {}):
+    def from_array(klass,
+                   darray,
+                   intent,
+                   datatype = None,
+                   encoding = "GIFTI_ENCODING_B64GZ",
+                   endian = "GIFTI_ENDIAN_LITTLE",
+                   coordsys = None,
+                   ordering = "RowMajorOrder",
+                   meta = None):
         """ Creates a new Gifti data array
 
         Parameters
@@ -276,14 +278,16 @@ class GiftiDataArray(object):
             If None, a identity transformation is taken.
         ordering : string, default: RowMajorOrder
             The ordering of the array. see util.array_index_order_codes
-        meta : dict, optional
-            A dictionary for metadata information
+        meta : None or dict, optional
+            A dictionary for metadata information.  If None, gives empty dict.
 
         Returns
         -------
-        da : GiftiDataArray
+        da : instance of class `klass`
         """
-        cda = GiftiDataArray(darray)
+        if meta is None:
+            meta = {}
+        cda = klass(darray)
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype == None:
