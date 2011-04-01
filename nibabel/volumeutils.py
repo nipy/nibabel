@@ -95,7 +95,7 @@ class Recoder(object):
             names by which elements in sequences can be accesssed
 
         '''
-        self.fields = fields
+        self.fields = tuple(fields)
         self.field1 = {} # a placeholder for the check below
         for name in fields:
             if name in self.__dict__:
@@ -259,7 +259,7 @@ def pretty_mapping(mapping, getterfunc=None):
     return '\n'.join(out)
 
 
-def make_dt_codes(codes):
+def make_dt_codes(codes_seqs):
     ''' Create full dt codes object from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
@@ -267,21 +267,34 @@ def make_dt_codes(codes):
 
     Parameters
     ----------
-    codes : sequence of (3,) sequences
-       contained sequences are data type code, data type name, and numpy
-       type (such as ``np.float32``).
+    codes_seqs : sequence of sequences
+       contained sequences make be length 3 or 4, but must all be the same
+       length. Elements are data type code, data type name, and numpy
+       type (such as ``np.float32``).  The fourth element is the nifti string
+       representation of the code (e.g. "NIFTI_TYPE_FLOAT32")
 
     Returns
     -------
     rec : ``Recoder`` instance
        Recoder that, by default, returns ``code`` when indexed with any
-       of the corresponding code, name, type, dtype, or swapped dtype
+       of the corresponding code, name, type, dtype, or swapped dtype.
+       You can also index with ``niistring`` values if codes_seqs had sequences
+       of length 4 instead of 3.
     '''
+    fields=['code', 'label', 'type']
+    len0 = len(codes_seqs[0])
+    if not len0 in (3,4):
+        raise ValueError('Sequences must be length 3 or 4')
+    if len0 == 4:
+        fields.append('niistring')
     dt_codes = []
     intp_dt = np.dtype(np.intp)
-    for code, name, np_type in codes:
+    for seq in codes_seqs:
+        if len(seq) != len0:
+            raise ValueError('Sequences must all have the same length')
+        np_type = seq[2]
         this_dt = np.dtype(np_type)
-        code_syns = [code, name, np_type]
+        code_syns = list(seq)
         dtypes = [this_dt]
         # intp type is effectively same as int32 on 32 bit and int64 on 64 bit.
         # They compare equal, but in some (all?) numpy versions, they may hash
@@ -295,13 +308,9 @@ def make_dt_codes(codes):
                          dt.newbyteorder(native_code),
                          dt.newbyteorder(swapped_code)]
         dt_codes.append(code_syns)
-    return Recoder(dt_codes,
-                   fields=('code',
-                           'label',
-                           'type',
-                           'dtype',
-                           'native_dtype',
-                           'sw_dtype'))
+    return Recoder(dt_codes, fields + ['dtype',
+                                       'native_dtype',
+                                       'sw_dtype'])
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
