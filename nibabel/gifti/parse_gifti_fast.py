@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import base64
-from sys import byteorder
+import sys
 import zlib
 from StringIO import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
@@ -26,22 +26,16 @@ DEBUG_PRINT = False
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
-    if ordering == 1:
-        ord = 'C'
-    elif ordering == 2:
-        ord = 'F'
-    else:
-        ord = 'C'
-
-    if encoding == 1:
+    ord = array_index_order_codes.npcode[ordering]
+    enclabel = gifti_encoding_codes.label[encoding]
+    if enclabel == 'ASCII':
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c)
         da = da.astype(data_type_codes.type[datatype])
         # independent of the endianness
         return da
-
-    elif encoding == 2:
+    elif enclabel == 'B64BIN':
         # GIFTI_ENCODING_B64BIN
         dec = base64.decodestring(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
@@ -49,8 +43,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         newarr = np.fromstring(dec, dtype = dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order = ord)
-
-    elif encoding == 3:
+    elif enclabel == 'B64GZ':
         # GIFTI_ENCODING_B64GZ
         # convert to bytes array for python 3.2
         # http://diveintopython3.org/strings.html#byte-arrays
@@ -61,24 +54,18 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         newarr = np.fromstring(zdec, dtype = dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order = ord)
-
-    elif encoding == 4:
+    elif enclabel == 'External':
         # GIFTI_ENCODING_EXTBIN
         raise NotImplementedError("In what format are the external files?")
     else:
         return 0
-        
     # check if we need to byteswap
-    # if given endian encoding matches the encoding on the current machine
-    # do nothing, otherwise byteswap
-    # (1 is big/mac, 2 is little/other)
-    if ( (endian == 1) and byteorder != 'big' ) or ( (endian == 2) and byteorder != 'little' ):
+    required_byteorder = gifti_endian_codes.byteorder[endian]
+    if (required_byteorder in ('big', 'little') and
+        required_byteorder != sys.byteorder):
         newarr = newarr.byteswap()
-        # here, the array should be in the endianness
-        # of the current machine, update the data array accordingly
-        
     return newarr
-    
+
 
 class Outputter(object):
 
@@ -105,11 +92,10 @@ class Outputter(object):
         # where to write CDATA:
         self.write_to = None
         self.img = None
-    
+
     def StartElementHandler(self, name, attrs):
         if DEBUG_PRINT:
             print 'Start element:\n\t', repr(name), attrs
-        
         if name == 'GIFTI':
             # create gifti image
             self.img = gi.GiftiImage()
@@ -120,7 +106,6 @@ class Outputter(object):
                 self.count_da = False
 
             self.fsm_state.append('GIFTI')
-
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
 
@@ -130,28 +115,22 @@ class Outputter(object):
             else:
                 # otherwise, create darray.meta
                 self.meta_da = gi.GiftiMetaData()
-                
-
         elif name == 'MD':
             self.nvpair = gi.GiftiNVPairs()
             self.fsm_state.append('MD')
-
         elif name == 'Name':
             if self.nvpair == None:
                 raise ExpatError
             else:
                 self.write_to = 'Name'
-
         elif name == 'Value':
             if self.nvpair == None:
                 raise ExpatError
             else:
                 self.write_to = 'Value'
-
         elif name == 'LabelTable':
             self.lata = gi.GiftiLabelTable()
             self.fsm_state.append('LabelTable')
-
         elif name == 'Label':
             self.label = gi.GiftiLabel()
             if "Index" in attrs:
@@ -164,9 +143,7 @@ class Outputter(object):
                 self.label.blue = float(attrs["Blue"])
             if "Alpha" in attrs:
                 self.label.alpha = float(attrs["Alpha"])
-            
             self.write_to = 'Label'
-
         elif name == 'DataArray':
             self.da = gi.GiftiDataArray()
             if "Intent" in attrs:
@@ -181,7 +158,6 @@ class Outputter(object):
                 di = "Dim%s" % str(i)
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
-
             # dimensionality has to correspond to the number of DimX given
             assert len(self.da.dims) == self.da.num_dim
             if "Encoding" in attrs:
@@ -192,49 +168,39 @@ class Outputter(object):
                 self.da.ext_fname = attrs["ExternalFileName"]
             if "ExternalFileOffset" in attrs:
                 self.da.ext_offset = attrs["ExternalFileOffset"]
-            
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
-
         elif name == 'CoordinateSystemTransformMatrix':
             self.coordsys = gi.GiftiCoordSystem()
             self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
-
         elif name == 'DataSpace':
             if self.coordsys == None:
                 raise ExpatError
             else:
                 self.write_to = 'DataSpace'
-
         elif name == 'TransformedSpace':
             if self.coordsys == None:
                 raise ExpatError
             else:
                 self.write_to = 'TransformedSpace'
-
         elif name == 'MatrixData':
             if self.coordsys == None:
                 raise ExpatError
             else:
                 self.write_to = 'MatrixData'
-
         elif name == 'Data':
             self.write_to = 'Data'
-
 
     def EndElementHandler(self, name):
         if DEBUG_PRINT:
             print 'End element:\n\t', repr(name)
-
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
-
         elif name == 'MetaData':
             self.fsm_state.pop()
-            
             if len(self.fsm_state) == 1:
                 # only Gifti there, so this was a closing global
                 # metadata tag
@@ -243,26 +209,19 @@ class Outputter(object):
             else:
                 self.img.darrays[-1].meta = self.meta_da
                 self.meta_da = None
-                
         elif name == 'MD':
             self.fsm_state.pop()
-
             if not self.meta_global is None and self.meta_da == None:
                 self.meta_global.data.append(self.nvpair)
-            
             elif not self.meta_da is None and self.meta_global == None:
                 self.meta_da.data.append(self.nvpair)
-                
             # remove reference
             self.nvpair = None
-
         elif name == 'LabelTable':
             self.fsm_state.pop()
-
             # add labeltable
             self.img.labeltable = self.lata
             self.lata = None
-
         elif name == 'DataArray':
             if self.count_da:
                 self.img.numDA += 1
@@ -287,9 +246,7 @@ class Outputter(object):
             self.label = None
             self.write_to = None
 
-
     def CharacterDataHandler(self, data):
-
         if self.write_to == 'Name':
             data = data.strip()
             self.nvpair.name = data
@@ -314,36 +271,39 @@ class Outputter(object):
                                           da_tmp.dims, data)
             # update the endianness according to the
             # current machine setting
-            from sys import byteorder
-            if byteorder == 'big':
-                self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_BIG"]
-            else:
-                self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_LITTLE"]
-                
+            self.endian = gifti_endian_codes.code[sys.byteorder]
         elif self.write_to == 'Label':
             self.label.label = data.strip()
 
 
 def parse_gifti_file(fname, buffer_size = 35000000):
+    """ Parse gifti file named `fname`, return image
 
+    Parameters
+    ----------
+    fname : str
+        filename of gifti file
+    buffer_size: int, optional
+        size of read buffer.
+
+    Returns
+    -------
+    img : gifti image
+    """
     datasource = open(fname,'rb')
-    
     parser = ParserCreate()
     parser.buffer_text = True
     parser.buffer_size = buffer_size
-    HANDLER_NAMES = [
-    'StartElementHandler', 'EndElementHandler',
-    'CharacterDataHandler',
-    ]
+    HANDLER_NAMES = ['StartElementHandler',
+                     'EndElementHandler',
+                     'CharacterDataHandler']
     out = Outputter()
     for name in HANDLER_NAMES:
         setattr(parser, name, getattr(out, name))
-
     try:
         parser.ParseFile(datasource)
     except ExpatError:
         print 'An expat error occured while parsing the  Gifti file.'
-
     # update filename
     out.img.filename = fname
     return out.img

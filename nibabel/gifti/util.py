@@ -53,31 +53,37 @@ dtdefs = ( # code, label, dtype definition, niistring, XXX: format for store in 
     )
 
 
+# Translate dtype.kind char codes to XML text output strings
+KIND2FMT = {
+    'i': '%i',
+    'u': '%i',
+    'f': '%10.6f',
+    'c': '%10.6f',
+    'V': ''}
+
+
 # XXX: do i need the extensions provided by volumeutils.make_dt_codes()
 data_type_codes = Recoder( dtdefs,  fields=('code', 'label', 'type', 'niistring', 'fmt') )
 
 
 array_index_order_codes = Recoder((
-                                   (1, "RowMajorOrder"),
-                                   (2, "ColumnMajorOrder"),
-                                   ), fields = ('code', 'label'))
+    (1, "RowMajorOrder", 'C'),
+    (2, "ColumnMajorOrder", 'F')),
+    fields = ('code', 'label', 'npcode'))
 
 gifti_encoding_codes = Recoder((
-                                (0, "undef", "GIFTI_ENCODING_UNDEF", "undef"),
-                                (1, "ASCII", "GIFTI_ENCODING_ASCII", "ASCII"),
-                                (2, "B64BIN", "GIFTI_ENCODING_B64BIN", "Base64Binary" ),
-                                (3, "B64GZ", "GIFTI_ENCODING_B64GZ", "GZipBase64Binary"),
-                                (4, "External", "GIFTI_ENCODING_EXTBIN", "ExternalFileBinary"),
-                                ), fields = ('code', 'label', 'giistring', 'specs'))
-
-
-
+    (0, "undef", "GIFTI_ENCODING_UNDEF", "undef"),
+    (1, "ASCII", "GIFTI_ENCODING_ASCII", "ASCII"),
+    (2, "B64BIN", "GIFTI_ENCODING_B64BIN", "Base64Binary" ),
+    (3, "B64GZ", "GIFTI_ENCODING_B64GZ", "GZipBase64Binary"),
+    (4, "External", "GIFTI_ENCODING_EXTBIN", "ExternalFileBinary")),
+    fields = ('code', 'label', 'giistring', 'specs'))
 
 gifti_endian_codes = Recoder((
-                            (0, "GIFTI_ENDIAN_UNDEF", "Undef", "undef"),
-                            (1, "GIFTI_ENDIAN_BIG", "BigEndian", "big"),
-                            (2, "GIFTI_ENDIAN_LITTLE", "LittleEndian", "little"),
-                              ), fields = ('code', 'giistring', 'specs', 'byteorder'))
+    (0, "GIFTI_ENDIAN_UNDEF", "Undef", "undef"),
+    (1, "GIFTI_ENDIAN_BIG", "BigEndian", "big"),
+    (2, "GIFTI_ENDIAN_LITTLE", "LittleEndian", "little")),
+    fields = ('code', 'giistring', 'specs', 'byteorder'))
 
 intent_codes = Recoder((
     # code, label, parameters description tuple

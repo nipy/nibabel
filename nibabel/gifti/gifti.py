@@ -18,7 +18,7 @@ import numpy as np
 
 from .util import (data_type_codes, xform_codes, intent_codes,
                    array_index_order_codes, gifti_encoding_codes,
-                   gifti_endian_codes)
+                   gifti_endian_codes, KIND2FMT)
 
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
@@ -257,7 +257,7 @@ class GiftiDataArray(object):
                    ordering = "RowMajorOrder", \
                    meta = {}):
         """ Creates a new Gifti data array
-        
+
         Parameters
         ----------
         darray : ndarray
@@ -278,14 +278,12 @@ class GiftiDataArray(object):
             The ordering of the array. see util.array_index_order_codes
         meta : dict, optional
             A dictionary for metadata information
-            
+
         Returns
         -------
         da : GiftiDataArray
-        
         """
         cda = GiftiDataArray(darray)
-        
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype == None:
@@ -295,7 +293,6 @@ class GiftiDataArray(object):
         cda.intent = intent_codes.code[intent]
         cda.encoding = gifti_encoding_codes.code[encoding]
         cda.endian = gifti_endian_codes.code[endian]
-        
         if not coordsys is None:
             cda.coordsys = coordsys
         cda.ind_ord = array_index_order_codes.code[ordering]
@@ -304,31 +301,22 @@ class GiftiDataArray(object):
         return cda
 
     def to_xml(self):
-
         # fix endianness to machine endianness
-        from sys import byteorder
-        if byteorder == 'big':
-            self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_BIG"]
-        else:
-            self.endian = gifti_endian_codes.code["GIFTI_ENDIAN_LITTLE"]
-        
+        self.endian = gifti_endian_codes.code[sys.byteorder]
         result = ""
         result += self.to_xml_open()
-        
         # write metadata
         if not self.meta is None:
             result += self.meta.to_xml()
-            
         # write coord sys
         if not self.coordsys is None:
             result += self.coordsys.to_xml()
-                    
         # write data array depending on the encoding
-        result += data_tag(self.data, \
-                           gifti_encoding_codes.specs[self.encoding],\
-                           data_type_codes.fmt[self.datatype],\
+        dt_kind = np.dtype(data_type_codes.type[self.datatype]).kind
+        result += data_tag(self.data,
+                           gifti_encoding_codes.specs[self.encoding],
+                           KIND2FMT[dt_kind],
                            self.ind_ord)
-        
         result = result + self.to_xml_close()
         return result
 
