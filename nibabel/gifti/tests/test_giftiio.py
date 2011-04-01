@@ -6,23 +6,24 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+from __future__ import with_statement
 
 from os.path import join as pjoin, dirname
 
 import numpy as np
-import tempfile
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from nose.tools import assert_true, assert_false, \
      assert_equal, assert_raises
-     
 
 try:
     import nibabel.gifti as gi
 except ImportError:
     from nose import SkipTest
     raise SkipTest
+
+from ...tmpdirs import InTemporaryDirectory
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -144,30 +145,31 @@ def test_dataarray5():
     img3 = gi.read(DATA_FILE5)
     assert_array_almost_equal(img3.darrays[0].data, DATA_FILE5_darr1)
     assert_array_almost_equal(img3.darrays[1].data, DATA_FILE5_darr2)
-    
+
+
 def test_readwritedata():
     img = gi.read(DATA_FILE2)
-    newp = pjoin(tempfile.gettempdir(), 'test.gii')
-    gi.write(img, newp)
-    img2 = gi.read(newp)
-    
-    assert_equal(img.numDA,img2.numDA)
-    assert_array_almost_equal(img.darrays[0].data, img2.darrays[0].data)
-    
+    with InTemporaryDirectory():
+        gi.write(img, 'test.gii')
+        img2 = gi.read('test.gii')
+        assert_equal(img.numDA,img2.numDA)
+        assert_array_almost_equal(img.darrays[0].data,
+                                  img2.darrays[0].data)
+
+
 def test_newmetadata():
     img = gi.GiftiImage()
-    
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
     img.set_metadata(newmeta)
     myme = img.meta.get_metadata()
     assert_true('mykey' in myme)
-    
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
     img.set_metadata(newmeta)
     myme = img.meta.get_metadata()
     assert_true('mykey1' in myme)
     assert_false('mykey' in myme)
+
 
 def test_getbyintent():
     img = gi.read(DATA_FILE1)
