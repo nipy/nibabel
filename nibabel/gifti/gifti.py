@@ -224,9 +224,9 @@ class GiftiDataArray(object):
                    intent,
                    datatype = None,
                    encoding = "GIFTI_ENCODING_B64GZ",
-                   endian = "GIFTI_ENDIAN_LITTLE",
+                   endian = sys.byteorder,
                    coordsys = None,
-                   ordering = "RowMajorOrder",
+                   ordering = "C",
                    meta = None):
         """ Creates a new Gifti data array
 
@@ -235,25 +235,27 @@ class GiftiDataArray(object):
         darray : ndarray
             NumPy data array
         intent : string
-            NIFTI intent codes, see util.intent_codes
-        datatype : string
-            NIFTI data type codes, see util.data_type_codes
+            NIFTI intent code, see nifti1.intent_codes
+        datatype : None or string, optional
+            NIFTI data type codes, see nifti1.data_type_codes
             If None, the datatype of the NumPy array is taken.
-        encoding : string, default: GIFTI_ENCODING_B64GZ
-            Encoding of the data, see util.gifti_encoding_codes
-        endian : string, default: GIFTI_ENDIAN_LITTLE
-            The Endianness to store the data array.
-            Should correspond to the machine endianness.
+        encoding : string, optionaal
+            Encoding of the data, see util.gifti_encoding_codes;
+            default: GIFTI_ENCODING_B64GZ
+        endian : string, optional
+            The Endianness to store the data array.  Should correspond to the
+            machine endianness.  default: system byteorder
         coordsys : GiftiCoordSystem, optional
             If None, a identity transformation is taken.
-        ordering : string, default: RowMajorOrder
-            The ordering of the array. see util.array_index_order_codes
+        ordering : string, optional
+            The ordering of the array. see util.array_index_order_codes;
+            default: RowMajorOrder - C ordering
         meta : None or dict, optional
             A dictionary for metadata information.  If None, gives empty dict.
 
         Returns
         -------
-        da : instance of class `klass`
+        da : instance of our own class
         """
         if meta is None:
             meta = {}
@@ -261,7 +263,7 @@ class GiftiDataArray(object):
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype == None:
-            cda.datatype = data_type_codes.code[darray.dtype.type]
+            cda.datatype = data_type_codes.code[darray.dtype]
         else:
             cda.datatype = data_type_codes.code[datatype]
         cda.intent = intent_codes.code[intent]
@@ -271,7 +273,6 @@ class GiftiDataArray(object):
             cda.coordsys = coordsys
         cda.ind_ord = array_index_order_codes.code[ordering]
         cda.meta = GiftiMetaData.from_dict(meta)
-
         return cda
 
     def to_xml(self):
