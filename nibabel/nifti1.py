@@ -223,7 +223,10 @@ intent_codes = Recoder((
     (1009, 'triangle', (), "NIFTI_INTENT_TRIANGLE"),
     (1010, 'quaternion', (), "NIFTI_INTENT_QUATERNION"),
     (1011, 'dimensionless', (), "NIFTI_INTENT_DIMLESS"),
-    (2001, 'time series', (), "NIFTI_INTENT_TIMESERIES"),
+    (2001, 'time series',
+     (),
+     "NIFTI_INTENT_TIME_SERIES",
+     "NIFTI_INTENT_TIMESERIES"), # this mis-spell occurs in the wild
     (2002, 'node index', (), "NIFTI_INTENT_NODE_INDEX"),
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
