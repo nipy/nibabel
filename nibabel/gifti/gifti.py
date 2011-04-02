@@ -473,26 +473,18 @@ class GiftiImage(object):
             print 'DataArray %s:' % i
             print da.print_summary()
         print '----end----'
-        
+
     def to_xml(self):
-        
+        """ Return XML corresponding to image content """
         res = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 <GIFTI Version="%s"  NumberOfDataArrays="%s">\n""" % (self.version, str(self.numDA))
-
         if not self.meta is None:
             res += self.meta.to_xml()
-            
         if not self.labeltable is None:
             res += self.labeltable.to_xml()
-            
         for dar in self.darrays:
             res += dar.to_xml()
-            
         res += "</GIFTI>"
-        
         return res
-     
-
-
 

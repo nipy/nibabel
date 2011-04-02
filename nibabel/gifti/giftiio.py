@@ -11,22 +11,22 @@
 ##############
 
 import os
+import codecs
 
 from . import parse_gifti_fast as gfp
 
 def read(filename):
     """ Load a Gifti image from a file
-    
+
     Parameters
     ----------
     filename : string
         The Gifti file to open, it has usually ending .gii
-        
+
     Returns
     -------
     img : GiftiImage
         Returns a GiftiImage
-        
      """
     if not os.path.isfile(filename):
         raise IOError("No such file or directory: '%s'" % filename)
@@ -42,13 +42,16 @@ def write(image, filename):
         A GiftiImage instance to store 
     filename : string
         Filename to store the Gifti file to
-       
+
     Returns
     -------
     None
-    
+
     Notes
     -----
+    We write all files with utf-8 encoding, and specify this at the top of the
+    XML file with the ``encoding`` attribute.
+
     The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
 
@@ -72,10 +75,10 @@ def write(image, filename):
         Time Series
     .topo.gii
         Topology
-        
+
     The Gifti file is stored in endian convention of the current machine.
     """
-    f = open(filename, 'wb')
     # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
-    f.write(image.to_xml().encode('utf-8'))
+    f = codecs.open(filename, 'wb', encoding='utf-8')
+    f.write(image.to_xml())
     f.close()
