@@ -42,7 +42,7 @@ def write(image, filename):
         A GiftiImage instance to store 
     filename : string
         Filename to store the Gifti file to
-
+       
     Returns
     -------
     None
@@ -72,7 +72,10 @@ def write(image, filename):
         Time Series
     .topo.gii
         Topology
+        
+    The Gifti file is stored in endian convention of the current machine.
     """
-    f = open(filename, 'w')
-    f.write(image.to_xml())
+    f = open(filename, 'wb')
+    # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
+    f.write(image.to_xml().encode('utf-8'))
     f.close()

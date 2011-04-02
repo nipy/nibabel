@@ -16,40 +16,36 @@ else:
 
 import numpy as np
 
-from .util import (data_type_codes, xform_codes, intent_codes,
-                   array_index_order_codes, gifti_encoding_codes,
-                   gifti_endian_codes)
+from ..nifti1 import data_type_codes, xform_codes, intent_codes
+from .util import (array_index_order_codes, gifti_encoding_codes,
+                   gifti_endian_codes, KIND2FMT)
 
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
-    
     def __init__(self, nvpair = None):
         self.data = []
         if not nvpair is None:
             self.data.append(nvpair)
 
     @classmethod
-    def from_dict(cls, data_dict):
-        meda = GiftiMetaData()
+    def from_dict(klass, data_dict):
+        meda = klass()
         for k,v in data_dict.items():
             nv = GiftiNVPairs(k, v)
             meda.data.append(nv)
         return meda
-        
+
     def get_metadata(self):
         """ Returns metadata as dictionary """
-        
         self.data_as_dict = {}
         for ele in self.data:
             self.data_as_dict[ele.name] = ele.value
         return self.data_as_dict
 
     def to_xml(self):
-        
         if len(self.data) == 0:
             return "<MetaData/>\n"
-        
         res = "<MetaData>\n"
         for ele in self.data:
             nvpair = """<MD>
@@ -63,11 +59,12 @@ class GiftiMetaData(object):
     def print_summary(self):
         print self.get_metadata()
 
+
 class GiftiNVPairs(object):
 
     name = str
     value = str
-    
+
     def __init__(self, name = '', value = ''):
         self.name = name
         self.value = value
@@ -84,10 +81,8 @@ class GiftiLabelTable(object):
         return self.labels_as_dict
 
     def to_xml(self):
-        
         if len(self.labels) == 0:
             return "<LabelTable/>\n"
-        
         res = "<LabelTable>\n"
         for ele in self.labels:
             col = ''
@@ -99,58 +94,50 @@ class GiftiLabelTable(object):
                 col += ' Blue="%s"' % str(ele.blue)
             if not ele.alpha is None:
                 col += ' Alpha="%s"' % str(ele.alpha)
-                
             lab = """\t<Label Index="%s"%s><![CDATA[%s]]></Label>\n""" % \
                 (str(ele.index), col, ele.label)
             res = res + lab
         res = res + "</LabelTable>\n" 
         return res
-    
+
     def print_summary(self):
         print self.get_labels_as_dict()
 
 
 class GiftiLabel(object):
-
     index = int
     label = str
     # rgba
     # freesurfer examples seem not to conform
     # to datatype "NIFTI_TYPE_RGBA32" because they
     # are floats, not unsigned 32-bit integers
-    
     red = float
     green = float
     blue = float
     alpha = float
-    
+
     def __init__(self, index = 0, label = '', red = None,\
                   green = None, blue = None, alpha = None):
         self.index = index
         self.label = label
-        
         self.red = red
         self.green = green
         self.blue = blue
         self.alpha = alpha
-        
+
     def get_rgba(self):
         """ Returns RGBA as tuple """
         return (self.red, self.green, self.blue, self.alpha)
-        
-        
+
 
 class GiftiCoordSystem(object):
-
     dataspace = int
     xformspace = int
     xform = np.ndarray # 4x4 numpy array
 
     def __init__(self, dataspace = 0, xformspace = 0, xform = None):
-        
         self.dataspace = dataspace
         self.xformspace = xformspace
-        
         if xform is None:
             # create identity matrix
             self.xform = np.identity(4)
@@ -158,15 +145,13 @@ class GiftiCoordSystem(object):
             self.xform = xform
 
     def to_xml(self):
-        
         if self.xform is None:
             return "<CoordinateSystemTransformMatrix/>\n"
-        
-        res = """<CoordinateSystemTransformMatrix>
+        res = ("""<CoordinateSystemTransformMatrix>
 \t<DataSpace><![CDATA[%s]]></DataSpace>
-\t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n""" % (xform_codes.niistring[self.dataspace], \
-                xform_codes.niistring[self.xformspace])
-         
+\t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n"""
+               % (xform_codes.niistring[self.dataspace],
+                  xform_codes.niistring[self.xformspace]))
         e = BytesIO()
         np.savetxt(e, self.xform, '%10.6f')
         e.seek(0)
@@ -178,51 +163,36 @@ class GiftiCoordSystem(object):
         return res
 
     def print_summary(self):
-
         print 'Dataspace: ', xform_codes.niistring[self.dataspace]
         print 'XFormSpace: ', xform_codes.niistring[self.xformspace]
         print 'Affine Transformation Matrix: \n', self.xform
 
+
 def data_tag(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding """
-  
     import base64
     import zlib
-    
-    if ordering == 1:
-        ord = 'C'
-    elif ordering == 2:
-        ord = 'F'
-    else:
-        ord = 'C'
-        
-    if encoding == gifti_encoding_codes.giistring[1] or \
-        encoding == gifti_encoding_codes.specs[1]:
+    ord = array_index_order_codes.npcode[ordering]
+    enclabel = gifti_encoding_codes.label[encoding]
+    if enclabel == 'ASCII':
         c = BytesIO()
         # np.savetxt(c, dataarray, format, delimiter for columns)
         np.savetxt(c, dataarray, datatype, ' ')
         c.seek(0)
         da = c.read()
-        
-    elif encoding == gifti_encoding_codes.giistring[2] or \
-        encoding == gifti_encoding_codes.specs[2]:
+    elif enclabel == 'B64BIN':
         da = base64.encodestring(dataarray.tostring(ord))
-
-    elif encoding == gifti_encoding_codes.giistring[3] or \
-        encoding == gifti_encoding_codes.specs[3]:
+    elif enclabel == 'B64GZ':
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
         da = base64.encodestring(comp)
         da = da.decode()
-
-    elif encoding == gifti_encoding_codes.giistring[4] or \
-        encoding == gifti_encoding_codes.specs[4]:
+    elif enclabel == 'External':
         raise NotImplementedError("In what format are the external files?")
-        da = ''
     else:
         da = ''
-        
     return "<Data>"+da+"</Data>\n"
+
 
 class GiftiDataArray(object):
 
@@ -239,7 +209,7 @@ class GiftiDataArray(object):
     data = np.ndarray
     coordsys = GiftiCoordSystem
     meta = GiftiMetaData
-    
+
     def __init__(self, data=None):
         self.data = data
         self.dims = []
@@ -249,85 +219,79 @@ class GiftiDataArray(object):
         self.ext_offset = ''
 
     @classmethod
-    def from_array(cls, darray, intent, \
-                   datatype = None, \
-                   encoding = "GIFTI_ENCODING_B64GZ", \
-                   endian = "GIFTI_ENDIAN_LITTLE", \
-                   coordsys = None, \
-                   ordering = "RowMajorOrder", \
-                   meta = {}):
+    def from_array(klass,
+                   darray,
+                   intent,
+                   datatype = None,
+                   encoding = "GIFTI_ENCODING_B64GZ",
+                   endian = sys.byteorder,
+                   coordsys = None,
+                   ordering = "C",
+                   meta = None):
         """ Creates a new Gifti data array
-        
+
         Parameters
         ----------
         darray : ndarray
             NumPy data array
         intent : string
-            NIFTI intent codes, see util.intent_codes
-        datatype : string
-            NIFTI data type codes, see util.data_type_codes
+            NIFTI intent code, see nifti1.intent_codes
+        datatype : None or string, optional
+            NIFTI data type codes, see nifti1.data_type_codes
             If None, the datatype of the NumPy array is taken.
-        encoding : string, default: GIFTI_ENCODING_B64GZ
-            Encoding of the data, see util.gifti_encoding_codes
-        endian : string, default: GIFTI_ENDIAN_LITTLE
-            The Endianness to store the data array.
-            Should correspond to the machine endianness.
+        encoding : string, optionaal
+            Encoding of the data, see util.gifti_encoding_codes;
+            default: GIFTI_ENCODING_B64GZ
+        endian : string, optional
+            The Endianness to store the data array.  Should correspond to the
+            machine endianness.  default: system byteorder
         coordsys : GiftiCoordSystem, optional
             If None, a identity transformation is taken.
-        ordering : string, default: RowMajorOrder
-            The ordering of the array. see util.array_index_order_codes
-        meta : dict, optional
-            A dictionary for metadata information
-            
+        ordering : string, optional
+            The ordering of the array. see util.array_index_order_codes;
+            default: RowMajorOrder - C ordering
+        meta : None or dict, optional
+            A dictionary for metadata information.  If None, gives empty dict.
+
         Returns
         -------
-        da : GiftiDataArray
-        
+        da : instance of our own class
         """
-        cda = GiftiDataArray(darray)
-        
+        if meta is None:
+            meta = {}
+        cda = klass(darray)
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype == None:
-            cda.datatype = data_type_codes.code[darray.dtype.type]
+            cda.datatype = data_type_codes.code[darray.dtype]
         else:
             cda.datatype = data_type_codes.code[datatype]
         cda.intent = intent_codes.code[intent]
         cda.encoding = gifti_encoding_codes.code[encoding]
         cda.endian = gifti_endian_codes.code[endian]
-        
         if not coordsys is None:
             cda.coordsys = coordsys
         cda.ind_ord = array_index_order_codes.code[ordering]
         cda.meta = GiftiMetaData.from_dict(meta)
-
         return cda
 
     def to_xml(self):
-        
+        # fix endianness to machine endianness
+        self.endian = gifti_endian_codes.code[sys.byteorder]
         result = ""
         result += self.to_xml_open()
-        
         # write metadata
         if not self.meta is None:
             result += self.meta.to_xml()
-            
         # write coord sys
         if not self.coordsys is None:
             result += self.coordsys.to_xml()
-        
-        # check if the set endianness corresponds to the endianness of the machine
-        # throw an exception if it does not correspond
-        from sys import byteorder
-        if not byteorder == gifti_endian_codes.byteorder[self.endian]:
-            raise RuntimeError("Data array endianness setting does not correspond to machine endianness!")
-        
         # write data array depending on the encoding
-        result += data_tag(self.data, \
-                           gifti_encoding_codes.specs[self.encoding],\
-                           data_type_codes.fmt[self.datatype],\
+        dt_kind = data_type_codes.dtype[self.datatype].kind
+        result += data_tag(self.data,
+                           gifti_encoding_codes.specs[self.encoding],
+                           KIND2FMT[dt_kind],
                            self.ind_ord)
-        
         result = result + self.to_xml_close()
         return result
 
@@ -343,7 +307,6 @@ class GiftiDataArray(object):
         di = ""
         for i, n in enumerate(self.dims):
             di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
-             
         return out % (intent_codes.niistring[self.intent], \
                       data_type_codes.niistring[self.datatype], \
                       array_index_order_codes.label[self.ind_ord], \
@@ -354,12 +317,11 @@ class GiftiDataArray(object):
                       self.ext_fname,
                       self.ext_offset,
                       )
-              
+
     def to_xml_close(self):
         return "</DataArray>\n"
 
     def print_summary(self):
-
         print 'Intent: ', intent_codes.niistring[self.intent]
         print 'DataType: ', data_type_codes.niistring[self.datatype]
         print 'ArrayIndexingOrder: ', array_index_order_codes.label[self.ind_ord]
@@ -378,6 +340,7 @@ class GiftiDataArray(object):
         """ Returns metadata as dictionary """
         return self.meta.get_metadata()
 
+
 class GiftiImage(object):
 
     numDA = int
@@ -389,17 +352,14 @@ class GiftiImage(object):
         if darrays is None:
             darrays = []
         self.darrays = darrays
-        
         if meta is None:
             self.meta = GiftiMetaData()
         else:
             self.meta = meta
-            
         if labeltable is None:
             self.labeltable = GiftiLabelTable()
         else:
             self.labeltable = labeltable
-        
         self.numDA = len(self.darrays)
         self.version = version
 
@@ -410,7 +370,7 @@ class GiftiImage(object):
 #    """ Returns a GiftiImage from a Numpy array with a given intent code and
 #    encoding """
 
-    
+
 #    @classmethod
 #    def from_vertices_and_triangles(cls):
 #        pass
