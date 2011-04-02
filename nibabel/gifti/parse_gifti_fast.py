@@ -15,9 +15,9 @@ from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
+from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from . import gifti as gi
-from .util import (data_type_codes, xform_codes, intent_codes,
-                   array_index_order_codes, gifti_encoding_codes,
+from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 
 

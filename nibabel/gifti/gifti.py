@@ -16,8 +16,8 @@ else:
 
 import numpy as np
 
-from .util import (data_type_codes, xform_codes, intent_codes,
-                   array_index_order_codes, gifti_encoding_codes,
+from ..nifti1 import data_type_codes, xform_codes, intent_codes
+from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 
 class GiftiMetaData(object):
@@ -286,7 +286,7 @@ class GiftiDataArray(object):
         if not self.coordsys is None:
             result += self.coordsys.to_xml()
         # write data array depending on the encoding
-        dt_kind = np.dtype(data_type_codes.type[self.datatype]).kind
+        dt_kind = data_type_codes.dtype[self.datatype].kind
         result += data_tag(self.data,
                            gifti_encoding_codes.specs[self.encoding],
                            KIND2FMT[dt_kind],
