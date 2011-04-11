@@ -77,7 +77,7 @@ class GiftiLabelTable(object):
     def get_labels_as_dict(self):
         self.labels_as_dict = {}
         for ele in self.labels:
-            self.labels_as_dict[ele.index] = ele.label
+            self.labels_as_dict[ele.key] = ele.label
         return self.labels_as_dict
 
     def to_xml(self):
@@ -94,8 +94,8 @@ class GiftiLabelTable(object):
                 col += ' Blue="%s"' % str(ele.blue)
             if not ele.alpha is None:
                 col += ' Alpha="%s"' % str(ele.alpha)
-            lab = """\t<Label Index="%s"%s><![CDATA[%s]]></Label>\n""" % \
-                (str(ele.index), col, ele.label)
+            lab = """\t<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
+                (str(ele.key), col, ele.label)
             res = res + lab
         res = res + "</LabelTable>\n" 
         return res
@@ -105,7 +105,7 @@ class GiftiLabelTable(object):
 
 
 class GiftiLabel(object):
-    index = int
+    key = int
     label = str
     # rgba
     # freesurfer examples seem not to conform
@@ -116,9 +116,9 @@ class GiftiLabel(object):
     blue = float
     alpha = float
 
-    def __init__(self, index = 0, label = '', red = None,\
+    def __init__(self, key = 0, label = '', red = None,\
                   green = None, blue = None, alpha = None):
-        self.index = index
+        self.key = key
         self.label = label
         self.red = red
         self.green = green
