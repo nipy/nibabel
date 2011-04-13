@@ -134,7 +134,9 @@ class Outputter(object):
         elif name == 'Label':
             self.label = gi.GiftiLabel()
             if "Index" in attrs:
-                self.label.index = int(attrs["Index"])
+                self.label.key = int(attrs["Index"])
+            if "Key" in attrs:
+                self.label.key = int(attrs["Key"])
             if "Red" in attrs:
                 self.label.red = float(attrs["Red"])
             if "Green" in attrs:

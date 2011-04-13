@@ -33,9 +33,10 @@ DATA_FILE2 = pjoin(IO_DATA_PATH, 'gzipbase64.gii')
 DATA_FILE3 = pjoin(IO_DATA_PATH, 'label.gii')
 DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
+DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5]
-numda = [2, 1, 1, 1, 2]
+datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
+numda = [2, 1, 1, 1, 2, 1]
  
 DATA_FILE1_darr1 = np.array(
        [[-16.07201 , -66.187515,  21.266994],
@@ -66,6 +67,8 @@ DATA_FILE4_darr1 = np.array([[-0.57811606],
        [-0.48011276],
        [-0.45624232],
        [-0.31101292]], dtype=np.float32)
+       
+DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
 
 DATA_FILE5_darr1 = np.array([[ 155.17539978,  135.58103943,   98.30715179],
        [ 140.33973694,  190.0491333 ,   73.24776459],
@@ -180,4 +183,17 @@ def test_getbyintent():
     da = img.getArraysFromIntent("NIFTI_INTENT_CORREL")
     assert_equal(len(da), 0)
     assert_equal(da, [])
+    
+def test_labeltable():
+    img = gi.read(DATA_FILE6)
+    assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
+    assert_equal(len(img.labeltable.labels), 36)
+    labeldict = img.labeltable.get_labels_as_dict()
+    assert_true(labeldict.has_key(660700))
+    assert_equal(labeldict[660700], u'entorhinal')
+    assert_equal(img.labeltable.labels[1].key, 2647065)
+    assert_equal(img.labeltable.labels[1].red, 0.0980392)
+    assert_equal(img.labeltable.labels[1].green, 0.392157)
+    assert_equal(img.labeltable.labels[1].blue, 0.156863)
+    assert_equal(img.labeltable.labels[1].alpha, 1)
     
