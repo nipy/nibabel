@@ -262,15 +262,23 @@ def make_dt_codes(codes):
        of the corresponding code, name, type, dtype, or swapped dtype
     '''
     dt_codes = []
+    intp_dt = np.dtype(np.intp)
     for code, name, np_type in codes:
         this_dt = np.dtype(np_type)
+        code_syns = [code, name, np_type]
+        dtypes = [this_dt]
+        # intp type is effectively same as int32 on 32 bit and int64 on 64 bit.
+        # They compare equal, but in some (all?) numpy versions, they may hash
+        # differently.  If so we need to add them
+        if this_dt == intp_dt and hash(this_dt) != hash(intp_dt):
+            dtypes.append(intp_dt)
         # To satisfy an oddness in numpy dtype hashing, we need to add the dtype
-        # with native order as well as the default dtype (=) order
-        dt_codes.append((code, name,
-                         np_type,
-                         this_dt,
-                         this_dt.newbyteorder(native_code),
-                         this_dt.newbyteorder(swapped_code)))
+        # with explicit native order as well as the default dtype (=) order
+        for dt in dtypes:
+            code_syns +=[dt,
+                         dt.newbyteorder(native_code),
+                         dt.newbyteorder(swapped_code)]
+        dt_codes.append(code_syns)
     return Recoder(dt_codes,
                    fields=('code',
                            'label',
