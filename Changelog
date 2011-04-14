@@ -26,6 +26,20 @@ NiBabel
 Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
 (MH).
 
+* 1.0.2 (Thursday 14 April 2011)
+
+  * Bugfix release
+  * Make inference of data type more robust to changes in numpy dtype hashing
+  * Fix incorrect thresholds in quaternion calculation (thanks to Yarik H for
+    pointing this one out)
+  * Make parrec2nii pass over errors more gracefully
+  * More explicit checks for missing or None field in trackvis and other
+    classes - thanks to Marc-Alexandre Cote
+  * Make logging and error level work as expected - thanks to Yarik H
+  * Loading an image does not change qform or sform - thanks to Yarik H
+  * Allow 0 for nifti scaling as for spec - thanks to Yarik H
+  * nifti1.save now correctly saves single or pair images
+
 * 1.0.1 (Wednesday 23 Feb 2011)
 
   * Bugfix release
