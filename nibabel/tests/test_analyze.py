@@ -47,6 +47,7 @@ import numpy as np
 from ..py3k import BytesIO, asbytes
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
+from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
 
@@ -378,6 +379,13 @@ def test_slope_inter():
         assert_equal(hdr.get_slope_inter(), (None, None))
     assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
     assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
+
+
+def test_data_code_error():
+    # test analyze raising error for unsupported codes
+    hdr = Nifti1Header()
+    hdr['datatype'] = 256
+    assert_raises(HeaderDataError, AnalyzeHeader.from_header, hdr)
 
 
 class TestAnalyzeImage(tsi.TestSpatialImage):

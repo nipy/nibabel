@@ -374,8 +374,15 @@ class AnalyzeHeader(object):
         return obj
 
     def _set_format_specifics(self):
-        ''' Utility routine to set format specific header stuff '''
-        pass
+        ''' Utility routine to set format specific header stuff
+
+        For analyze headers, we need to check for datatypes that nifti supports
+        and analyze does not, in order to raise a more polite error
+        '''
+        code = int(self._header_data['datatype'])
+        if not code in self._data_type_codes.value_set():
+            raise HeaderDataError('Analyze does not support datatype code %d'
+                                  % code)
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
