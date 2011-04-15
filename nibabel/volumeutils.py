@@ -150,6 +150,11 @@ class Recoder(object):
         '''
         return self.field1[key]
 
+    def __contains__(self, key):
+        """ True if field1 in recoder contains `key`
+        """
+        return key in self.field1
+
     def keys(self):
         ''' Return all available code and alias values
 

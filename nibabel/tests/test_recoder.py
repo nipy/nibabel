@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests recoder class '''
 
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
 from ..volumeutils import Recoder
 
@@ -71,7 +71,7 @@ def test_sugar():
     yield assert_equal, rc.code, rc.field1
     rc = Recoder(codes, fields=('code1', 'label'))
     yield assert_equal, rc.code1, rc.field1
-    # Direct key access identical to key access for first named 
+    # Direct key access identical to key access for first named
     yield assert_equal, rc[1], rc.field1[1]
     yield assert_equal, rc['two'], rc.field1['two']
     # keys gets all keys
@@ -80,3 +80,7 @@ def test_sugar():
     yield assert_equal, rc.value_set(), set((1, 2))
     # or named column if given
     yield assert_equal, rc.value_set('label'), set(('one', 'two'))
+    # "in" works for values in and outside the set
+    yield assert_true, 'one' in rc
+    yield assert_false, 'three' in rc
+
