@@ -133,6 +133,11 @@ Metadata
     is data about the package itself.  It might include information about what
     data is in the database.
 
+Registry
+--------
+
+Something that can be queried to *discover* a package instantiation.
+
 Desiderata
 ++++++++++
 
@@ -203,6 +208,7 @@ well.  git_ stores (effectively) all previous versions of the files in the
 repository, as zlib compressed blobs.  The working tree is an uncompressed
 instantiation of the current state.  Thus, if we have, over time, had 4
 different versions of a large file with little standard diff relationship to one
+Discovery
 another, the repository will have four zlib compressed versions of the file in
 the ``.git/objects`` database, and one uncompressed version in the working tree.
 The files in data packages may or may not compress well.
@@ -219,5 +225,20 @@ files.  We might well want to avoid downloading duplicate data in that case.
 Maybe the way to think of it is of the different costs that become important as
 files get larger.  So the cost for holding a full history becomes very large,
 whereas the benefit decreases a little bit (compared to code).
+
+Some usecases
++++++++++++++
+
+Discovery
+---------
+
+::
+    from ourpkg import default_registry
+
+    my_pkg_path = default_registry.pathfor('mypkg', '0.3')
+    if mypkg_path is None:
+        raise RuntimeError('It looks like mypkg version 0.3 is not installed')
+
+
 
 .. include:: ../links_names.txt
