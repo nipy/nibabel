@@ -4,7 +4,7 @@ import numpy as np
 
 from ..py3k import BytesIO, asbytes
 from .. import trackvis as tv
-from ..volumeutils import swapped_code
+from ..volumeutils import native_code, swapped_code
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -116,12 +116,18 @@ def test_round_trip():
     out_f.seek(0)
     streams2, hdr = tv.read(out_f)
     assert_true(streamlist_equal(streams, streams2))
-    # test that we can write in different endianness and get back same result
-    out_f.seek(0)
-    tv.write(out_f, streams, {}, swapped_code)
-    out_f.seek(0)
-    streams2, hdr = tv.read(out_f)
-    assert_true(streamlist_equal(streams, streams2))
+    # test that we can write in different endianness and get back same result,
+    # for versions 1, 2 and not-specified
+    for in_dict, back_version in (({},2),
+                                  ({'version':2}, 2),
+                                  ({'version':1}, 1)):
+        for endian_code in (native_code, swapped_code):
+            out_f.seek(0)
+            tv.write(out_f, streams, in_dict, endian_code)
+            out_f.seek(0)
+            streams2, hdr = tv.read(out_f)
+            assert_true(streamlist_equal(streams, streams2))
+            assert_equal(hdr['version'], back_version)
     # test that we can get out and pass in generators
     out_f.seek(0)
     streams3, hdr = tv.read(out_f, as_generator=True)
@@ -162,24 +168,24 @@ def test_get_affine():
     hdr = tv.empty_header()
     # default header gives useless affine
     assert_array_equal(tv.aff_from_hdr(hdr),
-                             np.diag([0,0,0,1]))
+                       np.diag([0,0,0,1]))
     hdr['voxel_size'] = 1
     assert_array_equal(tv.aff_from_hdr(hdr),
-                             np.diag([0,0,0,1]))
+                       np.diag([0,0,0,1]))
     # DICOM direction cosines
     hdr['image_orientation_patient'] = [1,0,0,0,1,0]
     assert_array_equal(tv.aff_from_hdr(hdr),
-                             np.diag([-1,-1,1,1]))
+                       np.diag([-1,-1,1,1]))
     # RAS direction cosines
     hdr['image_orientation_patient'] = [-1,0,0,0,-1,0]
     assert_array_equal(tv.aff_from_hdr(hdr),
-                             np.eye(4))
+                       np.eye(4))
     # translations
     hdr['origin'] = [1,2,3]
     exp_aff = np.eye(4)
     exp_aff[:3,3] = [-1,-2,3]
     assert_array_equal(tv.aff_from_hdr(hdr),
-                             exp_aff)
+                       exp_aff)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
     aff = np.eye(4)
