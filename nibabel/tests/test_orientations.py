@@ -16,7 +16,8 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..orientations import (io_orientation, orientation_affine,
                             flip_axis, _ornt_to_affine,
-                            apply_orientation, OrientationError)
+                            apply_orientation, OrientationError,
+                            ornt2axcodes, aff2axcodes)
 
 
 IN_ARRS = [np.eye(4),
@@ -163,6 +164,45 @@ def test_io_orientation():
             assert_array_equal(ornt, ex_ornt)
             taff = orientation_affine(ornt, shape)
             assert_true(same_transform(taff, ornt, shape))
+
+
+def test_ornt2axcodes():
+    # Recoding orientation to axis codes
+    labels = (('left', 'right'),('back', 'front'), ('down', 'up'))
+    assert_equal(ornt2axcodes([[0,1],
+                               [1,1],
+                               [2,1]], labels), ('right', 'front', 'up'))
+    assert_equal(ornt2axcodes([[0,-1],
+                               [1,-1],
+                               [2,-1]], labels), ('left', 'back', 'down'))
+    assert_equal(ornt2axcodes([[2,-1],
+                               [1,-1],
+                               [0,-1]], labels), ('down', 'back', 'left'))
+    assert_equal(ornt2axcodes([[1,1],
+                               [2,-1],
+                               [0,1]], labels), ('front', 'down', 'right'))
+    # default is RAS output directions
+    assert_equal(ornt2axcodes([[0,1],
+                               [1,1],
+                               [2,1]]), ('R', 'A', 'S'))
+    # dropped axes produce None
+    assert_equal(ornt2axcodes([[0,1],
+                               [np.nan,np.nan],
+                               [2,1]]), ('R', None, 'S'))
+    # Non integer axes raises error
+    assert_raises(ValueError, ornt2axcodes, [[0.1,1]])
+    # As do directions not in range
+    assert_raises(ValueError, ornt2axcodes, [[0,0]])
+
+
+def test_aff2axcodes():
+    labels = (('left', 'right'),('back', 'front'), ('down', 'up'))
+    assert_equal(aff2axcodes(np.eye(4)), tuple('RAS'))
+    aff = [[0,1,0,10],[-1,0,0,20],[0,0,1,30],[0,0,0,1]]
+    assert_equal(aff2axcodes(aff, (('L','R'),('B','F'),('D','U'))),
+                 ('B', 'R', 'U'))
+    assert_equal(aff2axcodes(aff, (('L','R'),('B','F'),('D','U'))),
+                 ('B', 'R', 'U'))
 
 
 def test_drop_coord():
