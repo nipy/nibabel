@@ -1,6 +1,5 @@
 ''' Testing trackvis module '''
 from functools import partial
-import warnings
 
 import numpy as np
 
@@ -503,3 +502,73 @@ def test_tv_class():
     assert_raises(tv.TrackvisFileError,
                   tv.TrackvisFile,
                   iter([]))
+
+
+def test_tvfile_io():
+    # Test reading and writing tracks with file class
+    out_f = BytesIO()
+    ijk0 = np.arange(15).reshape((5,3)) / 2.0
+    ijk1 = ijk0 + 20
+    vx_streams = [(ijk0, None, None), (ijk1, None, None)]
+    vxmm_streams = [(ijk0 * [[2,3,4]], None, None),
+                    (ijk1 * [[2,3,4]], None, None)]
+    # Roundtrip basic
+    tvf = tv.TrackvisFile(vxmm_streams)
+    tvf.to_file(out_f)
+    out_f.seek(0)
+    tvf2 = tv.TrackvisFile.from_file(out_f)
+    assert_equal(tvf2.filename, None)
+    assert_true(streamlist_equal(vxmm_streams, tvf2.streamlines))
+    assert_equal(tvf2.points_space, None)
+    # Voxel points_space
+    tvf = tv.TrackvisFile(vx_streams, points_space='voxel')
+    out_f.seek(0)
+    # No voxel size - error
+    assert_raises(tv.HeaderError, tvf.to_file, out_f)
+    out_f.seek(0)
+    # With voxel size, no error, roundtrip works
+    tvf.header['voxel_size'] = [2,3,4]
+    tvf.to_file(out_f)
+    out_f.seek(0)
+    tvf2 = tv.TrackvisFile.from_file(out_f, points_space='voxel')
+    assert_true(streamlist_equal(vx_streams, tvf2.streamlines))
+    assert_equal(tvf2.points_space, 'voxel')
+    out_f.seek(0)
+    # Also with affine specified
+    tvf = tv.TrackvisFile(vx_streams, points_space='voxel',
+                          affine=np.diag([2,3,4,1]))
+    tvf.to_file(out_f)
+    out_f.seek(0)
+    tvf2 = tv.TrackvisFile.from_file(out_f, points_space='voxel')
+    assert_true(streamlist_equal(vx_streams, tvf2.streamlines))
+    # Fancy affine test
+    fancy_affine = np.array([[0., -2, 0, 10],
+                             [3, 0, 0, 20],
+                             [0, 0, 4, 30],
+                             [0, 0, 0, 1]])
+    def f(pts): # from vx to mm
+        pts = pts[:,[1,0,2]] * [[-2,3,4]] # apply zooms / reorder
+        return pts + [[10,20,30]] # apply translations
+    xyz0, xyz1 = f(ijk0), f(ijk1)
+    fancy_rasmm_streams = [(xyz0, None, None), (xyz1, None, None)]
+    # Roundtrip
+    tvf = tv.TrackvisFile(fancy_rasmm_streams, points_space='rasmm')
+    out_f.seek(0)
+    # No affine
+    assert_raises(tv.HeaderError, tvf.to_file, out_f)
+    out_f.seek(0)
+    # With affine set, no error, roundtrip works
+    tvf.set_affine(fancy_affine, pos_vox=True, set_order=True)
+    tvf.to_file(out_f)
+    out_f.seek(0)
+    tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
+    assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))
+    assert_equal(tvf2.points_space, 'rasmm')
+    out_f.seek(0)
+    # Also when affine given in init
+    tvf = tv.TrackvisFile(fancy_rasmm_streams, points_space='rasmm',
+                          affine=fancy_affine)
+    tvf.to_file(out_f)
+    out_f.seek(0)
+    tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
+    assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))

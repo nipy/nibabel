@@ -752,14 +752,28 @@ class TrackvisFile(object):
     endianness : {None, '<', '>'}
        Set here explicit endianness if required.  Endianness otherwise inferred
        from `streamlines`
-    filename : None or str
+    filename : None or str, optional
        filename
+    points_space : {None, 'voxel', 'rasmm'}, optional
+        Space in which streamline points are expressed in memory.  Default
+        (None) means streamlines contain points in trackvis *voxmm* space (voxel
+        positions * voxel sizes).  'voxel' means points are in voxel space (and
+        need to be multiplied by voxel size for saving in file).  'rasmm' mean
+        the points are expressed in mm space according to the affine.  See
+        ``read`` and ``write`` function docstrings for more detail.
+    affine : None or (4,4) ndarray, optional
+        Affine expressing relationship of voxels in an image to mm in RAS mm
+        space. If 'points_space' is not None, you can use this to give the
+        relationship between voxels, rasmm and voxmm space (above).
     '''
     def __init__(self,
                  streamlines,
                  mapping=None,
                  endianness=None,
-                 filename=None):
+                 filename=None,
+                 points_space=None,
+                 affine = None,
+                ):
         try:
             n_streams = len(streamlines)
         except TypeError:
@@ -767,22 +781,27 @@ class TrackvisFile(object):
         self.streamlines = streamlines
         if endianness is None:
             if n_streams > 0:
-                endianness = endian_codes[streamlines[0].dtype.byteorder]
+                pts0 = streamlines[0][0]
+                endianness = endian_codes[pts0.dtype.byteorder]
             else:
                 endianness = native_code
         self.header = _hdr_from_mapping(None, mapping, endianness)
         self.endianness = endianness
         self.filename = filename
+        self.points_space = points_space
+        if not affine is None:
+            self.set_affine(affine, pos_vox=True, set_order=True)
 
     @classmethod
-    def from_file(klass, file_like):
-        streamlines, header = read(file_like)
+    def from_file(klass, file_like, points_space=None):
+        streamlines, header = read(file_like, points_space=points_space)
         filename = (file_like if isinstance(file_like, basestring)
                     else None)
-        return klass(streamlines, header, None, filename)
+        return klass(streamlines, header, None, filename, points_space)
 
     def to_file(self, file_like):
-        write(file_like, self.streamlines, self.header, self.endianness)
+        write(file_like, self.streamlines, self.header, self.endianness,
+              points_space=self.points_space)
         self.filename = (file_like if isinstance(file_like, basestring)
                          else None)
 
