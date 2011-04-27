@@ -86,7 +86,7 @@ class DataError(Exception):
     pass
 
 
-def read(fileobj, as_generator=False):
+def read(fileobj, as_generator=False, points_space=None):
     ''' Read trackvis file, return streamlines, header
 
     Parameters
@@ -98,6 +98,15 @@ def read(fileobj, as_generator=False):
     as_generator : bool, optional
        Whether to return tracks as sequence (False, default) or as a generator
        (True).
+    points_space : {None, 'voxel', 'rasmm'}, optional
+        The coordinates in which you want the points in the *output* streamlines
+        expressed.  If None, then return the points exactly as they are stored
+        in the trackvis file. The points will probably be in trackviz voxmm
+        space - see Notes for ``write`` function.  If 'voxel', we convert the
+        points to voxel space simply by dividing by the recorded voxel size.  If
+        'rasmm' we'll convert the points to RAS mm space (real space). For
+        'rasmm' we check if the affine is set and matches the voxel sizes and
+        voxel order.
 
     Returns
     -------
@@ -119,6 +128,10 @@ def read(fileobj, as_generator=False):
     -----
     The endianness of the input data can be deduced from the endianness
     of the returned `hdr` or `streamlines`
+
+    Points are in trackvis *voxel mm*.  Each track has N points, each with 3
+    coordinates, ``x, y, z``, where ``x`` is the floating point voxel coordinate
+    along the first image axis, multiplied by the voxel size for that axis.
     '''
     fileobj = allopen(fileobj, mode='rb')
     hdr_str = fileobj.read(header_2_dtype.itemsize)
@@ -147,6 +160,18 @@ def read(fileobj, as_generator=False):
                          buffer=hdr_str)
         if endianness == swapped_code:
             hdr = hdr.newbyteorder()
+    # Do points_space checks
+    _check_hdr_points_space(hdr, points_space)
+    # prepare transforms for later use
+    if points_space == 'voxel':
+        zooms = hdr['voxel_size'][None,:].astype('f4')
+    elif points_space == 'rasmm':
+        zooms = hdr['voxel_size']
+        affine = hdr['vox_to_ras']
+        tv2vx = np.diag((1. / zooms).tolist() + [1])
+        tv2mm = np.dot(affine, tv2vx).astype('f4')
+        rzs = tv2mm[:3,:3].T
+        trans = tv2mm[:3,3][None, :]
     n_s = hdr['n_scalars']
     n_p = hdr['n_properties']
     f4dt = np.dtype(endianness + 'f4')
@@ -183,6 +208,10 @@ def read(fileobj, as_generator=False):
                     dtype = f4dt,
                     buffer = ps_str)
             xyz = pts[:,:3]
+            if points_space == 'voxel':
+                xyz = xyz / zooms
+            elif points_space == 'rasmm':
+                xyz = np.dot(xyz, rzs) + trans
             if n_s:
                 scalars = pts[:,3:]
             yield (xyz, scalars, ps)
@@ -196,7 +225,8 @@ def read(fileobj, as_generator=False):
     return streamlines, hdr
 
 
-def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
+def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
+          points_space=None):
     ''' Write header and `streamlines` to trackvis file `fileobj`
 
     The parameters from the streamlines override conflicting parameters
@@ -224,7 +254,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
        we write 0 for the number of streamlines (a valid trackvis header) and
        write streamlines into the file until the iterable is exhausted.
        M - the number of scalars - has to be the same for each streamline in
-       `streamlines`.  Similarly for P.
+       `streamlines`.  Similarly for P. See `points_space` and Notes for more
+       detail on the coordinate system for ``points`` above.
     hdr_mapping : None, ndarray or mapping, optional
        Information for filling header fields.  Can be something
        dict-like (implementing ``items``) or a structured numpy array
@@ -232,6 +263,15 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
        Endianness of file to be written.  '<' is little-endian, '>' is
        big-endian.  None (the default) is to use the endianness of the
        `streamlines` data.
+    points_space : {None, 'voxel', 'rasmm'}, optional
+        The coordinates in which the points in the input streamlines are
+        expressed.  If None, then assume the points are as you want them
+        (probably trackviz voxmm space - see Notes).  If 'voxel', the points are
+        in voxel space, and we will transform them to trackviz voxmm space.  If
+        'rasmm' the points are in RAS mm space (real space).  We transform them
+        to trackvis voxmm space.  If 'voxel' or 'rasmm' we insist that the voxel
+        sizes and ordering are set to non-default values.  If 'rasmm' we also
+        check if the affine is set and matches the voxel sizes
 
     Returns
     -------
@@ -262,47 +302,78 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
+
+    Notes
+    -----
+    Trackvis (the application) expects the ``points`` in the streamlines be in
+    what we call *trackviz voxmm* coordinates.  If we have a point (x, y, z) in
+    voxmm coordinates, and ``voxel_size`` has the voxel sizes for each of the 3
+    dimensions, then x, y, z refer to mm in voxel space. Thus if i, j, k is a
+    point in voxel coordinates, then ``x = i * voxel_size[0]; y = j *
+    voxel_size[1]; z = k * voxel_size[2]``.   The spatial direction of x, y and
+    z are defined with the "voxel_order" field.  For example, if the original
+    image had RAS voxel ordering then "voxel_order" would be "RAS".  RAS here
+    refers to the spatial direction of the voxel axes: "R" means that moving
+    along first voxel axis moves from left to right in space, "A" -> second axis
+    goes from posterior to anterior, "S" -> inferior to superior.  If
+    "voxel_order" is empty we assume "LPS".
+
+    This information comes from some helpful replies on the trackviz forum about
+    `interpreting point coordiantes
+    <http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates>`_
     '''
     stream_iter = iter(streamlines)
     try:
         streams0 = stream_iter.next()
     except StopIteration: # empty sequence or iterable
-        streams0 = None
+        # write header without streams
+        hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
+        fileobj = allopen(fileobj, mode='wb')
+        fileobj.write(hdr.tostring())
+        return
     if endianness is None:
-        if streams0 is None:
-            endianness = native_code
-        else: # At least one streamline
-            endianness = endian_codes[streams0[0].dtype.byteorder]
+        endianness = endian_codes[streams0[0].dtype.byteorder]
     # fill in a new header from mapping-like
     hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
     # Try and get number of streams from streamlines.  If this is an iterable,
-    # we don't have a len, so we write 0 for length.  This is a valid trackvis
-    # header meaning, keep reading until you run out of data 
+    # we don't have a len, so we write 0 for length.  The 0 is a valid trackvis
+    # value with meaning - keep reading until you run out of data.
     try:
         n_streams = len(streamlines)
     except TypeError: # iterable; we don't know the number of streams
         n_streams = 0
     hdr['n_count'] = n_streams
-    # If there are streamlines, get number of scalars and properties
-    if not streams0 is None:
-        pts, scalars, props = streams0
-        # calculate number of scalars
-        if not scalars is None:
-            n_s = scalars.shape[1]
-        else:
-            n_s = 0
-        hdr['n_scalars'] = n_s
-        # calculate number of properties
-        if not props is None:
-            n_p = props.size
-            hdr['n_properties'] = n_p
-        else:
-            n_p = 0
+    # Get number of scalars and properties
+    pts, scalars, props = streams0
+    # calculate number of scalars
+    if not scalars is None:
+        n_s = scalars.shape[1]
+    else:
+        n_s = 0
+    hdr['n_scalars'] = n_s
+    # calculate number of properties
+    if not props is None:
+        n_p = props.size
+        hdr['n_properties'] = n_p
+    else:
+        n_p = 0
+    # do points_space checks
+    _check_hdr_points_space(hdr, points_space)
+    # prepare transforms for later use
+    if points_space == 'voxel':
+        zooms = hdr['voxel_size'][None,:].astype('f4')
+    elif points_space == 'rasmm':
+        zooms = hdr['voxel_size']
+        affine = hdr['vox_to_ras']
+        vx2tv = np.diag(zooms.tolist() + [1])
+        mm2vx = npl.inv(affine)
+        mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
+        rzs = mm2tv[:3,:3].T
+        trans = mm2tv[:3,3][None, :]
     # write header
     fileobj = allopen(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
-    if streams0 is None:
-        return
+    # track preliminaries
     f4dt = np.dtype(endianness + 'f4')
     i_fmt = endianness + 'i'
     # Add back the read first streamline to the sequence
@@ -311,6 +382,10 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
         if n_coords != 3:
             raise ValueError('pts should have 3 columns')
         fileobj.write(struct.pack(i_fmt, n_pts))
+        if points_space == 'voxel':
+            pts = pts * zooms
+        elif points_space == 'rasmm':
+            pts = np.dot(pts, rzs) + trans
         # This call ensures that the data are 32-bit floats, and that
         # the endianness is OK.
         if pts.dtype != f4dt:
@@ -335,6 +410,71 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())
+
+
+def _check_hdr_points_space(hdr, points_space):
+    """ Check header `hdr` for consistency with transform `points_space`
+
+    Parameters
+    ----------
+    hdr : ndarray
+        trackvis header as structured ndarray
+    points_space : {None, 'voxmm', 'voxel', 'rasmm'
+        nature of transform that we will (elsewhere) apply to streamlines paired
+        with `hdr`.  None or 'voxmm' means pass through with no futher checks.
+        'voxel' checks for all ``hdr['voxel_sizes'] being <= zero (error) or any
+        being zero (warning).  'rasmm' checks for presence of non-zeros affine
+        in ``hdr['vox_to_ras']``, and that the affine therein corresponds to
+        ``hdr['voxel_order']`` and ''hdr['voxe_sizes']`` - and raises an error
+        otherwise.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    """
+    if points_space is None or points_space == 'voxmm':
+        return
+    if points_space == 'voxel':
+        voxel_size = hdr['voxel_size']
+        if np.any(voxel_size < 0):
+            raise HeaderError('Negative voxel sizes %s not valid for voxel - '
+                              'voxmm conversion' % voxel_size)
+        if np.all(voxel_size == 0):
+            raise HeaderError('Cannot convert between voxels and voxmm when '
+                              '"voxel_sizes" all 0')
+        if np.any(voxel_size == 0):
+            warnings.warn('zero values in "voxel_size" - %s' % voxel_size)
+        return
+    elif points_space == 'rasmm':
+        try:
+            affine = hdr['vox_to_ras']
+        except ValueError:
+            raise HeaderError('Need "vox_to_ras" field to get '
+                              'affine with which to convert points; '
+                              'this is present for headers >= version 2')
+        if np.all(affine == 0) or affine[3,3] == 0:
+            raise HeaderError('Need non-zero affine to convert between '
+                              'rasmm points and voxmm')
+        zooms = hdr['voxel_size']
+        aff_zooms = np.sqrt(np.sum(affine[:3,:3]**2,axis=0))
+        if not np.allclose(aff_zooms, zooms):
+            raise HeaderError('Affine zooms %s differ from voxel_size '
+                              'field value %s' % (aff_zooms, zooms))
+        aff_order = ''.join(aff2axcodes(affine))
+        voxel_order = hdr['voxel_order']
+        if voxel_order == '':
+            voxel_order = 'LPS' # trackvis default
+        if not voxel_order == aff_order:
+            raise HeaderError('Affine implies voxel_order %s but '
+                              'header voxel_order is %s' %
+                              (aff_order, hdr['voxel_order']))
+    else:
+        raise ValueError('Painfully confusing "points_space" value of "%s"'
+                         % points_space)
+
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
