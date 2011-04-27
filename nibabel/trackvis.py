@@ -1,5 +1,6 @@
 """ Read and write trackvis files
 """
+import warnings
 import struct
 import itertools
 
@@ -9,6 +10,7 @@ import numpy.linalg as npl
 from .py3k import asbytes
 from .volumeutils import (native_code, swapped_code, endian_codes,
                           allopen, rec2dict)
+from .orientations import aff2axcodes
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
@@ -421,19 +423,24 @@ def empty_header(endianness=None, version=2):
     return hdr
 
 
-def aff_from_hdr(trk_hdr):
+def aff_from_hdr(trk_hdr, atleast_v2=None):
     ''' Return voxel to mm affine from trackvis header
 
     Affine is mapping from voxel space to Nifti (RAS) output coordinate
     system convention; x: Left -> Right, y: Posterior -> Anterior, z:
     Inferior -> Superior.
-    
+
     Parameters
     ----------
     trk_hdr : mapping
-       Mapping with trackvis header keys ``version``,
-       ``image_orientation_patient``, ``voxel_size`` and ``origin``.  If
-       ``version == 2``, we also expect ``vox_to_ras``.
+       Mapping with trackvis header keys ``version``. If ``version == 2``, we
+       also expect ``vox_to_ras``.
+    atleast_v2 : None or bool
+        If None, currently defaults to False.  This will change to True in
+        future versions.  If True, require that there is a valid 'vox_to_ras'
+        affine, raise HeaderError otherwise.  If False, look for valid
+        'vox_to_ras' affine, but fall back to best guess from version 1 fields
+        otherwise.
 
     Returns
     -------
@@ -441,44 +448,126 @@ def aff_from_hdr(trk_hdr):
        affine giving mapping from voxel coordinates (affine applied on
        the left to points on the right) to millimeter coordinates in the
        RAS coordinate system
+
+    Notes
+    -----
+    Our initial idea was to try and work round the deficiencies of the version 1
+    format by using the DICOM orientation fields to store the affine.  This
+    proved difficult in practice because trackvis (the application) doesn't
+    allow negative voxel sizes (needed for recording axis flips) and sets the
+    origin field to 0. In future, we'll raise an error rather than try and
+    estimate the affine from version 1 fields
     '''
+    if atleast_v2 is None:
+        warnings.warn('Defaulting to `atleast_v2` of False.  Future versions '
+                      'will default to True',
+                      FutureWarning,
+                      stacklevel=2)
+        atleast_v2 = False
     if trk_hdr['version'] == 2:
         aff = trk_hdr['vox_to_ras']
         if aff[3,3] != 0:
             return aff
+        if atleast_v2:
+            raise HeaderError('Requiring version 2 affine and this affine is '
+                              'not valid')
+    # Now we are in the dark world of the DICOM fields.  We might have made this
+    # one ourselves, in which case the origin might be set, and it might have
+    # negative voxel sizes
     aff = np.eye(4)
+    # The IOP field has only two of the three columns we need
     iop = trk_hdr['image_orientation_patient'].reshape(2,3).T
+    # R might be a rotation matrix (and so completed by the cross product of the
+    # first two columns), or it might be an orthogonal matrix with negative
+    # determinant. We try pure rotation first
     R = np.c_[iop, np.cross(*iop.T)]
     vox = trk_hdr['voxel_size']
     aff[:3,:3] = R * vox
     aff[:3,3] = trk_hdr['origin']
-    return np.dot(DPCS_TO_TAL, aff)
+    aff = np.dot(DPCS_TO_TAL, aff)
+    # Next we check against the 'voxel_order' field if present and not empty.
+    try:
+        voxel_order = trk_hdr['voxel_order']
+    except KeyError, ValueError:
+        voxel_order = ''
+    if voxel_order == '':
+        return aff
+    # If the voxel_order conflicts with the affine by one flip, this may have
+    # been a negative determinant affine saved with positive voxel sizes
+    exp_order = ''.join(aff2axcodes(aff))
+    if voxel_order != exp_order:
+        # If first pass doesn't match, try flipping the (estimated) third column
+        aff[:,2] *= -1
+        exp_order = ''.join(aff2axcodes(aff))
+        if voxel_order != exp_order:
+            raise HeaderError('Estimate of header affine does not match '
+                              'voxel_order of %s' % exp_order)
+    return aff
 
 
-def aff_to_hdr(affine, trk_hdr):
-    ''' Set affine `affine` into trackvix header `trk_hdr`
+def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
+    ''' Set affine `affine` into trackvis header `trk_hdr`
 
     Affine is mapping from voxel space to Nifti RAS) output coordinate
     system convention; x: Left -> Right, y: Posterior -> Anterior, z:
-    Inferior -> Superior.
-    
+    Inferior -> Superior.  Sets affine if possible, and voxel sizes, and voxel
+    axis ordering.
+
     Parameters
     ----------
     affine : (4,4) array-like
        Affine voxel to mm transformation
     trk_hdr : mapping
        Mapping implementing __setitem__
+    pos_vos : None or bool
+        If None, currently defaults to False - this will change in future
+        versions of nibabel.  If False, allow negative voxel sizes in header to
+        record axis flips.  Negative voxels cause problems for trackvis (the
+        application).  If True, enforce positive voxel sizes.
+    set_order : None or bool
+        If None, currently defaults to False - this will change in future
+        versions of nibabel.  If False, do not set ``voxel_order`` field in
+        `trk_hdr`.  If True, calculcate ``voxel_order`` from `affine` and set
+        into `trk_hdr`.
 
     Returns
     -------
     None
+
+    Notes
+    -----
+    version 2 of the trackvis header has a dedicated field for the nifti RAS
+    affine. In theory trackvis 1 has enough information to store an affine, with
+    the fields 'origin', 'voxel_size' and 'image_orientation_patient'.
+    Unfortunately, to be able to store any affine, we'd need to be able to set
+    negative voxel sizes, to encode axis flips. This is because
+    'image_orientation_patient' is only two columns of the 3x3 rotation matrix,
+    and we need to know the number of flips to reconstruct the third column
+    reliably.  It turns out that negative flips upset trackvis (the
+    application).  The application also ignores the origin field, and may not
+    use the 'image_orientation_patient' field.
     '''
+    if pos_vox is None:
+        warnings.warn('Default for ``pos_vox`` will change to True in '
+                      'future versions of nibabel',
+                      FutureWarning,
+                      stacklevel=2)
+        pos_vox = False
+    if set_order is None:
+        warnings.warn('Default for ``set_order`` will change to True in '
+                      'future versions of nibabel',
+                      FutureWarning,
+                      stacklevel=2)
+        set_order = False
     try:
         version = trk_hdr['version']
-    except KeyError:
+    except KeyError, ValueError: # dict or structured array
         version = 2
     if version == 2:
         trk_hdr['vox_to_ras'] = affine
+    if set_order:
+        trk_hdr['voxel_order'] = ''.join(aff2axcodes(affine))
+    # Now on dodgy ground with DICOM fields in header
     # RAS to DPCS output
     affine = np.dot(DPCS_TO_TAL, affine)
     trans = affine[:3, 3]
@@ -486,17 +575,18 @@ def aff_to_hdr(affine, trk_hdr):
     RZS = affine[:3, :3]
     zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
     RS = RZS / zooms
-    # adjust zooms to make RS correspond (below) to a true rotation
-    # matrix.  We need to set the sign of one of the zooms to deal with
-    # this.
-    if npl.det(RS) < 0:
+    # If you said we could, adjust zooms to make RS correspond (below) to a true
+    # rotation matrix.  We need to set the sign of one of the zooms to deal with
+    # this.  Trackvis (the application) doesn't like negative zooms at all, so
+    # you might want to disallow this with the pos_vox option.
+    if not pos_vox and npl.det(RS) < 0:
         zooms[0] *= -1
         RS[:,0] *= -1
     # retrieve rotation matrix from RS with polar decomposition.
     # Discard shears because we cannot store them.
     P, S, Qs = npl.svd(RS)
     R = np.dot(P, Qs)
-    # it's a rotation matrix
+    # it's an orthogonal matrix
     assert np.allclose(np.dot(R, R.T), np.eye(3))
     # set into header
     trk_hdr['origin'] = trans
@@ -556,10 +646,68 @@ class TrackvisFile(object):
         self.filename = (file_like if isinstance(file_like, basestring)
                          else None)
 
-    def get_affine(self):
-        # use method becase set may involve removing shears from affine
-        return aff_from_hdr(self.header)
+    def get_affine(self, atleast_v2=None):
+        """ Get affine from header in object
 
-    def set_affine(self, affine):
-        # use method becase set may involve removing shears from affine
-        return aff_to_hdr(affine, self.header)
+        Returns
+        -------
+        aff : (4,4) ndarray
+            affine from header
+        atleast_v2 : None or bool, optional
+            See ``aff_from_hdr`` docstring for detail.  If True, require valid
+            affine in ``vox_to_ras`` field of header.
+
+        Notes
+        -----
+        This method currently works for trackvis version 1 headers, but we
+        consider it unsafe for version 1 headers, and in future versions of
+        nibabel we will raise an error for trackvis headers < version 2.
+        """
+        if atleast_v2 is None:
+            warnings.warn('Defaulting to `atleast_v2` of False.  Future versions '
+                          'will default to True',
+                          FutureWarning,
+                          stacklevel=2)
+            atleast_v2 = False
+        return aff_from_hdr(self.header, atleast_v2)
+
+    def set_affine(self, affine, pos_vox=None, set_order=None):
+        """ Set affine `affine` into trackvis header
+
+        Affine is mapping from voxel space to Nifti RAS) output coordinate
+        system convention; x: Left -> Right, y: Posterior -> Anterior, z:
+        Inferior -> Superior.  Sets affine if possible, and voxel sizes, and voxel
+        axis ordering.
+
+        Parameters
+        ----------
+        affine : (4,4) array-like
+            Affine voxel to mm transformation
+        pos_vos : None or bool, optional
+            If None, currently defaults to False - this will change in future
+            versions of nibabel.  If False, allow negative voxel sizes in header to
+            record axis flips.  Negative voxels cause problems for trackvis (the
+            application).  If True, enforce positive voxel sizes.
+        set_order : None or bool, optional
+            If None, currently defaults to False - this will change in future
+            versions of nibabel.  If False, do not set ``voxel_order`` field in
+            `trk_hdr`.  If True, calculcate ``voxel_order`` from `affine` and set
+            into `trk_hdr`.
+
+        Returns
+        -------
+        None
+        """
+        if pos_vox is None:
+            warnings.warn('Default for ``pos_vox`` will change to True in '
+                          'future versions of nibabel',
+                          FutureWarning,
+                          stacklevel=2)
+            pos_vox = False
+        if set_order is None:
+            warnings.warn('Default for ``set_order`` will change to True in '
+                          'future versions of nibabel',
+                          FutureWarning,
+                          stacklevel=2)
+            set_order = False
+        return aff_to_hdr(affine, self.header, pos_vox, set_order)

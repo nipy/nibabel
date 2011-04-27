@@ -1,10 +1,14 @@
 ''' Testing trackvis module '''
+from functools import partial
+import warnings
 
 import numpy as np
 
 from ..py3k import BytesIO, asbytes
 from .. import trackvis as tv
+from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code
+from ..checkwarns import ErrorWarnings, IgnoreWarnings
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -165,55 +169,118 @@ def test_empty_header():
 
 
 def test_get_affine():
+    # Test get affine behavior, including pending deprecation
     hdr = tv.empty_header()
+    # Using version 1 affine is not a good idea because is fragile and not
+    # very useful. The default atleast_v2=None mode raises a FutureWarning
+    with ErrorWarnings():
+        assert_raises(FutureWarning, tv.aff_from_hdr, hdr)
+    # testing the old behavior
+    old_afh = partial(tv.aff_from_hdr, atleast_v2=False)
     # default header gives useless affine
-    assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(old_afh(hdr),
                        np.diag([0,0,0,1]))
     hdr['voxel_size'] = 1
-    assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(old_afh(hdr),
                        np.diag([0,0,0,1]))
     # DICOM direction cosines
     hdr['image_orientation_patient'] = [1,0,0,0,1,0]
-    assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(old_afh(hdr),
                        np.diag([-1,-1,1,1]))
     # RAS direction cosines
     hdr['image_orientation_patient'] = [-1,0,0,0,-1,0]
-    assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(old_afh(hdr),
                        np.eye(4))
     # translations
     hdr['origin'] = [1,2,3]
     exp_aff = np.eye(4)
     exp_aff[:3,3] = [-1,-2,3]
-    assert_array_equal(tv.aff_from_hdr(hdr),
+    assert_array_equal(old_afh(hdr),
                        exp_aff)
+    # check against voxel order.  This one works
+    hdr['voxel_order'] = ''.join(aff2axcodes(exp_aff))
+    assert_equal(hdr['voxel_order'], 'RAS')
+    assert_array_equal(old_afh(hdr), exp_aff)
+    # This one doesn't
+    hdr['voxel_order'] = 'LAS'
+    assert_raises(tv.HeaderError, old_afh, hdr)
+    # This one does work because the routine allows the final dimension to
+    # be flipped to try and match the voxel order
+    hdr['voxel_order'] = 'RAI'
+    exp_aff = exp_aff * [[1,1,-1,1]]
+    assert_array_equal(old_afh(hdr), exp_aff)
+    # Check round trip case for flipped and unflipped, when positive voxels
+    # only allowed.  This checks that the flipping heuristic works.
+    flipped_aff = exp_aff
+    unflipped_aff = exp_aff * [1,1,-1,1]
+    for in_aff, o_codes in ((unflipped_aff, 'RAS'),
+                            (flipped_aff, 'RAI')):
+        hdr = tv.empty_header()
+        tv.aff_to_hdr(in_aff, hdr, pos_vox=True, set_order=True)
+        # Unset easier option
+        hdr['vox_to_ras'] = 0
+        assert_equal(hdr['voxel_order'], o_codes)
+        # Check it came back the way we wanted
+        assert_array_equal(old_afh(hdr), in_aff)
+    # Check that the default case matches atleast_v2=False case
+    with IgnoreWarnings():
+        assert_array_equal(tv.aff_from_hdr(hdr), flipped_aff)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
     aff = np.eye(4)
     aff[:3,:] = np.arange(12).reshape(3,4)
     hdr['vox_to_ras'] = aff
-    assert_array_equal(tv.aff_from_hdr(hdr), aff)
+    # Pass v2 flag explicitly to avoid warnings
+    assert_array_equal(tv.aff_from_hdr(hdr, atleast_v2=False), aff)
     # mappings work too
     d = {'version': 1,
-         'voxel_size': np.array([1,2,3]),
-         'image_orientation_patient': np.array([1,0,0,0,1,0]),
-         'origin': np.array([10,11,12])}
-    aff = tv.aff_from_hdr(d)
+        'voxel_size': np.array([1,2,3]),
+        'image_orientation_patient': np.array([1,0,0,0,1,0]),
+        'origin': np.array([10,11,12])}
+    aff = tv.aff_from_hdr(d, atleast_v2=False)
 
 
 def test_aff_to_hdr():
-    for version in (1, 2):
-        hdr = {'version': version}
-        affine = np.diag([1,2,3,1])
-        affine[:3,3] = [10,11,12]
+    # The behavior is changing soon, change signaled by FutureWarnings
+    # This is the call to get the old behavior
+    old_a2h = partial(tv.aff_to_hdr, pos_vox=False, set_order=False)
+    hdr = {'version': 1}
+    affine = np.diag([1,2,3,1])
+    affine[:3,3] = [10,11,12]
+    old_a2h(affine, hdr)
+    assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), affine)
+    # put flip into affine
+    aff2 = affine.copy()
+    aff2[:,2] *=-1
+    old_a2h(aff2, hdr)
+    # Historically we flip the first axis if there is a negative determinant
+    assert_array_almost_equal(hdr['voxel_size'], [-1,2,3])
+    assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), aff2)
+    # Test that default mode raises DeprecationWarning
+    with ErrorWarnings():
+        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr)
+        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, None)
+        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, False, None)
+        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, False)
+    # And has same effect as above
+    with IgnoreWarnings():
         tv.aff_to_hdr(affine, hdr)
-        assert_array_almost_equal(tv.aff_from_hdr(hdr), affine)
-        # put flip into affine
-        aff2 = affine.copy()
-        aff2[:,2] *=-1
-        tv.aff_to_hdr(aff2, hdr)
-        assert_array_almost_equal(tv.aff_from_hdr(hdr), aff2)
-        if version == 2:
-            assert_array_almost_equal(hdr['vox_to_ras'], aff2)
+    assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), affine)
+    # Check pos_vox and order flags
+    for hdr in ({}, {'version':2}, {'version':1}):
+        tv.aff_to_hdr(aff2, hdr, pos_vox=True, set_order=False)
+        assert_array_equal(hdr['voxel_size'], [1, 2, 3])
+        assert_false('voxel_order' in hdr)
+        tv.aff_to_hdr(aff2, hdr, pos_vox=False, set_order=True)
+        assert_array_equal(hdr['voxel_size'], [-1, 2, 3])
+        assert_equal(hdr['voxel_order'], 'RAI')
+        tv.aff_to_hdr(aff2, hdr, pos_vox=True, set_order=True)
+        assert_array_equal(hdr['voxel_size'], [1, 2, 3])
+        assert_equal(hdr['voxel_order'], 'RAI')
+        if 'version' in hdr and hdr['version'] == 1:
+            assert_false('vox_to_ras' in hdr)
+        else:
+            assert_array_equal(hdr['vox_to_ras'], aff2)
 
 
 def test_tv_class():
@@ -236,19 +303,28 @@ def test_tv_class():
     # check that we check input values
     out_f.truncate(0); out_f.seek(0)
     assert_raises(tv.HeaderError,
-                        tv.TrackvisFile,
-                        [],{'id_string':'not OK'})
+                  tv.TrackvisFile,
+                  [],{'id_string':'not OK'})
     assert_raises(tv.HeaderError,
-                        tv.TrackvisFile,
-                        [],{'version': 3})
+                  tv.TrackvisFile,
+                  [],{'version': 3})
     assert_raises(tv.HeaderError,
-                        tv.TrackvisFile,
-                        [],{'hdr_size':0})
+                  tv.TrackvisFile,
+                  [],{'hdr_size':0})
     affine = np.diag([1,2,3,1])
     affine[:3,3] = [10,11,12]
-    tvf.set_affine(affine)
-    assert_true(np.all(tvf.get_affine() == affine))
+    # affine methods will raise same warnings and errors as function
+    with ErrorWarnings():
+        assert_raises(FutureWarning, tvf.set_affine, affine)
+        assert_raises(FutureWarning, tvf.set_affine, affine, None, None)
+        assert_raises(FutureWarning, tvf.set_affine, affine, False, None)
+        assert_raises(FutureWarning, tvf.set_affine, affine, None, False)
+        assert_raises(FutureWarning, tvf.get_affine)
+        assert_raises(FutureWarning, tvf.get_affine, None)
+    tvf.set_affine(affine, pos_vox=True, set_order=True)
+    aff = tvf.get_affine(atleast_v2=True)
+    assert_array_almost_equal(aff, affine)
     # Test that we raise an error with an iterator
     assert_raises(tv.TrackvisFileError,
-                        tv.TrackvisFile,
-                        iter([]))
+                  tv.TrackvisFile,
+                  iter([]))
