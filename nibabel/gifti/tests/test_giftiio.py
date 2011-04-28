@@ -12,18 +12,15 @@ from os.path import join as pjoin, dirname
 
 import numpy as np
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
-from nose.tools import assert_true, assert_false, \
-     assert_equal, assert_raises
-
-try:
-    import nibabel.gifti as gi
-except ImportError:
-    from nose import SkipTest
-    raise SkipTest
+from ... import gifti as gi
+from ...nifti1 import xform_codes
 
 from ...tmpdirs import InTemporaryDirectory
+
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+
+from nose.tools import (assert_true, assert_false, assert_equal,
+                        assert_raises)
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -129,8 +126,8 @@ def test_dataarray1():
     assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
     
     assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
-    assert_equal(gi.xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
-    assert_equal(gi.xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
+    assert_equal(xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
+    assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
 
 def test_dataarray2():
     img2 = gi.read(DATA_FILE2)

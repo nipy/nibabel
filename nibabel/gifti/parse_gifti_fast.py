@@ -93,7 +93,11 @@ class Outputter(object):
         self.write_to = None
         self.img = None
 
+        # Collecting char buffer fragments
+        self._char_blocks = None
+
     def StartElementHandler(self, name, attrs):
+        self.flush_chardata()
         if DEBUG_PRINT:
             print 'Start element:\n\t', repr(name), attrs
         if name == 'GIFTI':
@@ -195,6 +199,7 @@ class Outputter(object):
             self.write_to = 'Data'
 
     def EndElementHandler(self, name):
+        self.flush_chardata()
         if DEBUG_PRINT:
             print 'End element:\n\t', repr(name)
         if name == 'GIFTI':
@@ -249,6 +254,30 @@ class Outputter(object):
             self.write_to = None
 
     def CharacterDataHandler(self, data):
+        """ Collect character data chunks pending collation
+
+        The parser breaks the data up into chunks of size depending on the
+        buffer_size of the parser.  A large bit of character data, with standard
+        parser buffer_size (such as 8K) can easily span many calls to this
+        function.  We thus collect the chunks and process them when we hit start
+        or end tags.
+        """
+        if self._char_blocks is None:
+            self._char_blocks = []
+        self._char_blocks.append(data)
+
+    def flush_chardata(self):
+        """ Collate and process collected character data
+        """
+        if self._char_blocks is None:
+            return
+        # Just join the strings to get the data.  Maybe there are some memory
+        # optimizations we could do by passing the list of strings to the
+        # read_data_block function.
+        data = ''.join(self._char_blocks)
+        # Reset the char collector
+        self._char_blocks = None
+        # Process data
         if self.write_to == 'Name':
             data = data.strip()
             self.nvpair.name = data
@@ -277,25 +306,40 @@ class Outputter(object):
         elif self.write_to == 'Label':
             self.label.label = data.strip()
 
+    @property
+    def pending_data(self):
+        " True if there is character data pending for processing "
+        return not self._char_blocks is None
 
-def parse_gifti_file(fname, buffer_size = 35000000):
+
+def parse_gifti_file(fname, buffer_size = None):
     """ Parse gifti file named `fname`, return image
 
     Parameters
     ----------
     fname : str
         filename of gifti file
-    buffer_size: int, optional
-        size of read buffer.
+    buffer_size: None or int, optional
+        size of read buffer. None gives default of 35000000 unless on python <
+        2.6, in which case it is read only in the parser.  In that case values
+        other than None cause a ValueError on execution
 
     Returns
     -------
     img : gifti image
     """
+    if buffer_size is None:
+        buffer_sz_val =  35000000
+    else:
+        buffer_sz_val = buffer_size
     datasource = open(fname,'rb')
     parser = ParserCreate()
     parser.buffer_text = True
-    parser.buffer_size = buffer_size
+    try:
+        parser.buffer_size = buffer_sz_val
+    except AttributeError:
+        if not buffer_size is None:
+            raise ValueError('Cannot set buffer size for parser')
     HANDLER_NAMES = ['StartElementHandler',
                      'EndElementHandler',
                      'CharacterDataHandler']
@@ -306,6 +350,8 @@ def parse_gifti_file(fname, buffer_size = 35000000):
         parser.ParseFile(datasource)
     except ExpatError:
         print 'An expat error occured while parsing the  Gifti file.'
+    # Reality check for pending data
+    assert out.pending_data is False
     # update filename
     out.img.filename = fname
     return out.img
