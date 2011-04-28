@@ -10,7 +10,17 @@ from StringIO import StringIO
 
 import numpy as np
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
+
+# Decorator to skip tests requiring save / load if scipy not available for mat
+# files
+try:
+    import scipy
+except ImportError:
+    have_scipy = False
+else:
+    have_scipy = True
+scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import Spm99AnalyzeHeader, \
     Spm99AnalyzeImage, HeaderTypeError
@@ -72,25 +82,30 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         fhdr, message, raiser = _log_chk(hdr, 30)
         yield assert_equal(fhdr['scl_slope'], 1)
         yield assert_equal(message, 'scale slope is %s; '
-                           'should !=0 and be finite; '
+                           'should be finite; '
                            'setting scalefactor "scl_slope" to 1' %
                            np.nan)
         yield assert_raises(*raiser)
         dxer = self.header_class.diagnose_binaryblock
         yield assert_equal(dxer(hdr.binaryblock),
                            'scale slope is %s; '
-                           'should !=0 and be finite' % np.nan)
+                           'should be finite' % np.nan)
         hdr['scl_slope'] = np.inf
         # Inf string representation can be odd on windows
         yield assert_equal(dxer(hdr.binaryblock),
                            'scale slope is %s; '
-                           'should !=0 and be finite'
+                           'should be finite'
                            % np.inf)
 
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images
     image_class = Spm99AnalyzeImage
+
+    # Decorating the old way, before the team invented @
+    test_data_hdr_cache = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_data_hdr_cache
+    ))
 
 
 @parametric
@@ -131,13 +146,20 @@ def test_origin_affine():
          [ 0.,  0.,  0.,  1.]])
 
 
-@parametric
 def test_slope_inter():
     hdr = Spm99AnalyzeHeader()
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    hdr.set_slope_inter(2.2)
-    yield assert_array_almost_equal(hdr.get_slope_inter(),
-                                    (2.2, 0.0))
-    hdr.set_slope_inter(None)
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    yield assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.2, 1.1)
+    assert_equal(hdr.get_slope_inter(), (1.0, None))
+    for intup, outup in (((2.0,), (2.0, None)),
+                         ((None,), (None, None)),
+                         ((1.0, None), (1.0, None)),
+                         ((0.0, None), (None, None)),
+                         ((None, 0.0), (None, None))):
+        hdr.set_slope_inter(*intup)
+        assert_equal(hdr.get_slope_inter(), outup)
+        # Check set survives through checking
+        hdr = Spm99AnalyzeHeader.from_header(hdr, check=True)
+        assert_equal(hdr.get_slope_inter(), outup)
+    # Setting not-zero to offset raises error
+    assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
+    assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
+

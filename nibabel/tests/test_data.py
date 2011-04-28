@@ -18,42 +18,34 @@ from ..tmpdirs import TemporaryDirectory
 from .. import data as nibd
 
 from nose import with_setup
+
 from nose.tools import assert_equal, \
     assert_raises, raises
 
+from .test_environment import (setup_environment,
+                               teardown_environment,
+                               DATA_KEY,
+                               USER_KEY)
 
-GIVEN_ENV = {}
-DATA_KEY = 'NIPY_DATA_PATH'
-USER_KEY = 'NIPY_USER_DIR'
+DATA_FUNCS = {}
 
-
-def setup_environment():
-    """Setup test environment for some functions that are tested
-    in this module. In particular this functions stores attributes
-    and other things that we need to stub in some test functions.
-    This needs to be done on a function level and not module level because
-    each testfunction needs a pristine environment.
-    """
-    global GIVEN_ENV
-    GIVEN_ENV['env'] = env.copy()
-    GIVEN_ENV['sys_dir_func'] = nibd.get_nipy_system_dir
-    GIVEN_ENV['path_func'] = nibd.get_data_path
+def setup_data_env():
+    setup_environment()
+    global DATA_FUNCS
+    DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
+    DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
+    DATA_FUNCS['path_func'] = nibd.get_data_path
 
 
-def teardown_environment():
-    """Restore things that were remembered by the setup_environment function
-    """
-    orig_env = GIVEN_ENV['env']
-    for key in env.keys():
-        if key not in orig_env:
-            del env[key]
-    env.update(orig_env)
-    nibd.get_nipy_system_dir = GIVEN_ENV['sys_dir_func']
-    nibd.get_data_path = GIVEN_ENV['path_func']
+def teardown_data_env():
+    teardown_environment()
+    nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
+    nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
+    nibd.get_data_path = DATA_FUNCS['path_func']
 
 
 # decorator to use setup, teardown environment
-with_environment = with_setup(setup_environment, teardown_environment)
+with_environment = with_setup(setup_data_env, teardown_data_env)
 
 
 def test_datasource():
@@ -145,8 +137,10 @@ def test_data_path():
         del env[DATA_KEY]
     if USER_KEY in env:
         del os.environ[USER_KEY]
+    fake_user_dir = '/user/path'
     nibd.get_nipy_system_dir = lambda : ''
-    # now we should only have the default
+    nibd.get_nipy_user_dir = lambda : fake_user_dir
+    # now we should only have anything pointed to in the user's dir
     old_pth = get_data_path()
     # We should have only sys.prefix and, iff sys.prefix == /usr,
     # '/usr/local'.  This last to is deal with Debian patching to
@@ -154,16 +148,15 @@ def test_data_path():
     def_dirs = [pjoin(sys.prefix, 'share', 'nipy')]
     if sys.prefix == '/usr':
         def_dirs.append(pjoin('/usr/local', 'share', 'nipy'))
-    home_nipy = pjoin(os.path.expanduser('~'), '.nipy')
-    yield assert_equal, old_pth, def_dirs + [home_nipy]
+    assert_equal(old_pth, def_dirs + ['/user/path'])
     # then we'll try adding some of our own
     tst_pth = '/a/path' + os.path.pathsep + '/b/ path'
     tst_list = ['/a/path', '/b/ path']
     # First, an environment variable
     os.environ[DATA_KEY] = tst_list[0]
-    yield assert_equal, get_data_path(), tst_list[:1] + old_pth
+    assert_equal(get_data_path(), tst_list[:1] + old_pth)
     os.environ[DATA_KEY] = tst_pth
-    yield assert_equal, get_data_path(), tst_list + old_pth
+    assert_equal(get_data_path(), tst_list + old_pth)
     del os.environ[DATA_KEY]
     # Next, make a fake user directory, and put a file in there
     with TemporaryDirectory() as tmpdir:
@@ -171,10 +164,10 @@ def test_data_path():
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s' % tst_pth)
-        os.environ[USER_KEY] = tmpdir
-        yield assert_equal, get_data_path(), tst_list + def_dirs + [tmpdir]
-    del os.environ[USER_KEY]
-    yield assert_equal, get_data_path(), old_pth
+        nibd.get_nipy_user_dir = lambda : tmpdir
+        assert_equal(get_data_path(), tst_list + def_dirs + [tmpdir])
+    nibd.get_nipy_user_dir = lambda : fake_user_dir
+    assert_equal(get_data_path(), old_pth)
     # with some trepidation, the system config files
     with TemporaryDirectory() as tmpdir:
         nibd.get_nipy_system_dir = lambda : tmpdir
@@ -186,8 +179,8 @@ def test_data_path():
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s\n' % '/path/two')
-        yield (assert_equal, get_data_path(),
-               tst_list + ['/path/two'] + old_pth)
+        assert_equal(get_data_path(),
+                     tst_list + ['/path/two'] + old_pth)
 
 
 def test_find_data_dir():

@@ -5,6 +5,7 @@ from StringIO import StringIO
 import numpy as np
 
 from .. import trackvis as tv
+from ..volumeutils import swapped_code
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -41,18 +42,62 @@ def test_write():
            tv.write, out_f, [],{'hdr_size': 0})
 
 
+def test_write_scalars_props():
+    # Test writing of scalar array with streamlines
+    N = 6
+    M = 2
+    P = 4
+    points = np.arange(N*3).reshape((N,3))
+    scalars = np.arange(N*M).reshape((N,M)) + 100
+    props = np.arange(P) + 1000
+    # If scalars not same size for each point, error
+    out_f = StringIO()
+    streams = [(points, None, None),
+               (points, scalars, None)]
+    assert_raises(tv.DataError, tv.write, out_f, streams)
+    out_f.seek(0)
+    streams = [(points, np.zeros((N,M+1)), None),
+               (points, scalars, None)]
+    assert_raises(tv.DataError, tv.write, out_f, streams)
+    # Or if scalars different N compared to points
+    bad_scalars = np.zeros((N+1,M))
+    out_f.seek(0)
+    streams = [(points, bad_scalars, None),
+               (points, bad_scalars, None)]
+    assert_raises(tv.DataError, tv.write, out_f, streams)
+    # Similarly properties must have the same length for each streamline
+    out_f.seek(0)
+    streams = [(points, scalars, None),
+               (points, scalars, props)]
+    assert_raises(tv.DataError, tv.write, out_f, streams)
+    out_f.seek(0)
+    streams = [(points, scalars, np.zeros((P+1,))),
+               (points, scalars, props)]
+    assert_raises(tv.DataError, tv.write, out_f, streams)
+    # If all is OK, then we get back what we put in
+    out_f.seek(0)
+    streams = [(points, scalars, props),
+               (points, scalars, props)]
+    tv.write(out_f, streams)
+    out_f.seek(0)
+    back_streams, hdr = tv.read(out_f)
+    for actual, expected in zip(streams, back_streams):
+        for a_el, e_el in zip(actual, expected):
+            assert_array_equal(a_el, e_el)
+
+
 def streams_equal(stream1, stream2):
-    if not np.all(stream1[0] == stream1[0]):
+    if not np.all(stream1[0] == stream2[0]):
         return False
     if stream1[1] is None:
         if not stream2[1] is None:
-            return false
+            return False
     if stream1[2] is None:
         if not stream2[2] is None:
-            return false
-    if not np.all(stream1[1] == stream1[1]):
+            return False
+    if not np.all(stream1[1] == stream2[1]):
         return False
-    if not np.all(stream1[2] == stream1[2]):
+    if not np.all(stream1[2] == stream2[2]):
         return False
     return True
 
@@ -72,6 +117,12 @@ def test_round_trip():
     xyz1 = np.tile(np.arange(5).reshape(5,1) + 10, (1, 3))
     streams = [(xyz0, None, None), (xyz1, None, None)]
     tv.write(out_f, streams, {})
+    out_f.seek(0)
+    streams2, hdr = tv.read(out_f)
+    assert_true(streamlist_equal(streams, streams2))
+    # test that we can write in different endianness and get back same result
+    out_f.seek(0)
+    tv.write(out_f, streams, {}, swapped_code)
     out_f.seek(0)
     streams2, hdr = tv.read(out_f)
     assert_true(streamlist_equal(streams, streams2))

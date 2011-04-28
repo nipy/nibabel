@@ -550,6 +550,11 @@ class AnalyzeHeader(object):
     def data_from_fileobj(self, fileobj):
         ''' Read scaled data array from `fileobj`
 
+        Use this routine to get the scaled image data from an image file
+        `fileobj`, given a header `self`.  "Scaled" means, with any header
+        scaling factors applied to the raw data in the file.  Use
+        `raw_data_from_fileobj` to get the raw data.
+
         Parameters
         ----------
         fileobj : file-like
@@ -559,12 +564,19 @@ class AnalyzeHeader(object):
         -------
         arr : ndarray
            scaled data array
+
+        Notes
+        -----
+        We use the header to get any scale or intercept values to apply to the
+        data.  Raw Analyze files don't have scale factors or intercepts, but
+        this routine also works with formats based on Analyze, that do have
+        scaling, such as SPM analyze formats and NIfTI.
         '''
         # read unscaled data
         data = self.raw_data_from_fileobj(fileobj)
-        # get scalings from header
+        # get scalings from header.  Value of None means not present in header
         slope, inter = self.get_slope_inter()
-        if slope is None or (slope==1.0 and not inter):
+        if slope is None or (slope==1.0 and (inter is None or inter == 0)):
             return data
         # in-place multiplication and addition on integer types leads to
         # integer output types, and disastrous integer rounding.
@@ -668,10 +680,12 @@ class AnalyzeHeader(object):
         ''' Return items from header data'''
         return zip(self.keys(), self.values())
 
-    def check_fix(self,
-              logger=imageglobals.logger,
-              error_level=imageglobals.error_level):
+    def check_fix(self, logger=None, error_level=None):
         ''' Check header data with checks '''
+        if logger is None:
+            logger = imageglobals.logger
+        if error_level is None:
+            error_level = imageglobals.error_level
         battrun = BatteryRunner(self.__class__._get_checks())
         self, reports = battrun.check_fix(self)
         for report in reports:
@@ -1086,33 +1100,30 @@ class AnalyzeHeader(object):
 
         These are not implemented for basic Analyze
         '''
-        return 1.0, 0.0
+        return None, None
 
-    def set_slope_inter(self, slope, inter=0.0):
+    def set_slope_inter(self, slope, inter=None):
         ''' Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
-        Note that trying to set not-default values raises error for
-        Analyze header - which cannot contain slope or intercept terms.
+        In this case, for Analyze images, we can't store the slope or the
+        intercept, so this method only checks that `slope` is None or 1.0, and
+        that `inter` is None or 0.
 
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is None, we ignore
-           the passed value of `inter`
-        inter : float, optional
-           intercept
+            If float, value must be 1.0 or we raise a ``HeaderTypeError``
+        inter : None or float, optional
+            If float, value must be 0.0 or we raise a ``HeaderTypeError``
         '''
-        if slope is None:
-            slope = 1.0
-            inter = 0.0
-        if slope != 1.0 or inter:
-            raise HeaderTypeError('Cannot set slope or intercept '
-                                  'for Analyze headers')
+        if (slope is None or slope == 1.0) and (inter is None or inter == 0):
+            return
+        raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
+                              'for Analyze headers')
 
     def scaling_from_data(self, data):
         ''' Calculate slope, intercept, min, max from data given header
@@ -1279,44 +1290,38 @@ class AnalyzeImage(SpatialImage):
     def get_shape(self):
         return self._data.shape
 
-    @staticmethod
-    def _get_open_files(file_map, mode='rb'):
-        ''' Utility method to open necessary files for read/write
-
-        This method is to allow for formats (nifti single in particular)
-        that may have the same file for header and image
-        '''
-        hdrf = file_map['header'].get_prepare_fileobj(mode=mode)
-        imgf = file_map['image'].get_prepare_fileobj(mode=mode)
-        return hdrf, imgf
-
-    def _close_filenames(self, file_map, hdrf, imgf):
-        ''' Utility method to close any files no longer required
-
-        Called by the image writing routines.
-
-        This method is to allow for formats (nifti single in particular)
-        that may have the same file for header and image
-        '''
-        if file_map['header'].fileobj is None: # was filename
-            hdrf.close()
-        if file_map['image'].fileobj is None: # was filename
-            imgf.close()
-
     @classmethod
     def from_file_map(klass, file_map):
         ''' class method to create image from mapping in `file_map ``
         '''
-        hdrf, imgf = klass._get_open_files(file_map, 'rb')
+        hdr_fh, img_fh = klass._get_fileholders(file_map)
+        hdrf = hdr_fh.get_prepare_fileobj(mode='rb')
         header = klass.header_class.from_fileobj(hdrf)
-        affine = header.get_best_affine()
+        if hdr_fh.fileobj is None: # was filename
+            hdrf.close()
         hdr_copy = header.copy()
+        imgf = img_fh.fileobj
+        if imgf is None:
+            imgf = img_fh.filename
         data = klass.ImageArrayProxy(imgf, hdr_copy)
-        img = klass(data, affine, header, file_map=file_map)
+        # Initialize without affine to allow header to pass through unmodified
+        img = klass(data, None, header, file_map=file_map)
+        # set affine from header though
+        img._affine = header.get_best_affine()
         img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
+                           'affine': img._affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
+
+    @staticmethod
+    def _get_fileholders(file_map):
+        """ Return fileholder for header and image
+
+        Allows single-file image types to return one fileholder for both types.
+        For Analyze there are two fileholders, one for the header, one for the
+        image.
+        """
+        return file_map['header'], file_map['image']
 
     def _write_header(self, header_file, header, slope, inter):
         ''' Utility routine to write header
@@ -1384,10 +1389,22 @@ class AnalyzeImage(SpatialImage):
         self.update_header()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
-        hdrf, imgf = self._get_open_files(file_map, 'wb')
+        hdr_fh, img_fh = self._get_fileholders(file_map)
+        # Check if hdr and img refer to same file; this can happen with odd
+        # analyze images but most often this is because it's a single nifti file
+        hdr_img_same = hdr_fh.same_file_as(img_fh)
+        hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
+        if hdr_img_same:
+            imgf = hdrf
+        else:
+            imgf = img_fh.get_prepare_fileobj(mode='wb')
         self._write_header(hdrf, hdr, slope, inter)
         self._write_image(imgf, data, hdr, slope, inter, mn, mx)
-        self._close_filenames(file_map, hdrf, imgf)
+        if hdr_fh.fileobj is None: # was filename
+            hdrf.close()
+        if not hdr_img_same:
+            if img_fh.fileobj is None: # was filename
+                imgf.close()
         self._header = hdr
         self.file_map = file_map
 

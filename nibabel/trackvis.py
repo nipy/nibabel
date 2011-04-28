@@ -108,6 +108,7 @@ def read(fileobj, as_generator=False):
           where M is the number of scalars per point
        #. properties : None or ndarray shape (P,)
           where P is the number of properties
+
     hdr : structured array
        structured array with trackvis header fields
 
@@ -125,13 +126,6 @@ def read(fileobj, as_generator=False):
     if str(hdr['id_string'])[:5] != 'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
-    version = hdr['version']
-    if version not in (1, 2):
-        raise HeaderError('Reader only supports versions 1 and 2')
-    if version == 1:
-        hdr = np.ndarray(shape=(),
-                         dtype=header_1_dtype,
-                         buffer=hdr_str)
     if hdr['hdr_size'] == 1000:
         endianness = native_code
     else:
@@ -140,6 +134,16 @@ def read(fileobj, as_generator=False):
             raise HeaderError('Invalid hdr_size of %s'
                               % hdr['hdr_size'])
         endianness = swapped_code
+    # Check version and adapt structure accordingly
+    version = hdr['version']
+    if version not in (1, 2):
+        raise HeaderError('Reader only supports versions 1 and 2')
+    if version == 1: # make a new header with the same data
+        hdr = np.ndarray(shape=(),
+                         dtype=header_1_dtype,
+                         buffer=hdr_str)
+        if endianness == swapped_code:
+            hdr = hdr.newbyteorder()
     n_s = hdr['n_scalars']
     n_p = hdr['n_properties']
     f4dt = np.dtype(endianness + 'f4')
@@ -215,7 +219,9 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
        If `streamlines` has a ``len`` (for example, it is a list or a tuple),
        then we can write the number of streamlines into the header.  Otherwise
        we write 0 for the number of streamlines (a valid trackvis header) and
-       write streamlines into the file until the iterable is exhausted
+       write streamlines into the file until the iterable is exhausted.
+       M - the number of scalars - has to be the same for each streamline in
+       `streamlines`.  Similarly for P.
     hdr_mapping : None, ndarray or mapping, optional
        Information for filling header fields.  Can be something
        dict-like (implementing ``items``) or a structured numpy array
@@ -252,13 +258,13 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
     if not streams0 is None:
         pts, scalars, props = streams0
         # calculate number of scalars
-        if scalars:
+        if not scalars is None:
             n_s = scalars.shape[1]
         else:
             n_s = 0
         hdr['n_scalars'] = n_s
         # calculate number of properties
-        if props:
+        if not props is None:
             n_p = props.size
             hdr['n_properties'] = n_p
         else:
@@ -280,17 +286,23 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None):
         # the endianness is OK.
         if pts.dtype != f4dt:
             pts = pts.astype(f4dt)
-        if n_s:
+        if n_s == 0:
+            if not (scalars is None or len(scalars) == 0):
+                raise DataError('Expecting 0 scalars per point')
+        else:
             if scalars.shape != (n_pts, n_s):
-                raise ValueError('Scalars should be shape (%s, %s)'
+                raise DataError('Scalars should be shape (%s, %s)'
                                  % (n_pts, n_s))
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
                 pts = np.c_[pts, scalars]
         fileobj.write(pts.tostring())
-        if n_p:
+        if n_p == 0:
+            if not (props is None or len(props) == 0):
+                raise DataError('Expecting 0 properties per point')
+        else:
             if props.size != n_p:
-                raise ValueError('Properties should be size %s' % n_p)
+                raise DataError('Properties should be size %s' % n_p)
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())

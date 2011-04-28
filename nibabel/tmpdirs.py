@@ -56,8 +56,9 @@ class InTemporaryDirectory(TemporaryDirectory):
     >>> import os
     >>> my_cwd = os.getcwd()
     >>> with InTemporaryDirectory() as tmpdir:
-    ...     assert os.getcwd() != my_cwd
-    ...     assert os.path.samefile(os.getcwd(), tmpdir)
+    ...     open('test.txt', 'wt').write('some text')
+    ...     assert os.path.isfile('test.txt')
+    ...     assert os.path.isfile(os.path.join(tmpdir, 'test.txt'))
     >>> os.path.exists(tmpdir)
     False
     >>> os.getcwd() == my_cwd

@@ -67,19 +67,56 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         HC = self.header_class
         # intercept and slope
         hdr = HC()
+        # Slope of 0 is OK
         hdr['scl_slope'] = 0
-        fhdr, message, raiser = _log_chk(hdr, 30)
-        yield assert_equal(fhdr['scl_slope'], 1)
-        yield assert_equal(message, '"scl_slope" is 0.0; should !=0 '
-                           'and be finite; setting "scl_slope" to 1')
-        hdr = HC()
-        hdr['scl_inter'] = np.nan # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 0)
+        yield assert_equal((fhdr, message), (hdr, ''))
+        # But not with non-zero intercept
+        hdr['scl_inter'] = 3
+        fhdr, message, raiser = _log_chk(hdr, 20)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           'Unused "scl_inter" is 3.0; should be 0; '
+                           'setting "scl_inter" to 0')
+        # Or not-finite intercept
+        hdr['scl_inter'] = np.nan
         # NaN string representation can be odd on windows
         nan_str = '%s' % np.nan
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = _log_chk(hdr, 20)
         yield assert_equal(fhdr['scl_inter'], 0)
-        yield assert_equal(message, '"scl_inter" is %s; should be '
-                           'finite; setting "scl_inter" to 0' % nan_str)
+        yield assert_equal(message,
+                           'Unused "scl_inter" is %s; should be 0; '
+                           'setting "scl_inter" to 0' % nan_str)
+        # Reset to usable scale
+        hdr['scl_slope'] = 1
+        # not finite inter is more of a problem
+        hdr['scl_inter'] = np.nan # severity 30
+        fhdr, message, raiser = _log_chk(hdr, 40)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is 1.0; but "scl_inter" is %s; '
+                           '"scl_inter" should be finite; setting '
+                           '"scl_inter" to 0' % nan_str)
+        yield assert_raises(*raiser)
+        # Not finite scale also bad, generates message for scale and offset
+        hdr['scl_slope'] = np.nan
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 0)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is nan; should be finite; '
+                           'Unused "scl_inter" is nan; should be 0; '
+                           'setting "scl_slope" to 0 (no scaling); '
+                           'setting "scl_inter" to 0')
+        yield assert_raises(*raiser)
+        # Or just scale if inter is already 0
+        hdr['scl_inter'] = 0
+        fhdr, message, raiser = _log_chk(hdr, 30)
+        yield assert_equal(fhdr['scl_slope'], 0)
+        yield assert_equal(fhdr['scl_inter'], 0)
+        yield assert_equal(message,
+                           '"scl_slope" is nan; should be finite; '
+                           'setting "scl_slope" to 0 (no scaling)')
         yield assert_raises(*raiser)
         # qfac
         hdr = HC()
@@ -168,13 +205,14 @@ def test_quaternion():
     hdr['quatern_b'] = 0
     hdr['quatern_c'] = 0
     hdr['quatern_d'] = 0
-    yield assert_true, np.allclose(hdr.get_qform_quaternion(),
-                       [1.0, 0, 0, 0])
+    assert_true(np.allclose(hdr.get_qform_quaternion(), [1.0, 0, 0, 0]))
     hdr['quatern_b'] = 1
     hdr['quatern_c'] = 0
     hdr['quatern_d'] = 0
-    yield assert_true, np.allclose(hdr.get_qform_quaternion(),
-                       [0, 1, 0, 0])
+    assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
+    # Check threshold set correctly for float32
+    hdr['quatern_b'] = 1+np.finfo(np.float32).eps
+    assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
 
 
 def test_qform():
@@ -185,9 +223,9 @@ def test_qform():
     yield assert_true, np.allclose(A, qA, atol=1e-5)
     yield assert_true, np.allclose(Z, ehdr['pixdim'][1:4])
     xfas = nifti1.xform_codes
-    yield assert_true, ehdr['qform_code'] == xfas['scanner']
-    ehdr.set_qform(A, 'aligned')
     yield assert_true, ehdr['qform_code'] == xfas['aligned']
+    ehdr.set_qform(A, 'scanner')
+    yield assert_true, ehdr['qform_code'] == xfas['scanner']
     ehdr.set_qform(A, xfas['aligned'])
     yield assert_true, ehdr['qform_code'] == xfas['aligned']
 
@@ -199,9 +237,9 @@ def test_sform():
     sA = ehdr.get_sform()
     yield assert_true, np.allclose(A, sA, atol=1e-5)
     xfas = nifti1.xform_codes
-    yield assert_true, ehdr['sform_code'] == xfas['scanner']
-    ehdr.set_sform(A, 'aligned')
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
+    ehdr.set_sform(A, 'scanner')
+    yield assert_true, ehdr['sform_code'] == xfas['scanner']
     ehdr.set_sform(A, xfas['aligned'])
     yield assert_true, ehdr['sform_code'] == xfas['aligned']
 
@@ -368,28 +406,27 @@ def test_set_slice_times():
     yield assert_equal(hdr['slice_code'], 6)
 
 
-@parametric
 def test_nifti1_images():
     shape = (2, 4, 6)
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
-    yield assert_equal(img.get_shape(), shape)
+    assert_equal(img.get_shape(), shape)
     img.set_data_dtype(npt)
     stio = StringIO()
     img.file_map['image'].fileobj = stio
     img.to_file_map()
     img2 = Nifti1Image.from_file_map(img.file_map)
-    yield assert_array_equal(img2.get_data(), data)
+    assert_array_equal(img2.get_data(), data)
     with InTemporaryDirectory() as tmpdir:
         for ext in ('.gz', '.bz2'):
             fname = os.path.join(tmpdir, 'test.nii' + ext)
             img.to_filename(fname)
             img3 = Nifti1Image.load(fname)
-            yield assert_true(isinstance(img3, img.__class__))
-            yield assert_array_equal(img3.get_data(), data)
-            yield assert_equal(img3.get_header(), img.get_header())
+            assert_true(isinstance(img3, img.__class__))
+            assert_array_equal(img3.get_data(), data)
+            assert_equal(img3.get_header(), img.get_header())
             # del to avoid windows errors of form 'The process cannot
             # access the file because it is being used'
             del img3
@@ -490,19 +527,21 @@ def test_loadsave_cycle():
     assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
 
-@parametric
 def test_slope_inter():
     hdr = Nifti1Header()
-    yield assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    hdr.set_slope_inter(2.2)
-    yield assert_array_almost_equal(hdr.get_slope_inter(),
-                                    (2.2, 0.0))
-    hdr.set_slope_inter(None)
-    yield assert_equal(hdr.get_slope_inter(),
-                       (1.0, 0.0))
-    hdr.set_slope_inter(2.2, 1.1)
-    yield assert_array_almost_equal(hdr.get_slope_inter(),
-                                    (2.2, 1.1))
+    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+    for intup, outup in (((2.0,), (2.0, 0.0)),
+                         ((None,), (None, None)),
+                         ((3.0, None), (3.0, 0.0)),
+                         ((0.0, None), (None, None)),
+                         ((None, 0.0), (None, None)),
+                         ((None, 3.0), (None, None)),
+                         ((2.0, 3.0), (2.0, 3.0))):
+        hdr.set_slope_inter(*intup)
+        assert_equal(hdr.get_slope_inter(), outup)
+        # Check set survives through checking
+        hdr = Nifti1Header.from_header(hdr, check=True)
+        assert_equal(hdr.get_slope_inter(), outup)
 
 
 @parametric
@@ -531,4 +570,88 @@ def test_recoded_fields():
     hdr['slice_code'] = 4 # alternating decreasing
     yield assert_equal(hdr.get_value_label('slice_code'),
                        'alternating decreasing')
+
+
+def test_load():
+    # test module level load.  We try to load a nii and an .img and a .hdr and
+    # expect to get a nifti back of single or pair type
+    arr = np.arange(24).reshape((2,3,4))
+    aff = np.diag([2, 3, 4, 1])
+    simg = Nifti1Image(arr, aff)
+    pimg = Nifti1Pair(arr, aff)
+    with InTemporaryDirectory():
+        nifti1.save(simg, 'test.nii')
+        assert_array_equal(arr, nifti1.load('test.nii').get_data())
+        nifti1.save(simg, 'test.img')
+        assert_array_equal(arr, nifti1.load('test.img').get_data())
+        nifti1.save(simg, 'test.hdr')
+        assert_array_equal(arr, nifti1.load('test.hdr').get_data())
+
+
+def test_load_pixdims():
+    # Make sure load preserves separate qform, pixdims, sform
+    arr = np.arange(24).reshape((2,3,4))
+    qaff = np.diag([2, 3, 4, 1])
+    saff = np.diag([5, 6, 7, 1])
+    hdr = Nifti1Header()
+    hdr.set_qform(qaff)
+    assert_array_equal(hdr.get_qform(), qaff)
+    hdr.set_sform(saff)
+    assert_array_equal(hdr.get_sform(), saff)
+    simg = Nifti1Image(arr, None, hdr)
+    img_hdr = simg.get_header()
+    # Check qform, sform, pixdims are the same
+    assert_array_equal(img_hdr.get_qform(), qaff)
+    assert_array_equal(img_hdr.get_sform(), saff)
+    assert_array_equal(img_hdr.get_zooms(), [2,3,4])
+    # Save to stringio
+    fm = Nifti1Image.make_file_map()
+    fm['image'].fileobj = StringIO()
+    simg.to_file_map(fm)
+    # Load again
+    re_simg = Nifti1Image.from_file_map(fm)
+    assert_array_equal(re_simg.get_data(), arr)
+    # Check qform, sform, pixdims are the same
+    rimg_hdr = re_simg.get_header()
+    assert_array_equal(rimg_hdr.get_qform(), qaff)
+    assert_array_equal(rimg_hdr.get_sform(), saff)
+    assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
+
+
+def test_affines_init():
+    # Test we are doing vaguely spec-related qform things.  The 'spec' here is
+    # some thoughts by Mark Jenkinson:
+    # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
+    arr = np.arange(24).reshape((2,3,4))
+    aff = np.diag([2, 3, 4, 1])
+    # Default is sform set, qform not set
+    img = Nifti1Image(arr, aff)
+    hdr = img.get_header()
+    assert_equal(hdr['qform_code'], 0)
+    assert_equal(hdr['sform_code'], 2)
+    assert_array_equal(hdr.get_zooms(), [2, 3, 4])
+    # This is also true for affines with header passed
+    qaff = np.diag([3, 4, 5, 1])
+    saff = np.diag([6, 7, 8, 1])
+    hdr.set_qform(qaff, code='scanner')
+    hdr.set_sform(saff, code='talairach')
+    assert_array_equal(hdr.get_zooms(), [3, 4, 5])
+    img = Nifti1Image(arr, aff, hdr)
+    new_hdr = img.get_header()
+    # Again affine is sort of anonymous space
+    assert_equal(new_hdr['qform_code'], 0)
+    assert_equal(new_hdr['sform_code'], 2)
+    assert_array_equal(new_hdr.get_sform(), aff)
+    assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
+    # But if no affine passed, codes and matrices stay the same
+    img = Nifti1Image(arr, None, hdr)
+    new_hdr = img.get_header()
+    assert_equal(new_hdr['qform_code'], 1) # scanner
+    assert_array_equal(new_hdr.get_qform(), qaff)
+    assert_equal(new_hdr['sform_code'], 3) # Still talairach
+    assert_array_equal(new_hdr.get_sform(), saff)
+    # Pixdims as in the original header
+    assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
+
+
 
