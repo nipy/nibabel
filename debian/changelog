@@ -1,3 +1,17 @@
+nibabel (1.0.2-1) unstable; urgency=low
+
+  * Fresh bugfix upstream release
+  * debian/copyright:
+    - changes to confirm to DEP5 rev 174
+    - added myself
+    - updated years
+  * debian/control:
+    - boosted policy compliance to 3.9.2 (no changes)
+    - purged DM-Upload-Allowed (no need any more)
+    - slight tune up of the long description
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 28 Apr 2011 10:27:22 -0400
+
 nibabel (1.0.0-1) unstable; urgency=low
 
   * Initial release (Closes: #600275).
