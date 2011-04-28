@@ -7,7 +7,7 @@ import itertools
 import numpy as np
 import numpy.linalg as npl
 
-from .py3k import asbytes
+from .py3k import asbytes, asstr
 from .volumeutils import (native_code, swapped_code, endian_codes,
                           allopen, rec2dict)
 from .orientations import aff2axcodes
@@ -464,13 +464,13 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError('Affine zooms %s differ from voxel_size '
                               'field value %s' % (aff_zooms, zooms))
         aff_order = ''.join(aff2axcodes(affine))
-        voxel_order = hdr['voxel_order']
+        voxel_order = asstr(np.asscalar(hdr['voxel_order']))
         if voxel_order == '':
             voxel_order = 'LPS' # trackvis default
         if not voxel_order == aff_order:
             raise HeaderError('Affine implies voxel_order %s but '
                               'header voxel_order is %s' %
-                              (aff_order, hdr['voxel_order']))
+                              (aff_order, voxel_order))
     else:
         raise ValueError('Painfully confusing "points_space" value of "%s"'
                          % points_space)
@@ -627,7 +627,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     aff = np.dot(DPCS_TO_TAL, aff)
     # Next we check against the 'voxel_order' field if present and not empty.
     try:
-        voxel_order = trk_hdr['voxel_order']
+        voxel_order = asstr(np.asscalar(trk_hdr['voxel_order']))
     except KeyError, ValueError:
         voxel_order = ''
     if voxel_order == '':

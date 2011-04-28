@@ -373,7 +373,7 @@ def test_get_affine():
                        exp_aff)
     # check against voxel order.  This one works
     hdr['voxel_order'] = ''.join(aff2axcodes(exp_aff))
-    assert_equal(hdr['voxel_order'], 'RAS')
+    assert_equal(hdr['voxel_order'], asbytes('RAS'))
     assert_array_equal(old_afh(hdr), exp_aff)
     # This one doesn't
     hdr['voxel_order'] = 'LAS'
@@ -393,7 +393,7 @@ def test_get_affine():
         tv.aff_to_hdr(in_aff, hdr, pos_vox=True, set_order=True)
         # Unset easier option
         hdr['vox_to_ras'] = 0
-        assert_equal(hdr['voxel_order'], o_codes)
+        assert_equal(hdr['voxel_order'], asbytes(o_codes))
         # Check it came back the way we wanted
         assert_array_equal(old_afh(hdr), in_aff)
     # Check that the default case matches atleast_v2=False case
