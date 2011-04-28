@@ -1,5 +1,5 @@
 .. -*- mode: rst -*-
-.. vim:syntax=rest
+.. vim:syntax=rst
 
 .. _changelog:
 
@@ -23,8 +23,48 @@ Releases
 NiBabel
 +++++++
 
-Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
-(MH).
+Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
+(MH) and Stephan Gerhard (SG).
+
+* 1.1.0 (Thursday 28 April 2011)
+
+  * New feature release
+  * Python 3.2 support
+  * Substantially enhanced gifti reading support (SG)
+  * Refactoring of trackvis read / write to allow reading and writing of voxel
+    points and mm points in tracks.  Deprecate use of negative voxel sizes;
+    set voxel_order field in trackvis header.  Thanks to Chris Filo
+    Gorgolewski for pointing out the problem and Ruopeng Wang in the trackvis
+    forum for clarifying the coordinate system of trackvis files.
+  * Added routine to give approximate array orientation in form such as 'RAS'
+    or 'LPS'
+  * Bug fixes as for 1.0.2
+
+* 1.0.2 (Thursday 14 April 2011)
+
+  * Bugfix release
+  * Make inference of data type more robust to changes in numpy dtype hashing
+  * Fix incorrect thresholds in quaternion calculation (thanks to Yarik H for
+    pointing this one out)
+  * Make parrec2nii pass over errors more gracefully
+  * More explicit checks for missing or None field in trackvis and other
+    classes - thanks to Marc-Alexandre Cote
+  * Make logging and error level work as expected - thanks to Yarik H
+  * Loading an image does not change qform or sform - thanks to Yarik H
+  * Allow 0 for nifti scaling as for spec - thanks to Yarik H
+  * nifti1.save now correctly saves single or pair images
+
+* 1.0.1 (Wednesday 23 Feb 2011)
+
+  * Bugfix release
+  * Fix bugs in tests for data package paths
+  * Fix leaks of open filehandles when loading images (thanks to Gael
+    Varoquaux for the report)
+  * Skip rw tests for SPM images when scipy not installed
+  * Fix various windows-specific file issues for tests
+  * Fix incorrect reading of byte-swapped trackvis files
+  * Workaround for odd numpy dtype comparisons leading to header errors for
+    some loaded images (thanks to Cindee Madison for the report)
 
 * 1.0.0 (Thursday, 13, Oct 2010)
 
