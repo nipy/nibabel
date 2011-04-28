@@ -1,4 +1,6 @@
 ''' Testing trackvis module '''
+from __future__ import with_statement
+
 from functools import partial
 
 import numpy as np
