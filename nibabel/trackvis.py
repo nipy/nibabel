@@ -400,7 +400,7 @@ def empty_header(endianness=None, version=2):
 
     Notes
     -----
-    The trackviz header can store enough information to give an affine
+    The trackvis header can store enough information to give an affine
     mapping between voxel and world space.  Often this information is
     missing.  We make no attempt to fill it with sensible defaults on
     the basis that, if the information is missing, it is better to be
@@ -509,7 +509,7 @@ class TrackvisFileError(Exception):
 
 
 class TrackvisFile(object):
-    ''' Convenience class to encapsulate trackviz file information
+    ''' Convenience class to encapsulate trackvis file information
 
     Parameters
     ----------
