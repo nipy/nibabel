@@ -17,7 +17,7 @@ NOSETESTS = $(PYTHON) $(shell which nosetests)
 PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 DISTUTILS_PLATFORM := \
 	$(shell \
-		$(PYTHON) -c "import distutils.util; print distutils.util.get_platform()")
+		$(PYTHON) -c "import distutils.util; print(distutils.util.get_platform())")
 
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
@@ -249,6 +249,14 @@ bdist-egg-tests:
 source-release: clean
 	python -m compileall .
 	python setup.py sdist --formats=gztar,zip
+
+venv-tests:
+	# I use this for python2.5 because the sdist-tests target doesn't work
+	# (the tester routine uses a 2.6 feature)
+	make distclean
+	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
+	python setup.py install
+	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 
 .PHONY: orig-src pylint
 
