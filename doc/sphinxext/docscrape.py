@@ -8,7 +8,7 @@ import re
 import pydoc
 from StringIO import StringIO
 from warnings import warn
-4
+
 class Reader(object):
     """A line-based string reader.
 
@@ -112,7 +112,7 @@ class NumpyDocString(object):
     def __getitem__(self,key):
         return self._parsed_data[key]
 
-    def __setitem__(self,key,val)
+    def __setitem__(self,key,val):
         if not key in self._parsed_data:
             warn("Unknown section %s" % key)
         else:
