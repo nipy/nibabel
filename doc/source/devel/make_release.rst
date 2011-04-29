@@ -68,31 +68,6 @@ Release checklist
     nosetests --with-doctest nibabel
     cd nibabel # back to the root directory
 
-* You probably have virtualenvs for different python versions.  Check the tests
-  pass for different python versions.  Here's what that looks like for my
-  virtualenv / virtualenvwrapper setup::
-
-    cd ..
-    workon python25
-    nosetests --with-doctest nibabel
-    deactivate
-    workon python27
-    nosetests --with-doctest nibabel
-    deactivate
-    cd nibabel # back to root directory
-
-* Check on different platforms, particularly windows and PPC
-
-* Check the documentation doctests::
-
-    cd doc
-    make doctest
-    cd ..
-
-  At the moment this generates lots of errors from the autodoc documentation
-  running the doctests in the code, where the doctests pass when run in nose -
-  we should find out why this is at some point, but leave it for now.
-
 * Make sure all tests pass from sdist::
 
     make sdist-tests
@@ -116,9 +91,57 @@ Release checklist
     /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
     {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
 
+* You probably have virtualenvs for different python versions.  Check the tests
+  pass for different configurations.  Here's what that looks like for my
+  virtualenv / virtualenvwrapper setup::
+
+    workon python25
+    make venv-tests # can't use sdist-tests for python 2.5
+    deactivate
+    workon python26
+    make sdist-tests
+    deactivate
+    workon python27
+    make sdist-tests
+    deactivate
+    workon python3.2
+    make sdist-tests
+    deactivate
+    workon np-1.2.1
+    make venv-tests # python 2.5 again
+    deactivate
+
+* Check on different platforms, particularly windows and PPC.  I have wine
+  installed on my Mac, and git bash installed under wine.  I run these via a
+  custom script thus::
+
+    winebash
+    # in wine bash
+    make sdist-tests
+
+  For the PPC I have to log into an old Mac G5 in Berkeley.  It doesn't have a
+  fixed IP even, but here's an example::
+
+    ssh 128.32.52.219
+    cd dev_trees/nibabel
+    git co main-master
+    git pull
+    make sdist-tests
+
+* Check the documentation doctests::
+
+    cd doc
+    make doctest
+    cd ..
+
+  At the moment this generates lots of errors from the autodoc documentation
+  running the doctests in the code, where the doctests pass when run in nose -
+  we should find out why this is at some point, but leave it for now.
+
 * The release should now be ready.
 
-* Edit :file:`nibabel/info.py` to set ``_version_extra`` to ``''``; commit
+* Edit :file:`nibabel/info.py` to set ``_version_extra`` to ``''``; commit.
+  Then::
 
     make distclean
     make source-release
@@ -129,9 +152,9 @@ Release checklist
     python setup.py register
     python setup.py sdist --formats=gztar,zip upload
 
-* Tag the release with tag of form ``0.5.0``::
+* Tag the release with tag of form ``1.1.0``::
 
-    git tag -am 'First public release' 0.5.0
+    git tag -am 'Second main release' 1.1.0
 
 * Now the version number is OK, push the docs to sourceforge with::
 
