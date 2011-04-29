@@ -70,7 +70,7 @@ class Recoder(object):
     >>> recodes[2]
     2
     '''
-    def __init__(self, codes, fields=('code',)):
+    def __init__(self, codes, fields=('code',), map_maker=dict):
         ''' Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
@@ -92,8 +92,12 @@ class Recoder(object):
         codes : seqence of sequences
             Each sequence defines values (codes) that are equivalent
         fields : {('code',) string sequence}, optional
-            names by which elements in sequences can be accesssed
-
+            names by which elements in sequences can be accessed
+        map_maker: callable, optional
+            constructor for dict-like objects used to store key value pairs.
+            Default is ``dict``.  ``map_maker()`` generates an empty mapping.
+            The mapping need only implement ``__getitem__, __setitem__, keys,
+            values``.
         '''
         self.fields = tuple(fields)
         self.field1 = {} # a placeholder for the check below
@@ -101,7 +105,7 @@ class Recoder(object):
             if name in self.__dict__:
                 raise KeyError('Input name %s already in object dict'
                                % name)
-            self.__dict__[name] = {}
+            self.__dict__[name] = map_maker()
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
 
@@ -153,7 +157,11 @@ class Recoder(object):
     def __contains__(self, key):
         """ True if field1 in recoder contains `key`
         """
-        return key in self.field1
+        try:
+            self.field1[key]
+        except KeyError:
+            return False
+        return True
 
     def keys(self):
         ''' Return all available code and alias values
@@ -191,7 +199,6 @@ class Recoder(object):
         >>> rc = Recoder(codes, fields=('code', 'label'))
         >>> rc.value_set('label') == set(('one', 'two', 'repeat value'))
         True
-
         '''
         if name is None:
             d = self.field1
@@ -202,6 +209,59 @@ class Recoder(object):
 
 # Endian code aliases
 endian_codes = Recoder(endian_codes)
+
+
+class DtypeMapper(object):
+    """ Specialized mapper for numpy dtypes
+
+    We pass this mapper into the Recoder class to deal with numpy dtype hashing.
+
+    The hashing problem is that dtypes that compare equal may not have the same
+    hash.  This is true for numpys up to the current at time of writing (1.6.0).
+    For numpy 1.2.1 at least, even dtypes that look exactly the same in terms of
+    fields don't always have the same hash.  This makes dtypes difficult to use
+    as keys in a dictionary.
+
+    This class wraps a dictionary in order to implement a __getitem__ to deal
+    with dtype hashing. If the key doesn't appear to be in the mapping, and it
+    is a dtype, we compare (using ==) all known dtype keys to the input key, and
+    return any matching values for the matching key.
+    """
+    def __init__(self):
+        self._dict = {}
+        self._dtype_keys = []
+
+    def keys(self):
+        return self._dict.keys()
+
+    def values(self):
+        return self._dict.values()
+
+    def __setitem__(self, key, value):
+        """ Set item into mapping, checking for dtype keys
+
+        Cache dtype keys for comparison test in __getitem__
+        """
+        self._dict[key] = value
+        if hasattr(key, 'subdtype'):
+            self._dtype_keys.append(key)
+
+    def __getitem__(self, key):
+        """ Get item from mapping, checking for dtype keys
+
+        First do simple hash lookup, then check for a dtype key that has failed
+        the hash lookup.  Look then for any known dtype keys that compare equal
+        to `key`.
+        """
+        try:
+            return self._dict[key]
+        except KeyError:
+            pass
+        if hasattr(key, 'subdtype'):
+            for dt in self._dtype_keys:
+                if key == dt:
+                    return self._dict[dt]
+        raise KeyError(key)
 
 
 def pretty_mapping(mapping, getterfunc=None):
@@ -265,7 +325,7 @@ def pretty_mapping(mapping, getterfunc=None):
 
 
 def make_dt_codes(codes_seqs):
-    ''' Create full dt codes object from datatype codes
+    ''' Create full dt codes Recoder instance from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
     numpy dtype
@@ -299,23 +359,10 @@ def make_dt_codes(codes_seqs):
             raise ValueError('Sequences must all have the same length')
         np_type = seq[2]
         this_dt = np.dtype(np_type)
-        code_syns = list(seq)
-        dtypes = [this_dt]
-        # intp type is effectively same as int32 on 32 bit and int64 on 64 bit.
-        # They compare equal, but in some (all?) numpy versions, they may hash
-        # differently.  If so we need to add them
-        if this_dt == intp_dt and hash(this_dt) != hash(intp_dt):
-            dtypes.append(intp_dt)
-        # To satisfy an oddness in numpy dtype hashing, we need to add the dtype
-        # with explicit native order as well as the default dtype (=) order
-        for dt in dtypes:
-            code_syns +=[dt,
-                         dt.newbyteorder(native_code),
-                         dt.newbyteorder(swapped_code)]
+        # Add swapped dtype to synonyms
+        code_syns = list(seq) + [this_dt, this_dt.newbyteorder(swapped_code)]
         dt_codes.append(code_syns)
-    return Recoder(dt_codes, fields + ['dtype',
-                                       'native_dtype',
-                                       'sw_dtype'])
+    return Recoder(dt_codes, fields + ['dtype', 'sw_dtype'], DtypeMapper)
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):

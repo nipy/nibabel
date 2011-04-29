@@ -298,7 +298,7 @@ def test_dtypes():
     # check we have the fields we were expecting
     assert_equal(dtr.value_set(), set((16,)))
     assert_equal(dtr.fields, ('code', 'label', 'type',
-                              'dtype', 'native_dtype', 'sw_dtype'))
+                              'dtype', 'sw_dtype'))
     # These of course should pass regardless of dtype
     assert_equal(dtr[np.float32], 16)
     assert_equal(dtr['float32'], 16)
@@ -314,13 +314,13 @@ def test_dtypes():
     assert_equal(dtr[np.dtype('f4').newbyteorder('S')], 16)
     assert_equal(dtr.value_set(), set((16,)))
     assert_equal(dtr.fields, ('code', 'label', 'type', 'niistring',
-                              'dtype', 'native_dtype', 'sw_dtype'))
+                              'dtype', 'sw_dtype'))
     assert_equal(dtr.niistring[16], 'ASTRING')
     # And that unequal elements raises error
     dt_defs = ((16, 'float32', np.float32, 'ASTRING'),
                (16, 'float32', np.float32))
     assert_raises(ValueError, make_dt_codes, dt_defs)
-    # And that 2 or 5 elements raises error 
+    # And that 2 or 5 elements raises error
     dt_defs = ((16, 'float32'),)
     assert_raises(ValueError, make_dt_codes, dt_defs)
     dt_defs = ((16, 'float32', np.float32, 'ASTRING', 'ANOTHERSTRING'),)
