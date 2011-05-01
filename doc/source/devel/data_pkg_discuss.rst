@@ -1,10 +1,12 @@
 .. _data-package-discuss:
 
+#############################
 Principles of data package NG
-=============================
+#############################
 
+**********
 Motivation
-++++++++++
+**********
 
 When developing or using nipy, many data files can be useful.
 
@@ -23,15 +25,16 @@ We need some standard way to provide the larger data sets.  To do this, we are
 here defining the idea of a *data package*.  This document is a draft
 specification of what a *data package* looks like and how to use it.
 
+*******************
 Separation of ideas
-+++++++++++++++++++
+*******************
 
 This section needs some healthy beating to make the ideas clearer.  However, in
 the interests of the 0SAGA_ software model, here are some ideas that may be
 separable.
 
 Package
--------
+=======
 
 This ideas is rather difficult to define, but is a bit like a data project, that
 is a set of information that the packager believed had something in common.  The
@@ -41,128 +44,208 @@ bit like a namespace, having itself no content other than a string (the package
 name) and the data it contains.
 
 Package name
-------------
+============
 
 This is a string that gives a name to the package.
 
 Package instantiation
----------------------
+=====================
 
-By *instantiation* I mean some particular actual set of data for a particular
-package.  By actual, I mean stuff that can be read as bytes.  As we add and
-remove data from the package, the *instantiation* changes.  This is the same
-kind of idea as a *revision* in version control. An instantiation does not need
-to be released, any more than a particular revision of some software needs to be
-released.  This is what datapkg_ refers to a as a *distribution*.
+By *instantiation* we mean some particular actual set of data for a particular
+package.  By actual, we mean stuff that can be read as bytes.  As we add and
+remove data from the package, the *instantiation* changes.  In version control,
+the instantiation would be the particular state of the working tree at any
+moment, whether this has been committed or not.
 
-Package instantiation identifier
---------------------------------
+Package revision
+================
 
-The *instantiation identifier* is a string that identifies a particular
-instantiation of the data package.  This is the equivalent of the revision
-number in subversion_, or the commit hash in newer systems like git_ or
-mercurial_.
+A revision is an instantiation of the working tree that has a unique label - the
+*revision id*.
 
-Package instantiation label
----------------------------
+Package revision id
+===================
 
-A *label* is a string that refers to particular state (instantiation) of the
-package.  It will probably therefore also refer to a particular *instantiation
-identifier*.  It is like a tag or a branch name in git_, that is, it is a
-memorable string that refers to a state of the data.  An example might be a
-numbered version.  So, a particular package may have an instantiation uniquely
-identified by a hash ``af5bd6``.  We might decide to label this instantiation
-``release-0.3`` (the equivalent of applying a git_ tag).  ``release-0.3`` is the
-label and ``af5bd6`` is the identifier.
+The *revision id* is a string that identifies a particular instantiation of the
+data package.  This is the equivalent of the revision number in subversion_, or
+the commit hash in systems like git_ or mercurial_. There is only one
+instantiation for any given revision id, but there can be more than one revision
+id for an instantiation.  For example, you might have a revision of id '200',
+delete a file, restore the file, call this revision id '201', but they would
+both refer to the same instantiation of the package.
+
+
+Package instantiation tag
+=========================
+
+A *tag* is a memorable string that refers to particular instantiation of the
+package.  It differs from a revision id only in that there is not likely to be a
+tag for every revision.  It's possible to imagine instantiations without a
+revision id but with a tag, but perhaps it's reasonable to restrict tags to
+refer to revisions.  A *tag* is equivalent to a tag name in git or mercurial - a
+memorable string that refers to a static state of the data.  An example might be
+a numbered version.  So, a package may have an revision uniquely identified by a
+revision id ``af5bd6``.  We might decide to label this revision ``release-0.3``
+(the equivalent of applying a git_ tag).  ``release-0.3`` is the tag and
+``af5bd6`` is the revision id.  Different sources of the same package might
+possibly produce different tags [#tag-sources]_
+
+Package provider bundle
+=======================
+
+Maybe we could call this a "prundle".
+
+The *provider bundle* is something that can deliver the bytes of a particular
+package instantiation.  For example, if you have a package named
+"interesting-images", you might have an revision of that package identified by
+revision id "f745dc2" and tagged with "version-0.2".  There might be a *provider
+bundle* of that instantiation that is a zipfile
+``interesting-images-version-0.2.zip``.  There might also be a directory on an
+http server with the same contents
+``http://my.server.org/packages/interesting-images/version-9.2``.  The zipfile
+and the http directory would both be *provider bundles* of the particular
+instantiation.  When I unpack the zipfile onto my hard disk, I might have a
+directory ``/my/home/packages/interesting-images/version-0.2``.  Now this path
+is a provider bundle.
+
+Provider bundle format
+======================
+
+In the example above, the zipfile, the http directory and the local path are
+three different provider bundle formats delivering the same package
+instantiation.  Let's call those formats:
+
+* zipfile format
+* url-path format
+* local-path format
 
 Package release
----------------
+===============
 
 A release might be a package instantiation that one person has:
 
-#. Labeled
-#. Made available to other people
+#. tagged
+#. made available as one or more *provider bundles*
 
-Label source
-------------
 
-Instantiation identifiers could for example be hashes of the package
-instantiation (package contents), so they could be globally unique to the
-contents.  *labels* are just names that someone has attached to a particular
-identifier.   If there is more than one person providing versions of a
-particular package, there may not be agreement on the identifier that a
-particular label is attached to.  For example, I might think that
-``release-0.3`` of ``some-package`` refers to package state identified by the
-indentifier ``af5bd6``, but you might think that ``release-0.3`` of
-``some-package`` refers to some other package state.  In this case you and are
-are both a *label sources* for the package.  The state that particular label
-refers to can depend then on the source from which the label came.
+Bundle discovery
+================
 
-Package discovery
------------------
-
-We *discover* a package when we ask a system (local or remote) whether they have
-a package at a given instantiation or range of instantiations.  That implies two
-discoveries - *local discovery* (is the package instantiation on my local
-system, if so where is it and how do I get it?); and *remote discovery* (is the
-package instantiation on your expensive server and if so, where is it and how do
-I get it?).  For the Debian distributions, the ``sources.list`` file identifies
-sources from which we can query for software packages.  Those would be sources
-for *remote discovery* in this language.
+We *discover* a package bundle when we ask a system (local or remote) whether
+they have a package bundle at a given revision, tag, or bundle format.  That
+implies two discoveries - *local discovery* (is the package bundle on my local
+system, if so where is it?); and *remote discovery* (is the package bundle on
+your expensive server and if so, how do I get it?).  For the Debian
+distributions, the ``sources.list`` file identifies sources from which we can
+query for software packages.  Those would be sources for *remote discovery* in
+our language.
 
 Package query
--------------
+=============
 
-We query a package when we know that a particular system (local or remote) has
-an instantiation of the package, and we want to get some information contained
-in the package.
+We query a package when we know that a particular system (local or remote) has a
+package bundle, and we want to get some information about that package
+instantiation.
 
 Package installation
---------------------
+====================
 
 We install a package when we get some instantiation and place it on local
 storage, such that we can *discover* the package on our own (local) system.
+That is we take some package bundle, and convert it to a *local-path* format
+bundle *and* we register this local-path format bundle in a registry (see
+below).
 
 Data and metadata
------------------
+=================
 
 Data
-    is the stuff contained in a particular package.
+    is the bytes as they arranged in a particular package instantiation.
 
 Metadata
-    is data about the package itself.  It might include information about what
-    data is in the database.
+    is data about the package instantiation.  It might include information about
+    what data is in the package.
 
 Registry
---------
+========
 
-Something that can be queried to *discover* a package instantiation.
+Something that can be queried to *discover* a package bundle.
 
+Registry entry
+==============
+
+An element in a *registry* containing information about a particular package
+bundle.  At a first pass this might contain:
+
+* package name
+* bundle format
+* revision id (optional)
+* tag (optional)
+
+***********************
+Comparative terminology
+***********************
+
+In which we compare the package terminology above to the terminology of Debian
+packaging.
+
+Compared to Debian packaging
+============================
+
+* A Debian distribution is a label - such as 'unstable' or 'lenny' - that refers to a
+  set of package revisions that go together.  We have no equivalent.
+* A Debian - er - collection (what's the right name?) is a set of packages
+  within a distribution that go together - e.g. 'main' or 'contrib'.   Again we
+  have no equivalent.
+* A Debian source is a URI giving a location from which you can collect one or
+  more collections. For example, the line: "http://www.example.com/packages
+  stable main contrib" in a "sources.list" file refers to the *source*
+  "http://www.example.com/packages" providing *distribution* "stable" and
+  *collections* (within stable) of "main" and "contrib".  In our language the
+  combination of URI, distribution and collection would refer to a repository -
+  that is - something that will answer queries about bundles.
+* package probably means the same for us as for Debian - a name - like
+  "python-numpy" - that refers to a set of files that go together and should be
+  installed together.
+* Debian packages have versions to reflect the different byte contents.  For
+  example there might be a .deb file (see below) "some-package-0.11_3-i386.deb"
+  for one distribution, and another (with different contents) for another
+  distribution - say "some-package-0.12_9-i386.deb".  The "0.11_3" and "0.12_9"
+  parts of the deb filename are what we would call *package instantiation tags*.
+* A Debian deb file is an archive in a particular format that unpacks to provide
+  the files for a particular package version.  We'd call the deb file a *package
+  bundle*, that is in *bundle format* "deb-format".
+
+**********
 Desiderata
-++++++++++
+**********
 
 We want to build a package system that is very simple ('S' in 0SAGA_).  For the
 moment, the main problems we want to solve are: creation of a package
 instantiation, installation of package instantiations, local discovery of
 package instantiations.  For now we are not going to try and solve queries.
 
-At least local discovery should be so simple that is can be implemented in any
+At least local discovery should be so simple that it can be implemented in any
 language, and should not require a particular tool to be installed.  We hope we
 can write a spec that makes all of (creation, installation, local discovery)
 clearly defined, so that it would be simple to write an implementation.
 Obviously we're going to end up writing our own implementation, or adapting
 someone else's.  datapkg_ looks like the best candidate at the moment.
 
+******
 Issues
-++++++
+******
 
 From a brief scan of the `debian package management documentation
 <http://www.debian.org/doc/manuals/debian-reference/ch02.en.html>`_.
 
-* Dependency management
+Dependency management
+=====================
+
+(no plan at the moment)
 
 Authentication and validation
-+++++++++++++++++++++++++++++
+=============================
 
 * Authentication - using signatures to confirm that you made this package.
 * Verification - verify that the contents have not been corrupted or changed
@@ -195,8 +278,9 @@ proposal would be:
   That's going backwards from the desired result *X* to the signature, and that
   is very hard, if they don't have our private key.
 
+******************************
 Differences from code packages
-++++++++++++++++++++++++++++++
+******************************
 
 The obvious differences are:
 
@@ -208,7 +292,6 @@ well.  git_ stores (effectively) all previous versions of the files in the
 repository, as zlib compressed blobs.  The working tree is an uncompressed
 instantiation of the current state.  Thus, if we have, over time, had 4
 different versions of a large file with little standard diff relationship to one
-Discovery
 another, the repository will have four zlib compressed versions of the file in
 the ``.git/objects`` database, and one uncompressed version in the working tree.
 The files in data packages may or may not compress well.
@@ -226,11 +309,12 @@ Maybe the way to think of it is of the different costs that become important as
 files get larger.  So the cost for holding a full history becomes very large,
 whereas the benefit decreases a little bit (compared to code).
 
+*************
 Some usecases
-+++++++++++++
+*************
 
 Discovery
----------
+=========
 
 ::
     from ourpkg import default_registry
@@ -240,5 +324,20 @@ Discovery
         raise RuntimeError('It looks like mypkg version 0.3 is not installed')
 
 
+
+.. [tag-sources]
+
+    Revsion ids could for example be hashes of the package instantiation
+    (package contents), so they could be globally unique to the contents,
+    whereever the contents was when the identifier was made.  However, *tags*
+    are just names that someone has attached to a particular revsion id.  If
+    there is more than one person providing versions of a particular package,
+    there may not be agreement on the revsion that a particular tag is attached
+    to.  For example, I might think that ``release-0.3`` of ``some-package``
+    refers to package state identified by revsion id ``af5bd6``, but you might
+    think that ``release-0.3`` of ``some-package`` refers to some other package
+    state.  In this case you and are are both a *tag sources* for the package.
+    The state that particular tag refers to can depend then on the source from
+    which the tag came.
 
 .. include:: ../links_names.txt
