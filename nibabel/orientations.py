@@ -260,3 +260,76 @@ def flip_axis(arr, axis=0):
     return arr.swapaxes(axis, 0)
 
 
+def ornt2axcodes(ornt, labels=None):
+    """ Convert orientation `ornt` to labels for axis directions
+
+    Parameters
+    ----------
+    ornt : (N,2) array-like
+        orientation array - see io_orientation docstring
+    labels : optional, None or sequence of (2,) sequences
+        (2,) sequences are labels for (beginning, end) of output axis.  That is,
+        if the first row in `ornt` is ``[1, 1]``, and the second (2,) sequence
+        in `labels` is ('back', 'front') then the first returned axis code will
+        be ``'front'``.  If the first row in `ornt` had been ``[1, -1]`` then
+        the first returned value would have been ``'back'``.  If None,
+        equivalent to ``(('L','R'),('P','A'),('I','S'))`` - that is - RAS axes.
+
+    Returns
+    -------
+    axcodes : (N,) tuple
+        labels for positive end of voxel axes.  Dropped axes get a label of
+        None.
+
+    Examples
+    --------
+    >>> ornt2axcodes([[1, 1],[0,-1],[2,1]], (('L','R'),('B','F'),('D','U')))
+    ('F', 'L', 'U')
+    """
+    if labels is None:
+        labels = zip('LPI', 'RAS')
+    axcodes = []
+    for axno, direction in np.asarray(ornt):
+        if np.isnan(axno):
+            axcodes.append(None)
+            continue
+        axint = int(np.round(axno))
+        if axint != axno:
+            raise ValueError('Non integer axis number %f' % axno)
+        elif direction == 1:
+            axcode = labels[axint][1]
+        elif direction == -1:
+            axcode = labels[axint][0]
+        else:
+            raise ValueError('Direction should be -1 or 1')
+        axcodes.append(axcode)
+    return tuple(axcodes)
+
+
+def aff2axcodes(aff, labels=None, tol=None):
+    """ axis direction codes for affine `aff`
+
+    Parameters
+    ----------
+    aff : (N,M) array-like
+        affine transformation matrix
+    labels : optional, None or sequence of (2,) sequences
+        Labels for negative and positive ends of output axes of `aff`.  See
+        docstring for ``ornt2axcodes`` for more detail
+    tol : None or float
+        Tolerance for SVD of affine - see ``io_orientation`` for more detail.
+
+    Returns
+    -------
+    axcodes : (N,) tuple
+        labels for positive end of voxel axes.  Dropped axes get a label of
+        None.
+
+    Examples
+    --------
+    >>> aff = [[0,1,0,10],[-1,0,0,20],[0,0,1,30],[0,0,0,1]]
+    >>> aff2axcodes(aff, (('L','R'),('B','F'),('D','U')))
+    ('B', 'R', 'U')
+    """
+    ornt = io_orientation(aff, tol)
+    return ornt2axcodes(ornt, labels)
