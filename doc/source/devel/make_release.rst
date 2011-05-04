@@ -153,11 +153,15 @@ Release checklist
 
     make source-release
 
-* Once everything looks good, upload the source release to PyPi.  Also upload a
-  Windows exe installer for convenience.  See `setuptools intro`_::
+* Once everything looks good, upload the source release to PyPi.  See
+  `setuptools intro`_::
 
     python setup.py register
     python setup.py sdist --formats=gztar,zip upload
+
+  From somewhere - maybe a windows machine - upload the windows installer for
+  convenience::
+
     python setup.py bdist_wininst upload
 
 * Tag the release with tag of form ``1.1.0``::
