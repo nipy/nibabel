@@ -66,6 +66,7 @@ distclean: clean
 		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r dist
 	-rm build-stamp
+	-rm -r .tox
 #	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
 #		tests/data/noise* tests/data/None.nii
 
