@@ -50,12 +50,17 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         return hdr_data
 
     def get_slope_inter(self):
-        ''' Get scalefactor and intercept '''
-        slope = self._header_data['scl_slope']
-        inter = 0.0
-        return slope, inter
+        ''' Get scalefactor and intercept 
 
-    def set_slope_inter(self, slope, inter=0.0):
+        If scalefactor is 0.0 return None to indicate no scalefactor.  Intercept
+        is always None because SPM99 analyze cannot store intercepts.
+        '''
+        slope = self._header_data['scl_slope']
+        if slope == 0.0:
+            return None, None
+        return slope, None
+
+    def set_slope_inter(self, slope, inter=None):
         ''' Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
@@ -71,16 +76,17 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
            If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
            scaling of the image data).  If `slope` is not, we ignore the
            passed value of `inter`
-        inter : float, optional
-           intercept
+        inter : None or float, optional
+           intercept (dc offset).  If float, must be 0, because SPM99 cannot
+           store intercepts.
         '''
         if slope is None:
-            slope = 1.0
-            inter = 0.0
+            slope = 0.0
         self._header_data['scl_slope'] = slope
-        if inter:
-            raise HeaderTypeError('Cannot set non-zero intercept '
-                                  'for SPM headers')
+        if inter is None or inter == 0:
+            return
+        raise HeaderTypeError('Cannot set non-zero intercept '
+                              'for SPM headers')
 
     @classmethod
     def _get_checks(klass):
@@ -91,10 +97,10 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     def _chk_scale(hdr, fix=False):
         rep = Report(HeaderDataError)
         scale = hdr['scl_slope']
-        if scale and np.isfinite(scale):
+        if np.isfinite(scale):
             return hdr, rep
         rep.problem_level = 30
-        rep.problem_msg = ('scale slope is %s; should !=0 and be finite'
+        rep.problem_msg = ('scale slope is %s; should be finite'
                            % scale)
         if fix:
             hdr['scl_slope'] = 1

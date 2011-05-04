@@ -12,12 +12,14 @@ import numpy as np
 import numpy.linalg as npl
 
 from .volumeutils import Recoder, make_dt_codes, endian_codes
-from .spatialimages import HeaderDataError
+from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze # module import
 from .spm99analyze import SpmAnalyzeHeader
-from .fileholders import copy_file_map
+
+# Needed for quaternion calculation
+FLOAT32_EPS_3 = -np.finfo(np.float32).eps * 3
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -554,9 +556,9 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_best_affine(self):
         ''' Select best of available transforms '''
         hdr = self._header_data
-        if hdr['sform_code']:
+        if hdr['sform_code'] != 0:
             return self.get_sform()
-        if hdr['qform_code']:
+        if hdr['qform_code'] != 0:
             return self.get_qform()
         return self.get_base_affine()
 
@@ -579,7 +581,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         hdr = self._header_data
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
-        return fillpositive(bcd)
+        # Adjust threshold to fact that source data was float32
+        return fillpositive(bcd, FLOAT32_EPS_3)
 
     def get_qform(self):
         ''' Return 4x4 affine matrix from qform parameters in header '''
@@ -612,7 +615,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then {if current
             qform code is not 0, leave code as it is in the header; else
-            set to 1 ('scanner')}.
+            set to 2 ('aligned')}.
 
         Notes
         -----
@@ -634,8 +637,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_qform(affine)
         >>> np.all(hdr.get_qform() == affine)
         True
-        >>> int(hdr['qform_code']) # gives 1 - scanner
-        1
+        >>> int(hdr['qform_code']) # gives 2 - aligned
+        2
         >>> hdr.set_qform(affine, code='talairach')
         >>> int(hdr['qform_code'])
         3
@@ -649,8 +652,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._header_data
         if code is None:
             code = hdr['qform_code']
-            if code == 0:
-                hdr['qform_code'] = 1
+            if code == 0: # default is 'aligned'
+                hdr['qform_code'] = 2
         else:
             code = self._field_recoders['qform_code'][code]
             hdr['qform_code'] = code
@@ -702,7 +705,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then {if current
             sform code is not 0, leave code as it is in the header; else
-            set to 1 ('scanner')}.
+            set to 2 ('aligned')}.
 
         Examples
         --------
@@ -715,8 +718,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_sform(affine)
         >>> np.all(hdr.get_sform() == affine)
         True
-        >>> int(hdr['sform_code']) # gives 1 - scanner
-        1
+        >>> int(hdr['sform_code']) # gives 2 - aligned
+        2
         >>> hdr.set_sform(affine, code='talairach')
         >>> int(hdr['sform_code'])
         3
@@ -731,7 +734,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if code is None:
             code = hdr['sform_code']
             if code == 0:
-                hdr['sform_code'] = 1
+                hdr['sform_code'] = 2 # aligned
         else:
             code = self._field_recoders['sform_code'][code]
             hdr['sform_code'] = code
@@ -752,14 +755,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         Returns
         -------
         slope : None or float
-           scaling (slope).  None if there is no valid scaling from
-           these fields
+           scaling (slope).  None if there is no valid scaling from these fields
         inter : None or float
-           offset (intercept).  Also None if there is no valid scaling, offset
+           offset (intercept). None if there is no valid scaling or if offset is
+           not finite.
 
         Examples
         --------
-        >>> fields = {'scl_slope':1,'scl_inter':0}
         >>> hdr = Nifti1Header()
         >>> hdr.get_slope_inter()
         (1.0, 0.0)
@@ -775,14 +777,14 @@ class Nifti1Header(SpmAnalyzeHeader):
         (1.0, 1.0)
         >>> hdr['scl_inter'] = np.inf
         >>> hdr.get_slope_inter()
-        (1.0, 0.0)
+        (1.0, None)
         '''
         scale = float(self['scl_slope'])
         dc_offset = float(self['scl_inter'])
-        if not scale or not np.isfinite(scale):
+        if scale == 0 or not np.isfinite(scale):
             return None, None
         if not np.isfinite(dc_offset):
-            dc_offset = 0.0
+            dc_offset = None
         return scale, dc_offset
 
     def set_slope_inter(self, slope, inter=0.0):
@@ -795,14 +797,15 @@ class Nifti1Header(SpmAnalyzeHeader):
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is not, we ignore the
-           passed value of `inter`
-        inter : float, optional
-           intercept
+           If None, implies `slope`  of 0. When the slope is set to 0 or a
+           not-finite value, ``get_slope_inter`` returns (None, None), i.e.
+           `inter` is ignored unless there is a valid value for `slope`.
+        inter : None or float, optional
+           intercept.  None implies inter value of 0.
         '''
         if slope is None:
-            slope = 1.0
+            slope = 0.0
+        if inter is None:
             inter = 0.0
         self._header_data['scl_slope'] = slope
         self._header_data['scl_inter'] = inter
@@ -1224,7 +1227,6 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_datatype,
                 klass._chk_bitpix,
                 klass._chk_pixdims,
-                klass._chk_scale_slope,
                 klass._chk_scale_inter,
                 klass._chk_qfac,
                 klass._chk_magic_offset,
@@ -1232,29 +1234,47 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_sform_code)
 
     @staticmethod
-    def _chk_scale_slope(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        scale = hdr['scl_slope']
-        if scale and np.isfinite(scale):
-            return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = '"scl_slope" is %s; should !=0 and be finite' % scale
-        if fix:
-            hdr['scl_slope'] = 1
-            rep.fix_msg = 'setting "scl_slope" to 1'
-        return hdr, rep
-
-    @staticmethod
     def _chk_scale_inter(hdr, fix=False):
         rep = Report(HeaderDataError)
-        scale = hdr['scl_inter']
-        if np.isfinite(scale):
+        scale = hdr['scl_slope']
+        offset = hdr['scl_inter']
+        usable_scale = np.isfinite(scale) and scale !=0
+        # Nonzero finite scale, and valid offset
+        if usable_scale and np.isfinite(offset) or (offset, scale) == (0, 0):
             return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = '"scl_inter" is %s; should be finite' % scale
-        if fix:
-            hdr['scl_inter'] = 0
-            rep.fix_msg = 'setting "scl_inter" to 0'
+        # If scale is usable but the intercept is not finite, that's a serious
+        # problem
+        if usable_scale and not np.isfinite(offset):
+            rep.problem_level = 40
+            rep.problem_msg = ('"scl_slope" is %s; but "scl_inter" is %s; '
+                               '"scl_inter" should be finite'
+                               % (scale, offset))
+            if fix:
+                hdr['scl_inter'] = 0
+                rep.fix_msg = 'setting "scl_inter" to 0'
+            return hdr, rep
+        level = 0
+        msgs = []
+        fix_msgs = []
+        # Non-finite scale is obviously an error.  We still need to check the
+        # intercept though
+        if not np.isfinite(scale):
+            level = 30
+            msgs.append('"scl_slope" is %s; should be finite' % scale)
+            if fix:
+                hdr['scl_slope'] = 0
+                fix_msgs.append('setting "scl_slope" to 0 (no scaling)')
+        # We've established scale is not usable, so inter will be ignored.  That
+        # means we can go a bit easy on bad intercepts
+        if offset != 0:
+            if level == 0: level = 20
+            msgs.append('Unused "scl_inter" is %s; should be 0' % offset)
+            if fix:
+                hdr['scl_inter'] = 0
+                fix_msgs.append('setting "scl_inter" to 0')
+        rep.problem_level = level
+        rep.problem_msg = '; '.join(msgs)
+        rep.fix_msg = '; '.join(fix_msgs)
         return hdr, rep
 
     @staticmethod
@@ -1360,8 +1380,13 @@ class Nifti1Pair(analyze.AnalyzeImage):
         hdr = self._header
         hdr['magic'] = 'ni1'
         if not self._affine is None:
-            hdr.set_sform(self._affine)
-            hdr.set_qform(self._affine)
+            # Set affine into sform
+            hdr.set_sform(self._affine, code='aligned')
+            # Make qform 'unknown', set voxel sizes from affine
+            hdr['qform_code'] = 0
+            RZS = self._affine[:3, :3]
+            zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
+            hdr['pixdim'][1:4] = zooms
 
 
 class Nifti1Image(Nifti1Pair):
@@ -1404,5 +1429,41 @@ class Nifti1Image(Nifti1Pair):
             hdr['vox_offset'] = min_vox_offset
 
 
-load = Nifti1Image.load
-save = Nifti1Image.instance_to_filename
+def load(filename):
+    """ Load nifti1 single or pair from `filename`
+
+    Parameters
+    ----------
+    filename : str
+        filename of image to be loaded
+
+    Returns
+    -------
+    img : Nifti1Image or Nifti1Pair
+        nifti1 single or pair image instance
+
+    Raises
+    ------
+    ImageFileError: if `filename` doesn't look like nifti1
+    IOError : if `filename` does not exist
+    """
+    try:
+        img = Nifti1Image.load(filename)
+    except ImageFileError:
+        return Nifti1Pair.load(filename)
+    return img
+
+
+def save(img, filename):
+    """ Save nifti1 single or pair to `filename`
+
+    Parameters
+    ----------
+    filename : str
+        filename to which to save image
+    """
+    try:
+        Nifti1Image.instance_to_filename(img, filename)
+    except ImageFileError:
+        Nifti1Pair.instance_to_filename(img, filename)
+

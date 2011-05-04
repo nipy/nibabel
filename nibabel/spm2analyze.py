@@ -115,7 +115,8 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     def _chk_scale(klass, hdr, fix=True):
         rep = Report(HeaderDataError)
         scale, offset = hdr.get_slope_inter()
-        if not scale is None:
+        # scl_slope of 0 is valid and implies no scaling OR intercept
+        if not scale is None or hdr['scl_slope'] == 0:
             return hdr, rep
         rep.problem_level = 30
         rep.problem_msg = ('no valid scaling in scalefactor (=%s) '
