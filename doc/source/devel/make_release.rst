@@ -222,3 +222,5 @@ Release checklist
 
 .. _pytox: http://codespeak.net/tox
 .. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html
+
+.. include:: ../links_names.txt
