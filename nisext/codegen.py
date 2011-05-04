@@ -10,52 +10,10 @@
 
     From: http://dev.pocoo.org/hg/sandbox
 """
-from ast import *
+# Explicit local imports to satisfy python 2.5
+from .ast import (BOOLOP_SYMBOLS, BINOP_SYMBOLS, CMPOP_SYMBOLS, UNARYOP_SYMBOLS,
+                  NodeVisitor, If, Name)
 
-BOOLOP_SYMBOLS = {
-    And:        'and',
-    Or:         'or'
-}
-
-BINOP_SYMBOLS = {
-    Add:        '+',
-    Sub:        '-',
-    Mult:       '*',
-    Div:        '/',
-    FloorDiv:   '//',
-    Mod:        '%',
-    LShift:     '<<',
-    RShift:     '>>',
-    BitOr:      '|',
-    BitAnd:     '&',
-    BitXor:     '^'
-}
-
-CMPOP_SYMBOLS = {
-    Eq:         '==',
-    Gt:         '>',
-    GtE:        '>=',
-    In:         'in',
-    Is:         'is',
-    IsNot:      'is not',
-    Lt:         '<',
-    LtE:        '<=',
-    NotEq:      '!=',
-    NotIn:      'not in'
-}
-
-UNARYOP_SYMBOLS = {
-    Invert:     '~',
-    Not:        'not',
-    UAdd:       '+',
-    USub:       '-'
-}
-
-ALL_SYMBOLS = {}
-ALL_SYMBOLS.update(BOOLOP_SYMBOLS)
-ALL_SYMBOLS.update(BINOP_SYMBOLS)
-ALL_SYMBOLS.update(CMPOP_SYMBOLS)
-ALL_SYMBOLS.update(UNARYOP_SYMBOLS)
 
 def to_source(node, indent_with=' ' * 4, add_line_information=False):
     """This function can convert a node tree back into python sourcecode.
