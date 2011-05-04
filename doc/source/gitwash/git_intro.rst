@@ -15,4 +15,4 @@ should get you started.
 
 For general resources for learning git_ see :ref:`git-resources`.
 
-.. include:: git_links.inc
+.. include:: links.inc

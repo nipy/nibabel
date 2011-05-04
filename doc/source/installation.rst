@@ -80,7 +80,7 @@ Requirements
 Get the sources
 ---------------
 
-The latest release is always available from the `SourceForge download page`_.
+The latest release is always available from `nibabel pypi`_.
 
 Alternatively, you can download a tarball of the latest development snapshot
 (i.e. the current state of the *master* branch of the NiBabel source code

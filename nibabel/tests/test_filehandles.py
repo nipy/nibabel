@@ -36,11 +36,11 @@ def test_multiload():
         return
     arr = np.arange(24).reshape((2,3,4))
     img = Nifti1Image(arr, np.eye(4))
+    imgs = []
     try:
         tmpdir = mkdtemp()
         fname = pjoin(tmpdir, 'test.img')
         save(img, fname)
-        imgs = []
         for i in range(N):
             imgs.append(load(fname))
     finally:

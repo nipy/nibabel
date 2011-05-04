@@ -17,7 +17,7 @@ NOSETESTS = $(PYTHON) $(shell which nosetests)
 PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 DISTUTILS_PLATFORM := \
 	$(shell \
-		$(PYTHON) -c "import distutils.util; print distutils.util.get_platform()")
+		$(PYTHON) -c "import distutils.util; print(distutils.util.get_platform())")
 
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
@@ -66,6 +66,7 @@ distclean: clean
 		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r dist
 	-rm build-stamp
+	-rm -r .tox
 #	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
 #		tests/data/noise* tests/data/None.nii
 
@@ -222,8 +223,8 @@ deb-src: check-debian distclean
 bdist_rpm:
 	$(PYTHON) setup.py bdist_rpm \
 	  --doc-files "doc" \
-	  --packager "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>" \
-	  --vendor "nibabel authors <pkg-exppsy-pynifti@lists.alioth.debian.org>"
+	  --packager "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
+	  --vendor "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
 
 
 # build MacOS installer -- depends on patched bdist_mpkg for Leopard
@@ -243,10 +244,31 @@ installed-tests:
 sdist-tests:
 	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
 
-# Update nisext subtree from remote
-update-nisext:
-	git fetch nisext
-	git merge --squash -s subtree --no-commit nisext/master
+bdist-egg-tests:
+	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
+
+source-release: distclean
+	python -m compileall .
+	make distclean
+	python setup.py sdist --formats=gztar,zip
+
+venv-tests:
+	# I use this for python2.5 because the sdist-tests target doesn't work
+	# (the tester routine uses a 2.6 feature)
+	make distclean
+	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
+	python setup.py install
+	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
+
+tox-fresh:
+	# tox tests with fresh-installed virtualenvs.  Needs network.  And
+	# pytox, obviously.
+	tox -c tox.ini
+
+tox-stale:
+	# tox tests with MB's already-installed virtualenvs (numpy and nose
+	# installed)
+	tox -e python25,python26,python27,python32,np-1.2.1
 
 .PHONY: orig-src pylint
 

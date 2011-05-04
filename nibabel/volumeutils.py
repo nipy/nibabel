@@ -14,6 +14,8 @@ import bz2
 
 import numpy as np
 
+from .py3k import isfileobj, ZEROB
+
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
 swapped_code = sys_is_le and '>' or '<'
@@ -68,7 +70,7 @@ class Recoder(object):
     >>> recodes[2]
     2
     '''
-    def __init__(self, codes, fields=('code',)):
+    def __init__(self, codes, fields=('code',), map_maker=dict):
         ''' Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
@@ -90,35 +92,54 @@ class Recoder(object):
         codes : seqence of sequences
             Each sequence defines values (codes) that are equivalent
         fields : {('code',) string sequence}, optional
-            names by which elements in sequences can be accesssed
-
+            names by which elements in sequences can be accessed
+        map_maker: callable, optional
+            constructor for dict-like objects used to store key value pairs.
+            Default is ``dict``.  ``map_maker()`` generates an empty mapping.
+            The mapping need only implement ``__getitem__, __setitem__, keys,
+            values``.
         '''
-        self.fields = fields
+        self.fields = tuple(fields)
         self.field1 = {} # a placeholder for the check below
         for name in fields:
             if name in self.__dict__:
                 raise KeyError('Input name %s already in object dict'
                                % name)
-            self.__dict__[name] = {}
+            self.__dict__[name] = map_maker()
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
 
-    def add_codes(self, codes):
+    def add_codes(self, code_syn_seqs):
         ''' Add codes to object
 
-        >>> codes = ((1, 'one'), (2, 'two'))
-        >>> rc = Recoder(codes)
+        Parameters
+        ----------
+        code_syn_seqs : sequence
+            sequence of sequences, where each sequence ``S = code_syn_seqs[n]``
+            for n in 0..len(code_syn_seqs), is a sequence giving values in the
+            same order as ``self.fields``.  Each S should be at least of the
+            same length as ``self.fields``.  After this call, if ``self.fields
+            == ['field1', 'field2'], then ``self.field1[S[n]] == S[0]`` for all
+            n in 0..len(S) and ``self.field2[S[n]] == S[1]`` for all n in
+            0..len(S).
+
+        Examples
+        --------
+        >>> code_syn_seqs = ((1, 'one'), (2, 'two'))
+        >>> rc = Recoder(code_syn_seqs)
         >>> rc.value_set() == set((1,2))
         True
         >>> rc.add_codes(((3, 'three'), (1, 'first')))
         >>> rc.value_set() == set((1,2,3))
         True
         '''
-        for vals in codes:
-            for val in vals:
-                for ind, name in enumerate(self.fields):
-                    self.__dict__[name][val] = vals[ind]
-
+        for code_syns in code_syn_seqs:
+            # Add all the aliases
+            for alias in code_syns:
+                # For all defined fields, make every value in the sequence be an
+                # entry to return matching index value.
+                for field_ind, field_name in enumerate(self.fields):
+                    self.__dict__[field_name][alias] = code_syns[field_ind]
 
     def __getitem__(self, key):
         ''' Return value from field1 dictionary (first column of values)
@@ -133,6 +154,15 @@ class Recoder(object):
         '''
         return self.field1[key]
 
+    def __contains__(self, key):
+        """ True if field1 in recoder contains `key`
+        """
+        try:
+            self.field1[key]
+        except KeyError:
+            return False
+        return True
+
     def keys(self):
         ''' Return all available code and alias values
 
@@ -142,9 +172,8 @@ class Recoder(object):
 
         >>> codes = ((1, 'one'), (2, 'two'), (1, 'repeat value'))
         >>> k = Recoder(codes).keys()
-        >>> k.sort() # Just to guarantee order for doctest output
-        >>> k
-        [1, 2, 'one', 'repeat value', 'two']
+        >>> set(k) == set([1, 2, 'one', 'repeat value', 'two'])
+        True
         '''
         return self.field1.keys()
 
@@ -170,7 +199,6 @@ class Recoder(object):
         >>> rc = Recoder(codes, fields=('code', 'label'))
         >>> rc.value_set('label') == set(('one', 'two', 'repeat value'))
         True
-
         '''
         if name is None:
             d = self.field1
@@ -181,6 +209,59 @@ class Recoder(object):
 
 # Endian code aliases
 endian_codes = Recoder(endian_codes)
+
+
+class DtypeMapper(object):
+    """ Specialized mapper for numpy dtypes
+
+    We pass this mapper into the Recoder class to deal with numpy dtype hashing.
+
+    The hashing problem is that dtypes that compare equal may not have the same
+    hash.  This is true for numpys up to the current at time of writing (1.6.0).
+    For numpy 1.2.1 at least, even dtypes that look exactly the same in terms of
+    fields don't always have the same hash.  This makes dtypes difficult to use
+    as keys in a dictionary.
+
+    This class wraps a dictionary in order to implement a __getitem__ to deal
+    with dtype hashing. If the key doesn't appear to be in the mapping, and it
+    is a dtype, we compare (using ==) all known dtype keys to the input key, and
+    return any matching values for the matching key.
+    """
+    def __init__(self):
+        self._dict = {}
+        self._dtype_keys = []
+
+    def keys(self):
+        return self._dict.keys()
+
+    def values(self):
+        return self._dict.values()
+
+    def __setitem__(self, key, value):
+        """ Set item into mapping, checking for dtype keys
+
+        Cache dtype keys for comparison test in __getitem__
+        """
+        self._dict[key] = value
+        if hasattr(key, 'subdtype'):
+            self._dtype_keys.append(key)
+
+    def __getitem__(self, key):
+        """ Get item from mapping, checking for dtype keys
+
+        First do simple hash lookup, then check for a dtype key that has failed
+        the hash lookup.  Look then for any known dtype keys that compare equal
+        to `key`.
+        """
+        try:
+            return self._dict[key]
+        except KeyError:
+            pass
+        if hasattr(key, 'subdtype'):
+            for dt in self._dtype_keys:
+                if key == dt:
+                    return self._dict[dt]
+        raise KeyError(key)
 
 
 def pretty_mapping(mapping, getterfunc=None):
@@ -243,49 +324,45 @@ def pretty_mapping(mapping, getterfunc=None):
     return '\n'.join(out)
 
 
-def make_dt_codes(codes):
-    ''' Create full dt codes object from datatype codes
+def make_dt_codes(codes_seqs):
+    ''' Create full dt codes Recoder instance from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
     numpy dtype
 
     Parameters
     ----------
-    codes : sequence of (3,) sequences
-       contained sequences are data type code, data type name, and numpy
-       type (such as ``np.float32``).
+    codes_seqs : sequence of sequences
+       contained sequences make be length 3 or 4, but must all be the same
+       length. Elements are data type code, data type name, and numpy
+       type (such as ``np.float32``).  The fourth element is the nifti string
+       representation of the code (e.g. "NIFTI_TYPE_FLOAT32")
 
     Returns
     -------
     rec : ``Recoder`` instance
        Recoder that, by default, returns ``code`` when indexed with any
-       of the corresponding code, name, type, dtype, or swapped dtype
+       of the corresponding code, name, type, dtype, or swapped dtype.
+       You can also index with ``niistring`` values if codes_seqs had sequences
+       of length 4 instead of 3.
     '''
+    fields=['code', 'label', 'type']
+    len0 = len(codes_seqs[0])
+    if not len0 in (3,4):
+        raise ValueError('Sequences must be length 3 or 4')
+    if len0 == 4:
+        fields.append('niistring')
     dt_codes = []
     intp_dt = np.dtype(np.intp)
-    for code, name, np_type in codes:
+    for seq in codes_seqs:
+        if len(seq) != len0:
+            raise ValueError('Sequences must all have the same length')
+        np_type = seq[2]
         this_dt = np.dtype(np_type)
-        code_syns = [code, name, np_type]
-        dtypes = [this_dt]
-        # intp type is effectively same as int32 on 32 bit and int64 on 64 bit.
-        # They compare equal, but in some (all?) numpy versions, they may hash
-        # differently.  If so we need to add them
-        if this_dt == intp_dt and hash(this_dt) != hash(intp_dt):
-            dtypes.append(intp_dt)
-        # To satisfy an oddness in numpy dtype hashing, we need to add the dtype
-        # with explicit native order as well as the default dtype (=) order
-        for dt in dtypes:
-            code_syns +=[dt,
-                         dt.newbyteorder(native_code),
-                         dt.newbyteorder(swapped_code)]
+        # Add swapped dtype to synonyms
+        code_syns = list(seq) + [this_dt, this_dt.newbyteorder(swapped_code)]
         dt_codes.append(code_syns)
-    return Recoder(dt_codes,
-                   fields=('code',
-                           'label',
-                           'type',
-                           'dtype',
-                           'native_dtype',
-                           'sw_dtype'))
+    return Recoder(dt_codes, fields + ['dtype', 'sw_dtype'], DtypeMapper)
 
 
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
@@ -371,17 +448,17 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> import StringIO
-    >>> str_io = StringIO.StringIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> bio = StringIO() #23dt : BytesIO
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io)
+    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> str_io = StringIO.StringIO()
-    >>> str_io.write(' ' * 10)
-    >>> str_io.write(arr.tostring('F'))
-    >>> arr2 = array_from_file((1,2,3), arr.dtype, str_io, 10)
+    >>> bio = StringIO() #23dt : BytesIO
+    >>> _ = bio.write(' ' * 10) #23dt : bytes
+    >>> _ = bio.write(arr.tostring('F'))
+    >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
     '''
@@ -418,9 +495,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          order=order)
         # for some types, we can write to the string buffer without
         # worrying, but others we can't. 
-        if isinstance(infile, (file,
-                               gzip.GzipFile,
-                               bz2.BZ2File)):
+        if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
+                                                    bz2.BZ2File)):
             arr.flags.writeable = True
         else:
             arr = arr.copy()
@@ -470,21 +546,21 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO
-    >>> sio = StringIO()
+    >>> from StringIO import StringIO #23dt : BytesIO
+    >>> sio = StringIO() #23dt : BytesIO
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
     >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data.byteswap(), sio, np.float)
     >>> sio.getvalue() == data.byteswap().tostring('F')
     True
-    >>> sio.truncate(0)
+    >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tostring('C')
     True
@@ -497,11 +573,12 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     try:
         fileobj.seek(offset)
-    except IOError, msg:
+    except IOError:
+        msg = sys.exc_info()[1] # python 2 / 3 compatibility
         if fileobj.tell() != offset:
             raise IOError(msg)
     if divslope is None: # No valid data
-        fileobj.write('\x00' * (data.size*out_dtype.itemsize))
+        fileobj.write(ZEROB * (data.size*out_dtype.itemsize))
         return
     nan2zero = (nan2zero and
                 data.dtype in floating_point_types and
@@ -853,7 +930,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''}
+    >>> d == {'x': 0, 's': ''} #23dt : replace("''", "b''")
     True
     '''
     dct = {}

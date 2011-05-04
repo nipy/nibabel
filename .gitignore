@@ -13,6 +13,8 @@
 .*.sw[nop]
 .sw[nop]
 *.tmp
+.project
+.pydevproject
 
 # Not sure what the next two are for
 *.kpf
@@ -48,12 +50,12 @@
 
 # Python files #
 ################
-build            # setup.py working directory
-_build           # sphinx build directory
+build/
+_build
 MANIFEST
-./dist           # setup.py dist directory
-./*.egg-info     # Egg metadata
-./.shelf         # The shelf plugin uses this dir
+dist/
+*.egg-info/
+.shelf
 
 # Logs and databases #
 ######################
@@ -71,5 +73,4 @@ Thumbs.db
 
 # Things specific to this project #
 ###################################
-nibabel.egg-info/
 doc/source/generated

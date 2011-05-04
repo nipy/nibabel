@@ -11,6 +11,7 @@
 import numpy as np
 import numpy.linalg as npl
 
+from .py3k import ZEROB, ints2bytes, asbytes, asstr
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
@@ -81,31 +82,45 @@ try:
     _complex256t = np.complex256
 except AttributeError:
     _complex256t = np.void
-_added_dtdefs = ( # code, label, dtype definition
-    (256, 'int8', np.int8),
-    (512, 'uint16', np.uint16),
-    (768, 'uint32', np.uint32),
-    (1024,'int64', np.int64),
-    (1280, 'uint64', np.uint64),
-    (1536, 'float128', _float128t), # Only numpy defined on 64 bit
-    (1792, 'complex128', np.complex128),
-    (2048, 'complex256', _complex256t), # 64 bit again
+
+_dtdefs = ( # code, label, dtype definition, niistring
+    (0, 'none', np.void, ""),
+    (1, 'binary', np.void, ""),
+    (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8"),
+    (4, 'int16', np.int16, "NIFTI_TYPE_INT16"),
+    (8, 'int32', np.int32, "NIFTI_TYPE_INT32"),
+    (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32"),
+    (32, 'complex64', np.complex64, "NIFTI_TYPE_COMPLEX64"),
+    (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64"),
+    (128, 'RGB', np.dtype([('R','u1'),
+                  ('G', 'u1'),
+                  ('B', 'u1')]), "NIFTI_TYPE_RGB24"),
+    (255, 'all', np.void, ''),
+    (256, 'int8', np.int8, "NIFTI_TYPE_INT8"),
+    (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16"),
+    (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32"),
+    (1024,'int64', np.int64, "NIFTI_TYPE_INT64"),
+    (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64"),
+    (1536, 'float128', _float128t, "NIFTI_TYPE_FLOAT128"),
+    (1792, 'complex128', np.complex128, "NIFTI_TYPE_COMPLEX128"),
+    (2048, 'complex256', _complex256t, "NIFTI_TYPE_COMPLEX256"),
     (2304, 'RGBA', np.dtype([('R','u1'),
                     ('G', 'u1'),
                     ('B', 'u1'),
-                    ('A', 'u1')]))
+                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
     )
 
 # Make full code alias bank, including dtype column
-data_type_codes = make_dt_codes(analyze._dtdefs + _added_dtdefs)
+data_type_codes = make_dt_codes(_dtdefs)
 
 # Transform (qform, sform) codes
-xform_codes = Recoder(( # code, label
-    (0, 'unknown'), # Code for transform unknown or absent
-    (1, 'scanner'),
-    (2, 'aligned'),
-    (3, 'talairach'),
-    (4, 'mni')), fields=('code', 'label'))
+xform_codes = Recoder(( # code, label, niistring
+                       (0, 'unknown', "NIFTI_XFORM_UNKNOWN"),
+                       (1, 'scanner', "NIFTI_XFORM_SCANNER_ANAT"),
+                       (2, 'aligned', "NIFTI_XFORM_ALIGNED_ANAT"),
+                       (3, 'talairach', "NIFTI_XFORM_TALAIRACH"),
+                       (4, 'mni', "NIFTI_XFORM_MNI_152")),
+                      fields=('code', 'label', 'niistring'))
 
 # unit codes
 unit_codes = Recoder(( # code, label
@@ -132,54 +147,91 @@ slice_order_codes = Recoder(( # code, label
 
 intent_codes = Recoder((
     # code, label, parameters description tuple
-    (0, 'none', ()),
-    (2, 'correlation',('p1 = DOF',)),
-    (3, 't test', ('p1 = DOF',)),
-    (4, 'f test', ('p1 = numerator DOF', 'p2 = denominator DOF')),
-    (5, 'z score', ()),
-    (6, 'chi2', ('p1 = DOF',)),
-    (7, 'beta', ('p1=a', 'p2=b')), # two parameter beta distribution
-    (8, 'binomial', ('p1 = number of trials', 'p2 = probability per trial')),
+    (0, 'none', (), "NIFTI_INTENT_NONE"),
+    (2, 'correlation',('p1 = DOF',), "NIFTI_INTENT_CORREL"),
+    (3, 't test', ('p1 = DOF',), "NIFTI_INTENT_TTEST"),
+    (4, 'f test',
+     ('p1 = numerator DOF', 'p2 = denominator DOF'),
+     "NIFTI_INTENT_FTEST"),
+    (5, 'z score', (), "NIFTI_INTENT_ZSCORE"),
+    (6, 'chi2', ('p1 = DOF',), "NIFTI_INTENT_CHISQ"),
+    # two parameter beta distribution
+    (7, 'beta',
+     ('p1=a', 'p2=b'),
+     "NIFTI_INTENT_BETA"),
     # Prob(x) = (p1 choose x) * p2^x * (1-p2)^(p1-x), for x=0,1,...,p1
-    (9, 'gamma', ('p1 = shape, p2 = scale', 2)), # 2 parameter gamma
-    (10, 'poisson', ('p1 = mean',)), # Density(x) proportional to
-                                     # x^(p1-1) * exp(-p2*x)
-    (11, 'normal', ('p1 = mean', 'p2 = standard deviation',)),
-    (12, 'non central f test', ('p1 = numerator DOF',
-                                'p2 = denominator DOF',
-                                'p3 = numerator noncentrality parameter',)),
-    (13, 'non central chi2', ('p1 = DOF', 'p2 = noncentrality parameter',)),
-    (14, 'logistic', ('p1 = location', 'p2 = scale',)),
-    (15, 'laplace', ('p1 = location', 'p2 = scale')),
-    (16, 'uniform', ('p1 = lower end', 'p2 = upper end')),
-    (17, 'non central t test', ('p1 = DOF', 'p2 = noncentrality parameter')),
-    (18, 'weibull', ('p1 = location', 'p2 = scale, p3 = power')),
-    (19, 'chi', ('p1 = DOF',)),
+    (8, 'binomial',
+     ('p1 = number of trials', 'p2 = probability per trial'),
+     "NIFTI_INTENT_BINOM"),
+    # 2 parameter gamma
+    # Density(x) proportional to # x^(p1-1) * exp(-p2*x)
+    (9, 'gamma',
+     ('p1 = shape, p2 = scale', 2),
+     "NIFTI_INTENT_GAMMA"),
+    (10, 'poisson',
+     ('p1 = mean',),
+     "NIFTI_INTENT_POISSON"),
+    (11, 'normal',
+     ('p1 = mean', 'p2 = standard deviation',),
+     "NIFTI_INTENT_NORMAL"),
+    (12, 'non central f test',
+     ('p1 = numerator DOF',
+      'p2 = denominator DOF',
+      'p3 = numerator noncentrality parameter',),
+     "NIFTI_INTENT_FTEST_NONC"),
+    (13, 'non central chi2',
+     ('p1 = DOF', 'p2 = noncentrality parameter',), 
+     "NIFTI_INTENT_CHISQ_NONC"),
+    (14, 'logistic',
+     ('p1 = location', 'p2 = scale',),
+     "NIFTI_INTENT_LOGISTIC"),
+    (15, 'laplace',
+     ('p1 = location', 'p2 = scale'),
+     "NIFTI_INTENT_LAPLACE"),
+    (16, 'uniform',
+     ('p1 = lower end', 'p2 = upper end'),
+     "NIFTI_INTENT_UNIFORM"),
+    (17, 'non central t test',
+     ('p1 = DOF', 'p2 = noncentrality parameter'),
+     "NIFTI_INTENT_TTEST_NONC"),
+    (18, 'weibull',
+     ('p1 = location', 'p2 = scale, p3 = power'),
+     "NIFTI_INTENT_WEIBULL"),
     # p1 = 1 = 'half normal' distribution
     # p1 = 2 = Rayleigh distribution
     # p1 = 3 = Maxwell-Boltzmann distribution.
-    (20, 'inverse gaussian', ('pi = mu', 'p2 = lambda')),
-    (21, 'extreme value 1', ('p1 = location', 'p2 = scale')),
-    (22, 'p value', ()),
-    (23, 'log p value', ()),
-    (24, 'log10 p value', ()),
-    (1001, 'estimate', ()),
-    (1002, 'label', ()),
-    (1003, 'neuroname', ()),
-    (1004, 'general matrix', ('p1 = M', 'p2 = N')),
-    (1005, 'symmetric matrix', ('p1 = M',)),
-    (1006, 'displacement vector', ()),
-    (1007, 'vector', ()),
-    (1008, 'poinset', ()),
-    (1009, 'triangle', ()),
-    (1010, 'quaternion', ()),
-    (1011, 'dimensionless', ()),
-    (2001, 'time series', ()),
-    (2002, 'node index', ()),
-    (2003, 'rgb vector', ()),
-    (2004, 'rgba vector', ()),
-    (2005, 'shape', ())),
-                       fields=('code', 'label', 'parameters'))
+    (19, 'chi', ('p1 = DOF',), "NIFTI_INTENT_CHI"),
+    (20, 'inverse gaussian',
+     ('pi = mu', 'p2 = lambda'),
+     "NIFTI_INTENT_INVGAUSS"),
+    (21, 'extreme value 1',
+     ('p1 = location', 'p2 = scale'),
+     "NIFTI_INTENT_EXTVAL"),
+    (22, 'p value', (), "NIFTI_INTENT_PVAL"),
+    (23, 'log p value', (), "NIFTI_INTENT_LOGPVAL"),
+    (24, 'log10 p value', (), "NIFTI_INTENT_LOG10PVAL"),
+    (1001, 'estimate', (), "NIFTI_INTENT_ESTIMATE"),
+    (1002, 'label', (), "NIFTI_INTENT_LABEL"),
+    (1003, 'neuroname', (), "NIFTI_INTENT_NEURONAME"),
+    (1004, 'general matrix',
+     ('p1 = M', 'p2 = N'),
+     "NIFTI_INTENT_GENMATRIX"),
+    (1005, 'symmetric matrix', ('p1 = M',), "NIFTI_INTENT_SYMMATRIX"),
+    (1006, 'displacement vector', (), "NIFTI_INTENT_DISPVECT"),
+    (1007, 'vector', (), "NIFTI_INTENT_VECTOR"),
+    (1008, 'pointset', (), "NIFTI_INTENT_POINTSET"),
+    (1009, 'triangle', (), "NIFTI_INTENT_TRIANGLE"),
+    (1010, 'quaternion', (), "NIFTI_INTENT_QUATERNION"),
+    (1011, 'dimensionless', (), "NIFTI_INTENT_DIMLESS"),
+    (2001, 'time series',
+     (),
+     "NIFTI_INTENT_TIME_SERIES",
+     "NIFTI_INTENT_TIMESERIES"), # this mis-spell occurs in the wild
+    (2002, 'node index', (), "NIFTI_INTENT_NODE_INDEX"),
+    (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
+    (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
+    (2005, 'shape', (), "NIFTI_INTENT_SHAPE")),
+    fields=('code', 'label', 'parameters', 'niistring'))
 
 
 class Nifti1Extension(object):
@@ -279,11 +331,10 @@ class Nifti1Extension(object):
         return s
 
     def __eq__(self, other):
-        if self._code != other._code \
-           or self._content != other._content:
-            return False
-        else:
-            return True
+        return (self._code, self._content) == (other._code, other._content)
+
+    def __ne__(self, other):
+        return not self == other
 
     def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
@@ -313,7 +364,7 @@ class Nifti1Extension(object):
         fileobj.write(self._mangle(self._content))
         # be nice and zero out remaining part of the extension till the
         # next 16 byte border
-        fileobj.write('\x00' * (extstart + rawsize - fileobj.tell()))
+        fileobj.write(ZEROB * (extstart + rawsize - fileobj.tell()))
 
 
 # NIfTI header extension type codes (ECODE)
@@ -366,13 +417,8 @@ class Nifti1Extensions(list):
                 % ', '.join([str(e) for e in self])
         return s
 
-    def __eq__(self, other):
-        if len(self) != len(other):
-            return False
-        for i, e in enumerate(self):
-            if not e == other[i]:
-                return False
-        return True
+    def __cmp__(self, other):
+        return cmp(list(self), list(other))
 
     def write_to(self, fileobj, byteswap):
         ''' Write header extensions to fileobj
@@ -438,13 +484,13 @@ class Nifti1Extensions(list):
                 raise HeaderDataError(
                         'extension size is not a multiple of 16 bytes')
             # read extension itself; esize includes the 8 bytes already read
-            evalue = fileobj.read(esize - 8)
+            evalue = fileobj.read(int(esize - 8))
             if not len(evalue) == esize - 8:
                 raise HeaderDataError('failed to read extension content')
             # note that we read a full extension
             size -= esize
             # store raw extension content, but strip trailing NULL chars
-            evalue = evalue.rstrip('\x00')
+            evalue = evalue.rstrip(ZEROB)
             # 'extension_codes' also knows the best implementation to handle
             # a particular extension type
             try:
@@ -523,7 +569,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         # has this as a 4 byte string; if the first value is not zero, then we
         # have extensions.  
         extension_status = fileobj.read(4)
-        if len(extension_status) < 4 or extension_status[0] == '\x00':
+        if len(extension_status) < 4 or extension_status[0] == ZEROB:
             return hdr
         # If this is a detached header file read to end
         if not klass.is_single:
@@ -546,10 +592,10 @@ class Nifti1Header(SpmAnalyzeHeader):
         if len(self.extensions) == 0:
             # If single file, write required 0 stream to signal no extensions
             if self.is_single:
-                fileobj.write('\x00' * 4)
+                fileobj.write(ZEROB * 4)
             return
         # Signal there are extensions that follow
-        fileobj.write('\x01\x00\x00\x00')
+        fileobj.write(ints2bytes([1, 0, 0, 0]))
         byteswap = endian_codes['native'] != self.endianness
         self.extensions.write_to(fileobj, byteswap)
 
@@ -930,7 +976,8 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code])
         params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
-        return label, tuple(params), str(hdr['intent_name'])
+        name = asstr(np.asscalar(hdr['intent_name']))
+        return label, tuple(params), name
 
     def set_intent(self, code, params=(), name=''):
         ''' Set the intent code, parameters and name
@@ -1292,9 +1339,10 @@ class Nifti1Header(SpmAnalyzeHeader):
     @staticmethod
     def _chk_magic_offset(hdr, fix=False):
         rep = Report(HeaderDataError)
-        magic = hdr['magic']
+        # for ease of later string formatting, use scalar of byte string
+        magic = np.asscalar(hdr['magic'])
         offset = hdr['vox_offset']
-        if magic == 'n+1': # one file
+        if magic == asbytes('n+1'): # one file
             if offset >= 352:
                 if not offset % 16:
                     return hdr, rep
@@ -1313,9 +1361,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             if fix:
                 hdr['vox_offset'] = 352
                 rep.fix_msg = 'setting to minimum value of 352'
-        elif magic != 'ni1': # two files
+        elif magic != asbytes('ni1'): # two files
             # unrecognized nii magic string, oh dear
-            rep.problem_msg = 'magic string "%s" is not valid' % magic
+            rep.problem_msg = ('magic string "%s" is not valid' %
+                               asstr(magic))
             rep.problem_level = 45
             if fix:
                 rep.fix_msg = 'leaving as is, but future errors are likely'
