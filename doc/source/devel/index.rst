@@ -11,4 +11,6 @@ Developer documentation page
 
     devguide
     devdiscuss
+    data_pkg_discuss
+    data_pkg_uses
     make_release

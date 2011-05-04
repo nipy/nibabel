@@ -233,6 +233,7 @@ Discovery
 ---------
 
 ::
+
     from ourpkg import default_registry
 
     my_pkg_path = default_registry.pathfor('mypkg', '0.3')
