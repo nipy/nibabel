@@ -1,5 +1,5 @@
 .. -*- mode: rst -*-
-.. vim:syntax=rest
+.. vim:syntax=rst
 
 .. _changelog:
 
@@ -25,6 +25,18 @@ NiBabel
 
 Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
 (MH).
+
+* 1.0.1 (Wednesday 23 Feb 2011)
+
+  * Bugfix release
+  * Fix bugs in tests for data package paths
+  * Fix leaks of open filehandles when loading images (thanks to Gael
+    Varoquaux for the report)
+  * Skip rw tests for SPM images when scipy not installed
+  * Fix various windows-specific file issues for tests
+  * Fix incorrect reading of byte-swapped trackvis files
+  * Workaround for odd numpy dtype comparisons leading to header errors for
+    some loaded images (thanks to Cindee Madison for the report)
 
 * 1.0.0 (Thursday, 13, Oct 2010)
 
@@ -61,6 +73,15 @@ statement IDs refer to the Debian bug tracking system and can be queried by
 visiting the URL::
 
   http://bugs.debian.org/<bug id>
+
+* 0.20100706.1 (Tue, 6 Jul 2010)
+  * Bugfix: NiftiFormat.vx2s() used the qform not the sform. Thanks to Tom
+    Holroyd for reporting.
+
+* 0.20100412.1 (Mon, 12 Apr 2010)
+  * Bugfix: Unfortunate interaction between Python garbage collection and C
+    library caused memory problems. Thanks to Yaroslav Halchenko for the
+    diagnose and fix.
 
 * 0.20090303.1 (Tue, 3 Mar 2009)
 

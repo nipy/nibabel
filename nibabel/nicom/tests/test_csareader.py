@@ -15,8 +15,8 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from .test_dicomwrappers import (have_dicom, dicom_test,
                                  IO_DATA_PATH, DATA)
 
-CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin')).read()
-CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin')).read()
+CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
+CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
 
 
 @dicom_test

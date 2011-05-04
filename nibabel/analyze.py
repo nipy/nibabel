@@ -1279,44 +1279,36 @@ class AnalyzeImage(SpatialImage):
     def get_shape(self):
         return self._data.shape
 
-    @staticmethod
-    def _get_open_files(file_map, mode='rb'):
-        ''' Utility method to open necessary files for read/write
-
-        This method is to allow for formats (nifti single in particular)
-        that may have the same file for header and image
-        '''
-        hdrf = file_map['header'].get_prepare_fileobj(mode=mode)
-        imgf = file_map['image'].get_prepare_fileobj(mode=mode)
-        return hdrf, imgf
-
-    def _close_filenames(self, file_map, hdrf, imgf):
-        ''' Utility method to close any files no longer required
-
-        Called by the image writing routines.
-
-        This method is to allow for formats (nifti single in particular)
-        that may have the same file for header and image
-        '''
-        if file_map['header'].fileobj is None: # was filename
-            hdrf.close()
-        if file_map['image'].fileobj is None: # was filename
-            imgf.close()
-
     @classmethod
     def from_file_map(klass, file_map):
         ''' class method to create image from mapping in `file_map ``
         '''
-        hdrf, imgf = klass._get_open_files(file_map, 'rb')
+        hdr_fh, img_fh = klass._get_fileholders(file_map)
+        hdrf = hdr_fh.get_prepare_fileobj(mode='rb')
         header = klass.header_class.from_fileobj(hdrf)
+        if hdr_fh.fileobj is None: # was filename
+            hdrf.close()
         affine = header.get_best_affine()
         hdr_copy = header.copy()
+        imgf = img_fh.fileobj
+        if imgf is None:
+            imgf = img_fh.filename
         data = klass.ImageArrayProxy(imgf, hdr_copy)
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
+
+    @staticmethod
+    def _get_fileholders(file_map):
+        """ Return fileholder for header and image
+
+        Allows single-file image types to return one fileholder for both types.
+        For Analyze there are two fileholders, one for the header, one for the
+        image.
+        """
+        return file_map['header'], file_map['image']
 
     def _write_header(self, header_file, header, slope, inter):
         ''' Utility routine to write header
@@ -1384,10 +1376,22 @@ class AnalyzeImage(SpatialImage):
         self.update_header()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
-        hdrf, imgf = self._get_open_files(file_map, 'wb')
+        hdr_fh, img_fh = self._get_fileholders(file_map)
+        # Check if hdr and img refer to same file; this can happen with odd
+        # analyze images but most often this is because it's a single nifti file
+        hdr_img_same = hdr_fh.same_file_as(img_fh)
+        hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
+        if hdr_img_same:
+            imgf = hdrf
+        else:
+            imgf = img_fh.get_prepare_fileobj(mode='wb')
         self._write_header(hdrf, hdr, slope, inter)
         self._write_image(imgf, data, hdr, slope, inter, mn, mx)
-        self._close_filenames(file_map, hdrf, imgf)
+        if hdr_fh.fileobj is None: # was filename
+            hdrf.close()
+        if not hdr_img_same:
+            if img_fh.fileobj is None: # was filename
+                imgf.close()
         self._header = hdr
         self.file_map = file_map
 

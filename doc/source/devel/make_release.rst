@@ -93,7 +93,7 @@ Release checklist
 
   * Branch to maintainance::
 
-      git co -b maint/1.0.0
+      git co -b maint/1.0.x
 
     Set ``_version_extra`` back to ``.dev`` and bump ``_version_micro`` by 1.
     Thus the maintenance series will have version numbers like - say - '1.0.1.dev'
@@ -107,7 +107,7 @@ Release checklist
     Thus the development series ('trunk') will have a version number here of
     '1.1.0.dev' and the next full release will be '1.1.0'.
 
-  If this is just a maintenance release from ``maint/1.0.0`` or similar, just
+  If this is just a maintenance release from ``maint/1.0.x`` or similar, just
   tag and set the version number to - say - ``1.0.2.dev``.
 
 * Make next development release tag

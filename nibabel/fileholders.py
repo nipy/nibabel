@@ -73,6 +73,23 @@ class FileHolder(object):
             raise FileHolderError('No filename or fileobj present')
         return obj
 
+    def same_file_as(self, other):
+        """ Test if `self` refers to same files / fileobj as `other`
+
+        Parameters
+        ----------
+        other : object
+            object with `filename` and `fileobj` attributes
+
+        Returns
+        -------
+        tf : bool
+            True if `other` has the same filename (or both have None) and the
+            same fileobj (or both have None
+        """
+        return ((self.filename == other.filename) and
+                (self.fileobj == other.fileobj))
+
 
 def copy_file_map(file_map):
     ''' Copy mapping of fileholders given by `file_map`

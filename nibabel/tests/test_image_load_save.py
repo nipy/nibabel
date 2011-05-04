@@ -16,12 +16,23 @@ from StringIO import StringIO
 
 import numpy as np
 
+# If we don't have scipy, then we cannot write SPM format files
+try:
+    import scipy.io
+except ImportError:
+    have_scipy = False
+else:
+    have_scipy = True
+
+
 import nibabel as nib
 import nibabel.analyze as ana
 import nibabel.spm99analyze as spm99
 import nibabel.spm2analyze as spm2
 import nibabel.nifti1 as ni1
 import nibabel.loadsave as nils
+from .. import (Nifti1Image, Nifti1Pair, MincImage, Spm2AnalyzeImage,
+                Spm99AnalyzeImage, AnalyzeImage)
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -110,9 +121,8 @@ def test_save_load():
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     with InTemporaryDirectory() as pth:
-        pth = mkdtemp()
-        nifn = pjoin(pth, 'an_image.nii')
-        sifn = pjoin(pth, 'another_image.img')
+        nifn = 'an_image.nii'
+        sifn = 'another_image.img'
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
         yield assert_true(isinstance(re_img, ni1.Nifti1Image))
@@ -122,12 +132,7 @@ def test_save_load():
         # windows errors when trying to open files or delete the
         # temporary directory. 
         del re_img
-        try:
-            import scipy.io
-        except ImportError:
-            # ignore if there is no matfile reader, and restart
-            pass
-        else:
+        if have_scipy: # skip we we cannot read .mat files
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
             yield assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
@@ -218,26 +223,41 @@ def test_negative_load_save():
     yield assert_array_almost_equal(re_img.get_data(), data, 4)
 
 
-@parametric
 def test_filename_save():
+    # This is to test the logic in the load and save routines, relating
+    # extensions to filetypes
+    # Tuples of class, ext, loadedclass
+    inklass_ext_loadklasses = (
+        (Nifti1Image, '.nii', Nifti1Image),
+        (Nifti1Image, '.img', Nifti1Pair),
+        (MincImage, '.nii', Nifti1Image),
+        (MincImage, '.img', Nifti1Pair),
+        (Spm2AnalyzeImage, '.nii', Nifti1Image),
+        (Spm2AnalyzeImage, '.img', Spm2AnalyzeImage),
+        (Spm99AnalyzeImage, '.nii', Nifti1Image),
+        (Spm99AnalyzeImage, '.img', Spm2AnalyzeImage),
+        (AnalyzeImage, '.nii', Nifti1Image),
+        (AnalyzeImage, '.img', Spm2AnalyzeImage),
+    )
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
     data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
-    for r_class_def in nib.class_map.values():
-        r_class = r_class_def['class']
-        img = r_class(data, affine)
-        for w_class_def in nib.class_map.values():
-            if not w_class_def['rw']: # can't write this class
+    for inklass, out_ext, loadklass in inklass_ext_loadklasses:
+        if not have_scipy:
+            # We can't load a SPM analyze type without scipy.  These types have
+            # a 'mat' file (the type we can't load)
+            if ('mat', '.mat') in loadklass.files_types:
                 continue
-            out_ext = w_class_def['ext']
-            try:
-                pth = mkdtemp()
-                fname = pjoin(pth, 'image' + out_ext)
-                nib.save(img, fname)
-                rt_img = nib.load(fname)
-                yield assert_array_almost_equal(rt_img.get_data(), data)
-                # delete image to allow file close.  Otherwise windows
-                # raises an error when trying to delete the directory
-                del rt_img
-            finally:
-                shutil.rmtree(pth)
+        img = inklass(data, affine)
+        try:
+            pth = mkdtemp()
+            fname = pjoin(pth, 'image' + out_ext)
+            nib.save(img, fname)
+            rt_img = nib.load(fname)
+            assert_array_almost_equal(rt_img.get_data(), data)
+            assert_true(type(rt_img) is loadklass)
+            # delete image to allow file close.  Otherwise windows
+            # raises an error when trying to delete the directory
+            del rt_img
+        finally:
+            shutil.rmtree(pth)
