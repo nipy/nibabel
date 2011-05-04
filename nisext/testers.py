@@ -41,7 +41,7 @@ def run_mod_cmd(mod_name, pkg_path, cmd):
         os.chdir(tmpdir)
         my_call('python -c "import sys; sys.path.insert(1,\'%s\'); '
                 'import %s;'
-                'print %s.__file__;'
+                'print(%s.__file__);'
                 '%s"' % (pkg_path,
                          mod_name,
                          mod_name,
@@ -153,7 +153,7 @@ def contexts_print_info(mod_name, repo_path, install_path):
     site_pkgs_path = install_from_to(install_from,
                                      install_path,
                                      PY_LIB_SDIR)
-    cmd_str = 'print %s.get_info()' % mod_name
+    cmd_str = 'print(%s.get_info())' % mod_name
     run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
     # now test install into a directory from the repository
     site_pkgs_path = install_from_to(repo_path,
@@ -163,8 +163,8 @@ def contexts_print_info(mod_name, repo_path, install_path):
     # Take the opportunity to audit the py files
     repo_mod_path = os.path.join(repo_path, mod_name)
     install_mod_path = os.path.join(site_pkgs_path, mod_name)
-    print 'Files not taken across by the installation:'
-    print check_installed_files(repo_mod_path, install_mod_path)
+    print('Files not taken across by the installation:')
+    print(check_installed_files(repo_mod_path, install_mod_path))
     # test from development tree
     run_mod_cmd(mod_name, repo_path, cmd_str)
     return
@@ -232,21 +232,35 @@ tests_from_zip.__test__ = False
 
 def sdist_tests(mod_name, repo_path=None):
     """ Make sdist zip, install from it, and run tests """
+    buildzip_run_tests(mod_name, 'sdist --formats=zip', '*.zip', repo_path)
+
+sdist_tests.__test__ = False
+
+
+def bdist_egg_tests(mod_name, repo_path=None):
+    """ Make bdist_egg, install from it, and run tests """
+    buildzip_run_tests(mod_name, 'bdist_egg', '*.egg', repo_path)
+
+bdist_egg_tests.__test__ = False
+
+
+def buildzip_run_tests(mod_name, setup_params, zipglob, repo_path=None):
     pwd = os.path.abspath(os.getcwd())
     if repo_path is None:
         repo_path = pwd
     install_path = tempfile.mkdtemp()
     try:
         os.chdir(repo_path)
-        my_call('python setup.py sdist --formats=zip --dist-dir='
-                + install_path)
-        zip_fnames = glob(pjoin(install_path, mod_name + "*.zip"))
-        if len(zip_fnames) != 1:
-            raise OSError('There must be one and only one zip file, '
-                          'but I found "%s"' % ': '.join(zip_fnames))
-        tests_from_zip(mod_name, zip_fnames[0])
+        my_call('python setup.py %s --dist-dir=%s'
+                % (setup_params, install_path))
+        zips = glob(pjoin(install_path, zipglob))
+        if len(zips) != 1:
+            raise OSError('There must be one and only one %s file, '
+                          'but I found "%s"' %
+                          (zipglob, ': '.join(zips)))
+        tests_from_zip(mod_name, zips[0])
     finally:
         os.chdir(pwd)
         shutil.rmtree(install_path)
 
-sdist_tests.__test__ = False
+buildzip_run_tests.__test__ = False

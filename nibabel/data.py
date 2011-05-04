@@ -279,7 +279,8 @@ def make_datasource(pkg_def, **kwargs):
     names = unix_relpath.split('/')
     try:
         pth = find_data_dir(data_path, *names)
-    except DataError, exception:
+    except DataError:
+        exception = sys.exc_info()[1] # Python 2 and 3 compatibility
         pth = [pjoin(this_data_path, *names)
                 for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
@@ -337,7 +338,8 @@ def datasource_or_bomber(pkg_def, **options):
     sys_relpath = os.path.sep.join(names)
     try:
         ds = make_datasource(pkg_def, **options)
-    except DataError, exception:
+    except DataError:
+        exception = sys.exc_info()[1] # python 2 and 3 compatibility
         return Bomber(sys_relpath, exception)
     # check version
     if (version is None or

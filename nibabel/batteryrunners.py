@@ -211,8 +211,17 @@ class Report(object):
         self.problem_msg = problem_msg
         self.fix_msg = fix_msg
 
+    def __getstate__(self):
+        """ State that defines object
+
+        Returns
+        -------
+        tup : tuple
+        """
+        return self.error, self.problem_level, self.problem_msg, self.fix_msg
+
     def __eq__(self, other):
-        ''' Test for equality
+        ''' are two BatteryRunner-like objects equal?
 
         Parameters
         ----------
@@ -229,19 +238,14 @@ class Report(object):
         >>> rep == rep3
         False
         '''
-        return (self.__dict__ == other.__dict__)
+        return self.__getstate__() == other.__getstate__()
 
     def __ne__(self, other):
-        ''' Test for equality
+        """ are two BatteryRunner-like objects not equal?
 
-        Parameters
-        ----------
-        other : object
-           report-like object to test equality
-
-        See __eq__ docstring for examples
-        '''
-        return (self.__dict__ != other.__dict__)
+        See docstring for __eq__
+        """
+        return not self == other
 
     def __str__(self):
         ''' Printable string for object '''

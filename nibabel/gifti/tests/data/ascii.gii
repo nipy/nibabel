@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-<GIFTI Version="1.0"  NumberOfDataArrays="3">
+<GIFTI Version="1.0"  NumberOfDataArrays="2">
    <MetaData>
       <MD>
          <Name><![CDATA[Caret-Version]]></Name>

@@ -17,36 +17,45 @@ import sys
 # update it when the contents of directories change.
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
-from distutils.core import setup
-
-# For some commands, use setuptools.  
+# For some commands, use setuptools.
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
             'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
-    # setup_egg imports setuptools setup, thus monkeypatching distutils. 
-    from setup_egg import extra_setuptools_args
+    # setup_egg imports setuptools setup, thus monkeypatching distutils.
+    import setup_egg
 
-# extra_setuptools_args can be defined from the line above, but it can
-# also be defined here because setup.py has been exec'ed from
-# setup_egg.py.
-if not 'extra_setuptools_args' in globals():
-    extra_setuptools_args = dict()
+from distutils.core import setup
 
+# Python 2 to 3 build
+from nisext.py3builder import build_py
+# Commit hash writing, and dependency checking
 from nisext.sexts import get_comrec_build, package_check
-cmdclass = {'build_py': get_comrec_build('nibabel')}
+cmdclass = {'build_py': get_comrec_build('nibabel', build_py)}
 
 # Get version and release info, which is all stored in nibabel/info.py
 ver_file = os.path.join('nibabel', 'info.py')
-execfile(ver_file)
+exec(open(ver_file).read())
 
 # Do dependency checking
 package_check('numpy', NUMPY_MIN_VERSION)
-package_check('dicom', PYDICOM_MIN_VERSION, optional=True)
+custom_pydicom_messages = {'missing opt': 'Missing optional package "%s"'
+        ' provided by package "pydicom"'
+}
+package_check('dicom',
+        PYDICOM_MIN_VERSION,
+        optional=True,
+        messages = custom_pydicom_messages)
+extra_setuptools_args = {}
 if 'setuptools' in sys.modules:
-    extra_setuptools_args['extras_require'] = dict(
-        doc='Sphinx>=0.3',
-        test='nose>=0.10.1',
-        nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
+    extra_setuptools_args = dict(
+        tests_require=['nose'],
+        test_suite='nose.collector',
+        zip_safe=False,
+        extras_require = dict(
+            doc='Sphinx>=0.3',
+            test='nose>=0.10.1',
+            nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
+    )
 
 def main(**extra_args):
     setup(name=NAME,
@@ -66,14 +75,16 @@ def main(**extra_args):
           provides=PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.externals.tests',
                           'nibabel.gifti',
+                          'nibabel.gifti.tests',
                           'nibabel.nicom',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests',
-                          # required in setup.py, hence needs to go into source
-                          # dist
-                          'nisext'],
+                          # install nisext as its own package
+                          'nisext',
+                          'nisext.tests'],
           # The package_data spec has no effect for me (on python 2.6) -- even
           # changing to data_files doesn't get this stuff included in the source
           # distribution -- not sure if it has something to do with the magic
@@ -82,7 +93,9 @@ def main(**extra_args):
           # only a workaround to get things started -- not a solution
           package_data = {'nibabel':
                           [pjoin('tests', 'data', '*'),
+                           pjoin('externals', 'tests', 'data', '*'),
                            pjoin('nicom', 'tests', 'data', '*'),
+                           pjoin('gifti', 'tests', 'data', '*'),
                           ]},
           scripts      = [pjoin('bin', 'parrec2nii')],
           cmdclass = cmdclass,

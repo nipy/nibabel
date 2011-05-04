@@ -16,10 +16,3 @@ Contents:
    git_resources
 
 
-.. silence 'not included' warnings
-.. toctree::
-    :hidden:
-
-    dot2_dot3
-
-

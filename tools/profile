@@ -71,7 +71,10 @@ if __name__ == "__main__":
     sys.path.append(dirname)
 
     # now do profiling
-    import hotshot
+    try:
+        import hotshot
+    except ImportError:
+        raise RuntimeError('No hotshot')
 
     if pfilename is None:
         pfilename = cmdname + ".prof"
@@ -79,7 +82,7 @@ if __name__ == "__main__":
     if run:
         exec "import %s as runnable" % root
 
-        if not runnable.__dict__.has_key('main'):
+        if not 'main' in runnable.__dict__:
             print "OOPS: file/module %s has no function main defined" \
                        % cmdname
             sys.exit(1)

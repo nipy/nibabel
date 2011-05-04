@@ -23,8 +23,23 @@ Releases
 NiBabel
 +++++++
 
-Most work on NiBabel so far has been by Matthew Brettt (MB) and Michael Hanke
-(MH).
+Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
+(MH) and Stephan Gerhard (SG).
+
+* 1.1.0 (Thursday 28 April 2011)
+
+  * New feature release
+  * Python 3.2 support
+  * Substantially enhanced gifti reading support (SG)
+  * Refactoring of trackvis read / write to allow reading and writing of voxel
+    points and mm points in tracks.  Deprecate use of negative voxel sizes;
+    set voxel_order field in trackvis header.  Thanks to Chris Filo
+    Gorgolewski for pointing out the problem and Ruopeng Wang in the trackvis
+    forum for clarifying the coordinate system of trackvis files.
+  * Added routine to give approximate array orientation in form such as 'RAS'
+    or 'LPS'
+  * Fix numpy dtype hash errors for numpy 1.2.1
+  * Other bug fixes as for 1.0.2
 
 * 1.0.2 (Thursday 14 April 2011)
 

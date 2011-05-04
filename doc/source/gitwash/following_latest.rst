@@ -33,4 +33,4 @@ From time to time you may want to pull down the latest code.  Do this with::
 The tree in ``nibabel`` will now have the latest changes from the initial
 repository.
 
-.. include:: git_links.inc
+.. include:: links.inc

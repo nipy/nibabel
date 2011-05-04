@@ -3,6 +3,8 @@
 Design of data packages for the nipy suite
 ==========================================
 
+See :ref:`data-package-discuss` for a more general discussion of design issues.
+
 When developing or using nipy, many data files can be useful. We divide
 the data files nipy uses into at least 3 categories
 

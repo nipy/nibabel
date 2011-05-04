@@ -7,8 +7,8 @@ docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
 # full release.  '.dev' as a _version_extra string means this is a development
 # version
 _version_major = 1
-_version_minor = 0
-_version_micro = 2
+_version_minor = 1
+_version_micro = 0
 # _version_extra = '.dev'
 _version_extra = ''
 

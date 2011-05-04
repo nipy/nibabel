@@ -49,10 +49,10 @@ from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
 from .minc import MincImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
-                           as_closest_canonical)
+                    as_closest_canonical)
 from .orientations import (io_orientation, orientation_affine,
-                                  flip_axis, OrientationError,
-                                  apply_orientation)
+                           flip_axis, OrientationError,
+                           apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map
 from . import trackvis
 

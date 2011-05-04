@@ -1,7 +1,11 @@
 ''' Distutils / setuptools helpers '''
 
 from os.path import join as pjoin
-from ConfigParser import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
+
 
 from distutils.version import LooseVersion
 from distutils.command.build_py import build_py
@@ -46,13 +50,15 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
-            build_py.run(self)
+            build_cmd.run(self)
             import subprocess
             proc = subprocess.Popen('git rev-parse --short HEAD',
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
                                     shell=True)
             repo_commit, _ = proc.communicate()
+            # Fix for python 3
+            repo_commit = str(repo_commit)
             # We write the installation commit even if it's empty
             cfg_parser = ConfigParser()
             cfg_parser.read(pjoin(pkg_dir, 'COMMIT_INFO.txt'))
@@ -107,7 +113,7 @@ def package_check(pkg_name, version=None,
          'missing opt': 'Missing optional package "%s"',
          'opt suffix' : '; you may get run-time errors',
          'version too old': 'You have version %s of package "%s"'
-         ' but we need version >= %s', }
+                            ' but we need version >= %s', }
     msgs.update(messages)
     try:
         __import__(pkg_name)
@@ -125,12 +131,11 @@ def package_check(pkg_name, version=None,
         raise RuntimeError('Cannot find version for %s' % pkg_name)
     if checker(have_version) < checker(version):
         if optional:
-            log.warn(msgs['version too old'] + msgs['opt suffix'],
-                     have_version,
-                     pkg_name,
-                     version)
+            log.warn(msgs['version too old'] % (have_version,
+                                                pkg_name,
+                                                version)
+                     + msgs['opt suffix'])
         else:
-            raise RuntimeError(msgs['version too old'],
-                               have_version,
-                               pkg_name,
-                               version)
+            raise RuntimeError(msgs['version too old'] % (have_version,
+                                                          pkg_name,
+                                                          version))
