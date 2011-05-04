@@ -92,35 +92,43 @@ Release checklist
     {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
 
 * You probably have virtualenvs for different python versions.  Check the tests
-  pass for different configurations.  Here's what that looks like for my
-  virtualenv / virtualenvwrapper setup::
+  pass for different configurations.  If you have pytox_ and a network
+  connnection, and lots of pythons installed, you might be able to do::
 
-    workon python25
-    make venv-tests # can't use sdist-tests for python 2.5
-    deactivate
+    tox
+
+  and get tests for python 2.5, 2.6, 2.7, 3.2.  I (MB) have my own set of
+  virtualenvs installed and I've set them up to run with::
+
+    tox -e python25,python26,python27,python32,np-1.2.1
+
+  The trick was only to define these ``testenv`` sections in ``tox.ini``.
+
+  These two above run with::
+
+    make tox-fresh
+    make tox-stale
+
+  respectively.
+
+  The long-hand not-tox way looks like this::
+
     workon python26
     make sdist-tests
     deactivate
-    workon python27
-    make sdist-tests
-    deactivate
-    workon python3.2
-    make sdist-tests
-    deactivate
-    workon np-1.2.1
-    make venv-tests # python 2.5 again
-    deactivate
+
+  etc for the different virtualenvs.
 
 * Check on different platforms, particularly windows and PPC.  I have wine
-  installed on my Mac, and git bash installed under wine.  I run these via a
-  custom script thus::
+  installed on my Mac, and git bash installed under wine.  I run bash and the
+  tests like this::
 
-    winebash
+    wineconsole bash
     # in wine bash
     make sdist-tests
 
   For the PPC I have to log into an old Mac G5 in Berkeley.  It doesn't have a
-  fixed IP even, but here's an example::
+  fixed IP even, but here's an example session::
 
     ssh 128.32.52.219
     cd dev_trees/nibabel
@@ -133,10 +141,6 @@ Release checklist
     cd doc
     make doctest
     cd ..
-
-  At the moment this generates lots of errors from the autodoc documentation
-  running the doctests in the code, where the doctests pass when run in nose -
-  we should find out why this is at some point, but leave it for now.
 
 * The release should now be ready.
 
@@ -208,4 +212,5 @@ Release checklist
 
 * Announce to the mailing lists.
 
+.. _pytox: http://codespeak.net/tox
 .. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html

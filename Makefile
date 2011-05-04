@@ -258,5 +258,15 @@ venv-tests:
 	python setup.py install
 	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 
+tox-fresh:
+	# tox tests with fresh-installed virtualenvs.  Needs network.  And
+	# pytox, obviously.
+	tox -c tox.ini
+
+tox-stale:
+	# tox tests with MB's already-installed virtualenvs (numpy and nose
+	# installed)
+	tox -e python25,python26,python27,python32,np-1.2.1
+
 .PHONY: orig-src pylint
 
