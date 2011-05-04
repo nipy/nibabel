@@ -247,8 +247,9 @@ sdist-tests:
 bdist-egg-tests:
 	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
 
-source-release: clean
+source-release: distclean
 	python -m compileall .
+	make distclean
 	python setup.py sdist --formats=gztar,zip
 
 venv-tests:

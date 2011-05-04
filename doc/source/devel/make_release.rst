@@ -142,12 +142,15 @@ Release checklist
     make doctest
     cd ..
 
+* Check everything compiles without syntax errors::
+
+    python -m compileall .
+
 * The release should now be ready.
 
 * Edit :file:`nibabel/info.py` to set ``_version_extra`` to ``''``; commit.
   Then::
 
-    make distclean
     make source-release
 
 * Once everything looks good, upload the source release to PyPi.  See
@@ -193,6 +196,10 @@ Release checklist
 
   If this is just a maintenance release from ``maint/1.0.x`` or similar, just
   tag and set the version number to - say - ``1.0.2.dev``.
+
+* Push tags::
+
+    git push --tags
 
 * Make next development release tag
 
