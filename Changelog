@@ -38,7 +38,8 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
     forum for clarifying the coordinate system of trackvis files.
   * Added routine to give approximate array orientation in form such as 'RAS'
     or 'LPS'
-  * Bug fixes as for 1.0.2
+  * Fix numpy dtype hash errors for numpy 1.2.1
+  * Other bug fixes as for 1.0.2
 
 * 1.0.2 (Thursday 14 April 2011)
 
