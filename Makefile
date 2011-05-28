@@ -107,17 +107,16 @@ coverage: build
 #
 
 htmldoc: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) html
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) html
 
 
 pdfdoc: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) latex
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) latex
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
 gitwash-update: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
-
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) gitwash-update
 
 #
 # Website
