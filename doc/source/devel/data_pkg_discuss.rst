@@ -74,7 +74,6 @@ id for an instantiation.  For example, you might have a revision of id '200',
 delete a file, restore the file, call this revision id '201', but they would
 both refer to the same instantiation of the package.
 
-
 Package instantiation tag
 =========================
 
@@ -127,9 +126,8 @@ A release might be a package instantiation that one person has:
 #. tagged
 #. made available as one or more *provider bundles*
 
-
-Bundle discovery
-================
+Prundle discovery
+=================
 
 We *discover* a package bundle when we ask a system (local or remote) whether
 they have a package bundle at a given revision, tag, or bundle format.  That
@@ -139,6 +137,12 @@ your expensive server and if so, how do I get it?).  For the Debian
 distributions, the ``sources.list`` file identifies sources from which we can
 query for software packages.  Those would be sources for *remote discovery* in
 our language.
+
+Prundle discovery source
+========================
+
+A *prundle discovery source* is somewhere that can answer prundle discovery
+queries.
 
 Package query
 =============
@@ -182,6 +186,9 @@ bundle.  At a first pass this might contain:
 * revision id (optional)
 * tag (optional)
 
+Maybe it should also contain information about where the information came from,
+such as the *discovery source* from the which the query was made, and when.
+
 ***********************
 Comparative terminology
 ***********************
@@ -194,16 +201,16 @@ Compared to Debian packaging
 
 * A Debian distribution is a label - such as 'unstable' or 'lenny' - that refers to a
   set of package revisions that go together.  We have no equivalent.
-* A Debian - er - collection (what's the right name?) is a set of packages
-  within a distribution that go together - e.g. 'main' or 'contrib'.   Again we
-  have no equivalent.
+* A Debian *repository* is a set of packages within a distribution that go
+  together - e.g. 'main' or 'contrib'.   Again we have no equivalent.
 * A Debian source is a URI giving a location from which you can collect one or
-  more collections. For example, the line: "http://www.example.com/packages
+  more repositories. For example, the line: "http://www.example.com/packages
   stable main contrib" in a "sources.list" file refers to the *source*
   "http://www.example.com/packages" providing *distribution* "stable" and
-  *collections* (within stable) of "main" and "contrib".  In our language the
-  combination of URI, distribution and collection would refer to a repository -
-  that is - something that will answer queries about bundles.
+  *repositories* (within stable) of "main" and "contrib".  In our language the
+  combination of URI, distribution and repository would refer to a *prundle
+  discovery source* - that is - something that will answer queries about
+  bundles.
 * package probably means the same for us as for Debian - a name - like
   "python-numpy" - that refers to a set of files that go together and should be
   installed together.
