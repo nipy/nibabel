@@ -1,22 +1,14 @@
 .. _data-pkg-uses:
 
-#####################
-Data package usecases
-#####################
+########################################
+Data package usecases and implementation
+########################################
 
-This is a moderate conflation of usecases with some more design definitions and
-discussions.
+********
+Usecases
+********
 
-*************
-Distributions
-*************
-
-Distribution definition
-=======================
-
-A distribution object is an object referring to a package distribution.  It
-has a name and a version.  It may be able to return contents of the
-distribution.  It identifies the type of the distribution.
+We are here working from :doc:`data_pkg_discuss`
 
 Distribution types
 ==================

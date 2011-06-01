@@ -79,7 +79,7 @@ of the package.  Or they might not, that's up to you, the author of the package.
 Package instantiation tag
 =========================
 
-A *tag* is a memorable string that refers to particular pinstance.  It differs
+A *tag* is a memorable string that refers to a particular pinstance.  It differs
 from a revision id only in that there is not likely to be a tag for every
 revision.  It's possible to imagine pinstances without a revision id but with a
 tag, but perhaps it's reasonable to restrict tags to refer to revisions.  A
@@ -342,6 +342,7 @@ Discovery
         raise RuntimeError('It looks like mypkg version 0.3 is not installed')
 
 
+.. rubric:: Footnotes
 
 .. [tag-sources]
 
