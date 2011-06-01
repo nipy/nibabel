@@ -4,7 +4,7 @@
  Set up your fork
 ==================
 
-First you follow the instructions for :ref:`forking`. 
+First you follow the instructions for :ref:`forking`.
 
 Overview
 ========
@@ -33,7 +33,7 @@ Clone your fork
    This tells you that you are currently on the ``master`` branch, and
    that you also have a ``remote`` connection to ``origin/master``.
    What remote repository is ``remote/origin``? Try ``git remote -v`` to
-   see the URLs for the remote.  They will point to your github_ fork.
+   see the URLs for the remote.  They will point to your github fork.
 
    Now you want to connect to the upstream `nibabel github`_ repository, so
    you can merge in changes from trunk.
