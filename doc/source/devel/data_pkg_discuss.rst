@@ -57,8 +57,10 @@ remove data from the package, the *instantiation* changes.  In version control,
 the instantiation would be the particular state of the working tree at any
 moment, whether this has been committed or not.
 
-Package revision
-================
+It might not be enjoyable, but we'll call a package instantiation a *pinstance*.
+
+Package instantiation revision
+==============================
 
 A revision is an instantiation of the working tree that has a unique label - the
 *revision id*.
@@ -66,28 +68,28 @@ A revision is an instantiation of the working tree that has a unique label - the
 Package revision id
 ===================
 
-The *revision id* is a string that identifies a particular instantiation of the
-data package.  This is the equivalent of the revision number in subversion_, or
-the commit hash in systems like git_ or mercurial_. There is only one
-instantiation for any given revision id, but there can be more than one revision
-id for an instantiation.  For example, you might have a revision of id '200',
-delete a file, restore the file, call this revision id '201', but they would
-both refer to the same instantiation of the package.
+The *revision id* is a string that identifies a particular *pinstance*.  This is
+the equivalent of the revision number in subversion_, or the commit hash in
+systems like git_ or mercurial_. There is only one pinstance for any given
+revision id, but there can be more than one revision id for a pinstance.  For
+example, you might have a revision of id '200', delete a file, restore the file,
+call this revision id '201', but they might both refer to the same instantiation
+of the package.  Or they might not, that's up to you, the author of the package.
 
 Package instantiation tag
 =========================
 
-A *tag* is a memorable string that refers to particular instantiation of the
-package.  It differs from a revision id only in that there is not likely to be a
-tag for every revision.  It's possible to imagine instantiations without a
-revision id but with a tag, but perhaps it's reasonable to restrict tags to
-refer to revisions.  A *tag* is equivalent to a tag name in git or mercurial - a
-memorable string that refers to a static state of the data.  An example might be
-a numbered version.  So, a package may have an revision uniquely identified by a
-revision id ``af5bd6``.  We might decide to label this revision ``release-0.3``
-(the equivalent of applying a git_ tag).  ``release-0.3`` is the tag and
-``af5bd6`` is the revision id.  Different sources of the same package might
-possibly produce different tags [#tag-sources]_
+A *tag* is a memorable string that refers to particular pinstance.  It differs
+from a revision id only in that there is not likely to be a tag for every
+revision.  It's possible to imagine pinstances without a revision id but with a
+tag, but perhaps it's reasonable to restrict tags to refer to revisions.  A
+*tag* is equivalent to a tag name in git or mercurial - a memorable string that
+refers to a static state of the data.  An example might be a numbered version.
+So, a package may have a revision uniquely identified by a revision id
+``af5bd6``.  We might decide to label this revision ``release-0.3`` (the
+equivalent of applying a git tag).  ``release-0.3`` is the tag and ``af5bd6``
+is the revision id.  Different sources of the same package might possibly
+produce different tags [#tag-sources]_
 
 Package provider bundle
 =======================
@@ -95,12 +97,11 @@ Package provider bundle
 Maybe we could call this a "prundle".
 
 The *provider bundle* is something that can deliver the bytes of a particular
-package instantiation.  For example, if you have a package named
-"interesting-images", you might have an revision of that package identified by
-revision id "f745dc2" and tagged with "version-0.2".  There might be a *provider
-bundle* of that instantiation that is a zipfile
-``interesting-images-version-0.2.zip``.  There might also be a directory on an
-http server with the same contents
+pinstance.  For example, if you have a package named "interesting-images", you
+might have a revision of that package identified by revision id "f745dc2" and
+tagged with "version-0.2".  There might be a *provider bundle* of that
+instantiation that is a zipfile ``interesting-images-version-0.2.zip``.  There
+might also be a directory on an http server with the same contents
 ``http://my.server.org/packages/interesting-images/version-9.2``.  The zipfile
 and the http directory would both be *provider bundles* of the particular
 instantiation.  When I unpack the zipfile onto my hard disk, I might have a
@@ -118,8 +119,8 @@ instantiation.  Let's call those formats:
 * url-path format
 * local-path format
 
-Package release
-===============
+Pinstance release
+=================
 
 A release might be a package instantiation that one person has:
 
@@ -144,50 +145,57 @@ Prundle discovery source
 A *prundle discovery source* is somewhere that can answer prundle discovery
 queries.
 
-Package query
-=============
-
-We query a package when we know that a particular system (local or remote) has a
-package bundle, and we want to get some information about that package
-instantiation.
-
-Package installation
-====================
-
-We install a package when we get some instantiation and place it on local
-storage, such that we can *discover* the package on our own (local) system.
-That is we take some package bundle, and convert it to a *local-path* format
-bundle *and* we register this local-path format bundle in a registry (see
-below).
-
-Data and metadata
-=================
-
-Data
-    is the bytes as they arranged in a particular package instantiation.
-
-Metadata
-    is data about the package instantiation.  It might include information about
-    what data is in the package.
-
-Registry
-========
-
-Something that can be queried to *discover* a package bundle.
-
-Registry entry
-==============
-
-An element in a *registry* containing information about a particular package
-bundle.  At a first pass this might contain:
+One such thing might be a prundle registry, where an element in the registry
+contains information about a particular prundle.  At a first pass this might
+contain:
 
 * package name
 * bundle format
 * revision id (optional)
 * tag (optional)
 
-Maybe it should also contain information about where the information came from,
-such as the *discovery source* from the which the query was made, and when.
+Maybe it should also contain information about where the information came from.
+
+Pinstance metadata query
+========================
+
+We query a pinstance when we know that a particular system (local or remote) has
+a package bundle of the pinstance we want. Then we get some information about
+that pinstance.
+
+By definition, different prundles relating to the same pinstance have the same
+metadata.
+
+Pinstance metadata query source
+===============================
+
+A *pinstance metadata query source* is somewhere that can answer pinstance
+metadata queries.
+
+Obviously a source may well be both a *prundle discovery source* and a
+*pinstance metadata query source*.
+
+Pinstance installation
+======================
+
+We install a pinstance when we get some prundle containing the pinstance and
+place it on local storage, such that we can *discover* the prundle on our own
+(local) system.  That is we take some prundle and convert it to a *local-path*
+format bundle *and* we register this local-path format bundle to a *discovery
+source*.
+
+Data and metadata
+=================
+
+Pinstance data
+    is the bytes as they are arranged in a particular pinstance.
+
+Pinstance metadata
+    is data about the pinstance.  It might include information about what data
+    is in the package.
+
+Prundle metadata
+    Information about the particular prundle format.
 
 ***********************
 Comparative terminology
@@ -202,7 +210,9 @@ Compared to Debian packaging
 * A Debian distribution is a label - such as 'unstable' or 'lenny' - that refers to a
   set of package revisions that go together.  We have no equivalent.
 * A Debian *repository* is a set of packages within a distribution that go
-  together - e.g. 'main' or 'contrib'.   Again we have no equivalent.
+  together - e.g. 'main' or 'contrib'.  We probably don't have an equivalent
+  (unless we consider Debian's repository as being like a very large package
+  in our language).
 * A Debian source is a URI giving a location from which you can collect one or
   more repositories. For example, the line: "http://www.example.com/packages
   stable main contrib" in a "sources.list" file refers to the *source*
