@@ -1,8 +1,8 @@
 .. _data-package-discuss:
 
-#############################
-Principles of data package NG
-#############################
+##########################
+Principles of data package
+##########################
 
 **********
 Motivation
@@ -36,7 +36,7 @@ separable.
 Package
 =======
 
-This ideas is rather difficult to define, but is a bit like a data project, that
+This idea is rather difficult to define, but is a bit like a data project, that
 is a set of information that the packager believed had something in common.  The
 package then is an abstract idea, and what is in the package could change
 completely over course of the life of the package.  The package then is a little
@@ -59,14 +59,14 @@ moment, whether this has been committed or not.
 
 It might not be enjoyable, but we'll call a package instantiation a *pinstance*.
 
-Package instantiation revision
-==============================
+Pinstance revision
+==================
 
 A revision is an instantiation of the working tree that has a unique label - the
 *revision id*.
 
-Package revision id
-===================
+Pinstance revision id
+=====================
 
 The *revision id* is a string that identifies a particular *pinstance*.  This is
 the equivalent of the revision number in subversion_, or the commit hash in
@@ -76,8 +76,8 @@ example, you might have a revision of id '200', delete a file, restore the file,
 call this revision id '201', but they might both refer to the same instantiation
 of the package.  Or they might not, that's up to you, the author of the package.
 
-Package instantiation tag
-=========================
+Pinstance tag
+=============
 
 A *tag* is a memorable string that refers to a particular pinstance.  It differs
 from a revision id only in that there is not likely to be a tag for every
@@ -90,6 +90,14 @@ So, a package may have a revision uniquely identified by a revision id
 equivalent of applying a git tag).  ``release-0.3`` is the tag and ``af5bd6``
 is the revision id.  Different sources of the same package might possibly
 produce different tags [#tag-sources]_
+
+Pinstance version
+=================
+
+A *pinstance* might also have a version.  A version is just a tag that can be
+compared using some algorithm.
+
+.. _prundle:
 
 Package provider bundle
 =======================
@@ -126,6 +134,8 @@ A release might be a package instantiation that one person has:
 
 #. tagged
 #. made available as one or more *provider bundles*
+
+.. _prundle-discovery:
 
 Prundle discovery
 =================
