@@ -1,3 +1,13 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+
+
 import numpy as np
 import copy
 from nibabel.volumeutils import pretty_mapping, endian_codes,native_code,swapped_code
@@ -350,7 +360,7 @@ class EcatMlist(object):
 	    3 - matrix deleted
         """
         self.hdr = hdr
-        self.mlist = self.get_mlist(fileobj)
+        self._mlist = self.get_mlist(fileobj)
 
     def get_mlist(self, fileobj):
         fileobj.seek(512)
@@ -380,8 +390,33 @@ class EcatMlist(object):
                 fileobj.seek(0)
                 fileobj.seek(tmp*512)
                 dat = fileobj.read(128*32)
-         
         return mlist
+
+    def get_frame_order(self):
+        """Returns the order of the frames in the file
+
+        Returns
+        -------
+
+        frame_dict: dict mapping mlist id -> frame number
+
+        id_dict: dict mapping frame number -> mlist id
+
+        (where mlist id is in the first column of the mlist matrix )
+        """
+        mlist  = self._mlist
+        ind = mlist[:,0] > 0
+        nframes = ind.shape[0]
+        tmp = mlist[ind,0]
+        tmp.sort()
+        frame_dict = {}
+        id_dict = {}
+        for fn, id in enumerate(mlist[ind,0]):
+            frame_dict.update({id:fn})
+            id_dict.update({fn:id})
+        return frame_dict, id_dict
+    
+        
 
 
 class EcatSubHeader(object):
@@ -405,7 +440,7 @@ class EcatSubHeader(object):
         if not self.endianness is native_code:
             dt = self._subhdrdtype.newbyteorder(self.endianness)
         if self._header['num_frames'] > 1:
-            for item in self._mlist:
+            for item in self._mlist._mlist:
                 if item[1] == 0:
                     break
                 self.fileobj.seek(0)
@@ -466,6 +501,12 @@ class EcatSubHeader(object):
             return np.dtype('ushort')
         else:
             return None
+
+    def data_from_fileobj(self, fileobj):
+        pass
+    
+
+
 
 
 class EcatImage(SpatialImage):
@@ -604,7 +645,7 @@ class EcatImage(SpatialImage):
         header = klass._header_maker.from_fileobj(hdr_fid)        
         hdr_copy = header.copy()
         ### LOAD MLIST
-        mlist = klass._mlist_class(hdr_fid, hdr_copy).mlist
+        mlist = klass._mlist_class(hdr_fid, hdr_copy)
         ### LOAD SUBHEADERS
         
         subheaders = klass._subheader_class(hdr_copy, mlist,
@@ -613,12 +654,12 @@ class EcatImage(SpatialImage):
         if hdr_file.fileobj is None:
             hdr_fid.close() # if object is file, close
         ### LOAD DATA
-        #img_f = img_file.fileobj
-        #if img_f is None: # object is a file
-        #    img_f = img_file.filename
+        img_f = img_file.fileobj
+        if img_f is None: # object is a file
+            img_f = img_file.filename
         #### MADE IT HERE IMPLEMENT MULTI IMAGE LOAD #####
         
-
+        ## Implement CLass level ImageArrayProxy
         #data = klass.ImageArrayProxy(img_f, hdr_copy)
         #img = klass(data, None, header, file_map = file_map)
         #img._affine = header.get_best_affine()
