@@ -549,7 +549,7 @@ class EcatImage(SpatialImage):
 
 
     class ImageArrayProxy(object):
-        ''' Minc implemention of array proxy protocol
+        ''' Ecat implemention of array proxy protocol
 
         The array proxy allows us to freeze the passed fileobj and
         header such that it returns the expected data array.
@@ -580,7 +580,7 @@ class EcatImage(SpatialImage):
                  extra = None, file_map = None):
         """ Initialize Image
 
-        The image is a combinations of (array, affine matrix, header, subheader,
+        The image is a combination of (array, affine matrix, header, subheader,
         mlist) with optional meta data in `extra`, and filename / file-like objects
         contained in the `file_map`.
 
@@ -627,30 +627,16 @@ class EcatImage(SpatialImage):
         self._header = header
 
 
-    def _data_from_fileobj(self, fileobj, frame=0):
-        """ read scaled data array from file obj
-        defaults to first frame (ecat can hold multiple frames
-        
-        raw data modified by
-        header['ecat_calibration_factor'] Same for all frames
-        subhdr['scale_factor'] can be different across frames
-        datatype is usually the same across frames, but can also be different
-        also read from subheader
-        subhdr['data_type']
-        
-        """
-        pass
-        
-        
     def get_data(self):
-        """returns scaled data for all frames in a numpy array"""
+        """returns scaled data for all frames in a numpy array
+        returns as a 4D array """
         if self._data is None:
             raise ImageDataError('No data in this image')
         return np.asanyarray(self._data)        
        
                             
-    def _get_frame_affine(self, frame):
-        """returns affine"""
+    def get_frame_affine(self, frame):
+        """returns 4X4 affine"""
         
         return self._subheader.get_affine(frame=frame)
 
@@ -671,32 +657,9 @@ class EcatImage(SpatialImage):
     @classmethod
     def from_filespec(klass, filespec):
 
-        return klass.from_filename(klass, filename)
+        return klass.from_filename(filespec)
 
-    
-    #@staticmethod
-    #def filespec_to_files(filespec):
-    #    return {'image':filespec}
 
-    #
-    """@classmethod
-    #def from_files(klass, files):
-        fname = files['image']
-        fileobj = allopen(fname)
-        ret = []
-        header = klass._header_maker.from_fileobj(fileobj)
-        
-        for fn in range(len(header._subheader)):
-            
-            affine = header.get_frame_affine(frame=fn)
-            
-            
-            tmpklass = klass(None, affine, header, extra={'frame':fn})
-            tmpklass._files = files
-            ret.append(tmpklass)
-
-        return ret
-        """
     @staticmethod
     def _get_fileholders(file_map):
         """ returns files specific to header and image of the image
@@ -706,6 +669,8 @@ class EcatImage(SpatialImage):
         -------
         header : file holding header data
         image : file holding image data
+
+        
         """
         return file_map['header'], file_map['image']
 
@@ -726,30 +691,19 @@ class EcatImage(SpatialImage):
                                       mlist,
                                       hdr_fid)
 
-        #if hdr_file.fileobj is None:
-        #    hdr_fid.close() # if object is file, close
         ### LOAD DATA
-        img_f = img_file.fileobj
-        if img_f is None: # object is a file
-            img_f = img_file.filename
-        framedict = mlist.get_frame_order()
-        nframes = len(framedict)
-        aff = subheaders.get_frame_affine()
-        
-        #### MADE IT HERE IMPLEMENT MULTI IMAGE LOAD #####
-        
-        ## Implement CLass level ImageArrayProxy
+        ##  Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)
+
+        ## Get affine
+        aff = subheaders.get_frame_affine()
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
-        #img._affine = header.get_best_affine()
-        #img._load_cache = {'header' : hdr_copy,
-        #                   'affine' : img._affine.copy(),
-        #                   'file_map' : copy_file_map(file_map)}
         return img
         
       
     @classmethod
     def from_image(klass, img):
+        raise NotImplementedError("Ecat images must be generated from files")
         orig_hdr = img.get_header()
         return klass(img.get_data(),
                      img.get_affine(),
