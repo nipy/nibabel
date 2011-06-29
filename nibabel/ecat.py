@@ -16,7 +16,7 @@ from nibabel.volumeutils import make_dt_codes, allopen
 
 
 from nibabel.spatialimages import SpatialImage, HeaderDataError, HeaderTypeError
-from nibabel.volumeutils import allopen
+from nibabel.volumeutils import allopen, array_from_file
 from .fileholders import FileHolderError, copy_file_map
 from .arrayproxy import ArrayProxy
 
@@ -173,6 +173,7 @@ class EcatHeader(object):
     _dtype = hdr_dtype
     _subhdrdtype = subhdr_dtype
 
+
     def __init__(self, 
                  fileobj=None,
                  endianness=None,
@@ -285,7 +286,8 @@ class EcatHeader(object):
 
 
     def get_data_dtype(self):
-        """ Get numpy dtype for date from header"""
+        """ Get numpy dtype for data from header"""
+        pass
 
     def copy(self):
         return self.__class__(
@@ -412,9 +414,10 @@ class EcatMlist(object):
         frame_dict = {}
         id_dict = {}
         for fn, id in enumerate(mlist[ind,0]):
-            frame_dict.update({id:fn})
-            id_dict.update({fn:id})
-        return frame_dict, id_dict
+            mlist_n = np.where(mlist[:,0] == id)[0][0]
+            id_dict.update({fn:[mlist_n,id]})
+        
+        return id_dict
     
         
 
@@ -458,18 +461,23 @@ class EcatSubHeader(object):
             subheaders.append(sh)
         return subheaders
         
-    def get_shape(self, frame):
+    def get_shape(self, frame=0):
         """ returns shape of given frame"""
-        hdr = self.get_header()
-        subhdr = hdr._subheader[frame]
-        x = subhdr['x_dimension']
-        y = subhdr['y_dimension']
-        z = subhdr['z_dimension']
+        subhdr = self.subheaders[frame]
+        x = subhdr['x_dimension'].item()
+        y = subhdr['y_dimension'].item()
+        z = subhdr['z_dimension'].item()
         return (x,y,z)
+
+    def get_nframes(self):
+        """returns number of frames"""
+        mlist = self._mlist
+        framed = mlist.get_frame_order()
+        return len(framed)
+    
     def get_frame_affine(self,frame=0):
         """returns best affine for given frame of data"""
-        hdr = self.get_header()
-        subhdr = hdr._subheader[frame]
+        subhdr = self.subheaders[frame]
         x_off = subhdr['x_offset']
         y_off = subhdr['y_offset']
         z_off = subhdr['z_offset']
@@ -485,8 +493,7 @@ class EcatSubHeader(object):
     
     def get_zooms(self,frame=0):
         """returns zooms  ...pixdims"""
-        hdr = self.get_header()
-        subhdr = hdr._subheader[frame]
+        subhdr = self.subheaders[frame]
         x_zoom = subhdr['x_pixel_size'] * 10
         y_zoom = subhdr['y_pixel_size'] * 10
         z_zoom = subhdr['z_pixel_size'] * 10
@@ -502,20 +509,119 @@ class EcatSubHeader(object):
         else:
             return None
 
-    def data_from_fileobj(self, fileobj):
-        pass
-    
+    def get_frame_offset(self, frame=0):
+        mlist = self._mlist._mlist
+        offset = mlist[frame][1] * 512
+        return offset
 
+    def raw_data_from_fileobj(self, frame=0):
+        dtype = self.get_data_dtype(frame)
+        if not self._header.endianness is native_code:
+            dtype=dtype.newbyteorder(self._header.endianness)
+        shape = self.get_shape(frame)
+        offset = self.get_frame_offset(frame)
+        fid_obj = self.fileobj
+        raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
+        ## put data into neurologic orientation
+        #fid_obj.close()
+        raw_data = raw_data[::-1,::-1,::-1]
+        return raw_data
+
+    def data_from_fileobj(self, frame=0):
+        """read scaled data from file for a given frame"""
+        header = self._header
+        subhdr = self.subheaders[frame]
+        raw_data = self.raw_data_from_fileobj(frame)
+        data = raw_data * header['ecat_calibration_factor']
+        data = data * subhdr['scale_factor']
+        return data
+        
 
 
 
 class EcatImage(SpatialImage):
     """This class returns a list of Ecat images, with one image(hdr/data) per frame
     """
-    _header_maker = EcatHeader
-    _subheader_class = EcatSubHeader
-    _mlist_class = EcatMlist
+    _header = EcatHeader
+    _subheader = EcatSubHeader
+    _mlist = EcatMlist
     files_types = (('image', '.v'), ('header', '.v'))
+
+
+    class ImageArrayProxy(object):
+        ''' Minc implemention of array proxy protocol
+
+        The array proxy allows us to freeze the passed fileobj and
+        header such that it returns the expected data array.
+        '''
+        def __init__(self, subheader):
+            self._subheader = subheader
+            self._data = None
+            x, y, z = subheader.get_shape()
+            nframes = subheader.get_nframes()
+            self.shape = (x, y, z, nframes)
+
+        def __array__(self):
+            ''' Cached read of data from file
+            This reads ALL FRAMES into one array, can be memory expensive
+            use subheader.data_from_fileobj(frame) for less memeory intensive reads
+            '''
+            if self._data is None:
+                self._data = np.empty(self.shape)
+                frame_mapping = self._subheader._mlist.get_frame_order()
+                for i in sorted(frame_mapping):
+                    self._data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
+                return self._data
+
+
+
+    def __init__(self, data, affine, header,
+                 subheader, mlist ,
+                 extra = None, file_map = None):
+        """ Initialize Image
+
+        The image is a combinations of (array, affine matrix, header, subheader,
+        mlist) with optional meta data in `extra`, and filename / file-like objects
+        contained in the `file_map`.
+
+        Parameters
+        ----------
+
+        data : None or array-like
+            image data
+        affine : None or (4,4) array-like
+            homogeneous affine giving relationship between voxel coords and
+            world coords.
+        header : None or header instance
+            meta data for this image format
+        subheader : None or subheader instance
+            meta data for each sub-image for frame in the image
+        mlist : None or mlist instance
+            meta data with array giving offset and order of data in file
+        extra : None or mapping, optional
+            metadata associated with this image that cannot be
+            stored in header or subheader
+        file_map : mapping, optional
+            mapping giving file information for this image format
+        """
+        self._subheader = subheader
+        self._mlist = mlist
+        self._data = data
+        if not affine is None:
+            # Check that affine is array-like 4,4.  Maybe this is too strict at
+            # this abstract level, but so far I think all image formats we know
+            # do need 4,4.
+            affine = np.asarray(affine)
+            if not affine.shape == (4,4):
+                raise ValueError('Affine should be shape 4,4')
+        self._affine = affine
+        if extra is None:
+            extra = {}
+        self.extra = extra
+        self._header = header
+        if file_map is None:
+            file_map = self.__class__.make_file_map()
+        self.file_map = file_map
 
     def _set_header(self, header):
         self._header = header
@@ -533,68 +639,35 @@ class EcatImage(SpatialImage):
         subhdr['data_type']
         
         """
-        
+        pass
         
         
     def get_data(self):
         """returns scaled data for all frames in a numpy array"""
-        header = self._header
-        frame = self.extra['frame']
-        subhdr = header._subheader[frame]
-        mlist = header._mlist
-        
-        dt = self.get_data_dtype()
-        offset = mlist[frame][1] * 512
-        fid = open(self._files['image'], 'rb')
-        fid.seek(offset)
-        datashape = self.get_shape()
-        
-        raw = fid.read( np.array(datashape).prod() * dt.itemsize)
-        fid.close()
-        if header.endianness is native_code:
-            data =  np.ndarray(shape=datashape,
-                               dtype=dt,
-                               buffer=raw,
-                               order='F')
-        else:
-            #print dt.newbyteorder(header.endianness)
-            data = np.ndarray(shape=datashape,
-                              dtype=dt.newbyteorder(header.endianness),
-                              buffer=raw,
-                              order='F')
-        ## put data into neurologic orientation
-        data = data[::-1,::-1,::-1]
-        data = data * header['ecat_calibration_factor']
-        data = data * subhdr['scale_factor']
-        data.shape = datashape
-        return data
+        if self._data is None:
+            raise ImageDataError('No data in this image')
+        return np.asanyarray(self._data)        
+       
                             
-    def _get_frame_affine(self):
+    def _get_frame_affine(self, frame):
         """returns affine"""
-        frame = self.extra['frame']
-        return self._header.get_affine(frame=frame)
-
-    def get_frame(self):
-        return self.extra['frame']
         
-    def get_data_dtype(self):
-        header = self._header
-        frame = self.extra['frame']
-        subhdr = header._subheader[frame]
-        if subhdr['data_type'] == 5:
-            return np.dtype('float')
-        elif subhdr['data_type'] == 6:
-            return np.dtype('ushort')
-        else:
-            return None
+        return self._subheader.get_affine(frame=frame)
+
+    def get_frame(self,frame):
+        return self._subheader.data_from_fileobj(frame)
+        
+    def get_data_dtype(self,frame):
+        subhdr = self._subheader
+        dt = subhdr.get_data_dtype(frame)
+        return dt
 
     def get_shape(self):
-        if not self._data is None:
-            return self._data.shape
-        frame = self.extra['frame']
-        return self._header.get_shape(frame=frame)
- 
+        x,y,z = self._subheader.get_shape()
+        nframes = self._subheader.get_nframes()
+        return(x, y, z, nframes)
 
+    
     @classmethod
     def from_filespec(klass, filespec):
 
@@ -641,32 +714,38 @@ class EcatImage(SpatialImage):
         """class method to create image from mapping
         specified in file_map"""
         hdr_file, img_file = klass._get_fileholders(file_map)
+        #note header and image are in same file
         hdr_fid = hdr_file.get_prepare_fileobj(mode = 'rb')
-        header = klass._header_maker.from_fileobj(hdr_fid)        
+        header = klass._header.from_fileobj(hdr_fid)        
         hdr_copy = header.copy()
         ### LOAD MLIST
-        mlist = klass._mlist_class(hdr_fid, hdr_copy)
+        mlist = klass._mlist(hdr_fid, hdr_copy)
         ### LOAD SUBHEADERS
         
-        subheaders = klass._subheader_class(hdr_copy, mlist,
-                                            hdr_fid).subheaders
+        subheaders = klass._subheader(hdr_copy,
+                                      mlist,
+                                      hdr_fid)
 
-        if hdr_file.fileobj is None:
-            hdr_fid.close() # if object is file, close
+        #if hdr_file.fileobj is None:
+        #    hdr_fid.close() # if object is file, close
         ### LOAD DATA
         img_f = img_file.fileobj
         if img_f is None: # object is a file
             img_f = img_file.filename
+        framedict = mlist.get_frame_order()
+        nframes = len(framedict)
+        aff = subheaders.get_frame_affine()
+        
         #### MADE IT HERE IMPLEMENT MULTI IMAGE LOAD #####
         
         ## Implement CLass level ImageArrayProxy
-        #data = klass.ImageArrayProxy(img_f, hdr_copy)
-        #img = klass(data, None, header, file_map = file_map)
+        data = klass.ImageArrayProxy(subheaders)
+        img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         #img._affine = header.get_best_affine()
         #img._load_cache = {'header' : hdr_copy,
         #                   'affine' : img._affine.copy(),
         #                   'file_map' : copy_file_map(file_map)}
-        return hdr_copy, mlist, subheaders
+        return img
         
       
     @classmethod
