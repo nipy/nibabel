@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-
+import warnings
 
 import numpy as np
 import copy
@@ -474,6 +474,21 @@ class EcatSubHeader(object):
         mlist = self._mlist
         framed = mlist.get_frame_order()
         return len(framed)
+
+
+    def _check_affines(self):
+        """checks if all affines are equal across frames"""
+        nframes = self.get_nframes()
+        if nframes == 1:
+            return True
+        affs = [self.get_frame_affine(i) for i in range(nframes)]
+        if affs:
+            i = iter(affs)
+            first = i.next()
+            for item in i:
+                if not np.all(first == item):
+                    return False
+        return True            
     
     def get_frame_affine(self,frame=0):
         """returns best affine for given frame of data"""
@@ -633,6 +648,13 @@ class EcatImage(SpatialImage):
         if self._data is None:
             raise ImageDataError('No data in this image')
         return np.asanyarray(self._data)        
+
+
+    def get_affine(self):
+        if not subheaders._check_affines():
+            warnings.warn('Affines different across frames, loading affine from FIRST frame',
+                          UserWarning )
+        return self._affine
        
                             
     def get_frame_affine(self, frame):
@@ -686,16 +708,17 @@ class EcatImage(SpatialImage):
         ### LOAD MLIST
         mlist = klass._mlist(hdr_fid, hdr_copy)
         ### LOAD SUBHEADERS
-        
         subheaders = klass._subheader(hdr_copy,
                                       mlist,
                                       hdr_fid)
-
         ### LOAD DATA
         ##  Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)
 
         ## Get affine
+        if not subheaders._check_affines():
+            warnings.warn('Affines different across frames, loading affine from FIRST frame',
+                          UserWarning )
         aff = subheaders.get_frame_affine()
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         return img
