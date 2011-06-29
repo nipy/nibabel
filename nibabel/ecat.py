@@ -369,13 +369,14 @@ class EcatMlist(object):
         dat=fileobj.read(128*32)
     
         dt = np.dtype([('matlist',np.int32)])
-        
+        if not self.hdr.endianness is native_code:
+            dt = dt.newbyteorder(self.hdr.endianness)
         nframes = self.hdr['num_frames']
         mlist = np.zeros((nframes,4))
         record_count = 0
         done = False
         while not done: #mats['matlist'][0,1] == 2:
-
+        
             mats = np.recarray(shape=(32,4), dtype=dt.newbyteorder(),  buf=dat)
             if not (mats['matlist'][0,0] +  mats['matlist'][0,3]) == 31:
                 mlist = []
@@ -454,7 +455,7 @@ class EcatSubHeader(object):
                 subheaders.append(sh.copy())
         else:
             self.fileobj.seek(0)
-            self.fileobj.seek((self._mlist[0][1]-1)*512)
+            self.fileobj.seek((self._mlist._mlist[0][1]-1)*512)
             tmpdat = self.fileobj.read(512)
             sh = (np.recarray(shape=(), dtype=dt,
                               buf=tmpdat))
@@ -651,7 +652,7 @@ class EcatImage(SpatialImage):
 
 
     def get_affine(self):
-        if not subheaders._check_affines():
+        if not self._subheader._check_affines():
             warnings.warn('Affines different across frames, loading affine from FIRST frame',
                           UserWarning )
         return self._affine
