@@ -118,3 +118,26 @@ class TestEcatSubHeader(ParametricTestCase):
         scaled_dat = self.subhdr.data_from_fileobj()
         yield assert_array_equal(dat * scale_factor * ecat_calib_factor,
                                  scaled_dat)
+
+
+class TestEcatImage(ParametricTestCase):
+    image_class = EcatImage
+    example_file = ecat_file
+    img = image_class.load(example_file)
+
+    def test_file(self):
+        yield assert_equal(self.img.file_map['header'].filename,
+                           self.example_file)
+        yield assert_equal(self.img.file_map['image'].filename,
+                           self.example_file)
+        yield assert_raises(NotImplementedError,
+                            self.img.to_filename,
+                            'tmp.v')
+
+    def test_data(self):
+        dat = self.img.get_data()
+        yield assert_equal(dat.shape, self.img.get_shape())
+        frame = self.img.get_frame(0)
+        yield assert_array_equal(frame, dat[:,:,:,0])
+        
+        

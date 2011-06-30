@@ -15,7 +15,7 @@ from nibabel.volumeutils import native_code, swapped_code
 from nibabel.volumeutils import make_dt_codes, allopen
 
 
-from nibabel.spatialimages import SpatialImage, HeaderDataError, HeaderTypeError
+from nibabel.spatialimages import SpatialImage, HeaderDataError, HeaderTypeError, ImageDataError
 from nibabel.volumeutils import allopen, array_from_file
 from .fileholders import FileHolderError, copy_file_map
 from .arrayproxy import ArrayProxy
