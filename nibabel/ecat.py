@@ -229,7 +229,7 @@ class EcatHeader(object):
             return native_code
 
     @classmethod
-    def from_fileobj(klass, fileobj, endianness=None,check=False):
+    def from_fileobj(klass, fileobj, endianness=None):
         """Return /read header with given or guessed endian code
 
         Parameters
@@ -250,7 +250,7 @@ class EcatHeader(object):
 
         """
         raw_str = fileobj.read(klass._dtype.itemsize)
-        return klass(raw_str, endianness, check)
+        return klass(raw_str, endianness)
 
     def _empty_headerdata(self,endianness=None):
         """Return header data for empty header with given endianness"""
@@ -275,8 +275,8 @@ class EcatHeader(object):
     def copy(self):
         return self.__class__(
             self.binaryblock,
-            self.endianness,
-            check=False)
+            self.endianness)
+
 
     def __eq__(self, other):
         """ checks for equality between two headers"""
@@ -424,9 +424,9 @@ class EcatSubHeader(object):
         self.endianness = hdr.endianness
         self._mlist = mlist
         self.fileobj = fileobj
-        self.subheaders = self.get_subheaders()
+        self.subheaders = self._get_subheaders()
 
-    def get_subheaders(self):
+    def _get_subheaders(self):
         """retreive all subheaders and return list of subheader recarrays
         """
         subheaders = []
@@ -522,7 +522,7 @@ class EcatSubHeader(object):
     def get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
         offset = mlist[frame][1] * 512
-        return offset
+        return int(offset)
 
     def raw_data_from_fileobj(self, frame=0):
         dtype = self.get_data_dtype(frame)

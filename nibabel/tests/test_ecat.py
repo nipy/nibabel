@@ -64,3 +64,45 @@ class TestEcatHeader(ParametricTestCase):
         fid.close()
         yield assert_true(hdr.endianness == '<')
         yield assert_true(newhdr.endianness == '>')
+
+class TestEcatMlist(ParametricTestCase):
+    header_class = EcatHeader
+    mlist_class = EcatMlist
+    example_file = ecat_file
+
+    def test_mlist(self):
+        fid = open(self.example_file, 'rb')
+        hdr = self.header_class.from_fileobj(fid)
+        mlist =  self.mlist_class(fid, hdr)
+        fid.seek(0)
+        fid.seek(512)
+        dat=fid.read(128*32)
+        dt = np.dtype([('matlist',np.int32)])
+        dt = dt.newbyteorder('>')
+        mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
+        fid.close()
+        yield assert_true(mats['matlist'][0,0] +  mats['matlist'][0,3] == 31)
+        yield assert_true(mlist.get_frame_order()[0][0] == 0)
+        yield assert_true(mlist.get_frame_order()[0][1] == 16842758.0)
+
+class TestEcatSubHeader(ParametricTestCase):
+    header_class = EcatHeader
+    mlist_class = EcatMlist
+    subhdr_class = EcatSubHeader
+    example_file = ecat_file    
+    fid = open(example_file, 'rb')
+    hdr = header_class.from_fileobj(fid)
+    mlist =  mlist_class(fid, hdr)        
+    subhdr = subhdr_class(hdr, mlist, fid)
+    fid.close()
+
+    def test_subheader_size(self):
+        yield assert_equal(self.subhdr_class._subhdrdtype.itemsize, 242)
+
+    def test_subheader(self):
+        yield assert_equal(self.subhdr.get_shape() , (10,10,3))
+        yield assert_equal(self.subhdr.get_nframes() , 1)
+        yield assert_equal(self.subhdr.get_nframes(),
+                           len(self.subhdr.subheaders))
+        yield assert_equal(self.subhdr._check_affines(), True)
+                
