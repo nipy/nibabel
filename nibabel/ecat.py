@@ -195,16 +195,6 @@ class EcatHeader(object):
             self._header_data = self._empty_headerdata(endianness)
             return
         
-        #try:
-        #    fileobj.seek(0)
-        #    binaryblock = fileobj.read(512)
-        #except AttributeError:
-        #    fileobj = open(fileobj,'rb')
-        #    fileobj.seek(0)
-        #    binaryblock = fileobj.read(512)
-        #except IOError:
-        #    print 'unable to access fileobject'
-
         hdr = np.ndarray(shape=(),
                          dtype=self._dtype,
                          buffer=fileobj)
@@ -217,10 +207,7 @@ class EcatHeader(object):
                              dtype=dt,
                              buffer=fileobj)
         self._header_data = hdr.copy()
-        #self._mlist = self.get_mlist(fileobj)
-        #self.number_frames = self._header_data['num_frames']
-        #self._subheader = self.get_subheaders(fileobj)
-
+        
         return
 
     def get_header(self):
@@ -389,7 +376,7 @@ class EcatMlist(object):
                 done = True
             else:
                 # Find next subheader
-                tmp = mats['matlist'][0,1]-1
+                tmp = int(mats['matlist'][0,1]-1)#cast to int
                 fileobj.seek(0)
                 fileobj.seek(tmp*512)
                 dat = fileobj.read(128*32)
@@ -448,14 +435,16 @@ class EcatSubHeader(object):
                 if item[1] == 0:
                     break
                 self.fileobj.seek(0)
-                self.fileobj.seek((int(item[1])-1)*512)
+                offset = (int(item[1])-1)*512
+                self.fileobj.seek(offset)
                 tmpdat = self.fileobj.read(512)
                 sh = (np.recarray(shape=(), dtype=dt,
                                   buf=tmpdat))
                 subheaders.append(sh.copy())
         else:
             self.fileobj.seek(0)
-            self.fileobj.seek((self._mlist._mlist[0][1]-1)*512)
+            offset = (int(self._mlist._mlist[0][1])-1)*512
+            self.fileobj.seek(offset)
             tmpdat = self.fileobj.read(512)
             sh = (np.recarray(shape=(), dtype=dt,
                               buf=tmpdat))
@@ -559,6 +548,7 @@ class EcatImage(SpatialImage):
     """This class returns a list of Ecat images, with one image(hdr/data) per frame
     """
     _header = EcatHeader
+    header_class = _header
     _subheader = EcatSubHeader
     _mlist = EcatMlist
     files_types = (('image', '.v'), ('header', '.v'))
