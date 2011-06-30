@@ -164,20 +164,17 @@ class EcatHeader(object):
        subheaders specific to each frame 
            with possibly-variable sized data blocks
        
-    This just reads the main Ecat Header, and matrixlist
+    This just reads the main Ecat Header, 
     it does not load the data 
-    or read any sub headers
+    or read the mlist or any sub headers
 
     """
 
     _dtype = hdr_dtype
-    _subhdrdtype = subhdr_dtype
-
-
+    
     def __init__(self, 
                  fileobj=None,
-                 endianness=None,
-                 check=False):
+                 endianness=None):
         """Initialize Ecat header from file object
 
         Parameters
@@ -188,9 +185,7 @@ class EcatHeader(object):
         endianness : {None, '<', '>', other endian code}, optional
             endian code of binary block, If None, guess endianness
             from the data
-        check : bool optional
-            Whether to check content of header in intialization.
-            Default is False """
+        """
         if fileobj is None:
             self._header_data = self._empty_headerdata(endianness)
             return
@@ -274,13 +269,23 @@ class EcatHeader(object):
 
     def get_data_dtype(self):
         """ Get numpy dtype for data from header"""
-        pass
+        raise NotImplementedError("dtype is only valid from subheaders")
+        
 
     def copy(self):
         return self.__class__(
             self.binaryblock,
             self.endianness,
             check=False)
+
+    def __eq__(self, other):
+        """ checks for equality between two headers"""
+        self_end = self.endianness
+        self_bb = self.binaryblock
+        if self_end == other.endianness:
+            return self_bb == other.binaryblock
+        other_bb = other._header_data.byteswap().tostring()
+        return self_bb == other_bb
         
     def __ne__(self, other):
         ''' equality between two headers defined by ``header_data``
@@ -294,8 +299,8 @@ class EcatHeader(object):
 
         Examples
         --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr['sizeof_hdr'] == 348
+        >>> hdr = EcatHeader()
+        >>> hdr['magic_number'] == 'MATRIX72'
         True
         '''
         return self._header_data[item]
@@ -305,10 +310,10 @@ class EcatHeader(object):
 
         Examples
         --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr['descrip'] = 'description'
-        >>> str(hdr['descrip'])
-        'description'
+        >>> hdr = EcatHeader()
+        >>> hdr['num_frames'] = 2
+        >>> hdr['num_frames']
+        2
         '''
         self._header_data[item] = value
 
@@ -364,7 +369,7 @@ class EcatMlist(object):
         done = False
         while not done: #mats['matlist'][0,1] == 2:
         
-            mats = np.recarray(shape=(32,4), dtype=dt.newbyteorder(),  buf=dat)
+            mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
             if not (mats['matlist'][0,0] +  mats['matlist'][0,3]) == 31:
                 mlist = []
                 return mlist
@@ -422,7 +427,7 @@ class EcatSubHeader(object):
         self.subheaders = self.get_subheaders()
 
     def get_subheaders(self):
-        """retreive all subheaders and return list of subheader dictionaries
+        """retreive all subheaders and return list of subheader recarrays
         """
         subheaders = []
         header = self._header
