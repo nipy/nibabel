@@ -105,4 +105,5 @@ class TestEcatSubHeader(ParametricTestCase):
         yield assert_equal(self.subhdr.get_nframes(),
                            len(self.subhdr.subheaders))
         yield assert_equal(self.subhdr._check_affines(), True)
-                
+        yield assert_array_equal(np.diag(self.subhdr.get_frame_affine()),
+                                 np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
