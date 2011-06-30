@@ -94,7 +94,7 @@ class TestEcatSubHeader(ParametricTestCase):
     hdr = header_class.from_fileobj(fid)
     mlist =  mlist_class(fid, hdr)        
     subhdr = subhdr_class(hdr, mlist, fid)
-    fid.close()
+    
 
     def test_subheader_size(self):
         yield assert_equal(self.subhdr_class._subhdrdtype.itemsize, 242)
@@ -105,5 +105,16 @@ class TestEcatSubHeader(ParametricTestCase):
         yield assert_equal(self.subhdr.get_nframes(),
                            len(self.subhdr.subheaders))
         yield assert_equal(self.subhdr._check_affines(), True)
-        yield assert_array_equal(np.diag(self.subhdr.get_frame_affine()),
-                                 np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
+        yield assert_array_almost_equal(np.diag(self.subhdr.get_frame_affine()),
+                                        np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
+        yield assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
+        yield assert_equal(self.subhdr.get_zooms()[2], 3.125)
+        yield assert_equal(self.subhdr._get_data_dtype(0),np.dtype('ushort'))
+        yield assert_equal(self.subhdr._get_frame_offset(), 1536)
+        dat = self.subhdr.raw_data_from_fileobj()
+        yield assert_equal(dat.shape, self.subhdr.get_shape())
+        scale_factor = self.subhdr.subheaders[0]['scale_factor']
+        ecat_calib_factor = self.hdr['ecat_calibration_factor']
+        scaled_dat = self.subhdr.data_from_fileobj()
+        yield assert_array_equal(dat * scale_factor * ecat_calib_factor,
+                                 scaled_dat)

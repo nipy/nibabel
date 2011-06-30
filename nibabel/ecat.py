@@ -510,7 +510,7 @@ class EcatSubHeader(object):
         return (x_zoom, y_zoom, z_zoom, 1)
 
 
-    def get_data_dtype(self, frame):
+    def _get_data_dtype(self, frame):
         dt = self.subheaders[frame]['data_type']
         if dt == 5:
             return np.dtype('float')
@@ -519,17 +519,17 @@ class EcatSubHeader(object):
         else:
             return None
 
-    def get_frame_offset(self, frame=0):
+    def _get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
         offset = mlist[frame][1] * 512
         return int(offset)
 
     def raw_data_from_fileobj(self, frame=0):
-        dtype = self.get_data_dtype(frame)
+        dtype = self._get_data_dtype(frame)
         if not self._header.endianness is native_code:
             dtype=dtype.newbyteorder(self._header.endianness)
         shape = self.get_shape(frame)
-        offset = self.get_frame_offset(frame)
+        offset = self._get_frame_offset(frame)
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
         ## put data into neurologic orientation
@@ -663,7 +663,7 @@ class EcatImage(SpatialImage):
         
     def get_data_dtype(self,frame):
         subhdr = self._subheader
-        dt = subhdr.get_data_dtype(frame)
+        dt = subhdr._get_data_dtype(frame)
         return dt
 
     def get_shape(self):
