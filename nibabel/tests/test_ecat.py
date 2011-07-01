@@ -40,9 +40,12 @@ class TestEcatHeader(ParametricTestCase):
         yield assert_true(hdr['ecat_calibration_factor'] == 1.0)
 
     def test_dtype(self):
+        #dtype not specified in header, only in subheaders
         hdr = self.header_class()
         yield assert_raises(NotImplementedError,
                             hdr.get_data_dtype)
+    def test_filetype(self):
+        hdr = self.header_class()        
 
     def test_copy(self):
         hdr = self.header_class()
@@ -109,7 +112,7 @@ class TestEcatSubHeader(ParametricTestCase):
                                         np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
         yield assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
         yield assert_equal(self.subhdr.get_zooms()[2], 3.125)
-        yield assert_equal(self.subhdr._get_data_dtype(0),np.dtype('ushort'))
+        yield assert_equal(self.subhdr._get_data_dtype(0),np.uint16)
         yield assert_equal(self.subhdr._get_frame_offset(), 1536)
         dat = self.subhdr.raw_data_from_fileobj()
         yield assert_equal(dat.shape, self.subhdr.get_shape())

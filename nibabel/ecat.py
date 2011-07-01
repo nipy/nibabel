@@ -151,8 +151,35 @@ subheader_dtd = [
     ('fill', np.uint16)]
 subhdr_dtype = np.dtype(subheader_dtd)
 
+# Ecat Data Types
+_dtdefs = ( # code, name, equivalent dtype
+    (1, 'ECAT7_BYTE', np.uint8),
+    (2, 'ECAT7_VAXI2', np.int16),
+    (3, 'ECAT7_VAXI4', np.float32),
+    (4, 'ECAT7_VAXR4', np.float32),
+    (5, 'ECAT7_IEEER4', np.float32),
+    (6, 'ECAT7_SUNI2', np.uint16),
+    (7, 'ECAT7_SUNI4', np.int32))
+data_type_codes = make_dt_codes(_dtdefs)
 
 
+# Matrix File Types
+ft_defs = ( # code, name
+    (0, 'ECAT7_UNKNOWN'),
+    (1, 'ECAT7_2DSCAN'),
+    (2, 'ECAT7_IMAGE16'),
+    (3, 'ECAT7_ATTEN'),
+    (4, 'ECAT7_2DNORM'),
+    (5, 'ECAT7_POLARMAP'),
+    (6, 'ECAT7_VOLUME8'),
+    (7, 'ECAT7_VOLUME16'),
+    (8, 'ECAT7_PROJ'),
+    (9, 'ECAT7_PROJ16'),
+    (10, 'ECAT7_IMAGE8'),
+    (11, 'ECAT7_3DSCAN'),
+    (12, 'ECAT7_3DSCAN8'),
+    (13, 'ECAT7_3DNORM'),
+    (14, 'ECAT7_3DSCANFIT'))
 
 class EcatHeader(object):
     """Class for basic Ecat PET header
@@ -171,6 +198,7 @@ class EcatHeader(object):
     """
 
     _dtype = hdr_dtype
+    _ft_defs = ft_defs
     
     def __init__(self, 
                  fileobj=None,
@@ -317,6 +345,15 @@ class EcatHeader(object):
         '''
         self._header_data[item] = value
 
+    def get_filetype(self):
+        """ gets type of ECAT Matrix File from
+        code stored in header"""
+        ft_codes = dict(self._ft_defs)
+        code = self._header_data['file_type'].item()
+        if not ft_codes.has_key(code):
+            raise KeyError('Ecat Filetype CODE %d not recognized'%code)
+        return ft_codes[code]
+        
     def __iter__(self):
         return iter(self.keys())
             
@@ -338,9 +375,10 @@ class EcatMlist(object):
     def __init__(self,fileobj, hdr):
         """ gets list of frames and subheaders in pet file
 
-        Parameteres
+        Parameters
         -----------
-        fileobj : ECAT file  <filename>.v
+        fileobj : ECAT file <filename>.v  fileholder or file object
+                  with read, seek methods
 
         Returns
         -------
@@ -389,15 +427,29 @@ class EcatMlist(object):
 
     def get_frame_order(self):
         """Returns the order of the frames in the file
+        Useful as sometimes Frames are not stored in the file in
+        chronological order, and can be used to extract frames
+        in correct order
 
         Returns
         -------
+        id_dict: dict mapping frame number -> [mlist_row, mlist_id]
 
-        frame_dict: dict mapping mlist id -> frame number
+        (where mlist id is value in the first column of the mlist matrix )
 
-        id_dict: dict mapping frame number -> mlist id
-
-        (where mlist id is in the first column of the mlist matrix )
+        Examples
+        --------
+        >>> img = ecat.load('singleframe.v')
+        >>> mlist = img._mlist
+        >>> mlist.get_frame_order()
+        {0: [0, 16842758.0]}
+        >>> img2 = ecat.load('multiframe.v')
+        >>> mlist2 = img2._mlist        
+        >>> mlist2.get_frame_order()
+        {0: [0, 16842754.0],
+         1: [1, 16842755.0],
+         2: [2, 16842756.0],
+         3: [3, 16842757.0]}        
         """
         mlist  = self._mlist
         ind = mlist[:,0] > 0
@@ -412,14 +464,26 @@ class EcatMlist(object):
         
         return id_dict
     
-        
-
-
 class EcatSubHeader(object):
-    """parses the subheaders in the ecat (.v) file """
+
     _subhdrdtype = subhdr_dtype
+    _data_type_codes = data_type_codes
     
     def __init__(self, hdr, mlist, fileobj):
+        """parses the subheaders in the ecat (.v) file
+        there is one subheader for each frame in the ecat file
+
+        Parameters
+        -----------
+        hdr : EcatHeader
+
+        mlist : EcatMlist
+        
+        fileobj : ECAT file <filename>.v  fileholder or file object
+                  with read, seek methods
+
+
+        """
         self._header = hdr
         self.endianness = hdr.endianness
         self._mlist = mlist
@@ -511,13 +575,8 @@ class EcatSubHeader(object):
 
 
     def _get_data_dtype(self, frame):
-        dt = self.subheaders[frame]['data_type']
-        if dt == 5:
-            return np.dtype('float')
-        elif dt == 6:
-            return np.dtype('ushort')
-        else:
-            return None
+        dtcode = self.subheaders[frame]['data_type'].item()
+        return self._data_type_codes.dtype[dtcode]
 
     def _get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
