@@ -697,6 +697,18 @@ class EcatImage(SpatialImage):
             stored in header or subheader
         file_map : mapping, optional
             mapping giving file information for this image format
+
+
+        Examples
+        --------
+        >>> img = ecat.load('multiframe.v')
+        >>> frame0 = img.get_frame(0)
+        >>> frame0.shape
+        (128,128,47)
+        >>> data4d = img.get_data()
+        >>> data4d.shape
+        (128,128,47,6)
+        
         """
         self._subheader = subheader
         self._mlist = mlist
