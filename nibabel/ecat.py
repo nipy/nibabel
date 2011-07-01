@@ -181,6 +181,19 @@ ft_defs = ( # code, name
     (13, 'ECAT7_3DNORM'),
     (14, 'ECAT7_3DSCANFIT'))
 
+patient_orient_defs = ( #code, description
+    (0, 'ECAT7_Feet_First_Prone'),
+    (1, 'ECAT7_Head_First_Prone'),
+    (2, 'ECAT7_Feet_First_Supine'),
+    (3, 'ECAT7_Head_First_Supine'),
+    (4, 'ECAT7_Feet_First_Decubitus_Right'),
+    (5, 'ECAT7_Head_First_Decubitus_Right'),
+    (6, 'ECAT7_Feet_First_Decubitus_Left'),
+    (7, 'ECAT7_Head_First_Decubitus_Left'),
+    (8, 'ECAT7_Unknown_Orientation'))
+
+
+
 class EcatHeader(object):
     """Class for basic Ecat PET header
     Sub-parts of standard Ecat File
@@ -199,6 +212,7 @@ class EcatHeader(object):
 
     _dtype = hdr_dtype
     _ft_defs = ft_defs
+    _patient_orient_defs = patient_orient_defs
     
     def __init__(self, 
                  fileobj=None,
@@ -344,6 +358,15 @@ class EcatHeader(object):
         2
         '''
         self._header_data[item] = value
+
+    def get_patient_orient(self):
+        """ gets orientation of patient based on code stored
+        in header, not always reliable"""
+        orient_code = dict(self._patient_orient_defs)
+        code = self._header_data['patient_orientation'].item()
+        if not orient_code.has_key(code):
+            raise KeyError('Ecat Orientation CODE %d not recognized'%code)
+        return orient_code[code]
 
     def get_filetype(self):
         """ gets type of ECAT Matrix File from
@@ -592,7 +615,8 @@ class EcatSubHeader(object):
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
         ## put data into neurologic orientation
-        #fid_obj.close()
+        ### ASSUME Patient orientation is HFS as patient orientation
+        ### is not always set in header
         raw_data = raw_data[::-1,::-1,::-1]
         return raw_data
 
@@ -730,10 +754,16 @@ class EcatImage(SpatialImage):
         nframes = self._subheader.get_nframes()
         return(x, y, z, nframes)
 
+    def get_mlist(self):
+        """ get access to the mlist """
+        return self._mlist
+
+    def get_subheaders(self):
+        """get access to subheaders"""
+        return self._subheader
     
     @classmethod
     def from_filespec(klass, filespec):
-
         return klass.from_filename(filespec)
 
 
@@ -777,18 +807,18 @@ class EcatImage(SpatialImage):
         aff = subheaders.get_frame_affine()
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         return img
-        
+
+
+    def to_filename(self, filename):
+        """nibabel does not support writing to Ecat filetypes at this time"""
+        raise NotImplementedError('nibabel does not allow saving to Ecat'\
+                                  ' at this time ')
       
     @classmethod
     def from_image(klass, img):
-        raise NotImplementedError("Ecat images must be generated from files")
-        orig_hdr = img.get_header()
-        return klass(img.get_data(),
-                     img.get_affine(),
-                     img.get_header(),
-                     img.extra)
-    
-        
+        raise NotImplementedError("Ecat images can only be generated "\
+                                  "from file objects")
+           
     @classmethod
     def load(klass, filespec):
         return klass.from_filename(filespec)

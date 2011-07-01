@@ -44,8 +44,15 @@ class TestEcatHeader(ParametricTestCase):
         hdr = self.header_class()
         yield assert_raises(NotImplementedError,
                             hdr.get_data_dtype)
-    def test_filetype(self):
-        hdr = self.header_class()        
+        
+    def test_header_codes(self):
+        fid = open(ecat_file)
+        hdr = self.header_class()
+        newhdr = hdr.from_fileobj(fid)
+        fid.close()
+        yield assert_true(newhdr.get_filetype() == 'ECAT7_VOLUME16')
+        yield assert_equal(newhdr.get_patient_orient(),
+                           'ECAT7_Unknown_Orientation')
 
     def test_copy(self):
         hdr = self.header_class()
@@ -142,5 +149,5 @@ class TestEcatImage(ParametricTestCase):
         yield assert_equal(dat.shape, self.img.get_shape())
         frame = self.img.get_frame(0)
         yield assert_array_equal(frame, dat[:,:,:,0])
-        
+    
         
