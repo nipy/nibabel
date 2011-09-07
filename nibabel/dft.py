@@ -1,3 +1,4 @@
+# Copyright (C) 2011 Christian Haselgrove
 # see LICENSE file for copyright and full license
 
 import os
