@@ -69,6 +69,7 @@ def main(**extra_args):
                           'nibabel.gifti',
                           'nibabel.nicom',
                           'nibabel.freesurfer',
+                          'nibabel.freesurfer.tests',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests',
