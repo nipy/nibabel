@@ -88,6 +88,11 @@ class _Study(object):
 			self.series = val
 		return val
 
+	def patient_name_or_uid(self):
+		if self.patient_name == '':
+			return self.uid
+		return self.patient_name
+
 class _Series(object):
 
 	def __init__(self, d):
@@ -372,7 +377,10 @@ def _update_file(c, dir, fname, studies, series, storage_instances):
 		study_uid = do[_study_instance_uid_tag].value
 		study_date = do[_study_date_tag].value
 		study_time = do[_study_time_tag].value
-		study_comments = do[_study_comments_tag].value
+		try:
+			study_comments = do[_study_comments_tag].value
+		except KeyError:
+			study_comments = ''
 		patient_name = do[_patients_name_tag].value
 		patient_id = do[_patient_id_tag].value
 		patient_birth_date = do[_patients_birth_date_tag].value
@@ -386,10 +394,19 @@ def _update_file(c, dir, fname, studies, series, storage_instances):
 		series_bits_stored = int(do[_bits_stored_tag].value)
 		instance_number = int(do[_instance_number_tag].value)
 		storage_instance_uid = do[_sop_instance_uid_tag].value
+#	except Exception, data:
+#		print 'exc', type(data), data, str(data)
+#		return None
 	except dicom.filereader.InvalidDicomError:
+		print '        not a DICOM file'
 		return None
-	except KeyError:
+	except KeyError, data:
+		print '        missing tag %s' % str(data)
 		return None
+	except Exception, data:
+		print '        error: %s' % str(data)
+		return None
+	print '        storage instance %s' % storage_instance_uid
 	if study_uid not in studies:
 		query = """INSERT INTO study (uid, 
 		                              date, 
@@ -477,6 +494,7 @@ _create_queries = (
 )
 
 _db_fname = '%s/dft.%d.sqlite' % (tempfile.gettempdir(), os.getuid())
+print 'db is %s' % _db_fname
 _db = sqlite3.connect(_db_fname, check_same_thread=False)
 
 with _db_change() as c:

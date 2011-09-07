@@ -55,7 +55,7 @@ def handler(environ):
 def index(environ):
 	patients = {}
 	for s in dft.get_studies(base_dir):
-		patients.setdefault(s.patient_name, []).append(s)
+		patients.setdefault(s.patient_name_or_uid(), []).append(s)
 	output = ''
 	output += '<html><head><title>data</title></head>\n'
 	output += '<body>\n'
@@ -63,7 +63,7 @@ def index(environ):
 	output += '<br />\n'
 	output += '<br />\n'
 	for p in sorted(patients):
-		output += 'Patient name: <a href="%s/">%s</a>\n' % (urllib.quote(p.encode('utf-8')), html_unicode(p))
+		output += 'Patient: <a href="%s/">%s</a>\n' % (urllib.quote(p.encode('utf-8')), html_unicode(p))
 		output += '<br />\n'
 		if len(patients[p]) == 1:
 			output += '1 study\n'
@@ -89,14 +89,14 @@ def html_unicode(u):
 	return cgi.escape(u.encode('utf-8'))
 
 def patient(patient):
-	studies = [ s for s in dft.get_studies() if s.patient_name == patient ]
+	studies = [ s for s in dft.get_studies() if s.patient_name_or_uid() == patient ]
 	if len(studies) == 0:
 		raise HandlerError('404 Not Found', 'patient %s not found\n' % patient)
 	studies.sort(study_cmp)
 	output = ''
 	output += '<html><head><title>data</title></head>\n'
 	output += '<body>\n'
-	output += '<a href="../">Home</a> -&gt; Patient %s\n' % html_unicode(studies[0].patient_name)
+	output += '<a href="../">Home</a> -&gt; Patient %s\n' % html_unicode(studies[0].patient_name_or_uid())
 	output += '<br />\n'
 	output += '<br />\n'
 	output += 'Patient name: %s\n' % html_unicode(studies[0].patient_name)
@@ -123,7 +123,7 @@ def patient(patient):
 def patient_date_time(patient, date_time):
 	study = None
 	for s in dft.get_studies():
-		if s.patient_name != patient:
+		if s.patient_name_or_uid() != patient:
 			continue
 		if date_time != '%s_%s' % (s.date, s.time):
 			continue
@@ -134,10 +134,10 @@ def patient_date_time(patient, date_time):
 	output = ''
 	output += '<html><head><title>data</title></head>\n'
 	output += '<body>\n'
-	output += '<a href="../../">Home</a> -&gt; <a href="../../%s/">Patient %s</a> -&gt; Study %s %s\n' % (urllib.quote(study.patient_name), html_unicode(study.patient_name), html_unicode(study.date), html_unicode(study.time))
+	output += '<a href="../../">Home</a> -&gt; <a href="../../%s/">Patient %s</a> -&gt; Study %s %s\n' % (urllib.quote(study.patient_name_or_uid()), html_unicode(study.patient_name_or_uid()), html_unicode(study.date), html_unicode(study.time))
 	output += '<br />\n'
 	output += '<br />\n'
-	output += 'Patient name: <a href="/../%s/">%s</a>\n' % (urllib.quote(study.patient_name), html_unicode(study.patient_name))
+	output += 'Patient name: <a href="/../%s/">%s</a>\n' % (urllib.quote(study.patient_name_or_uid()), html_unicode(study.patient_name))
 	output += '<br />\n'
 	output += 'Study UID: %s\n' % html_unicode(study.uid)
 	output += '<br />\n'
@@ -167,7 +167,7 @@ def patient_date_time(patient, date_time):
 def nifti(patient, date_time, scan):
 	study = None
 	for s in dft.get_studies():
-		if s.patient_name != patient:
+		if s.patient_name_or_uid() != patient:
 			continue
 		if date_time != '%s_%s' % (s.date, s.time):
 			continue
@@ -188,7 +188,7 @@ def nifti(patient, date_time, scan):
 def png(patient, date_time, scan):
 	study = None
 	for s in dft.get_studies():
-		if s.patient_name != patient:
+		if s.patient_name_or_uid() != patient:
 			continue
 		if date_time != '%s_%s' % (s.date, s.time):
 			continue
@@ -209,7 +209,6 @@ def png(patient, date_time, scan):
 
 if __name__ == '__main__':
 	import wsgiref.simple_server
-	server_prefix = ''
 	httpd = wsgiref.simple_server.make_server('', 8080, application)
 	httpd.serve_forever()
 
