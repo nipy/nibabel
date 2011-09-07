@@ -1,6 +1,7 @@
 import os
 from os.path import join as pjoin
 
+from nose.tools import assert_true
 import numpy as np
 from numpy.testing import assert_equal
 
@@ -41,8 +42,8 @@ def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
     curv_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "curv"))
     curv = read_morph_data(curv_path)
-    assert -1.0 < curv.min() < 0
-    assert 0 < curv.max() < 1.0
+    assert_true(-1.0 < curv.min() < 0)
+    assert_true(0 < curv.max() < 1.0)
 
 
 @freesurfer_test
@@ -52,8 +53,8 @@ def test_annot():
     for a in annots:
         annot_path = pjoin(data_path, "label", "%s.%s.annot" % ("lh", a))
         labels, ctab, names = read_annot(annot_path)
-        assert labels.shape == (163842, )
-        assert ctab.shape == (len(names), 5)
+        assert_true(labels.shape == (163842, ))
+        assert_true(ctab.shape == (len(names), 5))
 
 
 @freesurfer_test
@@ -62,7 +63,7 @@ def test_label():
     label_path = pjoin(data_path, "label", "lh.BA1.label")
     label = read_label(label_path)
     # XXX : test more
-    assert np.all(label > 0)
+    assert_true(np.all(label > 0))
 
 
 @freesurfer_test
@@ -71,4 +72,4 @@ def test_scalar_data():
     scalar_path = pjoin(data_path, "mri", "T1.mgz")
     scalar = read_scalar_data(scalar_path)
     scalar = scalar.astype(np.int)
-    assert (scalar.max() - scalar.min()) == 255
+    assert_true((scalar.max() - scalar.min()) == 255)
