@@ -6,81 +6,145 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test binary header objects like Analyze, Nifti...
+''' Test binary header objects
 
 This is a root testing class, used in the Analyze and other tests as a
 framework for all the tests common to the Analyze types
 
+Refactoring TODO
+----------------
+
+data_from_fileobj
+data_to_fileobj
+
+-> bytes_to/from_fileobj
+
+binaryblock
+diagnose_binaryblock
+
+-> bytes, diagnose_bytes
+
+With deprecation warnings
+
+_guessed_endian -> guessed_endian
+_empty_headerdata -> default_structarr
+_field_recoders -> field_recoders
 '''
-import sys
+import logging
+from StringIO import StringIO
 
 import numpy as np
 
-from ..py3k import BytesIO, ZEROB, asbytes
-from ..volumeutils import swapped_code, native_code, array_to_file
-from ..spatialimages import HeaderDataError
+# from ..headers import BinaryHeader
+class BinaryHeader(object): pass
+from ..batteryrunners import Report
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from ..py3k import BytesIO, ZEROB, asbytes
+from ..volumeutils import swapped_code, native_code, Recoder
+from ..spatialimages import HeaderDataError
+from .. import imageglobals
 
 from unittest import TestCase
+
+from numpy.testing import assert_array_equal
 
 from ..testing import (assert_equal, assert_true, assert_false,
                        assert_raises, assert_not_equal)
 
 
-def _write_data(hdr, data, fileobj):
-    # auxilary function to write data
-    out_dtype = hdr.get_data_dtype()
-    offset = hdr.get_data_offset()
-    array_to_file(data, fileobj, out_dtype, offset)
+class MyBinaryHeader(BinaryHeader):
+    """ An example binary header class """
+    dtype_def = [
+        ('an_integer', 'i4'),
+        ('a_str', 'S10')]
+
+    def _guessed_endian(self, hdr):
+        if hdr['an_integer'] < 256:
+            return native_code
+        return swapped_code
+
+    def _empty_headerdata(self):
+        structarr = super(MyBinaryHeader, self)._empty_headerdata()
+        structarr['an_integer'] = 1
+        structarr['a_str'] = 'a string'
+        return structarr
+
+    @classmethod
+    def _get_checks(klass):
+        ''' Return sequence of check functions for this class '''
+        return (klass._chk_integer,
+                klass._chk_string)
+
+    ''' Check functions in format expected by BatteryRunner class '''
+    @staticmethod
+    def _chk_integer(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        if hdr['integer'] == 1:
+            return hdr, rep
+        rep.problem_level = 30
+        rep.problem_msg = 'an_integer should be 1'
+        if fix:
+            hdr['sizeof_hdr'] = 1
+            rep.fix_msg = 'set an_integer to 1'
+        return hdr, rep
+
+    @classmethod
+    def _chk_string(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        hdr_str = str(hdr['a_str'])
+        if hdr_str.lower() == hdr_str:
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'a_str should be lower case'
+        if fix:
+            hdr['a_str'] = hdr_str.lower()
+            rep.fix_msg = 'set a string to lower case'
+        return hdr, rep
 
 
-class _TestBinaryHeader(TestCase):
-    ''' Class implements tests for binary headers
+class _TestBinaryHeaderBase(TestCase):
+    ''' Class implements base tests for binary headers
 
     It serves as a base class for other binary header tests
-
-    The underscore in the name prevents it from being run as a test
-    directly and allows it to be used in sub-classes.
     '''
-    header_class = None # overwrite with sub-classes
+    header_class = None
 
     def test_general_init(self):
         hdr = self.header_class()
         # binaryblock has length given by header data dtype
         binblock = hdr.binaryblock
         assert_equal(len(binblock), hdr.structarr.dtype.itemsize)
-        # an empty header has shape (0,) - like an empty array
-        # (np.array([]))
-        assert_equal(hdr.get_data_shape(), (0,))
-        # The affine is always homogenous 3D regardless of shape. The
-        # default affine will have -1 as the X zoom iff default_x_flip
-        # is True (which it is by default). We have to be careful of the
-        # translations though - these arise from SPM's use of the origin
-        # field, and the center of the image.
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                                 [-1,1,1,1])
-        # But zooms only go with number of dimensions
-        assert_equal(hdr.get_zooms(), (1.0,))
         # Endianness will be native by default for empty header
         assert_equal(hdr.endianness, native_code)
         # But you can change this if you want
         hdr = self.header_class(endianness='swapped')
         assert_equal(hdr.endianness, swapped_code)
+        # You can also pass in a check flag, without data this has no
+        # effect
+        hdr = self.header_class(check=False)
+
+    def test_to_from_fileobj(self):
+        hdr = self.header_class()
         # Trying to read data from an empty header gives no data
-        assert_equal(len(hdr.data_from_fileobj(BytesIO())), 0)
+        bytes = hdr.data_from_fileobj(BytesIO())
+        assert_equal(len(bytes), 0)
         # Setting no data into an empty header results in - no data
-        sfobj = BytesIO()
-        hdr.data_to_fileobj([], sfobj)
-        assert_equal(sfobj.getvalue(), asbytes(''))
+        str_io = BytesIO()
+        hdr.data_to_fileobj([], str_io)
+        assert_equal(str_io.getvalue(), asbytes(''))
         # Setting more data then there should be gives an error
         assert_raises(HeaderDataError,
                       hdr.data_to_fileobj,
                       np.zeros(3),
-                      sfobj)
-        # You can also pass in a check flag, without data this has no
-        # effect
-        hdr = self.header_class(check=False)
+                      str_io)
+        # Successful write using write_to
+        str_io.truncate(0)
+        str_io.seek(0)
+        hdr.write_to(str_io)
+        str_io.seek(0)
+        hdr2 = self.header_class.from_fileobj(str_io)
+        assert_equal(hdr2.endianness, native_code)
+        assert_equal(hdr2.binaryblock, hdr.binaryblock)
 
     def test_mappingness(self):
         hdr = self.header_class()
@@ -92,15 +156,12 @@ class _TestBinaryHeader(TestCase):
         keys = hdr.keys()
         assert_equal(keys, list(hdr))
         vals = hdr.values()
-        items = hdr.items()
+        assert_equal(len(vals), len(keys))
         assert_equal(keys, list(hdr_dt.names))
         for key, val in hdr.items():
             assert_array_equal(hdr[key], val)
 
-    def test_str(self):
-        pass
-
-    def test_endianness(self):
+    def test_endianness_ro(self):
         # endianness is a read only property
         ''' Its use in initialization tested in the init tests.
         Endianness gives endian interpretation of binary data. It is
@@ -109,11 +170,7 @@ class _TestBinaryHeader(TestCase):
         data) - but this is done via via the as_byteswapped method
         '''
         hdr = self.header_class()
-        endianness = hdr.endianness
-        assert_raises(AttributeError,
-                            hdr.__setattr__,
-                            'endianness',
-                            '<')
+        assert_raises(AttributeError, hdr.__setattr__, 'endianness', '<')
 
     def test_endian_guess(self):
         # Check guesses of endian
@@ -123,15 +180,6 @@ class _TestBinaryHeader(TestCase):
         hdr_data = hdr_data.byteswap(swapped_code)
         eh_swapped = self.header_class(hdr_data.tostring())
         assert_equal(eh_swapped.endianness, swapped_code)
-
-    def test_from_to_fileobj(self):
-        hdr = self.header_class()
-        str_io = BytesIO()
-        hdr.write_to(str_io)
-        str_io.seek(0)
-        hdr2 = self.header_class.from_fileobj(str_io)
-        assert_equal(hdr2.endianness, native_code)
-        assert_equal(hdr2.binaryblock, hdr.binaryblock)
 
     def test_binblock_is_file(self):
         # Checks that the binary string respresentation is the whole of the
@@ -145,108 +193,84 @@ class _TestBinaryHeader(TestCase):
         hdr.write_to(str_io)
         assert_equal(str_io.getvalue(), hdr.binaryblock)
 
-
     def test_structarr(self):
         # structarr attribute also read only
         hdr = self.header_class()
-        hdr_fs = hdr.structarr
-        assert_raises(AttributeError,
-                            hdr.__setattr__,
-                            'structarr',
-                            0)
+        # Just check we can get structarr
+        _ = hdr.structarr
+        # That it's read only
+        assert_raises(AttributeError, hdr.__setattr__, 'structarr', 0)
 
-    def test_binaryblock(self):
-        # Test get of binaryblock
+    def _set_something_into_hdr(self, hdr):
+        # Override in real classes to set some non-default data into hdr
+        raise NotImplementedError()
+
+    def log_chk(self, hdr, level):
+        # utility method to check header checking / logging
+        # If level == 0, this header should always be OK
+        str_io = StringIO()
+        logger = logging.getLogger('test.logger')
+        handler = logging.StreamHandler(str_io)
+        logger.addHandler(handler)
+        str_io.truncate(0)
+        hdrc = hdr.copy()
+        if level == 0: # Should never log or raise error
+            logger.setLevel(0)
+            hdrc.check_fix(logger=logger, error_level=0)
+            assert_equal(str_io.getvalue(), '')
+            logger.removeHandler(handler)
+            return hdrc, '', ()
+        # Non zero level, test above and below threshold
+        # Logging level above threshold, no log
+        logger.setLevel(level+1)
+        e_lev = level+1
+        hdrc.check_fix(logger=logger, error_level=e_lev)
+        assert_equal(str_io.getvalue(), '')
+        # Logging level below threshold, log appears
+        logger.setLevel(level+1)
+        logger.setLevel(level-1)
+        hdrc = hdr.copy()
+        hdrc.check_fix(logger=logger, error_level=e_lev)
+        assert_true(str_io.getvalue() != '')
+        message = str_io.getvalue().strip()
+        logger.removeHandler(handler)
+        hdrc2 = hdr.copy()
+        raiser = (HeaderDataError,
+                  hdrc2.check_fix,
+                  logger,
+                  level)
+        return hdrc, message, raiser
+
+    def test_bytes(self):
+        # Test get of bytes
         hdr1 = self.header_class()
         bb = hdr1.binaryblock
         hdr2 = self.header_class(hdr1.binaryblock)
         assert_equal(hdr1, hdr2)
         assert_equal(hdr1.binaryblock, hdr2.binaryblock)
-        # Do a set into the header, and try again
-        hdr1.set_data_shape((1, 2, 3))
+        # Do a set into the header, and try again.  The specifics of 'setting
+        # something' will depend on the nature of the bytes object
+        self._set_something_into_hdr(hdr1)
         hdr2 = self.header_class(hdr1.binaryblock)
         assert_equal(hdr1, hdr2)
         assert_equal(hdr1.binaryblock, hdr2.binaryblock)
         # Short and long binaryblocks give errors
         # (here set through init)
-        bblen = len(hdr1.binaryblock)
         assert_raises(HeaderDataError,
-                            self.header_class,
-                            bb[:-1])
+                      self.header_class,
+                      bb[:-1])
         assert_raises(HeaderDataError,
-                            self.header_class,
-                            bb + ZEROB)
+                      self.header_class,
+                      bb + ZEROB)
         # Checking set to true by default, and prevents nonsense being
         # set into the header. Completely zeros binary block always
         # (fairly) bad
         bb_bad = ZEROB * len(bb)
         assert_raises(HeaderDataError,
-                            self.header_class,
-                            bb_bad)
+                      self.header_class,
+                      bb_bad)
         # now slips past without check
-        hdr = self.header_class(bb_bad, check=False)
-
-    def test_data_shape_zooms_affine(self):
-        hdr = self.header_class()
-        for shape in ((1,2,3),(0,),(1,),(1,2),(1,2,3,4)):
-            L = len(shape)
-            hdr.set_data_shape(shape)
-            if L:
-                assert_equal(hdr.get_data_shape(), shape)
-            else:
-                assert_equal(hdr.get_data_shape(), (0,))
-            # Default zoom - for 3D - is 1(())
-            assert_equal(hdr.get_zooms(), (1,) * L)
-            # errors if zooms do not match shape
-            if len(shape):
-                assert_raises(HeaderDataError, 
-                                    hdr.set_zooms,
-                                    (1,) * (L-1))
-                # Errors for negative zooms
-                assert_raises(HeaderDataError,
-                                    hdr.set_zooms,
-                                    (-1,) + (1,)*(L-1))
-            assert_raises(HeaderDataError,
-                                hdr.set_zooms,
-                                (1,) * (L+1))
-            # Errors for negative zooms
-            assert_raises(HeaderDataError,
-                                hdr.set_zooms,
-                                (-1,) * L)
-        # reducing the dimensionality of the array and then increasing
-        # it again reverts the previously set zoom values to 1.0
-        hdr = self.header_class()
-        hdr.set_data_shape((1,2,3))
-        hdr.set_zooms((4,5,6))
-        assert_array_equal(hdr.get_zooms(), (4,5,6))
-        hdr.set_data_shape((1,2))
-        assert_array_equal(hdr.get_zooms(), (4,5))
-        hdr.set_data_shape((1,2,3))
-        assert_array_equal(hdr.get_zooms(), (4,5,1))
-        # Setting affine changes zooms
-        hdr.set_data_shape((1,2,3))
-        hdr.set_zooms((1,1,1))
-        # abs to allow for neurological / radiological flips
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                                 [-1,1,1,1])
-        zooms = (4, 5, 6)
-        affine = np.diag(zooms + (1,))
-        # Setting zooms changes affine
-        hdr.set_zooms((1,1,1))
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                                 [-1,1,1,1])
-
-    def test_default_x_flip(self):
-        hdr = self.header_class()
-        hdr.default_x_flip = True
-        hdr.set_data_shape((1,2,3))
-        hdr.set_zooms((1,1,1))
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                                 [-1,1,1,1])
-        hdr.default_x_flip = False
-        # Check avoids translations
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                                 [1,1,1,1])
+        _ = self.header_class(bb_bad, check=False)
 
     def test_as_byteswapped(self):
         # Check byte swapping
@@ -268,84 +292,129 @@ class _TestBinaryHeader(TestCase):
         hdr2 = hdr.as_byteswapped(native_code)
         hdr_bs = hdr.as_byteswapped(swapped_code)
 
-    def test_data_dtype(self):
-        # check getting and setting of data type
-        # codes / types supported by all binary headers
-        supported_types = ((2, np.uint8),
-                           (4, np.int16),
-                           (8, np.int32),
-                           (16, np.float32),
-                           (32, np.complex64),
-                           (64, np.float64))
-        # and unsupported - here using some labels instead
-        unsupported_types = (np.void, 'none', 'all', 0)
-        hdr = self.header_class()
-        for code, npt in supported_types:
-            # Can set with code value, or numpy dtype, both return the
-            # dtype as output on get
-            hdr.set_data_dtype(npt)
-            assert_equal(hdr.get_data_dtype(), npt)
-        for inp in unsupported_types:
-            assert_raises(HeaderDataError,
-                                hdr.set_data_dtype,
-                                inp)
-
-    def test_read_write_data(self):
-        # Check reading and writing of data
-        hdr = self.header_class()
-        hdr.set_data_shape((1,2,3))
-        hdr.set_data_dtype(np.float32)
-        S = BytesIO()
-        data = np.arange(6, dtype=np.float64)
-        # data have to be the right shape
-        assert_raises(HeaderDataError,
-                            hdr.data_to_fileobj, data, S)
-        data = data.reshape((1,2,3))
-        # and size
-        assert_raises(HeaderDataError,
-                            hdr.data_to_fileobj,
-                            data[:,:,:-1], S)
-        assert_raises(HeaderDataError,
-                            hdr.data_to_fileobj,
-                            data[:,:-1,:], S)
-        # OK if so
-        hdr.data_to_fileobj(data, S)
-        # Read it back
-        data_back = hdr.data_from_fileobj(S)
-        # Should be about the same
-        assert_array_almost_equal(data, data_back)
-        # but with the header dtype, not the data dtype
-        assert_equal(hdr.get_data_dtype(), data_back.dtype)
-        # this is with native endian, not so for swapped
-        S2 = BytesIO()
-        hdr2 = hdr.as_byteswapped()
-        hdr2.set_data_dtype(np.float32)
-        hdr2.set_data_shape((1,2,3))
-        hdr2.data_to_fileobj(data, S)
-        data_back2 = hdr2.data_from_fileobj(S)
-        # Compares the same
-        assert_array_almost_equal(data_back, data_back2)
-        # Same dtype names
-        assert_equal(data_back.dtype.name,
-                           data_back2.dtype.name)
-        # But not the same endianness
-        assert_not_equal(data.dtype.byteorder,
-                               data_back2.dtype.byteorder)
-        # Try scaling down to integer
-        hdr.set_data_dtype(np.uint8)
-        S3 = BytesIO()
-        # Analyze header cannot do scaling, but, if not scaling,
-        # AnalyzeHeader is OK
-        _write_data(hdr, data, S3)
-        data_back = hdr.data_from_fileobj(S3)
-        assert_array_almost_equal(data, data_back)
-        # But, the data won't always be same as input if not scaling
-        data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        _write_data(hdr, data, S3)
-        data_back = hdr.data_from_fileobj(S3)
-        assert_false(np.allclose(data, data_back))
-
     def test_empty_check(self):
         # Empty header should be error free
         hdr = self.header_class()
         hdr.check_fix(error_level=0)
+
+    def _dxer(self, hdr):
+        # Return diagnostics on bytes in `hdr`
+        binblock = hdr.binaryblock
+        return self.header_class.diagnose_binaryblock(binblock)
+
+    def test_get_value_label(self):
+        hdr = self.header_class()
+        original_recoders = hdr._field_recoders
+        # Key not existing raises error
+        assert_true('improbable' not in original_recoders)
+        assert_raises(ValueError, hdr.get_value_label, 'improbable')
+        new_recoders = {}
+        hdr._field_recoders = new_recoders
+        # Even if there is a recoder
+        assert_true('improbable' not in hdr.keys())
+        rec = Recoder([[0, 'fullness of heart']], ('code', 'label'))
+        hdr._field_recoders['improbable'] = rec
+        assert_raises(ValueError, hdr.get_value_label, 'improbable')
+        # If the key exists in the structure, and is intable, then we can recode
+        for key, value in hdr.items():
+            # No recoder at first
+            assert_raises(ValueError, hdr.get_value_label, 0)
+            try:
+                code = int(value)
+            except (ValueError, TypeError):
+                pass
+            else: # codeable
+                rec = Recoder([[code, 'fullness of heart']], ('code', 'label'))
+                hdr._field_recoders[key] = rec
+                assert_equal(hdr.get_value_label(key), 'fullness of heart')
+
+    def test_str(self):
+        hdr = self.header_class()
+        # Check something returns from str
+        s1 = str(hdr)
+        assert_true(len(s1) > 0)
+
+
+class _TestBinaryHeader(_TestBinaryHeaderBase):
+    """ Test fake binary header defined at top of module """
+    header_class = MyBinaryHeader
+
+    def test_empty(self):
+        # Test contents of default header
+        hdr = self.header_class()
+        assert_equal(hdr['an_integer'], 1)
+        assert_equal(hdr['a_str'], 'a string')
+
+    def test_str(self):
+        hdr = self.header_class()
+        s1 = str(hdr)
+        assert_true(len(s1) > 0)
+        assert_true('fullness of heart' not in s1)
+        rec = Recoder([[1, 'fullness of heart']], ('code', 'label'))
+        hdr._field_recoders['an_integer'] = rec
+        s2 = str(hdr)
+        assert_true('fullness of heart' in s2)
+
+    def _set_something_into_hdr(self, hdr):
+        # Called from test_bytes test method.  Specific to the header data type
+        hdr['a_str'] = 'reggie'
+
+    def test_checks(self):
+        # Test header checks
+        hdr_t = self.header_class()
+        # _dxer just returns the diagnostics as a string
+        # Default hdr is OK
+        assert_equal(self._dxer(hdr_t), '')
+        # An integer should be 1
+        hdr = hdr_t.copy()
+        hdr['an_integer'] = 2
+        assert_equal(self._dxer(hdr), 'an_integer should be 2')
+        # String should be lower case
+        hdr = hdr_t.copy()
+        hdr['a_str'] = 'My Name'
+        assert_equal(self._dxer(hdr), 'a_str should be lower case')
+
+    def test_log_checks(self):
+        # Test logging, fixing, errors for header checking
+        # This is specific to the particular header type. Here we use the
+        # pretent header defined at the top of this file
+        HC = self.header_class
+        hdr = HC()
+        hdr['an_integer'] = 2 # severity 30
+        fhdr, message, raiser = self.log_chk(hdr, 30)
+        assert_equal(fhdr['an_integer'], 1)
+        assert_equal(message, 'an_integer should be 1; '
+                           'set an_integer to 1')
+        assert_raises(*raiser)
+        # lower case string
+        hdr = HC()
+        hdr['a_str'] = 'Hello' # severity = 20
+        fhdr, message, raiser = self.log_chk(hdr, 20)
+        assert_equal(message, 'a_str should be lower case; '
+                           'set a_str to lower case')
+        assert_raises(*raiser)
+
+    def test_logger_error(self):
+        # Check that we can reset the logger and error level
+        # This is again specific to this pretend header
+        HC = self.header_class
+        hdr = HC()
+        # Make a new logger
+        str_io = StringIO()
+        logger = logging.getLogger('test.logger')
+        logger.setLevel(30) # defaultish level
+        logger.addHandler(logging.StreamHandler(str_io))
+        # Prepare an error
+        hdr['an_integer'] = 2 # severity 30
+        log_cache = imageglobals.logger, imageglobals.error_level
+        try:
+            # Check log message appears in new logger
+            imageglobals.logger = logger
+            hdr.copy().check_fix()
+            assert_equal(str_io.getvalue(),
+                         'an_integer should be 1; set an_integer to 1\n')
+            # Check that error_level in fact causes error to be raised
+            imageglobals.error_level = 30
+            assert_raises(HeaderDataError, hdr.copy().check_fix)
+        finally:
+            imageglobals.logger, imageglobals.error_level = log_cache

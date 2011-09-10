@@ -29,7 +29,6 @@ from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
 from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
 
 from . import test_analyze
-from .test_analyze import _log_chk
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -60,7 +59,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         hdr = HC()
         hdr.data_shape = [1,1,1]
         hdr['origin'][0] = 101 # severity 20
-        fhdr, message, raiser = _log_chk(hdr, 20)
+        fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr, hdr)
         assert_equal(message, 'very large origin values '
                            'relative to dims; leaving as set, '
@@ -78,7 +77,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         hdr['scl_slope'] = np.nan
         # NaN and Inf string representation can be odd on windows, so we
         # check against the representation on this system
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['scl_slope'], 1)
         assert_equal(message, 'scale slope is %s; '
                            'should be finite; '

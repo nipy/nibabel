@@ -16,7 +16,6 @@ from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from ..testing import assert_equal, assert_raises
 
 from . import test_spm99analyze
-from .test_spm99analyze import _log_chk
 
 
 class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
@@ -26,7 +25,7 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
         # checks for scale
         hdr = self.header_class()
         hdr['scl_slope'] = np.nan
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         yield assert_equal(fhdr['scl_slope'], 1)
         problem_msg = ('no valid scaling in scalefactor '
                        '(=None) or cal / gl fields; '
