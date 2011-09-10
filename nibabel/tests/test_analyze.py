@@ -6,34 +6,10 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test analyze headers
+''' Test Analyze headers
 
-See test_analayze_types.py for general analyze type header tests
-
-This - basic - analyze header cannot encode full affines (only
-diagonal affines), and cannot do integer scaling.
-
-The inability to do affines raises the problem of whether the image is
-neurological (left is left), or radiological (left is right).  In
-general this is the problem of whether the affine should consider
-proceeding within the data down an X line as being from left to right,
-or right to left.
-
-To solve this, we have a ``default_x_flip`` flag that can be True or
-False.  True means assume radiological.
-
-If the image is 3D, and the X, Y and Z zooms are x, y, and z, then::
-
-    If default_x_flip is True::
-        affine = np.diag((-x,y,z,1))
-    else:
-        affine = np.diag((x,y,z,1))
-
-In our implementation, there is no way of saving this assumed flip
-into the header.  One way of doing this, that we have not used, is to
-allow negative zooms, in particular, negative X zooms.  We did not do
-this because the image can be loaded with and without a default flip,
-so the saved zoom will not constrain the affine.
+See test_wrapstruct.py for tests of the wrapped structarr-ness of the Analyze
+header
 '''
 
 import os
@@ -43,7 +19,7 @@ from StringIO import StringIO
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..py3k import BytesIO, asbytes
 from ..volumeutils import array_to_file
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
@@ -57,7 +33,7 @@ from numpy.testing import (assert_array_equal,
 from ..testing import (assert_equal, assert_not_equal, assert_true,
                        assert_false, assert_raises, data_path)
 
-from .test_binary import _TestBinaryHeaderBase
+from .test_wrapstruct import _TestWrapStructBase
 from . import test_spatialimages as tsi
 
 header_file = os.path.join(data_path, 'analyze.hdr')
@@ -71,7 +47,7 @@ def _write_data(hdr, data, fileobj):
     array_to_file(data, fileobj, out_dtype, offset)
 
 
-class TestAnalyzeHeader(_TestBinaryHeaderBase):
+class TestAnalyzeHeader(_TestWrapStructBase):
     header_class = AnalyzeHeader
     example_file = header_file
 
@@ -236,6 +212,19 @@ class TestAnalyzeHeader(_TestBinaryHeaderBase):
     def test_read_write_data(self):
         # Check reading and writing of data
         hdr = self.header_class()
+        # Trying to read data from an empty header gives no data
+        bytes = hdr.data_from_fileobj(BytesIO())
+        assert_equal(len(bytes), 0)
+        # Setting no data into an empty header results in - no data
+        str_io = BytesIO()
+        hdr.data_to_fileobj([], str_io)
+        assert_equal(str_io.getvalue(), asbytes(''))
+        # Setting more data then there should be gives an error
+        assert_raises(HeaderDataError,
+                      hdr.data_to_fileobj,
+                      np.zeros(3),
+                      str_io)
+        # Test valid write
         hdr.set_data_shape((1,2,3))
         hdr.set_data_dtype(np.float32)
         S = BytesIO()

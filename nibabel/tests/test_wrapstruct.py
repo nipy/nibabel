@@ -14,11 +14,6 @@ framework for all the tests common to the Analyze types
 Refactoring TODO
 ----------------
 
-data_from_fileobj
-data_to_fileobj
-
--> bytes_to/from_fileobj
-
 binaryblock
 diagnose_binaryblock
 
@@ -35,11 +30,10 @@ from StringIO import StringIO
 
 import numpy as np
 
-# from ..headers import BinaryHeader
-class BinaryHeader(object): pass
+from ..wrapstruct import WrapStruct
 from ..batteryrunners import Report
 
-from ..py3k import BytesIO, ZEROB, asbytes
+from ..py3k import BytesIO, ZEROB
 from ..volumeutils import swapped_code, native_code, Recoder
 from ..spatialimages import HeaderDataError
 from .. import imageglobals
@@ -52,19 +46,22 @@ from ..testing import (assert_equal, assert_true, assert_false,
                        assert_raises, assert_not_equal)
 
 
-class MyBinaryHeader(BinaryHeader):
+class MyWrapStruct(WrapStruct):
     """ An example binary header class """
+    _field_recoders = {}
     dtype_def = [
         ('an_integer', 'i4'),
         ('a_str', 'S10')]
+    _dtype = np.dtype(dtype_def)
 
     def _guessed_endian(self, hdr):
         if hdr['an_integer'] < 256:
             return native_code
         return swapped_code
 
-    def _empty_headerdata(self):
-        structarr = super(MyBinaryHeader, self)._empty_headerdata()
+    def _empty_headerdata(self, endianness=None):
+        structarr = super(MyWrapStruct, self)._empty_headerdata(
+            endianness)
         structarr['an_integer'] = 1
         structarr['a_str'] = 'a string'
         return structarr
@@ -79,16 +76,16 @@ class MyBinaryHeader(BinaryHeader):
     @staticmethod
     def _chk_integer(hdr, fix=False):
         rep = Report(HeaderDataError)
-        if hdr['integer'] == 1:
+        if hdr['an_integer'] == 1:
             return hdr, rep
-        rep.problem_level = 30
+        rep.problem_level = 40
         rep.problem_msg = 'an_integer should be 1'
         if fix:
-            hdr['sizeof_hdr'] = 1
+            hdr['an_integer'] = 1
             rep.fix_msg = 'set an_integer to 1'
         return hdr, rep
 
-    @classmethod
+    @staticmethod
     def _chk_string(hdr, fix=False):
         rep = Report(HeaderDataError)
         hdr_str = str(hdr['a_str'])
@@ -98,11 +95,11 @@ class MyBinaryHeader(BinaryHeader):
         rep.problem_msg = 'a_str should be lower case'
         if fix:
             hdr['a_str'] = hdr_str.lower()
-            rep.fix_msg = 'set a string to lower case'
+            rep.fix_msg = 'set a_str to lower case'
         return hdr, rep
 
 
-class _TestBinaryHeaderBase(TestCase):
+class _TestWrapStructBase(TestCase):
     ''' Class implements base tests for binary headers
 
     It serves as a base class for other binary header tests
@@ -123,23 +120,27 @@ class _TestBinaryHeaderBase(TestCase):
         # effect
         hdr = self.header_class(check=False)
 
+    def _set_something_into_hdr(self, hdr):
+        # Called from test_bytes test method.  Specific to the header data type
+        raise NotImplementedError('Not in base type')
+
+    def test__eq__(self):
+        # Test equal and not equal
+        hdr1 = self.header_class()
+        hdr2 = self.header_class()
+        assert_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr1)
+        assert_not_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr2)
+        assert_equal(hdr1, hdr2)
+        # Check byteswapping maintains equality
+        hdr3 = hdr2.as_byteswapped()
+        assert_equal(hdr2, hdr3)
+
     def test_to_from_fileobj(self):
-        hdr = self.header_class()
-        # Trying to read data from an empty header gives no data
-        bytes = hdr.data_from_fileobj(BytesIO())
-        assert_equal(len(bytes), 0)
-        # Setting no data into an empty header results in - no data
-        str_io = BytesIO()
-        hdr.data_to_fileobj([], str_io)
-        assert_equal(str_io.getvalue(), asbytes(''))
-        # Setting more data then there should be gives an error
-        assert_raises(HeaderDataError,
-                      hdr.data_to_fileobj,
-                      np.zeros(3),
-                      str_io)
         # Successful write using write_to
-        str_io.truncate(0)
-        str_io.seek(0)
+        hdr = self.header_class()
+        str_io = StringIO()
         hdr.write_to(str_io)
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
@@ -200,10 +201,6 @@ class _TestBinaryHeaderBase(TestCase):
         _ = hdr.structarr
         # That it's read only
         assert_raises(AttributeError, hdr.__setattr__, 'structarr', 0)
-
-    def _set_something_into_hdr(self, hdr):
-        # Override in real classes to set some non-default data into hdr
-        raise NotImplementedError()
 
     def log_chk(self, hdr, level):
         # utility method to check header checking / logging
@@ -266,9 +263,7 @@ class _TestBinaryHeaderBase(TestCase):
         # set into the header. Completely zeros binary block always
         # (fairly) bad
         bb_bad = ZEROB * len(bb)
-        assert_raises(HeaderDataError,
-                      self.header_class,
-                      bb_bad)
+        assert_raises(HeaderDataError, self.header_class, bb_bad)
         # now slips past without check
         _ = self.header_class(bb_bad, check=False)
 
@@ -335,9 +330,13 @@ class _TestBinaryHeaderBase(TestCase):
         assert_true(len(s1) > 0)
 
 
-class _TestBinaryHeader(_TestBinaryHeaderBase):
+class TestWrapStruct(_TestWrapStructBase):
     """ Test fake binary header defined at top of module """
-    header_class = MyBinaryHeader
+    header_class = MyWrapStruct
+
+    def _set_something_into_hdr(self, hdr):
+        # Called from test_bytes test method.  Specific to the header data type
+        hdr['a_str'] = 'reggie'
 
     def test_empty(self):
         # Test contents of default header
@@ -355,10 +354,6 @@ class _TestBinaryHeader(_TestBinaryHeaderBase):
         s2 = str(hdr)
         assert_true('fullness of heart' in s2)
 
-    def _set_something_into_hdr(self, hdr):
-        # Called from test_bytes test method.  Specific to the header data type
-        hdr['a_str'] = 'reggie'
-
     def test_checks(self):
         # Test header checks
         hdr_t = self.header_class()
@@ -368,7 +363,7 @@ class _TestBinaryHeader(_TestBinaryHeaderBase):
         # An integer should be 1
         hdr = hdr_t.copy()
         hdr['an_integer'] = 2
-        assert_equal(self._dxer(hdr), 'an_integer should be 2')
+        assert_equal(self._dxer(hdr), 'an_integer should be 1')
         # String should be lower case
         hdr = hdr_t.copy()
         hdr['a_str'] = 'My Name'
@@ -380,8 +375,8 @@ class _TestBinaryHeader(_TestBinaryHeaderBase):
         # pretent header defined at the top of this file
         HC = self.header_class
         hdr = HC()
-        hdr['an_integer'] = 2 # severity 30
-        fhdr, message, raiser = self.log_chk(hdr, 30)
+        hdr['an_integer'] = 2 # severity 40
+        fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['an_integer'], 1)
         assert_equal(message, 'an_integer should be 1; '
                            'set an_integer to 1')
@@ -402,19 +397,20 @@ class _TestBinaryHeader(_TestBinaryHeaderBase):
         # Make a new logger
         str_io = StringIO()
         logger = logging.getLogger('test.logger')
-        logger.setLevel(30) # defaultish level
+        logger.setLevel(20)
         logger.addHandler(logging.StreamHandler(str_io))
-        # Prepare an error
-        hdr['an_integer'] = 2 # severity 30
+        # Prepare something that needs fixing
+        hdr['a_str'] = 'Fullness' # severity 20
         log_cache = imageglobals.logger, imageglobals.error_level
         try:
             # Check log message appears in new logger
             imageglobals.logger = logger
             hdr.copy().check_fix()
             assert_equal(str_io.getvalue(),
-                         'an_integer should be 1; set an_integer to 1\n')
+                         'a_str should be lower case; '
+                         'set a_str to lower case\n')
             # Check that error_level in fact causes error to be raised
-            imageglobals.error_level = 30
+            imageglobals.error_level = 20
             assert_raises(HeaderDataError, hdr.copy().check_fix)
         finally:
             imageglobals.logger, imageglobals.error_level = log_cache
