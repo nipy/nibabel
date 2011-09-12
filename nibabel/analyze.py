@@ -42,14 +42,30 @@ Notes
 This - basic - analyze header cannot encode full affines (only
 diagonal affines), and cannot do integer scaling.
 
-The inability to do affines raises the problem of whether the image is
-neurological (left is left), or radiological (left is right).  In
-general this is the problem of whether the affine should consider
-proceeding within the data down an X line as being from left to right,
-or right to left.
+The inability to store affines means that we have to guess what orientation the
+image has.  Most Analyze images are stored on disk in (fastest-changing to
+slowest-changing) R->L, P->A and I->S order.  That is, the first voxel is the
+rightmost, most posterior and most inferior voxel location in the image, and the
+next voxel is one voxel towards the left of the image.
 
-To solve this, we have a ``default_x_flip`` flag that can be True or
-False.  True means assume radiological.
+Most people refer to this disk storage format as 'radiological', on the basis
+that, if you load up the data as an array ``img_arr`` where the first axis is
+the fastest changing, then take a slice in the I->S axis - ``img_arr[:,:,10]`` -
+then the right part of the brain will be on the left of your displayed slice.
+Radiologists like looking at images where the left of the brain is on the right
+side of the image.
+
+Conversely, if the image has the voxels stored with the left voxels first -
+L->R, P->A, I->S, then this would be 'neurological' format.  Neurologists like
+looking at images where the left side of the brain is on the left of the image.
+
+When we are guessing at an affine for Analyze, this translates to the problem of
+whether the affine should consider proceeding within the data down an X line as
+being from left to right, or right to left.
+
+By default we assume that the image is stored in R->L format.  We encode this
+choice in the ``default_x_flip`` flag that can be True or False.  True means
+assume radiological.
 
 If the image is 3D, and the X, Y and Z zooms are x, y, and z, then::
 
