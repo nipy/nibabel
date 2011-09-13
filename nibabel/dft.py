@@ -15,7 +15,6 @@ import StringIO
 import numpy
 import nibabel
 import sqlite3
-import PIL.Image
 import dicom
 
 _study_instance_uid_tag  = dicom.tag.Tag(0x0020, 0x000d)
@@ -133,6 +132,7 @@ class _Series(object):
         return val
 
     def as_png(self, index=None, scale_to_slice=True):
+        import PIL.Image
         if index is None:
             index = len(self.storage_instances) / 2
         d = self.storage_instances[index].dicom()

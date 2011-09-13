@@ -92,6 +92,7 @@
 .. _setuptools: http://pypi.python.org/pypi/setuptools
 .. _distribute: http://packages.python.org/distribute
 .. _datapkg: http://okfn.org/projects/datapkg
+.. _python imaging library: http://www.pythonware.com
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
