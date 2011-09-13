@@ -16,7 +16,7 @@ import errno
 import time
 import locale
 import fuse
-import dft
+import nibabel.dft as dft
 
 uid = os.getuid()
 gid = os.getgid()
