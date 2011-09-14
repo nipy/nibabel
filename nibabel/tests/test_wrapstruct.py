@@ -11,8 +11,8 @@
 This is a root testing class, used in the Analyze and other tests as a
 framework for all the tests common to the Analyze types
 
-Refactoring TODO
-----------------
+Refactoring TODO maybe
+----------------------
 
 binaryblock
 diagnose_binaryblock
@@ -21,7 +21,6 @@ diagnose_binaryblock
 
 With deprecation warnings
 
-_guessed_endian -> guessed_endian
 _field_recoders -> field_recoders
 '''
 import logging
@@ -53,7 +52,8 @@ class MyWrapStruct(WrapStruct):
         ('a_str', 'S10')]
     _dtype = np.dtype(dtype_def)
 
-    def _guessed_endian(self, hdr):
+    @classmethod
+    def guessed_endian(klass, hdr):
         if hdr['an_integer'] < 256:
             return native_code
         return swapped_code

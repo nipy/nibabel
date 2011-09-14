@@ -155,7 +155,7 @@ class WrapStruct(object):
                          dtype=self._dtype,
                          buffer=binaryblock)
         if endianness is None:
-            endianness = self._guessed_endian(wstr)
+            endianness = self.__class__.guessed_endian(wstr)
         else:
             endianness = endian_codes[endianness]
         if endianness != native_code:
@@ -352,13 +352,15 @@ class WrapStruct(object):
         return '\n'.join([report.message
                           for report in reports if report.message])
 
-    def _guessed_endian(self, wstr):
-        ''' Guess intended endianness from mapping-like ``wstr``
+    @classmethod
+    def guessed_endian(self, mapping):
+        ''' Guess intended endianness from mapping-like ``mapping``
 
         Parameters
         ----------
         wstr : mapping-like
-           wstr for which to guess endianness
+            Something implementing a mapping.  We will guess the endianness from
+            looking at the field values
 
         Returns
         -------

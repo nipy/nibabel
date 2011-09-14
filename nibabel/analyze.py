@@ -245,7 +245,8 @@ class AnalyzeHeader(WrapStruct):
         '''
         super(AnalyzeHeader, self).__init__(binaryblock, endianness, check)
 
-    def _guessed_endian(self, hdr):
+    @classmethod
+    def guessed_endian(klass, hdr):
         ''' Guess intended endianness from mapping-like ``hdr``
 
         Parameters
@@ -264,19 +265,19 @@ class AnalyzeHeader(WrapStruct):
 
         >>> hdr = AnalyzeHeader()
         >>> hdr_data = np.zeros((), dtype=header_dtype)
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
 
         A valid native header is guessed native
 
         >>> hdr_data = hdr.structarr.copy()
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
 
         And, when swapped, is guessed as swapped
 
         >>> sw_hdr_data = hdr_data.byteswap(swapped_code)
-        >>> hdr._guessed_endian(sw_hdr_data) == swapped_code
+        >>> AnalyzeHeader.guessed_endian(sw_hdr_data) == swapped_code
         True
 
         The algorithm is as follows:
@@ -287,13 +288,13 @@ class AnalyzeHeader(WrapStruct):
 
         >>> hdr_data = np.zeros((), dtype=header_dtype) # blank binary data
         >>> hdr_data['dim'][0] = 1
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
         >>> hdr_data['dim'][0] = 6
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
         >>> hdr_data['dim'][0] = -1
-        >>> hdr._guessed_endian(hdr_data) == swapped_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == swapped_code
         True
 
         If the first ``dim`` value is zeros, we need a tie breaker.
@@ -302,20 +303,20 @@ class AnalyzeHeader(WrapStruct):
         assumed swapped.  Otherwise assume native.
 
         >>> hdr_data = np.zeros((), dtype=header_dtype) # blank binary data
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
         >>> hdr_data['sizeof_hdr'] = 1543569408
-        >>> hdr._guessed_endian(hdr_data) == swapped_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == swapped_code
         True
         >>> hdr_data['sizeof_hdr'] = -1
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
 
         This is overridden by the ``dim``[0] value though:
 
         >>> hdr_data['sizeof_hdr'] = 1543569408
         >>> hdr_data['dim'][0] = 1
-        >>> hdr._guessed_endian(hdr_data) == native_code
+        >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
         '''
         dim0 = int(hdr['dim'][0])
