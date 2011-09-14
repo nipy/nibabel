@@ -113,7 +113,7 @@ class WrapStructError(Exception):
 class WrapStruct(object):
     _field_recoders = {}
     # placeholder datatype
-    dtype_def = [('integer', 'i4')]
+    dtype_def = [('integer', 'i2')]
     _dtype = np.dtype(dtype_def)
 
     def __init__(self,
@@ -140,10 +140,10 @@ class WrapStruct(object):
         >>> wstr1.endianness == native_code
         True
         >>> wstr1['integer']
-        array(0)
+        array(0, dtype=int16)
         >>> wstr1['integer'] = 1
         >>> wstr1['integer']
-        array(1)
+        array(1, dtype=int16)
         '''
         if binaryblock is None:
             self._structarr = self.default_structarr(endianness)
@@ -201,7 +201,7 @@ class WrapStruct(object):
         >>> # Make default empty structure
         >>> wstr = WrapStruct()
         >>> len(wstr.binaryblock)
-        4
+        2
         '''
         return self._structarr.tostring()
 
@@ -264,7 +264,7 @@ class WrapStruct(object):
         >>> wstr2 is wstr
         False
         >>> wstr2['integer']
-        array(3)
+        array(3, dtype=int16)
         '''
         return self.__class__(
                 self.binaryblock,
@@ -312,7 +312,7 @@ class WrapStruct(object):
         >>> wstr = WrapStruct()
         >>> wstr['integer'] = 3
         >>> wstr['integer']
-        array(3)
+        array(3, dtype=int16)
         '''
         self._structarr[item] = value
 
