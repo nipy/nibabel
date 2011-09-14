@@ -43,9 +43,9 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     has_data_slope = True
     has_data_intercept = False
 
-    def _empty_headerdata(self, endianness=None):
+    def default_structarr(self, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = super(SpmAnalyzeHeader, self)._empty_headerdata(endianness)
+        hdr_data = super(SpmAnalyzeHeader, self).default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 

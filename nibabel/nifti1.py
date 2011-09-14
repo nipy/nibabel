@@ -608,9 +608,9 @@ class Nifti1Header(SpmAnalyzeHeader):
             return self.get_qform()
         return self.get_base_affine()
 
-    def _empty_headerdata(self, endianness=None):
+    def default_structarr(self, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
+        hdr_data = analyze.AnalyzeHeader.default_structarr(self, endianness)
         hdr_data['scl_slope'] = 1
         if self.is_single:
             hdr_data['magic'] = 'n+1'

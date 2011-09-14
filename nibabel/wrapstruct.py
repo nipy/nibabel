@@ -143,7 +143,7 @@ class WrapStruct(object):
         array(1)
         '''
         if binaryblock is None:
-            self._structarr = self._empty_headerdata(endianness)
+            self._structarr = self.default_structarr(endianness)
             return
         # check size
         if len(binaryblock) != self._dtype.itemsize:
@@ -364,8 +364,8 @@ class WrapStruct(object):
         '''
         raise NotImplementedError
 
-    def _empty_headerdata(self, endianness=None):
-        ''' Return structured data for default structure, with given endianness
+    def default_structarr(self, endianness=None):
+        ''' Return structured array for default structure, with given endianness
         '''
         dt = self._dtype
         if endianness is not None:

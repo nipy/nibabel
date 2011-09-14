@@ -22,7 +22,6 @@ diagnose_binaryblock
 With deprecation warnings
 
 _guessed_endian -> guessed_endian
-_empty_headerdata -> default_structarr
 _field_recoders -> field_recoders
 '''
 import logging
@@ -59,8 +58,8 @@ class MyWrapStruct(WrapStruct):
             return native_code
         return swapped_code
 
-    def _empty_headerdata(self, endianness=None):
-        structarr = super(MyWrapStruct, self)._empty_headerdata(
+    def default_structarr(self, endianness=None):
+        structarr = super(MyWrapStruct, self).default_structarr(
             endianness)
         structarr['an_integer'] = 1
         structarr['a_str'] = 'a string'
