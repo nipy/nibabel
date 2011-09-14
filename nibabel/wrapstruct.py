@@ -102,9 +102,12 @@ import numpy as np
 
 from .volumeutils import (pretty_mapping, endian_codes, native_code,
                           swapped_code)
-from .spatialimages import HeaderDataError
 from . import imageglobals as imageglobals
 from .batteryrunners import BatteryRunner
+
+
+class WrapStructError(Exception):
+    pass
 
 
 class WrapStruct(object):
@@ -147,7 +150,7 @@ class WrapStruct(object):
             return
         # check size
         if len(binaryblock) != self._dtype.itemsize:
-            raise HeaderDataError('Binary block is wrong size')
+            raise WrapStructError('Binary block is wrong size')
         wstr = np.ndarray(shape=(),
                          dtype=self._dtype,
                          buffer=binaryblock)

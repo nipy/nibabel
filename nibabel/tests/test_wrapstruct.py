@@ -29,7 +29,7 @@ from StringIO import StringIO
 
 import numpy as np
 
-from ..wrapstruct import WrapStruct
+from ..wrapstruct import WrapStructError, WrapStruct
 from ..batteryrunners import Report
 
 from ..py3k import BytesIO, ZEROB
@@ -252,10 +252,10 @@ class _TestWrapStructBase(TestCase):
         assert_equal(hdr1.binaryblock, hdr2.binaryblock)
         # Short and long binaryblocks give errors
         # (here set through init)
-        assert_raises(HeaderDataError,
+        assert_raises(WrapStructError,
                       self.header_class,
                       bb[:-1])
-        assert_raises(HeaderDataError,
+        assert_raises(WrapStructError,
                       self.header_class,
                       bb + ZEROB)
         # Checking set to true by default, and prevents nonsense being
