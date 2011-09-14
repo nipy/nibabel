@@ -29,13 +29,13 @@ Mappingness
 You can access and set fields of the contained structarr using standard
 __getitem__ / __setitem__ syntax:
 
-    hdr['field'] = 10
+    wrapped['field'] = 10
 
 Wrapped structures also implement general mappingness:
 
-    hdr.keys()
-    hdr.items()
-    hdr.values()
+    wrapped.keys()
+    wrapped.items()
+    wrapped.values()
 
 Properties::
 
@@ -58,32 +58,33 @@ Class methods::
     .write_to(fileobj)
     .from_fileobj(fileobj)
 
-More sophisticated headers can add more methods and attributes.
+Consistency checks
+------------------
 
-Header checking
----------------
+We have a file, and we would like information as to whether there are any
+problems with the binary data in this file, and whether they are fixable.
+``WrapStruct`` can hold checks for internal consistency of the contained data::
 
-We have a file, and we would like feedback as to whether there are any
-problems with this header, and whether they are fixable::
-
-   data = WrapStruct.data_from_fileobj(open('myfile.hdr'))
-   res = WrapStruct.diagnose_binaryblock(hdr.binaryblock)
+   wrapped = WrapStruct.from_fileobj(open('myfile.bin'), check=False)
+   dx_result = WrapStruct.diagnose_binaryblock(wrapped.binaryblock)
 
 This will run all known checks, with no fixes, returning a string with
-diagnostic output.
+diagnostic output. See below for the ``check=False`` flag.
 
-In creating a header object, we might want to check the header data.  If it
-passes the error threshold, it goes through::
+In creating a ``WrapStruct`` object, we often want to check the consistency of
+the contained data.  The checks can test for problems of various levels of
+severity.  If the problem is severe enough, it should raise an Error.  So, with
+data that is consistent - no error::
 
-   hdr = WrapStruct.from_fileobj(good_fileobj)
+   wrapped = WrapStruct.from_fileobj(good_fileobj)
 
 whereas::
 
-   hdr = WrapStruct.from_fileobj(bad_fileobj)
+   wrapped = WrapStruct.from_fileobj(bad_fileobj)
 
 would raise some error, with output to logging (see below).
 
-If we want the header, come what may::
+If we want the created object, come what may::
 
    hdr = WrapStruct.from_fileobj(bad_fileobj, check=False)
 
@@ -116,29 +117,29 @@ class WrapStruct(object):
                  binaryblock=None,
                  endianness=None,
                  check=True):
-        ''' Initialize header from binary data block
+        ''' Initialize WrapStruct from binary data block
 
         Parameters
         ----------
         binaryblock : {None, string} optional
-            binary block to set into header.  By default, None, in
-            which case we insert the default empty header block
+            binary block to set into object.  By default, None, in
+            which case we insert the default empty block
         endianness : {None, '<','>', other endian code} string, optional
             endianness of the binaryblock.  If None, guess endianness
             from the data.
         check : bool, optional
-            Whether to check content of header in initialization.
+            Whether to check content of binary data in initialization.
             Default is True.
 
         Examples
         --------
-        >>> hdr1 = WrapStruct() # an empty header
-        >>> hdr1.endianness == native_code
+        >>> wstr1 = WrapStruct() # a default structure
+        >>> wstr1.endianness == native_code
         True
-        >>> hdr1['integer']
+        >>> wstr1['integer']
         array(0)
-        >>> hdr1['integer'] = 1
-        >>> hdr1['integer']
+        >>> wstr1['integer'] = 1
+        >>> wstr1['integer']
         array(1)
         '''
         if binaryblock is None:
@@ -147,26 +148,26 @@ class WrapStruct(object):
         # check size
         if len(binaryblock) != self._dtype.itemsize:
             raise HeaderDataError('Binary block is wrong size')
-        hdr = np.ndarray(shape=(),
+        wstr = np.ndarray(shape=(),
                          dtype=self._dtype,
                          buffer=binaryblock)
         if endianness is None:
-            endianness = self._guessed_endian(hdr)
+            endianness = self._guessed_endian(wstr)
         else:
             endianness = endian_codes[endianness]
         if endianness != native_code:
             dt = self._dtype.newbyteorder(endianness)
-            hdr = np.ndarray(shape=(),
+            wstr = np.ndarray(shape=(),
                              dtype=dt,
                              buffer=binaryblock)
-        self._header_data = hdr.copy()
+        self._header_data = wstr.copy()
         if check:
             self.check_fix()
         return
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ''' Return read header with given or guessed endiancode
+        ''' Return read structure with given or guessed endiancode
 
         Parameters
         ----------
@@ -177,7 +178,7 @@ class WrapStruct(object):
 
         Returns
         -------
-        hdr : WrapStruct object
+        wstr : WrapStruct object
            WrapStruct object initialized from data in fileobj
         '''
         raw_str = fileobj.read(klass._dtype.itemsize)
@@ -194,15 +195,15 @@ class WrapStruct(object):
 
         Examples
         --------
-        >>> # Make default empty header
-        >>> hdr = WrapStruct()
-        >>> len(hdr.binaryblock)
+        >>> # Make default empty structure
+        >>> wstr = WrapStruct()
+        >>> len(wstr.binaryblock)
         4
         '''
         return self._header_data.tostring()
 
     def write_to(self, fileobj):
-        ''' Write header to fileobj
+        ''' Write structure to fileobj
 
         Write starts at fileobj current file position.
 
@@ -217,11 +218,11 @@ class WrapStruct(object):
 
         Examples
         --------
-        >>> hdr = WrapStruct()
+        >>> wstr = WrapStruct()
         >>> from StringIO import StringIO #23dt : BytesIO
         >>> str_io = StringIO() #23dt : BytesIO
-        >>> hdr.write_to(str_io)
-        >>> hdr.binaryblock == str_io.getvalue()
+        >>> wstr.write_to(str_io)
+        >>> wstr.binaryblock == str_io.getvalue()
         True
         '''
         fileobj.write(self.binaryblock)
@@ -235,8 +236,8 @@ class WrapStruct(object):
 
         Examples
         --------
-        >>> hdr = WrapStruct()
-        >>> code = hdr.endianness
+        >>> wstr = WrapStruct()
+        >>> code = wstr.endianness
         >>> code == native_code
         True
 
@@ -252,14 +253,14 @@ class WrapStruct(object):
         return swapped_code
 
     def copy(self):
-        ''' Return copy of header
+        ''' Return copy of structure
 
-        >>> hdr = WrapStruct()
-        >>> hdr['integer'] = 3
-        >>> hdr2 = hdr.copy()
-        >>> hdr2 is hdr
+        >>> wstr = WrapStruct()
+        >>> wstr['integer'] = 3
+        >>> wstr2 = wstr.copy()
+        >>> wstr2 is wstr
         False
-        >>> hdr2['integer']
+        >>> wstr2['integer']
         array(3)
         '''
         return self.__class__(
@@ -267,16 +268,16 @@ class WrapStruct(object):
                 self.endianness, check=False)
 
     def __eq__(self, other):
-        ''' equality between two headers defined by binaryblock
+        ''' equality between two structures defined by binaryblock
 
         Examples
         --------
-        >>> hdr = WrapStruct()
-        >>> hdr2 = WrapStruct()
-        >>> hdr == hdr2
+        >>> wstr = WrapStruct()
+        >>> wstr2 = WrapStruct()
+        >>> wstr == wstr2
         True
-        >>> hdr3 = WrapStruct(endianness=swapped_code)
-        >>> hdr == hdr3
+        >>> wstr3 = WrapStruct(endianness=swapped_code)
+        >>> wstr == wstr3
         True
         '''
         this_end = self.endianness
@@ -290,24 +291,24 @@ class WrapStruct(object):
         return not self == other
 
     def __getitem__(self, item):
-        ''' Return values from header data
+        ''' Return values from structure data
 
         Examples
         --------
-        >>> hdr = WrapStruct()
-        >>> hdr['integer'] == 0
+        >>> wstr = WrapStruct()
+        >>> wstr['integer'] == 0
         True
         '''
         return self._header_data[item]
 
     def __setitem__(self, item, value):
-        ''' Set values in header data
+        ''' Set values in structured data
 
         Examples
         --------
-        >>> hdr = WrapStruct()
-        >>> hdr['integer'] = 3
-        >>> hdr['integer']
+        >>> wstr = WrapStruct()
+        >>> wstr['integer'] = 3
+        >>> wstr['integer']
         array(3)
         '''
         self._header_data[item] = value
@@ -316,20 +317,20 @@ class WrapStruct(object):
         return iter(self.keys())
 
     def keys(self):
-        ''' Return keys from header data'''
+        ''' Return keys from structured data'''
         return list(self._dtype.names)
 
     def values(self):
-        ''' Return values from header data'''
+        ''' Return values from structured data'''
         data = self._header_data
         return [data[key] for key in self._dtype.names]
 
     def items(self):
-        ''' Return items from header data'''
+        ''' Return items from structured data'''
         return zip(self.keys(), self.values())
 
     def check_fix(self, logger=None, error_level=None):
-        ''' Check header data with checks '''
+        ''' Check structured data with checks '''
         if logger is None:
             logger = imageglobals.logger
         if error_level is None:
@@ -341,47 +342,47 @@ class WrapStruct(object):
 
     @classmethod
     def diagnose_binaryblock(klass, binaryblock, endianness=None):
-        ''' Run checks over header binary data, return string '''
-        hdr = klass(binaryblock, endianness=endianness, check=False)
+        ''' Run checks over binary data, return string '''
+        wstr = klass(binaryblock, endianness=endianness, check=False)
         battrun = BatteryRunner(klass._get_checks())
-        reports = battrun.check_only(hdr)
+        reports = battrun.check_only(wstr)
         return '\n'.join([report.message
                           for report in reports if report.message])
 
-    def _guessed_endian(self, hdr):
-        ''' Guess intended endianness from mapping-like ``hdr``
+    def _guessed_endian(self, wstr):
+        ''' Guess intended endianness from mapping-like ``wstr``
 
         Parameters
         ----------
-        hdr : mapping-like
-           hdr for which to guess endianness
+        wstr : mapping-like
+           wstr for which to guess endianness
 
         Returns
         -------
         endianness : {'<', '>'}
-           Guessed endianness of header
+           Guessed endianness of binary data in ``wstr``
         '''
         raise NotImplementedError
 
     def _empty_headerdata(self, endianness=None):
-        ''' Return header data for empty header with given endianness
+        ''' Return structured data for default structure, with given endianness
         '''
         dt = self._dtype
         if endianness is not None:
             endianness = endian_codes[endianness]
             dt = dt.newbyteorder(endianness)
-        hdr_data = np.zeros((), dtype=dt)
-        return hdr_data
+        wstr_data = np.zeros((), dtype=dt)
+        return wstr_data
 
     @property
     def structarr(self):
-        ''' header data, with data fields
+        ''' Structured data, with data fields
 
         Examples
         --------
-        >>> hdr1 = WrapStruct() # an empty header
-        >>> an_int = hdr1.structarr['integer']
-        >>> hdr1.structarr = None
+        >>> wstr1 = WrapStruct() # with default data
+        >>> an_int = wstr1.structarr['integer']
+        >>> wstr1.structarr = None
         Traceback (most recent call last):
            ...
         AttributeError: can't set attribute
@@ -411,12 +412,12 @@ class WrapStruct(object):
         Parameters
         ----------
         fieldname : str
-           name of header field to get label for
+           name of field to get label for
 
         Returns
         -------
         label : str
-           label for code value in header field `fieldname`
+           label for code value in field `fieldname`
         '''
         if not fieldname in self._field_recoders:
             raise ValueError('%s not a coded field' % fieldname)
@@ -424,7 +425,7 @@ class WrapStruct(object):
         return self._field_recoders[fieldname].label[code]
 
     def as_byteswapped(self, endianness=None):
-        ''' return new byteswapped header object with given ``endianness``
+        ''' return new byteswapped object with given ``endianness``
 
         Guaranteed to make a copy even if endianness is the same as
         the current endianness.
@@ -437,38 +438,38 @@ class WrapStruct(object):
 
         Returns
         -------
-        hdr : header object
-           hdr object with given endianness
+        wstr : ``WrapStruct``
+           ``WrapStruct`` object with given endianness
 
         Examples
         --------
-        >>> hdr = WrapStruct()
-        >>> hdr.endianness == native_code
+        >>> wstr = WrapStruct()
+        >>> wstr.endianness == native_code
         True
-        >>> bs_hdr = hdr.as_byteswapped()
-        >>> bs_hdr.endianness == swapped_code
+        >>> bs_wstr = wstr.as_byteswapped()
+        >>> bs_wstr.endianness == swapped_code
         True
-        >>> bs_hdr = hdr.as_byteswapped(swapped_code)
-        >>> bs_hdr.endianness == swapped_code
+        >>> bs_wstr = wstr.as_byteswapped(swapped_code)
+        >>> bs_wstr.endianness == swapped_code
         True
-        >>> bs_hdr is hdr
+        >>> bs_wstr is wstr
         False
-        >>> bs_hdr == hdr
+        >>> bs_wstr == wstr
         True
 
         If you write to the resulting byteswapped data, it does not
         change the original.
 
-        >>> bs_hdr['integer'] = 3
-        >>> bs_hdr == hdr
+        >>> bs_wstr['integer'] = 3
+        >>> bs_wstr == wstr
         False
 
         If you swap to the same endianness, it returns a copy
 
-        >>> nbs_hdr = hdr.as_byteswapped(native_code)
-        >>> nbs_hdr.endianness == native_code
+        >>> nbs_wstr = wstr.as_byteswapped(native_code)
+        >>> nbs_wstr.endianness == native_code
         True
-        >>> nbs_hdr is hdr
+        >>> nbs_wstr is wstr
         False
         '''
         current = self.endianness
@@ -481,8 +482,8 @@ class WrapStruct(object):
             endianness = endian_codes[endianness]
         if endianness == current:
             return self.copy()
-        hdr_data = self._header_data.byteswap()
-        return self.__class__(hdr_data.tostring(),
+        wstr_data = self._header_data.byteswap()
+        return self.__class__(wstr_data.tostring(),
                               endianness,
                               check=False)
 
