@@ -545,7 +545,7 @@ class AnalyzeHeader(WrapStruct):
 
         For examples see ``set_data_dtype``
         '''
-        code = int(self._header_data['datatype'])
+        code = int(self._structarr['datatype'])
         dtype = self._data_type_codes.dtype[code]
         return dtype.newbyteorder(self.endianness)
 
@@ -584,8 +584,8 @@ class AnalyzeHeader(WrapStruct):
         if dtype.type is np.void and not dtype.fields:
             raise HeaderDataError(
                 'data dtype "%s" known but not supported' % datatype)
-        self._header_data['datatype'] = code
-        self._header_data['bitpix'] = dtype.itemsize * 8
+        self._structarr['datatype'] = code
+        self._structarr['bitpix'] = dtype.itemsize * 8
 
     def get_data_shape(self):
         ''' Get shape of data
@@ -604,7 +604,7 @@ class AnalyzeHeader(WrapStruct):
         >>> hdr.get_zooms()
         (1.0, 1.0, 1.0)
         '''
-        dims = self._header_data['dim']
+        dims = self._structarr['dim']
         ndims = dims[0]
         if ndims == 0:
             return 0,
@@ -621,12 +621,12 @@ class AnalyzeHeader(WrapStruct):
         shape : sequence
            sequence of integers specifying data array shape
         '''
-        dims = self._header_data['dim']
+        dims = self._structarr['dim']
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims
         dims[1:ndims+1] = shape
-        self._header_data['pixdim'][ndims+1:] = 1.0
+        self._structarr['pixdim'][ndims+1:] = 1.0
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields
@@ -647,7 +647,7 @@ class AnalyzeHeader(WrapStruct):
                [ 0.,  0.,  1., -3.],
                [ 0.,  0.,  0.,  1.]])
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
         return shape_zoom_affine(hdr['dim'][1:ndim+1],
@@ -676,7 +676,7 @@ class AnalyzeHeader(WrapStruct):
         >>> hdr.get_zooms()
         (3.0, 4.0)
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
         if ndim == 0:
@@ -689,7 +689,7 @@ class AnalyzeHeader(WrapStruct):
 
         See docstring for ``get_zooms`` for examples
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
         zooms = np.asarray(zooms)
@@ -716,7 +716,7 @@ class AnalyzeHeader(WrapStruct):
         >>> hdr.get_data_offset()
         12
         '''
-        return int(self._header_data['vox_offset'])
+        return int(self._structarr['vox_offset'])
 
     def get_slope_inter(self):
         ''' Get scalefactor and intercept

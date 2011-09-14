@@ -143,7 +143,7 @@ class WrapStruct(object):
         array(1)
         '''
         if binaryblock is None:
-            self._header_data = self._empty_headerdata(endianness)
+            self._structarr = self._empty_headerdata(endianness)
             return
         # check size
         if len(binaryblock) != self._dtype.itemsize:
@@ -160,7 +160,7 @@ class WrapStruct(object):
             wstr = np.ndarray(shape=(),
                              dtype=dt,
                              buffer=binaryblock)
-        self._header_data = wstr.copy()
+        self._structarr = wstr.copy()
         if check:
             self.check_fix()
         return
@@ -200,7 +200,7 @@ class WrapStruct(object):
         >>> len(wstr.binaryblock)
         4
         '''
-        return self._header_data.tostring()
+        return self._structarr.tostring()
 
     def write_to(self, fileobj):
         ''' Write structure to fileobj
@@ -248,7 +248,7 @@ class WrapStruct(object):
         endianness on initialization, or occasionally byteswapping the
         data - but this is done via the as_byteswapped method
         '''
-        if self._header_data.dtype.isnative:
+        if self._structarr.dtype.isnative:
             return native_code
         return swapped_code
 
@@ -284,7 +284,7 @@ class WrapStruct(object):
         this_bb = self.binaryblock
         if this_end == other.endianness:
             return this_bb == other.binaryblock
-        other_bb = other._header_data.byteswap().tostring()
+        other_bb = other._structarr.byteswap().tostring()
         return this_bb == other_bb
 
     def __ne__(self, other):
@@ -299,7 +299,7 @@ class WrapStruct(object):
         >>> wstr['integer'] == 0
         True
         '''
-        return self._header_data[item]
+        return self._structarr[item]
 
     def __setitem__(self, item, value):
         ''' Set values in structured data
@@ -311,7 +311,7 @@ class WrapStruct(object):
         >>> wstr['integer']
         array(3)
         '''
-        self._header_data[item] = value
+        self._structarr[item] = value
 
     def __iter__(self):
         return iter(self.keys())
@@ -322,7 +322,7 @@ class WrapStruct(object):
 
     def values(self):
         ''' Return values from structured data'''
-        data = self._header_data
+        data = self._structarr
         return [data[key] for key in self._dtype.names]
 
     def items(self):
@@ -387,7 +387,7 @@ class WrapStruct(object):
            ...
         AttributeError: can't set attribute
         '''
-        return self._header_data
+        return self._structarr
 
     def __str__(self):
         ''' Return string representation for printing '''
@@ -421,7 +421,7 @@ class WrapStruct(object):
         '''
         if not fieldname in self._field_recoders:
             raise ValueError('%s not a coded field' % fieldname)
-        code = int(self._header_data[fieldname])
+        code = int(self._structarr[fieldname])
         return self._field_recoders[fieldname].label[code]
 
     def as_byteswapped(self, endianness=None):
@@ -482,7 +482,7 @@ class WrapStruct(object):
             endianness = endian_codes[endianness]
         if endianness == current:
             return self.copy()
-        wstr_data = self._header_data.byteswap()
+        wstr_data = self._structarr.byteswap()
         return self.__class__(wstr_data.tostring(),
                               endianness,
                               check=False)
