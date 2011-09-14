@@ -85,6 +85,18 @@ def test_write_scalars_props():
     for actual, expected in zip(streams, back_streams):
         for a_el, e_el in zip(actual, expected):
             assert_array_equal(a_el, e_el)
+    # Also so if the datatype of points, scalars is already float32 (github
+    # issue #53)
+    out_f.seek(0)
+    streams = [(points.astype('f4'),
+                scalars.astype('f4'),
+                props.astype('f4'))]
+    tv.write(out_f, streams)
+    out_f.seek(0)
+    back_streams, hdr = tv.read(out_f)
+    for actual, expected in zip(streams, back_streams):
+        for a_el, e_el in zip(actual, expected):
+            assert_array_almost_equal(a_el, e_el)
 
 
 def streams_equal(stream1, stream2):
