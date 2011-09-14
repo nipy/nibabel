@@ -327,10 +327,11 @@ class AnalyzeHeader(WrapStruct):
             return native_code
         return swapped_code
 
-    def default_structarr(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Return header data for empty header with given endianness
         '''
-        hdr_data = super(AnalyzeHeader, self).default_structarr(endianness)
+        hdr_data = super(AnalyzeHeader, klass).default_structarr(endianness)
         hdr_data['sizeof_hdr'] = 348
         hdr_data['dim'] = 1
         hdr_data['dim'][0] = 0

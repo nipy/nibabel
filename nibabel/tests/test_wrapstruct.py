@@ -49,7 +49,7 @@ class MyWrapStruct(WrapStruct):
     """ An example binary header class """
     _field_recoders = {}
     dtype_def = [
-        ('an_integer', 'i4'),
+        ('an_integer', 'i2'),
         ('a_str', 'S10')]
     _dtype = np.dtype(dtype_def)
 
@@ -58,9 +58,9 @@ class MyWrapStruct(WrapStruct):
             return native_code
         return swapped_code
 
-    def default_structarr(self, endianness=None):
-        structarr = super(MyWrapStruct, self).default_structarr(
-            endianness)
+    @classmethod
+    def default_structarr(klass, endianness=None):
+        structarr = super(MyWrapStruct, klass).default_structarr(endianness)
         structarr['an_integer'] = 1
         structarr['a_str'] = 'a string'
         return structarr

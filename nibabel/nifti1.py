@@ -504,8 +504,8 @@ class Nifti1Extensions(list):
 
 
 class Nifti1Header(SpmAnalyzeHeader):
-    ''' Class for NIFTI1 header 
-    
+    ''' Class for NIFTI1 header
+
     The NIFTI1 header has many more coded fields than the simpler Analyze
     variants.  Nifti1 headers also have extensions.
 
@@ -608,11 +608,11 @@ class Nifti1Header(SpmAnalyzeHeader):
             return self.get_qform()
         return self.get_base_affine()
 
-    def default_structarr(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = analyze.AnalyzeHeader.default_structarr(self, endianness)
-        hdr_data['scl_slope'] = 1
-        if self.is_single:
+        hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
+        if klass.is_single:
             hdr_data['magic'] = 'n+1'
             hdr_data['vox_offset'] = 352
         else:
