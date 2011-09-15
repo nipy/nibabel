@@ -174,7 +174,7 @@ class AnalyzeHeader(WrapStruct):
     scaling
     '''
     # Copies of module-level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
     _data_type_codes = data_type_codes
     # fields with recoders for their values
     _field_recoders = {'datatype': data_type_codes}

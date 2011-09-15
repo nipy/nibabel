@@ -47,10 +47,7 @@ from ..testing import (assert_equal, assert_true, assert_false,
 class MyWrapStruct(WrapStruct):
     """ An example binary header class """
     _field_recoders = {}
-    dtype_def = [
-        ('an_integer', 'i2'),
-        ('a_str', 'S10')]
-    _dtype = np.dtype(dtype_def)
+    template_dtype = np.dtype([('an_integer', 'i2'), ('a_str', 'S10')])
 
     @classmethod
     def guessed_endian(klass, hdr):

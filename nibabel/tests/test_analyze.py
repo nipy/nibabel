@@ -68,7 +68,7 @@ class TestAnalyzeHeader(_TestWrapStructBase):
         assert_equal(hdr.get_zooms(), (1.0,))
 
     def test_header_size(self):
-        assert_equal(self.header_class._dtype.itemsize, 348)
+        assert_equal(self.header_class.template_dtype.itemsize, 348)
 
     def test_empty(self):
         hdr = self.header_class()

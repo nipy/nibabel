@@ -57,6 +57,11 @@ Class methods::
     .as_byteswapped(endianness)
     .write_to(fileobj)
     .from_fileobj(fileobj)
+    .default_structarr() - return default structured array
+    .guessed_endian(structarr) - return guessed endian code from this structarr
+
+Class variables:
+    template_dtype - native endian version of dtype for contained structarr
 
 Consistency checks
 ------------------
@@ -113,8 +118,7 @@ class WrapStructError(Exception):
 class WrapStruct(object):
     _field_recoders = {}
     # placeholder datatype
-    dtype_def = [('integer', 'i2')]
-    _dtype = np.dtype(dtype_def)
+    template_dtype = np.dtype([('integer', 'i2')])
 
     def __init__(self,
                  binaryblock=None,
@@ -149,17 +153,17 @@ class WrapStruct(object):
             self._structarr = self.__class__.default_structarr(endianness)
             return
         # check size
-        if len(binaryblock) != self._dtype.itemsize:
+        if len(binaryblock) != self.template_dtype.itemsize:
             raise WrapStructError('Binary block is wrong size')
         wstr = np.ndarray(shape=(),
-                         dtype=self._dtype,
+                         dtype=self.template_dtype,
                          buffer=binaryblock)
         if endianness is None:
             endianness = self.__class__.guessed_endian(wstr)
         else:
             endianness = endian_codes[endianness]
         if endianness != native_code:
-            dt = self._dtype.newbyteorder(endianness)
+            dt = self.template_dtype.newbyteorder(endianness)
             wstr = np.ndarray(shape=(),
                              dtype=dt,
                              buffer=binaryblock)
@@ -184,7 +188,7 @@ class WrapStruct(object):
         wstr : WrapStruct object
            WrapStruct object initialized from data in fileobj
         '''
-        raw_str = fileobj.read(klass._dtype.itemsize)
+        raw_str = fileobj.read(klass.template_dtype.itemsize)
         return klass(raw_str, endianness, check)
 
     @property
@@ -321,12 +325,12 @@ class WrapStruct(object):
 
     def keys(self):
         ''' Return keys from structured data'''
-        return list(self._dtype.names)
+        return list(self.template_dtype.names)
 
     def values(self):
         ''' Return values from structured data'''
         data = self._structarr
-        return [data[key] for key in self._dtype.names]
+        return [data[key] for key in self.template_dtype.names]
 
     def items(self):
         ''' Return items from structured data'''
@@ -373,7 +377,7 @@ class WrapStruct(object):
     def default_structarr(klass, endianness=None):
         ''' Return structured array for default structure, with given endianness
         '''
-        dt = klass._dtype
+        dt = klass.template_dtype
         if endianness is not None:
             endianness = endian_codes[endianness]
             dt = dt.newbyteorder(endianness)

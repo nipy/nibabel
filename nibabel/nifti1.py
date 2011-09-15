@@ -517,7 +517,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     This class handles the header-preceding-data case.
     '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
     _data_type_codes = data_type_codes
 
     # fields with recoders for their values
@@ -563,7 +563,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        raw_str = fileobj.read(klass._dtype.itemsize)
+        raw_str = fileobj.read(klass.template_dtype.itemsize)
         hdr = klass(raw_str, endianness, check)
         # Read next 4 bytes to see if we have extensions.  The nifti standard
         # has this as a 4 byte string; if the first value is not zero, then we

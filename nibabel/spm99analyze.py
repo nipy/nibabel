@@ -37,7 +37,7 @@ header_dtype = np.dtype(header_key_dtd +
 class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     ''' Basic scaling Spm Analyze header '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
 
     # data scaling capabilities
     has_data_slope = True
