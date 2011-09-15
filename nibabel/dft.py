@@ -17,34 +17,6 @@ import nibabel
 import sqlite3
 import dicom
 
-_study_instance_uid_tag  = dicom.tag.Tag(0x0020, 0x000d)
-_study_date_tag          = dicom.tag.Tag(0x0008, 0x0020)
-_study_time_tag          = dicom.tag.Tag(0x0008, 0x0030)
-_study_comments_tag      = dicom.tag.Tag(0x0032, 0x4000)
-
-_series_instance_uid_tag = dicom.tag.Tag(0x0020, 0x000e)
-_series_number_tag       = dicom.tag.Tag(0x0020, 0x0011)
-_series_description_tag  = dicom.tag.Tag(0x0008, 0x103e)
-_rows_tag                = dicom.tag.Tag(0x0028, 0x0010)
-_columns_tag             = dicom.tag.Tag(0x0028, 0x0011)
-_bits_allocated_tag      = dicom.tag.Tag(0x0028, 0x0100)
-_bits_stored_tag         = dicom.tag.Tag(0x0028, 0x0101)
-
-_patients_name_tag       = dicom.tag.Tag(0x0010, 0x0010)
-_patient_id_tag          = dicom.tag.Tag(0x0010, 0x0020)
-_patients_birth_date_tag = dicom.tag.Tag(0x0010, 0x0030)
-_patients_sex_tag        = dicom.tag.Tag(0x0010, 0x0040)
-
-_sop_instance_uid_tag    = dicom.tag.Tag(0x0008, 0x0018)
-_instance_number_tag     = dicom.tag.Tag(0x0020, 0x0013)
-
-_pixel_spacing_tag       = dicom.tag.Tag(0x0028, 0x0030)
-_image_position_tag      = dicom.tag.Tag(0x0020, 0x0032)
-_image_orientation_tag   = dicom.tag.Tag(0x0020, 0x0037)
-_spacing_between_slices_tag = dicom.tag.Tag(0x0018, 0x0088)
-
-_pixel_data_tag = dicom.tag.Tag(0x7fe0, 0x0010)
-
 class DFTError(Exception):
     "base class for DFT exceptions"
 
@@ -177,21 +149,21 @@ class _Series(object):
         d1 = self.storage_instances[0].dicom()
         dn = self.storage_instances[-1].dicom()
 
-        pdi = d1[_pixel_spacing_tag].value[0]
-        pdj = d1[_pixel_spacing_tag].value[1]
-        pdk = d1[_spacing_between_slices_tag].value
+        pdi = d1.PixelSpacing[0]
+        pdj = d1.PixelSpacing[0]
+        pdk = d1.SpacingBetweenSlices
 
-        cosi = d1[_image_orientation_tag].value[0:3]
+        cosi = d1.ImageOrientationPatient[0:3]
         cosi[0] = -1 * cosi[0]
         cosi[1] = -1 * cosi[1]
-        cosj = d1[_image_orientation_tag].value[3:6]
+        cosj = d1.ImageOrientationPatient[3:6]
         cosj[0] = -1 * cosj[0]
         cosj[1] = -1 * cosj[1]
 
-        pos_1 = numpy.array(d1[_image_position_tag].value)
+        pos_1 = numpy.array(d1.ImagePositionPatient)
         pos_1[0] = -1 * pos_1[0]
         pos_1[1] = -1 * pos_1[1]
-        pos_n = numpy.array(dn[_image_position_tag].value)
+        pos_n = numpy.array(dn.ImagePositionPatient)
         pos_n[0] = -1 * pos_n[0]
         pos_n[1] = -1 * pos_n[1]
         cosk = pos_n - pos_1
@@ -378,90 +350,68 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
                 c.execute(query, (mtime, si_uid, dir, fname))
     return
 
-def _update_file(c, dir, fname, studies, series, storage_instances):
+def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = dicom.read_file('%s/%s' % (dir, fname))
-#        do = dicom.read_file('%s/%s' % (dir, fname), stop_before_pixels=True)
-        study_uid = do[_study_instance_uid_tag].value
-        study_date = do[_study_date_tag].value
-        study_time = do[_study_time_tag].value
-        try:
-            study_comments = do[_study_comments_tag].value
-        except KeyError:
-            study_comments = ''
-        patient_name = do[_patients_name_tag].value
-        patient_id = do[_patient_id_tag].value
-        patient_birth_date = do[_patients_birth_date_tag].value
-        patient_sex = do[_patients_sex_tag].value
-        series_uid = do[_series_instance_uid_tag].value
-        series_number = do[_series_number_tag].value
-        series_description = do[_series_description_tag].value
-        series_rows = int(do[_rows_tag].value)
-        series_columns = int(do[_columns_tag].value)
-        series_bits_allocated = int(do[_bits_allocated_tag].value)
-        series_bits_stored = int(do[_bits_stored_tag].value)
-        instance_number = int(do[_instance_number_tag].value)
-        storage_instance_uid = do[_sop_instance_uid_tag].value
-#    except Exception, data:
-#        print 'exc', type(data), data, str(data)
-#        return None
+        do = dicom.read_file('%s/%s' % (path, fname))
     except dicom.filereader.InvalidDicomError:
         print '        not a DICOM file'
         return None
-    except KeyError, data:
-        print '        missing tag %s' % str(data)
+    try:
+        study_comments = do.StudyComments
+    except AttributeError:
+        study_comments = ''
+    try:
+        print '        storage instance %s' % str(do.SOPInstanceUID)
+        if str(do.StudyInstanceUID) not in studies:
+            query = """INSERT INTO study (uid, 
+                                          date, 
+                                          time, 
+                                          comments, 
+                                          patient_name, 
+                                          patient_id, 
+                                          patient_birth_date, 
+                                          patient_sex)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+            params = (str(do.StudyInstanceUID), 
+                      do.StudyDate, 
+                      do.StudyTime, 
+                      study_comments, 
+                      do.PatientsName, 
+                      do.PatientID, 
+                      do.PatientsBirthDate, 
+                      do.PatientsSex)
+            c.execute(query, params)
+            studies.append(str(do.StudyInstanceUID))
+        if str(do.SeriesInstanceUID) not in series:
+            query = """INSERT INTO series (uid, 
+                                           study, 
+                                           number, 
+                                           description, 
+                                           rows, 
+                                           columns, 
+                                           bits_allocated, 
+                                           bits_stored) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+            params = (str(do.SeriesInstanceUID), 
+                      str(do.StudyInstanceUID), 
+                      do.SeriesNumber, 
+                      do.SeriesDescription, 
+                      do.Rows, 
+                      do.Columns, 
+                      do.BitsAllocated, 
+                      do.BitsStored)
+            c.execute(query, params)
+            series.append(str(do.SeriesInstanceUID))
+        if str(do.SOPInstanceUID) not in storage_instances:
+            query = """INSERT INTO storage_instance (uid, instance_number, series) 
+                       VALUES (?, ?, ?)"""
+            params = (str(do.SOPInstanceUID), do.InstanceNumber, str(do.SeriesInstanceUID))
+            c.execute(query, params)
+            storage_instances.append(str(do.SOPInstanceUID))
+    except AttributeError, data:
+        print '        %s' % str(data)
         return None
-    except Exception, data:
-        print '        error: %s' % str(data)
-        return None
-    print '        storage instance %s' % storage_instance_uid
-    if study_uid not in studies:
-        query = """INSERT INTO study (uid, 
-                                      date, 
-                                      time, 
-                                      comments, 
-                                      patient_name, 
-                                      patient_id, 
-                                      patient_birth_date, 
-                                      patient_sex)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-        params = (study_uid, 
-                  study_date, 
-                  study_time, 
-                  study_comments, 
-                  patient_name, 
-                  patient_id, 
-                  patient_birth_date, 
-                  patient_sex)
-        c.execute(query, params)
-        studies.append(study_uid)
-    if series_uid not in series:
-        query = """INSERT INTO series (uid, 
-                                       study, 
-                                       number, 
-                                       description, 
-                                       rows, 
-                                       columns, 
-                                       bits_allocated, 
-                                       bits_stored) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-        params = (series_uid, 
-                  study_uid, 
-                  series_number, 
-                  series_description, 
-                  series_rows, 
-                  series_columns, 
-                  series_bits_allocated, 
-                  series_bits_stored)
-        c.execute(query, params)
-        series.append(series_uid)
-    if storage_instance_uid not in storage_instances:
-        query = """INSERT INTO storage_instance (uid, instance_number, series) 
-                   VALUES (?, ?, ?)"""
-        params = (storage_instance_uid, instance_number, series_uid)
-        c.execute(query, params)
-        storage_instances.append(storage_instance_uid)
-    return storage_instance_uid
+    return str(do.SOPInstanceUID)
 
 def clear_cache():
     with _db_change() as c:
