@@ -50,6 +50,7 @@ Methods::
     .__str__
     .__eq__
     .__ne__
+    .get_value_label(name)
 
 Class methods::
 
@@ -116,7 +117,6 @@ class WrapStructError(Exception):
 
 
 class WrapStruct(object):
-    _field_recoders = {}
     # placeholder datatype
     template_dtype = np.dtype([('integer', 'i2')])
 
@@ -427,11 +427,12 @@ class WrapStruct(object):
         -------
         label : str
            label for code value in field `fieldname`
+
+        Raises
+        ------
+        ValueError : if fieldname not coded
         '''
-        if not fieldname in self._field_recoders:
-            raise ValueError('%s not a coded field' % fieldname)
-        code = int(self._structarr[fieldname])
-        return self._field_recoders[fieldname].label[code]
+        raise ValueError('%s not a coded field' % fieldname)
 
     def as_byteswapped(self, endianness=None):
         ''' return new byteswapped object with given ``endianness``

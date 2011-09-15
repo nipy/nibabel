@@ -357,13 +357,20 @@ class AnalyzeHeader(WrapStruct):
         label : str
            label for code value in header field `fieldname`
 
+        Raises
+        ------
+        ValueError : if field is not coded
+
         Examples
         --------
         >>> hdr = AnalyzeHeader()
         >>> hdr.get_value_label('datatype')
         'float32'
         '''
-        return super(AnalyzeHeader, self).get_value_label(fieldname)
+        if not fieldname in self._field_recoders:
+            raise ValueError('%s not a coded field' % fieldname)
+        code = int(self._structarr[fieldname])
+        return self._field_recoders[fieldname].label[code]
 
     @classmethod
     def from_header(klass, header=None, check=True):

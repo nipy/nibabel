@@ -45,8 +45,8 @@ from ..testing import (assert_equal, assert_true, assert_false,
 
 
 class MyWrapStruct(WrapStruct):
-    """ An example binary header class """
-    _field_recoders = {}
+    """ An example wrapped struct class """
+    _field_recoders = {} # for recoding values for str
     template_dtype = np.dtype([('an_integer', 'i2'), ('a_str', 'S10')])
 
     @classmethod
@@ -67,6 +67,12 @@ class MyWrapStruct(WrapStruct):
         ''' Return sequence of check functions for this class '''
         return (klass._chk_integer,
                 klass._chk_string)
+
+    def get_value_label(self, fieldname):
+        if not fieldname in self._field_recoders:
+            raise ValueError('%s not a coded field' % fieldname)
+        code = int(self._structarr[fieldname])
+        return self._field_recoders[fieldname].label[code]
 
     ''' Check functions in format expected by BatteryRunner class '''
     @staticmethod
