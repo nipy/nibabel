@@ -138,6 +138,9 @@ class _TestWrapStructBase(TestCase):
         # Check byteswapping maintains equality
         hdr3 = hdr2.as_byteswapped()
         assert_equal(hdr2, hdr3)
+        # Check comparing to funny thing says no
+        assert_not_equal(hdr1, None)
+        assert_not_equal(hdr1, 1)
 
     def test_to_from_fileobj(self):
         # Successful write using write_to

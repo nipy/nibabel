@@ -289,8 +289,13 @@ class WrapStruct(object):
         '''
         this_end = self.endianness
         this_bb = self.binaryblock
-        if this_end == other.endianness:
-            return this_bb == other.binaryblock
+        try:
+            other_end = other.endianness
+            other_bb = other.binaryblock
+        except AttributeError:
+            return False
+        if this_end == other_end:
+            return this_bb == other_bb
         other_bb = other._structarr.byteswap().tostring()
         return this_bb == other_bb
 
