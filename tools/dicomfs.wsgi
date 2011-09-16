@@ -12,7 +12,7 @@ import sys
 import traceback
 import urllib
 import cgi
-import dft
+from nibabel import dft
 
 # this is the directory containing the DICOM data, or None for all cached data
 base_dir = '/Users/ch/Desktop/umms/dft/trunk/data/t'
