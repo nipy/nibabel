@@ -12,11 +12,99 @@ import sys
 import traceback
 import urllib
 import cgi
+import jinja2
 from nibabel import dft
 
+def html_unicode(u):
+    return cgi.escape(u.encode('utf-8'))
+
 # this is the directory containing the DICOM data, or None for all cached data
-base_dir = '/Users/ch/Desktop/umms/dft/trunk/data/t'
+base_dir = '/path/to/DICOM'
 base_dir = None
+
+template_env = jinja2.Environment(autoescape=True)
+template_env.filters['urlquote'] = urllib.quote
+
+index_template = """<html><head><title>data</title></head>
+<body>
+Home
+<br />
+<br />
+{% for p in patients|sort %}
+    Patient: <a href="{{ p|urlquote }}/">{{ p }}</a>
+    <br />
+    {% if patients[p]|length == 1 %}
+        1 study
+    {% else %}
+        {{ patients[p]|length }} studies
+    {% endif %}
+    <br />
+{% endfor %}
+</body>
+</html>
+"""
+
+patient_template = """<html><head><title>data</title></head>
+<body>
+<a href="../">Home</a> -&gt; Patient {{ studies[0].patient_name_or_uid() }}
+<br />
+<br />
+Patient name: {{ studies[0].patient_name }}
+<br />
+Patient ID: {{ studies[0].patient_id }}
+<br />
+Patient birth date: {{ studies[0].patient_birth_date }}
+<br />
+Patient sex: {{ studies[0].patient_sex }}
+<br />
+<ul>
+{% for s in studies %}
+    <li><a href="{{ s.date|urlquote }}_{{ s.time|urlquote }}/">Study {{ s.uid }}</a></li>
+    <ul>
+    <li>Date: {{ s.date }}</li>
+    <li>Time: {{ s.time }}</li>
+    <li>Comments: {{ s.comments }}</li>
+    <li>Series: {{ s.series|length }}</li>
+{% endfor %}
+</ul>
+</body>
+</html>
+"""
+
+patient_date_time_template = """
+<html><head><title>data</title></head>
+<body>
+<a href="../../">Home</a> -&gt; <a href="../../{{ study.patient_name_or_uid() }}/">Patient {{ study.patient_name_or_uid() }}</a> -&gt; Study {{ study.date}} {{ study.time }}
+<br />
+<br />
+Patient name: <a href="../../{{ study.patient_name_or_uid() }}/">{{ study.patient_name }}</a>
+<br />
+Study UID: {{ study.uid }}
+<br />
+Study date: {{ study.date }}
+<br />
+Study time: {{ study.time }}
+<br />
+Study comments: {{ study.comments }}
+{% if study.series|length == 0 %}
+    <br />
+    No series.
+{% else %}
+    <ul>
+    {% for s in study.series %}
+        <li>Series {{ s.number }} (<a href="{{ s.number }}/nifti">NIfTI</a>)</li>
+        <ul>
+        <li>Series UID: {{ s.uid }}</li>
+        <li>Series description: {{ s.description }}</li>
+        <li>Series dimensions: {{ s.rows }}x{{ s.columns }}x{{ s.storage_instances|length }}</li>
+        </ul>
+        <img src="{{ s.number }}/png" />
+    {% endfor %}
+    </ul>
+{% endif %}
+</body>
+</html>
+"""
 
 class HandlerError:
 
@@ -60,28 +148,6 @@ def handler(environ):
             return ('200 OK', 'image/png', png(parts[0], parts[1], parts[2]))
     raise HandlerError('404 Not Found', "%s not found\n" % environ['PATH_INFO'])
 
-def index(environ):
-    patients = {}
-    for s in dft.get_studies(base_dir):
-        patients.setdefault(s.patient_name_or_uid(), []).append(s)
-    output = ''
-    output += '<html><head><title>data</title></head>\n'
-    output += '<body>\n'
-    output += 'Home\n'
-    output += '<br />\n'
-    output += '<br />\n'
-    for p in sorted(patients):
-        output += 'Patient: <a href="%s/">%s</a>\n' % (urllib.quote(p.encode('utf-8')), html_unicode(p))
-        output += '<br />\n'
-        if len(patients[p]) == 1:
-            output += '1 study\n'
-        else:
-            output += '%d studies' % len(patients[p])
-        output += '<br />\n'
-    output += '</body>\n'
-    output += '</html>\n'
-    return output
-
 def study_cmp(a, b):
     if a.date < b.date:
         return -1
@@ -93,40 +159,20 @@ def study_cmp(a, b):
         return 1
     return 0
 
-def html_unicode(u):
-    return cgi.escape(u.encode('utf-8'))
+def index(environ):
+    patients = {}
+    for s in dft.get_studies(base_dir):
+        patients.setdefault(s.patient_name_or_uid(), []).append(s)
+    template = template_env.from_string(index_template)
+    return template.render(patients=patients).encode('utf-8')
 
 def patient(patient):
     studies = [ s for s in dft.get_studies() if s.patient_name_or_uid() == patient ]
     if len(studies) == 0:
         raise HandlerError('404 Not Found', 'patient %s not found\n' % patient)
     studies.sort(study_cmp)
-    output = ''
-    output += '<html><head><title>data</title></head>\n'
-    output += '<body>\n'
-    output += '<a href="../">Home</a> -&gt; Patient %s\n' % html_unicode(studies[0].patient_name_or_uid())
-    output += '<br />\n'
-    output += '<br />\n'
-    output += 'Patient name: %s\n' % html_unicode(studies[0].patient_name)
-    output += '<br />\n'
-    output += 'Patient ID: %s\n' % html_unicode(studies[0].patient_id)
-    output += '<br />\n'
-    output += 'Patient birth date: %s\n' % html_unicode(studies[0].patient_birth_date)
-    output += '<br />\n'
-    output += 'Patient sex: %s\n' % html_unicode(studies[0].patient_sex)
-    output += '<br />\n'
-    output += '<ul>\n'
-    for s in studies:
-        output += '<li><a href="%s_%s/">Study %s</a></li>\n' % (urllib.quote(s.date), urllib.quote(s.time), html_unicode(s.uid))
-        output += '<ul>\n'
-        output += '<li>Date: %s</li>\n' % html_unicode(s.date)
-        output += '<li>Time: %s</li>\n' % html_unicode(s.time)
-        output += '<li>Comments: %s</li>\n' % html_unicode(s.comments)
-        output += '<li>Series: %d</li>\n' % len(s.series)
-        output += '</ul>\n'
-    output += '</body>\n'
-    output += '</html>\n'
-    return output
+    template = template_env.from_string(patient_template)
+    return template.render(studies=studies).encode('utf-8')
 
 def patient_date_time(patient, date_time):
     study = None
@@ -139,38 +185,8 @@ def patient_date_time(patient, date_time):
         break
     if study is None:
         raise HandlerError, ('404 Not Found', 'study not found')
-    output = ''
-    output += '<html><head><title>data</title></head>\n'
-    output += '<body>\n'
-    output += '<a href="../../">Home</a> -&gt; <a href="../../%s/">Patient %s</a> -&gt; Study %s %s\n' % (urllib.quote(study.patient_name_or_uid()), html_unicode(study.patient_name_or_uid()), html_unicode(study.date), html_unicode(study.time))
-    output += '<br />\n'
-    output += '<br />\n'
-    output += 'Patient name: <a href="/../%s/">%s</a>\n' % (urllib.quote(study.patient_name_or_uid()), html_unicode(study.patient_name))
-    output += '<br />\n'
-    output += 'Study UID: %s\n' % html_unicode(study.uid)
-    output += '<br />\n'
-    output += 'Study date: %s\n' % html_unicode(study.date)
-    output += '<br />\n'
-    output += 'Study time: %s\n' % html_unicode(study.time)
-    output += '<br />\n'
-    output += 'Study comments: %s\n' % html_unicode(study.comments)
-    if len(study.series) == 0:
-        output += '<br />\n'
-        output += 'No series.\n'
-    else:
-        output += '<ul>\n'
-        for s in study.series:
-            output += '<li>Series %s (<a href="%s/nifti">NIfTI</a>)</li>\n' % (html_unicode(s.number), html_unicode(s.number))
-            output += '<ul>\n'
-            output += '<li>Series UID: %s</li>\n' % html_unicode(s.uid)
-            output += '<li>Series description: %s</li>\n' % html_unicode(s.description)
-            output += '<li>Series dimensions: %dx%dx%d</li>\n' % (s.rows, s.columns, len(s.storage_instances))
-            output += '</ul>\n'
-            output += '<img src="%s/png" />\n' % html_unicode(s.number)
-        output += '</ul>\n'
-    output += '</body>\n'
-    output += '</html>\n'
-    return output
+    template = template_env.from_string(patient_date_time_template)
+    return template.render(study=study).encode('utf-8')
 
 def nifti(patient, date_time, scan):
     study = None
