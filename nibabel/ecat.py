@@ -345,7 +345,7 @@ class EcatHeader(object):
         >>> hdr['magic_number'] == 'MATRIX72'
         True
         '''
-        return self._header_data[item]
+        return self._header_data[item].item()
     
     def __setitem__(self, item, value):
         ''' Set values in header data
@@ -462,17 +462,12 @@ class EcatMlist(object):
 
         Examples
         --------
-        >>> img = ecat.load('singleframe.v')
-        >>> mlist = img._mlist
+        >>> from nibabel import ecat
+        >>> img = ecat.load('nibabel/tests/data/tinypet.v')
+        >>> mlist = img.get_mlist()
         >>> mlist.get_frame_order()
         {0: [0, 16842758.0]}
-        >>> img2 = ecat.load('multiframe.v')
-        >>> mlist2 = img2._mlist        
-        >>> mlist2.get_frame_order()
-        {0: [0, 16842754.0],
-         1: [1, 16842755.0],
-         2: [2, 16842756.0],
-         3: [3, 16842757.0]}        
+
         """
         mlist  = self._mlist
         ind = mlist[:,0] > 0
@@ -701,13 +696,14 @@ class EcatImage(SpatialImage):
 
         Examples
         --------
-        >>> img = ecat.load('multiframe.v')
+        >>> from nibabel import ecat
+        >>> img = ecat.load('nibabel/tests/data/tinypet.v')
         >>> frame0 = img.get_frame(0)
         >>> frame0.shape
-        (128,128,47)
+        (10, 10, 3)
         >>> data4d = img.get_data()
         >>> data4d.shape
-        (128,128,47,6)
+        (10, 10, 3, 1)
         
         """
         self._subheader = subheader
