@@ -37,15 +37,16 @@ header_dtype = np.dtype(header_key_dtd +
 class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     ''' Basic scaling Spm Analyze header '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
 
     # data scaling capabilities
     has_data_slope = True
     has_data_intercept = False
 
-    def _empty_headerdata(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = super(SpmAnalyzeHeader, self)._empty_headerdata(endianness)
+        hdr_data = super(SpmAnalyzeHeader, klass).default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 
@@ -55,7 +56,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         If scalefactor is 0.0 return None to indicate no scalefactor.  Intercept
         is always None because SPM99 analyze cannot store intercepts.
         '''
-        slope = self._header_data['scl_slope']
+        slope = self._structarr['scl_slope']
         if slope == 0.0:
             return None, None
         return slope, None
@@ -82,7 +83,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         '''
         if slope is None:
             slope = 0.0
-        self._header_data['scl_slope'] = slope
+        self._structarr['scl_slope'] = slope
         if inter is None or inter == 0:
             return
         raise HeaderTypeError('Cannot set non-zero intercept '
@@ -142,7 +143,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  0.,  1., -3.],
                [ 0.,  0.,  0.,  1.]])
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         zooms = hdr['pixdim'][1:4].copy()
         if self.default_x_flip:
             zooms[0] *= -1
@@ -199,8 +200,8 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         >>> affine = np.diag([3,2,1,1])
         >>> affine[:3,3] = [-6, -6, -4]
         >>> hdr.set_origin_from_affine(affine)
-	>>> np.all(hdr['origin'][:3] == [3,4,5])
-	True
+        >>> np.all(hdr['origin'][:3] == [3,4,5])
+        True
         >>> hdr.get_origin_affine()
         array([[-3.,  0.,  0.,  6.],
                [ 0.,  2.,  0., -6.],
@@ -209,7 +210,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         '''
         if affine.shape != (4, 4):
             raise ValueError('Need 4x4 affine to set')
-        hdr = self._header_data
+        hdr = self._structarr
         RZS = affine[:3, :3]
         Z = np.sqrt(np.sum(RZS * RZS, axis=0))
         T = affine[:3, 3]
