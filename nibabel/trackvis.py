@@ -399,7 +399,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
                                  % (n_pts, n_s))
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
-                pts = np.c_[pts, scalars]
+            pts = np.c_[pts, scalars]
         fileobj.write(pts.tostring())
         if n_p == 0:
             if not (props is None or len(props) == 0):
