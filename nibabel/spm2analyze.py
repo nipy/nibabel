@@ -30,7 +30,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     offset for data'''
 
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
 
     def get_slope_inter(self):
         ''' Get data scaling (slope) and offset (intercept) from header data

@@ -504,8 +504,8 @@ class Nifti1Extensions(list):
 
 
 class Nifti1Header(SpmAnalyzeHeader):
-    ''' Class for NIFTI1 header 
-    
+    ''' Class for NIFTI1 header
+
     The NIFTI1 header has many more coded fields than the simpler Analyze
     variants.  Nifti1 headers also have extensions.
 
@@ -517,7 +517,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     This class handles the header-preceding-data case.
     '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
     _data_type_codes = data_type_codes
 
     # fields with recoders for their values
@@ -563,7 +563,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        raw_str = fileobj.read(klass._dtype.itemsize)
+        raw_str = fileobj.read(klass.template_dtype.itemsize)
         hdr = klass(raw_str, endianness, check)
         # Read next 4 bytes to see if we have extensions.  The nifti standard
         # has this as a 4 byte string; if the first value is not zero, then we
@@ -575,7 +575,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if not klass.is_single:
             extsize = -1
         else: # otherwise read until the beginning of the data
-            extsize = hdr._header_data['vox_offset'] - fileobj.tell()
+            extsize = hdr._structarr['vox_offset'] - fileobj.tell()
         byteswap = endian_codes['native'] != hdr.endianness
         hdr.extensions = klass.exts_klass.from_fileobj(fileobj, extsize, byteswap)
         return hdr
@@ -583,7 +583,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def write_to(self, fileobj):
         # First check that vox offset is large enough
         if self.is_single:
-            vox_offset = self._header_data['vox_offset']
+            vox_offset = self._structarr['vox_offset']
             min_vox_offset = 352 + self.extensions.get_sizeondisk()
             if vox_offset < min_vox_offset:
                 raise HeaderDataError('vox offset of %d, but need at least %d'
@@ -601,18 +601,18 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def get_best_affine(self):
         ''' Select best of available transforms '''
-        hdr = self._header_data
+        hdr = self._structarr
         if hdr['sform_code'] != 0:
             return self.get_sform()
         if hdr['qform_code'] != 0:
             return self.get_qform()
         return self.get_base_affine()
 
-    def _empty_headerdata(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
-        hdr_data['scl_slope'] = 1
-        if self.is_single:
+        hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
+        if klass.is_single:
             hdr_data['magic'] = 'n+1'
             hdr_data['vox_offset'] = 352
         else:
@@ -625,14 +625,14 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Fills a value by assuming this is a unit quaternion
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
         # Adjust threshold to fact that source data was float32
         return fillpositive(bcd, FLOAT32_EPS_3)
 
     def get_qform(self):
         ''' Return 4x4 affine matrix from qform parameters in header '''
-        hdr = self._header_data
+        hdr = self._structarr
         quat = self.get_qform_quaternion()
         R = quat2mat(quat)
         vox = hdr['pixdim'][1:4].copy()
@@ -695,7 +695,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> int(hdr['qform_code'])
         1
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         if code is None:
             code = hdr['qform_code']
             if code == 0: # default is 'aligned'
@@ -732,7 +732,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def get_sform(self):
         ''' Return sform 4x4 affine matrix from header '''
-        hdr = self._header_data
+        hdr = self._structarr
         out = np.eye(4)
         out[0, :] = hdr['srow_x'][:]
         out[1, :] = hdr['srow_y'][:]
@@ -776,7 +776,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> int(hdr['sform_code'])
         1
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         if code is None:
             code = hdr['sform_code']
             if code == 0:
@@ -853,8 +853,8 @@ class Nifti1Header(SpmAnalyzeHeader):
             slope = 0.0
         if inter is None:
             inter = 0.0
-        self._header_data['scl_slope'] = slope
-        self._header_data['scl_inter'] = inter
+        self._structarr['scl_slope'] = slope
+        self._structarr['scl_inter'] = inter
 
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
@@ -882,7 +882,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         See set_dim_info function
 
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         info = int(hdr['dim_info'])
         freq = info & 3
         phase = (info >> 2) & 3
@@ -936,7 +936,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             info = info | (((phase+1) & 3) << 2)
         if not slice is None:
             info = info | (((slice+1) & 3) << 4)
-        self._header_data['dim_info'] = info
+        self._structarr['dim_info'] = info
 
     def get_intent(self, code_repr='label'):
         ''' Get intent code, parameters and name
@@ -965,7 +965,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_intent('code')
         (3, (10.0,), 'some score')
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
         if code_repr == 'code':
@@ -1022,7 +1022,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_intent()
         ('f test', (0.0, 0.0), '')
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         icode = intent_codes.code[code]
         p_descr = intent_codes.parameters[code]
         if len(params) and len(params) != len(p_descr):
@@ -1060,7 +1060,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slice_dim is None:
             raise HeaderDataError('Slice dimension must be set '
                                   'for duration to be valid')
-        return float(self._header_data['slice_duration'])
+        return float(self._structarr['slice_duration'])
 
     def set_slice_duration(self, duration):
         ''' Set slice duration
@@ -1078,12 +1078,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slice_dim is None:
             raise HeaderDataError('Slice dimension must be set '
                                   'for duration to be valid')
-        self._header_data['slice_duration'] = duration
+        self._structarr['slice_duration'] = duration
 
     def get_n_slices(self):
         ''' Return the number of slices
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
             raise HeaderDataError('Slice dimension not set in header '
@@ -1121,7 +1121,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> np.allclose(slice_times, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
         True
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
         slabel = self.get_value_label('slice_code')
@@ -1168,7 +1168,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         5
         '''
         # Check if number of slices matches header
-        hdr = self._header_data
+        hdr = self._structarr
         slice_len = self.get_n_slices()
         if slice_len != len(slice_times):
             raise HeaderDataError('Number of slice times does not '
@@ -1258,11 +1258,11 @@ class Nifti1Header(SpmAnalyzeHeader):
     def _set_format_specifics(self):
         ''' Utility routine to set format specific header stuff '''
         if self.is_single:
-            self._header_data['magic'] = 'n+1'
-            if self._header_data['vox_offset'] < 352:
-                self._header_data['vox_offset'] = 352
+            self._structarr['magic'] = 'n+1'
+            if self._structarr['vox_offset'] < 352:
+                self._structarr['vox_offset'] = 352
         else:
-            self._header_data['magic'] = 'ni1'
+            self._structarr['magic'] = 'ni1'
 
     ''' Checks only below here '''
 

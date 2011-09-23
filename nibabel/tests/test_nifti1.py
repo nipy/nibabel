@@ -29,7 +29,6 @@ from nose import SkipTest
 from ..testing import data_path
 
 from . import test_analyze as tana
-from .test_analyze import _log_chk
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
@@ -68,11 +67,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr = HC()
         # Slope of 0 is OK
         hdr['scl_slope'] = 0
-        fhdr, message, raiser = _log_chk(hdr, 0)
+        fhdr, message, raiser = self.log_chk(hdr, 0)
         assert_equal((fhdr, message), (hdr, ''))
         # But not with non-zero intercept
         hdr['scl_inter'] = 3
-        fhdr, message, raiser = _log_chk(hdr, 20)
+        fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
                            'Unused "scl_inter" is 3.0; should be 0; '
@@ -81,7 +80,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr['scl_inter'] = np.nan
         # NaN string representation can be odd on windows
         nan_str = '%s' % np.nan
-        fhdr, message, raiser = _log_chk(hdr, 20)
+        fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
                            'Unused "scl_inter" is %s; should be 0; '
@@ -90,7 +89,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr['scl_slope'] = 1
         # not finite inter is more of a problem
         hdr['scl_inter'] = np.nan # severity 30
-        fhdr, message, raiser = _log_chk(hdr, 40)
+        fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
                            '"scl_slope" is 1.0; but "scl_inter" is %s; '
@@ -99,7 +98,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_raises(*raiser)
         # Not finite scale also bad, generates message for scale and offset
         hdr['scl_slope'] = np.nan
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['scl_slope'], 0)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
@@ -110,7 +109,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_raises(*raiser)
         # Or just scale if inter is already 0
         hdr['scl_inter'] = 0
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['scl_slope'], 0)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
@@ -120,20 +119,20 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         # qfac
         hdr = HC()
         hdr['pixdim'][0] = 0
-        fhdr, message, raiser = _log_chk(hdr, 20)
+        fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['pixdim'][0], 1)
         assert_equal(message, 'pixdim[0] (qfac) should be 1 '
                            '(default) or -1; setting qfac to 1')
         # magic and offset
         hdr = HC()
         hdr['magic'] = 'ooh'
-        fhdr, message, raiser = _log_chk(hdr, 45)
+        fhdr, message, raiser = self.log_chk(hdr, 45)
         assert_equal(fhdr['magic'], asbytes('ooh'))
         assert_equal(message, 'magic string "ooh" is not valid; '
                            'leaving as is, but future errors are likely')
         hdr['magic'] = 'n+1' # single file needs suitable offset
         hdr['vox_offset'] = 0
-        fhdr, message, raiser = _log_chk(hdr, 40)
+        fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['vox_offset'], 352)
         assert_equal(message, 'vox offset 0 too low for single '
                            'file nifti1; setting to minimum value '
@@ -141,13 +140,13 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         # qform, sform
         hdr = HC()
         hdr['qform_code'] = -1
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['qform_code'], 0)
         assert_equal(message, 'qform_code -1 not valid; '
                            'setting to 0')
         hdr = HC()
         hdr['sform_code'] = -1
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['sform_code'], 0)
         assert_equal(message, 'sform_code -1 not valid; '
                            'setting to 0')
