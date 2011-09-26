@@ -1,13 +1,14 @@
 """ Testing dft
 """
 
+from os.path import join as pjoin, dirname
 import StringIO
 import PIL.Image
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 from .. import dft
 from .. import nifti1
 
-data_dir = 'dft_test_data/td'
+data_dir = pjoin(dirname(__file__), 'data')
 
 def test_init():
     dft.clear_cache()
