@@ -462,8 +462,12 @@ class EcatMlist(object):
 
         Examples
         --------
+        >>> import os
+        >>> import nibabel as nib
+        >>> nibabel_dir = os.path.dirname(nib.__file__)
         >>> from nibabel import ecat
-        >>> img = ecat.load('nibabel/tests/data/tinypet.v')
+        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+        >>> img = ecat.load(ecat_file)
         >>> mlist = img.get_mlist()
         >>> mlist.get_frame_order()
         {0: [0, 16842758.0]}
@@ -696,8 +700,12 @@ class EcatImage(SpatialImage):
 
         Examples
         --------
+        >>> import os
+        >>> import nibabel as nib
+        >>> nibabel_dir = os.path.dirname(nib.__file__)
         >>> from nibabel import ecat
-        >>> img = ecat.load('nibabel/tests/data/tinypet.v')
+        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+        >>> img = ecat.load(ecat_file)
         >>> frame0 = img.get_frame(0)
         >>> frame0.shape
         (10, 10, 3)
