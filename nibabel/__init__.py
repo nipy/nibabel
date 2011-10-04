@@ -40,6 +40,7 @@ from . import spm99analyze as spm99
 from . import spm2analyze as spm2
 from . import nifti1 as ni1
 from . import minc
+from . import ecat
 # object imports
 from .fileholders import FileHolder, FileHolderError
 from .loadsave import load, save
