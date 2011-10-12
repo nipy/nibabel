@@ -118,6 +118,8 @@ class MGHHeader(object):
             return
         # check size
         if len(binaryblock) != self._dtype.itemsize:
+            print len(binaryblock)
+            print self._dtype.itemsize
             raise HeaderDataError('Binary block is wrong size')
         hdr = np.ndarray(shape=(),
                          dtype=self._dtype,
@@ -547,24 +549,24 @@ class MGHImage(SpatialImage):
 
     def update_header(self):
         ''' Harmonize header with image data and affine
-            TOFIX...
         '''
         hdr = self._header
         if not self._data is None:
             hdr.set_data_shape(self._data.shape)
     
         if not self._affine is None:
+            # for more information, go through save_mgh.m in FreeSurfer dist
             MdcD = self._affine[:3,:3]
             delta = np.sqrt( np.sum( MdcD*MdcD, axis=0))
             Mdc = MdcD / np.tile(delta, (3, 1))
-            Pcrs_c = np.array([0, 0, 0, 1])
+            Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
             Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
-                                   self._data.shape[2]]) / 2
+                                   self._data.shape[2]], dtype=np.float) / 2.0
             Pxyz_c = np.dot(self._affine, Pcrs_c)
 
-            #hdr['delta'][:] = delta
-            #hdr['Mdc'][:,:] = Mdc.T
-            #hdr['Pxyz_c'][:] = Pxyz_c[:3]
+            hdr['delta'][:] = delta
+            hdr['Mdc'][:,:] = Mdc.T
+            hdr['Pxyz_c'][:] = Pxyz_c[:3]
 
 load = MGHImage.load
 save = MGHImage.instance_to_filename
