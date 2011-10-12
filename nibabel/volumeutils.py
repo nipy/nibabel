@@ -832,7 +832,7 @@ def allopen(fname, *args, **kwargs):
     else:
         mode = 'rb'
         args = (mode,)
-    if fname.endswith('.gz'):
+    if fname.endswith('.gz') or fname.endswith('.mgz'):
         if ('w' in mode and
             len(args) < 2 and
             not 'compresslevel' in kwargs):
