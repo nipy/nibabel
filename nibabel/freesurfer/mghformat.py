@@ -51,14 +51,16 @@ header_dtype = np.dtype(header_dtd)
 footer_dtype = np.dtype(footer_dtd)
 hf_dtype     = np.dtype(header_dtd + footer_dtd)
 
+# caveat: Note that it's ambiguous to get the code given the bytespervoxel
+# caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = ( # code, conversion function, dtype, bytes per voxel
-    (0, 'uint8', '>u1', 1, 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
+    (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
                          np.dtype(np.uint8).newbyteorder('S')),
-    (4, 'int16', '>i2', 2, 'MRI_SHORT', np.int16, np.dtype(np.int16),
+    (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
                          np.dtype(np.int16).newbyteorder('S')),
-    (1, 'int32', '>i4', 4, 'MRI_INT', np.int32, np.dtype(np.int32),
+    (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
                          np.dtype(np.int32).newbyteorder('S')),
-    (3, 'float', '>f4', 4, 'MRI_FLOAT', np.float32, np.dtype(np.float32),
+    (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
                          np.dtype(np.float32).newbyteorder('S')))
 
 # make full code alias bank, including dtype column
@@ -118,8 +120,6 @@ class MGHHeader(object):
             return
         # check size
         if len(binaryblock) != self._dtype.itemsize:
-            print len(binaryblock)
-            print self._dtype.itemsize
             raise HeaderDataError('Binary block is wrong size')
         hdr = np.ndarray(shape=(),
                          dtype=self._dtype,
@@ -188,7 +188,6 @@ class MGHHeader(object):
     @classmethod
     def from_header(klass, header=None, check=True):
         ''' Class method to create MGH header from another MGH header
-        TODO
         '''
         # own type, return copy
         if type(header) == klass:
@@ -203,7 +202,7 @@ class MGHHeader(object):
     @classmethod
     def from_fileobj(klass, fileobj, check=True):
         '''
-        TODO
+        classmethod for loading a MGH fileobject
         '''
         # We need the following hack because MGH data stores header information
         # after the data chunk too. We read the header initially, deduce the
@@ -216,7 +215,7 @@ class MGHHeader(object):
         if not np.all(hdr_str_to_np['dims']):
             raise MGHError('Dimensions of the data should be non-zero')
         fileobj.seek(DATA_OFFSET + \
-                klass._data_type_codes.bytespervox[int(hdr_str_to_np['type'])] * \
+                int(klass._data_type_codes.bytespervox[int(hdr_str_to_np['type'])]) * \
                 np.prod(hdr_str_to_np['dims'])) 
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
         return klass(hdr_str + ftr_str, check)
@@ -317,7 +316,7 @@ class MGHHeader(object):
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
         '''
-        return self._data_type_codes.bytespervox[int(self._header_data['type'])] 
+        return int(self._data_type_codes.bytespervox[int(self._header_data['type'])] )
     
     def get_data_size(self):
         ''' Get the number of bytes the data chunk occupies.
@@ -545,6 +544,14 @@ class MGHImage(SpatialImage):
         header : header object
         '''
         header.writeftr_to(mghfile)
+
+    def get_shape(self):
+        ''' Return the shape of the data'''
+        return self._data.shape
+
+    def get_affine(self):
+        ''' Return the affine transform'''
+        return self._header.vox2ras
 
 
     def update_header(self):
