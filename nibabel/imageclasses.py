@@ -12,6 +12,7 @@ from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .nifti1 import Nifti1Pair, Nifti1Image
 from .minc import MincImage
+from .freesurfer import MGHImage
 from .volumeutils import Recoder
 
 # If we don't have scipy, then we cannot write SPM format files
@@ -47,11 +48,22 @@ class_map = {
     'minc': {'class': MincImage,
              'ext': '.mnc',
              'has_affine': True,
-             'rw': False}}
+             'rw': False},
+    'mgh':{'class': MGHImage,
+           'ext': '.mgh',
+           'has_affine': True,
+           'rw':True},
+    'mgz':{'class': MGHImage,
+           'ext': '.mgz',
+           'has_affine': True,
+           'rw':True}}
+
 
 
 # mapping of extensions to default image class names
 ext_map = Recoder((
     ('nifti_single', '.nii'),
     ('nifti_pair', '.img', '.hdr'),
-    ('minc', '.mnc')))
+    ('minc', '.mnc'),
+    ('mgh', '.mgh'),
+    ('mgz', '.mgz')))
