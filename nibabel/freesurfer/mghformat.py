@@ -59,15 +59,6 @@ data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
                                            'bytespervox', 'mritype',
                                            'numpy_dtype'))
 
-#def read_header_footer(fobj):
-#    fd = open(fobj, 'rb')
-#    hdr = np.fromfile(file=fd, dtype=header_dtype, count = 1)
-#    if not np.all(hdr['dims']):
-#        raise ValueError
-#    fd.seek(DATA_OFFSET + data_type_codes.bytespervox[hdr['type'][0]] * \
-#            np.prod(hdr['dims']))
-#    ftr = np.fromfile(file=fd, dtype=footer_dtype, count = 1)
-
 np.set_printoptions(precision=4, suppress=True)
 
 
@@ -234,6 +225,7 @@ class MGHHeader(object):
         pass
 
     def check_fix(self):
+        ''' Pass. maybe for now'''
         pass
 
     def get_affine(self):
@@ -284,18 +276,16 @@ class MGHHeader(object):
 
     def get_data_shape(self):
         ''' Get shape of data
-
-        Examples
-        --------
         '''
-        dims = self._header_data['dims']
+        dims = self._header_data['dims'][:]
+        # If last dimension (nframes) is 1, remove it because 
+        # we want to maintain 3D and it's redundant
+        if int(dims[-1]) == 1:
+            dims = dims[:-1]
         return tuple(int(d) for d in dims)
 
     def set_data_shape(self, shape):
         ''' Set shape of data
-
-        If ``ndims == len(shape)`` then we set deltas for
-        dimensions higher than ``ndims`` to 1.0
 
         Parameters
         ----------
@@ -303,6 +293,12 @@ class MGHHeader(object):
            sequence of integers specifying data array shape
         '''
         dims = self._header_data['dims']
+        # If len(dims) is 3, add a dimension. MGH header always
+        # needs 4 dimensions.
+        if len(shape) == 3:
+            shape = list(shape)
+            shape.append(1)
+            shape = tuple(shape)
         dims[:] = shape
         self._header_data['delta'][:] = 1.0
 
@@ -437,6 +433,7 @@ class MGHImage(SpatialImage):
             return data
 
     def get_header(self):
+        ''' Return the MGH header given the MGHImage'''
         return self._header
 
     @classmethod
@@ -462,6 +459,14 @@ class MGHImage(SpatialImage):
 
     @classmethod
     def from_file_map(klass, file_map):
+        '''Load image from `file_map`
+
+        Parameters
+        ----------
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead
+        '''
         mghf = file_map['image'].get_prepare_fileobj('rb')
         header = klass.header_class.from_fileobj(mghf)
         affine = header.get_affine()
