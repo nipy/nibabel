@@ -74,6 +74,7 @@ Requirements
 *  NumPy_ 1.2 or greater
 *  SciPy_ (for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.5 or greater (for DICOM support)
+*  `Python Imaging Library`_ (for PNG conversion in DICOMFS)
 *  nose_ 0.11 or greater (to run the tests)
 *  sphinx_ (to build the documentation)
 
