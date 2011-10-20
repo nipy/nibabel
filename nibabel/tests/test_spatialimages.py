@@ -198,3 +198,20 @@ class TestSpatialImage(TestCase):
         img = img_klass(np.zeros((2,3,4)), np.eye(4))
         assert_equal(img.shape, (2,3,4))
 
+    def test_str(self):
+        # Check something comes back from string representation
+        img_klass = self.image_class
+        img = img_klass(None, np.eye(4))
+        assert_true(len(str(img)) > 0)
+        assert_true(img.shape is None)
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        assert_true(len(str(img)) > 0)
+
+    def test_get_shape(self):
+        # Check there is a get_shape method
+        # (it is deprecated)
+        img_klass = self.image_class
+        img = img_klass(None, np.eye(4))
+        assert_true(img.get_shape() is None)
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        assert_equal(img.get_shape(), (2,3,4))

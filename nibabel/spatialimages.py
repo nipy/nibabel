@@ -23,12 +23,16 @@ methods:
    * .get_data()
    * .get_affine()
    * .get_header()
-   * .get_shape()
    * .set_shape(shape)
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
      associated.
+   * .get_shape() (Deprecated)
+
+properties:
+
+   * shape
 
 classmethods:
 
@@ -320,7 +324,7 @@ class SpatialImage(object):
         pass
 
     def __str__(self):
-        shape = self.get_shape()
+        shape = self.shape
         affine = self.get_affine()
         return '\n'.join((
                 str(self.__class__),
@@ -339,6 +343,16 @@ class SpatialImage(object):
     def shape(self):
         if not self._data is None:
             return self._data.shape
+
+    def get_shape(self):
+        """ Return shape for image or None if no data
+
+        This function deprecated; please use the ``shape`` property instead
+        """
+        warnings.warn('Please use the shape property instead of get_shape',
+                      DeprecationWarning,
+                      stacklevel=2)
+        return self.shape
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()

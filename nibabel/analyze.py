@@ -919,9 +919,6 @@ class AnalyzeImage(SpatialImage):
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
-    def get_shape(self):
-        return self._data.shape
-
     @classmethod
     def from_file_map(klass, file_map):
         ''' class method to create image from mapping in `file_map ``
