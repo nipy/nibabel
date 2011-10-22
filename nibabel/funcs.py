@@ -37,10 +37,10 @@ def squeeze_image(img):
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> affine = np.eye(4)
     >>> img = nf.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (10, 20, 30, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (10, 20, 30)
 
     If the data are 3D then last dimensions of 1 are ignored
@@ -48,10 +48,10 @@ def squeeze_image(img):
     >>> shape = (10,1,1)
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (10, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (10, 1, 1)
 
     Only *final* dimensions of 1 are squeezed
@@ -59,14 +59,14 @@ def squeeze_image(img):
     >>> shape = (1, 1, 5, 1, 2, 1, 1)
     >>> data = data.reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (1, 1, 5, 1, 2, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (1, 1, 5, 1, 2)
     '''
     klass = img.__class__
-    shape = img.get_shape()
+    shape = img.shape
     slen = len(shape)
     if slen < 4:
         return klass.from_image(img)
@@ -105,7 +105,7 @@ def concat_images(images, check_affines=True):
     '''
     n_imgs = len(images)
     img0 = images[0]
-    i0shape = img0.get_shape()
+    i0shape = img0.shape
     affine = img0.get_affine()
     header = img0.get_header()
     out_shape = (n_imgs, ) + i0shape
@@ -180,7 +180,7 @@ def as_closest_canonical(img, enforce_diag=False):
         if enforce_diag and not _aff_is_diag(aff):
             raise OrientationError('Transformed affine is not diagonal')
         return img
-    shape = img.get_shape()
+    shape = img.shape
     t_aff = orientation_affine(ornt, shape)
     out_aff = np.dot(aff, t_aff)
     # check if we are going to end up with something diagonal
