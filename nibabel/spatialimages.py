@@ -279,9 +279,10 @@ class SpatialImage(object):
 
         Parameters
         ----------
-        data : array-like
+        data : object
            image data.  It should be some object that retuns an array
-           from ``np.asanyarray``
+           from ``np.asanyarray``.  It should have a ``shape`` attribute or
+           property
         affine : None or (4,4) array-like
            homogenous affine giving relationship between voxel coordinates and
            world coordinates.  Affine can also be None.  In this case,
@@ -321,7 +322,7 @@ class SpatialImage(object):
 
     def update_header(self):
         ''' Update header from information in image'''
-        pass
+        self._header.set_data_shape(self._data.shape)
 
     def __str__(self):
         shape = self.shape
@@ -335,17 +336,14 @@ class SpatialImage(object):
                 '%s' % self._header))
 
     def get_data(self):
-        if self._data is None:
-            raise ImageDataError('No data in this image')
         return np.asanyarray(self._data)
 
     @property
     def shape(self):
-        if not self._data is None:
-            return self._data.shape
+        return self._data.shape
 
     def get_shape(self):
-        """ Return shape for image or None if no data
+        """ Return shape for image
 
         This function deprecated; please use the ``shape`` property instead
         """
