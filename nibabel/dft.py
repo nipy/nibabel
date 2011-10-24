@@ -9,13 +9,18 @@
 # Copyright (C) 2011 Christian Haselgrove
 
 import os
-import struct
 import tempfile
 import StringIO
-import numpy
-import nibabel
 import sqlite3
-import dicom
+
+import numpy
+
+from .nifti1 import Nifti1Header
+
+# Shield optional dicom import
+from .optpkg import optional_package
+dicom, have_dicom, _ = optional_package('dicom')
+
 
 class DFTError(Exception):
     "base class for DFT exceptions"
@@ -176,7 +181,7 @@ class _Series(object):
 
         m = numpy.array(m)
 
-        hdr = nibabel.nifti1.Nifti1Header(endianness='<')
+        hdr = Nifti1Header(endianness='<')
         hdr.set_intent(0)
         hdr.set_qform(m, 1)
         hdr.set_xyzt_units(2, 8)
