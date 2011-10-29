@@ -59,8 +59,6 @@ data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
                                            'bytespervox', 'mritype',
                                            'numpy_dtype'))
 
-np.set_printoptions(precision=4, suppress=True)
-
 
 class MGHError(Exception):
     """Exception for MGH format related problems.
@@ -77,14 +75,10 @@ class MGHHeader(object):
     chunk.
     '''
     # Copies of module-level definitions
-    _dtype = hf_dtype
+    template_dtype = hf_dtype
     _hdrdtype = header_dtype
     _ftrdtype = footer_dtype
     _data_type_codes = data_type_codes
-    # fields with recoders for their values
-    #_field_recoders = {'datatype': data_type_codes}
-    # default x flip
-    #default_x_flip = True
 
     def __init__(self,
                  binaryblock=None,
@@ -104,10 +98,10 @@ class MGHHeader(object):
             self._header_data = self._empty_headerdata()
             return
         # check size
-        if len(binaryblock) != self._dtype.itemsize:
+        if len(binaryblock) != self.template_dtype.itemsize:
             raise HeaderDataError('Binary block is wrong size')
         hdr = np.ndarray(shape=(),
-                         dtype=self._dtype,
+                         dtype=self.template_dtype,
                          buffer=binaryblock)
         #if goodRASFlag, discard delta, Mdc and c_ras stuff
         if int(hdr['goodRASFlag']) < 0:
@@ -159,12 +153,12 @@ class MGHHeader(object):
 
     def keys(self):
         ''' Return keys from header data'''
-        return list(self._dtype.names)
+        return list(self.template_dtype.names)
 
     def values(self):
         ''' Return values from header data'''
         data = self._header_data
-        return [data[key] for key in self._dtype.names]
+        return [data[key] for key in self.template_dtype.names]
 
     def items(self):
         ''' Return items from header data'''
@@ -244,14 +238,12 @@ class MGHHeader(object):
         M[0:3, 3] = pxyz_0.T
         return M
 
-    @property
-    def vox2ras(self):
+    def get_vox2ras(self):
         '''return the get_affine()
         '''
         return self.get_affine()
 
-    @property
-    def ras2vox(self):
+    def get_ras2vox(self):
         '''return the inverse get_affine()
         '''
         return np.linalg.inv(self.get_affine())
@@ -278,7 +270,7 @@ class MGHHeader(object):
         ''' Get shape of data
         '''
         dims = self._header_data['dims'][:]
-        # If last dimension (nframes) is 1, remove it because 
+        # If last dimension (nframes) is 1, remove it because
         # we want to maintain 3D and it's redundant
         if int(dims[-1]) == 1:
             dims = dims[:-1]
@@ -345,7 +337,7 @@ class MGHHeader(object):
     def _empty_headerdata(self):
         ''' Return header data for empty header
         '''
-        dt = self._dtype
+        dt = self.template_dtype
         hdr_data = np.zeros((), dtype=dt)
         hdr_data['version'] = 1
         hdr_data['dims'][:] = np.array([1, 1, 1, 1])
@@ -550,7 +542,7 @@ class MGHImage(SpatialImage):
 
     def get_affine(self):
         ''' Return the affine transform'''
-        return self._header.vox2ras
+        return self._header.get_vox2ras()
 
     def update_header(self):
         ''' Harmonize header with image data and affine
