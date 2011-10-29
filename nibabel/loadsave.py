@@ -12,6 +12,7 @@ from .filename_parser import types_filenames, splitext_addext
 from . import volumeutils as vu
 from . import spm2analyze as spm2
 from . import nifti1
+from .freesurfer import MGHImage
 from .fileholders import FileHolderError
 from .spatialimages import ImageFileError
 from .imageclasses import class_map, ext_map
@@ -36,7 +37,7 @@ def load(filename):
     except KeyError:
         raise ImageFileError('Cannot work out file type of "%s"' %
                              filename)
-    if ext in ('.nii', '.mnc'):
+    if ext in ('.nii', '.mnc', '.mgh', '.mgz'):
         klass = class_map[img_type]['class']
     else:
         # might be nifti pair or analyze of some sort
