@@ -129,22 +129,11 @@ class MGHHeader(object):
 
     def __getitem__(self, item):
         ''' Return values from header data
-
-        Examples
-        --------
-        >>> hdr = MGHHeader()
-        >>> hdr['type'] == 1
-        True
         '''
         return self._header_data[item]
 
     def __setitem__(self, item, value):
         ''' Set values in header data
-
-        Examples
-        --------
-        >>> hdr = MGHHeader()
-        >>> hdr['type'] = 1
         '''
         self._header_data[item] = value
 
@@ -488,7 +477,9 @@ class MGHImage(SpatialImage):
         self._write_header(mghf, hdr)
         self._write_data(mghf, data, hdr)
         self._write_footer(mghf, hdr)
-        mghf.close()
+        # if the file_map points to a filename, close it
+        if file_map['image'].fileobj is None:  # was filename
+            mghf.close()
         self._header = hdr
         self.file_map = file_map
 

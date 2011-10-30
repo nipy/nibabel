@@ -12,7 +12,7 @@
 
 import numpy as np
 
-from .. import class_map, Nifti1Image, Nifti1Pair
+from .. import class_map, Nifti1Image, Nifti1Pair, MGHImage
 from ..py3k import BytesIO
 from ..fileholders import FileHolderError
 
@@ -32,7 +32,12 @@ def test_files_images():
             assert_equal(value.filename, None)
             assert_equal(value.fileobj, None)
             assert_equal(value.pos, 0)
-        img = klass(arr, aff)
+        # MGHImage accepts only a few datatypes
+        # so we force a type change to float32
+        if klass == MGHImage:
+            img = klass(arr.astype(np.float32), aff)
+        else:
+            img = klass(arr, aff)
         for key, value in img.file_map.items():
             assert_equal(value.filename, None)
             assert_equal(value.fileobj, None)
