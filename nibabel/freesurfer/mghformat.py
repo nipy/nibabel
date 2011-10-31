@@ -46,17 +46,18 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
     (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
-                         np.dtype(np.uint8).newbyteorder('B')),
+                         np.dtype(np.uint8).newbyteorder('>')),
     (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
-                         np.dtype(np.int16).newbyteorder('B')),
+                         np.dtype(np.int16).newbyteorder('>')),
     (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
-                         np.dtype(np.int32).newbyteorder('B')),
+                         np.dtype(np.int32).newbyteorder('>')),
     (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
-                         np.dtype(np.float32).newbyteorder('B')))
+                         np.dtype(np.float32).newbyteorder('>')))
 
 # make full code alias bank, including dtype column
 data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
                                            'bytespervox', 'mritype',
+                                           'np_dtype1', 'np_dtype2',
                                            'numpy_dtype'))
 
 
@@ -274,7 +275,7 @@ class MGHHeader(object):
         '''
         hdr = self._header_data
         zooms = np.asarray(zooms)
-        if len(zooms) != hdr['delta']:
+        if len(zooms) != len(hdr['delta']):
             raise HeaderDataError('Expecting %d zoom values for ndim'
                                   % hdr['delta'])
         if np.any(zooms < 0):
