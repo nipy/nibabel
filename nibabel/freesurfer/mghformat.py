@@ -46,13 +46,13 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
     (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
-                         np.dtype(np.uint8).newbyteorder('S')),
+                         np.dtype(np.uint8).newbyteorder('B')),
     (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
-                         np.dtype(np.int16).newbyteorder('S')),
+                         np.dtype(np.int16).newbyteorder('B')),
     (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
-                         np.dtype(np.int32).newbyteorder('S')),
+                         np.dtype(np.int32).newbyteorder('B')),
     (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
-                         np.dtype(np.float32).newbyteorder('S')))
+                         np.dtype(np.float32).newbyteorder('B')))
 
 # make full code alias bank, including dtype column
 data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
@@ -243,7 +243,7 @@ class MGHHeader(object):
         For examples see ``set_data_dtype``
         '''
         code = int(self._header_data['type'])
-        dtype = self._data_type_codes.dtype[code]
+        dtype = self._data_type_codes.numpy_dtype[code]
         return dtype
 
     def set_data_dtype(self, datatype):
@@ -254,6 +254,34 @@ class MGHHeader(object):
         except KeyError:
             raise MGHError('datatype dtype "%s" not recognized' % datatype)
         self._header_data['type'] = code
+
+    def get_zooms(self):
+        ''' Get zooms from header
+
+        Returns
+        -------
+        z : tuple
+           tuple of header zoom values
+        '''
+        hdr = self._header_data
+        zooms = hdr['delta']
+        return tuple(zooms[:])
+
+    def set_zooms(self, zooms):
+        ''' Set zooms into header fields
+
+        See docstring for ``get_zooms`` for examples
+        '''
+        hdr = self._header_data
+        zooms = np.asarray(zooms)
+        if len(zooms) != hdr['delta']:
+            raise HeaderDataError('Expecting %d zoom values for ndim'
+                                  % hdr['delta'])
+        if np.any(zooms < 0):
+            raise HeaderDataError('zooms must be positive')
+        delta = hdr['delta']
+        delta[:] = zooms[:]
+
 
     def get_data_shape(self):
         ''' Get shape of data
