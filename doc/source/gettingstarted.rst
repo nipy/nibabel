@@ -36,7 +36,7 @@ Now we can load an image:
 
 A NiBabel image knows about its shape:
 
->>> img.get_shape()
+>>> img.shape
 (128, 96, 24, 2)
 
 and its data type:

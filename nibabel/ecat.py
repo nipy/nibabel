@@ -765,7 +765,8 @@ class EcatImage(SpatialImage):
         dt = subhdr._get_data_dtype(frame)
         return dt
 
-    def get_shape(self):
+    @property
+    def shape(self):
         x,y,z = self._subheader.get_shape()
         nframes = self._subheader.get_nframes()
         return(x, y, z, nframes)
