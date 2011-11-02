@@ -40,6 +40,27 @@ def test_casting():
             ii = np.iinfo(it)
             arr = [ii.min-1, ii.max+1, -np.inf, np.inf, np.nan, 0.2, 10.6]
             farr = np.array(arr, dtype=ft)
-            iarr = nice_round(farr, it)
             mn, mx = int_clippers(ft, it)
-            assert_array_equal(iarr, [mn, mx, mn, mx, 0, 0, 11])
+            iarr = nice_round(farr, it)
+            exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11])
+            assert_array_equal(iarr, exp_arr)
+            iarr = nice_round(farr, it, infmax=True)
+            # Float16 can overflow to infs
+            if farr[0] == -np.inf:
+                exp_arr[0] = ii.min
+            if farr[1] == np.inf:
+                exp_arr[1] = ii.max
+            exp_arr[2] = ii.min
+            if exp_arr.dtype.type is np.longdouble:
+                # longdouble seems to go through float64 on assignment; if
+                # ii.max is above float64 integer resolution we have go through
+                # float64 to split up the number and get full precision
+                f64 = np.float64(ii.max)
+                exp_arr[3] = np.longdouble(f64) + np.float64(ii.max - int(f64))
+            else:
+                exp_arr[3] = ii.max
+            assert_array_equal(iarr, exp_arr)
+            # Confirm input array is not modified
+            assert_array_equal(farr, np.array(arr, dtype=ft))
+    # Test scalars work and return scalars
+    assert_array_equal(nice_round(np.float32(0), np.int16), [0])

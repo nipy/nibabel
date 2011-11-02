@@ -45,7 +45,7 @@ class RoundingError(Exception):
     pass
 
 
-def nice_round(arr, int_type, nan2zero=True):
+def nice_round(arr, int_type, nan2zero=True, infmax=False):
     """ Round floating point array `arr` to type `int_type`
 
     Parameters
@@ -57,6 +57,12 @@ def nice_round(arr, int_type, nan2zero=True):
     nan2zero : {True, False}
         Whether to convert NaN value to zero.  Default is True.  If False, and
         NaNs are present, raise RoundingError
+    infmax : {False, True}
+        If True, set np.inf values in `arr` to be `int_type` integer maximum
+        value, -np.inf as `int_type` integer minimum.  If False, merely set infs
+        to be numbers at or near the maximum / minumum number in `arr` that can be
+        contained in `int_type`.  Therefore False gives faster conversion at the
+        expense of infs that are further from infinity.
 
     Returns
     -------
@@ -67,12 +73,6 @@ def nice_round(arr, int_type, nan2zero=True):
     --------
     >>> nice_round([np.nan, np.inf, -np.inf, 1.1, 6.6], np.int16)
     array([     0,  32767, -32768,      1,      7], dtype=int16)
-
-    Notes
-    -----
-    We always set +-inf to be the min / max of the integer type.  If you want
-    something different you'll need to filter them before passing to this
-    routine.
     """
     arr = np.asarray(arr)
     flt_type = arr.dtype.type
@@ -85,4 +85,15 @@ def nice_round(arr, int_type, nan2zero=True):
     iarr = np.clip(np.rint(arr), mn, mx).astype(int_type)
     if have_nans:
         iarr[nans] = 0
+    if not infmax:
+        return iarr
+    # Deal with scalar as input
+    shape = iarr.shape
+    iarr = np.atleast_1d(iarr)
+    arr = np.atleast_1d(arr)
+    ii = np.iinfo(int_type)
+    iarr[arr == np.inf] = ii.max
+    if ii.min != int(mn):
+        iarr[arr == -np.inf] = ii.min
+    iarr.shape = shape
     return iarr
