@@ -34,10 +34,11 @@ def int_clippers(flt_type, int_type):
 
 # Cache clip values
 FLT_INT_CLIPS = {}
-for _ft in np.sctypes['float']:
-    for _it in np.sctypes['int'] + np.sctypes['uint']:
-        FLT_INT_CLIPS[_ft, _it] = int_clippers(_ft, _it)
 
+def _cached_int_clippers(flt_type, int_type):
+    if not (flt_type, int_type) in FLT_INT_CLIPS:
+        FLT_INT_CLIPS[flt_type, int_type] = int_clippers(flt_type, int_type)
+    return FLT_INT_CLIPS[(flt_type, int_type)]
 
 
 class RoundingError(Exception):
@@ -75,7 +76,8 @@ def nice_round(arr, int_type, nan2zero=True):
     """
     arr = np.asarray(arr)
     flt_type = arr.dtype.type
-    mn, mx = FLT_INT_CLIPS[flt_type, int_type]
+    int_type = np.dtype(int_type).type
+    mn, mx = _cached_int_clippers(flt_type, int_type)
     nans = np.isnan(arr)
     have_nans = np.any(nans)
     if not nan2zero and have_nans:
