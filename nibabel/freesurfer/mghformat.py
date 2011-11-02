@@ -556,10 +556,6 @@ class MGHImage(SpatialImage):
         '''
         header.writeftr_to(mghfile)
 
-    def get_shape(self):
-        ''' Return the shape of the data'''
-        return self._data.shape
-
     def get_affine(self):
         ''' Return the affine transform'''
         return self._header.get_vox2ras()
