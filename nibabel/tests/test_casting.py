@@ -3,10 +3,9 @@
 
 import numpy as np
 
-from ..casting import nice_round, int_clippers
+from ..casting import nice_round, int_clippers, CastingError
 
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
+from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
 from nose.tools import (assert_true, assert_equal, assert_raises)
 
@@ -64,3 +63,7 @@ def test_casting():
             assert_array_equal(farr, np.array(arr, dtype=ft))
     # Test scalars work and return scalars
     assert_array_equal(nice_round(np.float32(0), np.int16), [0])
+    # Test scalar nan OK
+    assert_array_equal(nice_round(np.nan, np.int16), [0])
+    # Test nans give error if not nan2zero
+    assert_raises(CastingError, nice_round, np.nan, np.int16, False)
