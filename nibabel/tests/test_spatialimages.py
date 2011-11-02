@@ -166,16 +166,34 @@ def test_read_data():
     assert_array_equal(data, data2)
 
 
+class DataLike(object):
+    # Minimal class implementing 'data' API
+    shape = (3,)
+    def __array__(self):
+        return np.arange(3)
+
+
 class TestSpatialImage(TestCase):
     # class for testing images
     image_class = SpatialImage
 
     def test_images(self):
-        img = self.image_class(None, None)
-        assert_raises(ImageDataError, img.get_data)
+        # Assumes all possible images support int16
+        # See https://github.com/nipy/nibabel/issues/58
+        arr = np.arange(3, dtype=np.int16)
+        img = self.image_class(arr, None)
+        assert_array_equal(img.get_data(), arr)
         assert_equal(img.get_affine(), None)
-        assert_equal(img.get_header(),
-                           self.image_class.header_class())
+        hdr = self.image_class.header_class()
+        hdr.set_data_shape(arr.shape)
+        hdr.set_data_dtype(arr.dtype)
+        assert_equal(img.get_header(), hdr)
+
+    def test_data_api(self):
+        # Test minimal api data object can initialize
+        img = self.image_class(DataLike(), None)
+        assert_array_equal(img.get_data(), np.arange(3))
+        assert_equal(img.shape, (3,))
 
     def test_data_default(self):
         # check that the default dtype comes from the data if the header
@@ -193,8 +211,25 @@ class TestSpatialImage(TestCase):
     def test_data_shape(self):
         # Check shape correctly read
         img_klass = self.image_class
-        img = img_klass(None, np.eye(4))
-        assert_true(img.shape is None)
+        img = img_klass(np.arange(4), np.eye(4))
+        assert_equal(img.shape, (4,))
         img = img_klass(np.zeros((2,3,4)), np.eye(4))
         assert_equal(img.shape, (2,3,4))
 
+    def test_str(self):
+        # Check something comes back from string representation
+        img_klass = self.image_class
+        img = img_klass(np.arange(5), np.eye(4))
+        assert_true(len(str(img)) > 0)
+        assert_equal(img.shape, (5,))
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        assert_true(len(str(img)) > 0)
+
+    def test_get_shape(self):
+        # Check there is a get_shape method
+        # (it is deprecated)
+        img_klass = self.image_class
+        img = img_klass(np.arange(1), np.eye(4))
+        assert_equal(img.get_shape(), (1,))
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        assert_equal(img.get_shape(), (2,3,4))

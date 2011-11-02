@@ -919,9 +919,6 @@ class AnalyzeImage(SpatialImage):
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
-    def get_shape(self):
-        return self._data.shape
-
     @classmethod
     def from_file_map(klass, file_map):
         ''' class method to create image from mapping in `file_map ``
@@ -1047,7 +1044,7 @@ class AnalyzeImage(SpatialImage):
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = AnalyzeImage(data, affine)
         >>> hdr = img.get_header()
-        >>> img.get_shape()
+        >>> img.shape
         (2, 3, 4)
         >>> img.update_header()
         >>> hdr.get_data_shape()

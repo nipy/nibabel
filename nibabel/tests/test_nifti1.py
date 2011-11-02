@@ -405,7 +405,7 @@ def test_nifti1_images():
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
     img = Nifti1Image(data, affine)
-    assert_equal(img.get_shape(), shape)
+    assert_equal(img.shape, shape)
     img.set_data_dtype(npt)
     stio = BytesIO()
     img.file_map['image'].fileobj = stio

@@ -150,7 +150,7 @@ class TestEcatImage(TestCase):
 
     def test_data(self):
         dat = self.img.get_data()
-        assert_equal(dat.shape, self.img.get_shape())
+        assert_equal(dat.shape, self.img.shape)
         frame = self.img.get_frame(0)
         assert_array_equal(frame, dat[:,:,:,0])
     
