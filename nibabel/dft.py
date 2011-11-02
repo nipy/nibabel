@@ -9,8 +9,11 @@
 # Copyright (C) 2011 Christian Haselgrove
 
 import os
+from os.path import join as pjoin
 import tempfile
 import StringIO
+import getpass
+import warnings
 import sqlite3
 
 import numpy
@@ -226,13 +229,13 @@ class _db_nochange:
     """context guard for read-only database access"""
 
     def __enter__(self):
-        self.c = _db.cursor()
+        self.c = DB.cursor()
         return self.c
 
     def __exit__(self, type, value, traceback):
         if type is None:
             self.c.close()
-        _db.rollback()
+        DB.rollback()
         return
 
 class _db_change:
@@ -240,15 +243,15 @@ class _db_change:
     """context guard for database access requiring a commit"""
 
     def __enter__(self):
-        self.c = _db.cursor()
+        self.c = DB.cursor()
         return self.c
 
     def __exit__(self, type, value, traceback):
         if type is None:
             self.c.close()
-            _db.commit()
+            DB.commit()
         else:
-            _db.rollback()
+            DB.rollback()
         return
 
 def _get_subdirs(base_dir, files_dict=None):
@@ -427,7 +430,8 @@ def clear_cache():
         c.execute("DELETE FROM study")
     return
 
-_create_queries = (
+
+CREATE_QUERIES = (
     """CREATE TABLE study (uid TEXT NOT NULL PRIMARY KEY,
                            date TEXT NOT NULL,
                            time TEXT NOT NULL,
@@ -435,36 +439,45 @@ _create_queries = (
                            patient_name TEXT NOT NULL,
                            patient_id TEXT NOT NULL,
                            patient_birth_date TEXT NOT NULL,
-                           patient_sex TEXT NOT NULL)""", 
+                           patient_sex TEXT NOT NULL)""",
     """CREATE TABLE series (uid TEXT NOT NULL PRIMARY KEY,
-                            study TEXT NOT NULL REFERENCES study, 
+                            study TEXT NOT NULL REFERENCES study,
                             number TEXT NOT NULL,
                             description TEXT NOT NULL,
                             rows INTEGER NOT NULL,
                             columns INTEGER NOT NULL,
                             bits_allocated INTEGER NOT NULL,
-                            bits_stored INTEGER NOT NULL)""", 
+                            bits_stored INTEGER NOT NULL)""",
     """CREATE TABLE storage_instance (uid TEXT NOT NULL PRIMARY KEY,
                                       instance_number INTEGER NOT NULL,
-                                      series TEXT NOT NULL references series)""", 
-    """CREATE TABLE directory (path TEXT NOT NULL PRIMARY KEY, 
-                               mtime INTEGER NOT NULL)""", 
-    """CREATE TABLE file (directory TEXT NOT NULL REFERENCES directory, 
-                          name TEXT NOT NULL, 
-                          mtime INTEGER NOT NULL, 
-                          storage_instance TEXT DEFAULT NULL REFERENCES storage_instance, 
-                          PRIMARY KEY (directory, name))"""
-)
+                                      series TEXT NOT NULL references series)""",
+    """CREATE TABLE directory (path TEXT NOT NULL PRIMARY KEY,
+                               mtime INTEGER NOT NULL)""",
+    """CREATE TABLE file (directory TEXT NOT NULL REFERENCES directory,
+                          name TEXT NOT NULL,
+                          mtime INTEGER NOT NULL,
+                          storage_instance TEXT DEFAULT NULL REFERENCES storage_instance,
+                          PRIMARY KEY (directory, name))""")
+DB_FNAME = pjoin(tempfile.gettempdir(), 'dft.%s.sqlite' % getpass.getuser())
+DB = None
 
-_db_fname = '%s/dft.%d.sqlite' % (tempfile.gettempdir(), os.getuid())
-print 'db is %s' % _db_fname
-_db = sqlite3.connect(_db_fname, check_same_thread=False)
 
-with _db_change() as c:
-    c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
-    if c.fetchone()[0] == 0:
-        print 'create'
-        for q in _create_queries:
-            c.execute(q)
+def _init_db(verbose=True):
+    """ Initialize database """
+    if verbose:
+        print 'db filename: ' + DB_FNAME
+    global DB
+    DB = sqlite3.connect(DB_FNAME, check_same_thread=False)
+    with _db_change() as c:
+        c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
+        if c.fetchone()[0] == 0:
+            print 'create'
+            for q in CREATE_QUERIES:
+                c.execute(q)
 
+
+if os.name == 'nt':
+    warnings.warn('dft needs FUSE which is not available for windows')
+else:
+    _init_db()
 # eof
