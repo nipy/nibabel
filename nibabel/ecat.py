@@ -265,7 +265,7 @@ class EcatHeader(object):
     def _guess_endian(self, hdr):
         """Guess endian from MAGIC NUMBER value of header data
         """
-        if not 'MATRIX' in hdr['magic_number']:
+        if not hdr['sw_version'] == 74:
             return swapped_code
         else:
             return native_code
