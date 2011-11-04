@@ -392,7 +392,10 @@ def angle_axis2quat(theta, vector, is_normalized=False):
     '''
     vector = np.array(vector)
     if not is_normalized:
-        vector /= math.sqrt(np.dot(vector, vector))
+        # Cannot divide in-place because input vector may be integer type,
+        # whereas output will be float type; this may raise an error in versions
+        # of numpy > 1.6.1
+        vector = vector / math.sqrt(np.dot(vector, vector))
     t2 = theta / 2.0
     st2 = math.sin(t2)
     return np.concatenate(([math.cos(t2)],
