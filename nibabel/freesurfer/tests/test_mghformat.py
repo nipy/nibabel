@@ -12,7 +12,7 @@ import os
 import numpy as np
 from .. import load, save, MGHImage
 from ..mghformat import MGHError
-from ...tmpdirs import TemporaryDirectory
+from ...tmpdirs import InTemporaryDirectory
 from ...testing import data_path
 from numpy.testing import assert_equal, assert_array_equal, \
     assert_array_almost_equal, assert_almost_equal, assert_raises
@@ -52,13 +52,15 @@ def test_write_mgh():
     v = v.reshape((5, 4, 3, 2)).astype(np.float32)
     # form a MGHImage object using data and vox2ras matrix
     img = MGHImage(v, v2r)
-    with TemporaryDirectory() as tmpdir:
-        save(img, os.path.join(tmpdir, 'tmpsave.mgz'))
+    with InTemporaryDirectory():
+        save(img, 'tmpsave.mgz')
         # read from the tmp file and see if it checks out
-        mgz = load(os.path.join(tmpdir, 'tmpsave.mgz'))
-
+        mgz = load('tmpsave.mgz')
+        h = mgz.get_header()
+        dat = mgz.get_data()
+        # Delete loaded image to allow file deletion by windows
+        del mgz
     # header
-    h = mgz.get_header()
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
@@ -66,9 +68,7 @@ def test_write_mgh():
     assert_array_equal(h['dims'], [5, 4, 3, 2])
     assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
     assert_array_almost_equal(h.get_vox2ras(), v2r)
-
     # data
-    dat = mgz.get_data()
     assert_almost_equal(dat, v, 7)
 
 
@@ -79,20 +79,20 @@ def test_write_noaffine_mgh():
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
-    with TemporaryDirectory() as tmpdir:
-        save(img, os.path.join(tmpdir, 'tmpsave.mgz'))
+    with InTemporaryDirectory():
+        save(img, 'tmpsave.mgz')
         # read from the tmp file and see if it checks out
-        mgz = load(os.path.join(tmpdir, 'tmpsave.mgz'))
-
+        mgz = load('tmpsave.mgz')
+        h = mgz.get_header()
+        # Delete loaded image to allow file deletion by windows
+        del mgz
     # header
-    h = mgz.get_header()
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 0)  # uint8 for mgh
     assert_equal(h['dof'], 0)
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [7, 13, 3, 22])
     assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
-
     # important part -- whether default affine info is stored
     ex_mdc = np.array([[-1, 0, 0],
                        [0, 0, -1],
