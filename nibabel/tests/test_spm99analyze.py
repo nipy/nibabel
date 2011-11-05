@@ -105,6 +105,59 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
         test_analyze.TestAnalyzeImage.test_data_hdr_cache
     ))
 
+    @scipy_skip
+    def test_mat_read(self):
+        # Test mat file reading and writing for the SPM analyze types
+        img_klass = self.image_class
+        arr = np.arange(24).reshape((2,3,4))
+        aff = np.diag([2,3,4,1]) # no LR flip in affine
+        img = img_klass(arr, aff)
+        fm = img.file_map
+        for key, value in fm.items():
+            value.fileobj = BytesIO()
+        # Test round trip
+        img.to_file_map()
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(), aff)
+        # mat files are for matlab and have 111 voxel origins.  We need to
+        # adjust for that, when loading and saving.  Check for signs of that in
+        # the saved mat file
+        mat_fileobj = img.file_map['mat'].fileobj
+        from scipy.io import loadmat, savemat
+        mat_fileobj.seek(0)
+        mats = loadmat(mat_fileobj)
+        assert_true('M' in mats and 'mat' in mats)
+        from_111 = np.eye(4)
+        from_111[:3,3] = -1
+        to_111 = np.eye(4)
+        to_111[:3,3] = 1
+        assert_array_equal(mats['mat'], np.dot(aff, from_111))
+        # The M matrix does not include flips, so if we only
+        # have the M matrix in the mat file, and we have default flipping, the
+        # mat resulting should have a flip.  The 'mat' matrix does include flips
+        # and so should be unaffected by the flipping.  If both are present we
+        # prefer the the 'mat' matrix.
+        assert_true(img.get_header().default_x_flip) # check the default
+        flipper = np.diag([-1,1,1,1])
+        assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
+        mat_fileobj.seek(0)
+        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
+        # Check we are preferring the 'mat' matrix
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(),
+                           np.dot(np.diag([6,7,8,1]), to_111))
+        # But will use M if present
+        mat_fileobj.seek(0)
+        mat_fileobj.truncate(0)
+        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1])))
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(),
+                           np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
+
+
 
 def test_origin_affine():
     hdr = Spm99AnalyzeHeader()
