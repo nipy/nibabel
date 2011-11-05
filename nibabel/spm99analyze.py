@@ -261,7 +261,6 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                               'using first')
                 mat = mat[:, :, 0]
             ret._affine = mat
-            return ret
         elif 'M' in mats: # the 'M' matrix does not include flips
             hdr = ret._header
             if hdr.default_x_flip:
@@ -270,6 +269,10 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                 ret._affine = mats['M']
         else:
             raise ValueError('mat file found but no "mat" or "M" in it')
+        # Adjust for matlab 1,1,1 voxel origin
+        to_111 = np.eye(4)
+        to_111[:3,3] = 1
+        ret._affine = np.dot(ret._affine, to_111)
         return ret
 
     def to_file_map(self, file_map=None):
@@ -295,6 +298,11 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             M = np.dot(np.diag([-1, 1, 1, 1]), mat)
         else:
             M = mat
+        # Adjust for matlab 1,1,1 voxel origin
+        from_111 = np.eye(4)
+        from_111[:3,3] = -1
+        M = np.dot(M, from_111)
+        mat = np.dot(mat, from_111)
         # use matlab 4 format to allow gzipped write without error
         mfobj = file_map['mat'].get_prepare_fileobj(mode='wb')
         sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
