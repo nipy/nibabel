@@ -5,8 +5,8 @@ from nose.tools import assert_true
 import numpy as np
 from numpy.testing import assert_equal
 
-from .. import read_geometry, read_morph_data, read_annot, read_label, \
-               read_scalar_data
+from .. import read_geometry, read_morph_data, read_annot, read_label
+
 
 have_freesurfer = True
 if 'SUBJECTS_DIR' not in os.environ:
@@ -64,12 +64,3 @@ def test_label():
     label = read_label(label_path)
     # XXX : test more
     assert_true(np.all(label > 0))
-
-
-@freesurfer_test
-def test_scalar_data():
-    """Test IO of .mgz and .mgh files"""
-    scalar_path = pjoin(data_path, "mri", "T1.mgz")
-    scalar = read_scalar_data(scalar_path)
-    scalar = scalar.astype(np.int)
-    assert_true((scalar.max() - scalar.min()) == 255)
