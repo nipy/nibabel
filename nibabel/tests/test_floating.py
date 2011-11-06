@@ -2,7 +2,7 @@
 """
 import numpy as np
 
-from ..floating import floor_exact, flt2nmant, as_int, FloatingError
+from ..casting import floor_exact, flt2nmant, as_int, FloatingError
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises
