@@ -12,7 +12,7 @@ import numpy as np
 
 import nibabel
 
-from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
+from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage, native_code
 
 from unittest import TestCase
 
@@ -70,11 +70,11 @@ class TestEcatHeader(TestCase):
     
     def test_endianness(self):
         fid = open(ecat_file)
-        hdr = self.header_class()
-        newhdr = hdr.from_fileobj(fid)
+        native_hdr = self.header_class()
+        file_hdr = native_hdr.from_fileobj(fid)
         fid.close()
-        assert_true(hdr.endianness == '<')
-        assert_true(newhdr.endianness == '>')
+        assert_true(native_hdr.endianness == native_code)
+        assert_true(file_hdr.endianness == '>')
         
 class TestEcatMlist(TestCase):
     header_class = EcatHeader
