@@ -211,7 +211,10 @@ class TestSpatialImage(TestCase):
     def test_data_shape(self):
         # Check shape correctly read
         img_klass = self.image_class
-        img = img_klass(np.arange(4), np.eye(4))
+        # Assumes all possible images support int16
+        # See https://github.com/nipy/nibabel/issues/58
+        arr = np.arange(4, dtype=np.int16)
+        img = img_klass(arr, np.eye(4))
         assert_equal(img.shape, (4,))
         img = img_klass(np.zeros((2,3,4)), np.eye(4))
         assert_equal(img.shape, (2,3,4))
@@ -219,17 +222,22 @@ class TestSpatialImage(TestCase):
     def test_str(self):
         # Check something comes back from string representation
         img_klass = self.image_class
-        img = img_klass(np.arange(5), np.eye(4))
+        # Assumes all possible images support int16
+        # See https://github.com/nipy/nibabel/issues/58
+        arr = np.arange(5, dtype=np.int16)
+        img = img_klass(arr, np.eye(4))
         assert_true(len(str(img)) > 0)
         assert_equal(img.shape, (5,))
-        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        img = img_klass(np.zeros((2,3,4), dtype=np.int16), np.eye(4))
         assert_true(len(str(img)) > 0)
 
     def test_get_shape(self):
         # Check there is a get_shape method
         # (it is deprecated)
         img_klass = self.image_class
-        img = img_klass(np.arange(1), np.eye(4))
+        # Assumes all possible images support int16
+        # See https://github.com/nipy/nibabel/issues/58
+        img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
         assert_equal(img.get_shape(), (1,))
-        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
         assert_equal(img.get_shape(), (2,3,4))

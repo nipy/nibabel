@@ -109,7 +109,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types
         img_klass = self.image_class
-        arr = np.arange(24).reshape((2,3,4))
+        arr = np.arange(24, dtype=np.int32).reshape((2,3,4))
         aff = np.diag([2,3,4,1]) # no LR flip in affine
         img = img_klass(arr, aff)
         fm = img.file_map
