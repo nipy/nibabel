@@ -7,12 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import os
-from StringIO import StringIO
+
 import numpy as np
 
-import nibabel
-
-from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage, native_code
+from ..volumeutils import native_code, swapped_code
+from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
 
 from unittest import TestCase
 
@@ -21,8 +20,9 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-data_path = os.path.dirname(nibabel.__file__)
-ecat_file = os.path.join(data_path, 'tests','data','tinypet.v')
+from ..testing import data_path
+
+ecat_file = os.path.join(data_path, 'tinypet.v')
 
 class TestEcatHeader(TestCase):
     header_class = EcatHeader
@@ -67,15 +67,21 @@ class TestEcatHeader(TestCase):
         assert_true(hdr['num_frames'] == 0)
         hdr['num_frames'] = 2
         assert_true(hdr['num_frames'] == 2)
-    
+
     def test_endianness(self):
-        fid = open(ecat_file)
+        # Default constructed header should be native
         native_hdr = self.header_class()
+        assert_true(native_hdr.endianness == native_code)
+        # Swapped constructed header should be swapped
+        swapped_hdr = self.header_class(endianness=swapped_code)
+        assert_true(swapped_hdr.endianness == swapped_code)
+        # Example header is big-endian
+        fid = open(ecat_file)
         file_hdr = native_hdr.from_fileobj(fid)
         fid.close()
-        assert_true(native_hdr.endianness == native_code)
         assert_true(file_hdr.endianness == '>')
-        
+
+
 class TestEcatMlist(TestCase):
     header_class = EcatHeader
     mlist_class = EcatMlist
