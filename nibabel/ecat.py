@@ -9,17 +9,10 @@
 import warnings
 
 import numpy as np
-import copy
-from nibabel.volumeutils import pretty_mapping, endian_codes,native_code,swapped_code
-from nibabel.volumeutils import native_code, swapped_code
-from nibabel.volumeutils import make_dt_codes, allopen
 
-
-from nibabel.spatialimages import SpatialImage, HeaderDataError, HeaderTypeError, ImageDataError
-from nibabel.volumeutils import allopen, array_from_file
-from .fileholders import FileHolderError, copy_file_map
-from .arrayproxy import ArrayProxy
-
+from .volumeutils import (native_code, swapped_code, make_dt_codes,
+                           array_from_file)
+from .spatialimages import SpatialImage, ImageDataError
 
 
 MAINHDRSZ = 502
