@@ -63,6 +63,7 @@ from . import trackvis
 try:
     from numpy.testing import Tester
     test = Tester().test
+    bench = Tester().bench
     del Tester
 except ImportError:
     def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')
