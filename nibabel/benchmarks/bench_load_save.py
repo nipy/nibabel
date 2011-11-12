@@ -2,11 +2,11 @@
 
 Run benchmarks with::
 
-    >>> import nibabel as nib
-    >>> nib.bench()
+    import nibabel as nib
+    nib.bench()
 
 If you have doctests enabled by default in nose (with a noserc file or
-environment variable), or you have a numpy version > 1.6.1, this will also run
+environment variable), and you have a numpy version <= 1.6.1, this will also run
 the doctests, let's hope they pass.
 """
 import sys
