@@ -36,8 +36,15 @@ def test_as_int():
     assert_equal(as_int(-2.1, False), -2)
     v = np.longdouble(2**64)
     assert_equal(as_int(v), 2**64)
-    # Have all long doubles got this precision?  We'll see I guess
-    assert_equal(as_int(v+2), 2**64+2)
+    # Have all long doubles got this precision?  Windows 32-bit longdouble
+    # appears to have 52 bit precision, but we avoid that by checking for known
+    # precisions that are less than that required
+    try:
+        nmant = flt2nmant(np.longdouble)
+    except FloatingError:
+        nmant = None # Unknown precision, test and hope
+    if nmant is None or nmant >= 63:
+        assert_equal(as_int(v+2), 2**64+2)
 
 
 def test_floor_exact_16():

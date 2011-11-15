@@ -164,14 +164,25 @@ def flt2nmant(flt_type):
         return _flt_nmant[flt_type]
     except KeyError:
         pass
-    nmant = np.finfo(flt_type).nmant
+    fi = np.finfo(flt_type)
+    nmant, nexp = fi.nmant, fi.nexp
     # Assuming the np.float type is always IEEE 64 bit
-    if flt_type is np.float and nmant == 52:
+    if flt_type is np.float and (nmant, nexp) == (52, 11):
         return 52
     # Now we should be testing long doubles
     assert flt_type is np.longdouble
-    if nmant == 63: # 80-bit intel type
+    if (nmant, nexp) == (63, 15): # 80-bit intel type
         return 63 # Not including explicit first digit
+    # We test the declared nmant by stepping up and down.  These tests assume a
+    # binary format
+    i_end_contig = 2**(nmant+1) # int
+    f_end_contig = flt_type(i_end_contig)
+    # We need as_int here because long doubles do not necessarily convert
+    # correctly to ints with int() - see
+    # http://projects.scipy.org/numpy/ticket/1395
+    if as_int(f_end_contig-1) == (i_end_contig-1): # still representable
+        if as_int(f_end_contig+1) == i_end_contig: # Rounding down
+            return nmant
     raise FloatingError('Cannot be confident of nmant value for %s' % flt_type)
 
 

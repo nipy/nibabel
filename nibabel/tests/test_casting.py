@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from ..casting import (float_to_int, int_clippers, CastingError, int_to_float)
+from ..casting import (float_to_int, as_int, int_clippers, CastingError,
+                       int_to_float)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -80,8 +81,9 @@ def test_casting():
             # We're later going to test if we modify this array
             farr = farr_orig.copy()
             mn, mx = int_clippers(ft, it)
+            imn, imx = as_int(mn), as_int(mx)
             iarr = float_to_int(farr, it)
-            exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11])
+            exp_arr = [imn, imx, imn, imx, 0, 0, 11]
             assert_array_equal(iarr, exp_arr)
             iarr = float_to_int(farr, it, infmax=True)
             # Float16 can overflow to infs
@@ -90,14 +92,9 @@ def test_casting():
             if farr[1] == np.inf:
                 exp_arr[1] = ii.max
             exp_arr[2] = ii.min
-            if exp_arr.dtype.type is np.longdouble:
-                # longdouble seems to go through float64 on assignment; if
-                # ii.max is above float64 integer resolution we have go through
-                # float64 to split up the number and get full precision
-                f64 = np.float64(ii.max)
-                exp_arr[3] = np.longdouble(f64) + np.float64(ii.max - int(f64))
-            else:
-                exp_arr[3] = ii.max
+            exp_arr[3] = ii.max
+            # Always comparing integers here, so no issues with int-float
+            # casting in this comparison
             assert_array_equal(iarr, exp_arr)
             # Confirm input array is not modified
             nans = np.isnan(farr)
