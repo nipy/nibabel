@@ -1015,7 +1015,6 @@ class AnalyzeImage(SpatialImage):
         if file_map is None:
             file_map = self.file_map
         data = self.get_data()
-        self.update_header()
         hdr = self.get_header()
         slope, inter, mn, mx = hdr.scaling_from_data(data)
         hdr_fh, img_fh = self._get_fileholders(file_map)
