@@ -80,11 +80,13 @@ zooms, in particular, negative X zooms.  We did not do this because the image
 can be loaded with and without a default flip, so the saved zoom will not
 constrain the affine.
 '''
+import sys
+
 import numpy as np
 
-from .volumeutils import (native_code, swapped_code, make_dt_codes,
-                          calculate_scale, allopen, shape_zoom_affine,
-                          array_to_file, array_from_file, can_cast)
+from .volumeutils import (native_code, swapped_code, make_dt_codes, allopen,
+                          shape_zoom_affine, array_from_file, seek_tell)
+from .arraywriters import make_array_writer, get_slope_inter, WriterError
 from .wrapstruct import WrapStruct
 from .spatialimages import (HeaderDataError, HeaderTypeError,
                             SpatialImage)
@@ -530,23 +532,23 @@ class AnalyzeHeader(WrapStruct):
         >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
         True
         '''
-        data = np.asarray(data)
-        slope, inter, mn, mx = self.scaling_from_data(data)
+        data = np.asanyarray(data)
         shape = self.get_data_shape()
         if data.shape != shape:
             raise HeaderDataError('Data should be shape (%s)' %
                                   ', '.join(str(s) for s in shape))
-        offset = self.get_data_offset()
         out_dtype = self.get_data_dtype()
-        array_to_file(data,
-                      fileobj,
-                      out_dtype,
-                      offset,
-                      inter,
-                      slope,
-                      mn,
-                      mx)
-        self.set_slope_inter(slope, inter)
+        try:
+            arr_writer = make_array_writer(data,
+                                           out_dtype,
+                                           self.has_data_intercept,
+                                           self.has_data_slope)
+        except WriterError:
+            msg = sys.exc_info()[1] # python 2 / 3 compatibility
+            raise HeaderTypeError(msg)
+        seek_tell(fileobj, self.get_data_offset())
+        arr_writer.to_fileobj(fileobj)
+        self.set_slope_inter(*get_slope_inter(arr_writer))
 
     def get_data_dtype(self):
         ''' Get numpy dtype for data
@@ -756,45 +758,6 @@ class AnalyzeHeader(WrapStruct):
         raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
                               'for Analyze headers')
 
-    def scaling_from_data(self, data):
-        ''' Calculate slope, intercept, min, max from data given header
-
-        Check that the data can be sensibly adapted to this header data
-        dtype.  If the header type does support useful scaling to allow
-        this, raise a HeaderTypeError.
-
-        Parameters
-        ----------
-        data : array-like
-           array of data for which to calculate scaling etc
-
-        Returns
-        -------
-        divslope : None or scalar
-           divisor for data, after subtracting intercept.  If None, then
-           there are no valid data
-        intercept : None or scalar
-           number to subtract from data before writing.
-        mn : None or scalar
-           data minimum to write, None means use data minimum
-        mx : None or scalar
-           data maximum to write, None means use data maximum
-        '''
-        data = np.asarray(data)
-        out_dtype = self.get_data_dtype()
-        if not can_cast(data.dtype.type,
-                        out_dtype.type,
-                        self.has_data_intercept,
-                        self.has_data_slope):
-            raise HeaderTypeError('Cannot cast data to header dtype without'
-                                  ' large potential loss in precision')
-        if not self.has_data_slope:
-            return 1.0, 0.0, None, None
-        return calculate_scale(
-            data,
-            out_dtype,
-            self.has_data_intercept)
-
     @classmethod
     def _get_checks(klass):
         ''' Return sequence of check functions for this class '''
@@ -967,41 +930,6 @@ class AnalyzeImage(SpatialImage):
         header.set_slope_inter(slope, inter)
         header.write_to(header_file)
 
-    def _write_image(self, image_file, data, header, slope, inter, mn, mx):
-        ''' Utility routine to write image
-
-        Parameters
-        ----------
-        image_file : file-like
-           file-like object implementing ``seek`` or ``tell``, and
-           ``write``
-        data : array-like
-           array to write
-        header : analyze-type header object
-           header
-        slope : None or float
-           scale factor for `data` so that written data is ``data /
-           slope + inter``.  None means no valid data
-        inter : float
-           intercept (see above)
-        mn : None or float
-           minimum to scale data to.  None means use data minimum
-        max : None or float
-           maximum to scale data to.  None means use data maximum
-
-        Returns
-        -------
-        None
-        '''
-        shape = header.get_data_shape()
-        if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' %
-                                  ', '.join(str(s) for s in shape))
-        offset = header.get_data_offset()
-        out_dtype = header.get_data_dtype()
-        array_to_file(data, image_file, out_dtype, offset,
-                      inter, slope, mn, mx)
-
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
 
@@ -1016,7 +944,11 @@ class AnalyzeImage(SpatialImage):
         data = self.get_data()
         self.update_header()
         hdr = self.get_header()
-        slope, inter, mn, mx = hdr.scaling_from_data(data)
+        out_dtype = self.get_data_dtype()
+        arr_writer = make_array_writer(data,
+                                       out_dtype,
+                                       hdr.has_data_intercept,
+                                       hdr.has_data_slope)
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
         # analyze images but most often this is because it's a single nifti file
@@ -1026,8 +958,15 @@ class AnalyzeImage(SpatialImage):
             imgf = hdrf
         else:
             imgf = img_fh.get_prepare_fileobj(mode='wb')
+        slope, inter = get_slope_inter(arr_writer)
         self._write_header(hdrf, hdr, slope, inter)
-        self._write_image(imgf, data, hdr, slope, inter, mn, mx)
+        # Write image
+        shape = hdr.get_data_shape()
+        if data.shape != shape:
+            raise HeaderDataError('Data should be shape (%s)' %
+                                  ', '.join(str(s) for s in shape))
+        seek_tell(imgf, hdr.get_data_offset())
+        arr_writer.to_fileobj(imgf)
         if hdr_fh.fileobj is None: # was filename
             hdrf.close()
         if not hdr_img_same:
