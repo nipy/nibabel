@@ -3,22 +3,22 @@
 
 import numpy as np
 
-from ..casting import (float_to_int, as_int, int_clippers, CastingError,
-                       int_to_float)
+from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
+                       as_int)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
 from nose.tools import (assert_true, assert_equal, assert_raises)
 
 
-def test_int_clippers():
+def test_shared_range():
     for ft in np.sctypes['float']:
         for it in np.sctypes['int'] + np.sctypes['uint']:
             # Test that going a bit above or below the calculated min and max
             # either generates the same number when cast, or the max int value
             # (if this system generates that) or something smaller (because of
             # overflow)
-            mn, mx = int_clippers(ft, it)
+            mn, mx = shared_range(ft, it)
             ovs = ft(mx) + np.arange(2048, dtype=ft)
             # Float16 can overflow to inf
             bit_bigger = ovs[np.isfinite(ovs)].astype(it)
@@ -26,7 +26,7 @@ def test_int_clippers():
             imax = int(np.iinfo(it).max)
             thresh_overflow = False
             if casted_mx != imax:
-                # The int_clippers have told us that they believe the imax does
+                # The shared_range have told us that they believe the imax does
                 # not have an exact representation.
                 fimax = int_to_float(imax, ft)
                 if np.isfinite(fimax):
@@ -53,7 +53,7 @@ def test_int_clippers():
             casted_mn = ft(mn).astype(it)
             imin = int(np.iinfo(it).min)
             if casted_mn != imin:
-                # The int_clippers have told us that they believe the imin does
+                # The shared_range have told us that they believe the imin does
                 # not have an exact representation.
                 fimin = int_to_float(imin, ft)
                 if np.isfinite(fimin):
@@ -72,6 +72,13 @@ def test_int_clippers():
                 assert_true(np.all((bit_smaller >= casted_mn)))
 
 
+def test_shared_range_inputs():
+    # Check any dtype specifier will work as input
+    rng0 = shared_range(np.float32, np.int32)
+    assert_array_equal(rng0, shared_range('f4', 'i4'))
+    assert_array_equal(rng0, shared_range(np.dtype('f4'), np.dtype('i4')))
+
+
 def test_casting():
     for ft in np.sctypes['float']:
         for it in np.sctypes['int'] + np.sctypes['uint']:
@@ -80,7 +87,7 @@ def test_casting():
             farr_orig = np.array(arr, dtype=ft)
             # We're later going to test if we modify this array
             farr = farr_orig.copy()
-            mn, mx = int_clippers(ft, it)
+            mn, mx = shared_range(ft, it)
             iarr = float_to_int(farr, it)
             # Dammit - for long doubles we need to jump through some hoops not
             # to round to numbers outside the range

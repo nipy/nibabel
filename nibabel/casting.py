@@ -74,7 +74,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     # Deal with scalar as input; fancy indexing needs 1D
     shape = arr.shape
     arr = np.atleast_1d(arr)
-    mn, mx = int_clippers(flt_type, int_type)
+    mn, mx = shared_range(flt_type, int_type)
     if nan2zero is None:
         seen_nans = False
     else:
@@ -97,7 +97,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
 # Cache range values
 _SHARED_RANGES = {}
 
-def int_clippers(flt_type, int_type):
+def shared_range(flt_type, int_type):
     """ Min and max in float type that are >=min, <=max in integer type
 
     This is not as easy as it sounds, because the float type may not be able to
