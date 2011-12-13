@@ -31,10 +31,9 @@ endian_codes = (# numpy code, aliases
 default_compresslevel = 1
 
 #: convenience variables for numpy types
-floating_point_types = (np.sctypes['complex'] +
-                        np.sctypes['float'])
-integer_types = (np.sctypes['int'] + np.sctypes['uint'])
-numeric_types = floating_point_types + integer_types
+CFLOAT_TYPES = np.sctypes['complex'] + np.sctypes['float']
+IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
+NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
 class Recoder(object):
@@ -799,7 +798,7 @@ def finite_range(arr):
     stride_order = np.argsort(arr.strides)[::-1]
     sarr = arr.transpose(stride_order)
     typ = sarr.dtype.type
-    if typ in integer_types:
+    if typ in IUINT_TYPES:
         return np.min(sarr), np.max(sarr)
     if typ not in np.sctypes['float']:
         raise TypeError('Can only handle floats and (u)ints')

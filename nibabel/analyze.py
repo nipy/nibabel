@@ -84,8 +84,7 @@ import numpy as np
 
 from .volumeutils import (native_code, swapped_code, make_dt_codes,
                           calculate_scale, allopen, shape_zoom_affine,
-                          array_to_file, array_from_file, can_cast,
-                          floating_point_types)
+                          array_to_file, array_from_file, can_cast)
 from .wrapstruct import WrapStruct
 from .spatialimages import (HeaderDataError, HeaderTypeError,
                             SpatialImage)
@@ -489,7 +488,7 @@ class AnalyzeHeader(WrapStruct):
         # in-place multiplication and addition on integer types leads to
         # integer output types, and disastrous integer rounding.
         # We'd like to do inplace if we can, to save memory
-        is_flt = data.dtype.type in floating_point_types
+        is_flt = data.dtype.kind in 'fc'
         if slope != 1.0:
             if is_flt:
                 data *= slope
