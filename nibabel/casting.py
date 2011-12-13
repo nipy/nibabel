@@ -28,9 +28,11 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
         Array of floating point type
     int_type : object
         Numpy integer type
-    nan2zero : {True, False}
+    nan2zero : {True, False, None}
         Whether to convert NaN value to zero.  Default is True.  If False, and
-        NaNs are present, raise CastingError
+        NaNs are present, raise CastingError. If None, do not check for NaN
+        values and pass through directly to the ``astype`` casting mechanism.
+        In this last case, the resulting value is undefined.
     infmax : {False, True}
         If True, set np.inf values in `arr` to be `int_type` integer maximum
         value, -np.inf as `int_type` integer minimum.  If False, set +/- infs to
@@ -72,13 +74,16 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     # Deal with scalar as input; fancy indexing needs 1D
     shape = arr.shape
     arr = np.atleast_1d(arr)
-    mn, mx = _cached_int_clippers(flt_type, int_type)
-    nans = np.isnan(arr)
-    have_nans = np.any(nans)
-    if not nan2zero and have_nans:
-        raise CastingError('NaNs in array, nan2zero not True')
+    mn, mx = int_clippers(flt_type, int_type)
+    if nan2zero is None:
+        seen_nans = False
+    else:
+        nans = np.isnan(arr)
+        seen_nans = np.any(nans)
+        if nan2zero == False and seen_nans:
+            raise CastingError('NaNs in array, nan2zero is False')
     iarr = np.clip(np.rint(arr), mn, mx).astype(int_type)
-    if have_nans:
+    if seen_nans:
         iarr[nans] = 0
     if not infmax:
         return iarr.reshape(shape)
@@ -89,6 +94,9 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     return iarr.reshape(shape)
 
 
+# Cache range values
+_SHARED_RANGES = {}
+
 def int_clippers(flt_type, int_type):
     """ Min and max in float type that are >=min, <=max in integer type
 
@@ -98,10 +106,12 @@ def int_clippers(flt_type, int_type):
 
     Parameters
     ----------
-    flt_type : object
-        numpy floating point type
-    int_type : object
-        numpy integer type
+    flt_type : dtype specifier
+        A dtype specifier referring to a numpy floating point type.  For
+        example, ``f4``, ``np.dtype('f4')``, ``np.float32`` are equivalent.
+    int_type : dtype specifier
+        A dtype specifier referring to a numpy integer type.  For example,
+        ``i4``, ``np.dtype('i4')``, ``np.int32`` are equivalent
 
     Returns
     -------
@@ -111,23 +121,31 @@ def int_clippers(flt_type, int_type):
     mx : object
         Number of type `flt_type` that is the maximum value in the range of
         `int_type`, such that ``mx.astype(int_type)`` <= max of `int_type`
+
+    Examples
+    --------
+    >>> shared_range(np.float32, np.int32)
+    (-2147483648.0, 2147483520.0)
+    >>> shared_range('f4', 'i4')
+    (-2147483648.0, 2147483520.0)
     """
+    flt_type = np.dtype(flt_type).type
+    int_type = np.dtype(int_type).type
+    key = (flt_type, int_type)
+    # Used cached value if present
+    try:
+        return _SHARED_RANGES[key]
+    except KeyError:
+        pass
     ii = np.iinfo(int_type)
-    return floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
+    mn_mx = floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
+    _SHARED_RANGES[key] = mn_mx
+    return mn_mx
 
-
-# Cache clip values
-FLT_INT_CLIPS = {}
-
-def _cached_int_clippers(flt_type, int_type):
-    if not (flt_type, int_type) in FLT_INT_CLIPS:
-        FLT_INT_CLIPS[flt_type, int_type] = int_clippers(flt_type, int_type)
-    return FLT_INT_CLIPS[(flt_type, int_type)]
-
-# ---------------------------------------------------------------------------
-# Routines to work out the next lowest representable intger in floating point
+# ----------------------------------------------------------------------------
+# Routines to work out the next lowest representable integer in floating point
 # types.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 try:
     _float16 = np.float16
