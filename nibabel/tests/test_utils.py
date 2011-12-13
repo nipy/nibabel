@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for volumeutils module '''
 from __future__ import with_statement
-from ..py3k import BytesIO, asbytes
+from ..py3k import BytesIO, asbytes, ZEROB
 import tempfile
 
 import numpy as np
@@ -18,8 +18,11 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import (array_from_file,
                            array_to_file,
                            calculate_scale,
-                           scale_min_max,
-                           can_cast, allopen,
+                           can_cast,
+                           write_zeros,
+                           apply_read_scaling,
+                           int_scinter_ftype,
+                           allopen,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
@@ -103,21 +106,47 @@ def test_array_to_file():
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
-    ndt = np.dtype(np.float)
+
+
+def teset_a2f_intercept_scale():
     arr = np.array([0.0, 1.0, 2.0])
+    str_io = BytesIO()
     # intercept
-    data_back = write_return(arr, str_io, ndt, 0, 1.0)
+    data_back = write_return(arr, str_io, np.float64, 0, 1.0)
     assert_array_equal(data_back, arr-1)
     # scaling
-    data_back = write_return(arr, str_io, ndt, 0, 1.0, 2.0)
+    data_back = write_return(arr, str_io, np.float64, 0, 1.0, 2.0)
     assert_array_equal(data_back, (arr-1) / 2.0)
-    # min thresholding
-    data_back = write_return(arr, str_io, ndt, 0, 0.0, 1.0, 1.0)
-    assert_array_equal(data_back, [1.0, 1.0, 2.0])
-    # max thresholding
-    data_back = write_return(arr, str_io, ndt, 0, 0.0, 1.0, 0.0, 1.0)
-    assert_array_equal(data_back, [0.0, 1.0, 1.0])
-    # order makes not difference in 1D case
+
+
+def test_a2f_min_max():
+    str_io = BytesIO()
+    for in_dt in (np.float32, np.int8):
+        for out_dt in (np.float32, np.int8):
+            arr = np.arange(4, dtype=in_dt)
+            # min thresholding
+            data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1)
+            assert_array_equal(data_back, [1, 1, 2, 3])
+            # max thresholding
+            data_back = write_return(arr, str_io, out_dt, 0, 0, 1, None, 2)
+            assert_array_equal(data_back, [0, 1, 2, 2])
+            # min max thresholding
+            data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
+            assert_array_equal(data_back, [1, 1, 2, 2])
+    # Check that works OK with scaling and intercept
+    arr = np.arange(4, dtype=np.float32)
+    data_back = write_return(arr, str_io, np.int, 0, -1, 0.5, 1, 2)
+    assert_array_equal(data_back * 0.5 - 1, [1, 1, 2, 2])
+    # Even when scaling is negative
+    data_back = write_return(arr, str_io, np.int, 0, 1, -0.5, 1, 2)
+    assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
+
+
+def test_a2f_order():
+    ndt = np.dtype(np.float)
+    arr = np.array([0.0, 1.0, 2.0])
+    str_io = BytesIO()
+    # order makes no difference in 1D case
     data_back = write_return(arr, str_io, ndt, order='C')
     assert_array_equal(data_back, [0.0, 1.0, 2.0])
     # but does in the 2D case
@@ -126,6 +155,11 @@ def test_array_to_file():
     assert_array_equal(data_back, arr)
     data_back = write_return(arr, str_io, ndt, order='C')
     assert_array_equal(data_back, arr.T)
+
+
+def test_a2f_nan2zero():
+    ndt = np.dtype(np.float)
+    str_io = BytesIO()
     # nans set to 0 for integer output case, not float
     arr = np.array([[np.nan, 0],[0, np.nan]])
     data_back = write_return(arr, str_io, ndt) # float, thus no effect
@@ -141,6 +175,9 @@ def test_array_to_file():
     data_back = write_return(arr, str_io,
                              np.dtype(np.int64), nan2zero=False)
     assert_array_equal(data_back, arr.astype(np.int64))
+
+
+def test_a2f_offset():
     # check that non-zero file offset works
     arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     str_io = BytesIO()
@@ -148,14 +185,37 @@ def test_array_to_file():
     array_to_file(arr, str_io, np.float, 42)
     data_back = array_from_file(arr.shape, np.float, str_io, 42)
     assert_array_equal(data_back, arr.astype(np.float))
+    # And that offset=None respected
+    str_io.truncate(22)
+    str_io.seek(22)
+    array_to_file(arr, str_io, np.float, None)
+    data_back = array_from_file(arr.shape, np.float, str_io, 22)
+    assert_array_equal(data_back, arr.astype(np.float))
+
+
+def test_a2f_dtype_default():
     # that default dtype is input dtype
+    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     str_io = BytesIO()
     array_to_file(arr.astype(np.int16), str_io)
     data_back = array_from_file(arr.shape, np.int16, str_io)
     assert_array_equal(data_back, arr.astype(np.int16))
-    # that, if there is no valid data, we get zeros
+
+
+def test_a2f_zeros():
+    # Check that, if there is no valid data, we get zeros
+    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     str_io = BytesIO()
+    # With slope=None signal
     array_to_file(arr + np.inf, str_io, np.int32, 0, 0.0, None)
+    data_back = array_from_file(arr.shape, np.int32, str_io)
+    assert_array_equal(data_back, np.zeros(arr.shape))
+    # With  mn, mx = 0 signal
+    array_to_file(arr, str_io, np.int32, 0, 0.0, 1.0, 0, 0)
+    data_back = array_from_file(arr.shape, np.int32, str_io)
+    assert_array_equal(data_back, np.zeros(arr.shape))
+    # With  mx < mn signal
+    array_to_file(arr, str_io, np.int32, 0, 0.0, 1.0, 4, 2)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, np.zeros(arr.shape))
 
@@ -167,54 +227,34 @@ def write_return(data, fileobj, out_dtype, *args, **kwargs):
     return data
 
 
-def test_scale_min_max():
-    mx_dt = np.maximum_sctype(np.float)
-    for tp in np.sctypes['uint'] + np.sctypes['int']:
-        info = np.iinfo(tp)
-        # Need to pump up to max fp type to contain python longs
-        imin = np.array(info.min, dtype=mx_dt)
-        imax = np.array(info.max, dtype=mx_dt)
-        value_pairs = (
-            (0, imax),
-            (imin, 0),
-            (imin, imax),
-            (1, 10),
-            (-1, -1),
-            (1, 1),
-            (-10, -1),
-            (-100, 10))
-        for mn, mx in value_pairs:
-            # with intercept
-            scale, inter = scale_min_max(mn, mx, tp, True)
-            if mx-mn:
-                assert_array_almost_equal, (mx-inter) / scale, imax
-                assert_array_almost_equal, (mn-inter) / scale, imin
-            else:
-                assert_equal, (scale, inter), (1.0, mn)
-            # without intercept
-            if imin == 0 and mn < 0 and mx > 0:
-                (assert_raises, ValueError,
-                       scale_min_max, mn, mx, tp, False)
-                continue
-            scale, inter = scale_min_max(mn, mx, tp, False)
-            assert_equal, inter, 0.0
-            if mn == 0 and mx == 0:
-                assert_equal, scale, 1.0
-                continue
-            sc_mn = mn / scale
-            sc_mx = mx / scale
-            assert_true, sc_mn >= imin
-            assert_true, sc_mx <= imax
-            if imin == 0:
-                if mx > 0: # numbers all +ve
-                    assert_array_almost_equal, mx / scale, imax
-                else: # numbers all -ve
-                    assert_array_almost_equal, mn / scale, imax
-                continue
-            if abs(mx) >= abs(mn):
-                assert_array_almost_equal, mx / scale, imax
-            else:
-                assert_array_almost_equal, mn / scale, imin
+def test_apply_scaling():
+    # Null scaling, same array returned
+    arr = np.zeros((3,), dtype=np.int16)
+    assert_true(apply_read_scaling(arr) is arr)
+    assert_true(apply_read_scaling(arr, np.float64(1.0)) is arr)
+    assert_true(apply_read_scaling(arr, inter=np.float64(0)) is arr)
+    # Check upcast
+    ret = apply_read_scaling(np.float32(0), np.float64(2))
+    assert_equal(ret.dtype, np.float64)
+    ret = apply_read_scaling(np.float32(0), inter=np.float64(2))
+    assert_equal(ret.dtype, np.float64)
+    # Check integer inf upcast
+    arr = np.zeros((1,), dtype=np.int32)
+    big = np.array([np.finfo(np.float32).max], dtype=np.float32)
+    assert_equal(apply_read_scaling(arr, big).dtype, np.float64)
+    assert_equal(apply_read_scaling(arr, 1.0, big).dtype, np.float64)
+    assert_equal(apply_read_scaling(np.int8(0), -1.0, 0.0).dtype, np.float32)
+    assert_equal(apply_read_scaling(np.int8(0), 1e38, 0.0).dtype, np.float64)
+    assert_equal(apply_read_scaling(np.int8(0), -1e38, 0.0).dtype, np.float64)
+
+
+def test_int_scinter():
+    # Finding float type needed for applying scale, offset to ints
+    assert_equal(int_scinter_ftype(np.int8, 1.0, 0.0), np.float32)
+    assert_equal(int_scinter_ftype(np.int8, -1.0, 0.0), np.float32)
+    assert_equal(int_scinter_ftype(np.int8, 1e38, 0.0), np.float64)
+    assert_equal(int_scinter_ftype(np.int8, -1e38, 0.0), np.float64)
+
 
 
 def test_can_cast():
@@ -222,6 +262,7 @@ def test_can_cast():
              (np.float64, np.float32, True, True, True),
              (np.complex128, np.float32, False, False, False),
              (np.float32, np.complex128, True, True, True),
+             (np.float32, np.uint8, False, True, True),
              (np.uint32, np.complex128, True, True, True),
              (np.int64, np.float32, True, True, True),
              (np.complex128, np.int16, False, False, False),
@@ -233,9 +274,23 @@ def test_can_cast():
              (np.uint16, np.uint8, False, True, True),
              )
     for intype, outtype, def_res, scale_res, all_res in tests:
-        assert_equal, def_res, can_cast(intype, outtype)
-        assert_equal, scale_res, can_cast(intype, outtype, False, True)
-        assert_equal, all_res, can_cast(intype, outtype, True, True)
+        assert_equal(def_res, can_cast(intype, outtype))
+        assert_equal(scale_res, can_cast(intype, outtype, False, True))
+        assert_equal(all_res, can_cast(intype, outtype, True, True))
+
+
+def test_write_zeros():
+    bio = BytesIO()
+    write_zeros(bio, 10000)
+    assert_equal(bio.getvalue(), ZEROB*10000)
+    bio.seek(0)
+    bio.truncate(0)
+    write_zeros(bio, 10000, 256)
+    assert_equal(bio.getvalue(), ZEROB*10000)
+    bio.seek(0)
+    bio.truncate(0)
+    write_zeros(bio, 200, 256)
+    assert_equal(bio.getvalue(), ZEROB*200)
 
 
 def test_allopen():
@@ -259,7 +314,7 @@ def test_allopen():
 def test_shape_zoom_affine():
     shape = (3, 5, 7)
     zooms = (3, 2, 1)
-    res = shape_zoom_affine((3, 5, 7), (3, 2, 1))
+    res = shape_zoom_affine(shape, zooms)
     exp = np.array([[-3.,  0.,  0.,  3.],
                     [ 0.,  2.,  0., -4.],
                     [ 0.,  0.,  1., -3.],
@@ -271,7 +326,7 @@ def test_shape_zoom_affine():
                     [ 0.,  0.,  1., -0.],
                     [ 0.,  0.,  0.,  1.]])
     assert_array_almost_equal(res, exp)
-    res = shape_zoom_affine((3, 5, 7), (3, 2, 1), False)
+    res = shape_zoom_affine(shape, zooms, False)
     exp = np.array([[ 3.,  0.,  0., -3.],
                     [ 0.,  2.,  0., -4.],
                     [ 0.,  0.,  1., -3.],

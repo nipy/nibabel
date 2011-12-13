@@ -9,12 +9,14 @@
 ''' Utility functions for analyze-like formats '''
 
 import sys
+import warnings
 import gzip
 import bz2
 
 import numpy as np
 
 from .py3k import isfileobj, ZEROB
+from .casting import shared_range
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -352,7 +354,6 @@ def make_dt_codes(codes_seqs):
     if len0 == 4:
         fields.append('niistring')
     dt_codes = []
-    intp_dt = np.dtype(np.intp)
     for seq in codes_seqs:
         if len(seq) != len0:
             raise ValueError('Sequences must all have the same length')
@@ -364,6 +365,7 @@ def make_dt_codes(codes_seqs):
     return Recoder(dt_codes, fields + ['dtype', 'sw_dtype'], DtypeMapper)
 
 
+@np.deprecate_with_doc('Please use arraywriter classes instead')
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     ''' Return True if we can safely cast ``in_type`` to ``out_type``
 
@@ -399,27 +401,32 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     True
     >>> can_cast(np.int16, np.uint8)
     False
+
+    Whether we can actually cast int to uint when we don't have an intercept
+    depends on the data.  That's why this function isn't very useful. But we
+    assume that an integer is using its full range, and check whether scaling
+    works in that situation.
+
+    Here we need an intercept to scale the full range of an int to a uint
+
     >>> can_cast(np.int16, np.uint8, False, True)
     False
     >>> can_cast(np.int16, np.uint8, True, True)
     True
     '''
-    if np.can_cast(in_type, out_type):
-        return True
-    if in_type not in numeric_types or out_type not in numeric_types:
+    in_dtype = np.dtype(in_type)
+    # Whether we can cast depends on the data, and we've only got the type.
+    # Let's assume integers use all of their range but floats etc not
+    if in_dtype.kind in 'iu':
+        info = np.iinfo(in_dtype)
+        data = np.array([info.min, info.max], dtype=in_dtype)
+    else: # Float or complex or something. Any old thing will do
+        data = np.ones((1,), in_type)
+    from .arraywriters import make_array_writer, WriterError
+    try:
+        _ = make_array_writer(data, out_type, has_intercept, has_slope)
+    except WriterError:
         return False
-    if out_type in np.sctypes['complex']:
-        return True
-    if in_type in np.sctypes['complex']:
-        return False
-    if out_type in np.sctypes['float']:
-        return True
-    # now we have larger (u)int or float to smaller (u)int
-    if not has_slope:
-        return False
-    if out_type in np.sctypes['uint']:
-        if in_type not in np.sctypes['uint']:
-            return has_intercept
     return True
 
 
@@ -513,35 +520,40 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     Parameters
     ----------
     data : array
-       array to write
+        array to write
     fileobj : file-like
-       file-like object implementing ``write`` method.
+        file-like object implementing ``write`` method.
     out_dtype : None or dtype, optional
-       dtype to write array as.  Data array will be coerced to this
-       dtype before writing. If None (default) then use input data
-       type.
-    offset : int, optional
-       offset into fileobj at which to start writing data. Default is
-       0.
+        dtype to write array as.  Data array will be coerced to this dtype
+        before writing. If None (default) then use input data type.
+    offset : None or int, optional
+        offset into fileobj at which to start writing data. Default is 0. None
+        means start at current file position
     intercept : scalar, optional
-       scalar to subtract from data, before dividing by ``divslope``.
-       Default is 0.0
+        scalar to subtract from data, before dividing by ``divslope``.  Default
+        is 0.0
     divslope : None or scalar, optional
-       scalefactor to *divide* data by before writing.  Default
-       is 1.0. If None, there is no valid data, we write zeros.
+        scalefactor to *divide* data by before writing.  Default is 1.0. If
+        None, there is no valid data, we write zeros.
     mn : scalar, optional
-       minimum threshold in (unscaled) data, such that all data below
-       this value are set to this value. Default is None (no threshold)
+        minimum threshold in (unscaled) data, such that all data below this
+        value are set to this value. Default is None (no threshold). The typical
+        use is to set -np.inf in the data to have this value (which might be the
+        minimum non-finite value in the data).
     mx : scalar, optional
-       maximum threshold in (unscaled) data, such that all data above
-       this value are set to this value. Default is None (no threshold)
+        maximum threshold in (unscaled) data, such that all data above this
+        value are set to this value. Default is None (no threshold). The typical
+        use is to set np.inf in the data to have this value (which might be the
+        maximum non-finite value in the data).
     order : {'F', 'C'}, optional
-       memory order to write array.  Default is 'F'
+        memory order to write array.  Default is 'F'
     nan2zero : {True, False}, optional
-       Whether to set NaN values to 0 when writing integer output.
-       Defaults to True.  If False, NaNs will be represented as numpy
-       does when casting, and this can be odd (often the lowest
-       available integer value)
+        Whether to set NaN values to 0 when writing integer output.  Defaults to
+        True.  If False, NaNs will be represented as numpy does when casting;
+        this depends on the underlying C library and is undefined. In practice
+        `nan2zero` == False might be a good choice when you completely sure
+        there will be no NaNs in the data. This value ignore for float ouptut
+        types.
 
     Examples
     --------
@@ -564,53 +576,177 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> sio.getvalue() == data.tostring('C')
     True
     '''
-    data = np.asarray(data)
+    data = np.asanyarray(data)
     in_dtype = data.dtype
     if out_dtype is None:
         out_dtype = in_dtype
     else:
         out_dtype = np.dtype(out_dtype)
+    if not offset is None:
+        seek_tell(fileobj, offset)
+    if (divslope is None or
+        (mn, mx) == (0, 0) or
+        (None not in (mn, mx) and mx < mn)
+       ):
+        write_zeros(fileobj, data.size * out_dtype.itemsize)
+        return
+    if not order in 'FC':
+        raise ValueError('Order should be one of F or C')
+    # Force upcasting for floats by making atleast_1d
+    slope, inter = [np.atleast_1d(v) for v in divslope, intercept]
+    if out_dtype.kind in 'iu': # we might need float -> int machinery
+        vals = [in_dtype.type(0)]
+        if inter != 0:
+            vals.append(inter)
+        if slope != 1:
+            vals.append(slope)
+        working_dtype = np.array(vals).dtype
+        needs_f2i = working_dtype.kind == 'f'
+    else:
+        needs_f2i = False
+    if not needs_f2i: # Apply min max thresholding the standard way
+        needs_pre_clip = (mn, mx) != (None, None)
+        mn, mx = _dt_min_max(in_dtype, mn, mx)
+    else: # Apply thresholding after scaling
+        needs_pre_clip = False
+        # We need to know the result of applying slope and inter to the min and
+        # max of the array, in order to clip the output array, after applying
+        # the slope and inter.  Otherwise we'd need to clip twice, once before
+        # applying (slope, inter), and again after, to ensure we have not hit
+        # over- or under-flow. For the same reason we need to know the result of
+        # applying slope, inter to 0, in order to fill in the nan output value
+        # after scaling etc. We could fill with 0 before scaling, but then we'd
+        # have to do an extra copy before filling nans with 0, to avoid
+        # overwriting the input array
+        both_mn, both_mx = shared_range(working_dtype, out_dtype)
+        dt_mnmx = _dt_min_max(in_dtype, mn, mx)
+        # Run min, max, 0 through scaling / rint
+        specials = np.array(dt_mnmx + (0,), dtype=in_dtype)
+        if inter != 0.0:
+            specials = specials - inter
+        if slope != 1.0:
+            specials = specials / slope
+        assert specials.dtype == working_dtype
+        post_mn, post_mx, nan_fill = np.rint(specials)
+        if post_mn > post_mx: # slope could be negative
+            post_mn, post_mx = post_mx, post_mn
+        # Ensure safe thresholds applied too
+        post_mn = np.max([post_mn, both_mn])
+        post_mx = np.min([post_mx, both_mx])
+    data = np.atleast_2d(data) # Trick to allow loop below for 1D arrays
+    if order == 'F' or (data.ndim == 2 and data.shape[1] == 1):
+        data = data.T
+    for dslice in data: # cycle over first dimension to save memory
+        if needs_pre_clip:
+            dslice = np.clip(dslice, mn, mx)
+        if inter != 0.0:
+            dslice = dslice - inter
+        if slope != 1.0:
+            dslice = dslice / slope
+        if needs_f2i:
+            dslice = np.clip(np.rint(dslice), post_mn, post_mx)
+            if nan2zero:
+                nans = np.isnan(dslice)
+                if np.any(nans):
+                    dslice[nans] = nan_fill
+            dslice = dslice.astype(out_dtype)
+        elif dslice.dtype != out_dtype:
+            dslice = dslice.astype(out_dtype)
+        fileobj.write(dslice.tostring())
+
+
+def _dt_min_max(dtype_like, mn, mx):
+    dt = np.dtype(dtype_like)
+    if dt.kind in 'fc':
+        mnmx = (-np.inf, np.inf)
+    elif dt.kind in 'iu':
+        info = np.iinfo(dt)
+        mnmx = (info.min, info.max)
+    return mnmx[0] if mn is None else mn, mnmx[1] if mx is None else mx
+
+
+def write_zeros(fileobj, count, block_size=8194):
+    """ Write `count` zero bytes to `fileobj`
+
+    Parameters
+    ----------
+    fileobj : file-like object
+        with ``write`` method
+    count : int
+        number of bytes to write
+    block_size : int, optional
+        largest continuous block to write.
+    """
+    nblocks = count / block_size
+    rem = count % block_size
+    blk = ZEROB * block_size
+    for bno in range(nblocks):
+        fileobj.write(blk)
+    fileobj.write(ZEROB * rem)
+
+
+def seek_tell(fileobj, offset):
+    """ Seek in `fileobj` or check we're in the right place already
+
+    Parameters
+    ----------
+    fileobj : file-like
+        object implementing ``seek`` and (if seek raises an IOError) ``tell``
+    offset : int
+        position in file to which to seek
+    """
     try:
         fileobj.seek(offset)
     except IOError:
         msg = sys.exc_info()[1] # python 2 / 3 compatibility
         if fileobj.tell() != offset:
             raise IOError(msg)
-    if divslope is None: # No valid data
-        fileobj.write(ZEROB * (data.size*out_dtype.itemsize))
-        return
-    nan2zero = (nan2zero and
-                data.dtype in floating_point_types and
-                out_dtype not in floating_point_types)
-    needs_copy = nan2zero or mx or mn or intercept or divslope != 1.0
-    if data.ndim < 2: # a little hack to allow 1D arrays in loop below
-        data = [data]
-    elif order == 'F':
-        data = data.T
-    elif order != 'C':
-        raise ValueError('Order should be one of F or C')
-    for dslice in data: # cycle over largest dimension to save memory
-        if needs_copy:
-            dslice = dslice.copy()
-        if nan2zero:
-            dslice[np.isnan(dslice)] = 0
-        if mx:
-            dslice[dslice > mx] = mx
-        if mn:
-            dslice[dslice < mn] = mn
-        if intercept:
-            dslice -= intercept
-        if divslope != 1.0:
-            dslice /= divslope
-        if in_dtype == out_dtype:
-            fileobj.write(dslice.tostring())
-        elif in_dtype == out_dtype.newbyteorder('S'): # just byte swapped
-            out_arr = dslice.byteswap()
-            fileobj.write(out_arr.tostring())
-        else:
-            fileobj.write(dslice.astype(out_dtype).tostring())
 
 
+def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
+    """ Apply scaling in `slope` and `inter` to array `arr`
+
+    This is for loading the array from a file (as opposed to the reverse scaling
+    when saving an array to file)
+
+    Return data will be ``arr * slope + inter``. The trick is that we have to
+    find a good precision to use for applying the scaling.  The heuristic is
+    that the data is always upcast to the higher of the types from `arr,
+    `slope`, `inter` if `slope` and / or `inter` are not default values. If the
+    dtype of `arr` is an integer, then we assume the data more or less fills the
+    integer range, and upcast to a type such that the min, max of ``arr.dtype``
+    * scale + inter, will be finite.
+
+    Parameters
+    ----------
+    arr : array-like
+    slope : scalar
+    inter : scalar
+
+    Returns
+    -------
+    ret : array
+        array with scaling applied.  Maybe upcast in order to give room for the
+        scaling. If scaling is default (1, 0), then `ret` may be `arr` ``ret is
+        arr``.
+    """
+    if (slope, inter) == (1, 0):
+        return arr
+    shape = arr.shape
+    # Force float / float upcasting by promoting to arrays
+    arr, slope, inter = [np.atleast_1d(v) for v in arr, slope, inter]
+    if arr.dtype.kind in 'iu':
+        ftype = int_scinter_ftype(arr.dtype, slope, inter)
+        slope = slope.astype(ftype)
+        inter = inter.astype(ftype)
+    if slope != 1.0:
+        arr = arr * slope
+    if inter != 0.0:
+        arr = arr + inter
+    return arr.reshape(shape)
+
+
+@np.deprecate_with_doc('Please use arraywriter classes instead')
 def calculate_scale(data, out_dtype, allow_intercept):
     ''' Calculate scaling and optional intercept for data
 
@@ -618,7 +754,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
     ----------
     data : array
     out_dtype : dtype
-       output data type
+       output data type in some form understood by ``np.dtype``
     allow_intercept : bool
        If True allow non-zero intercept
 
@@ -635,36 +771,28 @@ def calculate_scale(data, out_dtype, allow_intercept):
        minimum of finite value in data, or None if this will not
        be used to threshold data
     '''
-    default_ret = (1.0, 0.0, None, None)
+    # Code here is a compatibility shell around arraywriters refactor
     in_dtype = data.dtype
+    out_dtype = np.dtype(out_dtype)
     if np.can_cast(in_dtype, out_dtype):
-        return default_ret
-    in_type = in_dtype.type
-    out_type = out_dtype.type
-    if out_type in floating_point_types:
-        return default_ret
-    mn, mx = finite_range(data)
-    if mn == np.inf: # No valid data
-        return None, None, None, None
-    info = np.iinfo(out_type)
-    type_min = info.min
-    type_max = info.max
-    if in_type in integer_types:
-        # scaling a big int type into a smaller one
-        if mx <= type_max and mn >= type_min: # lucky; already in range
-            return default_ret
-        scaling, intercept = scale_min_max(mn, mx,
-                                           out_type,
-                                           allow_intercept)
-        return scaling, intercept, None, None
-    # should now be scaling a fp type to an int type
-    if not in_type in np.sctypes['float']:
-        raise TypeError('Unexpected input dtype %s' % in_dtype)
-    scaling, intercept = scale_min_max(mn, mx, out_type,
-                                        allow_intercept)
-    return scaling, intercept, mn, mx
+        return 1.0, 0.0, None, None
+    from .arraywriters import make_array_writer, WriterError, get_slope_inter
+    try:
+        writer = make_array_writer(data, out_dtype, allow_intercept, True)
+    except WriterError:
+        msg = sys.exc_info()[1] # python 2 / 3 compatibility
+        raise ValueError(msg)
+    if out_dtype.kind in 'fc':
+        return (1.0, 0.0, None, None)
+    mn, mx = writer.finite_range()
+    if (mn, mx) == (np.inf, -np.inf): # No valid data
+        return (None, None, None, None)
+    if not in_dtype.kind in 'fc':
+        mn, mx = (None, None)
+    return get_slope_inter(writer) + (mn, mx)
 
 
+@np.deprecate_with_doc('Please use arraywriter classes instead')
 def scale_min_max(mn, mx, out_type, allow_intercept):
     ''' Return scaling and intercept min, max of data, given output type
 
@@ -722,7 +850,6 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
     The large integers lead to python long types as max / min for type.
     To contain the rounding error, we need to use the maximum numpy
     float types when casting to float.
-
     '''
     if mn > mx:
         raise ValueError('min value > max value')
@@ -758,6 +885,54 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
         else:
             scaling = mn / type_min
     return scaling, 0.0
+
+
+def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
+    """ float type containing int type `ifmt` * `slope` + `inter`
+
+    Return float type that can represent the max and the min of the `ifmt` type
+    after multiplication with `slope` and addition of `inter`.
+
+    Parameters
+    ----------
+    ifmt : object
+        numpy integer type (e.g. np.int32)
+    slope : float, optional
+        slope, default 1.0
+    inter : float, optional
+        intercept, default 0.0
+    default_out : object, optional
+        numpy floating point type, default is ``np.float32``
+
+    Returns
+    -------
+    ftype : object
+        numpy floating point type
+
+    Examples
+    --------
+    >>> int_scinter_ftype(np.int8, 1.0, 0.0) == np.float32
+    True
+    >>> int_scinter_ftype(np.int8, 1e38, 0.0) == np.float64
+    True
+    """
+    floats = np.sctypes['float']
+    def_ind = floats.index(default)
+    ii = np.iinfo(ifmt)
+    tst_arr = np.array([ii.min, ii.max], dtype=ifmt)
+    warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
+    try:
+        for ftype in floats[def_ind:]:
+            tst_trans = tst_arr.copy()
+            if slope != 1.0:
+                tst_trans = tst_trans * ftype(slope)
+            if inter != 0.0:
+                tst_trans = tst_trans + ftype(inter)
+            if np.all(np.isfinite(tst_trans)):
+                return ftype
+    finally:
+        warnings.filters.pop(0)
+    raise ValueError('Overflow using highest floating point type')
 
 
 def finite_range(arr):
@@ -802,6 +977,8 @@ def finite_range(arr):
         return np.min(sarr), np.max(sarr)
     if typ not in np.sctypes['float']:
         raise TypeError('Can only handle floats and (u)ints')
+    # Deal with 1D arrays in loop below
+    sarr = np.atleast_2d(sarr)
     # Loop to avoid big isfinite temporary
     mx = -np.inf
     mn = np.inf
