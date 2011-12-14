@@ -350,7 +350,7 @@ def test_writer_maker():
     assert_equal((aw.slope, aw.inter), (slope, inter))
 
 
-def test_float_int():
+def test_float_int_min_max():
     # Conversion between float and int
     for in_dt in FLOAT_TYPES:
         finf = np.finfo(in_dt)
@@ -362,3 +362,58 @@ def test_float_int():
                 continue
             arr_back_sc = round_trip(aw)
             assert_true(np.allclose(arr, arr_back_sc))
+
+
+def test_float_int_spread():
+    # Test rounding error for spread of values
+    powers = np.arange(-10, 10, 0.5)
+    arr = np.concatenate((-10**powers, 10**powers))
+    for in_dt in (np.float32, np.float64):
+        arr_t = arr.astype(in_dt)
+        for out_dt in IUINT_TYPES:
+            aw = SlopeInterArrayWriter(arr_t, out_dt)
+            arr_back_sc = round_trip(aw)
+            # Get estimate for error
+            max_miss = rt_err_estimate(arr_t,
+                                       arr_back_sc.dtype,
+                                       aw.slope,
+                                       aw.inter)
+            # Simulate allclose test with large atol
+            diff = np.abs(arr_t - arr_back_sc)
+            rdiff = diff / np.abs(arr_t)
+            assert_true(np.all((diff <= max_miss) | (rdiff <= 1e-5)))
+
+
+def rt_err_estimate(arr_t, out_dtype, slope, inter):
+    # Error attributable to rounding
+    max_int_miss = slope / 2.
+    # Estimate error attributable to floating point slope / inter;
+    # Remove inter / slope, put in a float type to simulate the type
+    # promotion for the multiplication, apply slope / inter
+    flt_there = (arr_t - inter) / slope
+    flt_back = flt_there.astype(out_dtype) * slope + inter
+    max_flt_miss = np.abs(arr_t - flt_back).max()
+    # Max error is sum of rounding and fp error
+    return max_int_miss + max_flt_miss
+
+
+def test_rt_bias():
+    # Check for bias in round trip
+    rng = np.random.RandomState(20111214)
+    mu, std, count = 100, 10, 100
+    arr = rng.normal(mu, std, size=(count,))
+    eps = np.finfo(np.float32).eps
+    for in_dt in (np.float32, np.float64):
+        arr_t = arr.astype(in_dt)
+        for out_dt in IUINT_TYPES:
+            aw = SlopeInterArrayWriter(arr_t, out_dt)
+            arr_back_sc = round_trip(aw)
+            bias = np.mean(arr_t - arr_back_sc)
+            # Get estimate for error
+            max_miss = rt_err_estimate(arr_t,
+                                       arr_back_sc.dtype,
+                                       aw.slope,
+                                       aw.inter)
+            # Hokey use of max_miss as a std estimate
+            bias_thresh = np.max([max_miss / np.sqrt(count), eps])
+            assert_true(np.abs(bias) < bias_thresh)
