@@ -335,11 +335,11 @@ class EcatHeader(object):
         Examples
         --------
         >>> hdr = EcatHeader()
-        >>> hdr['magic_number'] == 'MATRIX72'
-        True
+        >>> hdr['magic_number'] #23dt next : bytes
+        'MATRIX72'
         '''
         return self._header_data[item].item()
-    
+
     def __setitem__(self, item, value):
         ''' Set values in header data
 

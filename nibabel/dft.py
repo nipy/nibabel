@@ -11,12 +11,13 @@
 import os
 from os.path import join as pjoin
 import tempfile
-import StringIO
 import getpass
 import warnings
 import sqlite3
 
 import numpy
+
+from .py3k import BytesIO
 
 from .nifti1 import Nifti1Header
 
@@ -128,7 +129,7 @@ class _Series(object):
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
         im = PIL.Image.fromstring('L', (self.rows, self.columns), data.tostring())
-        s = StringIO.StringIO()
+        s = BytesIO()
         im.save(s, 'PNG')
         return s.getvalue()
 
@@ -191,7 +192,7 @@ class _Series(object):
         hdr.set_data_dtype(numpy.int16)
         hdr.set_data_shape((self.columns, self.rows, len(self.storage_instances)))
 
-        s = StringIO.StringIO()
+        s = BytesIO()
         hdr.write_to(s)
 
         return s.getvalue() + data.tostring()

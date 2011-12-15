@@ -7,7 +7,7 @@ except ImportError:
 else:
     have_nose = True
 
-from .tripwire import TripWire, is_tripwire
+from .tripwire import TripWire
 
 def optional_package(name, trip_msg=None):
     """ Return package-like thing and module setup for package `name`
@@ -47,7 +47,7 @@ def optional_package(name, trip_msg=None):
 
     and
 
-    >>> pkg.some_function()
+    >>> pkg.some_function() #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     TripWireError: We need package not_a_package for these functions, but ``import not_a_package`` raised an ImportError

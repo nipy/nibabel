@@ -10,6 +10,8 @@ import os
 
 import numpy as np
 
+from ..py3k import asbytes
+
 from ..volumeutils import native_code, swapped_code
 from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
 
@@ -34,20 +36,20 @@ class TestEcatHeader(TestCase):
     def test_empty(self):
         hdr = self.header_class()
         assert_true(len(hdr.binaryblock) == 502)
-        assert_true(hdr['magic_number'] == 'MATRIX72')
+        assert_true(hdr['magic_number'] == asbytes('MATRIX72'))
         assert_true(hdr['sw_version'] == 74)
         assert_true(hdr['num_frames'] == 0)
         assert_true(hdr['file_type'] == 0)
         assert_true(hdr['ecat_calibration_factor'] == 1.0)
-        
+
     def test_dtype(self):
         #dtype not specified in header, only in subheaders
         hdr = self.header_class()
         assert_raises(NotImplementedError,
                             hdr.get_data_dtype)
-        
+
     def test_header_codes(self):
-        fid = open(ecat_file)
+        fid = open(ecat_file, 'rb')
         hdr = self.header_class()
         newhdr = hdr.from_fileobj(fid)
         fid.close()
@@ -61,7 +63,7 @@ class TestEcatHeader(TestCase):
         assert_true(hdr == hdr2)
         assert_true(not hdr.binaryblock == hdr2._header_data.byteswap().tostring())
         assert_true(hdr.keys() == hdr2.keys())
-         
+
     def test_update(self):
         hdr = self.header_class()
         assert_true(hdr['num_frames'] == 0)
@@ -76,7 +78,7 @@ class TestEcatHeader(TestCase):
         swapped_hdr = self.header_class(endianness=swapped_code)
         assert_true(swapped_hdr.endianness == swapped_code)
         # Example header is big-endian
-        fid = open(ecat_file)
+        fid = open(ecat_file, 'rb')
         file_hdr = native_hdr.from_fileobj(fid)
         fid.close()
         assert_true(file_hdr.endianness == '>')

@@ -213,7 +213,7 @@ def as_int(x, check=True):
     2
     >>> as_int(-2.0)
     -2
-    >>> as_int(2.1)
+    >>> as_int(2.1) #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
     FloatingError: Not an integer: 2.1
@@ -359,5 +359,5 @@ def floor_log2(x):
     rem = abs(x)
     while rem>=2:
         ip += 1
-        rem /= 2
+        rem //= 2
     return ip

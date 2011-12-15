@@ -24,14 +24,13 @@ With deprecation warnings
 _field_recoders -> field_recoders
 '''
 import logging
-from StringIO import StringIO
 
 import numpy as np
 
 from ..wrapstruct import WrapStructError, WrapStruct
 from ..batteryrunners import Report
 
-from ..py3k import BytesIO, ZEROB
+from ..py3k import BytesIO, StringIO, asbytes, ZEROB
 from ..volumeutils import swapped_code, native_code, Recoder
 from ..spatialimages import HeaderDataError
 from .. import imageglobals
@@ -59,7 +58,7 @@ class MyWrapStruct(WrapStruct):
     def default_structarr(klass, endianness=None):
         structarr = super(MyWrapStruct, klass).default_structarr(endianness)
         structarr['an_integer'] = 1
-        structarr['a_str'] = 'a string'
+        structarr['a_str'] = asbytes('a string')
         return structarr
 
     @classmethod
@@ -145,7 +144,7 @@ class _TestWrapStructBase(TestCase):
     def test_to_from_fileobj(self):
         # Successful write using write_to
         hdr = self.header_class()
-        str_io = StringIO()
+        str_io = BytesIO()
         hdr.write_to(str_io)
         str_io.seek(0)
         hdr2 = self.header_class.from_fileobj(str_io)
@@ -347,7 +346,7 @@ class TestWrapStruct(_TestWrapStructBase):
         # Test contents of default header
         hdr = self.header_class()
         assert_equal(hdr['an_integer'], 1)
-        assert_equal(hdr['a_str'], 'a string')
+        assert_equal(hdr['a_str'], asbytes('a string'))
 
     def test_str(self):
         hdr = self.header_class()

@@ -15,11 +15,10 @@ header
 import os
 import re
 import logging
-from StringIO import StringIO
 
 import numpy as np
 
-from ..py3k import BytesIO, asbytes
+from ..py3k import BytesIO, StringIO, asbytes
 from ..volumeutils import array_to_file
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
@@ -449,7 +448,7 @@ def test_scaling():
     assert_array_almost_equal(data, rdata)
     # Writing to integer datatype does, and raises an error
     hdr.set_data_dtype(np.int32)
-    assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, StringIO())
+    assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
     # unless we aren't scaling, in which case we convert the floats to
     # integers and write
     _write_data(hdr, data, S)
