@@ -915,6 +915,16 @@ def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
     True
     >>> int_scinter_ftype(np.int8, 1e38, 0.0) == np.float64
     True
+
+    Notes
+    -----
+    It is difficult to make floats overflow with just addition because the
+    deltas are so large at the extremes of floating point.  For example::
+
+        >>> arr = np.array([np.finfo(np.float32).max], dtype=np.float32)
+        >>> res = arr + np.iinfo(np.int16).max
+        >>> arr == res
+        array([ True], dtype=bool)
     """
     floats = np.sctypes['float']
     def_ind = floats.index(default)

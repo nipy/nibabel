@@ -85,7 +85,8 @@ import sys
 import numpy as np
 
 from .volumeutils import (native_code, swapped_code, make_dt_codes, allopen,
-                          shape_zoom_affine, array_from_file, seek_tell)
+                          shape_zoom_affine, array_from_file, seek_tell,
+                          apply_read_scaling)
 from .arraywriters import make_array_writer, get_slope_inter, WriterError
 from .wrapstruct import WrapStruct
 from .spatialimages import (HeaderDataError, HeaderTypeError,
@@ -485,24 +486,10 @@ class AnalyzeHeader(WrapStruct):
         data = self.raw_data_from_fileobj(fileobj)
         # get scalings from header.  Value of None means not present in header
         slope, inter = self.get_slope_inter()
-        if slope is None or (slope==1.0 and (inter is None or inter == 0)):
-            return data
-        # in-place multiplication and addition on integer types leads to
-        # integer output types, and disastrous integer rounding.
-        # We'd like to do inplace if we can, to save memory
-        is_flt = data.dtype.kind in 'fc'
-        if slope != 1.0:
-            if is_flt:
-                data *= slope
-            else:
-                data = data * slope
-                is_flt = True
-        if inter:
-            if is_flt:
-                data += inter
-            else:
-                data = data + inter
-        return data
+        slope = 1.0 if slope is None else slope
+        inter = 0.0 if inter is None else inter
+        # Upcast as necessary for big slopes, intercepts
+        return apply_read_scaling(data, slope, inter)
 
     def data_to_fileobj(self, data, fileobj):
         ''' Write `data` to `fileobj`, maybe modifying `self`

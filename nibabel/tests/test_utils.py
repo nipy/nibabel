@@ -28,6 +28,8 @@ from ..volumeutils import (array_from_file,
                            shape_zoom_affine,
                            rec2dict)
 
+from ..casting import flt2nmant, floor_log2
+
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
@@ -233,16 +235,28 @@ def test_apply_scaling():
     assert_true(apply_read_scaling(arr) is arr)
     assert_true(apply_read_scaling(arr, np.float64(1.0)) is arr)
     assert_true(apply_read_scaling(arr, inter=np.float64(0)) is arr)
-    # Check upcast
+    f32, f64 = np.float32, np.float64
+    f32_arr = np.zeros((1,), dtype=f32)
+    i16_arr = np.zeros((1,), dtype=np.int16)
+    # Check float upcast (not the normal numpy scalar rule)
+    # This is the normal rule - no upcast from scalar
+    assert_equal((f32_arr * f64(1)).dtype, np.float32)
+    assert_equal((f32_arr + f64(1)).dtype, np.float32)
+    # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert_equal(ret.dtype, np.float64)
     ret = apply_read_scaling(np.float32(0), inter=np.float64(2))
     assert_equal(ret.dtype, np.float64)
     # Check integer inf upcast
-    arr = np.zeros((1,), dtype=np.int32)
-    big = np.array([np.finfo(np.float32).max], dtype=np.float32)
-    assert_equal(apply_read_scaling(arr, big).dtype, np.float64)
-    assert_equal(apply_read_scaling(arr, 1.0, big).dtype, np.float64)
+    big = f32(np.finfo(f32).max)
+    # Normally this would not upcast
+    assert_equal((i16_arr * big).dtype, np.float32)
+    # An equivalent case is a little hard to find for the intercept
+    big_delta = np.float32(2**(floor_log2(big)-flt2nmant(np.float32)))
+    assert_equal((i16_arr * big_delta + big).dtype, np.float32)
+    # Upcasting does occur with this routine
+    assert_equal(apply_read_scaling(i16_arr, big).dtype, np.float64)
+    assert_equal(apply_read_scaling(i16_arr, big_delta, big).dtype, np.float64)
     assert_equal(apply_read_scaling(np.int8(0), -1.0, 0.0).dtype, np.float32)
     assert_equal(apply_read_scaling(np.int8(0), 1e38, 0.0).dtype, np.float64)
     assert_equal(apply_read_scaling(np.int8(0), -1e38, 0.0).dtype, np.float64)

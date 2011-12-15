@@ -62,6 +62,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr['magic'], asbytes('ni1'))
         assert_equal(hdr['sizeof_hdr'], 348)
 
+    def test_big_scaling(self):
+        # Test that upcasting works for huge scalefactors
+        # See tests for apply_read_scaling in test_utils
+        hdr = self.header_class()
+        hdr.set_data_shape((2,1,1))
+        hdr.set_data_dtype(np.int16)
+        sio = BytesIO()
+        dtt = np.float32
+        # This will generate a huge scalefactor
+        finf = np.finfo(dtt)
+        data = np.array([finf.min, finf.max], dtype=dtt)[:,None, None]
+        hdr.data_to_fileobj(data, sio)
+        data_back = hdr.data_from_fileobj(sio)
+        assert_true(np.allclose(data, data_back))
+
     def test_nifti_log_checks(self):
         # in addition to analyze header checks
         HC = self.header_class
