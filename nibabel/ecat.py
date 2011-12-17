@@ -657,9 +657,7 @@ class EcatImage(SpatialImage):
                 frame_mapping = self._subheader._mlist.get_frame_order()
                 for i in sorted(frame_mapping):
                     self._data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
-                return self._data
-
-
+            return self._data
 
     def __init__(self, data, affine, header,
                  subheader, mlist ,
@@ -672,7 +670,6 @@ class EcatImage(SpatialImage):
 
         Parameters
         ----------
-
         data : None or array-like
             image data
         affine : None or (4,4) array-like
@@ -690,7 +687,6 @@ class EcatImage(SpatialImage):
         file_map : mapping, optional
             mapping giving file information for this image format
 
-
         Examples
         --------
         >>> import os
@@ -705,7 +701,6 @@ class EcatImage(SpatialImage):
         >>> data4d = img.get_data()
         >>> data4d.shape
         (10, 10, 3, 1)
-        
         """
         self._subheader = subheader
         self._mlist = mlist
@@ -729,30 +724,26 @@ class EcatImage(SpatialImage):
     def _set_header(self, header):
         self._header = header
 
-
     def get_data(self):
         """returns scaled data for all frames in a numpy array
         returns as a 4D array """
         if self._data is None:
             raise ImageDataError('No data in this image')
-        return np.asanyarray(self._data)        
-
+        return np.asanyarray(self._data)
 
     def get_affine(self):
         if not self._subheader._check_affines():
             warnings.warn('Affines different across frames, loading affine from FIRST frame',
                           UserWarning )
         return self._affine
-       
-                            
+
     def get_frame_affine(self, frame):
         """returns 4X4 affine"""
-        
         return self._subheader.get_affine(frame=frame)
 
     def get_frame(self,frame):
         return self._subheader.data_from_fileobj(frame)
-        
+
     def get_data_dtype(self,frame):
         subhdr = self._subheader
         dt = subhdr._get_data_dtype(frame)
@@ -771,7 +762,7 @@ class EcatImage(SpatialImage):
     def get_subheaders(self):
         """get access to subheaders"""
         return self._subheader
-    
+
     @classmethod
     def from_filespec(klass, filespec):
         return klass.from_filename(filespec)
@@ -786,8 +777,6 @@ class EcatImage(SpatialImage):
         -------
         header : file holding header data
         image : file holding image data
-
-        
         """
         return file_map['header'], file_map['image']
 
@@ -798,7 +787,7 @@ class EcatImage(SpatialImage):
         hdr_file, img_file = klass._get_fileholders(file_map)
         #note header and image are in same file
         hdr_fid = hdr_file.get_prepare_fileobj(mode = 'rb')
-        header = klass._header.from_fileobj(hdr_fid)        
+        header = klass._header.from_fileobj(hdr_fid)
         hdr_copy = header.copy()
         ### LOAD MLIST
         mlist = klass._mlist(hdr_fid, hdr_copy)
@@ -818,17 +807,16 @@ class EcatImage(SpatialImage):
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         return img
 
-
     def to_filename(self, filename):
         """nibabel does not support writing to Ecat filetypes at this time"""
         raise NotImplementedError('nibabel does not allow saving to Ecat'\
                                   ' at this time ')
-      
+
     @classmethod
     def from_image(klass, img):
         raise NotImplementedError("Ecat images can only be generated "\
                                   "from file objects")
-           
+
     @classmethod
     def load(klass, filespec):
         return klass.from_filename(filespec)

@@ -103,17 +103,17 @@ class TestEcatMlist(TestCase):
         assert_true(mats['matlist'][0,0] +  mats['matlist'][0,3] == 31)
         assert_true(mlist.get_frame_order()[0][0] == 0)
         assert_true(mlist.get_frame_order()[0][1] == 16842758.0)
-        
+
+
 class TestEcatSubHeader(TestCase):
     header_class = EcatHeader
     mlist_class = EcatMlist
     subhdr_class = EcatSubHeader
-    example_file = ecat_file    
+    example_file = ecat_file
     fid = open(example_file, 'rb')
     hdr = header_class.from_fileobj(fid)
-    mlist =  mlist_class(fid, hdr)        
+    mlist =  mlist_class(fid, hdr)
     subhdr = subhdr_class(hdr, mlist, fid)
-    
 
     def test_subheader_size(self):
         assert_equal(self.subhdr_class._subhdrdtype.itemsize, 242)
@@ -134,7 +134,6 @@ class TestEcatSubHeader(TestCase):
         assert_equal(dat.shape, self.subhdr.get_shape())
         scale_factor = self.subhdr.subheaders[0]['scale_factor']
         assert_equal(self.subhdr.subheaders[0]['scale_factor'].item(),1.0)
-        
         ecat_calib_factor = self.hdr['ecat_calibration_factor']
         assert_equal(ecat_calib_factor, 25007614.0)
         scaled_dat = self.subhdr.data_from_fileobj()
@@ -161,5 +160,16 @@ class TestEcatImage(TestCase):
         assert_equal(dat.shape, self.img.shape)
         frame = self.img.get_frame(0)
         assert_array_equal(frame, dat[:,:,:,0])
-    
-        
+
+    def test_array_proxy(self):
+        # Get the cached data copy
+        dat = self.img.get_data()
+        # Make a new one to test arrayproxy
+        img = self.image_class.load(self.example_file)
+        # Maybe we will promote _data to public, but I know this looks bad
+        secret_data = img._data
+        data2 = np.array(secret_data)
+        assert_array_equal(data2, dat)
+        # Check it rereads
+        data3 = np.array(secret_data)
+        assert_array_equal(data3, dat)
