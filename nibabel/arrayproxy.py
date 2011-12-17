@@ -81,5 +81,16 @@ class ArrayProxy(object):
         -------
         stamp : object
             object unique to this state of `self`
+
+        Notes
+        -----
+        The stamp changes if the array to be returned has been cached
+        (``_data`` attribute). This is because this makes it possible to change
+        the array outside the proxy object, because further calls to
+        ``__array__`` returns a refernce to ``self._data``, and the reference
+        allows the caller to modify the array in-place.
         """
-        return self.__class__, self.file_like, caller(self.header)
+        return (self.__class__,
+                self.file_like,
+                caller(self.header),
+                caller(self._data))

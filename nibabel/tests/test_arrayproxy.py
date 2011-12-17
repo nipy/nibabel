@@ -63,6 +63,7 @@ def write_raw_data(arr, hdr, fileobj):
     hdr.set_data_dtype(arr.dtype)
     fileobj.write(ZEROB * hdr.get_data_offset())
     fileobj.write(arr.tostring(order='F'))
+    return hdr
 
 
 def test_nifti1_init():
@@ -109,9 +110,13 @@ def test_state_stamp():
     assert_not_equal(stamper(ap1), stamper(ap3))
     # write some data to check arr != proxy
     arr = np.arange(24, dtype=np.int16).reshape(shape) + 100
-    write_raw_data(arr, hdr, bio)
-    # This is the same as ap1 obviously
-    ap5 = ArrayProxy(bio, hdr)
+    new_hdr = write_raw_data(arr, hdr, bio)
+    ap5 = ArrayProxy(bio, new_hdr)
+    assert_equal(stamper(ap5), stamper(ArrayProxy(bio, new_hdr)))
+    # Reading the data makes the arrayproxy unstampable, because the data is now
+    # modifiable outside the proxy if we modify the returned array in place.
     arr_back = np.asanyarray(ap5)
+    assert_not_equal(stamper(ap1), stamper(ap5))
+    # Check that the proxy does not seem to be the same as the array
     assert_array_equal(arr, arr_back)
     assert_not_equal(stamper(arr), stamper(ap5))
