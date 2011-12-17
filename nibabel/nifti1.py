@@ -502,6 +502,21 @@ class Nifti1Extensions(list):
             extensions.append(ext)
         return extensions
 
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        Parameters
+        ----------
+        caller : callable
+            callable with which we can process our state
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        return self.__class__, caller(list(self))
+
 
 class Nifti1Header(SpmAnalyzeHeader):
     ''' Class for NIFTI1 header
@@ -619,6 +634,21 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr_data['magic'] = 'ni1'
             hdr_data['vox_offset'] = 0
         return hdr_data
+
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        Parameters
+        ----------
+        caller : None or callable
+            May be object from which this method was called.
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        return self.__class__, self.binaryblock, caller(self.extensions)
 
     def get_qform_quaternion(self):
         ''' Compute quaternion from b, c, d of quaternion

@@ -800,6 +800,22 @@ class AnalyzeHeader(WrapStruct):
             out_dtype,
             self.has_data_intercept)
 
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        Parameters
+        ----------
+        caller : callable
+            May be object from which this method was called.  Not used by
+            analyze headers, but may be used by subclasses
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        return self.__class__, self.binaryblock
+
     @classmethod
     def _get_checks(klass):
         ''' Return sequence of check functions for this class '''

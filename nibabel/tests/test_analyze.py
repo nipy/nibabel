@@ -26,6 +26,7 @@ from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
+from ..stampers import Stamper
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -449,6 +450,18 @@ class TestAnalyzeHeader(_TestWrapStructBase):
              [ 0.,  2.,  0., -4.],
              [ 0.,  0.,  1., -3.],
              [ 0.,  0.,  0.,  1.]])
+
+    def test_state_stamp(self):
+        # Test state stamp is sensitive to state
+        klass = self.header_class
+        hdr1 = klass()
+        hdr2 = klass()
+        stamper = Stamper()
+        assert_equal(stamper(hdr1), stamper(hdr2))
+        hdr1.set_data_shape((3,5,7))
+        assert_not_equal(stamper(hdr1), stamper(hdr2))
+        hdr2.set_data_shape((3,5,7))
+        assert_equal(stamper(hdr1), stamper(hdr2))
 
 
 def test_best_affine():
