@@ -27,6 +27,7 @@ from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
 from ..stampers import Stamper
+from ..stampers import Stamper, NdaStamper
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -524,6 +525,31 @@ def test_data_code_error():
 
 class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
+
+    def test_state_stamper(self):
+        # Extend tests of state stamping
+        super(TestAnalyzeImage, self).test_state_stamper()
+        # Test modifications of header
+        stamper = NdaStamper()
+        img_klass = self.image_class
+        hdr_klass = self.image_class.header_class
+        # The first test we have done in the parent, but just for completeness
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        hdr = hdr_klass()
+        hdr.set_data_dtype(arr.dtype)
+        img1 = img_klass(arr, aff, hdr)
+        img2 = img_klass(arr, aff, hdr)
+        assert_equal(img1.current_state(), img2.current_state())
+        assert_equal(stamper(img1), stamper(img2))
+        hdr['descrip'] = asbytes('something')
+        # Doesn't affect original images
+        assert_equal(img1.current_state(), img2.current_state())
+        assert_equal(stamper(img1), stamper(img2))
+        # Does affect new image
+        img3 = img_klass(arr, aff, hdr)
+        assert_not_equal(img1.current_state(), img3.current_state())
+        assert_not_equal(stamper(img1), stamper(img3))
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned

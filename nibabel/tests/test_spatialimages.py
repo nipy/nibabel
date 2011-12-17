@@ -13,6 +13,7 @@ from ..py3k import BytesIO
 
 import numpy as np
 
+from ..stampers import Stamper, NdaStamper
 from ..spatialimages import (Header, SpatialImage, HeaderDataError,
                              ImageDataError)
 
@@ -166,6 +167,22 @@ def test_read_data():
     assert_array_equal(data, data2)
 
 
+def test_hdr_state_stamper():
+    # State stamping for template header class
+    stamper = Stamper()
+    hdr1 = Header(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
+    hdr2 = Header(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
+    assert_equal(stamper(hdr1), stamper(hdr2))
+    hdr3 = Header('i4', shape=[1,2,3], zooms=[3.0, 2.0, 1.0])
+    assert_equal(stamper(hdr1), stamper(hdr3))
+    hdr4 = Header('i2', shape=[1,2,3], zooms=[3.0, 2.0, 1.0])
+    assert_not_equal(stamper(hdr1), stamper(hdr4))
+    hdr5 = Header('i4', shape=[6,2,3], zooms=[3.0, 2.0, 1.0])
+    assert_not_equal(stamper(hdr1), stamper(hdr5))
+    hdr6 = Header('i4', shape=[1,2,3], zooms=[3.1, 2.0, 1.0])
+    assert_not_equal(stamper(hdr1), stamper(hdr6))
+
+
 class DataLike(object):
     # Minimal class implementing 'data' API
     shape = (3,)
@@ -258,3 +275,40 @@ class TestSpatialImage(TestCase):
         assert_equal(img.get_shape(), (1,))
         img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
         assert_equal(img.get_shape(), (2,3,4))
+
+    def test_state_stamper(self):
+        img_klass = self.image_class
+        hdr_klass = self.image_class.header_class
+        stamper = NdaStamper()
+        # Assumes all possible images support int16
+        # See https://github.com/nipy/nibabel/issues/58
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        img1 = img_klass(arr, aff)
+        img2 = img_klass(arr, aff)
+        # The test depends on the imput array being small enough to stamp
+        assert_equal(img1.current_state(), img2.current_state())
+        assert_equal(img1.current_state(stamper),
+                     img2.current_state(stamper))
+        assert_equal(stamper(img1), stamper(img2))
+        img3 = img_klass(arr + 1, aff)
+        assert_not_equal(img1.current_state(), img3.current_state())
+        assert_not_equal(stamper(img1), stamper(img3))
+        img4 = img_klass(arr, np.diag([1,1,2,1]))
+        assert_not_equal(img1.current_state(), img4.current_state())
+        assert_not_equal(stamper(img1), stamper(img4))
+        # passing a default header should be the same as passing no header
+        hdr = hdr_klass()
+        hdr.set_data_dtype(arr.dtype)
+        img5 = img_klass(arr, aff, hdr)
+        assert_equal(img1.current_state(), img5.current_state())
+        assert_equal(stamper(img1), stamper(img5))
+        # Modifying the filemap makes the images unequal
+        fm_key = list(img_klass.make_file_map().keys())[0]
+        old_filename = img5.file_map[fm_key].filename
+        img5.file_map[fm_key].filename = 'test.img'
+        assert_not_equal(img1.current_state(), img5.current_state())
+        assert_not_equal(stamper(img1), stamper(img5))
+        img5.file_map[fm_key].filename = old_filename
+        assert_equal(img1.current_state(), img5.current_state())
+        assert_equal(stamper(img1), stamper(img5))

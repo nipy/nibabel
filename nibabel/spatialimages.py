@@ -130,6 +130,7 @@ import warnings
 
 import numpy as np
 
+from .stampers import NdaStamper
 from .filename_parser import types_filenames, TypesFilenamesError
 from .fileholders import FileHolder
 from .volumeutils import shape_zoom_affine
@@ -164,7 +165,7 @@ class Header(object):
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
-        # that a subclass has exactly the same interface as it's parent
+        # that a subclass has exactly the same interface as its parent
         # - for example Nifti1Images inherit from Analyze, but have
         # different field names
         if type(header) == klass:
@@ -254,6 +255,24 @@ class Header(object):
         data_bytes = fileobj.read(data_size)
         return np.ndarray(shape, dtype, data_bytes, order='F')
 
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        Parameters
+        ----------
+        caller : callable
+            May be object from which this method was called.
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        return (self.__class__,
+                np.dtype(self._dtype),
+                tuple(self._shape),
+                tuple(self._zooms))
+
 
 class ImageDataError(Exception):
     pass
@@ -266,6 +285,8 @@ class ImageFileError(Exception):
 class SpatialImage(object):
     header_class = Header
     files_types = (('image', None),)
+    # Object with which to get state stamps for components
+    stamper = NdaStamper()
     _compressed_exts = ()
 
     ''' Template class for images '''
@@ -558,3 +579,55 @@ class SpatialImage(object):
                      klass.header_class.from_header(img.get_header()),
                      extra=img.extra.copy())
 
+    def current_state(self, stamper=None):
+        """ Return dictionary unique to current state of the image
+
+        The state of an image is defined by all of:
+        * data
+        * affine
+        * header
+        * file_map
+
+        Note we ignore ``extra`` in defining state.
+
+        Parameters
+        ----------
+        stamper : None or callable
+            Object with which to create state stamps for components of image.
+            Defaults to an ndarray-aware stamper
+
+        Returns
+        -------
+        state : dict
+            dictionary with key, value pairs for each image component
+        """
+        if stamper is None:
+            stamper = self.stamper
+        return dict(data=stamper(self._data),
+                    affine=stamper(self._affine),
+                    header=stamper(self._header),
+                    file_map=stamper(self.file_map))
+
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        The state of an image is defined by all of:
+        * data
+        * affine
+        * header
+        * file_map
+
+        Note we ignore ``extra`` in defining state.
+
+        Parameters
+        ----------
+        caller : callable
+            May be object from which this method was called.
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        cstate = self.current_state(caller)
+        return self.__class__, tuple(cstate.items())
