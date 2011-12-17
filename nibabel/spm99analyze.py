@@ -279,6 +279,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         to_111 = np.eye(4)
         to_111[:3,3] = 1
         ret._affine = np.dot(ret._affine, to_111)
+        # Update stored affine stamp
+        ret._stored_state['affine'] = ret.stamper(ret._affine)
         return ret
 
     def to_file_map(self, file_map=None):

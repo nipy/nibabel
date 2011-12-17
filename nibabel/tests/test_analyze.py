@@ -551,6 +551,23 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         assert_not_equal(img1.current_state(), img3.current_state())
         assert_not_equal(stamper(img1), stamper(img3))
 
+    def test_maybe_changed(self):
+        # Check that changing header signaled in maybe_changed
+        super(TestAnalyzeImage, self).test_maybe_changed()
+        # Test modifications of header
+        img_klass = self.image_class
+        # The first test we have done in the parent, but just for completeness
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        # Get an adapted header
+        hdr = img_klass(arr, aff).get_header()
+        img = img_klass(arr, aff, hdr)
+        assert_false(img.maybe_changed())
+        # Changing the header in the image signaled in maybe_change
+        ihdr = img.get_header()
+        ihdr['descrip'] = asbytes('something')
+        assert_true(img.maybe_changed())
+
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
         # from img.get_data() is not affected by subsequent changes to
@@ -627,6 +644,28 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
         assert_array_equal(img_back.shape, (3, 2, 4))
+
+
+    def test_load_caching(self):
+        # Check save / load change recording
+        img_klass = self.image_class
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.diag([2.0,3,4,1])
+        img = img_klass(arr, aff)
+        for key in img.file_map:
+            img.file_map[key].fileobj = BytesIO()
+        img.to_file_map()
+        img2 = img.from_file_map(img.file_map)
+        assert_false(img2.maybe_changed())
+        # Save loads data, so changes image
+        img2.to_file_map()
+        assert_true(img2.maybe_changed())
+        # New loading resets change flag
+        img3 = img.from_file_map(img2.file_map)
+        assert_false(img3.maybe_changed())
+        # Loading data makes change impossible to detect
+        data = img3.get_data()
+        assert_true(img3.maybe_changed())
 
 
 def test_unsupported():

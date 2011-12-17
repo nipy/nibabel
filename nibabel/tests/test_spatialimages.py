@@ -312,3 +312,45 @@ class TestSpatialImage(TestCase):
         img5.file_map[fm_key].filename = old_filename
         assert_equal(img1.current_state(), img5.current_state())
         assert_equal(stamper(img1), stamper(img5))
+
+    def test_maybe_changed(self):
+        # Mechanism for checking whether image has changed since initialization
+        img_klass = self.image_class
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        # All image types need to implement int16
+        img = img_klass(arr, aff)
+        # Get header back that has been customized to this array
+        hdr = img.get_header()
+        # Pass back into image expecting no modifications this time
+        img = img_klass(arr, aff, hdr)
+        assert_false(img.maybe_changed())
+        # Changes to affine or header used in init do not change img
+        aff[0,0] = 1.1
+        assert_false(img.maybe_changed())
+        hdr.set_zooms((2,))
+        assert_false(img.maybe_changed())
+        # Changing the affine, header in the image does cause change
+        iaff = img.get_affine()
+        ihdr = img.get_header()
+        iaff[0,0] = 1.2
+        assert_true(img.maybe_changed())
+        # we can reset
+        img.reset_changed()
+        assert_false(img.maybe_changed())
+        ihdr.set_zooms((3,))
+        assert_true(img.maybe_changed())
+        # we can reset
+        img.reset_changed()
+        assert_false(img.maybe_changed())
+        # Data changes always result in image changes
+        arr[0] = 99
+        assert_true(img.maybe_changed())
+        img.reset_changed()
+        # Filemap changes change too
+        fm_key = list(img_klass.make_file_map().keys())[0]
+        old_filename = img.file_map[fm_key].filename
+        img.file_map[fm_key].filename = 'test.img'
+        assert_true(img.maybe_changed())
+        img.file_map[fm_key].filename = old_filename
+        assert_false(img.maybe_changed())

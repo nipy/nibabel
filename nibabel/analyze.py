@@ -946,9 +946,7 @@ class AnalyzeImage(SpatialImage):
         img = klass(data, None, header, file_map=file_map)
         # set affine from header though
         img._affine = header.get_best_affine()
-        img._load_cache = {'header': hdr_copy,
-                           'affine': img._affine.copy(),
-                           'file_map': copy_file_map(file_map)}
+        img._stored_state['affine'] = img.stamper(img._affine)
         return img
 
     @staticmethod

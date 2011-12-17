@@ -472,9 +472,6 @@ class MGHImage(SpatialImage):
         hdr_copy = header.copy()
         data = klass.ImageArrayProxy(mghf, hdr_copy)
         img = klass(data, affine, header, file_map=file_map)
-        img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
-                           'file_map': copy_file_map(file_map)}
         return img
 
     def to_file_map(self, file_map=None):

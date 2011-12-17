@@ -340,7 +340,7 @@ class SpatialImage(object):
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
-        self._load_cache = None
+        self._stored_state = self.current_state()
 
     def update_header(self):
         ''' Update header from information in image'''
@@ -607,6 +607,25 @@ class SpatialImage(object):
                     affine=stamper(self._affine),
                     header=stamper(self._header),
                     file_map=stamper(self.file_map))
+
+    def reset_changed(self):
+        """ Reset stored state so that changes are relative to current state
+
+        Checkpoints image stored state so that ``maybe_changed`` is relative to
+        state as of this call.  See ``maybe_changed``.
+        """
+        self._stored_state = self.current_state()
+
+    def maybe_changed(self):
+        """ True if image might have changed relative to last checkpoint
+
+        We record the image state when you create the image object, and when you
+        call ``reset_changed`` explicitly.  We return True from this method if
+        the recorded image state may be different from the current image state.
+        We also return True if the image state is too time-consuming to
+        calculate.
+        """
+        return self._stored_state != self.current_state()
 
     def state_stamper(self, caller):
         """ Return stamp for current state of `self`
