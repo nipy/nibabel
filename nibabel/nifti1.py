@@ -1428,14 +1428,16 @@ class Nifti1Pair(analyze.AnalyzeImage):
         super(Nifti1Pair, self).update_header()
         hdr = self._header
         hdr['magic'] = 'ni1'
-        if not self._affine is None:
-            # Set affine into sform
-            hdr.set_sform(self._affine, code='aligned')
-            # Make qform 'unknown', set voxel sizes from affine
-            hdr['qform_code'] = 0
-            RZS = self._affine[:3, :3]
-            zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
-            hdr['pixdim'][1:4] = zooms
+        # If the affine is not None, and it is different from the main affine in
+        # the header, update the heaader
+        if self._affine is None:
+            return
+        if np.all(self._affine == hdr.get_best_affine()):
+            return
+        # Set affine into sform with default code
+        hdr.set_sform(self._affine, code='aligned')
+        # Make qform 'unknown'
+        hdr.set_qform(self._affine, code='unknown')
 
 
 class Nifti1Image(Nifti1Pair):

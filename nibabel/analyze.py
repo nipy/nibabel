@@ -1053,12 +1053,20 @@ class AnalyzeImage(SpatialImage):
         (1.0, 2.0, 3.0)
         '''
         hdr = self._header
+        # We need to update the header if the data shape has changed.  It's a
+        # bit difficult to change the data shape using the standard API, but
+        # maybe it happened
         if not self._data is None:
             hdr.set_data_shape(self._data.shape)
-        if not self._affine is None:
-            RZS = self._affine[:3, :3]
-            vox = np.sqrt(np.sum(RZS * RZS, axis=0))
-            hdr['pixdim'][1:4] = vox
+        # If the affine is not None, and it is different from the main affine in
+        # the header, update the heaader
+        if self._affine is None:
+            return
+        if np.all(self._affine == hdr.get_best_affine()):
+            return
+        RZS = self._affine[:3, :3]
+        vox = np.sqrt(np.sum(RZS * RZS, axis=0))
+        hdr['pixdim'][1:4] = vox
 
 
 load = AnalyzeImage.load

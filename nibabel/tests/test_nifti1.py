@@ -174,11 +174,46 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
 
 
 class TestNifti1Image(tana.TestAnalyzeImage):
-    # class for testing images
+    # Run analyze-flavor spatialimage tests
     image_class = Nifti1Image
 
+    def _qform_rt(self, img):
+        # Round trip image after setting qform, sform codes
+        hdr = img.get_header()
+        hdr['qform_code'] = 3
+        hdr['sform_code'] = 4
+        # Save / reload using bytes IO objects
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        return img.from_file_map(img.file_map)
 
-class TestNifti1Pair(tana.TestAnalyzeImage):
+    def test_qform_cycle(self):
+        # Qform load save cycle
+        img_klass = self.image_class
+        # None affine
+        img = img_klass(np.zeros((2,3,4)), None)
+        hdr_back = self._qform_rt(img).get_header()
+        assert_equal(hdr_back['qform_code'], 3)
+        assert_equal(hdr_back['sform_code'], 4)
+        # Try non-None affine
+        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        hdr_back = self._qform_rt(img).get_header()
+        assert_equal(hdr_back['qform_code'], 3)
+        assert_equal(hdr_back['sform_code'], 4)
+        # Modify affine in-place - does it hold?
+        img.get_affine()[0,0] = 9
+        img.to_file_map()
+        img_back = img.from_file_map(img.file_map)
+        exp_aff = np.diag([9,1,1,1])
+        assert_array_equal(img_back.get_affine(), exp_aff)
+        hdr_back = img.get_header()
+        assert_array_equal(hdr_back.get_sform(), exp_aff)
+        assert_array_equal(hdr_back.get_qform(), exp_aff)
+
+
+class TestNifti1Pair(TestNifti1Image):
+    # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
 
 
