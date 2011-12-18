@@ -157,6 +157,20 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
         assert_array_equal(r_img.get_affine(),
                            np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
 
+    def test_none_affine(self):
+        # Allow for possibility of no affine resulting in nothing written into
+        # mat file.  If the mat file is a filename, we just get no file, but if
+        # it's a fileobj, we get an empty fileobj
+        img_klass = self.image_class
+        # With a None affine - no matfile written
+        img = img_klass(np.zeros((2,3,4)), None)
+        aff = img.get_header().get_best_affine()
+        # Save / reload using bytes IO objects
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        img_back = img.from_file_map(img.file_map)
+        assert_array_equal(img_back.get_affine(), aff)
 
 
 def test_origin_affine():

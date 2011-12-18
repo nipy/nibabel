@@ -10,6 +10,8 @@
 import warnings
 import numpy as np
 
+from .py3k import BytesIO
+
 from .spatialimages import HeaderDataError, HeaderTypeError
 
 from .batteryrunners import Report
@@ -246,14 +248,18 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     @classmethod
     def from_file_map(klass, file_map):
         ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map)
-        import scipy.io as sio
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:
             return ret
-        mats = sio.loadmat(matf)
+        # Allow for possibility of empty file -> no update to affine
+        contents = matf.read()
         if file_map['mat'].filename is not None: # was filename
             matf.close()
+        if len(contents) == 0:
+            return ret
+        import scipy.io as sio
+        mats = sio.loadmat(BytesIO(contents))
         if 'mat' in mats: # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
