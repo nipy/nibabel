@@ -23,7 +23,7 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import shared_range, int_to_float
+from .casting import shared_range, int_to_float, as_int
 from .volumeutils import finite_range, array_to_file
 
 
@@ -442,8 +442,9 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         else: # max possible (u)int range is 2**64-1 (int64, uint64)
             # int_to_float covers this range.  On windows longdouble is the same
             # as double so mn2mx will be 2**64 - thus overestimating slope
-            # slightly.  Casting to int here is probably not necessary
-            mn2mx = int_to_float(int(mx) - int(mn), np.longdouble)
+            # slightly.  Casting to int needed to allow mx-mn to be larger than
+            # the largest (u)int value
+            mn2mx = int_to_float(as_int(mx) - as_int(mn), np.longdouble)
         slope = mn2mx / scaled_mn2mx
         self.inter = mn - shared_min * slope
         self.slope = slope

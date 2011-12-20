@@ -210,13 +210,16 @@ def as_int(x, check=True):
     This is useful because the numpy int(val) mechanism is broken for large
     values in np.longdouble.
 
+    It is also useful to work around a numpy 1.4.1 bug in conversion of uints to
+    python ints.
+
     This routine will still raise an OverflowError for values that are outside
     the range of float64.
 
     Parameters
     ----------
     x : object
-        Floating point value
+        integer, unsigned integer or floating point value
     check : {True, False}
         If True, raise error for values that are not integers
 
@@ -238,7 +241,15 @@ def as_int(x, check=True):
     >>> as_int(2.1, check=False)
     2
     """
-    x = np.array(x, copy=True)
+    x = np.array(x)
+    if x.dtype.kind in 'iu':
+        # This works around a nasty numpy 1.4.1 bug such that:
+        # >>> int(np.uint32(2**32-1)
+        # -1
+        return int(str(x))
+    ix = int(x)
+    if ix == x:
+        return ix
     fx = np.floor(x)
     if check and fx != x:
         raise FloatingError('Not an integer: %s' % x)

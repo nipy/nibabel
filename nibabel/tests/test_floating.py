@@ -97,6 +97,15 @@ def test_int_to_float():
     assert_equal(as_int(int_to_float(-i, LD)), -i)
 
 
+def test_as_int_np_fix():
+    # Test as_int works for integers.  We need as_int for integers because of a
+    # numpy 1.4.1 bug such that int(np.uint32(2**32-1) == -1
+    for t in np.sctypes['int'] + np.sctypes['uint']:
+        info = np.iinfo(t)
+        mn, mx = np.array([info.min, info.max], dtype=t)
+        assert_equal((mn, mx), (as_int(mn), as_int(mx)))
+
+
 def test_floor_exact_16():
     # A normal integer can generate an inf in float16
     if not have_float16:
