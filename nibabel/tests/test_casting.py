@@ -4,7 +4,7 @@
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int)
+                       as_int, int_abs)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -121,3 +121,18 @@ def test_casting():
     assert_array_equal(float_to_int(np.nan, np.int16), [0])
     # Test nans give error if not nan2zero
     assert_raises(CastingError, float_to_int, np.nan, np.int16, False)
+
+
+def test_int_abs():
+    for itype in np.sctypes['int']:
+        info = np.iinfo(itype)
+        in_arr = np.array([info.min, info.max], dtype=itype)
+        idtype = np.dtype(itype)
+        udtype = np.dtype(idtype.str.replace('i', 'u'))
+        assert_equal(udtype.kind, 'u')
+        assert_equal(idtype.itemsize, udtype.itemsize)
+        mn, mx = in_arr
+        e_mn = as_int(mx) + 1 # as_int needed for numpy 1.4.1 casting
+        assert_equal(int_abs(mx), mx)
+        assert_equal(int_abs(mn), e_mn)
+        assert_array_equal(int_abs(in_arr), [e_mn, mx])
