@@ -35,6 +35,8 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
 
+from ..casting import int_abs
+
 from ..volumeutils import array_from_file, apply_read_scaling
 
 from numpy.testing import (assert_array_almost_equal,
@@ -171,9 +173,17 @@ def test_calculate_scale():
     # Offset handles scaling when it can
     aw = SIAW(npa([-2, -1], dtype=np.int8), np.uint8)
     assert_equal(get_slope_inter(aw), (1.0, -2.0))
-    # Sign flip handles this case
+    # Sign flip handles these cases
     aw = SAW(npa([-2, -1], dtype=np.int8), np.uint8)
     assert_equal(get_slope_inter(aw), (-1.0, 0.0))
+    aw = SAW(npa([-2, 0], dtype=np.int8), np.uint8)
+    assert_equal(get_slope_inter(aw), (-1.0, 0.0))
+    # But not when min magnitude is too large (scaling mechanism kicks in)
+    aw = SAW(npa([-510, 0], dtype=np.int16), np.uint8)
+    assert_equal(get_slope_inter(aw), (-2.0, 0.0))
+    # Or for floats (attempts to expand across range)
+    aw = SAW(npa([-2, 0], dtype=np.float32), np.uint8)
+    assert_not_equal(get_slope_inter(aw), (-1.0, 0.0))
     # Case where offset handles scaling
     aw = SIAW(npa([-1, 1], dtype=np.int8), np.uint8)
     assert_equal(get_slope_inter(aw), (1.0, -1.0))
@@ -187,9 +197,12 @@ def test_calculate_scale():
 def test_no_offset_scale():
     # Specific tests of no-offset scaling
     SAW = SlopeArrayWriter
+    # Floating point
     for data in ((-128, 127),
                   (-128, 126),
                   (-128, -127),
+                  (-128, 0),
+                  (-128, -1),
                   (126, 127),
                   (-127, 127)):
         aw = SAW(np.array(data, dtype=np.float32), np.int8)
@@ -198,6 +211,19 @@ def test_no_offset_scale():
     assert_equal(aw.slope, 2)
     aw = SAW(np.array([-128 * 2.0, 127], dtype=np.float32), np.int8)
     assert_equal(aw.slope, 2)
+
+
+def test_with_offset_scale():
+    # Tests of specific cases in slope, inter
+    SIAW = SlopeInterArrayWriter
+    aw = SIAW(np.array([0, 127], dtype=np.int8), np.uint8)
+    assert_equal((aw.slope, aw.inter), (1, 0)) # in range
+    aw = SIAW(np.array([-1, 126], dtype=np.int8), np.uint8)
+    assert_equal((aw.slope, aw.inter), (1, -1)) # offset only
+    aw = SIAW(np.array([-1, 254], dtype=np.int16), np.uint8)
+    assert_equal((aw.slope, aw.inter), (1, -1)) # offset only
+    aw = SIAW(np.array([-1, 255], dtype=np.int16), np.uint8)
+    assert_not_equal((aw.slope, aw.inter), (1, -1)) # Too big for offset only
 
 
 def test_io_scaling():
@@ -362,6 +388,51 @@ def test_float_int_min_max():
                 continue
             arr_back_sc = round_trip(aw)
             assert_true(np.allclose(arr, arr_back_sc))
+
+
+def test_int_int_min_max():
+    # Conversion between (u)int and (u)int
+    eps = np.finfo(np.float64).eps
+    rtol = 1e-6
+    for in_dt in IUINT_TYPES:
+        iinf = np.iinfo(in_dt)
+        arr = np.array([iinf.min, iinf.max], dtype=in_dt)
+        for out_dt in IUINT_TYPES:
+            try:
+                aw = SlopeInterArrayWriter(arr, out_dt)
+            except ScalingError:
+                continue
+            arr_back_sc = round_trip(aw)
+            # integer allclose
+            adiff = int_abs(arr - arr_back_sc)
+            rdiff = adiff / (arr + eps)
+            assert_true(np.all(rdiff < rtol))
+
+
+def test_int_int_slope():
+    # Conversion between (u)int and (u)int for slopes only
+    eps = np.finfo(np.float64).eps
+    rtol = 1e-7
+    for in_dt in IUINT_TYPES:
+        iinf = np.iinfo(in_dt)
+        for out_dt in IUINT_TYPES:
+            kinds = np.dtype(in_dt).kind + np.dtype(out_dt).kind
+            if kinds in ('ii', 'uu', 'ui'):
+                arrs = (np.array([iinf.min, iinf.max], dtype=in_dt),)
+            elif kinds == 'iu':
+                arrs = (np.array([iinf.min, 0], dtype=in_dt),
+                        np.array([0, iinf.max], dtype=in_dt))
+            for arr in arrs:
+                try:
+                    aw = SlopeArrayWriter(arr, out_dt)
+                except ScalingError:
+                    continue
+                assert_false(aw.slope == 0)
+                arr_back_sc = round_trip(aw)
+                # integer allclose
+                adiff = int_abs(arr - arr_back_sc)
+                rdiff = adiff / (arr + eps)
+                assert_true(np.all(rdiff < rtol))
 
 
 def test_float_int_spread():

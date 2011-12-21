@@ -278,8 +278,7 @@ class SlopeArrayWriter(ArrayWriter):
         if self._out_dtype.kind == 'u':
             shared_min, shared_max = shared_range(self.scaler_dtype,
                                                   self._out_dtype)
-            mn, mx = self.finite_range()
-            if mx < 0 and abs(mn) <= shared_max: # sign flip enough?
+            if mx <= 0 and abs(mn) <= shared_max: # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -299,7 +298,7 @@ class SlopeArrayWriter(ArrayWriter):
             if mn < 0 and mx > 0:
                 raise WriterError('Cannot scale negative and positive '
                                   'numbers to uint without intercept')
-            if mx < 0: # All input numbers < 0
+            if mx <= 0: # All input numbers <= 0
                 self.slope = mn / shared_max
             else: # All input numbers > 0
                 self.slope = mx / shared_max
@@ -412,11 +411,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         if self._out_dtype.kind == 'u':
             shared_min, shared_max = shared_range(self.scaler_dtype,
                                                   self._out_dtype)
-            mn, mx = self.finite_range()
-            if (mx - mn) <= shared_max: # offset enough?
+            # range may be greater than the largest integer for this type.
+            # as_int needed to work round numpy 1.4.1 int casting bug
+            mn2mx = as_int(mx) - as_int(mn)
+            if mn2mx <= shared_max: # offset enough?
                 self.inter = mn
                 return
-            if mx < 0 and abs(mn) <= shared_max: # sign flip enough?
+            if mx <= 0 and abs(mn) <= shared_max: # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
