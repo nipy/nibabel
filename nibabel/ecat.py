@@ -739,7 +739,7 @@ class EcatImage(SpatialImage):
 
     def get_frame_affine(self, frame):
         """returns 4X4 affine"""
-        return self._subheader.get_affine(frame=frame)
+        return self._subheader.get_frame_affine(frame=frame)
 
     def get_frame(self,frame):
         return self._subheader.data_from_fileobj(frame)
