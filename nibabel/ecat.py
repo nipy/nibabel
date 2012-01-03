@@ -474,7 +474,7 @@ class EcatMlist(object):
         frame_dict = {}
         id_dict = {}
         for fn, id in enumerate(mlist[ind,0]):
-            mlist_n = np.where(mlist[:,0] == id)[0][0]
+            mlist_n = np.where(tmp == id)[0][0]
             id_dict.update({fn:[mlist_n,id]})
         
         return id_dict
