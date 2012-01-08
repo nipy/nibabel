@@ -9,6 +9,7 @@
 ''' Tests for nifti reading package '''
 from __future__ import with_statement
 import os
+import pickle
 
 from ..py3k import BytesIO, ZEROB, asbytes
 
@@ -654,3 +655,7 @@ def test_affines_init():
 
 
 
+def test_pickle():
+    # Smoketest that loaded nifti image do pickle
+    nim = load(image_file)
+    pickle.dumps(nim)
