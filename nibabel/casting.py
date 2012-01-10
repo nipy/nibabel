@@ -251,11 +251,27 @@ def int_to_float(val, flt_type):
     f : numpy scalar
         of type `flt_type`
     """
-    if not flt_type is np.longdouble:
-        return flt_type(val)
-    f64 = np.float64(val)
-    res = val - int(f64)
-    return np.longdouble(f64) + np.longdouble(res)
+    if flt_type is np.longdouble:
+        return _int2ld(val)
+    return flt_type(val)
+
+
+def _int2ld(val):
+    """ Convert int to long double
+
+    Why is this so complicated?
+
+    At least in numpy <= 1.6.1, numpy longdoubles do not correctly convert to
+    ints, and ints do not correctly convert to longdoubles.  Specifically, in
+    both cases, the values seem to go through float64 conversion on the way, so
+    to convert better, we need to split into float64s and sum up the result.
+    """
+    faval = np.longdouble(0)
+    while val != 0:
+        f64 = np.float64(val)
+        faval += f64
+        val -= int(f64)
+    return faval
 
 
 def floor_exact(val, flt_type):
@@ -299,33 +315,15 @@ def floor_exact(val, flt_type):
     flt_type = np.dtype(flt_type).type
     sign = val > 0 and 1 or -1
     aval = abs(val)
-    if flt_type is np.longdouble:
-        # longdouble seems to go through casting to float64, so getting the
-        # value into float128 with the given precision needs to go through two
-        # steps, first float64, then adding the remainder.
-        f64 = floor_exact(aval, np.float64)
-        i64 = int(f64)
-        assert f64 == i64
-        res = aval - i64
-        try:
-            faval = flt_type(i64) + flt_type(res)
-        except OverflowError:
-            faval = np.inf
-        if faval == np.inf:
-            return sign * np.finfo(flt_type).max
-        if (faval - f64) <= res:
-            # Float casting has made the value go down or stay the same
-            return sign * faval
-    else: # Normal case
-        try:
-            faval = flt_type(aval)
-        except OverflowError:
-            faval = np.inf
-        if faval == np.inf:
-            return sign * np.finfo(flt_type).max
-        if int(faval) <= aval:
-            # Float casting has made the value go down or stay the same
-            return sign * faval
+    try: # int_to_float deals with longdouble safely
+        faval = int_to_float(aval, flt_type)
+    except OverflowError:
+        faval = np.inf
+    if faval == np.inf:
+        return sign * np.finfo(flt_type).max
+    if as_int(faval) <= aval: # as_int deals with longdouble safely
+        # Float casting has made the value go down or stay the same
+        return sign * faval
     # Float casting made the value go up
     nmant = flt2nmant(flt_type)
     biggest_gap = 2**(floor_log2(aval) - nmant)
