@@ -192,8 +192,8 @@ def as_int(x, check=True):
     This is useful because the numpy int(val) mechanism is broken for large
     values in np.longdouble.
 
-    This routine will still break for values that are outside the range of
-    float64.
+    This routine will still raise an OverflowError for values that are outside
+    the range of float64.
 
     Parameters
     ----------
@@ -220,24 +220,31 @@ def as_int(x, check=True):
     >>> as_int(2.1, check=False)
     2
     """
-    ix = int(x)
-    if ix == x:
-        return ix
+    x = np.array(x, copy=True)
     fx = np.floor(x)
     if check and fx != x:
         raise FloatingError('Not an integer: %s' % x)
-    f64 = np.float64(fx)
-    i64 = int(f64)
-    assert f64 == i64
-    res = fx - f64
-    return ix + int(res)
+    if not fx.dtype.type == np.longdouble:
+        return int(x)
+    # Subtract float64 chunks until we have all of the number. If the int is too
+    # large, it will overflow
+    ret = 0
+    while fx != 0:
+        f64 = np.float64(fx)
+        fx -= f64
+        ret += int(f64)
+    return ret
 
 
 def int_to_float(val, flt_type):
     """ Convert integer `val` to floating point type `flt_type`
 
-    Useful because casting to ``np.longdouble`` loses precision as it appears to
-    go through casting to np.float64.
+    Why is this so complicated?
+
+    At least in numpy <= 1.6.1, numpy longdoubles do not correctly convert to
+    ints, and ints do not correctly convert to longdoubles.  Specifically, in
+    both cases, the values seem to go through float64 conversion on the way, so
+    to convert better, we need to split into float64s and sum up the result.
 
     Parameters
     ----------
@@ -251,21 +258,8 @@ def int_to_float(val, flt_type):
     f : numpy scalar
         of type `flt_type`
     """
-    if flt_type is np.longdouble:
-        return _int2ld(val)
-    return flt_type(val)
-
-
-def _int2ld(val):
-    """ Convert int to long double
-
-    Why is this so complicated?
-
-    At least in numpy <= 1.6.1, numpy longdoubles do not correctly convert to
-    ints, and ints do not correctly convert to longdoubles.  Specifically, in
-    both cases, the values seem to go through float64 conversion on the way, so
-    to convert better, we need to split into float64s and sum up the result.
-    """
+    if not flt_type is np.longdouble:
+        return flt_type(val)
     faval = np.longdouble(0)
     while val != 0:
         f64 = np.float64(val)

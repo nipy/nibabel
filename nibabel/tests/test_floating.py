@@ -2,7 +2,8 @@
 """
 import numpy as np
 
-from ..casting import floor_exact, flt2nmant, as_int, FloatingError
+from ..casting import (floor_exact, flt2nmant, as_int, FloatingError,
+                       int_to_float, floor_log2)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises
@@ -36,15 +37,64 @@ def test_as_int():
     assert_equal(as_int(-2.1, False), -2)
     v = np.longdouble(2**64)
     assert_equal(as_int(v), 2**64)
-    # Have all long doubles got this precision?  Windows 32-bit longdouble
-    # appears to have 52 bit precision, but we avoid that by checking for known
-    # precisions that are less than that required
+    # Have all long doubles got 63+1 binary bits of precision?  Windows 32-bit
+    # longdouble appears to have 52 bit precision, but we avoid that by checking
+    # for known precisions that are less than that required
     try:
         nmant = flt2nmant(np.longdouble)
     except FloatingError:
-        nmant = None # Unknown precision, test and hope
-    if nmant is None or nmant >= 63:
-        assert_equal(as_int(v+2), 2**64+2)
+        nmant = 63 # Unknown precision, let's hope it's at least 63
+    v = np.longdouble(2) ** (nmant + 1) - 1
+    assert_equal(as_int(v), 2**(nmant + 1) -1)
+    # Check for predictable overflow
+    nexp64 = floor_log2(np.finfo(np.float64).max)
+    val = np.longdouble(2**nexp64) * 2 # outside float64 range
+    assert_raises(OverflowError, as_int, val)
+    assert_raises(OverflowError, as_int, -val)
+
+
+def test_int_to_float():
+    # Concert python integer to floating point
+    # Standard float types just return cast value
+    for ie3 in IEEE_floats:
+        nmant = flt2nmant(ie3)
+        for p in range(nmant + 3):
+            i = 2**p+1
+            assert_equal(int_to_float(i, ie3), ie3(i))
+            assert_equal(int_to_float(-i, ie3), ie3(-i))
+        # IEEEs in this case are binary formats only
+        nexp = floor_log2(np.finfo(ie3).max)
+        # Values too large for the format
+        smn, smx = -2**(nexp+1), 2**(nexp+1)
+        if ie3 is np.float64:
+            assert_raises(OverflowError, int_to_float, smn, ie3)
+            assert_raises(OverflowError, int_to_float, smx, ie3)
+        else:
+            assert_equal(int_to_float(smn, ie3), ie3(smn))
+            assert_equal(int_to_float(smx, ie3), ie3(smx))
+    # Longdoubles do better than int, we hope
+    LD = np.longdouble
+    # up to integer precision of float64 nmant, we get the same result as for
+    # casting directly
+    for p in range(flt2nmant(np.float64)+2): # implicit
+        i = 2**p-1
+        assert_equal(int_to_float(i, LD), LD(i))
+        assert_equal(int_to_float(-i, LD), LD(-i))
+    # Above max of float64, we're hosed
+    nexp64 = floor_log2(np.finfo(np.float64).max)
+    smn64, smx64 = -2**(nexp64+1), 2**(nexp64+1)
+    # The algorithm here implemented goes through float64, so supermax and
+    # supermin will cause overflow errors
+    assert_raises(OverflowError, int_to_float, smn64, LD)
+    assert_raises(OverflowError, int_to_float, smx64, LD)
+    try:
+        nmant = flt2nmant(np.longdouble)
+    except FloatingError: # don't know where to test
+        return
+    # Assuming nmant is greater than that for float64, test we recover precision
+    i = 2**(nmant+1)-1
+    assert_equal(as_int(int_to_float(i, LD)), i)
+    assert_equal(as_int(int_to_float(-i, LD)), -i)
 
 
 def test_floor_exact_16():
