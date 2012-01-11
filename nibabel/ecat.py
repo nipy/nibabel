@@ -465,6 +465,7 @@ class EcatMlist(object):
         >>> mlist.get_frame_order()
         {0: [0, 16842758.0]}
 
+        
         """
         mlist  = self._mlist
         ids = mlist[:, 0].copy()
@@ -499,7 +500,19 @@ class EcatMlist(object):
         frame_dict: dict mapping order_stored -> frame in series
                where frame in series counts from 1; [1,2,3,4...]
 
+        Examples
+        --------
+        >>> import os
+        >>> import nibabel as nib
+        >>> nibabel_dir = os.path.dirname(nib.__file__)
+        >>> from nibabel import ecat
+        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+        >>> img = ecat.load(ecat_file)
+        >>> mlist = img.get_mlist()
+        >>> mlist.get_series_framenumbers()
+        {0: 1}
 
+        
         
         """
         frames_order = self.get_frame_order()
