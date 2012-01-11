@@ -442,9 +442,9 @@ class EcatMlist(object):
         return mlist
 
     def get_frame_order(self):
-        """Returns the order of the frames in the file
-        Useful as sometimes Frames are not stored in the file in
-        chronological order, and can be used to extract frames
+        """Returns the order of the frames stored in the file
+        Sometimes Frames are not stored in the file in
+        chronological order, this can be used to extract frames
         in correct order
 
         Returns
@@ -467,17 +467,50 @@ class EcatMlist(object):
 
         """
         mlist  = self._mlist
-        ind = mlist[:,0] > 0
-        nframes = ind.shape[0]
-        tmp = mlist[ind,0]
-        tmp.sort()
-        frame_dict = {}
+        ids = mlist[:, 0].copy()
+        n_valid = np.sum(ids > 0)
+        ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
+        valid_order = np.argsort(ids)
+        if not all(valid_order == sorted(valid_order)):
+            #raise UserWarning if Frames stored out of order
+            warnings.warn_explicit('Frames stored out of order;'\
+                          'true order = %s\n'\
+                          'frames will be accessed in order '\
+                          'STORED, NOT true order'%(valid_order),
+                          UserWarning,'ecat', 0)
         id_dict = {}
-        for fn, id in enumerate(mlist[ind,0]):
-            mlist_n = np.where(tmp == id)[0][0]
-            id_dict.update({fn:[mlist_n,id]})
-        
+        for i in range(n_valid):
+            id_dict[i] = [valid_order[i], ids[valid_order[i]]]
+                
         return id_dict
+
+    def get_series_framenumbers(self):
+        """ Returns framenumber of data as it was collected,
+        as part of a series; not just the order of how it was
+        stored in this or across other files
+
+        For example, if the data is split between multiple files
+        this should give you the true location of this frame as
+        collected in the series
+        (Frames are numbered starting at ONE (1) not Zero)
+
+        Returns
+        -------
+        frame_dict: dict mapping order_stored -> frame in series
+               where frame in series counts from 1; [1,2,3,4...]
+
+
+        
+        """
+        frames_order = self.get_frame_order()
+        nframes = self.hdr['num_frames']
+        mlist_nframes = len(frames_order)
+        trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
+        frame_dict = {}
+        for frame_stored, (true_order, _) in frames_order.items():
+            #frame as stored in file -> true number in series
+            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+        return frame_dict
     
 class EcatSubHeader(object):
 
@@ -625,7 +658,8 @@ class EcatSubHeader(object):
 
 
 class EcatImage(SpatialImage):
-    """This class returns a list of Ecat images, with one image(hdr/data) per frame
+    """This class returns a list of Ecat images,
+    with one image(hdr/data) per frame
     """
     _header = EcatHeader
     header_class = _header
@@ -650,7 +684,8 @@ class EcatImage(SpatialImage):
         def __array__(self):
             ''' Cached read of data from file
             This reads ALL FRAMES into one array, can be memory expensive
-            use subheader.data_from_fileobj(frame) for less memeory intensive reads
+            use subheader.data_from_fileobj(frame) for less memory intensive
+            reads
             '''
             if self._data is None:
                 self._data = np.empty(self.shape)
@@ -664,8 +699,9 @@ class EcatImage(SpatialImage):
                  extra = None, file_map = None):
         """ Initialize Image
 
-        The image is a combination of (array, affine matrix, header, subheader,
-        mlist) with optional meta data in `extra`, and filename / file-like objects
+        The image is a combination of
+        (array, affine matrix, header, subheader, mlist)
+        with optional meta data in `extra`, and filename / file-like objects
         contained in the `file_map`.
 
         Parameters
