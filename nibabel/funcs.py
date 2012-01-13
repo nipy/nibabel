@@ -1,3 +1,4 @@
+
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -93,7 +94,7 @@ def concat_images(images, check_affines=True):
     Parameters
     ----------
     images : sequence
-       sequence of paths to be loaded as ``SpatialImage``\s
+       sequence of ``SpatialImage`` or of filenames\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
@@ -105,14 +106,19 @@ def concat_images(images, check_affines=True):
        dimension
     '''
     n_imgs = len(images)
-    img0 = load(images[0])
+    img0 = images[0]
+    is_filename = False
+    if not hasattr(img0, 'get_data'):
+        img0 = load(img0)
+        is_filename = True
     i0shape = img0.shape
     affine = img0.get_affine()
     header = img0.get_header()
     out_shape = (n_imgs, ) + i0shape
     out_data = np.empty(out_shape)
     for i, img in enumerate(images):
-        img = load(img)
+        if is_filename:
+            img = load(img)
         if check_affines:
             if not np.all(img.get_affine() == affine):
                 raise ValueError('Affines do not match')
