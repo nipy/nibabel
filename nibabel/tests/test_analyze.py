@@ -532,6 +532,37 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         # Not OK - affine wrong shape
         assert_raises(ValueError, IC, data, np.diag([2, 3, 4]))
 
+    def test_header_updating(self):
+        # Only update on changes
+        img_klass = self.image_class
+        # With a None affine - don't overwrite zooms
+        img = img_klass(np.zeros((2,3,4)), None)
+        hdr = img.get_header()
+        hdr.set_zooms((4,5,6))
+        # Save / reload using bytes IO objects
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        hdr_back = img.from_file_map(img.file_map).get_header()
+        assert_array_equal(hdr_back.get_zooms(), (4,5,6))
+        # With a real affine, update zooms
+        img = img_klass(np.zeros((2,3,4)), np.diag([2,3,4,1]), hdr)
+        hdr = img.get_header()
+        assert_array_equal(hdr.get_zooms(), (2, 3, 4))
+        # Modify affine in-place? Update on save.
+        img.get_affine()[0,0] = 9
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        hdr_back = img.from_file_map(img.file_map).get_header()
+        assert_array_equal(hdr.get_zooms(), (9, 3, 4))
+        # Modify data in-place?  Update on save
+        data = img.get_data()
+        data.shape = (3, 2, 4)
+        img.to_file_map()
+        img_back = img.from_file_map(img.file_map)
+        assert_array_equal(img_back.shape, (3, 2, 4))
+
 
 def test_unsupported():
     # analyze does not support uint32

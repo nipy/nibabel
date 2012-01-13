@@ -177,6 +177,23 @@ class TestSpatialImage(TestCase):
     # class for testing images
     image_class = SpatialImage
 
+    def test_isolation(self):
+        # Test image isolated from external changes to header and affine
+        img_klass = self.image_class
+        arr = np.arange(3, dtype=np.int16)
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        assert_array_equal(img.get_affine(), aff)
+        aff[0,0] = 99
+        assert_false(np.all(img.get_affine() == aff))
+        # header, created by image creation
+        ihdr = img.get_header()
+        # Pass it back in
+        img = img_klass(arr, aff, ihdr)
+        # Check modifying header outside does not modify image
+        ihdr.set_zooms((4,))
+        assert_not_equal(img.get_header(), ihdr)
+
     def test_images(self):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
