@@ -63,8 +63,13 @@ def test_stamper():
         assert_equal(ster(d1), ster(d2))
         # Dictionaries
         di1 = dict(a = 1, b = 2)
-        di2 = dict(a = 1, b = 2)
+        # Entry order does not matter - but this is difficult to test because
+        # key order is not defined
+        di2 = dict(b = 2, a = 1)
         assert_equal(ster(di1), ster(di2))
+        # Dictionaries different
+        assert_not_equal(ster(di1), ster(dict(b = 2, a = 2)))
+        assert_not_equal(ster(di1), ster(dict(b = 2, c = 1)))
         # They are not just defined by their items, but by their type
         assert_not_equal(ster(di1), ster(di2.items()))
         # Inherited types don't work because they might have more state

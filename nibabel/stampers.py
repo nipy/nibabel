@@ -206,7 +206,7 @@ class Stamper(object):
         if tobj in (str, unicode, bytes, int, float):
             return tobj, obj
         if tobj is dict:
-            return dict, self(obj.items())
+            return dict, sorted(self(obj.items()))
         # Recurse into known sequence types
         if tobj in (list, tuple):
             return tobj(self(v) for v in obj)
