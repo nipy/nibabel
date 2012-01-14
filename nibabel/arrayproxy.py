@@ -66,7 +66,7 @@ class ArrayProxy(object):
         """ Return stamp for current state of `self`
 
         The result somewhat uniquely identifies the state of the array proxy.
-        It assumes that the underly ``self.file_like`` does not get modified.
+        It assumes that the underlying ``self.file_like`` does not get modified.
         Specifically, if you open a file-like object, pass into an arrayproxy
         (call it ``ap``) and get the stamp (say with ``Stamper()(ap)``, then
         this stamp will uniquely identify the result of ``np.asarry(ap)`` only
