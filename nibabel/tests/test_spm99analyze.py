@@ -105,6 +105,10 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
         test_analyze.TestAnalyzeImage.test_data_hdr_cache
     ))
 
+    test_header_updating = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_header_updating
+    ))
+
     @scipy_skip
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types
