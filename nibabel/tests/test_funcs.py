@@ -7,68 +7,57 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for image funcs '''
+from __future__ import with_statement
 
-import os
-import tempfile
 import numpy as np
 
 from ..funcs import concat_images, as_closest_canonical, OrientationError
 from ..nifti1 import Nifti1Image
 from ..loadsave import save
 
+from ..tmpdirs import InTemporaryDirectory
+
 from numpy.testing import assert_array_equal
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
+
+_counter = 0
+def _as_fname(img):
+    global _counter
+    fname = 'img%3d.nii' % _counter
+    _counter = _counter + 1
+    save(img, fname)
+    return fname
+
 
 def test_concat():
     shape = (1,2,5)
     data0 = np.arange(10).reshape(shape)
     affine = np.eye(4)
-    img0 = Nifti1Image(data0, affine)
+    img0_mem = Nifti1Image(data0, affine)
     data1 = data0 - 10
-    img1 = Nifti1Image(data1, affine)
-    all_imgs = concat_images([img0, img1])
+    img1_mem = Nifti1Image(data1, affine)
+    img2_mem = Nifti1Image(data1, affine+1)
+    img3_mem = Nifti1Image(data1.T, affine)
     all_data = np.concatenate(
         [data0[:,:,:,np.newaxis],data1[:,:,:,np.newaxis]],3)
-    assert_array_equal(all_imgs.get_data(), all_data)
-    assert_array_equal(all_imgs.get_affine(), affine)
-    # check that not-matching affines raise error
-    img2 = Nifti1Image(data1, affine+1)
-    assert_raises(ValueError, concat_images, [img0, img2])
-    img2 = Nifti1Image(data1.T, affine)
-    assert_raises(ValueError, concat_images, [img0, img2])
-    # except if check_affines is False
-    all_imgs = concat_images([img0, img1])
-    assert_array_equal(all_imgs.get_data(), all_data)
-    assert_array_equal(all_imgs.get_affine(), affine)
-
-
-def test_concat_with_filenames():
-    shape = (1,2,5)
-    data0 = np.arange(10).reshape(shape)
-    affine = np.eye(4)
-    img0 = Nifti1Image(data0, affine)
-    img0_path = tempfile.mkstemp(suffix='.nii')[1]
-    save(img0, img0_path)
-    data1 = data0 - 10
-    img1 = Nifti1Image(data1, affine)
-    img1_path = tempfile.mkstemp(suffix='.nii')[1]
-    save(img1, img1_path)
-    all_imgs = concat_images([img0_path, img1_path])
-    all_data = np.concatenate(
-        [data0[:,:,:,np.newaxis],data1[:,:,:,np.newaxis]],3)
-    assert_array_equal(all_imgs.get_data(), all_data)
-    assert_array_equal(all_imgs.get_affine(), affine)
-    # check that not-matching affines raise error
-    img2 = Nifti1Image(data1, affine+1)
-    assert_raises(ValueError, concat_images, [img0, img2])
-    img2 = Nifti1Image(data1.T, affine)
-    assert_raises(ValueError, concat_images, [img0, img2])
-    # except if check_affines is False
-    all_imgs = concat_images([img0, img1])
-    assert_array_equal(all_imgs.get_data(), all_data)
-    assert_array_equal(all_imgs.get_affine(), affine)
-    os.remove(img0_path)
-    os.remove(img1_path)
+    # Check filenames and in-memory images work
+    with InTemporaryDirectory():
+        imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
+        img_files = [_as_fname(img) for img in imgs]
+        for img0, img1, img2, img3 in (imgs, img_files):
+            all_imgs = concat_images([img0, img1])
+            assert_array_equal(all_imgs.get_data(), all_data)
+            assert_array_equal(all_imgs.get_affine(), affine)
+            # check that not-matching affines raise error
+            assert_raises(ValueError, concat_images, [img0, img2])
+            assert_raises(ValueError, concat_images, [img0, img3])
+            # except if check_affines is False
+            all_imgs = concat_images([img0, img1])
+            assert_array_equal(all_imgs.get_data(), all_data)
+            assert_array_equal(all_imgs.get_affine(), affine)
+        # Delete images as prophylaxis for windows access errors
+        for img in imgs:
+            del(img)
 
 
 def test_closest_canonical():
