@@ -520,11 +520,14 @@ class EcatMlist(object):
         mlist_nframes = len(frames_order)
         trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
         frame_dict = {}
-        for frame_stored, (true_order, _) in frames_order.items():
-            #frame as stored in file -> true number in series
-            frame_dict[frame_stored] = trueframenumbers[true_order]+1
-        return frame_dict
-    
+        try:
+            for frame_stored, (true_order, _) in frames_order.items():
+                #frame as stored in file -> true number in series
+                frame_dict[frame_stored] = trueframenumbers[true_order]+1
+            return frame_dict
+        except:
+            raise IOError('Error in header or mlist order unknown')
+            
 class EcatSubHeader(object):
 
     _subhdrdtype = subhdr_dtype
