@@ -210,6 +210,8 @@ class TestAnalyzeHeader(_TestWrapStructBase):
             # dtype as output on get
             hdr.set_data_dtype(code)
             assert_equal(hdr.get_data_dtype(), npt)
+            hdr.set_data_dtype(npt)
+            assert_equal(hdr.get_data_dtype(), npt)
         for inp in unsupported_types:
             assert_raises(HeaderDataError,
                                 hdr.set_data_dtype,
