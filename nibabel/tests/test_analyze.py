@@ -114,6 +114,10 @@ class TestAnalyzeHeader(_TestWrapStructBase):
         assert_equal(message, 'sizeof_hdr should be 348; '
                            'set sizeof_hdr to 348')
         assert_raises(*raiser)
+        # RGB datatype does not raise error
+        hdr = HC()
+        hdr.set_data_dtype('RGB')
+        fhdr, message, raiser = self.log_chk(hdr, 0)
         # datatype not recognized
         hdr = HC()
         hdr['datatype'] = -1 # severity 40
@@ -194,13 +198,18 @@ class TestAnalyzeHeader(_TestWrapStructBase):
                            (8, np.int32),
                            (16, np.float32),
                            (32, np.complex64),
-                           (64, np.float64))
+                           (64, np.float64),
+                           (128, np.dtype([('R','u1'),
+                                           ('G', 'u1'),
+                                           ('B', 'u1')])))
         # and unsupported - here using some labels instead
         unsupported_types = (np.void, 'none', 'all', 0)
         hdr = self.header_class()
         for code, npt in supported_types:
             # Can set with code value, or numpy dtype, both return the
             # dtype as output on get
+            hdr.set_data_dtype(code)
+            assert_equal(hdr.get_data_dtype(), npt)
             hdr.set_data_dtype(npt)
             assert_equal(hdr.get_data_dtype(), npt)
         for inp in unsupported_types:

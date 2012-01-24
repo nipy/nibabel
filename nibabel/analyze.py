@@ -828,7 +828,7 @@ class AnalyzeHeader(WrapStruct):
             rep.problem_level = 40
             rep.problem_msg = 'data code %d not recognized' % code
         else:
-            if dtype.type is np.void:
+            if dtype.itemsize == 0:
                 rep.problem_level = 40
                 rep.problem_msg = 'data code %d not supported' % code
             else:
