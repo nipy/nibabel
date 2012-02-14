@@ -90,14 +90,20 @@ class ArrayWriter(object):
         data = self._array
         arr_dtype = data.dtype
         out_dtype = self._out_dtype
+        # There's a bug in np.can_cast (at least up to and including 1.6.1) such
+        # that any structured output type passes.  Check for this first.
+        if 'V' in (arr_dtype.kind, out_dtype.kind):
+            if arr_dtype == out_dtype:
+                return False
+            raise WriterError('Cannot cast to or from non-numeric types')
         if np.can_cast(arr_dtype, out_dtype):
             return False
-        if 'V' in (arr_dtype.kind, out_dtype.kind):
-            raise WriterError('Cannot cast to or from non-numeric types')
+        # Direct casting for complex output from any numeric type
         if out_dtype.kind == 'c':
             return False
         if arr_dtype.kind == 'c':
             raise WriterError('Cannot cast complex types to non-complex')
+        # Direct casting for float output from any non-complex numeric type
         if out_dtype.kind == 'f':
             return False
         # Now we need to look at the data for special cases
@@ -105,12 +111,19 @@ class ArrayWriter(object):
         if (mn, mx) in ((0, 0), (np.inf, -np.inf)):
             # Data all zero, or no data is finite
             return False
+        # Floats -> (u)ints always need scaling
         if arr_dtype.kind == 'f':
             return True
+        # (u)int input, (u)int output
         assert arr_dtype.kind in 'iu' and out_dtype.kind in 'iu'
         info = np.iinfo(out_dtype)
-        if mn >= info.min and mx <= info.max:
-                return False
+        # No scaling needed if data already fits in output type
+        # But note - we need to convert to ints, to avoid conversion to float
+        # during comparisons, and therefore int -> float conversions which are
+        # not exact.  Only a problem for uint64 though.  We need as_int here to
+        # work around a numpy 1.4.1 bug in uint conversion
+        if as_int(mn) >= as_int(info.min) and as_int(mx) <= as_int(info.max):
+            return False
         return True
 
     @property

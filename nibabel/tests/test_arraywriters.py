@@ -97,6 +97,83 @@ def test_arraywriters():
             assert_true(arr_back.flags.c_contiguous)
 
 
+def test_scaling_needed():
+    # Structured types return True if dtypes same, raise error otherwise
+    dt_def = [('f', 'i4')]
+    arr = np.ones(10, dt_def)
+    for t in NUMERIC_TYPES:
+        assert_raises(WriterError, ArrayWriter, arr, t)
+        narr = np.ones(10, t)
+        assert_raises(WriterError, ArrayWriter, narr, dt_def)
+    assert_false(ArrayWriter(arr).scaling_needed())
+    assert_false(ArrayWriter(arr, dt_def).scaling_needed())
+    # Any numeric type that can cast, needs no scaling
+    for in_t in NUMERIC_TYPES:
+        for out_t in NUMERIC_TYPES:
+            if np.can_cast(in_t, out_t):
+                aw = ArrayWriter(np.ones(10, in_t), out_t)
+                assert_false(aw.scaling_needed())
+    for in_t in NUMERIC_TYPES:
+        # Numeric types to complex never need scaling
+        arr = np.ones(10, in_t)
+        for out_t in COMPLEX_TYPES:
+            assert_false(ArrayWriter(arr, out_t).scaling_needed())
+    # Attempts to scale from complex to anything else fails
+    for in_t in COMPLEX_TYPES:
+        for out_t in FLOAT_TYPES + IUINT_TYPES:
+            arr = np.ones(10, in_t)
+            assert_raises(WriterError, ArrayWriter, arr, out_t)
+    # Scaling from anything but complex to floats is OK
+    for in_t in FLOAT_TYPES + IUINT_TYPES:
+        arr = np.ones(10, in_t)
+        for out_t in FLOAT_TYPES:
+            assert_false(ArrayWriter(arr, out_t).scaling_needed())
+    # For any other output type, arrays with no data don't need scaling
+    for in_t in FLOAT_TYPES + IUINT_TYPES:
+        arr_0 = np.zeros(10, in_t)
+        arr_e = []
+        for out_t in IUINT_TYPES:
+            assert_false(ArrayWriter(arr_0, out_t).scaling_needed())
+            assert_false(ArrayWriter(arr_e, out_t).scaling_needed())
+    # Going to (u)ints, non-finite arrays don't need scaling
+    for in_t in FLOAT_TYPES:
+        arr_nan = np.zeros(10, in_t) + np.nan
+        arr_inf = np.zeros(10, in_t) + np.inf
+        arr_minf = np.zeros(10, in_t) - np.inf
+        arr_mix = np.array([np.nan, np.inf, -np.inf], dtype=in_t)
+        for out_t in IUINT_TYPES:
+            for arr in (arr_nan, arr_inf, arr_minf, arr_mix):
+                assert_false(ArrayWriter(arr, out_t).scaling_needed())
+    # Floats as input always need scaling
+    for in_t in FLOAT_TYPES:
+        arr = np.ones(10, in_t)
+        for out_t in IUINT_TYPES:
+            # We need an arraywriter that will tolerate construction when
+            # scaling is needed
+            assert_true(SlopeArrayWriter(arr, out_t).scaling_needed())
+    # in-range (u)ints don't need scaling
+    for in_t in IUINT_TYPES:
+        in_info = np.iinfo(in_t)
+        in_min, in_max = in_info.min, in_info.max
+        for out_t in IUINT_TYPES:
+            out_info = np.iinfo(out_t)
+            out_min, out_max = out_info.min, out_info.max
+            if in_min >= out_min and in_max <= out_max:
+                arr = np.array([in_min, in_max], in_t)
+                assert_true(np.can_cast(arr.dtype, out_t))
+                # We've already tested this with can_cast above, but...
+                assert_false(ArrayWriter(arr, out_t).scaling_needed())
+                continue
+            # The output data type does not include the input data range
+            max_min = max(in_min, out_min) # 0 for input or output uint
+            min_max = min(in_max, out_max)
+            arr = np.array([max_min, min_max], in_t)
+            assert_false(ArrayWriter(arr, out_t).scaling_needed())
+            assert_true(SlopeInterArrayWriter(arr + 1, out_t).scaling_needed())
+            if in_t in INT_TYPES:
+                assert_true(SlopeInterArrayWriter(arr - 1, out_t).scaling_needed())
+
+
 def test_special_rt():
     # Test that zeros; none finite - round trip to zeros
     for arr in (np.array([np.inf, np.nan, -np.inf]),
