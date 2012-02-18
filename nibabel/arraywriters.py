@@ -66,6 +66,7 @@ class ArrayWriter(object):
         else:
             out_dtype = np.dtype(out_dtype)
         self._out_dtype = out_dtype
+        self._finite_range = None
         if self.scaling_needed():
             raise WriterError("Scaling needed but cannot scale")
 
@@ -138,11 +139,8 @@ class ArrayWriter(object):
 
     def finite_range(self):
         """ Return (maybe cached) finite range of data array """
-        try:
-            return self._finite_range
-        except AttributeError:
-            pass
-        self._finite_range = finite_range(self._array)
+        if self._finite_range is None:
+            self._finite_range = finite_range(self._array)
         return self._finite_range
 
     def _writing_range(self):
@@ -223,12 +221,16 @@ class SlopeArrayWriter(ArrayWriter):
         else:
             out_dtype = np.dtype(out_dtype)
         self._out_dtype = out_dtype
-        self.needs_scale = self.scaling_needed()
         self.scaler_dtype = np.dtype(scaler_dtype)
-        self.slope = 1.0
-        self._scale_calced = False
+        self.reset()
         if calc_scale:
             self.calc_scale()
+
+    def reset(self):
+        """ Set object to values before any scaling calculation """
+        self.slope = 1.0
+        self._finite_range = None
+        self._scale_calced = False
 
     def _get_slope(self):
         return self._slope
@@ -242,10 +244,11 @@ class SlopeArrayWriter(ArrayWriter):
         # If we've run already, return unless told otherwise
         if not force and self._scale_calced:
             return
-        self._scale_calced = True
+        self.reset()
         if not self.scaling_needed():
             return
         self._do_scaling()
+        self._scale_calced = True
 
     def to_fileobj(self, fileobj, order='F', nan2zero=True):
         """ Write array into `fileobj`
@@ -361,11 +364,15 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         >>> (aw.slope, aw.inter) == (1.0, 128)
         True
         """
-        super(SlopeInterArrayWriter, self).__init__(array, out_dtype, False,
+        super(SlopeInterArrayWriter, self).__init__(array,
+                                                    out_dtype,
+                                                    calc_scale,
                                                     scaler_dtype)
+
+    def reset(self):
+        """ Set object to values before any scaling calculation """
+        super(SlopeInterArrayWriter, self).reset()
         self.inter = 0.0
-        if calc_scale:
-            self.calc_scale()
 
     def _get_inter(self):
         return self._inter

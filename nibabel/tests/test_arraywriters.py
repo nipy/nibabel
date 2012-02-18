@@ -268,7 +268,31 @@ def test_calculate_scale():
     assert_raises(WriterError, SAW, npa([-1, 1], dtype=np.int8), np.uint8)
     # Offset trick can't work when max is out of range
     aw = SIAW(npa([-1, 255], dtype=np.int16), np.uint8)
-    assert_not_equal(get_slope_inter(aw), (1.0, -1.0))
+    slope_inter = get_slope_inter(aw)
+    assert_not_equal(slope_inter, (1.0, -1.0))
+
+
+def test_resets():
+    # Test reset of values, caching of scales
+    for klass, inp, outp in ((SlopeInterArrayWriter, (1, 511), (2.0, 1.0)),
+                             (SlopeArrayWriter, (0, 510), (2.0, 0.0))):
+        arr = np.array(inp)
+        outp = np.array(outp)
+        aw = klass(arr, np.uint8)
+        assert_array_equal(get_slope_inter(aw), outp)
+        aw.calc_scale() # cached no change
+        assert_array_equal(get_slope_inter(aw), outp)
+        aw.calc_scale(force=True) # same data, no change
+        assert_array_equal(get_slope_inter(aw), outp)
+        # Change underlying array
+        aw.array[:] = aw.array * 2
+        aw.calc_scale() # cached still
+        assert_array_equal(get_slope_inter(aw), outp)
+        aw.calc_scale(force=True) # new data, change
+        assert_array_equal(get_slope_inter(aw), outp * 2)
+        # Test reset
+        aw.reset()
+        assert_array_equal(get_slope_inter(aw), (1.0, 0.0))
 
 
 def test_no_offset_scale():
