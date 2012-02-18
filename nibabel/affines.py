@@ -79,6 +79,10 @@ def apply_affine(aff, pts):
 def append_diag(aff, steps, starts=()):
     """ Add diagonal elements `steps` and translations `starts` to affine
 
+    Typical use is in expanding 4x4 affines to larger dimensions.  Nipy is the
+    main consumer because it uses NxM affines, whereas we generally only use 4x4
+    affines; the routine is here for convenience.
+
     Parameters
     ----------
     aff : 2D array
