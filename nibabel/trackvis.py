@@ -11,6 +11,7 @@ from .py3k import asbytes, asstr
 from .volumeutils import (native_code, swapped_code, endian_codes,
                           allopen, rec2dict)
 from .orientations import aff2axcodes
+from .affines import apply_affine
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
@@ -170,8 +171,6 @@ def read(fileobj, as_generator=False, points_space=None):
         affine = hdr['vox_to_ras']
         tv2vx = np.diag((1. / zooms).tolist() + [1])
         tv2mm = np.dot(affine, tv2vx).astype('f4')
-        rzs = tv2mm[:3,:3].T
-        trans = tv2mm[:3,3][None, :]
     n_s = hdr['n_scalars']
     n_p = hdr['n_properties']
     f4dt = np.dtype(endianness + 'f4')
@@ -211,7 +210,7 @@ def read(fileobj, as_generator=False, points_space=None):
             if points_space == 'voxel':
                 xyz = xyz / zooms
             elif points_space == 'rasmm':
-                xyz = np.dot(xyz, rzs) + trans
+                xyz = apply_affine(tv2mm, pts)
             if n_s:
                 scalars = pts[:,3:]
             yield (xyz, scalars, ps)
@@ -368,8 +367,6 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
         vx2tv = np.diag(zooms.tolist() + [1])
         mm2vx = npl.inv(affine)
         mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
-        rzs = mm2tv[:3,:3].T
-        trans = mm2tv[:3,3][None, :]
     # write header
     fileobj = allopen(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
@@ -385,7 +382,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
         if points_space == 'voxel':
             pts = pts * zooms
         elif points_space == 'rasmm':
-            pts = np.dot(pts, rzs) + trans
+            pts = apply_affine(mm2tv, pts)
         # This call ensures that the data are 32-bit floats, and that
         # the endianness is OK.
         if pts.dtype != f4dt:
@@ -701,7 +698,7 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
         set_order = False
     try:
         version = trk_hdr['version']
-    except KeyError, ValueError: # dict or structured array
+    except (KeyError, ValueError): # dict or structured array
         version = 2
     if version == 2:
         trk_hdr['vox_to_ras'] = affine
