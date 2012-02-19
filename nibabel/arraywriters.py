@@ -23,7 +23,7 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import shared_range, int_to_float, as_int
+from .casting import shared_range, int_to_float, as_int, int_abs
 from .volumeutils import finite_range, array_to_file
 
 
@@ -277,11 +277,10 @@ class SlopeArrayWriter(ArrayWriter):
 
     def _do_scaling(self):
         arr = self._array
-        arr_dtype = arr.dtype
         out_dtype = self._out_dtype
         assert out_dtype.kind in 'iu'
         mn, mx = self.finite_range()
-        if arr_dtype.kind == 'f':
+        if arr.dtype.kind == 'f':
             # Float to (u)int scaling
             self._range_scale()
             return
@@ -291,10 +290,21 @@ class SlopeArrayWriter(ArrayWriter):
         if mx <= out_max and mn >= out_min: # already in range
             return
         # (u)int to (u)int scaling
+        self._iu2iu()
+
+    def _iu2iu(self):
+        # (u)int to (u)int scaling
+        mn, mx = self.finite_range()
         if self._out_dtype.kind == 'u':
+            # We're checking for a sign flip.  This can only work for uint
+            # output, because, for int output, the abs min of the type is
+            # greater than the abs max, so the data either fit into the range in
+            # the test above, or this test won't pass
             shared_min, shared_max = shared_range(self.scaler_dtype,
                                                   self._out_dtype)
-            if mx <= 0 and abs(mn) <= shared_max: # sign flip enough?
+            # Need abs that deals with max neg ints. abs problem only arises
+            # when all the data is set to max neg integer value
+            if mx <= 0 and int_abs(mn) <= shared_max: # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -406,42 +416,20 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
                       order=order,
                       nan2zero=nan2zero)
 
-    def _do_scaling(self):
-        """ Calculate / set scaling for floats/(u)ints to (u)ints
-        """
-        arr = self._array
-        arr_dtype = arr.dtype
-        out_dtype = self._out_dtype
-        assert out_dtype.kind in 'iu'
-        mn, mx = self.finite_range()
-        if mn == np.inf : # No valid data
-            return
-        if (mn, mx) == (0.0, 0.0): # Data all zero
-            return
-        if arr_dtype.kind == 'f':
-            # Float to (u)int scaling
-            self._range_scale()
-            return
+    def _iu2iu(self):
         # (u)int to (u)int
-        info = np.iinfo(out_dtype)
-        out_max, out_min = info.max, info.min
-        if mx <= out_max and mn >= out_min: # already in range
+        mn, mx = self.finite_range()
+        shared_min, shared_max = shared_range(self.scaler_dtype,
+                                              self._out_dtype)
+        # range may be greater than the largest integer for this type.
+        # as_int needed to work round numpy 1.4.1 int casting bug
+        type_range = as_int(shared_max) - as_int(shared_min)
+        mn2mx = as_int(mx) - as_int(mn)
+        if mn2mx <= type_range: # offset enough?
+            self.inter = mn - shared_min
             return
-        # (u)int to (u)int scaling
-        if self._out_dtype.kind == 'u':
-            shared_min, shared_max = shared_range(self.scaler_dtype,
-                                                  self._out_dtype)
-            # range may be greater than the largest integer for this type.
-            # as_int needed to work round numpy 1.4.1 int casting bug
-            mn2mx = as_int(mx) - as_int(mn)
-            if mn2mx <= shared_max: # offset enough?
-                self.inter = mn
-                return
-            if mx <= 0 and abs(mn) <= shared_max: # sign flip enough?
-                # -1.0 * arr will be in scaler_dtype precision
-                self.slope = -1.0
-                return
-        self._range_scale()
+        # Try slope options (sign flip) and then range scaling
+        super(SlopeInterArrayWriter, self)._iu2iu()
 
     def _range_scale(self):
         """ Calculate scaling, intercept based on data range and output type """

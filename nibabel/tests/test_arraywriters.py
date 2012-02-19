@@ -312,6 +312,10 @@ def test_no_offset_scale():
     assert_equal(aw.slope, 2)
     aw = SAW(np.array([-128 * 2.0, 127], dtype=np.float32), np.int8)
     assert_equal(aw.slope, 2)
+    # Test that nasty abs behavior does not upset us
+    n = -2**15
+    aw = SAW(np.array([n, n], dtype=np.int16), np.uint8)
+    assert_array_almost_equal(aw.slope, n / 255.0, 5)
 
 
 def test_with_offset_scale():
@@ -325,6 +329,10 @@ def test_with_offset_scale():
     assert_equal((aw.slope, aw.inter), (1, -1)) # offset only
     aw = SIAW(np.array([-1, 255], dtype=np.int16), np.uint8)
     assert_not_equal((aw.slope, aw.inter), (1, -1)) # Too big for offset only
+    aw = SIAW(np.array([-256, -2], dtype=np.int16), np.uint8)
+    assert_equal((aw.slope, aw.inter), (1, -256)) # offset only
+    aw = SIAW(np.array([-256, -2], dtype=np.int16), np.int8)
+    assert_equal((aw.slope, aw.inter), (1, -128)) # offset only
 
 
 def test_io_scaling():
