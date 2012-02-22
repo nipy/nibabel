@@ -23,7 +23,7 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import shared_range, int_to_float, as_int, int_abs
+from .casting import int_to_float, as_int, int_abs
 from .volumeutils import finite_range, array_to_file
 
 
@@ -298,13 +298,12 @@ class SlopeArrayWriter(ArrayWriter):
         if self._out_dtype.kind == 'u':
             # We're checking for a sign flip.  This can only work for uint
             # output, because, for int output, the abs min of the type is
-            # greater than the abs max, so the data either fit into the range in
-            # the test above, or this test won't pass
-            shared_min, shared_max = shared_range(self.scaler_dtype,
-                                                  self._out_dtype)
+            # greater than the abs max, so the data either fit into the range
+            # (tested for in _do_scaling), or this test can't pass
             # Need abs that deals with max neg ints. abs problem only arises
             # when all the data is set to max neg integer value
-            if mx <= 0 and int_abs(mn) <= shared_max: # sign flip enough?
+            imax = np.iinfo(self._out_dtype).max
+            if mx <= 0 and int_abs(mn) <= imax: # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -313,27 +312,29 @@ class SlopeArrayWriter(ArrayWriter):
     def _range_scale(self):
         """ Calculate scaling based on data range and output type """
         mn, mx = self.finite_range() # These can be floats or integers
-        # We need to allow for precision of the type to which we will scale
-        # These will be floats of type scaler_dtype
-        shared_min, shared_max = shared_range(self.scaler_dtype,
-                                              self._out_dtype)
-        # But we want maximum precision for the calculations
-        shared_min, shared_max = np.array([shared_min, shared_max],
-                                          dtype = np.longdouble)
+        out_dtype = self._out_dtype
+        if out_dtype.kind == 'f':
+            t_mn_mx = np.finfo(out_dtype).min, np.finfo(out_dtype).max
+            # But we want maximum precision for the calculations. Casting will
+            # not lose precision because min/max are of fp type.
+            t_min, t_max = np.array(t_mn_mx, dtype = np.longdouble)
+        else: # (u)int
+            t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
+            t_min, t_max = [int_to_float(v, np.longdouble) for v in t_mn_mx]
         if self._out_dtype.kind == 'u':
             if mn < 0 and mx > 0:
                 raise WriterError('Cannot scale negative and positive '
                                   'numbers to uint without intercept')
             if mx <= 0: # All input numbers <= 0
-                self.slope = mn / shared_max
+                self.slope = mn / t_max
             else: # All input numbers > 0
-                self.slope = mx / shared_max
+                self.slope = mx / t_max
             return
-        # Scaling to int. We need the bigger slope of (mn/shared_min) and
-        # (mx/shared_max). If the mn or the max is the wrong side of 0, that
+        # Scaling to int. We need the bigger slope of (mn/t_min) and
+        # (mx/t_max). If the mn or the max is the wrong side of 0, that
         # will make these negative and so they won't worry us
-        mx_slope = mx / shared_max
-        mn_slope = mn / shared_min
+        mx_slope = mx / t_max
+        mn_slope = mn / t_min
         self.slope = np.max([mx_slope, mn_slope])
 
 
@@ -418,15 +419,15 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def _iu2iu(self):
         # (u)int to (u)int
-        mn, mx = self.finite_range()
-        shared_min, shared_max = shared_range(self.scaler_dtype,
-                                              self._out_dtype)
+        mn, mx = [as_int(v) for v in self.finite_range()]
         # range may be greater than the largest integer for this type.
         # as_int needed to work round numpy 1.4.1 int casting bug
-        type_range = as_int(shared_max) - as_int(shared_min)
-        mn2mx = as_int(mx) - as_int(mn)
+        out_dtype = self._out_dtype
+        t_min, t_max = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
+        type_range = as_int(t_max) - as_int(t_min)
+        mn2mx = mx - mn
         if mn2mx <= type_range: # offset enough?
-            self.inter = mn - shared_min
+            self.inter = mn - t_min
             return
         # Try slope options (sign flip) and then range scaling
         super(SlopeInterArrayWriter, self)._iu2iu()
@@ -434,15 +435,10 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     def _range_scale(self):
         """ Calculate scaling, intercept based on data range and output type """
         mn, mx = self.finite_range() # Values of self.array.dtype type
+        out_dtype = self._out_dtype
         if mx == mn: # Only one number in array
             self.inter = mn
             return
-        # We need to allow for precision of the type to which we will scale
-        # These will be floats of type scaler_dtype
-        shared_min, shared_max = shared_range(self.scaler_dtype,
-                                              self._out_dtype)
-        scaled_mn2mx = np.diff(np.array([shared_min, shared_max],
-                                        dtype=np.longdouble))
         # Straight mx-mn can overflow.
         if mn.dtype.kind == 'f': # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
@@ -454,8 +450,18 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             # slightly.  Casting to int needed to allow mx-mn to be larger than
             # the largest (u)int value
             mn2mx = int_to_float(as_int(mx) - as_int(mn), np.longdouble)
+        if out_dtype.kind == 'f':
+            # Type range, these are also floats
+            t_mn_mx = np.finfo(out_dtype).min, np.finfo(out_dtype).max
+        else:
+            t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
+            t_mn_mx= [int_to_float(v, np.longdouble) for v in t_mn_mx]
+        # We want maximum precision for the calculations. Casting will
+        # not lose precision because min/max are of fp type.
+        assert [v.dtype.kind for v in t_mn_mx] == ['f', 'f']
+        scaled_mn2mx = np.diff(np.array(t_mn_mx, dtype = np.longdouble))
         slope = mn2mx / scaled_mn2mx
-        self.inter = mn - shared_min * slope
+        self.inter = mn - t_mn_mx[0] * slope
         self.slope = slope
         if not np.all(np.isfinite([self.slope, self.inter])):
             raise ScalingError("Slope / inter not both finite")
