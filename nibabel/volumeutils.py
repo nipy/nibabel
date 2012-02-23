@@ -424,7 +424,7 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
         data = np.ones((1,), in_type)
     from .arraywriters import make_array_writer, WriterError
     try:
-        _ = make_array_writer(data, out_type, has_intercept, has_slope)
+        _ = make_array_writer(data, out_type, has_slope, has_intercept)
     except WriterError:
         return False
     return True
@@ -778,7 +778,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
         return 1.0, 0.0, None, None
     from .arraywriters import make_array_writer, WriterError, get_slope_inter
     try:
-        writer = make_array_writer(data, out_dtype, allow_intercept, True)
+        writer = make_array_writer(data, out_dtype, True, allow_intercept)
     except WriterError:
         msg = sys.exc_info()[1] # python 2 / 3 compatibility
         raise ValueError(msg)

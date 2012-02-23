@@ -528,8 +528,8 @@ class AnalyzeHeader(WrapStruct):
         try:
             arr_writer = make_array_writer(data,
                                            out_dtype,
-                                           self.has_data_intercept,
-                                           self.has_data_slope)
+                                           self.has_data_slope,
+                                           self.has_data_intercept)
         except WriterError:
             msg = sys.exc_info()[1] # python 2 / 3 compatibility
             raise HeaderTypeError(msg)
@@ -934,8 +934,8 @@ class AnalyzeImage(SpatialImage):
         out_dtype = self.get_data_dtype()
         arr_writer = make_array_writer(data,
                                        out_dtype,
-                                       hdr.has_data_intercept,
-                                       hdr.has_data_slope)
+                                       hdr.has_data_slope,
+                                       hdr.has_data_intercept)
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
         # analyze images but most often this is because it's a single nifti file

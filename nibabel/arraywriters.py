@@ -534,7 +534,7 @@ def get_slope_inter(writer):
     return slope, inter
 
 
-def make_array_writer(data, out_type, has_intercept=True, has_slope=True,
+def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
                       **kwargs):
     """ Make array writer instance for array `data` and output type `out_type`
 
@@ -544,10 +544,10 @@ def make_array_writer(data, out_type, has_intercept=True, has_slope=True,
         array for which to create array writer
     out_type : dtype-like
         input to numpy dtype to specify array writer output type
-    has_intercept : {True, False}
-        If True, array write can use intercept to adapt the array to `out_type`
     has_slope : {True, False}
         If True, array write can use scaling to adapt the array to `out_type`
+    has_intercept : {True, False}
+        If True, array write can use intercept to adapt the array to `out_type`
     \*\*kwargs : other keyword arguments
         to pass to the arraywriter class, if it accepts them.
 
@@ -562,7 +562,7 @@ def make_array_writer(data, out_type, has_intercept=True, has_slope=True,
     >>> aw = make_array_writer(np.arange(10), np.uint8, True, True)
     >>> type(aw) == SlopeInterArrayWriter
     True
-    >>> aw = make_array_writer(np.arange(10), np.uint8, False, True)
+    >>> aw = make_array_writer(np.arange(10), np.uint8, True, False)
     >>> type(aw) == SlopeArrayWriter
     True
     >>> aw = make_array_writer(np.arange(10), np.uint8, False, False)
