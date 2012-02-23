@@ -6,9 +6,11 @@ Array writers have init signature::
 
 and methods
 
+* scaling_needed() - returns True if array requires scaling for write
+*.finite_range() - returns min, max of self.array
 * to_fileobj(fileobj, offset=None, order='F')
 
-They do have attributes:
+They have attributes:
 
 * array
 * out_dtype
@@ -178,6 +180,20 @@ class ArrayWriter(object):
 
 
 class SlopeArrayWriter(ArrayWriter):
+    """ ArrayWriter that can use scalefactor for writing arrays
+
+    The scalefactor allows the array writer to write floats to int output types,
+    and rescale larger ints to smaller.  It can therefore lose precision.
+
+    It extends the ArrayWriter class with attribute:
+
+    * slope
+
+    and methods:
+
+    * reset() - reset slope to default (not adapted to self.array)
+    * calc_scale() - calculate slope to best write self.array
+    """
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
                  scaler_dtype=np.float32):
@@ -339,6 +355,22 @@ class SlopeArrayWriter(ArrayWriter):
 
 
 class SlopeInterArrayWriter(SlopeArrayWriter):
+    """ Array writer that can use slope and intercept to scale array
+
+    The writer can subtract an intercept, and divided by a slope, in order to
+    be able to convert floating point values into a (u)int range, or to convert
+    larger (u)ints to smaller.
+
+    It extends the ArrayWriter class with attributes:
+
+    * inter
+    * slope
+
+    and methods:
+
+    * reset() - reset inter, slope to default (not adapted to self.array)
+    * calc_scale() - calculate inter, slope to best write self.array
+    """
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
                  scaler_dtype=np.float32):
@@ -357,7 +389,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             If False, then you can calculate this scaling with
             ``obj.calc_scale()`` - see examples
         scaler_dtype : dtype-like, optional
-            specifier for numpy dtype for scaling
+            specifier for numpy dtype for slope, intercept
 
         Examples
         --------
@@ -480,6 +512,16 @@ def get_slope_inter(writer):
         slope in `writer` or 1.0 if not present
     inter : scalar
         intercept in `writer` or 0.0 if not present
+
+    Examples
+    --------
+    >>> arr = np.arange(10)
+    >>> get_slope_inter(ArrayWriter(arr))
+    (1.0, 0.0)
+    >>> get_slope_inter(SlopeArrayWriter(arr))
+    (1.0, 0.0)
+    >>> get_slope_inter(SlopeInterArrayWriter(arr))
+    (1.0, 0.0)
     """
     try:
         slope = writer.slope
@@ -514,6 +556,18 @@ def make_array_writer(data, out_type, has_intercept=True, has_slope=True,
     writer : arraywriter instance
         Instance of array writer, with class adapted to `has_intercept` and
         `has_slope`.
+
+    Examples
+    --------
+    >>> aw = make_array_writer(np.arange(10), np.uint8, True, True)
+    >>> type(aw) == SlopeInterArrayWriter
+    True
+    >>> aw = make_array_writer(np.arange(10), np.uint8, False, True)
+    >>> type(aw) == SlopeArrayWriter
+    True
+    >>> aw = make_array_writer(np.arange(10), np.uint8, False, False)
+    >>> type(aw) == ArrayWriter
+    True
     """
     data = np.asarray(data)
     if has_intercept == True and has_slope == False:
