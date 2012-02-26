@@ -696,6 +696,8 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
     intercept : numpy scalar, dtype=np.maximum_sctype(np.float)
        value to subtract from data before dividing by scalefactor
 
+    Examples
+    --------
     >>> scale_min_max(0, 255, np.uint8, False)
     (1.0, 0.0)
     >>> scale_min_max(-128, 127, np.int8, False)
@@ -720,6 +722,9 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
 
     Notes
     -----
+    We don't use this function anywhere in nibabel now, it's here for API
+    compatibility only.
+
     The large integers lead to python long types as max / min for type.
     To contain the rounding error, we need to use the maximum numpy
     float types when casting to float.

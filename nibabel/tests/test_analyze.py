@@ -25,6 +25,7 @@ from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
+from ..casting import as_int
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -216,6 +217,22 @@ class TestAnalyzeHeader(_TestWrapStructBase):
             assert_raises(HeaderDataError,
                                 hdr.set_data_dtype,
                                 inp)
+
+    def test_shapes(self):
+        # Test that shape checks work
+        hdr = self.header_class()
+        for shape in ((2, 3, 4), (2, 3, 4, 5), (2, 3), (2,)):
+            hdr.set_data_shape(shape)
+            assert_equal(hdr.get_data_shape(), shape)
+        # Check max works, but max+1 raises error
+        dim_dtype = hdr.structarr['dim'].dtype
+        # as_int for safety to deal with numpy 1.4.1 int conversion errors
+        mx = as_int(np.iinfo(dim_dtype).max)
+        shape = (mx,)
+        hdr.set_data_shape(shape)
+        assert_equal(hdr.get_data_shape(), shape)
+        shape = (mx+1,)
+        assert_raises(HeaderDataError, hdr.set_data_shape, shape)
 
     def test_read_write_data(self):
         # Check reading and writing of data
