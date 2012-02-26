@@ -160,6 +160,34 @@ def test_array_to_file():
     assert_array_equal(data_back, np.zeros(arr.shape))
 
 
+def test_a2f_big_scalers():
+    # Check that clip works even for overflowing scalers / data
+    info = np.finfo(np.float32)
+    arr = np.array([info.min, np.nan, info.max], dtype=np.float32)
+    str_io = BytesIO()
+    # Intercept causes overflow - does routine scale correctly?
+    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120))
+    data_back = array_from_file(arr.shape, np.int8, str_io)
+    assert_array_equal(data_back, [-128, 0, 127])
+    # Scales also if mx, mn specified?
+    str_io.seek(0)
+    array_to_file(arr, str_io, np.int8, mn=info.min, mx=info.max,
+                  intercept=np.float32(2**120))
+    data_back = array_from_file(arr.shape, np.int8, str_io)
+    assert_array_equal(data_back, [-128, 0, 127])
+    # And if slope causes overflow?
+    str_io.seek(0)
+    array_to_file(arr, str_io, np.int8, divslope=np.float32(0.5))
+    data_back = array_from_file(arr.shape, np.int8, str_io)
+    assert_array_equal(data_back, [-128, 0, 127])
+    # with mn, mx specified?
+    str_io.seek(0)
+    array_to_file(arr, str_io, np.int8, mn=info.min, mx=info.max,
+                  divslope=np.float32(0.5))
+    data_back = array_from_file(arr.shape, np.int8, str_io)
+    assert_array_equal(data_back, [-128, 0, 127])
+
+
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
     array_to_file(data, fileobj, out_dtype, *args, **kwargs)
