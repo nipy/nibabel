@@ -110,7 +110,7 @@ def test_array_to_file():
                 assert_array_almost_equal(arr, data_back)
 
 
-def teset_a2f_intercept_scale():
+def test_a2f_intercept_scale():
     arr = np.array([0.0, 1.0, 2.0])
     str_io = BytesIO()
     # intercept
