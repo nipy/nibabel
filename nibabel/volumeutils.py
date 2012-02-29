@@ -33,7 +33,8 @@ endian_codes = (# numpy code, aliases
 default_compresslevel = 1
 
 #: convenience variables for numpy types
-CFLOAT_TYPES = np.sctypes['complex'] + np.sctypes['float']
+FLOAT_TYPES = np.sctypes['float']
+CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
 IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
@@ -594,20 +595,24 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         raise ValueError('Order should be one of F or C')
     # Force upcasting for floats by making atleast_1d
     slope, inter = [np.atleast_1d(v) for v in divslope, intercept]
-    if out_dtype.kind in 'iu': # we might need float -> int machinery
-        vals = [in_dtype.type(0)]
-        if inter != 0:
-            vals.append(inter)
-        if slope != 1:
-            vals.append(slope)
-        working_dtype = np.array(vals).dtype
-        needs_f2i = working_dtype.kind == 'f'
-    else:
-        needs_f2i = False
-    if not needs_f2i: # Apply min max thresholding the standard way
+    # Do we need float -> int machinery?
+    needs_f2i = out_dtype.kind in 'iu' and (
+        in_dtype.kind == 'f' or (slope, inter) != (1, 0))
+    if not needs_f2i:
+        # Apply min max thresholding the standard way
         needs_pre_clip = (mn, mx) != (None, None)
         mn, mx = _dt_min_max(in_dtype, mn, mx)
-    else: # Apply thresholding after scaling
+    else: # We do need float to int machinery
+        # Replace Nones in (mn, mx) with type min / max if necessary
+        dt_mnmx = _dt_min_max(in_dtype, mn, mx)
+        # Check what working type we need to cover range
+        w_type = working_type(in_dtype, slope, inter)
+        assert w_type in FLOAT_TYPES
+        w_type = best_write_scale_ftype(np.array(dt_mnmx, dtype=in_dtype),
+                                        slope, inter, w_type)
+        slope = slope.astype(w_type)
+        inter = inter.astype(w_type)
+        # Apply thresholding after scaling
         needs_pre_clip = False
         # We need to know the result of applying slope and inter to the min and
         # max of the array, in order to clip the output array, after applying
@@ -618,19 +623,18 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # after scaling etc. We could fill with 0 before scaling, but then we'd
         # have to do an extra copy before filling nans with 0, to avoid
         # overwriting the input array
-        both_mn, both_mx = shared_range(working_dtype, out_dtype)
-        dt_mnmx = _dt_min_max(in_dtype, mn, mx)
         # Run min, max, 0 through scaling / rint
         specials = np.array(dt_mnmx + (0,), dtype=in_dtype)
         if inter != 0.0:
             specials = specials - inter
         if slope != 1.0:
             specials = specials / slope
-        assert specials.dtype == working_dtype
+        assert specials.dtype.type == w_type
         post_mn, post_mx, nan_fill = np.rint(specials)
         if post_mn > post_mx: # slope could be negative
             post_mn, post_mx = post_mx, post_mn
         # Ensure safe thresholds applied too
+        both_mn, both_mx = shared_range(w_type, out_dtype)
         post_mn = np.max([post_mn, both_mn])
         post_mx = np.min([post_mx, both_mx])
     data = np.atleast_2d(data) # Trick to allow loop below for 1D arrays
@@ -656,6 +660,10 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
 
 def _dt_min_max(dtype_like, mn, mx):
+    """ Return ``mx` unless ``mx`` is None, else type max, likewise for ``mn``
+
+    ``mn``, ``mx`` can be None, in which case return the type min / max.
+    """
     dt = np.dtype(dtype_like)
     if dt.kind in 'fc':
         mnmx = (-np.inf, np.inf)
@@ -744,6 +752,45 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     if inter != 0.0:
         arr = arr + inter
     return arr.reshape(shape)
+
+
+def working_type(in_type, slope=1.0, inter=0.0):
+    """ Return array type from applying `slope`, `inter` to array of `in_type`
+
+    Numpy type that results from an array of type `in_type` being combined with
+    `slope` and `inter`. It returns something like the dtype type of
+    ``((np.zeros((2,), dtype=in_type) - inter) / slope)``, but ignoring the
+    actual values of `slope` and `inter`.
+
+    Note that you would not necessarily get the same type by applying slope and
+    inter the other way round.  Also, you'll see that the order in which slope
+    and inter are applied is the opposite of the order in which they are passed.
+
+    Parameters
+    ----------
+    in_type : numpy type specifier
+        Numpy type of input array.  Any valid input for ``np.dtype()``
+    slope : scalar, optional
+        slope to apply to array.  If 1.0 (default), ignore this value and its
+        type.
+    inter : scalar, optional
+        intercept to apply to array.  If 0.0 (default), ignore this value and
+        its type.
+
+    Returns
+    -------
+    wtype: numpy type
+        Numpy type resulting from applying `inter` and `slope` to array of type
+        `in_type`.
+    """
+    in_type = np.dtype(in_type).type
+    # What do these cast into?
+    val = np.atleast_1d(in_type(1))
+    if inter != 0:
+        val = val + np.atleast_1d(np.zeros_like(inter))
+    if slope != 1:
+        val = val + np.atleast_1d(np.ones_like(slope))
+    return val.dtype.type
 
 
 @np.deprecate_with_doc('Please use arraywriter classes instead')
@@ -891,7 +938,12 @@ def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
     """ float type containing int type `ifmt` * `slope` + `inter`
 
     Return float type that can represent the max and the min of the `ifmt` type
-    after multiplication with `slope` and addition of `inter`.
+    after multiplication with `slope` and addition of `inter` with something
+    like ``np.array([imin, imax], dtype=ifmt) * slope + inter``.
+
+    Note that ``slope`` and ``inter`` get promoted to 1D arrays for this purpose
+    to avoid the numpy scalar casting rules, which prevent scalars upcasting the
+    array.
 
     Parameters
     ----------
@@ -926,18 +978,150 @@ def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
         >>> arr == res
         array([ True], dtype=bool)
     """
-    floats = np.sctypes['float']
-    def_ind = floats.index(default)
     ii = np.iinfo(ifmt)
     tst_arr = np.array([ii.min, ii.max], dtype=ifmt)
+    try:
+        return _ftype4scaled_finite(tst_arr, slope, inter, 'read', default)
+    except ValueError:
+        raise ValueError('Overflow using highest floating point type')
+
+
+def best_write_scale_ftype(arr, slope = 1.0, inter = 0.0, default=np.float32):
+    """ Smallest float type to contain range of ``arr`` after scaling
+
+    Scaling that will be applied to ``arr`` is ``(arr - inter) / slope``.
+
+    Note that ``slope`` and ``inter`` get promoted to 1D arrays for this purpose
+    to avoid the numpy scalar casting rules, which prevent scalars upcasting the
+    array.
+
+    Parameters
+    ----------
+    arr : array-like
+        array that will be scaled
+    slope : array-like, optional
+        scalar such that output array will be ``(arr - inter) / slope``.
+    inter : array-like, optional
+        scalar such that output array will be ``(arr - inter) / slope``
+    default : numpy type, optional
+        minimum float type to return
+
+    Returns
+    -------
+    ftype : numpy type
+        Best floating point type for scaling.  If no floating point type
+        prevents overflow, return the top floating point type.  If the input
+        array ``arr`` already contains inf values, return the greater of the
+        input type and the default type.
+
+    Examples
+    --------
+    >>> arr = np.array([0, 1, 2], dtype=np.int16)
+    >>> best_write_scale_ftype(arr, 1, 0) is np.float32
+    True
+
+    Specify higher default return value
+
+    >>> best_write_scale_ftype(arr, 1, 0, default=np.float64) is np.float64
+    True
+
+    Even large values that don't overflow don't change output
+
+    >>> arr = np.array([0, np.finfo(np.float32).max], dtype=np.float32)
+    >>> best_write_scale_ftype(arr, 1, 0) is np.float32
+    True
+
+    Scaling > 1 reduces output values, so no upcast needed
+
+    >>> best_write_scale_ftype(arr, np.float32(2), 0) is np.float32
+    True
+
+    Scaling < 1 increases values, so upcast may be needed (and is here)
+
+    >>> best_write_scale_ftype(arr, np.float32(0.5), 0) is np.float64
+    True
+    """
+    default = better_float_of(arr.dtype.type, default)
+    if not np.all(np.isfinite(arr)):
+        return default
+    try:
+        return _ftype4scaled_finite(arr, slope, inter, 'write', default)
+    except ValueError:
+        return FLOAT_TYPES[-1]
+
+
+def better_float_of(first, second, default=np.float32):
+    """ Return more capable float type of `first` and `second`
+
+    Return `default` if neither of `first` or `second` is a float
+
+    Parameters
+    ----------
+    first : numpy type specifier
+        Any valid input to `np.dtype()``
+    second : numpy type specifier
+        Any valid input to `np.dtype()``
+    default : numpy type specifier, optional
+        Any valid input to `np.dtype()``
+
+    Returns
+    -------
+    better_type : numpy type
+        More capable of `first` or `second` if both are floats; if only one is
+        a float return that, otherwise return `default`.
+
+    Examples
+    --------
+    >>> better_float_of(np.float32, np.float64) is np.float64
+    True
+    >>> better_float_of(np.float32, 'i4') is np.float32
+    True
+    >>> better_float_of('i2', 'u4') is np.float32
+    True
+    >>> better_float_of('i2', 'u4', np.float64) is np.float64
+    True
+    """
+    first = np.dtype(first)
+    second = np.dtype(second)
+    default = np.dtype(default).type
+    kinds = (first.kind, second.kind)
+    if not 'f' in kinds:
+        return default
+    if kinds == ('f', 'f'):
+        if first.itemsize >= second.itemsize:
+            return first.type
+        return second.type
+    if first.kind == 'f':
+        return first.type
+    return second.type
+
+
+def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
+                         default=np.float32):
+    """ Smallest float type for scaling of `tst_arr` that does not overflow
+    """
+    assert direction in ('read', 'write')
+    def_ind = FLOAT_TYPES.index(default)
+    # promote to arrays to avoid numpy scalar casting rules
+    tst_arr = np.atleast_1d(tst_arr)
+    slope = np.atleast_1d(slope)
+    inter = np.atleast_1d(inter)
     warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
     try:
-        for ftype in floats[def_ind:]:
+        for ftype in FLOAT_TYPES[def_ind:]:
             tst_trans = tst_arr.copy()
-            if slope != 1.0:
-                tst_trans = tst_trans * ftype(slope)
-            if inter != 0.0:
-                tst_trans = tst_trans + ftype(inter)
+            slope = slope.astype(ftype)
+            inter = inter.astype(ftype)
+            if direction == 'read': # as in reading of image from disk
+                if slope != 1.0:
+                    tst_trans = tst_trans * slope
+                if inter != 0.0:
+                    tst_trans = tst_trans + inter
+            elif direction == 'write':
+                if inter != 0.0:
+                    tst_trans = tst_trans - inter
+                if slope != 1.0:
+                    tst_trans = tst_trans / slope
             if np.all(np.isfinite(tst_trans)):
                 return ftype
     finally:

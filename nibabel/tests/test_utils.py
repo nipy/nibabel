@@ -21,14 +21,20 @@ from ..volumeutils import (array_from_file,
                            can_cast,
                            write_zeros,
                            apply_read_scaling,
+                           working_type,
+                           best_write_scale_ftype,
+                           better_float_of,
                            int_scinter_ftype,
                            allopen,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
-                           rec2dict)
+                           rec2dict,
+                           IUINT_TYPES,
+                           FLOAT_TYPES,
+                           NUMERIC_TYPES)
 
-from ..casting import flt2nmant, floor_log2
+from ..casting import flt2nmant, FloatingError, floor_log2
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -119,6 +125,26 @@ def test_a2f_intercept_scale():
     # scaling
     data_back = write_return(arr, str_io, np.float64, 0, 1.0, 2.0)
     assert_array_equal(data_back, (arr-1) / 2.0)
+
+
+def test_a2f_upscale():
+    # Test working type scales with needed range
+    info = np.finfo(np.float32)
+    # Test values discovered from stress testing.  The largish value (2**115)
+    # overflows to inf after the intercept is subtracted, using float32 as the
+    # working precision.  The difference between inf and this value is lost.
+    arr = np.array([[info.min, 2**115, info.max]], dtype=np.float32)
+    slope = np.float32(2**121)
+    inter = info.min
+    str_io = BytesIO()
+    # We need to provide mn, mx for function to be able to calculate upcasting
+    array_to_file(arr, str_io, np.uint8, intercept=inter, divslope=slope,
+                  mn = info.min, mx = info.max)
+    raw = array_from_file(arr.shape, np.uint8, str_io)
+    back = apply_read_scaling(raw, slope, inter)
+    top = back - arr
+    score = np.abs(top / arr)
+    assert_true(np.all(score < 10))
 
 
 def test_a2f_min_max():
@@ -269,6 +295,110 @@ def test_int_scinter():
     assert_equal(int_scinter_ftype(np.int8, 1e38, 0.0), np.float64)
     assert_equal(int_scinter_ftype(np.int8, -1e38, 0.0), np.float64)
 
+
+def test_working_type():
+    # Which type do input types with slope and inter cast to in numpy?
+    # Wrapper function because we need to use the dtype str for comparison.  We
+    # need this because of the very confusing np.int32 != np.intp (on 32 bit).
+    def wt(*args, **kwargs):
+        return np.dtype(working_type(*args, **kwargs)).str
+    d1 = np.atleast_1d
+    for in_type in NUMERIC_TYPES:
+        in_ts = np.dtype(in_type).str
+        assert_equal(wt(in_type), in_ts)
+        assert_equal(wt(in_type, 1, 0), in_ts)
+        assert_equal(wt(in_type, 1.0, 0.0), in_ts)
+        in_val = d1(in_type(0))
+        for slope_type in NUMERIC_TYPES:
+            sl_val = slope_type(1) # no scaling, regardless of type
+            assert_equal(wt(in_type, sl_val, 0.0), in_ts)
+            sl_val = slope_type(2) # actual scaling
+            out_val = in_val / d1(sl_val)
+            assert_equal(wt(in_type, sl_val), out_val.dtype.str)
+            for inter_type in NUMERIC_TYPES:
+                i_val = inter_type(0) # no scaling, regardless of type
+                assert_equal(wt(in_type, 1, i_val), in_ts)
+                i_val = inter_type(1) # actual scaling
+                out_val = in_val - d1(i_val)
+                assert_equal(wt(in_type, 1, i_val), out_val.dtype.str)
+                # Combine scaling and intercept
+                out_val = (in_val - d1(i_val)) / d1(sl_val)
+                assert_equal(wt(in_type, sl_val, i_val), out_val.dtype.str)
+    # Confirm that type codes and dtypes work as well
+    f32s = np.dtype(np.float32).str
+    assert_equal(wt('f4', 1, 0), f32s)
+    assert_equal(wt(np.dtype('f4'), 1, 0), f32s)
+
+
+def test_better_float():
+    # Better float function
+    def check_against(f1, f2):
+        return f1 if FLOAT_TYPES.index(f1) >= FLOAT_TYPES.index(f2) else f2
+    for first in FLOAT_TYPES:
+        for other in IUINT_TYPES + np.sctypes['complex']:
+            assert_equal(better_float_of(first, other), first)
+            assert_equal(better_float_of(other, first), first)
+            for other2 in IUINT_TYPES + np.sctypes['complex']:
+                assert_equal(better_float_of(other, other2), np.float32)
+                assert_equal(better_float_of(other, other2, np.float64),
+                             np.float64)
+        for second in FLOAT_TYPES:
+            assert_equal(better_float_of(first, second),
+                         check_against(first, second))
+    # Check codes and dtypes work
+    assert_equal(better_float_of('f4', 'f8', 'f4'), np.float64)
+    assert_equal(better_float_of('i4', 'i8', 'f8'), np.float64)
+
+
+def have_longer_double():
+    # True if longdouble has more precision than float64, and longdouble is
+    # something we can rely on
+    nmant_64 = flt2nmant(np.float64) # should be 52
+    try:
+        nmant_ld = flt2nmant(np.longdouble)
+    except FloatingError:
+        return False
+    return nmant_ld > nmant_64
+
+
+def test_best_write_scale_ftype():
+    # Test best write scaling type
+    # Types return better of (default, array type) unless scale overflows.
+    # Return float type cannot be less capable than the input array type
+    for dtt in IUINT_TYPES + FLOAT_TYPES:
+        arr = np.arange(10, dtype=dtt)
+        assert_equal(best_write_scale_ftype(arr, 1, 0),
+                     better_float_of(dtt, np.float32))
+        assert_equal(best_write_scale_ftype(arr, 1, 0, np.float64),
+                     better_float_of(dtt, np.float64))
+        assert_equal(best_write_scale_ftype(arr, np.float32(2), 0),
+                     better_float_of(dtt, np.float32))
+        assert_equal(best_write_scale_ftype(arr, 1, np.float32(1)),
+                     better_float_of(dtt, np.float32))
+    # Overflowing ints with scaling results in upcast
+    best_vals = ((np.float32, np.float64),)
+    if have_longer_double():
+        best_vals += ((np.float64, np.longdouble),)
+    for lower_t, higher_t in best_vals:
+        # Information on this float
+        t_max = np.finfo(lower_t).max
+        nmant = flt2nmant(lower_t) # number of significand digits
+        big_delta = lower_t(2**(floor_log2(t_max) - nmant)) # delta below max
+        # Even large values that don't overflow don't change output
+        arr = np.array([0, t_max], dtype=lower_t)
+        assert_equal(best_write_scale_ftype(arr, 1, 0), lower_t)
+        # Scaling > 1 reduces output values, so no upcast needed
+        assert_equal(best_write_scale_ftype(arr, lower_t(1.01), 0), lower_t)
+        # Scaling < 1 increases values, so upcast may be needed (and is here)
+        assert_equal(best_write_scale_ftype(arr, lower_t(0.99), 0), higher_t)
+        # Large minus offset on large array can cause upcast
+        assert_equal(best_write_scale_ftype(arr, 1, -big_delta/2.01), lower_t)
+        assert_equal(best_write_scale_ftype(arr, 1, -big_delta/2.0), higher_t)
+        # With infs already in input, default type returns
+        arr[0] = np.inf
+        assert_equal(best_write_scale_ftype(arr, lower_t(0.5), 0), lower_t)
+        arr[0] = -np.inf
+        assert_equal(best_write_scale_ftype(arr, lower_t(0.5), 0), lower_t)
 
 
 def test_can_cast():
