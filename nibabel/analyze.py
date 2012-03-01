@@ -635,6 +635,10 @@ class AnalyzeHeader(WrapStruct):
         dims[:] = 1
         dims[0] = ndims
         dims[1:ndims+1] = shape
+        # Check that dimensions fit
+        if not np.all(dims[1:ndims+1] == shape):
+            raise HeaderDataError('shape %s does not fit in dim datatype' %
+                                   shape)
         self._structarr['pixdim'][ndims+1:] = 1.0
 
     def get_base_affine(self):
