@@ -15,6 +15,7 @@ header
 import os
 import re
 import logging
+import pickle
 
 import numpy as np
 
@@ -588,6 +589,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
         assert_array_equal(img_back.shape, (3, 2, 4))
+
+    def test_pickle(self):
+        # Test that images pickle
+        # Image that is not proxied can pickle
+        img_klass = self.image_class
+        img = img_klass(np.zeros((2,3,4)), None)
+        img_str = pickle.dumps(img)
+        img2 = pickle.loads(img_str)
+        assert_array_equal(img.get_data(), img2.get_data())
+        assert_equal(img.get_header(), img2.get_header())
+        # Save / reload using bytes IO objects
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        img_prox = img.from_file_map(img.file_map)
+        img_str = pickle.dumps(img_prox)
+        img2_prox = pickle.loads(img_str)
+        assert_array_equal(img.get_data(), img2_prox.get_data())
 
 
 def test_unsupported():
