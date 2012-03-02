@@ -10,6 +10,7 @@
 
 Author: Krish Subramaniam
 '''
+from os.path import splitext
 import numpy as np
 
 from nibabel.volumeutils import allopen, array_to_file, array_from_file,  \
@@ -427,7 +428,7 @@ class MGHHeader(object):
 class MGHImage(SpatialImage):
     header_class = MGHHeader
     files_types = (('image', '.mgh'),)
-    _compressed_exts = ('.mgz',)
+    _compressed_exts = (('.gz',))
 
     ImageArrayProxy = ArrayProxy
 
@@ -437,24 +438,10 @@ class MGHImage(SpatialImage):
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
-        ''' Method reimplemented from nibabel.spatialimages because it does not
-        allow enforce_extensions in types_filenames() to be False.
-        This is needed because MGH's compressed format is not filename.mgh.gz,
-        but it is filename.mgz.. types_filenames() removes the .mgz and gives
-        an error because it then doesn't find the file 'filename' in the system
-        '''
-        try:
-            filenames = types_filenames(filespec,
-                                    klass.files_types,
-                                    trailing_suffixes=klass._compressed_exts,
-                                    enforce_extensions=False)
-        except TypesFilenamesError:
-            raise ImageFileError('Filespec "%s" does not look right for '
-                             'class %s ' % (filespec, klass))
-        file_map = {}
-        for key, fname in filenames.items():
-            file_map[key] = FileHolder(filename=fname)
-        return file_map
+        """ Check for compressed .mgz format, then .mgh format """
+        if splitext(filespec)[1] == '.mgz':
+            return dict(image=FileHolder(filename=filespec))
+        return super(MGHImage, klass).filespec_to_file_map(filespec)
 
     @classmethod
     def from_file_map(klass, file_map):
