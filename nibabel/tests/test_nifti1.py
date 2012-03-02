@@ -20,10 +20,11 @@ from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                       data_type_codes, extension_codes, slice_order_codes)
+from ..stampers import Stamper
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_raises)
+                        assert_not_equal, assert_raises)
 from nose import SkipTest
 
 from ..testing import data_path
@@ -59,6 +60,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr.endianness, '<')
         assert_equal(hdr['magic'], asbytes('ni1'))
         assert_equal(hdr['sizeof_hdr'], 348)
+
+    def test_state_stamp(self):
+        super(TestNifti1PairHeader, self).test_state_stamp()
+        # Check that extensions alter state
+        hdr1 = self.header_class(extensions = Nifti1Extensions())
+        hdr2 = self.header_class(extensions = Nifti1Extensions())
+        stamper = Stamper()
+        assert_equal(stamper(hdr1), stamper(hdr2))
+        ext = Nifti1Extension('comment', '123')
+        hdr3 = self.header_class(extensions = Nifti1Extensions((ext,)))
+        assert_not_equal(stamper(hdr1), stamper(hdr3))
+        # No extensions stamp at the moment, so any extensions render the stamps
+        # unequal
+        hdr4 = self.header_class(extensions = Nifti1Extensions((ext,)))
+        assert_not_equal(stamper(hdr3), stamper(hdr4))
 
     def test_nifti_log_checks(self):
         # in addition to analyze header checks
@@ -171,6 +187,14 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
         str_io = BytesIO()
         hdr.write_to(str_io)
         assert_equal(str_io.getvalue(), hdr.binaryblock + ZEROB * 4)
+
+    def test_state_stamp(self):
+        # Check that this (single) header differs in stamp from pair
+        super(TestNifti1PairHeader, self).test_state_stamp()
+        hdr = self.header_class()
+        super_hdr = Nifti1PairHeader()
+        stamper = Stamper()
+        assert_not_equal(stamper(hdr), stamper(super_hdr))
 
 
 class TestNifti1Image(tana.TestAnalyzeImage):
@@ -491,6 +515,19 @@ def test_extension_list():
     assert_false(ext_c0 == ext_c1)
     ext_c0.append(ext)
     assert_true(ext_c0 == ext_c1)
+
+
+def test_extension_stamping():
+    # Test we can stamp extension lists
+    ext_c0 = Nifti1Extensions()
+    ext_c1 = Nifti1Extensions()
+    stamper = Stamper()
+    assert_equal(stamper(ext_c0), stamper(ext_c1))
+    ext = Nifti1Extension('comment', '123')
+    ext_c1.append(ext)
+    assert_not_equal(stamper(ext_c0), stamper(ext_c1))
+    ext_c1.remove(ext)
+    assert_equal(stamper(ext_c0), stamper(ext_c1))
 
 
 def test_nifti_extensions():

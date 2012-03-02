@@ -800,6 +800,22 @@ class AnalyzeHeader(WrapStruct):
             out_dtype,
             self.has_data_intercept)
 
+    def state_stamper(self, caller):
+        """ Return stamp for current state of `self`
+
+        Parameters
+        ----------
+        caller : callable
+            May be object from which this method was called.  Not used by
+            analyze headers, but may be used by subclasses
+
+        Returns
+        -------
+        stamp : object
+            object unique to this state of `self`
+        """
+        return self.__class__, self.binaryblock
+
     @classmethod
     def _get_checks(klass):
         ''' Return sequence of check functions for this class '''
@@ -899,18 +915,7 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
-    class ImageArrayProxy(ArrayProxy):
-        ''' Analyze-type implemention of array proxy protocol
-
-        The array proxy allows us to freeze the passed fileobj and
-        header such that it returns the expected data array.
-        '''
-        def _read_data(self):
-            fileobj = allopen(self.file_like)
-            data = self.header.data_from_fileobj(fileobj)
-            if isinstance(self.file_like, basestring): # filename
-                fileobj.close()
-            return data
+    ImageArrayProxy = ArrayProxy
 
     def get_header(self):
         ''' Return header
@@ -941,9 +946,7 @@ class AnalyzeImage(SpatialImage):
         img = klass(data, None, header, file_map=file_map)
         # set affine from header though
         img._affine = header.get_best_affine()
-        img._load_cache = {'header': hdr_copy,
-                           'affine': img._affine.copy(),
-                           'file_map': copy_file_map(file_map)}
+        img._stored_state['affine'] = img.stamper(img._affine)
         return img
 
     @staticmethod

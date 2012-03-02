@@ -26,6 +26,8 @@ from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
+from ..stampers import Stamper
+from ..stampers import Stamper, NdaStamper
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -450,6 +452,18 @@ class TestAnalyzeHeader(_TestWrapStructBase):
              [ 0.,  0.,  1., -3.],
              [ 0.,  0.,  0.,  1.]])
 
+    def test_state_stamp(self):
+        # Test state stamp is sensitive to state
+        klass = self.header_class
+        hdr1 = klass()
+        hdr2 = klass()
+        stamper = Stamper()
+        assert_equal(stamper(hdr1), stamper(hdr2))
+        hdr1.set_data_shape((3,5,7))
+        assert_not_equal(stamper(hdr1), stamper(hdr2))
+        hdr2.set_data_shape((3,5,7))
+        assert_equal(stamper(hdr1), stamper(hdr2))
+
 
 def test_best_affine():
     hdr = AnalyzeHeader()
@@ -511,6 +525,48 @@ def test_data_code_error():
 
 class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
+
+    def test_state_stamper(self):
+        # Extend tests of state stamping
+        super(TestAnalyzeImage, self).test_state_stamper()
+        # Test modifications of header
+        stamper = NdaStamper()
+        img_klass = self.image_class
+        hdr_klass = self.image_class.header_class
+        # The first test we have done in the parent, but just for completeness
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        hdr = hdr_klass()
+        hdr.set_data_dtype(arr.dtype)
+        img1 = img_klass(arr, aff, hdr)
+        img2 = img_klass(arr, aff, hdr)
+        assert_equal(img1.current_state(), img2.current_state())
+        assert_equal(stamper(img1), stamper(img2))
+        hdr['descrip'] = asbytes('something')
+        # Doesn't affect original images
+        assert_equal(img1.current_state(), img2.current_state())
+        assert_equal(stamper(img1), stamper(img2))
+        # Does affect new image
+        img3 = img_klass(arr, aff, hdr)
+        assert_not_equal(img1.current_state(), img3.current_state())
+        assert_not_equal(stamper(img1), stamper(img3))
+
+    def test_maybe_changed(self):
+        # Check that changing header signaled in maybe_changed
+        super(TestAnalyzeImage, self).test_maybe_changed()
+        # Test modifications of header
+        img_klass = self.image_class
+        # The first test we have done in the parent, but just for completeness
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.eye(4)
+        # Get an adapted header
+        hdr = img_klass(arr, aff).get_header()
+        img = img_klass(arr, aff, hdr)
+        assert_false(img.maybe_changed())
+        # Changing the header in the image signaled in maybe_change
+        ihdr = img.get_header()
+        ihdr['descrip'] = asbytes('something')
+        assert_true(img.maybe_changed())
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
@@ -588,6 +644,28 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
         assert_array_equal(img_back.shape, (3, 2, 4))
+
+
+    def test_load_caching(self):
+        # Check save / load change recording
+        img_klass = self.image_class
+        arr = np.arange(5, dtype=np.int16)
+        aff = np.diag([2.0,3,4,1])
+        img = img_klass(arr, aff)
+        for key in img.file_map:
+            img.file_map[key].fileobj = BytesIO()
+        img.to_file_map()
+        img2 = img.from_file_map(img.file_map)
+        assert_false(img2.maybe_changed())
+        # Save loads data, so changes image
+        img2.to_file_map()
+        assert_true(img2.maybe_changed())
+        # New loading resets change flag
+        img3 = img.from_file_map(img2.file_map)
+        assert_false(img3.maybe_changed())
+        # Loading data makes change impossible to detect
+        data = img3.get_data()
+        assert_true(img3.maybe_changed())
 
 
 def test_unsupported():

@@ -90,6 +90,30 @@ class FileHolder(object):
         return ((self.filename == other.filename) and
                 (self.fileobj == other.fileobj))
 
+    def state_stamper(self, caller):
+        """ Get record of state of fileholder
+
+        See: :mod:`stampers`
+
+        Parameters
+        ----------
+        caller : object
+            Passed from stamper object, but not used by us
+
+        Returns
+        -------
+        stamp : tuple
+            state stamp
+
+        Notes
+        -----
+        We can get state stamp for these file objects assuming that the same
+        filename corresponds to the same file.  We can let pass the position of
+        reading in the file because we are recording the position with
+        ``self.pos``.
+        """
+        return (self.filename, self.fileobj, self.pos)
+
 
 def copy_file_map(file_map):
     ''' Copy mapping of fileholders given by `file_map`
@@ -109,4 +133,3 @@ def copy_file_map(file_map):
     for key, fh in file_map.items():
         fm_copy[key] = copy(fh)
     return fm_copy
-    

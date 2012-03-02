@@ -429,18 +429,7 @@ class MGHImage(SpatialImage):
     files_types = (('image', '.mgh'),)
     _compressed_exts = ('.mgz',)
 
-    class ImageArrayProxy(ArrayProxy):
-        ''' Analyze-type implemention of array proxy protocol
-
-        The array proxy allows us to freeze the passed fileobj and
-        header such that it returns the expected data array.
-        '''
-        def _read_data(self):
-            fileobj = allopen(self.file_like)
-            data = self.header.data_from_fileobj(fileobj)
-            if isinstance(self.file_like, basestring):  # filename
-                fileobj.close()
-            return data
+    ImageArrayProxy = ArrayProxy
 
     def get_header(self):
         ''' Return the MGH header given the MGHImage'''
@@ -483,9 +472,6 @@ class MGHImage(SpatialImage):
         hdr_copy = header.copy()
         data = klass.ImageArrayProxy(mghf, hdr_copy)
         img = klass(data, affine, header, file_map=file_map)
-        img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
-                           'file_map': copy_file_map(file_map)}
         return img
 
     def to_file_map(self, file_map=None):
