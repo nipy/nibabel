@@ -100,10 +100,57 @@ class TestEcatMlist(TestCase):
         dt = dt.newbyteorder('>')
         mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
         fid.close()
+        #tests
         assert_true(mats['matlist'][0,0] +  mats['matlist'][0,3] == 31)
         assert_true(mlist.get_frame_order()[0][0] == 0)
         assert_true(mlist.get_frame_order()[0][1] == 16842758.0)
+        # test badly ordered mlist
+        badordermlist = mlist
+        badordermlist._mlist = np.array([[  1.68427540e+07,   3.00000000e+00,
+                                            1.20350000e+04,   1.00000000e+00],
+                                         [  1.68427530e+07,   1.20360000e+04,
+                                            2.40680000e+04,   1.00000000e+00],
+                                         [  1.68427550e+07,   2.40690000e+04,
+                                            3.61010000e+04,   1.00000000e+00],
+                                         [  1.68427560e+07,   3.61020000e+04,
+                                            4.81340000e+04,   1.00000000e+00],
+                                         [  1.68427570e+07,   4.81350000e+04,
+                                            6.01670000e+04,   1.00000000e+00],
+                                         [  1.68427580e+07,   6.01680000e+04,
+                                            7.22000000e+04,   1.00000000e+00]])
+        assert_true(badordermlist.get_frame_order()[0][0] == 1)
 
+    def test_mlist_errors(self):
+        fid = open(self.example_file, 'rb')
+        hdr = self.header_class.from_fileobj(fid)
+        hdr['num_frames'] = 6
+        mlist =  self.mlist_class(fid, hdr)    
+        mlist._mlist = np.array([[  1.68427540e+07,   3.00000000e+00,
+                                    1.20350000e+04,   1.00000000e+00],
+                                 [  1.68427530e+07,   1.20360000e+04,
+                                    2.40680000e+04,   1.00000000e+00],
+                                 [  1.68427550e+07,   2.40690000e+04,
+                                    3.61010000e+04,   1.00000000e+00],
+                                 [  1.68427560e+07,   3.61020000e+04,
+                                    4.81340000e+04,   1.00000000e+00],
+                                 [  1.68427570e+07,   4.81350000e+04,
+                                    6.01670000e+04,   1.00000000e+00],
+                                 [  1.68427580e+07,   6.01680000e+04,
+                                    7.22000000e+04,   1.00000000e+00]])        
+        series_framenumbers = mlist.get_series_framenumbers()
+        # first frame stored was actually 2nd frame acquired
+        assert_true(series_framenumbers[0] == 2)
+        order = [series_framenumbers[x] for x in sorted(series_framenumbers)]
+        # true series order is [2,1,3,4,5,6], note counting starts at 1
+        assert_true(order == [2, 1, 3, 4, 5, 6])
+        mlist._mlist[0,0] = 0
+        frames_order = mlist.get_frame_order()
+        neworder =[frames_order[x][0] for x in sorted(frames_order)] 
+        assert_true(neworder == [1, 2, 3, 4, 5])
+        assert_raises(IOError,
+                      mlist.get_series_framenumbers)
+        
+        
 
 class TestEcatSubHeader(TestCase):
     header_class = EcatHeader
