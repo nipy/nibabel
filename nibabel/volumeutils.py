@@ -783,13 +783,16 @@ def working_type(in_type, slope=1.0, inter=0.0):
         Numpy type resulting from applying `inter` and `slope` to array of type
         `in_type`.
     """
-    in_type = np.dtype(in_type).type
-    # What do these cast into?
-    val = np.atleast_1d(in_type(1))
+    val = np.array([1], dtype=in_type)
+    slope = np.array(slope)
+    inter = np.array(inter)
+    # Don't use real values to avoid overflows.  Promote to 1D to avoid scalar
+    # casting rules.  Don't use ones_like, zeros_like because of a bug in numpy
+    # <= 1.5.1 in converting complex192 / complex256 scalars.
     if inter != 0:
-        val = val + np.atleast_1d(np.zeros_like(inter))
+        val = val + np.array([0], dtype=inter.dtype)
     if slope != 1:
-        val = val + np.atleast_1d(np.ones_like(slope))
+        val = val / np.array([1], dtype=slope.dtype)
     return val.dtype.type
 
 
