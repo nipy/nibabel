@@ -899,18 +899,7 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
-    class ImageArrayProxy(ArrayProxy):
-        ''' Analyze-type implemention of array proxy protocol
-
-        The array proxy allows us to freeze the passed fileobj and
-        header such that it returns the expected data array.
-        '''
-        def _read_data(self):
-            fileobj = allopen(self.file_like)
-            data = self.header.data_from_fileobj(fileobj)
-            if isinstance(self.file_like, basestring): # filename
-                fileobj.close()
-            return data
+    ImageArrayProxy = ArrayProxy
 
     def get_header(self):
         ''' Return header
