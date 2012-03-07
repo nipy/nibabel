@@ -27,6 +27,8 @@ intercept, or do something else to make sense of conversions between float and
 int, or between larger ints and smaller.
 """
 
+from platform import python_compiler, machine
+
 import numpy as np
 
 from ..py3k import BytesIO
@@ -70,8 +72,13 @@ def round_trip(writer, order='F', nan2zero=True, apply_scale=True):
 def test_arraywriters():
     # Test initialize
     # Simple cases
+    if machine() == 'sparc64' and python_compiler().startswith('GCC'):
+        # bus errors on at least np 1.4.1 through 1.6.1 for complex
+        test_types = FLOAT_TYPES + IUINT_TYPES
+    else:
+        test_types = NUMERIC_TYPES
     for klass in (SlopeInterArrayWriter, SlopeArrayWriter, ArrayWriter):
-        for type in NUMERIC_TYPES:
+        for type in test_types:
             arr = np.arange(10, dtype=type)
             aw = klass(arr)
             assert_true(aw.array is arr)
