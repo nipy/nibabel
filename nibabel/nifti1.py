@@ -1432,7 +1432,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # the header, update the heaader
         if self._affine is None:
             return
-        if np.all(self._affine == hdr.get_best_affine()):
+        if np.allclose(self._affine, hdr.get_best_affine()):
             return
         # Set affine into sform with default code
         hdr.set_sform(self._affine, code='aligned')
