@@ -21,6 +21,8 @@ from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                       data_type_codes, extension_codes, slice_order_codes)
 
+from .test_arraywriters import rt_err_estimate, IUINT_TYPES
+
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
@@ -59,6 +61,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr.endianness, '<')
         assert_equal(hdr['magic'], asbytes('ni1'))
         assert_equal(hdr['sizeof_hdr'], 348)
+
+    def test_big_scaling(self):
+        # Test that upcasting works for huge scalefactors
+        # See tests for apply_read_scaling in test_utils
+        hdr = self.header_class()
+        hdr.set_data_shape((2,1,1))
+        hdr.set_data_dtype(np.int16)
+        sio = BytesIO()
+        dtt = np.float32
+        # This will generate a huge scalefactor
+        finf = np.finfo(dtt)
+        data = np.array([finf.min, finf.max], dtype=dtt)[:,None, None]
+        hdr.data_to_fileobj(data, sio)
+        data_back = hdr.data_from_fileobj(sio)
+        assert_true(np.allclose(data, data_back))
 
     def test_nifti_log_checks(self):
         # in addition to analyze header checks
@@ -688,4 +705,66 @@ def test_affines_init():
     assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
 
 
+def round_trip(img):
+    stio = BytesIO()
+    img.file_map['image'].fileobj = stio
+    img.to_file_map()
+    return Nifti1Image.from_file_map(img.file_map)
 
+
+def test_float_int_min_max():
+    # Conversion between float and int
+    # Parallel test to arraywriters
+    aff = np.eye(4)
+    for in_dt in (np.float32, np.float64):
+        finf = np.finfo(in_dt)
+        arr = np.array([finf.min, finf.max], dtype=in_dt)
+        for out_dt in IUINT_TYPES:
+            img = Nifti1Image(arr, aff)
+            img_back = round_trip(img)
+            arr_back_sc = img_back.get_data()
+            assert_true(np.allclose(arr, arr_back_sc))
+
+
+def test_float_int_spread():
+    # Test rounding error for spread of values
+    # Parallel test to arraywriters
+    powers = np.arange(-10, 10, 0.5)
+    arr = np.concatenate((-10**powers, 10**powers))
+    aff = np.eye(4)
+    for in_dt in (np.float32, np.float64):
+        arr_t = arr.astype(in_dt)
+        for out_dt in IUINT_TYPES:
+            img = Nifti1Image(arr_t, aff)
+            img_back = round_trip(img)
+            arr_back_sc = img_back.get_data()
+            slope, inter = img_back.get_header().get_slope_inter()
+            # Get estimate for error
+            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+            # Simulate allclose test with large atol
+            diff = np.abs(arr_t - arr_back_sc)
+            rdiff = diff / np.abs(arr_t)
+            assert_true(np.all((diff <= max_miss) | (rdiff <= 1e-5)))
+
+
+def test_rt_bias():
+    # Check for bias in round trip
+    # Parallel test to arraywriters
+    rng = np.random.RandomState(20111214)
+    mu, std, count = 100, 10, 100
+    arr = rng.normal(mu, std, size=(count,))
+    eps = np.finfo(np.float32).eps
+    aff = np.eye(4)
+    for in_dt in (np.float32, np.float64):
+        arr_t = arr.astype(in_dt)
+        for out_dt in IUINT_TYPES:
+            img = Nifti1Image(arr_t, aff)
+            img_back = round_trip(img)
+            arr_back_sc = img_back.get_data()
+            slope, inter = img_back.get_header().get_slope_inter()
+            bias = np.mean(arr_t - arr_back_sc)
+            # Get estimate for error
+            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+            # Hokey use of max_miss as a std estimate
+            bias_thresh = np.max([max_miss / np.sqrt(count), eps])
+            assert_true(np.abs(bias) < bias_thresh)
