@@ -28,9 +28,11 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
         Array of floating point type
     int_type : object
         Numpy integer type
-    nan2zero : {True, False}
+    nan2zero : {True, False, None}
         Whether to convert NaN value to zero.  Default is True.  If False, and
-        NaNs are present, raise CastingError
+        NaNs are present, raise CastingError. If None, do not check for NaN
+        values and pass through directly to the ``astype`` casting mechanism.
+        In this last case, the resulting value is undefined.
     infmax : {False, True}
         If True, set np.inf values in `arr` to be `int_type` integer maximum
         value, -np.inf as `int_type` integer minimum.  If False, set +/- infs to
@@ -72,13 +74,16 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     # Deal with scalar as input; fancy indexing needs 1D
     shape = arr.shape
     arr = np.atleast_1d(arr)
-    mn, mx = _cached_int_clippers(flt_type, int_type)
-    nans = np.isnan(arr)
-    have_nans = np.any(nans)
-    if not nan2zero and have_nans:
-        raise CastingError('NaNs in array, nan2zero not True')
+    mn, mx = shared_range(flt_type, int_type)
+    if nan2zero is None:
+        seen_nans = False
+    else:
+        nans = np.isnan(arr)
+        seen_nans = np.any(nans)
+        if nan2zero == False and seen_nans:
+            raise CastingError('NaNs in array, nan2zero is False')
     iarr = np.clip(np.rint(arr), mn, mx).astype(int_type)
-    if have_nans:
+    if seen_nans:
         iarr[nans] = 0
     if not infmax:
         return iarr.reshape(shape)
@@ -89,7 +94,10 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     return iarr.reshape(shape)
 
 
-def int_clippers(flt_type, int_type):
+# Cache range values
+_SHARED_RANGES = {}
+
+def shared_range(flt_type, int_type):
     """ Min and max in float type that are >=min, <=max in integer type
 
     This is not as easy as it sounds, because the float type may not be able to
@@ -98,10 +106,12 @@ def int_clippers(flt_type, int_type):
 
     Parameters
     ----------
-    flt_type : object
-        numpy floating point type
-    int_type : object
-        numpy integer type
+    flt_type : dtype specifier
+        A dtype specifier referring to a numpy floating point type.  For
+        example, ``f4``, ``np.dtype('f4')``, ``np.float32`` are equivalent.
+    int_type : dtype specifier
+        A dtype specifier referring to a numpy integer type.  For example,
+        ``i4``, ``np.dtype('i4')``, ``np.int32`` are equivalent
 
     Returns
     -------
@@ -111,23 +121,31 @@ def int_clippers(flt_type, int_type):
     mx : object
         Number of type `flt_type` that is the maximum value in the range of
         `int_type`, such that ``mx.astype(int_type)`` <= max of `int_type`
+
+    Examples
+    --------
+    >>> shared_range(np.float32, np.int32)
+    (-2147483648.0, 2147483520.0)
+    >>> shared_range('f4', 'i4')
+    (-2147483648.0, 2147483520.0)
     """
+    flt_type = np.dtype(flt_type).type
+    int_type = np.dtype(int_type).type
+    key = (flt_type, int_type)
+    # Used cached value if present
+    try:
+        return _SHARED_RANGES[key]
+    except KeyError:
+        pass
     ii = np.iinfo(int_type)
-    return floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
+    mn_mx = floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
+    _SHARED_RANGES[key] = mn_mx
+    return mn_mx
 
-
-# Cache clip values
-FLT_INT_CLIPS = {}
-
-def _cached_int_clippers(flt_type, int_type):
-    if not (flt_type, int_type) in FLT_INT_CLIPS:
-        FLT_INT_CLIPS[flt_type, int_type] = int_clippers(flt_type, int_type)
-    return FLT_INT_CLIPS[(flt_type, int_type)]
-
-# ---------------------------------------------------------------------------
-# Routines to work out the next lowest representable intger in floating point
+# ----------------------------------------------------------------------------
+# Routines to work out the next lowest representable integer in floating point
 # types.
-# ---------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 try:
     _float16 = np.float16
@@ -192,13 +210,16 @@ def as_int(x, check=True):
     This is useful because the numpy int(val) mechanism is broken for large
     values in np.longdouble.
 
+    It is also useful to work around a numpy 1.4.1 bug in conversion of uints to
+    python ints.
+
     This routine will still raise an OverflowError for values that are outside
     the range of float64.
 
     Parameters
     ----------
     x : object
-        Floating point value
+        integer, unsigned integer or floating point value
     check : {True, False}
         If True, raise error for values that are not integers
 
@@ -220,7 +241,15 @@ def as_int(x, check=True):
     >>> as_int(2.1, check=False)
     2
     """
-    x = np.array(x, copy=True)
+    x = np.array(x)
+    if x.dtype.kind in 'iu':
+        # This works around a nasty numpy 1.4.1 bug such that:
+        # >>> int(np.uint32(2**32-1)
+        # -1
+        return int(str(x))
+    ix = int(x)
+    if ix == x:
+        return ix
     fx = np.floor(x)
     if check and fx != x:
         raise FloatingError('Not an integer: %s' % x)
@@ -324,6 +353,46 @@ def floor_exact(val, flt_type):
     assert biggest_gap > 1
     faval -= flt_type(biggest_gap)
     return sign * faval
+
+
+def int_abs(arr):
+    """ Absolute values of array taking care of max negative int values
+
+    Parameters
+    ----------
+    arr : array-like
+
+    Returns
+    -------
+    abs_arr : array
+        array the same shape as `arr` in which all negative numbers have been
+        changed to positive numbers with the magnitude.
+
+    Examples
+    --------
+    This kind of thing is confusing in base numpy:
+
+    >>> import numpy as np
+    >>> np.abs(np.int8(-128))
+    -128
+
+    ``int_abs`` fixes that:
+
+    >>> int_abs(np.int8(-128))
+    128
+    >>> int_abs(np.array([-128, 127], dtype=np.int8))
+    array([128, 127], dtype=uint8)
+    >>> int_abs(np.array([-128, 127], dtype=np.float32))
+    array([ 128.,  127.], dtype=float32)
+    """
+    arr = np.array(arr, copy=False)
+    dt = arr.dtype
+    if dt.kind == 'u':
+        return arr
+    if dt.kind != 'i':
+        return np.absolute(arr)
+    out = arr.astype(np.dtype(dt.str.replace('i', 'u')))
+    return np.choose(arr < 0, (arr, arr * -1), out=out)
 
 
 def floor_log2(x):

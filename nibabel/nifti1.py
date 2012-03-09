@@ -825,6 +825,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_slope_inter()
         (1.0, None)
         '''
+        # Note that we are returning float (float64) scalefactors and
+        # intercepts, although they are stored as np.float32.
         scale = float(self['scl_slope'])
         dc_offset = float(self['scl_inter'])
         if scale == 0 or not np.isfinite(scale):
