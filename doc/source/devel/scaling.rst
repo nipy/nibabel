@@ -57,9 +57,6 @@ scalefactor and intercept. If ``(intercept, scalefactor)`` are not the identity
 scalefactor`` by making these be at least 1D arrays, so that floating point
 types will upcast in ``R = (A - intercept) / scalefactor``.
 
-See the file ``nibabel/tests/test_cast_assumptions.py`` for tests of the
-predictability of dtype output given dtype input.
-
 The cast of ``R`` to ``S`` and back to ``R_prime`` can lose resolution if the
 types of ``R`` and ``S`` have different resolution.
 
