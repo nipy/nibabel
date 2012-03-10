@@ -3,7 +3,7 @@
 import numpy as np
 
 from ..casting import (floor_exact, flt2nmant, as_int, FloatingError,
-                       int_to_float, floor_log2)
+                       int_to_float, floor_log2, type_info)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises
@@ -19,6 +19,42 @@ if have_float16:
     IEEE_floats.append(np.float16)
 
 LD_INFO = np.finfo(np.longdouble)
+
+
+def test_type_info():
+    # Test routine to get min, max, nmant, nexp
+    for dtt in np.sctypes['int'] + np.sctypes['uint']:
+        info = np.iinfo(dtt)
+        infod = type_info(dtt)
+        assert_equal(dict(min=info.min, max=info.max, nexp=None, nmant=None,
+                          width=np.dtype(dtt).itemsize), infod)
+    for dtt in IEEE_floats + [np.complex64, np.complex64]:
+        info = np.finfo(dtt)
+        infod = type_info(dtt)
+        assert_equal(dict(min=info.min, max=info.max,
+                          nexp=info.nexp, nmant=info.nmant,
+                          width=np.dtype(dtt).itemsize),
+                     infod)
+    # What is longdouble?
+    info = np.finfo(np.longdouble)
+    dbl_info = np.finfo(np.float64)
+    infod = type_info(np.longdouble)
+    width = np.dtype(np.longdouble).itemsize
+    vals = (info.nmant, info.nexp, width)
+    # Information for PPC head / tail doubles from:
+    # https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man3/float.3.html
+    if vals in ((52, 11, 8), # longdouble is same as double
+                (63, 15, 12), (63, 15, 16), # intel 80 bit
+                (112, 15, 16), # real float128
+                (106, 11, 16)): # PPC head, tail doubles, expected values
+        assert_equal(dict(min=info.min, max=info.max,
+                          nexp=info.nexp, nmant=info.nmant, width=width),
+                     infod)
+    elif vals == (1, 1, 16): # bust info for PPC head / tail longdoubles
+        assert_equal(dict(min=dbl_info.min, max=dbl_info.max,
+                          nexp=11, nmant=106, width=16),
+                     infod)
+
 
 def test_flt2nmant():
     for t in IEEE_floats:

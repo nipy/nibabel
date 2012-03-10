@@ -1,6 +1,8 @@
 """ Utilties for casting floats to integers
 """
 
+from platform import processor
+
 import numpy as np
 
 
@@ -163,6 +165,71 @@ _flt_nmant = {
 
 class FloatingError(Exception):
     pass
+
+
+def type_info(np_type):
+    """ Return dict with min, max, nexp, nmant, width for numpy type `np_type`
+
+    Type can be integer in which case nexp and nmant are None.
+
+    Parameters
+    ----------
+    np_type : numpy type specifier
+        Any specifier for a numpy dtype
+
+    Returns
+    -------
+    info : dict
+        with fields ``min`` (minimum value), ``max`` (maximum value), ``nexp``
+        (exponent width), ``nmant`` (significand precision not including
+        implicit first digit) ``width`` (width in bytes). ``nexp``, ``nmant``
+        are None for integer types.
+
+    Raises
+    ------
+    FloatingError : for floating point types we don't recognize
+
+    Notes
+    -----
+    You might be thinking that ``np.finfo`` does this job, and it does, except
+    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077). This
+    routine protects against errors in ``np.finfo`` by only accepting values
+    that we know are likely to be correct.
+    """
+    dt = np.dtype(np_type)
+    width = dt.itemsize
+    try: # integer type
+        info = np.iinfo(dt)
+    except ValueError:
+        pass
+    else:
+        return dict(min=info.min, max=info.max, nmant=None, nexp=None,
+                    width=width)
+    info = np.finfo(dt)
+    vals = info.nmant, info.nexp, width
+    if vals == (10, 5, 2): # binary16
+        assert dt.type is _float16
+    elif vals == (23, 8, 4): # binary32
+        assert dt.type is np.float32
+    elif vals == (23, 8, 8): # binary32, complex
+        assert dt.type is np.complex64
+    elif vals == (52, 11, 8): # binary64
+        assert dt.type in (np.float64, np.longdouble)
+    elif vals == (52, 11, 16): # binary64, complex
+        assert dt.type is np.complex128
+    elif vals == (112, 15, 16): # binary128
+        assert dt.type is np.longdouble
+    elif vals in ((63, 15, 12), (63, 15, 16)): # Intel extended 80
+        assert dt.type is np.longdouble
+    elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
+        assert dt.type is np.longdouble
+        dbl_info = np.finfo(np.float64)
+        return dict(min=dbl_info.min, max=dbl_info.max, nmant=106, nexp=11,
+                    width=width)
+    else: # don't recognize the type
+        raise FloatingError('We had not expected this type')
+    return dict(min=info.min, max=info.max, nmant=info.nmant, nexp=info.nexp,
+               width=width)
 
 
 def flt2nmant(flt_type):
