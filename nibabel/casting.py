@@ -154,14 +154,6 @@ try:
 except AttributeError: # float16 not present in np < 1.6
     _float16 = None
 
-# The number of significand digits in IEEE floating point formats, not including
-# the implicit leading 0.  See http://en.wikipedia.org/wiki/IEEE_754-2008
-_flt_nmant = {
-    _float16: 10,
-    np.float32: 23,
-    np.float64: 52,
-    }
-
 
 class FloatingError(Exception):
     pass
@@ -232,26 +224,6 @@ def type_info(np_type):
         raise FloatingError('We had not expected this type')
     return dict(min=np_type(info.min), max=np_type(info.max), nmant=info.nmant,
                 nexp=info.nexp, width=width)
-
-
-def flt2nmant(flt_type):
-    """ Number of significand bits in float type `flt_type`
-
-    Parameters
-    ----------
-    flt_type : object
-        Numpy floating point type, such as np.float32
-
-    Returns
-    -------
-    nmant : int
-        Number of digits in the signficand
-    """
-    try:
-        return _flt_nmant[flt_type]
-    except KeyError:
-        pass
-    return type_info(flt_type)['nmant']
 
 
 def as_int(x, check=True):
@@ -398,7 +370,7 @@ def floor_exact(val, flt_type):
         # Float casting has made the value go down or stay the same
         return sign * faval
     # Float casting made the value go up
-    nmant = flt2nmant(flt_type)
+    nmant = type_info(flt_type)['nmant']
     biggest_gap = 2**(floor_log2(aval) - nmant)
     assert biggest_gap > 1
     faval -= flt_type(biggest_gap)

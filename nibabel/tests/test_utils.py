@@ -34,7 +34,7 @@ from ..volumeutils import (array_from_file,
                            FLOAT_TYPES,
                            NUMERIC_TYPES)
 
-from ..casting import flt2nmant, FloatingError, floor_log2
+from ..casting import FloatingError, floor_log2, type_info
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -306,7 +306,8 @@ def test_apply_scaling():
     # Normally this would not upcast
     assert_equal((i16_arr * big).dtype, np.float32)
     # An equivalent case is a little hard to find for the intercept
-    big_delta = np.float32(2**(floor_log2(big)-flt2nmant(np.float32)))
+    nmant_32 = type_info(np.float32)['nmant']
+    big_delta = np.float32(2**(floor_log2(big)-nmant_32))
     assert_equal((i16_arr * big_delta + big).dtype, np.float32)
     # Upcasting does occur with this routine
     assert_equal(apply_read_scaling(i16_arr, big).dtype, np.float64)
@@ -381,9 +382,9 @@ def test_better_float():
 def have_longer_double():
     # True if longdouble has more precision than float64, and longdouble is
     # something we can rely on
-    nmant_64 = flt2nmant(np.float64) # should be 52
+    nmant_64 = type_info(np.float64)['nmant'] # should be 52
     try:
-        nmant_ld = flt2nmant(np.longdouble)
+        nmant_ld = type_info(np.longdouble)['nmant']
     except FloatingError:
         return False
     return nmant_ld > nmant_64
@@ -410,7 +411,7 @@ def test_best_write_scale_ftype():
     for lower_t, higher_t in best_vals:
         # Information on this float
         t_max = np.finfo(lower_t).max
-        nmant = flt2nmant(lower_t) # number of significand digits
+        nmant = type_info(lower_t)['nmant'] # number of significand digits
         big_delta = lower_t(2**(floor_log2(t_max) - nmant)) # delta below max
         # Even large values that don't overflow don't change output
         arr = np.array([0, t_max], dtype=lower_t)
