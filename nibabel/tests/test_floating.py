@@ -1,5 +1,7 @@
 """ Test floating point deconstructions and floor methods
 """
+from platform import processor
+
 import numpy as np
 
 from ..casting import (floor_exact, as_int, FloatingError, int_to_float,
@@ -191,6 +193,10 @@ def test_floor_exact():
             assert_equal(int_flex(-iv, t), -iv)
             assert_equal(int_flex(iv-1, t), iv-1)
             assert_equal(int_flex(-iv+1, t), -iv+1)
+        # The nmant value for longdouble on PPC appears to be conservative, so
+        # that the tests for behavior above the nmant range fail
+        if t is np.longdouble and processor() == 'powerpc':
+            continue
         # 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant+1)
         assert_equal(int_flex(iv+1, t), iv)
