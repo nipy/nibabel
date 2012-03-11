@@ -28,6 +28,8 @@ def test_type_info():
         infod = type_info(dtt)
         assert_equal(dict(min=info.min, max=info.max, nexp=None, nmant=None,
                           width=np.dtype(dtt).itemsize), infod)
+        assert_equal(infod['min'].dtype.type, dtt)
+        assert_equal(infod['max'].dtype.type, dtt)
     for dtt in IEEE_floats + [np.complex64, np.complex64]:
         info = np.finfo(dtt)
         infod = type_info(dtt)
@@ -35,6 +37,8 @@ def test_type_info():
                           nexp=info.nexp, nmant=info.nmant,
                           width=np.dtype(dtt).itemsize),
                      infod)
+        assert_equal(infod['min'].dtype.type, dtt)
+        assert_equal(infod['max'].dtype.type, dtt)
     # What is longdouble?
     info = np.finfo(np.longdouble)
     dbl_info = np.finfo(np.float64)

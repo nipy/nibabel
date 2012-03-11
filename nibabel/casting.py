@@ -183,7 +183,8 @@ def type_info(np_type):
         with fields ``min`` (minimum value), ``max`` (maximum value), ``nexp``
         (exponent width), ``nmant`` (significand precision not including
         implicit first digit) ``width`` (width in bytes). ``nexp``, ``nmant``
-        are None for integer types.
+        are None for integer types. Both ``min`` and ``max`` are of type
+        `np_type`.
 
     Raises
     ------
@@ -197,39 +198,40 @@ def type_info(np_type):
     that we know are likely to be correct.
     """
     dt = np.dtype(np_type)
+    np_type = dt.type
     width = dt.itemsize
     try: # integer type
         info = np.iinfo(dt)
     except ValueError:
         pass
     else:
-        return dict(min=info.min, max=info.max, nmant=None, nexp=None,
-                    width=width)
+        return dict(min=np_type(info.min), max=np_type(info.max),
+                    nmant=None, nexp=None, width=width)
     info = np.finfo(dt)
     vals = info.nmant, info.nexp, width
     if vals == (10, 5, 2): # binary16
-        assert dt.type is _float16
+        assert np_type is _float16
     elif vals == (23, 8, 4): # binary32
-        assert dt.type is np.float32
+        assert np_type is np.float32
     elif vals == (23, 8, 8): # binary32, complex
-        assert dt.type is np.complex64
+        assert np_type is np.complex64
     elif vals == (52, 11, 8): # binary64
-        assert dt.type in (np.float64, np.longdouble)
+        assert np_type in (np.float64, np.longdouble)
     elif vals == (52, 11, 16): # binary64, complex
-        assert dt.type is np.complex128
+        assert np_type is np.complex128
     elif vals == (112, 15, 16): # binary128
-        assert dt.type is np.longdouble
+        assert np_type is np.longdouble
     elif vals in ((63, 15, 12), (63, 15, 16)): # Intel extended 80
-        assert dt.type is np.longdouble
+        assert np_type is np.longdouble
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        assert dt.type is np.longdouble
+        assert np_type is np.longdouble
         dbl_info = np.finfo(np.float64)
-        return dict(min=dbl_info.min, max=dbl_info.max, nmant=106, nexp=11,
-                    width=width)
+        return dict(min=np_type(dbl_info.min), max=np_type(dbl_info.max),
+                    nmant=106, nexp=11, width=width)
     else: # don't recognize the type
         raise FloatingError('We had not expected this type')
-    return dict(min=info.min, max=info.max, nmant=info.nmant, nexp=info.nexp,
-               width=width)
+    return dict(min=np_type(info.min), max=np_type(info.max), nmant=info.nmant,
+                nexp=info.nexp, width=width)
 
 
 def flt2nmant(flt_type):
