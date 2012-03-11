@@ -200,30 +200,29 @@ def type_info(np_type):
         return dict(min=np_type(info.min), max=np_type(info.max),
                     nmant=None, nexp=None, width=width)
     info = np.finfo(dt)
-    vals = info.nmant, info.nexp, width
-    if vals == (10, 5, 2): # binary16
-        assert np_type is _float16
-    elif vals == (23, 8, 4): # binary32
-        assert np_type is np.float32
-    elif vals == (23, 8, 8): # binary32, complex
-        assert np_type is np.complex64
-    elif vals == (52, 11, 8): # binary64
-        assert np_type in (np.float64, np.longdouble)
-    elif vals == (52, 11, 16): # binary64, complex
-        assert np_type is np.complex128
-    elif vals == (112, 15, 16): # binary128
+    # Trust the standard IEEE types
+    nmant, nexp = info.nmant, info.nexp
+    ret = dict(min=np_type(info.min), max=np_type(info.max), nmant=nmant,
+               nexp=nexp, width=width)
+    if np_type in (_float16, np.float32, np.float64,
+                   np.complex64, np.complex128):
+        return ret
+    if dt.kind == 'c':
+        assert np_type is np.longcomplex
+        vals = (nmant, nexp, width / 2)
+    else:
         assert np_type is np.longdouble
-    elif vals in ((63, 15, 12), (63, 15, 16)): # Intel extended 80
-        assert np_type is np.longdouble
+        vals = (nmant, nexp, width)
+    if vals in ((112, 15, 16), # binary128
+                (63, 15, 12), (63, 15, 16)): # Intel extended 80
+        pass # these are OK
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        assert np_type is np.longdouble
         dbl_info = np.finfo(np.float64)
         return dict(min=np_type(dbl_info.min), max=np_type(dbl_info.max),
                     nmant=106, nexp=11, width=width)
     else: # don't recognize the type
         raise FloatingError('We had not expected this type')
-    return dict(min=np_type(info.min), max=np_type(info.max), nmant=info.nmant,
-                nexp=info.nexp, width=width)
+    return ret
 
 
 def as_int(x, check=True):
