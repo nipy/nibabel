@@ -122,3 +122,20 @@ def bad_dtype_mgh():
 def test_bad_dtype_mgh():
     # Now test the above function
     assert_raises(MGHError, bad_dtype_mgh)
+
+
+def test_filename_exts():
+    # Test acceptable filename extensions
+    v = np.ones((7, 13, 3, 22)).astype(np.uint8)
+    # form a MGHImage object using data
+    # and the default affine matrix (Note the "None")
+    img = MGHImage(v, None)
+    # Check if these extensions allow round trip
+    for ext in ('.mgh', '.mgz', '.mgh.gz'):
+        with InTemporaryDirectory():
+            fname = 'tmpname' + ext
+            save(img, fname)
+            # read from the tmp file and see if it checks out
+            img_back = load(fname)
+            assert_array_equal(img_back.get_data(), v)
+            del img_back
