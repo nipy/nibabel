@@ -129,17 +129,17 @@ def test_a2f_intercept_scale():
 
 def test_a2f_upscale():
     # Test working type scales with needed range
-    info = np.finfo(np.float32)
+    info = type_info(np.float32)
     # Test values discovered from stress testing.  The largish value (2**115)
     # overflows to inf after the intercept is subtracted, using float32 as the
     # working precision.  The difference between inf and this value is lost.
-    arr = np.array([[info.min, 2**115, info.max]], dtype=np.float32)
+    arr = np.array([[info['min'], 2**115, info['max']]], dtype=np.float32)
     slope = np.float32(2**121)
-    inter = info.min
+    inter = info['min']
     str_io = BytesIO()
     # We need to provide mn, mx for function to be able to calculate upcasting
     array_to_file(arr, str_io, np.uint8, intercept=inter, divslope=slope,
-                  mn = info.min, mx = info.max)
+                  mn = info['min'], mx = info['max'])
     raw = array_from_file(arr.shape, np.uint8, str_io)
     back = apply_read_scaling(raw, slope, inter)
     top = back - arr
@@ -250,8 +250,8 @@ def test_a2f_zeros():
 
 def test_a2f_big_scalers():
     # Check that clip works even for overflowing scalers / data
-    info = np.finfo(np.float32)
-    arr = np.array([info.min, np.nan, info.max], dtype=np.float32)
+    info = type_info(np.float32)
+    arr = np.array([info['min'], np.nan, info['max']], dtype=np.float32)
     str_io = BytesIO()
     # Intercept causes overflow - does routine scale correctly?
     array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120))
@@ -259,7 +259,7 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
     # Scales also if mx, mn specified?
     str_io.seek(0)
-    array_to_file(arr, str_io, np.int8, mn=info.min, mx=info.max,
+    array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
                   intercept=np.float32(2**120))
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
@@ -270,7 +270,7 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
     # with mn, mx specified?
     str_io.seek(0)
-    array_to_file(arr, str_io, np.int8, mn=info.min, mx=info.max,
+    array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
                   divslope=np.float32(0.5))
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
@@ -302,7 +302,7 @@ def test_apply_scaling():
     ret = apply_read_scaling(np.float32(0), inter=np.float64(2))
     assert_equal(ret.dtype, np.float64)
     # Check integer inf upcast
-    big = f32(np.finfo(f32).max)
+    big = f32(type_info(f32)['max'])
     # Normally this would not upcast
     assert_equal((i16_arr * big).dtype, np.float32)
     # An equivalent case is a little hard to find for the intercept
@@ -410,8 +410,9 @@ def test_best_write_scale_ftype():
         best_vals += ((np.float64, np.longdouble),)
     for lower_t, higher_t in best_vals:
         # Information on this float
-        t_max = np.finfo(lower_t).max
-        nmant = type_info(lower_t)['nmant'] # number of significand digits
+        L_info = type_info(lower_t)
+        t_max = L_info['max']
+        nmant = L_info['nmant'] # number of significand digits
         big_delta = lower_t(2**(floor_log2(t_max) - nmant)) # delta below max
         # Even large values that don't overflow don't change output
         arr = np.array([0, t_max], dtype=lower_t)

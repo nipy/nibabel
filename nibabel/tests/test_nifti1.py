@@ -14,6 +14,7 @@ from ..py3k import BytesIO, ZEROB, asbytes
 
 import numpy as np
 
+from ..casting import type_info
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
 from .. import nifti1 as nifti1
@@ -71,8 +72,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         sio = BytesIO()
         dtt = np.float32
         # This will generate a huge scalefactor
-        finf = np.finfo(dtt)
-        data = np.array([finf.min, finf.max], dtype=dtt)[:,None, None]
+        finf = type_info(dtt)
+        data = np.array([finf['min'], finf['max']], dtype=dtt)[:,None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
@@ -717,8 +718,8 @@ def test_float_int_min_max():
     # Parallel test to arraywriters
     aff = np.eye(4)
     for in_dt in (np.float32, np.float64):
-        finf = np.finfo(in_dt)
-        arr = np.array([finf.min, finf.max], dtype=in_dt)
+        finf = type_info(in_dt)
+        arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         for out_dt in IUINT_TYPES:
             img = Nifti1Image(arr, aff)
             img_back = round_trip(img)

@@ -18,7 +18,7 @@ else:
 if have_float16:
     IEEE_floats.append(np.float16)
 
-LD_INFO = np.finfo(np.longdouble)
+LD_INFO = type_info(np.longdouble)
 
 
 def test_type_info():
@@ -63,7 +63,7 @@ def test_type_info():
 def test_nmant():
     for t in IEEE_floats:
         assert_equal(type_info(t)['nmant'], np.finfo(t).nmant)
-    if (LD_INFO.nmant, LD_INFO.nexp) == (63, 15):
+    if (LD_INFO['nmant'], LD_INFO['nexp']) == (63, 15):
         assert_equal(type_info(np.longdouble)['nmant'], 63)
 
 
@@ -87,7 +87,7 @@ def test_as_int():
     v = np.longdouble(2) ** (nmant + 1) - 1
     assert_equal(as_int(v), 2**(nmant + 1) -1)
     # Check for predictable overflow
-    nexp64 = floor_log2(np.finfo(np.float64).max)
+    nexp64 = floor_log2(type_info(np.float64)['max'])
     val = np.longdouble(2**nexp64) * 2 # outside float64 range
     assert_raises(OverflowError, as_int, val)
     assert_raises(OverflowError, as_int, -val)
@@ -103,7 +103,7 @@ def test_int_to_float():
             assert_equal(int_to_float(i, ie3), ie3(i))
             assert_equal(int_to_float(-i, ie3), ie3(-i))
         # IEEEs in this case are binary formats only
-        nexp = floor_log2(np.finfo(ie3).max)
+        nexp = floor_log2(type_info(ie3)['max'])
         # Values too large for the format
         smn, smx = -2**(nexp+1), 2**(nexp+1)
         if ie3 is np.float64:
@@ -122,7 +122,7 @@ def test_int_to_float():
         assert_equal(int_to_float(i, LD), LD(i))
         assert_equal(int_to_float(-i, LD), LD(-i))
     # Above max of float64, we're hosed
-    nexp64 = floor_log2(np.finfo(np.float64).max)
+    nexp64 = floor_log2(type_info(np.float64)['max'])
     smn64, smx64 = -2**(nexp64+1), 2**(nexp64+1)
     # The algorithm here implemented goes through float64, so supermax and
     # supermin will cause overflow errors
@@ -151,7 +151,7 @@ def test_floor_exact_16():
     # A normal integer can generate an inf in float16
     if not have_float16:
         raise SkipTest('No float16')
-    assert_equal(floor_exact(2**31, np.float16), np.finfo(np.float16).max)
+    assert_equal(floor_exact(2**31, np.float16), type_info(np.float16)['max'])
 
 
 def test_floor_exact_64():
@@ -181,8 +181,9 @@ def test_floor_exact():
     int_flex = lambda x, t : as_int(floor_exact(x, t))
     for t in to_test:
         # A number bigger than the range returns the max
-        assert_equal(floor_exact(2**5000, t), np.finfo(t).max)
-        nmant = type_info(t)['nmant']
+        info = type_info(t)
+        assert_equal(floor_exact(2**5000, t), info['max'])
+        nmant =  info['nmant']
         for i in range(nmant+1):
             iv = 2**i
             # up to 2**nmant should be exactly representable

@@ -25,7 +25,7 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import int_to_float, as_int, int_abs
+from .casting import int_to_float, as_int, int_abs, type_info
 from .volumeutils import finite_range, array_to_file
 
 
@@ -329,13 +329,13 @@ class SlopeArrayWriter(ArrayWriter):
         """ Calculate scaling based on data range and output type """
         mn, mx = self.finite_range() # These can be floats or integers
         out_dtype = self._out_dtype
+        info = type_info(out_dtype)
+        t_mn_mx = info['min'], info['max']
         if out_dtype.kind == 'f':
-            t_mn_mx = np.finfo(out_dtype).min, np.finfo(out_dtype).max
             # But we want maximum precision for the calculations. Casting will
             # not lose precision because min/max are of fp type.
             t_min, t_max = np.array(t_mn_mx, dtype = np.longdouble)
         else: # (u)int
-            t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
             t_min, t_max = [int_to_float(v, np.longdouble) for v in t_mn_mx]
         if self._out_dtype.kind == 'u':
             if mn < 0 and mx > 0:
@@ -484,7 +484,8 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             mn2mx = int_to_float(as_int(mx) - as_int(mn), np.longdouble)
         if out_dtype.kind == 'f':
             # Type range, these are also floats
-            t_mn_mx = np.finfo(out_dtype).min, np.finfo(out_dtype).max
+            info = type_info(out_dtype)
+            t_mn_mx = info['min'], info['max']
         else:
             t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
             t_mn_mx= [int_to_float(v, np.longdouble) for v in t_mn_mx]

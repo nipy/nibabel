@@ -363,14 +363,14 @@ def floor_exact(val, flt_type):
         faval = int_to_float(aval, flt_type)
     except OverflowError:
         faval = np.inf
+    info = type_info(flt_type)
     if faval == np.inf:
-        return sign * np.finfo(flt_type).max
+        return sign * info['max']
     if as_int(faval) <= aval: # as_int deals with longdouble safely
         # Float casting has made the value go down or stay the same
         return sign * faval
     # Float casting made the value go up
-    nmant = type_info(flt_type)['nmant']
-    biggest_gap = 2**(floor_log2(aval) - nmant)
+    biggest_gap = 2**(floor_log2(aval) - info['nmant'])
     assert biggest_gap > 1
     faval -= flt_type(biggest_gap)
     return sign * faval

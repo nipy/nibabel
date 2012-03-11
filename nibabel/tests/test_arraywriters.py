@@ -37,7 +37,7 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
 
-from ..casting import int_abs
+from ..casting import int_abs, type_info
 
 from ..volumeutils import array_from_file, apply_read_scaling
 
@@ -354,8 +354,8 @@ def test_io_scaling():
                                    (np.float32, np.int16, None)):
         out_dtype = np.dtype(out_type)
         arr = np.zeros((3,), dtype=in_type)
-        info = np.finfo(in_type) if arr.dtype.kind == 'f' else np.iinfo(in_type)
-        arr[0], arr[1] = info.min, info.max
+        info = type_info(in_type)
+        arr[0], arr[1] = info['min'], info['max']
         aw = SlopeInterArrayWriter(arr, out_dtype, calc_scale=False)
         if not err is None:
             assert_raises(err, aw.calc_scale)
@@ -429,17 +429,16 @@ def test_writers_roundtrip():
 
 
 def test_to_float():
+    start, stop = 0, 100
     for in_type in NUMERIC_TYPES:
-        if in_type in IUINT_TYPES:
-            info = np.iinfo(in_type)
-            mn, mx, start, stop, step = info.min, info.max, 0, 100, 1
-        else:
-            info = np.finfo(in_type)
-            mn, mx, start, stop, step = info.min, info.max, 0, 100, 0.5
+        step = 1 if in_type in IUINT_TYPES else 0.5
+        info = type_info(in_type)
+        mn, mx = info['min'], info['max']
         arr = np.arange(start, stop, step, dtype=in_type)
         arr[0] = mn
         arr[-1] = mx
         for out_type in CFLOAT_TYPES:
+            out_info = type_info(out_type)
             for klass in (SlopeInterArrayWriter, SlopeArrayWriter,
                           ArrayWriter):
                 if in_type in COMPLEX_TYPES and out_type in FLOAT_TYPES:
@@ -451,8 +450,7 @@ def test_to_float():
                 arr_back = round_trip(aw)
                 assert_array_equal(arr.astype(out_type), arr_back)
                 # Check too-big values overflowed correctly
-                out_min = np.finfo(out_type).min
-                out_max = np.finfo(out_type).max
+                out_min, out_max = out_info['min'], out_info['max']
                 assert_true(np.all(arr_back[arr > out_max] == np.inf))
                 assert_true(np.all(arr_back[arr < out_min] == -np.inf))
 
@@ -498,8 +496,8 @@ def test_writer_maker():
 def test_float_int_min_max():
     # Conversion between float and int
     for in_dt in FLOAT_TYPES:
-        finf = np.finfo(in_dt)
-        arr = np.array([finf.min, finf.max], dtype=in_dt)
+        finf = type_info(in_dt)
+        arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         for out_dt in IUINT_TYPES:
             try:
                 aw = SlopeInterArrayWriter(arr, out_dt)
