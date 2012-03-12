@@ -1441,6 +1441,27 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # Make qform 'unknown'
         hdr.set_qform(self._affine, code='unknown')
 
+    def set_affine(self, affine, sform_code='aligned', qform_code='unknown'):
+        """Puts affine, or something close to it, in the image header
+
+        Trys to put affine in the image header, if the header does not support
+        storing affine, something close to affine is used instead. Makes sure
+        the image is self consistent, image.get_affine() ==
+        header.get_best_affine().
+
+        Returns:
+        --------
+        status : bool
+            True if affine made it into the header and False if affine was
+            modified.
+        """
+        hdr = self.get_header()
+        hdr.set_qform(affine, qform_code)
+        hdr.set_sform(affine, sform_code)
+        if self._affine is not None:
+            self._affine[:] = hdr.get_best_affine()
+        self.update_header()
+        return np.allclose(self._affine, affine)
 
 class Nifti1Image(Nifti1Pair):
     header_class = Nifti1Header
