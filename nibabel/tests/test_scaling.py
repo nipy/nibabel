@@ -16,6 +16,7 @@ import numpy as np
 from ..py3k import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
+from ..casting import type_info
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -167,17 +168,6 @@ def test_a2f_nan2zero():
     assert_array_equal(data_back, [np.array(np.nan).astype(np.int32), 99])
 
 
-def type_min_max(dtype_type):
-    # Utility routine to return min, max for dtype dtype
-    if dtype_type in (np.sctypes['complex'] + np.sctypes['float']):
-        info = np.finfo(dtype_type)
-    elif dtype_type in (np.sctypes['int'] + np.sctypes['uint']):
-        info = np.iinfo(dtype_type)
-    else:
-        raise ValueError('Sorry, out of my range')
-    return info.min, info.max
-
-
 def test_array_file_scales():
     # Test scaling works for max, min when going from larger to smaller type,
     # and from float to integer.
@@ -190,7 +180,8 @@ def test_array_file_scales():
                                    (np.float32, np.int16, None)):
         out_dtype = np.dtype(out_type)
         arr = np.zeros((3,), dtype=in_type)
-        arr[0], arr[1] = type_min_max(in_type)
+        info = type_info(in_type)
+        arr[0], arr[1] = info['min'], info['max']
         if not err is None:
             assert_raises(err, calculate_scale, arr, out_dtype, True)
             continue
@@ -229,7 +220,8 @@ def test_scaling_in_abstract():
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
     big_floater = np.maximum_sctype(np.float)
-    this_min, this_max = type_min_max(in_type)
+    info = type_info(in_type)
+    this_min, this_max = info['min'], info['max']
     if not in_type in np.sctypes['complex']:
         data = np.array([this_min, this_max], in_type)
     else: # Funny behavior with complex256
@@ -255,6 +247,7 @@ def check_int_a2f(in_type, out_type):
     data_back = array_from_file(data.shape, out_type, str_io)
     data_back = apply_read_scaling(data_back, scale32, inter32)
     # Clip at extremes to remove inf
-    out_min, out_max = type_min_max(in_type)
+    info = type_info(in_type)
+    out_min, out_max = info['min'], info['max']
     assert_true(np.allclose(big_floater(data),
                             big_floater(np.clip(data_back, out_min, out_max))))
