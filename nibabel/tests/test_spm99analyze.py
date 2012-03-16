@@ -25,6 +25,7 @@ scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
+from ..casting import type_info
 
 from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
 
@@ -62,7 +63,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         sio = BytesIO()
         dtt = np.float32
         # This will generate a huge scalefactor
-        data = np.array([np.finfo(dtt).max], dtype=dtt)[:,None, None]
+        data = np.array([type_info(dtt)['max']], dtype=dtt)[:,None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))

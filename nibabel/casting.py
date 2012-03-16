@@ -1,6 +1,8 @@
 """ Utilties for casting floats to integers
 """
 
+from platform import processor
+
 import numpy as np
 
 
@@ -152,56 +154,75 @@ try:
 except AttributeError: # float16 not present in np < 1.6
     _float16 = None
 
-# The number of significand digits in IEEE floating point formats, not including
-# the implicit leading 0.  See http://en.wikipedia.org/wiki/IEEE_754-2008
-_flt_nmant = {
-    _float16: 10,
-    np.float32: 23,
-    np.float64: 52,
-    }
-
 
 class FloatingError(Exception):
     pass
 
 
-def flt2nmant(flt_type):
-    """ Number of significand bits in float type `flt_type`
+def type_info(np_type):
+    """ Return dict with min, max, nexp, nmant, width for numpy type `np_type`
+
+    Type can be integer in which case nexp and nmant are None.
 
     Parameters
     ----------
-    flt_type : object
-        Numpy floating point type, such as np.float32
+    np_type : numpy type specifier
+        Any specifier for a numpy dtype
 
     Returns
     -------
-    nmant : int
-        Number of digits in the signficand
+    info : dict
+        with fields ``min`` (minimum value), ``max`` (maximum value), ``nexp``
+        (exponent width), ``nmant`` (significand precision not including
+        implicit first digit) ``width`` (width in bytes). ``nexp``, ``nmant``
+        are None for integer types. Both ``min`` and ``max`` are of type
+        `np_type`.
+
+    Raises
+    ------
+    FloatingError : for floating point types we don't recognize
+
+    Notes
+    -----
+    You might be thinking that ``np.finfo`` does this job, and it does, except
+    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077). This
+    routine protects against errors in ``np.finfo`` by only accepting values
+    that we know are likely to be correct.
     """
-    try:
-        return _flt_nmant[flt_type]
-    except KeyError:
+    dt = np.dtype(np_type)
+    np_type = dt.type
+    width = dt.itemsize
+    try: # integer type
+        info = np.iinfo(dt)
+    except ValueError:
         pass
-    fi = np.finfo(flt_type)
-    nmant, nexp = fi.nmant, fi.nexp
-    # Assuming the np.float type is always IEEE 64 bit
-    if flt_type is np.float and (nmant, nexp) == (52, 11):
-        return 52
-    # Now we should be testing long doubles
-    assert flt_type is np.longdouble
-    if (nmant, nexp) == (63, 15): # 80-bit intel type
-        return 63 # Not including explicit first digit
-    # We test the declared nmant by stepping up and down.  These tests assume a
-    # binary format
-    i_end_contig = 2**(nmant+1) # int
-    f_end_contig = flt_type(i_end_contig)
-    # We need as_int here because long doubles do not necessarily convert
-    # correctly to ints with int() - see
-    # http://projects.scipy.org/numpy/ticket/1395
-    if as_int(f_end_contig-1) == (i_end_contig-1): # still representable
-        if as_int(f_end_contig+1) == i_end_contig: # Rounding down
-            return nmant
-    raise FloatingError('Cannot be confident of nmant value for %s' % flt_type)
+    else:
+        return dict(min=np_type(info.min), max=np_type(info.max),
+                    nmant=None, nexp=None, width=width)
+    info = np.finfo(dt)
+    # Trust the standard IEEE types
+    nmant, nexp = info.nmant, info.nexp
+    ret = dict(min=np_type(info.min), max=np_type(info.max), nmant=nmant,
+               nexp=nexp, width=width)
+    if np_type in (_float16, np.float32, np.float64,
+                   np.complex64, np.complex128):
+        return ret
+    if dt.kind == 'c':
+        assert np_type is np.longcomplex
+        vals = (nmant, nexp, width / 2)
+    else:
+        assert np_type is np.longdouble
+        vals = (nmant, nexp, width)
+    if vals in ((112, 15, 16), # binary128
+                (63, 15, 12), (63, 15, 16)): # Intel extended 80
+        pass # these are OK
+    elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
+        dbl_info = np.finfo(np.float64)
+        return dict(min=np_type(dbl_info.min), max=np_type(dbl_info.max),
+                    nmant=106, nexp=11, width=width)
+    else: # don't recognize the type
+        raise FloatingError('We had not expected this type')
+    return ret
 
 
 def as_int(x, check=True):
@@ -342,14 +363,14 @@ def floor_exact(val, flt_type):
         faval = int_to_float(aval, flt_type)
     except OverflowError:
         faval = np.inf
+    info = type_info(flt_type)
     if faval == np.inf:
-        return sign * np.finfo(flt_type).max
+        return sign * info['max']
     if as_int(faval) <= aval: # as_int deals with longdouble safely
         # Float casting has made the value go down or stay the same
         return sign * faval
     # Float casting made the value go up
-    nmant = flt2nmant(flt_type)
-    biggest_gap = 2**(floor_log2(aval) - nmant)
+    biggest_gap = 2**(floor_log2(aval) - info['nmant'])
     assert biggest_gap > 1
     faval -= flt_type(biggest_gap)
     return sign * faval

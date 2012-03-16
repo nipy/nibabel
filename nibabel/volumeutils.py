@@ -16,7 +16,7 @@ import bz2
 import numpy as np
 
 from .py3k import isfileobj, ZEROB
-from .casting import shared_range
+from .casting import shared_range, type_info
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -908,12 +908,9 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
     '''
     if mn > mx:
         raise ValueError('min value > max value')
-    try:
-        info = np.iinfo(out_type)
-    except ValueError:
-        info = np.finfo(out_type)
+    info = type_info(out_type)
     mn, mx, type_min, type_max = np.array(
-        [mn, mx, info.min, info.max], np.maximum_sctype(np.float))
+        [mn, mx, info['min'], info['max']], np.maximum_sctype(np.float))
     # with intercept
     if allow_intercept:
         data_range = mx-mn
