@@ -207,6 +207,7 @@ def type_info(np_type):
     if np_type in (_float16, np.float32, np.float64,
                    np.complex64, np.complex128):
         return ret
+    info_64 = np.finfo(np.float64)
     if dt.kind == 'c':
         assert np_type is np.longcomplex
         vals = (nmant, nexp, width / 2)
@@ -214,14 +215,21 @@ def type_info(np_type):
         assert np_type is np.longdouble
         vals = (nmant, nexp, width)
     if vals in ((112, 15, 16), # binary128
+                (info_64.nmant, info_64.nexp, 8), # float64
                 (63, 15, 12), (63, 15, 16)): # Intel extended 80
         pass # these are OK
+    elif vals in ((52, 15, 12), # windows float96
+                  (52, 15, 16)): # windows float128?
+        # On windows 32 bit at least, float96 appears to be a float64 padded to
+        # 96 bits.  The nexp == 15 is the same as for intel 80 but nexp in fact
+        # appears to be 11 as for float64
+        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
+                    nmant=info_64.nmant, nexp=info_64.nexp, width=width)
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        dbl_info = np.finfo(np.float64)
-        return dict(min=np_type(dbl_info.min), max=np_type(dbl_info.max),
+        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
                     nmant=106, nexp=11, width=width)
     else: # don't recognize the type
-        raise FloatingError('We had not expected this type')
+        raise FloatingError('We had not expected type %s' % np_type)
     return ret
 
 
