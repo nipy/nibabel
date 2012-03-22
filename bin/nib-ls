@@ -1,0 +1,120 @@
+#!/usr/bin/python
+#emacs: -*- mode: python-mode; py-indent-offset: 4; tab-width: 4; indent-tabs-mode: nil -*- 
+#ex: set sts=4 ts=4 sw=4 noet:
+"""
+Little script to list summary over given nifti files
+
+ COPYRIGHT: Yaroslav Halchenko 2011
+
+ LICENSE: MIT
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+"""
+#-----------------\____________________________________/------------------
+
+__author__ = 'Yaroslav Halchenko'
+__copyright__ = 'Copyright (c) 2011 Yaroslav Halchenko'
+__license__ = 'MIT'
+
+import sys
+from mvpa2.base.dochelpers import table2string
+from mvpa2.base import verbose, debug
+from mvpa2.misc.cmdline import parser, opts, Option
+import nibabel as nib
+import numpy as np
+
+
+def ap(l, format, sep=', '):
+    """Little helper to enforce consistency"""
+    ls = [format % x for x in l]
+    return sep.join(ls)
+
+
+parser.usage = """Usage: %s [options] [infile1] [infile2] ...""" % sys.argv[0]
+parser.option_groups = [opts.common]
+
+parser.add_options([
+    Option("-s", "--stats",
+           action="store_true", dest='stats', default=False,
+           help="Output basic data statistics"),
+    Option("-z", "--zeros",
+           action="store_true", dest='stats_zeros', default=False,
+           help="Include zeros into output basic data statistics (--stats)"),
+    ])
+
+(options, files) = parser.parse_args()
+
+if verbose.level < 3:
+    # suppress nibabel format-compliance warnings
+    nib.imageglobals.logger.level = 50
+
+if len(files):
+    maxfnlen = max([len(f) for f in files])
+
+    t = []
+    for f in files:
+        row = ["%%-%ds" % maxfnlen % f]
+        verbose(2, "Loading %s" % f)
+        try:
+            vol = nib.load(f)
+            h = vol.get_header()
+        except Exception, e:
+            row += ['failed']
+            t.append(row)
+            verbose(2, "Failed to gather information due to %s" % str(e))
+            continue
+        row += [ str(h.get_data_dtype()),
+                 '@l[%s]' %ap(h.get_data_shape(), '%3g'),
+                 '@l%s' % ap(h.get_zooms(), '%.2f', 'x') ]
+        # Slope
+        if (h.has_data_slope or h.has_data_intercept) \
+           and not h.get_slope_inter() in [(1.0, 0.0), (None, None)]:
+            row += ['@l*%.3g+%.3g' % h.get_slope_inter()]
+        else:
+            row += [ '' ]
+
+        if (hasattr(h, 'extensions') and len(h.extensions)):
+            row += ['@l#exts: %d' % len(h.extensions)]
+        else:
+            row += [ '' ]
+
+        try:
+            if (h.get_qform() != h.get_sform()).any():
+                row += ['sform']
+            else:
+                row += ['']
+        except Exception, e:
+            verbose(2, "Failed to obtain qform or sform for %s due to %s" % (h, e))
+            if isinstance(h, nib.AnalyzeHeader):
+                row += ['']
+            else:
+                row += ['error']
+        if options.stats:
+            # We are doomed to load data
+            d = vol.get_data()
+            if not options.stats_zeros:
+                d = d[np.nonzero(d)]
+            # just # of elements
+            row += ["[%d] " % np.prod(d.shape)]
+            # stats
+            row += [len(d) and '%.2g:%.2g' % (np.min(d), np.max(d)) or '-']
+
+        t.append(row)
+
+    print(table2string(t))
