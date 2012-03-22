@@ -100,7 +100,9 @@ def main(**extra_args):
                            pjoin('nicom', 'tests', 'data', '*'),
                            pjoin('gifti', 'tests', 'data', '*'),
                           ]},
-          scripts      = [pjoin('bin', 'parrec2nii')],
+          scripts      = [pjoin('bin', 'parrec2nii'),
+                          pjoin('bin', 'nib-ls'),
+                          ],
           cmdclass = cmdclass,
           **extra_args
          )
