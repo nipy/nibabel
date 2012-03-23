@@ -229,6 +229,18 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         assert_array_equal(hdr_back.get_sform(), exp_aff)
         assert_array_equal(hdr_back.get_qform(), exp_aff)
 
+    def test_header_update_affine(self):
+        # Test that updating occurs only if affine is not allclose
+        img = self.image_class(np.zeros((2,3,4)), np.eye(4))
+        hdr = img.get_header()
+        aff = img.get_affine()
+        aff[:] = np.diag([1.1, 1.1, 1.1, 1]) # inexact floats
+        hdr.set_qform(aff, 2)
+        hdr.set_sform(aff, 2)
+        img.update_header()
+        assert_equal(hdr['sform_code'], 2)
+        assert_equal(hdr['qform_code'], 2)
+
 
 class TestNifti1Pair(TestNifti1Image):
     # Run analyze-flavor spatialimage tests

@@ -980,7 +980,7 @@ class AnalyzeImage(SpatialImage):
         # the header, update the heaader
         if self._affine is None:
             return
-        if np.all(self._affine == hdr.get_best_affine()):
+        if np.allclose(self._affine, hdr.get_best_affine()):
             return
         RZS = self._affine[:3, :3]
         vox = np.sqrt(np.sum(RZS * RZS, axis=0))
