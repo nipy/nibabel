@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from ..affines import apply_affine, append_diag
+from ..affines import (apply_affine, append_diag, to_matvec, from_matvec)
+
 
 from nose.tools import assert_equal, assert_raises
 from numpy.testing import assert_array_equal, assert_almost_equal, \
@@ -63,6 +64,30 @@ def test_apply_affine():
         exp_pts = np.rollaxis(exp_pts[:-1,:], 0, 2)
         exp_res = exp_pts.reshape((2,3,nd))
         assert_array_almost_equal(res, exp_res)
+
+
+def test_matrix_vector():
+    for M, N in ((4,4), (5,4), (4, 5)):
+        xform = np.zeros((M, N))
+        xform[:-1,:] = np.random.normal(size=(M-1, N))
+        xform[-1,-1] = 1
+        newmat, newvec = to_matvec(xform)
+        mat = xform[:-1, :-1]
+        vec = xform[:-1, -1]
+        assert_array_equal(newmat, mat)
+        assert_array_equal(newvec, vec)
+        assert_equal(newvec.shape, (M-1,))
+        assert_array_equal(from_matvec(mat, vec), xform)
+        # Check default translation works
+        xform_not = xform[:]
+        xform_not[:-1,:] = 0
+        assert_array_equal(from_matvec(mat), xform)
+        assert_array_equal(from_matvec(mat, None), xform)
+    # Check array-like works
+    newmat, newvec = to_matvec(xform.tolist())
+    assert_array_equal(newmat, mat)
+    assert_array_equal(newvec, vec)
+    assert_array_equal(from_matvec(mat.tolist(), vec.tolist()), xform)
 
 
 def test_append_diag():

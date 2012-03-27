@@ -76,6 +76,99 @@ def apply_affine(aff, pts):
     return res.reshape(shape)
 
 
+def to_matvec(transform):
+    """Split a transform into its matrix and vector components.
+
+    The tranformation must be represented in homogeneous coordinates and is
+    split into its rotation matrix and translation vector components.
+
+    Parameters
+    ----------
+    transform : array-like
+        NxM transform matrix in homogeneous coordinates representing an affine
+        transformation from an (N-1)-dimensional space to an (M-1)-dimensional
+        space. An example is a 4x4 transform representing rotations and
+        translations in 3 dimensions. A 4x3 matrix can represent a 2-dimensional
+        plane embedded in 3 dimensional space.
+
+    Returns
+    -------
+    matrix : (N-1, M-1) array
+        Matrix component of `transform`
+    vector : (M-1,) array
+        Vector compoent of `transform`
+
+    See Also
+    --------
+    from_matvec
+
+    Examples
+    --------
+    >>> aff = np.diag([2, 3, 4, 1])
+    >>> aff[:3,3] = [9, 10, 11]
+    >>> to_matvec(aff)
+    (array([[2, 0, 0],
+           [0, 3, 0],
+           [0, 0, 4]]), array([ 9, 10, 11]))
+    """
+    transform = np.asarray(transform)
+    ndimin = transform.shape[0] - 1
+    ndimout = transform.shape[1] - 1
+    matrix = transform[0:ndimin, 0:ndimout]
+    vector = transform[0:ndimin, ndimout]
+    return matrix, vector
+
+
+def from_matvec(matrix, vector=None):
+    """ Combine a matrix and vector into an homogeneous affine
+
+    Combine a rotation / scaling / shearing matrix and translation vector into a
+    transform in homogeneous coordinates.
+
+    Parameters
+    ----------
+    matrix : array-like
+        An NxM array representing the the linear part of the transform.
+        A transform from an M-dimensional space to an N-dimensional space.
+    vector : None or array-like, optional
+        None or an (N,) array representing the translation. None corresponds to
+        an (N,) array of zeros.
+
+    Returns
+    -------
+    xform : array
+        An (N+1, M+1) homogenous transform matrix.
+
+    See Also
+    --------
+    to_matvec
+
+    Examples
+    --------
+    >>> from_matvec(np.diag([2, 3, 4]), [9, 10, 11])
+    array([[ 2,  0,  0,  9],
+           [ 0,  3,  0, 10],
+           [ 0,  0,  4, 11],
+           [ 0,  0,  0,  1]])
+
+    The `vector` argument is optional:
+
+    >>> from_matvec(np.diag([2, 3, 4]))
+    array([[2, 0, 0, 0],
+           [0, 3, 0, 0],
+           [0, 0, 4, 0],
+           [0, 0, 0, 1]])
+    """
+    matrix = np.asarray(matrix)
+    nin, nout = matrix.shape
+    t = np.zeros((nin+1,nout+1), matrix.dtype)
+    t[0:nin, 0:nout] = matrix
+    t[nin, nout] = 1.
+    if not vector is None:
+        t[0:nin, nout] = vector
+    return t
+
+
 def append_diag(aff, steps, starts=()):
     """ Add diagonal elements `steps` and translations `starts` to affine
 
