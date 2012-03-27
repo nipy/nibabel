@@ -56,7 +56,7 @@ class ArrayWriter(object):
         --------
         >>> arr = np.array([0, 255], np.uint8)
         >>> aw = ArrayWriter(arr)
-        >>> aw = ArrayWriter(arr, np.int8)
+        >>> aw = ArrayWriter(arr, np.int8) #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         WriterError: Scaling needed but cannot scale

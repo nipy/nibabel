@@ -685,7 +685,7 @@ def write_zeros(fileobj, count, block_size=8194):
     block_size : int, optional
         largest continuous block to write.
     """
-    nblocks = count / block_size
+    nblocks = int(count // block_size)
     rem = count % block_size
     blk = ZEROB * block_size
     for bno in range(nblocks):
