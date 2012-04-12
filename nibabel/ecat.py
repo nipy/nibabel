@@ -141,7 +141,7 @@ subheader_dtd = [
     ('scatter_type', np.uint16),
     ('recon_type', np.uint16),
     ('recon_views', np.uint16),
-    ('fill', np.uint16)]
+    ('fill', '135S')]
 subhdr_dtype = np.dtype(subheader_dtd)
 
 # Ecat Data Types
@@ -644,7 +644,7 @@ class EcatSubHeader(object):
 
     def _get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
-        offset = mlist[frame][1] * 512
+        offset = (mlist[frame][1] - 1) * 512
         return int(offset)
 
     def raw_data_from_fileobj(self, frame=0):
