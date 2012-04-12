@@ -27,18 +27,18 @@ main_header_dtd = [
     ('isotope_name', '8S'),
     ('isotope_halflife', np.float32),
     ('radiopharmaceutical','32S'),
-    ('gantry_tilt', np.float32), 
+    ('gantry_tilt', np.float32),
     ('gantry_rotation',np.float32),
     ('bed_elevation',np.float32),
     ('intrinsic_tilt', np.float32),
-    ('wobble_speed',np.uint16), 
+    ('wobble_speed',np.uint16),
     ('transm_source_type',np.uint16),
-    ('distance_scanned',np.float32),  
+    ('distance_scanned',np.float32),
     ('transaxial_fov',np.float32),
     ('angular_compression', np.uint16),
     ('coin_samp_mode',np.uint16),
     ('axial_samp_mode',np.uint16),
-    ('ecat_calibration_factor',np.float32), 
+    ('ecat_calibration_factor',np.float32),
     ('calibration_unitS', np.uint16),
     ('calibration_units_type',np.uint16),
     ('compression_code',np.uint16),
@@ -76,7 +76,7 @@ main_header_dtd = [
     ('well_counter_corr_factor', np.float32),
     ('data_units', '32S'),
     ('septa_state',np.uint16),
-    ('fill',np.uint16)
+    ('fill', np.uint16)
     ]
 hdr_dtype = np.dtype(main_header_dtd)
 
@@ -191,14 +191,14 @@ class EcatHeader(object):
     """Class for basic Ecat PET header
     Sub-parts of standard Ecat File
        main header
-       matrix list 
-           which lists the information for each 
+       matrix list
+           which lists the information for each
            frame collected (can have 1 to many frames)
-       subheaders specific to each frame 
+       subheaders specific to each frame
            with possibly-variable sized data blocks
-       
-    This just reads the main Ecat Header, 
-    it does not load the data 
+
+    This just reads the main Ecat Header,
+    it does not load the data
     or read the mlist or any sub headers
 
     """
@@ -206,8 +206,8 @@ class EcatHeader(object):
     _dtype = hdr_dtype
     _ft_defs = ft_defs
     _patient_orient_defs = patient_orient_defs
-    
-    def __init__(self, 
+
+    def __init__(self,
                  fileobj=None,
                  endianness=None):
         """Initialize Ecat header from file object
@@ -224,20 +224,20 @@ class EcatHeader(object):
         if fileobj is None:
             self._header_data = self._empty_headerdata(endianness)
             return
-        
+
         hdr = np.ndarray(shape=(),
                          dtype=self._dtype,
                          buffer=fileobj)
         if endianness is None:
             endianness = self._guess_endian(hdr)
-        
+
         if endianness != native_code:
             dt = self._dtype.newbyteorder(endianness)
             hdr = np.ndarray(shape=(),
                              dtype=dt,
                              buffer=fileobj)
         self._header_data = hdr.copy()
-        
+
         return
 
     def get_header(self):
@@ -271,7 +271,7 @@ class EcatHeader(object):
         ----------
         fileobj : file-like object
             Needs to implement ``read`` method
-        endianness : None or endian code, optional 
+        endianness : None or endian code, optional
             Code specifying endianness of data to be read
 
         Returns
@@ -281,7 +281,7 @@ class EcatHeader(object):
 
         Examples
         --------
-        
+
 
         """
         raw_str = fileobj.read(klass._dtype.itemsize)
@@ -296,7 +296,7 @@ class EcatHeader(object):
         hdr_data = np.zeros((), dtype=dt)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
-        hdr_data['num_frames']= 0 
+        hdr_data['num_frames']= 0
         hdr_data['file_type'] = 0 # Unknown
         hdr_data['ecat_calibration_factor'] = 1.0 # scale factor
         return hdr_data
@@ -305,7 +305,7 @@ class EcatHeader(object):
     def get_data_dtype(self):
         """ Get numpy dtype for data from header"""
         raise NotImplementedError("dtype is only valid from subheaders")
-        
+
 
     def copy(self):
         return self.__class__(
@@ -321,7 +321,7 @@ class EcatHeader(object):
             return self_bb == other.binaryblock
         other_bb = other._header_data.byteswap().tostring()
         return self_bb == other_bb
-        
+
     def __ne__(self, other):
         ''' equality between two headers defined by ``header_data``
 
@@ -369,14 +369,14 @@ class EcatHeader(object):
         if not ft_codes.has_key(code):
             raise KeyError('Ecat Filetype CODE %d not recognized'%code)
         return ft_codes[code]
-        
+
     def __iter__(self):
         return iter(self.keys())
-            
+
     def keys(self):
         ''' Return keys from header data'''
         return list(self._dtype.names)
-    
+
     def values(self):
         ''' Return values from header data'''
         data = self._header_data
@@ -385,9 +385,9 @@ class EcatHeader(object):
     def items(self):
         ''' Return items from header data'''
         return zip(self.keys(), self.values())
-    
+
 class EcatMlist(object):
-    
+
     def __init__(self,fileobj, hdr):
         """ gets list of frames and subheaders in pet file
 
@@ -413,7 +413,7 @@ class EcatMlist(object):
     def get_mlist(self, fileobj):
         fileobj.seek(512)
         dat=fileobj.read(128*32)
-    
+
         dt = np.dtype([('matlist',np.int32)])
         if not self.hdr.endianness is native_code:
             dt = dt.newbyteorder(self.hdr.endianness)
@@ -421,13 +421,14 @@ class EcatMlist(object):
         mlist = np.zeros((nframes,4))
         record_count = 0
         done = False
+
         while not done: #mats['matlist'][0,1] == 2:
-        
+
             mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
             if not (mats['matlist'][0,0] +  mats['matlist'][0,3]) == 31:
                 mlist = []
                 return mlist
-            
+
             nrecords = mats['matlist'][0,3]
             mlist[record_count:nrecords+record_count,:] = mats['matlist'][1:nrecords+1,:]
             record_count+= nrecords
@@ -439,6 +440,7 @@ class EcatMlist(object):
                 fileobj.seek(0)
                 fileobj.seek(tmp*512)
                 dat = fileobj.read(128*32)
+
         return mlist
 
     def get_frame_order(self):
@@ -465,7 +467,7 @@ class EcatMlist(object):
         >>> mlist.get_frame_order()
         {0: [0, 16842758.0]}
 
-        
+
         """
         mlist  = self._mlist
         ids = mlist[:, 0].copy()
@@ -482,7 +484,7 @@ class EcatMlist(object):
         id_dict = {}
         for i in range(n_valid):
             id_dict[i] = [valid_order[i], ids[valid_order[i]]]
-                
+
         return id_dict
 
     def get_series_framenumbers(self):
@@ -512,8 +514,8 @@ class EcatMlist(object):
         >>> mlist.get_series_framenumbers()
         {0: 1}
 
-        
-        
+
+
         """
         frames_order = self.get_frame_order()
         nframes = self.hdr['num_frames']
@@ -527,12 +529,12 @@ class EcatMlist(object):
             return frame_dict
         except:
             raise IOError('Error in header or mlist order unknown')
-            
+
 class EcatSubHeader(object):
 
     _subhdrdtype = subhdr_dtype
     _data_type_codes = data_type_codes
-    
+
     def __init__(self, hdr, mlist, fileobj):
         """parses the subheaders in the ecat (.v) file
         there is one subheader for each frame in the ecat file
@@ -542,7 +544,7 @@ class EcatSubHeader(object):
         hdr : EcatHeader
 
         mlist : EcatMlist
-        
+
         fileobj : ECAT file <filename>.v  fileholder or file object
                   with read, seek methods
 
@@ -583,7 +585,7 @@ class EcatSubHeader(object):
                               buf=tmpdat))
             subheaders.append(sh)
         return subheaders
-        
+
     def get_shape(self, frame=0):
         """ returns shape of given frame"""
         subhdr = self.subheaders[frame]
@@ -611,24 +613,24 @@ class EcatSubHeader(object):
             for item in i:
                 if not np.all(first == item):
                     return False
-        return True            
-    
+        return True
+
     def get_frame_affine(self,frame=0):
         """returns best affine for given frame of data"""
         subhdr = self.subheaders[frame]
         x_off = subhdr['x_offset']
         y_off = subhdr['y_offset']
         z_off = subhdr['z_offset']
-        
+
         zooms = self.get_zooms(frame=frame)
-        
+
         dims = self.get_shape(frame)
         # get translations from center of image
-        origin_offset = (np.array(dims)-1) / 2.0  
+        origin_offset = (np.array(dims)-1) / 2.0
         aff = np.diag(zooms)
         aff[:3,-1] = -origin_offset * zooms[:-1] + np.array([x_off,y_off,z_off])
         return aff
-    
+
     def get_zooms(self,frame=0):
         """returns zooms  ...pixdims"""
         subhdr = self.subheaders[frame]
@@ -669,7 +671,7 @@ class EcatSubHeader(object):
         data = raw_data * header['ecat_calibration_factor']
         data = data * subhdr['scale_factor']
         return data
-        
+
 
 
 
