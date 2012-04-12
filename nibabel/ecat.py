@@ -13,6 +13,7 @@ import numpy as np
 from .volumeutils import (native_code, swapped_code, make_dt_codes,
                            array_from_file)
 from .spatialimages import SpatialImage, ImageDataError
+from .arraywriters import make_array_writer
 
 
 MAINHDRSZ = 502
@@ -286,6 +287,9 @@ class EcatHeader(object):
         """
         raw_str = fileobj.read(klass._dtype.itemsize)
         return klass(raw_str, endianness)
+
+    def write_to(self, fileobj):
+        fileobj.write(self.binaryblock)
 
     def _empty_headerdata(self,endianness=None):
         """Return header data for empty header with given endianness"""
@@ -861,10 +865,62 @@ class EcatImage(SpatialImage):
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         return img
 
-    def to_filename(self, filename):
-        """nibabel does not support writing to Ecat filetypes at this time"""
-        raise NotImplementedError('nibabel does not allow saving to Ecat'\
-                                  ' at this time ')
+    def to_file_map(self, file_map=None):
+        ''' Write ECAT7 image to `file_map` or contained ``self.file_map``
+
+        The format consist of:
+
+        - A main header (512L)
+        - For every frame (3D volume in 4D data)
+          - A subheader (size = frame_offset)
+          - Frame data (3D volume)
+          - Directory entry (16L)
+        '''
+        if file_map is None:
+            file_map = self.file_map
+
+        data = self.get_data()
+        hdr = self.get_header()
+        mlist = self.get_mlist()._mlist
+        subheaders = self.get_subheaders()
+        entry_pos = 528L #512L + 16L
+
+        hdr_fh, img_fh = self._get_fileholders(file_map)
+        hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
+        imgf = hdrf
+
+        #Write main header
+        hdr.write_to(hdrf)
+
+        #Write every frames
+        for index in xrange(0, self.get_header()['num_frames']):
+            #Move to subheader offset
+            frame_offset = subheaders._get_frame_offset(index)
+            imgf.seek(frame_offset)
+
+            #Write subheader
+            subhdr = subheaders.subheaders[index]
+            imgf.write(subhdr.tostring())
+
+            #Get frame and its data type
+            dtype = self.get_data_dtype(index)
+            image = self.get_frame(index)
+
+            #Rescale data to original value
+            #(see EcatSubHeader.data_from_fileobj)
+            image = image / subhdr['scale_factor']
+            image = image / hdr['ecat_calibration_factor']
+
+            #Write image
+            arr_writer = make_array_writer(
+                np.cast[dtype](image),
+                dtype)
+            arr_writer.to_fileobj(imgf)
+
+            #Move to dictionnary offset and write dictionnary entry
+            imgf.seek(entry_pos)
+            imgf.write(mlist[index].tostring())
+            entrypos = entry_pos + 16L
 
     @classmethod
     def from_image(klass, img):
