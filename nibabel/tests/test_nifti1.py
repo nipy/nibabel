@@ -206,6 +206,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr.set_data_shape((-1,1,1))
         hdr['glmin'] = 0
         assert_raises(HeaderDataError, hdr.get_data_shape)
+        # Lists or tuples or arrays will work for setting shape
+        for shape in ((too_big-1, 1, 1), (too_big, 1, 1)):
+            for constructor in (list, tuple, np.array):
+                hdr.set_data_shape(constructor(shape))
+                assert_equal(hdr.get_data_shape(), shape)
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):

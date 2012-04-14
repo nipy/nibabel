@@ -234,6 +234,11 @@ class TestAnalyzeHeader(_TestWrapStructBase):
         assert_equal(hdr.get_data_shape(), shape)
         shape = (mx+1,)
         assert_raises(HeaderDataError, hdr.set_data_shape, shape)
+        # Lists or tuples or arrays will work for setting shape
+        shape = (2, 3, 4)
+        for constructor in (list, tuple, np.array):
+            hdr.set_data_shape(constructor(shape))
+            assert_equal(hdr.get_data_shape(), shape)
 
     def test_read_write_data(self):
         # Check reading and writing of data

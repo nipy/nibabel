@@ -674,6 +674,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         # Apply freesurfer hack for vector
         hdr = self._structarr
+        shape = tuple(shape)
         if (len(shape) == 3 and shape[1:] == (1, 1) and
             shape[0] > np.iinfo(hdr['dim'].dtype.base).max): # Freesurfer case
             try:
