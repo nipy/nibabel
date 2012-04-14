@@ -1589,6 +1589,170 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # Make qform 'unknown'
         hdr.set_qform(self._affine, code='unknown')
 
+    def get_qform(self, coded=False):
+        """ Return 4x4 affine matrix from qform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and qform code.  If False, just
+            return affine.  {affine or None} means, return None if qform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine reconstructed from qform
+            quaternion.  If `coded` is True, return None if qform code is 0,
+            else return the affine.
+        code : int
+            Qform code. Only returned if `coded` is True.
+
+        See also
+        --------
+        Nifti1Header.set_qform
+        """
+        return self._header.get_qform(coded)
+
+    def set_qform(self, affine, code=None, strip_shears=True, **kwargs):
+        ''' Set qform header values from 4x4 affine
+
+        Parameters
+        ----------
+        hdr : nifti1 header
+        affine : None or 4x4 array
+            affine transform to write into sform. If None, only set code.
+        code : None, string or integer
+            String or integer giving meaning of transform in *affine*.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
+        strip_shears : bool, optional
+            Whether to strip shears in `affine`.  If True, shears will be
+            silently stripped. If False, the presence of shears will raise a
+            ``HeaderDataError``
+        update_affine : bool, optional
+            Whether to update the image affine from the header best affine after
+            setting the qform. Must be keyword argumemt (because of different
+            position in `set_qform`). Default is True
+
+        See also
+        --------
+        Nifti1Header.set_qform
+
+        Examples
+        --------
+        >>> data = np.arange(24).reshape((2,3,4))
+        >>> aff = np.diag([2, 3, 4, 1])
+        >>> img = Nifti1Pair(data, aff)
+        >>> img.get_qform()
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> img.get_qform(coded=True)
+        (None, 0)
+        >>> aff2 = np.diag([3, 4, 5, 1])
+        >>> img.set_qform(aff2, 'talairach')
+        >>> qaff, code = img.get_qform(coded=True)
+        >>> np.all(qaff == aff2)
+        True
+        >>> int(code)
+        3
+        '''
+        update_affine = kwargs.pop('update_affine', True)
+        if kwargs:
+            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+        self._header.set_qform(affine, code, strip_shears)
+        if update_affine:
+            self._affine[:] = self._header.get_best_affine()
+
+    def get_sform(self, coded=False):
+        """ Return 4x4 affine matrix from sform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and sform code.  If False, just
+            return affine.  {affine or None} means, return None if sform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine from sform fields. If
+            `coded` is True, return None if sform code is 0, else return the
+            affine.
+        code : int
+            Sform code. Only returned if `coded` is True.
+
+        See also
+        --------
+        Nifti1Header.get_sform
+        """
+        return self._header.get_sform(coded)
+
+    def set_sform(self, affine, code=None, **kwargs):
+        ''' Set sform transform from 4x4 affine
+
+        Parameters
+        ----------
+        hdr : nifti1 header
+        affine : None or 4x4 array
+            affine transform to write into sform.  If None, only set `code`
+        code : None, string or integer
+            String or integer giving meaning of transform in *affine*.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
+        update_affine : bool, optional
+            Whether to update the image affine from the header best affine after
+            setting the qform.  Must be keyword argumemt (because of different
+            position in `set_qform`). Default is True
+
+        See also
+        --------
+        Nifti1Header.set_sform
+
+        Examples
+        --------
+        >>> data = np.arange(24).reshape((2,3,4))
+        >>> aff = np.diag([2, 3, 4, 1])
+        >>> img = Nifti1Pair(data, aff)
+        >>> img.get_sform()
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> saff, code = img.get_sform(coded=True)
+        >>> saff
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> int(code)
+        2
+        >>> aff2 = np.diag([3, 4, 5, 1])
+        >>> img.set_sform(aff2, 'talairach')
+        >>> saff, code = img.get_sform(coded=True)
+        >>> np.all(saff == aff2)
+        True
+        >>> int(code)
+        3
+        '''
+        update_affine = kwargs.pop('update_affine', True)
+        if kwargs:
+            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+        self._header.set_sform(affine, code)
+        if update_affine:
+            self._affine[:] = self._header.get_best_affine()
+
 
 class Nifti1Image(Nifti1Pair):
     header_class = Nifti1Header
