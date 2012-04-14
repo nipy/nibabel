@@ -17,6 +17,7 @@ import numpy as np
 from ..casting import type_info
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
+from ..affines import from_matvec
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
@@ -211,6 +212,81 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
             for constructor in (list, tuple, np.array):
                 hdr.set_data_shape(constructor(shape))
                 assert_equal(hdr.get_data_shape(), shape)
+
+
+    def test_qform_sform(self):
+        HC = self.header_class
+        hdr = HC()
+        assert_array_equal(hdr.get_qform(), np.eye(4))
+        empty_sform = np.zeros((4,4))
+        empty_sform[-1,-1] = 1
+        assert_array_equal(hdr.get_sform(), empty_sform)
+        assert_equal(hdr.get_qform(coded=True), (None, 0))
+        assert_equal(hdr.get_sform(coded=True), (None, 0))
+        # Affine with no shears
+        nice_aff = np.diag([2, 3, 4, 1])
+        # Affine with shears
+        nasty_aff = from_matvec(np.arange(9).reshape((3,3)), [9, 10, 11])
+        fixed_aff = unshear_44(nasty_aff)
+        for in_meth, out_meth in ((hdr.set_qform, hdr.get_qform),
+                                  (hdr.set_sform, hdr.get_sform)):
+            in_meth(nice_aff, 2)
+            aff, code = out_meth(coded=True)
+            assert_array_equal(aff, nice_aff)
+            assert_equal(code, 2)
+            assert_array_equal(out_meth(), nice_aff) # non coded
+            # Affine can also be passed if code == 0, affine will be suitably set
+            in_meth(nice_aff, 0)
+            assert_equal(out_meth(coded=True), (None, 0))
+            assert_array_almost_equal(out_meth(), nice_aff)
+            # Default qform code when previous == 0 is 2
+            in_meth(nice_aff)
+            aff, code = out_meth(coded=True)
+            assert_equal(code, 2)
+            # Unless code was non-zero before
+            in_meth(nice_aff, 1)
+            in_meth(nice_aff)
+            aff, code = out_meth(coded=True)
+            assert_equal(code, 1)
+            # Can set code without modifying affine, by passing affine=None
+            assert_array_equal(aff, nice_aff) # affine same as before
+            in_meth(None, 3)
+            aff, code = out_meth(coded=True)
+            assert_array_equal(aff, nice_aff) # affine same as before
+            assert_equal(code, 3)
+            # affine is None on its own, or with code==0, resets code to 0
+            in_meth(None, 0)
+            assert_equal(out_meth(coded=True), (None, 0))
+            in_meth(None)
+            assert_equal(out_meth(coded=True), (None, 0))
+            # List works as input
+            in_meth(nice_aff.tolist())
+            assert_array_equal(out_meth(), nice_aff)
+        # Qform specifics
+        # inexact set (with shears) is OK
+        hdr.set_qform(nasty_aff, 1)
+        assert_array_almost_equal(hdr.get_qform(), fixed_aff)
+        # Unless allow_shears is False
+        assert_raises(HeaderDataError, hdr.set_qform, nasty_aff, 1, False)
+        # Reset sform, give qform a code, to test sform
+        hdr.set_sform(None)
+        hdr.set_qform(nice_aff, 1)
+        # Check sform unchanged by setting qform
+        assert_equal(hdr.get_sform(coded=True), (None, 0))
+        # Setting does change the sform ouput
+        hdr.set_sform(nasty_aff, 1)
+        aff, code = hdr.get_sform(coded=True)
+        assert_array_equal(aff, nasty_aff)
+        assert_equal(code, 1)
+
+
+def unshear_44(affine):
+    RZS = affine[:3, :3]
+    zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
+    R = RZS / zooms
+    P, S, Qs = np.linalg.svd(R)
+    PR = np.dot(P, Qs)
+    return from_matvec(PR * zooms, affine[:3,3])
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
