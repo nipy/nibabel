@@ -169,6 +169,44 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(message, 'sform_code -1 not valid; '
                            'setting to 0')
 
+    def test_freesurfer_hack(self):
+        # For large vector images, Freesurfer appears to set dim[1] to -1 and
+        # then use glmin for the vector length (an i4)
+        HC = self.header_class
+        # The standard case
+        hdr = HC()
+        hdr.set_data_shape((2, 3, 4))
+        assert_equal(hdr.get_data_shape(), (2, 3, 4))
+        assert_equal(hdr['glmin'], 0)
+        # Just left of the freesurfer case
+        dim_type = hdr.template_dtype['dim'].base
+        glmin = hdr.template_dtype['glmin'].base
+        too_big = int(np.iinfo(dim_type).max) + 1
+        hdr.set_data_shape((too_big-1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
+        # The freesurfer case
+        hdr.set_data_shape((too_big, 1, 1))
+        assert_equal(hdr.get_data_shape(), (too_big, 1, 1))
+        assert_array_equal(hdr['dim'][:4], [3, -1, 1, 1])
+        assert_equal(hdr['glmin'], too_big)
+        # This only works for the case of a 3D with -1, 1, 1
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1,2))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,2,1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, too_big))
+        # Outside range of glmin raises error
+        far_too_big = int(np.iinfo(glmin).max) + 1
+        hdr.set_data_shape((far_too_big-1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (far_too_big-1, 1, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big,1,1))
+        # glmin of zero raises error (implausible vector length)
+        hdr.set_data_shape((-1,1,1))
+        hdr['glmin'] = 0
+        assert_raises(HeaderDataError, hdr.get_data_shape)
+
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
 
