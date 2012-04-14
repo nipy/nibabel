@@ -974,7 +974,7 @@ class AnalyzeImage(SpatialImage):
         # We need to update the header if the data shape has changed.  It's a
         # bit difficult to change the data shape using the standard API, but
         # maybe it happened
-        if not self._data is None:
+        if not self._data is None and hdr.get_data_shape() != self._data.shape:
             hdr.set_data_shape(self._data.shape)
         # If the affine is not None, and it is different from the main affine in
         # the header, update the heaader
