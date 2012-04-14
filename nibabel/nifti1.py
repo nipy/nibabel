@@ -676,8 +676,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         if (len(shape) == 3 and shape[1:] == (1, 1) and
             shape[0] > np.iinfo(hdr['dim'].dtype.base).max): # Freesurfer case
-            hdr['glmin'] = shape[0]
-            if hdr['glmin'] != shape[0]:
+            try:
+                hdr['glmin'] = shape[0]
+            except OverflowError:
+                overflow = True
+            else:
+                overflow = hdr['glmin'] != shape[0]
+            if overflow:
                 raise HeaderDataError('shape[0] %s does not fit in glmax datatype' %
                                       shape[0])
             warnings.warn('Using large vector Freesurfer hack; header will '
