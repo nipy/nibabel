@@ -165,6 +165,11 @@ class _TestWrapStructBase(TestCase):
         assert_equal(keys, list(hdr_dt.names))
         for key, val in hdr.items():
             assert_array_equal(hdr[key], val)
+        # verify that .get operates as destined
+        assert_equal(hdr.get('nonexistent key'), None)
+        assert_equal(hdr.get('nonexistent key', 'default'), 'default')
+        assert_equal(hdr.get(keys[0]), vals[0])
+        assert_equal(hdr.get(keys[0], 'default'), vals[0])
 
     def test_endianness_ro(self):
         # endianness is a read only property

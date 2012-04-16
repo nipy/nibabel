@@ -341,6 +341,10 @@ class WrapStruct(object):
         ''' Return items from structured data'''
         return zip(self.keys(), self.values())
 
+    def get(self, k, d=None):
+        ''' Return value for the key k if present or d otherwise'''
+        return (k in self.keys()) and self._structarr[k] or d
+
     def check_fix(self, logger=None, error_level=None):
         ''' Check structured data with checks '''
         if logger is None:
