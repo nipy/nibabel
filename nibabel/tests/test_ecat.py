@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import os
+import tempfile
 
 import numpy as np
 
@@ -194,9 +195,12 @@ class TestEcatImage(TestCase):
                      self.example_file)
         assert_equal(self.img.file_map['image'].filename,
                      self.example_file)
-        assert_raises(NotImplementedError,
-                      self.img.to_filename,
-                      'tmp.v')
+
+    def test_save(self):
+        with tempfile.NamedTemporaryFile(suffix='.v') as tmp_file:
+            self.img.to_filename(tmp_file.name)
+            other = self.image_class.load(tmp_file.name)
+            assert_equal(self.img.get_data().all(), other.get_data().all())
 
     def test_data(self):
         dat = self.img.get_data()
