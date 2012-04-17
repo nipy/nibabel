@@ -863,16 +863,43 @@ class EcatImage(SpatialImage):
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
         return img
 
+    def _get_empty_dir(self):
+        '''
+        Get empty directory entry of the form
+        [numAvail, nextDir, previousDir, numUsed]
+        '''
+        return np.array([31, 2, 0, 0], dtype=np.uint32)
+
+    def _write_data(self, data, stream, pos, dtype=None, endianness=None):
+        '''
+        Write data to ``stream`` using an array_writer
+
+        :param data: Numpy array containing the dat
+        :param stream: The file-like object to write the data to
+        :param pos: The position in the stream to write the data to
+        :param endianness: Endianness code of the data to write
+        '''
+        if dtype is None:
+            dtype = data.dtype
+
+        if endianness is None:
+            endianness = native_code
+
+        stream.seek(pos)
+        writer = make_array_writer(
+            data.newbyteorder(endianness),
+            dtype).to_fileobj(stream)
+
     def to_file_map(self, file_map=None):
         ''' Write ECAT7 image to `file_map` or contained ``self.file_map``
 
         The format consist of:
 
-        - A main header (512L)
+        - A main header (512L) with dictionary entries in the form
+            [numAvail, nextDir, previousDir, numUsed]
         - For every frame (3D volume in 4D data)
           - A subheader (size = frame_offset)
           - Frame data (3D volume)
-          - Directory entry (16L)
         '''
         if file_map is None:
             file_map = self.file_map
@@ -881,7 +908,9 @@ class EcatImage(SpatialImage):
         hdr = self.get_header()
         mlist = self.get_mlist()._mlist
         subheaders = self.get_subheaders()
-        entry_pos = 528L #512L + 16L
+        dir_pos = 512L
+        entry_pos = dir_pos + 16L #528L
+        current_dir = self._get_empty_dir()
 
         hdr_fh, img_fh = self._get_fileholders(file_map)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
@@ -900,25 +929,51 @@ class EcatImage(SpatialImage):
             subhdr = subheaders.subheaders[index]
             imgf.write(subhdr.tostring())
 
+            #Seek to the next image block
+            pos = imgf.tell()
+            imgf.seek(pos + 2)
+
             #Get frame and its data type
-            dtype = self.get_data_dtype(index)
             image = self.get_frame(index)
+            dtype = image.dtype
 
-            #Rescale data to original value
-            #(see EcatSubHeader.data_from_fileobj)
-            image = image / subhdr['scale_factor']
-            image = image / hdr['ecat_calibration_factor']
-
-            #Write image
-            arr_writer = make_array_writer(
-                np.cast[dtype](image),
-                dtype)
-            arr_writer.to_fileobj(imgf)
+            #Write frame images
+            self._write_data(image, imgf, pos+2, endianness=swapped_code)
 
             #Move to dictionnary offset and write dictionnary entry
-            imgf.seek(entry_pos)
-            imgf.write(mlist[index].tostring())
-            entrypos = entry_pos + 16L
+            self._write_data(mlist[index], imgf, entry_pos,
+                np.uint32, endianness=swapped_code)
+
+            entry_pos = entry_pos + 16L
+
+            current_dir[0] = current_dir[0] - 1
+            current_dir[3] = current_dir[3] + 1
+
+            #Create a new directory is previous one is full
+            if current_dir[0] == 0:
+                #self._write_dir(current_dir, imgf, dir_pos)
+                self._write_data(current_dir, imgf, dir_pos)
+                current_dir = self._get_empty_dir()
+                current_dir[3] = dir_pos / 512L
+                dir_pos = mlist[index][2] + 1
+                entry_pos = dir_pos + 16L
+
+        tmp_avail = current_dir[0]
+        tmp_used = current_dir[3]
+
+        #Fill directory with empty data until directory is full
+        while current_dir[0] > 0:
+            entry_pos = dir_pos + 16L + (16L * current_dir[3])
+            self._write_data(np.array([0,0,0,0]), imgf, entry_pos, np.uint32)
+            current_dir[0] = current_dir[0] - 1
+            current_dir[3] = current_dir[3] + 1
+
+        current_dir[0] = tmp_avail
+        current_dir[3] = tmp_used
+
+        #Write directory index
+        self._write_data(current_dir, imgf, dir_pos, endianness='>')
+
 
     @classmethod
     def from_image(klass, img):
