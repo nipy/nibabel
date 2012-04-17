@@ -77,7 +77,7 @@ main_header_dtd = [
     ('well_counter_corr_factor', np.float32),
     ('data_units', '32S'),
     ('septa_state',np.uint16),
-    ('fill', np.uint16)
+    ('fill', '12S')
     ]
 hdr_dtype = np.dtype(main_header_dtd)
 
@@ -142,7 +142,8 @@ subheader_dtd = [
     ('scatter_type', np.uint16),
     ('recon_type', np.uint16),
     ('recon_views', np.uint16),
-    ('fill', '135S')]
+    ('fill', '174S'),
+    ('fill2', '96S')]
 subhdr_dtype = np.dtype(subheader_dtd)
 
 # Ecat Data Types
@@ -422,7 +423,7 @@ class EcatMlist(object):
         if not self.hdr.endianness is native_code:
             dt = dt.newbyteorder(self.hdr.endianness)
         nframes = self.hdr['num_frames']
-        mlist = np.zeros((nframes,4))
+        mlist = np.zeros((nframes,4), dtype='uint32')
         record_count = 0
         done = False
 
@@ -658,7 +659,7 @@ class EcatSubHeader(object):
         if not self._header.endianness is native_code:
             dtype=dtype.newbyteorder(self._header.endianness)
         shape = self.get_shape(frame)
-        offset = self._get_frame_offset(frame)
+        offset = self._get_frame_offset(frame) + 512
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
         ## put data into neurologic orientation
@@ -672,9 +673,10 @@ class EcatSubHeader(object):
         header = self._header
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame)
-        data = raw_data * header['ecat_calibration_factor']
-        data = data * subhdr['scale_factor']
-        return data
+        return raw_data
+        #data = raw_data * header['ecat_calibration_factor']
+        #data = data * subhdr['scale_factor']
+        #return data
 
 
 
