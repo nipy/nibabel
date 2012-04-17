@@ -31,11 +31,11 @@ class TestEcatHeader(TestCase):
     example_file = ecat_file
 
     def test_header_size(self):
-        assert_equal(self.header_class._dtype.itemsize, 502)
+        assert_equal(self.header_class._dtype.itemsize, 512)
 
     def test_empty(self):
         hdr = self.header_class()
-        assert_true(len(hdr.binaryblock) == 502)
+        assert_true(len(hdr.binaryblock) == 512)
         assert_true(hdr['magic_number'] == asbytes('MATRIX72'))
         assert_true(hdr['sw_version'] == 74)
         assert_true(hdr['num_frames'] == 0)
@@ -163,7 +163,7 @@ class TestEcatSubHeader(TestCase):
     subhdr = subhdr_class(hdr, mlist, fid)
 
     def test_subheader_size(self):
-        assert_equal(self.subhdr_class._subhdrdtype.itemsize, 242)
+        assert_equal(self.subhdr_class._subhdrdtype.itemsize, 510)
 
     def test_subheader(self):
         assert_equal(self.subhdr.get_shape() , (10,10,3))
@@ -176,17 +176,13 @@ class TestEcatSubHeader(TestCase):
         assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
         assert_equal(self.subhdr.get_zooms()[2], 3.125)
         assert_equal(self.subhdr._get_data_dtype(0),np.uint16)
-        assert_equal(self.subhdr._get_frame_offset(), 1536)
+        assert_equal(self.subhdr._get_frame_offset(), 1024)
         dat = self.subhdr.raw_data_from_fileobj()
         assert_equal(dat.shape, self.subhdr.get_shape())
         scale_factor = self.subhdr.subheaders[0]['scale_factor']
         assert_equal(self.subhdr.subheaders[0]['scale_factor'].item(),1.0)
         ecat_calib_factor = self.hdr['ecat_calibration_factor']
         assert_equal(ecat_calib_factor, 25007614.0)
-        scaled_dat = self.subhdr.data_from_fileobj()
-        tmpdat = scale_factor * ecat_calib_factor * dat
-        assert_array_equal(tmpdat, scaled_dat)
-
 
 class TestEcatImage(TestCase):
     image_class = EcatImage
