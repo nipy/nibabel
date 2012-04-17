@@ -662,10 +662,6 @@ class EcatSubHeader(object):
         offset = self._get_frame_offset(frame) + 512
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
-        ## put data into neurologic orientation
-        ### ASSUME Patient orientation is HFS as patient orientation
-        ### is not always set in header
-        raw_data = raw_data[::-1,::-1,::-1]
         return raw_data
 
     def data_from_fileobj(self, frame=0):
