@@ -17,6 +17,7 @@ import numpy as np
 from ..casting import type_info
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
+from ..affines import from_matvec
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
@@ -213,6 +214,81 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
                 assert_equal(hdr.get_data_shape(), shape)
 
 
+    def test_qform_sform(self):
+        HC = self.header_class
+        hdr = HC()
+        assert_array_equal(hdr.get_qform(), np.eye(4))
+        empty_sform = np.zeros((4,4))
+        empty_sform[-1,-1] = 1
+        assert_array_equal(hdr.get_sform(), empty_sform)
+        assert_equal(hdr.get_qform(coded=True), (None, 0))
+        assert_equal(hdr.get_sform(coded=True), (None, 0))
+        # Affine with no shears
+        nice_aff = np.diag([2, 3, 4, 1])
+        # Affine with shears
+        nasty_aff = from_matvec(np.arange(9).reshape((3,3)), [9, 10, 11])
+        fixed_aff = unshear_44(nasty_aff)
+        for in_meth, out_meth in ((hdr.set_qform, hdr.get_qform),
+                                  (hdr.set_sform, hdr.get_sform)):
+            in_meth(nice_aff, 2)
+            aff, code = out_meth(coded=True)
+            assert_array_equal(aff, nice_aff)
+            assert_equal(code, 2)
+            assert_array_equal(out_meth(), nice_aff) # non coded
+            # Affine can also be passed if code == 0, affine will be suitably set
+            in_meth(nice_aff, 0)
+            assert_equal(out_meth(coded=True), (None, 0))
+            assert_array_almost_equal(out_meth(), nice_aff)
+            # Default qform code when previous == 0 is 2
+            in_meth(nice_aff)
+            aff, code = out_meth(coded=True)
+            assert_equal(code, 2)
+            # Unless code was non-zero before
+            in_meth(nice_aff, 1)
+            in_meth(nice_aff)
+            aff, code = out_meth(coded=True)
+            assert_equal(code, 1)
+            # Can set code without modifying affine, by passing affine=None
+            assert_array_equal(aff, nice_aff) # affine same as before
+            in_meth(None, 3)
+            aff, code = out_meth(coded=True)
+            assert_array_equal(aff, nice_aff) # affine same as before
+            assert_equal(code, 3)
+            # affine is None on its own, or with code==0, resets code to 0
+            in_meth(None, 0)
+            assert_equal(out_meth(coded=True), (None, 0))
+            in_meth(None)
+            assert_equal(out_meth(coded=True), (None, 0))
+            # List works as input
+            in_meth(nice_aff.tolist())
+            assert_array_equal(out_meth(), nice_aff)
+        # Qform specifics
+        # inexact set (with shears) is OK
+        hdr.set_qform(nasty_aff, 1)
+        assert_array_almost_equal(hdr.get_qform(), fixed_aff)
+        # Unless allow_shears is False
+        assert_raises(HeaderDataError, hdr.set_qform, nasty_aff, 1, False)
+        # Reset sform, give qform a code, to test sform
+        hdr.set_sform(None)
+        hdr.set_qform(nice_aff, 1)
+        # Check sform unchanged by setting qform
+        assert_equal(hdr.get_sform(coded=True), (None, 0))
+        # Setting does change the sform ouput
+        hdr.set_sform(nasty_aff, 1)
+        aff, code = hdr.get_sform(coded=True)
+        assert_array_equal(aff, nasty_aff)
+        assert_equal(code, 1)
+
+
+def unshear_44(affine):
+    RZS = affine[:3, :3]
+    zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
+    R = RZS / zooms
+    P, S, Qs = np.linalg.svd(R)
+    PR = np.dot(P, Qs)
+    return from_matvec(PR * zooms, affine[:3,3])
+
+
 class TestNifti1SingleHeader(TestNifti1PairHeader):
 
     header_class = Nifti1Header
@@ -283,6 +359,107 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         img.update_header()
         assert_equal(hdr['sform_code'], 2)
         assert_equal(hdr['qform_code'], 2)
+
+    def test_set_qform(self):
+        img = self.image_class(np.zeros((2,3,4)), np.diag([2.2, 3.3, 4.3, 1]))
+        hdr = img.get_header()
+        new_affine = np.diag([1.1, 1.1, 1.1, 1])
+        # Affine is same as sform (best affine)
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        # Reset affine to something different again
+        aff_affine = np.diag([3.3, 4.5, 6.6, 1])
+        img.get_affine()[:] = aff_affine
+        assert_array_almost_equal(img.get_affine(), aff_affine)
+        # Set qform using new_affine
+        img.set_qform(new_affine, 1)
+        assert_array_almost_equal(img.get_qform(), new_affine)
+        assert_equal(hdr['qform_code'], 1)
+        # Image get is same as header get
+        assert_array_almost_equal(img.get_qform(), new_affine)
+        # Coded version of get gets same information
+        qaff, code = img.get_qform(coded=True)
+        assert_equal(code, 1)
+        assert_array_almost_equal(qaff, new_affine)
+        # Image affine now reset to best affine (which is sform)
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        # Reset image affine and try update_affine == False
+        img.get_affine()[:] = aff_affine
+        img.set_qform(new_affine, 1, update_affine=False)
+        assert_array_almost_equal(img.get_affine(), aff_affine)
+        # Clear qform using None, zooms unchanged
+        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        img.set_qform(None)
+        qaff, code = img.get_qform(coded=True)
+        assert_equal((qaff, code), (None, 0))
+        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        # Best affine similarly
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        # If sform is not set, qform should update affine
+        img.set_sform(None)
+        img.set_qform(new_affine, 1)
+        qaff, code = img.get_qform(coded=True)
+        assert_equal(code, 1)
+        assert_array_almost_equal(img.get_affine(), new_affine)
+        new_affine[0, 1] = 2
+        # If affine has has shear, should raise Error if strip_shears=False
+        img.set_qform(new_affine, 2)
+        assert_raises(HeaderDataError, img.set_qform, new_affine, 2, False)
+        # Unexpected keyword raises error
+        assert_raises(TypeError, img.get_qform, strange=True)
+
+    def test_set_sform(self):
+        orig_aff = np.diag([2.2, 3.3, 4.3, 1])
+        img = self.image_class(np.zeros((2,3,4)), orig_aff)
+        hdr = img.get_header()
+        new_affine = np.diag([1.1, 1.1, 1.1, 1])
+        qform_affine = np.diag([1.2, 1.2, 1.2, 1])
+        # Reset image affine to something different again
+        aff_affine = np.diag([3.3, 4.5, 6.6, 1])
+        img.get_affine()[:] = aff_affine
+        assert_array_almost_equal(img.get_affine(), aff_affine)
+        # Sform, Qform codes are 'aligned',  'unknown' by default
+        assert_equal((hdr['sform_code'], hdr['qform_code']), (2, 0))
+        # Set sform using new_affine when qform is 0
+        img.set_sform(new_affine, 1)
+        assert_equal(hdr['sform_code'], 1)
+        assert_array_almost_equal(hdr.get_sform(), new_affine)
+        # Image get is same as header get
+        assert_array_almost_equal(img.get_sform(), new_affine)
+        # Coded version gives same result
+        saff, code = img.get_sform(coded=True)
+        assert_equal(code, 1)
+        assert_array_almost_equal(saff, new_affine)
+        # Because we've reset the sform with update_affine, the affine changes
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        # Reset image affine and try update_affine == False
+        img.get_affine()[:] = aff_affine
+        img.set_sform(new_affine, 1, update_affine=False)
+        assert_array_almost_equal(img.get_affine(), aff_affine)
+        # zooms do not get updated when qform is 0
+        assert_array_almost_equal(img.get_qform(), orig_aff)
+        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        img.set_qform(None)
+        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        # Set sform using new_affine when qform is set
+        img.set_qform(qform_affine, 1)
+        img.set_sform(new_affine, 1)
+        saff, code = img.get_sform(coded=True)
+        assert_equal(code, 1)
+        assert_array_almost_equal(saff, new_affine)
+        assert_array_almost_equal(img.get_affine(), new_affine)
+        # zooms follow qform
+        assert_array_almost_equal(hdr.get_zooms(), [1.2, 1.2, 1.2])
+        # Clear sform using None, best_affine should fall back on qform
+        img.set_sform(None)
+        assert_equal(hdr['sform_code'], 0)
+        assert_equal(hdr['qform_code'], 1)
+        # Sform holds previous affine from last set
+        assert_array_almost_equal(hdr.get_sform(), saff)
+        # Image affine follows qform
+        assert_array_almost_equal(img.get_affine(), qform_affine)
+        assert_array_almost_equal(hdr.get_best_affine(), img.get_affine())
+        # Unexpected keyword raises error
+        assert_raises(TypeError, img.get_sform, strange=True)
 
 
 class TestNifti1Pair(TestNifti1Image):
