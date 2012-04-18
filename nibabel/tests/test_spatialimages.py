@@ -194,6 +194,15 @@ class TestSpatialImage(TestCase):
         ihdr.set_zooms((4,))
         assert_not_equal(img.get_header(), ihdr)
 
+    def test_float_affine(self):
+        # Check affines get converted to float
+        img_klass = self.image_class
+        arr = np.arange(3, dtype=np.int16)
+        img = img_klass(arr, np.eye(4, dtype=np.float32))
+        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        img = img_klass(arr, np.eye(4, dtype=np.int16))
+        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+
     def test_images(self):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58

@@ -301,8 +301,9 @@ class SpatialImage(object):
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
-            # Copy affine to  isolate from environment
-            affine = np.array(affine, copy=True)
+            # Copy affine to  isolate from environment.  Specify float type to
+            # avoid surprising integer rounding when setting values into affine
+            affine = np.array(affine, dtype=np.float64, copy=True)
             if not affine.shape == (4,4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
