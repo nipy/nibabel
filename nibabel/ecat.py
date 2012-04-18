@@ -669,10 +669,9 @@ class EcatSubHeader(object):
         header = self._header
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame)
-        return raw_data
-        #data = raw_data * header['ecat_calibration_factor']
-        #data = data * subhdr['scale_factor']
-        #return data
+        data = raw_data * header['ecat_calibration_factor']
+        data = data * subhdr['scale_factor']
+        return data
 
 
 
@@ -934,7 +933,7 @@ class EcatImage(SpatialImage):
             imgf.seek(pos + 2)
 
             #Get frame and its data type
-            image = self.get_frame(index)
+            image = self._subheader.raw_data_from_fileobj(index)
             dtype = image.dtype
 
             #Write frame images
