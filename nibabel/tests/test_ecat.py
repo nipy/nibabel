@@ -9,7 +9,6 @@
 from __future__ import with_statement
 
 import os
-import tempfile
 
 import numpy as np
 
@@ -26,6 +25,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..testing import data_path
+from ..tmpdirs import InTemporaryDirectory
 
 ecat_file = os.path.join(data_path, 'tinypet.v')
 
@@ -200,9 +200,10 @@ class TestEcatImage(TestCase):
                      self.example_file)
 
     def test_save(self):
-        with tempfile.NamedTemporaryFile(suffix='.v') as tmp_file:
-            self.img.to_filename(tmp_file.name)
-            other = self.image_class.load(tmp_file.name)
+        tmp_file = 'tinypet_tmp.v'
+        with InTemporaryDirectory() as tmp_dir:
+            self.img.to_filename(tmp_file)
+            other = self.image_class.load(tmp_file)
             assert_equal(self.img.get_data().all(), other.get_data().all())
 
     def test_data(self):
