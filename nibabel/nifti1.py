@@ -1512,6 +1512,75 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # Make qform 'unknown'
         hdr.set_qform(self._affine, code='unknown')
 
+    def set_qform(self, affine, code='aligned'):
+        """Sets the qform field of the Nifti header and updates the image
+        affine to the best affine from the header
+
+        Parameters:
+        -----------
+        affine : 4x4 array
+            The affine to be set in the header qform field. If it is not
+            possible to store affine in the qform field, the closest possible
+            affine will be used. If affine is None the qform field is cleared,
+            the voxel sizes (zooms) are updated and the code is set to
+            0 ('unknown').
+        code : int or str
+            The qform code to be used.
+
+        Return:
+        -------
+        status : bool
+            Returns True if self.affine was updated to affine and False
+            otherwise.
+        """
+        hdr = self.get_header()
+        if affine is None:
+            A = hdr.get_best_affine()
+            code = 0
+        else:
+            A = affine
+        hdr.set_qform(A, code)
+        if self._affine is not None:
+            self._affine[:] = hdr.get_best_affine()
+            if affine is not None:
+                return np.allclose(affine, self._affine)
+        return False
+
+    def set_sform(self, affine, code='aligned'):
+        """Sets the sform field of the Nifti header and updates the image
+        affine to the best affine from the header
+
+        Parameters:
+        -----------
+        affine : 4x4 array
+            The affine to be set in the header sform field. If it is not
+            possible to store affine in the sform field, the closest possible
+            affine will be used. If affine is None the sform field is cleared
+            and the code is set to 0 ('unknown').
+        code : int or str
+            The sform code to be used.
+
+        Return:
+        -------
+        status : bool
+            Returns True if self.affine was updated to affine and False
+            otherwise.
+        """
+        hdr = self.get_header()
+        if affine is None:
+            A = np.zeros((4,4))
+            A[3,3] = 1
+            code = 0
+        else:
+            A = affine
+        hdr.set_sform(A, code)
+        if hdr['qform_code'] == 0 and hdr['sform_code'] > 0:
+            self.set_qform(A, 0)
+        if self._affine is not None:
+            self._affine[:] = hdr.get_best_affine()
+            if affine is not None:
+                return np.allclose(affine, self._affine)
+        return False
 
 class Nifti1Image(Nifti1Pair):
     header_class = Nifti1Header

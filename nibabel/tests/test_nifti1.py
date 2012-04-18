@@ -284,6 +284,69 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         assert_equal(hdr['sform_code'], 2)
         assert_equal(hdr['qform_code'], 2)
 
+    def test_set_qform(self):
+        img = self.image_class(np.zeros((2,3,4)), np.diag([2.2, 3.3, 4.3, 1]))
+        hdr = img.get_header()
+        new_affine = np.diag([1.1, 1.1, 1.1, 1])
+        #Set qform using new_affine
+        stat = img.set_qform(new_affine, 1)
+        assert_false(stat)
+        assert_equal(hdr['qform_code'], 1)
+        assert_array_almost_equal(hdr.get_qform(), new_affine)
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        #Clear qform using None, zooms sould update from best_affine
+        stat = img.set_qform(None)
+        assert_false(stat)
+        assert_equal(hdr['qform_code'], 0)
+        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        #If sform is not set, qfrom should update affine
+        img.set_sform(None)
+        stat = img.set_qform(new_affine, 1)
+        assert_true(stat)
+        assert_equal(hdr['qform_code'], 1)
+        assert_array_almost_equal(img.get_affine(), new_affine)
+        new_affine[0, 1] = 2
+        #If affine has has shear, should return false
+        stat = img.set_qform(new_affine, 2)
+        assert_false(stat)
+        assert_equal(hdr['qform_code'], 2)
+
+    def test_set_sform(self):
+        img = self.image_class(np.zeros((2,3,4)), np.diag([2.2, 3.3, 4.3, 1]))
+        hdr = img.get_header()
+        new_affine = np.diag([1.1, 1.1, 1.1, 1])
+        qform_affine = np.diag([1.2, 1.2, 1.2, 1])
+        stat = img.set_qform(qform_affine, 0)
+        assert_false(stat)
+        #Set sform using new_affine when qfrom is 0
+        stat = img.set_sform(new_affine, 1)
+        assert_true(stat)
+        assert_equal(hdr['sform_code'], 1)
+        assert_array_almost_equal(hdr.get_sform(), new_affine)
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        #zooms get updated when qform is 0
+        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+
+        img.set_qform(qform_affine, 1)
+        #Set sform using new_affine when qfrom is set
+        stat = img.set_sform(new_affine, 1)
+        assert_true(stat)
+        assert_equal(hdr['sform_code'], 1)
+        assert_array_almost_equal(hdr.get_sform(), new_affine)
+        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        #zooms don't change if qform is set
+        assert_array_almost_equal(hdr.get_zooms(), [1.2, 1.2, 1.2])
+        #Clear sform using None, best_affine should fall back on qform
+        stat = img.set_sform(None)
+        assert_false(stat)
+        assert_equal(hdr['sform_code'], 0)
+        assert_equal(hdr['qform_code'], 1)
+        zeros = np.zeros((4,4))
+        zeros[3, 3] = 1
+        assert_array_almost_equal(hdr.get_sform(), zeros)
+        assert_array_almost_equal(img.get_affine(), qform_affine)
+        assert_array_almost_equal(hdr.get_best_affine(), img.get_affine())
 
 class TestNifti1Pair(TestNifti1Image):
     # Run analyze-flavor spatialimage tests
