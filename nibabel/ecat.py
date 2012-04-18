@@ -187,7 +187,10 @@ patient_orient_defs = ( #code, description
     (7, 'ECAT7_Head_First_Decubitus_Left'),
     (8, 'ECAT7_Unknown_Orientation'))
 
-
+#Indexes from the patient_orient_defs structure defined above for the
+#neurological and radiological viewing conventions
+patient_orient_radiological = [0, 2, 4, 6]
+patient_orient_neurological = [1, 3, 5, 7]
 
 class EcatHeader(object):
     """Class for basic Ecat PET header
@@ -654,7 +657,43 @@ class EcatSubHeader(object):
         offset = (mlist[frame][1]) * 512
         return int(offset)
 
-    def raw_data_from_fileobj(self, frame=0):
+    def _get_oriented_data(self, raw_data, orientation=None):
+        '''
+        Get data oriented following ``patient_orientation`` header field. If the
+        ``orientation`` parameter is given, return data according to this
+        orientation.
+
+        :param raw_data: Numpy array containing the raw data
+        :param orientation: None (default), 'neurological' or 'radiological'
+        :rtype: Numpy array containing the oriented data
+        '''
+        if orientation is None:
+            orientation = self._header['patient_orientation']
+        elif orientation == 'neurological':
+            orientation = 1
+        elif orientation == 'radiological':
+            orientation = 0
+        else:
+            raise ValueError('orientation should be None,\
+                neurological or radiological')
+
+        if orientation in patient_orient_radiological:
+            raw_data = raw_data[::-1, ::-1, ::-1]
+        elif orientation in patient_orient_neurological:
+            raw_data = raw_data[::, ::-1, ::-1]
+
+        return raw_data
+
+    def raw_data_from_fileobj(self, frame=0, orientation=None):
+        '''
+        Get raw data from file object.
+
+        :param frame: Time frame index from where to fetch data
+        :param orientation: None (default), 'neurological' or 'radiological'
+        :rtype: Numpy array containing (possibly oriented) raw data
+
+        .. seealso:: data_from_fileobj
+        '''
         dtype = self._get_data_dtype(frame)
         if not self._header.endianness is native_code:
             dtype=dtype.newbyteorder(self._header.endianness)
@@ -662,13 +701,22 @@ class EcatSubHeader(object):
         offset = self._get_frame_offset(frame)
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
+        raw_data = self._get_oriented_data(raw_data, orientation)
         return raw_data
 
-    def data_from_fileobj(self, frame=0):
-        """read scaled data from file for a given frame"""
+    def data_from_fileobj(self, frame=0, orientation=None):
+        '''
+        Read scaled data from file for a given frame
+
+        :param frame: Time frame index from where to fetch data
+        :param orientation: None (default), 'neurological' or 'radiological'
+        :rtype: Numpy array containing (possibly oriented) raw data
+
+        .. seealso:: raw_data_from_fileobj
+        '''
         header = self._header
         subhdr = self.subheaders[frame]
-        raw_data = self.raw_data_from_fileobj(frame)
+        raw_data = self.raw_data_from_fileobj(frame, orientation)
         data = raw_data * header['ecat_calibration_factor']
         data = data * subhdr['scale_factor']
         return data
@@ -796,8 +844,15 @@ class EcatImage(SpatialImage):
         """returns 4X4 affine"""
         return self._subheader.get_frame_affine(frame=frame)
 
-    def get_frame(self,frame):
-        return self._subheader.data_from_fileobj(frame)
+    def get_frame(self,frame, orientation=None):
+        '''
+        Get full volume for a time frame
+
+        :param frame: Time frame index from where to fetch data
+        :param orientation: None (default), 'neurological' or 'radiological'
+        :rtype: Numpy array containing (possibly oriented) raw data
+        '''
+        return self._subheader.data_from_fileobj(frame, orientation)
 
     def get_data_dtype(self,frame):
         subhdr = self._subheader
