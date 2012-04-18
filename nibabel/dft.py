@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
 
+from __future__ import with_statement
+
 import os
 from os.path import join as pjoin
 import tempfile
