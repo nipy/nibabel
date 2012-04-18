@@ -670,9 +670,9 @@ class EcatSubHeader(object):
         if orientation is None:
             orientation = self._header['patient_orientation']
         elif orientation == 'neurological':
-            orientation = 1
+            orientation = patient_orient_neurological[0]
         elif orientation == 'radiological':
-            orientation = 0
+            orientation = patient_orient_radiological[0]
         else:
             raise ValueError('orientation should be None,\
                 neurological or radiological')
