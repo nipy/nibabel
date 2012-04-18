@@ -6,6 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+from __future__ import with_statement
+
 import os
 import tempfile
 
