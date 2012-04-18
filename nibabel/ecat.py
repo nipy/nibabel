@@ -651,7 +651,7 @@ class EcatSubHeader(object):
 
     def _get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
-        offset = (mlist[frame][1] - 1) * 512
+        offset = (mlist[frame][1]) * 512
         return int(offset)
 
     def raw_data_from_fileobj(self, frame=0):
@@ -659,7 +659,7 @@ class EcatSubHeader(object):
         if not self._header.endianness is native_code:
             dtype=dtype.newbyteorder(self._header.endianness)
         shape = self.get_shape(frame)
-        offset = self._get_frame_offset(frame) + 512
+        offset = self._get_frame_offset(frame)
         fid_obj = self.fileobj
         raw_data = array_from_file(shape, dtype, fid_obj, offset=offset)
         return raw_data
@@ -922,7 +922,7 @@ class EcatImage(SpatialImage):
         #Write every frames
         for index in xrange(0, self.get_header()['num_frames']):
             #Move to subheader offset
-            frame_offset = subheaders._get_frame_offset(index)
+            frame_offset = subheaders._get_frame_offset(index) - 512
             imgf.seek(frame_offset)
 
             #Write subheader
