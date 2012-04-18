@@ -179,7 +179,8 @@ class TestEcatSubHeader(TestCase):
         assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
         assert_equal(self.subhdr.get_zooms()[2], 3.125)
         assert_equal(self.subhdr._get_data_dtype(0),np.uint16)
-        assert_equal(self.subhdr._get_frame_offset(), 1024)
+        #assert_equal(self.subhdr._get_frame_offset(), 1024)
+        assert_equal(self.subhdr._get_frame_offset(), 1536)
         dat = self.subhdr.raw_data_from_fileobj()
         assert_equal(dat.shape, self.subhdr.get_shape())
         scale_factor = self.subhdr.subheaders[0]['scale_factor']
