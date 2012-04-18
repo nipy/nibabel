@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading / writing functions for nifti1 image format
 '''
+import warnings
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -619,6 +621,75 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr_data['magic'] = 'ni1'
             hdr_data['vox_offset'] = 0
         return hdr_data
+
+    def get_data_shape(self):
+        ''' Get shape of data
+
+        Examples
+        --------
+        >>> hdr = Nifti1Header()
+        >>> hdr.get_data_shape()
+        (0,)
+        >>> hdr.set_data_shape((1,2,3))
+        >>> hdr.get_data_shape()
+        (1, 2, 3)
+
+        Expanding number of dimensions gets default zooms
+
+        >>> hdr.get_zooms()
+        (1.0, 1.0, 1.0)
+
+        Notes
+        -----
+        Allows for freesurfer hack for large vectors described in
+        https://github.com/nipy/nibabel/issues/100 and
+        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        '''
+        shape = super(Nifti1Header, self).get_data_shape()
+        # Apply freesurfer hack for vector
+        if shape != (-1, 1, 1): # Normal case
+            return shape
+        vec_len = int(self._structarr['glmin'])
+        if vec_len == 0:
+            raise HeaderDataError('-1 in dim[1] but 0 in glmin; inconsistent '
+                                  'freesurfer type header?')
+        return (vec_len, 1, 1)
+
+    def set_data_shape(self, shape):
+        ''' Set shape of data
+
+        If ``ndims == len(shape)`` then we set zooms for dimensions higher than
+        ``ndims`` to 1.0
+
+        Parameters
+        ----------
+        shape : sequence
+           sequence of integers specifying data array shape
+
+        Notes
+        -----
+        Applies freesurfer hack for large vectors described in
+        https://github.com/nipy/nibabel/issues/100 and
+        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        '''
+        # Apply freesurfer hack for vector
+        hdr = self._structarr
+        shape = tuple(shape)
+        if (len(shape) == 3 and shape[1:] == (1, 1) and
+            shape[0] > np.iinfo(hdr['dim'].dtype.base).max): # Freesurfer case
+            try:
+                hdr['glmin'] = shape[0]
+            except OverflowError:
+                overflow = True
+            else:
+                overflow = hdr['glmin'] != shape[0]
+            if overflow:
+                raise HeaderDataError('shape[0] %s does not fit in glmax datatype' %
+                                      shape[0])
+            warnings.warn('Using large vector Freesurfer hack; header will '
+                          'not be compatible with SPM or FSL', stacklevel=2)
+            shape = (-1, 1, 1)
+        super(Nifti1Header, self).set_data_shape(shape)
 
     def get_qform_quaternion(self):
         ''' Compute quaternion from b, c, d of quaternion
