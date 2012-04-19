@@ -677,9 +677,9 @@ class EcatSubHeader(object):
             raise ValueError('orientation should be None,\
                 neurological or radiological')
 
-        if orientation in patient_orient_radiological:
+        if orientation in patient_orient_neurological:
             raw_data = raw_data[::-1, ::-1, ::-1]
-        elif orientation in patient_orient_neurological:
+        elif orientation in patient_orient_radiological:
             raw_data = raw_data[::, ::-1, ::-1]
 
         return raw_data
