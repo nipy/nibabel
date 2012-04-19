@@ -304,7 +304,11 @@ class SlopeArrayWriter(ArrayWriter):
         # (u)int to (u)int
         info = np.iinfo(out_dtype)
         out_max, out_min = info.max, info.min
-        if mx <= out_max and mn >= out_min: # already in range
+        # If left as int64, uint64, comparisons will default to floats, and
+        # these are inexact for > 2**53 - so convert to int
+        if (as_int(mx) <= as_int(out_max) and
+            as_int(mn) >= as_int(out_min)):
+            # already in range
             return
         # (u)int to (u)int scaling
         self._iu2iu()

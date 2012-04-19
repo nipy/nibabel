@@ -194,6 +194,16 @@ def test_special_rt():
                     assert_array_equal(round_trip(aw), 0)
 
 
+def test_high_int2uint():
+    # Need to take care of high values when testing whether values are already
+    # in range.  There was a bug here were the comparison was in floating point,
+    # and therefore not exact, and 2**63 appeared to be in range for np.int64
+    arr = np.array([2**63], dtype=np.uint64)
+    out_type = np.int64
+    aw = SlopeInterArrayWriter(arr, out_type)
+    assert_equal(aw.inter, 2**64)
+
+
 def test_slope_inter_castable():
     # Test scaling for arraywriter instances
     # Test special case of all zeros
