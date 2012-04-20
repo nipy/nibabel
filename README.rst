@@ -17,7 +17,7 @@ PyNIfTI_.
 .. _GIFTI: http://www.nitrc.org/projects/gifti
 
 The various image format classes give full or selective access to header (meta)
-information and access to the image data is made available via NumPy_ arrays.
+information and access to the image data is made available via NumPy arrays.
 
 Website
 =======
