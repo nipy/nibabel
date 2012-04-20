@@ -15,7 +15,6 @@ PyNIfTI_.
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 .. _PyNIfTI: http://niftilib.sourceforge.net/pynifti/
 .. _GIFTI: http://www.nitrc.org/projects/gifti
-.. _Numpy: http://numpy.scipy.org/
 
 The various image format classes give full or selective access to header (meta)
 information and access to the image data is made available via NumPy_ arrays.
