@@ -4,7 +4,7 @@
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int, int_abs)
+                       as_int, int_abs, best_float)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
