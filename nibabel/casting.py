@@ -177,9 +177,10 @@ def type_info(np_type):
     info : dict
         with fields ``min`` (minimum value), ``max`` (maximum value), ``nexp``
         (exponent width), ``nmant`` (significand precision not including
-        implicit first digit) ``width`` (width in bytes). ``nexp``, ``nmant``
-        are None for integer types. Both ``min`` and ``max`` are of type
-        `np_type`.
+        implicit first digit), ``minexp`` (minimum exponent), ``maxexp``
+        (maximum exponent), ``width`` (width in bytes). (``nexp``, ``nmant``,
+        ``minexp``, ``maxexp``) are None for integer types. Both ``min`` and
+        ``max`` are of type `np_type`.
 
     Raises
     ------
@@ -188,9 +189,10 @@ def type_info(np_type):
     Notes
     -----
     You might be thinking that ``np.finfo`` does this job, and it does, except
-    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077). This
-    routine protects against errors in ``np.finfo`` by only accepting values
-    that we know are likely to be correct.
+    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077) and
+    float96 on Windows compiled with Mingw. This routine protects against such
+    errors in ``np.finfo`` by only accepting values that we know are likely to
+    be correct.
     """
     dt = np.dtype(np_type)
     np_type = dt.type
@@ -200,13 +202,18 @@ def type_info(np_type):
     except ValueError:
         pass
     else:
-        return dict(min=np_type(info.min), max=np_type(info.max),
-                    nmant=None, nexp=None, width=width)
+        return dict(min=np_type(info.min), max=np_type(info.max), minexp=None,
+                    maxexp=None, nmant=None, nexp=None, width=width)
     info = np.finfo(dt)
     # Trust the standard IEEE types
     nmant, nexp = info.nmant, info.nexp
-    ret = dict(min=np_type(info.min), max=np_type(info.max), nmant=nmant,
-               nexp=nexp, width=width)
+    ret = dict(min=np_type(info.min),
+               max=np_type(info.max),
+               nmant=nmant,
+               nexp=nexp,
+               minexp=info.minexp,
+               maxexp=info.maxexp,
+               width=width)
     if np_type in (_float16, np.float32, np.float64,
                    np.complex64, np.complex128):
         return ret
@@ -223,14 +230,12 @@ def type_info(np_type):
         pass # these are OK
     elif vals in ((52, 15, 12), # windows float96
                   (52, 15, 16)): # windows float128?
-        # On windows 32 bit at least, float96 appears to be a float64 padded to
-        # 96 bits.  The nexp == 15 is the same as for intel 80 but nexp in fact
-        # appears to be 11 as for float64
-        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
-                    nmant=info_64.nmant, nexp=info_64.nexp, width=width)
+        # On windows 32 bit at least, float96 is Intel 80 storage but operating
+        # at float64 precision. The finfo values give nexp == 15 (as for intel
+        # 80) but in calculations nexp in fact appears to be 11 as for float64
+        return type_info(np.float64).update(dict(width=width))
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
-                    nmant=106, nexp=11, width=width)
+        ret = type_info(np.float64).update(dict(nmant=106, width=width))
     else: # don't recognize the type
         raise FloatingError('We had not expected type %s' % np_type)
     return ret
@@ -438,8 +443,8 @@ def floor_log2(x):
 
     Returns
     -------
-    L : int
-        floor of base 2 log of `x`
+    L : None or int
+        floor of base 2 log of `x`.  None if `x` == 0.
 
     Examples
     --------
@@ -447,12 +452,23 @@ def floor_log2(x):
     9
     >>> floor_log2(-2**9+1)
     8
+    >>> floor_log2(0.5)
+    -1
+    >>> floor_log2(0) is None
+    True
     """
     ip = 0
     rem = abs(x)
-    while rem>=2:
-        ip += 1
-        rem //= 2
+    if rem > 1:
+        while rem>=2:
+            ip += 1
+            rem //= 2
+        return ip
+    elif rem == 0:
+        return None
+    while rem < 1:
+        ip -= 1
+        rem *= 2
     return ip
 
 
@@ -523,3 +539,41 @@ def able_int_type(values):
         if mn >= info.min and mx <= info.max:
             return ityp
     return None
+
+
+def ulp(val=np.float64(1.0)):
+    """ Return gap between `val` and nearest representable number of same type
+
+    This is the value of a unit in the last place (ULP), and is similar in
+    meaning to the MATLAB eps function.
+
+    Parameters
+    ----------
+    val : scalar, optional
+        scalar value of any numpy type.  Default is 1.0 (float64)
+
+    Returns
+    -------
+    ulp_val : scalar
+        gap between `val` and nearest representable number of same type
+
+    Notes
+    -----
+    The wikipedia article on machine epsilon points out that the term *epsilon*
+    can be used in the sense of a unit in the last place (ULP), or as the
+    maximum relative rounding error.  The MATLAB ``eps`` function uses the ULP
+    meaning, but this function is ``ulp`` rather than ``eps`` to avoid confusion
+    between different meanings of *eps*.
+    """
+    val = np.array(val)
+    if not np.isfinite(val):
+        return np.nan
+    if val.dtype.kind in 'iu':
+        return 1
+    aval = np.abs(val)
+    info = type_info(val.dtype)
+    fl2 = floor_log2(aval)
+    if fl2 is None or fl2 < info['minexp']: # subnormal
+        fl2 = info['minexp']
+    # 'nmant' value does not include implicit first bit
+    return 2**(fl2 - info['nmant'])

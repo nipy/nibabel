@@ -4,7 +4,8 @@
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int, int_abs, best_float)
+                       as_int, int_abs, floor_log2, able_int_type, best_float,
+                       ulp)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -138,6 +139,18 @@ def test_int_abs():
         assert_array_equal(int_abs(in_arr), [e_mn, mx])
 
 
+def test_floor_log2():
+    assert_equal(floor_log2(2**9+1), 9)
+    assert_equal(floor_log2(-2**9+1), 8)
+    assert_equal(floor_log2(2), 1)
+    assert_equal(floor_log2(1), 0)
+    assert_equal(floor_log2(0.5), -1)
+    assert_equal(floor_log2(0.75), -1)
+    assert_equal(floor_log2(0.25), -2)
+    assert_equal(floor_log2(0.24), -3)
+    assert_equal(floor_log2(0), None)
+
+
 def test_able_int_type():
     # The integer type cabable of containing values
     for vals, exp_out in (
@@ -194,18 +207,33 @@ def test_best_float():
         assert_equal(best, np.longdouble)
 
 
-def test_eps():
-    assert_equal(eps(), np.finfo(np.float64).eps)
-    assert_equal(eps(1.0), np.finfo(np.float64).eps)
-    assert_equal(eps(np.float32(1.0)), np.finfo(np.float32).eps)
-    assert_equal(eps(np.float32(1.999)), np.finfo(np.float32).eps)
+def test_ulp():
+    assert_equal(ulp(), np.finfo(np.float64).eps)
+    assert_equal(ulp(1.0), np.finfo(np.float64).eps)
+    assert_equal(ulp(np.float32(1.0)), np.finfo(np.float32).eps)
+    assert_equal(ulp(np.float32(1.999)), np.finfo(np.float32).eps)
     # Integers always return 1
-    assert_equal(eps(1), 1)
-    assert_equal(eps(2**63-1), 1)
+    assert_equal(ulp(1), 1)
+    assert_equal(ulp(2**63-1), 1)
     # negative / positive same
-    assert_equal(eps(-1), 1)
-    assert_equal(eps(7.999), eps(4.0))
-    assert_equal(eps(-7.999), eps(4.0))
-    assert_equal(eps(np.float64(2**54-2)), 2)
-    assert_equal(eps(np.float64(2**54)), 4)
-    assert_equal(eps(np.float64(2**54)), 4)
+    assert_equal(ulp(-1), 1)
+    assert_equal(ulp(7.999), ulp(4.0))
+    assert_equal(ulp(-7.999), ulp(4.0))
+    assert_equal(ulp(np.float64(2**54-2)), 2)
+    assert_equal(ulp(np.float64(2**54)), 4)
+    assert_equal(ulp(np.float64(2**54)), 4)
+    # Infs, NaNs return nan
+    assert_true(np.isnan(ulp(np.inf)))
+    assert_true(np.isnan(ulp(-np.inf)))
+    assert_true(np.isnan(ulp(np.nan)))
+    # 0 gives subnormal smallest
+    subn64 = np.float64(2**(-1022-52))
+    subn32 = np.float32(2**(-126-23))
+    assert_equal(ulp(0.0), subn64)
+    assert_equal(ulp(np.float64(0)), subn64)
+    assert_equal(ulp(np.float32(0)), subn32)
+    # as do multiples of subnormal smallest
+    assert_equal(ulp(subn64 * np.float64(2**52)), subn64)
+    assert_equal(ulp(subn64 * np.float64(2**53)), subn64*2)
+    assert_equal(ulp(subn32 * np.float32(2**23)), subn32)
+    assert_equal(ulp(subn32 * np.float32(2**24)), subn32*2)

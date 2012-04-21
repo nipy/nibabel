@@ -28,7 +28,9 @@ def test_type_info():
     for dtt in np.sctypes['int'] + np.sctypes['uint']:
         info = np.iinfo(dtt)
         infod = type_info(dtt)
-        assert_equal(dict(min=info.min, max=info.max, nexp=None, nmant=None,
+        assert_equal(dict(min=info.min, max=info.max,
+                          nexp=None, nmant=None,
+                          minexp=None, maxexp=None,
                           width=np.dtype(dtt).itemsize), infod)
         assert_equal(infod['min'].dtype.type, dtt)
         assert_equal(infod['max'].dtype.type, dtt)
@@ -37,6 +39,7 @@ def test_type_info():
         infod = type_info(dtt)
         assert_equal(dict(min=info.min, max=info.max,
                           nexp=info.nexp, nmant=info.nmant,
+                          minexp=info.minexp, maxexp=info.maxexp,
                           width=np.dtype(dtt).itemsize),
                      infod)
         assert_equal(infod['min'].dtype.type, dtt)
@@ -54,12 +57,20 @@ def test_type_info():
                 (112, 15, 16), # real float128
                 (106, 11, 16)): # PPC head, tail doubles, expected values
         assert_equal(dict(min=info.min, max=info.max,
+                          minexp=info.minexp, maxexp=info.maxexp,
                           nexp=info.nexp, nmant=info.nmant, width=width),
                      infod)
     elif vals == (1, 1, 16): # bust info for PPC head / tail longdoubles
         assert_equal(dict(min=dbl_info.min, max=dbl_info.max,
+                          minexp=-1022, maxexp=1024,
                           nexp=11, nmant=106, width=16),
                      infod)
+    elif vals == (52, 15, 12):
+        exp_res = type_info(np.float64)
+        exp_res['width'] = width
+        assert_equal(exp_res, infod)
+    else:
+        raise ValueError("Unexpected float type to test")
 
 
 def test_nmant():
