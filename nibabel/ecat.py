@@ -407,13 +407,13 @@ class EcatMlist(object):
         Returns
         -------
         mlist : numpy recarray  nframes X 4 columns
-    	1 - Matrix identifier.
-	2 - subheader record number
-	3 - Last record number of matrix data block.
-	4 - Matrix status:
-	    1 - exists - rw
-	    2 - exists - ro
-	    3 - matrix deleted
+        1 - Matrix identifier.
+        2 - subheader record number
+        3 - Last record number of matrix data block.
+        4 - Matrix status:
+            1 - exists - rw
+            2 - exists - ro
+            3 - matrix deleted
         """
         self.hdr = hdr
         self._mlist = self.get_mlist(fileobj)
@@ -473,9 +473,7 @@ class EcatMlist(object):
         >>> img = ecat.load(ecat_file)
         >>> mlist = img.get_mlist()
         >>> mlist.get_frame_order()
-        {0: [0, 16842758.0]}
-
-
+        {0: [0, 16842758]}
         """
         mlist  = self._mlist
         ids = mlist[:, 0].copy()

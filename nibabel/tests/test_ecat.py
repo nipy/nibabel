@@ -201,10 +201,13 @@ class TestEcatImage(TestCase):
 
     def test_save(self):
         tmp_file = 'tinypet_tmp.v'
-        with InTemporaryDirectory() as tmp_dir:
+        with InTemporaryDirectory():
             self.img.to_filename(tmp_file)
             other = self.image_class.load(tmp_file)
             assert_equal(self.img.get_data().all(), other.get_data().all())
+            # Delete object holding reference to temporary file to make Windows
+            # happier.
+            del other
 
     def test_data(self):
         dat = self.img.get_data()
