@@ -990,11 +990,11 @@ class EcatImage(SpatialImage):
             dtype = image.dtype
 
             #Write frame images
-            self._write_data(image, imgf, pos+2, endianness=swapped_code)
+            self._write_data(image, imgf, pos+2, endianness='>')
 
             #Move to dictionnary offset and write dictionnary entry
             self._write_data(mlist[index], imgf, entry_pos,
-                np.uint32, endianness=swapped_code)
+                np.uint32, endianness='>')
 
             entry_pos = entry_pos + 16L
 
