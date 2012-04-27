@@ -300,6 +300,14 @@ class TestAnalyzeHeader(_TestWrapStructBase):
         _write_data(hdr, data, S3)
         data_back = hdr.data_from_fileobj(S3)
         assert_false(np.allclose(data, data_back))
+        # Test RGB image
+        dtype = np.dtype([('R', 'uint8'), ('G', 'uint8'), ('B', 'uint8')])
+        data = np.ones((1, 2, 3), dtype)
+        hdr.set_data_dtype(dtype)
+        S4 = BytesIO()
+        hdr.data_to_fileobj(data, S4)
+        data_back = hdr.data_from_fileobj(S4)
+        assert_array_equal(data, data_back)
 
     def test_datatype(self):
         ehdr = self.header_class()

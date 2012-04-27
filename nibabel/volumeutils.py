@@ -601,7 +601,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if not needs_f2i:
         # Apply min max thresholding the standard way
         needs_pre_clip = (mn, mx) != (None, None)
-        mn, mx = _dt_min_max(in_dtype, mn, mx)
+        if needs_pre_clip:
+            mn, mx = _dt_min_max(in_dtype, mn, mx)
     else: # We do need float to int machinery
         # Replace Nones in (mn, mx) with type min / max if necessary
         dt_mnmx = _dt_min_max(in_dtype, mn, mx)
@@ -670,6 +671,8 @@ def _dt_min_max(dtype_like, mn, mx):
     elif dt.kind in 'iu':
         info = np.iinfo(dt)
         mnmx = (info.min, info.max)
+    else:
+        raise NotImplementedError("unknown dtype")
     return mnmx[0] if mn is None else mn, mnmx[1] if mx is None else mx
 
 
