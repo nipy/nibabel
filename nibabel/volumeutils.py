@@ -747,7 +747,9 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     # Force float / float upcasting by promoting to arrays
     arr, slope, inter = [np.atleast_1d(v) for v in arr, slope, inter]
     if arr.dtype.kind in 'iu':
-        ftype = int_scinter_ftype(arr.dtype, slope, inter)
+        # Find floating point type for which scaling does not overflow, starting
+        # at given type
+        ftype = int_scinter_ftype(arr.dtype, slope, inter, slope.dtype.type)
         slope = slope.astype(ftype)
         inter = inter.astype(ftype)
     if slope != 1.0:

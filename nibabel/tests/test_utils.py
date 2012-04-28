@@ -312,9 +312,16 @@ def test_apply_scaling():
     # Upcasting does occur with this routine
     assert_equal(apply_read_scaling(i16_arr, big).dtype, np.float64)
     assert_equal(apply_read_scaling(i16_arr, big_delta, big).dtype, np.float64)
-    assert_equal(apply_read_scaling(np.int8(0), -1.0, 0.0).dtype, np.float32)
-    assert_equal(apply_read_scaling(np.int8(0), 1e38, 0.0).dtype, np.float64)
-    assert_equal(apply_read_scaling(np.int8(0), -1e38, 0.0).dtype, np.float64)
+    # If float32 passed, no overflow, float32 returned
+    assert_equal(apply_read_scaling(np.int8(0), f32(-1.0), f32(0.0)).dtype,
+                 np.float32)
+    # float64 passed, float64 returned
+    assert_equal(apply_read_scaling(np.int8(0), -1.0, 0.0).dtype, np.float64)
+    # float32 passed, overflow, float64 returned
+    assert_equal(apply_read_scaling(np.int8(0), f32(1e38), f32(0.0)).dtype,
+                 np.float64)
+    assert_equal(apply_read_scaling(np.int8(0), f32(-1e38), f32(0.0)).dtype,
+                 np.float64)
 
 
 def test_int_scinter():
