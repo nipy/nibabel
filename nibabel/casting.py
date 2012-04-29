@@ -129,10 +129,10 @@ def shared_range(flt_type, int_type):
 
     Examples
     --------
-    >>> shared_range(np.float32, np.int32)
-    (-2147483648.0, 2147483520.0)
-    >>> shared_range('f4', 'i4')
-    (-2147483648.0, 2147483520.0)
+    >>> shared_range(np.float32, np.int32) == (-2147483648.0, 2147483520.0)
+    True
+    >>> shared_range('f4', 'i4') == (-2147483648.0, 2147483520.0)
+    True
     """
     flt_type = np.dtype(flt_type).type
     int_type = np.dtype(int_type).type
@@ -143,9 +143,15 @@ def shared_range(flt_type, int_type):
     except KeyError:
         pass
     ii = np.iinfo(int_type)
-    mn_mx = floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
-    _SHARED_RANGES[key] = mn_mx
-    return mn_mx
+    fi = np.finfo(flt_type)
+    mn = ceil_exact(ii.min, flt_type)
+    if mn == -np.inf:
+        mn = fi.min
+    mx = floor_exact(ii.max, flt_type)
+    if mx == np.inf:
+        mx = fi.max
+    _SHARED_RANGES[key] = (mn, mx)
+    return mn, mx
 
 # ----------------------------------------------------------------------------
 # Routines to work out the next lowest representable integer in floating point
@@ -335,7 +341,7 @@ def int_to_float(val, flt_type):
 
 
 def floor_exact(val, flt_type):
-    """ Get nearest exact integer to `val`, towards 0, in float type `flt_type`
+    """ Return nearest exact integer <= `val` in float type `flt_type`
 
     Parameters
     ----------
@@ -344,15 +350,14 @@ def floor_exact(val, flt_type):
         because large integers cast as floating point may be rounded by the
         casting process.
     flt_type : numpy type
-        numpy float type.  Only IEEE types supported (np.float16, np.float32,
-        np.float64)
+        numpy float type.
 
     Returns
     -------
     floor_val : object
-        value of same floating point type as `val`, that is the next excat
-        integer in this type, towards zero, or == `val` if val is exactly
-        representable.
+        value of same floating point type as `val`, that is the nearest exact
+        integer in this type such that `floor_val` <= `val`.  Thus if `val` is
+        exact in `flt_type`, `floor_val` == `val`.
 
     Examples
     --------
@@ -370,26 +375,74 @@ def floor_exact(val, flt_type):
 
     >>> floor_exact(2**24+1, np.float32) == 2**24
     True
+
+    As for the numpy floor function, negatives floor towards -inf
+
+    >>> floor_exact(-2**24-1, np.float32) == -2**24-2
+    True
     """
     val = int(val)
     flt_type = np.dtype(flt_type).type
-    sign = val > 0 and 1 or -1
-    aval = abs(val)
+    sign = 1 if val > 0 else -1
     try: # int_to_float deals with longdouble safely
-        faval = int_to_float(aval, flt_type)
+        fval = int_to_float(val, flt_type)
     except OverflowError:
-        faval = np.inf
+        return sign * np.inf
+    if not np.isfinite(fval):
+        return fval
     info = type_info(flt_type)
-    if faval == np.inf:
-        return sign * info['max']
-    if as_int(faval) <= aval: # as_int deals with longdouble safely
-        # Float casting has made the value go down or stay the same
-        return sign * faval
+    diff = val - as_int(fval)
+    if diff >= 0: # floating point value <= val
+        return fval
     # Float casting made the value go up
-    biggest_gap = 2**(floor_log2(aval) - info['nmant'])
+    biggest_gap = 2**(floor_log2(val) - info['nmant'])
     assert biggest_gap > 1
-    faval -= flt_type(biggest_gap)
-    return sign * faval
+    fval -= flt_type(biggest_gap)
+    return fval
+
+
+def ceil_exact(val, flt_type):
+    """ Return nearest exact integer >= `val` in float type `flt_type`
+
+    Parameters
+    ----------
+    val : int
+        We have to pass val as an int rather than the floating point type
+        because large integers cast as floating point may be rounded by the
+        casting process.
+    flt_type : numpy type
+        numpy float type.
+
+    Returns
+    -------
+    ceil_val : object
+        value of same floating point type as `val`, that is the nearest exact
+        integer in this type such that `floor_val` >= `val`.  Thus if `val` is
+        exact in `flt_type`, `ceil_val` == `val`.
+
+    Examples
+    --------
+    Obviously 2 is within the range of representable integers for float32
+
+    >>> ceil_exact(2, np.float32)
+    2.0
+
+    As is 2**24-1 (the number of significand digits is 23 + 1 implicit)
+
+    >>> ceil_exact(2**24-1, np.float32) == 2**24-1
+    True
+
+    But 2**24+1 gives a number that float32 can't represent exactly
+
+    >>> ceil_exact(2**24+1, np.float32) == 2**24+2
+    True
+
+    As for the numpy ceil function, negatives ceil towards inf
+
+    >>> ceil_exact(-2**24-1, np.float32) == -2**24
+    True
+    """
+    return -floor_exact(-val, flt_type)
 
 
 def int_abs(arr):

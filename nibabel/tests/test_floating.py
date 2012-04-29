@@ -4,8 +4,8 @@ from platform import processor
 
 import numpy as np
 
-from ..casting import (floor_exact, as_int, FloatingError, int_to_float,
-                       floor_log2, type_info)
+from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
+                       int_to_float, floor_log2, type_info)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises
@@ -164,7 +164,8 @@ def test_floor_exact_16():
     # A normal integer can generate an inf in float16
     if not have_float16:
         raise SkipTest('No float16')
-    assert_equal(floor_exact(2**31, np.float16), type_info(np.float16)['max'])
+    assert_equal(floor_exact(2**31, np.float16), np.inf)
+    assert_equal(floor_exact(-2**31, np.float16), -np.inf)
 
 
 def test_floor_exact_64():
@@ -192,37 +193,50 @@ def test_floor_exact():
     # When numbers go above int64 - I believe, numpy comparisons break down,
     # so we have to cast to int before comparison
     int_flex = lambda x, t : as_int(floor_exact(x, t))
+    int_ceex = lambda x, t : as_int(ceil_exact(x, t))
     for t in to_test:
         # A number bigger than the range returns the max
         info = type_info(t)
-        assert_equal(floor_exact(2**5000, t), info['max'])
+        assert_equal(floor_exact(2**5000, t), np.inf)
+        assert_equal(ceil_exact(2**5000, t), np.inf)
+        # A number more negative returns -inf
+        assert_equal(floor_exact(-2**5000, t), -np.inf)
+        assert_equal(ceil_exact(-2**5000, t), -np.inf)
+        # Check around end of integer precision
         nmant =  info['nmant']
         for i in range(nmant+1):
             iv = 2**i
             # up to 2**nmant should be exactly representable
-            assert_equal(int_flex(iv, t), iv)
-            assert_equal(int_flex(-iv, t), -iv)
-            assert_equal(int_flex(iv-1, t), iv-1)
-            assert_equal(int_flex(-iv+1, t), -iv+1)
+            for func in (int_flex, int_ceex):
+                assert_equal(func(iv, t), iv)
+                assert_equal(func(-iv, t), -iv)
+                assert_equal(func(iv-1, t), iv-1)
+                assert_equal(func(-iv+1, t), -iv+1)
         # The nmant value for longdouble on PPC appears to be conservative, so
         # that the tests for behavior above the nmant range fail
         if t is np.longdouble and processor() == 'powerpc':
             continue
-        # 2**(nmant+1) can't be exactly represented
+        # Confirm to ourselves that 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant+1)
         assert_equal(int_flex(iv+1, t), iv)
+        assert_equal(int_ceex(iv+1, t), iv+2)
         # negatives
-        assert_equal(int_flex(-iv-1, t), -iv)
+        assert_equal(int_flex(-iv-1, t), -iv-2)
+        assert_equal(int_ceex(-iv-1, t), -iv)
         # The gap in representable numbers is 2 above 2**(nmant+1), 4 above
         # 2**(nmant+2), and so on.
         for i in range(5):
             iv = 2**(nmant+1+i)
             gap = 2**(i+1)
             assert_equal(as_int(t(iv) + t(gap)), iv+gap)
-            for j in range(1,gap):
+            for j in range(1, gap):
                 assert_equal(int_flex(iv+j, t), iv)
                 assert_equal(int_flex(iv+gap+j, t), iv+gap)
+                assert_equal(int_ceex(iv+j, t), iv+gap)
+                assert_equal(int_ceex(iv+gap+j, t), iv+2*gap)
             # negatives
-            for j in range(1,gap):
-                assert_equal(int_flex(-iv-j, t), -iv)
-                assert_equal(int_flex(-iv-gap-j, t), -iv-gap)
+            for j in range(1, gap):
+                assert_equal(int_flex(-iv-j, t), -iv-gap)
+                assert_equal(int_flex(-iv-gap-j, t), -iv-2*gap)
+                assert_equal(int_ceex(-iv-j, t), -iv)
+                assert_equal(int_ceex(-iv-gap-j, t), -iv-gap)
