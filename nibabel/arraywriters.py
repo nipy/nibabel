@@ -25,7 +25,8 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import int_to_float, as_int, int_abs, type_info
+from .casting import (int_to_float, as_int, int_abs, type_info, floor_exact,
+                      best_float)
 from .volumeutils import finite_range, array_to_file
 
 
@@ -331,12 +332,13 @@ class SlopeArrayWriter(ArrayWriter):
         out_dtype = self._out_dtype
         info = type_info(out_dtype)
         t_mn_mx = info['min'], info['max']
+        big_float = best_float()
         if out_dtype.kind == 'f':
             # But we want maximum precision for the calculations. Casting will
             # not lose precision because min/max are of fp type.
-            t_min, t_max = np.array(t_mn_mx, dtype = np.longdouble)
+            t_min, t_max = np.array(t_mn_mx, dtype = big_float)
         else: # (u)int
-            t_min, t_max = [int_to_float(v, np.longdouble) for v in t_mn_mx]
+            t_min, t_max = [int_to_float(v, big_float) for v in t_mn_mx]
         if self._out_dtype.kind == 'u':
             if mn < 0 and mx > 0:
                 raise WriterError('Cannot scale negative and positive '
@@ -472,27 +474,28 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             self.inter = mn
             return
         # Straight mx-mn can overflow.
+        big_float = best_float() # usually longdouble except in win 32
         if mn.dtype.kind == 'f': # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
             # no casting
-            mn2mx = np.diff(np.array([mn, mx], dtype=np.longdouble))
+            mn2mx = np.diff(np.array([mn, mx], dtype=big_float))
         else: # max possible (u)int range is 2**64-1 (int64, uint64)
             # int_to_float covers this range.  On windows longdouble is the same
             # as double so mn2mx will be 2**64 - thus overestimating slope
             # slightly.  Casting to int needed to allow mx-mn to be larger than
             # the largest (u)int value
-            mn2mx = int_to_float(as_int(mx) - as_int(mn), np.longdouble)
+            mn2mx = int_to_float(as_int(mx) - as_int(mn), big_float)
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
             t_mn_mx = info['min'], info['max']
         else:
             t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
-            t_mn_mx= [int_to_float(v, np.longdouble) for v in t_mn_mx]
+            t_mn_mx= [int_to_float(v, big_float) for v in t_mn_mx]
         # We want maximum precision for the calculations. Casting will
         # not lose precision because min/max are of fp type.
         assert [v.dtype.kind for v in t_mn_mx] == ['f', 'f']
-        scaled_mn2mx = np.diff(np.array(t_mn_mx, dtype = np.longdouble))
+        scaled_mn2mx = np.diff(np.array(t_mn_mx, dtype = big_float))
         slope = mn2mx / scaled_mn2mx
         self.inter = mn - t_mn_mx[0] * slope
         self.slope = slope

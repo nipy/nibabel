@@ -16,7 +16,7 @@ import bz2
 import numpy as np
 
 from .py3k import isfileobj, ZEROB
-from .casting import shared_range, type_info
+from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS)
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -1057,7 +1057,7 @@ def best_write_scale_ftype(arr, slope = 1.0, inter = 0.0, default=np.float32):
     try:
         return _ftype4scaled_finite(arr, slope, inter, 'write', default)
     except ValueError:
-        return FLOAT_TYPES[-1]
+        return OK_FLOATS[-1]
 
 
 def better_float_of(first, second, default=np.float32):
@@ -1111,14 +1111,17 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     """ Smallest float type for scaling of `tst_arr` that does not overflow
     """
     assert direction in ('read', 'write')
-    def_ind = FLOAT_TYPES.index(default)
+    if not default in OK_FLOATS and default is np.longdouble:
+        # Omitted longdouble
+        return default
+    def_ind = OK_FLOATS.index(default)
     # promote to arrays to avoid numpy scalar casting rules
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
     warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
     try:
-        for ftype in FLOAT_TYPES[def_ind:]:
+        for ftype in OK_FLOATS[def_ind:]:
             tst_trans = tst_arr.copy()
             slope = slope.astype(ftype)
             inter = inter.astype(ftype)

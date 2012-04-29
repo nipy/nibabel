@@ -469,3 +469,17 @@ def best_float():
     if type_info(np.longdouble)['nmant'] > type_info(np.float64)['nmant']:
         return np.longdouble
     return np.float64
+
+
+def ok_floats():
+    """ Return floating point types sorted by precision
+
+    Remove longdouble if it has no higher precision than float64
+    """
+    floats = sorted(np.sctypes['float'], key=lambda f : type_info(f)['nmant'])
+    if best_float() != np.longdouble:
+        floats.remove(np.longdouble)
+    return floats
+
+
+OK_FLOATS = ok_floats()
