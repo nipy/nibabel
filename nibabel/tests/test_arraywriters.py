@@ -201,7 +201,7 @@ def test_high_int2uint():
     arr = np.array([2**63], dtype=np.uint64)
     out_type = np.int64
     aw = SlopeInterArrayWriter(arr, out_type)
-    assert_equal(aw.inter, 2**64)
+    assert_equal(aw.inter, 2**63)
 
 
 def test_slope_inter_castable():
@@ -349,7 +349,7 @@ def test_with_offset_scale():
     aw = SIAW(np.array([-256, -2], dtype=np.int16), np.uint8)
     assert_equal((aw.slope, aw.inter), (1, -256)) # offset only
     aw = SIAW(np.array([-256, -2], dtype=np.int16), np.int8)
-    assert_equal((aw.slope, aw.inter), (1, -128)) # offset only
+    assert_equal((aw.slope, aw.inter), (1, -129)) # offset only
 
 
 def test_io_scaling():
