@@ -464,9 +464,25 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         t_min, t_max = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
         type_range = as_int(t_max) - as_int(t_min)
         mn2mx = mx - mn
-        if mn2mx <= type_range: # offset enough?
-            self.inter = mn - t_min
-            return
+        if mn2mx <= type_range: # might offset be enough?
+            if t_min == 0: # uint output - take min to 0
+                # decrease offset with floor_exact, meaning mn >= t_min after
+                # subtraction.  But we may have pushed the data over t_max,
+                # which we check below
+                inter = floor_exact(mn - t_min, self.scaler_dtype)
+            else: # int output - take midpoint to 0
+                # ceil below increases inter, pushing scale up to 0.5 towards
+                # -inf, because ints have abs min == abs max + 1
+                midpoint = mn + as_int(np.ceil(mn2mx / 2.0))
+                # Floor exact decreases inter, so pulling scaled values more
+                # positive. This may make mx - inter > t_max
+                inter = floor_exact(midpoint, self.scaler_dtype)
+            # Need to check still in range after floor_exact-ing
+            int_inter = as_int(inter)
+            assert mn - int_inter >= t_min
+            if mx - int_inter <= t_max:
+                self.inter = inter
+                return
         # Try slope options (sign flip) and then range scaling
         super(SlopeInterArrayWriter, self)._iu2iu()
 
