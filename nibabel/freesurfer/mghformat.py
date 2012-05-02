@@ -13,12 +13,10 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
-from nibabel.volumeutils import allopen, array_to_file, array_from_file,  \
-     Recoder
-from nibabel.spatialimages import HeaderDataError, ImageFileError, SpatialImage
-from nibabel.fileholders import FileHolder,  copy_file_map
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
-from nibabel.arrayproxy import ArrayProxy
+from ..volumeutils import (array_to_file, array_from_file, Recoder)
+from ..spatialimages import HeaderDataError, SpatialImage
+from ..fileholders import FileHolder,  copy_file_map
+from ..arrayproxy import ArrayProxy
 
 # mgh header
 # See http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -432,10 +430,6 @@ class MGHImage(SpatialImage):
 
     ImageArrayProxy = ArrayProxy
 
-    def get_header(self):
-        ''' Return the MGH header given the MGHImage'''
-        return self._header
-
     @classmethod
     def filespec_to_file_map(klass, filespec):
         """ Check for compressed .mgz format, then .mgh format """
@@ -532,7 +526,8 @@ class MGHImage(SpatialImage):
         '''
         header.writeftr_to(mghfile)
 
-    def get_affine(self):
+    @property
+    def affine(self):
         ''' Return the affine transform'''
         return self._header.get_vox2ras()
 
@@ -540,8 +535,7 @@ class MGHImage(SpatialImage):
         ''' Harmonize header with image data and affine
         '''
         hdr = self._header
-        if not self._data is None:
-            hdr.set_data_shape(self._data.shape)
+        hdr.set_data_shape(self._dataobj.shape)
 
         if not self._affine is None:
             # for more information, go through save_mgh.m in FreeSurfer dist
@@ -549,13 +543,15 @@ class MGHImage(SpatialImage):
             delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
             Mdc = MdcD / np.tile(delta, (3, 1))
             Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
-            Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
-                                   self._data.shape[2]], dtype=np.float) / 2.0
+            data_shape = self._dataobj.shape
+            Pcrs_c[:3] = np.array([data_shape[0], data_shape[1],
+                                   data_shape[2]], dtype=np.float) / 2.0
             Pxyz_c = np.dot(self._affine, Pcrs_c)
 
             hdr['delta'][:] = delta
             hdr['Mdc'][:, :] = Mdc.T
             hdr['Pxyz_c'][:] = Pxyz_c[:3]
+
 
 load = MGHImage.load
 save = MGHImage.instance_to_filename
