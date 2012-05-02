@@ -218,10 +218,35 @@ class TestEcatImage(TestCase):
         dat = self.img.get_data()
         # Make a new one to test arrayproxy
         img = self.image_class.load(self.example_file)
-        # Maybe we will promote _data to public, but I know this looks bad
-        secret_data = img._data
-        data2 = np.array(secret_data)
+        data_prox = img.dataobj
+        data2 = np.array(data_prox)
         assert_array_equal(data2, dat)
         # Check it rereads
-        data3 = np.array(secret_data)
+        data3 = np.array(data_prox)
         assert_array_equal(data3, dat)
+
+    def test_isolation(self):
+        # Test image isolated from external changes to affine
+        img_klass = self.image_class
+        arr, aff, hdr, sub_hdr, mlist = (self.img.get_data(),
+                                         self.img.affine,
+                                         self.img.header,
+                                         self.img.get_subheaders(),
+                                         self.img.get_mlist())
+        img = img_klass(arr, aff, hdr, sub_hdr, mlist)
+        assert_array_equal(img.affine, aff)
+        aff[0,0] = 99
+        assert_false(np.all(img.affine == aff))
+
+    def test_float_affine(self):
+        # Check affines get converted to float
+        img_klass = self.image_class
+        arr, aff, hdr, sub_hdr, mlist = (self.img.get_data(),
+                                         self.img.affine,
+                                         self.img.header,
+                                         self.img.get_subheaders(),
+                                         self.img.get_mlist())
+        img = img_klass(arr, aff.astype(np.float32), hdr, sub_hdr, mlist)
+        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        img = img_klass(arr, aff.astype(np.int16), hdr, sub_hdr, mlist)
+        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
