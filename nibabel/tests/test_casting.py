@@ -1,5 +1,6 @@
 """ Test casting utilities
 """
+from platform import machine
 
 import numpy as np
 
@@ -201,7 +202,8 @@ def test_best_float():
     assert_equal(end_of_ints, end_of_ints + 1)
     # longdouble may have more, but not on 32 bit windows, at least
     end_of_ints = np.longdouble(2**53)
-    if end_of_ints == (end_of_ints + 1): # off continuous integers
+    if (end_of_ints == (end_of_ints + 1) or # off continuous integers
+        machine() == 'sparc64'): # crippling slow longdouble on sparc
         assert_equal(best, np.float64)
     else:
         assert_equal(best, np.longdouble)

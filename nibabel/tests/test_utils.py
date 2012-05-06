@@ -32,7 +32,7 @@ from ..volumeutils import (array_from_file,
                            shape_zoom_affine,
                            rec2dict)
 
-from ..casting import FloatingError, floor_log2, type_info, best_float
+from ..casting import (floor_log2, type_info, best_float, OK_FLOATS)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -426,17 +426,6 @@ def test_better_float():
     assert_equal(better_float_of('i4', 'i8', 'f8'), np.float64)
 
 
-def have_longer_double():
-    # True if longdouble has more precision than float64, and longdouble is
-    # something we can rely on
-    nmant_64 = type_info(np.float64)['nmant'] # should be 52
-    try:
-        nmant_ld = type_info(np.longdouble)['nmant']
-    except FloatingError:
-        return False
-    return nmant_ld > nmant_64
-
-
 def test_best_write_scale_ftype():
     # Test best write scaling type
     # Types return better of (default, array type) unless scale overflows.
@@ -453,7 +442,7 @@ def test_best_write_scale_ftype():
                      better_float_of(dtt, np.float32))
     # Overflowing ints with scaling results in upcast
     best_vals = ((np.float32, np.float64),)
-    if have_longer_double():
+    if np.longdouble in OK_FLOATS:
         best_vals += ((np.float64, np.longdouble),)
     for lower_t, higher_t in best_vals:
         # Information on this float
