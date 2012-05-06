@@ -1,4 +1,7 @@
-""" Utilties for casting floats to integers
+""" Utilties for casting numpy values in various ways
+
+Most routines work round some numpy oddities in floating point precision and
+casting.  Others work round numpy casting to and from python ints
 """
 
 from platform import processor
@@ -126,10 +129,10 @@ def shared_range(flt_type, int_type):
 
     Examples
     --------
-    >>> shared_range(np.float32, np.int32)
-    (-2147483648.0, 2147483520.0)
-    >>> shared_range('f4', 'i4')
-    (-2147483648.0, 2147483520.0)
+    >>> shared_range(np.float32, np.int32) == (-2147483648.0, 2147483520.0)
+    True
+    >>> shared_range('f4', 'i4') == (-2147483648.0, 2147483520.0)
+    True
     """
     flt_type = np.dtype(flt_type).type
     int_type = np.dtype(int_type).type
@@ -140,9 +143,15 @@ def shared_range(flt_type, int_type):
     except KeyError:
         pass
     ii = np.iinfo(int_type)
-    mn_mx = floor_exact(ii.min, flt_type), floor_exact(ii.max, flt_type)
-    _SHARED_RANGES[key] = mn_mx
-    return mn_mx
+    fi = np.finfo(flt_type)
+    mn = ceil_exact(ii.min, flt_type)
+    if mn == -np.inf:
+        mn = fi.min
+    mx = floor_exact(ii.max, flt_type)
+    if mx == np.inf:
+        mx = fi.max
+    _SHARED_RANGES[key] = (mn, mx)
+    return mn, mx
 
 # ----------------------------------------------------------------------------
 # Routines to work out the next lowest representable integer in floating point
@@ -174,9 +183,10 @@ def type_info(np_type):
     info : dict
         with fields ``min`` (minimum value), ``max`` (maximum value), ``nexp``
         (exponent width), ``nmant`` (significand precision not including
-        implicit first digit) ``width`` (width in bytes). ``nexp``, ``nmant``
-        are None for integer types. Both ``min`` and ``max`` are of type
-        `np_type`.
+        implicit first digit), ``minexp`` (minimum exponent), ``maxexp``
+        (maximum exponent), ``width`` (width in bytes). (``nexp``, ``nmant``,
+        ``minexp``, ``maxexp``) are None for integer types. Both ``min`` and
+        ``max`` are of type `np_type`.
 
     Raises
     ------
@@ -185,9 +195,10 @@ def type_info(np_type):
     Notes
     -----
     You might be thinking that ``np.finfo`` does this job, and it does, except
-    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077). This
-    routine protects against errors in ``np.finfo`` by only accepting values
-    that we know are likely to be correct.
+    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077) and
+    float96 on Windows compiled with Mingw. This routine protects against such
+    errors in ``np.finfo`` by only accepting values that we know are likely to
+    be correct.
     """
     dt = np.dtype(np_type)
     np_type = dt.type
@@ -197,13 +208,18 @@ def type_info(np_type):
     except ValueError:
         pass
     else:
-        return dict(min=np_type(info.min), max=np_type(info.max),
-                    nmant=None, nexp=None, width=width)
+        return dict(min=np_type(info.min), max=np_type(info.max), minexp=None,
+                    maxexp=None, nmant=None, nexp=None, width=width)
     info = np.finfo(dt)
     # Trust the standard IEEE types
     nmant, nexp = info.nmant, info.nexp
-    ret = dict(min=np_type(info.min), max=np_type(info.max), nmant=nmant,
-               nexp=nexp, width=width)
+    ret = dict(min=np_type(info.min),
+               max=np_type(info.max),
+               nmant=nmant,
+               nexp=nexp,
+               minexp=info.minexp,
+               maxexp=info.maxexp,
+               width=width)
     if np_type in (_float16, np.float32, np.float64,
                    np.complex64, np.complex128):
         return ret
@@ -217,17 +233,19 @@ def type_info(np_type):
     if vals in ((112, 15, 16), # binary128
                 (info_64.nmant, info_64.nexp, 8), # float64
                 (63, 15, 12), (63, 15, 16)): # Intel extended 80
-        pass # these are OK
-    elif vals in ((52, 15, 12), # windows float96
-                  (52, 15, 16)): # windows float128?
-        # On windows 32 bit at least, float96 appears to be a float64 padded to
-        # 96 bits.  The nexp == 15 is the same as for intel 80 but nexp in fact
-        # appears to be 11 as for float64
-        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
-                    nmant=info_64.nmant, nexp=info_64.nexp, width=width)
+        return ret # these are OK without modification
+    # The remaining types are longdoubles with bad finfo values.  Some we
+    # correct, others we wait to hear of errors.
+    # We start with float64 as basis
+    ret = type_info(np.float64)
+    if vals in ((52, 15, 12), # windows float96
+                (52, 15, 16)): # windows float128?
+        # On windows 32 bit at least, float96 is Intel 80 storage but operating
+        # at float64 precision. The finfo values give nexp == 15 (as for intel
+        # 80) but in calculations nexp in fact appears to be 11 as for float64
+        ret.update(dict(width=width))
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        return dict(min=np_type(info_64.min), max=np_type(info_64.max),
-                    nmant=106, nexp=11, width=width)
+        ret.update(dict(nmant=106, width=width))
     else: # don't recognize the type
         raise FloatingError('We had not expected type %s' % np_type)
     return ret
@@ -327,7 +345,7 @@ def int_to_float(val, flt_type):
 
 
 def floor_exact(val, flt_type):
-    """ Get nearest exact integer to `val`, towards 0, in float type `flt_type`
+    """ Return nearest exact integer <= `val` in float type `flt_type`
 
     Parameters
     ----------
@@ -336,15 +354,14 @@ def floor_exact(val, flt_type):
         because large integers cast as floating point may be rounded by the
         casting process.
     flt_type : numpy type
-        numpy float type.  Only IEEE types supported (np.float16, np.float32,
-        np.float64)
+        numpy float type.
 
     Returns
     -------
     floor_val : object
-        value of same floating point type as `val`, that is the next excat
-        integer in this type, towards zero, or == `val` if val is exactly
-        representable.
+        value of same floating point type as `val`, that is the nearest exact
+        integer in this type such that `floor_val` <= `val`.  Thus if `val` is
+        exact in `flt_type`, `floor_val` == `val`.
 
     Examples
     --------
@@ -362,26 +379,74 @@ def floor_exact(val, flt_type):
 
     >>> floor_exact(2**24+1, np.float32) == 2**24
     True
+
+    As for the numpy floor function, negatives floor towards -inf
+
+    >>> floor_exact(-2**24-1, np.float32) == -2**24-2
+    True
     """
     val = int(val)
     flt_type = np.dtype(flt_type).type
-    sign = val > 0 and 1 or -1
-    aval = abs(val)
+    sign = 1 if val > 0 else -1
     try: # int_to_float deals with longdouble safely
-        faval = int_to_float(aval, flt_type)
+        fval = int_to_float(val, flt_type)
     except OverflowError:
-        faval = np.inf
+        return sign * np.inf
+    if not np.isfinite(fval):
+        return fval
     info = type_info(flt_type)
-    if faval == np.inf:
-        return sign * info['max']
-    if as_int(faval) <= aval: # as_int deals with longdouble safely
-        # Float casting has made the value go down or stay the same
-        return sign * faval
+    diff = val - as_int(fval)
+    if diff >= 0: # floating point value <= val
+        return fval
     # Float casting made the value go up
-    biggest_gap = 2**(floor_log2(aval) - info['nmant'])
+    biggest_gap = 2**(floor_log2(val) - info['nmant'])
     assert biggest_gap > 1
-    faval -= flt_type(biggest_gap)
-    return sign * faval
+    fval -= flt_type(biggest_gap)
+    return fval
+
+
+def ceil_exact(val, flt_type):
+    """ Return nearest exact integer >= `val` in float type `flt_type`
+
+    Parameters
+    ----------
+    val : int
+        We have to pass val as an int rather than the floating point type
+        because large integers cast as floating point may be rounded by the
+        casting process.
+    flt_type : numpy type
+        numpy float type.
+
+    Returns
+    -------
+    ceil_val : object
+        value of same floating point type as `val`, that is the nearest exact
+        integer in this type such that `floor_val` >= `val`.  Thus if `val` is
+        exact in `flt_type`, `ceil_val` == `val`.
+
+    Examples
+    --------
+    Obviously 2 is within the range of representable integers for float32
+
+    >>> ceil_exact(2, np.float32)
+    2.0
+
+    As is 2**24-1 (the number of significand digits is 23 + 1 implicit)
+
+    >>> ceil_exact(2**24-1, np.float32) == 2**24-1
+    True
+
+    But 2**24+1 gives a number that float32 can't represent exactly
+
+    >>> ceil_exact(2**24+1, np.float32) == 2**24+2
+    True
+
+    As for the numpy ceil function, negatives ceil towards inf
+
+    >>> ceil_exact(-2**24-1, np.float32) == -2**24
+    True
+    """
+    return -floor_exact(-val, flt_type)
 
 
 def int_abs(arr):
@@ -435,8 +500,8 @@ def floor_log2(x):
 
     Returns
     -------
-    L : int
-        floor of base 2 log of `x`
+    L : None or int
+        floor of base 2 log of `x`.  None if `x` == 0.
 
     Examples
     --------
@@ -444,10 +509,128 @@ def floor_log2(x):
     9
     >>> floor_log2(-2**9+1)
     8
+    >>> floor_log2(0.5)
+    -1
+    >>> floor_log2(0) is None
+    True
     """
     ip = 0
     rem = abs(x)
-    while rem>=2:
-        ip += 1
-        rem //= 2
+    if rem > 1:
+        while rem>=2:
+            ip += 1
+            rem //= 2
+        return ip
+    elif rem == 0:
+        return None
+    while rem < 1:
+        ip -= 1
+        rem *= 2
     return ip
+
+
+def best_float():
+    """ Floating point type with best precision
+
+    This is nearly always np.longdouble, except on Windows, where np.longdouble
+    is Intel80 storage, but with float64 precision for calculations.  In that
+    case we return float64 on the basis it's the fastest and smallest at the
+    highest precision.
+
+    Returns
+    -------
+    best_type : numpy type
+        floating point type with highest precision
+    """
+    if type_info(np.longdouble)['nmant'] > type_info(np.float64)['nmant']:
+        return np.longdouble
+    return np.float64
+
+
+def ok_floats():
+    """ Return floating point types sorted by precision
+
+    Remove longdouble if it has no higher precision than float64
+    """
+    floats = sorted(np.sctypes['float'], key=lambda f : type_info(f)['nmant'])
+    if best_float() != np.longdouble and np.longdouble in floats:
+        floats.remove(np.longdouble)
+    return floats
+
+
+OK_FLOATS = ok_floats()
+
+
+def able_int_type(values):
+    """ Find the smallest integer numpy type to contain sequence `values`
+
+    Prefers uint to int if minimum is >= 0
+
+    Parameters
+    ----------
+    values : sequence
+        sequence of integer values
+
+    Returns
+    -------
+    itype : None or numpy type
+        numpy integer type or None if no integer type holds all `values`
+
+    Examples
+    --------
+    >>> able_int_type([0, 1]) == np.uint8
+    True
+    >>> able_int_type([-1, 1]) == np.int8
+    True
+    """
+    if any([v % 1 for v in values]):
+        return None
+    mn = min(values)
+    mx = max(values)
+    if mn >= 0:
+        for ityp in np.sctypes['uint']:
+            if mx <= np.iinfo(ityp).max:
+                return ityp
+    for ityp in np.sctypes['int']:
+        info = np.iinfo(ityp)
+        if mn >= info.min and mx <= info.max:
+            return ityp
+    return None
+
+
+def ulp(val=np.float64(1.0)):
+    """ Return gap between `val` and nearest representable number of same type
+
+    This is the value of a unit in the last place (ULP), and is similar in
+    meaning to the MATLAB eps function.
+
+    Parameters
+    ----------
+    val : scalar, optional
+        scalar value of any numpy type.  Default is 1.0 (float64)
+
+    Returns
+    -------
+    ulp_val : scalar
+        gap between `val` and nearest representable number of same type
+
+    Notes
+    -----
+    The wikipedia article on machine epsilon points out that the term *epsilon*
+    can be used in the sense of a unit in the last place (ULP), or as the
+    maximum relative rounding error.  The MATLAB ``eps`` function uses the ULP
+    meaning, but this function is ``ulp`` rather than ``eps`` to avoid confusion
+    between different meanings of *eps*.
+    """
+    val = np.array(val)
+    if not np.isfinite(val):
+        return np.nan
+    if val.dtype.kind in 'iu':
+        return 1
+    aval = np.abs(val)
+    info = type_info(val.dtype)
+    fl2 = floor_log2(aval)
+    if fl2 is None or fl2 < info['minexp']: # subnormal
+        fl2 = info['minexp']
+    # 'nmant' value does not include implicit first bit
+    return 2**(fl2 - info['nmant'])

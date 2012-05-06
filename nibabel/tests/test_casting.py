@@ -4,7 +4,8 @@
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int, int_abs)
+                       as_int, int_abs, floor_log2, able_int_type, best_float,
+                       ulp)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -136,3 +137,103 @@ def test_int_abs():
         assert_equal(int_abs(mx), mx)
         assert_equal(int_abs(mn), e_mn)
         assert_array_equal(int_abs(in_arr), [e_mn, mx])
+
+
+def test_floor_log2():
+    assert_equal(floor_log2(2**9+1), 9)
+    assert_equal(floor_log2(-2**9+1), 8)
+    assert_equal(floor_log2(2), 1)
+    assert_equal(floor_log2(1), 0)
+    assert_equal(floor_log2(0.5), -1)
+    assert_equal(floor_log2(0.75), -1)
+    assert_equal(floor_log2(0.25), -2)
+    assert_equal(floor_log2(0.24), -3)
+    assert_equal(floor_log2(0), None)
+
+
+def test_able_int_type():
+    # The integer type cabable of containing values
+    for vals, exp_out in (
+        ([0, 1], np.uint8),
+        ([0, 255], np.uint8),
+        ([-1, 1], np.int8),
+        ([0, 256], np.uint16),
+        ([-1, 128], np.int16),
+        ([0.1, 1], None),
+        ([0, 2**16], np.uint32),
+        ([-1, 2**15], np.int32),
+        ([0, 2**32], np.uint64),
+        ([-1, 2**31], np.int64),
+        ([-1, 2**64-1], None),
+        ([0, 2**64-1], np.uint64),
+        ([0, 2**64], None)):
+        assert_equal(able_int_type(vals), exp_out)
+
+
+def test_able_casting():
+    # Check the able_int_type function guesses numpy out type
+    types = np.sctypes['int'] + np.sctypes['uint']
+    for in_type in types:
+        in_info = np.iinfo(in_type)
+        in_mn, in_mx = in_info.min, in_info.max
+        A = np.zeros((1,), dtype=in_type)
+        for out_type in types:
+            out_info = np.iinfo(out_type)
+            out_mn, out_mx = out_info.min, out_info.max
+            B = np.zeros((1,), dtype=out_type)
+            ApBt = (A + B).dtype.type
+            able_type = able_int_type([in_mn, in_mx, out_mn, out_mx])
+            if able_type is None:
+                assert_equal(ApBt, np.float64)
+                continue
+            # Use str for comparison to avoid int32/64 vs intp comparison
+            # failures
+            assert_equal(np.dtype(ApBt).str, np.dtype(able_type).str)
+
+
+def test_best_float():
+    # Finds the most capable floating point type
+    # The only time this isn't np.longdouble is when np.longdouble has float64
+    # precision.
+    best = best_float()
+    end_of_ints = np.float64(2**53)
+    # float64 has continuous integers up to 2**53
+    assert_equal(end_of_ints, end_of_ints + 1)
+    # longdouble may have more, but not on 32 bit windows, at least
+    end_of_ints = np.longdouble(2**53)
+    if end_of_ints == (end_of_ints + 1): # off continuous integers
+        assert_equal(best, np.float64)
+    else:
+        assert_equal(best, np.longdouble)
+
+
+def test_ulp():
+    assert_equal(ulp(), np.finfo(np.float64).eps)
+    assert_equal(ulp(1.0), np.finfo(np.float64).eps)
+    assert_equal(ulp(np.float32(1.0)), np.finfo(np.float32).eps)
+    assert_equal(ulp(np.float32(1.999)), np.finfo(np.float32).eps)
+    # Integers always return 1
+    assert_equal(ulp(1), 1)
+    assert_equal(ulp(2**63-1), 1)
+    # negative / positive same
+    assert_equal(ulp(-1), 1)
+    assert_equal(ulp(7.999), ulp(4.0))
+    assert_equal(ulp(-7.999), ulp(4.0))
+    assert_equal(ulp(np.float64(2**54-2)), 2)
+    assert_equal(ulp(np.float64(2**54)), 4)
+    assert_equal(ulp(np.float64(2**54)), 4)
+    # Infs, NaNs return nan
+    assert_true(np.isnan(ulp(np.inf)))
+    assert_true(np.isnan(ulp(-np.inf)))
+    assert_true(np.isnan(ulp(np.nan)))
+    # 0 gives subnormal smallest
+    subn64 = np.float64(2**(-1022-52))
+    subn32 = np.float32(2**(-126-23))
+    assert_equal(ulp(0.0), subn64)
+    assert_equal(ulp(np.float64(0)), subn64)
+    assert_equal(ulp(np.float32(0)), subn32)
+    # as do multiples of subnormal smallest
+    assert_equal(ulp(subn64 * np.float64(2**52)), subn64)
+    assert_equal(ulp(subn64 * np.float64(2**53)), subn64*2)
+    assert_equal(ulp(subn32 * np.float32(2**23)), subn32)
+    assert_equal(ulp(subn32 * np.float32(2**24)), subn32*2)

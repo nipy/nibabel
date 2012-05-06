@@ -9,6 +9,8 @@
 ''' Utilities for testing '''
 from os.path import dirname, abspath, join as pjoin
 
+import numpy as np
+
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
@@ -22,3 +24,9 @@ else:
                             assert_true, assert_false, assert_raises)
 
 
+def assert_dt_equal(a, b):
+    """ Assert two numpy dtype specifiers are equal
+
+    Avoids failed comparison between int32 / int64 and intp
+    """
+    assert_equal(np.dtype(a).str, np.dtype(b).str)
