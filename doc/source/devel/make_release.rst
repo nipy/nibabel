@@ -163,8 +163,23 @@ Release checklist
 
     make source-release
 
-* Once everything looks good, upload the source release to PyPi.  See
-  `setuptools intro`_::
+* Once everything looks good, you are ready to upload the source release to
+  PyPi.  See `setuptools intro`_.  Make sure you have a file ``\$HOME/.pypirc``,
+  of form::
+
+    [distutils]
+    index-servers =
+        pypi
+
+    [pypi]
+    username:your.pypi.username
+    password:your-password
+
+    [server-login]
+    username:your.pypi.username
+    password:your-password
+
+* When ready::
 
     python setup.py register
     python setup.py sdist --formats=gztar,zip upload
