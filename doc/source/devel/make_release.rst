@@ -6,8 +6,6 @@ A guide to making a nibabel release
 
 A guide for developers who are doing a nibabel release
 
-* Edit :file:`info.py` and bump the version number
-
 .. _release-tools:
 
 Release tools
@@ -41,22 +39,34 @@ the tests from the resulting directory.
 Release checklist
 =================
 
-* Review the open list of `issues <http://github.com/nipy/nibabel/issues>`_ .
-  Check whether there are outstanding issues that can be closed, and whether
-  there are any issues that should delay the release.  Label them !
+* Review the open list of `nibabel issues`_.  Check whether there are
+  outstanding issues that can be closed, and whether there are any issues that
+  should delay the release.  Label them !
 
 * Review and update the release notes.  Review and update the :file:`Changelog`
   file.  Get a partial list of contributors with something like::
 
-      git log 0.9.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
+      git log 1.2.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
 
-  where ``0.9.0`` was the last release tag name.
+  where ``1.2.0`` was the last release tag name.
 
-  Then manually go over the *git log* to make sure the release notes are
-  as complete as possible and that every contributor was recognized.
+  Then manually go over ``git shortlog 1.2.0..`` to make sure the release notes
+  are as complete as possible and that every contributor was recognized.
+
+* Use the opportunity to update the ``.mailmap`` file if there are any duplicate
+  authors listed from ``git shortlog``.
 
 * Check the ``long_description`` in ``nibabel/info.py``.  Check it matches the
   ``README`` in the root directory.
+
+* Do a final check on the `nipy buildbot`_
+
+* If you have travis-ci_ building set up you might want to push the code in it's
+  current state to a branch that will build, e.g::
+
+    git branch -D pre-release-test # in case branch already exists
+    git co -b pre-release-test
+    git push origin pre-release-test
 
 * Clean::
 
@@ -127,10 +137,10 @@ Release checklist
     # in wine bash
     make sdist-tests
 
-  For the PPC I have to log into an old Mac G5 in Berkeley.  It doesn't have a
-  fixed IP even, but here's an example session::
+  For the PPC I have to log into an old Mac G5 in Berkeley at
+  ``jerry.bic.berkeley.edu``.  Here's an example session::
 
-    ssh 128.32.52.219
+    ssh jerry.bic.berkeley.edu
     cd dev_trees/nibabel
     git co main-master
     git pull
@@ -180,7 +190,7 @@ Release checklist
   further substantial development (often called 'trunk') and another for
   maintenance releases.
 
-  * Branch to maintainance::
+  * Branch to maintenance::
 
       git co -b maint/1.0.x
 
@@ -217,7 +227,7 @@ Release checklist
     This tag is used in the Makefile rules to create development snapshot
     releases to create proper versions for those. The version derives its name
     from the last available annotated tag, the number of commits since that, and
-    an abbrevated SHA1. See the docs of ``git describe`` for more info.
+    an abbreviated SHA1. See the docs of ``git describe`` for more info.
 
     Please take a look at the Makefile rules ``devel-src``,
     ``devel-dsc`` and ``orig-src``.
@@ -226,3 +236,6 @@ Release checklist
 
 .. _pytox: http://codespeak.net/tox
 .. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html
+.. _travis-ci: http://travis-ci.org
+
+.. include:: ../links_names.txt
