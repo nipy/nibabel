@@ -30,10 +30,7 @@ from ..volumeutils import (array_from_file,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
-                           rec2dict,
-                           IUINT_TYPES,
-                           FLOAT_TYPES,
-                           NUMERIC_TYPES)
+                           rec2dict)
 
 from ..casting import FloatingError, floor_log2, type_info, best_float
 
@@ -43,6 +40,12 @@ from numpy.testing import (assert_array_almost_equal,
 from nose.tools import assert_true, assert_equal, assert_raises
 
 from ..testing import assert_dt_equal
+
+#: convenience variables for numpy types
+FLOAT_TYPES = np.sctypes['float']
+CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
+IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
+NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
 def test_array_from_file():
@@ -56,7 +59,7 @@ def test_array_from_file():
     assert_true(buf_chk(in_arr, BytesIO(), None, offset))
     # check on real file
     fname = 'test.bin'
-    with InTemporaryDirectory() as tmpdir:
+    with InTemporaryDirectory():
         # fortran ordered
         out_buf = open(fname, 'wb')
         in_buf = open(fname, 'rb')

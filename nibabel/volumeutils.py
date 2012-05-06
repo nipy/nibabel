@@ -33,12 +33,6 @@ endian_codes = (# numpy code, aliases
 #: default compression level when writing gz and bz2 files
 default_compresslevel = 1
 
-#: convenience variables for numpy types
-FLOAT_TYPES = np.sctypes['float']
-CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
-IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
-NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
-
 
 class Recoder(object):
     ''' class to return canonical code(s) from code or aliases
@@ -618,7 +612,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         dt_mnmx = _dt_min_max(in_dtype, mn, mx)
         # Check what working type we need to cover range
         w_type = working_type(in_dtype, slope, inter)
-        assert w_type in FLOAT_TYPES
+        assert w_type in np.sctypes['float']
         w_type = best_write_scale_ftype(np.array(dt_mnmx, dtype=in_dtype),
                                         slope, inter, w_type)
         slope = slope.astype(w_type)
@@ -1237,10 +1231,10 @@ def finite_range(arr):
     # Resort array to slowest->fastest memory change indices
     stride_order = np.argsort(arr.strides)[::-1]
     sarr = arr.transpose(stride_order)
-    typ = sarr.dtype.type
-    if typ in IUINT_TYPES:
+    kind = sarr.dtype.kind
+    if kind in 'iu':
         return np.min(sarr), np.max(sarr)
-    if typ not in np.sctypes['float']:
+    if kind != 'f':
         raise TypeError('Can only handle floats and (u)ints')
     # Deal with 1D arrays in loop below
     sarr = np.atleast_2d(sarr)
