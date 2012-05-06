@@ -233,15 +233,19 @@ def type_info(np_type):
     if vals in ((112, 15, 16), # binary128
                 (info_64.nmant, info_64.nexp, 8), # float64
                 (63, 15, 12), (63, 15, 16)): # Intel extended 80
-        pass # these are OK
-    elif vals in ((52, 15, 12), # windows float96
-                  (52, 15, 16)): # windows float128?
+        return ret # these are OK without modification
+    # The remaining types are longdoubles with bad finfo values.  Some we
+    # correct, others we wait to hear of errors.
+    # We start with float64 as basis
+    ret = type_info(np.float64)
+    if vals in ((52, 15, 12), # windows float96
+                (52, 15, 16)): # windows float128?
         # On windows 32 bit at least, float96 is Intel 80 storage but operating
         # at float64 precision. The finfo values give nexp == 15 (as for intel
         # 80) but in calculations nexp in fact appears to be 11 as for float64
-        return type_info(np.float64).update(dict(width=width))
+        ret.update(dict(width=width))
     elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        ret = type_info(np.float64).update(dict(nmant=106, width=width))
+        ret.update(dict(nmant=106, width=width))
     else: # don't recognize the type
         raise FloatingError('We had not expected type %s' % np_type)
     return ret
@@ -549,7 +553,7 @@ def ok_floats():
     Remove longdouble if it has no higher precision than float64
     """
     floats = sorted(np.sctypes['float'], key=lambda f : type_info(f)['nmant'])
-    if best_float() != np.longdouble:
+    if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
     return floats
 
