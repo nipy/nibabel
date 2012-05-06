@@ -16,7 +16,8 @@ import bz2
 import numpy as np
 
 from .py3k import isfileobj, ZEROB
-from .casting import shared_range, type_info
+from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS,
+                      able_int_type)
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -31,12 +32,6 @@ endian_codes = (# numpy code, aliases
 
 #: default compression level when writing gz and bz2 files
 default_compresslevel = 1
-
-#: convenience variables for numpy types
-FLOAT_TYPES = np.sctypes['float']
-CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
-IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
-NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
 class Recoder(object):
@@ -595,9 +590,18 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         raise ValueError('Order should be one of F or C')
     # Force upcasting for floats by making atleast_1d
     slope, inter = [np.atleast_1d(v) for v in divslope, intercept]
+    # (u)int to (u)int with inter alone - select precision
+    if (slope == 1 and inter != 0 and
+        in_dtype.kind in 'iu' and out_dtype.kind in 'iu' and
+        inter == np.round(inter)): # (u)int to (u)int offset only scaling
+        # Does range of in type minus inter fit in out type? If so, use that as
+        # working type.  Otherwise use biggest float for max integer precision
+        inter = inter.astype(_inter_type(in_dtype, -inter, out_dtype))
     # Do we need float -> int machinery?
     needs_f2i = out_dtype.kind in 'iu' and (
-        in_dtype.kind == 'f' or (slope, inter) != (1, 0))
+        in_dtype.kind == 'f' or
+        slope != 1 or
+        (inter != 0 and inter.dtype.kind == 'f'))
     if not needs_f2i:
         # Apply min max thresholding the standard way
         needs_pre_clip = (mn, mx) != (None, None)
@@ -608,7 +612,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         dt_mnmx = _dt_min_max(in_dtype, mn, mx)
         # Check what working type we need to cover range
         w_type = working_type(in_dtype, slope, inter)
-        assert w_type in FLOAT_TYPES
+        assert w_type in np.sctypes['float']
         w_type = best_write_scale_ftype(np.array(dt_mnmx, dtype=in_dtype),
                                         slope, inter, w_type)
         slope = slope.astype(w_type)
@@ -747,14 +751,64 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     # Force float / float upcasting by promoting to arrays
     arr, slope, inter = [np.atleast_1d(v) for v in arr, slope, inter]
     if arr.dtype.kind in 'iu':
-        ftype = int_scinter_ftype(arr.dtype, slope, inter)
-        slope = slope.astype(ftype)
-        inter = inter.astype(ftype)
+        if (slope, inter) == (1, np.round(inter)):
+            # (u)int to (u)int offset-only scaling
+            inter = inter.astype(_inter_type(arr.dtype, inter))
+        else: # int to float; get enough precision to avoid infs
+            # Find floating point type for which scaling does not overflow, starting
+            # at given type
+            ftype = int_scinter_ftype(arr.dtype, slope, inter, slope.dtype.type)
+            slope = slope.astype(ftype)
+            inter = inter.astype(ftype)
     if slope != 1.0:
         arr = arr * slope
     if inter != 0.0:
         arr = arr + inter
     return arr.reshape(shape)
+
+
+def _inter_type(in_type, inter, out_type=None):
+    """ Return intercept type for array type `in_type`, starting value `inter`
+
+    When scaling from an (u)int to a (u)int, we can often just use the intercept
+    `inter`.  This routine is for that case. It works out if the min and max of
+    `in_type`, plus the `inter` can fit into any other integer type, returning
+    that type if so.  Otherwise it returns the most capable float.
+
+    Parameters
+    ----------
+    in_type : numpy type
+        Any specifier for a numpy dtype
+    inter : scalar
+        intercept
+    out_type : None or numpy type, optional
+        If not None, check any proposed `inter_type` to see whether the
+        resulting values will fit within `out_type`; if so return proposed
+        `inter_type`, otherwise return highest precision float
+
+    Returns
+    -------
+    inter_type : numpy type
+        Type to which inter should be cast for best integer scaling
+    """
+    info = np.iinfo(in_type)
+    inter = as_int(inter)
+    out_mn, out_mx = info.min + inter, info.max + inter
+    values = [out_mn, out_mx, info.min, info.max]
+    i_type = able_int_type(values + [inter])
+    if i_type is None:
+        return best_float()
+    if out_type is None:
+        return i_type
+    # The proposal so far is to use an integer type i_type as the working type.
+    # However, we might already know the output type to which we will cast.  If
+    # the maximum range in the working type will not fit into the known output
+    # type, this would require extra casting, so we back off to the best
+    # floating point type.
+    o_info = np.iinfo(out_type)
+    if out_mn >= o_info.min and out_mx <= o_info.max:
+        return i_type
+    return best_float()
 
 
 def working_type(in_type, slope=1.0, inter=0.0):
@@ -1055,7 +1109,7 @@ def best_write_scale_ftype(arr, slope = 1.0, inter = 0.0, default=np.float32):
     try:
         return _ftype4scaled_finite(arr, slope, inter, 'write', default)
     except ValueError:
-        return FLOAT_TYPES[-1]
+        return OK_FLOATS[-1]
 
 
 def better_float_of(first, second, default=np.float32):
@@ -1109,14 +1163,17 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     """ Smallest float type for scaling of `tst_arr` that does not overflow
     """
     assert direction in ('read', 'write')
-    def_ind = FLOAT_TYPES.index(default)
+    if not default in OK_FLOATS and default is np.longdouble:
+        # Omitted longdouble
+        return default
+    def_ind = OK_FLOATS.index(default)
     # promote to arrays to avoid numpy scalar casting rules
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
     warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
     try:
-        for ftype in FLOAT_TYPES[def_ind:]:
+        for ftype in OK_FLOATS[def_ind:]:
             tst_trans = tst_arr.copy()
             slope = slope.astype(ftype)
             inter = inter.astype(ftype)
@@ -1174,10 +1231,10 @@ def finite_range(arr):
     # Resort array to slowest->fastest memory change indices
     stride_order = np.argsort(arr.strides)[::-1]
     sarr = arr.transpose(stride_order)
-    typ = sarr.dtype.type
-    if typ in IUINT_TYPES:
+    kind = sarr.dtype.kind
+    if kind in 'iu':
         return np.min(sarr), np.max(sarr)
-    if typ not in np.sctypes['float']:
+    if kind != 'f':
         raise TypeError('Can only handle floats and (u)ints')
     # Deal with 1D arrays in loop below
     sarr = np.atleast_2d(sarr)
