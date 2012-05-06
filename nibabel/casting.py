@@ -4,7 +4,7 @@ Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
 
-from platform import processor
+from platform import processor, machine
 
 import numpy as np
 
@@ -542,7 +542,8 @@ def best_float():
     best_type : numpy type
         floating point type with highest precision
     """
-    if type_info(np.longdouble)['nmant'] > type_info(np.float64)['nmant']:
+    if (type_info(np.longdouble)['nmant'] > type_info(np.float64)['nmant'] and
+        machine() != 'sparc64'): # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
 
