@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading / writing functions for nifti1 image format
 '''
+import warnings
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -504,8 +506,8 @@ class Nifti1Extensions(list):
 
 
 class Nifti1Header(SpmAnalyzeHeader):
-    ''' Class for NIFTI1 header 
-    
+    ''' Class for NIFTI1 header
+
     The NIFTI1 header has many more coded fields than the simpler Analyze
     variants.  Nifti1 headers also have extensions.
 
@@ -517,7 +519,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     This class handles the header-preceding-data case.
     '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
     _data_type_codes = data_type_codes
 
     # fields with recoders for their values
@@ -563,7 +565,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        raw_str = fileobj.read(klass._dtype.itemsize)
+        raw_str = fileobj.read(klass.template_dtype.itemsize)
         hdr = klass(raw_str, endianness, check)
         # Read next 4 bytes to see if we have extensions.  The nifti standard
         # has this as a 4 byte string; if the first value is not zero, then we
@@ -575,7 +577,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if not klass.is_single:
             extsize = -1
         else: # otherwise read until the beginning of the data
-            extsize = hdr._header_data['vox_offset'] - fileobj.tell()
+            extsize = hdr._structarr['vox_offset'] - fileobj.tell()
         byteswap = endian_codes['native'] != hdr.endianness
         hdr.extensions = klass.exts_klass.from_fileobj(fileobj, extsize, byteswap)
         return hdr
@@ -583,7 +585,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def write_to(self, fileobj):
         # First check that vox offset is large enough
         if self.is_single:
-            vox_offset = self._header_data['vox_offset']
+            vox_offset = self._structarr['vox_offset']
             min_vox_offset = 352 + self.extensions.get_sizeondisk()
             if vox_offset < min_vox_offset:
                 raise HeaderDataError('vox offset of %d, but need at least %d'
@@ -601,18 +603,18 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def get_best_affine(self):
         ''' Select best of available transforms '''
-        hdr = self._header_data
+        hdr = self._structarr
         if hdr['sform_code'] != 0:
             return self.get_sform()
         if hdr['qform_code'] != 0:
             return self.get_qform()
         return self.get_base_affine()
 
-    def _empty_headerdata(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = analyze.AnalyzeHeader._empty_headerdata(self, endianness)
-        hdr_data['scl_slope'] = 1
-        if self.is_single:
+        hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
+        if klass.is_single:
             hdr_data['magic'] = 'n+1'
             hdr_data['vox_offset'] = 352
         else:
@@ -620,19 +622,108 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr_data['vox_offset'] = 0
         return hdr_data
 
+    def get_data_shape(self):
+        ''' Get shape of data
+
+        Examples
+        --------
+        >>> hdr = Nifti1Header()
+        >>> hdr.get_data_shape()
+        (0,)
+        >>> hdr.set_data_shape((1,2,3))
+        >>> hdr.get_data_shape()
+        (1, 2, 3)
+
+        Expanding number of dimensions gets default zooms
+
+        >>> hdr.get_zooms()
+        (1.0, 1.0, 1.0)
+
+        Notes
+        -----
+        Allows for freesurfer hack for large vectors described in
+        https://github.com/nipy/nibabel/issues/100 and
+        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        '''
+        shape = super(Nifti1Header, self).get_data_shape()
+        # Apply freesurfer hack for vector
+        if shape != (-1, 1, 1): # Normal case
+            return shape
+        vec_len = int(self._structarr['glmin'])
+        if vec_len == 0:
+            raise HeaderDataError('-1 in dim[1] but 0 in glmin; inconsistent '
+                                  'freesurfer type header?')
+        return (vec_len, 1, 1)
+
+    def set_data_shape(self, shape):
+        ''' Set shape of data
+
+        If ``ndims == len(shape)`` then we set zooms for dimensions higher than
+        ``ndims`` to 1.0
+
+        Parameters
+        ----------
+        shape : sequence
+           sequence of integers specifying data array shape
+
+        Notes
+        -----
+        Applies freesurfer hack for large vectors described in
+        https://github.com/nipy/nibabel/issues/100 and
+        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        '''
+        # Apply freesurfer hack for vector
+        hdr = self._structarr
+        shape = tuple(shape)
+        if (len(shape) == 3 and shape[1:] == (1, 1) and
+            shape[0] > np.iinfo(hdr['dim'].dtype.base).max): # Freesurfer case
+            try:
+                hdr['glmin'] = shape[0]
+            except OverflowError:
+                overflow = True
+            else:
+                overflow = hdr['glmin'] != shape[0]
+            if overflow:
+                raise HeaderDataError('shape[0] %s does not fit in glmax datatype' %
+                                      shape[0])
+            warnings.warn('Using large vector Freesurfer hack; header will '
+                          'not be compatible with SPM or FSL', stacklevel=2)
+            shape = (-1, 1, 1)
+        super(Nifti1Header, self).set_data_shape(shape)
+
     def get_qform_quaternion(self):
         ''' Compute quaternion from b, c, d of quaternion
 
         Fills a value by assuming this is a unit quaternion
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
         # Adjust threshold to fact that source data was float32
         return fillpositive(bcd, FLOAT32_EPS_3)
 
-    def get_qform(self):
-        ''' Return 4x4 affine matrix from qform parameters in header '''
-        hdr = self._header_data
+    def get_qform(self, coded=False):
+        """ Return 4x4 affine matrix from qform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and qform code.  If False, just
+            return affine.  {affine or None} means, return None if qform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine reconstructed from qform
+            quaternion.  If `coded` is True, return None if qform code is 0,
+            else return the affine.
+        code : int
+            Qform code. Only returned if `coded` is True.
+        """
+        hdr = self._structarr
+        code = hdr['qform_code']
+        if code == 0 and coded:
+            return None, 0
         quat = self.get_qform_quaternion()
         R = quat2mat(quat)
         vox = hdr['pixdim'][1:4].copy()
@@ -647,30 +738,39 @@ class Nifti1Header(SpmAnalyzeHeader):
         out = np.eye(4)
         out[0:3, 0:3] = M
         out[0:3, 3] = [hdr['qoffset_x'], hdr['qoffset_y'], hdr['qoffset_z']]
+        if coded:
+            return out, code
         return out
 
-    def set_qform(self, affine, code=None):
+    def set_qform(self, affine, code=None, strip_shears=True):
         ''' Set qform header values from 4x4 affine
 
         Parameters
         ----------
         hdr : nifti1 header
-        affine : 4x4 array
-            affine transform to write into qform
+        affine : None or 4x4 array
+            affine transform to write into sform. If None, only set code.
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
-            The default is None.  If code is None, then {if current
-            qform code is not 0, leave code as it is in the header; else
-            set to 2 ('aligned')}.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
+        strip_shears : bool, optional
+            Whether to strip shears in `affine`.  If True, shears will be
+            silently stripped. If False, the presence of shears will raise a
+            ``HeaderDataError``
 
         Notes
         -----
         The qform transform only encodes translations, rotations and
-        zooms. If there are shear components to the `affine` transform,
-        the written qform gives the closest approximation where the
-        rotation matrix is orthogonal. This is to allow quaternion
-        representation. The orthogonal representation enforces
-        orthogonal axes.
+        zooms. If there are shear components to the `affine` transform, and
+        `strip_shears` is True (the default), the written qform gives the
+        closest approximation where the rotation matrix is orthogonal. This is
+        to allow quaternion representation. The orthogonal representation
+        enforces orthogonal axes.
 
         Examples
         --------
@@ -694,15 +794,25 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_qform(affine, code='scanner')
         >>> int(hdr['qform_code'])
         1
+        >>> hdr.set_qform(None)
+        >>> int(hdr['qform_code'])
+        0
         '''
-        hdr = self._header_data
+        hdr = self._structarr
+        old_code = hdr['qform_code']
         if code is None:
-            code = hdr['qform_code']
-            if code == 0: # default is 'aligned'
-                hdr['qform_code'] = 2
-        else:
+            if affine is None:
+                code = 0
+            elif old_code == 0:
+                code = 2 # aligned
+            else:
+                code = old_code
+        else: # code set
             code = self._field_recoders['qform_code'][code]
-            hdr['qform_code'] = code
+        hdr['qform_code'] = code
+        if affine is None:
+            return
+        affine = np.asarray(affine)
         if not affine.shape == (4, 4):
             raise TypeError('Need 4x4 affine as input')
         trans = affine[:3, 3]
@@ -722,6 +832,9 @@ class Nifti1Header(SpmAnalyzeHeader):
         # orthogonal matrix PR, to input R
         P, S, Qs = npl.svd(R)
         PR = np.dot(P, Qs)
+        if not strip_shears and not np.allclose(PR, R):
+            raise HeaderDataError("Shears in affine and `strip_shears` is "
+                                  "False")
         # Convert to quaternion
         quat = mat2quat(PR)
         # Set into header
@@ -730,13 +843,35 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['pixdim'][1:4] = zooms
         hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d'] = quat[1:]
 
-    def get_sform(self):
-        ''' Return sform 4x4 affine matrix from header '''
-        hdr = self._header_data
+    def get_sform(self, coded=False):
+        """ Return 4x4 affine matrix from sform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and sform code.  If False, just
+            return affine.  {affine or None} means, return None if sform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine from sform fields. If
+            `coded` is True, return None if sform code is 0, else return the
+            affine.
+        code : int
+            Sform code. Only returned if `coded` is True.
+        """
+        hdr = self._structarr
+        code = hdr['sform_code']
+        if code == 0 and coded:
+            return None, 0
         out = np.eye(4)
         out[0, :] = hdr['srow_x'][:]
         out[1, :] = hdr['srow_y'][:]
         out[2, :] = hdr['srow_z'][:]
+        if coded:
+            return out, code
         return out
 
     def set_sform(self, affine, code=None):
@@ -745,13 +880,16 @@ class Nifti1Header(SpmAnalyzeHeader):
         Parameters
         ----------
         hdr : nifti1 header
-        affine : 4x4 array
-            affine transform to write into sform
+        affine : None or 4x4 array
+            affine transform to write into sform.  If None, only set `code`
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
-            The default is None.  If code is None, then {if current
-            sform code is not 0, leave code as it is in the header; else
-            set to 2 ('aligned')}.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
 
         Examples
         --------
@@ -775,15 +913,25 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_sform(affine, code='scanner')
         >>> int(hdr['sform_code'])
         1
+        >>> hdr.set_sform(None)
+        >>> int(hdr['sform_code'])
+        0
         '''
-        hdr = self._header_data
+        hdr = self._structarr
+        old_code = hdr['sform_code']
         if code is None:
-            code = hdr['sform_code']
-            if code == 0:
-                hdr['sform_code'] = 2 # aligned
-        else:
+            if affine is None:
+                code = 0
+            elif old_code == 0:
+                code = 2 # aligned
+            else:
+                code = old_code
+        else: # code set
             code = self._field_recoders['sform_code'][code]
-            hdr['sform_code'] = code
+        hdr['sform_code'] = code
+        if affine is None:
+            return
+        affine = np.asarray(affine)
         hdr['srow_x'][:] = affine[0, :]
         hdr['srow_y'][:] = affine[1, :]
         hdr['srow_z'][:] = affine[2, :]
@@ -825,6 +973,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_slope_inter()
         (1.0, None)
         '''
+        # Note that we are returning float (float64) scalefactors and
+        # intercepts, although they are stored as np.float32.
         scale = float(self['scl_slope'])
         dc_offset = float(self['scl_inter'])
         if scale == 0 or not np.isfinite(scale):
@@ -853,8 +1003,8 @@ class Nifti1Header(SpmAnalyzeHeader):
             slope = 0.0
         if inter is None:
             inter = 0.0
-        self._header_data['scl_slope'] = slope
-        self._header_data['scl_inter'] = inter
+        self._structarr['scl_slope'] = slope
+        self._structarr['scl_inter'] = inter
 
     def get_dim_info(self):
         ''' Gets nifti MRI slice etc dimension information
@@ -882,7 +1032,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         See set_dim_info function
 
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         info = int(hdr['dim_info'])
         freq = info & 3
         phase = (info >> 2) & 3
@@ -936,7 +1086,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             info = info | (((phase+1) & 3) << 2)
         if not slice is None:
             info = info | (((slice+1) & 3) << 4)
-        self._header_data['dim_info'] = info
+        self._structarr['dim_info'] = info
 
     def get_intent(self, code_repr='label'):
         ''' Get intent code, parameters and name
@@ -965,7 +1115,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_intent('code')
         (3, (10.0,), 'some score')
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
         if code_repr == 'code':
@@ -1022,7 +1172,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_intent()
         ('f test', (0.0, 0.0), '')
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         icode = intent_codes.code[code]
         p_descr = intent_codes.parameters[code]
         if len(params) and len(params) != len(p_descr):
@@ -1060,7 +1210,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slice_dim is None:
             raise HeaderDataError('Slice dimension must be set '
                                   'for duration to be valid')
-        return float(self._header_data['slice_duration'])
+        return float(self._structarr['slice_duration'])
 
     def set_slice_duration(self, duration):
         ''' Set slice duration
@@ -1078,12 +1228,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slice_dim is None:
             raise HeaderDataError('Slice dimension must be set '
                                   'for duration to be valid')
-        self._header_data['slice_duration'] = duration
+        self._structarr['slice_duration'] = duration
 
     def get_n_slices(self):
         ''' Return the number of slices
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
             raise HeaderDataError('Slice dimension not set in header '
@@ -1121,7 +1271,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> np.allclose(slice_times, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
         True
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         slice_len = self.get_n_slices()
         duration = self.get_slice_duration()
         slabel = self.get_value_label('slice_code')
@@ -1168,7 +1318,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         5
         '''
         # Check if number of slices matches header
-        hdr = self._header_data
+        hdr = self._structarr
         slice_len = self.get_n_slices()
         if slice_len != len(slice_times):
             raise HeaderDataError('Number of slice times does not '
@@ -1258,11 +1408,11 @@ class Nifti1Header(SpmAnalyzeHeader):
     def _set_format_specifics(self):
         ''' Utility routine to set format specific header stuff '''
         if self.is_single:
-            self._header_data['magic'] = 'n+1'
-            if self._header_data['vox_offset'] < 352:
-                self._header_data['vox_offset'] = 352
+            self._structarr['magic'] = 'n+1'
+            if self._structarr['vox_offset'] < 352:
+                self._structarr['vox_offset'] = 352
         else:
-            self._header_data['magic'] = 'ni1'
+            self._structarr['magic'] = 'ni1'
 
     ''' Checks only below here '''
 
@@ -1428,14 +1578,180 @@ class Nifti1Pair(analyze.AnalyzeImage):
         super(Nifti1Pair, self).update_header()
         hdr = self._header
         hdr['magic'] = 'ni1'
-        if not self._affine is None:
-            # Set affine into sform
-            hdr.set_sform(self._affine, code='aligned')
-            # Make qform 'unknown', set voxel sizes from affine
-            hdr['qform_code'] = 0
-            RZS = self._affine[:3, :3]
-            zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
-            hdr['pixdim'][1:4] = zooms
+        # If the affine is not None, and it is different from the main affine in
+        # the header, update the heaader
+        if self._affine is None:
+            return
+        if np.allclose(self._affine, hdr.get_best_affine()):
+            return
+        # Set affine into sform with default code
+        hdr.set_sform(self._affine, code='aligned')
+        # Make qform 'unknown'
+        hdr.set_qform(self._affine, code='unknown')
+
+    def get_qform(self, coded=False):
+        """ Return 4x4 affine matrix from qform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and qform code.  If False, just
+            return affine.  {affine or None} means, return None if qform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine reconstructed from qform
+            quaternion.  If `coded` is True, return None if qform code is 0,
+            else return the affine.
+        code : int
+            Qform code. Only returned if `coded` is True.
+
+        See also
+        --------
+        Nifti1Header.set_qform
+        """
+        return self._header.get_qform(coded)
+
+    def set_qform(self, affine, code=None, strip_shears=True, **kwargs):
+        ''' Set qform header values from 4x4 affine
+
+        Parameters
+        ----------
+        hdr : nifti1 header
+        affine : None or 4x4 array
+            affine transform to write into sform. If None, only set code.
+        code : None, string or integer
+            String or integer giving meaning of transform in *affine*.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
+        strip_shears : bool, optional
+            Whether to strip shears in `affine`.  If True, shears will be
+            silently stripped. If False, the presence of shears will raise a
+            ``HeaderDataError``
+        update_affine : bool, optional
+            Whether to update the image affine from the header best affine after
+            setting the qform. Must be keyword argumemt (because of different
+            position in `set_qform`). Default is True
+
+        See also
+        --------
+        Nifti1Header.set_qform
+
+        Examples
+        --------
+        >>> data = np.arange(24).reshape((2,3,4))
+        >>> aff = np.diag([2, 3, 4, 1])
+        >>> img = Nifti1Pair(data, aff)
+        >>> img.get_qform()
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> img.get_qform(coded=True)
+        (None, 0)
+        >>> aff2 = np.diag([3, 4, 5, 1])
+        >>> img.set_qform(aff2, 'talairach')
+        >>> qaff, code = img.get_qform(coded=True)
+        >>> np.all(qaff == aff2)
+        True
+        >>> int(code)
+        3
+        '''
+        update_affine = kwargs.pop('update_affine', True)
+        if kwargs:
+            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+        self._header.set_qform(affine, code, strip_shears)
+        if update_affine:
+            self._affine[:] = self._header.get_best_affine()
+
+    def get_sform(self, coded=False):
+        """ Return 4x4 affine matrix from sform parameters in header
+
+        Parameters
+        ----------
+        coded : bool, optional
+            If True, return {affine or None}, and sform code.  If False, just
+            return affine.  {affine or None} means, return None if sform code ==
+            0, and affine otherwise.
+
+        Returns
+        -------
+        affine : None or (4,4) ndarray
+            If `coded` is False, always return affine from sform fields. If
+            `coded` is True, return None if sform code is 0, else return the
+            affine.
+        code : int
+            Sform code. Only returned if `coded` is True.
+
+        See also
+        --------
+        Nifti1Header.get_sform
+        """
+        return self._header.get_sform(coded)
+
+    def set_sform(self, affine, code=None, **kwargs):
+        ''' Set sform transform from 4x4 affine
+
+        Parameters
+        ----------
+        hdr : nifti1 header
+        affine : None or 4x4 array
+            affine transform to write into sform.  If None, only set `code`
+        code : None, string or integer
+            String or integer giving meaning of transform in *affine*.
+            The default is None.  If code is None, then:
+            * If affine is None, `code`-> 0
+            * If affine not None and sform code in header == 0, `code`-> 2
+              (aligned)
+            * If affine not None and sform code in header != 0, `code`-> sform
+              code in header
+        update_affine : bool, optional
+            Whether to update the image affine from the header best affine after
+            setting the qform.  Must be keyword argumemt (because of different
+            position in `set_qform`). Default is True
+
+        See also
+        --------
+        Nifti1Header.set_sform
+
+        Examples
+        --------
+        >>> data = np.arange(24).reshape((2,3,4))
+        >>> aff = np.diag([2, 3, 4, 1])
+        >>> img = Nifti1Pair(data, aff)
+        >>> img.get_sform()
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> saff, code = img.get_sform(coded=True)
+        >>> saff
+        array([[ 2.,  0.,  0.,  0.],
+               [ 0.,  3.,  0.,  0.],
+               [ 0.,  0.,  4.,  0.],
+               [ 0.,  0.,  0.,  1.]])
+        >>> int(code)
+        2
+        >>> aff2 = np.diag([3, 4, 5, 1])
+        >>> img.set_sform(aff2, 'talairach')
+        >>> saff, code = img.get_sform(coded=True)
+        >>> np.all(saff == aff2)
+        True
+        >>> int(code)
+        3
+        '''
+        update_affine = kwargs.pop('update_affine', True)
+        if kwargs:
+            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+        self._header.set_sform(affine, code)
+        if update_affine:
+            self._affine[:] = self._header.get_best_affine()
 
 
 class Nifti1Image(Nifti1Pair):

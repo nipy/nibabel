@@ -40,6 +40,7 @@ from . import spm99analyze as spm99
 from . import spm2analyze as spm2
 from . import nifti1 as ni1
 from . import minc
+from . import ecat
 # object imports
 from .fileholders import FileHolder, FileHolderError
 from .loadsave import load, save
@@ -48,6 +49,7 @@ from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
 from .minc import MincImage
+from .freesurfer import MGHImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
                     as_closest_canonical)
 from .orientations import (io_orientation, orientation_affine,
@@ -61,6 +63,7 @@ from . import trackvis
 try:
     from numpy.testing import Tester
     test = Tester().test
+    bench = Tester().bench
     del Tester
 except ImportError:
     def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')

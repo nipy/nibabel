@@ -1,6 +1,7 @@
 """ Testing Siemens CSA header reader
 """
 from os.path import join as pjoin
+import gzip
 
 import numpy as np
 
@@ -17,6 +18,7 @@ from .test_dicomwrappers import (have_dicom, dicom_test,
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
+CSA2_0len = gzip.open(pjoin(IO_DATA_PATH, 'csa2_zero_len.bin.gz'), 'rb').read()
 
 
 @dicom_test
@@ -42,6 +44,15 @@ def test_csas0():
     assert_equal(len(b_matrix['items']), 6)
     b_value = csa_info['tags']['B_value']
     assert_equal(b_value['items'], [1000])
+
+
+def test_csa_len0():
+    # We did get a failure for item with item_len of 0 - gh issue #92
+    csa_info = csa.read(CSA2_0len)
+    assert_equal(csa_info['type'], 2)
+    assert_equal(csa_info['n_tags'], 44)
+    tags = csa_info['tags']
+    assert_equal(len(tags), 44)
 
 
 def test_csa_params():

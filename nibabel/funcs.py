@@ -1,3 +1,4 @@
+
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -11,6 +12,7 @@ import numpy as np
 
 from .orientations import (io_orientation, orientation_affine, flip_axis,
                            apply_orientation, OrientationError)
+from .loadsave import load
 
 
 def squeeze_image(img):
@@ -37,10 +39,10 @@ def squeeze_image(img):
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> affine = np.eye(4)
     >>> img = nf.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (10, 20, 30, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (10, 20, 30)
 
     If the data are 3D then last dimensions of 1 are ignored
@@ -48,10 +50,10 @@ def squeeze_image(img):
     >>> shape = (10,1,1)
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (10, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (10, 1, 1)
 
     Only *final* dimensions of 1 are squeezed
@@ -59,14 +61,14 @@ def squeeze_image(img):
     >>> shape = (1, 1, 5, 1, 2, 1, 1)
     >>> data = data.reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.get_shape()
+    >>> img.shape
     (1, 1, 5, 1, 2, 1, 1)
     >>> img2 = squeeze_image(img)
-    >>> img2.get_shape()
+    >>> img2.shape
     (1, 1, 5, 1, 2)
     '''
     klass = img.__class__
-    shape = img.get_shape()
+    shape = img.shape
     slen = len(shape)
     if slen < 4:
         return klass.from_image(img)
@@ -92,7 +94,7 @@ def concat_images(images, check_affines=True):
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage``\s
+       sequence of ``SpatialImage`` or of filenames\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
@@ -105,12 +107,18 @@ def concat_images(images, check_affines=True):
     '''
     n_imgs = len(images)
     img0 = images[0]
-    i0shape = img0.get_shape()
+    is_filename = False
+    if not hasattr(img0, 'get_data'):
+        img0 = load(img0)
+        is_filename = True
+    i0shape = img0.shape
     affine = img0.get_affine()
     header = img0.get_header()
     out_shape = (n_imgs, ) + i0shape
     out_data = np.empty(out_shape)
     for i, img in enumerate(images):
+        if is_filename:
+            img = load(img)
         if check_affines:
             if not np.all(img.get_affine() == affine):
                 raise ValueError('Affines do not match')
@@ -180,7 +188,7 @@ def as_closest_canonical(img, enforce_diag=False):
         if enforce_diag and not _aff_is_diag(aff):
             raise OrientationError('Transformed affine is not diagonal')
         return img
-    shape = img.get_shape()
+    shape = img.shape
     t_aff = orientation_affine(ornt, shape)
     out_aff = np.dot(aff, t_aff)
     # check if we are going to end up with something diagonal

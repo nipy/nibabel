@@ -23,12 +23,16 @@ methods:
    * .get_data()
    * .get_affine()
    * .get_header()
-   * .get_shape()
    * .set_shape(shape)
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
      associated.
+   * .get_shape() (Deprecated)
+
+properties:
+
+   * shape
 
 classmethods:
 
@@ -275,9 +279,10 @@ class SpatialImage(object):
 
         Parameters
         ----------
-        data : array-like
+        data : object
            image data.  It should be some object that retuns an array
-           from ``np.asanyarray``
+           from ``np.asanyarray``.  It should have a ``shape`` attribute or
+           property
         affine : None or (4,4) array-like
            homogenous affine giving relationship between voxel coordinates and
            world coordinates.  Affine can also be None.  In this case,
@@ -296,7 +301,9 @@ class SpatialImage(object):
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
-            affine = np.asarray(affine)
+            # Copy affine to  isolate from environment.  Specify float type to
+            # avoid surprising integer rounding when setting values into affine
+            affine = np.array(affine, dtype=np.float64, copy=True)
             if not affine.shape == (4,4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
@@ -317,10 +324,10 @@ class SpatialImage(object):
 
     def update_header(self):
         ''' Update header from information in image'''
-        pass
+        self._header.set_data_shape(self._data.shape)
 
     def __str__(self):
-        shape = self.get_shape()
+        shape = self.shape
         affine = self.get_affine()
         return '\n'.join((
                 str(self.__class__),
@@ -331,14 +338,21 @@ class SpatialImage(object):
                 '%s' % self._header))
 
     def get_data(self):
-        if self._data is None:
-            raise ImageDataError('No data in this image')
         return np.asanyarray(self._data)
 
     @property
     def shape(self):
-        if not self._data is None:
-            return self._data.shape
+        return self._data.shape
+
+    def get_shape(self):
+        """ Return shape for image
+
+        This function deprecated; please use the ``shape`` property instead
+        """
+        warnings.warn('Please use the shape property instead of get_shape',
+                      DeprecationWarning,
+                      stacklevel=2)
+        return self.shape
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()

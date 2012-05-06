@@ -94,8 +94,7 @@ unittest: build
 	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel --with-doctest
 
 testmanual: build
-# go into data, because docs assume now data dir
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst doc/source/ doc/source/usecases
+	@cd doc/source && PYTHONPATH=../..:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst . dicom
 
 
 coverage: build
@@ -107,17 +106,16 @@ coverage: build
 #
 
 htmldoc: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) html
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) html
 
 
 pdfdoc: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) latex
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) latex
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
 
 gitwash-update: build
-	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR) $(MAKE) gitwash-update
-
+	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) gitwash-update
 
 #
 # Website

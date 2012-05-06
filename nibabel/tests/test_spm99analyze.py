@@ -25,11 +25,11 @@ scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
+from ..casting import type_info
 
 from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
 
 from . import test_analyze
-from .test_analyze import _log_chk
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -54,13 +54,27 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         data_back2 = hdr.data_from_fileobj(S3)
         assert_array_equal(data_back, data_back2, 4)
 
+    def test_big_scaling(self):
+        # Test that upcasting works for huge scalefactors
+        # See tests for apply_read_scaling in test_utils
+        hdr = self.header_class()
+        hdr.set_data_shape((1,1,1))
+        hdr.set_data_dtype(np.int16)
+        sio = BytesIO()
+        dtt = np.float32
+        # This will generate a huge scalefactor
+        data = np.array([type_info(dtt)['max']], dtype=dtt)[:,None, None]
+        hdr.data_to_fileobj(data, sio)
+        data_back = hdr.data_from_fileobj(sio)
+        assert_true(np.allclose(data, data_back))
+
     def test_origin_checks(self):
         HC = self.header_class
         # origin
         hdr = HC()
         hdr.data_shape = [1,1,1]
         hdr['origin'][0] = 101 # severity 20
-        fhdr, message, raiser = _log_chk(hdr, 20)
+        fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr, hdr)
         assert_equal(message, 'very large origin values '
                            'relative to dims; leaving as set, '
@@ -78,7 +92,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         hdr['scl_slope'] = np.nan
         # NaN and Inf string representation can be odd on windows, so we
         # check against the representation on this system
-        fhdr, message, raiser = _log_chk(hdr, 30)
+        fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['scl_slope'], 1)
         assert_equal(message, 'scale slope is %s; '
                            'should be finite; '
@@ -105,6 +119,77 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     test_data_hdr_cache = (scipy_skip(
         test_analyze.TestAnalyzeImage.test_data_hdr_cache
     ))
+
+    test_header_updating = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_header_updating
+    ))
+
+    @scipy_skip
+    def test_mat_read(self):
+        # Test mat file reading and writing for the SPM analyze types
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int32).reshape((2,3,4))
+        aff = np.diag([2,3,4,1]) # no LR flip in affine
+        img = img_klass(arr, aff)
+        fm = img.file_map
+        for key, value in fm.items():
+            value.fileobj = BytesIO()
+        # Test round trip
+        img.to_file_map()
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(), aff)
+        # mat files are for matlab and have 111 voxel origins.  We need to
+        # adjust for that, when loading and saving.  Check for signs of that in
+        # the saved mat file
+        mat_fileobj = img.file_map['mat'].fileobj
+        from scipy.io import loadmat, savemat
+        mat_fileobj.seek(0)
+        mats = loadmat(mat_fileobj)
+        assert_true('M' in mats and 'mat' in mats)
+        from_111 = np.eye(4)
+        from_111[:3,3] = -1
+        to_111 = np.eye(4)
+        to_111[:3,3] = 1
+        assert_array_equal(mats['mat'], np.dot(aff, from_111))
+        # The M matrix does not include flips, so if we only
+        # have the M matrix in the mat file, and we have default flipping, the
+        # mat resulting should have a flip.  The 'mat' matrix does include flips
+        # and so should be unaffected by the flipping.  If both are present we
+        # prefer the the 'mat' matrix.
+        assert_true(img.get_header().default_x_flip) # check the default
+        flipper = np.diag([-1,1,1,1])
+        assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
+        mat_fileobj.seek(0)
+        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
+        # Check we are preferring the 'mat' matrix
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(),
+                           np.dot(np.diag([6,7,8,1]), to_111))
+        # But will use M if present
+        mat_fileobj.seek(0)
+        mat_fileobj.truncate(0)
+        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1])))
+        r_img = img_klass.from_file_map(fm)
+        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_affine(),
+                           np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
+
+    def test_none_affine(self):
+        # Allow for possibility of no affine resulting in nothing written into
+        # mat file.  If the mat file is a filename, we just get no file, but if
+        # it's a fileobj, we get an empty fileobj
+        img_klass = self.image_class
+        # With a None affine - no matfile written
+        img = img_klass(np.zeros((2,3,4)), None)
+        aff = img.get_header().get_best_affine()
+        # Save / reload using bytes IO objects
+        for key, value in img.file_map.items():
+            value.fileobj = BytesIO()
+        img.to_file_map()
+        img_back = img.from_file_map(img.file_map)
+        assert_array_equal(img_back.get_affine(), aff)
 
 
 def test_origin_affine():

@@ -50,7 +50,7 @@ mailing list`_ |emdash| where we will thank you warmly.
 In detail
 ---------
 
-#. Tell git_ who you are so it can label the commits you've
+#. Tell git who you are so it can label the commits you've
    made::
 
       git config --global user.email you@yourdomain.example.com
@@ -115,7 +115,7 @@ more feature branches, you will probably want to switch to
 development mode.  You can do this with the repository you
 have.
 
-Fork the nibabel_ repository on github_ |emdash| :ref:`forking`.
+Fork the nibabel_ repository on github |emdash| :ref:`forking`.
 Then::
 
    # checkout and refresh master branch from main repo

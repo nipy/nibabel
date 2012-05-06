@@ -10,6 +10,8 @@
 import warnings
 import numpy as np
 
+from .py3k import BytesIO
+
 from .spatialimages import HeaderDataError, HeaderTypeError
 
 from .batteryrunners import Report
@@ -37,15 +39,16 @@ header_dtype = np.dtype(header_key_dtd +
 class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     ''' Basic scaling Spm Analyze header '''
     # Copies of module level definitions
-    _dtype = header_dtype
+    template_dtype = header_dtype
 
     # data scaling capabilities
     has_data_slope = True
     has_data_intercept = False
 
-    def _empty_headerdata(self, endianness=None):
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Create empty header binary block with given endianness '''
-        hdr_data = super(SpmAnalyzeHeader, self)._empty_headerdata(endianness)
+        hdr_data = super(SpmAnalyzeHeader, klass).default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 
@@ -55,7 +58,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         If scalefactor is 0.0 return None to indicate no scalefactor.  Intercept
         is always None because SPM99 analyze cannot store intercepts.
         '''
-        slope = self._header_data['scl_slope']
+        slope = self._structarr['scl_slope']
         if slope == 0.0:
             return None, None
         return slope, None
@@ -82,7 +85,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         '''
         if slope is None:
             slope = 0.0
-        self._header_data['scl_slope'] = slope
+        self._structarr['scl_slope'] = slope
         if inter is None or inter == 0:
             return
         raise HeaderTypeError('Cannot set non-zero intercept '
@@ -142,7 +145,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  0.,  1., -3.],
                [ 0.,  0.,  0.,  1.]])
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         zooms = hdr['pixdim'][1:4].copy()
         if self.default_x_flip:
             zooms[0] *= -1
@@ -199,8 +202,8 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         >>> affine = np.diag([3,2,1,1])
         >>> affine[:3,3] = [-6, -6, -4]
         >>> hdr.set_origin_from_affine(affine)
-	>>> np.all(hdr['origin'][:3] == [3,4,5])
-	True
+        >>> np.all(hdr['origin'][:3] == [3,4,5])
+        True
         >>> hdr.get_origin_affine()
         array([[-3.,  0.,  0.,  6.],
                [ 0.,  2.,  0., -6.],
@@ -209,7 +212,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         '''
         if affine.shape != (4, 4):
             raise ValueError('Need 4x4 affine to set')
-        hdr = self._header_data
+        hdr = self._structarr
         RZS = affine[:3, :3]
         Z = np.sqrt(np.sum(RZS * RZS, axis=0))
         T = affine[:3, 3]
@@ -245,14 +248,18 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     @classmethod
     def from_file_map(klass, file_map):
         ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map)
-        import scipy.io as sio
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:
             return ret
-        mats = sio.loadmat(matf)
+        # Allow for possibility of empty file -> no update to affine
+        contents = matf.read()
         if file_map['mat'].filename is not None: # was filename
             matf.close()
+        if len(contents) == 0:
+            return ret
+        import scipy.io as sio
+        mats = sio.loadmat(BytesIO(contents))
         if 'mat' in mats: # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
@@ -260,7 +267,6 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                               'using first')
                 mat = mat[:, :, 0]
             ret._affine = mat
-            return ret
         elif 'M' in mats: # the 'M' matrix does not include flips
             hdr = ret._header
             if hdr.default_x_flip:
@@ -269,6 +275,10 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
                 ret._affine = mats['M']
         else:
             raise ValueError('mat file found but no "mat" or "M" in it')
+        # Adjust for matlab 1,1,1 voxel origin
+        to_111 = np.eye(4)
+        to_111[:3,3] = 1
+        ret._affine = np.dot(ret._affine, to_111)
         return ret
 
     def to_file_map(self, file_map=None):
@@ -294,6 +304,11 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             M = np.dot(np.diag([-1, 1, 1, 1]), mat)
         else:
             M = mat
+        # Adjust for matlab 1,1,1 voxel origin
+        from_111 = np.eye(4)
+        from_111[:3,3] = -1
+        M = np.dot(M, from_111)
+        mat = np.dot(mat, from_111)
         # use matlab 4 format to allow gzipped write without error
         mfobj = file_map['mat'].get_prepare_fileobj(mode='wb')
         sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')

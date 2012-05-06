@@ -79,9 +79,12 @@ def main(**extra_args):
                           'nibabel.gifti',
                           'nibabel.gifti.tests',
                           'nibabel.nicom',
+                          'nibabel.freesurfer',
+                          'nibabel.freesurfer.tests',
                           'nibabel.nicom.tests',
                           'nibabel.testing',
                           'nibabel.tests',
+                          'nibabel.benchmarks',
                           # install nisext as its own package
                           'nisext',
                           'nisext.tests'],
@@ -97,7 +100,9 @@ def main(**extra_args):
                            pjoin('nicom', 'tests', 'data', '*'),
                            pjoin('gifti', 'tests', 'data', '*'),
                           ]},
-          scripts      = [pjoin('bin', 'parrec2nii')],
+          scripts      = [pjoin('bin', 'parrec2nii'),
+                          pjoin('bin', 'nib-ls'),
+                          ],
           cmdclass = cmdclass,
           **extra_args
          )

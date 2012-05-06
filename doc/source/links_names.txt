@@ -17,6 +17,7 @@
 .. _`nibabel github`: http://github.com/nipy/nibabel
 .. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
 .. _nibabel pypi: http://pypi.python.org/pypi/nibabel
+.. _nibabel issues: http://github.com/nipy/nibabel/issues
 
 .. other related projects
 .. _nipy community: http://nipy.org
@@ -27,6 +28,7 @@
 .. _nibabel: http://nipy.org/nibabel
 .. _nipy development guidelines: http://nipy.org/devel
 .. _`nipy github`: http://github.com/nipy/nipy
+.. _nipy buildbot: http://nipy.bic.berkeley.edu
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -92,6 +94,7 @@
 .. _setuptools: http://pypi.python.org/pypi/setuptools
 .. _distribute: http://packages.python.org/distribute
 .. _datapkg: http://okfn.org/projects/datapkg
+.. _python imaging library: http://www.pythonware.com
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org

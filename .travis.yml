@@ -1,0 +1,25 @@
+# vim ft=yaml
+language: python
+python:
+    - "2.5"
+    - "2.6"
+    - "2.7"
+    - "3.2"
+env:
+    NUMPY_VER=1.6.1
+before_install:
+    - mkdir builds
+    - pushd builds
+    - curl -O http://pypi.python.org/packages/source/n/numpy/numpy-${NUMPY_VER}.tar.gz
+    - tar zxf numpy-${NUMPY_VER}.tar.gz
+    - cd numpy-${NUMPY_VER}
+    - python setup.py install
+    - popd
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install:
+    - python setup.py install
+# command to run tests, e.g. python setup.py test
+script:
+    # Change into an innocuous directory and find tests from installation
+    - cd doc
+    - nosetests `python -c "import os; import nibabel; print(os.path.dirname(nibabel.__file__))"`
