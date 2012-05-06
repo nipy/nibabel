@@ -28,15 +28,28 @@ Authors and Contributors
 
 NiBabel has been written and is maintained by `Matthew Brett`_
 and `Michael Hanke`_.  The authors are grateful to the following
-people who have contributed to NiBabel (in order of appearance):
+people who have contributed to NiBabel (in rough order of appearance):
 
 * `Yaroslav O. Halchenko`_
 * Chris Burns
 * `Gaël Varoquaux`_
 * `Stephan Gerhard`_
+* Ian Nimmo-Smith
+* Jarrod Millman
+* Bertran Thirion
+* Thomas Ballinger
+* Cindee Madison
+* Valentin Haenel
+* Alexandre Gramfort
+* Christian Haselgrove
+* Krish Subramaniam
+* Yannick Schwartz
+* Bago Amirbekian
+* Brendan Moloney
+* Félix C. Morency
 
-License
-=======
+License reprise
+===============
 
 NiBabel is free-software (beer and speech) and covered by the `MIT License`_.
 This applies to all source code, documentation, examples and snippets inside
