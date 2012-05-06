@@ -1,5 +1,5 @@
 .. -*- mode: rst -*-
-.. vim:syntax=rst
+.. vim:ft=rst
 
 .. _changelog:
 
@@ -24,7 +24,25 @@ NiBabel
 +++++++
 
 Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
-(MH) and Stephan Gerhard (SG).
+(MH) and Stephan Gerhard (SG). Recently there have been large contributions from
+Krish Subramaniam, Alexandre Gramfort, Cindee Madison, Félix C. Morency,
+Christian Haselgrove.
+
+* 1.2.0 (Sunday 6 May 2012)
+
+  * New feature and bugfix release
+  * Freesurfer format support by Krish Subramaniam and Alexandre Gramfort.
+  * ECAT read write support by Cindee Madison and Félix C. Morency.
+  * A DICOM fuse filesystem by Christian Haselgrove.
+  * Much work on making data scaling on read and write more robust to rounding
+    error and overflow (MB).
+  * Import of nipy functions for working with affine transformation matrices.
+  * Added methods for working with nifti sform and qform fields by Bago
+    Amirbekian and MB, with useful discussion by Brendan Moloney.
+  * Fixes to read / write of RGB analyze images by Bago Amirbekian.
+  * Extensions to ``concat_images`` by Yannick Schwartz.
+  * A new ``nib-ls`` script to display information about neuroimaging files, and
+    various other useful fixes by Yaroslav Halchenko.
 
 * 1.1.0 (Thursday 28 April 2011)
 
