@@ -1,5 +1,19 @@
+# Prevent git from showing duplicate names with commands like "git shortlog"
+# See the manpage of git-shortlog for details.
+# The syntax is:
+# Name that should be used <email that should be used> Bad name <bad email>
+#
+# You can skip Bad name if it is the same as the one that should be used, and is unique.
+#
+# This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
+# gives no duplicates.
 Michael Hanke <michael.hanke@gmail.com> <mhanke-guest@82381867-18eb-0310-98a2-9474e637aba2>
 Michael Hanke <michael.hanke@gmail.com> <michaelhanke@mvpa1.dartmouth.edu>
 Yaroslav Halchenko <debian@onerussian.com> <yoh-guest@82381867-18eb-0310-98a2-9474e637aba2>
 Bertrand Thirion <bertrand.thirion@inria.fr> bthirion <bertrand.thirion@inria.fr>
 Stephan Gerhard <git@unidesign.ch> Stephan Gerhard <git@github.com>
+Christian Haselgrove <christian.haselgrove@umassmed.edu> Christian Haselgrove <Christian.Haselgrove@umassmed.edu>
+CindeeM <cindee@berkeley.edu> cindeem <cindee@berkeley.edu>
+Félix C. Morency <felix.morency@gmail.com> Felix C. Morency <felix.c.morency@usherbrooke.ca> Félix C. Morency <felix.c.morency@usherbrooke.ca>
+Félix C. Morency <felix.morency@gmail.com> Félix C. Morency <felix.c.morency@usherbrooke.ca>
+Krish Subramaniam <krish.subramaniam@gmail.com> Krish Subramaniam <krish@monster.nmr.mgh.harvard.edu>
