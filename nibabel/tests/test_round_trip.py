@@ -38,7 +38,8 @@ def check_params(in_arr, in_type, out_type):
     return arr, arr_dash, slope, inter
 
 
-LOGe2 = np.log(best_float()(2))
+BFT = best_float()
+LOGe2 = np.log(BFT(2))
 
 
 def big_bad_ulp(arr):
@@ -59,8 +60,7 @@ def big_bad_ulp(arr):
     """
     # Assumes array is floating point
     arr = np.asarray(arr)
-    floater = best_float()
-    working_arr = np.abs(arr.astype(floater))
+    working_arr = np.abs(arr.astype(BFT))
     # Log2 for numpy < 1.3
     l2 = np.log(working_arr) / LOGe2
     fl2 = np.floor(l2)
@@ -119,7 +119,15 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
     if slope == 1: # integers output, offset only scaling
-        exp_abs_err = np.zeros_like(abs_err)
+        if (set((in_type, out_type)) == set((np.int64, np.uint64)) and
+            type_info(BFT)['nmant'] < 63):
+            # We'll need to go through lower precision floats
+            A = arr.astype(BFT)
+            Ai = A - inter
+            ulps = [big_bad_ulp(A), big_bad_ulp(Ai)]
+            exp_abs_err = np.max(ulps, axis=0)
+        else: # we don't have to go through floats - no error !
+            exp_abs_err = np.zeros_like(abs_err)
         rel_thresh = 0
     else:
         # Error from integer rounding
