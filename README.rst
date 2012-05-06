@@ -15,7 +15,7 @@ limited support for DICOM_.  NiBabel is the successor of PyNIfTI_.
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 .. _PyNIfTI: http://niftilib.sourceforge.net/pynifti/
 .. _GIFTI: http://www.nitrc.org/projects/gifti
-.. _MGH format: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+.. _MGH: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 .. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
 .. _DICOM: http://medical.nema.org/
 
