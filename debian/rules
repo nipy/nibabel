@@ -34,7 +34,9 @@ override_dh_compress:
 override_dh_installman:
 	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
 		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
-	dh_installman build/parrec2nii.1
+	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+		-n 'FUSE filesystem on top of a directory with DICOMs' bin/dicomfs > build/dicomfs.1
+	dh_installman build/*.1
 
 override_dh_clean:
 	$(MAKE) clean
