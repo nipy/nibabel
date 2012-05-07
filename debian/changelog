@@ -9,6 +9,8 @@ nibabel (1.2.0-1) unstable; urgency=low
     - added netcdf module license/copyright terms
   * debian/control
     - added python-fuse to Recommends for dicomfs
+  * debian/watch
+    - adjusted to donload numbered tag
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 06 May 2012 12:58:22 -0400
 
