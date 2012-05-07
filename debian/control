@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Michael Hanke <michael.hanke@gmail.com>, Yaroslav Halchenko <debian@onerussian.com>
 Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.5), python-support (>= 0.6), python-numpy (>= 1.2), python-nose, python-scipy, help2man, python-sphinx, python-fuse
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://nipy.sourceforge.net/nibabel
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/pynifti.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/pynifti.git
