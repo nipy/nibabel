@@ -1,7 +1,7 @@
 nibabel (1.2.0-1) unstable; urgency=low
 
   * New upstream release: bugfixes, support for new formats
-    (Freesurfer, ECAT, etc), DICOM fuse FS, nib-ls tool.
+    (Freesurfer, ECAT, etc), nib-ls tool.
   * debian/copyright
     - corrected reference to the format specs
     - points to github's repository as the origin of sources
