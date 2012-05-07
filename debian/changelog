@@ -8,7 +8,7 @@ nibabel (1.2.0-1) unstable; urgency=low
     - removed lightunit license/copyright -- removed upstream
     - added netcdf module license/copyright terms
   * debian/control
-    - added python-fuse to Recommends for dicomfs
+    - added python-fuse to Recommends and Build-Depends for dicomfs
   * debian/watch
     - adjusted to donload numbered tag
 
