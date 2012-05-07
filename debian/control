@@ -24,8 +24,12 @@ Description: Python bindings to various neuroimaging data formats
  or selective access to header (meta) information and access to the image data
  is made available via NumPy arrays.  NiBabel is the successor of PyNIfTI.
  .
- This package also provides a commandline tool for conversion of PAR/REC to
- NIfTI images.
+ This package also provides a commandline tools:
+ .
+  - dicomfs - FUSE filesystem on top of a directory with DICOMs
+  - nib-ls - 'ls' for neuroimaging files
+  - parrec2nii - for conversion of PAR/REC to NIfTI images
+
 
 Package: python-nibabel-doc
 Section: doc
