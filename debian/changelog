@@ -7,6 +7,8 @@ nibabel (1.2.0-1) unstable; urgency=low
     - points to github's repository as the origin of sources
     - removed lightunit license/copyright -- removed upstream
     - added netcdf module license/copyright terms
+  * debian/control
+    - added python-fuse to Recommends for dicomfs
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 06 May 2012 12:58:22 -0400
 

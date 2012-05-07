@@ -13,7 +13,7 @@ XS-Python-Version: >= 2.5
 Package: python-nibabel
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-numpy, python-scipy
-Recommends: python-dicom
+Recommends: python-dicom, python-fuse
 Suggests: python-nibabel-doc
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
