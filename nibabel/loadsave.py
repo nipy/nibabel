@@ -37,7 +37,7 @@ def load(filename):
     except KeyError:
         raise ImageFileError('Cannot work out file type of "%s"' %
                              filename)
-    if ext in ('.nii', '.mnc', '.mgh', '.mgz'):
+    if ext in ('.nii', '.mnc', '.mgh', '.mgz', '.v'):
         klass = class_map[img_type]['class']
     else:
         # might be nifti pair or analyze of some sort

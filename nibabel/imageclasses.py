@@ -14,6 +14,7 @@ from .nifti1 import Nifti1Pair, Nifti1Image
 from .minc import MincImage
 from .freesurfer import MGHImage
 from .volumeutils import Recoder
+from .ecat import EcatImage
 
 # If we don't have scipy, then we cannot write SPM format files
 try:
@@ -52,11 +53,16 @@ class_map = {
     'mgh':{'class': MGHImage,
            'ext': '.mgh',
            'has_affine': True,
-           'rw':True},
+           'rw': True},
     'mgz':{'class': MGHImage,
            'ext': '.mgz',
            'has_affine': True,
-           'rw':True}}
+           'rw': True},
+    'ecat':{'class': EcatImage,
+           'ext': '.v',
+           'has_affine': True,
+           'rw': False},
+    }
 
 
 
@@ -66,4 +72,6 @@ ext_map = Recoder((
     ('nifti_pair', '.img', '.hdr'),
     ('minc', '.mnc'),
     ('mgh', '.mgh'),
-    ('mgz', '.mgz')))
+    ('mgz', '.mgz'),
+    ('ecat', '.v'),
+    ))
