@@ -1,13 +1,31 @@
 ''' Test package information in various install settings
 
-The routines here install the package in various settings and print out the
-corresponding version info from the installation.
+The routines here install the package from source directories, zips or eggs, and
+check these installations by running tests, checking version information,
+looking for files that were not copied over.
 
-The typical use for this module is as a makefile target, as in::
+The typical use for this module is as a Makefile target.  For example, here are
+the Makefile targets from nibabel::
+
+    # Check for files not installed
+    check-files:
+        $(PYTHON) -c 'from nisext.testers import check_files; check_files("nibabel")'
 
     # Print out info for possible install methods
     check-version-info:
-        python -c 'from nisext.testers import info_from_here; info_from_here("mypackage")'
+        $(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
+
+    # Run tests from installed code
+    installed-tests:
+        $(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
+
+    # Run tests from installed code
+    sdist-tests:
+        $(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
+
+    # Run tests from binary egg
+    bdist-egg-tests:
+        $(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
 
 '''
 
@@ -66,7 +84,7 @@ def zip_extract_all(fname, path=None):
         zf.extract(zipinfo, path, None)
 
 
-def install_from_to(from_dir, to_dir, py_lib_sdir, bin_sdir='bin'):
+def install_from_to(from_dir, to_dir, py_lib_sdir=PY_LIB_SDIR, bin_sdir='bin'):
     """ Install package in `from_dir` to standard location in `to_dir`
 
     Parameters
@@ -76,7 +94,7 @@ def install_from_to(from_dir, to_dir, py_lib_sdir, bin_sdir='bin'):
     to_dir : str
         prefix path to which files will be installed, as in ``python setup.py
         install --prefix=to_dir``
-    py_lib_sdir : str
+    py_lib_sdir : str, optional
         subdirectory within `to_dir` to which library code will be installed
     bin_sdir : str, optional
         subdirectory within `to_dir` to which scripts will be installed
@@ -93,67 +111,30 @@ def install_from_to(from_dir, to_dir, py_lib_sdir, bin_sdir='bin'):
         os.chdir(pwd)
 
 
-def check_installed_files(repo_mod_path, install_mod_path):
-    """ Check files in `repo_mod_path` are installed at `install_mod_path`
-
-    At the moment, all this does is check that all the ``*.py`` files in
-    `repo_mod_path` are installed at `install_mod_path`.
-
-    Parameters
-    ----------
-    repo_mod_path : str
-        repository path containing package files, e.g. <nibabel-repo>/nibabel>
-    install_mod_path : str
-        path at which package has been installed.  This is the path where the
-        root package ``__init__.py`` lives.
-
-    Return
-    ------
-    uninstalled : list
-        list of files that should have been installed, but have not been
-        installed
-    """
-    return missing_from(repo_mod_path, install_mod_path, filter=r"\.py$")
-
-
-def missing_from(path0, path1, filter=None):
-    """ Return filenames present in `path0` but not in `path1`
-
-    Parameters
-    ----------
-    path0 : str
-        path which contains all files of interest
-    path1 : str
-        path which should contain all files of interest
-    filter : None or str or regexp, optional
-        A successful result from ``filter.search(fname)`` means the file is of
-        interest.  None means all files are of interest
-
-    Returns
-    -------
-    path1_missing : list
-        list of all files missing from `path1` that are in `path0` at the same
-        relative path.
-    """
-    if not filter is None:
-        filter = re.compile(filter)
-    repo_mod_path = os.path.abspath(path0)
-    uninstalled = []
-    # Walk directory tree to get py files
-    for dirpath, dirnames, filenames in os.walk(path0):
-        out_dirpath = dirpath.replace(path0, path1)
-        for fname in filenames:
-            if not filter is None and filter.search(fname) is None:
-                continue
-            equiv_fname = os.path.join(out_dirpath, fname)
-            if not os.path.isfile(equiv_fname):
-                uninstalled.append(pjoin(dirpath, fname))
-    return uninstalled
-
-
 def install_from_zip(zip_fname, install_path, pkg_finder=None,
                      py_lib_sdir=PY_LIB_SDIR,
                      script_sdir='bin'):
+    """ Install package from zip file `zip_fname`
+
+    Parameters
+    ----------
+    zip_fname : str
+        filename of zip file containing package code
+    install_path : str
+        output prefix at which to install package
+    pkg_finder : None or callable, optional
+        If None, assume zip contains ``setup.py`` at the top level.  Otherwise,
+        find directory containing ``setup.py`` with ``pth =
+        pkg_finder(unzip_path)`` where ``unzip_path`` is the path to which we
+        have unzipped the zip file contents.
+    py_lib_sdir : str, optional
+        subdirectory to which to write the library code from the package.  Thus
+        if package called ``nibabel``, the written code will be in
+        ``<install_path>/<py_lib_sdir>/nibabel
+    script_sdir : str, optional
+        subdirectory to which we write the installed scripts.  Thus scripts will
+        be written to ``<install_path>/<script_sdir>
+    """
     unzip_path = tempfile.mkdtemp()
     try:
         # Zip may unpack module into current directory
@@ -251,6 +232,63 @@ def tests_installed(mod_name, source_path=None):
 tests_installed.__test__ = False
 
 
+def check_installed_files(repo_mod_path, install_mod_path):
+    """ Check files in `repo_mod_path` are installed at `install_mod_path`
+
+    At the moment, all this does is check that all the ``*.py`` files in
+    `repo_mod_path` are installed at `install_mod_path`.
+
+    Parameters
+    ----------
+    repo_mod_path : str
+        repository path containing package files, e.g. <nibabel-repo>/nibabel>
+    install_mod_path : str
+        path at which package has been installed.  This is the path where the
+        root package ``__init__.py`` lives.
+
+    Return
+    ------
+    uninstalled : list
+        list of files that should have been installed, but have not been
+        installed
+    """
+    return missing_from(repo_mod_path, install_mod_path, filter=r"\.py$")
+
+
+def missing_from(path0, path1, filter=None):
+    """ Return filenames present in `path0` but not in `path1`
+
+    Parameters
+    ----------
+    path0 : str
+        path which contains all files of interest
+    path1 : str
+        path which should contain all files of interest
+    filter : None or str or regexp, optional
+        A successful result from ``filter.search(fname)`` means the file is of
+        interest.  None means all files are of interest
+
+    Returns
+    -------
+    path1_missing : list
+        list of all files missing from `path1` that are in `path0` at the same
+        relative path.
+    """
+    if not filter is None:
+        filter = re.compile(filter)
+    uninstalled = []
+    # Walk directory tree to get py files
+    for dirpath, dirnames, filenames in os.walk(path0):
+        out_dirpath = dirpath.replace(path0, path1)
+        for fname in filenames:
+            if not filter is None and filter.search(fname) is None:
+                continue
+            equiv_fname = os.path.join(out_dirpath, fname)
+            if not os.path.isfile(equiv_fname):
+                uninstalled.append(pjoin(dirpath, fname))
+    return uninstalled
+
+
 def check_files(mod_name, repo_path=None, scripts_sdir='bin'):
     """ Print library and script files not picked up during install
     """
@@ -278,8 +316,9 @@ def check_files(mod_name, repo_path=None, scripts_sdir='bin'):
         print "Missed script files: ", ', '.join(script_misses)
 
 
-
 def get_sdist_finder(mod_name):
+    """ Return function finding sdist source directory for `mod_name`
+    """
     def pf(pth):
         pkg_dirs = glob(pjoin(pth, mod_name + '-*'))
         if len(pkg_dirs) != 1:
@@ -327,6 +366,34 @@ bdist_egg_tests.__test__ = False
 
 
 def make_dist(repo_path, out_dir, setup_params, zipglob):
+    """ Create distutils distribution file
+
+    Parameters
+    ----------
+    repo_path : str
+        path to repository containing code and ``setup.py``
+    out_dir : str
+        path to which to write new distribution file
+    setup_params: str
+        parameters to pass to ``setup.py`` to create distribution.
+    zipglob : str
+        glob identifying expected output file.
+
+    Returns
+    -------
+    out_fname : str
+        filename of generated distribution file
+
+    Examples
+    --------
+    Make, return a zipped sdist::
+
+      make_dist('/path/to/repo', '/tmp/path', 'sdist --formats=zip', '*.zip')
+
+    Make, return a binary egg::
+
+      make_dist('/path/to/repo', '/tmp/path', 'bdist_egg', '*.egg')
+    """
     pwd = os.path.abspath(os.getcwd())
     try:
         os.chdir(repo_path)
@@ -335,8 +402,8 @@ def make_dist(repo_path, out_dir, setup_params, zipglob):
         zips = glob(pjoin(out_dir, zipglob))
         if len(zips) != 1:
             raise OSError('There must be one and only one %s file, '
-                        'but I found "%s"' %
-                        (zipglob, ': '.join(zips)))
+                          'but I found "%s"' %
+                          (zipglob, ': '.join(zips)))
     finally:
         os.chdir(pwd)
     return zips[0]
