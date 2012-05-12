@@ -14,6 +14,7 @@ import os
 from os.path import join as pjoin
 import tempfile
 import getpass
+import logging
 import warnings
 import sqlite3
 
@@ -27,6 +28,7 @@ from .nifti1 import Nifti1Header
 from .optpkg import optional_package
 dicom, have_dicom, _ = optional_package('dicom')
 
+logger = logging.getLogger('nibabel.dft')
 
 class DFTError(Exception):
     "base class for DFT exceptions"
@@ -153,7 +155,7 @@ class _Series(object):
         for (i, si) in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
-            print 'reading %d/%d' % (i+1, len(self.storage_instances))
+            logger.info('reading %d/%d' % (i+1, len(self.storage_instances)))
             d = self.storage_instances[i].dicom()
             data[i, :, :] = d.pixel_array
 
@@ -288,7 +290,7 @@ def update_cache(base_dir):
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
-            print 'updating %s' % dir
+            logger.debug('updating %s' % dir)
             _update_dir(c, dir, files_by_dir[dir], studies, series, storage_instances)
             if dir in db_mtimes:
                 query = "UPDATE directory SET mtime = ? WHERE path = ?"
@@ -332,20 +334,20 @@ def get_studies(base_dir=None):
     return studies
 
 def _update_dir(c, dir, files, studies, series, storage_instances):
-    print dir
+    logger.debug('Updating directory %s' % dir)
     c.execute("SELECT name, mtime FROM file WHERE directory = ?", (dir, ))
     db_mtimes = dict(c)
     for fname in db_mtimes:
         if fname not in files:
-            print '    remove %s' % fname
+            logger.debug('    remove %s' % fname)
             c.execute("DELETE FROM file WHERE directory = ? AND name = ?", 
                       (dir, fname))
     for fname in files:
         mtime = os.lstat('%s/%s' % (dir, fname)).st_mtime
         if fname in db_mtimes and mtime <= db_mtimes[fname]:
-            print '    okay %s' % fname
+            logger.debug('    okay %s' % fname)
         else:
-            print '    update %s' % fname
+            logger.debug('    update %s' % fname)
             si_uid = _update_file(c, dir, fname, studies, series, storage_instances)
             if fname not in db_mtimes:
                 query = """INSERT INTO file (directory, 
@@ -365,14 +367,14 @@ def _update_file(c, path, fname, studies, series, storage_instances):
     try:
         do = dicom.read_file('%s/%s' % (path, fname))
     except dicom.filereader.InvalidDicomError:
-        print '        not a DICOM file'
+        logger.debug('        not a DICOM file')
         return None
     try:
         study_comments = do.StudyComments
     except AttributeError:
         study_comments = ''
     try:
-        print '        storage instance %s' % str(do.SOPInstanceUID)
+        logger.debug('        storage instance %s' % str(do.SOPInstanceUID))
         if str(do.StudyInstanceUID) not in studies:
             query = """INSERT INTO study (uid, 
                                           date, 
@@ -420,7 +422,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError, data:
-        print '        %s' % str(data)
+        logger.debug('        %s' % str(data))
         return None
     return str(do.SOPInstanceUID)
 
@@ -468,13 +470,13 @@ DB = None
 def _init_db(verbose=True):
     """ Initialize database """
     if verbose:
-        print 'db filename: ' + DB_FNAME
+        logger.info('db filename: ' + DB_FNAME)
     global DB
     DB = sqlite3.connect(DB_FNAME, check_same_thread=False)
     with _db_change() as c:
         c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
         if c.fetchone()[0] == 0:
-            print 'create'
+            logger.debug('create')
             for q in CREATE_QUERIES:
                 c.execute(q)
 
