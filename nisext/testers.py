@@ -12,11 +12,12 @@ The typical use for this module is as a makefile target, as in::
 '''
 
 import os
-from os.path import join as pjoin
+from os.path import join as pjoin, abspath
 from glob import glob
 import shutil
 import tempfile
 import zipfile
+import re
 from subprocess import call
 from functools import partial
 
@@ -65,11 +66,20 @@ def zip_extract_all(fname, path=None):
         zf.extract(zipinfo, path, None)
 
 
-def install_from_to(from_dir, to_dir, py_lib_sdir):
+def install_from_to(from_dir, to_dir, py_lib_sdir, bin_sdir='bin'):
     """ Install package in `from_dir` to standard location in `to_dir`
 
-    Return path to directory containing package directory. The package directory
-    is the directory containing __init__.py
+    Parameters
+    ----------
+    from_dir : str
+        path containing files to install with ``python setup.py ...``
+    to_dir : str
+        prefix path to which files will be installed, as in ``python setup.py
+        install --prefix=to_dir``
+    py_lib_sdir : str
+        subdirectory within `to_dir` to which library code will be installed
+    bin_sdir : str, optional
+        subdirectory within `to_dir` to which scripts will be installed
     """
     site_pkgs_path = os.path.join(to_dir, py_lib_sdir)
     py_lib_locs = ' --install-purelib=%s --install-platlib=%s' % (
@@ -81,7 +91,6 @@ def install_from_to(from_dir, to_dir, py_lib_sdir):
                                                                     py_lib_locs))
     finally:
         os.chdir(pwd)
-    return site_pkgs_path
 
 
 def check_installed_files(repo_mod_path, install_mod_path):
@@ -104,18 +113,58 @@ def check_installed_files(repo_mod_path, install_mod_path):
         list of files that should have been installed, but have not been
         installed
     """
-    repo_mod_path = os.path.abspath(repo_mod_path)
+    return missing_from(repo_mod_path, install_mod_path, filter=r"\.py$")
+
+
+def missing_from(path0, path1, filter=None):
+    """ Return filenames present in `path0` but not in `path1`
+
+    Parameters
+    ----------
+    path0 : str
+        path which contains all files of interest
+    path1 : str
+        path which should contain all files of interest
+    filter : None or str or regexp, optional
+        A successful result from ``filter.search(fname)`` means the file is of
+        interest.  None means all files are of interest
+
+    Returns
+    -------
+    path1_missing : list
+        list of all files missing from `path1` that are in `path0` at the same
+        relative path.
+    """
+    if not filter is None:
+        filter = re.compile(filter)
+    repo_mod_path = os.path.abspath(path0)
     uninstalled = []
     # Walk directory tree to get py files
-    for dirpath, dirnames, filenames in os.walk(repo_mod_path):
-        out_dirpath = dirpath.replace(repo_mod_path, install_mod_path)
+    for dirpath, dirnames, filenames in os.walk(path0):
+        out_dirpath = dirpath.replace(path0, path1)
         for fname in filenames:
-            if not fname.lower().endswith('.py'):
+            if not filter is None and filter.search(fname) is None:
                 continue
             equiv_fname = os.path.join(out_dirpath, fname)
             if not os.path.isfile(equiv_fname):
                 uninstalled.append(pjoin(dirpath, fname))
     return uninstalled
+
+
+def install_from_zip(zip_fname, install_path, pkg_finder=None,
+                     py_lib_sdir=PY_LIB_SDIR,
+                     script_sdir='bin'):
+    unzip_path = tempfile.mkdtemp()
+    try:
+        # Zip may unpack module into current directory
+        zip_extract_all(zip_fname, unzip_path)
+        if pkg_finder is None:
+            from_path = unzip_path
+        else:
+            from_path = pkg_finder(unzip_path)
+        install_from_to(from_path, install_path, py_lib_sdir, script_sdir)
+    finally:
+        shutil.rmtree(unzip_path)
 
 
 def contexts_print_info(mod_name, repo_path, install_path):
@@ -148,23 +197,12 @@ def contexts_print_info(mod_name, repo_path, install_path):
         my_call('git archive --format zip -o %s HEAD' % out_fname)
     finally:
         os.chdir(pwd)
-    install_from = pjoin(install_path, mod_name)
-    zip_extract_all(out_fname, install_from)
-    site_pkgs_path = install_from_to(install_from,
-                                     install_path,
-                                     PY_LIB_SDIR)
+    install_from_zip(out_fname, install_path, None)
     cmd_str = 'print(%s.get_info())' % mod_name
     run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
     # now test install into a directory from the repository
-    site_pkgs_path = install_from_to(repo_path,
-                                     install_path,
-                                     PY_LIB_SDIR)
+    install_from_to(repo_path, install_path, PY_LIB_SDIR)
     run_mod_cmd(mod_name, site_pkgs_path, cmd_str)
-    # Take the opportunity to audit the py files
-    repo_mod_path = os.path.join(repo_path, mod_name)
-    install_mod_path = os.path.join(site_pkgs_path, mod_name)
-    print('Files not taken across by the installation:')
-    print(check_installed_files(repo_mod_path, install_mod_path))
     # test from development tree
     run_mod_cmd(mod_name, repo_path, cmd_str)
     return
@@ -202,10 +240,9 @@ def tests_installed(mod_name, source_path=None):
     if source_path is None:
         source_path = os.path.abspath(os.getcwd())
     install_path = tempfile.mkdtemp()
+    site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
     try:
-        site_pkgs_path = install_from_to(source_path,
-                                         install_path,
-                                         PY_LIB_SDIR)
+        install_from_to(source_path, install_path, PY_LIB_SDIR)
         run_mod_cmd(mod_name, site_pkgs_path, mod_name + '.test()')
     finally:
         shutil.rmtree(install_path)
@@ -214,53 +251,92 @@ def tests_installed(mod_name, source_path=None):
 tests_installed.__test__ = False
 
 
-def tests_from_zip(mod_name, zip_fname):
-    """ Runs test from sdist zip source archive """
+def check_files(mod_name, repo_path=None, scripts_sdir='bin'):
+    """ Print library and script files not picked up during install
+    """
+    if repo_path is None:
+        repo_path = abspath(os.getcwd())
     install_path = tempfile.mkdtemp()
+    repo_mod_path = pjoin(repo_path, mod_name)
+    installed_mod_path = pjoin(install_path, PY_LIB_SDIR, mod_name)
+    repo_bin = pjoin(repo_path, 'bin')
+    installed_bin = pjoin(install_path, 'bin')
     try:
-        zip_extract_all(zip_fname, install_path)
-        pkg_dirs = glob(pjoin(install_path, mod_name + "*"))
-        if len(pkg_dirs) != 1:
-            raise OSError('There must be one and only one package dir')
-        pkg_contents = pjoin(install_path, pkg_dirs[0])
-        tests_installed(mod_name, pkg_contents)
+        zip_fname = make_dist(repo_path,
+                              install_path,
+                              'sdist --formats=zip',
+                              '*.zip')
+        pf = get_sdist_finder(mod_name)
+        install_from_zip(zip_fname, install_path, pf, PY_LIB_SDIR, scripts_sdir)
+        lib_misses = missing_from(repo_mod_path, installed_mod_path, r"\.py$")
+        script_misses = missing_from(repo_bin, installed_bin)
     finally:
         shutil.rmtree(install_path)
+    if lib_misses:
+        print "Missed library files: ", ', '.join(lib_misses)
+    if script_misses:
+        print "Missed script files: ", ', '.join(script_misses)
 
-tests_from_zip.__test__ = False
+
+
+def get_sdist_finder(mod_name):
+    def pf(pth):
+        pkg_dirs = glob(pjoin(pth, mod_name + '-*'))
+        if len(pkg_dirs) != 1:
+            raise OSError('There must be one and only one package dir')
+        return pkg_dirs[0]
+    return pf
 
 
 def sdist_tests(mod_name, repo_path=None):
     """ Make sdist zip, install from it, and run tests """
-    buildzip_run_tests(mod_name, 'sdist --formats=zip', '*.zip', repo_path)
+    if repo_path is None:
+        repo_path = abspath(os.getcwd())
+    install_path = tempfile.mkdtemp()
+    try:
+        zip_fname = make_dist(repo_path,
+                              install_path,
+                              'sdist --formats=zip',
+                              '*.zip')
+        site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
+        pf = get_sdist_finder(mod_name)
+        install_from_zip(zip_fname, install_path, pf, PY_LIB_SDIR)
+        run_mod_cmd(mod_name, site_pkgs_path, mod_name + '.test()')
+    finally:
+        shutil.rmtree(install_path)
 
 sdist_tests.__test__ = False
 
 
 def bdist_egg_tests(mod_name, repo_path=None):
-    """ Make bdist_egg, install from it, and run tests """
-    buildzip_run_tests(mod_name, 'bdist_egg', '*.egg', repo_path)
+    """ Make bdist_egg, unzip it, and run tests from result """
+    if repo_path is None:
+        repo_path = abspath(os.getcwd())
+    install_path = tempfile.mkdtemp()
+    try:
+        zip_fname = make_dist(repo_path,
+                              install_path,
+                              'bdist_egg',
+                              '*.egg')
+        zip_extract_all(zip_fname, install_path)
+        run_mod_cmd(mod_name, install_path, mod_name + '.test()')
+    finally:
+        shutil.rmtree(install_path)
 
 bdist_egg_tests.__test__ = False
 
 
-def buildzip_run_tests(mod_name, setup_params, zipglob, repo_path=None):
+def make_dist(repo_path, out_dir, setup_params, zipglob):
     pwd = os.path.abspath(os.getcwd())
-    if repo_path is None:
-        repo_path = pwd
-    install_path = tempfile.mkdtemp()
     try:
         os.chdir(repo_path)
         my_call('python setup.py %s --dist-dir=%s'
-                % (setup_params, install_path))
-        zips = glob(pjoin(install_path, zipglob))
+                % (setup_params, out_dir))
+        zips = glob(pjoin(out_dir, zipglob))
         if len(zips) != 1:
             raise OSError('There must be one and only one %s file, '
-                          'but I found "%s"' %
-                          (zipglob, ': '.join(zips)))
-        tests_from_zip(mod_name, zips[0])
+                        'but I found "%s"' %
+                        (zipglob, ': '.join(zips)))
     finally:
         os.chdir(pwd)
-        shutil.rmtree(install_path)
-
-buildzip_run_tests.__test__ = False
+    return zips[0]
