@@ -261,7 +261,7 @@ class _db_change:
 
 def _get_subdirs(base_dir, files_dict=None):
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=True):
+    for (dirpath, dirnames, filenames) in os.walk(base_dir):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError, 'link cycle detected under %s' % base_dir
