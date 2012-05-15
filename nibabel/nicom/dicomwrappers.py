@@ -130,6 +130,8 @@ class Wrapper(object):
         iop = self.get('ImageOrientationPatient')
         if iop is None:
             return None
+        # Values are python Decimals in pydicom 0.9.7
+        iop = np.array((map(float, iop)))
         return np.array(iop).reshape(2,3).T
 
     @one_time
@@ -180,6 +182,9 @@ class Wrapper(object):
             zs = self.get('SliceThickness')
             if zs is None:
                 zs = 1
+        # Protect from python decimals in pydicom 0.9.7
+        zs = float(zs)
+        pix_space = map(float, pix_space)
         return tuple(pix_space + [zs])
 
     @one_time
@@ -198,7 +203,8 @@ class Wrapper(object):
         ipp = self.get('ImagePositionPatient')
         if ipp is None:
             return None
-        return np.array(ipp)
+        # Values are python Decimals in pydicom 0.9.7
+        return np.array(map(float, ipp))
 
     @one_time
     def slice_indicator(self):
@@ -558,13 +564,15 @@ class MosaicWrapper(SiemensWrapper):
         img_pos : (3,) array
            position in mm of voxel (0,0,0) in Mosaic array
         '''
-        ipp = self.get('ImagePositionPatient')
+        ipp = super(MosaicWrapper, self).image_position
         # mosaic image size
         md_rows, md_cols = (self.get('Rows'), self.get('Columns'))
         iop = self.image_orient_patient
         pix_spacing = self.get('PixelSpacing')
         if None in (ipp, md_rows, md_cols, iop, pix_spacing):
             return None
+        # PixelSpacing values are python Decimal in pydicom 0.9.7
+        pix_spacing = np.array(map(float, pix_spacing))
         # size of mosaic array before rearranging to 3D.
         md_rc = np.array([md_rows, md_cols])
         # size of slice array after reshaping to 3D
