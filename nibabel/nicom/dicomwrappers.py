@@ -131,7 +131,7 @@ class Wrapper(object):
         if iop is None:
             return None
         # Values are python Decimals in pydicom 0.9.7
-        iop = np.array([float(i) for i in iop])
+        iop = np.array((map(float, iop)))
         return np.array(iop).reshape(2,3).T
 
     @one_time
@@ -184,7 +184,7 @@ class Wrapper(object):
                 zs = 1
         # Protect from python decimals in pydicom 0.9.7
         zs = float(zs)
-        pix_space = [float(i) for i in pix_space]
+        pix_space = map(float, pix_space)
         return tuple(pix_space + [zs])
 
     @one_time
@@ -204,7 +204,7 @@ class Wrapper(object):
         if ipp is None:
             return None
         # Values are python Decimals in pydicom 0.9.7
-        return np.array([float(i) for i in ipp])
+        return np.array(map(float, ipp))
 
     @one_time
     def slice_indicator(self):
@@ -572,7 +572,7 @@ class MosaicWrapper(SiemensWrapper):
         if None in (ipp, md_rows, md_cols, iop, pix_spacing):
             return None
         # PixelSpacing values are python Decimal in pydicom 0.9.7
-        pix_spacing = np.array([float(i) for i in pix_spacing])
+        pix_spacing = np.array(map(float, pix_spacing))
         # size of mosaic array before rearranging to 3D.
         md_rc = np.array([md_rows, md_cols])
         # size of slice array after reshaping to 3D
