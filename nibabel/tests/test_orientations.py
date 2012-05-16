@@ -19,6 +19,8 @@ from ..orientations import (io_orientation, orientation_affine,
                             apply_orientation, OrientationError,
                             ornt2axcodes, aff2axcodes)
 
+from ..affines import from_matvec, to_matvec
+
 
 IN_ARRS = [np.eye(4),
            [[0,0,1,0],
@@ -164,6 +166,17 @@ def test_io_orientation():
             assert_array_equal(ornt, ex_ornt)
             taff = orientation_affine(ornt, shape)
             assert_true(same_transform(taff, ornt, shape))
+    # Test nasty hang for zero columns
+    rzs = np.c_[np.diag([2, 3, 4, 5]), np.zeros((4,3))]
+    arr = from_matvec(rzs, [15,16,17,18])
+    ornt = io_orientation(arr)
+    assert_array_equal(ornt, [[0, 1],
+                              [1, 1],
+                              [2, 1],
+                              [3, 1],
+                              [np.nan, np.nan],
+                              [np.nan, np.nan],
+                              [np.nan, np.nan]])
 
 
 def test_ornt2axcodes():
@@ -206,22 +219,24 @@ def test_aff2axcodes():
 
 
 def test_drop_coord():
-    # given a 5x4 affine from slicing an fmri,
-    # the orientations code should easily reorder and drop the t
-    # axis
-
+    # given a 5x4 affine from slicing an fmri, the orientations codes should
+    # reorder and drop the t axis
     # this affine has output coordinates '-y','z','x' and is at t=16
     sliced_fmri_affine = np.array([[0,-1,0,3],
                                    [0,0,2,5],
                                    [3,0,0,4],
                                    [0,0,0,16],
                                    [0,0,0,1]])
+    # This gives a 3 by 2 matrix (because there are 3 input axes)
     ornt = io_orientation(sliced_fmri_affine)
-    affine_that_drops_t_reorders_and_flips = _ornt_to_affine(ornt)
-    final_affine = np.dot(affine_that_drops_t_reorders_and_flips, 
-                          sliced_fmri_affine)
-    # the output will be diagonal
-    # with the 'y' row having been flipped and the 't' row dropped
+    # 4 x 4 (3 input dimensions, no input dimension dropped)
+    flipping_aff = _ornt_to_affine(ornt)
+    # So we have to do the dropping part ourselves
+    rzs, trans = to_matvec(flipping_aff)
+    drop_flip_aff = from_matvec(np.hstack((rzs, np.zeros((3, 1)))), trans)
+    final_affine = np.dot(drop_flip_aff, sliced_fmri_affine)
+    # the output will be diagonal with the 'y' row having been flipped and the
+    # 't' row dropped
     assert_array_equal(final_affine,
                        np.array([[3,0,0,4],
                                  [0,1,0,-3],
@@ -229,11 +244,10 @@ def test_drop_coord():
                                  [0,0,0,1]]))
 
 
-def test_ornt_to_affine():
-    # this orientation indicates that the first output
-    # axis of the affine is closest to the vector [0,0,-1],
-    # the last is closest to [1,0,0] and 
-    # that the y coordinate ([0,1,0]) is dropped
+def test__ornt_to_affine():
+    # this orientation indicates that the first output axis of the affine is
+    # closest to the vector [0,0,-1], the last is closest to [1,0,0] and that
+    # the y coordinate ([0,1,0]) is dropped
     ornt = [[2,-1],
             [np.nan,np.nan],
             [0,1]]
@@ -257,4 +271,3 @@ def test_ornt_to_affine():
                   [0,-1,0,0,0,0,0],
                   [0,0,0,0,0,0,1]])
     assert_array_equal(B, _ornt_to_affine(ornt))
-
