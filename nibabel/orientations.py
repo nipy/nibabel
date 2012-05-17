@@ -131,7 +131,7 @@ def apply_orientation(arr, ornt):
     return t_arr
 
 
-def orientation_affine(ornt, shape):
+def inv_ornt_aff(ornt, shape):
     ''' Affine transform reversing transforms implied in `ornt`
 
     Imagine you have an array ``arr`` of shape `shape`, and you apply the
@@ -155,7 +155,7 @@ def orientation_affine(ornt, shape):
 
     Returns
     -------
-    transformed_affine : (p + 1, p + 1) ndarray
+    transform_affine : (p + 1, p + 1) ndarray
        An array ``arr`` (shape `shape`) might be transformed according to
        `ornt`, resulting in a transformed array ``tarr``.  `transformed_affine`
        is the transform that takes you from array coordinates in ``tarr`` to
@@ -184,6 +184,11 @@ def orientation_affine(ornt, shape):
     center_trans = -(shape - 1) / 2.0
     undo_flip[:p, p] = (ornt[:, 1] * center_trans) - center_trans
     return np.dot(undo_flip, undo_reorder)
+
+
+@np.deprecate_with_doc("Please use inv_ornt_aff instead")
+def orientation_affine(ornt, shape):
+    return inv_ornt_aff(ornt, shape)
 
 
 def flip_axis(arr, axis=0):

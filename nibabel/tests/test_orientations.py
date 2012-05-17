@@ -14,7 +14,7 @@ from nose.tools import assert_true, assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..orientations import (io_orientation, orientation_affine, flip_axis,
+from ..orientations import (io_orientation, inv_ornt_aff, flip_axis,
                             apply_orientation, OrientationError, ornt2axcodes,
                             aff2axcodes)
 
@@ -152,7 +152,7 @@ def test_io_orientation():
         for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS):
             ornt = io_orientation(in_arr)
             assert_array_equal(ornt, out_ornt)
-            taff = orientation_affine(ornt, shape)
+            taff = inv_ornt_aff(ornt, shape)
             assert_true(same_transform(taff, ornt, shape))
             for axno in range(3):
                 arr = in_arr.copy()
@@ -163,7 +163,7 @@ def test_io_orientation():
                 ex_ornt[axno, 1] *= -1
                 ornt = io_orientation(arr)
                 assert_array_equal(ornt, ex_ornt)
-                taff = orientation_affine(ornt, shape)
+                taff = inv_ornt_aff(ornt, shape)
                 assert_true(same_transform(taff, ornt, shape))
     # Test nasty hang for zero columns
     rzs = np.c_[np.diag([2, 3, 4, 5]), np.zeros((4,3))]
@@ -217,8 +217,8 @@ def test_aff2axcodes():
                  ('B', 'R', 'U'))
 
 
-def test_orientation_affine():
-    # Extra tests for orientation_affine routines (also tested in
+def test_inv_ornt_aff():
+    # Extra tests for inv_ornt_aff routines (also tested in
     # io_orientations test)
-    assert_raises(OrientationError, orientation_affine,
+    assert_raises(OrientationError, inv_ornt_aff,
                   [[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
