@@ -89,50 +89,6 @@ def io_orientation(affine, tol=None):
     return ornt
 
 
-def _ornt_to_affine(orientations):
-    ''' Create affine transformation matrix determined by orientations.
-
-    This transformation will simply flip, transpose, and possibly drop some
-    coordinates.
-
-    Parameters
-    ----------
-    orientations : (p, 2) ndarray
-       one row per input axis, where the first value in each row is the closest
-       corresponding output axis. The second value in each row is 1 if the input
-       axis is in the same direction as the corresponding output axis and -1 if
-       it is in the opposite direction.  If a row is [np.nan, np.nan], which can
-       happen when p > q, then this row should be considered dropped.
-
-    Returns
-    -------
-    affine : (q + 1, p + 1) ndarray
-       matrix representing flipping / dropping axes. q is equal to the number of
-       rows of ``orientations[:, 0]`` that are not np.nan
-    '''
-    ornt = np.asarray(orientations)
-    p = ornt.shape[0]
-    keep = ~np.isnan(ornt[:, 1])
-    # These are the input coordinate axes that do have a matching output
-    # column in the orientation.  That is, if the 2nd row is [np.nan,
-    # np.nan] then the orientation indicates that no output axes of an
-    # affine with this orientation matches the 2nd input coordinate
-    # axis.  This would happen if the 2nd row of the affine that
-    # generated ornt was [0,0,0,*]
-    axes_kept = np.arange(p)[keep]
-    q = keep.sum(0)
-    # the matrix P represents the affine transform impled by ornt. If
-    # all entries of ornt are not np.nan, then P is square otherwise it
-    # has more columns than rows indicating some coordinates were
-    # dropped
-    P = np.zeros((q + 1, p + 1))
-    P[-1, -1] = 1
-    for idx in range(q):
-        axs, flip = ornt[axes_kept[idx]]
-        P[idx, axs] = flip
-    return P
-
-
 def apply_orientation(arr, ornt):
     ''' Apply transformations implied by `ornt` to the first
     n axes of the array `arr`
@@ -176,7 +132,7 @@ def apply_orientation(arr, ornt):
 
 
 def orientation_affine(ornt, shape):
-    ''' Affine transform resulting from transforms implied in `ornt`
+    ''' Affine transform reversing transforms implied in `ornt`
 
     Imagine you have an array ``arr`` of shape `shape`, and you apply the
     transforms implied by `ornt` (more below), to get ``tarr``.
@@ -186,38 +142,47 @@ def orientation_affine(ornt, shape):
 
     Parameters
     ----------
-    ornt : (n,2) ndarray
-       orientation transform. ``ornt[N,1]` is flip of axis N of the
-       array implied by `shape`, where 1 means no flip and -1 means
-       flip.  For example, if ``N==0`` and ``ornt[0,1] == -1``, and
-       there's an array ``arr`` of shape `shape`, the flip would
-       correspond to the effect of ``np.flipud(arr)``.  ``ornt[:,0]`` is
-       the transpose that needs to be done to the implied array, as in
-       ``arr.transpose(ornt[:,0])``
-
-    shape : length n sequence
+    ornt : (p, 2) ndarray
+       orientation transform. ``ornt[P, 1]` is flip of axis N of the array
+       implied by `shape`, where 1 means no flip and -1 means flip.  For
+       example, if ``P==0`` and ``ornt[0, 1] == -1``, and there's an array
+       ``arr`` of shape `shape`, the flip would correspond to the effect of
+       ``np.flipud(arr)``.  ``ornt[:,0]`` gives us the (reverse of the)
+       transpose that has been done to ``arr``.  If there are any NaNs in
+       `ornt`, we raise an ``OrientationError`` (see notes)
+    shape : length p sequence
        shape of array you may transform with `ornt`
 
     Returns
     -------
-    transformed_affine : (n+1,n+1) ndarray
-       An array ``arr`` (shape `shape`) might be transformed according
-       to `ornt`, resulting in a transformed array ``tarr``.
-       `transformed_affine` is the transform that takes you from array
-       coordinates in ``tarr`` to array coordinates in ``arr``.
+    transformed_affine : (p + 1, p + 1) ndarray
+       An array ``arr`` (shape `shape`) might be transformed according to
+       `ornt`, resulting in a transformed array ``tarr``.  `transformed_affine`
+       is the transform that takes you from array coordinates in ``tarr`` to
+       array coordinates in ``arr``.
+
+    Notes
+    -----
+    If a row in `ornt` contains NaN, this means that the input row does not
+    influence the output space, and is thus effectively dropped from the output
+    space.  In that case one ``tarr`` coordinate maps to many ``arr``
+    coordinates, we can't invert the transform, and we raise an error
     '''
     ornt = np.asarray(ornt)
-    n = ornt.shape[0]
-    shape = np.array(shape)[:n]
+    if np.any(np.isnan(ornt)):
+        raise OrientationError("We cannot invert orientation transform")
+    p = ornt.shape[0]
+    shape = np.array(shape)[:p]
     # ornt implies a flip, followed by a transpose.   We need the affine
     # that inverts these.  Thus we need the affine that first undoes the
     # effect of the transpose, then undoes the effects of the flip.
     # ornt indicates the transpose that has occurred to get the current
-    # ordering, relative to canonical, so we just use that
-    undo_reorder = np.eye(n + 1)[list(ornt[:, 0]) + [n], :]
+    # ordering, relative to canonical, so we just use that.
+    # undo_reorder is a row permutatation matrix
+    undo_reorder = np.eye(p + 1)[list(ornt[:, 0]) + [p], :]
     undo_flip = np.diag(list(ornt[:, 1]) + [1.0])
     center_trans = -(shape - 1) / 2.0
-    undo_flip[:n, n] = (ornt[:, 1] * center_trans) - center_trans
+    undo_flip[:p, p] = (ornt[:, 1] * center_trans) - center_trans
     return np.dot(undo_flip, undo_reorder)
 
 
