@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+import sys
 import os
 from os.path import join as pjoin
 import tempfile
@@ -259,9 +260,17 @@ class _db_change:
             DB.rollback()
         return
 
-def _get_subdirs(base_dir, files_dict=None):
+def _get_subdirs(base_dir, files_dict=None, followlinks=None):
+    # no followlinks argument for os.walk() in Python < 2.6; catch that here
+    # this check can be removed when we no longer support Python 2.5
+    if followlinks is not None:
+        if sys.version_info[:2] < (2, 6):
+            raise TypeError, 'followlinks is only supported for Python >= 2.6'
+        walker = os.walk(base_dir, followlinks=followlinks)
+    else:
+        walker = os.walk(base_dir)
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=True):
+    for (dirpath, dirnames, filenames) in walker:
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError, 'link cycle detected under %s' % base_dir
@@ -270,10 +279,10 @@ def _get_subdirs(base_dir, files_dict=None):
             files_dict[abs_dir] = filenames
     return dirs
 
-def update_cache(base_dir):
+def update_cache(base_dir, followlinks=None):
     mtimes = {}
     files_by_dir = {}
-    dirs = _get_subdirs(base_dir, files_by_dir)
+    dirs = _get_subdirs(base_dir, files_by_dir, followlinks=followlinks)
     for d in dirs:
         os.stat(d)
         mtimes[d] = os.stat(d).st_mtime
@@ -300,9 +309,9 @@ def update_cache(base_dir):
                 c.execute(query, (dir, mtimes[dir]))
     return
 
-def get_studies(base_dir=None):
+def get_studies(base_dir=None, followlinks=None):
     if base_dir is not None:
-        update_cache(base_dir)
+        update_cache(base_dir, followlinks=followlinks)
     if base_dir is None:
         with _db_nochange() as c:
             c.execute("SELECT * FROM study")
