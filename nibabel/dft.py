@@ -262,6 +262,7 @@ class _db_change:
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=None):
     # no followlinks argument for os.walk() in Python < 2.6; catch that here
+    # this check can be removed when we no longer support Python 2.5
     if followlinks is not None:
         if sys.version_info[:2] < (2, 6):
             raise TypeError, 'followlinks is only supported for Python >= 2.6'
