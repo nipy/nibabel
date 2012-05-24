@@ -259,9 +259,11 @@ class _db_change:
             DB.rollback()
         return
 
-def _get_subdirs(base_dir, files_dict=None):
+def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=True):
+    # followlinks keyword not available for python 2.5.
+    kwargs = {} if not followlinks else {'followlinks': True}
+    for (dirpath, dirnames, filenames) in os.walk(base_dir, **kwargs):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError, 'link cycle detected under %s' % base_dir
@@ -270,10 +272,10 @@ def _get_subdirs(base_dir, files_dict=None):
             files_dict[abs_dir] = filenames
     return dirs
 
-def update_cache(base_dir):
+def update_cache(base_dir, followlinks=False):
     mtimes = {}
     files_by_dir = {}
-    dirs = _get_subdirs(base_dir, files_by_dir)
+    dirs = _get_subdirs(base_dir, files_by_dir, followlinks)
     for d in dirs:
         os.stat(d)
         mtimes[d] = os.stat(d).st_mtime
@@ -300,9 +302,9 @@ def update_cache(base_dir):
                 c.execute(query, (dir, mtimes[dir]))
     return
 
-def get_studies(base_dir=None):
+def get_studies(base_dir=None, followlinks=False):
     if base_dir is not None:
-        update_cache(base_dir)
+        update_cache(base_dir, followlinks)
     if base_dir is None:
         with _db_nochange() as c:
             c.execute("SELECT * FROM study")
@@ -321,7 +323,7 @@ def get_studies(base_dir=None):
                                               WHERE directory = ?))"""
     with _db_nochange() as c:
         study_uids = {}
-        for dir in _get_subdirs(base_dir):
+        for dir in _get_subdirs(base_dir, followlinks=followlinks):
             c.execute(query, (dir, ))
             for row in c:
                 study_uids[row[0]] = None
