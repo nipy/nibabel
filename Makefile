@@ -229,6 +229,9 @@ bdist_rpm:
 bdist_mpkg:
 	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
+# Check for files not installed
+check-files:
+	$(PYTHON) -c 'from nisext.testers import check_files; check_files("nibabel")'
 
 # Print out info for possible install methods
 check-version-info:
