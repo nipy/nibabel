@@ -84,7 +84,7 @@ def test_big_bad_ulp():
         in_arr = np.array([0, 0, 1, 2, 4, 5, -5, -np.inf, np.inf], dtype=ftype)
         out_arr = [min_ulp, min_ulp, fi.eps, fi.eps * 2, fi.eps * 4,
                    fi.eps * 4, fi.eps * 4, np.inf, np.inf]
-        assert_array_equal(big_bad_ulp(in_arr), out_arr)
+        assert_array_equal(big_bad_ulp(in_arr).astype(ftype), out_arr)
 
 
 BIG_FLOAT = np.float64
