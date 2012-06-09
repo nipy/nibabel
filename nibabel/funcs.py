@@ -10,7 +10,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, orientation_affine, flip_axis,
+from .orientations import (io_orientation, inv_ornt_aff, flip_axis,
                            apply_orientation, OrientationError)
 from .loadsave import load
 
@@ -189,7 +189,7 @@ def as_closest_canonical(img, enforce_diag=False):
             raise OrientationError('Transformed affine is not diagonal')
         return img
     shape = img.shape
-    t_aff = orientation_affine(ornt, shape)
+    t_aff = inv_ornt_aff(ornt, shape)
     out_aff = np.dot(aff, t_aff)
     # check if we are going to end up with something diagonal
     if enforce_diag and not _aff_is_diag(aff):
