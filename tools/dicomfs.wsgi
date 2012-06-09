@@ -10,17 +10,29 @@
 
 import sys
 import traceback
+from functools import partial
 import urllib
 import cgi
+
 import jinja2
+
 from nibabel import dft
+
+# this is the directory containing the DICOM data, or None for all cached data
+BASE_DIR = '/path/to/DICOM'
+BASE_DIR = None
+
+# default setting for whether to follow symlinks in BASE_DIR. Python 2.5 only
+# accepts False for this setting, Python >= 2.6 accepts True or False
+FOLLOWLINKS=False
+
+# Define routine to get studies
+studies_getter = partial(dft.get_studies, followlinks=FOLLOWLINKS)
+
 
 def html_unicode(u):
     return cgi.escape(u.encode('utf-8'))
 
-# this is the directory containing the DICOM data, or None for all cached data
-base_dir = '/path/to/DICOM'
-base_dir = None
 
 template_env = jinja2.Environment(autoescape=True)
 template_env.filters['urlquote'] = urllib.quote
@@ -161,13 +173,13 @@ def study_cmp(a, b):
 
 def index(environ):
     patients = {}
-    for s in dft.get_studies(base_dir):
+    for s in studies_getter(BASE_DIR):
         patients.setdefault(s.patient_name_or_uid(), []).append(s)
     template = template_env.from_string(index_template)
     return template.render(patients=patients).encode('utf-8')
 
 def patient(patient):
-    studies = [ s for s in dft.get_studies() if s.patient_name_or_uid() == patient ]
+    studies = [ s for s in studies_getter() if s.patient_name_or_uid() == patient ]
     if len(studies) == 0:
         raise HandlerError('404 Not Found', 'patient %s not found\n' % patient)
     studies.sort(study_cmp)
@@ -176,7 +188,7 @@ def patient(patient):
 
 def patient_date_time(patient, date_time):
     study = None
-    for s in dft.get_studies():
+    for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
         if date_time != '%s_%s' % (s.date, s.time):
@@ -190,7 +202,7 @@ def patient_date_time(patient, date_time):
 
 def nifti(patient, date_time, scan):
     study = None
-    for s in dft.get_studies():
+    for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
         if date_time != '%s_%s' % (s.date, s.time):
@@ -211,7 +223,7 @@ def nifti(patient, date_time, scan):
 
 def png(patient, date_time, scan):
     study = None
-    for s in dft.get_studies():
+    for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
         if date_time != '%s_%s' % (s.date, s.time):

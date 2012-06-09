@@ -44,13 +44,14 @@ class FileHandle:
 class DICOMFS(fuse.Fuse):
 
     def __init__(self, *args, **kwargs):
+        self.followlinks = kwargs.pop('followlinks', False)
         fuse.Fuse.__init__(self, *args, **kwargs)
         self.fhs = {}
         return
 
     def get_paths(self):
         paths = {}
-        for study in dft.get_studies(self.dicom_path):
+        for study in dft.get_studies(self.dicom_path, self.followlinks):
             pd = paths.setdefault(study.patient_name_or_uid(), {})
             patient_info = 'patient information\n'
             patient_info = 'name: %s\n' % study.patient_name
@@ -187,6 +188,11 @@ def get_opt_parser():
                help="make noise.  Could be specified multiple times"),
         ])
 
+    p.add_options([
+        Option("-L", "--follow-links", action="store_true",
+               dest="followlinks", default=False,
+               help="Follow symbolic links in DICOM directory"),
+        ])
     return p
 
 if __name__ == '__main__':
@@ -201,7 +207,7 @@ if __name__ == '__main__':
         sys.stderr.write("Please provide two arguments:\n%s\n"  % parser.usage)
         sys.exit(1)
 
-    fs = DICOMFS(dash_s_do='setsingle')
+    fs = DICOMFS(dash_s_do='setsingle', followlinks=opts.followlinks)
     fs.parse(['-f', '-s', files[1]])
     fs.dicom_path = files[0].decode(encoding)
     try:
