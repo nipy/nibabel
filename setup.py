@@ -102,6 +102,8 @@ def main(**extra_args):
                           ]},
           scripts      = [pjoin('bin', 'parrec2nii'),
                           pjoin('bin', 'nib-ls'),
+                          pjoin('bin', 'nib-dicomfs'),
+                          pjoin('bin', 'nib-nifti-dx'),
                           ],
           cmdclass = cmdclass,
           **extra_args

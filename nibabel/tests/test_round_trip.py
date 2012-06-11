@@ -13,6 +13,8 @@ from ..casting import best_float, ulp, type_info
 
 from nose.tools import assert_true
 
+from numpy.testing import assert_array_equal, assert_almost_equal
+
 DEBUG = True
 
 def round_trip(arr, out_dtype):
@@ -48,6 +50,8 @@ def big_bad_ulp(arr):
     I haven't thought about whether the vectorized log2 here could lead to
     incorrect rounding; this only needs to be ballpark
 
+    This function might be used in nipy/io/tests/test_image_io.py
+
     Parameters
     ----------
     arr : array
@@ -60,13 +64,27 @@ def big_bad_ulp(arr):
     """
     # Assumes array is floating point
     arr = np.asarray(arr)
+    info = type_info(arr.dtype)
     working_arr = np.abs(arr.astype(BFT))
     # Log2 for numpy < 1.3
-    l2 = np.log(working_arr) / LOGe2
-    fl2 = np.floor(l2)
-    info = type_info(arr.dtype)
+    fl2 = np.zeros_like(working_arr) + info['minexp']
+    # Avoid divide by zero error for log of 0
+    nzs = working_arr > 0
+    fl2[nzs] = np.floor(np.log(working_arr[nzs]) / LOGe2)
     fl2 = np.clip(fl2, info['minexp'], np.inf)
     return 2**(fl2 - info['nmant'])
+
+
+def test_big_bad_ulp():
+    for ftype in (np.float32, np.float64):
+        ti = type_info(ftype)
+        fi = np.finfo(ftype)
+        min_ulp = 2 ** (ti['minexp'] - ti['nmant'])
+        in_arr = np.zeros((10,), dtype=ftype)
+        in_arr = np.array([0, 0, 1, 2, 4, 5, -5, -np.inf, np.inf], dtype=ftype)
+        out_arr = [min_ulp, min_ulp, fi.eps, fi.eps * 2, fi.eps * 4,
+                   fi.eps * 4, fi.eps * 4, np.inf, np.inf]
+        assert_array_equal(big_bad_ulp(in_arr).astype(ftype), out_arr)
 
 
 BIG_FLOAT = np.float64
