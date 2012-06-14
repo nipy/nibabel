@@ -28,6 +28,18 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
 Krish Subramaniam, Alexandre Gramfort, Cindee Madison, Félix C. Morency,
 Christian Haselgrove.
 
+* 1.2.1 (Wednesday 13 June 2012)
+
+  Particular thanks to Yaroslav Halchecko for fixes and cleanups in this release
+
+  * Bugfix release
+  * Make compatible with pydicom 0.9.7
+  * Refactor, rename nifti diagnostic script to ``nib-nifti-dx``
+  * Fix a bug causing an error when analyzing affines for orientation, when the
+    affine contained all 0 columns
+  * Add missing ``dicomfs`` script to installation list and rename to
+    ``nib-dicomfs``
+
 * 1.2.0 (Sunday 6 May 2012)
 
   * New feature and bugfix release
