@@ -1,8 +1,8 @@
-nibabel (1.2.0+git316-g8029735-1) UNRELEASED; urgency=low
+nibabel (1.2.1-1) unstable; urgency=low
 
-  * New upstream snapshot from origin/maint/1.2.x at 1.1.0-316-g8029735
+  * New upstream bugfix release
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 10 Jun 2012 22:55:01 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 14 Jun 2012 00:15:09 -0400
 
 nibabel (1.2.0-1) unstable; urgency=low
 
