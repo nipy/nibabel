@@ -17,6 +17,7 @@ in the ``testers`` module of that package.  nibabel has Makefile targets for the
 use.  The relevant targets are::
 
     make check-version-info
+    make check-files
     make sdist-tests
 
 The first installs the code from a git archive, from the repository, and for
