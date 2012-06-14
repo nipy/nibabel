@@ -34,10 +34,12 @@ override_dh_compress:
 override_dh_installman:
 	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
 		-n 'convert PARREC image to NIfTI' bin/parrec2nii > build/parrec2nii.1
-	#PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
-	#	-n 'FUSE filesystem on top of a directory with DICOMs' bin/dicomfs > build/dicomfs.1
+	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+		-n 'FUSE filesystem on top of a directory with DICOMs' bin/nib-dicomfs > build/nib-dicomfs.1
 	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
 		-n "'ls' for neuroimaging files" bin/nib-ls > build/nib-ls.1
+	PYTHONPATH=build/lib:$(PYTHONPATH) help2man -N \
+		-n "header diagnostic tool" bin/nib-nifti-dx > build/nib-nifti-dx.1
 
 	dh_installman build/*.1
 

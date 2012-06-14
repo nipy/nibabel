@@ -1,6 +1,7 @@
 nibabel (1.2.1-1) unstable; urgency=low
 
   * New upstream bugfix release
+    - new tools (nib-dicomfs, nib-nifti-dx)
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 14 Jun 2012 00:15:09 -0400
 
