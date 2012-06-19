@@ -254,6 +254,10 @@ def type_info(np_type):
         # double pair on PPC.  The _check_nmant routine does not work for this
         # type, hence the processor check
         ret.update(dict(nmant = 106, width=width))
+    elif (_check_nmant(np.longdouble, 52) and
+          _check_maxexp(np.longdouble, 11)):
+        # Got float64 despite everything
+        pass
     elif (_check_nmant(np.longdouble, 112) and
           _check_maxexp(np.longdouble, 16384)):
         # binary 128, but with some busted type information. np.longcomplex
@@ -272,7 +276,8 @@ def type_info(np_type):
                    maxexp = 16384,
                    width = width)
     else: # don't recognize the type
-        raise FloatingError('We had not expected type %s' % np_type)
+        raise FloatingError('We had not expected long double type %s '
+                            'with info %s' % (np_type, info))
     return ret
 
 
