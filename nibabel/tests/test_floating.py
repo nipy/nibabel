@@ -1,12 +1,10 @@
 """ Test floating point deconstructions and floor methods
 """
-from platform import processor
-
 import numpy as np
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
-                       _check_maxexp, ok_floats)
+                       _check_maxexp, ok_floats, on_powerpc)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
@@ -234,7 +232,7 @@ def test_floor_exact():
                 assert_equal(func(-iv+1, t), -iv+1)
         # The nmant value for longdouble on PPC appears to be conservative, so
         # that the tests for behavior above the nmant range fail
-        if t is np.longdouble and processor() == 'powerpc':
+        if t is np.longdouble and on_powerpc():
             continue
         # Confirm to ourselves that 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant+1)

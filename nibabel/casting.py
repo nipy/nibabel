@@ -168,6 +168,14 @@ class FloatingError(Exception):
     pass
 
 
+def on_powerpc():
+    """ True if we are running on a Power PC platform
+
+    Has to deal with older Macs and IBM POWER7 series among others
+    """
+    return processor() == 'powerpc' or machine().startswith('ppc')
+
+
 def type_info(np_type):
     """ Return dict with min, max, nexp, nmant, width for numpy type `np_type`
 
@@ -249,10 +257,10 @@ def type_info(np_type):
     # complex equivalent.
     if not np_type in (np.longdouble, np.longcomplex) or width not in (16, 32):
         raise FloatingError('We had not expected type %s' % np_type)
-    if (vals == (1, 1, 16) and processor() == 'powerpc' and
+    if (vals == (1, 1, 16) and on_powerpc() and
         _check_maxexp(np.longdouble, 1024)):
         # double pair on PPC.  The _check_nmant routine does not work for this
-        # type, hence the processor check
+        # type, hence the powerpc platform check instead
         ret.update(dict(nmant = 106, width=width))
     elif (_check_nmant(np.longdouble, 52) and
           _check_maxexp(np.longdouble, 11)):
