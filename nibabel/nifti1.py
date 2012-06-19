@@ -20,6 +20,7 @@ from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze # module import
 from .spm99analyze import SpmAnalyzeHeader
+from .casting import have_binary128
 
 # Needed for quaternion calculation
 FLOAT32_EPS_3 = -np.finfo(np.float32).eps * 3
@@ -76,13 +77,12 @@ header_dtd = [
 header_dtype = np.dtype(header_dtd)
 
 # datatypes not in analyze format, with codes
-try:
-    _float128t = np.float128
-except AttributeError:
+if have_binary128():
+    # Only enable 128 bit floats if we really have IEEE binary 128 longdoubles
+    _float128t = np.longdouble
+    _complex256t = np.longcomplex
+else:
     _float128t = np.void
-try:
-    _complex256t = np.complex256
-except AttributeError:
     _complex256t = np.void
 
 _dtdefs = ( # code, label, dtype definition, niistring
