@@ -87,9 +87,11 @@ def test_arraywriters():
             # Byteswapped is OK
             bs_arr = arr.byteswap().newbyteorder('S')
             bs_aw = klass(bs_arr)
-            assert_array_equal(bs_arr, round_trip(bs_aw))
+            # assert against original array because POWER7 was running into
+            # trouble using the byteswapped array (bs_arr)
+            assert_array_equal(arr, round_trip(bs_aw))
             bs_aw2 = klass(bs_arr, arr.dtype)
-            assert_array_equal(bs_arr, round_trip(bs_aw2))
+            assert_array_equal(arr, round_trip(bs_aw2))
             # 2D array
             arr2 = np.reshape(arr, (2, 5))
             a2w = klass(arr2)
