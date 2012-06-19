@@ -639,6 +639,13 @@ def best_float():
     return np.float64
 
 
+def have_binary128():
+    """ True if we have a binary128 IEEE longdouble
+    """
+    ti = type_info(np.longdouble)
+    return (ti['nmant'], ti['maxexp']) == (112, 16384)
+
+
 def ok_floats():
     """ Return floating point types sorted by precision
 

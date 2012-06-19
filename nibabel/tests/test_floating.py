@@ -4,7 +4,7 @@ import numpy as np
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
-                       _check_maxexp, ok_floats, on_powerpc)
+                       _check_maxexp, ok_floats, on_powerpc, have_binary128)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
@@ -258,3 +258,12 @@ def test_floor_exact():
                 assert_equal(int_flex(-iv-gap-j, t), -iv-2*gap)
                 assert_equal(int_ceex(-iv-j, t), -iv)
                 assert_equal(int_ceex(-iv-gap-j, t), -iv-gap)
+
+
+def test_usable_binary128():
+    # Check for usable binary128
+    yes = have_binary128()
+    abf = np.longdouble(2) ** 16383
+    assert_equal(yes,
+                 abf.dtype.itemsize == 16 and
+                 np.isfinite(abf))
