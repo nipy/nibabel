@@ -44,15 +44,28 @@ def test_geometry():
     ntf.close()
 
     surf_path = ntf.name
-    write_geometry(surf_path, create_stamp, coords, faces)
+    create_stamp = "created by %s on %s" % (os.getlogin(), time.ctime())
+    write_geometry(surf_path, coords, faces, create_stamp)
 
     coords2, faces2 = read_geometry(surf_path)
+
+    with open(surf_path,'rb') as fobj:
+        magic = np.fromfile(fobj, ">u1", 3)
+        read_create_stamp = fobj.readline().rstrip('\n')
 
     # Remove temporary file
     os.unlink(surf_path)
 
-    assert_equal(coords, coords2)
-    assert_equal(faces, faces2)
+    assert_equal(create_stamp, read_create_stamp)
+
+    np.testing.assert_array_equal(coords, coords2)
+    np.testing.assert_array_equal(faces, faces2)
+
+    # Validate byte ordering
+    coords_swapped = coords.byteswap().newbyteorder()
+    faces_swapped = faces.byteswap().newbyteorder()
+    np.testing.assert_array_equal(coords_swapped, coords)
+    np.testing.assert_array_equal(faces_swapped, faces)
 
 @freesurfer_test
 def test_morph_data():
