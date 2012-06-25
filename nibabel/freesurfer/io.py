@@ -92,6 +92,32 @@ def read_geometry(filepath):
     coords = coords.astype(np.float)  # XXX: due to mayavi bug on mac 32bits
     return coords, faces
 
+def write_geometry(filepath, create_stamp, coords, faces):
+    """Write a triangular format Freesurfer surface mesh.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to surface file
+    create_stamp : str
+        User/time stamp
+    coords : numpy array
+        nvtx x 3 array of vertex (x, y, z) coordinates
+    faces : numpy array
+        nfaces x 3 array of defining mesh triangles
+    """
+    magic_bytes = np.array([255,255,254],dtype=np.uint8)
+    with open(filepath, 'wb') as fobj:
+        magic_bytes.tofile(fobj)
+        fobj.write("%s\n\n" % create_stamp)
+
+        # On a Linux box, numpy uses opposite byte order to freesurfer
+        np.int32(coords.shape[0]).byteswap().tofile(fobj)
+        np.int32(faces.shape[0]).byteswap().tofile(fobj)
+
+        # Coerce types, just to be safe
+        coords.astype('>f4').reshape(-1).tofile(fobj)
+        faces.astype('>i4').reshape(-1).tofile(fobj)
 
 def read_morph_data(filepath):
     """Read a Freesurfer morphometry data file.

@@ -1,11 +1,12 @@
 import os
 from os.path import join as pjoin
+import time
 
 from nose.tools import assert_true
 import numpy as np
 from numpy.testing import assert_equal
 
-from .. import read_geometry, read_morph_data, read_annot, read_label
+from .. import read_geometry, read_morph_data, read_annot, read_label, write_geometry
 
 
 have_freesurfer = True
@@ -36,6 +37,19 @@ def test_geometry():
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
 
+    # Test equivalence of freesurfer- and nibabel-generated triangular files
+    # with respect to read_geometry()
+    surf_path = os.tmpnam()
+    create_stamp = "created by %s on %s" % (os.getlogin(), time.ctime())
+    write_geometry(surf_path, create_stamp, coords, faces)
+
+    coords2, faces2 = read_geometry(surf_path)
+
+    # Remove 
+    os.unlink(surf_path)
+
+    assert_equal(coords, coords2)
+    assert_equal(faces, faces2)
 
 @freesurfer_test
 def test_morph_data():
