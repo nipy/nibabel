@@ -111,9 +111,7 @@ def write_geometry(filepath, create_stamp, coords, faces):
         magic_bytes.tofile(fobj)
         fobj.write("%s\n\n" % create_stamp)
 
-        # On a Linux box, numpy uses opposite byte order to freesurfer
-        np.int32(coords.shape[0]).byteswap().tofile(fobj)
-        np.int32(faces.shape[0]).byteswap().tofile(fobj)
+        np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
 
         # Coerce types, just to be safe
         coords.astype('>f4').reshape(-1).tofile(fobj)
