@@ -44,7 +44,6 @@ def test_geometry():
     ntf.close()
 
     surf_path = ntf.name
-    create_stamp = "created by %s on %s" % (os.getlogin(), time.ctime())
     write_geometry(surf_path, create_stamp, coords, faces)
 
     coords2, faces2 = read_geometry(surf_path)
