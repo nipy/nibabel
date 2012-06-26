@@ -1,7 +1,7 @@
 from __future__ import with_statement
 
 import numpy as np
-import os
+import getpass
 import time
 
 def _fread3(fobj):
@@ -110,7 +110,7 @@ def write_geometry(filepath, coords, faces, create_stamp=None):
     magic_bytes = np.array([255,255,254],dtype=np.uint8)
 
     if create_stamp is None:
-        create_stamp = "created by %s on %s" % (os.getlogin(), time.ctime())
+        create_stamp = "created by %s on %s" % (getpass.getuser(), time.ctime())
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
