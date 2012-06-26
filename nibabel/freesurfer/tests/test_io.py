@@ -1,7 +1,10 @@
+from __future__ import with_statement
 import os
 from os.path import join as pjoin
+import getpass
 import time
-import tempfile
+
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
@@ -40,21 +43,16 @@ def test_geometry():
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
     # with respect to read_geometry()
-    ntf = tempfile.NamedTemporaryFile(delete=False)
-    ntf.close()
+    with InTemporaryDirectory():
+        surf_path = 'test'
+        create_stamp = "created by %s on %s" % (getpass.getuser(), time.ctime())
+        write_geometry(surf_path, coords, faces, create_stamp)
 
-    surf_path = ntf.name
-    create_stamp = "created by %s on %s" % (os.getlogin(), time.ctime())
-    write_geometry(surf_path, coords, faces, create_stamp)
+        coords2, faces2 = read_geometry(surf_path)
 
-    coords2, faces2 = read_geometry(surf_path)
-
-    with open(surf_path,'rb') as fobj:
-        magic = np.fromfile(fobj, ">u1", 3)
-        read_create_stamp = fobj.readline().rstrip('\n')
-
-    # Remove temporary file
-    os.unlink(surf_path)
+        with open(surf_path,'rb') as fobj:
+            magic = np.fromfile(fobj, ">u1", 3)
+            read_create_stamp = fobj.readline().rstrip('\n')
 
     assert_equal(create_stamp, read_create_stamp)
 
