@@ -10,7 +10,8 @@ from nose.tools import assert_true
 import numpy as np
 from numpy.testing import assert_equal
 
-from .. import read_geometry, read_morph_data, read_annot, read_label, write_geometry
+from .. import read_geometry, read_morph_data, read_annot, read_label, \
+                write_geometry
 
 
 have_freesurfer = True
@@ -45,12 +46,13 @@ def test_geometry():
     # with respect to read_geometry()
     with InTemporaryDirectory():
         surf_path = 'test'
-        create_stamp = "created by %s on %s" % (getpass.getuser(), time.ctime())
+        create_stamp = "created by %s on %s" % (getpass.getuser(),
+            time.ctime())
         write_geometry(surf_path, coords, faces, create_stamp)
 
         coords2, faces2 = read_geometry(surf_path)
 
-        with open(surf_path,'rb') as fobj:
+        with open(surf_path, 'rb') as fobj:
             magic = np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().rstrip('\n')
 
@@ -64,6 +66,7 @@ def test_geometry():
     faces_swapped = faces.byteswap().newbyteorder()
     np.testing.assert_array_equal(coords_swapped, coords)
     np.testing.assert_array_equal(faces_swapped, faces)
+
 
 @freesurfer_test
 def test_morph_data():
