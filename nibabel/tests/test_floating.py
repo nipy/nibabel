@@ -263,7 +263,8 @@ def test_floor_exact():
 def test_usable_binary128():
     # Check for usable binary128
     yes = have_binary128()
-    abf = np.longdouble(2) ** 16383
+    exp_test = np.longdouble(2) ** 16383
     assert_equal(yes,
-                 abf.dtype.itemsize == 16 and
-                 np.isfinite(abf))
+                 exp_test.dtype.itemsize == 16 and
+                 np.isfinite(exp_test) and
+                 _check_nmant(np.longdouble, 112))
