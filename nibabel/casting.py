@@ -168,6 +168,14 @@ class FloatingError(Exception):
     pass
 
 
+def on_powerpc():
+    """ True if we are running on a Power PC platform
+
+    Has to deal with older Macs and IBM POWER7 series among others
+    """
+    return processor() == 'powerpc' or machine().startswith('ppc')
+
+
 def type_info(np_type):
     """ Return dict with min, max, nexp, nmant, width for numpy type `np_type`
 
@@ -244,11 +252,95 @@ def type_info(np_type):
         # at float64 precision. The finfo values give nexp == 15 (as for intel
         # 80) but in calculations nexp in fact appears to be 11 as for float64
         ret.update(dict(width=width))
-    elif vals == (1, 1, 16) and processor() == 'powerpc': # broken PPC
-        ret.update(dict(nmant=106, width=width))
-    else: # don't recognize the type
+        return ret
+    # Oh dear, we don't recognize the type information.  Try some known types
+    # and then give up. At this stage we're expecting exotic longdouble or their
+    # complex equivalent.
+    if not np_type in (np.longdouble, np.longcomplex) or width not in (16, 32):
         raise FloatingError('We had not expected type %s' % np_type)
+    if (vals == (1, 1, 16) and on_powerpc() and
+        _check_maxexp(np.longdouble, 1024)):
+        # double pair on PPC.  The _check_nmant routine does not work for this
+        # type, hence the powerpc platform check instead
+        ret.update(dict(nmant = 106, width=width))
+    elif (_check_nmant(np.longdouble, 52) and
+          _check_maxexp(np.longdouble, 11)):
+        # Got float64 despite everything
+        pass
+    elif (_check_nmant(np.longdouble, 112) and
+          _check_maxexp(np.longdouble, 16384)):
+        # binary 128, but with some busted type information. np.longcomplex
+        # seems to break here too, so we need to use np.longdouble and
+        # complexify
+        two = np.longdouble(2)
+        # See: http://matthew-brett.github.com/pydagogue/floating_point.html
+        max_val = (two ** 113 - 1) / (two ** 112) * two ** 16383
+        if np_type is np.longcomplex:
+            max_val += 0j
+        ret = dict(min = -max_val,
+                   max= max_val,
+                   nmant = 112,
+                   nexp = 15,
+                   minexp = -16382,
+                   maxexp = 16384,
+                   width = width)
+    else: # don't recognize the type
+        raise FloatingError('We had not expected long double type %s '
+                            'with info %s' % (np_type, info))
     return ret
+
+
+def _check_nmant(np_type, nmant):
+    """ True if fp type `np_type` seems to have `nmant` significand digits
+
+    Note 'digits' does not include implicit digits.  And in fact if there are no
+    implicit digits, the `nmant` number is one less than the actual digits.
+    Assumes base 2 representation.
+
+    Parameters
+    ----------
+    np_type : numpy type specifier
+        Any specifier for a numpy dtype
+    nmant : int
+        Number of digits to test against
+
+    Returns
+    -------
+    tf : bool
+        True if `nmant` is the correct number of significand digits, false
+        otherwise
+    """
+    np_type = np.dtype(np_type).type
+    max_contig = np_type(2 ** (nmant + 1)) # maximum of contiguous integers
+    tests = max_contig + np.array([-2, -1, 0, 1, 2], dtype=np_type)
+    return np.all(tests - max_contig == [-2, -1, 0, 0, 2])
+
+
+def _check_maxexp(np_type, maxexp):
+    """ True if fp type `np_type` seems to have `maxexp` maximum exponent
+
+    We're testing "maxexp" as returned by numpy. This value is set to one
+    greater than the maximum power of 2 that `np_type` can represent.
+
+    Assumes base 2 representation.  Very crude check
+
+    Parameters
+    ----------
+    np_type : numpy type specifier
+        Any specifier for a numpy dtype
+    maxexp : int
+        Maximum exponent to test against
+
+    Returns
+    -------
+    tf : bool
+        True if `maxexp` is the correct maximum exponent, False otherwise.
+    """
+    dt = np.dtype(np_type)
+    np_type = dt.type
+    two = np_type(2).reshape((1,)) # to avoid upcasting
+    return (np.isfinite(two ** (maxexp - 1)) and
+            not np.isfinite(two ** maxexp))
 
 
 def as_int(x, check=True):
@@ -546,6 +638,13 @@ def best_float():
         machine() != 'sparc64'): # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
+
+
+def have_binary128():
+    """ True if we have a binary128 IEEE longdouble
+    """
+    ti = type_info(np.longdouble)
+    return (ti['nmant'], ti['maxexp']) == (112, 16384)
 
 
 def ok_floats():

@@ -1,14 +1,13 @@
 """ Test floating point deconstructions and floor methods
 """
-from platform import processor
-
 import numpy as np
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
-                       int_to_float, floor_log2, type_info)
+                       int_to_float, floor_log2, type_info, _check_nmant,
+                       _check_maxexp, ok_floats, on_powerpc, have_binary128)
 
 from nose import SkipTest
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
 IEEE_floats = [np.float32, np.float64]
 try:
@@ -78,6 +77,25 @@ def test_nmant():
         assert_equal(type_info(t)['nmant'], np.finfo(t).nmant)
     if (LD_INFO['nmant'], LD_INFO['nexp']) == (63, 15):
         assert_equal(type_info(np.longdouble)['nmant'], 63)
+
+
+def test_check_nmant_nexp():
+    # Routine for checking number of sigificand digits and exponent
+    for t in IEEE_floats:
+        nmant = np.finfo(t).nmant
+        maxexp = np.finfo(t).maxexp
+        assert_true(_check_nmant(t, nmant))
+        assert_false(_check_nmant(t, nmant - 1))
+        assert_false(_check_nmant(t, nmant + 1))
+        assert_true(_check_maxexp(t, maxexp))
+        assert_false(_check_maxexp(t, maxexp - 1))
+        assert_false(_check_maxexp(t, maxexp + 1))
+    # Check against type_info
+    for t in ok_floats():
+        ti = type_info(t)
+        if ti['nmant'] != 106: # This check does not work for PPC double pair
+            assert_true(_check_nmant(t, ti['nmant']))
+        assert_true(_check_maxexp(t, ti['maxexp']))
 
 
 def test_as_int():
@@ -214,7 +232,7 @@ def test_floor_exact():
                 assert_equal(func(-iv+1, t), -iv+1)
         # The nmant value for longdouble on PPC appears to be conservative, so
         # that the tests for behavior above the nmant range fail
-        if t is np.longdouble and processor() == 'powerpc':
+        if t is np.longdouble and on_powerpc():
             continue
         # Confirm to ourselves that 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant+1)
@@ -240,3 +258,13 @@ def test_floor_exact():
                 assert_equal(int_flex(-iv-gap-j, t), -iv-2*gap)
                 assert_equal(int_ceex(-iv-j, t), -iv)
                 assert_equal(int_ceex(-iv-gap-j, t), -iv-gap)
+
+
+def test_usable_binary128():
+    # Check for usable binary128
+    yes = have_binary128()
+    exp_test = np.longdouble(2) ** 16383
+    assert_equal(yes,
+                 exp_test.dtype.itemsize == 16 and
+                 np.isfinite(exp_test) and
+                 _check_nmant(np.longdouble, 112))
