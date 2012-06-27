@@ -87,9 +87,11 @@ def test_arraywriters():
             # Byteswapped is OK
             bs_arr = arr.byteswap().newbyteorder('S')
             bs_aw = klass(bs_arr)
-            assert_array_equal(bs_arr, round_trip(bs_aw))
+            # assert against original array because POWER7 was running into
+            # trouble using the byteswapped array (bs_arr)
+            assert_array_equal(arr, round_trip(bs_aw))
             bs_aw2 = klass(bs_arr, arr.dtype)
-            assert_array_equal(bs_arr, round_trip(bs_aw2))
+            assert_array_equal(arr, round_trip(bs_aw2))
             # 2D array
             arr2 = np.reshape(arr, (2, 5))
             a2w = klass(arr2)
@@ -508,6 +510,10 @@ def test_float_int_min_max():
     for in_dt in FLOAT_TYPES:
         finf = type_info(in_dt)
         arr = np.array([finf['min'], finf['max']], dtype=in_dt)
+        # Bug in numpy 1.6.2 on PPC leading to infs - abort
+        if not np.all(np.isfinite(arr)):
+            print 'Hit PPC max -> inf bug; skip in_type %s' % in_dt
+            continue
         for out_dt in IUINT_TYPES:
             try:
                 aw = SlopeInterArrayWriter(arr, out_dt)

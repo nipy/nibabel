@@ -224,6 +224,11 @@ def check_int_a2f(in_type, out_type):
     this_min, this_max = info['min'], info['max']
     if not in_type in np.sctypes['complex']:
         data = np.array([this_min, this_max], in_type)
+        # Bug in numpy 1.6.2 on PPC leading to infs - abort
+        if not np.all(np.isfinite(data)):
+            if DEBUG:
+                print 'Hit PPC max -> inf bug; skip in_type %s' % in_type
+            return
     else: # Funny behavior with complex256
         data = np.zeros((2,), in_type)
         data[0] = this_min + 0j
