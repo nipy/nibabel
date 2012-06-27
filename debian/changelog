@@ -1,3 +1,11 @@
+nibabel (1.2.2-1) unstable; urgency=low
+
+  * New upstream bugfix release
+    - addresses import and test failures on power7 (powerpc) causing FTBFS of
+      nipy.
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 27 Jun 2012 14:52:08 -0400
+
 nibabel (1.2.1-1) unstable; urgency=low
 
   * New upstream bugfix release
