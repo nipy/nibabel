@@ -28,6 +28,15 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
 Krish Subramaniam, Alexandre Gramfort, Cindee Madison, Félix C. Morency,
 Christian Haselgrove.
 
+* 1.2.2 (Wednesday 27 June 2012)
+
+  * Bugfix release
+  * Fix longdouble tests for Debian PPC (thanks to Yaroslav Halchecko for
+    finding and diagnosing these errors)
+  * Generalize longdouble tests in the hope of making them more robust
+  * Disable saving of float128 nifti type unless platform has real IEEE
+    binary128 longdouble type.
+
 * 1.2.1 (Wednesday 13 June 2012)
 
   Particular thanks to Yaroslav Halchecko for fixes and cleanups in this release
