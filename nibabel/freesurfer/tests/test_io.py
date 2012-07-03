@@ -1,11 +1,17 @@
+from __future__ import with_statement
 import os
 from os.path import join as pjoin
+import getpass
+import time
+
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
 from numpy.testing import assert_equal
 
-from .. import read_geometry, read_morph_data, read_annot, read_label
+from .. import read_geometry, read_morph_data, read_annot, read_label, \
+                write_geometry
 
 
 have_freesurfer = True
@@ -35,6 +41,31 @@ def test_geometry():
     coords, faces = read_geometry(surf_path)
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
+
+    # Test equivalence of freesurfer- and nibabel-generated triangular files
+    # with respect to read_geometry()
+    with InTemporaryDirectory():
+        surf_path = 'test'
+        create_stamp = "created by %s on %s" % (getpass.getuser(),
+            time.ctime())
+        write_geometry(surf_path, coords, faces, create_stamp)
+
+        coords2, faces2 = read_geometry(surf_path)
+
+        with open(surf_path, 'rb') as fobj:
+            magic = np.fromfile(fobj, ">u1", 3)
+            read_create_stamp = fobj.readline().rstrip('\n')
+
+    assert_equal(create_stamp, read_create_stamp)
+
+    np.testing.assert_array_equal(coords, coords2)
+    np.testing.assert_array_equal(faces, faces2)
+
+    # Validate byte ordering
+    coords_swapped = coords.byteswap().newbyteorder()
+    faces_swapped = faces.byteswap().newbyteorder()
+    np.testing.assert_array_equal(coords_swapped, coords)
+    np.testing.assert_array_equal(faces_swapped, faces)
 
 
 @freesurfer_test
