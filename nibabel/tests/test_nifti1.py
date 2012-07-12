@@ -1009,3 +1009,32 @@ def test_rt_bias():
             # Hokey use of max_miss as a std estimate
             bias_thresh = np.max([max_miss / np.sqrt(count), eps])
             assert_true(np.abs(bias) < bias_thresh)
+
+def test_vox_offset_reset():
+    # Test that the header's "vox_offset" is being reset to whatever it
+    # was initially when exentions are removed
+    arr = np.arange(24).reshape((2,3,4))
+    aff = np.diag([2, 3, 4, 1])
+    img = Nifti1Image(arr, aff)
+    hdr = img.get_header()
+    assert_equal(hdr['vox_offset'], 352)
+    test_extension = Nifti1Extension(0, 'This is a test')
+    hdr.extensions.append(test_extension)
+    img.update_header()
+    assert_true(hdr['vox_offset'] > 352)
+    hdr.extensions.remove(test_extension)
+    img.update_header()
+    assert_equal(hdr['vox_offset'], 352)
+    with InTemporaryDirectory() as tmpdir:
+        fname = os.path.join(tmpdir, 'test.nii')
+        hdr['vox_offset'] = 400
+        nifti1.save(img, fname)
+        img = nifti1.load(fname)
+        hdr = img.get_header()
+        assert_equal(hdr['vox_offset'], 400)
+        hdr.extensions.append(test_extension)
+        img.update_header()
+        assert_true(hdr['vox_offset'] > 400)
+        hdr.extensions.remove(test_extension)
+        img.update_header()
+        assert_equal(hdr['vox_offset'], 400)

@@ -551,6 +551,10 @@ class Nifti1Header(SpmAnalyzeHeader):
                                            endianness,
                                            check)
         self.extensions = self.exts_klass(extensions)
+        self._non_ext_offset = (self['vox_offset'] - 
+                                self.extensions.get_sizeondisk() - 
+                                352
+                               )
 
     def copy(self):
         ''' Return copy of header
@@ -1786,12 +1790,12 @@ class Nifti1Image(Nifti1Pair):
         super(Nifti1Image, self).update_header()
         hdr = self._header
         hdr['magic'] = 'n+1'
-        # make sure that there is space for the header.  If any
-        # extensions, figure out necessary vox_offset for extensions to
-        # fit
-        min_vox_offset = 352 + hdr.extensions.get_sizeondisk()
-        if hdr['vox_offset'] < min_vox_offset:
-            hdr['vox_offset'] = min_vox_offset
+        # make sure that there is space for the header, header 
+        # extensions, and any non-extension data in front of the image
+        hdr['vox_offset'] = (352 + 
+                             hdr._non_ext_offset + 
+                             hdr.extensions.get_sizeondisk()
+                            )
 
 
 def load(filename):
