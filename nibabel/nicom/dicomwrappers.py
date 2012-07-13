@@ -407,14 +407,22 @@ class SiemensWrapper(Wrapper):
 
     @one_time
     def slice_normal(self):
-        slice_normal = csar.get_slice_normal(self.csa_header)
-        if not slice_normal is None:
-            return np.array(slice_normal)
-        iop = self.image_orient_patient
-        if iop is None:
+        std_slice_normal = super(SiemensWrapper, self).slice_normal
+        csa_slice_normal = csar.get_slice_normal(self.csa_header)
+        if std_slice_normal is None and csa_slice_normal is None:
             return None
-        return np.cross(*iop.T[:])
-
+        elif std_slice_normal is None:
+            return np.array(csa_slice_normal)
+        elif csa_slice_normal is None:
+            return std_slice_normal
+        else:
+            dot_prod = np.dot(csa_slice_normal, std_slice_normal)
+            assert np.allclose(np.fabs(dot_prod), 1.0, atol=1e-5)
+            if dot_prod < 0:
+                return -std_slice_normal
+            else:
+                return std_slice_normal
+    
     @one_time
     def series_signature(self):
         ''' Add ICE dims from CSA header to signature '''
