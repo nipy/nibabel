@@ -62,7 +62,7 @@ def io_orientation(affine, tol=None):
     P, S, Qs = npl.svd(RS)
     # Threshold the singular values to determine the rank.
     if tol is None:
-        tol = S.max() * max(S.shape) * np.finfo(S.dtype).eps
+        tol = S.max() * max(RS.shape) * np.finfo(S.dtype).eps
     keep = (S > tol)
     R = np.dot(P[:, keep], Qs[keep])
     # the matrix R is such that np.dot(R,R.T) is projection onto the
@@ -75,7 +75,7 @@ def io_orientation(affine, tol=None):
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
     for in_ax in range(p):
         col = R[:, in_ax]
-        if not np.alltrue(np.equal(col, 0)):
+        if not np.alltrue(np.allclose(col, 0)):
             out_ax = np.argmax(np.abs(col))
             ornt[in_ax, 0] = out_ax
             assert col[out_ax] != 0
