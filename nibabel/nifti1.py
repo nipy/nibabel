@@ -1779,7 +1779,7 @@ class Nifti1Image(Nifti1Pair):
         offset = header.get_data_offset()
         diff = offset-header_file.tell()
         if diff > 0:
-            header_file.write('\x00' * diff)
+            header_file.write(ZEROB * diff)
 
     def update_header(self):
         ''' Harmonize header with image data and affine '''
