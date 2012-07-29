@@ -18,7 +18,16 @@ DEFAULT_INSTALL_HINT = ('If you have the package, have you set the '
                         'path to the package correctly?')
 
 
-class DataError(OSError):
+class DataError(Exception):
+    pass
+
+
+class BomberError(DataError, AttributeError):
+    """ Error when trying to access Bomber instance
+
+    Should be instance of AttributeError to allow Python 3 inspect to do various
+    ``hasattr`` checks without raising an error
+    """
     pass
 
 
@@ -302,7 +311,7 @@ class Bomber(object):
 
     def __getattr__(self, attr_name):
         ''' Raise informative error accessing not-found attributes '''
-        raise DataError(
+        raise BomberError(
             'Trying to access attribute "%s" '
             'of non-existent data "%s"\n\n%s\n' %
             (attr_name, self.name, self.msg))

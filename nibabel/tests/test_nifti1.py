@@ -469,6 +469,15 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_sform, strange=True)
 
+    def test_hdr_diff(self):
+        # Check an offset beyond data does not raise an error
+        img = self.image_class(np.zeros((2,3,4)), np.eye(4))
+        ext = dict(img.files_types)['image']
+        hdr = img.get_header()
+        hdr['vox_offset'] = 400
+        with InTemporaryDirectory():
+            img.to_filename('another_file' + ext)
+
 
 class TestNifti1Pair(TestNifti1Image):
     # Run analyze-flavor spatialimage tests
