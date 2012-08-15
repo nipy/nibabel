@@ -66,7 +66,13 @@ def wrapper_from_data(dcm_data):
     '''
     csa = csar.get_csa_header(dcm_data)
     if csa is None:
-        return Wrapper(dcm_data)
+        try:
+            print "in try"
+            dcm_data.NumberofFrames
+            return MultiframeWrapper(dcm_data)
+        except:
+            print 'couldnt make multiframewr'
+            return Wrapper(dcm_data)
     if not csar.is_mosaic(csa):
         return SiemensWrapper(dcm_data, csa)
     return MosaicWrapper(dcm_data, csa)
@@ -357,6 +363,95 @@ class Wrapper(object):
         offset = self.get('RescaleIntercept', 0)
         # a little optimization.  If we are applying either the scale or
         # the offset, we need to allow upcasting to float.
+        if scale != 1:
+            if offset == 0:
+                return data * scale
+            return data * scale + offset
+        if offset != 0:
+            return data + offset
+        return data
+
+
+class MultiframeWrapper(Wrapper):
+    ''' Wrapper for Multiframe format or Phillips' Enhanced DICOMs
+
+    '''
+    is_multiframe = True
+
+    def __init__(self, dcm_data=None):
+        if dcm_data is None:
+            dcm_data = {}
+        self.dcm_data = dcm_data
+
+    @one_time
+    def image_shape(self):
+        self.pixel_array = self.dcm_data._get_pixel_array()
+        shape = self.pixel_array.shape
+        if None in shape:
+            return None
+        return shape
+
+    @one_time
+    def image_orient_patient(self):
+        self.frame0 = self.dcm_data.PerframeFunctionGroups[0]
+        iop = self.frame0.PlaneOrientations[0].ImageOrientationPatient
+        if iop is None:
+            return None
+        iop = np.array((map(float, iop)))
+        return np.array(iop).reshape(2,3).T
+
+    @one_time
+    def voxel_sizes(self):
+        pix_space = self.frame0.PixelMeasures[0].PixelSpacing
+        if pix_space is None:
+            return None
+        zs = self.dcm_data.SpacingBetweenSlices
+        if zs is None:
+            zs = self.frame0.PixelMeasures[0].SliceThickness
+            if zs is None:
+                za = 1
+        zs = float(zs)
+        pix_space = map(float, pix_space)
+        return tuple(pix_space + [zs])
+
+    @one_time
+    def image_position(self):
+        ipp = self.frame0.PlanePositions[0].ImagePositionPatient
+        if ipp is None:
+            return None
+        return np.array(map(float, ipp))
+
+    @one_time
+    def series_signature(self):
+        signature = {}
+        eq = operator.eq
+        for key in ('SeriesInstanceUID',
+                    'SeriesNumber',
+                    'ImageType'):
+            signature[key] = (self.get(key), eq)
+        signature['image_shape'] = (self.image_shape, eq)
+        signature['iop'] = (self.image_orient_patient, none_or_close)
+        signature['vox'] = (self.voxel_sizes, none_or_close)
+        return signature
+
+    def get_pixel_array(self):
+        try:
+            return self['pixel_array']
+        except KeyError:
+            raise WrapperError('Cannot find data in DICOM')
+
+    def get_data(self):
+        shape = self.image_shape
+        if shape is None:
+            raise WrapperError('No valid information for image shape')
+        data = self.get_pixel_array()
+        transposed = data.transpose(1,2,0)
+        return self._scale_data(transposed)
+
+    def _scale_data(self, data):
+        pixelTransformations = self.frame0.PixelValueTransformations[0]
+        scale = pixelTransformations.RescaleSlope
+        offset = pixelTransformations.RescaleIntercept
         if scale != 1:
             if offset == 0:
                 return data * scale
