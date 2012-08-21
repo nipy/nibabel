@@ -102,6 +102,7 @@ class Wrapper(object):
     '''
     is_csa = False
     is_mosaic = False
+    is_edicom = False
     b_matrix = None
     q_vector = None
 
