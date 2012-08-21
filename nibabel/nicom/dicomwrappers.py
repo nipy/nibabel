@@ -380,6 +380,7 @@ class MultiframeWrapper(Wrapper):
     is_multiframe = True
 
     def __init__(self, dcm_data=None):
+        Wrapper.__init__(self, dcm_data)
         if dcm_data is None:
             dcm_data = {}
         self.dcm_data = dcm_data
