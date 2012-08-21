@@ -65,13 +65,11 @@ def wrapper_from_data(dcm_data):
        DICOM wrapper corresponding to DICOM data type
     '''
     csa = csar.get_csa_header(dcm_data)
+    SOPClassUID = dcm_data.SOPClassUID
     if csa is None:
-        try:
-            print "in try"
-            dcm_data.NumberofFrames
+        if SOPClassUID is '1.2.840.10008.5.1.4.1.1.4.1':
             return MultiframeWrapper(dcm_data)
-        except:
-            print 'couldnt make multiframewr'
+        else:
             return Wrapper(dcm_data)
     if not csar.is_mosaic(csa):
         return SiemensWrapper(dcm_data, csa)
@@ -373,16 +371,18 @@ class Wrapper(object):
 
 
 class MultiframeWrapper(Wrapper):
-    ''' Wrapper for Multiframe format or Phillips' Enhanced DICOMs
+    """
+    Wrapper for Enhanced MR Storage SOP Class
 
-    '''
+    tested with Philips' Enhanced DICOM implementation
+    """
     is_multiframe = True
 
     def __init__(self, dcm_data=None):
         if dcm_data is None:
             dcm_data = {}
         self.dcm_data = dcm_data
-        self.frame0 = self.dcm_data.PerframeFunctionalGroups[0]
+        self.frame0 = self.dcm_data.PerFrameFunctionalGroupsSequence[0]
 
     @one_time
     def image_shape(self):
@@ -394,8 +394,9 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_orient_patient(self):
-        self.frame0 = self.dcm_data.PerframeFunctionGroups[0]
-        iop = self.frame0.PlaneOrientations[0].ImageOrientationPatient
+        # already initialized in __init__ above
+        #self.frame0 = self.dcm_data.PerframeFunctionGroups[0]
+        iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
         if iop is None:
             return None
         iop = np.array((map(float, iop)))
