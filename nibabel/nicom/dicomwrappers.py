@@ -404,12 +404,12 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
-        pix_space = self.frame0.PixelMeasures[0].PixelSpacing
+        pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
         if pix_space is None:
             return None
         zs = self.dcm_data.SpacingBetweenSlices
         if zs is None:
-            zs = self.frame0.PixelMeasures[0].SliceThickness
+            zs = self.frame0.PixelMeasuresSequence[0].SliceThickness
             if zs is None:
                 za = 1
         zs = float(zs)
