@@ -19,8 +19,7 @@ from .. import data as nibd
 
 from nose import with_setup
 
-from nose.tools import assert_equal, \
-    assert_raises, raises
+from nose.tools import (assert_equal, assert_raises, raises, assert_false)
 
 from .test_environment import (setup_environment,
                                teardown_environment,
@@ -239,6 +238,11 @@ def test_make_datasource():
 def test_bomber():
     b = Bomber('bomber example', 'a message')
     res = b.any_attribute
+
+
+def test_bomber_inspect():
+    b = Bomber('bomber example', 'a message')
+    assert_false(hasattr(b, 'any_attribute'))
 
 
 @with_environment
