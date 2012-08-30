@@ -407,6 +407,8 @@ class SiemensWrapper(Wrapper):
 
     @one_time
     def slice_normal(self):
+        #The std_slice_normal comes from the cross product of the directions 
+        #in the ImageOrientationPatient
         std_slice_normal = super(SiemensWrapper, self).slice_normal
         csa_slice_normal = csar.get_slice_normal(self.csa_header)
         if std_slice_normal is None and csa_slice_normal is None:
@@ -416,8 +418,12 @@ class SiemensWrapper(Wrapper):
         elif csa_slice_normal is None:
             return std_slice_normal
         else:
+            #Make sure the two normals are very close to parallel unit vectors
             dot_prod = np.dot(csa_slice_normal, std_slice_normal)
             assert np.allclose(np.fabs(dot_prod), 1.0, atol=1e-5)
+            #Use the slice normal computed with the cross product as it will 
+            #always be the most orthogonal, but take the sign from the CSA
+            #slice normal
             if dot_prod < 0:
                 return -std_slice_normal
             else:
