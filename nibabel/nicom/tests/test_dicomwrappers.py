@@ -30,6 +30,7 @@ if have_dicom:
 else:
     DATA = None
 DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')
+DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, 'csa_slice_norm.dcm')
 
 # This affine from our converted image was shown to match our image
 # spatially with an image from SPM DICOM conversion. We checked the
@@ -47,7 +48,6 @@ EXPECTED_AFFINE = np.array(
 EXPECTED_PARAMS = [992.05050247, (0.00507649,
                                   0.99997450,
                                   -0.005023611)]
-
 
 @dicom_test
 def test_wrappers():
@@ -143,3 +143,14 @@ def test_slice_indicator():
     assert_equal(z, dw_1000.slice_indicator)
     dw_empty = didw.Wrapper()
     assert_true(dw_empty.slice_indicator is None)
+
+@dicom_test
+def test_slice_normal():
+    dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
+    
+    #Test that the slice normal is sufficiently orthogonal
+    R = dw.rotation_matrix
+    assert  np.allclose(np.eye(3),
+                        np.dot(R, R.T),
+                        atol=1e-6)
+    
