@@ -962,11 +962,11 @@ class AnalyzeImage(SpatialImage):
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = AnalyzeImage(data, affine)
         >>> hdr = img.get_header()
-        >>> img.shape
-        (2, 3, 4)
+        >>> img.shape == (2, 3, 4)
+        True
         >>> img.update_header()
-        >>> hdr.get_data_shape()
-        (2, 3, 4)
+        >>> hdr.get_data_shape() == (2, 3, 4)
+        True
         >>> hdr.get_zooms()
         (1.0, 2.0, 3.0)
         '''
