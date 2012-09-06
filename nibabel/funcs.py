@@ -39,33 +39,33 @@ def squeeze_image(img):
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> affine = np.eye(4)
     >>> img = nf.Nifti1Image(data, affine)
-    >>> img.shape
-    (10, 20, 30, 1, 1)
+    >>> img.shape == (10, 20, 30, 1, 1)
+    True
     >>> img2 = squeeze_image(img)
-    >>> img2.shape
-    (10, 20, 30)
+    >>> img2.shape == (10, 20, 30)
+    True
 
     If the data are 3D then last dimensions of 1 are ignored
 
     >>> shape = (10,1,1)
     >>> data = np.arange(np.prod(shape)).reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.shape
-    (10, 1, 1)
+    >>> img.shape == (10, 1, 1)
+    True
     >>> img2 = squeeze_image(img)
-    >>> img2.shape
-    (10, 1, 1)
+    >>> img2.shape == (10, 1, 1)
+    True
 
     Only *final* dimensions of 1 are squeezed
 
     >>> shape = (1, 1, 5, 1, 2, 1, 1)
     >>> data = data.reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
-    >>> img.shape
-    (1, 1, 5, 1, 2, 1, 1)
+    >>> img.shape == (1, 1, 5, 1, 2, 1, 1)
+    True
     >>> img2 = squeeze_image(img)
-    >>> img2.shape
-    (1, 1, 5, 1, 2)
+    >>> img2.shape == (1, 1, 5, 1, 2)
+    True
     '''
     klass = img.__class__
     shape = img.shape
