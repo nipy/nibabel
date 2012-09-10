@@ -122,8 +122,8 @@ To read the NetCDF file we just created:
     >>> time = f.variables['time']
     >>> time.units  #23dt next : bytes
     'days since 2008-01-01'
-    >>> print time.shape
-    (10,)
+    >>> time.shape == (10,)
+    True
     >>> print time[-1]
     9
     >>> f.close()

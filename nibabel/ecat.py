@@ -797,11 +797,11 @@ class EcatImage(SpatialImage):
         >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
         >>> img = ecat.load(ecat_file)
         >>> frame0 = img.get_frame(0)
-        >>> frame0.shape
-        (10, 10, 3)
+        >>> frame0.shape == (10, 10, 3)
+        True
         >>> data4d = img.get_data()
-        >>> data4d.shape
-        (10, 10, 3, 1)
+        >>> data4d.shape == (10, 10, 3, 1)
+        True
         """
         self._subheader = subheader
         self._mlist = mlist

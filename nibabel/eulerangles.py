@@ -116,8 +116,8 @@ def euler2mat(z=0, y=0, x=0):
     >>> yrot = -0.1
     >>> xrot = 0.2
     >>> M = euler2mat(zrot, yrot, xrot)
-    >>> M.shape
-    (3, 3)
+    >>> M.shape == (3, 3)
+    True
 
     The output rotation matrix is equal to the composition of the
     individual rotations
