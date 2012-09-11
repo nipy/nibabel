@@ -28,6 +28,15 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
 Krish Subramaniam, Alexandre Gramfort, Cindee Madison, Félix C. Morency,
 Christian Haselgrove.
 
+* 1.3.0 (Tuesday 11 September 2012)
+
+  * New feature and bugfix release
+  * Add ability to write Freesurfer triangle files (Chris Johnson)
+  * Relax threshold for detecting rank deficient affines in orientation
+    detection (JB Poline)
+  * Fix for DICOM slice normal numerical error (issue #137) (Brendan Moloney)
+  * Fix for Python 3 error when writing zero bytes for offset padding
+
 * 1.2.2 (Wednesday 27 June 2012)
 
   * Bugfix release
