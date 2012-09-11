@@ -75,7 +75,7 @@ def io_orientation(affine, tol=None):
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
     for in_ax in range(p):
         col = R[:, in_ax]
-        if not np.alltrue(np.allclose(col, 0)):
+        if not np.allclose(col, 0):
             out_ax = np.argmax(np.abs(col))
             ornt[in_ax, 0] = out_ax
             assert col[out_ax] != 0
