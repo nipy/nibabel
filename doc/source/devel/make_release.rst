@@ -54,8 +54,13 @@ Release checklist
   Then manually go over ``git shortlog 1.2.0..`` to make sure the release notes
   are as complete as possible and that every contributor was recognized.
 
+* Update thanks to authors in ``doc/source/index.rst`` and consider any updates
+  to the ``AUTHOR`` file.
+
 * Use the opportunity to update the ``.mailmap`` file if there are any duplicate
   authors listed from ``git shortlog -nse``.
+
+* Check the copyright year in ``doc/source/conf.py``
 
 * Check the ``long_description`` in ``nibabel/info.py``.  Check it matches the
   ``README`` in the root directory.  Check the output of::
