@@ -198,14 +198,29 @@ Release checklist
     python setup.py register
     python setup.py sdist --formats=gztar,zip upload
 
-  From somewhere - maybe a windows machine - upload the windows installer for
-  convenience::
-
-    python setup.py bdist_wininst upload
-
 * Tag the release with tag of form ``1.1.0``::
 
     git tag -am 'Second main release' 1.1.0
+
+* Push the tag and any other changes to trunk with::
+
+    git push --tags
+
+* Force builds of the win32 and amd64 binaries from the buildbot. Go to pages:
+
+  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32
+  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist64
+
+  For each of these, enter the revision number (e.g. "1.3.0") in the field
+  "Revision to build". Then get the built binaries in:
+
+  * http://nipy.bic.berkeley.edu/dist-32
+  * http://nipy.bic.berkeley.edu/dist-64
+
+  and upload them to pypi with the admin files interface.
+
+  If you are already on a windows machine, you could have done the manual
+  command to upload instead: ``python setup.py bdist_wininst upload``.
 
 * Now the version number is OK, push the docs to sourceforge with::
 
@@ -238,12 +253,18 @@ Release checklist
     Thus the development series ('trunk') will have a version number here of
     '1.1.0.dev' and the next full release will be '1.1.0'.
 
+    Next merge the maintenace branch with the "ours" strategy.  This just labels
+    the maintenance `info.py` edits as seen but discarded, so we can merge from
+    maintenance in future without getting spurious merge conflicts::
+
+       git merge -s ours maint/1.3.x
+
   If this is just a maintenance release from ``maint/1.0.x`` or similar, just
   tag and set the version number to - say - ``1.0.2.dev``.
 
-* Push tags::
+* Push the main branch::
 
-    git push --tags
+    git push main-master
 
 * Make next development release tag
 
