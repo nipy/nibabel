@@ -38,8 +38,10 @@ NiBabel
 
 This package provides read and write access to some common medical and
 neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2),
-GIFTI_, NIfTI1_, MINC_, MGH_ and ECAT_ as well as PAR/REC. There is some very
-limited support for DICOM_.  NiBabel is the successor of PyNIfTI_.
+GIFTI_, NIfTI1_, MINC_, MGH_ and ECAT_ as well as PAR/REC.  We can read and
+write Freesurfer_ geometry, and read Freesurfer morphometry and annotation
+files.  There is some very limited support for DICOM_.  NiBabel is the successor
+of PyNIfTI_.
 
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
@@ -48,6 +50,7 @@ limited support for DICOM_.  NiBabel is the successor of PyNIfTI_.
 .. _GIFTI: http://www.nitrc.org/projects/gifti
 .. _MGH: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 .. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
+.. _Freesurfer: http://surfer.nmr.mgh.harvard.edu
 .. _DICOM: http://medical.nema.org/
 
 The various image format classes give full or selective access to header (meta)
