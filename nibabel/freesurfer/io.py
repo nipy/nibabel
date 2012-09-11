@@ -1,6 +1,8 @@
 from __future__ import with_statement
 
 import numpy as np
+import getpass
+import time
 
 
 def _fread3(fobj):
@@ -91,6 +93,37 @@ def read_geometry(filepath):
 
     coords = coords.astype(np.float)  # XXX: due to mayavi bug on mac 32bits
     return coords, faces
+
+
+def write_geometry(filepath, coords, faces, create_stamp=None):
+    """Write a triangular format Freesurfer surface mesh.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to surface file
+    coords : numpy array
+        nvtx x 3 array of vertex (x, y, z) coordinates
+    faces : numpy array
+        nfaces x 3 array of defining mesh triangles
+    create_stamp : str
+        User/time stamp (default: "created by <user> on <ctime>")
+    """
+    magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
+
+    if create_stamp is None:
+        create_stamp = "created by %s on %s" % (getpass.getuser(),
+            time.ctime())
+
+    with open(filepath, 'wb') as fobj:
+        magic_bytes.tofile(fobj)
+        fobj.write("%s\n\n" % create_stamp)
+
+        np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
+
+        # Coerce types, just to be safe
+        coords.astype('>f4').reshape(-1).tofile(fobj)
+        faces.astype('>i4').reshape(-1).tofile(fobj)
 
 
 def read_morph_data(filepath):

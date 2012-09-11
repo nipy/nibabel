@@ -176,6 +176,33 @@ def test_io_orientation():
                               [np.nan, np.nan],
                               [np.nan, np.nan],
                               [np.nan, np.nan]])
+    # Test behavior of thresholding
+    def_aff = np.array([[1., 1, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]])
+    fail_tol = np.array([[0, 1],
+                         [np.nan, np.nan],
+                         [2, 1]])
+    pass_tol = np.array([[0, 1],
+                         [1, 1],
+                         [2, 1]])
+    eps = np.finfo(float).eps
+    # Test that a Y axis appears as we increase the difference between the first
+    # two columns
+    for y_val, has_y in ((0, False),
+                         (eps, False),
+                         (eps * 5, False),
+                         (eps * 10, True),
+                        ):
+        def_aff[1, 1] = y_val
+        res = pass_tol if has_y else fail_tol
+        assert_array_equal(io_orientation(def_aff), res)
+    # Test tol input argument
+    def_aff[1, 1] = eps
+    assert_array_equal(io_orientation(def_aff, tol=0), pass_tol)
+    def_aff[1, 1] = eps * 10
+    assert_array_equal(io_orientation(def_aff, tol=1e-5), fail_tol)
 
 
 def test_ornt2axcodes():
