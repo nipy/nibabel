@@ -55,10 +55,14 @@ Release checklist
   are as complete as possible and that every contributor was recognized.
 
 * Use the opportunity to update the ``.mailmap`` file if there are any duplicate
-  authors listed from ``git shortlog``.
+  authors listed from ``git shortlog -nse``.
 
 * Check the ``long_description`` in ``nibabel/info.py``.  Check it matches the
-  ``README`` in the root directory.
+  ``README`` in the root directory.  Check the output of::
+
+    rst2html.py README.rst > ~/tmp/readme.html
+
+  becase this will be the output used by pypi_
 
 * Do a final check on the `nipy buildbot`_
 
