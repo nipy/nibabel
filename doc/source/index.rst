@@ -47,6 +47,8 @@ people who have contributed to NiBabel (in rough order of appearance):
 * Bago Amirbekian
 * Brendan Moloney
 * Félix C. Morency
+* Chris Johnson
+* JB Poline
 
 License reprise
 ===============
