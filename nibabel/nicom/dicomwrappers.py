@@ -107,7 +107,7 @@ class Wrapper(object):
     '''
     is_csa = False
     is_mosaic = False
-    is_edicom = False
+    is_multiframe = False
     b_matrix = None
     q_vector = None
     b_value = None
@@ -409,11 +409,14 @@ class MultiframeWrapper(Wrapper):
         Wrapper.__init__(self, dcm_data)
         if dcm_data is None:
             dcm_data = {}
+        else:
+            self.frame0 = dcm_data.PerFrameFunctionalGroupsSequence[0]
         self.dcm_data = dcm_data
-        self.frame0 = self.dcm_data.PerFrameFunctionalGroupsSequence[0]
 
     @one_time
     def image_shape(self):
+        if len(self.dcm_data) == 0:
+            raise WrapperError('No dcm_data specified')
         self.pixel_array = self.dcm_data._get_pixel_array()
         shape = self.pixel_array.shape
         if None in shape:
@@ -422,8 +425,8 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_orient_patient(self):
-        # already initialized in __init__ above
-        #self.frame0 = self.dcm_data.PerframeFunctionGroups[0]
+        if len(self.dcm_data) == 0:
+            raise WrapperError('No dcm_data specified')
         iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
         if iop is None:
             return None
@@ -432,6 +435,8 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
+        if len(self.dcm_data) == 0:
+            raise WrapperError('No dcm_data specified')
         pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
         if pix_space is None:
             return None
@@ -446,6 +451,8 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_position(self):
+        if len(self.dcm_data) == 0:
+            raise WrapperError('No dcm_data specified')
         ipp = self.frame0.PlanePositions[0].ImagePositionPatient
         if ipp is None:
             return None
@@ -479,6 +486,8 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(transposed)
 
     def _scale_data(self, data):
+        if len(self.dcm_data) == 0:
+            raise WrapperError('No dcm_data specified')
         pixelTransformations = self.frame0.PixelValueTransformations[0]
         scale = float(pixelTransformations.RescaleSlope)
         offset = float(pixelTransformations.RescaleIntercept)
