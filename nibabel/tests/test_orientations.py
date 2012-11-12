@@ -14,9 +14,9 @@ from nose.tools import assert_true, assert_equal, assert_raises
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..orientations import (io_orientation, inv_ornt_aff, flip_axis,
-                            apply_orientation, OrientationError, ornt2axcodes,
-                            aff2axcodes)
+from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff, 
+                            flip_axis, apply_orientation, OrientationError, 
+                            ornt2axcodes, axcodes2ornt, aff2axcodes)
 
 from ..affines import from_matvec, to_matvec
 
@@ -204,6 +204,27 @@ def test_io_orientation():
     def_aff[1, 1] = eps * 10
     assert_array_equal(io_orientation(def_aff, tol=1e-5), fail_tol)
 
+def test_ornt_transform():
+    assert_array_equal(ornt_transform([[0,1], [1,1], [2,-1]], 
+                                       [[1,1], [0,1], [2,1]]),
+                       [[1,1], [0,1], [2,-1]]
+                      )
+    assert_array_equal(ornt_transform([[0,1], [1,1], [2,1]], 
+                                       [[2,1], [0,-1], [1,1]]),
+                       [[2,1], [0,-1], [1,1]]
+                      )
+    #Must have same shape
+    assert_raises(ValueError, 
+                  ornt_transform, 
+                  [[0,1], [1,1]], 
+                  [[0,1], [1,1], [2, 1]])
+                  
+    #Must be (N,2) in shape
+    assert_raises(ValueError, 
+                  ornt_transform, 
+                  [[0,1,1], [1,1,1]], 
+                  [[0,1,1], [1,1,1]])
+                  
 
 def test_ornt2axcodes():
     # Recoding orientation to axis codes
@@ -233,6 +254,44 @@ def test_ornt2axcodes():
     # As do directions not in range
     assert_raises(ValueError, ornt2axcodes, [[0,0]])
 
+def test_axcodes2ornt():
+    # Go from axcodes back to orientations
+    labels = (('left', 'right'),('back', 'front'), ('down', 'up'))
+    assert_array_equal(axcodes2ornt(('right', 'front', 'up'), labels),
+                       [[0,1], 
+                        [1,1], 
+                        [2,1]]
+                      )
+    assert_array_equal(axcodes2ornt(('left', 'back', 'down'), labels),
+                       [[0,-1], 
+                        [1,-1], 
+                        [2,-1]]
+                      )
+    assert_array_equal(axcodes2ornt(('down', 'back', 'left'), labels),
+                       [[2,-1], 
+                        [1,-1], 
+                        [0,-1]]
+                      )
+    assert_array_equal(axcodes2ornt(('front', 'down', 'right'), labels),
+                       [[1,1], 
+                        [2,-1], 
+                        [0, 1]]
+                       )
+                 
+    # default is RAS output directions
+    assert_array_equal(axcodes2ornt(('R', 'A', 'S')),
+                       [[0,1],
+                        [1,1],
+                        [2,1]]
+                      )
+                  
+    #dropped axes produce None
+    assert_array_equal(axcodes2ornt(('R', None, 'S')), 
+                       [[0,1],
+                        [np.nan,np.nan],
+                        [2,1]]
+                      )
+    
 
 def test_aff2axcodes():
     labels = (('left', 'right'),('back', 'front'), ('down', 'up'))
