@@ -25,7 +25,6 @@ from ..onetime import setattr_on_read as one_time
 class WrapperError(Exception):
     pass
 
-
 def wrapper_from_file(file_like, *args, **kwargs):
     ''' Create DICOM wrapper from `file_like` object
 
@@ -386,16 +385,35 @@ class MultiframeWrapper(Wrapper):
         else:
             self.frame0 = dcm_data.PerFrameFunctionalGroupsSequence[0]
         self.dcm_data = dcm_data
+        self._shape = None
 
     @one_time
     def image_shape(self):
         if len(self.dcm_data) == 0:
             raise WrapperError('No dcm_data specified')
-        self.pixel_array = self.dcm_data._get_pixel_array()
-        shape = self.pixel_array.shape
-        if None in shape:
-            return None
-        return shape
+        dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
+        n_dim = len(dim_idx0) + 1
+        shape = [0] * n_dim
+        shape[:2] = [self.dcm_data.Rows, self.dcm_data.Columns]
+        if n_dim > 3:
+            self._frame_indices = []
+            for frame in self.dcm_data.PerFrameFunctionalGroupsSequence:
+                frame_idx = frame.FrameContentSequence[0].DimensionIndexValues
+                if frame_idx[0] != dim_idx0[0]:
+                    raise ValueError("Cannot handle multi-stack files")
+                self._frame_indices.append(frame_idx[1:])
+                for idx in range(2, n_dim):
+                    shape[idx] = max(shape[idx], frame_idx[idx - 1])
+            n_vols = 1
+            for idx in range(3, n_dim):
+                n_vols *= shape[idx]
+            if self.dcm_data.NumberOfFrames != n_vols * shape[2]:
+                raise ValueError("Calculated shape does not match number of "
+                                 "frames.")
+        else:
+            shape[2] = self.dcm_data.NumberOfFrames
+        
+        return tuple(shape)
 
     @one_time
     def image_orient_patient(self):
@@ -455,22 +473,37 @@ class MultiframeWrapper(Wrapper):
         shape = self.image_shape
         if shape is None:
             raise WrapperError('No valid information for image shape')
-        data = self.get_pixel_array()
-        transposed = data.transpose(1,2,0)
-        return self._scale_data(transposed)
+        n_dim = len(shape)
+        if n_dim > 3:
+            data = np.empty(shape, dtype=np.int16)
+            pix_str = self.dcm_data.PixelData
+            vox_per_frame = shape[0] * shape[1]
+            frame_size = 2 * vox_per_frame
+            for count, frame_indices in enumerate(self._frame_indices):
+                data_slice = ([slice(None), slice(None)] + 
+                              [(idx - 1) for idx in frame_indices])
+                data[data_slice] = \
+                    np.fromstring(pix_str[count * frame_size:],
+                                  dtype=np.int16,
+                                  count=vox_per_frame).reshape(shape[:2])
+        else:
+            data = self.get_pixel_array().transpose(1,2,0)
+            
+        return self._scale_data(data)
 
     def _scale_data(self, data):
         if len(self.dcm_data) == 0:
             raise WrapperError('No dcm_data specified')
-        pixelTransformations = self.frame0.PixelValueTransformations[0]
-        scale = float(pixelTransformations.RescaleSlope)
-        offset = float(pixelTransformations.RescaleIntercept)
-        if scale != 1:
-            if offset == 0:
-                return data * scale
-            return data * scale + offset
-        if offset != 0:
-            return data + offset
+        if 'PixelValueTransformations' in self.frame0:
+            pixelTransformations = self.frame0.PixelValueTransformations[0]
+            scale = float(pixelTransformations.RescaleSlope)
+            offset = float(pixelTransformations.RescaleIntercept)
+            if scale != 1:
+                if offset == 0:
+                    return data * scale
+                return data * scale + offset
+            if offset != 0:
+                return data + offset
         return data
 
 

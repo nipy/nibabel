@@ -25,10 +25,10 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
-DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm')
+DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm.gz')
 if have_dicom:
     DATA = dicom.read_file(gzip.open(DATA_FILE))
-    DATA_PHILIPS = dicom.read_file(DATA_FILE_PHILIPS)
+    DATA_PHILIPS = dicom.read_file(gzip.open(DATA_FILE_PHILIPS))
 else:
     DATA = None
     DATA_PHILIPS = None
