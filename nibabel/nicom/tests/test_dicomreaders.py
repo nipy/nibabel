@@ -27,7 +27,8 @@ def test_read_dwi():
 
 @dicom_test
 def test_read_dwis():
-    data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH, '*.dcm.gz')
+    data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH, 
+                                                 'siemens_dwi_*.dcm.gz')
     assert_equal(data.ndim, 4)
     assert_array_almost_equal(aff, EXPECTED_AFFINE)
     assert_array_almost_equal(bs, (0, EXPECTED_PARAMS[0]))
