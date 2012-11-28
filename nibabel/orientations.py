@@ -328,7 +328,7 @@ def axcodes2ornt(axcodes, labels=None):
     Returns
     -------
     ornt : (N,2) array-like
-        oritation array - see io_orientation docstring
+        orientation array - see io_orientation docstring
 
     Examples
     --------
