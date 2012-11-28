@@ -110,7 +110,7 @@ def ornt_transform(start_ornt, end_ornt):
         raise ValueError("The orientations must have the same shape")
     if start_ornt.shape[1] != 2:
         raise ValueError("Invalid shape for an orientation: %s" % 
-                         start_ornt.shape)
+                         (start_ornt.shape,))
     result = np.empty_like(start_ornt)
     for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
         for start_in_idx, (start_out_idx, start_flip) in enumerate(start_ornt):
@@ -119,7 +119,7 @@ def ornt_transform(start_ornt, end_ornt):
                     flip = 1
                 else:
                     flip = -1
-                result[end_in_idx, :] = [start_in_idx, flip]
+                result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
             raise ValueError("Unable to find out axis %d in start_ornt" % 

@@ -211,7 +211,7 @@ def test_ornt_transform():
                       )
     assert_array_equal(ornt_transform([[0,1], [1,1], [2,1]], 
                                        [[2,1], [0,-1], [1,1]]),
-                       [[2,1], [0,-1], [1,1]]
+                       [[1,-1], [2,1], [0,1]]
                       )
     #Must have same shape
     assert_raises(ValueError, 
