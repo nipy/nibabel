@@ -311,6 +311,7 @@ def ornt2axcodes(ornt, labels=None):
         axcodes.append(axcode)
     return tuple(axcodes)
 
+
 def axcodes2ornt(axcodes, labels=None):
     """ Convert axis codes `axcodes` to an orientation
 
@@ -333,12 +334,12 @@ def axcodes2ornt(axcodes, labels=None):
     Examples
     --------
     >>> axcodes2ornt(('F', 'L', 'U'), (('L','R'),('B','F'),('D','U')))
-    [[1, 1],[0,-1],[2,1]]
+    array([[ 1.,  1.],
+           [ 0., -1.],
+           [ 2.,  1.]])
     """
-    
     if labels is None:
         labels = zip('LPI', 'RAS')
-    
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
     for code_idx, code in enumerate(axcodes):
@@ -352,7 +353,7 @@ def axcodes2ornt(axcodes, labels=None):
                     ornt[code_idx, :] = [label_idx, 1]
                 break
     return ornt
-    
+
 
 def aff2axcodes(aff, labels=None, tol=None):
     """ axis direction codes for affine `aff`
