@@ -88,6 +88,43 @@ def io_orientation(affine, tol=None):
             R[out_ax, :] = 0
     return ornt
 
+def ornt_transform(start_ornt, end_ornt):
+    '''Return the orientation that transforms from `start_ornt` to `end_ornt`.
+    
+    Parameters
+    ----------
+    start_ornt : (n,2) orientation array
+        Initial orientation.
+        
+    end_ornt : (n,2) orientation array
+        Final orientation.
+       
+    Returns
+    -------
+    orientations : (p, 2) ndarray
+       The orientation that will transform the `start_ornt` to the `end_ornt`.
+    '''
+    start_ornt = np.asarray(start_ornt)
+    end_ornt = np.asarray(end_ornt)
+    if start_ornt.shape != end_ornt.shape:
+        raise ValueError("The orientations must have the same shape")
+    if start_ornt.shape[1] != 2:
+        raise ValueError("Invalid shape for an orientation: %s" % 
+                         (start_ornt.shape,))
+    result = np.empty_like(start_ornt)
+    for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
+        for start_in_idx, (start_out_idx, start_flip) in enumerate(start_ornt):
+            if end_out_idx == start_out_idx:
+                if start_flip == end_flip:
+                    flip = 1
+                else:
+                    flip = -1
+                result[start_in_idx, :] = [end_in_idx, flip]
+                break
+        else:
+            raise ValueError("Unable to find out axis %d in start_ornt" % 
+                             end_out_idx)
+    return result
 
 def apply_orientation(arr, ornt):
     ''' Apply transformations implied by `ornt` to the first
@@ -274,6 +311,48 @@ def ornt2axcodes(ornt, labels=None):
         axcodes.append(axcode)
     return tuple(axcodes)
 
+def axcodes2ornt(axcodes, labels=None):
+    """ Convert axis codes `axcodes` to an orientation
+
+    Parameters
+    ----------
+    axcodes : (N,) tuple
+        axis codes - see ornt2axcodes docstring
+    labels : optional, None or sequence of (2,) sequences
+        (2,) sequences are labels for (beginning, end) of output axis.  That 
+        is, if the first element in `axcodes` is ``front``, and the second 
+        (2,) sequence in `labels` is ('back', 'front') then the first 
+        row of `ornt` will be ``[1, 1]``. If None, equivalent to 
+        ``(('L','R'),('P','A'),('I','S'))`` - that is - RAS axes.
+
+    Returns
+    -------
+    ornt : (N,2) array-like
+        orientation array - see io_orientation docstring
+
+    Examples
+    --------
+    >>> axcodes2ornt(('F', 'L', 'U'), (('L','R'),('B','F'),('D','U')))
+    [[1, 1],[0,-1],[2,1]]
+    """
+    
+    if labels is None:
+        labels = zip('LPI', 'RAS')
+    
+    n_axes = len(axcodes)
+    ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
+    for code_idx, code in enumerate(axcodes):
+        for label_idx, codes in enumerate(labels):
+            if code is None:
+                continue
+            if code in codes:
+                if code == codes[0]:
+                    ornt[code_idx, :] = [label_idx, -1]
+                else:
+                    ornt[code_idx, :] = [label_idx, 1]
+                break
+    return ornt
+    
 
 def aff2axcodes(aff, labels=None, tol=None):
     """ axis direction codes for affine `aff`
