@@ -502,18 +502,27 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError('No valid information for image shape')
         n_dim = len(shape)
         if n_dim > 3:
-            data = np.empty(shape, dtype=np.int16)
-            pix_str = self.dcm_data.PixelData
-            vox_per_frame = shape[0] * shape[1]
-            frame_size = 2 * vox_per_frame
-            for count, frame_indices in enumerate(self._frame_indices):
-                data_slice = ([slice(None), slice(None)] +
-                              [(idx - 1) for idx in frame_indices])
-                data[data_slice] = \
-                    np.fromstring(pix_str[count * frame_size:],
-                                  dtype=np.int16,
-                                  count=vox_per_frame).reshape(shape[:2])
+            data = self.dcm_data.pixel_array
+
+            #Find the flat frame order
+            order = []
+            for frame_index in self._frame_indices:
+                flat_idx = frame_index[0] - 1
+                mult = shape[2]
+                for dim_idx, dim_size in zip(frame_index[1:], shape[3:]):
+                    flat_idx += (dim_idx - 1) * mult
+                    mult *= dim_size
+                order.append(flat_idx)
+
+            #Sort the frames, reshape, and then transpose the array
+            sorted_indices = np.argsort(order)
+            data = data[sorted_indices, :, :]
+            data = data.reshape(shape[::-1])
+            dims = range(n_dim)
+            dims_order = dims[-2:] + dims[:-2][::-1]
+            data = data.transpose(dims_order)
         else:
+            #Just need to transpose the array
             data = self.get_pixel_array().transpose(1,2,0)
 
         return self._scale_data(data)
