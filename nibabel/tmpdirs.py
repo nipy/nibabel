@@ -74,3 +74,22 @@ class InTemporaryDirectory(TemporaryDirectory):
         return super(InTemporaryDirectory, self).__exit__(exc, value, tb)
 
 
+
+class InGivenDirectory(object):
+    """ Clean out, change directory to given directory
+
+    Useful for debugging
+    """
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+
+    def __enter__(self):
+        self._pwd = os.path.abspath(os.getcwd())
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path)
+        os.mkdir(self.path)
+        os.chdir(self.path)
+        return self.path
+
+    def __exit__(self, exc, value, tb):
+        os.chdir(self._pwd)
