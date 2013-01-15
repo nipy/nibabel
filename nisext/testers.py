@@ -420,7 +420,7 @@ def get_sdist_finder(mod_name):
     return pf
 
 
-def sdist_tests(mod_name, repo_path=None):
+def sdist_tests(mod_name, repo_path=None, label='fast', doctests=True):
     """ Make sdist zip, install from it, and run tests """
     if repo_path is None:
         repo_path = abspath(os.getcwd())
@@ -434,7 +434,7 @@ def sdist_tests(mod_name, repo_path=None):
         install_from_zip(zip_fname, install_path, pf, PY_LIB_SDIR, 'bin')
         site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
         script_path = pjoin(install_path, 'bin')
-        cmd = "%s.test()" % mod_name
+        cmd = "%s.test(label='%s', doctests=%s)" % (mod_name, label, doctests)
         stdout, stderr = run_mod_cmd(mod_name,
                                      site_pkgs_path,
                                      cmd,
@@ -447,12 +447,17 @@ def sdist_tests(mod_name, repo_path=None):
 sdist_tests.__test__ = False
 
 
-def bdist_egg_tests(mod_name, repo_path=None):
+def bdist_egg_tests(mod_name, repo_path=None, label='fast', doctests=True):
     """ Make bdist_egg, unzip it, and run tests from result
 
     We've got a problem here, because the egg does not contain the scripts, and
     so, if we are testing the scripts with ``mod.test()``, we won't pick up the
     scripts from the repository we are testing.
+
+    So, you might need to add a label to the script tests, and use the `label`
+    parameter to indicate these should be skipped. As in:
+
+        bdist_egg_tests('nibabel', None, label='not script_test')
     """
     if repo_path is None:
         repo_path = abspath(os.getcwd())
@@ -464,9 +469,10 @@ def bdist_egg_tests(mod_name, repo_path=None):
                               'bdist_egg',
                               '*.egg')
         zip_extract_all(zip_fname, install_path)
+        cmd = "%s.test(label='%s', doctests=%s)" % (mod_name, label, doctests)
         stdout, stderr = run_mod_cmd(mod_name,
                                      install_path,
-                                     mod_name + '.test()',
+                                     cmd,
                                      scripts_path)
     finally:
         shutil.rmtree(install_path)
