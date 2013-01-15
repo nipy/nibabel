@@ -41,6 +41,7 @@ from subprocess import Popen, PIPE
 
 NEEDS_SHELL = os.name != 'nt'
 PYTHON=sys.executable
+HAVE_PUTENV = hasattr(os, 'putenv')
 
 PY_LIB_SDIR = 'pylib'
 
@@ -107,13 +108,21 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
     '''
     if script_dir is None:
         exe_pth_add = ''
+        py_pth_add = ''
     else:
-        if ' ' in script_dir:
+        if not HAVE_PUTENV:
+            raise RuntimeError('We cannot set environment variables')
+        if ' ' in script_dir or ' ' in pkg_path:
             # We can't easily quote the spaces in the python -c call
-            raise ValueError("Cannot have spaces in script path")
+            raise ValueError("Cannot have spaces in python or bin paths")
         exe_pth_add = ('from os import environ;'
                        'environ[\'PATH\'] = \'%s%s\' + environ[\'PATH\'];'
                        % (script_dir, os.path.pathsep))
+        # Need to add the python path for the scripts to pick up our package in
+        # their environment
+        py_pth_add = ('environ[\'PYTHONPATH\'] = \'%s%s\' '
+                      '+ environ[\'PYTHONPATH\'];'
+                       % (pkg_path, os.path.pathsep))
     if print_location:
         p_loc = 'print(%s.__file__);' % mod_name
     else:
@@ -126,10 +135,12 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
                      '%s'
                      'import %s;'
                      '%s'
+                     '%s'
                      '%s"' % (PYTHON,
                               pkg_path,
                               exe_pth_add,
                               mod_name,
+                              py_pth_add,
                               p_loc,
                               cmd)
                     )
@@ -419,12 +430,15 @@ def sdist_tests(mod_name, repo_path=None):
                               install_path,
                               'sdist --formats=zip',
                               '*.zip')
-        site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
         pf = get_sdist_finder(mod_name)
         install_from_zip(zip_fname, install_path, pf, PY_LIB_SDIR, 'bin')
+        site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
+        script_path = pjoin(install_path, 'bin')
+        cmd = "%s.test()" % mod_name
         stdout, stderr = run_mod_cmd(mod_name,
                                      site_pkgs_path,
-                                     mod_name + '.test()')
+                                     cmd,
+                                     script_path)
     finally:
         shutil.rmtree(install_path)
     print(stdout)
