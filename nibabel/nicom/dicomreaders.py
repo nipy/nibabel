@@ -35,11 +35,13 @@ def mosaic_to_nii(dcm_data):
     return nib.Nifti1Image(data, aff)
 
 
-def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', **kwargs):
-    return read_mosaic_dir(dicom_path, globber, check_is_dwi=True, **kwargs)
+def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', dicom_args=None):
+    return read_mosaic_dir(dicom_path, globber, check_is_dwi=True,
+                           dicom_args=dicom_args)
 
 
-def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, **kwargs):
+def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False,
+                    dicom_args=None):
     ''' Read all Siemens mosaic DICOMs in directory, return arrays, params
 
     Parameters
@@ -77,8 +79,10 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, **kwargs):
     arrays = []
     if len(filenames) == 0:
         raise IOError('Found no files with "%s"' % full_globber)
+    if dicom_args is None:
+        dicom_args = {}
     for fname in filenames:
-        dcm_w = wrapper_from_file(fname, **kwargs)
+        dcm_w = wrapper_from_file(fname, **dicom_args)
         # Because the routine sorts by filename, it only makes sense to use this
         # order for mosaic images.  Slice by slice dicoms need more sensible
         # sorting

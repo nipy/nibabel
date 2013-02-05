@@ -36,3 +36,15 @@ def test_read_dwis():
                               (np.zeros((3,)) + np.nan,
                                EXPECTED_PARAMS[1]))
     assert_raises(IOError, didr.read_mosaic_dwi_dir, 'improbable')
+
+@dicom_test
+def test_keyword_args():
+    error_raised = False
+    try:
+        data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
+                                                     'siemens_dwi_*.dcm.gz',
+                                                     dicom_args={'force': True})
+    except Exception, e:
+        error_raised = True
+    assert_false(error_raised)
+
