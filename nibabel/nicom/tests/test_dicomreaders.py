@@ -44,7 +44,7 @@ def test_keyword_args():
         data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
                                                      'siemens_dwi_*.dcm.gz',
                                                      dicom_args={'force': True})
-    except Exception, e:
+    except Exception:
         error_raised = True
     assert_false(error_raised)
 
