@@ -2,7 +2,7 @@
 from __future__ import with_statement
 
 from os import getcwd
-from os.path import abspath, dirname, isfile
+from os.path import realpath, abspath, dirname, isfile
 
 from ..tmpdirs import InGivenDirectory
 
@@ -19,6 +19,6 @@ def test_given_directory():
         assert_equal(tmpdir, abspath(getcwd()))
     with InGivenDirectory(MY_DIR) as tmpdir:
         assert_equal(tmpdir, MY_DIR)
-        assert_equal(MY_DIR, abspath(getcwd()))
+        assert_equal(realpath(MY_DIR), realpath(abspath(getcwd())))
     # We were deleting the Given directory!  Check not so now.
     assert_true(isfile(MY_PATH))
