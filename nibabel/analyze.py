@@ -938,7 +938,18 @@ class AnalyzeImage(SpatialImage):
             imgf = hdrf
         else:
             imgf = img_fh.get_prepare_fileobj(mode='wb')
+        #the arr_writer doesn't seem to contain any information about slope and inter, but default values
         slope, inter = get_slope_inter(arr_writer)
+        #So for instance when creating a nifti file and setting slope and inter, this information is then not saved to disk
+        
+        #however we need to get the slope and inter from the image we're trying to save to disk
+        #UPDATE SLOPE
+        if hdr.has_data_slope:
+            slope = hdr.get_slope_inter()[0]
+        #UPDATE INTER
+        if hdr.has_data_intercept:
+            inter = hdr.get_slope_inter()[1]
+
         self._write_header(hdrf, hdr, slope, inter)
         # Write image
         shape = hdr.get_data_shape()
