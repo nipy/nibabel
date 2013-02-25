@@ -161,10 +161,15 @@ class Wrapper(object):
         # column index, and the second to changes in row index.
         R[:,:2] = np.fliplr(iop)
         R[:,2] = s_norm
+
+        precision = 1e-6
+        iop_val = self.get('ImageOrientationPatient')[0]
+        if hasattr(iop_val,'original_string'):
+            precision = 3**(-len(iop_val.original_string.lstrip('0.')))
         # check this is in fact a rotation matrix
         assert np.allclose(np.eye(3),
                            np.dot(R, R.T),
-                           atol=1e-6)
+                           atol=precision)
         return R
 
     @one_time
