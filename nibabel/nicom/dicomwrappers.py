@@ -163,9 +163,9 @@ class Wrapper(object):
         R[:,2] = s_norm
 
         precision = 1e-6
-        iop_val = self.get('ImageOrientationPatient')[0]
-        if hasattr(iop_val,'original_string'):
-            precision = 3**(-len(iop_val.original_string.lstrip('0.')))
+        iop_val = self.get('ImageOrientationPatient')
+        if iop_val!=None and hasattr(iop_val[0],'original_string'):
+            precision = 3**(-len(iop_val[0].original_string.lstrip('0.')))
         # check this is in fact a rotation matrix
         assert np.allclose(np.eye(3),
                            np.dot(R, R.T),
