@@ -3,7 +3,7 @@
 
 from os.path import join as pjoin, dirname
 import gzip
-from sha import sha
+from hashlib import sha1
 
 import numpy as np
 
@@ -336,5 +336,5 @@ def test_multiframe_data():
     #This just tests that the data ordering produces a consistent result.
     dw = didw.wrapper_from_file(DATA_FILE_4D)
     dat_str = dw.get_data().tostring()
-    assert (sha(dat_str).hexdigest() ==
+    assert (sha1(dat_str).hexdigest() ==
             '149323269b0af92baa7508e19ca315240f77fa8c')
