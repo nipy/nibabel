@@ -31,6 +31,7 @@ else:
     DATA = None
 DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')
 DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, 'csa_slice_norm.dcm')
+DATA_FILE_DEC_RSCL = pjoin(IO_DATA_PATH, 'decimal_rescale.dcm')
 
 # This affine from our converted image was shown to match our image
 # spatially with an image from SPM DICOM conversion. We checked the
@@ -171,3 +172,10 @@ def test_assert_parallel():
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
     assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
+    
+@dicom_test
+def test_decimal_rescale():
+    #Test that we don't get back a data array with dtpye np.object when our 
+    #rescale slope is a decimal
+    dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
+    assert dw.get_data().dtype != np.object
