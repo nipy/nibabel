@@ -3,6 +3,7 @@
 
 from os.path import join as pjoin, dirname
 import gzip
+from sha import sha
 
 import numpy as np
 
@@ -328,3 +329,12 @@ def test_multiframe_affine():
     #Make sure we find orientation/position/spacing info
     dw = didw.wrapper_from_file(DATA_FILE_4D)
     dw.get_affine()
+
+
+def test_multiframe_data():
+    #The data in this file is (initially) a 1D gradient so it compresses well.
+    #This just tests that the data ordering produces a consistent result.
+    dw = didw.wrapper_from_file(DATA_FILE_4D)
+    dat_str = dw.get_data().tostring()
+    assert (sha(dat_str).hexdigest() ==
+            '149323269b0af92baa7508e19ca315240f77fa8c')
