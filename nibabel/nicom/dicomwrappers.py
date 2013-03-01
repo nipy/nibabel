@@ -411,6 +411,7 @@ class MultiframeWrapper(Wrapper):
             dcm_data = {}
         else:
             self.frame0 = dcm_data.PerFrameFunctionalGroupsSequence[0]
+            self.shared = dcm_data.SharedFunctionalGroupsSequence[0]
         self.dcm_data = dcm_data
         self._shape = None
 
@@ -446,7 +447,10 @@ class MultiframeWrapper(Wrapper):
     def image_orient_patient(self):
         if len(self.dcm_data) == 0:
             raise WrapperError('No dcm_data specified')
-        iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
+        try:
+            iop = self.shared.PlaneOrientationSequence[0].ImageOrientationPatient
+        except AttributeError:
+            iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
         if iop is None:
             return None
         iop = np.array((map(float, iop)))
@@ -456,12 +460,18 @@ class MultiframeWrapper(Wrapper):
     def voxel_sizes(self):
         if len(self.dcm_data) == 0:
             raise WrapperError('No dcm_data specified')
-        pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
+        try:
+            pix_space = self.shared.PixelMeasuresSequence[0].PixelSpacing
+        except AttributeError:
+            pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
         if pix_space is None:
             return None
-        zs = self.dcm_data.SpacingBetweenSlices
+        zs = self.get('SpacingBetweenSlices')
         if zs is None:
-            zs = self.frame0.PixelMeasuresSequence[0].SliceThickness
+            try:
+                zs = self.shared.PixelMeasuresSequence[0].SliceThickness
+            except AttributeError:
+                zs = self.frame0.PixelMeasuresSequence[0].SliceThickness
             if zs is None:
                 za = 1
         zs = float(zs)
@@ -472,7 +482,10 @@ class MultiframeWrapper(Wrapper):
     def image_position(self):
         if len(self.dcm_data) == 0:
             raise WrapperError('No dcm_data specified')
-        ipp = self.frame0.PlanePositions[0].ImagePositionPatient
+        try:
+            ipp = self.shared.PlanePositions[0].ImagePositionPatient
+        except AttributeError:
+            ipp = self.frame0.PlanePositions[0].ImagePositionPatient
         if ipp is None:
             return None
         return np.array(map(float, ipp))
