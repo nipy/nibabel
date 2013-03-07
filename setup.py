@@ -19,7 +19,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 # For some commands, use setuptools.
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
-            'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
+            'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
     # setup_egg imports setuptools setup, thus monkeypatching distutils.
     import setup_egg

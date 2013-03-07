@@ -41,29 +41,29 @@ def apply_affine(aff, pts):
     --------
     >>> aff = np.array([[0,2,0,10],[3,0,0,11],[0,0,4,12],[0,0,0,1]])
     >>> pts = np.array([[1,2,3],[2,3,4],[4,5,6],[6,7,8]])
-    >>> apply_affine(aff, pts)
+    >>> apply_affine(aff, pts) #doctest: +ELLIPSIS
     array([[14, 14, 24],
            [16, 17, 28],
            [20, 23, 36],
-           [24, 29, 44]])
+           [24, 29, 44]]...)
 
     Just to show that in the simple 3D case, it is equivalent to:
 
-    >>> (np.dot(aff[:3,:3], pts.T) + aff[:3,3:4]).T
+    >>> (np.dot(aff[:3,:3], pts.T) + aff[:3,3:4]).T #doctest: +ELLIPSIS
     array([[14, 14, 24],
            [16, 17, 28],
            [20, 23, 36],
-           [24, 29, 44]])
+           [24, 29, 44]]...)
 
     But `pts` can be a more complicated shape:
 
     >>> pts = pts.reshape((2,2,3))
-    >>> apply_affine(aff, pts)
+    >>> apply_affine(aff, pts) #doctest: +ELLIPSIS
     array([[[14, 14, 24],
             [16, 17, 28]],
     <BLANKLINE>
            [[20, 23, 36],
-            [24, 29, 44]]])
+            [24, 29, 44]]]...)
     """
     aff = np.asarray(aff)
     pts = np.asarray(pts)
