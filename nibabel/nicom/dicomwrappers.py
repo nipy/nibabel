@@ -353,8 +353,9 @@ class Wrapper(object):
         return True
 
     def _scale_data(self, data):
-        scale = self.get('RescaleSlope', 1)
-        offset = self.get('RescaleIntercept', 0)
+        # depending on pydicom and dicom files, values might need casting from Decimal to float
+        scale = float(self.get('RescaleSlope', 1))
+        offset = float(self.get('RescaleIntercept', 0))
         if scale == 1 and offset == 0:
             mpseq = self.get('RealWorldValueMappingSequence',None)
             if mpseq == None: # compatibility with pydicom < 0.9.7 ????
