@@ -161,10 +161,10 @@ class Wrapper(object):
         # column index, and the second to changes in row index.
         R[:,:2] = np.fliplr(iop)
         R[:,2] = s_norm
-        # check this is in fact a rotation matrix
+        # check for orthogonality
         assert np.allclose(np.eye(3),
                            np.dot(R, R.T),
-                           atol=1e-6)
+                           atol=2e-5)
         return R
 
     @one_time
