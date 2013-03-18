@@ -101,8 +101,8 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False,
             b = np.nan
             g = np.ones((3,)) + np.nan
         else:
-            b = np.sqrt(np.sum(q * q)) # vector norm
-            g = q / b
+            b = dcm_w.b_value
+            g = dcm_w.b_vector
         b_values.append(b)
         gradients.append(g)
     affine = np.dot(DPCS_TO_TAL, dcm_w.get_affine())
