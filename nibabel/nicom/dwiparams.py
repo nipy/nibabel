@@ -40,7 +40,7 @@ def B2q(B, tol=None):
        absolute tolerance below which to consider eigenvalues of the B
        matrix to be small enough not to worry about them being negative,
        in check for positive semi-definite-ness.  None (default) results
-       in a fairly tight numerical threshold proportional the maximum
+       in a fairly tight numerical threshold proportional to the maximum
        eigenvalue
 
     Returns
@@ -53,7 +53,7 @@ def B2q(B, tol=None):
         raise ValueError('B matrix is not symmetric enough')
     w, v = npl.eigh(B)
     if tol is None:
-        tol = np.abs(w.max() * np.finfo(w.dtype).eps)
+        tol = np.abs(w.max()) * B.shape[0] * np.finfo(w.dtype).eps
     non_trivial = np.abs(w) > tol
     if np.any(w[non_trivial] < 0):
         raise ValueError('B not positive semi-definite')
