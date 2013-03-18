@@ -29,3 +29,7 @@ def test_b2q():
     assert_raises(ValueError, B2q, B)
     # no error if we up the tolerance
     q = B2q(B, tol=1)
+    # Confirm that we assume symmetric
+    B = np.eye(3)
+    B[0, 1] = 1e-5
+    assert_raises(ValueError, B2q, B)
