@@ -84,7 +84,7 @@ import sys
 
 import numpy as np
 
-from .volumeutils import (native_code, swapped_code, make_dt_codes, allopen,
+from .volumeutils import (native_code, swapped_code, make_dt_codes,
                           shape_zoom_affine, array_from_file, seek_tell,
                           apply_read_scaling)
 from .arraywriters import make_array_writer, get_slope_inter, WriterError

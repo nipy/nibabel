@@ -20,7 +20,7 @@ The API is - at minimum:
 You might also want to implement ``state_stamper``
 """
 
-from .volumeutils import allopen
+from .volumeutils import BinOpener
 
 
 class ArrayProxy(object):
@@ -56,10 +56,6 @@ class ArrayProxy(object):
         return self._data
 
     def _read_data(self):
-        fileobj = allopen(self.file_like)
-        data = self.header.data_from_fileobj(fileobj)
-        if isinstance(self.file_like, basestring):  # filename
-            fileobj.close()
+        with BinOpener(self.file_like) as fileobj:
+            data = self.header.data_from_fileobj(fileobj)
         return data
-
-

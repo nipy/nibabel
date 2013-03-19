@@ -13,8 +13,7 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
-from nibabel.volumeutils import allopen, array_to_file, array_from_file,  \
-     Recoder
+from nibabel.volumeutils import (array_to_file, array_from_file, Recoder)
 from nibabel.spatialimages import HeaderDataError, ImageFileError, SpatialImage
 from nibabel.fileholders import FileHolder,  copy_file_map
 from nibabel.filename_parser import types_filenames, TypesFilenamesError

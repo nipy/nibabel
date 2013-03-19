@@ -18,7 +18,7 @@ import numpy as np
 
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def
-from ..volumeutils import allopen
+from ..volumeutils import BinOpener
 from ..onetime import setattr_on_read as one_time
 
 
@@ -45,8 +45,8 @@ def wrapper_from_file(file_like, *args, **kwargs):
        DICOM wrapper corresponding to DICOM data type
     '''
     import dicom
-    fobj = allopen(file_like)
-    dcm_data = dicom.read_file(fobj, *args, **kwargs)
+    with BinOpener(file_like) as fobj:
+        dcm_data = dicom.read_file(fobj, *args, **kwargs)
     return wrapper_from_data(dcm_data)
 
 

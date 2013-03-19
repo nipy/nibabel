@@ -9,7 +9,7 @@
 # module imports
 from .py3k import asbytes
 from .filename_parser import types_filenames, splitext_addext
-from . import volumeutils as vu
+from .volumeutils import BinOpener
 from . import spm2analyze as spm2
 from . import nifti1
 from .freesurfer import MGHImage
@@ -43,9 +43,8 @@ def load(filename):
         # might be nifti pair or analyze of some sort
         files_types = (('image','.img'), ('header','.hdr'))
         filenames = types_filenames(filename, files_types)
-        hdr = nifti1.Nifti1Header.from_fileobj(
-            vu.allopen(filenames['header']),
-            check=False)
+        with BinOpener(filenames['header']) as fobj:
+            hdr = nifti1.Nifti1Header.from_fileobj(fobj, check=False)
         if hdr['magic'] in (asbytes('ni1'), asbytes('n+1')):
             # allow goofy nifti single magic for pair
             klass = nifti1.Nifti1Pair
