@@ -124,17 +124,18 @@ def read_img_data(img, prefer='scaled'):
     mean-centered scaled data.  However, this is not necessarily true of
     other formats with more complicated scaling - such as MINC.
     """
+    if prefer not in ('scaled', 'unscaled'):
+        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
     image_fileholder = img.file_map['image']
+    hdr = img.get_header()
     try:
         fileobj = image_fileholder.get_prepare_fileobj()
     except FileHolderError:
         raise ImageFileError('No image file specified for this image')
-    if prefer not in ('scaled', 'unscaled'):
-        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
-    hdr = img.get_header()
-    if prefer == 'unscaled':
-        try:
-            return hdr.raw_data_from_fileobj(fileobj)
-        except AttributeError:
-            pass
-    return hdr.data_from_fileobj(fileobj)
+    with fileobj:
+        if prefer == 'unscaled':
+            try:
+                return hdr.raw_data_from_fileobj(fileobj)
+            except AttributeError:
+                pass
+        return hdr.data_from_fileobj(fileobj)

@@ -212,17 +212,17 @@ class MincImage(SpatialImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        fobj = file_map['image'].get_prepare_fileobj()
-        minc_file = MincFile(netcdf_file(fobj))
-        affine = minc_file.get_affine()
-        if affine.shape != (4, 4):
-            raise MincError('Image does not have 3 spatial dimensions')
-        data_dtype = minc_file.get_data_dtype()
-        shape = minc_file.get_data_shape()
-        zooms = minc_file.get_zooms()
-        header = klass.header_class(data_dtype, shape, zooms)
-        data = klass.ImageArrayProxy(minc_file)
-        return  MincImage(data, affine, header, extra=None, file_map=file_map)
+        with file_map['image'].get_prepare_fileobj() as fobj:
+            minc_file = MincFile(netcdf_file(fobj))
+            affine = minc_file.get_affine()
+            if affine.shape != (4, 4):
+                raise MincError('Image does not have 3 spatial dimensions')
+            data_dtype = minc_file.get_data_dtype()
+            shape = minc_file.get_data_shape()
+            zooms = minc_file.get_zooms()
+            header = klass.header_class(data_dtype, shape, zooms)
+            data = klass.ImageArrayProxy(minc_file)
+        return MincImage(data, affine, header, extra=None, file_map=file_map)
 
 
 load = MincImage.load
