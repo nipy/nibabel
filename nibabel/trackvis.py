@@ -217,7 +217,9 @@ def read(fileobj, as_generator=False, points_space=None):
             n_streams += 1
             # deliberately misses case where stream_count is 0
             if n_streams == stream_count:
+                fileobj.close_if_mine()
                 raise StopIteration
+        fileobj.close_if_mine()
     streamlines = track_gen()
     if not as_generator:
         streamlines = list(streamlines)
@@ -407,6 +409,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())
+    fileobj.close_if_mine()
 
 
 def _check_hdr_points_space(hdr, points_space):
