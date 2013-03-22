@@ -234,6 +234,17 @@ class MGHHeader(object):
         '''
         return self.get_affine()
 
+    def get_vox2ras_tkr(self):
+        ''' Get the vox2ras-tkr transform. See "Torig" here:
+                http://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+        '''
+        pcrs_c = self._header_data['dims'][:3] / 2.0
+        v2rtkr = np.array([[-1, 0, 0, pcrs_c[0]],
+                           [0, 0, 1, -pcrs_c[2]],
+                           [0, -1, 0, pcrs_c[1]],
+                           [0, 0, 0, 1]], dtype=np.float32)
+        return v2rtkr
+
     def get_ras2vox(self):
         '''return the inverse get_affine()
         '''

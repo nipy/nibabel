@@ -17,9 +17,12 @@ from ...testing import data_path
 from numpy.testing import assert_equal, assert_array_equal, \
     assert_array_almost_equal, assert_almost_equal, assert_raises
 
-# sample voxel to ras matrix
+# sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
+# sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
+v2rtkr = np.array([[-1, 0, 0, 1.5,], [0, 0, 1, -2.5],
+                   [0, -1, 0, 2], [0, 0, 0, 1]], dtype=np.float32)
 
 
 def test_read_mgh():
@@ -39,6 +42,7 @@ def test_read_mgh():
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
     assert_array_almost_equal(h.get_vox2ras(), v2r)
+    assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
     # data. will be different for your own mri_volsynth invocation
     v = mgz.get_data()
