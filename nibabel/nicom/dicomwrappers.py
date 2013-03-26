@@ -362,10 +362,8 @@ class Wrapper(object):
                 mpseq = self.get('RealWorldValueMappings',None)
             if mpseq != None and len(mpseq)>0:
                 mpseq = mpseq[0]
-                if mpseq.has_key('RealWorldValueSlope'):
-                    scale = mpseq.RealWorldValueSlope
-                if mpseq.has_key('RealWorldValueIntercept'):
-                    offset = mpseq.RealWorldValueIntercept
+                scale = mpseq.get('RealWorldValueSlope',1)
+                offset = mpseq.get('RealWorldValueIntercept',0)
         # a little optimization.  If we are applying either the scale or
         # the offset, we need to allow upcasting to float.
         if scale != 1:
