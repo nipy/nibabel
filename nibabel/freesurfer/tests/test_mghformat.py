@@ -194,3 +194,19 @@ def test_header_updating():
     RZS = exp_aff_d[:3, :3]
     assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
     assert_almost_equal(hdr2['Mdc'], (RZS / hdr2['delta']).T)
+
+
+def test_cosine_order():
+    # Test we are interpreting the cosine order right
+    data = np.arange(60).reshape((3, 4, 5)).astype(np.int32)
+    aff = np.diag([2., 3, 4, 1])
+    aff[0] = [2, 1, 0, 10]
+    img = MGHImage(data, aff)
+    assert_almost_equal(img.get_affine(), aff, 6)
+    img_fobj = BytesIO()
+    img2 = _mgh_rt(img, img_fobj)
+    hdr2 = img2.get_header()
+    RZS = aff[:3, :3]
+    zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
+    assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
+    assert_almost_equal(hdr2['delta'], zooms)
