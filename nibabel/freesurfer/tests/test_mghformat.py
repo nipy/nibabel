@@ -53,7 +53,7 @@ def test_read_mgh():
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
-    assert_array_almost_equal(h.get_zooms(), zooms)
+    assert_array_almost_equal(h.get_zooms(), 1)
     assert_array_almost_equal(h.get_vox2ras(), v2r)
     assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
