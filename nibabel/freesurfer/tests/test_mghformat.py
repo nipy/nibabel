@@ -26,14 +26,10 @@ from numpy.testing import assert_equal, assert_array_equal, \
 # sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
-# sample voxel sizes (mri_info --res gives different result because the
-# direction cosines in our test file are borked)
-zooms = np.array([3.7416575, 3.7416575, 3.7416575])
-# sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr also gives
-# different results because of the direction cosines, again)
-v2rtkr = np.array([[-3.7416575, 0.0, 0.0,  7.48331499],
-                   [0.0, 0.0, 3.7416575, -9.3541441],
-                   [0.0, -3.7416575, 0.0, 5.61248636],
+# sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
+v2rtkr = np.array([[-1.0, 0.0, 0.0,  1.5],
+                   [0.0, 0.0, 1.0, -2.5],
+                   [0.0, -1.0, 0.0, 2.0],
                    [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)
 
 
