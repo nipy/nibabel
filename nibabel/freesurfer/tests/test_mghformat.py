@@ -21,8 +21,10 @@ from numpy.testing import assert_equal, assert_array_equal, \
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
 # sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
-v2rtkr = np.array([[-1, 0, 0, 1.5,], [0, 0, 1, -2.5],
+v2rtkr = np.array([[-1, 0, 0, 1.5], [0, 0, 1, -2.5],
                    [0, -1, 0, 2], [0, 0, 0, 1]], dtype=np.float32)
+# sample voxel sizes (mri_info --res)
+zooms = np.array([1.000, 1.000, 1.000])
 
 
 def test_read_mgh():
@@ -41,6 +43,7 @@ def test_read_mgh():
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
+    assert_array_almost_equal(h.get_zooms(), zooms)
     assert_array_almost_equal(h.get_vox2ras(), v2r)
     assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 

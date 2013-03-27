@@ -238,10 +238,11 @@ class MGHHeader(object):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
                 http://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
-        pcrs_c = self._header_data['dims'][:3] / 2.0
-        v2rtkr = np.array([[-1, 0, 0, pcrs_c[0]],
-                           [0, 0, 1, -pcrs_c[2]],
-                           [0, -1, 0, pcrs_c[1]],
+        ds = np.array(self._header_data['delta'])
+        ns = (np.array(self._header_data['dims'][:3]) * ds) / 2.0
+        v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
+                           [0, 0, ds[2], -ns[2]],
+                           [0, -ds[1], 0, ns[1]],
                            [0, 0, 0, 1]], dtype=np.float32)
         return v2rtkr
 
@@ -557,7 +558,8 @@ class MGHImage(SpatialImage):
         if not self._affine is None:
             # for more information, go through save_mgh.m in FreeSurfer dist
             MdcD = self._affine[:3, :3]
-            delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
+            delta = hdr['delta']
+            #delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
             Mdc = MdcD / np.tile(delta, (3, 1))
             Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
             Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
