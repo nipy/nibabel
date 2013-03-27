@@ -558,8 +558,7 @@ class MGHImage(SpatialImage):
         if not self._affine is None:
             # for more information, go through save_mgh.m in FreeSurfer dist
             MdcD = self._affine[:3, :3]
-            delta = hdr['delta']
-            #delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
+            delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
             Mdc = MdcD / np.tile(delta, (3, 1))
             Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
             Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
