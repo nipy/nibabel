@@ -229,6 +229,9 @@ class MGHHeader(object):
         M[0:3, 3] = pxyz_0.T
         return M
 
+    # For compatibility with nifti (multiple affines)
+    get_best_affine = get_affine
+
     def get_vox2ras(self):
         '''return the get_affine()
         '''
@@ -554,20 +557,25 @@ class MGHImage(SpatialImage):
         hdr = self._header
         if not self._data is None:
             hdr.set_data_shape(self._data.shape)
+        # If the affine is not None, and it is different from the main affine in
+        # the header, update the heaader
+        if self._affine is None:
+            return
+        if np.allclose(self._affine, hdr.get_best_affine()):
+            return
+        # for more information, go through save_mgh.m in FreeSurfer dist
+        MdcD = self._affine[:3, :3]
+        delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
+        Mdc = MdcD / np.tile(delta, (3, 1))
+        Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
+        Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
+                                self._data.shape[2]], dtype=np.float) / 2.0
+        Pxyz_c = np.dot(self._affine, Pcrs_c)
 
-        if not self._affine is None:
-            # for more information, go through save_mgh.m in FreeSurfer dist
-            MdcD = self._affine[:3, :3]
-            delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
-            Mdc = MdcD / np.tile(delta, (3, 1))
-            Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
-            Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
-                                   self._data.shape[2]], dtype=np.float) / 2.0
-            Pxyz_c = np.dot(self._affine, Pcrs_c)
+        hdr['delta'][:] = delta
+        hdr['Mdc'][:, :] = Mdc.T
+        hdr['Pxyz_c'][:] = Pxyz_c[:3]
 
-            hdr['delta'][:] = delta
-            hdr['Mdc'][:, :] = Mdc.T
-            hdr['Pxyz_c'][:] = Pxyz_c[:3]
 
 load = MGHImage.load
 save = MGHImage.instance_to_filename
