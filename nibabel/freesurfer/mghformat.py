@@ -240,9 +240,9 @@ class MGHHeader(object):
         '''
         ds = np.array(self._header_data['delta'])
         ns = (np.array(self._header_data['dims'][:3]) * ds) / 2.0
-        v2rtkr = np.array([[-ds[1], 0, 0, ns[1]],
+        v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
                            [0, 0, ds[2], -ns[2]],
-                           [0, -ds[0], 0, ns[0]],
+                           [0, -ds[1], 0, ns[1]],
                            [0, 0, 0, 1]], dtype=np.float32)
         return v2rtkr
 
