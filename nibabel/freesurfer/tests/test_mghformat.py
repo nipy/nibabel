@@ -8,18 +8,29 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 '''Tests for mghformat reading writing'''
 from __future__ import with_statement
+
 import os
+from io import StringIO, BytesIO
+
 import numpy as np
 from .. import load, save, MGHImage
 from ..mghformat import MGHError
 from ...tmpdirs import InTemporaryDirectory
+from ...py3k import unicode
+from ...fileholders import FileHolder
+
 from ...testing import data_path
 from numpy.testing import assert_equal, assert_array_equal, \
     assert_array_almost_equal, assert_almost_equal, assert_raises
 
-# sample voxel to ras matrix
+# sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
+# sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
+v2rtkr = np.array([[-1.0, 0.0, 0.0,  1.5],
+                   [0.0, 0.0, 1.0, -2.5],
+                   [0.0, -1.0, 0.0, 2.0],
+                   [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)
 
 
 def test_read_mgh():
@@ -38,7 +49,9 @@ def test_read_mgh():
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
+    assert_array_almost_equal(h.get_zooms(), 1)
     assert_array_almost_equal(h.get_vox2ras(), v2r)
+    assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
     # data. will be different for your own mri_volsynth invocation
     v = mgz.get_data()
@@ -139,3 +152,61 @@ def test_filename_exts():
             img_back = load(fname)
             assert_array_equal(img_back.get_data(), v)
             del img_back
+
+
+def _mgh_rt(img, fobj):
+    file_map = {'image': FileHolder(fileobj=fobj)}
+    img.to_file_map(file_map)
+    return MGHImage.from_file_map(file_map)
+
+
+def test_header_updating():
+    # Don't update the header information if the affine doesn't change.
+    # Luckily the test.mgz dataset had a bad set of cosine vectors, so these
+    # will be changed if the affine gets updated
+    mgz_path = os.path.join(data_path, 'test.mgz')
+    mgz = load(mgz_path)
+    hdr = mgz.get_header()
+    # Test against mri_info output
+    exp_aff = np.loadtxt(StringIO(unicode("""
+    1.0000   2.0000   3.0000   -13.0000
+    2.0000   3.0000   1.0000   -11.5000
+    3.0000   1.0000   2.0000   -11.5000
+    0.0000   0.0000   0.0000     1.0000""")))
+    assert_almost_equal(mgz.get_affine(), exp_aff, 6)
+    assert_almost_equal(hdr.get_affine(), exp_aff, 6)
+    # Test that initial wonky header elements have not changed
+    assert_equal(hdr['delta'], 1)
+    assert_almost_equal(hdr['Mdc'], exp_aff[:3, :3].T)
+    # Save, reload, same thing
+    img_fobj = BytesIO()
+    mgz2 = _mgh_rt(mgz, img_fobj)
+    hdr2 = mgz2.get_header()
+    assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
+    assert_equal(hdr2['delta'], 1)
+    # Change affine, change underlying header info
+    exp_aff_d = exp_aff.copy()
+    exp_aff_d[0, -1] = -14
+    # This will (probably) become part of the official API
+    mgz2._affine[:] = exp_aff_d
+    mgz2.update_header()
+    assert_almost_equal(hdr2.get_affine(), exp_aff_d, 6)
+    RZS = exp_aff_d[:3, :3]
+    assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
+    assert_almost_equal(hdr2['Mdc'], (RZS / hdr2['delta']).T)
+
+
+def test_cosine_order():
+    # Test we are interpreting the cosine order right
+    data = np.arange(60).reshape((3, 4, 5)).astype(np.int32)
+    aff = np.diag([2., 3, 4, 1])
+    aff[0] = [2, 1, 0, 10]
+    img = MGHImage(data, aff)
+    assert_almost_equal(img.get_affine(), aff, 6)
+    img_fobj = BytesIO()
+    img2 = _mgh_rt(img, img_fobj)
+    hdr2 = img2.get_header()
+    RZS = aff[:3, :3]
+    zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
+    assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
+    assert_almost_equal(hdr2['delta'], zooms)
