@@ -26,6 +26,10 @@ class WrapperError(Exception):
     pass
 
 
+class WrapperPrecisionError(WrapperError):
+    pass
+
+
 def wrapper_from_file(file_like, *args, **kwargs):
     ''' Create DICOM wrapper from `file_like` object
 
@@ -162,10 +166,11 @@ class Wrapper(object):
         # column index, and the second to changes in row index.
         R[:,:2] = np.fliplr(iop)
         R[:,2] = s_norm
-        # check this is in fact a rotation matrix
-        assert np.allclose(np.eye(3),
-                           np.dot(R, R.T),
-                           atol=1e-6)
+        # check this is in fact a rotation matrix. Error comes from compromise
+        # motivated in ``doc/source/notebooks/ata_error.ipynb``, and from
+        # discussion at https://github.com/nipy/nibabel/pull/156
+        if not np.allclose(np.eye(3), np.dot(R, R.T), atol=5e-5):
+            raise WrapperPrecisionError('Rotation matrix not nearly orthogonal')
         return R
 
     @one_time

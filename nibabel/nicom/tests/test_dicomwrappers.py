@@ -148,12 +148,22 @@ def test_slice_indicator():
 
 @dicom_test
 def test_orthogonal():
-    #Test that the slice normal is sufficiently orthogonal
+    # Test that the slice normal is sufficiently orthogonal
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     R = dw.rotation_matrix
-    assert  np.allclose(np.eye(3),
-                        np.dot(R, R.T),
-                        atol=1e-6)
+    assert_true(np.allclose(np.eye(3), np.dot(R, R.T), atol=1e-6))
+    # Test the threshold for rotation matrix orthogonality
+    class FakeData(dict): pass
+    d = FakeData()
+    d.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+    dw = didw.wrapper_from_data(d)
+    assert_array_equal(dw.rotation_matrix, np.eye(3))
+    d.ImageOrientationPatient = [1e-5, 1, 0, 1, 0, 0]
+    dw = didw.wrapper_from_data(d)
+    assert_array_almost_equal(dw.rotation_matrix, np.eye(3), 5)
+    d.ImageOrientationPatient = [1e-4, 1, 0, 1, 0, 0]
+    dw = didw.wrapper_from_data(d)
+    assert_raises(didw.WrapperPrecisionError, getattr, dw, 'rotation_matrix')
 
 
 @dicom_test
