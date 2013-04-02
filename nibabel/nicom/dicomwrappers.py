@@ -70,7 +70,7 @@ def wrapper_from_data(dcm_data):
        DICOM wrapper corresponding to DICOM data type
     '''
     csa = csar.get_csa_header(dcm_data)
-    SOPClassUID = dcm_data.SOPClassUID
+    SOPClassUID = dcm_data.get('SOPClassUID')
     if csa is None:
         if SOPClassUID == '1.2.840.10008.5.1.4.1.1.4.1':
             return MultiframeWrapper(dcm_data)
