@@ -9,7 +9,7 @@
 # module imports
 from .py3k import asbytes
 from .filename_parser import types_filenames, splitext_addext
-from . import volumeutils as vu
+from .volumeutils import BinOpener
 from . import spm2analyze as spm2
 from . import nifti1
 from .freesurfer import MGHImage
@@ -43,9 +43,8 @@ def load(filename):
         # might be nifti pair or analyze of some sort
         files_types = (('image','.img'), ('header','.hdr'))
         filenames = types_filenames(filename, files_types)
-        hdr = nifti1.Nifti1Header.from_fileobj(
-            vu.allopen(filenames['header']),
-            check=False)
+        with BinOpener(filenames['header']) as fobj:
+            hdr = nifti1.Nifti1Header.from_fileobj(fobj, check=False)
         if hdr['magic'] in (asbytes('ni1'), asbytes('n+1')):
             # allow goofy nifti single magic for pair
             klass = nifti1.Nifti1Pair
@@ -125,17 +124,18 @@ def read_img_data(img, prefer='scaled'):
     mean-centered scaled data.  However, this is not necessarily true of
     other formats with more complicated scaling - such as MINC.
     """
+    if prefer not in ('scaled', 'unscaled'):
+        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
     image_fileholder = img.file_map['image']
+    hdr = img.get_header()
     try:
         fileobj = image_fileholder.get_prepare_fileobj()
     except FileHolderError:
         raise ImageFileError('No image file specified for this image')
-    if prefer not in ('scaled', 'unscaled'):
-        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
-    hdr = img.get_header()
-    if prefer == 'unscaled':
-        try:
-            return hdr.raw_data_from_fileobj(fileobj)
-        except AttributeError:
-            pass
-    return hdr.data_from_fileobj(fileobj)
+    with fileobj:
+        if prefer == 'unscaled':
+            try:
+                return hdr.raw_data_from_fileobj(fileobj)
+            except AttributeError:
+                pass
+        return hdr.data_from_fileobj(fileobj)

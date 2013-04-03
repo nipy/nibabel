@@ -84,7 +84,7 @@ import sys
 
 import numpy as np
 
-from .volumeutils import (native_code, swapped_code, make_dt_codes, allopen,
+from .volumeutils import (native_code, swapped_code, make_dt_codes,
                           shape_zoom_affine, array_from_file, seek_tell,
                           apply_read_scaling)
 from .arraywriters import make_array_writer, get_slope_inter, WriterError
@@ -866,10 +866,8 @@ class AnalyzeImage(SpatialImage):
         ''' class method to create image from mapping in `file_map ``
         '''
         hdr_fh, img_fh = klass._get_fileholders(file_map)
-        hdrf = hdr_fh.get_prepare_fileobj(mode='rb')
-        header = klass.header_class.from_fileobj(hdrf)
-        if hdr_fh.fileobj is None: # was filename
-            hdrf.close()
+        with hdr_fh.get_prepare_fileobj(mode='rb') as hdrf:
+            header = klass.header_class.from_fileobj(hdrf)
         hdr_copy = header.copy()
         imgf = img_fh.fileobj
         if imgf is None:
@@ -947,11 +945,9 @@ class AnalyzeImage(SpatialImage):
                                   ', '.join(str(s) for s in shape))
         seek_tell(imgf, hdr.get_data_offset())
         arr_writer.to_fileobj(imgf)
-        if hdr_fh.fileobj is None: # was filename
-            hdrf.close()
+        hdrf.close_if_mine()
         if not hdr_img_same:
-            if img_fh.fileobj is None: # was filename
-                imgf.close()
+            imgf.close_if_mine()
         self._header = hdr
         self.file_map = file_map
 

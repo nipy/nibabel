@@ -18,6 +18,7 @@ import numpy as np
 from .py3k import isfileobj, ZEROB
 from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS,
                       able_int_type)
+from .openers import Opener
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -1250,40 +1251,6 @@ def finite_range(arr):
     return mn, mx
 
 
-def allopen(fname, *args, **kwargs):
-    ''' Generic file-like object open
-
-    If input ``fname`` already looks like a file, pass through.
-    If ``fname`` ends with recognizable compressed types, use python
-    libraries to open as file-like objects (read or write)
-    Otherwise, use standard ``open``.
-    '''
-    if hasattr(fname, 'write'):
-        return fname
-    if args:
-        mode = args[0]
-    elif 'mode' in kwargs:
-        mode = kwargs['mode']
-    else:
-        mode = 'rb'
-        args = (mode,)
-    if fname.endswith('.gz') or fname.endswith('.mgz'):
-        if ('w' in mode and
-            len(args) < 2 and
-            not 'compresslevel' in kwargs):
-            kwargs['compresslevel'] = default_compresslevel
-        opener = gzip.open
-    elif fname.endswith('.bz2'):
-        if ('w' in mode and
-            len(args) < 3 and
-            not 'compresslevel' in kwargs):
-            kwargs['compresslevel'] = default_compresslevel
-        opener = bz2.BZ2File
-    else:
-        opener = open
-    return opener(fname, *args, **kwargs)
-
-
 def shape_zoom_affine(shape, zooms, x_flip=True):
     ''' Get affine implied by given shape and zooms
 
@@ -1377,3 +1344,26 @@ def rec2dict(rec):
             pass
         dct[key] = val
     return dct
+
+
+class BinOpener(Opener):
+    # Adds .mgz as gzipped file name type
+    __doc__ = Opener.__doc__
+    compress_ext_map = Opener.compress_ext_map.copy()
+    compress_ext_map['.mgz'] = Opener.gz_def
+
+
+def allopen(fileish, *args, **kwargs):
+    """ Compatibility wrapper for old ``allopen`` function
+
+    Wraps creation of ``BinOpener`` instance, while picking up module global
+    ``default_compresslevel``.
+
+    Please see docstring for ``BinOpener`` and ``Opener`` for details.
+    """
+    warnings.warn("Please use BinOpener class instead of this function",
+                  DeprecationWarning,
+                  stacklevel=2)
+    class MyOpener(BinOpener):
+        default_compresslevel = default_compresslevel
+    return MyOpener(fileish, *args, **kwargs)

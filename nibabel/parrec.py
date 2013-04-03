@@ -600,9 +600,9 @@ class PARRECImage(SpatialImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        hdr_fobj = file_map['header'].get_prepare_fileobj()
+        with file_map['header'].get_prepare_fileobj() as hdr_fobj:
+            hdr = PARRECHeader.from_fileobj(hdr_fobj)
         rec_fobj = file_map['image'].get_prepare_fileobj()
-        hdr = PARRECHeader.from_fileobj(hdr_fobj)
         data = klass.ImageArrayProxy(rec_fobj, hdr)
         return klass(data,
                      hdr.get_affine(),

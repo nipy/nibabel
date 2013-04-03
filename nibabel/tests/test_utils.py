@@ -10,6 +10,7 @@
 from __future__ import with_statement
 from ..py3k import BytesIO, asbytes, ZEROB
 import tempfile
+import warnings
 
 import numpy as np
 
@@ -17,6 +18,8 @@ from ..tmpdirs import InTemporaryDirectory
 
 from ..volumeutils import (array_from_file,
                            array_to_file,
+                           allopen, # for backwards compatibility
+                           BinOpener,
                            calculate_scale,
                            can_cast,
                            write_zeros,
@@ -26,7 +29,6 @@ from ..volumeutils import (array_from_file,
                            best_write_scale_ftype,
                            better_float_of,
                            int_scinter_ftype,
-                           allopen,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
@@ -503,22 +505,66 @@ def test_write_zeros():
     assert_equal(bio.getvalue(), ZEROB*200)
 
 
+def test_BinOpener():
+    # Test that BinOpener does add '.mgz' as gzipped file type
+    with InTemporaryDirectory():
+        with BinOpener('test.gz', 'w') as fobj:
+            assert_true(hasattr(fobj.fobj, 'compress'))
+        with BinOpener('test.mgz', 'w') as fobj:
+            assert_true(hasattr(fobj.fobj, 'compress'))
+
+
 def test_allopen():
-    # Test default mode is 'rb'
-    fobj = allopen(__file__)
-    assert_equal(fobj.mode, 'rb')
-    # That we can set it
-    fobj = allopen(__file__, 'r')
-    assert_equal(fobj.mode, 'r')
-    # with keyword arguments
-    fobj = allopen(__file__, mode='r')
-    assert_equal(fobj.mode, 'r')
-    # fileobj returns fileobj
-    sobj = BytesIO()
-    fobj = allopen(sobj)
-    assert_true(fobj is sobj)
-    # mode is gently ignored
-    fobj = allopen(sobj, mode='r')
+    # This import into volumeutils is for compatibility.  The code is the
+    # ``openers`` module.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # Test default mode is 'rb'
+        fobj = allopen(__file__)
+        assert_equal(fobj.mode, 'rb')
+        # That we can set it
+        fobj = allopen(__file__, 'r')
+        assert_equal(fobj.mode, 'r')
+        # with keyword arguments
+        fobj = allopen(__file__, mode='r')
+        assert_equal(fobj.mode, 'r')
+        # fileobj returns fileobj
+        msg = asbytes('tiddle pom')
+        sobj = BytesIO(msg)
+        fobj = allopen(sobj)
+        assert_equal(fobj.read(), msg)
+        # mode is gently ignored
+        fobj = allopen(sobj, mode='r')
+
+
+def test_allopen_compresslevel():
+    # We can set the default compression level with the module global
+    # Get some data to compress
+    with open(__file__, 'rb') as fobj:
+        my_self = fobj.read()
+    # Prepare loop
+    fname = 'test.gz'
+    sizes = {}
+    # Stash module global
+    from .. import volumeutils as vu
+    original_compress_level = vu.default_compresslevel
+    assert_equal(original_compress_level, 1)
+    try:
+        with InTemporaryDirectory():
+            for compresslevel in ('default', 1, 9):
+                if compresslevel != 'default':
+                    vu.default_compresslevel = compresslevel
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    with allopen(fname, 'wb') as fobj:
+                        fobj.write(my_self)
+                with open(fname, 'rb') as fobj:
+                    my_selves_smaller = fobj.read()
+                sizes[compresslevel] = len(my_selves_smaller)
+            assert_equal(sizes['default'], sizes[1])
+            assert_true(sizes[1] > sizes[9])
+    finally:
+        vu.default_compresslevel = original_compress_level
 
 
 def test_shape_zoom_affine():

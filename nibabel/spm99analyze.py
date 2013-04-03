@@ -253,9 +253,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         except IOError:
             return ret
         # Allow for possibility of empty file -> no update to affine
-        contents = matf.read()
-        if file_map['mat'].filename is not None: # was filename
-            matf.close()
+        with matf:
+            contents = matf.read()
         if len(contents) == 0:
             return ret
         import scipy.io as sio
@@ -310,10 +309,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         M = np.dot(M, from_111)
         mat = np.dot(mat, from_111)
         # use matlab 4 format to allow gzipped write without error
-        mfobj = file_map['mat'].get_prepare_fileobj(mode='wb')
-        sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
-        if file_map['mat'].filename is not None: # was filename
-            mfobj.close()
+        with file_map['mat'].get_prepare_fileobj(mode='wb') as mfobj:
+            sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
 
 
 load = Spm99AnalyzeImage.load

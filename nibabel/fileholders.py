@@ -10,7 +10,7 @@
 
 from copy import copy
 
-from .volumeutils import allopen
+from .volumeutils import BinOpener
 
 
 class FileHolderError(Exception):
@@ -63,10 +63,10 @@ class FileHolder(object):
            ``self.pos``
         '''
         if self.fileobj is not None:
-            obj = self.fileobj
+            obj = BinOpener(self.fileobj) # for context manager
             obj.seek(self.pos)
         elif self.filename is not None:
-            obj = allopen(self.filename, *args, **kwargs)
+            obj = BinOpener(self.filename, *args, **kwargs)
             if self.pos != 0:
                 obj.seek(self.pos)
         else:
