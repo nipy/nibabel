@@ -1,34 +1,36 @@
 # vim ft=yaml
+# Multiple lines can be made a single "virtual line" because of how Travis
+# munges each line before executing it to print out the exit status.  It's okay
+# for it to be on multiple physical lines, so long as you remember: - There
+# can't be any leading "-"s - All newlines will be removed, so use ";"s
 language: python
 python:
-    - "2.5"
     - "2.6"
     - "2.7"
     - "3.2"
 env:
-    NUMPY_VER=1.6.1
+    NUMPY_VER=1.7.0
 before_install:
-    - mkdir builds
-    - pushd builds
-    - curl -O http://pypi.python.org/packages/source/n/numpy/numpy-${NUMPY_VER}.tar.gz
-    - tar zxf numpy-${NUMPY_VER}.tar.gz
-    - cd numpy-${NUMPY_VER}
-    - python setup.py install
-    - popd
+    # Travis virtualenvs have numpy for Python 2
+    - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" > "2" ]]; then
+      mkdir builds;
+      pushd builds;
+      curl -O http://pypi.python.org/packages/source/n/numpy/numpy-${NUMPY_VER}.tar.gz;
+      tar zxf numpy-${NUMPY_VER}.tar.gz;
+      cd numpy-${NUMPY_VER};
+      python setup.py install;
+      popd;
+      fi
+    # pydicom <= 0.9.8 doesn't install on python 3 
+    - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" < "3" ]]; then
+      easy_install -U pydicom;
+      fi
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-    # This has to be on a single "virtual line" because of how Travis
-    # munges each line before executing it to print out the exit status.
-    # It's okay for it to be on multiple physical lines, so long as you remember:
-    # - There can't be any leading "-"s
-    # - All newlines will be removed, so use ";"s
-    - if [ "${TRAVIS_PYTHON_VERSION:0:1}" \< "3" ]; then
-        easy_install -U pydicom;
-        fi
     - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:
     # Change into an innocuous directory and find tests from installation
     - mkdir for_testing
     - cd for_testing
-    - nosetests `python -c "import os; import nibabel; print(os.path.dirname(nibabel.__file__))"`
+    - nosetests --with-doctest `python -c "import os; import nibabel; print(os.path.dirname(nibabel.__file__))"`
