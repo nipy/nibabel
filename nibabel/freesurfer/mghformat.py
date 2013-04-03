@@ -13,8 +13,7 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
-from nibabel.volumeutils import allopen, array_to_file, array_from_file,  \
-     Recoder
+from nibabel.volumeutils import (array_to_file, array_from_file, Recoder)
 from nibabel.spatialimages import HeaderDataError, ImageFileError, SpatialImage
 from nibabel.fileholders import FileHolder,  copy_file_map
 from nibabel.filename_parser import types_filenames, TypesFilenamesError
@@ -493,13 +492,10 @@ class MGHImage(SpatialImage):
         data = self.get_data()
         self.update_header()
         hdr = self.get_header()
-        mghf = file_map['image'].get_prepare_fileobj('wb')
-        self._write_header(mghf, hdr)
-        self._write_data(mghf, data, hdr)
-        self._write_footer(mghf, hdr)
-        # if the file_map points to a filename, close it
-        if file_map['image'].fileobj is None:  # was filename
-            mghf.close()
+        with file_map['image'].get_prepare_fileobj('wb') as mghf:
+            self._write_header(mghf, hdr)
+            self._write_data(mghf, data, hdr)
+            self._write_footer(mghf, hdr)
         self._header = hdr
         self.file_map = file_map
 

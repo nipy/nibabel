@@ -8,8 +8,8 @@ import numpy as np
 import numpy.linalg as npl
 
 from .py3k import asbytes, asstr
-from .volumeutils import (native_code, swapped_code, endian_codes,
-                          allopen, rec2dict)
+from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
+from .volumeutils import BinOpener
 from .orientations import aff2axcodes
 from .affines import apply_affine
 
@@ -134,7 +134,7 @@ def read(fileobj, as_generator=False, points_space=None):
     coordinates, ``x, y, z``, where ``x`` is the floating point voxel coordinate
     along the first image axis, multiplied by the voxel size for that axis.
     '''
-    fileobj = allopen(fileobj, mode='rb')
+    fileobj = BinOpener(fileobj)
     hdr_str = fileobj.read(header_2_dtype.itemsize)
     # try defaulting to version 2 format
     hdr = np.ndarray(shape=(),
@@ -217,7 +217,9 @@ def read(fileobj, as_generator=False, points_space=None):
             n_streams += 1
             # deliberately misses case where stream_count is 0
             if n_streams == stream_count:
+                fileobj.close_if_mine()
                 raise StopIteration
+        fileobj.close_if_mine()
     streamlines = track_gen()
     if not as_generator:
         streamlines = list(streamlines)
@@ -327,8 +329,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     except StopIteration: # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
-        fileobj = allopen(fileobj, mode='wb')
-        fileobj.write(hdr.tostring())
+        with BinOpener(fileobj, 'wb') as fileobj:
+            fileobj.write(hdr.tostring())
         return
     if endianness is None:
         endianness = endian_codes[streams0[0].dtype.byteorder]
@@ -368,7 +370,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
         mm2vx = npl.inv(affine)
         mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
     # write header
-    fileobj = allopen(fileobj, mode='wb')
+    fileobj = BinOpener(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
     # track preliminaries
     f4dt = np.dtype(endianness + 'f4')
@@ -407,6 +409,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tostring())
+    fileobj.close_if_mine()
 
 
 def _check_hdr_points_space(hdr, points_space):
