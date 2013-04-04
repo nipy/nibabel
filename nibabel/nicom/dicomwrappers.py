@@ -139,7 +139,8 @@ class Wrapper(object):
         iop = self.image_orient_patient
         if iop is None:
             return None
-        return np.cross(*iop.T[:])
+        # iop[:, 0] is column index cosine, iop[:, 1] is row index cosine
+        return np.cross(iop[:, 1], iop[:, 0])
 
     @one_time
     def rotation_matrix(self):
