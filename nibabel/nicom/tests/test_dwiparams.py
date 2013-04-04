@@ -4,12 +4,12 @@
 
 import numpy as np
 
-from ..dwiparams import B2q
+from ..dwiparams import B2q, q2bg
 
-from nose.tools import assert_true, assert_false, \
-     assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import (assert_array_equal, assert_array_almost_equal,
+                           assert_equal as np_assert_equal)
 
 
 def test_b2q():
@@ -38,3 +38,19 @@ def test_b2q():
     B = np.eye(3)
     B[0, 1] = 1e-5
     assert_raises(ValueError, B2q, B)
+
+
+def test_q2bg():
+    # Conversion of q vector to b value and unit vector
+    for pos in range(3):
+        q_vec = np.zeros((3,))
+        q_vec[pos] = 10.
+        np_assert_equal(q2bg(q_vec), (10, q_vec / 10.))
+    # Also - check array-like
+    q_vec = [0, 1e-6, 0]
+    np_assert_equal(q2bg(q_vec), (0, 0))
+    q_vec = [0, 1e-4, 0]
+    b, g = q2bg(q_vec)
+    assert_array_almost_equal(b, 1e-4)
+    assert_array_almost_equal(g, [0, 1, 0])
+    np_assert_equal(q2bg(q_vec, tol=5e-4), (0, 0))
