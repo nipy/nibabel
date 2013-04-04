@@ -106,6 +106,41 @@ def test_dwi_params():
 
 
 @dicom_test
+def test_q_vector_etc():
+    # Test diffusion params in wrapper classes
+    # Default is no q_vector, b_value, b_vector
+    dw = didw.Wrapper(DATA)
+    assert_equal(dw.q_vector, None)
+    assert_equal(dw.b_value, None)
+    assert_equal(dw.b_vector, None)
+    for pos in range(3):
+        q_vec = np.zeros((3,))
+        q_vec[pos] = 10.
+        # Reset wrapped dicom to refresh one_time property
+        dw = didw.Wrapper(DATA)
+        dw.q_vector = q_vec
+        assert_array_equal(dw.q_vector, q_vec)
+        assert_equal(dw.b_value, 10)
+        assert_array_equal(dw.b_vector, q_vec / 10.)
+    # Reset wrapped dicom to refresh one_time property
+    dw = didw.Wrapper(DATA)
+    dw.q_vector = np.array([0, 0, 1e-6])
+    assert_equal(dw.b_value, 0)
+    assert_array_equal(dw.b_vector, np.zeros((3,)))
+    # Test MosaicWrapper
+    sdw = didw.MosaicWrapper(DATA)
+    exp_b, exp_g = EXPECTED_PARAMS
+    assert_array_almost_equal(sdw.q_vector, exp_b * np.array(exp_g), 5)
+    assert_array_almost_equal(sdw.b_value, exp_b)
+    assert_array_almost_equal(sdw.b_vector, exp_g)
+    # Reset wrapped dicom to refresh one_time property
+    sdw = didw.MosaicWrapper(DATA)
+    sdw.q_vector = np.array([0, 0, 1e-6])
+    assert_equal(sdw.b_value, 0)
+    assert_array_equal(sdw.b_vector, np.zeros((3,)))
+
+
+@dicom_test
 def test_vol_matching():
     # make the Siemens wrapper, check it compares True against itself
     dw_siemens = didw.wrapper_from_data(DATA)
