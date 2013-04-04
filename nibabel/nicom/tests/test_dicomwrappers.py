@@ -154,7 +154,23 @@ def test_orthogonal():
     assert  np.allclose(np.eye(3),
                         np.dot(R, R.T),
                         atol=1e-6)
-                    
+
+
+@dicom_test
+def test_rotation_matrix():
+    # Test rotation matrix and slice normal
+    class FakeData(dict): pass
+    d = FakeData()
+    d.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+    dw = didw.wrapper_from_data(d)
+    assert_array_equal(dw.rotation_matrix, np.eye(3))
+    d.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+    dw = didw.wrapper_from_data(d)
+    assert_array_equal(dw.rotation_matrix, [[0, 1, 0],
+                                            [1, 0, 0],
+                                            [0, 0, -1]])
+
+
 @dicom_test
 def test_use_csa_sign():
     #Test that we get the same slice normal, even after swapping the iop 
