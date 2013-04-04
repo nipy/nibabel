@@ -12,8 +12,7 @@ from .test_dicomwrappers import (dicom_test,
                                  IO_DATA_PATH,
                                  DATA)
 
-from nose.tools import assert_true, assert_false, \
-     assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -27,7 +26,7 @@ def test_read_dwi():
 
 @dicom_test
 def test_read_dwis():
-    data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH, 
+    data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
                                                  'siemens_dwi_*.dcm.gz')
     assert_equal(data.ndim, 4)
     assert_array_almost_equal(aff, EXPECTED_AFFINE)
@@ -37,13 +36,34 @@ def test_read_dwis():
 
 
 @dicom_test
-def test_keyword_args():
-    error_raised = False
-    try:
-        data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
-                                                     'siemens_dwi_*.dcm.gz',
-                                                     dicom_args={'force': True})
-    except Exception:
-        error_raised = True
-    assert_false(error_raised)
-
+def test_passing_kwds():
+    # Check that we correctly pass keywords to dicom
+    dwi_glob = 'siemens_dwi_*.dcm.gz'
+    csa_glob = 'csa*.bin'
+    import dicom
+    for func in (didr.read_mosaic_dwi_dir, didr.read_mosaic_dir):
+        data, aff, bs, gs = func(IO_DATA_PATH, dwi_glob)
+        # This should not raise an error
+        data2, aff2, bs2, gs2 = func(
+            IO_DATA_PATH,
+            dwi_glob,
+            dicom_kwargs=dict(force=True))
+        assert_array_equal(data, data2)
+        # This should raise an error in dicom.read_file
+        assert_raises(TypeError,
+                      func,
+                      IO_DATA_PATH,
+                      dwi_glob,
+                      dicom_kwargs=dict(not_a_parameter=True))
+        # These are invalid dicoms, so will raise an error unless force=True
+        assert_raises(dicom.filereader.InvalidDicomError,
+                      func,
+                      IO_DATA_PATH,
+                      csa_glob)
+        # But here, we catch the error because the dicoms are in the wrong
+        # format
+        assert_raises(didr.DicomReadError,
+                      func,
+                      IO_DATA_PATH,
+                      csa_glob,
+                      dicom_kwargs=dict(force=True))

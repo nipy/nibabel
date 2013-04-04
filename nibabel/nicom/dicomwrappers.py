@@ -34,8 +34,9 @@ def wrapper_from_file(file_like, *args, **kwargs):
     file_like : object
        filename string or file-like object, pointing to a valid DICOM
        file readable by ``pydicom``
-    *args : positional
-    **kwargs : keyword
+    \*args : positional
+        args to ``dicom.read_file`` command.
+    \*\*kwargs : keyword
         args to ``dicom.read_file`` command.  ``force=True`` might be a
         likely keyword argument.
 
