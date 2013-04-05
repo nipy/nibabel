@@ -62,7 +62,7 @@ def test_nib_ls():
     # Need to quote out path in case it has spaces
     cmd = 'nib-ls "%s"'  % (fname)
     code, stdout, stderr = run_command(cmd)
-    assert_equal(stdout.strip(), fname + expected)
+    assert_equal(stdout.strip().decode('latin1'), fname + expected)
 
 
 def test_nib_nifti_dx():
@@ -70,7 +70,7 @@ def test_nib_nifti_dx():
     clean_hdr = pjoin(DATA_PATH, 'nifti1.hdr')
     cmd = 'nib-nifti-dx "%s"'  % (clean_hdr,)
     code, stdout, stderr = run_command(cmd)
-    assert_equal(stdout.strip(), 'Header for "%s" is clean' % clean_hdr)
+    assert_equal(stdout.strip().decode('latin1'), 'Header for "%s" is clean' % clean_hdr)
     dirty_hdr = pjoin(DATA_PATH, 'analyze.hdr')
     cmd = 'nib-nifti-dx "%s"'  % (dirty_hdr,)
     code, stdout, stderr = run_command(cmd)
@@ -80,7 +80,7 @@ Picky header check output for "%s"
 pixdim[0] (qfac) should be 1 (default) or -1
 magic string "" is not valid
 sform_code 11776 not valid""" % (dirty_hdr,)
-    assert_equal(stdout.strip(), expected.strip())
+    assert_equal(stdout.strip().decode('latin1'), expected.strip())
 
 
 def test_parrec2nii():
@@ -88,4 +88,5 @@ def test_parrec2nii():
     # We need some data for this one
     cmd = 'parrec2nii --help'
     code, stdout, stderr = run_command(cmd)
+    stdout = stdout.decode('latin1')
     assert_true(stdout.startswith('Usage'))

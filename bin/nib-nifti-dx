@@ -8,6 +8,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Print nifti diagnostics for header files '''
+from __future__ import division, print_function, absolute_import
 
 import sys
 
@@ -28,11 +29,10 @@ def main():
             hdr =  fobj.read(nib.nifti1.header_dtype.itemsize)
         result = nib.Nifti1Header.diagnose_binaryblock(hdr)
         if len(result):
-            print 'Picky header check output for "%s"\n' % fname
-            print result
-            print
+            print('Picky header check output for "%s"\n' % fname)
+            print(result + '\n')
         else:
-            print 'Header for "%s" is clean' % fname
+            print('Header for "%s" is clean' % fname)
 
 
 if __name__ == '__main__':
