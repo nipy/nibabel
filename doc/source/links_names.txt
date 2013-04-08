@@ -36,6 +36,7 @@
 .. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
 .. _reST: http://docutils.sourceforge.net/rst.html
 .. _docutils: http://docutils.sourceforge.net
+.. _IPython notebook viewer: http://nbviewer.ipython.org
 
 .. Licenses
 .. _GPL: http://www.gnu.org/licenses/gpl.html
