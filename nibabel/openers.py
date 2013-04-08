@@ -46,6 +46,7 @@ class Opener(object):
         if self._is_fileobj(fileish):
             self.fobj = fileish
             self.me_opened = False
+            self._name = None
             return
         _, ext = splitext(fileish)
         if ext in self.compress_ext_map:
@@ -64,6 +65,7 @@ class Opener(object):
         if is_compressor and not 'compresslevel' in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
         self.fobj = opener(fileish, *args, **kwargs)
+        self._name = fileish
         self.me_opened = True
 
     def _is_fileobj(self, obj):
@@ -77,12 +79,15 @@ class Opener(object):
 
     @property
     def name(self):
-        """ Return ``self.fobj.name`` or None if not present
+        """ Return ``self.fobj.name`` or self._name if not present
+
+        self._name will be None if object was created with a fileobj, otherwise
+        it will be the filename.
         """
         try:
             return self.fobj.name
         except AttributeError:
-            return None
+            return self._name
 
     @property
     def mode(self):
