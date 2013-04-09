@@ -55,6 +55,11 @@ def run_command(cmd):
     return proc.returncode, stdout, stderr
 
 
+def _proc_stdout(stdout):
+    stdout_str = stdout.decode('latin1').strip()
+    return stdout_str.replace(os.linesep, '\n')
+
+
 def test_nib_ls():
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
@@ -62,7 +67,7 @@ def test_nib_ls():
     # Need to quote out path in case it has spaces
     cmd = 'nib-ls "%s"'  % (fname)
     code, stdout, stderr = run_command(cmd)
-    assert_equal(stdout.strip().decode('latin1'), fname + expected)
+    assert_equal(_proc_stdout(stdout), fname + expected)
 
 
 def test_nib_nifti_dx():
@@ -74,13 +79,13 @@ def test_nib_nifti_dx():
     dirty_hdr = pjoin(DATA_PATH, 'analyze.hdr')
     cmd = 'nib-nifti-dx "%s"'  % (dirty_hdr,)
     code, stdout, stderr = run_command(cmd)
-    expected = """
-Picky header check output for "%s"
+    expected = """Picky header check output for "%s"
 
 pixdim[0] (qfac) should be 1 (default) or -1
 magic string "" is not valid
 sform_code 11776 not valid""" % (dirty_hdr,)
-    assert_equal(stdout.strip().decode('latin1'), expected.strip())
+    # Split strings to remove line endings
+    assert_equal(_proc_stdout(stdout), expected)
 
 
 def test_parrec2nii():
