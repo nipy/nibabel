@@ -11,10 +11,11 @@ from __future__ import with_statement
 import sys
 import os
 from os.path import dirname, join as pjoin, isfile, isdir, abspath, realpath
+import re
 
 from subprocess import Popen, PIPE
 
-from nose.tools import assert_true, assert_false, assert_equal
+from nose.tools import assert_true, assert_not_equal, assert_equal
 
 # Need shell to get path to correct executables
 USE_SHELL = True
@@ -63,11 +64,13 @@ def _proc_stdout(stdout):
 def test_nib_ls():
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
-    expected = " int16 [128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform"""
+    expected_re = (fname +
+                   " (int16|[<>]i2) \[128,  96,  24,   2\] "
+                   "2.00x2.00x2.20x2000.00  #exts: 2 sform")
     # Need to quote out path in case it has spaces
     cmd = 'nib-ls "%s"'  % (fname)
     code, stdout, stderr = run_command(cmd)
-    assert_equal(_proc_stdout(stdout), fname + expected)
+    assert_not_equal(re.match(expected_re, _proc_stdout(stdout)), None)
 
 
 def test_nib_nifti_dx():
