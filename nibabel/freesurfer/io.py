@@ -225,7 +225,7 @@ def read_annot(filepath, orig_ids=False):
     return labels, ctab, names
 
 
-def read_label(filepath):
+def read_label(filepath, read_scalars=False):
     """Load in a Freesurfer .label file.
 
     Parameters
