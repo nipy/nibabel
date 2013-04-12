@@ -96,6 +96,6 @@ def test_label():
     # XXX : test more
     assert_true(np.all(label > 0))
 
-    labels, scalars = read_label(label_path)
+    labels, scalars = read_label(label_path, True)
     assert_true(np.all(labels == label))
     assert_true(len(labels) == len(scalars))
