@@ -64,13 +64,14 @@ def _proc_stdout(stdout):
 def test_nib_ls():
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
-    expected_re = (fname +
-                   " (int16|[<>]i2) \[128,  96,  24,   2\] "
-                   "2.00x2.00x2.20x2000.00  #exts: 2 sform")
+    expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
+                   "2.00x2.00x2.20x2000.00  #exts: 2 sform$")
     # Need to quote out path in case it has spaces
     cmd = 'nib-ls "%s"'  % (fname)
     code, stdout, stderr = run_command(cmd)
-    assert_not_equal(re.match(expected_re, _proc_stdout(stdout)), None)
+    res = _proc_stdout(stdout)
+    assert_equal(fname, res[:len(fname)])
+    assert_not_equal(re.match(expected_re, res[len(fname):]), None)
 
 
 def test_nib_nifti_dx():
