@@ -225,19 +225,26 @@ def read_annot(filepath, orig_ids=False):
     return labels, ctab, names
 
 
-def read_label(filepath):
+def read_label(filepath, read_scalars=False):
     """Load in a Freesurfer .label file.
 
     Parameters
     ----------
     filepath : str
         Path to label file
+    read_scalars : bool
+        If true, read and return scalars associated with each vertex
 
     Returns
     -------
     label_array : numpy array
         Array with indices of vertices included in label
+    scalar_array : numpy array (floats)
+        If read_scalars is True, array of scalar data for each vertex
 
     """
     label_array = np.loadtxt(filepath, dtype=np.int, skiprows=2, usecols=[0])
+    if read_scalars:
+        scalar_array = np.loadtxt(filepath, skiprows=2, usecols=[-1])
+        return label_array, scalar_array
     return label_array
