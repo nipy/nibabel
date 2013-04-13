@@ -7,17 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Contexts for *with* statement allowing checks for warnings
-
-When we give up 2.5 compatibility we can use python's own
-``tests.test_support.check_warnings``
-
 '''
-from __future__ import with_statement
-
 import warnings
 
 
-class ErrorWarnings(object):
+class ErrorWarnings(warnings.catch_warnings):
     """ Context manager to check for warnings as errors.  Usually used with
     ``assert_raises`` in the with block
 
@@ -29,24 +23,15 @@ class ErrorWarnings(object):
     ...     except UserWarning:
     ...         print 'I consider myself warned'
     I consider myself warned
-
-    Notes
-    -----
-    The manager will raise a RuntimeError if another warning filter gets put on
-    top of the one it has just added.
     """
-    def __init__(self):
-        self.added = None
+    filter = 'error'
+    def __init__(self, record=True, module=None):
+        super(ErrorWarnings, self).__init__(record=record, module=module)
 
     def __enter__(self):
-        warnings.simplefilter('error')
-        self.added = warnings.filters[0]
-
-    def __exit__(self, exc, value, tb):
-        if warnings.filters[0] != self.added:
-            raise RuntimeError('Somone has done something to the filters')
-        warnings.filters.pop(0)
-        return False # allow any exceptions to propagate
+        mgr = super(ErrorWarnings, self).__enter__()
+        warnings.simplefilter(self.filter)
+        return mgr
 
 
 class IgnoreWarnings(ErrorWarnings):
@@ -58,13 +43,5 @@ class IgnoreWarnings(ErrorWarnings):
     ...     warnings.warn('Message', UserWarning)
 
     (and you get no warning)
-
-    Notes
-    -----
-    The manager will raise a RuntimeError if another warning filter gets put on
-    top of the one it has just added.
     """
-
-    def __enter__(self):
-        warnings.simplefilter('ignore')
-        self.added = warnings.filters[0]
+    filter = 'ignore'
