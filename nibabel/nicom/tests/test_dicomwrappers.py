@@ -137,6 +137,20 @@ def test_wrapper_from_data():
         assert_equal(dw.get('AcquisitionNumber'), 3)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
         assert_true(dw.is_multiframe)
+    # Check that multiframe requires correct SOP and PerFrameFunctionalGroupsSequence
+    fake_data = {}
+    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
+    dw = didw.wrapper_from_data(fake_data)
+    assert_false(dw.is_multiframe)
+    fake_data['PerFrameFunctionalGroupsSequence'] = [None]
+    dw = didw.wrapper_from_data(fake_data)
+    assert_false(dw.is_multiframe)
+    fake_data['SharedFunctionalGroupsSequence'] = [None]
+    dw = didw.wrapper_from_data(fake_data)
+    assert_true(dw.is_multiframe)
+    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
+    dw = didw.wrapper_from_data(fake_data)
+    assert_false(dw.is_multiframe)
 
 
 @dicom_test

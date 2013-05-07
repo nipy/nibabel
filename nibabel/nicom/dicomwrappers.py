@@ -72,7 +72,9 @@ def wrapper_from_data(dcm_data):
     csa = csar.get_csa_header(dcm_data)
     SOPClassUID = dcm_data.get('SOPClassUID')
     if csa is None:
-        if SOPClassUID == '1.2.840.10008.5.1.4.1.1.4.1':
+        if (SOPClassUID == '1.2.840.10008.5.1.4.1.1.4.1' and
+            not dcm_data.get('PerFrameFunctionalGroupsSequence') is None and
+            not dcm_data.get('SharedFunctionalGroupsSequence') is None):
             return MultiframeWrapper(dcm_data)
         else:
             return Wrapper(dcm_data)
@@ -417,7 +419,8 @@ class MultiframeWrapper(Wrapper):
         '''
         Wrapper.__init__(self, dcm_data)
         self.dcm_data = dcm_data
-        self.frame0 = dcm_data.get('PerFrameFunctionalGroupsSequence')[0]
+        self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
+        self.frame0 = self.frames[0]
         self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         self._shape = None
 
@@ -432,7 +435,7 @@ class MultiframeWrapper(Wrapper):
         shape[:2] = [self.dcm_data.Rows, self.dcm_data.Columns]
         if n_dim > 3:
             self._frame_indices = []
-            for frame in self.dcm_data.PerFrameFunctionalGroupsSequence:
+            for frame in self.frames:
                 frame_idx = frame.FrameContentSequence[0].DimensionIndexValues
                 if frame_idx[0] != dim_idx0[0]:
                     raise ValueError("Cannot handle multi-stack files")
