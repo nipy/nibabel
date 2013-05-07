@@ -54,17 +54,18 @@ EXPECTED_PARAMS = [992.05050247, (0.00507649,
 def test_wrappers():
     # test direct wrapper calls
     # first with empty data
-    for maker, kwargs in ((didw.Wrapper,{}),
-                          (didw.SiemensWrapper, {}),
-                          (didw.MosaicWrapper, {'n_mosaic':10})):
-        dw = maker(**kwargs)
+    for maker, args in ((didw.Wrapper,({},)),
+                          (didw.SiemensWrapper, ({},)),
+                          (didw.MosaicWrapper, ({}, None, 10))):
+        dw = maker(*args)
         assert_equal(dw.get('InstanceNumber'), None)
         assert_equal(dw.get('AcquisitionNumber'), None)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
         assert_raises(didw.WrapperError, dw.get_data)
         assert_raises(didw.WrapperError, dw.get_affine)
+        assert_raises(TypeError, maker)
     for klass in (didw.Wrapper, didw.SiemensWrapper):
-        dw = klass()
+        dw = klass({})
         assert_false(dw.is_mosaic)
     for maker in (didw.wrapper_from_data,
                   didw.Wrapper,
@@ -208,7 +209,7 @@ def test_vol_matching():
     assert_false(dw_siemens.is_same_series(dw_plain))
     # we can even make an empty wrapper.  This compares True against
     # itself but False against the others
-    dw_empty = didw.Wrapper()
+    dw_empty = didw.Wrapper({})
     assert_true(dw_empty.is_same_series(dw_empty))
     assert_false(dw_empty.is_same_series(dw_plain))
     assert_false(dw_plain.is_same_series(dw_empty))
@@ -226,7 +227,7 @@ def test_slice_indicator():
     z = dw_0.slice_indicator
     assert_false(z is None)
     assert_equal(z, dw_1000.slice_indicator)
-    dw_empty = didw.Wrapper()
+    dw_empty = didw.Wrapper({})
     assert_true(dw_empty.slice_indicator is None)
 
 
