@@ -265,13 +265,13 @@ class Wrapper(object):
 
     def __getitem__(self, key):
         ''' Return values from DICOM object'''
-        try:
-            return getattr(self.dcm_data, key)
-        except AttributeError:
-            raise KeyError('%s not defined in dcm_data' % key)
+        if not key in self.dcm_data:
+            raise KeyError('"%s" not in self.dcm_data' % key)
+        return self.dcm_data.get(key)
 
     def get(self, key, default=None):
-        return getattr(self.dcm_data, key, default)
+        """ Get values from underlying dicom data """
+        return self.dcm_data.get(key, default)
 
     def get_affine(self):
         ''' Return mapping between voxel and DICOM coordinate system
@@ -305,8 +305,8 @@ class Wrapper(object):
     def get_pixel_array(self):
         ''' Return unscaled pixel array from DICOM '''
         try:
-            return self['pixel_array']
-        except KeyError:
+            return self.dcm_data.pixel_array
+        except AttributeError:
             raise WrapperError('Cannot find data in DICOM')
 
     def get_data(self):
