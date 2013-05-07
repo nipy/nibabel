@@ -108,18 +108,16 @@ class Wrapper(object):
     b_value = None
     b_vector = None
 
-    def __init__(self, dcm_data=None):
+    def __init__(self, dcm_data):
         ''' Initialize wrapper
 
         Parameters
         ----------
-        dcm_data : None or object, optional
-           object should allow attribute access.  Usually this will be
-           a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file.   If None, just make an empty dict.
+        dcm_data : object
+           object should allow 'get' and '__getitem__' access.  Usually this
+           will be a ``dicom.dataset.Dataset`` object resulting from reading a
+           DICOM file, but a dictionary should also work.
         '''
-        if dcm_data is None:
-            dcm_data = {}
         self.dcm_data = dcm_data
 
     @one_time
@@ -265,13 +263,13 @@ class Wrapper(object):
 
     def __getitem__(self, key):
         ''' Return values from DICOM object'''
-        try:
-            return getattr(self.dcm_data, key)
-        except AttributeError:
-            raise KeyError('%s not defined in dcm_data' % key)
+        if not key in self.dcm_data:
+            raise KeyError('"%s" not in self.dcm_data' % key)
+        return self.dcm_data.get(key)
 
     def get(self, key, default=None):
-        return getattr(self.dcm_data, key, default)
+        """ Get values from underlying dicom data """
+        return self.dcm_data.get(key, default)
 
     def get_affine(self):
         ''' Return mapping between voxel and DICOM coordinate system
@@ -305,8 +303,8 @@ class Wrapper(object):
     def get_pixel_array(self):
         ''' Return unscaled pixel array from DICOM '''
         try:
-            return self['pixel_array']
-        except KeyError:
+            return self.dcm_data.pixel_array
+        except AttributeError:
             raise WrapperError('Cannot find data in DICOM')
 
     def get_data(self):
@@ -405,7 +403,7 @@ class SiemensWrapper(Wrapper):
     '''
     is_csa = True
 
-    def __init__(self, dcm_data=None, csa_header=None):
+    def __init__(self, dcm_data, csa_header=None):
         ''' Initialize Siemens wrapper
 
         The Siemens-specific information is in the `csa_header`, either
@@ -413,12 +411,11 @@ class SiemensWrapper(Wrapper):
 
         Parameters
         ----------
-        dcm_data : None or object, optional
-           object should allow attribute access.  If `csa_header` is
-           None, it should also be possible to extract a CSA header from
-           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset``
-           object resulting from reading a DICOM file.  If None, we just
-           make an empty dict.
+        dcm_data : object
+           object should allow 'get' and '__getitem__' access.  If `csa_header`
+           is None, it should also be possible to extract a CSA header from
+           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
+           resulting from reading a DICOM file.  A dict should also work.
         csa_header : None or mapping, optional
            mapping giving values for Siemens CSA image sub-header.  If
            None, we try and read the CSA information from `dcm_data`.
@@ -544,7 +541,7 @@ class MosaicWrapper(SiemensWrapper):
     '''
     is_mosaic = True
 
-    def __init__(self, dcm_data=None, csa_header=None, n_mosaic=None):
+    def __init__(self, dcm_data, csa_header=None, n_mosaic=None):
         ''' Initialize Siemens Mosaic wrapper
 
         The Siemens-specific information is in the `csa_header`, either
@@ -552,12 +549,11 @@ class MosaicWrapper(SiemensWrapper):
 
         Parameters
         ----------
-        dcm_data : None or object, optional
-           object should allow attribute access.  If `csa_header` is
-           None, it should also be possible for to extract a CSA header
-           from `dcm_data`. Usually this will be a
-           ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file.  If None, just make an empty dict.
+        dcm_data : object
+           object should allow 'get' and '__getitem__' access.  If `csa_header`
+           is None, it should also be possible for to extract a CSA header from
+           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
+           resulting from reading a DICOM file.  A dict should also work.
         csa_header : None or mapping, optional
            mapping giving values for Siemens CSA image sub-header.
         n_mosaic : None or int, optional
