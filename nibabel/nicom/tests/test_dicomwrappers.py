@@ -54,17 +54,18 @@ EXPECTED_PARAMS = [992.05050247, (0.00507649,
 def test_wrappers():
     # test direct wrapper calls
     # first with empty data
-    for maker, kwargs in ((didw.Wrapper,{}),
-                          (didw.SiemensWrapper, {}),
-                          (didw.MosaicWrapper, {'n_mosaic':10})):
-        dw = maker(**kwargs)
+    for maker, args in ((didw.Wrapper,({},)),
+                          (didw.SiemensWrapper, ({},)),
+                          (didw.MosaicWrapper, ({}, None, 10))):
+        dw = maker(*args)
         assert_equal(dw.get('InstanceNumber'), None)
         assert_equal(dw.get('AcquisitionNumber'), None)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
         assert_raises(didw.WrapperError, dw.get_data)
         assert_raises(didw.WrapperError, dw.get_affine)
+        assert_raises(TypeError, maker)
     for klass in (didw.Wrapper, didw.SiemensWrapper):
-        dw = klass()
+        dw = klass({})
         assert_false(dw.is_mosaic)
     for maker in (didw.wrapper_from_data,
                   didw.Wrapper,
@@ -77,6 +78,34 @@ def test_wrappers():
         assert_raises(KeyError, dw.__getitem__, 'not an item')
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
         assert_true(dw.is_mosaic)
+
+
+def test_get_from_wrapper():
+    # Test that 'get', and __getitem__ work as expected for underlying dicom
+    # data
+    dcm_data = {'some_key': 'some value'}
+    dw = didw.Wrapper(dcm_data)
+    assert_equal(dw.get('some_key'), 'some value')
+    assert_equal(dw.get('some_other_key'), None)
+    # Getitem uses the same dictionary access
+    assert_equal(dw['some_key'], 'some value')
+    # And raises a WrapperError for missing keys
+    assert_raises(KeyError, dw.__getitem__, 'some_other_key')
+    # Test we don't use attributes for get
+    class FakeData(dict):
+        pass
+    d = FakeData()
+    d.some_key = 'another bit of data'
+    dw = didw.Wrapper(d)
+    assert_equal(dw.get('some_key'), None)
+    # Check get defers to dcm_data get
+    class FakeData2(object):
+        def get(self, key, default):
+            return 1
+    d = FakeData2()
+    d.some_key = 'another bit of data'
+    dw = didw.Wrapper(d)
+    assert_equal(dw.get('some_key'), 1)
 
 
 @dicom_test
@@ -180,7 +209,7 @@ def test_vol_matching():
     assert_false(dw_siemens.is_same_series(dw_plain))
     # we can even make an empty wrapper.  This compares True against
     # itself but False against the others
-    dw_empty = didw.Wrapper()
+    dw_empty = didw.Wrapper({})
     assert_true(dw_empty.is_same_series(dw_empty))
     assert_false(dw_empty.is_same_series(dw_plain))
     assert_false(dw_plain.is_same_series(dw_empty))
@@ -198,7 +227,7 @@ def test_slice_indicator():
     z = dw_0.slice_indicator
     assert_false(z is None)
     assert_equal(z, dw_1000.slice_indicator)
-    dw_empty = didw.Wrapper()
+    dw_empty = didw.Wrapper({})
     assert_true(dw_empty.slice_indicator is None)
 
 
@@ -211,13 +240,13 @@ def test_orthogonal():
     # Test the threshold for rotation matrix orthogonality
     class FakeData(dict): pass
     d = FakeData()
-    d.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d.ImageOrientationPatient = [1e-5, 1, 0, 1, 0, 0]
+    d['ImageOrientationPatient'] = [1e-5, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_almost_equal(dw.rotation_matrix, np.eye(3), 5)
-    d.ImageOrientationPatient = [1e-4, 1, 0, 1, 0, 0]
+    d['ImageOrientationPatient'] = [1e-4, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_raises(didw.WrapperPrecisionError, getattr, dw, 'rotation_matrix')
 
@@ -227,10 +256,10 @@ def test_rotation_matrix():
     # Test rotation matrix and slice normal
     class FakeData(dict): pass
     d = FakeData()
-    d.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+    d['ImageOrientationPatient'] = [1, 0, 0, 0, 1, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, [[0, 1, 0],
                                             [1, 0, 0],
@@ -247,6 +276,7 @@ def test_use_csa_sign():
     dw2 = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     assert np.allclose(dw.slice_normal, dw2.slice_normal)
 
+
 @dicom_test
 def test_assert_parallel():
     #Test that we get an AssertionError if the cross product and the CSA 
@@ -254,7 +284,8 @@ def test_assert_parallel():
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
     assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
-    
+
+
 @dicom_test
 def test_decimal_rescale():
     #Test that we don't get back a data array with dtpye np.object when our 
