@@ -19,8 +19,8 @@ dicom_test = np.testing.dec.skipif(not have_dicom,
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
 
-from nose.tools import assert_true, assert_false, \
-     assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal,
+                        assert_not_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -324,7 +324,7 @@ def test_use_csa_sign():
     iop = dw.image_orient_patient
     dw.image_orient_patient = np.c_[iop[:,1], iop[:,0]]
     dw2 = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
-    assert np.allclose(dw.slice_normal, dw2.slice_normal)
+    assert_true(np.allclose(dw.slice_normal, dw2.slice_normal))
 
 
 @dicom_test
@@ -341,7 +341,7 @@ def test_decimal_rescale():
     #Test that we don't get back a data array with dtpye np.object when our 
     #rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
-    assert dw.get_data().dtype != np.object
+    assert_not_equal(dw.get_data().dtype, np.object)
 
 
 def test_multiframe_affine():
@@ -355,5 +355,5 @@ def test_multiframe_data():
     #This just tests that the data ordering produces a consistent result.
     dw = didw.wrapper_from_file(DATA_FILE_4D)
     dat_str = dw.get_data().tostring()
-    assert (sha1(dat_str).hexdigest() ==
-            '149323269b0af92baa7508e19ca315240f77fa8c')
+    assert_equal(sha1(dat_str).hexdigest(),
+                 '149323269b0af92baa7508e19ca315240f77fa8c')
