@@ -405,19 +405,28 @@ class MultiframeWrapper(Wrapper):
     """
     is_multiframe = True
 
-    def __init__(self, dcm_data=None):
+    def __init__(self, dcm_data):
+        ''' Initialize multiframe wrapper
+
+        Parameters
+        ----------
+        dcm_data : object
+           object should allow 'get' and '__getitem__' access.  Usually this
+           will be a ``dicom.dataset.Dataset`` object resulting from reading a
+           DICOM file, but a dictionary should also work.
+        '''
         Wrapper.__init__(self, dcm_data)
-        if dcm_data is None:
-            dcm_data = {}
-        else:
-            self.frame0 = dcm_data.PerFrameFunctionalGroupsSequence[0]
-            self.shared = dcm_data.SharedFunctionalGroupsSequence[0]
         self.dcm_data = dcm_data
+        self.frame0 = dcm_data.get('PerFrameFunctionalGroupsSequence')[0]
+        self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         self._shape = None
 
     @one_time
     def image_shape(self):
-        dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
+        try:
+            dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
+        except AttributeError:
+            raise WrapperError('No shape information in multiframe data')
         n_dim = len(dim_idx0) + 1
         shape = [0] * n_dim
         shape[:2] = [self.dcm_data.Rows, self.dcm_data.Columns]
@@ -446,7 +455,12 @@ class MultiframeWrapper(Wrapper):
         try:
             iop = self.shared.PlaneOrientationSequence[0].ImageOrientationPatient
         except AttributeError:
-            iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
+            try:
+                iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
+            except AttributeError:
+                raise WrapperError("Not enough information for "
+                                   "image_orient_patient")
+
         if iop is None:
             return None
         iop = np.array((map(float, iop)))

@@ -58,11 +58,14 @@ EXPECTED_PARAMS = [992.05050247, (0.00507649,
 @dicom_test
 def test_wrappers():
     # test direct wrapper calls
-    # first with empty data
+    # first with empty or minimal data
+    multi_minimal = {
+        'PerFrameFunctionalGroupsSequence': [None],
+        'SharedFunctionalGroupsSequence': [None]}
     for maker, args in ((didw.Wrapper,({},)),
-                          (didw.SiemensWrapper, ({},)),
-                          (didw.MosaicWrapper, ({}, None, 10)),
-                          (didw.MultiframeWrapper, ({},))):
+                        (didw.SiemensWrapper, ({},)),
+                        (didw.MosaicWrapper, ({}, None, 10)),
+                        (didw.MultiframeWrapper, (multi_minimal,))):
         dw = maker(*args)
         assert_equal(dw.get('InstanceNumber'), None)
         assert_equal(dw.get('AcquisitionNumber'), None)
@@ -70,10 +73,9 @@ def test_wrappers():
         assert_raises(didw.WrapperError, dw.get_data)
         assert_raises(didw.WrapperError, dw.get_affine)
         assert_raises(TypeError, maker)
-    # Check default attributes
-    for klass in (didw.Wrapper, didw.SiemensWrapper, didw.MultiframeWrapper):
-        dw = klass()
-        assert_false(dw.is_mosaic)
+        # Check default attributes
+        if not maker is didw.MosaicWrapper:
+            assert_false(dw.is_mosaic)
         assert_equal(dw.b_matrix, None)
         assert_equal(dw.q_vector, None)
     for maker in (didw.wrapper_from_data,
