@@ -249,7 +249,7 @@ def test_vol_matching():
     assert_false(dw_philips.is_same_series(dw_plain_philips))
     # we can even make an empty wrapper.  This compares True against
     # itself but False against the others
-    dw_empty = didw.Wrapper()
+    dw_empty = didw.Wrapper({})
     assert_true(dw_empty.is_same_series(dw_empty))
     assert_false(dw_empty.is_same_series(dw_plain_philips))
     assert_false(dw_plain_philips.is_same_series(dw_empty))
