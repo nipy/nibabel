@@ -426,31 +426,42 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_shape(self):
+        ''' The array shape as it will be returned by ``get_data()``
+        '''
+        rows, cols = self.get('Rows'), self.get('Columns')
+        if None in (rows, cols):
+            return None
+        n_frames = self.dcm_data.get('NumberOfFrames')
+        if n_frames is None:
+            return None
         try:
             dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
         except AttributeError:
-            raise WrapperError('No shape information in multiframe data')
+            return None
         n_dim = len(dim_idx0) + 1
+        # Check there is only one multiframe stack index
+        stack_nos = [frame.FrameContentSequence[0].DimensionIndexValues[0]
+                     for frame in self.frames]
+        if np.any(np.diff(stack_nos)):
+            raise WrapperError("Cannot handle multi-stack files")
+        if n_dim < 4: # 3D volume
+            return (rows, cols, n_frames)
+        # More than 3 dimensions
         shape = [0] * n_dim
-        shape[:2] = [self.dcm_data.Rows, self.dcm_data.Columns]
-        if n_dim > 3:
-            self._frame_indices = []
-            for frame in self.frames:
-                frame_idx = frame.FrameContentSequence[0].DimensionIndexValues
-                if frame_idx[0] != dim_idx0[0]:
-                    raise ValueError("Cannot handle multi-stack files")
-                self._frame_indices.append(frame_idx[1:])
-                for idx in range(2, n_dim):
-                    shape[idx] = max(shape[idx], frame_idx[idx - 1])
-            n_vols = 1
-            for idx in range(3, n_dim):
-                n_vols *= shape[idx]
-            if self.dcm_data.NumberOfFrames != n_vols * shape[2]:
-                raise ValueError("Calculated shape does not match number of "
-                                 "frames.")
-        else:
-            shape[2] = self.dcm_data.NumberOfFrames
-
+        shape[:2] = [rows, cols]
+        self._frame_indices = []
+        assert len(self.frames) == n_frames
+        for frame in self.frames:
+            frame_idx = frame.FrameContentSequence[0].DimensionIndexValues
+            self._frame_indices.append(frame_idx[1:])
+            for idx in range(2, n_dim):
+                shape[idx] = max(shape[idx], frame_idx[idx - 1])
+        n_vols = 1
+        for idx in range(3, n_dim):
+            n_vols *= shape[idx]
+        if n_frames != n_vols * shape[2]:
+            raise WrapperError("Calculated shape does not match number of "
+                               "frames.")
         return tuple(shape)
 
     @one_time
@@ -528,6 +539,7 @@ class MultiframeWrapper(Wrapper):
 
             #Find the flat frame order
             order = []
+            # _frame_indices come from running image_shape property fetch
             for frame_index in self._frame_indices:
                 flat_idx = frame_index[0] - 1
                 mult = shape[2]

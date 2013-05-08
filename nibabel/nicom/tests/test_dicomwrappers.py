@@ -344,6 +344,71 @@ def test_decimal_rescale():
     assert_not_equal(dw.get_data().dtype, np.object)
 
 
+def fake_frames(div_seq):
+    # Make fake frames for multiframe testing
+    class Fake(object): pass
+    frames = []
+    for div in div_seq:
+        fake_frame = Fake()
+        fake_element = Fake()
+        fake_element.DimensionIndexValues = div
+        fake_frame.FrameContentSequence = [fake_element]
+        frames.append(fake_frame)
+    return frames
+
+
+def test_multiframe_shape():
+    # Check the shape algorithm
+    fake_mf = { # Minimal contents of dcm_data for this wrapper
+        'PerFrameFunctionalGroupsSequence': [None],
+        'SharedFunctionalGroupsSequence': [None]}
+    MFW = didw.MultiframeWrapper
+    dw = MFW(fake_mf)
+    # No rows, cols, return None
+    assert_equal(dw.image_shape, None)
+    fake_mf['Rows'] = 64
+    assert_equal(MFW(fake_mf).image_shape, None)
+    fake_mf.pop('Rows')
+    fake_mf['Columns'] = 64
+    assert_equal(MFW(fake_mf).image_shape, None)
+    fake_mf['Rows'] = 32
+    # Missing frame data, still None
+    assert_equal(MFW(fake_mf).image_shape, None)
+    # Still missing frame data, still None
+    fake_mf['NumberOfFrames'] = 4
+    assert_equal(MFW(fake_mf).image_shape, None)
+    # Make some fake frame data for 3D
+    div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
+    frames = fake_frames(div_seq)
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
+    # Check stack number matching
+    div_seq = ((1, 1), (1, 2), (1, 3), (2, 4))
+    frames = fake_frames(div_seq)
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+    # Make some fake frame data for 4D
+    fake_mf['NumberOfFrames'] = 6
+    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
+               (1, 1, 3), (1, 2, 3))
+    frames = fake_frames(div_seq)
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
+    # Check stack number matching for 4D
+    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
+               (1, 1, 3), (2, 2, 3))
+    frames = fake_frames(div_seq)
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+    # Check apparent shape matches indices - here the max volume index is 3 but
+    # there are only two volumes
+    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
+    frames = fake_frames(div_seq)
+    fake_mf['NumberOfFrames'] = 4
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+
+
 @dicom_test
 def test_multiframe_affine():
     #Make sure we find orientation/position/spacing info
