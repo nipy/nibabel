@@ -344,12 +344,14 @@ def test_decimal_rescale():
     assert_not_equal(dw.get_data().dtype, np.object)
 
 
+@dicom_test
 def test_multiframe_affine():
     #Make sure we find orientation/position/spacing info
     dw = didw.wrapper_from_file(DATA_FILE_4D)
     dw.get_affine()
 
 
+@dicom_test
 def test_multiframe_data():
     #The data in this file is (initially) a 1D gradient so it compresses well.
     #This just tests that the data ordering produces a consistent result.
