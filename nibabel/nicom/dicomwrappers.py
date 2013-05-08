@@ -417,8 +417,6 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_shape(self):
-        if len(self.dcm_data) == 0:
-            raise WrapperError('No dcm_data specified')
         dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
         n_dim = len(dim_idx0) + 1
         shape = [0] * n_dim
@@ -445,8 +443,6 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_orient_patient(self):
-        if len(self.dcm_data) == 0:
-            raise WrapperError('No dcm_data specified')
         try:
             iop = self.shared.PlaneOrientationSequence[0].ImageOrientationPatient
         except AttributeError:
@@ -458,8 +454,6 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
-        if len(self.dcm_data) == 0:
-            raise WrapperError('No dcm_data specified')
         try:
             pix_space = self.shared.PixelMeasuresSequence[0].PixelSpacing
         except AttributeError:
@@ -480,8 +474,6 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_position(self):
-        if len(self.dcm_data) == 0:
-            raise WrapperError('No dcm_data specified')
         try:
             ipp = self.shared.PlanePositions[0].ImagePositionPatient
         except AttributeError:
@@ -541,8 +533,6 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        if len(self.dcm_data) == 0:
-            raise WrapperError('No dcm_data specified')
         if 'PixelValueTransformations' in self.frame0:
             pixelTransformations = self.frame0.PixelValueTransformations[0]
             scale = float(pixelTransformations.RescaleSlope)
