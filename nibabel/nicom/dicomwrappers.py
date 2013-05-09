@@ -523,12 +523,6 @@ class MultiframeWrapper(Wrapper):
         signature['vox'] = (self.voxel_sizes, none_or_close)
         return signature
 
-    def get_pixel_array(self):
-        try:
-            return self['pixel_array']
-        except KeyError:
-            raise WrapperError('Cannot find data in DICOM')
-
     def get_data(self):
         shape = self.image_shape
         if shape is None:
