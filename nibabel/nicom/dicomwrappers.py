@@ -431,34 +431,29 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             return None
-        n_frames = self.dcm_data.get('NumberOfFrames')
-        if n_frames is None:
-            return None
+        # Collect all the dimension indices
         try:
-            dim_idx0 = self.frame0.FrameContentSequence[0].DimensionIndexValues
+            self.frame0.FrameContentSequence[0].DimensionIndexValues
         except AttributeError:
             return None
-        n_dim = len(dim_idx0) + 1
+        # Check number of frames
+        n_frames = self.dcm_data.get('NumberOfFrames')
+        assert len(self.frames) == n_frames
+        frame_indices = np.array(
+            [frame.FrameContentSequence[0].DimensionIndexValues
+             for frame in self.frames])
+        n_dim = frame_indices.shape[1] + 1
         # Check there is only one multiframe stack index
-        stack_nos = [frame.FrameContentSequence[0].DimensionIndexValues[0]
-                     for frame in self.frames]
-        if np.any(np.diff(stack_nos)):
+        if np.any(np.diff(frame_indices[:, 0])):
             raise WrapperError("Cannot handle multi-stack files")
+        # Store frame indices
+        self._frame_indices = frame_indices[:, 1:]
         if n_dim < 4: # 3D volume
             return (rows, cols, n_frames)
         # More than 3 dimensions
-        shape = [0] * n_dim
-        shape[:2] = [rows, cols]
-        self._frame_indices = []
-        assert len(self.frames) == n_frames
-        for frame in self.frames:
-            frame_idx = frame.FrameContentSequence[0].DimensionIndexValues
-            self._frame_indices.append(frame_idx[1:])
-            for idx in range(2, n_dim):
-                shape[idx] = max(shape[idx], frame_idx[idx - 1])
-        n_vols = 1
-        for idx in range(3, n_dim):
-            n_vols *= shape[idx]
+        ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
+        shape = (rows, cols) + tuple(ns_unique)
+        n_vols = np.prod(shape[3:])
         if n_frames != n_vols * shape[2]:
             raise WrapperError("Calculated shape does not match number of "
                                "frames.")

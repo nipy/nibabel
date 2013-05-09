@@ -401,13 +401,18 @@ def test_multiframe_shape():
     frames = fake_frames(div_seq)
     fake_mf['PerFrameFunctionalGroupsSequence'] = frames
     assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
-    # Check apparent shape matches indices - here the max volume index is 3 but
-    # there are only two volumes
+    # Check indices can be non-contiguous
     div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
     frames = fake_frames(div_seq)
     fake_mf['NumberOfFrames'] = 4
     fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+    # Check indices can include zero
+    div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
+    frames = fake_frames(div_seq)
+    fake_mf['NumberOfFrames'] = 4
+    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
 
 
 def test_multiframe_iop():
