@@ -409,6 +409,31 @@ def test_multiframe_shape():
     assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
 
 
+def test_multiframe_iop():
+    # Test Image orient patient for multiframe
+    fake_mf = { # Minimal contents of dcm_data for this wrapper
+        'PerFrameFunctionalGroupsSequence': [None],
+        'SharedFunctionalGroupsSequence': [None]}
+    MFW = didw.MultiframeWrapper
+    dw = MFW(fake_mf)
+    assert_raises(didw.WrapperError, getattr, dw, 'image_orient_patient')
+    # Make a fake frame
+    class Fake(object): pass
+    fake_frame = Fake()
+    fake_element = Fake()
+    fake_element.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+    fake_frame.PlaneOrientationSequence = [fake_element]
+    fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+    assert_array_equal(MFW(fake_mf).image_orient_patient,
+                       [[0, 1], [1, 0], [0, 0]])
+    fake_mf['SharedFunctionalGroupsSequence'] = [None]
+    assert_raises(didw.WrapperError,
+                  getattr, MFW(fake_mf), 'image_orient_patient')
+    fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+    assert_array_equal(MFW(fake_mf).image_orient_patient,
+                       [[0, 1], [1, 0], [0, 0]])
+
+
 @dicom_test
 def test_multiframe_affine():
     #Make sure we find orientation/position/spacing info

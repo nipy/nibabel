@@ -466,6 +466,7 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_orient_patient(self):
+        ''' Note that this is _not_ LR flipped '''
         try:
             iop = self.shared.PlaneOrientationSequence[0].ImageOrientationPatient
         except AttributeError:
@@ -474,7 +475,6 @@ class MultiframeWrapper(Wrapper):
             except AttributeError:
                 raise WrapperError("Not enough information for "
                                    "image_orient_patient")
-
         if iop is None:
             return None
         iop = np.array((map(float, iop)))
