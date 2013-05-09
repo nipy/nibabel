@@ -4,6 +4,7 @@
 from os.path import join as pjoin, dirname
 import gzip
 from hashlib import sha1
+from decimal import Decimal
 
 import numpy as np
 
@@ -432,6 +433,32 @@ def test_multiframe_iop():
     fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
     assert_array_equal(MFW(fake_mf).image_orient_patient,
                        [[0, 1], [1, 0], [0, 0]])
+
+
+def test_multiframe_image_position():
+    # Test image_position property for multiframe
+    fake_mf = { # Minimal contents of dcm_data for this wrapper
+        'PerFrameFunctionalGroupsSequence': [None],
+        'SharedFunctionalGroupsSequence': [None]}
+    MFW = didw.MultiframeWrapper
+    dw = MFW(fake_mf)
+    assert_raises(didw.WrapperError, getattr, dw, 'image_position')
+    class Fake(object): pass
+    fake_frame = Fake()
+    fake_element = Fake()
+    fake_element.ImagePositionPatient = [-2.0, 3., 7]
+    fake_frame.PlanePositions = [fake_element]
+    fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+    fake_mf['SharedFunctionalGroupsSequence'] = [None]
+    assert_raises(didw.WrapperError,
+                  getattr, MFW(fake_mf), 'image_position')
+    fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+    # Check lists of Decimals work
+    fake_element.ImagePositionPatient = [Decimal(v) for v in [-2, 3, 7]]
+    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+    assert_equal(MFW(fake_mf).image_position.dtype, float)
 
 
 @dicom_test

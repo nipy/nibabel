@@ -505,7 +505,10 @@ class MultiframeWrapper(Wrapper):
         try:
             ipp = self.shared.PlanePositions[0].ImagePositionPatient
         except AttributeError:
-            ipp = self.frame0.PlanePositions[0].ImagePositionPatient
+            try:
+                ipp = self.frame0.PlanePositions[0].ImagePositionPatient
+            except AttributeError:
+                raise WrapperError('Cannot get image position from dicom')
         if ipp is None:
             return None
         return np.array(map(float, ipp))
