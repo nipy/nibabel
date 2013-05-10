@@ -70,18 +70,24 @@ def wrapper_from_data(dcm_data):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
+    sop_class = dcm_data.get('SOPClassUID')
+
+    # try to detect what type of dicom object to wrap
+    if sop_class == '1.2.840.10008.5.1.4.1.1.4.1':  # Enhanced MR Image Storage
+        # currently only Philips is using Enhanced Multiframe DICOM
+        return MultiframeWrapper(dcm_data)
+    # Check for Siemens DICOM format types
+    # Only Siemens will have data for the CSA header
     csa = csar.get_csa_header(dcm_data)
-    SOPClassUID = dcm_data.get('SOPClassUID')
-    if csa is None:
-        if (SOPClassUID == '1.2.840.10008.5.1.4.1.1.4.1' and
-                not dcm_data.get('PerFrameFunctionalGroupsSequence') is None and
-                not dcm_data.get('SharedFunctionalGroupsSequence') is None):
-            return MultiframeWrapper(dcm_data)
+    if csa:
+        if csar.is_mosaic(csa):
+            # Mosaic is a "tiled" image
+            return MosaicWrapper(dcm_data, csa)
         else:
-            return Wrapper(dcm_data)
-    if not csar.is_mosaic(csa):
-        return SiemensWrapper(dcm_data, csa)
-    return MosaicWrapper(dcm_data, csa)
+            # Assume data is in a single slice format per file
+            return SiemensWrapper(dcm_data, csa)
+    else:
+        return Wrapper(dcm_data)
 
 
 class Wrapper(object):
@@ -404,6 +410,26 @@ class MultiframeWrapper(Wrapper):
     """Wrapper for Enhanced MR Storage SOP Class
 
     tested with Philips' Enhanced DICOM implementation
+
+    Attributes
+    ----------
+    is_multiframe : boolean
+        Identifies `dcmdata` as multi-frame
+    frames : sequence
+        A sequence of ``dicom.dataset.Dataset`` objects populated by the
+        ``dicom.dataset.Dataset.PerFrameFunctionalGroupsSequence`` attribute
+    shared : object
+        The first (and only) ``dicom.dataset.Dataset`` object from a
+        ``dicom.dataset.Dataset.SharedFunctionalgroupSequence``.
+
+    Methods
+    -------
+    image_shape(self)
+    image_orient_patient(self)
+    voxel_sizes(self)
+    image_position(self)
+    series_signature(self)
+    get_data(self)
     """
     is_multiframe = True
 
@@ -420,24 +446,24 @@ class MultiframeWrapper(Wrapper):
         Wrapper.__init__(self, dcm_data)
         self.dcm_data = dcm_data
         self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
-        self.frame0 = self.frames[0]
-        self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
+        try:
+            self.frames[0]
+        except TypeError:
+            raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
+        try:
+            self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
+        except TypeError:
+            raise WrapperError("SharedFunctionalGroupsSequence is empty.")
         self._shape = None
 
     @one_time
     def image_shape(self):
-        """The array shape as it will be returned by ``get_data()``
-        """
+        """The array shape as it will be returned by ``get_data()``"""
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
-            return None
-        # Collect all the dimension indices
-        try:
-            self.frame0.FrameContentSequence[0].DimensionIndexValues
-        except AttributeError:
-            return None
+            raise WrapperError("Rows and/or Columns are empty.")
         # Check number of frames
-        n_frames = self.dcm_data.get('NumberOfFrames')
+        n_frames = self.get('NumberOfFrames')
         assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
@@ -445,11 +471,11 @@ class MultiframeWrapper(Wrapper):
         n_dim = frame_indices.shape[1] + 1
         # Check there is only one multiframe stack index
         if np.any(np.diff(frame_indices[:, 0])):
-            raise WrapperError("Cannot handle multi-stack files")
+            raise WrapperError("File contains more than one StackID. Cannot handle multi-stack files")
         # Store frame indices
         self._frame_indices = frame_indices[:, 1:]
-        if n_dim < 4: # 3D volume
-            return (rows, cols, n_frames)
+        if n_dim < 4:  # 3D volume
+            return rows, cols, n_frames
         # More than 3 dimensions
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
         shape = (rows, cols) + tuple(ns_unique)
@@ -467,7 +493,7 @@ class MultiframeWrapper(Wrapper):
             iop = self.shared.PlaneOrientationSequence[0].ImageOrientationPatient
         except AttributeError:
             try:
-                iop = self.frame0.PlaneOrientationSequence[0].ImageOrientationPatient
+                iop = self.frames[0].PlaneOrientationSequence[0].ImageOrientationPatient
             except AttributeError:
                 raise WrapperError("Not enough information for image_orient_patient")
         if iop is None:
@@ -480,7 +506,7 @@ class MultiframeWrapper(Wrapper):
         try:
             pix_space = self.shared.PixelMeasuresSequence[0].PixelSpacing
         except AttributeError:
-            pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
+            pix_space = self.frames[0].PixelMeasuresSequence[0].PixelSpacing
         if pix_space is None:
             return None
         zs = self.get('SpacingBetweenSlices')
@@ -488,7 +514,7 @@ class MultiframeWrapper(Wrapper):
             try:
                 zs = self.shared.PixelMeasuresSequence[0].SliceThickness
             except AttributeError:
-                zs = self.frame0.PixelMeasuresSequence[0].SliceThickness
+                zs = self.frames[0].PixelMeasuresSequence[0].SliceThickness
             if zs is None:
                 zs = 1
         zs = float(zs)
@@ -501,7 +527,7 @@ class MultiframeWrapper(Wrapper):
             ipp = self.shared.PlanePositions[0].ImagePositionPatient
         except AttributeError:
             try:
-                ipp = self.frame0.PlanePositions[0].ImagePositionPatient
+                ipp = self.frames[0].PlanePositions[0].ImagePositionPatient
             except AttributeError:
                 raise WrapperError('Cannot get image position from dicom')
         if ipp is None:
@@ -554,8 +580,8 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        if 'PixelValueTransformations' in self.frame0:
-            pixelTransformations = self.frame0.PixelValueTransformations[0]
+        if 'PixelValueTransformations' in self.frames[0]:
+            pixelTransformations = self.frames[0].PixelValueTransformations[0]
             scale = float(pixelTransformations.RescaleSlope)
             offset = float(pixelTransformations.RescaleIntercept)
             if scale != 1:
@@ -587,10 +613,10 @@ class SiemensWrapper(Wrapper):
         Parameters
         ----------
         dcm_data : object
-            object should allow 'get' and '__getitem__' access.  If `csa_header`
-            is None, it should also be possible to extract a CSA header from
-            `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
-            resulting from reading a DICOM file.  A dict should also work.
+           object should allow 'get' and '__getitem__' access.  If `csa_header`
+           is None, it should also be possible to extract a CSA header from
+           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
+           resulting from reading a DICOM file.  A dict should also work.
         csa_header : None or mapping, optional
            mapping giving values for Siemens CSA image sub-header.  If
            None, we try and read the CSA information from `dcm_data`.
