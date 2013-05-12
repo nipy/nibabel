@@ -8,6 +8,7 @@ python:
     - "2.6"
     - "2.7"
     - "3.2"
+    - "3.3"
 env:
     NUMPY_VER=1.7.0
 before_install:
