@@ -132,6 +132,12 @@
 .. _PS 3.11: http://medical.nema.org/Dicom/2011/11_11pu.pdf
 .. _PS 3.12: http://medical.nema.org/Dicom/2011/11_12pu.pdf
 .. _PS 3.14: http://medical.nema.org/Dicom/2011/11_14pu.pdf
+.. _PS 3.15: http://medical.nema.org/Dicom/2011/11_15pu.pdf
+.. _PS 3.16: http://medical.nema.org/Dicom/2011/11_16pu.pdf
+.. _PS 3.17: http://medical.nema.org/Dicom/2011/11_17pu.pdf
+.. _PS 3.18: http://medical.nema.org/Dicom/2011/11_18pu.pdf
+.. _PS 3.19: http://medical.nema.org/Dicom/2011/11_19pu.pdf
+.. _PS 3.20: http://medical.nema.org/Dicom/2011/11_20pu.pdf
 .. _`DICOM specs`: ftp://medical.nema.org/medical/dicom/2011/
 .. _DICOM data structures: http://medical.nema.org/dicom/2011/11_05pu.pdf
 .. _DICOM data dictionary: http://medical.nema.org/dicom/2011/11_05pu.pdf
