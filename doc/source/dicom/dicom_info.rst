@@ -2,11 +2,10 @@
  DICOM information
 ===================
 
-DICOM_ is a large and sometimes confusing imaging data format.  
+DICOM_ is a large and sometimes confusing imaging data format.
 
-In the other pages in this series we try and document our understanding
-of various aspects of DICOM relevant to converting to formats such as
-NIfTI_ .
+In the other pages in this series we try and document our understanding of
+various aspects of DICOM relevant to converting to formats such as NIfTI_ .
 
 There are a large number of DICOM_ image conversion programs already,
 partly because it is a complicated format with features that vary from

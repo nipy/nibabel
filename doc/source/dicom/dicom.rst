@@ -10,6 +10,7 @@ Contents:
    :maxdepth: 2
 
    dicom_info
+   dicom_intro
    dicom_orientation
    dicom_fields
    dicom_mosaic
