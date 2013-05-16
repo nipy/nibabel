@@ -27,9 +27,44 @@ the DICOM standards document `PS 3.10`_:
     the byte stream of the Data Set is placed into the file after the DICOM File
     Meta Information. Each file contains a single SOP Instance.
 
-**************
-DICOM standard
-**************
+*****************
+DICOM is messages
+*****************
+
+The fundamental task of DICOM is to allow different computers to send messages
+to one another.  These messages can contain data, and the data is very often
+medical images.
+
+The messages are in the form of requests for an operation, or responses to those requests.
+
+Let's call the requests and the responses - services.
+
+Every DICOM message starts with a stream of bytes containing information about
+the service.  This part of the message is called the DICOM Message Service
+Element or DIMSE.  Depending on what the DIMSE was, there may follow some data
+related to the request.
+
+For example, there is a DICOM service called "C-ECHO".  This asks for a response
+from another computer to confirm it has seen the echo request.  There is no
+associated data following the "C-ECHO" DIMSE part.  So, the full message is the
+DIMSE "C-ECHO".
+
+There is another DICOM service called "C-STORE".  This is a request for the
+other computer to store some data, such as an image.  The data to be stored
+follows the "C-STORE" DIMSE part.
+
+We go into more detail on this later in the page.
+
+Both the DIMSE and the subsequent data have a particular binary format -
+consisting of DICOM elements (see below).
+
+We'll first cover what DICOM elements are, then how they are arranged to form
+complicated data structures such as images, and finally, how the service part
+and the data part go together to form whole messages, and finally, DICOM files.
+
+******************
+The DICOM standard
+******************
 
 The documents defining the standard are:
 
@@ -81,7 +116,7 @@ The documents defining the standard are:
 DICOM data format
 *****************
 
-DICOM data is stored in memory and on disk as a seqence of *DICOM elements*
+DICOM data is stored in memory and on disk as a sequence of *DICOM elements*
 (section 7 of `PS 3.5`_).
 
 DICOM elements
@@ -103,9 +138,10 @@ unique number for the element, but only for the element within the group (given
 by the *Group number*).
 
 The (Group number, Element number) are nearly always written as hexadecimal
-numbers in the following format: ``(0010,0010)``.  This means group number 16,
-element number 16.  If you look this up in the DICOM data dictionary (`PS 3.6`_)
-you'll see this must be the element called "PatientName".
+numbers in the following format: ``(0010, 0010)``.  The decimal representation
+of hexadecimal 0010 is 16, so this tag refers to group number 16, element number
+16.  If you look this tag up in the DICOM data dictionary (`PS 3.6`_) you'll see
+this must be the element called "PatientName".
 
 These tag groups have special meanings:
 
@@ -487,12 +523,20 @@ macro is "Included" - and also includes other macros.
 DICOM services (DIMSE)
 ======================
 
-DICOM sends messages from one DICOM application (A) to another DICOM application
-(B) that can request services from B, or send notifications to B (`PS 3.7`_
-section 6.3)
+We now go back to messages.
 
-A message consists of a *command set*, maybe followed by a data set (as
-defined above).
+The DICOM application sending the message is called the Service Class User
+(SCU). We might also call this the client.
+
+The DICOM application receiving the message is called the Service Class Provider
+(SCP).  We might also call this the server - for this particular message.
+
+Quoting from `PS 3.7`_ section 6.3:
+
+    A Message is composed of a Command Set followed by a conditional Data Set
+    (see PS 3.5 for the definition of a Data Set). The Command Set is used to
+    indicate the operations/notifications to be performed on or with the Data
+    Set.
 
 The command set consists of command elements (elements with group number 0000).
 
@@ -502,8 +546,8 @@ Service Elements (DIMSEs).  Sections 9 and 10 of PS 3.7 define the valid DIMSEs.
 For example, there is a DIMSE service called "C-ECHO" that requests confirmation
 from the responding application that the echo message arrived.
 
-The definition of the DIMSE services specifies, for DIMSE service, whether the
-DIMSE set of commands should be followed by a data set.
+The definition of the DIMSE services specifies, for a particular DIMSE service,
+whether the DIMSE set of commands should be followed by a data set.
 
 In particular, the data set will be a full Information Object Definition's worth
 of data.
@@ -518,16 +562,42 @@ As we've seen, some DIMSE services should be followed by particular types of
 data.
 
 For example, the "C-STORE" DIMSE command set should be followed by an IOD of
-data to store.
+data to store, but the "C-ECHO" has not data following.
 
-The association of one (or more) DIMSE command sets with the associated
-IOD's-worth of data is a Service Object Pair. The DIMSE (or group of DIMSEs) are
-the "Service" and the data IOD is the "Object".
+The association of a particular type of DIMSE (command set) with the associated
+IOD's-worth of data is a Service Object Pair. The DIMSE is the "Service" and the
+data IOD is the "Object".  Thus the combination of a "C-STORE" DIMSE and an "MR
+Image" IOD would be a SOP.  Services that do not have data following are a
+particular type of SOP where the Object is null.  For example, the "C-ECHO"
+service is the entire contents of a Verification SOP (PS 3.4, section A.4).
 
-DICOM defines which pairings are possible, by listing all Service Object Pair
-classes.
+DICOM defines which pairings are possible, by listing them all as Service Object
+Pair classes (SOP classes).
 
-From PS 3.3:
+Usually a SOP class describes the pairing of exactly one DIMSE service with one
+defined IOD.  For example, the "MR Image storage" SOP class pairs the "C-STORE"
+DIMSE with the "MR Image" IOD.
+
+Sometimes a SOP class describes the pairings of one of several possible DIMSEs
+with a particular IOP.  For example, the "Modality Performed Procedure Step" SOP
+class describes the pairing of *either* ("N-CREATE", Modality Performed
+Procedure Step IOD) *or* ("N-SET", Modality Performed Procedure Step IOD) (see
+PS 3.4 F.7.1).  For this reason a SOP class is best described as the pairing of
+a *DIMSE service group* with an IOD, where the DIMSE service group usually
+contains just one DIMSE service, but sometimes has more. For example, the "MR
+Image Storage SOP class has a DIMSE service group of one element ["C-STORE"].
+The "Modality Performed Procedure Step" SOP class has a DIMSE service group with
+two elements: ["N-CREATE", "N-SET"].
+
+From PS 3.4:
+
+    6.4 DIMSE SERVICE GROUP
+
+    DIMSE Service Group specifies one or more operations/notifications defined
+    in PS 3.7 which are applicable to an IOD.
+
+    DIMSE Service Groups are defined in this Part of the DICOM Standard, in the
+    specification of a Service - Object Pair Class.
 
     6.5 SERVICE-OBJECT PAIR (SOP) CLASS
 
@@ -536,7 +606,7 @@ From PS 3.3:
     semantics which may restrict the use of the services in the DIMSE Service
     Group and/or the Attributes of the IOD.
 
-The Annexes of `PS 3.4`_ from Annex C define the SOP classes.
+The Annexes of `PS 3.4`_ define the SOP classes.
 
 A pairing of actual data of form (DIMSE group, IOD) that conforms to the SOP
 class definition, is a SOP class instance. That is, the instance comprises the
