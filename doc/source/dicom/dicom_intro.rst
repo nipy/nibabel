@@ -178,7 +178,11 @@ a block of elements within the odd numbered group. To do this they create a
 "Private Creator" element where the tag is of the form `(xxxx, 00yy)` where 
 the `xxxx` is the odd group we are reserving a portion of and the `yy` is the 
 block of elements we are reserving. This will reserve the 256 elements in the 
-range `(xxxx, yy00)` to `(xxxx, yyFF)`.
+range `(xxxx, yy00)` to `(xxxx, yyFF)`. The odd group `xxxx` must be greater 
+than `0008` and the block reservation `yy` must be greater than `0010`. The 
+"Private Creator" element must have a VR of "LO" and the value will be a 
+string that identifies the private creator. For details see section 7.8.1 
+of the DICOM standard `PS 3.5`_.
 
 Quoting from section 7.1 of `PS 3.5`_:
 
