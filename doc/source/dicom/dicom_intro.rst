@@ -562,7 +562,7 @@ As we've seen, some DIMSE services should be followed by particular types of
 data.
 
 For example, the "C-STORE" DIMSE command set should be followed by an IOD of
-data to store, but the "C-ECHO" has not data following.
+data to store, but the "C-ECHO" has no data object following.
 
 The association of a particular type of DIMSE (command set) with the associated
 IOD's-worth of data is a Service Object Pair. The DIMSE is the "Service" and the
