@@ -165,24 +165,16 @@ elements; File meta elements; directory structuring elements.
 
 Tags with groups from 0008 are *data* elements.
 
+Standard attribute tags
+^^^^^^^^^^^^^^^^^^^^^^^
+
 There is a full list of all *standard* data element tags in the DICOM data
 dictionary in section 6 of DICOM standard `PS 3.6`_. *Standard* tags are tags
 with an even group number (see below).
 
 Even numbered groups are defined in the DICOM standard data dictionary.  Odd
-numbered groups are "private" and can be used by manufacturers as they wish.
-These private groups still use the (Tag, VR, Value Length, Value Field)
-DICOM data format. The same odd group may well be used by different 
-manufacturers in different ways. The creator of the private tags must reserve 
-a block of elements within the odd numbered group. To do this they create a 
-"Private Creator" element where the tag is of the form `(xxxx, 00yy)` where 
-the `xxxx` is the odd group we are reserving a portion of and the `yy` is the 
-block of elements we are reserving. This will reserve the 256 elements in the 
-range `(xxxx, yy00)` to `(xxxx, yyFF)`. The odd group `xxxx` must be greater 
-than `0008` and the block reservation `yy` must be greater than `0010`. The 
-"Private Creator" element must have a VR of "LO" and the value will be a 
-string that identifies the private creator. For details see section 7.8.1 
-of the DICOM standard `PS 3.5`_.
+numbered groups are "private", are *not* defined in the standard data dictionary
+and can be used by manufacturers as they wish (see below).
 
 Quoting from section 7.1 of `PS 3.5`_:
 
@@ -198,8 +190,61 @@ Quoting from section 7.1 of `PS 3.5`_:
     (0003,eeee), (0005,eeee), (0007,eeee), or (FFFF,eeee). Private Data Elements
     are discussed further in Section 7.8.
 
+Private attribute tags
+^^^^^^^^^^^^^^^^^^^^^^
+
+Private attribute tags are tags with an odd group number. A private element is
+an element with a private tag.
+
+Private elements still use the (Tag, [VR, ] Value Length, Value Field) DICOM
+data format.
+
+The same odd group may be used by different manufacturers in different ways.
+
 Manufacturers can make data dictionaries for their private groups, called
 private data dictionaries.
+
+To try and avoid collisions of private tags from different manufacturers, there
+is a mechanism by which a manufacturer can tell other users of a DICOM dataset
+that it has reserved a block in the (Group number, Element number) space for
+their own use.  To do this they write a "Private Creator" element where the tag
+is of the form ``(gggg, 00xx)``, the Value Representation (see below) is "LO"
+(Long String) and the Value Field is a string identifying what the space is
+reserved for.  Here ``gggg`` is the odd group we are reserving a portion of and
+the ``xx`` is the block of elements we are reserving.  A tag of ``(gggg, xx00)``
+reserves the 256 elements in the range ``(gggg, xx00)`` to ``(gggg, xxFF)``.
+
+For example, here is a real data element from a Siemens DICOM dataset::
+
+  (0019, 0010) Private Creator                     LO: 'SIEMENS MR HEADER'
+
+This reserves the tags from ``(0019, 1000)`` to ``(0019, 10FF)`` for information
+on the "SIEMENS MR HEADER"
+
+The odd group ``gggg`` must be greater than ``0008`` and the block reservation
+``xx`` must be greater than ``0010``.
+
+Here is the relevant section from PS 3.5:
+
+  7.8.1 PRIVATE DATA ELEMENT TAGS
+
+  It is possible that multiple implementors may define Private Elements with the
+  same (odd) group number.  To avoid conflicts, Private Elements shall be
+  assigned Private Data Element Tags according to the following rules.
+
+  a) Private Creator Data Elements numbered (gggg,0010-00FF) (gggg is odd) shall
+  be used to reserve a block of Elements with Group Number gggg for use by an
+  individual implementor.  The implementor shall insert an identification code
+  in the first unused (unassigned) Element in this series to reserve a block of
+  Private Elements. The VR of the private identification code shall be LO (Long
+  String) and the VM shall be equal to 1.
+
+  b) Private Creator Data Element (gggg,0010), is a Type 1 Data Element that
+  identifies the implementor reserving element (gggg,1000-10FF), Private Creator
+  Data Element (gggg,0011) identifies the implementor reserving elements
+  (gggg,1100-11FF), and so on, until Private Creator Data Element (gggg,00FF)
+  identifies the implementor reserving elements (gggg,FF00- FFFF).
+
 
 Value Representation
 --------------------
