@@ -201,9 +201,6 @@ data format.
 
 The same odd group may be used by different manufacturers in different ways.
 
-Manufacturers can make data dictionaries for their private groups, called
-private data dictionaries.
-
 To try and avoid collisions of private tags from different manufacturers, there
 is a mechanism by which a manufacturer can tell other users of a DICOM dataset
 that it has reserved a block in the (Group number, Element number) space for
@@ -222,9 +219,9 @@ This reserves the tags from ``(0019, 1000)`` to ``(0019, 10FF)`` for information
 on the "SIEMENS MR HEADER"
 
 The odd group ``gggg`` must be greater than ``0008`` and the block reservation
-``xx`` must be greater than ``0010``.
+``xx`` must be greater than or equal to ``0010`` and less than ``0100``.
 
-Here is the relevant section from PS 3.5:
+Here is the start of the relevant section from PS 3.5:
 
   7.8.1 PRIVATE DATA ELEMENT TAGS
 
@@ -245,6 +242,13 @@ Here is the relevant section from PS 3.5:
   (gggg,1100-11FF), and so on, until Private Creator Data Element (gggg,00FF)
   identifies the implementor reserving elements (gggg,FF00- FFFF).
 
+  c) Encoders of Private Data Elements shall be able to dynamically assign
+  private data to any available (unreserved) block(s) within the Private group,
+  and specify this assignment through the blocks corresponding Private Creator
+  Data Element(s). Decoders of Private Data shall be able to accept reserved
+  blocks with a given Private Creator identification code at any position within
+  the Private group specified by the blocks corresponding Private Creator Data
+  Element.
 
 Value Representation
 --------------------
