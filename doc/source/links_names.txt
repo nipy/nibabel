@@ -119,8 +119,30 @@
 .. _DICOM: http://medical.nema.org/
 .. _`wikipedia DICOM`: http://en.wikipedia.org/wiki/Digital_Imaging_and_Communications_in_Medicine
 .. _GDCM: http://sourceforge.net/apps/mediawiki/gdcm
-.. _`DICOM specs`: ftp://medical.nema.org/medical/dicom/2009/
-.. _`DICOM object definitions`: ftp://medical.nema.org/medical/dicom/2009/09_03pu3.pdf
+.. _DICOM standard : http://medical.nema.org/standard.html
+.. _PS 3.1: http://medical.nema.org/Dicom/2011/11_01pu.pdf
+.. _PS 3.2: http://medical.nema.org/Dicom/2011/11_02pu.pdf
+.. _PS 3.3: http://medical.nema.org/Dicom/2011/11_03pu.pdf
+.. _PS 3.4: http://medical.nema.org/Dicom/2011/11_04pu.pdf
+.. _PS 3.5: http://medical.nema.org/Dicom/2011/11_05pu.pdf
+.. _PS 3.6: http://medical.nema.org/Dicom/2011/11_06pu.pdf
+.. _PS 3.7: http://medical.nema.org/Dicom/2011/11_07pu.pdf
+.. _PS 3.8: http://medical.nema.org/Dicom/2011/11_08pu.pdf
+.. _PS 3.10: http://medical.nema.org/Dicom/2011/11_10pu.pdf
+.. _PS 3.11: http://medical.nema.org/Dicom/2011/11_11pu.pdf
+.. _PS 3.12: http://medical.nema.org/Dicom/2011/11_12pu.pdf
+.. _PS 3.14: http://medical.nema.org/Dicom/2011/11_14pu.pdf
+.. _PS 3.15: http://medical.nema.org/Dicom/2011/11_15pu.pdf
+.. _PS 3.16: http://medical.nema.org/Dicom/2011/11_16pu.pdf
+.. _PS 3.17: http://medical.nema.org/Dicom/2011/11_17pu.pdf
+.. _PS 3.18: http://medical.nema.org/Dicom/2011/11_18pu.pdf
+.. _PS 3.19: http://medical.nema.org/Dicom/2011/11_19pu.pdf
+.. _PS 3.20: http://medical.nema.org/Dicom/2011/11_20pu.pdf
+.. _`DICOM specs`: ftp://medical.nema.org/medical/dicom/2011/
+.. _DICOM data structures: http://medical.nema.org/dicom/2011/11_05pu.pdf
+.. _DICOM data dictionary: http://medical.nema.org/dicom/2011/11_05pu.pdf
+.. _`DICOM object definitions`: ftp://medical.nema.org/medical/dicom/2011/11_03pu3.pdf
+
 .. _dcm2nii: http://www.cabiatl.com/mricro/mricron/dcm2nii.html
 .. _`mricron install`: http://www.cabiatl.com/mricro/mricron/install.html
 .. _dicom2nrrd: http://www.slicer.org/slicerWiki/index.php/Modules:DicomToNRRD-3.4
