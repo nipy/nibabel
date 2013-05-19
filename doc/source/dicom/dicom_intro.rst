@@ -475,9 +475,9 @@ relates to a single DICOM Real World object.  PS 3.3:
     one-to-one correspondence between Information Entities and entities in the
     DICOM Application Model.
 
-IEs are therefore components in composite IODs.  IEs have no intrinsic content,
-but give a meaningful label to a group of modules (see below) that refer to the
-same Real World entity.
+IEs are names of DICOM Real World objects that label parts of a composite IOD.
+IEs have no intrinsic content, but serve as meaningful labels for a group of
+*modules* (see below) that refer to the same Real World object.
 
 Annex A 1.2, PS 3.3 lists all the IEs used in composite IODs.
 
