@@ -58,9 +58,12 @@ We go into more detail on this later in the page.
 Both the DIMSE and the subsequent data have a particular binary format -
 consisting of DICOM elements (see below).
 
-We'll first cover what DICOM elements are, then how they are arranged to form
-complicated data structures such as images, and finally, how the service part
-and the data part go together to form whole messages, and finally, DICOM files.
+Here we will cover:
+
+* what DICOM elements are;
+* how DICOM elements are arranged to form complicated data structures such as images;
+* how the service part and the data part go together to form whole messages
+* how these parts relate to DICOM files.
 
 ******************
 The DICOM standard
@@ -208,7 +211,7 @@ their own use.  To do this they write a "Private Creator" element where the tag
 is of the form ``(gggg, 00xx)``, the Value Representation (see below) is "LO"
 (Long String) and the Value Field is a string identifying what the space is
 reserved for.  Here ``gggg`` is the odd group we are reserving a portion of and
-the ``xx`` is the block of elements we are reserving.  A tag of ``(gggg, xx00)``
+the ``xx`` is the block of elements we are reserving.  A tag of ``(gggg, 00xx)``
 reserves the 256 elements in the range ``(gggg, xx00)`` to ``(gggg, xxFF)``.
 
 For example, here is a real data element from a Siemens DICOM dataset::
@@ -643,7 +646,7 @@ Procedure Step IOD) *or* ("N-SET", Modality Performed Procedure Step IOD) (see
 PS 3.4 F.7.1).  For this reason a SOP class is best described as the pairing of
 a *DIMSE service group* with an IOD, where the DIMSE service group usually
 contains just one DIMSE service, but sometimes has more. For example, the "MR
-Image Storage SOP class has a DIMSE service group of one element ["C-STORE"].
+Image Storage" SOP class has a DIMSE service group of one element ["C-STORE"].
 The "Modality Performed Procedure Step" SOP class has a DIMSE service group with
 two elements: ["N-CREATE", "N-SET"].
 
