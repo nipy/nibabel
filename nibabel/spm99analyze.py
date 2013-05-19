@@ -168,17 +168,16 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     def set_origin_from_affine(self, affine):
         ''' Set SPM origin to header from affine matrix.
 
-        The ``origin`` field was read but not written by SPM99 and 2.
- 	It was used for storing a central voxel coordinate, that could
- 	be used in aligning the image to some standard position - a
- 	proxy for a full translation vector that was usually stored in
- 	a separate matlab .mat file.
+        The ``origin`` field was read but not written by SPM99 and 2.  It was
+        used for storing a central voxel coordinate, that could be used in
+        aligning the image to some standard position - a proxy for a full
+        translation vector that was usually stored in a separate matlab .mat
+        file.
 
-	Nifti uses the space occupied by the SPM ``origin`` field for
-        important other information (the transform codes), so writing
-        the origin will make the header a confusing Nifti file.  If
-        you work with both Analyze and Nifti, you should probably
-        avoid doing this.
+        Nifti uses the space occupied by the SPM ``origin`` field for important
+        other information (the transform codes), so writing the origin will make
+        the header a confusing Nifti file.  If you work with both Analyze and
+        Nifti, you should probably avoid doing this.
 
         Parameters
         ----------
