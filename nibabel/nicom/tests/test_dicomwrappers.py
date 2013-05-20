@@ -5,6 +5,7 @@ from os.path import join as pjoin, dirname
 import gzip
 from hashlib import sha1
 from decimal import Decimal
+from copy import copy
 
 import numpy as np
 
@@ -20,6 +21,7 @@ dicom_test = np.testing.dec.skipif(not have_dicom,
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
 
+from unittest import TestCase
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
@@ -271,6 +273,7 @@ def test_vol_matching():
     assert_false(dw_empty.is_same_series(dw_plain_philips))
     assert_false(dw_plain_philips.is_same_series(dw_empty))
 
+
 @dicom_test
 def test_slice_indicator():
     dw_0 = didw.wrapper_from_file(DATA_FILE_B0)
@@ -343,139 +346,137 @@ def test_decimal_rescale():
     assert_not_equal(dw.get_data().dtype, np.object)
 
 
-def fake_frames(div_seq):
-    # Make fake frames for multiframe testing
-    class Fake(object): pass
-    frames = []
-    for div in div_seq:
+class TestMultiFrameWrapper(TestCase):
+    # Test MultiframeWrapper
+    MINIMAL_MF = {
+        # Minimal contents of dcm_data for this wrapper
+         'PerFrameFunctionalGroupsSequence': [None],
+         'SharedFunctionalGroupsSequence': [None]}
+    WRAPCLASS = didw.MultiframeWrapper
+
+    def fake_frames(self, div_seq):
+        # Make fake frames for multiframe testing
+        class Fake(object): pass
+        frames = []
+        for div in div_seq:
+            fake_frame = Fake()
+            fake_element = Fake()
+            fake_element.DimensionIndexValues = div
+            fake_frame.FrameContentSequence = [fake_element]
+            frames.append(fake_frame)
+        return frames
+
+    def test_shape(self):
+        # Check the shape algorithm
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        # No rows, cols, return None
+        assert_equal(dw.image_shape, None)
+        fake_mf['Rows'] = 64
+        assert_equal(MFW(fake_mf).image_shape, None)
+        fake_mf.pop('Rows')
+        fake_mf['Columns'] = 64
+        assert_equal(MFW(fake_mf).image_shape, None)
+        fake_mf['Rows'] = 32
+        # Missing frame data, still None
+        assert_equal(MFW(fake_mf).image_shape, None)
+        # Still missing frame data, still None
+        fake_mf['NumberOfFrames'] = 4
+        assert_equal(MFW(fake_mf).image_shape, None)
+        # Make some fake frame data for 3D
+        div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
+        frames = self.fake_frames(div_seq)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
+        # Check stack number matching
+        div_seq = ((1, 1), (1, 2), (1, 3), (2, 4))
+        frames = self.fake_frames(div_seq)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        # Make some fake frame data for 4D
+        fake_mf['NumberOfFrames'] = 6
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
+                (1, 1, 3), (1, 2, 3))
+        frames = self.fake_frames(div_seq)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
+        # Check stack number matching for 4D
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
+                (1, 1, 3), (2, 2, 3))
+        frames = self.fake_frames(div_seq)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        # Check indices can be non-contiguous
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
+        frames = self.fake_frames(div_seq)
+        fake_mf['NumberOfFrames'] = 4
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+        # Check indices can include zero
+        div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
+        frames = self.fake_frames(div_seq)
+        fake_mf['NumberOfFrames'] = 4
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+
+    def test_iop(self):
+        # Test Image orient patient for multiframe
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        assert_raises(didw.WrapperError, getattr, dw, 'image_orient_patient')
+        # Make a fake frame
+        class Fake(object): pass
         fake_frame = Fake()
         fake_element = Fake()
-        fake_element.DimensionIndexValues = div
-        fake_frame.FrameContentSequence = [fake_element]
-        frames.append(fake_frame)
-    return frames
+        fake_element.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
+        fake_frame.PlaneOrientationSequence = [fake_element]
+        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        assert_array_equal(MFW(fake_mf).image_orient_patient,
+                        [[0, 1], [1, 0], [0, 0]])
+        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        assert_raises(didw.WrapperError,
+                    getattr, MFW(fake_mf), 'image_orient_patient')
+        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        assert_array_equal(MFW(fake_mf).image_orient_patient,
+                        [[0, 1], [1, 0], [0, 0]])
 
+    def test_image_position(self):
+        # Test image_position property for multiframe
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        assert_raises(didw.WrapperError, getattr, dw, 'image_position')
+        class Fake(object): pass
+        fake_frame = Fake()
+        fake_element = Fake()
+        fake_element.ImagePositionPatient = [-2.0, 3., 7]
+        fake_frame.PlanePositions = [fake_element]
+        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        assert_raises(didw.WrapperError,
+                    getattr, MFW(fake_mf), 'image_position')
+        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+        # Check lists of Decimals work
+        fake_element.ImagePositionPatient = [Decimal(v) for v in [-2, 3, 7]]
+        assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
+        assert_equal(MFW(fake_mf).image_position.dtype, float)
 
-def test_multiframe_shape():
-    # Check the shape algorithm
-    fake_mf = { # Minimal contents of dcm_data for this wrapper
-        'PerFrameFunctionalGroupsSequence': [None],
-        'SharedFunctionalGroupsSequence': [None]}
-    MFW = didw.MultiframeWrapper
-    dw = MFW(fake_mf)
-    # No rows, cols, return None
-    assert_equal(dw.image_shape, None)
-    fake_mf['Rows'] = 64
-    assert_equal(MFW(fake_mf).image_shape, None)
-    fake_mf.pop('Rows')
-    fake_mf['Columns'] = 64
-    assert_equal(MFW(fake_mf).image_shape, None)
-    fake_mf['Rows'] = 32
-    # Missing frame data, still None
-    assert_equal(MFW(fake_mf).image_shape, None)
-    # Still missing frame data, still None
-    fake_mf['NumberOfFrames'] = 4
-    assert_equal(MFW(fake_mf).image_shape, None)
-    # Make some fake frame data for 3D
-    div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
-    frames = fake_frames(div_seq)
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
-    # Check stack number matching
-    div_seq = ((1, 1), (1, 2), (1, 3), (2, 4))
-    frames = fake_frames(div_seq)
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
-    # Make some fake frame data for 4D
-    fake_mf['NumberOfFrames'] = 6
-    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
-               (1, 1, 3), (1, 2, 3))
-    frames = fake_frames(div_seq)
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
-    # Check stack number matching for 4D
-    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
-               (1, 1, 3), (2, 2, 3))
-    frames = fake_frames(div_seq)
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
-    # Check indices can be non-contiguous
-    div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
-    frames = fake_frames(div_seq)
-    fake_mf['NumberOfFrames'] = 4
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
-    # Check indices can include zero
-    div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
-    frames = fake_frames(div_seq)
-    fake_mf['NumberOfFrames'] = 4
-    fake_mf['PerFrameFunctionalGroupsSequence'] = frames
-    assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+    @dicom_test
+    def test_affine(self):
+        # Make sure we find orientation/position/spacing info
+        dw = didw.wrapper_from_file(DATA_FILE_4D)
+        dw.get_affine()
 
-
-def test_multiframe_iop():
-    # Test Image orient patient for multiframe
-    fake_mf = { # Minimal contents of dcm_data for this wrapper
-        'PerFrameFunctionalGroupsSequence': [None],
-        'SharedFunctionalGroupsSequence': [None]}
-    MFW = didw.MultiframeWrapper
-    dw = MFW(fake_mf)
-    assert_raises(didw.WrapperError, getattr, dw, 'image_orient_patient')
-    # Make a fake frame
-    class Fake(object): pass
-    fake_frame = Fake()
-    fake_element = Fake()
-    fake_element.ImageOrientationPatient = [0, 1, 0, 1, 0, 0]
-    fake_frame.PlaneOrientationSequence = [fake_element]
-    fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
-    assert_array_equal(MFW(fake_mf).image_orient_patient,
-                       [[0, 1], [1, 0], [0, 0]])
-    fake_mf['SharedFunctionalGroupsSequence'] = [None]
-    assert_raises(didw.WrapperError,
-                  getattr, MFW(fake_mf), 'image_orient_patient')
-    fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
-    assert_array_equal(MFW(fake_mf).image_orient_patient,
-                       [[0, 1], [1, 0], [0, 0]])
-
-
-def test_multiframe_image_position():
-    # Test image_position property for multiframe
-    fake_mf = { # Minimal contents of dcm_data for this wrapper
-        'PerFrameFunctionalGroupsSequence': [None],
-        'SharedFunctionalGroupsSequence': [None]}
-    MFW = didw.MultiframeWrapper
-    dw = MFW(fake_mf)
-    assert_raises(didw.WrapperError, getattr, dw, 'image_position')
-    class Fake(object): pass
-    fake_frame = Fake()
-    fake_element = Fake()
-    fake_element.ImagePositionPatient = [-2.0, 3., 7]
-    fake_frame.PlanePositions = [fake_element]
-    fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
-    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-    fake_mf['SharedFunctionalGroupsSequence'] = [None]
-    assert_raises(didw.WrapperError,
-                  getattr, MFW(fake_mf), 'image_position')
-    fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
-    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-    # Check lists of Decimals work
-    fake_element.ImagePositionPatient = [Decimal(v) for v in [-2, 3, 7]]
-    assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-    assert_equal(MFW(fake_mf).image_position.dtype, float)
-
-
-@dicom_test
-def test_multiframe_affine():
-    #Make sure we find orientation/position/spacing info
-    dw = didw.wrapper_from_file(DATA_FILE_4D)
-    dw.get_affine()
-
-
-@dicom_test
-def test_multiframe_data():
-    #The data in this file is (initially) a 1D gradient so it compresses well.
-    #This just tests that the data ordering produces a consistent result.
-    dw = didw.wrapper_from_file(DATA_FILE_4D)
-    dat_str = dw.get_data().tostring()
-    assert_equal(sha1(dat_str).hexdigest(),
-                 '149323269b0af92baa7508e19ca315240f77fa8c')
+    @dicom_test
+    def test_data(self):
+        # The data in this file is (initially) a 1D gradient so it compresses
+        # well.  This just tests that the data ordering produces a consistent
+        # result.
+        dw = didw.wrapper_from_file(DATA_FILE_4D)
+        dat_str = dw.get_data().tostring()
+        assert_equal(sha1(dat_str).hexdigest(),
+                    '149323269b0af92baa7508e19ca315240f77fa8c')
