@@ -477,23 +477,23 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
+        ''' Get i, j, k voxel sizes '''
         try:
-            pix_space = self.shared.PixelMeasuresSequence[0].PixelSpacing
+            pix_measures = self.shared.PixelMeasuresSequence[0]
         except AttributeError:
-            pix_space = self.frame0.PixelMeasuresSequence[0].PixelSpacing
-        if pix_space is None:
-            return None
-        zs = self.get('SpacingBetweenSlices')
-        if zs is None:
             try:
-                zs = self.shared.PixelMeasuresSequence[0].SliceThickness
+                pix_measures = self.frame0.PixelMeasuresSequence[0]
             except AttributeError:
-                zs = self.frame0.PixelMeasuresSequence[0].SliceThickness
+                raise WrapperError("Not enough data for pixel spacing")
+        pix_space = pix_measures.PixelSpacing
+        try:
+            zs = pix_measures.SliceThickness
+        except AttributeError:
+            zs = self.get('SpacingBetweenSlices')
             if zs is None:
-                za = 1
-        zs = float(zs)
-        pix_space = map(float, pix_space)
-        return tuple(pix_space + [zs])
+                raise WrapperError('Not enough data for slice thickness')
+        # Ensure values are float rather than Decimal
+        return tuple(map(float, list(pix_space) + [zs]))
 
     @one_time
     def image_position(self):

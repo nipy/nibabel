@@ -382,7 +382,6 @@ class TestMultiFrameWrapper(TestCase):
             frames.append(fake_frame)
         return frames
 
-
     def test_shape(self):
         # Check the shape algorithm
         fake_mf = copy(self.MINIMAL_MF)
@@ -456,10 +455,48 @@ class TestMultiFrameWrapper(TestCase):
                         [[0, 1], [1, 0], [0, 0]])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
         assert_raises(didw.WrapperError,
-                    getattr, MFW(fake_mf), 'image_orient_patient')
+                      getattr, MFW(fake_mf), 'image_orient_patient')
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient,
                         [[0, 1], [1, 0], [0, 0]])
+
+    def test_voxel_sizes(self):
+        # Test voxel size calculation
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        assert_raises(didw.WrapperError, getattr, dw, 'voxel_sizes')
+        # Make a fake frame
+        fake_frame = self.fake_frames('PixelMeasuresSequence',
+                                      'PixelSpacing',
+                                      [[2.1, 3.2]])[0]
+        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        # Still not enough, we lack information for slice distances
+        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'voxel_sizes')
+        # This can come from SpacingBetweenSlices or frame SliceThickness
+        fake_mf['SpacingBetweenSlices'] = 4.3
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
+        # If both, prefer SliceThickness
+        fake_frame.PixelMeasuresSequence[0].SliceThickness = 5.4
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
+        # Just SliceThickness is OK
+        del fake_mf['SpacingBetweenSlices']
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
+        # Removing shared leads to error again
+        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'voxel_sizes')
+        # Restoring to frames makes it work again
+        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
+        # Decimals in any field are OK
+        fake_frame = self.fake_frames('PixelMeasuresSequence',
+                                      'PixelSpacing',
+                                      [[Decimal(2.1), Decimal(3.2)]])[0]
+        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf['SpacingBetweenSlices'] = Decimal(4.3)
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
+        fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal(5.4)
+        assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
 
     def test_image_position(self):
         # Test image_position property for multiframe
