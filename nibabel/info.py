@@ -95,7 +95,7 @@ nibabel distribution.
 
 # versions for dependencies
 NUMPY_MIN_VERSION='1.2'
-PYDICOM_MIN_VERSION='0.9.5'
+PYDICOM_MIN_VERSION='0.9.7'
 
 # Main setup parameters
 NAME                = 'nibabel'
