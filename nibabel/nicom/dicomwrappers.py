@@ -528,28 +528,14 @@ class MultiframeWrapper(Wrapper):
         shape = self.image_shape
         if shape is None:
             raise WrapperError('No valid information for image shape')
-        n_dim = len(shape)
         data = self.get_pixel_array()
-        if n_dim < 4:
-            # Just need to transpose the array to put frames last
-            return self._scale_data(data.transpose(1, 2, 0))
-        # Find the flat frame order
-        order = []
-        # _frame_indices come from __init__
-        for frame_index in self._frame_indices:
-            flat_idx = frame_index[0] - 1
-            mult = shape[2]
-            for dim_idx, dim_size in zip(frame_index[1:], shape[3:]):
-                flat_idx += (dim_idx - 1) * mult
-                mult *= dim_size
-            order.append(flat_idx)
-        # Sort the frames, reshape, and then transpose the array
-        sorted_indices = np.argsort(order)
-        data = data[sorted_indices, :, :]
-        data = data.reshape(shape[::-1])
-        dims = range(n_dim)
-        dims_order = dims[-2:] + dims[:-2][::-1]
-        data = data.transpose(dims_order)
+        # Roll frames axis to last
+        data = data.transpose((1, 2, 0))
+        if len(shape) > 3:
+            # Sort frames with first index changing fastest, last slowest
+            sorted_indices = np.lexsort(self._frame_indices.T)
+            data = data[..., sorted_indices]
+            data = data.reshape(shape, order='F')
         return self._scale_data(data)
 
     def _scale_data(self, data):
