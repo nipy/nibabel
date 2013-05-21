@@ -578,6 +578,37 @@ class TestMultiFrameWrapper(TestCase):
         sorted_data = data[..., [3, 1, 2, 0]]
         fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
+        # 5D!
+        dim_idxs = [
+            [1, 4, 2, 1],
+            [1, 2, 2, 1],
+            [1, 3, 2, 1],
+            [1, 1, 2, 1],
+            [1, 4, 2, 2],
+            [1, 2, 2, 2],
+            [1, 3, 2, 2],
+            [1, 1, 2, 2],
+            [1, 4, 1, 1],
+            [1, 2, 1, 1],
+            [1, 3, 1, 1],
+            [1, 1, 1, 1],
+            [1, 4, 1, 2],
+            [1, 2, 1, 2],
+            [1, 3, 1, 2],
+            [1, 1, 1, 2]]
+        frames = fake_frames('FrameContentSequence',
+                             'DimensionIndexValues',
+                             dim_idxs)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        fake_mf['NumberOfFrames'] = len(frames)
+        shape = (2, 3, 4, 2, 2)
+        data = np.arange(np.prod(shape)).reshape(shape)
+        sorted_data = data.reshape(shape[:2] + (-1,), order='F')
+        order = [11,  9, 10,  8,  3,  1,  2,  0,
+                 15, 13, 14, 12,  7,  5,  6,  4]
+        sorted_data = sorted_data[..., np.argsort(order)]
+        fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
+        assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
 
     def test__scale_data(self):
         # Test data scaling
