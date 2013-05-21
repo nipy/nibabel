@@ -345,6 +345,35 @@ def test_decimal_rescale():
     assert_not_equal(dw.get_data().dtype, np.object)
 
 
+def fake_frames(seq_name, field_name, value_seq):
+    """ Make fake frames for multiframe testing
+
+    Parameters
+    ----------
+    seq_name : str
+        name of sequence
+    field_name : str
+        name of field within sequence
+    value_seq : length N sequence
+        sequence of values
+
+    Returns
+    -------
+    frame_seq : length N list
+        each element in list is obj.<seq_name>[0].<field_name> =
+        value_seq[n] for n in range(N)
+    """
+    class Fake(object): pass
+    frames = []
+    for value in value_seq:
+        fake_frame = Fake()
+        fake_element = Fake()
+        setattr(fake_element, field_name, value)
+        setattr(fake_frame, seq_name, [fake_element])
+        frames.append(fake_frame)
+    return frames
+
+
 class TestMultiFrameWrapper(TestCase):
     # Test MultiframeWrapper
     MINIMAL_MF = {
@@ -352,34 +381,6 @@ class TestMultiFrameWrapper(TestCase):
          'PerFrameFunctionalGroupsSequence': [None],
          'SharedFunctionalGroupsSequence': [None]}
     WRAPCLASS = didw.MultiframeWrapper
-
-    def fake_frames(self, seq_name, field_name, value_seq):
-        """ Make fake frames for multiframe testing
-
-        Parameters
-        ----------
-        seq_name : str
-            name of sequence
-        field_name : str
-            name of field within sequence
-        value_seq : length N sequence
-            sequence of values
-
-        Returns
-        -------
-        frame_seq : length N list
-            each element in list is obj.<seq_name>[0].<field_name> =
-            value_seq[n] for n in range(N)
-        """
-        class Fake(object): pass
-        frames = []
-        for value in value_seq:
-            fake_frame = Fake()
-            fake_element = Fake()
-            setattr(fake_element, field_name, value)
-            setattr(fake_frame, seq_name, [fake_element])
-            frames.append(fake_frame)
-        return frames
 
     def test_shape(self):
         # Check the shape algorithm
@@ -400,41 +401,41 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['NumberOfFrames'] = 4
         assert_equal(MFW(fake_mf).image_shape, None)
         # Make some fake frame data for 3D
-        def fake_frames(div_seq):
-            return self.fake_frames('FrameContentSequence',
-                                    'DimensionIndexValues',
-                                    div_seq)
+        def my_fake_frames(div_seq):
+            return fake_frames('FrameContentSequence',
+                               'DimensionIndexValues',
+                               div_seq)
         div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
         # Check stack number matching
         div_seq = ((1, 1), (1, 2), (1, 3), (2, 4))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
         # Make some fake frame data for 4D
         fake_mf['NumberOfFrames'] = 6
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
                 (1, 1, 3), (1, 2, 3))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
         # Check stack number matching for 4D
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
                 (1, 1, 3), (2, 2, 3))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
         # Check indices can be non-contiguous
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['NumberOfFrames'] = 4
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
         # Check indices can include zero
         div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
-        frames = fake_frames(div_seq)
+        frames = my_fake_frames(div_seq)
         fake_mf['NumberOfFrames'] = 4
         fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
@@ -446,9 +447,9 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         assert_raises(didw.WrapperError, getattr, dw, 'image_orient_patient')
         # Make a fake frame
-        fake_frame = self.fake_frames('PlaneOrientationSequence',
-                                      'ImageOrientationPatient',
-                                      [[0, 1, 0, 1, 0, 0]])[0]
+        fake_frame = fake_frames('PlaneOrientationSequence',
+                                 'ImageOrientationPatient',
+                                 [[0, 1, 0, 1, 0, 0]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient,
                         [[0, 1], [1, 0], [0, 0]])
@@ -466,9 +467,9 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         assert_raises(didw.WrapperError, getattr, dw, 'voxel_sizes')
         # Make a fake frame
-        fake_frame = self.fake_frames('PixelMeasuresSequence',
-                                      'PixelSpacing',
-                                      [[2.1, 3.2]])[0]
+        fake_frame = fake_frames('PixelMeasuresSequence',
+                                 'PixelSpacing',
+                                 [[2.1, 3.2]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         # Still not enough, we lack information for slice distances
         assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'voxel_sizes')
@@ -488,9 +489,9 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Decimals in any field are OK
-        fake_frame = self.fake_frames('PixelMeasuresSequence',
-                                      'PixelSpacing',
-                                      [[Decimal(2.1), Decimal(3.2)]])[0]
+        fake_frame = fake_frames('PixelMeasuresSequence',
+                                 'PixelSpacing',
+                                 [[Decimal(2.1), Decimal(3.2)]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         fake_mf['SpacingBetweenSlices'] = Decimal(4.3)
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
@@ -504,9 +505,9 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         assert_raises(didw.WrapperError, getattr, dw, 'image_position')
         # Make a fake frame
-        fake_frame = self.fake_frames('PlanePositions',
-                                      'ImagePositionPatient',
-                                      [[-2.0, 3., 7]])[0]
+        fake_frame = fake_frames('PlanePositions',
+                                 'ImagePositionPatient',
+                                 [[-2.0, 3., 7]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
@@ -546,9 +547,9 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['RescaleSlope'] = 2.0
         fake_mf['RescaleIntercept'] = -1.0
         assert_array_equal(data * 2 - 1, dw._scale_data(data))
-        fake_frame = self.fake_frames('PixelValueTransformations',
-                                      'RescaleSlope',
-                                      [3.0])[0]
+        fake_frame = fake_frames('PixelValueTransformations',
+                                 'RescaleSlope',
+                                 [3.0])[0]
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         # Lacking RescaleIntercept -> Error
         dw = MFW(fake_mf)
