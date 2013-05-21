@@ -535,3 +535,27 @@ class TestMultiFrameWrapper(TestCase):
         dat_str = dw.get_data().tostring()
         assert_equal(sha1(dat_str).hexdigest(),
                     '149323269b0af92baa7508e19ca315240f77fa8c')
+
+    def test__scale_data(self):
+        # Test data scaling
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        data = np.arange(24).reshape((2, 3, 4))
+        assert_array_equal(data, dw._scale_data(data))
+        fake_mf['RescaleSlope'] = 2.0
+        fake_mf['RescaleIntercept'] = -1.0
+        assert_array_equal(data * 2 - 1, dw._scale_data(data))
+        fake_frame = self.fake_frames('PixelValueTransformations',
+                                      'RescaleSlope',
+                                      [3.0])[0]
+        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        # Lacking RescaleIntercept -> Error
+        dw = MFW(fake_mf)
+        assert_raises(AttributeError, dw._scale_data, data)
+        fake_frame.PixelValueTransformations[0].RescaleIntercept = -2
+        assert_array_equal(data * 3 - 2, dw._scale_data(data))
+        # Decimals are OK
+        fake_frame.PixelValueTransformations[0].RescaleSlope = Decimal(3)
+        fake_frame.PixelValueTransformations[0].RescaleIntercept = Decimal(-2)
+        assert_array_equal(data * 3 - 2, dw._scale_data(data))

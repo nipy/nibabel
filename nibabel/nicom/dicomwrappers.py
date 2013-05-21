@@ -370,6 +370,9 @@ class Wrapper(object):
         # depending on pydicom and dicom files, values might need casting from Decimal to float
         scale = float(self.get('RescaleSlope', 1))
         offset = float(self.get('RescaleIntercept', 0))
+        return self._apply_scale_offset(data, scale, offset)
+
+    def _apply_scale_offset(self, data, scale, offset):
         # a little optimization.  If we are applying either the scale or
         # the offset, we need to allow upcasting to float.
         if scale != 1:
@@ -554,17 +557,12 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        if 'PixelValueTransformations' in self.frame0:
-            pixelTransformations = self.frame0.PixelValueTransformations[0]
-            scale = float(pixelTransformations.RescaleSlope)
-            offset = float(pixelTransformations.RescaleIntercept)
-            if scale != 1:
-                if offset == 0:
-                    return data * scale
-                return data * scale + offset
-            if offset != 0:
-                return data + offset
-        return data
+        pix_trans = getattr(self.frame0, 'PixelValueTransformations', None)
+        if pix_trans is None:
+            return super(MultiframeWrapper, self)._scale_data(data)
+        scale = float(pix_trans[0].RescaleSlope)
+        offset = float(pix_trans[0].RescaleIntercept)
+        return self._apply_scale_offset(data, scale, offset)
 
 
 class SiemensWrapper(Wrapper):
