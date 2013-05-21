@@ -529,31 +529,27 @@ class MultiframeWrapper(Wrapper):
         if shape is None:
             raise WrapperError('No valid information for image shape')
         n_dim = len(shape)
-        if n_dim > 3:
-            data = self.dcm_data.pixel_array
-
-            #Find the flat frame order
-            order = []
-            # _frame_indices come from running image_shape property fetch
-            for frame_index in self._frame_indices:
-                flat_idx = frame_index[0] - 1
-                mult = shape[2]
-                for dim_idx, dim_size in zip(frame_index[1:], shape[3:]):
-                    flat_idx += (dim_idx - 1) * mult
-                    mult *= dim_size
-                order.append(flat_idx)
-
-            #Sort the frames, reshape, and then transpose the array
-            sorted_indices = np.argsort(order)
-            data = data[sorted_indices, :, :]
-            data = data.reshape(shape[::-1])
-            dims = range(n_dim)
-            dims_order = dims[-2:] + dims[:-2][::-1]
-            data = data.transpose(dims_order)
-        else:
-            #Just need to transpose the array
-            data = self.get_pixel_array().transpose(1,2,0)
-
+        data = self.get_pixel_array()
+        if n_dim < 4:
+            # Just need to transpose the array to put frames last
+            return self._scale_data(data.transpose(1, 2, 0))
+        # Find the flat frame order
+        order = []
+        # _frame_indices come from __init__
+        for frame_index in self._frame_indices:
+            flat_idx = frame_index[0] - 1
+            mult = shape[2]
+            for dim_idx, dim_size in zip(frame_index[1:], shape[3:]):
+                flat_idx += (dim_idx - 1) * mult
+                mult *= dim_size
+            order.append(flat_idx)
+        # Sort the frames, reshape, and then transpose the array
+        sorted_indices = np.argsort(order)
+        data = data[sorted_indices, :, :]
+        data = data.reshape(shape[::-1])
+        dims = range(n_dim)
+        dims_order = dims[-2:] + dims[:-2][::-1]
+        data = data.transpose(dims_order)
         return self._scale_data(data)
 
     def _scale_data(self, data):

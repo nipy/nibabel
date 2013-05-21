@@ -528,7 +528,7 @@ class TestMultiFrameWrapper(TestCase):
         dw.get_affine()
 
     @dicom_test
-    def test_data(self):
+    def test_data_real(self):
         # The data in this file is (initially) a 1D gradient so it compresses
         # well.  This just tests that the data ordering produces a consistent
         # result.
@@ -536,6 +536,30 @@ class TestMultiFrameWrapper(TestCase):
         dat_str = dw.get_data().tostring()
         assert_equal(sha1(dat_str).hexdigest(),
                     '149323269b0af92baa7508e19ca315240f77fa8c')
+
+    def test_data_fake(self):
+        # Test algorithm for get_data
+        fake_mf = copy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        dw = MFW(fake_mf)
+        # Fails - no shape
+        assert_raises(didw.WrapperError, dw.get_data)
+        # Set shape
+        dw.image_shape = (2, 3, 4)
+        # Fails - no data
+        assert_raises(didw.WrapperError, dw.get_data)
+        # Add data - 3D
+        class Fake(dict): pass
+        dw.dcm_data = Fake()
+        data = np.arange(24).reshape((2, 3, 4))
+        # Frames dim is first for some reason
+        dw.dcm_data.pixel_array = np.rollaxis(data, 2)
+        assert_array_equal(dw.get_data(), data)
+        # Test scaling works
+        dw.dcm_data['RescaleSlope'] = 2.0
+        dw.dcm_data['RescaleIntercept'] = -1
+        assert_array_equal(dw.get_data(), data * 2.0 - 1)
+        # 5D case
 
     def test__scale_data(self):
         # Test data scaling
