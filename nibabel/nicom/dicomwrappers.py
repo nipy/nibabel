@@ -531,11 +531,10 @@ class MultiframeWrapper(Wrapper):
         data = self.get_pixel_array()
         # Roll frames axis to last
         data = data.transpose((1, 2, 0))
-        if len(shape) > 3:
-            # Sort frames with first index changing fastest, last slowest
-            sorted_indices = np.lexsort(self._frame_indices.T)
-            data = data[..., sorted_indices]
-            data = data.reshape(shape, order='F')
+        # Sort frames with first index changing fastest, last slowest
+        sorted_indices = np.lexsort(self._frame_indices.T)
+        data = data[..., sorted_indices]
+        data = data.reshape(shape, order='F')
         return self._scale_data(data)
 
     def _scale_data(self, data):
