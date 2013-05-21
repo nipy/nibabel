@@ -309,10 +309,10 @@ class Wrapper(object):
 
     def get_pixel_array(self):
         ''' Return unscaled pixel array from DICOM '''
-        try:
-            return self.dcm_data.pixel_array
-        except AttributeError:
+        data = self.dcm_data.get('pixel_array')
+        if data is None:
             raise WrapperError('Cannot find data in DICOM')
+        return data
 
     def get_data(self):
         ''' Get scaled image data from DICOMs
