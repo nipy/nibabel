@@ -544,22 +544,40 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         # Fails - no shape
         assert_raises(didw.WrapperError, dw.get_data)
-        # Set shape
+        # Set shape by cheating
         dw.image_shape = (2, 3, 4)
-        # Fails - no data
+        # Still fails - no data
+        assert_raises(didw.WrapperError, dw.get_data)
+        # Make shape and indices
+        fake_mf['Rows'] = 2
+        fake_mf['Columns'] = 3
+        fake_mf['NumberOfFrames'] = 4
+        frames = fake_frames('FrameContentSequence',
+                             'DimensionIndexValues',
+                             ((1, 1), (1, 2), (1, 3), (1, 4)))
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_equal(MFW(fake_mf).image_shape, (2, 3, 4))
+        # Still fails - no data
         assert_raises(didw.WrapperError, dw.get_data)
         # Add data - 3D
-        class Fake(dict): pass
-        dw.dcm_data = Fake()
         data = np.arange(24).reshape((2, 3, 4))
         # Frames dim is first for some reason
-        dw.dcm_data.pixel_array = np.rollaxis(data, 2)
+        fake_mf['pixel_array'] = np.rollaxis(data, 2)
+        # Now it should work
+        dw = MFW(fake_mf)
         assert_array_equal(dw.get_data(), data)
         # Test scaling works
-        dw.dcm_data['RescaleSlope'] = 2.0
-        dw.dcm_data['RescaleIntercept'] = -1
-        assert_array_equal(dw.get_data(), data * 2.0 - 1)
-        # 5D case
+        fake_mf['RescaleSlope'] = 2.0
+        fake_mf['RescaleIntercept'] = -1
+        assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
+        # Check slice sorting
+        frames = fake_frames('FrameContentSequence',
+                             'DimensionIndexValues',
+                             ((1, 4), (1, 2), (1, 3), (1, 1)))
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        sorted_data = data[..., [3, 1, 2, 0]]
+        fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
+        assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
 
     def test__scale_data(self):
         # Test data scaling
