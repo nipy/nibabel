@@ -225,7 +225,7 @@ in a large extra storage cost in the repository.  If you're pretty clear that
 the data files aren't going to change, then a repository could work OK.
 
 The data packages will be available at a central release location.  For
-now this will be: http://nipy.sourceforge.net/data-packages/ .
+now this will be: http://nipy.org/data-packages/ .
 
 A package, such as ``nipy-templates-0.2.tar.gz`` will have the following
 sort of structure::

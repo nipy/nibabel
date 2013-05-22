@@ -12,19 +12,19 @@ For more details on data package design, see :ref:`data-package-design`.
 
 We haven't yet made a nice automated way of downloading and installing the
 packages.  For the moment you can find packages for the data and template files
-at http://nipy.sourceforge.net/data-packages.
+at http://nipy.org/data-packages.
 
 Data package installation as an administrator
 ---------------------------------------------
 
 The installation procedure, for now, is very basic.  For example, let us
 say that you want the 'nipy-templates' package at
-http://nipy.sourceforge.net/data-packages/nipy-templates-0.1.tar.gz
+http://nipy.org/data-packages/nipy-templates-0.1.tar.gz
 . You simply download this archive, unpack it, and then run the standard
 ``python setup.py install`` on it.  On a unix system this might look
 like::
 
-   curl -O http://nipy.sourceforge.net/data-packages/nipy-templates-0.1.tar.gz
+   curl -O http://nipy.org/data-packages/nipy-templates-0.1.tar.gz
    tar zxvf nipy-templates-0.1.tar.gz
    cd nipy-templates-0.1
    sudo python setup.py install
