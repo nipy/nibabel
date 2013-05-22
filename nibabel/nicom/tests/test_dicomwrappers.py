@@ -491,11 +491,11 @@ class TestMultiFrameWrapper(TestCase):
         # Decimals in any field are OK
         fake_frame = fake_frames('PixelMeasuresSequence',
                                  'PixelSpacing',
-                                 [[Decimal(2.1), Decimal(3.2)]])[0]
+                                 [[Decimal('2.1'), Decimal('3.2')]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         fake_mf['SpacingBetweenSlices'] = Decimal(4.3)
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
-        fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal(5.4)
+        fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal('5.4')
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
 
     def test_image_position(self):
@@ -517,7 +517,7 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
         fake_frame.PlanePositions[0].ImagePositionPatient = [
-            Decimal(v) for v in [-2, 3, 7]]
+            Decimal(str(v)) for v in [-2, 3, 7]]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         assert_equal(MFW(fake_mf).image_position.dtype, float)
 
@@ -630,6 +630,6 @@ class TestMultiFrameWrapper(TestCase):
         fake_frame.PixelValueTransformations[0].RescaleIntercept = -2
         assert_array_equal(data * 3 - 2, dw._scale_data(data))
         # Decimals are OK
-        fake_frame.PixelValueTransformations[0].RescaleSlope = Decimal(3)
-        fake_frame.PixelValueTransformations[0].RescaleIntercept = Decimal(-2)
+        fake_frame.PixelValueTransformations[0].RescaleSlope = Decimal('3')
+        fake_frame.PixelValueTransformations[0].RescaleIntercept = Decimal('-2')
         assert_array_equal(data * 3 - 2, dw._scale_data(data))
