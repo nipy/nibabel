@@ -45,11 +45,11 @@ DATA_FILE_4D = pjoin(IO_DATA_PATH, '4d_multiframe_test.dcm')
 # with an image from SPM DICOM conversion. We checked the matching with SPM
 # check reg.  We have flipped the first and second rows to allow for rows, cols
 # transpose in current return compared to original case.
-EXPECTED_AFFINE = np.array( ### do this for philips?
-    [[ -1.796875, 0, 0, 115],
+EXPECTED_AFFINE = np.array(  # do this for philips?
+    [[-1.796875, 0, 0, 115],
      [0, -1.79684984, -0.01570896, 135.028779],
      [0, -0.00940843750, 2.99995887, -78.710481],
-     [0, 0, 0, 1]])[:,[1,0,2,3]]
+     [0, 0, 0, 1]])[:, [1, 0, 2, 3]]
 
 # from Guys and Matthew's SPM code, undoing SPM's Y flip, and swapping first two
 # values in vector, to account for data rows, cols difference.
@@ -64,7 +64,7 @@ def test_wrappers():
     multi_minimal = {
         'PerFrameFunctionalGroupsSequence': [None],
         'SharedFunctionalGroupsSequence': [None]}
-    for maker, args in ((didw.Wrapper,({},)),
+    for maker, args in ((didw.Wrapper, ({},)),
                         (didw.SiemensWrapper, ({},)),
                         (didw.MosaicWrapper, ({}, None, 10)),
                         (didw.MultiframeWrapper, (multi_minimal,))):
@@ -90,7 +90,10 @@ def test_wrappers():
         assert_equal(dw.get('AcquisitionNumber'), 2)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
+        dw = maker(DATA)
         assert_true(dw.is_mosaic)
+    # DATA is not a Multiframe DICOM file
+    assert_raises(didw.WrapperError, didw.MultiframeWrapper, DATA)
 
 
 def test_get_from_wrapper():
@@ -105,6 +108,7 @@ def test_get_from_wrapper():
     # And raises a WrapperError for missing keys
     assert_raises(KeyError, dw.__getitem__, 'some_other_key')
     # Test we don't use attributes for get
+
     class FakeData(dict):
         pass
     d = FakeData()
@@ -112,6 +116,7 @@ def test_get_from_wrapper():
     dw = didw.Wrapper(d)
     assert_equal(dw.get('some_key'), None)
     # Check get defers to dcm_data get
+
     class FakeData2(object):
         def get(self, key, default):
             return 1
@@ -139,20 +144,20 @@ def test_wrapper_from_data():
         assert_equal(dw.get('AcquisitionNumber'), 3)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
         assert_true(dw.is_multiframe)
-    # Check that multiframe requires correct SOP and PerFrameFunctionalGroupsSequence
-    fake_data = {}
-    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
-    dw = didw.wrapper_from_data(fake_data)
-    assert_false(dw.is_multiframe)
-    fake_data['PerFrameFunctionalGroupsSequence'] = [None]
-    dw = didw.wrapper_from_data(fake_data)
-    assert_false(dw.is_multiframe)
-    fake_data['SharedFunctionalGroupsSequence'] = [None]
-    dw = didw.wrapper_from_data(fake_data)
-    assert_true(dw.is_multiframe)
+    # Check that multiframe requires minimal set of DICOM tags
+    fake_data = dict()
     fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
     dw = didw.wrapper_from_data(fake_data)
     assert_false(dw.is_multiframe)
+    # use the correct SOPClassUID
+    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
+    assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
+    fake_data['PerFrameFunctionalGroupsSequence'] = [None]
+    assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
+    fake_data['SharedFunctionalGroupsSequence'] = [None]
+    # minimal set should now be met
+    dw = didw.wrapper_from_data(fake_data)
+    assert_true(dw.is_multiframe)
 
 
 @dicom_test
@@ -248,6 +253,7 @@ def test_vol_matching():
     assert_false(dw_plain.is_same_series(dw_empty))
     # Just to check the interface, make a pretend signature-providing
     # object.
+
     class C(object):
         series_signature = {}
     assert_true(dw_empty.is_same_series(C()))
@@ -290,6 +296,7 @@ def test_orthogonal():
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     R = dw.rotation_matrix
     assert_true(np.allclose(np.eye(3), np.dot(R, R.T), atol=1e-6))
+
     # Test the threshold for rotation matrix orthogonality
     d = {}
     d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
@@ -339,7 +346,7 @@ def test_assert_parallel():
 
 @dicom_test
 def test_decimal_rescale():
-    #Test that we don't get back a data array with dtpye np.object when our 
+    #Test that we don't get back a data array with dtype np.object when our
     #rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
     assert_not_equal(dw.get_data().dtype, np.object)
@@ -387,19 +394,19 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf = copy(self.MINIMAL_MF)
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
-        # No rows, cols, return None
-        assert_equal(dw.image_shape, None)
+        # No rows, cols, raise WrapperError
+        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
         fake_mf['Rows'] = 64
-        assert_equal(MFW(fake_mf).image_shape, None)
+        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
         fake_mf.pop('Rows')
         fake_mf['Columns'] = 64
-        assert_equal(MFW(fake_mf).image_shape, None)
+        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
         fake_mf['Rows'] = 32
-        # Missing frame data, still None
-        assert_equal(MFW(fake_mf).image_shape, None)
-        # Still missing frame data, still None
+        # Missing frame data, raise AssertionError
+        assert_raises(AssertionError, getattr, dw, 'image_shape')
         fake_mf['NumberOfFrames'] = 4
-        assert_equal(MFW(fake_mf).image_shape, None)
+        # PerFrameFunctionalGroupsSequence does not match NumberOfFrames
+        assert_raises(AssertionError, getattr, dw, 'image_shape')
         # Make some fake frame data for 3D
         def my_fake_frames(div_seq):
             return fake_frames('FrameContentSequence',
