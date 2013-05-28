@@ -12,16 +12,16 @@ import sys
 
 import numpy as np
 
-from nose.tools import assert_raises, assert_true
+from nose.tools import assert_raises, assert_true, assert_equal
 
 from ..volumeutils import (endian_codes, native_code, swapped_code)
 
 def test_native_swapped():
     native_is_le = sys.byteorder == 'little'
     if native_is_le:
-        assert (native_code, swapped_code) == ('<', '>')
+        assert_equal((native_code, swapped_code), ('<', '>'))
     else:
-        assert (native_code, swapped_code) == ('>', '<')
+        assert_equal((native_code, swapped_code), ('>', '<'))
 
 
 def test_to_numpy():
