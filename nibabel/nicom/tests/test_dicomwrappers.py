@@ -500,7 +500,7 @@ class TestMultiFrameWrapper(TestCase):
                                  'PixelSpacing',
                                  [[Decimal('2.1'), Decimal('3.2')]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
-        fake_mf['SpacingBetweenSlices'] = Decimal(4.3)
+        fake_mf['SpacingBetweenSlices'] = Decimal('4.3')
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
         fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal('5.4')
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
