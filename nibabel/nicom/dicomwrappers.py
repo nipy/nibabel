@@ -71,7 +71,6 @@ def wrapper_from_data(dcm_data):
        DICOM wrapper corresponding to DICOM data type
     """
     sop_class = dcm_data.get('SOPClassUID')
-
     # try to detect what type of dicom object to wrap
     if sop_class == '1.2.840.10008.5.1.4.1.1.4.1':  # Enhanced MR Image Storage
         # currently only Philips is using Enhanced Multiframe DICOM
@@ -79,15 +78,13 @@ def wrapper_from_data(dcm_data):
     # Check for Siemens DICOM format types
     # Only Siemens will have data for the CSA header
     csa = csar.get_csa_header(dcm_data)
-    if csa:
-        if csar.is_mosaic(csa):
-            # Mosaic is a "tiled" image
-            return MosaicWrapper(dcm_data, csa)
-        else:
-            # Assume data is in a single slice format per file
-            return SiemensWrapper(dcm_data, csa)
-    else:
+    if csa is None:
         return Wrapper(dcm_data)
+    if csar.is_mosaic(csa):
+        # Mosaic is a "tiled" image
+        return MosaicWrapper(dcm_data, csa)
+    # Assume data is in a single slice format per file
+    return SiemensWrapper(dcm_data, csa)
 
 
 class Wrapper(object):
