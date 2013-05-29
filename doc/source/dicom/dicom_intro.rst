@@ -166,14 +166,14 @@ sections 7 and 8 of `PS 3.6`_ for details of groups 2 and 4 respectively.
 Tags in groups 0000, 0002, 0004 are therefore not *data* elements, but Command
 elements; File meta elements; directory structuring elements.
 
-Tags with groups from 0008 are *data* elements.
+Tags with groups from 0008 are *data* element tags.
 
 Standard attribute tags
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-There is a full list of all *standard* data element tags in the DICOM data
-dictionary in section 6 of DICOM standard `PS 3.6`_. *Standard* tags are tags
-with an even group number (see below).
+*Standard* tags are tags with an even group number (see below).  There is a full
+list of all *standard* data element tags in the DICOM data dictionary in section
+6 of DICOM standard `PS 3.6`_.
 
 Even numbered groups are defined in the DICOM standard data dictionary.  Odd
 numbered groups are "private", are *not* defined in the standard data dictionary
@@ -199,8 +199,8 @@ Private attribute tags
 Private attribute tags are tags with an odd group number. A private element is
 an element with a private tag.
 
-Private elements still use the (Tag, [VR, ] Value Length, Value Field) DICOM
-data format.
+Private elements still use the (Tag, [Value Representation, ] Value Length,
+Value Field) DICOM data format.
 
 The same odd group may be used by different manufacturers in different ways.
 
@@ -361,8 +361,86 @@ Quoting from section 7.1.1 of `PS 3.5`_:
 Value field
 -----------
 
-An even number of bytes storing the the value(s) of the data element.  The exact
-format of this data depends on the Value Representation.
+An even number of bytes storing the value(s) of the data element.  The exact
+format of this data depends on the Value Representation (see above) and the
+Value Multiplicity (see next section).
+
+Data element tags and data dictionaries
+=======================================
+
+We can look up data element tags in a *data dictionary*.
+
+As we've seen, data element tags with even group numbers are *standard* data
+element tags.  We can look these up in the standard data dictionary in section 6
+of `PS 3.6`_.
+
+Data element tags with odd group numbers are *private* data element tags. These
+can be used by manufacturers for information that may be specific to the
+manufacturer.  To look up these tags, we need the private data dictionary of the
+manufacturer.
+
+A data dictionary lists (Attribute tag, Attribute name, Attribute Keyword, Value
+Representation, Value Multiplicity) for all tags.
+
+For example, here is an excerpt from the table in PS 3.6 section 6:
+
++-------------+------------------------------------------+-------------------------------------+----+----+
+| Tag         | Name                                     | Keyword                             | VR | VM |
++=============+==========================================+=====================================+====+====+
+| (0010,0010) | Patient's Name                           | PatientName                         | PN | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0020) | Patient ID                               | PatientID                           | LO | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0021) | Issuer of Patient ID                     | IssuerOfPatientID                   | LO | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0022) | Type of Patient ID                       | TypeOfPatientID                     | CS | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0024) | Issuer of Patient ID Qualifiers Sequence | IssuerOfPatientIDQualifiersSequence | SQ | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0030) | Patient's Birth Date                     | PatientBirthDate                    | DA | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+| (0010,0032) | Patient's Birth Time                     | PatientBirthTime                    | TM | 1  |
++-------------+------------------------------------------+-------------------------------------+----+----+
+
+The "Name" column gives a standard name for the tag.  "Keyword" gives a shorter
+equivalent to the name without spaces that can be used as a variable or
+attribute name in code.
+
+Value Representation in the data dictionary
+-------------------------------------------
+
+The "VR" column in the data dictionary gives the Value Representation.  There is
+usually only one possible VR for each tag [#can_be_two]_.
+
+If a particular stream of data elements is using "Implicit Value Representation
+Encoding" then the data elements consist of (tag, Value Length, Value Field) and
+the Value Representation is implicit.  In this case we have to get the Value
+Representation from the data dictionary.  If a stream is using "Explicit Value
+Representation Encoding", the elements consist of (tag, Value Representation,
+Value Length, Value Field) and the Value Representation is therefore already
+specified along with the data.
+
+Value Multiplicity in the data dictionary
+-----------------------------------------
+
+The "VM" column in the dictionary gives the Value Multiplicity for this tag.
+Quoting from PS 3.5 section 6.4:
+
+    The Value Multiplicity of a Data Element specifies the number of Values that
+    can be encoded in the Value Field of that Data Element. The VM of each Data
+    Element is specified explicitly in PS 3.6. If the number of Values that may
+    be encoded in an element is variable, it shall be represented by two numbers
+    separated by a dash; e.g., "1-10" means that there may be 1 to 10 Values in
+    the element.
+
+The most common values for Value Multiplicity in the standard data dictionary
+are (in decreasing frequency) '1', '1-n', '3', '2', '1-2', '4' with other values
+being less common.
+
+The data dictionary is the only way to know the Value Multiplicity of a
+particular tag.  This means that we need the manufacturer's private data
+dictionary to know the Value Multiplicity of private attribute tags.
+
 
 DICOM data structures
 =====================
@@ -699,5 +777,17 @@ The DICOM file Meta Information is:
 
 There follows the IOD dataset part of the SOP instance.  In the case of a file
 storing an MR Image, this dataset will be of IOD type "MR Image"
+
+.. rubric:: Footnotes
+
+.. [#can_be_two] Actually, it is not quite true that there can be only one VR
+   associated with a particular tag.  A small number of tags have VRs which can
+   be either Unsigned Short (US) or Signed Short (SS). An even smaller number
+   of tags can be either Other Byte (OB) or Other Word (OW).  For all the
+   relevant tags the VM is a set number (1, 3, or 4). So, in the OB / OW cases
+   you can tell which of OB or OW you have by the Value Length.  The US / SS
+   cases seem to refer to pixel values; presumably they are US if the Pixel
+   Representation (tag 0028, 0103) is 0 (for unsigned) and SS if the Pixel
+   Representation is 1 (for signed)
 
 .. include:: ../links_names.txt
