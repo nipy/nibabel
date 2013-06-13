@@ -497,7 +497,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          buffer=data_str,
                          order=order)
         # for some types, we can write to the string buffer without
-        # worrying, but others we can't. 
+        # worrying, but others we can't.
         if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
                                                     bz2.BZ2File)):
             arr.flags.writeable = True
@@ -590,7 +590,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if not order in 'FC':
         raise ValueError('Order should be one of F or C')
     # Force upcasting for floats by making atleast_1d
-    slope, inter = [np.atleast_1d(v) for v in divslope, intercept]
+    slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
     # (u)int to (u)int with inter alone - select precision
     if (slope == 1 and inter != 0 and
         in_dtype.kind in 'iu' and out_dtype.kind in 'iu' and
@@ -750,7 +750,7 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
         return arr
     shape = arr.shape
     # Force float / float upcasting by promoting to arrays
-    arr, slope, inter = [np.atleast_1d(v) for v in arr, slope, inter]
+    arr, slope, inter = [np.atleast_1d(v) for v in (arr, slope, inter)]
     if arr.dtype.kind in 'iu':
         if (slope, inter) == (1, np.round(inter)):
             # (u)int to (u)int offset-only scaling
