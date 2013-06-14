@@ -16,14 +16,14 @@ class Unpacker(object):
     --------
     >>> a = b'1234567890'
     >>> upk = Unpacker(a)
-    >>> upk.unpack('2s')
-    (b'12',)
-    >>> upk.unpack('2s')
-    (b'34',)
+    >>> upk.unpack('2s') == (b'12',)
+    True
+    >>> upk.unpack('2s') == (b'34',)
+    True
     >>> upk.ptr
     4
-    >>> upk.read(3)
-    b'567'
+    >>> upk.read(3) == b'567'
+    True
     >>> upk.ptr
     7
     '''
