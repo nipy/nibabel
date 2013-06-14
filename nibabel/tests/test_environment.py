@@ -37,7 +37,9 @@ def teardown_environment():
     """Restore things that were remembered by the setup_environment function
     """
     orig_env = GIVEN_ENV['env']
-    for key in env.keys():
+    # Pull keys out into list to avoid altering dictionary during iteration,
+    # causing python 3 error
+    for key in list(env.keys()):
         if key not in orig_env:
             del env[key]
     env.update(orig_env)
