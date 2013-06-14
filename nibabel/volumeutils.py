@@ -1240,7 +1240,7 @@ def finite_range(arr):
     # Loop to avoid big isfinite temporary
     mx = -np.inf
     mn = np.inf
-    for s in xrange(sarr.shape[0]):
+    for s in range(sarr.shape[0]):
         tmp = sarr[s]
         tmp = tmp[np.isfinite(tmp)]
         if tmp.size:
