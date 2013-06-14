@@ -123,9 +123,9 @@ class _Series(object):
         d = self.storage_instances[index].dicom()
         data = d.pixel_array.copy()
         if self.bits_allocated != 16:
-            raise VolumeError, 'unsupported bits allocated'
+            raise VolumeError('unsupported bits allocated')
         if self.bits_stored != 12:
-            raise VolumeError, 'unsupported bits stored'
+            raise VolumeError('unsupported bits stored')
         data = data / 16
         if scale_to_slice:
             min = data.min()
@@ -142,12 +142,12 @@ class _Series(object):
 
     def as_nifti(self):
         if len(self.storage_instances) < 2:
-            raise VolumeError, 'too few slices'
+            raise VolumeError('too few slices')
         d = self.storage_instances[0].dicom()
         if self.bits_allocated != 16:
-            raise VolumeError, 'unsupported bits allocated'
+            raise VolumeError('unsupported bits allocated')
         if self.bits_stored != 12:
-            raise VolumeError, 'unsupported bits stored'
+            raise VolumeError('unsupported bits stored')
         data = numpy.ndarray((len(self.storage_instances), 
                               self.rows, 
                               self.columns), 
@@ -266,7 +266,7 @@ def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     for (dirpath, dirnames, filenames) in os.walk(base_dir, **kwargs):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
-            raise CachingError, 'link cycle detected under %s' % base_dir
+            raise CachingError('link cycle detected under %s' % base_dir)
         dirs.append(abs_dir)
         if files_dict is not None:
             files_dict[abs_dir] = filenames
@@ -423,7 +423,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
             params = (str(do.SOPInstanceUID), do.InstanceNumber, str(do.SeriesInstanceUID))
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
-    except AttributeError, data:
+    except AttributeError as data:
         logger.debug('        %s' % str(data))
         return None
     return str(do.SOPInstanceUID)
