@@ -365,7 +365,7 @@ class EcatHeader(object):
         in header, not always reliable"""
         orient_code = dict(self._patient_orient_defs)
         code = self._header_data['patient_orientation'].item()
-        if not orient_code.has_key(code):
+        if not code in orient_code:
             raise KeyError('Ecat Orientation CODE %d not recognized'%code)
         return orient_code[code]
 
@@ -374,7 +374,7 @@ class EcatHeader(object):
         code stored in header"""
         ft_codes = dict(self._ft_defs)
         code = self._header_data['file_type'].item()
-        if not ft_codes.has_key(code):
+        if not code in ft_codes:
             raise KeyError('Ecat Filetype CODE %d not recognized'%code)
         return ft_codes[code]
 

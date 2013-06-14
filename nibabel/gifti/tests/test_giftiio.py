@@ -186,7 +186,7 @@ def test_labeltable():
     assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
     assert_equal(len(img.labeltable.labels), 36)
     labeldict = img.labeltable.get_labels_as_dict()
-    assert_true(labeldict.has_key(660700))
+    assert_true(660700 in labeldict)
     assert_equal(labeldict[660700], u'entorhinal')
     assert_equal(img.labeltable.labels[1].key, 2647065)
     assert_equal(img.labeltable.labels[1].red, 0.0980392)
