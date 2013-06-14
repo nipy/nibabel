@@ -960,8 +960,8 @@ class EcatImage(SpatialImage):
         hdr = self.get_header()
         mlist = self.get_mlist()._mlist
         subheaders = self.get_subheaders()
-        dir_pos = 512L
-        entry_pos = dir_pos + 16L #528L
+        dir_pos = 512
+        entry_pos = dir_pos + 16 #528
         current_dir = self._get_empty_dir()
 
         hdr_fh, img_fh = self._get_fileholders(file_map)
@@ -996,7 +996,7 @@ class EcatImage(SpatialImage):
             self._write_data(mlist[index], imgf, entry_pos,
                 np.uint32, endianness='>')
 
-            entry_pos = entry_pos + 16L
+            entry_pos = entry_pos + 16
 
             current_dir[0] = current_dir[0] - 1
             current_dir[3] = current_dir[3] + 1
@@ -1006,16 +1006,16 @@ class EcatImage(SpatialImage):
                 #self._write_dir(current_dir, imgf, dir_pos)
                 self._write_data(current_dir, imgf, dir_pos)
                 current_dir = self._get_empty_dir()
-                current_dir[3] = dir_pos / 512L
+                current_dir[3] = dir_pos / 512
                 dir_pos = mlist[index][2] + 1
-                entry_pos = dir_pos + 16L
+                entry_pos = dir_pos + 16
 
         tmp_avail = current_dir[0]
         tmp_used = current_dir[3]
 
         #Fill directory with empty data until directory is full
         while current_dir[0] > 0:
-            entry_pos = dir_pos + 16L + (16L * current_dir[3])
+            entry_pos = dir_pos + 16 + (16 * current_dir[3])
             self._write_data(np.array([0,0,0,0]), imgf, entry_pos, np.uint32)
             current_dir[0] = current_dir[0] - 1
             current_dir[3] = current_dir[3] + 1

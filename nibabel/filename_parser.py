@@ -9,6 +9,11 @@
 ''' Create filename pairs, triplets etc, with expected extensions '''
 
 import os
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 class TypesFilenamesError(Exception):
     pass
@@ -106,7 +111,7 @@ def types_filenames(template_fname, types_exts,
                     'Confusing ignored suffix %s without extension'
                     % ignored)
         # if we've got to here, we have a guessed name and a found
-        # extension. 
+        # extension.
     else: # not enforcing extensions. If there's an extension, we set the
         # filename directly from input, for the first types_exts type
         # only.  Also, if there was no extension, but an ignored suffix
@@ -235,8 +240,8 @@ def splitext_addext(filename,
        filename that may end in any or none of `addexts`
     match_case : bool, optional
        If True, match case of `addexts` and `filename`, otherwise do
-       case-insensitive match. 
-       
+       case-insensitive match.
+
     Returns
     -------
     froot : str
