@@ -331,7 +331,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     '''
     stream_iter = iter(streamlines)
     try:
-        streams0 = stream_iter.next()
+        streams0 = next(stream_iter)
     except StopIteration: # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
