@@ -7,10 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for BatteryRunner and Report objects
-
 '''
 
-from ..py3k import StringIO
+from ..externals.six import StringIO
 
 import logging
 

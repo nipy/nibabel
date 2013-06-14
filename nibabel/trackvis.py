@@ -7,7 +7,7 @@ import itertools
 import numpy as np
 import numpy.linalg as npl
 
-from .py3k import asbytes, asstr
+from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
 from .volumeutils import BinOpener
 from .orientations import aff2axcodes
@@ -145,7 +145,7 @@ def read(fileobj, as_generator=False, points_space=None):
     hdr = np.ndarray(shape=(),
                      dtype=header_2_dtype,
                      buffer=hdr_str)
-    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
+    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
     if hdr['hdr_size'] == 1000:
@@ -504,7 +504,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     for key, value in mapping.items():
         hdr[key] = value
     # check header values
-    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
+    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characaters of id_string')
     if hdr['version'] not in (1, 2):

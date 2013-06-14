@@ -3,7 +3,6 @@
 '''
 import numpy as np
 
-from ..py3k import ZEROB, asbytes, asstr
 from .structreader import Unpacker
 
 # DICOM VR code to Python type
@@ -85,7 +84,7 @@ def read(csa_str):
     csa_dict = {'tags': {}}
     hdr_id = csa_str[:4]
     up_str = Unpacker(csa_str, endian='<')
-    if hdr_id == asbytes('SV10'): # CSA2
+    if hdr_id == b'SV10': # CSA2
         hdr_type = 2
         up_str.ptr = 4 # omit the SV10
         csa_dict['unused0'] = up_str.read(4)
@@ -240,14 +239,14 @@ def nt_str(s):
 
     Parameters
     ----------
-    s : str
+    s : bytes
 
     Returns
     -------
     sdash : str
        s stripped to first occurence of null (0)
     '''
-    zero_pos = s.find(ZEROB)
+    zero_pos = s.find(b'\x00')
     if zero_pos == -1:
         return s
-    return asstr(s[:zero_pos])
+    return s[:zero_pos].decode('latin-1')

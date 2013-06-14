@@ -20,7 +20,7 @@ import sqlite3
 
 import numpy
 
-from .py3k import BytesIO
+from .externals.six import BytesIO
 
 from .nifti1 import Nifti1Header
 

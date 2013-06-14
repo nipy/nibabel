@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
 from ..casting import type_info

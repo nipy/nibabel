@@ -5,7 +5,7 @@ from functools import partial
 
 import numpy as np
 
-from ..py3k import BytesIO, asbytes
+from ..externals.six import BytesIO
 from .. import trackvis as tv
 from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code
@@ -27,7 +27,7 @@ def test_write():
     # read it back
     out_f.seek(0)
     streams, hdr = tv.read(out_f)
-    assert_equal(hdr['id_string'], asbytes('TRACKb'))
+    assert_equal(hdr['id_string'], b'TRACKb')
     # check that we can pass none for the header
     out_f.truncate(0); out_f.seek(0)
     tv.write(out_f, [])
@@ -344,7 +344,7 @@ def test_empty_header():
     for endian in '<>':
         for version in (1, 2):
             hdr = tv.empty_header(endian, version)
-            assert_equal(hdr['id_string'], asbytes('TRACK'))
+            assert_equal(hdr['id_string'], b'TRACK')
             assert_equal(hdr['version'], version)
             assert_equal(hdr['hdr_size'], 1000)
             assert_array_equal(
@@ -387,7 +387,7 @@ def test_get_affine():
                        exp_aff)
     # check against voxel order.  This one works
     hdr['voxel_order'] = ''.join(aff2axcodes(exp_aff))
-    assert_equal(hdr['voxel_order'], asbytes('RAS'))
+    assert_equal(hdr['voxel_order'], b'RAS')
     assert_array_equal(old_afh(hdr), exp_aff)
     # This one doesn't
     hdr['voxel_order'] = 'LAS'
@@ -401,13 +401,13 @@ def test_get_affine():
     # only allowed.  This checks that the flipping heuristic works.
     flipped_aff = exp_aff
     unflipped_aff = exp_aff * [1,1,-1,1]
-    for in_aff, o_codes in ((unflipped_aff, 'RAS'),
-                            (flipped_aff, 'RAI')):
+    for in_aff, o_codes in ((unflipped_aff, b'RAS'),
+                            (flipped_aff, b'RAI')):
         hdr = tv.empty_header()
         tv.aff_to_hdr(in_aff, hdr, pos_vox=True, set_order=True)
         # Unset easier option
         hdr['vox_to_ras'] = 0
-        assert_equal(hdr['voxel_order'], asbytes(o_codes))
+        assert_equal(hdr['voxel_order'], o_codes)
         # Check it came back the way we wanted
         assert_array_equal(old_afh(hdr), in_aff)
     # Check that the default case matches atleast_v2=False case
@@ -487,7 +487,7 @@ def test_tv_class():
     # read it back
     out_f.seek(0)
     tvf_back = tv.TrackvisFile.from_file(out_f)
-    assert_equal(tvf_back.header['id_string'], asbytes('TRACKb'))
+    assert_equal(tvf_back.header['id_string'], b'TRACKb')
     # check that we check input values
     out_f.truncate(0); out_f.seek(0)
     assert_raises(tv.HeaderError,

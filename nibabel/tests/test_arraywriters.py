@@ -31,7 +31,7 @@ from platform import python_compiler, machine
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 
 from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,

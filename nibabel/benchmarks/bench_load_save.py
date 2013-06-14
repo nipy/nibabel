@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 from .. import Nifti1Image
 
 from numpy.testing import measure

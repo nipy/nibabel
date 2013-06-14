@@ -9,7 +9,7 @@
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 

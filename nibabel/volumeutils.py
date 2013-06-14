@@ -10,12 +10,10 @@
 
 import sys
 import warnings
-import gzip
 import bz2
 
 import numpy as np
 
-from .py3k import isfileobj, ZEROB
 from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS,
                       able_int_type)
 from .openers import Opener
@@ -498,8 +496,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          order=order)
         # for some types, we can write to the string buffer without
         # worrying, but others we can't.
-        if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
-                                                    bz2.BZ2File)):
+        if hasattr(infile, 'fileno') or isinstance(infile, bz2.BZ2File):
             arr.flags.writeable = True
         else:
             arr = arr.copy()
@@ -695,10 +692,10 @@ def write_zeros(fileobj, count, block_size=8194):
     """
     nblocks = int(count // block_size)
     rem = count % block_size
-    blk = ZEROB * block_size
+    blk = b'\x00' * block_size
     for bno in range(nblocks):
         fileobj.write(blk)
-    fileobj.write(ZEROB * rem)
+    fileobj.write(b'\x00' * rem)
 
 
 def seek_tell(fileobj, offset):

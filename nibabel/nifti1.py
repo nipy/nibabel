@@ -13,7 +13,7 @@ import warnings
 import numpy as np
 import numpy.linalg as npl
 
-from .py3k import ZEROB, ints2bytes, asbytes, asstr
+from .py3k import asstr
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
@@ -366,7 +366,7 @@ class Nifti1Extension(object):
         fileobj.write(self._mangle(self._content))
         # be nice and zero out remaining part of the extension till the
         # next 16 byte border
-        fileobj.write(ZEROB * (extstart + rawsize - fileobj.tell()))
+        fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
 
 
 # NIfTI header extension type codes (ECODE)
@@ -492,7 +492,7 @@ class Nifti1Extensions(list):
             # note that we read a full extension
             size -= esize
             # store raw extension content, but strip trailing NULL chars
-            evalue = evalue.rstrip(ZEROB)
+            evalue = evalue.rstrip(b'\x00')
             # 'extension_codes' also knows the best implementation to handle
             # a particular extension type
             try:
@@ -571,7 +571,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         # has this as a 4 byte string; if the first value is not zero, then we
         # have extensions.  
         extension_status = fileobj.read(4)
-        if len(extension_status) < 4 or extension_status[0] == ZEROB:
+        if len(extension_status) < 4 or extension_status[0] == b'\x00':
             return hdr
         # If this is a detached header file read to end
         if not klass.is_single:
@@ -594,10 +594,10 @@ class Nifti1Header(SpmAnalyzeHeader):
         if len(self.extensions) == 0:
             # If single file, write required 0 stream to signal no extensions
             if self.is_single:
-                fileobj.write(ZEROB * 4)
+                fileobj.write(b'\x00' * 4)
             return
         # Signal there are extensions that follow
-        fileobj.write(ints2bytes([1, 0, 0, 0]))
+        fileobj.write(b'\x01\x00\x00\x00')
         byteswap = endian_codes['native'] != self.endianness
         self.extensions.write_to(fileobj, byteswap)
 
@@ -1492,7 +1492,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         # for ease of later string formatting, use scalar of byte string
         magic = np.asscalar(hdr['magic'])
         offset = hdr['vox_offset']
-        if magic == asbytes('n+1'): # one file
+        if magic == b'n+1': # one file
             if offset >= 352:
                 if not offset % 16:
                     return hdr, rep
@@ -1511,7 +1511,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             if fix:
                 hdr['vox_offset'] = 352
                 rep.fix_msg = 'setting to minimum value of 352'
-        elif magic != asbytes('ni1'): # two files
+        elif magic != b'ni1': # two files
             # unrecognized nii magic string, oh dear
             rep.problem_msg = ('magic string "%s" is not valid' %
                                asstr(magic))
@@ -1779,7 +1779,7 @@ class Nifti1Image(Nifti1Pair):
         offset = header.get_data_offset()
         diff = offset-header_file.tell()
         if diff > 0:
-            header_file.write(ZEROB * diff)
+            header_file.write(b'\x00' * diff)
 
     def update_header(self):
         ''' Harmonize header with image data and affine '''

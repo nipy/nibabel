@@ -8,11 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import sys
-from StringIO import StringIO
-if sys.version_info[0] >= 3:
-    from io import BytesIO
-else:
-    BytesIO = StringIO
+
+from ..externals.six import BytesIO
 
 import numpy as np
 

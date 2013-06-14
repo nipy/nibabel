@@ -10,7 +10,7 @@
 import base64
 import sys
 import zlib
-from StringIO import StringIO
+from ..externals.six import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
