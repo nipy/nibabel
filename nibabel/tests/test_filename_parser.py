@@ -8,8 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for filename container '''
 
-from StringIO import StringIO
-
 from ..filename_parser import (types_filenames, TypesFilenamesError,
                                parse_filename, splitext_addext)
 
