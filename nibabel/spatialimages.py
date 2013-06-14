@@ -126,6 +126,11 @@ work:
 
 '''
 
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
+
 import warnings
 
 import numpy as np

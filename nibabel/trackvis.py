@@ -13,6 +13,11 @@ from .volumeutils import BinOpener
 from .orientations import aff2axcodes
 from .affines import apply_affine
 
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
+
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
 # See http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
@@ -628,7 +633,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     # Next we check against the 'voxel_order' field if present and not empty.
     try:
         voxel_order = asstr(np.asscalar(trk_hdr['voxel_order']))
-    except KeyError, ValueError:
+    except (KeyError, ValueError):
         voxel_order = ''
     if voxel_order == '':
         return aff

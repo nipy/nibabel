@@ -1,7 +1,10 @@
 import os
 import sys
 import subprocess
-from ConfigParser import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser  # python 3
 
 COMMIT_INFO_FNAME = 'COMMIT_INFO.txt'
 
