@@ -450,15 +450,15 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> bio = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
     >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> bio = StringIO() #23dt : BytesIO
-    >>> _ = bio.write(' ' * 10) #23dt : bytes
+    >>> bio = BytesIO()
+    >>> _ = bio.write(b' ' * 10)
     >>> _ = bio.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
@@ -552,8 +552,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> sio = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> sio = BytesIO()
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
@@ -1330,7 +1330,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''} #23dt : replace("''", "b''")
+    >>> d == {'x': 0, 's': b''}
     True
     '''
     dct = {}

@@ -343,8 +343,8 @@ class EcatHeader(object):
         Examples
         --------
         >>> hdr = EcatHeader()
-        >>> hdr['magic_number'] #23dt next : bytes
-        'MATRIX72'
+        >>> hdr['magic_number'] == b'MATRIX72'
+        True
         '''
         return self._header_data[item].item()
 

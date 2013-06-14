@@ -286,8 +286,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> file_obj = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> file_obj = BytesIO()
     >>> pts0 = np.random.uniform(size=(10,3))
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
@@ -300,7 +300,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     If there are too many streamlines to fit in memory, you can pass an iterable
     thing instead of a list
 
-    >>> file_obj = StringIO() #23dt : BytesIO
+    >>> file_obj = BytesIO()
     >>> def gen():
     ...     yield (pts0, None, None)
     ...     yield (pts0, None, None)
@@ -535,8 +535,8 @@ def empty_header(endianness=None, version=2):
     >>> hdr = empty_header()
     >>> print(hdr['version'])
     2
-    >>> np.asscalar(hdr['id_string']) #23dt next : bytes
-    'TRACK'
+    >>> np.asscalar(hdr['id_string']) == b'TRACK'
+    True
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
     >>> hdr = empty_header(swapped_code)
