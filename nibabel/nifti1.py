@@ -1371,19 +1371,21 @@ class Nifti1Header(SpmAnalyzeHeader):
     def _slice_time_order(self, slabel, n_slices):
         ''' Supporting function to give time order of slices from label '''
         if slabel == 'sequential increasing':
-            sp_ind_time_order = range(n_slices)
+            sp_ind_time_order = list(range(n_slices))
         elif slabel == 'sequential decreasing':
-            sp_ind_time_order = range(n_slices)[::-1]
+            sp_ind_time_order = list(range(n_slices)[::-1])
         elif slabel == 'alternating increasing':
-            sp_ind_time_order = range(0, n_slices, 2) + range(1, n_slices, 2)
+            sp_ind_time_order = (list(range(0, n_slices, 2)) +
+                                 list(range(1, n_slices, 2)))
         elif slabel == 'alternating decreasing':
-            sp_ind_time_order = range(n_slices - 1, -1, -2) \
-                                + range(n_slices -2 , -1, -2)
+            sp_ind_time_order = (list(range(n_slices - 1, -1, -2)) +
+                                 list(range(n_slices -2 , -1, -2)))
         elif slabel == 'alternating increasing 2':
-            sp_ind_time_order = range(1, n_slices, 2) + range(0, n_slices, 2)
+            sp_ind_time_order = (list(range(1, n_slices, 2)) +
+                                 list(range(0, n_slices, 2)))
         elif slabel == 'alternating decreasing 2':
-            sp_ind_time_order = range(n_slices - 2, -1, -2) \
-                                + range(n_slices - 1, -1, -2)
+            sp_ind_time_order = (list(range(n_slices - 2, -1, -2)) +
+                                 list(range(n_slices - 1, -1, -2)))
         else:
             raise HeaderDataError('We do not handle slice ordering "%s"'
                                   % slabel)

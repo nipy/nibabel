@@ -570,7 +570,7 @@ def test_slice_times():
     # We need a function to print out the Nones and floating point
     # values in a predictable way, for the tests below.
     _stringer = lambda val: val is not None and '%2.1f' % val or None
-    _print_me = lambda s: map(_stringer, s)
+    _print_me = lambda s: list(map(_stringer, s))
     #The following examples are from the nifti1.h documentation.
     hdr['slice_code'] = slice_order_codes['sequential increasing']
     assert_equal(_print_me(hdr.get_slice_times()), 
