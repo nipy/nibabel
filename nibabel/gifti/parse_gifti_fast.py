@@ -6,6 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+from __future__ import division, print_function, absolute_import
 
 import base64
 import sys
@@ -99,7 +100,7 @@ class Outputter(object):
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
         if DEBUG_PRINT:
-            print 'Start element:\n\t', repr(name), attrs
+            print('Start element:\n\t', repr(name), attrs)
         if name == 'GIFTI':
             # create gifti image
             self.img = gi.GiftiImage()
@@ -201,7 +202,7 @@ class Outputter(object):
     def EndElementHandler(self, name):
         self.flush_chardata()
         if DEBUG_PRINT:
-            print 'End element:\n\t', repr(name)
+            print('End element:\n\t', repr(name))
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
@@ -349,7 +350,7 @@ def parse_gifti_file(fname, buffer_size = None):
     try:
         parser.ParseFile(datasource)
     except ExpatError:
-        print 'An expat error occured while parsing the  Gifti file.'
+        print('An expat error occured while parsing the  Gifti file.')
     # Reality check for pending data
     assert out.pending_data is False
     # update filename

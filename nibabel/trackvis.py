@@ -1,5 +1,6 @@
 """ Read and write trackvis files
 """
+from __future__ import division, print_function
 import warnings
 import struct
 import itertools
@@ -532,7 +533,7 @@ def empty_header(endianness=None, version=2):
     Examples
     --------
     >>> hdr = empty_header()
-    >>> print hdr['version']
+    >>> print(hdr['version'])
     2
     >>> np.asscalar(hdr['id_string']) #23dt next : bytes
     'TRACK'
@@ -542,7 +543,7 @@ def empty_header(endianness=None, version=2):
     >>> endian_codes[hdr['version'].dtype.byteorder] == swapped_code
     True
     >>> hdr = empty_header(version=1)
-    >>> print hdr['version']
+    >>> print(hdr['version'])
     1
 
     Notes

@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Header reading / writing functions for nifti1 image format
 '''
+from __future__ import division, print_function
 import warnings
 
 import numpy as np
@@ -1198,7 +1199,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr = Nifti1Header()
         >>> hdr.set_dim_info(slice=2)
         >>> hdr.set_slice_duration(0.3)
-        >>> print "%0.1f" % hdr.get_slice_duration()
+        >>> print("%0.1f" % hdr.get_slice_duration())
         0.3
 
         Notes

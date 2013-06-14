@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utility functions for analyze-like formats '''
+from __future__ import division, print_function
 
 import sys
 import warnings
@@ -286,7 +287,7 @@ def pretty_mapping(mapping, getterfunc=None):
     Examples
     --------
     >>> d = {'a key': 'a value'}
-    >>> print pretty_mapping(d)
+    >>> print(pretty_mapping(d))
     a key  : a value
     >>> class C(object): # to control ordering, show get_ method
     ...     def __iter__(self):
@@ -304,7 +305,7 @@ def pretty_mapping(mapping, getterfunc=None):
     ...         return obj.__getattribute__('get_' + key)()
     ...     except AttributeError:
     ...         return obj[key]
-    >>> print pretty_mapping(C(), getter)
+    >>> print(pretty_mapping(C(), getter))
     short_field   : 0
     longer_field  : method string
     '''

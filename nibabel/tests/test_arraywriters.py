@@ -26,6 +26,7 @@ Subclasses of array writers may be able to scale the array or apply an
 intercept, or do something else to make sense of conversions between float and
 int, or between larger ints and smaller.
 """
+from __future__ import division, print_function, absolute_import
 
 from platform import python_compiler, machine
 
@@ -512,7 +513,7 @@ def test_float_int_min_max():
         arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(arr)):
-            print 'Hit PPC max -> inf bug; skip in_type %s' % in_dt
+            print('Hit PPC max -> inf bug; skip in_type %s' % in_dt)
             continue
         for out_dt in IUINT_TYPES:
             try:
