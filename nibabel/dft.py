@@ -391,10 +391,10 @@ def _update_file(c, path, fname, studies, series, storage_instances):
                       do.StudyDate, 
                       do.StudyTime, 
                       study_comments, 
-                      str(do.PatientsName),
+                      str(do.PatientName),
                       do.PatientID, 
-                      do.PatientsBirthDate, 
-                      do.PatientsSex)
+                      do.PatientBirthDate,
+                      do.PatientSex)
             c.execute(query, params)
             studies.append(str(do.StudyInstanceUID))
         if str(do.SeriesInstanceUID) not in series:

@@ -512,7 +512,7 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         assert_raises(didw.WrapperError, getattr, dw, 'image_position')
         # Make a fake frame
-        fake_frame = fake_frames('PlanePositions',
+        fake_frame = fake_frames('PlanePositionSequence',
                                  'ImagePositionPatient',
                                  [[-2.0, 3., 7]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
@@ -523,7 +523,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
-        fake_frame.PlanePositions[0].ImagePositionPatient = [
+        fake_frame.PlanePositionSequence[0].ImagePositionPatient = [
             Decimal(str(v)) for v in [-2, 3, 7]]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         assert_equal(MFW(fake_mf).image_position.dtype, float)
@@ -627,16 +627,16 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['RescaleSlope'] = 2.0
         fake_mf['RescaleIntercept'] = -1.0
         assert_array_equal(data * 2 - 1, dw._scale_data(data))
-        fake_frame = fake_frames('PixelValueTransformations',
+        fake_frame = fake_frames('PixelValueTransformationSequence',
                                  'RescaleSlope',
                                  [3.0])[0]
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         # Lacking RescaleIntercept -> Error
         dw = MFW(fake_mf)
         assert_raises(AttributeError, dw._scale_data, data)
-        fake_frame.PixelValueTransformations[0].RescaleIntercept = -2
+        fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = -2
         assert_array_equal(data * 3 - 2, dw._scale_data(data))
         # Decimals are OK
-        fake_frame.PixelValueTransformations[0].RescaleSlope = Decimal('3')
-        fake_frame.PixelValueTransformations[0].RescaleIntercept = Decimal('-2')
+        fake_frame.PixelValueTransformationSequence[0].RescaleSlope = Decimal('3')
+        fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = Decimal('-2')
         assert_array_equal(data * 3 - 2, dw._scale_data(data))

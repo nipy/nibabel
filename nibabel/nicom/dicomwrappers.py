@@ -524,10 +524,10 @@ class MultiframeWrapper(Wrapper):
     @one_time
     def image_position(self):
         try:
-            ipp = self.shared.PlanePositions[0].ImagePositionPatient
+            ipp = self.shared.PlanePositionSequence[0].ImagePositionPatient
         except AttributeError:
             try:
-                ipp = self.frames[0].PlanePositions[0].ImagePositionPatient
+                ipp = self.frames[0].PlanePositionSequence[0].ImagePositionPatient
             except AttributeError:
                 raise WrapperError('Cannot get image position from dicom')
         if ipp is None:
@@ -561,7 +561,8 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        pix_trans = getattr(self.frames[0], 'PixelValueTransformations', None)
+        pix_trans = getattr(
+            self.frames[0], 'PixelValueTransformationSequence', None)
         if pix_trans is None:
             return super(MultiframeWrapper, self)._scale_data(data)
         scale = float(pix_trans[0].RescaleSlope)
