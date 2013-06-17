@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
 
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 import os
 from os.path import join as pjoin
@@ -119,7 +119,7 @@ class _Series(object):
     def as_png(self, index=None, scale_to_slice=True):
         import PIL.Image
         if index is None:
-            index = len(self.storage_instances) / 2
+            index = len(self.storage_instances) // 2
         d = self.storage_instances[index].dicom()
         data = d.pixel_array.copy()
         if self.bits_allocated != 16:
@@ -391,7 +391,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
                       do.StudyDate, 
                       do.StudyTime, 
                       study_comments, 
-                      do.PatientsName, 
+                      str(do.PatientsName),
                       do.PatientID, 
                       do.PatientsBirthDate, 
                       do.PatientsSex)
