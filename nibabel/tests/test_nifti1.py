@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for nifti reading package '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 import os
 
 import numpy as np

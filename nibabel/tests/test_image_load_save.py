@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp

@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Tests for arrayproxy module
 """
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 from ..externals.six import BytesIO
 from ..tmpdirs import InTemporaryDirectory

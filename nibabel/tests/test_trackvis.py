@@ -1,5 +1,5 @@
 ''' Testing trackvis module '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 from functools import partial
 
