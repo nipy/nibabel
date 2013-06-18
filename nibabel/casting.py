@@ -633,8 +633,17 @@ def best_float():
     -------
     best_type : numpy type
         floating point type with highest precision
+
+    Notes
+    -----
+    Needs to run without error for module import, because it is called in
+    ``ok_floats`` below, and therefore in setting module global ``OK_FLOATS``.
     """
-    if (type_info(np.longdouble)['nmant'] > type_info(np.float64)['nmant'] and
+    try:
+        long_info = type_info(np.longdouble)
+    except FloatingError:
+        return np.float64
+    if (long_info['nmant'] > type_info(np.float64)['nmant'] and
         machine() != 'sparc64'): # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
@@ -643,7 +652,10 @@ def best_float():
 def have_binary128():
     """ True if we have a binary128 IEEE longdouble
     """
-    ti = type_info(np.longdouble)
+    try:
+        ti = type_info(np.longdouble)
+    except FloatingError:
+        return False
     return (ti['nmant'], ti['maxexp']) == (112, 16384)
 
 
@@ -652,10 +664,10 @@ def ok_floats():
 
     Remove longdouble if it has no higher precision than float64
     """
-    floats = sorted(np.sctypes['float'], key=lambda f : type_info(f)['nmant'])
+    floats = np.sctypes['float']
     if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
-    return floats
+    return sorted(floats, key=lambda f : type_info(f)['nmant'])
 
 
 OK_FLOATS = ok_floats()
