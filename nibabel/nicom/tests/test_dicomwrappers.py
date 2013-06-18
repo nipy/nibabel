@@ -144,6 +144,9 @@ def test_wrapper_from_data():
         assert_equal(dw.get('AcquisitionNumber'), 3)
         assert_raises(KeyError, dw.__getitem__, 'not an item')
         assert_true(dw.is_multiframe)
+    # Another CSA file
+    dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
+    assert_true(dw.is_mosaic)
     # Check that multiframe requires minimal set of DICOM tags
     fake_data = dict()
     fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
