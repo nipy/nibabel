@@ -530,9 +530,8 @@ class AnalyzeHeader(WrapStruct):
                                            out_dtype,
                                            self.has_data_slope,
                                            self.has_data_intercept)
-        except WriterError:
-            msg = sys.exc_info()[1] # python 2 / 3 compatibility
-            raise HeaderTypeError(msg)
+        except WriterError as e:
+            raise HeaderTypeError(str(e))
         seek_tell(fileobj, self.get_data_offset())
         arr_writer.to_fileobj(fileobj)
         self.set_slope_inter(*get_slope_inter(arr_writer))

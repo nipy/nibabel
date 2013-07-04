@@ -711,10 +711,9 @@ def seek_tell(fileobj, offset):
     """
     try:
         fileobj.seek(offset)
-    except IOError:
-        msg = sys.exc_info()[1] # python 2 / 3 compatibility
+    except IOError as e:
         if fileobj.tell() != offset:
-            raise IOError(msg)
+            raise IOError(str(e))
 
 
 def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
@@ -885,9 +884,8 @@ def calculate_scale(data, out_dtype, allow_intercept):
     from .arraywriters import make_array_writer, WriterError, get_slope_inter
     try:
         writer = make_array_writer(data, out_dtype, True, allow_intercept)
-    except WriterError:
-        msg = sys.exc_info()[1] # python 2 / 3 compatibility
-        raise ValueError(msg)
+    except WriterError as e:
+        raise ValueError(str(e))
     if out_dtype.kind in 'fc':
         return (1.0, 0.0, None, None)
     mn, mx = writer.finite_range()
