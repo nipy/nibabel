@@ -215,7 +215,7 @@ def read(fileobj, as_generator=False, points_space=None):
             if points_space == 'voxel':
                 xyz = xyz / zooms
             elif points_space == 'rasmm':
-                xyz = apply_affine(tv2mm, pts)
+                xyz = apply_affine(tv2mm, xyz)
             if n_s:
                 scalars = pts[:,3:]
             yield (xyz, scalars, ps)
