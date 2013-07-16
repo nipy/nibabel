@@ -7,15 +7,14 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utility functions for analyze-like formats '''
+from __future__ import division, print_function
 
 import sys
 import warnings
-import gzip
 import bz2
 
 import numpy as np
 
-from .py3k import isfileobj, ZEROB
 from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS,
                       able_int_type)
 from .openers import Opener
@@ -288,7 +287,7 @@ def pretty_mapping(mapping, getterfunc=None):
     Examples
     --------
     >>> d = {'a key': 'a value'}
-    >>> print pretty_mapping(d)
+    >>> print(pretty_mapping(d))
     a key  : a value
     >>> class C(object): # to control ordering, show get_ method
     ...     def __iter__(self):
@@ -306,7 +305,7 @@ def pretty_mapping(mapping, getterfunc=None):
     ...         return obj.__getattribute__('get_' + key)()
     ...     except AttributeError:
     ...         return obj[key]
-    >>> print pretty_mapping(C(), getter)
+    >>> print(pretty_mapping(C(), getter))
     short_field   : 0
     longer_field  : method string
     '''
@@ -451,15 +450,15 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> bio = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
     >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
-    >>> bio = StringIO() #23dt : BytesIO
-    >>> _ = bio.write(' ' * 10) #23dt : bytes
+    >>> bio = BytesIO()
+    >>> _ = bio.write(b' ' * 10)
     >>> _ = bio.write(arr.tostring('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
@@ -498,8 +497,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
                          order=order)
         # for some types, we can write to the string buffer without
         # worrying, but others we can't.
-        if isfileobj(infile) or isinstance(infile, (gzip.GzipFile,
-                                                    bz2.BZ2File)):
+        if hasattr(infile, 'fileno') or isinstance(infile, bz2.BZ2File):
             arr.flags.writeable = True
         else:
             arr = arr.copy()
@@ -554,8 +552,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> sio = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> sio = BytesIO()
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
@@ -695,10 +693,10 @@ def write_zeros(fileobj, count, block_size=8194):
     """
     nblocks = int(count // block_size)
     rem = count % block_size
-    blk = ZEROB * block_size
+    blk = b'\x00' * block_size
     for bno in range(nblocks):
         fileobj.write(blk)
-    fileobj.write(ZEROB * rem)
+    fileobj.write(b'\x00' * rem)
 
 
 def seek_tell(fileobj, offset):
@@ -1242,7 +1240,7 @@ def finite_range(arr):
     # Loop to avoid big isfinite temporary
     mx = -np.inf
     mn = np.inf
-    for s in xrange(sarr.shape[0]):
+    for s in range(sarr.shape[0]):
         tmp = sarr[s]
         tmp = tmp[np.isfinite(tmp)]
         if tmp.size:
@@ -1332,7 +1330,7 @@ def rec2dict(rec):
     --------
     >>> r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     >>> d = rec2dict(r)
-    >>> d == {'x': 0, 's': ''} #23dt : replace("''", "b''")
+    >>> d == {'x': 0, 's': b''}
     True
     '''
     dct = {}

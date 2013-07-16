@@ -512,8 +512,8 @@ class AnalyzeHeader(WrapStruct):
         >>> hdr = AnalyzeHeader()
         >>> hdr.set_data_shape((1, 2, 3))
         >>> hdr.set_data_dtype(np.float64)
-        >>> from StringIO import StringIO #23dt : BytesIO
-        >>> str_io = StringIO() #23dt : BytesIO
+        >>> from io import BytesIO
+        >>> str_io = BytesIO()
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
         >>> data.astype(np.float64).tostring('F') == str_io.getvalue()

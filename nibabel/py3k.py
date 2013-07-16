@@ -3,6 +3,8 @@ Python 3 compatibility tools.
 
 Copied from numpy/compat/py3k
 
+Please prefer the routines in externals/six.py when possible
+
 BSD license
 """
 

@@ -1,7 +1,7 @@
 """
 Check that loading an image does not use up filehandles.
 """
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import shutil

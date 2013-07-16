@@ -147,7 +147,7 @@ class Wrapper(object):
         if iop is None:
             return None
         # Values are python Decimals in pydicom 0.9.7
-        iop = np.array((map(float, iop)))
+        iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
     @one_time
@@ -202,7 +202,7 @@ class Wrapper(object):
                 zs = 1
         # Protect from python decimals in pydicom 0.9.7
         zs = float(zs)
-        pix_space = map(float, pix_space)
+        pix_space = list(map(float, pix_space))
         return tuple(pix_space + [zs])
 
     @one_time
@@ -222,7 +222,7 @@ class Wrapper(object):
         if ipp is None:
             return None
             # Values are python Decimals in pydicom 0.9.7
-        return np.array(map(float, ipp))
+        return np.array(list(map(float, ipp)))
 
     @one_time
     def slice_indicator(self):
@@ -498,7 +498,7 @@ class MultiframeWrapper(Wrapper):
                 raise WrapperError("Not enough information for image_orient_patient")
         if iop is None:
             return None
-        iop = np.array((map(float, iop)))
+        iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
     @one_time
@@ -524,15 +524,15 @@ class MultiframeWrapper(Wrapper):
     @one_time
     def image_position(self):
         try:
-            ipp = self.shared.PlanePositions[0].ImagePositionPatient
+            ipp = self.shared.PlanePositionSequence[0].ImagePositionPatient
         except AttributeError:
             try:
-                ipp = self.frames[0].PlanePositions[0].ImagePositionPatient
+                ipp = self.frames[0].PlanePositionSequence[0].ImagePositionPatient
             except AttributeError:
                 raise WrapperError('Cannot get image position from dicom')
         if ipp is None:
             return None
-        return np.array(map(float, ipp))
+        return np.array(list(map(float, ipp)))
 
     @one_time
     def series_signature(self):
@@ -561,7 +561,8 @@ class MultiframeWrapper(Wrapper):
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        pix_trans = getattr(self.frames[0], 'PixelValueTransformations', None)
+        pix_trans = getattr(
+            self.frames[0], 'PixelValueTransformationSequence', None)
         if pix_trans is None:
             return super(MultiframeWrapper, self)._scale_data(data)
         scale = float(pix_trans[0].RescaleSlope)
@@ -788,7 +789,7 @@ class MosaicWrapper(SiemensWrapper):
         if None in (ipp, md_rows, md_cols, iop, pix_spacing):
             return None
         # PixelSpacing values are python Decimal in pydicom 0.9.7
-        pix_spacing = np.array(map(float, pix_spacing))
+        pix_spacing = np.array(list(map(float, pix_spacing)))
         # size of mosaic array before rearranging to 3D.
         md_rc = np.array([md_rows, md_cols])
         # size of slice array after reshaping to 3D

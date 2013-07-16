@@ -7,16 +7,15 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 '''Tests for mghformat reading writing'''
-from __future__ import with_statement
 
 import os
-from io import StringIO, BytesIO
 
 import numpy as np
+
+from ...externals.six import BytesIO
 from .. import load, save, MGHImage
 from ..mghformat import MGHError
 from ...tmpdirs import InTemporaryDirectory
-from ...py3k import unicode
 from ...fileholders import FileHolder
 
 from ...testing import data_path
@@ -168,11 +167,11 @@ def test_header_updating():
     mgz = load(mgz_path)
     hdr = mgz.get_header()
     # Test against mri_info output
-    exp_aff = np.loadtxt(StringIO(unicode("""
+    exp_aff = np.loadtxt(BytesIO(b"""
     1.0000   2.0000   3.0000   -13.0000
     2.0000   3.0000   1.0000   -11.5000
     3.0000   1.0000   2.0000   -11.5000
-    0.0000   0.0000   0.0000     1.0000""")))
+    0.0000   0.0000   0.0000     1.0000"""))
     assert_almost_equal(mgz.get_affine(), exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed

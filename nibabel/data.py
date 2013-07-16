@@ -8,7 +8,7 @@ import os
 from os.path import join as pjoin
 import glob
 import sys
-import ConfigParser
+from .externals.six.moves import configparser
 from distutils.version import LooseVersion
 
 from .environment import get_nipy_user_dir, get_nipy_system_dir
@@ -122,14 +122,14 @@ class VersionedDatasource(Datasource):
         Datasource.__init__(self, base_path)
         if config_filename is None:
             config_filename = 'config.ini'
-        self.config = ConfigParser.SafeConfigParser()
+        self.config = configparser.SafeConfigParser()
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
             raise DataError('Could not read config file %s' % cfg_file)
         try:
             self.version = self.config.get('DEFAULT', 'version')
-        except ConfigParser.Error:
+        except configparser.Error:
             raise DataError('Could not get version from %s' % cfg_file)
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
@@ -140,13 +140,13 @@ class VersionedDatasource(Datasource):
 
 def _cfg_value(fname, section='DATA', value='path'):
     """ Utility function to fetch value from config file """
-    configp =  ConfigParser.ConfigParser()
+    configp =  configparser.ConfigParser()
     readfiles = configp.read(fname)
     if not readfiles:
         return ''
     try:
         return configp.get(section, value)
-    except ConfigParser.Error:
+    except configparser.Error:
         return ''
 
 

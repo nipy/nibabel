@@ -7,8 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for volumeutils module '''
-from __future__ import with_statement
-from ..py3k import BytesIO, asbytes, ZEROB
+from __future__ import division
+
+from ..externals.six import BytesIO
 import tempfile
 import warnings
 
@@ -83,7 +84,7 @@ def test_array_from_file():
     # check on real file
     fd, fname = tempfile.mkstemp()
     with InTemporaryDirectory():
-        open(fname, 'wb').write(asbytes('1'))
+        open(fname, 'wb').write(b'1')
         in_buf = open(fname, 'rb')
         # For windows this will raise a WindowsError from mmap, Unices
         # appear to raise an IOError
@@ -94,7 +95,7 @@ def test_array_from_file():
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
     ''' Write contents of in_arr into fileobj, read back, check same '''
-    instr = asbytes(' ') * offset + in_arr.tostring(order='F')
+    instr = b' ' * offset + in_arr.tostring(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None: # we're using in_buf from out_buf
@@ -217,7 +218,7 @@ def test_a2f_offset():
     # check that non-zero file offset works
     arr = np.array([[0.0, 1.0],[2.0, 3.0]])
     str_io = BytesIO()
-    str_io.write(asbytes('a') * 42)
+    str_io.write(b'a' * 42)
     array_to_file(arr, str_io, np.float, 42)
     data_back = array_from_file(arr.shape, np.float, str_io, 42)
     assert_array_equal(data_back, arr.astype(np.float))
@@ -494,15 +495,15 @@ def test_can_cast():
 def test_write_zeros():
     bio = BytesIO()
     write_zeros(bio, 10000)
-    assert_equal(bio.getvalue(), ZEROB*10000)
+    assert_equal(bio.getvalue(), b'\x00'*10000)
     bio.seek(0)
     bio.truncate(0)
     write_zeros(bio, 10000, 256)
-    assert_equal(bio.getvalue(), ZEROB*10000)
+    assert_equal(bio.getvalue(), b'\x00'*10000)
     bio.seek(0)
     bio.truncate(0)
     write_zeros(bio, 200, 256)
-    assert_equal(bio.getvalue(), ZEROB*200)
+    assert_equal(bio.getvalue(), b'\x00'*200)
 
 
 def test_BinOpener():
@@ -529,7 +530,7 @@ def test_allopen():
         fobj = allopen(__file__, mode='r')
         assert_equal(fobj.mode, 'r')
         # fileobj returns fileobj
-        msg = asbytes('tiddle pom')
+        msg = b'tiddle pom'
         sobj = BytesIO(msg)
         fobj = allopen(sobj)
         assert_equal(fobj.read(), msg)
@@ -593,7 +594,7 @@ def test_shape_zoom_affine():
 def test_rec2dict():
     r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
     d = rec2dict(r)
-    assert_equal(d, {'x': 0, 's': asbytes('')})
+    assert_equal(d, {'x': 0, 's': b''})
 
 
 def test_dtypes():

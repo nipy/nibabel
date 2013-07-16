@@ -1,7 +1,7 @@
 """ Testing fileholders
 """
 
-from StringIO import StringIO
+from ..externals.six import BytesIO
 
 import numpy as np
 
@@ -19,7 +19,7 @@ def test_init():
     assert_equal(fh.filename, 'a_fname')
     assert_true(fh.fileobj is None)
     assert_equal(fh.pos, 0)
-    sio0 = StringIO()
+    sio0 = BytesIO()
     fh = FileHolder('a_test', sio0)
     assert_equal(fh.filename, 'a_test')
     assert_true(fh.fileobj is sio0)
@@ -35,7 +35,7 @@ def test_same_file_as():
     assert_true(fh.same_file_as(fh))
     fh2 = FileHolder('a_test')
     assert_false(fh.same_file_as(fh2))
-    sio0 = StringIO()
+    sio0 = BytesIO()
     fh3 = FileHolder('a_fname', sio0)
     fh4 = FileHolder('a_fname', sio0)
     assert_true(fh3.same_file_as(fh4))

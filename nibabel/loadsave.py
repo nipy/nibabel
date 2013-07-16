@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
-from .py3k import asbytes
 from .filename_parser import types_filenames, splitext_addext
 from .volumeutils import BinOpener
 from . import spm2analyze as spm2
@@ -45,7 +44,7 @@ def load(filename):
         filenames = types_filenames(filename, files_types)
         with BinOpener(filenames['header']) as fobj:
             hdr = nifti1.Nifti1Header.from_fileobj(fobj, check=False)
-        if hdr['magic'] in (asbytes('ni1'), asbytes('n+1')):
+        if hdr['magic'] in (b'ni1', b'n+1'):
             # allow goofy nifti single magic for pair
             klass = nifti1.Nifti1Pair
         else:

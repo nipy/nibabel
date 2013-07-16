@@ -1,5 +1,6 @@
 """ Read and write trackvis files
 """
+from __future__ import division, print_function
 import warnings
 import struct
 import itertools
@@ -7,7 +8,7 @@ import itertools
 import numpy as np
 import numpy.linalg as npl
 
-from .py3k import asbytes, asstr
+from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
 from .volumeutils import BinOpener
 from .orientations import aff2axcodes
@@ -145,7 +146,7 @@ def read(fileobj, as_generator=False, points_space=None):
     hdr = np.ndarray(shape=(),
                      dtype=header_2_dtype,
                      buffer=hdr_str)
-    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
+    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
     if hdr['hdr_size'] == 1000:
@@ -285,8 +286,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
 
     Examples
     --------
-    >>> from StringIO import StringIO #23dt : BytesIO
-    >>> file_obj = StringIO() #23dt : BytesIO
+    >>> from io import BytesIO
+    >>> file_obj = BytesIO()
     >>> pts0 = np.random.uniform(size=(10,3))
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
@@ -299,7 +300,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     If there are too many streamlines to fit in memory, you can pass an iterable
     thing instead of a list
 
-    >>> file_obj = StringIO() #23dt : BytesIO
+    >>> file_obj = BytesIO()
     >>> def gen():
     ...     yield (pts0, None, None)
     ...     yield (pts0, None, None)
@@ -330,7 +331,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     '''
     stream_iter = iter(streamlines)
     try:
-        streams0 = stream_iter.next()
+        streams0 = next(stream_iter)
     except StopIteration: # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
@@ -504,7 +505,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     for key, value in mapping.items():
         hdr[key] = value
     # check header values
-    if np.asscalar(hdr['id_string'])[:5] != asbytes('TRACK'):
+    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characaters of id_string')
     if hdr['version'] not in (1, 2):
@@ -532,17 +533,17 @@ def empty_header(endianness=None, version=2):
     Examples
     --------
     >>> hdr = empty_header()
-    >>> print hdr['version']
+    >>> print(hdr['version'])
     2
-    >>> np.asscalar(hdr['id_string']) #23dt next : bytes
-    'TRACK'
+    >>> np.asscalar(hdr['id_string']) == b'TRACK'
+    True
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
     >>> hdr = empty_header(swapped_code)
     >>> endian_codes[hdr['version'].dtype.byteorder] == swapped_code
     True
     >>> hdr = empty_header(version=1)
-    >>> print hdr['version']
+    >>> print(hdr['version'])
     1
 
     Notes

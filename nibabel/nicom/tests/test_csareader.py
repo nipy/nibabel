@@ -8,13 +8,12 @@ import numpy as np
 from .. import csareader as csa
 from .. import dwiparams as dwp
 
-from nose.tools import assert_true, assert_false, \
-     assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_dicomwrappers import (have_dicom, dicom_test,
-                                 IO_DATA_PATH, DATA)
+                                 IO_DATA_PATH, DATA, DATA_FILE)
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
@@ -28,6 +27,17 @@ def test_csa_header_read():
     assert_equal(csa.get_csa_header(DATA,'series')['n_tags'],65)
     assert_raises(ValueError, csa.get_csa_header, DATA,'xxxx')
     assert_true(csa.is_mosaic(hdr))
+    # Get a shallow copy of the data, lacking the CSA marker
+    # Need to do it this way because del appears broken in pydicom 0.9.7
+    from dicom.dataset import Dataset
+    data2 = Dataset()
+    for element in DATA:
+        if (element.tag.group, element.tag.elem) != (0x29, 0x10):
+            data2.add(element)
+    assert_equal(csa.get_csa_header(data2, 'image'), None)
+    # Add back the marker - CSA works again
+    data2[(0x29, 0x10)] = DATA[(0x29, 0x10)]
+    assert_true(csa.is_mosaic(csa.get_csa_header(data2, 'image')))
 
 
 def test_csas0():

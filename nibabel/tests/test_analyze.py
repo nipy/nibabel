@@ -19,7 +19,7 @@ import pickle
 
 import numpy as np
 
-from ..py3k import BytesIO, StringIO, asbytes
+from ..externals.six import BytesIO, StringIO
 from ..volumeutils import array_to_file
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
@@ -249,7 +249,7 @@ class TestAnalyzeHeader(_TestWrapStructBase):
         # Setting no data into an empty header results in - no data
         str_io = BytesIO()
         hdr.data_to_fileobj([], str_io)
-        assert_equal(str_io.getvalue(), asbytes(''))
+        assert_equal(str_io.getvalue(), b'')
         # Setting more data then there should be gives an error
         assert_raises(HeaderDataError,
                       hdr.data_to_fileobj,

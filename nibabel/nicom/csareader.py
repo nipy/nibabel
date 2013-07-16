@@ -3,8 +3,8 @@
 '''
 import numpy as np
 
-from ..py3k import ZEROB, asbytes, asstr
 from .structreader import Unpacker
+from .utils import find_private_section
 
 # DICOM VR code to Python type
 _CONVERTERS = {
@@ -36,8 +36,9 @@ def get_csa_header(dcm_data, csa_type='image'):
     Parameters
     ----------
     dcm_data : dicom.Dataset
-       DICOM dataset.  Needs only implement the tag fetch with
-       ``dcm_data[group, element]`` syntax
+       DICOM dataset.  Should implement ``__getitem__`` and, if initial check
+       for presence of ``dcm_data[(0x29, 0x10)]`` passes, should satisfy
+       interface for ``find_private_section``.
     csa_type : {'image', 'series'}, optional
        Type of CSA field to read; default is 'image'
 
@@ -49,20 +50,19 @@ def get_csa_header(dcm_data, csa_type='image'):
     '''
     csa_type = csa_type.lower()
     if csa_type == 'image':
-        element_no = 0x1010
-        label = 'Image'
+        element_offset = 0x10
     elif csa_type == 'series':
-        element_no = 0x1020
-        label = 'Series'
+        element_offset = 0x20
     else:
-        raise ValueError('Invalid CSA header type "%s"'
-                         % csa_type)
-    try:
-        tag = dcm_data[0x29, element_no]
-    except KeyError:
+        raise ValueError('Invalid CSA header type "%s"' % csa_type)
+    if not (0x29, 0x10) in dcm_data: # Cannot be Siemens CSA
         return None
-    if tag.name != '[CSA %s Header Info]' % label:
+    section_start = find_private_section(dcm_data, 0x29, 'SIEMENS CSA HEADER')
+    if section_start is None:
         return None
+    element_no = section_start + element_offset
+    # Assume tag exists
+    tag = dcm_data[(0x29, element_no)]
     return read(tag.value)
 
 
@@ -85,7 +85,7 @@ def read(csa_str):
     csa_dict = {'tags': {}}
     hdr_id = csa_str[:4]
     up_str = Unpacker(csa_str, endian='<')
-    if hdr_id == asbytes('SV10'): # CSA2
+    if hdr_id == b'SV10': # CSA2
         hdr_type = 2
         up_str.ptr = 4 # omit the SV10
         csa_dict['unused0'] = up_str.read(4)
@@ -240,14 +240,14 @@ def nt_str(s):
 
     Parameters
     ----------
-    s : str
+    s : bytes
 
     Returns
     -------
     sdash : str
        s stripped to first occurence of null (0)
     '''
-    zero_pos = s.find(ZEROB)
+    zero_pos = s.find(b'\x00')
     if zero_pos == -1:
         return s
-    return asstr(s[:zero_pos])
+    return s[:zero_pos].decode('latin-1')

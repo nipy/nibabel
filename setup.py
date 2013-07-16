@@ -26,11 +26,9 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 
 from distutils.core import setup
 
-# Python 2 to 3 build
-from nisext.py3builder import build_py
 # Commit hash writing, and dependency checking
 from nisext.sexts import get_comrec_build, package_check, install_scripts_bat
-cmdclass = {'build_py': get_comrec_build('nibabel', build_py),
+cmdclass = {'build_py': get_comrec_build('nibabel'),
             'install_scripts': install_scripts_bat}
 
 # Get version and release info, which is all stored in nibabel/info.py

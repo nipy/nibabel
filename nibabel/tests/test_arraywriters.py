@@ -26,12 +26,15 @@ Subclasses of array writers may be able to scale the array or apply an
 intercept, or do something else to make sense of conversions between float and
 int, or between larger ints and smaller.
 """
+from __future__ import division, print_function, absolute_import
 
+import sys
 from platform import python_compiler, machine
+from distutils.version import LooseVersion
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 
 from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
@@ -57,6 +60,8 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
+NP_VERSION = LooseVersion(np.__version__)
+
 
 def round_trip(writer, order='F', nan2zero=True, apply_scale=True):
     sio = BytesIO()
@@ -67,6 +72,17 @@ def round_trip(writer, order='F', nan2zero=True, apply_scale=True):
     if apply_scale:
         data_back = apply_read_scaling(data_back, slope, inter)
     return data_back
+
+
+def maybe_bad_c256(flt_type):
+    # I was getting very strange behavior with byte-swapped complex 256 on
+    # Python 3.3 numpy 1.7.0.  For that exact combination, return True
+    if sys.version_info[0] < 3 or sys.version_info[1] < 3:
+        return False
+    if NP_VERSION != LooseVersion('1.7.0'):
+        return False
+    dt = np.dtype(flt_type)
+    return (dt.kind == 'c' and dt.itemsize == 32)
 
 
 def test_arraywriters():
@@ -84,14 +100,15 @@ def test_arraywriters():
             assert_true(aw.array is arr)
             assert_equal(aw.out_dtype, arr.dtype)
             assert_array_equal(arr, round_trip(aw))
-            # Byteswapped is OK
-            bs_arr = arr.byteswap().newbyteorder('S')
-            bs_aw = klass(bs_arr)
-            # assert against original array because POWER7 was running into
-            # trouble using the byteswapped array (bs_arr)
-            assert_array_equal(arr, round_trip(bs_aw))
-            bs_aw2 = klass(bs_arr, arr.dtype)
-            assert_array_equal(arr, round_trip(bs_aw2))
+            # Byteswapped is OK - except for complex256 on some numpies
+            if not maybe_bad_c256(type):
+                bs_arr = arr.byteswap().newbyteorder('S')
+                bs_aw = klass(bs_arr)
+                # assert against original array because POWER7 was running into
+                # trouble using the byteswapped array (bs_arr)
+                assert_array_equal(arr, round_trip(bs_aw))
+                bs_aw2 = klass(bs_arr, arr.dtype)
+                assert_array_equal(arr, round_trip(bs_aw2))
             # 2D array
             arr2 = np.reshape(arr, (2, 5))
             a2w = klass(arr2)
@@ -512,7 +529,7 @@ def test_float_int_min_max():
         arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(arr)):
-            print 'Hit PPC max -> inf bug; skip in_type %s' % in_dt
+            print('Hit PPC max -> inf bug; skip in_type %s' % in_dt)
             continue
         for out_dt in IUINT_TYPES:
             try:

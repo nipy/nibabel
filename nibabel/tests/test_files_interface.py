@@ -13,7 +13,7 @@
 import numpy as np
 
 from .. import class_map, Nifti1Image, Nifti1Pair, MGHImage
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 from ..fileholders import FileHolderError
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)

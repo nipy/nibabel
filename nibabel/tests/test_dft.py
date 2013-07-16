@@ -3,7 +3,7 @@
 
 import os
 from os.path import join as pjoin, dirname
-import StringIO
+from ..externals.six import BytesIO
 
 import numpy as np
 
@@ -82,7 +82,7 @@ def test_storage_instance():
 def test_png():
     studies = dft.get_studies(data_dir)
     data = studies[0].series[0].as_png()
-    im = PImage.open(StringIO.StringIO(data))
+    im = PImage.open(BytesIO(data))
     assert_equal(im.size, (256, 256))
 
 
