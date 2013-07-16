@@ -13,7 +13,7 @@
 import os
 import codecs
 
-from . import parse_gifti_fast as gfp
+from .parse_gifti_fast import parse_gifti_file
 
 def read(filename):
     """ Load a Gifti image from a file
@@ -30,7 +30,7 @@ def read(filename):
      """
     if not os.path.isfile(filename):
         raise IOError("No such file or directory: '%s'" % filename)
-    return gfp.parse_gifti_file(filename)
+    return parse_gifti_file(filename)
 
 
 def write(image, filename):

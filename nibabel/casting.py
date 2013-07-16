@@ -428,6 +428,7 @@ def int_to_float(val, flt_type):
     """
     if not flt_type is np.longdouble:
         return flt_type(val)
+    val = int(val)
     faval = np.longdouble(0)
     while val != 0:
         f64 = np.float64(val)

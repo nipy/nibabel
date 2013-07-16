@@ -7,13 +7,13 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for scaling / rounding in volumeutils module '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 import sys
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
 from ..casting import type_info
@@ -227,7 +227,7 @@ def check_int_a2f(in_type, out_type):
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):
             if DEBUG:
-                print 'Hit PPC max -> inf bug; skip in_type %s' % in_type
+                print('Hit PPC max -> inf bug; skip in_type %s' % in_type)
             return
     else: # Funny behavior with complex256
         data = np.zeros((2,), in_type)
@@ -238,7 +238,7 @@ def check_int_a2f(in_type, out_type):
         scale, inter, mn, mx = calculate_scale(data, out_type, True)
     except ValueError:
         if DEBUG:
-            print in_type, out_type, sys.exc_info()[1]
+            print(in_type, out_type, sys.exc_info()[1])
         return
     array_to_file(data, str_io, out_type, 0, inter, scale, mn, mx)
     data_back = array_from_file(data.shape, out_type, str_io)

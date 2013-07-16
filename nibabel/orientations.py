@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for calculating and applying affine orientations '''
 
+from __future__ import division, print_function, absolute_import
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -293,7 +295,7 @@ def ornt2axcodes(ornt, labels=None):
     ('F', 'L', 'U')
     """
     if labels is None:
-        labels = zip('LPI', 'RAS')
+        labels = list(zip('LPI', 'RAS'))
     axcodes = []
     for axno, direction in np.asarray(ornt):
         if np.isnan(axno):
@@ -339,7 +341,7 @@ def axcodes2ornt(axcodes, labels=None):
            [ 2.,  1.]])
     """
     if labels is None:
-        labels = zip('LPI', 'RAS')
+        labels = list(zip('LPI', 'RAS'))
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
     for code_idx, code in enumerate(axcodes):

@@ -7,11 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp
-from ..py3k import BytesIO, asbytes
+from ..externals.six import BytesIO
 
 import numpy as np
 
@@ -156,12 +156,12 @@ def test_two_to_one():
     affine[:3,3] = [3,2,1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
-    assert_equal(img.get_header()['magic'], asbytes('n+1'))
+    assert_equal(img.get_header()['magic'], b'n+1')
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     # check that the single format vox offset is set correctly
     img.to_file_map()
-    assert_equal(img.get_header()['magic'], asbytes('n+1'))
+    assert_equal(img.get_header()['magic'], b'n+1')
     assert_equal(img.get_header()['vox_offset'], 352)
     # make a new pair image, with the single image header
     pimg = ni1.Nifti1Pair(data, affine, img.get_header())
@@ -171,7 +171,7 @@ def test_two_to_one():
     pimg.file_map['header'].fileobj = hsio
     pimg.to_file_map()
     # the offset remains the same
-    assert_equal(pimg.get_header()['magic'], asbytes('ni1'))
+    assert_equal(pimg.get_header()['magic'], b'ni1')
     assert_equal(pimg.get_header()['vox_offset'], 352)
     assert_array_equal(pimg.get_data(), data)
     # same for from_image, going from single image to pair format

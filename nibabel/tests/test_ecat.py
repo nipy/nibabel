@@ -6,13 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 import os
 
 import numpy as np
-
-from ..py3k import asbytes
 
 from ..volumeutils import native_code, swapped_code
 from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
@@ -39,7 +37,7 @@ class TestEcatHeader(TestCase):
     def test_empty(self):
         hdr = self.header_class()
         assert_true(len(hdr.binaryblock) == 512)
-        assert_true(hdr['magic_number'] == asbytes('MATRIX72'))
+        assert_true(hdr['magic_number'] == b'MATRIX72')
         assert_true(hdr['sw_version'] == 74)
         assert_true(hdr['num_frames'] == 0)
         assert_true(hdr['file_type'] == 0)

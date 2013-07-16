@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
 
@@ -180,17 +180,17 @@ def test_getbyintent():
     da = img.getArraysFromIntent("NIFTI_INTENT_CORREL")
     assert_equal(len(da), 0)
     assert_equal(da, [])
-    
+
+
 def test_labeltable():
     img = gi.read(DATA_FILE6)
     assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
     assert_equal(len(img.labeltable.labels), 36)
     labeldict = img.labeltable.get_labels_as_dict()
-    assert_true(labeldict.has_key(660700))
-    assert_equal(labeldict[660700], u'entorhinal')
+    assert_true(660700 in labeldict)
+    assert_equal(labeldict[660700], 'entorhinal')
     assert_equal(img.labeltable.labels[1].key, 2647065)
     assert_equal(img.labeltable.labels[1].red, 0.0980392)
     assert_equal(img.labeltable.labels[1].green, 0.392157)
     assert_equal(img.labeltable.labels[1].blue, 0.156863)
     assert_equal(img.labeltable.labels[1].alpha, 1)
-    

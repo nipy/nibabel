@@ -9,7 +9,7 @@
 """ Testing spatialimages
 
 """
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 
 import numpy as np
 

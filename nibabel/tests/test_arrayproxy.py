@@ -8,11 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Tests for arrayproxy module
 """
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 
-from copy import deepcopy
-
-from ..py3k import BytesIO, ZEROB, asbytes
+from ..externals.six import BytesIO
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
@@ -60,7 +58,7 @@ def test_init():
 def write_raw_data(arr, hdr, fileobj):
     hdr.set_data_shape(arr.shape)
     hdr.set_data_dtype(arr.dtype)
-    fileobj.write(ZEROB * hdr.get_data_offset())
+    fileobj.write(b'\x00' * hdr.get_data_offset())
     fileobj.write(arr.tostring(order='F'))
 
 

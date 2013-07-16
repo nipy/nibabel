@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for openers module '''
-from ..py3k import BytesIO, asbytes
+from ..externals.six import BytesIO
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -41,7 +41,7 @@ def test_Opener():
     with Opener(__file__, mode='r') as fobj:
         assert_equal(fobj.mode, 'r')
     # fileobj returns fileobj passed through
-    message = asbytes("Wine?  Wouldn't you?")
+    message = b"Wine?  Wouldn't you?"
     for obj in (BytesIO(message), Lunk(message)):
         with Opener(obj) as fobj:
             assert_equal(fobj.read(), message)
@@ -53,7 +53,7 @@ def test_Opener():
 
 def test_Opener_various():
     # Check we can do all sorts of files here
-    message = asbytes("Oh what a giveaway")
+    message = b"Oh what a giveaway"
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input in ('test.txt',
@@ -72,7 +72,7 @@ def test_Opener_various():
 
 def test_file_like_wrapper():
     # Test wrapper using BytesIO (full API)
-    message = asbytes("History of the nude in")
+    message = b"History of the nude in"
     sobj = BytesIO()
     fobj = Opener(sobj)
     assert_equal(fobj.tell(), 0)

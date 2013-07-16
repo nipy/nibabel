@@ -5,7 +5,7 @@ Test arrays with a range of numerical values, integer and floating point.
 
 import numpy as np
 
-from ..py3k import BytesIO
+from ..externals.six import BytesIO
 from .. import Nifti1Image
 from ..spatialimages import HeaderDataError
 from ..arraywriters import ScalingError

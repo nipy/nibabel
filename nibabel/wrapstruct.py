@@ -226,8 +226,8 @@ class WrapStruct(object):
         Examples
         --------
         >>> wstr = WrapStruct()
-        >>> from StringIO import StringIO #23dt : BytesIO
-        >>> str_io = StringIO() #23dt : BytesIO
+        >>> from io import BytesIO
+        >>> str_io = BytesIO()
         >>> wstr.write_to(str_io)
         >>> wstr.binaryblock == str_io.getvalue()
         True

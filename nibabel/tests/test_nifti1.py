@@ -7,13 +7,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for nifti reading package '''
-from __future__ import with_statement
+from __future__ import division, print_function, absolute_import
 import os
-
-from ..py3k import BytesIO, ZEROB, asbytes
 
 import numpy as np
 
+from ..externals.six import BytesIO
 from ..casting import type_info, have_binary128
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
@@ -54,14 +53,14 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], asbytes('ni1'))
+        assert_equal(hdr['magic'], b'ni1')
         assert_equal(hdr['scl_slope'], 1)
         assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
         hdr = Nifti1Header.from_fileobj(open(self.example_file, 'rb'))
         assert_equal(hdr.endianness, '<')
-        assert_equal(hdr['magic'], asbytes('ni1'))
+        assert_equal(hdr['magic'], b'ni1')
         assert_equal(hdr['sizeof_hdr'], 348)
 
     def test_big_scaling(self):
@@ -146,7 +145,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr = HC()
         hdr['magic'] = 'ooh'
         fhdr, message, raiser = self.log_chk(hdr, 45)
-        assert_equal(fhdr['magic'], asbytes('ooh'))
+        assert_equal(fhdr['magic'], b'ooh')
         assert_equal(message, 'magic string "ooh" is not valid; '
                            'leaving as is, but future errors are likely')
         hdr['magic'] = 'n+1' # single file needs suitable offset
@@ -296,7 +295,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], asbytes('n+1'))
+        assert_equal(hdr['magic'], b'n+1')
         assert_equal(hdr['scl_slope'], 1)
         assert_equal(hdr['vox_offset'], 352)
 
@@ -307,7 +306,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
         hdr = self.header_class()
         str_io = BytesIO()
         hdr.write_to(str_io)
-        assert_equal(str_io.getvalue(), hdr.binaryblock + ZEROB * 4)
+        assert_equal(str_io.getvalue(), hdr.binaryblock + b'\x00' * 4)
 
     def test_float128(self):
         hdr = self.header_class()
@@ -571,7 +570,7 @@ def test_slice_times():
     # We need a function to print out the Nones and floating point
     # values in a predictable way, for the tests below.
     _stringer = lambda val: val is not None and '%2.1f' % val or None
-    _print_me = lambda s: map(_stringer, s)
+    _print_me = lambda s: list(map(_stringer, s))
     #The following examples are from the nifti1.h documentation.
     hdr['slice_code'] = slice_order_codes['sequential increasing']
     assert_equal(_print_me(hdr.get_slice_times()), 
@@ -648,7 +647,7 @@ def test_intents():
     assert_equal((ehdr['intent_p1'],
                   ehdr['intent_p2'],
                   ehdr['intent_p3']), (0,0,0))
-    assert_equal(ehdr['intent_name'], asbytes(''))
+    assert_equal(ehdr['intent_name'], b'')
     ehdr.set_intent('t test', (10,))
     assert_equal((ehdr['intent_p2'],
                   ehdr['intent_p3']), (0,0))
@@ -771,7 +770,7 @@ def test_nifti_extensions():
     assert_equal(exts_container.get_codes(), [6, 6])
     assert_equal((exts_container.get_sizeondisk()) % 16, 0)
     # first extension should be short one
-    assert_equal(exts_container[0].get_content(), asbytes('extcomment1'))
+    assert_equal(exts_container[0].get_content(), b'extcomment1')
     # add one
     afniext = Nifti1Extension('afni', '<xml></xml>')
     exts_container.append(afniext)

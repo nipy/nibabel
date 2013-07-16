@@ -125,7 +125,7 @@ def test_as_int():
 
 
 def test_int_to_float():
-    # Concert python integer to floating point
+    # Convert python integer to floating point
     # Standard float types just return cast value
     for ie3 in IEEE_floats:
         nmant = type_info(ie3)['nmant']
@@ -167,6 +167,10 @@ def test_int_to_float():
     i = 2**(nmant+1)-1
     assert_equal(as_int(int_to_float(i, LD)), i)
     assert_equal(as_int(int_to_float(-i, LD)), -i)
+    # Check conversion to int; the line below causes an error subtracting ints /
+    # uint64 values, at least for Python 3.3 and numpy dev 1.8
+    big_int = np.uint64(2**64 - 1)
+    assert_equal(as_int(int_to_float(big_int, LD)), big_int)
 
 
 def test_as_int_np_fix():

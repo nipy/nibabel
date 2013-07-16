@@ -6,17 +6,19 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+from __future__ import division, print_function, absolute_import
 
 import base64
 import sys
 import zlib
-from StringIO import StringIO
+from ..externals.six import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
-from . import gifti as gi
+from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel, GiftiLabelTable,
+                    GiftiNVPairs, GiftiDataArray, GiftiCoordSystem)
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 
@@ -99,10 +101,10 @@ class Outputter(object):
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
         if DEBUG_PRINT:
-            print 'Start element:\n\t', repr(name), attrs
+            print('Start element:\n\t', repr(name), attrs)
         if name == 'GIFTI':
             # create gifti image
-            self.img = gi.GiftiImage()
+            self.img = GiftiImage()
             if 'Version' in attrs:
                 self.img.version = attrs['Version']
             if 'NumberOfDataArrays' in attrs:
@@ -115,12 +117,12 @@ class Outputter(object):
 
             # if this metadata tag is first, create self.img.meta
             if len(self.fsm_state) == 2:
-                self.meta_global = gi.GiftiMetaData()
+                self.meta_global = GiftiMetaData()
             else:
                 # otherwise, create darray.meta
-                self.meta_da = gi.GiftiMetaData()
+                self.meta_da = GiftiMetaData()
         elif name == 'MD':
-            self.nvpair = gi.GiftiNVPairs()
+            self.nvpair = GiftiNVPairs()
             self.fsm_state.append('MD')
         elif name == 'Name':
             if self.nvpair == None:
@@ -133,10 +135,10 @@ class Outputter(object):
             else:
                 self.write_to = 'Value'
         elif name == 'LabelTable':
-            self.lata = gi.GiftiLabelTable()
+            self.lata = GiftiLabelTable()
             self.fsm_state.append('LabelTable')
         elif name == 'Label':
-            self.label = gi.GiftiLabel()
+            self.label = GiftiLabel()
             if "Index" in attrs:
                 self.label.key = int(attrs["Index"])
             if "Key" in attrs:
@@ -151,7 +153,7 @@ class Outputter(object):
                 self.label.alpha = float(attrs["Alpha"])
             self.write_to = 'Label'
         elif name == 'DataArray':
-            self.da = gi.GiftiDataArray()
+            self.da = GiftiDataArray()
             if "Intent" in attrs:
                 self.da.intent = intent_codes.code[attrs["Intent"]]
             if "DataType" in attrs:
@@ -177,7 +179,7 @@ class Outputter(object):
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
         elif name == 'CoordinateSystemTransformMatrix':
-            self.coordsys = gi.GiftiCoordSystem()
+            self.coordsys = GiftiCoordSystem()
             self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
         elif name == 'DataSpace':
@@ -201,7 +203,7 @@ class Outputter(object):
     def EndElementHandler(self, name):
         self.flush_chardata()
         if DEBUG_PRINT:
-            print 'End element:\n\t', repr(name)
+            print('End element:\n\t', repr(name))
         if name == 'GIFTI':
             # remove last element of the list
             self.fsm_state.pop()
@@ -349,7 +351,7 @@ def parse_gifti_file(fname, buffer_size = None):
     try:
         parser.ParseFile(datasource)
     except ExpatError:
-        print 'An expat error occured while parsing the  Gifti file.'
+        print('An expat error occured while parsing the  Gifti file.')
     # Reality check for pending data
     assert out.pending_data is False
     # update filename
