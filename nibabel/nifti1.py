@@ -396,7 +396,7 @@ class Nifti1Extensions(list):
 
         Parameters
         ----------
-          code : int | str
+        code : int | str
             The ecode can be specified either literal or as numerical value.
         """
         count = 0
@@ -748,17 +748,16 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Parameters
         ----------
-        hdr : nifti1 header
         affine : None or 4x4 array
             affine transform to write into sform. If None, only set code.
-        code : None, string or integer
+        code : None, string or integer, optional
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
             * If affine is None, `code`-> 0
-            * If affine not None and sform code in header == 0, `code`-> 2
-              (aligned)
-            * If affine not None and sform code in header != 0, `code`-> sform
-              code in header
+            * If affine not None and existing qform code in header == 0,
+              `code`-> 2 (aligned)
+            * If affine not None and exisiting qform code in header != 0,
+              `code`-> existing qform code in header
         strip_shears : bool, optional
             Whether to strip shears in `affine`.  If True, shears will be
             silently stripped. If False, the presence of shears will raise a
@@ -880,17 +879,16 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Parameters
         ----------
-        hdr : nifti1 header
         affine : None or 4x4 array
             affine transform to write into sform.  If None, only set `code`
-        code : None, string or integer
+        code : None, string or integer, optional
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
             * If affine is None, `code`-> 0
-            * If affine not None and sform code in header == 0, `code`-> 2
-              (aligned)
-            * If affine not None and sform code in header != 0, `code`-> sform
-              code in header
+            * If affine not None and exisiting sform code in header == 0,
+              `code`-> 2 (aligned)
+            * If affine not None and existing sform code in header != 0,
+              `code`-> existing sform code in header
 
         Examples
         --------
@@ -939,13 +937,6 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def get_slope_inter(self):
         ''' Get data scaling (slope) and DC offset (intercept) from header data
-
-        Parameters
-        ----------
-        self : header object
-           Should have fields (keys)
-           * scl_slope - slope
-           * scl_inter - intercept
 
         Returns
         -------
@@ -1047,7 +1038,6 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Parameters
         ----------
-        hdr : nifti1 header
         freq : {None, 0, 1, 2}
             axis of data array refering to freqency encoding
         phase : {None, 0, 1, 2}
@@ -1622,17 +1612,16 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Parameters
         ----------
-        hdr : nifti1 header
         affine : None or 4x4 array
             affine transform to write into sform. If None, only set code.
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
             * If affine is None, `code`-> 0
-            * If affine not None and sform code in header == 0, `code`-> 2
-              (aligned)
-            * If affine not None and sform code in header != 0, `code`-> sform
-              code in header
+            * If affine not None and existing qform code in header == 0,
+             `code`-> 2 (aligned)
+            * If affine not None and existing qform code in header != 0,
+             `code`-> existing qform code in header
         strip_shears : bool, optional
             Whether to strip shears in `affine`.  If True, shears will be
             silently stripped. If False, the presence of shears will raise a
@@ -1703,17 +1692,16 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Parameters
         ----------
-        hdr : nifti1 header
         affine : None or 4x4 array
             affine transform to write into sform.  If None, only set `code`
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
             * If affine is None, `code`-> 0
-            * If affine not None and sform code in header == 0, `code`-> 2
-              (aligned)
-            * If affine not None and sform code in header != 0, `code`-> sform
-              code in header
+            * If affine not None and existing sform code in header == 0,
+             `code`-> 2 (aligned)
+            * If affine not None and existing sform code in header != 0,
+             `code`-> existing sform code in header
         update_affine : bool, optional
             Whether to update the image affine from the header best affine after
             setting the qform.  Must be keyword argumemt (because of different
