@@ -1660,7 +1660,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
             raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
         self._header.set_qform(affine, code, strip_shears)
         if update_affine:
-            self._affine[:] = self._header.get_best_affine()
+            if self._affine is None:
+                self._affine = self._header.get_best_affine()
+            else:
+                self._affine[:] = self._header.get_best_affine()
 
     def get_sform(self, coded=False):
         """ Return 4x4 affine matrix from sform parameters in header
@@ -1742,7 +1745,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
             raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
         self._header.set_sform(affine, code)
         if update_affine:
-            self._affine[:] = self._header.get_best_affine()
+            if self._affine is None:
+                self._affine = self._header.get_best_affine()
+            else:
+                self._affine[:] = self._header.get_best_affine()
 
 
 class Nifti1Image(Nifti1Pair):

@@ -413,6 +413,11 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         assert_raises(HeaderDataError, img.set_qform, new_affine, 2, False)
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_qform, strange=True)
+        # updating None affine should also work
+        img = self.image_class(np.zeros((2,3,4)), None)
+        new_affine = np.eye(4)
+        img.set_qform(new_affine, 2)
+        assert_array_almost_equal(img.get_affine(), new_affine)
 
     def test_set_sform(self):
         orig_aff = np.diag([2.2, 3.3, 4.3, 1])
@@ -467,6 +472,11 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         assert_array_almost_equal(hdr.get_best_affine(), img.get_affine())
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_sform, strange=True)
+        # updating None affine should also work
+        img = self.image_class(np.zeros((2,3,4)), None)
+        new_affine = np.eye(4)
+        img.set_sform(new_affine, 2)
+        assert_array_almost_equal(img.get_affine(), new_affine)
 
     def test_hdr_diff(self):
         # Check an offset beyond data does not raise an error
