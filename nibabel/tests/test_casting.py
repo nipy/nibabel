@@ -1,16 +1,18 @@
 """ Test casting utilities
 """
+import os
+
 from platform import machine
 
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
                        as_int, int_abs, floor_log2, able_int_type, best_float,
-                       ulp)
+                       ulp, longdouble_precision_improved)
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
-from nose.tools import (assert_true, assert_equal, assert_raises)
+from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 
 def test_shared_range():
@@ -194,8 +196,13 @@ def test_able_casting():
 
 def test_best_float():
     # Finds the most capable floating point type
-    # The only time this isn't np.longdouble is when np.longdouble has float64
-    # precision.
+    """ most capable type will be np.longdouble except when
+
+    * np.longdouble has float64 precision (MSVC compiled numpy)
+    * machine is sparc64 (float128 very slow)
+    * np.longdouble had float64 precision when ``casting`` moduled was imported
+     (precisions on windows can change, apparently)
+    """
     best = best_float()
     end_of_ints = np.float64(2**53)
     # float64 has continuous integers up to 2**53
@@ -203,10 +210,18 @@ def test_best_float():
     # longdouble may have more, but not on 32 bit windows, at least
     end_of_ints = np.longdouble(2**53)
     if (end_of_ints == (end_of_ints + 1) or # off continuous integers
-        machine() == 'sparc64'): # crippling slow longdouble on sparc
+        machine() == 'sparc64' or # crippling slow longdouble on sparc
+        longdouble_precision_improved()): # Windows precisions can change
         assert_equal(best, np.float64)
     else:
         assert_equal(best, np.longdouble)
+
+
+def test_longdouble_precision_improved():
+    # Just check that this can only be True on windows, msvc
+    from numpy.distutils.ccompiler import get_default_compiler
+    if not (os.name == 'nt' and get_default_compiler() == 'msvc'):
+        assert_false(longdouble_precision_improved())
 
 
 def test_ulp():
