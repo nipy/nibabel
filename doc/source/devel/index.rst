@@ -10,5 +10,6 @@ Developer documentation page
     :maxdepth: 2
 
     devguide
+    image_design
     devdiscuss
     make_release
