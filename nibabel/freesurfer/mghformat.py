@@ -539,25 +539,16 @@ class MGHImage(SpatialImage):
         '''
         header.writeftr_to(mghfile)
 
-    def update_header(self):
-        ''' Harmonize header with image data and affine
-        '''
+    def _affine2header(self):
+        """ Unconditionally set affine into the header """
         hdr = self._header
-        if not self._data is None:
-            hdr.set_data_shape(self._data.shape)
-        # If the affine is not None, and it is different from the main affine in
-        # the header, update the heaader
-        if self._affine is None:
-            return
-        if np.allclose(self._affine, hdr.get_best_affine()):
-            return
+        shape = self.shape
         # for more information, go through save_mgh.m in FreeSurfer dist
         MdcD = self._affine[:3, :3]
         delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
         Mdc = MdcD / np.tile(delta, (3, 1))
         Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
-        Pcrs_c[:3] = np.array([self._data.shape[0], self._data.shape[1],
-                                self._data.shape[2]], dtype=np.float) / 2.0
+        Pcrs_c[:3] = np.array(shape[:3]) / 2.0
         Pxyz_c = np.dot(self._affine, Pcrs_c)
 
         hdr['delta'][:] = delta
