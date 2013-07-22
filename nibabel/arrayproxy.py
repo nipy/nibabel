@@ -16,8 +16,6 @@ The API is - at minimum:
   ``np.asarray(obj)``.  Specifically, if you pass a header into the the
   __init__, then modifying the original header will not affect the result of the
   array return.
-
-You might also want to implement ``state_stamper``
 """
 
 from .volumeutils import BinOpener
