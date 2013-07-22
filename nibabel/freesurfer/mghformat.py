@@ -446,10 +446,6 @@ class MGHImage(SpatialImage):
 
     ImageArrayProxy = ArrayProxy
 
-    def get_header(self):
-        ''' Return the MGH header given the MGHImage'''
-        return self._header
-
     @classmethod
     def filespec_to_file_map(klass, filespec):
         """ Check for compressed .mgz format, then .mgh format """
