@@ -139,19 +139,19 @@ def test_data_dtype():
 
 def test_affine():
     hdr = Header(np.float64, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
-    assert_array_almost_equal(hdr.get_default_affine(),
+    assert_array_almost_equal(hdr.get_best_affine(),
                                     [[-3.0,0,0,0],
                                      [0,2,0,-1],
                                      [0,0,1,-1],
                                      [0,0,0,1]])
     hdr.default_x_flip = False
-    assert_array_almost_equal(hdr.get_default_affine(),
+    assert_array_almost_equal(hdr.get_best_affine(),
                                     [[3.0,0,0,0],
                                      [0,2,0,-1],
                                      [0,0,1,-1],
                                      [0,0,0,1]])
     assert_array_equal(hdr.get_base_affine(),
-                             hdr.get_default_affine())
+                       hdr.get_best_affine())
 
 
 def test_read_data():

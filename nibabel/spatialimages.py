@@ -244,7 +244,7 @@ class Header(object):
         return shape_zoom_affine(shape, zooms,
                                  self.default_x_flip)
 
-    get_default_affine = get_base_affine
+    get_best_affine = get_base_affine
 
     def data_to_fileobj(self, data, fileobj):
         ''' Write image data to file in fortran order '''
