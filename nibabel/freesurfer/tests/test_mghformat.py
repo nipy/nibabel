@@ -131,10 +131,6 @@ def bad_dtype_mgh():
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
-    with TemporaryDirectory() as tmpdir:
-        save(img, os.path.join(tmpdir, 'tmpsave.mgz'))
-        # read from the tmp file and see if it checks out
-        mgz = load(os.path.join(tmpdir, 'tmpsave.mgz'))
 
 
 def test_bad_dtype_mgh():
