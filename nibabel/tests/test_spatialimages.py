@@ -23,6 +23,8 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+from .test_helpers import bytesio_round_trip
+
 
 def test_header_init():
     # test the basic header
@@ -176,6 +178,7 @@ class DataLike(object):
 class TestSpatialImage(TestCase):
     # class for testing images
     image_class = SpatialImage
+    can_save = False
 
     def test_isolation(self):
         # Test image isolated from external changes to header and affine
@@ -267,3 +270,32 @@ class TestSpatialImage(TestCase):
         assert_equal(img.get_shape(), (1,))
         img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
         assert_equal(img.get_shape(), (2,3,4))
+
+    def test_get_data(self):
+        # Test array image and proxy image interface
+        img_klass = self.image_class
+        in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        in_data = in_data_template.copy()
+        img = img_klass(in_data, None)
+        assert_true(in_data is img.dataobj)
+        out_data = img.get_data()
+        assert_true(in_data is out_data)
+        # and that uncache has no effect
+        img.uncache()
+        assert_true(in_data is out_data)
+        assert_array_equal(out_data, in_data_template)
+        # If we can save, we can create a proxy image
+        if not self.can_save:
+            return
+        rt_img = bytesio_round_trip(img)
+        assert_false(in_data is rt_img.dataobj)
+        assert_array_equal(rt_img.dataobj, in_data)
+        out_data = rt_img.get_data()
+        assert_array_equal(out_data, in_data)
+        assert_false(rt_img.dataobj is out_data)
+        # cache
+        assert_true(rt_img.get_data() is out_data)
+        out_data[:] = 42
+        rt_img.uncache()
+        assert_false(rt_img.get_data() is out_data)
+        assert_array_equal(rt_img.get_data(), in_data)
