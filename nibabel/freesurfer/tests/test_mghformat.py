@@ -25,8 +25,8 @@ from numpy.testing import (assert_equal, assert_array_equal,
                            assert_raises)
 
 from ...testing import data_path
-from numpy.testing import assert_equal, assert_array_equal, \
-    assert_array_almost_equal, assert_almost_equal, assert_raises
+
+from ...tests import test_spatialimages as tsi
 
 # sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
@@ -228,3 +228,16 @@ def test_header_slope_inter():
     # Test placeholder slope / inter method
     hdr = MGHHeader()
     assert_equal(hdr.get_slope_inter(), (None, None))
+
+
+class TestMGHImage(tsi.TestSpatialImage):
+    """ Apply general image tests to MGHImage
+    """
+    image_class = MGHImage
+    can_save = True
+
+    def check_dtypes(self, expected, actual):
+        # Some images will want dtypes to be equal including endianness,
+        # others may only require the same type
+        # MGH requires the actual to be a big endian version of expected
+        assert_equal(expected.newbyteorder('>'), actual)

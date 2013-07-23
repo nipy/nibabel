@@ -17,12 +17,14 @@ import numpy as np
 from ..externals.netcdf import netcdf_file as netcdf
 
 from .. import load, Nifti1Image
-from ..minc import MincFile
+from ..minc import MincFile, MincImage
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ..tmpdirs import InTemporaryDirectory
 from ..testing import data_path
+
+from . import test_spatialimages as tsi
 
 MINC_EXAMPLE = dict(
     fname = os.path.join(data_path, 'tiny.mnc'),
@@ -76,3 +78,7 @@ def test_compressed():
             data = img.get_data()
             assert_array_almost_equal(data.mean(), 0.60602819)
             del img
+
+
+class TestMincImage(tsi.TestSpatialImage):
+    image_class = MincImage

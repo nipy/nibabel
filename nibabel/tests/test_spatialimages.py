@@ -183,7 +183,7 @@ class TestSpatialImage(TestCase):
     def test_isolation(self):
         # Test image isolated from external changes to header and affine
         img_klass = self.image_class
-        arr = np.arange(3, dtype=np.int16)
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img = img_klass(arr, aff)
         assert_array_equal(img.get_affine(), aff)
@@ -194,7 +194,7 @@ class TestSpatialImage(TestCase):
         # Pass it back in
         img = img_klass(arr, aff, ihdr)
         # Check modifying header outside does not modify image
-        ihdr.set_zooms((4,))
+        ihdr.set_zooms((4, 5, 6))
         assert_not_equal(img.get_header(), ihdr)
 
     def test_float_affine(self):
@@ -209,7 +209,7 @@ class TestSpatialImage(TestCase):
     def test_images(self):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
-        arr = np.arange(3, dtype=np.int16)
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = self.image_class(arr, None)
         assert_array_equal(img.get_data(), arr)
         assert_equal(img.get_affine(), None)
@@ -224,6 +224,11 @@ class TestSpatialImage(TestCase):
         assert_array_equal(img.get_data(), np.arange(3))
         assert_equal(img.shape, (3,))
 
+    def check_dtypes(self, expected, actual):
+        # Some images will want dtypes to be equal including endianness,
+        # others may only require the same type
+        assert_equal(expected, actual)
+
     def test_data_default(self):
         # check that the default dtype comes from the data if the header
         # is None, and that unsupported dtypes raise an error
@@ -232,10 +237,11 @@ class TestSpatialImage(TestCase):
         data = np.arange(24, dtype=np.int32).reshape((2,3,4))
         affine = np.eye(4)
         img = img_klass(data, affine)
-        assert_equal(data.dtype, img.get_data_dtype())
+        self.check_dtypes(data.dtype, img.get_data_dtype())
         header = hdr_klass()
+        header.set_data_dtype(np.float32)
         img = img_klass(data, affine, header)
-        assert_equal(img.get_data_dtype(), np.dtype(np.float32))
+        self.check_dtypes(np.dtype(np.float32), img.get_data_dtype())
 
     def test_data_shape(self):
         # Check shape correctly read
@@ -245,7 +251,7 @@ class TestSpatialImage(TestCase):
         arr = np.arange(4, dtype=np.int16)
         img = img_klass(arr, np.eye(4))
         assert_equal(img.shape, (4,))
-        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        img = img_klass(np.zeros((2,3,4), dtype=np.float32), np.eye(4))
         assert_equal(img.shape, (2,3,4))
 
     def test_str(self):
