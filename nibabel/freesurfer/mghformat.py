@@ -380,6 +380,11 @@ class MGHHeader(object):
         offset = self.get_data_offset()
         return array_from_file(shape, dtype, fileobj, offset)
 
+    def get_slope_inter(self):
+        """ MGH format does not do scaling?
+        """
+        return None, None
+
     def _empty_headerdata(self):
         ''' Return header data for empty header
         '''

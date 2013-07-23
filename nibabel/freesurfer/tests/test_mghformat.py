@@ -222,3 +222,9 @@ def test_eq():
     assert_false(hdr == hdr2)
     hdr2.set_data_shape((2, 3, 4))
     assert_equal(hdr, hdr2)
+
+
+def test_header_slope_inter():
+    # Test placeholder slope / inter method
+    hdr = MGHHeader()
+    assert_equal(hdr.get_slope_inter(), (None, None))
