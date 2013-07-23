@@ -23,9 +23,6 @@ from . import analyze # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 
-# Needed for quaternion calculation
-FLOAT32_EPS_3 = -np.finfo(np.float32).eps * 3
-
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
 header_dtd = [
@@ -541,6 +538,17 @@ class Nifti1Header(SpmAnalyzeHeader):
     # Signal whether this is single (header + data) file
     is_single = True
 
+    # Default voxel data offsets for single and pair
+    pair_vox_offset = 0
+    single_vox_offset = 352
+
+    # Magics for single and pair
+    pair_magic = b'ni1'
+    single_magic = b'n+1'
+
+    # Quaternion threshold near 0, based on float32 preicision
+    quaternion_threshold = -np.finfo(np.float32).eps * 3
+
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
@@ -587,7 +595,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         # First check that vox offset is large enough
         if self.is_single:
             vox_offset = self._structarr['vox_offset']
-            min_vox_offset = 352 + self.extensions.get_sizeondisk()
+            min_vox_offset = (self.single_vox_offset +
+                              self.extensions.get_sizeondisk())
             if vox_offset < min_vox_offset:
                 raise HeaderDataError('vox offset of %d, but need at least %d'
                                       % (vox_offset, min_vox_offset))
@@ -616,11 +625,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         ''' Create empty header binary block with given endianness '''
         hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
         if klass.is_single:
-            hdr_data['magic'] = 'n+1'
-            hdr_data['vox_offset'] = 352
+            hdr_data['magic'] = klass.single_magic
+            hdr_data['vox_offset'] = klass.single_vox_offset
         else:
-            hdr_data['magic'] = 'ni1'
-            hdr_data['vox_offset'] = 0
+            hdr_data['magic'] = klass.pair_magic
+            hdr_data['vox_offset'] = klass.pair_vox_offset
         return hdr_data
 
     def get_data_shape(self):
@@ -700,7 +709,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
         # Adjust threshold to fact that source data was float32
-        return fillpositive(bcd, FLOAT32_EPS_3)
+        return fillpositive(bcd, self.quaternion_threshold)
 
     def get_qform(self, coded=False):
         """ Return 4x4 affine matrix from qform parameters in header
@@ -1401,11 +1410,11 @@ class Nifti1Header(SpmAnalyzeHeader):
     def _set_format_specifics(self):
         ''' Utility routine to set format specific header stuff '''
         if self.is_single:
-            self._structarr['magic'] = 'n+1'
-            if self._structarr['vox_offset'] < 352:
-                self._structarr['vox_offset'] = 352
+            self._structarr['magic'] = self.single_magic
+            if self._structarr['vox_offset'] < self.single_vox_offset:
+                self._structarr['vox_offset'] = self.single_vox_offset
         else:
-            self._structarr['magic'] = 'ni1'
+            self._structarr['magic'] = self.pair_magic
 
     ''' Checks only below here '''
 
@@ -1485,8 +1494,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         # for ease of later string formatting, use scalar of byte string
         magic = np.asscalar(hdr['magic'])
         offset = hdr['vox_offset']
-        if magic == b'n+1': # one file
-            if offset >= 352:
+        if magic == hdr.single_magic: # one file
+            if offset >= hdr.single_vox_offset:
                 if not offset % 16:
                     return hdr, rep
                 else:
@@ -1502,9 +1511,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             rep.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
             if fix:
-                hdr['vox_offset'] = 352
-                rep.fix_msg = 'setting to minimum value of 352'
-        elif magic != b'ni1': # two files
+                hdr['vox_offset'] = hdr.single_vox_offset
+                rep.fix_msg = 'setting to minimum value of {0}'.format(
+                    hdr.single_vox_offset)
+        elif magic != hdr.pair_magic: # two files
             # unrecognized nii magic string, oh dear
             rep.problem_msg = ('magic string "%s" is not valid' %
                                asstr(magic))
@@ -1570,7 +1580,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         '''
         super(Nifti1Pair, self).update_header()
         hdr = self._header
-        hdr['magic'] = 'ni1'
+        hdr['magic'] = hdr.pair_magic
 
     def _affine2header(self):
         """ Unconditionally set affine into the header """
@@ -1780,11 +1790,12 @@ class Nifti1Image(Nifti1Pair):
         ''' Harmonize header with image data and affine '''
         super(Nifti1Image, self).update_header()
         hdr = self._header
-        hdr['magic'] = 'n+1'
+        hdr['magic'] = hdr.single_magic
         # make sure that there is space for the header.  If any
         # extensions, figure out necessary vox_offset for extensions to
         # fit
-        min_vox_offset = 352 + hdr.extensions.get_sizeondisk()
+        min_vox_offset = (hdr.single_vox_offset +
+                          hdr.extensions.get_sizeondisk())
         if hdr['vox_offset'] < min_vox_offset:
             hdr['vox_offset'] = min_vox_offset
 

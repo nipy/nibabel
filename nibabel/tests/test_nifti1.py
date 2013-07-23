@@ -23,6 +23,7 @@ from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       data_type_codes, extension_codes, slice_order_codes)
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
+from .test_helpers import bytesio_round_trip
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
@@ -49,19 +50,20 @@ A[:3,3] = T
 class TestNifti1PairHeader(tana.TestAnalyzeHeader):
     header_class = Nifti1PairHeader
     example_file = header_file
+    quat_dtype = np.float32
 
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], b'ni1')
+        assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], 0)
+        assert_equal(hdr['vox_offset'], hdr.pair_vox_offset)
 
     def test_from_eg_file(self):
-        hdr = Nifti1Header.from_fileobj(open(self.example_file, 'rb'))
+        hdr = self.header_class.from_fileobj(open(self.example_file, 'rb'))
         assert_equal(hdr.endianness, '<')
-        assert_equal(hdr['magic'], b'ni1')
-        assert_equal(hdr['sizeof_hdr'], 348)
+        assert_equal(hdr['magic'], hdr.pair_magic)
+        assert_equal(hdr['sizeof_hdr'], self.sizeof_hdr)
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -148,13 +150,13 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(fhdr['magic'], b'ooh')
         assert_equal(message, 'magic string "ooh" is not valid; '
                            'leaving as is, but future errors are likely')
-        hdr['magic'] = 'n+1' # single file needs suitable offset
+        hdr['magic'] = hdr.single_magic # single file needs suitable offset
         hdr['vox_offset'] = 0
         fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert_equal(fhdr['vox_offset'], 352)
+        assert_equal(fhdr['vox_offset'], hdr.single_vox_offset)
         assert_equal(message, 'vox offset 0 too low for single '
                            'file nifti1; setting to minimum value '
-                           'of 352')
+                           'of ' + str(hdr.single_vox_offset))
         # qform, sform
         hdr = HC()
         hdr['qform_code'] = -1
@@ -211,7 +213,6 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
             for constructor in (list, tuple, np.array):
                 hdr.set_data_shape(constructor(shape))
                 assert_equal(hdr.get_data_shape(), shape)
-
 
     def test_qform_sform(self):
         HC = self.header_class
@@ -278,6 +279,255 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_array_equal(aff, nasty_aff)
         assert_equal(code, 1)
 
+    def test_datatypes(self):
+        hdr = self.header_class()
+        for code in data_type_codes.value_set():
+            dt = data_type_codes.type[code]
+            if dt == np.void:
+                continue
+            hdr.set_data_dtype(code)
+            (assert_equal,
+                hdr.get_data_dtype(),
+                data_type_codes.dtype[code])
+        # Check that checks also see new datatypes
+        hdr.set_data_dtype(np.complex128)
+        hdr.check_fix()
+
+    def test_quaternion(self):
+        hdr = self.header_class()
+        hdr['quatern_b'] = 0
+        hdr['quatern_c'] = 0
+        hdr['quatern_d'] = 0
+        assert_true(np.allclose(hdr.get_qform_quaternion(), [1.0, 0, 0, 0]))
+        hdr['quatern_b'] = 1
+        hdr['quatern_c'] = 0
+        hdr['quatern_d'] = 0
+        assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
+        # Check threshold set correctly for float32
+        hdr['quatern_b'] = 1+np.finfo(self.quat_dtype).eps
+        assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
+
+    def test_qform(self):
+        # Test roundtrip case
+        ehdr = self.header_class()
+        ehdr.set_qform(A)
+        qA = ehdr.get_qform()
+        assert_true, np.allclose(A, qA, atol=1e-5)
+        assert_true, np.allclose(Z, ehdr['pixdim'][1:4])
+        xfas = nifti1.xform_codes
+        assert_true, ehdr['qform_code'] == xfas['aligned']
+        ehdr.set_qform(A, 'scanner')
+        assert_true, ehdr['qform_code'] == xfas['scanner']
+        ehdr.set_qform(A, xfas['aligned'])
+        assert_true, ehdr['qform_code'] == xfas['aligned']
+
+    def test_sform(self):
+        # Test roundtrip case
+        ehdr = self.header_class()
+        ehdr.set_sform(A)
+        sA = ehdr.get_sform()
+        assert_true, np.allclose(A, sA, atol=1e-5)
+        xfas = nifti1.xform_codes
+        assert_true, ehdr['sform_code'] == xfas['aligned']
+        ehdr.set_sform(A, 'scanner')
+        assert_true, ehdr['sform_code'] == xfas['scanner']
+        ehdr.set_sform(A, xfas['aligned'])
+        assert_true, ehdr['sform_code'] == xfas['aligned']
+
+    def test_dim_info(self):
+        ehdr = self.header_class()
+        assert_true(ehdr.get_dim_info() == (None, None, None))
+        for info in ((0,2,1),
+                    (None, None, None),
+                    (0,2,None),
+                    (0,None,None),
+                    (None,2,1),
+                    (None, None,1),
+                    ):
+            ehdr.set_dim_info(*info)
+            assert_true(ehdr.get_dim_info() == info)
+
+    def test_slice_times(self):
+        hdr = self.header_class()
+        # error if slice dimension not specified
+        assert_raises(HeaderDataError, hdr.get_slice_times)
+        hdr.set_dim_info(slice=2)
+        # error if slice dimension outside shape
+        assert_raises(HeaderDataError, hdr.get_slice_times)
+        hdr.set_data_shape((1, 1, 7))
+        # error if slice duration not set
+        assert_raises(HeaderDataError, hdr.get_slice_times)
+        hdr.set_slice_duration(0.1)
+        # We need a function to print out the Nones and floating point
+        # values in a predictable way, for the tests below.
+        _stringer = lambda val: val is not None and '%2.1f' % val or None
+        _print_me = lambda s: list(map(_stringer, s))
+        #The following examples are from the nifti1.h documentation.
+        hdr['slice_code'] = slice_order_codes['sequential increasing']
+        assert_equal(_print_me(hdr.get_slice_times()),
+                        ['0.0', '0.1', '0.2', '0.3', '0.4',
+                            '0.5', '0.6'])
+        hdr['slice_start'] = 1
+        hdr['slice_end'] = 5
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
+        hdr['slice_code'] = slice_order_codes['sequential decreasing']
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
+        hdr['slice_code'] = slice_order_codes['alternating increasing']
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
+        hdr['slice_code'] = slice_order_codes['alternating decreasing']
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
+        hdr['slice_code'] = slice_order_codes['alternating increasing 2']
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
+        hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
+        assert_equal(_print_me(hdr.get_slice_times()),
+            [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
+        # test set
+        hdr = self.header_class()
+        hdr.set_dim_info(slice=2)
+        # need slice dim to correspond with shape
+        times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        hdr.set_data_shape([1, 1, 7])
+        assert_raises(HeaderDataError,
+                            hdr.set_slice_times,
+                            times[:-1]) # wrong length
+        assert_raises(HeaderDataError,
+                            hdr.set_slice_times,
+                            (None,) * len(times)) # all None
+        n_mid_times = times[:]
+        n_mid_times[3] = None
+        assert_raises(HeaderDataError,
+                            hdr.set_slice_times,
+                            n_mid_times) # None in middle
+        funny_times = times[:]
+        funny_times[3] = 0.05
+        assert_raises(HeaderDataError,
+                            hdr.set_slice_times,
+                            funny_times) # can't get single slice duration
+        hdr.set_slice_times(times)
+        assert_equal(hdr.get_value_label('slice_code'),
+                        'alternating decreasing')
+        assert_equal(hdr['slice_start'], 1)
+        assert_equal(hdr['slice_end'], 5)
+        assert_array_almost_equal(hdr['slice_duration'], 0.1)
+
+    def test_intents(self):
+        ehdr = self.header_class()
+        ehdr.set_intent('t test', (10,), name='some score')
+        assert_equal(ehdr.get_intent(),
+                    ('t test', (10.0,), 'some score'))
+        # invalid intent name
+        assert_raises(KeyError,
+                    ehdr.set_intent, 'no intention')
+        # too many parameters
+        assert_raises(HeaderDataError,
+                    ehdr.set_intent,
+                    't test', (10,10))
+        # too few parameters
+        assert_raises(HeaderDataError,
+                    ehdr.set_intent,
+                    'f test', (10,))
+        # check unset parameters are set to 0, and name to ''
+        ehdr.set_intent('t test')
+        assert_equal((ehdr['intent_p1'],
+                    ehdr['intent_p2'],
+                    ehdr['intent_p3']), (0,0,0))
+        assert_equal(ehdr['intent_name'], b'')
+        ehdr.set_intent('t test', (10,))
+        assert_equal((ehdr['intent_p2'],
+                    ehdr['intent_p3']), (0,0))
+
+    def test_set_slice_times(self):
+        hdr = self.header_class()
+        hdr.set_dim_info(slice=2)
+        hdr.set_data_shape([1, 1, 7])
+        hdr.set_slice_duration(0.1)
+        times = [0] * 6
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        times = [None] * 7
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        times = [None, 0, 1, None, 3, 4, None]
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        times = [None, 0, 1, 2.1, 3, 4, None]
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        times = [None, 0, 4, 3, 2, 1, None]
+        assert_raises(HeaderDataError, hdr.set_slice_times, times)
+        times = [0, 1, 2, 3, 4, 5, 6]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 1)
+        assert_equal(hdr['slice_start'], 0)
+        assert_equal(hdr['slice_end'], 6)
+        assert_equal(hdr['slice_duration'], 1.0)
+        times = [None, 0, 1, 2, 3, 4, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 1)
+        assert_equal(hdr['slice_start'], 1)
+        assert_equal(hdr['slice_end'], 5)
+        assert_equal(hdr['slice_duration'], 1.0)
+        times = [None, 0.4, 0.3, 0.2, 0.1, 0, None]
+        hdr.set_slice_times(times)
+        assert_true(np.allclose(hdr['slice_duration'], 0.1))
+        times = [None, 4, 3, 2, 1, 0, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 2)
+        times = [None, 0, 3, 1, 4, 2, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 3)
+        times = [None, 2, 4, 1, 3, 0, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 4)
+        times = [None, 2, 0, 3, 1, 4, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 5)
+        times = [None, 4, 1, 3, 0, 2, None]
+        hdr.set_slice_times(times)
+        assert_equal(hdr['slice_code'], 6)
+
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        for intup, outup in (((2.0,), (2.0, 0.0)),
+                            ((None,), (None, None)),
+                            ((3.0, None), (3.0, 0.0)),
+                            ((0.0, None), (None, None)),
+                            ((None, 0.0), (None, None)),
+                            ((None, 3.0), (None, None)),
+                            ((2.0, 3.0), (2.0, 3.0))):
+            hdr.set_slope_inter(*intup)
+            assert_equal(hdr.get_slope_inter(), outup)
+            # Check set survives through checking
+            hdr = self.header_class.from_header(hdr, check=True)
+            assert_equal(hdr.get_slope_inter(), outup)
+
+    def test_xyzt_units(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+        hdr.set_xyzt_units('mm', 'sec')
+        assert_equal(hdr.get_xyzt_units(), ('mm', 'sec'))
+        hdr.set_xyzt_units()
+        assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+
+    def test_recoded_fields(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_value_label('qform_code'), 'unknown')
+        hdr['qform_code'] = 3
+        assert_equal(hdr.get_value_label('qform_code'), 'talairach')
+        assert_equal(hdr.get_value_label('sform_code'), 'unknown')
+        hdr['sform_code'] = 3
+        assert_equal(hdr.get_value_label('sform_code'), 'talairach')
+        assert_equal(hdr.get_value_label('intent_code'), 'none')
+        hdr.set_intent('t test', (10,), name='some score')
+        assert_equal(hdr.get_value_label('intent_code'), 't test')
+        assert_equal(hdr.get_value_label('slice_code'), 'unknown')
+        hdr['slice_code'] = 4 # alternating decreasing
+        assert_equal(hdr.get_value_label('slice_code'),
+                        'alternating decreasing')
+
 
 def unshear_44(affine):
     RZS = affine[:3, :3]
@@ -295,9 +545,9 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
-        assert_equal(hdr['magic'], b'n+1')
+        assert_equal(hdr['magic'], hdr.single_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], 352)
+        assert_equal(hdr['vox_offset'], hdr.single_vox_offset)
 
     def test_binblock_is_file(self):
         # Override test that binary string is the same as the file on disk; in
@@ -487,253 +737,97 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         with InTemporaryDirectory():
             img.to_filename('another_file' + ext)
 
+    def test_load_save(self):
+        IC = self.image_class
+        img_ext = IC.files_types[0][1]
+        shape = (2, 4, 6)
+        npt = np.float32
+        data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
+        affine = np.diag([1, 2, 3, 1])
+        img = IC(data, affine)
+        assert_equal(img.shape, shape)
+        img.set_data_dtype(npt)
+        img2 = bytesio_round_trip(img)
+        assert_array_equal(img2.get_data(), data)
+        with InTemporaryDirectory() as tmpdir:
+            for ext in ('.gz', '.bz2'):
+                fname = os.path.join(tmpdir, 'test' + img_ext + ext)
+                img.to_filename(fname)
+                img3 = IC.load(fname)
+                assert_true(isinstance(img3, img.__class__))
+                assert_array_equal(img3.get_data(), data)
+                assert_equal(img3.get_header(), img.get_header())
+                # del to avoid windows errors of form 'The process cannot
+                # access the file because it is being used'
+                del img3
+
+    def test_load_pixdims(self):
+        # Make sure load preserves separate qform, pixdims, sform
+        IC = self.image_class
+        HC = IC.header_class
+        arr = np.arange(24).reshape((2,3,4))
+        qaff = np.diag([2, 3, 4, 1])
+        saff = np.diag([5, 6, 7, 1])
+        hdr = HC()
+        hdr.set_qform(qaff)
+        assert_array_equal(hdr.get_qform(), qaff)
+        hdr.set_sform(saff)
+        assert_array_equal(hdr.get_sform(), saff)
+        simg = IC(arr, None, hdr)
+        img_hdr = simg.get_header()
+        # Check qform, sform, pixdims are the same
+        assert_array_equal(img_hdr.get_qform(), qaff)
+        assert_array_equal(img_hdr.get_sform(), saff)
+        assert_array_equal(img_hdr.get_zooms(), [2,3,4])
+        # Save to stringio
+        re_simg = bytesio_round_trip(simg)
+        assert_array_equal(re_simg.get_data(), arr)
+        # Check qform, sform, pixdims are the same
+        rimg_hdr = re_simg.get_header()
+        assert_array_equal(rimg_hdr.get_qform(), qaff)
+        assert_array_equal(rimg_hdr.get_sform(), saff)
+        assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
+
+    def test_affines_init(self):
+        # Test we are doing vaguely spec-related qform things.  The 'spec' here
+        # is some thoughts by Mark Jenkinson:
+        # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
+        IC = self.image_class
+        arr = np.arange(24).reshape((2,3,4))
+        aff = np.diag([2, 3, 4, 1])
+        # Default is sform set, qform not set
+        img = IC(arr, aff)
+        hdr = img.get_header()
+        assert_equal(hdr['qform_code'], 0)
+        assert_equal(hdr['sform_code'], 2)
+        assert_array_equal(hdr.get_zooms(), [2, 3, 4])
+        # This is also true for affines with header passed
+        qaff = np.diag([3, 4, 5, 1])
+        saff = np.diag([6, 7, 8, 1])
+        hdr.set_qform(qaff, code='scanner')
+        hdr.set_sform(saff, code='talairach')
+        assert_array_equal(hdr.get_zooms(), [3, 4, 5])
+        img = IC(arr, aff, hdr)
+        new_hdr = img.get_header()
+        # Again affine is sort of anonymous space
+        assert_equal(new_hdr['qform_code'], 0)
+        assert_equal(new_hdr['sform_code'], 2)
+        assert_array_equal(new_hdr.get_sform(), aff)
+        assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
+        # But if no affine passed, codes and matrices stay the same
+        img = IC(arr, None, hdr)
+        new_hdr = img.get_header()
+        assert_equal(new_hdr['qform_code'], 1) # scanner
+        assert_array_equal(new_hdr.get_qform(), qaff)
+        assert_equal(new_hdr['sform_code'], 3) # Still talairach
+        assert_array_equal(new_hdr.get_sform(), saff)
+        # Pixdims as in the original header
+        assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
+
 
 class TestNifti1Pair(TestNifti1Image):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
-
-
-def test_datatypes():
-    hdr = Nifti1Header()
-    for code in data_type_codes.value_set():
-        dt = data_type_codes.type[code]
-        if dt == np.void:
-            continue
-        hdr.set_data_dtype(code)
-        (assert_equal,
-               hdr.get_data_dtype(),
-               data_type_codes.dtype[code])
-    # Check that checks also see new datatypes
-    hdr.set_data_dtype(np.complex128)
-    hdr.check_fix()
-
-
-def test_quaternion():
-    hdr = Nifti1Header()
-    hdr['quatern_b'] = 0
-    hdr['quatern_c'] = 0
-    hdr['quatern_d'] = 0
-    assert_true(np.allclose(hdr.get_qform_quaternion(), [1.0, 0, 0, 0]))
-    hdr['quatern_b'] = 1
-    hdr['quatern_c'] = 0
-    hdr['quatern_d'] = 0
-    assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
-    # Check threshold set correctly for float32
-    hdr['quatern_b'] = 1+np.finfo(np.float32).eps
-    assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
-
-
-def test_qform():
-    # Test roundtrip case
-    ehdr = Nifti1Header()
-    ehdr.set_qform(A)
-    qA = ehdr.get_qform()
-    assert_true, np.allclose(A, qA, atol=1e-5)
-    assert_true, np.allclose(Z, ehdr['pixdim'][1:4])
-    xfas = nifti1.xform_codes
-    assert_true, ehdr['qform_code'] == xfas['aligned']
-    ehdr.set_qform(A, 'scanner')
-    assert_true, ehdr['qform_code'] == xfas['scanner']
-    ehdr.set_qform(A, xfas['aligned'])
-    assert_true, ehdr['qform_code'] == xfas['aligned']
-
-
-def test_sform():
-    # Test roundtrip case
-    ehdr = Nifti1Header()
-    ehdr.set_sform(A)
-    sA = ehdr.get_sform()
-    assert_true, np.allclose(A, sA, atol=1e-5)
-    xfas = nifti1.xform_codes
-    assert_true, ehdr['sform_code'] == xfas['aligned']
-    ehdr.set_sform(A, 'scanner')
-    assert_true, ehdr['sform_code'] == xfas['scanner']
-    ehdr.set_sform(A, xfas['aligned'])
-    assert_true, ehdr['sform_code'] == xfas['aligned']
-
-
-def test_dim_info():
-    ehdr = Nifti1Header()
-    assert_true(ehdr.get_dim_info() == (None, None, None))
-    for info in ((0,2,1),
-                 (None, None, None),
-                 (0,2,None),
-                 (0,None,None),
-                 (None,2,1),
-                 (None, None,1),
-                 ):
-        ehdr.set_dim_info(*info)
-        assert_true(ehdr.get_dim_info() == info)
-
-
-def test_slice_times():
-    hdr = Nifti1Header()
-    # error if slice dimension not specified
-    assert_raises(HeaderDataError, hdr.get_slice_times)
-    hdr.set_dim_info(slice=2)
-    # error if slice dimension outside shape
-    assert_raises(HeaderDataError, hdr.get_slice_times)
-    hdr.set_data_shape((1, 1, 7))
-    # error if slice duration not set
-    assert_raises(HeaderDataError, hdr.get_slice_times)    
-    hdr.set_slice_duration(0.1)
-    # We need a function to print out the Nones and floating point
-    # values in a predictable way, for the tests below.
-    _stringer = lambda val: val is not None and '%2.1f' % val or None
-    _print_me = lambda s: list(map(_stringer, s))
-    #The following examples are from the nifti1.h documentation.
-    hdr['slice_code'] = slice_order_codes['sequential increasing']
-    assert_equal(_print_me(hdr.get_slice_times()), 
-                       ['0.0', '0.1', '0.2', '0.3', '0.4',
-                        '0.5', '0.6'])
-    hdr['slice_start'] = 1
-    hdr['slice_end'] = 5
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
-    hdr['slice_code'] = slice_order_codes['sequential decreasing']
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
-    hdr['slice_code'] = slice_order_codes['alternating increasing']
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
-    hdr['slice_code'] = slice_order_codes['alternating decreasing']
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
-    hdr['slice_code'] = slice_order_codes['alternating increasing 2']
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
-    hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
-    assert_equal(_print_me(hdr.get_slice_times()),
-        [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
-    # test set
-    hdr = Nifti1Header()
-    hdr.set_dim_info(slice=2)
-    # need slice dim to correspond with shape
-    times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    hdr.set_data_shape([1, 1, 7])
-    assert_raises(HeaderDataError,
-                        hdr.set_slice_times,
-                        times[:-1]) # wrong length
-    assert_raises(HeaderDataError,
-                        hdr.set_slice_times,
-                        (None,) * len(times)) # all None
-    n_mid_times = times[:]
-    n_mid_times[3] = None
-    assert_raises(HeaderDataError,
-                        hdr.set_slice_times,
-                        n_mid_times) # None in middle
-    funny_times = times[:]
-    funny_times[3] = 0.05
-    assert_raises(HeaderDataError,
-                        hdr.set_slice_times,
-                        funny_times) # can't get single slice duration
-    hdr.set_slice_times(times)
-    assert_equal(hdr.get_value_label('slice_code'),
-                       'alternating decreasing')
-    assert_equal(hdr['slice_start'], 1)
-    assert_equal(hdr['slice_end'], 5)
-    assert_array_almost_equal(hdr['slice_duration'], 0.1)
-
-
-def test_intents():
-    ehdr = Nifti1Header()
-    ehdr.set_intent('t test', (10,), name='some score')
-    assert_equal(ehdr.get_intent(),
-                 ('t test', (10.0,), 'some score'))
-    # invalid intent name
-    assert_raises(KeyError,
-                  ehdr.set_intent, 'no intention')
-    # too many parameters
-    assert_raises(HeaderDataError,
-                  ehdr.set_intent,
-                  't test', (10,10))
-    # too few parameters
-    assert_raises(HeaderDataError,
-                  ehdr.set_intent,
-                  'f test', (10,))
-    # check unset parameters are set to 0, and name to ''
-    ehdr.set_intent('t test')
-    assert_equal((ehdr['intent_p1'],
-                  ehdr['intent_p2'],
-                  ehdr['intent_p3']), (0,0,0))
-    assert_equal(ehdr['intent_name'], b'')
-    ehdr.set_intent('t test', (10,))
-    assert_equal((ehdr['intent_p2'],
-                  ehdr['intent_p3']), (0,0))
-
-
-def test_set_slice_times():
-    hdr = Nifti1Header()
-    hdr.set_dim_info(slice=2)
-    hdr.set_data_shape([1, 1, 7])
-    hdr.set_slice_duration(0.1)
-    times = [0] * 6
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    times = [None] * 7
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    times = [None, 0, 1, None, 3, 4, None]
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    times = [None, 0, 1, 2.1, 3, 4, None]
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    times = [None, 0, 4, 3, 2, 1, None]
-    assert_raises(HeaderDataError, hdr.set_slice_times, times)
-    times = [0, 1, 2, 3, 4, 5, 6]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 1)
-    assert_equal(hdr['slice_start'], 0)
-    assert_equal(hdr['slice_end'], 6)
-    assert_equal(hdr['slice_duration'], 1.0)
-    times = [None, 0, 1, 2, 3, 4, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 1)
-    assert_equal(hdr['slice_start'], 1)
-    assert_equal(hdr['slice_end'], 5)
-    assert_equal(hdr['slice_duration'], 1.0)
-    times = [None, 0.4, 0.3, 0.2, 0.1, 0, None]
-    hdr.set_slice_times(times)
-    assert_true(np.allclose(hdr['slice_duration'], 0.1))
-    times = [None, 4, 3, 2, 1, 0, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 2)
-    times = [None, 0, 3, 1, 4, 2, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 3)
-    times = [None, 2, 4, 1, 3, 0, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 4)
-    times = [None, 2, 0, 3, 1, 4, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 5)
-    times = [None, 4, 1, 3, 0, 2, None]
-    hdr.set_slice_times(times)
-    assert_equal(hdr['slice_code'], 6)
-
-
-def test_nifti1_images():
-    shape = (2, 4, 6)
-    npt = np.float32
-    data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-    affine = np.diag([1, 2, 3, 1])
-    img = Nifti1Image(data, affine)
-    assert_equal(img.shape, shape)
-    img.set_data_dtype(npt)
-    stio = BytesIO()
-    img.file_map['image'].fileobj = stio
-    img.to_file_map()
-    img2 = Nifti1Image.from_file_map(img.file_map)
-    assert_array_equal(img2.get_data(), data)
-    with InTemporaryDirectory() as tmpdir:
-        for ext in ('.gz', '.bz2'):
-            fname = os.path.join(tmpdir, 'test.nii' + ext)
-            img.to_filename(fname)
-            img3 = Nifti1Image.load(fname)
-            assert_true(isinstance(img3, img.__class__))
-            assert_array_equal(img3.get_data(), data)
-            assert_equal(img3.get_header(), img.get_header())
-            # del to avoid windows errors of form 'The process cannot
-            # access the file because it is being used'
-            del img3
 
 
 def test_extension_basics():
@@ -795,235 +889,120 @@ def test_nifti_extensions():
     assert_true(exts_container.count('afni') == 1)
 
 
-def test_loadsave_cycle():
-    nim = load(image_file)
-    # ensure we have extensions
-    hdr = nim.get_header()
-    exts_container = hdr.extensions
-    assert_true(len(exts_container) > 0)
-    # write into the air ;-)
-    stio = BytesIO()
-    nim.file_map['image'].fileobj = stio
-    nim.to_file_map()
-    stio.seek(0)
-    # reload
-    lnim = Nifti1Image.from_file_map(nim.file_map)
-    hdr = lnim.get_header()
-    lexts_container = hdr.extensions
-    assert_equal(exts_container,
-                 lexts_container)
-    # build int16 image
-    data = np.ones((2,3,4,5), dtype='int16')
-    img = Nifti1Image(data, np.eye(4))
-    hdr = img.get_header()
-    assert_equal(hdr.get_data_dtype(), np.int16)
-    # default should have no scaling
-    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    # set scaling
-    hdr.set_slope_inter(2, 8)
-    assert_equal(hdr.get_slope_inter(), (2, 8))
-    # now build new image with updated header
-    wnim = Nifti1Image(data, np.eye(4), header=hdr)
-    assert_equal(wnim.get_data_dtype(), np.int16)
-    assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
-    # write into the air again ;-)
-    stio = BytesIO()
-    wnim.file_map['image'].fileobj = stio
-    wnim.to_file_map()
-    stio.seek(0)
-    lnim = Nifti1Image.from_file_map(wnim.file_map)
-    assert_equal(lnim.get_data_dtype(), np.int16)
-    # the test below does not pass, because the slope and inter are
-    # always reset from the data, by the image write
-    raise SkipTest
-    assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
+class TestNifti1General(object):
+    """ Test class to test nifti1 in general
 
+    Tests here which mix the pair and the single type, and that should only be
+    run once (not for each type) because they are slow
+    """
+    single_class = Nifti1Image
+    pair_class = Nifti1Pair
+    module = nifti1
+    example_file = image_file
 
-def test_slope_inter():
-    hdr = Nifti1Header()
-    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    for intup, outup in (((2.0,), (2.0, 0.0)),
-                         ((None,), (None, None)),
-                         ((3.0, None), (3.0, 0.0)),
-                         ((0.0, None), (None, None)),
-                         ((None, 0.0), (None, None)),
-                         ((None, 3.0), (None, None)),
-                         ((2.0, 3.0), (2.0, 3.0))):
-        hdr.set_slope_inter(*intup)
-        assert_equal(hdr.get_slope_inter(), outup)
-        # Check set survives through checking
-        hdr = Nifti1Header.from_header(hdr, check=True)
-        assert_equal(hdr.get_slope_inter(), outup)
+    def test_loadsave_cycle(self):
+        nim = load(self.example_file)
+        # ensure we have extensions
+        hdr = nim.get_header()
+        exts_container = hdr.extensions
+        assert_true(len(exts_container) > 0)
+        # write into the air ;-)
+        lnim = bytesio_round_trip(nim)
+        hdr = lnim.get_header()
+        lexts_container = hdr.extensions
+        assert_equal(exts_container,
+                    lexts_container)
+        # build int16 image
+        data = np.ones((2,3,4,5), dtype='int16')
+        img = self.single_class(data, np.eye(4))
+        hdr = img.get_header()
+        assert_equal(hdr.get_data_dtype(), np.int16)
+        # default should have no scaling
+        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        # set scaling
+        hdr.set_slope_inter(2, 8)
+        assert_equal(hdr.get_slope_inter(), (2, 8))
+        # now build new image with updated header
+        wnim = self.single_class(data, np.eye(4), header=hdr)
+        assert_equal(wnim.get_data_dtype(), np.int16)
+        assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
+        # write into the air again ;-)
+        lnim = bytesio_round_trip(wnim)
+        assert_equal(lnim.get_data_dtype(), np.int16)
+        # the test below does not pass, because the slope and inter are
+        # always reset from the data, by the image write
+        raise SkipTest
+        assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
 
+    def test_load(self):
+        # test module level load.  We try to load a nii and an .img and a .hdr and
+        # expect to get a nifti back of single or pair type
+        arr = np.arange(24).reshape((2,3,4))
+        aff = np.diag([2, 3, 4, 1])
+        simg = self.single_class(arr, aff)
+        pimg = self.pair_class(arr, aff)
+        save = self.module.save
+        load = self.module.load
+        with InTemporaryDirectory():
+            for img in (simg, pimg):
+                save(img, 'test.nii')
+                assert_array_equal(arr, load('test.nii').get_data())
+                save(simg, 'test.img')
+                assert_array_equal(arr, load('test.img').get_data())
+                save(simg, 'test.hdr')
+                assert_array_equal(arr, load('test.hdr').get_data())
 
-def test_xyzt_units():
-    hdr = Nifti1Header()
-    assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
-    hdr.set_xyzt_units('mm', 'sec')
-    assert_equal(hdr.get_xyzt_units(), ('mm', 'sec'))
-    hdr.set_xyzt_units()
-    assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
+    def test_float_int_min_max(self):
+        # Conversion between float and int
+        # Parallel test to arraywriters
+        aff = np.eye(4)
+        for in_dt in (np.float32, np.float64):
+            finf = type_info(in_dt)
+            arr = np.array([finf['min'], finf['max']], dtype=in_dt)
+            for out_dt in IUINT_TYPES:
+                img = self.single_class(arr, aff)
+                img_back = bytesio_round_trip(img)
+                arr_back_sc = img_back.get_data()
+                assert_true(np.allclose(arr, arr_back_sc))
 
+    def test_float_int_spread(self):
+        # Test rounding error for spread of values
+        # Parallel test to arraywriters
+        powers = np.arange(-10, 10, 0.5)
+        arr = np.concatenate((-10**powers, 10**powers))
+        aff = np.eye(4)
+        for in_dt in (np.float32, np.float64):
+            arr_t = arr.astype(in_dt)
+            for out_dt in IUINT_TYPES:
+                img = self.single_class(arr_t, aff)
+                img_back = bytesio_round_trip(img)
+                arr_back_sc = img_back.get_data()
+                slope, inter = img_back.get_header().get_slope_inter()
+                # Get estimate for error
+                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+                # Simulate allclose test with large atol
+                diff = np.abs(arr_t - arr_back_sc)
+                rdiff = diff / np.abs(arr_t)
+                assert_true(np.all((diff <= max_miss) | (rdiff <= 1e-5)))
 
-def test_recoded_fields():
-    hdr = Nifti1Header()
-    assert_equal(hdr.get_value_label('qform_code'), 'unknown')
-    hdr['qform_code'] = 3
-    assert_equal(hdr.get_value_label('qform_code'), 'talairach')
-    assert_equal(hdr.get_value_label('sform_code'), 'unknown')
-    hdr['sform_code'] = 3
-    assert_equal(hdr.get_value_label('sform_code'), 'talairach')
-    assert_equal(hdr.get_value_label('intent_code'), 'none')
-    hdr.set_intent('t test', (10,), name='some score')
-    assert_equal(hdr.get_value_label('intent_code'), 't test')
-    assert_equal(hdr.get_value_label('slice_code'), 'unknown')
-    hdr['slice_code'] = 4 # alternating decreasing
-    assert_equal(hdr.get_value_label('slice_code'),
-                       'alternating decreasing')
-
-
-def test_load():
-    # test module level load.  We try to load a nii and an .img and a .hdr and
-    # expect to get a nifti back of single or pair type
-    arr = np.arange(24).reshape((2,3,4))
-    aff = np.diag([2, 3, 4, 1])
-    simg = Nifti1Image(arr, aff)
-    pimg = Nifti1Pair(arr, aff)
-    with InTemporaryDirectory():
-        nifti1.save(simg, 'test.nii')
-        assert_array_equal(arr, nifti1.load('test.nii').get_data())
-        nifti1.save(simg, 'test.img')
-        assert_array_equal(arr, nifti1.load('test.img').get_data())
-        nifti1.save(simg, 'test.hdr')
-        assert_array_equal(arr, nifti1.load('test.hdr').get_data())
-
-
-def test_load_pixdims():
-    # Make sure load preserves separate qform, pixdims, sform
-    arr = np.arange(24).reshape((2,3,4))
-    qaff = np.diag([2, 3, 4, 1])
-    saff = np.diag([5, 6, 7, 1])
-    hdr = Nifti1Header()
-    hdr.set_qform(qaff)
-    assert_array_equal(hdr.get_qform(), qaff)
-    hdr.set_sform(saff)
-    assert_array_equal(hdr.get_sform(), saff)
-    simg = Nifti1Image(arr, None, hdr)
-    img_hdr = simg.get_header()
-    # Check qform, sform, pixdims are the same
-    assert_array_equal(img_hdr.get_qform(), qaff)
-    assert_array_equal(img_hdr.get_sform(), saff)
-    assert_array_equal(img_hdr.get_zooms(), [2,3,4])
-    # Save to stringio
-    fm = Nifti1Image.make_file_map()
-    fm['image'].fileobj = BytesIO()
-    simg.to_file_map(fm)
-    # Load again
-    re_simg = Nifti1Image.from_file_map(fm)
-    assert_array_equal(re_simg.get_data(), arr)
-    # Check qform, sform, pixdims are the same
-    rimg_hdr = re_simg.get_header()
-    assert_array_equal(rimg_hdr.get_qform(), qaff)
-    assert_array_equal(rimg_hdr.get_sform(), saff)
-    assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
-
-
-def test_affines_init():
-    # Test we are doing vaguely spec-related qform things.  The 'spec' here is
-    # some thoughts by Mark Jenkinson:
-    # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
-    arr = np.arange(24).reshape((2,3,4))
-    aff = np.diag([2, 3, 4, 1])
-    # Default is sform set, qform not set
-    img = Nifti1Image(arr, aff)
-    hdr = img.get_header()
-    assert_equal(hdr['qform_code'], 0)
-    assert_equal(hdr['sform_code'], 2)
-    assert_array_equal(hdr.get_zooms(), [2, 3, 4])
-    # This is also true for affines with header passed
-    qaff = np.diag([3, 4, 5, 1])
-    saff = np.diag([6, 7, 8, 1])
-    hdr.set_qform(qaff, code='scanner')
-    hdr.set_sform(saff, code='talairach')
-    assert_array_equal(hdr.get_zooms(), [3, 4, 5])
-    img = Nifti1Image(arr, aff, hdr)
-    new_hdr = img.get_header()
-    # Again affine is sort of anonymous space
-    assert_equal(new_hdr['qform_code'], 0)
-    assert_equal(new_hdr['sform_code'], 2)
-    assert_array_equal(new_hdr.get_sform(), aff)
-    assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
-    # But if no affine passed, codes and matrices stay the same
-    img = Nifti1Image(arr, None, hdr)
-    new_hdr = img.get_header()
-    assert_equal(new_hdr['qform_code'], 1) # scanner
-    assert_array_equal(new_hdr.get_qform(), qaff)
-    assert_equal(new_hdr['sform_code'], 3) # Still talairach
-    assert_array_equal(new_hdr.get_sform(), saff)
-    # Pixdims as in the original header
-    assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
-
-
-def round_trip(img):
-    stio = BytesIO()
-    img.file_map['image'].fileobj = stio
-    img.to_file_map()
-    return Nifti1Image.from_file_map(img.file_map)
-
-
-def test_float_int_min_max():
-    # Conversion between float and int
-    # Parallel test to arraywriters
-    aff = np.eye(4)
-    for in_dt in (np.float32, np.float64):
-        finf = type_info(in_dt)
-        arr = np.array([finf['min'], finf['max']], dtype=in_dt)
-        for out_dt in IUINT_TYPES:
-            img = Nifti1Image(arr, aff)
-            img_back = round_trip(img)
-            arr_back_sc = img_back.get_data()
-            assert_true(np.allclose(arr, arr_back_sc))
-
-
-def test_float_int_spread():
-    # Test rounding error for spread of values
-    # Parallel test to arraywriters
-    powers = np.arange(-10, 10, 0.5)
-    arr = np.concatenate((-10**powers, 10**powers))
-    aff = np.eye(4)
-    for in_dt in (np.float32, np.float64):
-        arr_t = arr.astype(in_dt)
-        for out_dt in IUINT_TYPES:
-            img = Nifti1Image(arr_t, aff)
-            img_back = round_trip(img)
-            arr_back_sc = img_back.get_data()
-            slope, inter = img_back.get_header().get_slope_inter()
-            # Get estimate for error
-            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
-            # Simulate allclose test with large atol
-            diff = np.abs(arr_t - arr_back_sc)
-            rdiff = diff / np.abs(arr_t)
-            assert_true(np.all((diff <= max_miss) | (rdiff <= 1e-5)))
-
-
-def test_rt_bias():
-    # Check for bias in round trip
-    # Parallel test to arraywriters
-    rng = np.random.RandomState(20111214)
-    mu, std, count = 100, 10, 100
-    arr = rng.normal(mu, std, size=(count,))
-    eps = np.finfo(np.float32).eps
-    aff = np.eye(4)
-    for in_dt in (np.float32, np.float64):
-        arr_t = arr.astype(in_dt)
-        for out_dt in IUINT_TYPES:
-            img = Nifti1Image(arr_t, aff)
-            img_back = round_trip(img)
-            arr_back_sc = img_back.get_data()
-            slope, inter = img_back.get_header().get_slope_inter()
-            bias = np.mean(arr_t - arr_back_sc)
-            # Get estimate for error
-            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
-            # Hokey use of max_miss as a std estimate
-            bias_thresh = np.max([max_miss / np.sqrt(count), eps])
-            assert_true(np.abs(bias) < bias_thresh)
+    def test_rt_bias(self):
+        # Check for bias in round trip
+        # Parallel test to arraywriters
+        rng = np.random.RandomState(20111214)
+        mu, std, count = 100, 10, 100
+        arr = rng.normal(mu, std, size=(count,))
+        eps = np.finfo(np.float32).eps
+        aff = np.eye(4)
+        for in_dt in (np.float32, np.float64):
+            arr_t = arr.astype(in_dt)
+            for out_dt in IUINT_TYPES:
+                img = self.single_class(arr_t, aff)
+                img_back = bytesio_round_trip(img)
+                arr_back_sc = img_back.get_data()
+                slope, inter = img_back.get_header().get_slope_inter()
+                bias = np.mean(arr_t - arr_back_sc)
+                # Get estimate for error
+                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+                # Hokey use of max_miss as a std estimate
+                bias_thresh = np.max([max_miss / np.sqrt(count), eps])
+                assert_true(np.abs(bias) < bias_thresh)
