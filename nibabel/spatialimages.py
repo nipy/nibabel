@@ -407,6 +407,33 @@ class SpatialImage(object):
             self._data_cache = np.asanyarray(self._dataobj)
         return self._data_cache
 
+    def uncache(self):
+        """ Delete any cached read of data from proxied data
+
+        Remember there are two types of images:
+
+        * *array images* where the data ``img.dataobj`` is an array
+        * *proxy images* where the data ``img.dataobj`` is a proxy object
+
+        If you call ``img.get_data()`` on a proxy image, the result of reading
+        from the proxy gets cached inside the image object, and this cache is
+        what gets returned from the next call to ``img.get_data()``.  If you
+        modify the returned data, as in::
+
+            data = img.get_data()
+            data[:] = 42
+
+        then the next call to ``img.get_data()`` returns the modified array,
+        whether the image is an array image or a proxy image::
+
+            assert np.all(img.get_data() == 42)
+
+        When you uncache an array image, this has no effect on the return of
+        ``img.get_data()``, but when you uncache a proxy image, the result of
+        ``img.get_data()`` returns to its original value.
+        """
+        self._data_cache = None
+
     @property
     def shape(self):
         return self._dataobj.shape
