@@ -206,7 +206,21 @@ class MGHHeader(object):
         ''' Return copy of header
         '''
         return self.__class__(self.binaryblock, check=False)
-        pass
+
+    def __eq__(self, other):
+        ''' equality between two MGH format headers
+
+        Examples
+        --------
+        >>> wstr = MGHHeader()
+        >>> wstr2 = MGHHeader()
+        >>> wstr == wstr2
+        True
+        '''
+        return self.binaryblock == other.binaryblock
+
+    def __ne__(self, other):
+        return not self == other
 
     def check_fix(self):
         ''' Pass. maybe for now'''
@@ -297,7 +311,6 @@ class MGHHeader(object):
             raise HeaderDataError('zooms must be positive')
         delta = hdr['delta']
         delta[:] = zooms[:]
-
 
     def get_data_shape(self):
         ''' Get shape of data
