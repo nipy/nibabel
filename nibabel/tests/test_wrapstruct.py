@@ -241,7 +241,8 @@ class _TestWrapStructBase(TestCase):
         class DC(self.header_class):
             def check_fix(self, *args, **kwargs):
                 raise Exception
-        assert_raises(Exception, DC, hdr.binaryblock, check=True)
+        # Assumes check=True default
+        assert_raises(Exception, DC, hdr.binaryblock)
         hdr = DC(hdr.binaryblock, check=False)
         hdr2 = hdr.as_byteswapped(native_code)
         hdr_bs = hdr.as_byteswapped(swapped_code)

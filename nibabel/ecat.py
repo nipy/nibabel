@@ -284,56 +284,86 @@ class EcatMlist(object):
     def __init__(self,fileobj, hdr):
         """ gets list of frames and subheaders in pet file
 
+        Container for Ecat mlist
+
+        Data for mlist is numpy array shaem (frames, 4)
+
+        Columns are:
+
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+          * 1 - exists - rw
+          * 2 - exists - ro
+          * 3 - matrix deleted
+
+        A record above is 512 bytes in the image data file
+
         Parameters
         -----------
-        fileobj : ECAT file <filename>.v  fileholder or file object
-                  with read, seek methods
-
-        Returns
-        -------
-        mlist : numpy recarray  nframes X 4 columns
-        1 - Matrix identifier.
-        2 - subheader record number
-        3 - Last record number of matrix data block.
-        4 - Matrix status:
-            1 - exists - rw
-            2 - exists - ro
-            3 - matrix deleted
+        fileobj : file-like
+            ECAT file <filename>.v  fileholder or file object with read, seek
+            methods
         """
         self.hdr = hdr
         self._mlist = self.get_mlist(fileobj)
 
     def get_mlist(self, fileobj):
-        fileobj.seek(512)
-        dat=fileobj.read(128*32)
+        """ read (nframes, 4) array from `fileobj`
 
-        dt = np.dtype([('matlist',np.int32)])
+        Parameters
+        ----------
+        fileobj : file-like
+            an open file-like object implementing ``seek`` and ``read``
+
+        Returns
+        -------
+        mlist : (nframes, 4) ndarray
+            matrix list
+
+        Notes
+        -----
+        A 'record' appears to be a block of 512 bytes.
+
+        ``record_no`` in the code below is 1-based.  Record 1 may be the main
+        header, and the mlist records start at 2.
+
+        The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
+        mlist matrix.
+
+        The first row of these 32 looks like a special row.  The 4 values appear
+        to be (respectively):
+
+        * not sure - maybe negative number of mlist rows (out of 31) that are
+          blank and not used in this record.
+        * record_no - of next set of mlist entries or 0 if no more entries
+        * <no idea>
+        * n_rows - number of mlist rows in this record (between ?0 and 31)
+        """
+        dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
         if not self.hdr.endianness is native_code:
             dt = dt.newbyteorder(self.hdr.endianness)
         nframes = self.hdr['num_frames']
-        mlist = np.zeros((nframes,4), dtype='uint32')
-        record_count = 0
-        done = False
-
-        while not done: #mats['matlist'][0,1] == 2:
-
-            mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
-            if not (mats['matlist'][0,0] +  mats['matlist'][0,3]) == 31:
+        # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
+        # true? Should the dtype be int32?
+        mlist = np.zeros((nframes, 4), dtype='uint32')
+        mlist_index = 0
+        mlist_record_no = 2 # 1-based indexing
+        while True:
+            # Read record containing mlist entries
+            fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
+            dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
+            rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
+            # First row special
+            v0, mlist_record_no, v2, n_rows = rows[0]
+            if not (v0 + n_rows) == 31: # Some error condition here?
                 mlist = []
                 return mlist
-
-            nrecords = mats['matlist'][0,3]
-            mlist[record_count:nrecords+record_count,:] = mats['matlist'][1:nrecords+1,:]
-            record_count+= nrecords
-            if mats['matlist'][0,1] == 2 or mats['matlist'][0,1] == 0:
-                done = True
-            else:
-                # Find next subheader
-                tmp = int(mats['matlist'][0,1]-1)#cast to int
-                fileobj.seek(0)
-                fileobj.seek(tmp*512)
-                dat = fileobj.read(128*32)
-
+            mlist[mlist_index:mlist_index + n_rows] = rows[1:n_rows+1]
+            mlist_index += n_rows
+            if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
+                break
         return mlist
 
     def get_frame_order(self):
@@ -420,6 +450,7 @@ class EcatMlist(object):
             return frame_dict
         except:
             raise IOError('Error in header or mlist order unknown')
+
 
 class EcatSubHeader(object):
 
