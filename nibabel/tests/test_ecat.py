@@ -261,3 +261,8 @@ class TestEcatImage(TestCase):
         assert_equal(data.max(), vals['max'])
         assert_equal(data.min(), vals['min'])
         assert_array_almost_equal(data.mean(), vals['mean'])
+
+    def test_mlist_regreesion(self):
+        # Test mlist is as same as for nibabel 1.3.0
+        assert_array_equal(self.img.get_mlist()._mlist,
+                           [[16842758, 3, 3011, 1]])
