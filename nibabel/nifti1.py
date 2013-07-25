@@ -1571,12 +1571,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
         super(Nifti1Pair, self).update_header()
         hdr = self._header
         hdr['magic'] = 'ni1'
-        # If the affine is not None, and it is different from the main affine in
-        # the header, update the heaader
-        if self._affine is None:
-            return
-        if np.allclose(self._affine, hdr.get_best_affine()):
-            return
+
+    def _affine2header(self):
+        """ Unconditionally set affine into the header """
+        hdr = self._header
         # Set affine into sform with default code
         hdr.set_sform(self._affine, code='aligned')
         # Make qform 'unknown'

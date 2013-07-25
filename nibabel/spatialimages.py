@@ -244,7 +244,7 @@ class Header(object):
         return shape_zoom_affine(shape, zooms,
                                  self.default_x_flip)
 
-    get_default_affine = get_base_affine
+    get_best_affine = get_base_affine
 
     def data_to_fileobj(self, data, fileobj):
         ''' Write image data to file in fortran order '''
@@ -328,8 +328,44 @@ class SpatialImage(object):
         self._load_cache = None
 
     def update_header(self):
-        ''' Update header from information in image'''
-        self._header.set_data_shape(self._data.shape)
+        ''' Harmonize header with image data and affine
+
+        >>> data = np.zeros((2,3,4))
+        >>> affine = np.diag([1.0,2.0,3.0,1.0])
+        >>> img = SpatialImage(data, affine)
+        >>> hdr = img.get_header()
+        >>> img.shape == (2, 3, 4)
+        True
+        >>> img.update_header()
+        >>> hdr.get_data_shape() == (2, 3, 4)
+        True
+        >>> hdr.get_zooms()
+        (1.0, 2.0, 3.0)
+        '''
+        hdr = self._header
+        shape = self._data.shape
+        # We need to update the header if the data shape has changed.  It's a
+        # bit difficult to change the data shape using the standard API, but
+        # maybe it happened
+        if hdr.get_data_shape() != shape:
+            hdr.set_data_shape(shape)
+        # If the affine is not None, and it is different from the main affine in
+        # the header, update the heaader
+        if self._affine is None:
+            return
+        if np.allclose(self._affine, hdr.get_best_affine()):
+            return
+        self._affine2header()
+
+    def _affine2header(self):
+        """ Unconditionally set affine into the header """
+        RZS = self._affine[:3, :3]
+        vox = np.sqrt(np.sum(RZS * RZS, axis=0))
+        hdr = self._header
+        zooms = list(hdr.get_zooms())
+        n_to_set = min(len(zooms), 3)
+        zooms[:n_to_set] = vox[:n_to_set]
+        hdr.set_zooms(zooms)
 
     def __str__(self):
         shape = self.shape
