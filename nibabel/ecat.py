@@ -279,7 +279,185 @@ class EcatHeader(WrapStruct):
         return ()
 
 
+def read_mlist(fileobj, endianness):
+    """ read (nframes, 4) matrix list array from `fileobj`
+
+    Parameters
+    ----------
+    fileobj : file-like
+        an open file-like object implementing ``seek`` and ``read``
+
+    Returns
+    -------
+    mlist : (nframes, 4) ndarray
+        matrix list is an array with ``nframes`` rows and columns:
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+          * 1 - exists - rw
+          * 2 - exists - ro
+          * 3 - matrix deleted
+
+    Notes
+    -----
+    A 'record' appears to be a block of 512 bytes.
+
+    ``record_no`` in the code below is 1-based.  Record 1 may be the main
+    header, and the mlist records start at 2.
+
+    The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
+    mlist matrix.
+
+    The first row of these 32 looks like a special row.  The 4 values appear
+    to be (respectively):
+
+    * not sure - maybe negative number of mlist rows (out of 31) that are
+      blank and not used in this record.
+    * record_no - of next set of mlist entries or 0 if no more entries
+    * <no idea>
+    * n_rows - number of mlist rows in this record (between ?0 and 31)
+    """
+    dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
+    if not endianness is native_code:
+        dt = dt.newbyteorder(endianness)
+    mlists = []
+    mlist_index = 0
+    mlist_record_no = 2 # 1-based indexing
+    while True:
+        # Read record containing mlist entries
+        fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
+        dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
+        rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
+        # First row special
+        v0, mlist_record_no, v2, n_rows = rows[0]
+        if not (v0 + n_rows) == 31: # Some error condition here?
+            mlist = []
+            return mlist
+        mlists.append(rows[1:n_rows+1])
+        mlist_index += n_rows
+        if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
+            break
+    # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
+    # true? Should the dtype be uint32 or int32?
+    return np.row_stack(mlists)
+
+
+def get_frame_order(mlist):
+    """Returns the order of the frames stored in the file
+    Sometimes Frames are not stored in the file in
+    chronological order, this can be used to extract frames
+    in correct order
+
+    Returns
+    -------
+    id_dict: dict mapping frame number -> [mlist_row, mlist_id]
+
+    (where mlist id is value in the first column of the mlist matrix )
+
+    Examples
+    --------
+    >>> import os
+    >>> import nibabel as nib
+    >>> nibabel_dir = os.path.dirname(nib.__file__)
+    >>> from nibabel import ecat
+    >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+    >>> img = ecat.load(ecat_file)
+    >>> mlist = img.get_mlist()
+    >>> mlist.get_frame_order()
+    {0: [0, 16842758]}
+    """
+    ids = mlist[:, 0].copy()
+    n_valid = np.sum(ids > 0)
+    ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
+    valid_order = np.argsort(ids)
+    if not all(valid_order == sorted(valid_order)):
+        #raise UserWarning if Frames stored out of order
+        warnings.warn_explicit('Frames stored out of order;'\
+                        'true order = %s\n'\
+                        'frames will be accessed in order '\
+                        'STORED, NOT true order'%(valid_order),
+                        UserWarning,'ecat', 0)
+    id_dict = {}
+    for i in range(n_valid):
+        id_dict[i] = [valid_order[i], ids[valid_order[i]]]
+    return id_dict
+
+
+def get_series_framenumbers(mlist):
+    """ Returns framenumber of data as it was collected,
+    as part of a series; not just the order of how it was
+    stored in this or across other files
+
+    For example, if the data is split between multiple files
+    this should give you the true location of this frame as
+    collected in the series
+    (Frames are numbered starting at ONE (1) not Zero)
+
+    Returns
+    -------
+    frame_dict: dict mapping order_stored -> frame in series
+            where frame in series counts from 1; [1,2,3,4...]
+
+    Examples
+    --------
+    >>> import os
+    >>> import nibabel as nib
+    >>> nibabel_dir = os.path.dirname(nib.__file__)
+    >>> from nibabel import ecat
+    >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+    >>> img = ecat.load(ecat_file)
+    >>> mlist = img.get_mlist()
+    >>> mlist.get_series_framenumbers()
+    {0: 1}
+    """
+    nframes = len(mlist)
+    frames_order = get_frame_order(mlist)
+    mlist_nframes = len(frames_order)
+    trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
+    frame_dict = {}
+    try:
+        for frame_stored, (true_order, _) in frames_order.items():
+            #frame as stored in file -> true number in series
+            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+        return frame_dict
+    except:
+        raise IOError('Error in header or mlist order unknown')
+
+
+def read_subheaders(fileobj, mlist, endianness):
+    """retreive all subheaders and return list of subheader recarrays
+
+    Parameters
+    ----------
+    fileobj : file-like
+        implementing ``read`` and ``seek``
+    mlist : (nframes, 4) ndarray
+        Columns are:
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+    endianness : {'<', '>'}
+        little / big endian code
+    """
+    subheaders = []
+    dt = subhdr_dtype
+    if not endianness is native_code:
+        dt = dt.newbyteorder(endianness)
+    for mat_id, sh_recno, sh_last_recno, mat_stat in mlist:
+        if sh_recno == 0:
+            break
+        offset = (sh_recno - 1) * 512
+        fileobj.seek(offset)
+        tmpdat = fileobj.read(512)
+        sh = np.ndarray(shape=(), dtype=dt, buffer=tmpdat)
+        subheaders.append(sh)
+    return subheaders
+
+
 class EcatMlist(object):
+    # Can we do without this object, just using the functions?
 
     def __init__(self,fileobj, hdr):
         """ gets list of frames and subheaders in pet file
@@ -307,149 +485,15 @@ class EcatMlist(object):
             methods
         """
         self.hdr = hdr
-        self._mlist = self.get_mlist(fileobj)
-
-    def get_mlist(self, fileobj):
-        """ read (nframes, 4) array from `fileobj`
-
-        Parameters
-        ----------
-        fileobj : file-like
-            an open file-like object implementing ``seek`` and ``read``
-
-        Returns
-        -------
-        mlist : (nframes, 4) ndarray
-            matrix list
-
-        Notes
-        -----
-        A 'record' appears to be a block of 512 bytes.
-
-        ``record_no`` in the code below is 1-based.  Record 1 may be the main
-        header, and the mlist records start at 2.
-
-        The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
-        mlist matrix.
-
-        The first row of these 32 looks like a special row.  The 4 values appear
-        to be (respectively):
-
-        * not sure - maybe negative number of mlist rows (out of 31) that are
-          blank and not used in this record.
-        * record_no - of next set of mlist entries or 0 if no more entries
-        * <no idea>
-        * n_rows - number of mlist rows in this record (between ?0 and 31)
-        """
-        dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
-        if not self.hdr.endianness is native_code:
-            dt = dt.newbyteorder(self.hdr.endianness)
-        nframes = self.hdr['num_frames']
-        # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
-        # true? Should the dtype be int32?
-        mlist = np.zeros((nframes, 4), dtype='uint32')
-        mlist_index = 0
-        mlist_record_no = 2 # 1-based indexing
-        while True:
-            # Read record containing mlist entries
-            fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
-            dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
-            rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
-            # First row special
-            v0, mlist_record_no, v2, n_rows = rows[0]
-            if not (v0 + n_rows) == 31: # Some error condition here?
-                mlist = []
-                return mlist
-            mlist[mlist_index:mlist_index + n_rows] = rows[1:n_rows+1]
-            mlist_index += n_rows
-            if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
-                break
-        return mlist
+        self._mlist = np.zeros((hdr['num_frames'], 4), dtype='uint32')
+        mlist_data = read_mlist(fileobj, hdr.endianness)
+        self._mlist[:len(mlist_data)] = mlist_data
 
     def get_frame_order(self):
-        """Returns the order of the frames stored in the file
-        Sometimes Frames are not stored in the file in
-        chronological order, this can be used to extract frames
-        in correct order
-
-        Returns
-        -------
-        id_dict: dict mapping frame number -> [mlist_row, mlist_id]
-
-        (where mlist id is value in the first column of the mlist matrix )
-
-        Examples
-        --------
-        >>> import os
-        >>> import nibabel as nib
-        >>> nibabel_dir = os.path.dirname(nib.__file__)
-        >>> from nibabel import ecat
-        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
-        >>> img = ecat.load(ecat_file)
-        >>> mlist = img.get_mlist()
-        >>> mlist.get_frame_order()
-        {0: [0, 16842758]}
-        """
-        mlist  = self._mlist
-        ids = mlist[:, 0].copy()
-        n_valid = np.sum(ids > 0)
-        ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
-        valid_order = np.argsort(ids)
-        if not all(valid_order == sorted(valid_order)):
-            #raise UserWarning if Frames stored out of order
-            warnings.warn_explicit('Frames stored out of order;'\
-                          'true order = %s\n'\
-                          'frames will be accessed in order '\
-                          'STORED, NOT true order'%(valid_order),
-                          UserWarning,'ecat', 0)
-        id_dict = {}
-        for i in range(n_valid):
-            id_dict[i] = [valid_order[i], ids[valid_order[i]]]
-
-        return id_dict
+        return get_frame_order(self._mlist)
 
     def get_series_framenumbers(self):
-        """ Returns framenumber of data as it was collected,
-        as part of a series; not just the order of how it was
-        stored in this or across other files
-
-        For example, if the data is split between multiple files
-        this should give you the true location of this frame as
-        collected in the series
-        (Frames are numbered starting at ONE (1) not Zero)
-
-        Returns
-        -------
-        frame_dict: dict mapping order_stored -> frame in series
-               where frame in series counts from 1; [1,2,3,4...]
-
-        Examples
-        --------
-        >>> import os
-        >>> import nibabel as nib
-        >>> nibabel_dir = os.path.dirname(nib.__file__)
-        >>> from nibabel import ecat
-        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
-        >>> img = ecat.load(ecat_file)
-        >>> mlist = img.get_mlist()
-        >>> mlist.get_series_framenumbers()
-        {0: 1}
-
-
-
-        """
-        frames_order = self.get_frame_order()
-        nframes = self.hdr['num_frames']
-        mlist_nframes = len(frames_order)
-        trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
-        frame_dict = {}
-        try:
-            for frame_stored, (true_order, _) in frames_order.items():
-                #frame as stored in file -> true number in series
-                frame_dict[frame_stored] = trueframenumbers[true_order]+1
-            return frame_dict
-        except:
-            raise IOError('Error in header or mlist order unknown')
+        return get_series_framenumbers(self._mlist)
 
 
 class EcatSubHeader(object):
@@ -469,44 +513,12 @@ class EcatSubHeader(object):
 
         fileobj : ECAT file <filename>.v  fileholder or file object
                   with read, seek methods
-
-
         """
         self._header = hdr
         self.endianness = hdr.endianness
         self._mlist = mlist
         self.fileobj = fileobj
-        self.subheaders = self._get_subheaders()
-
-    def _get_subheaders(self):
-        """retreive all subheaders and return list of subheader recarrays
-        """
-        subheaders = []
-        header = self._header
-        endianness = self.endianness
-        dt = self._subhdrdtype
-        if not self.endianness is native_code:
-            dt = self._subhdrdtype.newbyteorder(self.endianness)
-        if self._header['num_frames'] > 1:
-            for item in self._mlist._mlist:
-                if item[1] == 0:
-                    break
-                self.fileobj.seek(0)
-                offset = (int(item[1])-1)*512
-                self.fileobj.seek(offset)
-                tmpdat = self.fileobj.read(512)
-                sh = (np.recarray(shape=(), dtype=dt,
-                                  buf=tmpdat))
-                subheaders.append(sh.copy())
-        else:
-            self.fileobj.seek(0)
-            offset = (int(self._mlist._mlist[0][1])-1)*512
-            self.fileobj.seek(offset)
-            tmpdat = self.fileobj.read(512)
-            sh = (np.recarray(shape=(), dtype=dt,
-                              buf=tmpdat))
-            subheaders.append(sh)
-        return subheaders
+        self.subheaders = read_subheaders(fileobj, mlist._mlist, hdr.endianness)
 
     def get_shape(self, frame=0):
         """ returns shape of given frame"""
