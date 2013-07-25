@@ -951,37 +951,6 @@ class AnalyzeImage(SpatialImage):
         self._header = hdr
         self.file_map = file_map
 
-    def update_header(self):
-        ''' Harmonize header with image data and affine
-
-        >>> data = np.zeros((2,3,4))
-        >>> affine = np.diag([1.0,2.0,3.0,1.0])
-        >>> img = AnalyzeImage(data, affine)
-        >>> hdr = img.get_header()
-        >>> img.shape == (2, 3, 4)
-        True
-        >>> img.update_header()
-        >>> hdr.get_data_shape() == (2, 3, 4)
-        True
-        >>> hdr.get_zooms()
-        (1.0, 2.0, 3.0)
-        '''
-        hdr = self._header
-        # We need to update the header if the data shape has changed.  It's a
-        # bit difficult to change the data shape using the standard API, but
-        # maybe it happened
-        if not self._data is None and hdr.get_data_shape() != self._data.shape:
-            hdr.set_data_shape(self._data.shape)
-        # If the affine is not None, and it is different from the main affine in
-        # the header, update the heaader
-        if self._affine is None:
-            return
-        if np.allclose(self._affine, hdr.get_best_affine()):
-            return
-        RZS = self._affine[:3, :3]
-        vox = np.sqrt(np.sum(RZS * RZS, axis=0))
-        hdr['pixdim'][1:4] = vox
-
 
 load = AnalyzeImage.load
 save = AnalyzeImage.instance_to_filename

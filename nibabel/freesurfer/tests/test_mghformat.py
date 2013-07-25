@@ -14,9 +14,15 @@ import numpy as np
 
 from ...externals.six import BytesIO
 from .. import load, save, MGHImage
-from ..mghformat import MGHError
+from ..mghformat import MGHHeader, MGHError
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
+
+from nose.tools import assert_true, assert_false
+
+from numpy.testing import (assert_equal, assert_array_equal,
+                           assert_array_almost_equal, assert_almost_equal,
+                           assert_raises)
 
 from ...testing import data_path
 from numpy.testing import assert_equal, assert_array_equal, \
@@ -125,10 +131,6 @@ def bad_dtype_mgh():
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
-    with TemporaryDirectory() as tmpdir:
-        save(img, os.path.join(tmpdir, 'tmpsave.mgz'))
-        # read from the tmp file and see if it checks out
-        mgz = load(os.path.join(tmpdir, 'tmpsave.mgz'))
 
 
 def test_bad_dtype_mgh():
@@ -209,3 +211,20 @@ def test_cosine_order():
     zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
     assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
     assert_almost_equal(hdr2['delta'], zooms)
+
+
+def test_eq():
+    # Test headers compare properly
+    hdr = MGHHeader()
+    hdr2 = MGHHeader()
+    assert_equal(hdr, hdr2)
+    hdr.set_data_shape((2, 3, 4))
+    assert_false(hdr == hdr2)
+    hdr2.set_data_shape((2, 3, 4))
+    assert_equal(hdr, hdr2)
+
+
+def test_header_slope_inter():
+    # Test placeholder slope / inter method
+    hdr = MGHHeader()
+    assert_equal(hdr.get_slope_inter(), (None, None))
