@@ -250,3 +250,14 @@ class TestEcatImage(TestCase):
         assert_equal(img.get_affine().dtype, np.dtype(np.float64))
         img = img_klass(arr, aff.astype(np.int16), hdr, sub_hdr, mlist)
         assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+
+    def test_data_regression(self):
+        # Test whether data read has changed since 1.3.0
+        # These values came from reading the example image using nibabel 1.3.0
+        vals = dict(max = 248750736458.0,
+                    min = 1125342630.0,
+                    mean = 117907565661.46666)
+        data = self.img.get_data()
+        assert_equal(data.max(), vals['max'])
+        assert_equal(data.min(), vals['min'])
+        assert_array_almost_equal(data.mean(), vals['mean'])
