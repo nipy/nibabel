@@ -16,7 +16,7 @@ before_install:
     - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" > "2" ]]; then
       mkdir builds;
       pushd builds;
-      curl -O http://pypi.python.org/packages/source/n/numpy/numpy-${NUMPY_VER}.tar.gz;
+      curl -O https://pypi.python.org/packages/source/n/numpy/numpy-${NUMPY_VER}.tar.gz;
       tar zxf numpy-${NUMPY_VER}.tar.gz;
       cd numpy-${NUMPY_VER};
       python setup.py install;
