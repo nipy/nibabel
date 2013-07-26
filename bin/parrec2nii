@@ -197,9 +197,8 @@ def main():
         verbose('Processing %s' % infile)
         try:
             proc_file(infile, opts)
-        except Exception:
-            err = sys.exc_info()[1]
-            errs.append('%s: %s' % (infile, err))
+        except Exception as e:
+            errs.append('%s: %s' % (infile, e))
 
     if len(errs):
         error('Caught %i exceptions. Dump follows:\n\n %s'
