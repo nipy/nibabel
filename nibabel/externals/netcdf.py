@@ -178,8 +178,8 @@ class netcdf_file(object):
         >>> time = f.variables['time']
         >>> time.units == b'days since 2008-01-01'
         True
-        >>> time.shape
-        (10,)
+        >>> time.shape == (10,)
+        True
         >>> time[-1]
         9
         >>> f.close()
@@ -187,8 +187,8 @@ class netcdf_file(object):
     A NetCDF file can also be used as context manager:
 
         >>> with netcdf_file(fname, 'r') as f:
-        ...     print(f.variables['time'].shape)
-        (10,)
+        ...     print(f.variables['time'].shape == (10,))
+        True
 
     Delete our temporary directory and file:
 

@@ -1,10 +1,12 @@
 """ Test floating point deconstructions and floor methods
 """
+
 import numpy as np
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
-                       _check_maxexp, ok_floats, on_powerpc, have_binary128)
+                       _check_maxexp, ok_floats, on_powerpc, have_binary128,
+                       longdouble_precision_improved)
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
@@ -163,14 +165,16 @@ def test_int_to_float():
         nmant = type_info(np.longdouble)['nmant']
     except FloatingError: # don't know where to test
         return
-    # Assuming nmant is greater than that for float64, test we recover precision
+    # test we recover precision just above nmant
     i = 2**(nmant+1)-1
     assert_equal(as_int(int_to_float(i, LD)), i)
     assert_equal(as_int(int_to_float(-i, LD)), -i)
-    # Check conversion to int; the line below causes an error subtracting ints /
-    # uint64 values, at least for Python 3.3 and numpy dev 1.8
-    big_int = np.uint64(2**64 - 1)
-    assert_equal(as_int(int_to_float(big_int, LD)), big_int)
+    # If longdouble can cope with 2**64, test
+    if nmant >= 63:
+        # Check conversion to int; the line below causes an error subtracting
+        # ints / uint64 values, at least for Python 3.3 and numpy dev 1.8
+        big_int = np.uint64(2**64 - 1)
+        assert_equal(as_int(int_to_float(big_int, LD)), big_int)
 
 
 def test_as_int_np_fix():
@@ -234,9 +238,13 @@ def test_floor_exact():
                 assert_equal(func(-iv, t), -iv)
                 assert_equal(func(iv-1, t), iv-1)
                 assert_equal(func(-iv+1, t), -iv+1)
-        # The nmant value for longdouble on PPC appears to be conservative, so
-        # that the tests for behavior above the nmant range fail
-        if t is np.longdouble and on_powerpc():
+        if t is np.longdouble and (
+            on_powerpc() or
+            longdouble_precision_improved()):
+            # The nmant value for longdouble on PPC appears to be conservative,
+            # so that the tests for behavior above the nmant range fail.
+            # windows longdouble can change from float64 to Intel80 in some
+            # situations, in which case nmant will not be correct
             continue
         # Confirm to ourselves that 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant+1)
