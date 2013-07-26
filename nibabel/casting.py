@@ -630,6 +630,8 @@ def best_float():
     case we return float64 on the basis it's the fastest and smallest at the
     highest precision.
 
+    SPARC float128 also proved so slow that we prefer float64.
+
     Returns
     -------
     best_type : numpy type
@@ -648,6 +650,26 @@ def best_float():
         machine() != 'sparc64'): # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
+
+
+def longdouble_lte_float64():
+    """ Return True if longdouble appears to have the same precision as float64
+    """
+    return np.longdouble(2**53) == np.longdouble(2**53) + 1
+
+
+# Record longdouble precision at import because it can change on Windows
+_LD_LTE_FLOAT64 = longdouble_lte_float64()
+
+
+def longdouble_precision_improved():
+    """ True if longdouble precision increased since initial import
+
+    This can happen on Windows compiled with MSVC.  It may be because libraries
+    compiled with mingw (longdouble is Intel80) get linked to numpy compiled
+    with MSVC (longdouble is Float64)
+    """
+    return not longdouble_lte_float64() and _LD_LTE_FLOAT64
 
 
 def have_binary128():
@@ -672,6 +694,7 @@ def ok_floats():
 
 
 OK_FLOATS = ok_floats()
+
 
 
 def able_int_type(values):

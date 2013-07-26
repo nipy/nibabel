@@ -12,7 +12,7 @@ from glob import glob
 from contextlib import contextmanager
 
 import numpy as np
-from numpy.testing import dec, assert_, assert_allclose
+from numpy.testing import dec, assert_
 
 from ..netcdf import netcdf_file
 
@@ -197,4 +197,4 @@ def test_ticket_1720():
         float_var = f.variables['float_var']
         assert_equal(float_var.units, b'metres')
         assert_equal(float_var.shape, (10,))
-        assert_allclose(float_var[:], items)
+        assert_(np.allclose(float_var[:], items))
