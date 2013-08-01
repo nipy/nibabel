@@ -47,7 +47,7 @@ header_dtd = [
     ('scl_inter', 'f4'),  # 116; data scaling intercept
     ('slice_end', 'i2'),  # 120; last slice index
     ('slice_code', 'u1'), # 122; slice timing order
-    ('xyzt_units', 'u1'), # 123; inits of pixdim[1..4]
+    ('xyzt_units', 'u1'), # 123; units of pixdim[1..4]
     ('cal_max', 'f4'),    # 124; max display intensity
     ('cal_min', 'f4'),    # 128; min display intensity
     ('slice_duration', 'f4'), # 132; time for 1 slice
@@ -531,7 +531,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     has_data_slope = True
     has_data_intercept = True
 
-    # Extension class; should implement __call__ for contruction, and
+    # Extension class; should implement __call__ for construction, and
     # ``from_fileobj`` for reading from file
     exts_klass = Nifti1Extensions
 
@@ -546,7 +546,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     pair_magic = b'ni1'
     single_magic = b'n+1'
 
-    # Quaternion threshold near 0, based on float32 preicision
+    # Quaternion threshold near 0, based on float32 precision
     quaternion_threshold = -np.finfo(np.float32).eps * 3
 
     def __init__(self,
@@ -578,7 +578,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = klass(raw_str, endianness, check)
         # Read next 4 bytes to see if we have extensions.  The nifti standard
         # has this as a 4 byte string; if the first value is not zero, then we
-        # have extensions.  
+        # have extensions.
         extension_status = fileobj.read(4)
         if len(extension_status) < 4 or extension_status[0] == b'\x00':
             return hdr
@@ -708,7 +708,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         hdr = self._structarr
         bcd = [hdr['quatern_b'], hdr['quatern_c'], hdr['quatern_d']]
-        # Adjust threshold to fact that source data was float32
+        # Adjust threshold to precision of stored values in header
         return fillpositive(bcd, self.quaternion_threshold)
 
     def get_qform(self, coded=False):
@@ -765,7 +765,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             * If affine is None, `code`-> 0
             * If affine not None and existing qform code in header == 0,
               `code`-> 2 (aligned)
-            * If affine not None and exisiting qform code in header != 0,
+            * If affine not None and existing qform code in header != 0,
               `code`-> existing qform code in header
         strip_shears : bool, optional
             Whether to strip shears in `affine`.  If True, shears will be
@@ -894,7 +894,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
             * If affine is None, `code`-> 0
-            * If affine not None and exisiting sform code in header == 0,
+            * If affine not None and existing sform code in header == 0,
               `code`-> 2 (aligned)
             * If affine not None and existing sform code in header != 0,
               `code`-> existing sform code in header
@@ -975,7 +975,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         (1.0, None)
         '''
         # Note that we are returning float (float64) scalefactors and
-        # intercepts, although they are stored as np.float32.
+        # intercepts, although they are stored as in nifti1 as float32.
         scale = float(self['scl_slope'])
         dc_offset = float(self['scl_inter'])
         if scale == 0 or not np.isfinite(scale):
@@ -1013,7 +1013,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Returns
         -------
         freq : {None,0,1,2}
-           Which data array axis is freqency encode direction
+           Which data array axis is frequency encode direction
         phase : {None,0,1,2}
            Which data array axis is phase encode direction
         slice : {None,0,1,2}
@@ -1048,11 +1048,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         Parameters
         ----------
         freq : {None, 0, 1, 2}
-            axis of data array refering to freqency encoding
+            axis of data array referring to frequency encoding
         phase : {None, 0, 1, 2}
-            axis of data array refering to phase encoding
+            axis of data array referring to phase encoding
         slice : {None, 0, 1, 2}
-            axis of data array refering to slice encoding
+            axis of data array referring to slice encoding
 
         ``None`` means the axis is not specified.
 
@@ -1636,7 +1636,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
             ``HeaderDataError``
         update_affine : bool, optional
             Whether to update the image affine from the header best affine after
-            setting the qform. Must be keyword argumemt (because of different
+            setting the qform. Must be keyword argument (because of different
             position in `set_qform`). Default is True
 
         See also
@@ -1715,7 +1715,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
              `code`-> existing sform code in header
         update_affine : bool, optional
             Whether to update the image affine from the header best affine after
-            setting the qform.  Must be keyword argumemt (because of different
+            setting the qform.  Must be keyword argument (because of different
             position in `set_qform`). Default is True
 
         See also
@@ -1837,4 +1837,3 @@ def save(img, filename):
         Nifti1Image.instance_to_filename(img, filename)
     except ImageFileError:
         Nifti1Pair.instance_to_filename(img, filename)
-
