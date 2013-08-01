@@ -592,11 +592,16 @@ class AnalyzeHeader(LabeledWrapStruct):
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims
-        dims[1:ndims+1] = shape
-        # Check that dimensions fit
-        if not np.all(dims[1:ndims+1] == shape):
+        try:
+            dims[1:ndims+1] = shape
+        except OverflowError:
+            values_fit = False
+        else:
+            values_fit = np.all(dims[1:ndims+1] == shape)
+        # Error if we did not succeed setting dimensions
+        if not values_fit:
             raise HeaderDataError('shape %s does not fit in dim datatype' %
-                                   (shape,))
+                                  (shape,))
         self._structarr['pixdim'][ndims+1:] = 1.0
 
     def get_base_affine(self):
