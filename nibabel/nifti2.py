@@ -136,6 +136,30 @@ class Nifti2Header(Nifti1Header):
     # Quaternion threshold near 0, based on float64 preicision
     quaternion_threshold = -np.finfo(np.float64).eps * 3
 
+    def get_data_shape(self):
+        ''' Get shape of data
+
+        Examples
+        --------
+        >>> hdr = Nifti2Header()
+        >>> hdr.get_data_shape()
+        (0,)
+        >>> hdr.set_data_shape((1,2,3))
+        >>> hdr.get_data_shape()
+        (1, 2, 3)
+
+        Expanding number of dimensions gets default zooms
+
+        >>> hdr.get_zooms()
+        (1.0, 1.0, 1.0)
+
+        Notes
+        -----
+        Does not use Nifti1 freesurfer hack for large vectors described in
+        :meth:`Nifti1Header.set_data_shape
+        '''
+        return AnalyzeHeader.get_data_shape(self)
+
     def set_data_shape(self, shape):
         ''' Set shape of data
 
@@ -149,7 +173,7 @@ class Nifti2Header(Nifti1Header):
 
         Notes
         -----
-        Does not apply Freesurfer hack for long vectors (see
+        Does not apply nifti1 Freesurfer hack for long vectors (see
         :meth:`Nifti1Header.set_data_shape)
         '''
         AnalyzeHeader.set_data_shape(self, shape)
