@@ -20,6 +20,7 @@ dicom_test = np.testing.dec.skipif(not have_dicom,
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
+from ...volumeutils import endian_codes
 
 from unittest import TestCase
 from nose.tools import (assert_true, assert_false, assert_equal,
@@ -543,7 +544,11 @@ class TestMultiFrameWrapper(TestCase):
         # well.  This just tests that the data ordering produces a consistent
         # result.
         dw = didw.wrapper_from_file(DATA_FILE_4D)
-        dat_str = dw.get_data().tostring()
+        data = dw.get_data()
+        # data hash depends on the endianness
+        if endian_codes[data.dtype.byteorder] == '>':
+            data = data.byteswap()
+        dat_str = data.tostring()
         assert_equal(sha1(dat_str).hexdigest(),
                     '149323269b0af92baa7508e19ca315240f77fa8c')
 
