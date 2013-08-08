@@ -428,7 +428,11 @@ def int_to_float(val, flt_type):
     """
     if not flt_type is np.longdouble:
         return flt_type(val)
-    val = int(val)
+    # The following works around a nasty numpy 1.4.1 bug such that:
+    # >>> int(np.uint32(2**32-1)
+    # -1
+    if not isinstance(val, int):
+        val = int(str(val))
     faval = np.longdouble(0)
     while val != 0:
         f64 = np.float64(val)
