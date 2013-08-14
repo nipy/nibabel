@@ -11,6 +11,7 @@ from .filename_parser import types_filenames, splitext_addext
 from .volumeutils import BinOpener
 from . import spm2analyze as spm2
 from . import nifti1
+from .minc1 import Minc1Image
 from .freesurfer import MGHImage
 from .fileholders import FileHolderError
 from .spatialimages import ImageFileError
