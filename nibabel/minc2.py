@@ -6,6 +6,25 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""" Preliminary MINC2 support
+
+Use with care; I haven't tested this against a wide range of MINC files.
+
+If you have a file that isn't read correctly, please send an example.
+
+Test reading with something like::
+
+    import nibabel as nib
+    img = nib.load('my_funny.mnc')
+    data = img.get_data()
+    print(data.mean())
+    print(data.max())
+    print(data.min())
+
+and compare against command line output of::
+
+    mincstats my_funny.mnc
+"""
 import numpy as np
 
 from .optpkg import optional_package
