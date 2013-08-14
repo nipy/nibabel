@@ -11,7 +11,8 @@ else:
     have_scipy = True
 
 from nibabel import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
-                     Nifti1Pair, Nifti1Image, MGHImage, Minc1Image)
+                     Nifti1Pair, Nifti1Image, MGHImage, Minc1Image,
+                     Minc2Image)
 from nibabel.spatialimages import SpatialImage
 from nibabel.ecat import EcatImage
 
@@ -228,6 +229,11 @@ class TestNifti1API(TestNifti1PairAPI):
 class TestMinc1API(TestAnalyzeAPI):
     image_class = Minc1Image
     can_save = False
+
+
+class TestMinc2API(TestMinc1API):
+    image_class = Minc2Image
+
 
 
 # ECAT is a special case and needs more thought
