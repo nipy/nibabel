@@ -309,7 +309,6 @@ class EcatHeader(object):
         hdr_data['ecat_calibration_factor'] = 1.0 # scale factor
         return hdr_data
 
-
     def get_data_dtype(self):
         """ Get numpy dtype for data from header"""
         raise NotImplementedError("dtype is only valid from subheaders")
@@ -319,7 +318,6 @@ class EcatHeader(object):
         return self.__class__(
             self.binaryblock,
             self.endianness)
-
 
     def __eq__(self, other):
         """ checks for equality between two headers"""
@@ -720,11 +718,34 @@ class EcatSubHeader(object):
         return data
 
 
+class EcatImageArrayProxy(object):
+    ''' Ecat implemention of array proxy protocol
+
+    The array proxy allows us to freeze the passed fileobj and
+    header such that it returns the expected data array.
+    '''
+    def __init__(self, subheader):
+        self._subheader = subheader
+        self._data = None
+        x, y, z = subheader.get_shape()
+        nframes = subheader.get_nframes()
+        self.shape = (x, y, z, nframes)
+
+    def __array__(self):
+        ''' Read of data from file
+
+        This reads ALL FRAMES into one array, can be memory expensive use
+        subheader.data_from_fileobj(frame) for less memory intensive reads
+        '''
+        data = np.empty(self.shape)
+        frame_mapping = self._subheader._mlist.get_frame_order()
+        for i in sorted(frame_mapping):
+            data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
+        return data
 
 
 class EcatImage(SpatialImage):
-    """This class returns a list of Ecat images,
-    with one image(hdr/data) per frame
+    """ Class returns a list of Ecat images, with one image(hdr/data) per frame
     """
     _header = EcatHeader
     header_class = _header
@@ -732,35 +753,10 @@ class EcatImage(SpatialImage):
     _mlist = EcatMlist
     files_types = (('image', '.v'), ('header', '.v'))
 
+    ImageArrayProxy = EcatImageArrayProxy
 
-    class ImageArrayProxy(object):
-        ''' Ecat implemention of array proxy protocol
-
-        The array proxy allows us to freeze the passed fileobj and
-        header such that it returns the expected data array.
-        '''
-        def __init__(self, subheader):
-            self._subheader = subheader
-            self._data = None
-            x, y, z = subheader.get_shape()
-            nframes = subheader.get_nframes()
-            self.shape = (x, y, z, nframes)
-
-        def __array__(self):
-            ''' Cached read of data from file
-            This reads ALL FRAMES into one array, can be memory expensive
-            use subheader.data_from_fileobj(frame) for less memory intensive
-            reads
-            '''
-            if self._data is None:
-                self._data = np.empty(self.shape)
-                frame_mapping = self._subheader._mlist.get_frame_order()
-                for i in sorted(frame_mapping):
-                    self._data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
-            return self._data
-
-    def __init__(self, data, affine, header,
-                 subheader, mlist ,
+    def __init__(self, dataobj, affine, header,
+                 subheader, mlist,
                  extra = None, file_map = None):
         """ Initialize Image
 
@@ -771,7 +767,7 @@ class EcatImage(SpatialImage):
 
         Parameters
         ----------
-        data : None or array-like
+        dataabj : array-like
             image data
         affine : None or (4,4) array-like
             homogeneous affine giving relationship between voxel coords and
@@ -805,12 +801,12 @@ class EcatImage(SpatialImage):
         """
         self._subheader = subheader
         self._mlist = mlist
-        self._data = data
+        self._dataobj = dataobj
         if not affine is None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
-            affine = np.asarray(affine)
+            affine = np.array(affine, dtype=np.float64, copy=True)
             if not affine.shape == (4,4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
@@ -821,18 +817,10 @@ class EcatImage(SpatialImage):
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
+        self._data_cache = None
 
-    def _set_header(self, header):
-        self._header = header
-
-    def get_data(self):
-        """returns scaled data for all frames in a numpy array
-        returns as a 4D array """
-        if self._data is None:
-            raise ImageDataError('No data in this image')
-        return np.asanyarray(self._data)
-
-    def get_affine(self):
+    @property
+    def affine(self):
         if not self._subheader._check_affines():
             warnings.warn('Affines different across frames, loading affine from FIRST frame',
                           UserWarning )
@@ -874,7 +862,6 @@ class EcatImage(SpatialImage):
     @classmethod
     def from_filespec(klass, filespec):
         return klass.from_filename(filespec)
-
 
     @staticmethod
     def _get_fileholders(file_map):

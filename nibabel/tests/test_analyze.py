@@ -525,6 +525,7 @@ def test_data_code_error():
 
 class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
+    can_save = True
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
