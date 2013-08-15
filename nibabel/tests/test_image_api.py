@@ -197,6 +197,7 @@ class TestAnalyzeAPI(ValidateAPI):
             rt_img = img.__class__.from_filename(fname)
             assert_array_equal(img.shape, rt_img.shape)
             assert_almost_equal(img.get_data(), rt_img.get_data())
+            del rt_img # to allow windows to delete the directory
 
 
 class TestSpatialImageAPI(TestAnalyzeAPI):
