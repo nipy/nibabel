@@ -182,6 +182,21 @@ class MincFile(object):
         return self._normalize(data)
 
 
+class MincImageArrayProxy(object):
+    ''' Minc implemention of array proxy protocol
+
+    The array proxy allows us to freeze the passed fileobj and
+    header such that it returns the expected data array.
+    '''
+    def __init__(self, minc_file):
+        self.minc_file = minc_file
+        self.shape = minc_file.get_data_shape()
+
+    def __array__(self):
+        ''' Read of data from file '''
+        return self.minc_file.get_scaled_data()
+
+
 class MincImage(SpatialImage):
     ''' Class for MINC images
 
@@ -192,22 +207,7 @@ class MincImage(SpatialImage):
     files_types = (('image', '.mnc'),)
     _compressed_exts = ('.gz', '.bz2')
 
-    class ImageArrayProxy(object):
-        ''' Minc implemention of array proxy protocol
-
-        The array proxy allows us to freeze the passed fileobj and
-        header such that it returns the expected data array.
-        '''
-        def __init__(self, minc_file):
-            self.minc_file = minc_file
-            self._data = None
-            self.shape = minc_file.get_data_shape()
-
-        def __array__(self):
-            ''' Cached read of data from file '''
-            if self._data is None:
-                self._data = self.minc_file.get_scaled_data()
-            return self._data
+    ImageArrayProxy = MincImageArrayProxy
 
     @classmethod
     def from_file_map(klass, file_map):

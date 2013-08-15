@@ -560,7 +560,7 @@ class MGHImage(SpatialImage):
     def _affine2header(self):
         """ Unconditionally set affine into the header """
         hdr = self._header
-        shape = self.shape
+        shape = self._dataobj.shape
         # for more information, go through save_mgh.m in FreeSurfer dist
         MdcD = self._affine[:3, :3]
         delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))

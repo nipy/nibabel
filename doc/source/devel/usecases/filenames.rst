@@ -29,6 +29,11 @@ Now we can load from the filename:
 
 We could get the filename with one of::
 
+   >>> img.filename == fname
+   True
+
+or::
+
    >>> img.get_filename() == fname
    True
 
