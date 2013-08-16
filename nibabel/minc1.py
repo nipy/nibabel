@@ -86,8 +86,10 @@ class Minc1File(object):
         return self._image.data.shape
 
     def get_zooms(self):
+        """ Get real-world sizes of voxels """
+        # zooms must be positive; but steps in MINC can be negative
         return tuple(
-            [float(dim.step) for dim in self._dims])
+            [abs(float(dim.step)) for dim in self._dims])
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
