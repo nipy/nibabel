@@ -18,6 +18,9 @@ from ..nifti2 import (Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair)
 from .test_nifti1 import (TestNifti1PairHeader, TestNifti1SingleHeader,
                           TestNifti1Pair, TestNifti1Image, TestNifti1General)
 
+from nose.tools import assert_equal
+from numpy.testing import assert_array_equal
+
 from ..testing import data_path
 
 header_file = os.path.join(data_path, 'nifti2.hdr')
@@ -32,6 +35,24 @@ class _Nifti2Mixin(object):
     def test_freesurfer_hack(self):
         # Disable this check
         pass
+
+    def test_eol_check(self):
+        # Check checking of EOL check field
+        HC = self.header_class
+        hdr = HC()
+        good_eol = (13, 10, 26, 10)
+        assert_array_equal(hdr['eol_check'], good_eol)
+        hdr['eol_check'] = 0
+        fhdr, message, raiser = self.log_chk(hdr, 20)
+        assert_array_equal(fhdr['eol_check'], good_eol)
+        return
+        assert_equal(message,
+                     'setting EOL check to 13, 10, 26, 10')
+        hdr['eol_check'] = (13, 10, 0, 10)
+        fhdr, message, raiser = self.log_chk(hdr, 40)
+        assert_array_equal(fhdr['eol_check'], good_eol)
+        assert_equal(message,
+                     'setting EOL check to 13, 10, 26, 10')
 
 
 class TestNifti2PairHeader(_Nifti2Mixin, TestNifti1PairHeader):

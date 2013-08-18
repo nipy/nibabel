@@ -17,7 +17,8 @@ Format described here:
 import numpy as np
 
 from .analyze import AnalyzeHeader
-from .spatialimages import ImageFileError
+from .batteryrunners import Report
+from .spatialimages import HeaderDataError, ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
 
 r"""
@@ -152,6 +153,41 @@ class Nifti2Header(Nifti1Header):
         :meth:`Nifti1Header.set_data_shape)
         '''
         AnalyzeHeader.set_data_shape(self, shape)
+
+    @classmethod
+    def default_structarr(klass, endianness=None):
+        ''' Create empty header binary block with given endianness '''
+        hdr_data = super(Nifti2Header, klass).default_structarr(endianness)
+        hdr_data['eol_check'] = (13, 10, 26, 10)
+        return hdr_data
+
+    ''' Checks only below here '''
+
+    @classmethod
+    def _get_checks(klass):
+        # Add our own checks
+        return (super(Nifti2Header, klass)._get_checks() +
+                (klass._chk_eol_check,))
+
+    @staticmethod
+    def _chk_eol_check(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        if np.all(hdr['eol_check'] == (13, 10, 26, 10)):
+            return hdr, rep
+        if np.all(hdr['eol_check'] == 0):
+            rep.problem_level = 20
+            rep.problem_msg = 'EOL check all 0'
+            if fix:
+                hdr['eol_check'] = (13, 10, 26, 10)
+                rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
+            return hdr, rep
+        rep.problem_level = 40
+        rep.problem_msg = ('EOL check not 0 or 13, 10, 26, 10; data may be '
+                           'corrupted by EOL conversion')
+        if fix:
+            hdr['eol_check'] = (13, 10, 26, 10)
+            rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
+        return hdr, rep
 
 
 class Nifti2PairHeader(Nifti2Header):
