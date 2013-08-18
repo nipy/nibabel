@@ -1,4 +1,3 @@
-# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
@@ -9,6 +8,7 @@
 ''' Tests for nifti reading package '''
 from __future__ import division, print_function, absolute_import
 import os
+import warnings
 
 import numpy as np
 
@@ -861,6 +861,51 @@ def test_extension_list():
     assert_false(ext_c0 == ext_c1)
     ext_c0.append(ext)
     assert_true(ext_c0 == ext_c1)
+
+
+def test_extension_io():
+    bio = BytesIO()
+    ext1 = Nifti1Extension(6, b'Extra comment')
+    ext1.write_to(bio, False)
+    bio.seek(0)
+    ebacks = Nifti1Extensions.from_fileobj(bio, -1, False)
+    assert_equal(len(ebacks), 1)
+    assert_equal(ext1, ebacks[0])
+    # Check the start is what we expect
+    exp_dtype = np.dtype([('esize', 'i4'), ('ecode', 'i4')])
+    bio.seek(0)
+    buff = np.ndarray(shape=(), dtype=exp_dtype, buffer=bio.read(16))
+    assert_equal(buff['esize'], 32)
+    assert_equal(buff['ecode'], 6)
+    # Try another extension on top
+    bio.seek(32)
+    ext2 = Nifti1Extension(6, b'Comment')
+    ext2.write_to(bio, False)
+    bio.seek(0)
+    ebacks = Nifti1Extensions.from_fileobj(bio, -1, False)
+    assert_equal(len(ebacks), 2)
+    assert_equal(ext1, ebacks[0])
+    assert_equal(ext2, ebacks[1])
+    # Rewrite but deliberately setting esize wrongly
+    bio.truncate(0)
+    bio.seek(0)
+    ext1.write_to(bio, False)
+    bio.seek(0)
+    start = np.zeros((1,), dtype=exp_dtype)
+    start['esize'] = 24
+    start['ecode'] = 6
+    bio.write(start.tostring())
+    bio.seek(24)
+    ext2.write_to(bio, False)
+    # Result should still be OK, but with a warning
+    bio.seek(0)
+    with warnings.catch_warnings(record=True) as warns:
+        ebacks = Nifti1Extensions.from_fileobj(bio, -1, False)
+        assert_equal(len(warns), 1)
+        assert_equal(warns[0].category, UserWarning)
+        assert_equal(len(ebacks), 2)
+        assert_equal(ext1, ebacks[0])
+        assert_equal(ext2, ebacks[1])
 
 
 def test_nifti_extensions():

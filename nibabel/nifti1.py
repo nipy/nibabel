@@ -481,8 +481,10 @@ class Nifti1Extensions(list):
             ecode = ext_def[1]
             esize = ext_def[0]
             if esize % 16:
-                raise HeaderDataError(
-                        'extension size is not a multiple of 16 bytes')
+                warnings.warn(
+                    'Extension size is not a multiple of 16 bytes; '
+                    'Assuming size is correct and hoping for the best',
+                    UserWarning)
             # read extension itself; esize includes the 8 bytes already read
             evalue = fileobj.read(int(esize - 8))
             if not len(evalue) == esize - 8:
