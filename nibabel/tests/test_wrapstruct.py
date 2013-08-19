@@ -28,7 +28,7 @@ import logging
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
-from ..wrapstruct import WrapStructError, WrapStruct
+from ..wrapstruct import WrapStructError, WrapStruct, LabeledWrapStruct
 from ..batteryrunners import Report
 
 from ..volumeutils import swapped_code, native_code, Recoder
@@ -42,63 +42,7 @@ from numpy.testing import assert_array_equal
 from ..testing import (assert_equal, assert_true, assert_false,
                        assert_raises, assert_not_equal)
 
-
-class MyWrapStruct(WrapStruct):
-    """ An example wrapped struct class """
-    _field_recoders = {} # for recoding values for str
-    template_dtype = np.dtype([('an_integer', 'i2'), ('a_str', 'S10')])
-
-    @classmethod
-    def guessed_endian(klass, hdr):
-        if hdr['an_integer'] < 256:
-            return native_code
-        return swapped_code
-
-    @classmethod
-    def default_structarr(klass, endianness=None):
-        structarr = super(MyWrapStruct, klass).default_structarr(endianness)
-        structarr['an_integer'] = 1
-        structarr['a_str'] = b'a string'
-        return structarr
-
-    @classmethod
-    def _get_checks(klass):
-        ''' Return sequence of check functions for this class '''
-        return (klass._chk_integer,
-                klass._chk_string)
-
-    def get_value_label(self, fieldname):
-        if not fieldname in self._field_recoders:
-            raise ValueError('%s not a coded field' % fieldname)
-        code = int(self._structarr[fieldname])
-        return self._field_recoders[fieldname].label[code]
-
-    ''' Check functions in format expected by BatteryRunner class '''
-    @staticmethod
-    def _chk_integer(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        if hdr['an_integer'] == 1:
-            return hdr, rep
-        rep.problem_level = 40
-        rep.problem_msg = 'an_integer should be 1'
-        if fix:
-            hdr['an_integer'] = 1
-            rep.fix_msg = 'set an_integer to 1'
-        return hdr, rep
-
-    @staticmethod
-    def _chk_string(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        hdr_str = str(hdr['a_str'])
-        if hdr_str.lower() == hdr_str:
-            return hdr, rep
-        rep.problem_level = 20
-        rep.problem_msg = 'a_str should be lower case'
-        if fix:
-            hdr['a_str'] = hdr_str.lower()
-            rep.fix_msg = 'set a_str to lower case'
-        return hdr, rep
-
+INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
 
 class _TestWrapStructBase(TestCase):
     ''' Class implements base tests for binary headers
@@ -106,6 +50,11 @@ class _TestWrapStructBase(TestCase):
     It serves as a base class for other binary header tests
     '''
     header_class = None
+
+    def get_bad_bb(self):
+        # Value for the binaryblock that will raise an error on checks. None
+        # means do not check
+        return None
 
     def test_general_init(self):
         hdr = self.header_class()
@@ -269,9 +218,10 @@ class _TestWrapStructBase(TestCase):
                       self.header_class,
                       bb + b'\x00')
         # Checking set to true by default, and prevents nonsense being
-        # set into the header. Completely zeros binary block always
-        # (fairly) bad
-        bb_bad = b'\x00' * len(bb)
+        # set into the header.
+        bb_bad = self.get_bad_bb()
+        if bb_bad is None:
+            return
         assert_raises(HeaderDataError, self.header_class, bb_bad)
         # now slips past without check
         _ = self.header_class(bb_bad, check=False)
@@ -291,6 +241,7 @@ class _TestWrapStructBase(TestCase):
         class DC(self.header_class):
             def check_fix(self, *args, **kwargs):
                 raise Exception
+        # Assumes check=True default
         assert_raises(Exception, DC, hdr.binaryblock)
         hdr = DC(hdr.binaryblock, check=False)
         hdr2 = hdr.as_byteswapped(native_code)
@@ -306,14 +257,24 @@ class _TestWrapStructBase(TestCase):
         binblock = hdr.binaryblock
         return self.header_class.diagnose_binaryblock(binblock)
 
-    def test_get_value_label(self):
+    def test_str(self):
         hdr = self.header_class()
-        original_recoders = hdr._field_recoders
+        # Check something returns from str
+        s1 = str(hdr)
+        assert_true(len(s1) > 0)
+
+
+class _TestLabeledWrapStruct(_TestWrapStructBase):
+    """ Test a wrapstruct with value labeling """
+
+    def test_get_value_label(self):
+        # Test get value label method
+        # Make a new class to avoid overwriting recoders of original
+        class MyHdr(self.header_class):
+            _field_recoders = {}
+        hdr = MyHdr()
         # Key not existing raises error
-        assert_true('improbable' not in original_recoders)
         assert_raises(ValueError, hdr.get_value_label, 'improbable')
-        new_recoders = {}
-        hdr._field_recoders = new_recoders
         # Even if there is a recoder
         assert_true('improbable' not in hdr.keys())
         rec = Recoder([[0, 'fullness of heart']], ('code', 'label'))
@@ -323,25 +284,82 @@ class _TestWrapStructBase(TestCase):
         for key, value in hdr.items():
             # No recoder at first
             assert_raises(ValueError, hdr.get_value_label, 0)
-            try:
-                code = int(value)
-            except (ValueError, TypeError):
-                pass
-            else: # codeable
-                rec = Recoder([[code, 'fullness of heart']], ('code', 'label'))
-                hdr._field_recoders[key] = rec
-                assert_equal(hdr.get_value_label(key), 'fullness of heart')
-
-    def test_str(self):
-        hdr = self.header_class()
-        # Check something returns from str
-        s1 = str(hdr)
-        assert_true(len(s1) > 0)
+            if not value.dtype.type in INTEGER_TYPES or not np.isscalar(value):
+                continue
+            code = int(value)
+            rec = Recoder([[code, 'fullness of heart']], ('code', 'label'))
+            hdr._field_recoders[key] = rec
+            assert_equal(hdr.get_value_label(key), 'fullness of heart')
+            # If key exists, but value is missing, we get 'unknown code'
+            # Speculating that we can set code value 0 or 1
+            new_code = 1 if code == 0 else 0
+            hdr[key] = new_code
+            assert_equal(hdr.get_value_label(key),
+                         '<unknown code {0}>'.format(new_code))
 
 
-class TestWrapStruct(_TestWrapStructBase):
+class MyWrapStruct(WrapStruct):
+    """ An example wrapped struct class """
+    template_dtype = np.dtype([('an_integer', 'i2'), ('a_str', 'S10')])
+
+    @classmethod
+    def guessed_endian(klass, hdr):
+        if hdr['an_integer'] < 256:
+            return native_code
+        return swapped_code
+
+    @classmethod
+    def default_structarr(klass, endianness=None):
+        structarr = super(MyWrapStruct, klass).default_structarr(endianness)
+        structarr['an_integer'] = 1
+        structarr['a_str'] = b'a string'
+        return structarr
+
+    @classmethod
+    def _get_checks(klass):
+        ''' Return sequence of check functions for this class '''
+        return (klass._chk_integer,
+                klass._chk_string)
+
+    ''' Check functions in format expected by BatteryRunner class '''
+    @staticmethod
+    def _chk_integer(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        if hdr['an_integer'] == 1:
+            return hdr, rep
+        rep.problem_level = 40
+        rep.problem_msg = 'an_integer should be 1'
+        if fix:
+            hdr['an_integer'] = 1
+            rep.fix_msg = 'set an_integer to 1'
+        return hdr, rep
+
+    @staticmethod
+    def _chk_string(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        hdr_str = str(hdr['a_str'])
+        if hdr_str.lower() == hdr_str:
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'a_str should be lower case'
+        if fix:
+            hdr['a_str'] = hdr_str.lower()
+            rep.fix_msg = 'set a_str to lower case'
+        return hdr, rep
+
+
+class MyLabeledWrapStruct(LabeledWrapStruct, MyWrapStruct):
+    _field_recoders = {} # for recoding values for str
+
+
+class TestMyWrapStruct(_TestWrapStructBase):
     """ Test fake binary header defined at top of module """
     header_class = MyWrapStruct
+
+    def get_bad_bb(self):
+        # A value for the binary block that should raise an error
+        # Completely zeros binary block (nearly) always (fairly) bad
+        return b'\x00' * self.header_class.template_dtype.itemsize
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
@@ -357,11 +375,26 @@ class TestWrapStruct(_TestWrapStructBase):
         hdr = self.header_class()
         s1 = str(hdr)
         assert_true(len(s1) > 0)
-        assert_true('fullness of heart' not in s1)
-        rec = Recoder([[1, 'fullness of heart']], ('code', 'label'))
-        hdr._field_recoders['an_integer'] = rec
-        s2 = str(hdr)
-        assert_true('fullness of heart' in s2)
+        assert_true('an_integer' in s1)
+        assert_true('a_str' in s1)
+
+    def test_copy(self):
+        hdr = self.header_class()
+        hdr2 = hdr.copy()
+        assert_equal(hdr, hdr2)
+        self._set_something_into_hdr(hdr)
+        assert_not_equal(hdr, hdr2)
+        self._set_something_into_hdr(hdr2)
+        assert_equal(hdr, hdr2)
+
+    def test_copy(self):
+        hdr = self.header_class()
+        hdr2 = hdr.copy()
+        assert_equal(hdr, hdr2)
+        self._set_something_into_hdr(hdr)
+        assert_not_equal(hdr, hdr2)
+        self._set_something_into_hdr(hdr2)
+        assert_equal(hdr, hdr2)
 
     def test_checks(self):
         # Test header checks
@@ -424,3 +457,24 @@ class TestWrapStruct(_TestWrapStructBase):
             assert_raises(HeaderDataError, hdr.copy().check_fix)
         finally:
             imageglobals.logger, imageglobals.error_level = log_cache
+
+
+class TestMyLabeledWrapStruct(TestMyWrapStruct, _TestLabeledWrapStruct):
+    header_class = MyLabeledWrapStruct
+
+    def test_str(self):
+        # Make sure not to overwrite class dictionary
+        class MyHdr(self.header_class):
+            _field_recoders = {}
+        hdr = MyHdr()
+        s1 = str(hdr)
+        assert_true(len(s1) > 0)
+        assert_true('an_integer  : 1' in s1)
+        assert_true('fullness of heart' not in s1)
+        rec = Recoder([[1, 'fullness of heart']], ('code', 'label'))
+        hdr._field_recoders['an_integer'] = rec
+        s2 = str(hdr)
+        assert_true('fullness of heart' in s2)
+        hdr['an_integer'] = 10
+        s1 = str(hdr)
+        assert_true('<unknown code 10>' in s1)

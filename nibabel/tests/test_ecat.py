@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 
-from ..volumeutils import native_code, swapped_code
+from ..openers import Opener
 from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
 
 from unittest import TestCase
@@ -25,14 +25,16 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ..testing import data_path
 from ..tmpdirs import InTemporaryDirectory
 
+from .test_wrapstruct import _TestWrapStructBase
+
 ecat_file = os.path.join(data_path, 'tinypet.v')
 
-class TestEcatHeader(TestCase):
+class TestEcatHeader(_TestWrapStructBase):
     header_class = EcatHeader
     example_file = ecat_file
 
     def test_header_size(self):
-        assert_equal(self.header_class._dtype.itemsize, 512)
+        assert_equal(self.header_class.template_dtype.itemsize, 512)
 
     def test_empty(self):
         hdr = self.header_class()
@@ -43,11 +45,14 @@ class TestEcatHeader(TestCase):
         assert_true(hdr['file_type'] == 0)
         assert_true(hdr['ecat_calibration_factor'] == 1.0)
 
+    def _set_something_into_hdr(self, hdr):
+        # Called from test_bytes test method.  Specific to the header data type
+        hdr['scan_start_time'] = 42
+
     def test_dtype(self):
         #dtype not specified in header, only in subheaders
         hdr = self.header_class()
-        assert_raises(NotImplementedError,
-                            hdr.get_data_dtype)
+        assert_raises(NotImplementedError, hdr.get_data_dtype)
 
     def test_header_codes(self):
         fid = open(ecat_file, 'rb')
@@ -56,14 +61,7 @@ class TestEcatHeader(TestCase):
         fid.close()
         assert_true(newhdr.get_filetype() == 'ECAT7_VOLUME16')
         assert_equal(newhdr.get_patient_orient(),
-                           'ECAT7_Unknown_Orientation')
-
-    def test_copy(self):
-        hdr = self.header_class()
-        hdr2 = hdr.copy()
-        assert_true(hdr == hdr2)
-        assert_true(not hdr.binaryblock == hdr2._header_data.byteswap().tostring())
-        assert_true(hdr.keys() == hdr2.keys())
+                     'ECAT7_Unknown_Orientation')
 
     def test_update(self):
         hdr = self.header_class()
@@ -71,18 +69,11 @@ class TestEcatHeader(TestCase):
         hdr['num_frames'] = 2
         assert_true(hdr['num_frames'] == 2)
 
-    def test_endianness(self):
-        # Default constructed header should be native
-        native_hdr = self.header_class()
-        assert_true(native_hdr.endianness == native_code)
-        # Swapped constructed header should be swapped
-        swapped_hdr = self.header_class(endianness=swapped_code)
-        assert_true(swapped_hdr.endianness == swapped_code)
+    def test_from_eg_file(self):
         # Example header is big-endian
-        fid = open(ecat_file, 'rb')
-        file_hdr = native_hdr.from_fileobj(fid)
-        fid.close()
-        assert_true(file_hdr.endianness == '>')
+        with Opener(self.example_file) as fileobj:
+            hdr = self.header_class.from_fileobj(fileobj, check=False)
+        assert_equal(hdr.endianness, '>')
 
 
 class TestEcatMlist(TestCase):
@@ -250,3 +241,19 @@ class TestEcatImage(TestCase):
         assert_equal(img.get_affine().dtype, np.dtype(np.float64))
         img = img_klass(arr, aff.astype(np.int16), hdr, sub_hdr, mlist)
         assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+
+    def test_data_regression(self):
+        # Test whether data read has changed since 1.3.0
+        # These values came from reading the example image using nibabel 1.3.0
+        vals = dict(max = 248750736458.0,
+                    min = 1125342630.0,
+                    mean = 117907565661.46666)
+        data = self.img.get_data()
+        assert_equal(data.max(), vals['max'])
+        assert_equal(data.min(), vals['min'])
+        assert_array_almost_equal(data.mean(), vals['mean'])
+
+    def test_mlist_regreesion(self):
+        # Test mlist is as same as for nibabel 1.3.0
+        assert_array_equal(self.img.get_mlist()._mlist,
+                           [[16842758, 3, 3011, 1]])

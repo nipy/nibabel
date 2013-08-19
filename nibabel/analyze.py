@@ -88,7 +88,7 @@ from .volumeutils import (native_code, swapped_code, make_dt_codes,
                           shape_zoom_affine, array_from_file, seek_tell,
                           apply_read_scaling)
 from .arraywriters import make_array_writer, get_slope_inter, WriterError
-from .wrapstruct import WrapStruct
+from .wrapstruct import LabeledWrapStruct
 from .spatialimages import (HeaderDataError, HeaderTypeError,
                             SpatialImage)
 from .fileholders import copy_file_map
@@ -169,7 +169,7 @@ _dtdefs = ( # code, conversion function, equivalent dtype, aliases
 data_type_codes = make_dt_codes(_dtdefs)
 
 
-class AnalyzeHeader(WrapStruct):
+class AnalyzeHeader(LabeledWrapStruct):
     ''' Class for basic analyze header
 
     Implements zoom-only setting of affine transform, and no image
@@ -342,37 +342,6 @@ class AnalyzeHeader(WrapStruct):
         hdr_data['datatype'] = 16 # float32
         hdr_data['bitpix'] = 32
         return hdr_data
-
-    def get_value_label(self, fieldname):
-        ''' Returns label for coded field
-
-        A coded field is an int field containing codes that stand for
-        discrete values that also have string labels.
-
-        Parameters
-        ----------
-        fieldname : str
-           name of header field to get label for
-
-        Returns
-        -------
-        label : str
-           label for code value in header field `fieldname`
-
-        Raises
-        ------
-        ValueError : if field is not coded
-
-        Examples
-        --------
-        >>> hdr = AnalyzeHeader()
-        >>> hdr.get_value_label('datatype')
-        'float32'
-        '''
-        if not fieldname in self._field_recoders:
-            raise ValueError('%s not a coded field' % fieldname)
-        code = int(self._structarr[fieldname])
-        return self._field_recoders[fieldname].label[code]
 
     @classmethod
     def from_header(klass, header=None, check=True):
