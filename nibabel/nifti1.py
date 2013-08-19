@@ -634,6 +634,30 @@ class Nifti1Header(SpmAnalyzeHeader):
             hdr_data['vox_offset'] = klass.pair_vox_offset
         return hdr_data
 
+    @classmethod
+    def from_header(klass, header=None, check=True):
+        ''' Class method to create header from another header
+
+        Extend Analyze header copy by copying extensions from other Nifti types.
+
+        Parameters
+        ----------
+        header : ``Header`` instance or mapping
+           a header of this class, or another class of header for
+           conversion to this type
+        check : {True, False}
+           whether to check header for integrity
+
+        Returns
+        -------
+        hdr : header instance
+           fresh header instance of our own class
+        '''
+        new_hdr = super(Nifti1Header, klass).from_header(header, check)
+        if isinstance(header, Nifti1Header):
+            new_hdr.extensions[:] = header.extensions[:]
+        return new_hdr
+
     def get_data_shape(self):
         ''' Get shape of data
 
