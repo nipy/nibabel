@@ -29,8 +29,8 @@ from .. import spm99analyze as spm99
 from .. import spm2analyze as spm2
 from .. import nifti1 as ni1
 from .. import loadsave as nils
-from .. import (Nifti1Image, Nifti1Pair, Minc1Image, Spm2AnalyzeImage,
-                Spm99AnalyzeImage, AnalyzeImage, class_map)
+from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Minc1Image,
+                Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage, class_map)
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -252,3 +252,34 @@ def test_filename_save():
             del rt_img
         finally:
             shutil.rmtree(pth)
+
+
+def test_analyze_detection():
+    # Test detection of Analyze, Nifti1 and Nifti2
+    # Algorithm is as described in loadsave:which_analyze_type
+    def wat(hdr):
+        return nils.which_analyze_type(hdr.binaryblock)
+    n1_hdr = Nifti1Header(b'\0' * 348, check=False)
+    assert_equal(wat(n1_hdr), None)
+    n1_hdr['sizeof_hdr'] = 540
+    assert_equal(wat(n1_hdr), 'nifti2')
+    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti2')
+    n1_hdr['sizeof_hdr'] = 348
+    assert_equal(wat(n1_hdr), 'analyze')
+    assert_equal(wat(n1_hdr.as_byteswapped()), 'analyze')
+    n1_hdr['magic'] = b'n+1'
+    assert_equal(wat(n1_hdr), 'nifti1')
+    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
+    n1_hdr['magic'] = b'ni1'
+    assert_equal(wat(n1_hdr), 'nifti1')
+    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
+    # Doesn't matter what magic is if it's not a nifti1 magic
+    n1_hdr['magic'] = b'ni2'
+    assert_equal(wat(n1_hdr), 'analyze')
+    n1_hdr['sizeof_hdr'] = 0
+    n1_hdr['magic'] = b''
+    assert_equal(wat(n1_hdr), None)
+    n1_hdr['magic'] = 'n+1'
+    assert_equal(wat(n1_hdr), 'nifti1')
+    n1_hdr['magic'] = 'ni1'
+    assert_equal(wat(n1_hdr), 'nifti1')

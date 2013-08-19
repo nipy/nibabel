@@ -7,6 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
+import numpy as np
+
 from .filename_parser import types_filenames, splitext_addext
 from .volumeutils import BinOpener, Opener
 from . import spm2analyze as spm2
@@ -146,3 +148,43 @@ def read_img_data(img, prefer='scaled'):
             except AttributeError:
                 pass
         return hdr.data_from_fileobj(fileobj)
+
+
+def which_analyze_type(binaryblock):
+    """ Is `binaryblock` from NIfTI1, NIfTI2 or Analyze header?
+
+    Parameters
+    ----------
+    binaryblock : bytes
+        The `binaryblock` is 348 bytes that might be NIfTI1, NIfTI2, Analyze, or
+        None of the the above.
+
+    Returns
+    -------
+    hdr_type : str
+        * a nifti1 header (pair or single) -> return 'nifti1'
+        * a nifti2 header (pair or single) -> return 'nifti2'
+        * an Analyze header -> return 'analyze'
+        * None of the above -> return None
+
+    Notes
+    -----
+    Algorithm:
+
+    * read in the first 4 bytes from the file as 32-bit int ``sizeof_hdr``
+    * if ``sizeof_hdr`` is 540 or byteswapped 540 -> assume nifti2
+    * Check for 'ni1', 'n+1' magic -> assume nifti1
+    * if ``sizeof_hdr`` is 348 or byteswapped 348 assume Analyze
+    * Return None
+    """
+    hdr = np.ndarray(shape=(), dtype=nifti1.header_dtype, buffer=binaryblock)
+    bs_hdr = hdr.byteswap()
+    sizeof_hdr = hdr['sizeof_hdr']
+    bs_sizeof_hdr = bs_hdr['sizeof_hdr']
+    if 540 in (sizeof_hdr, bs_sizeof_hdr):
+        return 'nifti2'
+    if hdr['magic'] in (b'ni1', b'n+1'):
+        return 'nifti1'
+    if 348 in (sizeof_hdr, bs_sizeof_hdr):
+        return 'analyze'
+    return None
