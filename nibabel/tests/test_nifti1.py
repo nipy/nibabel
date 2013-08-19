@@ -946,7 +946,7 @@ class TestNifti1General(object):
     example_file = image_file
 
     def test_loadsave_cycle(self):
-        nim = load(self.example_file)
+        nim = self.module.load(self.example_file)
         # ensure we have extensions
         hdr = nim.get_header()
         exts_container = hdr.extensions

@@ -24,7 +24,7 @@ from numpy.testing import assert_array_equal
 from ..testing import data_path
 
 header_file = os.path.join(data_path, 'nifti2.hdr')
-image_file = os.path.join(data_path, 'example4d2.nii.gz')
+image_file = os.path.join(data_path, 'example_nifti2.nii.gz')
 
 
 class _Nifti2Mixin(object):
@@ -57,6 +57,7 @@ class _Nifti2Mixin(object):
 
 class TestNifti2PairHeader(_Nifti2Mixin, TestNifti1PairHeader):
     header_class = Nifti2PairHeader
+    example_file = header_file
 
 
 class TestNifti2SingleHeader(_Nifti2Mixin, TestNifti1SingleHeader):
