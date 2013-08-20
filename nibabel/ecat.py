@@ -14,6 +14,7 @@ from .volumeutils import (native_code, swapped_code, make_dt_codes,
                            array_from_file)
 from .spatialimages import SpatialImage, ImageDataError
 from .arraywriters import make_array_writer
+from .wrapstruct import WrapStruct
 
 
 MAINHDRSZ = 502
@@ -175,8 +176,9 @@ ft_defs = ( # code, name
     (12, 'ECAT7_3DSCAN8'),
     (13, 'ECAT7_3DNORM'),
     (14, 'ECAT7_3DSCANFIT'))
+file_type_codes = dict(ft_defs)
 
-patient_orient_defs = ( #code, description
+patient_orient_defs = ( # code, description
     (0, 'ECAT7_Feet_First_Prone'),
     (1, 'ECAT7_Head_First_Prone'),
     (2, 'ECAT7_Feet_First_Supine'),
@@ -186,81 +188,53 @@ patient_orient_defs = ( #code, description
     (6, 'ECAT7_Feet_First_Decubitus_Left'),
     (7, 'ECAT7_Head_First_Decubitus_Left'),
     (8, 'ECAT7_Unknown_Orientation'))
+patient_orient_codes = dict(patient_orient_defs)
 
 #Indexes from the patient_orient_defs structure defined above for the
 #neurological and radiological viewing conventions
 patient_orient_radiological = [0, 2, 4, 6]
 patient_orient_neurological = [1, 3, 5, 7]
 
-class EcatHeader(object):
+class EcatHeader(WrapStruct):
     """Class for basic Ecat PET header
+
     Sub-parts of standard Ecat File
-       main header
-       matrix list
-           which lists the information for each
-           frame collected (can have 1 to many frames)
-       subheaders specific to each frame
-           with possibly-variable sized data blocks
 
-    This just reads the main Ecat Header,
-    it does not load the data
-    or read the mlist or any sub headers
+    * main header
+    * matrix list
+      which lists the information for each frame collected (can have 1 to many
+      frames)
+    * subheaders specific to each frame with possibly-variable sized data blocks
 
+    This just reads the main Ecat Header, it does not load the data or read the
+    mlist or any sub headers
     """
-
-    _dtype = hdr_dtype
-    _ft_defs = ft_defs
-    _patient_orient_defs = patient_orient_defs
+    template_dtype = hdr_dtype
+    _ft_codes = file_type_codes
+    _patient_orient_codes = patient_orient_codes
 
     def __init__(self,
-                 fileobj=None,
-                 endianness=None):
-        """Initialize Ecat header from file object
+                 binaryblock=None,
+                 endianness=None,
+                 check=True):
+        """Initialize Ecat header from bytes object
 
         Parameters
         ----------
-        fileobj : {None, string} optional
-            binary block to set into header, By default, None
-            in which case we insert default empty header block
+        binaryblock : {None, bytes} optional
+            binary block to set into header, By default, None in which case we
+            insert default empty header block
         endianness : {None, '<', '>', other endian code}, optional
             endian code of binary block, If None, guess endianness
             from the data
+        check : {True, False}, optional
+            Whether to check and fix header for errors.  No checks currently
+            implemented, so value has no effect.
         """
-        if fileobj is None:
-            self._header_data = self._empty_headerdata(endianness)
-            return
+        super(EcatHeader, self).__init__(binaryblock, endianness, check)
 
-        hdr = np.ndarray(shape=(),
-                         dtype=self._dtype,
-                         buffer=fileobj)
-        if endianness is None:
-            endianness = self._guess_endian(hdr)
-
-        if endianness != native_code:
-            dt = self._dtype.newbyteorder(endianness)
-            hdr = np.ndarray(shape=(),
-                             dtype=dt,
-                             buffer=fileobj)
-        self._header_data = hdr.copy()
-
-        return
-
-    def get_header(self):
-        """returns header """
-        return self
-
-    @property
-    def binaryblock(self):
-        return self._header_data.tostring()
-
-    @property
-    def endianness(self):
-        if self._header_data.dtype.isnative:
-            return native_code
-        return swapped_code
-
-
-    def _guess_endian(self, hdr):
+    @classmethod
+    def guessed_endian(klass, hdr):
         """Guess endian from MAGIC NUMBER value of header data
         """
         if not hdr['sw_version'] == 74:
@@ -269,39 +243,10 @@ class EcatHeader(object):
             return native_code
 
     @classmethod
-    def from_fileobj(klass, fileobj, endianness=None):
-        """Return /read header with given or guessed endian code
-
-        Parameters
-        ----------
-        fileobj : file-like object
-            Needs to implement ``read`` method
-        endianness : None or endian code, optional
-            Code specifying endianness of data to be read
-
-        Returns
-        -------
-        hdr : EcatHeader object
-            EcatHeader object initialized from data in file object
-
-        Examples
-        --------
-
-
-        """
-        raw_str = fileobj.read(klass._dtype.itemsize)
-        return klass(raw_str, endianness)
-
-    def write_to(self, fileobj):
-        fileobj.write(self.binaryblock)
-
-    def _empty_headerdata(self,endianness=None):
-        """Return header data for empty header with given endianness"""
-        #hdr_data = super(EcatHeader, self)._empty_headerdata(endianness)
-        dt = self._dtype
-        if not endianness is None:
-            dt = dt.newbyteorder(endianness)
-        hdr_data = np.zeros((), dtype=dt)
+    def default_structarr(klass, endianness=None):
+        ''' Return header data for empty header with given endianness
+        '''
+        hdr_data = super(EcatHeader, klass).default_structarr(endianness)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
         hdr_data['num_frames']= 0
@@ -313,226 +258,243 @@ class EcatHeader(object):
         """ Get numpy dtype for data from header"""
         raise NotImplementedError("dtype is only valid from subheaders")
 
-
-    def copy(self):
-        return self.__class__(
-            self.binaryblock,
-            self.endianness)
-
-    def __eq__(self, other):
-        """ checks for equality between two headers"""
-        self_end = self.endianness
-        self_bb = self.binaryblock
-        if self_end == other.endianness:
-            return self_bb == other.binaryblock
-        other_bb = other._header_data.byteswap().tostring()
-        return self_bb == other_bb
-
-    def __ne__(self, other):
-        ''' equality between two headers defined by ``header_data``
-
-        For examples, see ``__eq__`` method docstring
-        '''
-        return not self == other
-
-    def __getitem__(self, item):
-        ''' Return values from header data
-
-        Examples
-        --------
-        >>> hdr = EcatHeader()
-        >>> hdr['magic_number'] == b'MATRIX72'
-        True
-        '''
-        return self._header_data[item].item()
-
-    def __setitem__(self, item, value):
-        ''' Set values in header data
-
-        Examples
-        --------
-        >>> hdr = EcatHeader()
-        >>> hdr['num_frames'] = 2
-        >>> hdr['num_frames']
-        2
-        '''
-        self._header_data[item] = value
-
     def get_patient_orient(self):
         """ gets orientation of patient based on code stored
         in header, not always reliable"""
-        orient_code = dict(self._patient_orient_defs)
-        code = self._header_data['patient_orientation'].item()
-        if not code in orient_code:
-            raise KeyError('Ecat Orientation CODE %d not recognized'%code)
-        return orient_code[code]
+        code = self._structarr['patient_orientation'].item()
+        if not code in self._patient_orient_codes:
+            raise KeyError('Ecat Orientation CODE %d not recognized' % code)
+        return self._patient_orient_codes[code]
 
     def get_filetype(self):
-        """ gets type of ECAT Matrix File from
-        code stored in header"""
-        ft_codes = dict(self._ft_defs)
-        code = self._header_data['file_type'].item()
-        if not code in ft_codes:
-            raise KeyError('Ecat Filetype CODE %d not recognized'%code)
-        return ft_codes[code]
+        """ Type of ECAT Matrix File from code stored in header"""
+        code = self._structarr['file_type'].item()
+        if not code in self._ft_codes:
+            raise KeyError('Ecat Filetype CODE %d not recognized' % code)
+        return self._ft_codes[code]
 
-    def __iter__(self):
-        return iter(self.keys())
+    @classmethod
+    def _get_checks(klass):
+        ''' Return sequence of check functions for this class '''
+        return ()
 
-    def keys(self):
-        ''' Return keys from header data'''
-        return list(self._dtype.names)
 
-    def values(self):
-        ''' Return values from header data'''
-        data = self._header_data
-        return [data[key] for key in self._dtype.names]
+def read_mlist(fileobj, endianness):
+    """ read (nframes, 4) matrix list array from `fileobj`
 
-    def items(self):
-        ''' Return items from header data'''
-        return zip(self.keys(), self.values())
+    Parameters
+    ----------
+    fileobj : file-like
+        an open file-like object implementing ``seek`` and ``read``
+
+    Returns
+    -------
+    mlist : (nframes, 4) ndarray
+        matrix list is an array with ``nframes`` rows and columns:
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+          * 1 - exists - rw
+          * 2 - exists - ro
+          * 3 - matrix deleted
+
+    Notes
+    -----
+    A 'record' appears to be a block of 512 bytes.
+
+    ``record_no`` in the code below is 1-based.  Record 1 may be the main
+    header, and the mlist records start at 2.
+
+    The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
+    mlist matrix.
+
+    The first row of these 32 looks like a special row.  The 4 values appear
+    to be (respectively):
+
+    * not sure - maybe negative number of mlist rows (out of 31) that are
+      blank and not used in this record.
+    * record_no - of next set of mlist entries or 0 if no more entries
+    * <no idea>
+    * n_rows - number of mlist rows in this record (between ?0 and 31)
+    """
+    dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
+    if not endianness is native_code:
+        dt = dt.newbyteorder(endianness)
+    mlists = []
+    mlist_index = 0
+    mlist_record_no = 2 # 1-based indexing
+    while True:
+        # Read record containing mlist entries
+        fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
+        dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
+        rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
+        # First row special
+        v0, mlist_record_no, v2, n_rows = rows[0]
+        if not (v0 + n_rows) == 31: # Some error condition here?
+            mlist = []
+            return mlist
+        mlists.append(rows[1:n_rows+1])
+        mlist_index += n_rows
+        if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
+            break
+    # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
+    # true? Should the dtype be uint32 or int32?
+    return np.row_stack(mlists)
+
+
+def get_frame_order(mlist):
+    """Returns the order of the frames stored in the file
+    Sometimes Frames are not stored in the file in
+    chronological order, this can be used to extract frames
+    in correct order
+
+    Returns
+    -------
+    id_dict: dict mapping frame number -> [mlist_row, mlist_id]
+
+    (where mlist id is value in the first column of the mlist matrix )
+
+    Examples
+    --------
+    >>> import os
+    >>> import nibabel as nib
+    >>> nibabel_dir = os.path.dirname(nib.__file__)
+    >>> from nibabel import ecat
+    >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+    >>> img = ecat.load(ecat_file)
+    >>> mlist = img.get_mlist()
+    >>> mlist.get_frame_order()
+    {0: [0, 16842758]}
+    """
+    ids = mlist[:, 0].copy()
+    n_valid = np.sum(ids > 0)
+    ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
+    valid_order = np.argsort(ids)
+    if not all(valid_order == sorted(valid_order)):
+        #raise UserWarning if Frames stored out of order
+        warnings.warn_explicit('Frames stored out of order;'\
+                        'true order = %s\n'\
+                        'frames will be accessed in order '\
+                        'STORED, NOT true order'%(valid_order),
+                        UserWarning,'ecat', 0)
+    id_dict = {}
+    for i in range(n_valid):
+        id_dict[i] = [valid_order[i], ids[valid_order[i]]]
+    return id_dict
+
+
+def get_series_framenumbers(mlist):
+    """ Returns framenumber of data as it was collected,
+    as part of a series; not just the order of how it was
+    stored in this or across other files
+
+    For example, if the data is split between multiple files
+    this should give you the true location of this frame as
+    collected in the series
+    (Frames are numbered starting at ONE (1) not Zero)
+
+    Returns
+    -------
+    frame_dict: dict mapping order_stored -> frame in series
+            where frame in series counts from 1; [1,2,3,4...]
+
+    Examples
+    --------
+    >>> import os
+    >>> import nibabel as nib
+    >>> nibabel_dir = os.path.dirname(nib.__file__)
+    >>> from nibabel import ecat
+    >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
+    >>> img = ecat.load(ecat_file)
+    >>> mlist = img.get_mlist()
+    >>> mlist.get_series_framenumbers()
+    {0: 1}
+    """
+    nframes = len(mlist)
+    frames_order = get_frame_order(mlist)
+    mlist_nframes = len(frames_order)
+    trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
+    frame_dict = {}
+    try:
+        for frame_stored, (true_order, _) in frames_order.items():
+            #frame as stored in file -> true number in series
+            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+        return frame_dict
+    except:
+        raise IOError('Error in header or mlist order unknown')
+
+
+def read_subheaders(fileobj, mlist, endianness):
+    """retreive all subheaders and return list of subheader recarrays
+
+    Parameters
+    ----------
+    fileobj : file-like
+        implementing ``read`` and ``seek``
+    mlist : (nframes, 4) ndarray
+        Columns are:
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+    endianness : {'<', '>'}
+        little / big endian code
+    """
+    subheaders = []
+    dt = subhdr_dtype
+    if not endianness is native_code:
+        dt = dt.newbyteorder(endianness)
+    for mat_id, sh_recno, sh_last_recno, mat_stat in mlist:
+        if sh_recno == 0:
+            break
+        offset = (sh_recno - 1) * 512
+        fileobj.seek(offset)
+        tmpdat = fileobj.read(512)
+        sh = np.ndarray(shape=(), dtype=dt, buffer=tmpdat)
+        subheaders.append(sh)
+    return subheaders
+
 
 class EcatMlist(object):
+    # Can we do without this object, just using the functions?
 
     def __init__(self,fileobj, hdr):
         """ gets list of frames and subheaders in pet file
 
+        Container for Ecat mlist
+
+        Data for mlist is numpy array shaem (frames, 4)
+
+        Columns are:
+
+        * 0 - Matrix identifier.
+        * 1 - subheader record number
+        * 2 - Last record number of matrix data block.
+        * 3 - Matrix status:
+          * 1 - exists - rw
+          * 2 - exists - ro
+          * 3 - matrix deleted
+
+        A record above is 512 bytes in the image data file
+
         Parameters
         -----------
-        fileobj : ECAT file <filename>.v  fileholder or file object
-                  with read, seek methods
-
-        Returns
-        -------
-        mlist : numpy recarray  nframes X 4 columns
-        1 - Matrix identifier.
-        2 - subheader record number
-        3 - Last record number of matrix data block.
-        4 - Matrix status:
-            1 - exists - rw
-            2 - exists - ro
-            3 - matrix deleted
+        fileobj : file-like
+            ECAT file <filename>.v  fileholder or file object with read, seek
+            methods
         """
         self.hdr = hdr
-        self._mlist = self.get_mlist(fileobj)
-
-    def get_mlist(self, fileobj):
-        fileobj.seek(512)
-        dat=fileobj.read(128*32)
-
-        dt = np.dtype([('matlist',np.int32)])
-        if not self.hdr.endianness is native_code:
-            dt = dt.newbyteorder(self.hdr.endianness)
-        nframes = self.hdr['num_frames']
-        mlist = np.zeros((nframes,4), dtype='uint32')
-        record_count = 0
-        done = False
-
-        while not done: #mats['matlist'][0,1] == 2:
-
-            mats = np.recarray(shape=(32,4), dtype=dt,  buf=dat)
-            if not (mats['matlist'][0,0] +  mats['matlist'][0,3]) == 31:
-                mlist = []
-                return mlist
-
-            nrecords = mats['matlist'][0,3]
-            mlist[record_count:nrecords+record_count,:] = mats['matlist'][1:nrecords+1,:]
-            record_count+= nrecords
-            if mats['matlist'][0,1] == 2 or mats['matlist'][0,1] == 0:
-                done = True
-            else:
-                # Find next subheader
-                tmp = int(mats['matlist'][0,1]-1)#cast to int
-                fileobj.seek(0)
-                fileobj.seek(tmp*512)
-                dat = fileobj.read(128*32)
-
-        return mlist
+        self._mlist = np.zeros((hdr['num_frames'], 4), dtype='uint32')
+        mlist_data = read_mlist(fileobj, hdr.endianness)
+        self._mlist[:len(mlist_data)] = mlist_data
 
     def get_frame_order(self):
-        """Returns the order of the frames stored in the file
-        Sometimes Frames are not stored in the file in
-        chronological order, this can be used to extract frames
-        in correct order
-
-        Returns
-        -------
-        id_dict: dict mapping frame number -> [mlist_row, mlist_id]
-
-        (where mlist id is value in the first column of the mlist matrix )
-
-        Examples
-        --------
-        >>> import os
-        >>> import nibabel as nib
-        >>> nibabel_dir = os.path.dirname(nib.__file__)
-        >>> from nibabel import ecat
-        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
-        >>> img = ecat.load(ecat_file)
-        >>> mlist = img.get_mlist()
-        >>> mlist.get_frame_order()
-        {0: [0, 16842758]}
-        """
-        mlist  = self._mlist
-        ids = mlist[:, 0].copy()
-        n_valid = np.sum(ids > 0)
-        ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
-        valid_order = np.argsort(ids)
-        if not all(valid_order == sorted(valid_order)):
-            #raise UserWarning if Frames stored out of order
-            warnings.warn_explicit('Frames stored out of order;'\
-                          'true order = %s\n'\
-                          'frames will be accessed in order '\
-                          'STORED, NOT true order'%(valid_order),
-                          UserWarning,'ecat', 0)
-        id_dict = {}
-        for i in range(n_valid):
-            id_dict[i] = [valid_order[i], ids[valid_order[i]]]
-
-        return id_dict
+        return get_frame_order(self._mlist)
 
     def get_series_framenumbers(self):
-        """ Returns framenumber of data as it was collected,
-        as part of a series; not just the order of how it was
-        stored in this or across other files
+        return get_series_framenumbers(self._mlist)
 
-        For example, if the data is split between multiple files
-        this should give you the true location of this frame as
-        collected in the series
-        (Frames are numbered starting at ONE (1) not Zero)
-
-        Returns
-        -------
-        frame_dict: dict mapping order_stored -> frame in series
-               where frame in series counts from 1; [1,2,3,4...]
-
-        Examples
-        --------
-        >>> import os
-        >>> import nibabel as nib
-        >>> nibabel_dir = os.path.dirname(nib.__file__)
-        >>> from nibabel import ecat
-        >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
-        >>> img = ecat.load(ecat_file)
-        >>> mlist = img.get_mlist()
-        >>> mlist.get_series_framenumbers()
-        {0: 1}
-
-
-
-        """
-        frames_order = self.get_frame_order()
-        nframes = self.hdr['num_frames']
-        mlist_nframes = len(frames_order)
-        trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
-        frame_dict = {}
-        try:
-            for frame_stored, (true_order, _) in frames_order.items():
-                #frame as stored in file -> true number in series
-                frame_dict[frame_stored] = trueframenumbers[true_order]+1
-            return frame_dict
-        except:
-            raise IOError('Error in header or mlist order unknown')
 
 class EcatSubHeader(object):
 
@@ -551,44 +513,12 @@ class EcatSubHeader(object):
 
         fileobj : ECAT file <filename>.v  fileholder or file object
                   with read, seek methods
-
-
         """
         self._header = hdr
         self.endianness = hdr.endianness
         self._mlist = mlist
         self.fileobj = fileobj
-        self.subheaders = self._get_subheaders()
-
-    def _get_subheaders(self):
-        """retreive all subheaders and return list of subheader recarrays
-        """
-        subheaders = []
-        header = self._header
-        endianness = self.endianness
-        dt = self._subhdrdtype
-        if not self.endianness is native_code:
-            dt = self._subhdrdtype.newbyteorder(self.endianness)
-        if self._header['num_frames'] > 1:
-            for item in self._mlist._mlist:
-                if item[1] == 0:
-                    break
-                self.fileobj.seek(0)
-                offset = (int(item[1])-1)*512
-                self.fileobj.seek(offset)
-                tmpdat = self.fileobj.read(512)
-                sh = (np.recarray(shape=(), dtype=dt,
-                                  buf=tmpdat))
-                subheaders.append(sh.copy())
-        else:
-            self.fileobj.seek(0)
-            offset = (int(self._mlist._mlist[0][1])-1)*512
-            self.fileobj.seek(offset)
-            tmpdat = self.fileobj.read(512)
-            sh = (np.recarray(shape=(), dtype=dt,
-                              buf=tmpdat))
-            subheaders.append(sh)
-        return subheaders
+        self.subheaders = read_subheaders(fileobj, mlist._mlist, hdr.endianness)
 
     def get_shape(self, frame=0):
         """ returns shape of given frame"""
@@ -713,8 +643,9 @@ class EcatSubHeader(object):
         header = self._header
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame, orientation)
-        data = raw_data * header['ecat_calibration_factor']
-        data = data * subhdr['scale_factor']
+        # Scale factors have to be set to scalars to force scalar upcasting
+        data = raw_data * np.asscalar(header['ecat_calibration_factor'])
+        data = data * np.asscalar(subhdr['scale_factor'])
         return data
 
 
