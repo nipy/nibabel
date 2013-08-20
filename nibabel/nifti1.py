@@ -230,8 +230,20 @@ intent_codes = Recoder((
     (2002, 'node index', (), "NIFTI_INTENT_NODE_INDEX"),
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
-    (2005, 'shape', (), "NIFTI_INTENT_SHAPE")),
-    fields=('code', 'label', 'parameters', 'niistring'))
+    (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
+    # The codes below appear on the CIFTI page, but don't appear to have reached
+    # the nifti standard as of 19 August 2013
+    # http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+    (3001, 'dense connectivity', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE'),
+    (3002, 'dense time connectivity', (),
+     'NIFTI_INTENT_CONNECTIVITY_DENSE_TIME'),
+    (3003, 'parcellated connectivity', (),
+     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED'),
+    (3004, 'parcellated time connectivity', (),
+     "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME"),
+    (3005, 'trajectory connectivity', (),
+     'NIFTI_INTENT_CONNECTIVITY_CONNECTIVITY_TRAJECTORY'),
+    ), fields=('code', 'label', 'parameters', 'niistring'))
 
 
 class Nifti1Extension(object):
