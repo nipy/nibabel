@@ -1,6 +1,8 @@
 """ Validate image API """
 from __future__ import division, print_function, absolute_import
 
+import warnings
+
 import numpy as np
 
 try:
@@ -173,7 +175,18 @@ class TestAnalyzeAPI(ValidateAPI):
             img.uncache()
             assert_array_equal(img.get_data(), 42)
         # Read only
-        assert_raises(AttributeError, setattr, img, 'dataobj', np.eye(4))
+        assert_raises(AttributeError,
+                      setattr, img, 'dataobj', params['data'])
+
+    def validate_data_deprecated(self, imaker, params):
+        # Check _data property still exists, but raises warning
+        img = imaker()
+        with warnings.catch_warnings(record=True) as warns:
+            warnings.simplefilter("always")
+            assert_array_equal(img._data, params['data'])
+            assert_equal(warns.pop(0).category, FutureWarning)
+        assert_raises(AttributeError,
+                      setattr, img, '_data', params['data'])
 
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface

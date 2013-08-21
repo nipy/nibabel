@@ -329,6 +329,14 @@ class SpatialImage(object):
         self._data_cache = None
 
     @property
+    def _data(self):
+        warnings.warn('Please use ``dataobj`` instead of ``_data``; '
+                      'We will remove this wrapper for ``_data`` soon',
+                      FutureWarning,
+                      stacklevel=2)
+        return self._dataobj
+
+    @property
     def dataobj(self):
         return self._dataobj
 
