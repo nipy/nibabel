@@ -11,7 +11,7 @@ from .analyze import AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .nifti1 import Nifti1Pair, Nifti1Image
-from .minc import MincImage
+from .minc1 import Minc1Image
 from .freesurfer import MGHImage
 from .volumeutils import Recoder
 
@@ -45,7 +45,7 @@ class_map = {
                      'ext': '.nii',
                      'has_affine': True,
                      'rw': True},
-    'minc': {'class': MincImage,
+    'minc': {'class': Minc1Image,
              'ext': '.mnc',
              'has_affine': True,
              'rw': False},

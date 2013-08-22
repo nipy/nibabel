@@ -8,9 +8,11 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
 from .filename_parser import types_filenames, splitext_addext
-from .volumeutils import BinOpener
+from .volumeutils import BinOpener, Opener
 from . import spm2analyze as spm2
 from . import nifti1
+from .minc1 import Minc1Image
+from .minc2 import Minc2Image
 from .freesurfer import MGHImage
 from .fileholders import FileHolderError
 from .spatialimages import ImageFileError
@@ -36,8 +38,14 @@ def load(filename):
     except KeyError:
         raise ImageFileError('Cannot work out file type of "%s"' %
                              filename)
-    if ext in ('.nii', '.mnc', '.mgh', '.mgz'):
+    if ext in ('.nii', '.mgh', '.mgz'):
         klass = class_map[img_type]['class']
+    elif ext == '.mnc':
+        # Look for HDF5 signature for MINC2
+        # http://www.hdfgroup.org/HDF5/doc/H5.format.html
+        with Opener(filename) as fobj:
+            signature = fobj.read(4)
+            klass = Minc2Image if signature == b'\211HDF' else Minc1Image
     else:
         # might be nifti pair or analyze of some sort
         files_types = (('image','.img'), ('header','.hdr'))

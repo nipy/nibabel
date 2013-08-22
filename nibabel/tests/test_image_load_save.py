@@ -29,7 +29,7 @@ from .. import spm99analyze as spm99
 from .. import spm2analyze as spm2
 from .. import nifti1 as ni1
 from .. import loadsave as nils
-from .. import (Nifti1Image, Nifti1Pair, MincImage, Spm2AnalyzeImage,
+from .. import (Nifti1Image, Nifti1Pair, Minc1Image, Spm2AnalyzeImage,
                 Spm99AnalyzeImage, AnalyzeImage, class_map)
 
 from ..tmpdirs import InTemporaryDirectory
@@ -221,8 +221,8 @@ def test_filename_save():
     inklass_ext_loadklasses = (
         (Nifti1Image, '.nii', Nifti1Image),
         (Nifti1Image, '.img', Nifti1Pair),
-        (MincImage, '.nii', Nifti1Image),
-        (MincImage, '.img', Nifti1Pair),
+        (Minc1Image, '.nii', Nifti1Image),
+        (Minc1Image, '.img', Nifti1Pair),
         (Spm2AnalyzeImage, '.nii', Nifti1Image),
         (Spm2AnalyzeImage, '.img', Spm2AnalyzeImage),
         (Spm99AnalyzeImage, '.nii', Nifti1Image),
