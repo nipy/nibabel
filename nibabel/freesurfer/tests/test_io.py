@@ -87,6 +87,11 @@ def test_annot():
         assert_true(labels.shape == (163842, ))
         assert_true(ctab.shape == (len(names), 5))
 
+        if a == 'aparc':
+            labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
+            np.testing.assert_array_equal(labels == -1, labels_orig == 0)
+            assert_true(np.sum(labels_orig == 0) > 0)
+
 
 @freesurfer_test
 def test_label():
