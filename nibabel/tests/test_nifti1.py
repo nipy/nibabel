@@ -16,6 +16,7 @@ from ..externals.six import BytesIO
 from ..casting import type_info, have_binary128
 from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
+from ..eulerangles import euler2mat
 from ..affines import from_matvec
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
@@ -24,7 +25,8 @@ from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import (assert_array_equal, assert_array_almost_equal,
+                           assert_almost_equal)
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 from nose import SkipTest
@@ -321,6 +323,31 @@ class TestNifti1Image(tana.TestAnalyzeImage):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Image
 
+    def test_none_qsform(self):
+        # Check that affine gets set to q/sform if header is None
+        img_klass = self.image_class
+        hdr_klass = img_klass.header_class
+        shape = (2, 3, 4)
+        data = np.arange(24).reshape(shape)
+        # With specified affine
+        aff = from_matvec(euler2mat(0.1, 0.2, 0.3), [11, 12, 13])
+        for hdr in (None, hdr_klass()):
+            img = img_klass(data, aff, hdr)
+            assert_almost_equal(img.affine, aff)
+            assert_almost_equal(img.header.get_sform(), aff)
+            assert_almost_equal(img.header.get_qform(), aff)
+        # Even if affine is default for empty header
+        hdr = hdr_klass()
+        hdr.set_data_shape(shape)
+        default_aff = hdr.get_best_affine()
+        img = img_klass(data, default_aff, None)
+        assert_almost_equal(img.header.get_sform(), default_aff)
+        assert_almost_equal(img.header.get_qform(), default_aff)
+        # If affine is None, s/qform not set
+        img = img_klass(data, None, None)
+        assert_almost_equal(img.header.get_sform(), np.diag([0, 0, 0, 1]))
+        assert_almost_equal(img.header.get_qform(), np.eye(4))
+
     def _qform_rt(self, img):
         # Round trip image after setting qform, sform codes
         hdr = img.get_header()
@@ -413,11 +440,15 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         assert_raises(HeaderDataError, img.set_qform, new_affine, 2, False)
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_qform, strange=True)
-        # updating None affine should also work
+        # updating None affine, None header does not work, because None header
+        # results in setting the sform to default
         img = self.image_class(np.zeros((2,3,4)), None)
         new_affine = np.eye(4)
         img.set_qform(new_affine, 2)
-        assert_array_almost_equal(img.get_affine(), new_affine)
+        assert_array_almost_equal(img.affine, img.header.get_best_affine())
+        # Unless we unset the sform
+        img.set_sform(None, update_affine=True)
+        assert_array_almost_equal(img.affine, new_affine)
 
     def test_set_sform(self):
         orig_aff = np.diag([2.2, 3.3, 4.3, 1])

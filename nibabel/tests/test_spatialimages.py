@@ -213,10 +213,15 @@ class TestSpatialImage(TestCase):
         img = self.image_class(arr, None)
         assert_array_equal(img.get_data(), arr)
         assert_equal(img.get_affine(), None)
+
+    def test_default_header(self):
+        # Check default header is as expected
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        img = self.image_class(arr, None)
         hdr = self.image_class.header_class()
         hdr.set_data_shape(arr.shape)
         hdr.set_data_dtype(arr.dtype)
-        assert_equal(img.get_header(), hdr)
+        assert_equal(img.header, hdr)
 
     def test_data_api(self):
         # Test minimal api data object can initialize
