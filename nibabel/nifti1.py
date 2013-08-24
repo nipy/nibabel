@@ -1546,6 +1546,19 @@ class Nifti1PairHeader(Nifti1Header):
 class Nifti1Pair(analyze.AnalyzeImage):
     header_class = Nifti1PairHeader
 
+    def __init__(self, dataobj, affine, header=None,
+                 extra=None, file_map=None):
+        super(Nifti1Pair, self).__init__(dataobj,
+                                         affine,
+                                         header,
+                                         extra,
+                                         file_map)
+        # Force set of s/q form when header is None unless affine is also None
+        if header is None and not affine is None:
+            self._affine2header()
+    # Copy docstring
+    __init__.doc = analyze.AnalyzeImage.__init__.__doc__
+
     def _write_header(self, header_file, header, slope, inter):
         super(Nifti1Pair, self)._write_header(header_file,
                                               header,
