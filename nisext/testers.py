@@ -29,6 +29,8 @@ the Makefile targets from nibabel::
 
 '''
 
+from __future__ import print_function
+
 import os
 import sys
 from os.path import join as pjoin, abspath
@@ -399,13 +401,13 @@ def check_files(mod_name, repo_path=None, scripts_sdir='bin'):
     finally:
         shutil.rmtree(install_path)
     if lib_misses:
-        print "Missed library files: ", ', '.join(lib_misses)
+        print("Missed library files: ", ', '.join(lib_misses))
     else:
-        print "You got all the library files"
+        print("You got all the library files")
     if script_misses:
-        print "Missed script files: ", ', '.join(script_misses)
+        print("Missed script files: ", ', '.join(script_misses))
     else:
-        print "You got all the script files"
+        print("You got all the script files")
     return len(lib_misses) > 0 or len(script_misses) > 0
 
 
