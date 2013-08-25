@@ -47,7 +47,7 @@ HAVE_PUTENV = hasattr(os, 'putenv')
 
 PY_LIB_SDIR = 'pylib'
 
-def back_tick(cmd, ret_err=False):
+def back_tick(cmd, ret_err=False, as_str=True):
     """ Run command `cmd`, return stdout, or stdout, stderr if `ret_err`
 
     Roughly equivalent to ``check_output`` in Python 2.7
@@ -59,6 +59,8 @@ def back_tick(cmd, ret_err=False):
     ret_err : bool, optional
         If True, return stderr in addition to stdout.  If False, just return
         stdout
+    as_str : bool, optional
+        Whether to decode outputs to unicode string on exit.
 
     Returns
     -------
@@ -81,9 +83,14 @@ def back_tick(cmd, ret_err=False):
     if retcode != 0:
         raise RuntimeError(cmd + ' process returned code %d' % retcode)
     out = out.strip()
+    if as_str:
+        out = out.decode('latin-1')
     if not ret_err:
         return out
-    return out, err.strip()
+    err = err.strip()
+    if as_str:
+        err = err.decode('latin-1')
+    return out, err
 
 
 def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
