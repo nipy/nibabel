@@ -47,13 +47,15 @@ class _Nifti2Mixin(object):
         hdr['eol_check'] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_array_equal(fhdr['eol_check'], good_eol)
-        return
         assert_equal(message,
+                     'EOL check all 0; '
                      'setting EOL check to 13, 10, 26, 10')
         hdr['eol_check'] = (13, 10, 0, 10)
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_array_equal(fhdr['eol_check'], good_eol)
         assert_equal(message,
+                     'EOL check not 0 or 13, 10, 26, 10; '
+                     'data may be corrupted by EOL conversion; '
                      'setting EOL check to 13, 10, 26, 10')
 
 
