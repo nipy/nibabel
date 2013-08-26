@@ -35,6 +35,22 @@ def load(filename):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    return guessed_image_type(filename).from_filename(filename)
+
+
+def guessed_image_type(filename):
+    """ Guess image type from file `filename`
+
+    Parameters
+    ----------
+    filename : str
+        File name containing an image
+
+    Returns
+    -------
+    image_class : class
+        Class corresponding to guessed image type
+    """
     froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     try:
         img_type = ext_map[ext]
@@ -66,7 +82,7 @@ def load(filename):
             klass = Nifti1Pair
         else:
             klass = Spm2AnalyzeImage
-    return klass.from_filename(filename)
+    return klass
 
 
 def save(img, filename):

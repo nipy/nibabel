@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
 from __future__ import division, print_function, absolute_import
-from os.path import join as pjoin
+from os.path import join as pjoin, dirname
 import shutil
 from tempfile import mkdtemp
 from ..externals.six import BytesIO
@@ -30,8 +30,8 @@ from .. import spm2analyze as spm2
 from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
-                Minc1Image, Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                class_map)
+                Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
+                AnalyzeImage, MGHImage, class_map)
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -39,6 +39,9 @@ from ..volumeutils import native_code, swapped_code
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises
+
+DATA_PATH = pjoin(dirname(__file__), 'data')
+MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
 
 
 def round_trip(img):
@@ -294,3 +297,31 @@ def test_analyze_detection():
     assert_equal(wat(n1_hdr), 'nifti1')
     n1_hdr['magic'] = 'ni1'
     assert_equal(wat(n1_hdr), 'nifti1')
+
+
+def test_guessed_image_type():
+    # Test whether we can guess the image type from example files
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'example4d.nii.gz')),
+        Nifti1Image)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'nifti1.hdr')),
+        Nifti1Pair)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'example_nifti2.nii.gz')),
+        Nifti2Image)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'nifti2.hdr')),
+        Nifti2Pair)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'tiny.mnc')),
+        Minc1Image)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'small.mnc')),
+        Minc2Image)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'test.mgz')),
+        MGHImage)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'analyze.hdr')),
+        Spm2AnalyzeImage)
