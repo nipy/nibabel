@@ -10,7 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 import os
-from os.path import dirname, join as pjoin, isfile, isdir, abspath, realpath
+from os.path import dirname, join as pjoin, isfile, isdir, abspath, realpath, pardir
 import re
 
 from subprocess import Popen, PIPE
@@ -23,6 +23,7 @@ USE_SHELL = True
 DEBUG_PRINT = os.environ.get('NIPY_DEBUG_PRINT', False)
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
+IMPORT_PATH = abspath(pjoin(dirname(__file__), pardir, pardir))
 
 def local_script_dir(script_sdir):
     # Check for presence of scripts in development directory.  ``realpath``
@@ -46,7 +47,11 @@ def run_command(cmd):
         cmd = "%s %s" % (sys.executable, pjoin(LOCAL_SCRIPT_DIR, cmd))
     if DEBUG_PRINT:
         print("Running command '%s'" % cmd)
-    proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=USE_SHELL)
+    # Point subprocess to consider current nibabel in favor of possibly
+    # installed different version
+    PYTHONPATH = '%s:%s' % (IMPORT_PATH, os.environ.get('PYTHONPATH', ''))
+    proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=USE_SHELL,
+                 env={'PYTHONPATH': PYTHONPATH})
     stdout, stderr = proc.communicate()
     if proc.poll() == None:
         proc.terminate()
