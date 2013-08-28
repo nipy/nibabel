@@ -248,6 +248,16 @@ sdist-tests:
 bdist-egg-tests:
 	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel", doctests=False, label="not script_test")'
 
+sdist-venv: clean
+	rm -rf dist venv
+	unset PYTHONPATH && $(PYTHON) setup.py sdist --formats=zip
+	virtualenv --system-site-packages --python=$(PYTHON) venv
+	. venv/bin/activate && pip install --ignore-installed nose
+	mkdir venv/tmp
+	cd venv/tmp && unzip ../../dist/*.zip
+	. venv/bin/activate && cd venv/tmp/nibabel* && python setup.py install
+	unset PYTHONPATH && . venv/bin/activate && cd venv && nosetests --with-doctest nibabel nisext
+
 source-release: distclean
 	$(PYTHON) -m compileall .
 	make distclean
