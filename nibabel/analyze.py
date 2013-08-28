@@ -594,7 +594,9 @@ class AnalyzeHeader(LabeledWrapStruct):
         dims[0] = ndims
         try:
             dims[1:ndims+1] = shape
-        except OverflowError:
+        except (ValueError, OverflowError):
+            # numpy 1.4.1 at least generates a ValueError from trying to set a
+            # python long into an int64 array (dims are int64 for nifti2)
             values_fit = False
         else:
             values_fit = np.all(dims[1:ndims+1] == shape)
