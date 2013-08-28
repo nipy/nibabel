@@ -23,10 +23,15 @@ familiarize oneself with the basic design of the API.
 
 When loading an image, NiBabel aims to figure out the image format from the
 filename. An image in a known format can easily be loaded by simply passing its
-name to the ``load`` function.  First let's get the nibabel example data
-directory:
+name to the ``load`` function.
+
+We load some useful libraries:
 
 >>> import os
+>>> import numpy as np
+
+Then we get the nibabel example data directory:
+
 >>> from nibabel.testing import data_path
 
 Now we can load an image:
@@ -39,13 +44,14 @@ A NiBabel image knows about its shape:
 >>> img.shape
 (128, 96, 24, 2)
 
-and its data type:
+and the data type of the data as stored on disk. In this case the data on disk
+are 16 bit signed integers:
 
->>> img.get_data_dtype()
-dtype('int16')
+>>> img.get_data_dtype() == np.dtype(np.int16)
+True
 
-and an affine transformation that determines the world-coordinates of the image
-elements.
+The image also has an affine transformation that determines the
+world-coordinates of the image elements.
 
 >>> img.get_affine().shape
 (4, 4)
@@ -90,8 +96,8 @@ needs some image data and an image coordinate transformation.
 >>> import numpy as np
 >>> data = np.ones((32, 32, 15, 100), dtype=np.int16)
 >>> img = nib.Nifti1Image(data, np.eye(4))
->>> img.get_data_dtype()
-dtype('int16')
+>>> img.get_data_dtype() == np.dtype(np.int16)
+True
 >>> img.get_header().get_xyzt_units()
 ('unknown', 'unknown')
 
