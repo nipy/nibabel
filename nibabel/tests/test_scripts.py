@@ -38,20 +38,23 @@ def local_script_dir(script_sdir):
 LOCAL_SCRIPT_DIR = local_script_dir('bin')
 
 def run_command(cmd):
-    if not LOCAL_SCRIPT_DIR is None:
+    if LOCAL_SCRIPT_DIR is None:
+        env = None
+    else: # We are running scripts local to the source tree (not installed)
         # Windows can't run script files without extensions natively so we need
         # to run local scripts (no extensions) via the Python interpreter.  On
         # Unix, we might have the wrong incantation for the Python interpreter
         # in the hash bang first line in the source file.  So, either way, run
         # the script through the Python interpreter
         cmd = "%s %s" % (sys.executable, pjoin(LOCAL_SCRIPT_DIR, cmd))
+        # If we're testing local script files, point subprocess to consider
+        # current nibabel in favor of possibly installed different version
+        env = {'PYTHONPATH': '%s:%s'
+               % (IMPORT_PATH, os.environ.get('PYTHONPATH', ''))}
     if DEBUG_PRINT:
         print("Running command '%s'" % cmd)
-    # Point subprocess to consider current nibabel in favor of possibly
-    # installed different version
-    PYTHONPATH = '%s:%s' % (IMPORT_PATH, os.environ.get('PYTHONPATH', ''))
     proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=USE_SHELL,
-                 env={'PYTHONPATH': PYTHONPATH})
+                 env=env)
     stdout, stderr = proc.communicate()
     if proc.poll() == None:
         proc.terminate()
