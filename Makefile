@@ -7,7 +7,7 @@ SF_USER ?= matthewbrett
 #
 # The Python executable to be used
 #
-PYTHON = python
+PYTHON ?= python
 NOSETESTS = $(PYTHON) $(shell which nosetests)
 
 #
@@ -249,16 +249,16 @@ bdist-egg-tests:
 	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel", doctests=False, label="not script_test")'
 
 source-release: distclean
-	python -m compileall .
+	$(PYTHON) -m compileall .
 	make distclean
-	python setup.py sdist --formats=gztar,zip
+	$(PYTHON) setup.py sdist --formats=gztar,zip
 
 venv-tests:
 	# I use this for python2.5 because the sdist-tests target doesn't work
 	# (the tester routine uses a 2.6 feature)
 	make distclean
 	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
-	python setup.py install
+	$(PYTHON) setup.py install
 	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 
 tox-fresh:
