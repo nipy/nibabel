@@ -241,12 +241,12 @@ check-version-info:
 installed-tests:
 	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
 
-# Run tests from installed code
+# Run tests from packaged distributions
 sdist-tests:
-	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
+	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel", doctests=False)'
 
 bdist-egg-tests:
-	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
+	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel", doctests=False, label="not script_test")'
 
 source-release: distclean
 	python -m compileall .
