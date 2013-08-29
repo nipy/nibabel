@@ -163,18 +163,21 @@ def read_annot(filepath, orig_ids=False):
     Parameters
     ----------
     filepath : str
-        Path to annotation file
+        Path to annotation file.
     orig_ids : bool
         Whether to return the vertex ids as stored in the annotation
-        file or the positional colortable ids
+        file or the positional colortable ids. With orig_ids=False
+        vertices with no id have an id set to -1.
 
     Returns
     -------
-    labels : n_vtx numpy array
-        Annotation id at each vertex
-    ctab : numpy array
-        RGBA + label id colortable array
-
+    labels : ndarray, shape (n_vertices,)
+        Annotation id at each vertex. If a vertex does not belong
+        to any label and orig_ids=False, its id will be set to -1.
+    ctab : ndarray, shape (n_labels, 5)
+        RGBA + label id colortable array.
+    names : list of str
+        The names of the labels. The length of the list is n_labels.
     """
     with open(filepath, "rb") as fobj:
         dt = ">i4"
@@ -221,7 +224,9 @@ def read_annot(filepath, orig_ids=False):
         ctab[:, 3] = 255
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
-        labels = ord[np.searchsorted(ctab[ord, -1], labels)]
+        mask = labels != 0
+        labels[~mask] = -1
+        labels[mask] = ord[np.searchsorted(ctab[ord, -1], labels[mask])]
     return labels, ctab, names
 
 
