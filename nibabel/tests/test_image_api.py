@@ -13,8 +13,8 @@ else:
     have_scipy = True
 
 from nibabel import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
-                     Nifti1Pair, Nifti1Image, MGHImage, Minc1Image,
-                     Minc2Image)
+                     Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                     MGHImage, Minc1Image, Minc2Image)
 from nibabel.spatialimages import SpatialImage
 from nibabel.ecat import EcatImage
 
@@ -240,8 +240,18 @@ class TestNifti1API(TestNifti1PairAPI):
     standard_extension = '.nii'
 
 
+class TestNifti2PairAPI(TestNifti1PairAPI):
+    image_class = Nifti2Pair
+
+
+class TestNifti2API(TestNifti1API):
+    image_class = Nifti2Image
+
+
 class TestMinc1API(TestAnalyzeAPI):
     image_class = Minc1Image
+
+
     can_save = False
 
 

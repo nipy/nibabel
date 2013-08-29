@@ -187,6 +187,8 @@ class AnalyzeHeader(LabeledWrapStruct):
     has_data_slope = False
     has_data_intercept = False
 
+    sizeof_hdr = 348
+
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
@@ -323,7 +325,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         '''
         dim0 = int(hdr['dim'][0])
         if dim0 == 0:
-            if hdr['sizeof_hdr'] == 1543569408:
+            if hdr['sizeof_hdr'].byteswap() == klass.sizeof_hdr:
                 return swapped_code
             return native_code
         elif 1 <= dim0 <= 7:
@@ -335,7 +337,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         ''' Return header data for empty header with given endianness
         '''
         hdr_data = super(AnalyzeHeader, klass).default_structarr(endianness)
-        hdr_data['sizeof_hdr'] = 348
+        hdr_data['sizeof_hdr'] = klass.sizeof_hdr
         hdr_data['dim'] = 1
         hdr_data['dim'][0] = 0
         hdr_data['pixdim'] = 1
@@ -590,11 +592,18 @@ class AnalyzeHeader(LabeledWrapStruct):
         ndims = len(shape)
         dims[:] = 1
         dims[0] = ndims
-        dims[1:ndims+1] = shape
-        # Check that dimensions fit
-        if not np.all(dims[1:ndims+1] == shape):
+        try:
+            dims[1:ndims+1] = shape
+        except (ValueError, OverflowError):
+            # numpy 1.4.1 at least generates a ValueError from trying to set a
+            # python long into an int64 array (dims are int64 for nifti2)
+            values_fit = False
+        else:
+            values_fit = np.all(dims[1:ndims+1] == shape)
+        # Error if we did not succeed setting dimensions
+        if not values_fit:
             raise HeaderDataError('shape %s does not fit in dim datatype' %
-                                   (shape,))
+                                  (shape,))
         self._structarr['pixdim'][ndims+1:] = 1.0
 
     def get_base_affine(self):
@@ -727,16 +736,16 @@ class AnalyzeHeader(LabeledWrapStruct):
 
     ''' Check functions in format expected by BatteryRunner class '''
 
-    @staticmethod
-    def _chk_sizeof_hdr(hdr, fix=False):
+    @classmethod
+    def _chk_sizeof_hdr(klass, hdr, fix=False):
         rep = Report(HeaderDataError)
-        if hdr['sizeof_hdr'] == 348:
+        if hdr['sizeof_hdr'] == klass.sizeof_hdr:
             return hdr, rep
         rep.problem_level = 30
-        rep.problem_msg = 'sizeof_hdr should be 348'
+        rep.problem_msg = 'sizeof_hdr should be ' + str(klass.sizeof_hdr)
         if fix:
-            hdr['sizeof_hdr'] = 348
-            rep.fix_msg = 'set sizeof_hdr to 348'
+            hdr['sizeof_hdr'] = klass.sizeof_hdr
+            rep.fix_msg = 'set sizeof_hdr to ' + str(klass.sizeof_hdr)
         return hdr, rep
 
     @classmethod
