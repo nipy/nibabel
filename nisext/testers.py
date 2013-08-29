@@ -128,10 +128,12 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
                        'environ[\'PATH\'] = \'%s%s\' + environ[\'PATH\'];'
                        % (script_dir, os.path.pathsep))
         # Need to add the python path for the scripts to pick up our package in
-        # their environment
-        py_pth_add = ('environ[\'PYTHONPATH\'] = \'%s%s\' '
-                      '+ environ[\'PYTHONPATH\'];'
-                       % (pkg_path, os.path.pathsep))
+        # their environment. Consider that PYTHONPATH may not be set
+        py_pth_add = (
+            'PYPTH = environ.get(\'PYTHONPATH\'); '
+            'environ[\'PYTHONPATH\'] = \'%s%s\'  + PYPTH '
+            'if PYPTH else \'%s\';'
+            % (pkg_path, os.path.pathsep, pkg_path))
     if print_location:
         p_loc = 'print(%s.__file__);' % mod_name
     else:
