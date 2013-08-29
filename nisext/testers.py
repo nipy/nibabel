@@ -129,12 +129,12 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
         # system path also.
         paths_add = \
 r"""
-os.environ['PATH'] = '"{script_dir}"' + os.path.pathsep + os.environ['PATH']
+os.environ['PATH'] = r'"{script_dir}"' + os.path.pathsep + os.environ['PATH']
 PYTHONPATH = os.environ.get('PYTHONPATH')
 if PYTHONPATH is None:
-    os.environ['PYTHONPATH'] = '"{pkg_path}"'
+    os.environ['PYTHONPATH'] = r'"{pkg_path}"'
 else:
-    os.environ['PYTHONPATH'] = '"{pkg_path}"' + os.path.pathsep + PYTHONPATH
+    os.environ['PYTHONPATH'] = r'"{pkg_path}"' + os.path.pathsep + PYTHONPATH
 """.format(**locals())
     if print_location:
         p_loc = 'print(%s.__file__);' % mod_name
@@ -149,7 +149,7 @@ else:
 r"""
 import os
 import sys
-sys.path.insert(0, "{pkg_path}")
+sys.path.insert(0, r"{pkg_path}")
 {paths_add}
 import {mod_name}
 {p_loc}
