@@ -75,3 +75,4 @@ Thumbs.db
 # Things specific to this project #
 ###################################
 doc/source/generated
+venv/
