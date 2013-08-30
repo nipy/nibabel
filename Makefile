@@ -7,7 +7,7 @@ SF_USER ?= matthewbrett
 #
 # The Python executable to be used
 #
-PYTHON = python
+PYTHON ?= python
 NOSETESTS = $(PYTHON) $(shell which nosetests)
 
 #
@@ -241,24 +241,34 @@ check-version-info:
 installed-tests:
 	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
 
-# Run tests from installed code
+# Run tests from packaged distributions
 sdist-tests:
-	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel")'
+	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel", doctests=False)'
 
 bdist-egg-tests:
-	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
+	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel", doctests=False, label="not script_test")'
+
+sdist-venv: clean
+	rm -rf dist venv
+	unset PYTHONPATH && $(PYTHON) setup.py sdist --formats=zip
+	virtualenv --system-site-packages --python=$(PYTHON) venv
+	. venv/bin/activate && pip install --ignore-installed nose
+	mkdir venv/tmp
+	cd venv/tmp && unzip ../../dist/*.zip
+	. venv/bin/activate && cd venv/tmp/nibabel* && python setup.py install
+	unset PYTHONPATH && . venv/bin/activate && cd venv && nosetests --with-doctest nibabel nisext
 
 source-release: distclean
-	python -m compileall .
+	$(PYTHON) -m compileall .
 	make distclean
-	python setup.py sdist --formats=gztar,zip
+	$(PYTHON) setup.py sdist --formats=gztar,zip
 
 venv-tests:
 	# I use this for python2.5 because the sdist-tests target doesn't work
 	# (the tester routine uses a 2.6 feature)
 	make distclean
 	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
-	python setup.py install
+	$(PYTHON) setup.py install
 	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 
 tox-fresh:

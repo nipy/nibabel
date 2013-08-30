@@ -17,6 +17,12 @@ from subprocess import Popen, PIPE
 
 from nose.tools import assert_true, assert_not_equal, assert_equal
 
+def script_test(func):
+    # Decorator to label test as a script_test
+    func.script_test = True
+    return func
+script_test.__test__ = False # It's not a test
+
 # Need shell to get path to correct executables
 USE_SHELL = True
 
@@ -69,6 +75,7 @@ def _proc_stdout(stdout):
     return stdout_str.replace(os.linesep, '\n')
 
 
+@script_test
 def test_nib_ls():
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
@@ -82,6 +89,7 @@ def test_nib_ls():
     assert_not_equal(re.match(expected_re, res[len(fname):]), None)
 
 
+@script_test
 def test_nib_nifti_dx():
     # Test nib-nifti-dx script
     clean_hdr = pjoin(DATA_PATH, 'nifti1.hdr')
@@ -100,6 +108,7 @@ sform_code 11776 not valid""" % (dirty_hdr,)
     assert_equal(_proc_stdout(stdout), expected)
 
 
+@script_test
 def test_parrec2nii():
     # Test parrec2nii script
     # We need some data for this one
