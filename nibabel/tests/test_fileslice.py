@@ -71,6 +71,8 @@ def test_canonical_slicers():
     # Check Ellipsis
     assert_equal(canonical_slicers((Ellipsis,), shape),
                  (slice(None), slice(None)))
+    assert_equal(canonical_slicers((Ellipsis, None), shape),
+                 (slice(None), slice(None), None))
     assert_equal(canonical_slicers((Ellipsis, 1), shape),
                  (slice(None), 1))
     assert_equal(canonical_slicers((1, Ellipsis), shape),
@@ -626,6 +628,8 @@ def test_fileslice():
         _check_slicer((slice(None), 1, 2, None), arr, fobj, offset, order)
         _check_slicer((Ellipsis, 2, None), arr, fobj, offset, order)
         _check_slicer((1, Ellipsis, None), arr, fobj, offset, order)
+        _check_slicer((Ellipsis, None), arr, fobj, offset, order)
+        _check_slicer((Ellipsis, None, None), arr, fobj, offset, order)
 
 
 def test_fileslice_errors():
