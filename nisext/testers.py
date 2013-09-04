@@ -103,6 +103,8 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
     pkg_path : str
         directory containing `mod_name` package.  Typically that will be the
         directory containing the e.g. 'nibabel' directory.
+    cmd : str
+        Python command to execute
     script_dir : None or str, optional
         script directory to prepend to PATH
     print_location : bool, optional
@@ -116,24 +118,24 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
         stderr as str
     '''
     if script_dir is None:
-        exe_pth_add = ''
-        py_pth_add = ''
+        paths_add = ''
     else:
         if not HAVE_PUTENV:
             raise RuntimeError('We cannot set environment variables')
-        if ' ' in script_dir or ' ' in pkg_path:
-            # We can't easily quote the spaces in the python -c call
-            raise ValueError("Cannot have spaces in python or bin paths")
-        exe_pth_add = ('from os import environ;'
-                       'environ[\'PATH\'] = \'%s%s\' + environ[\'PATH\'];'
-                       % (script_dir, os.path.pathsep))
         # Need to add the python path for the scripts to pick up our package in
-        # their environment. Consider that PYTHONPATH may not be set
-        py_pth_add = (
-            'PYPTH = environ.get(\'PYTHONPATH\'); '
-            'environ[\'PYTHONPATH\'] = \'%s%s\'  + PYPTH '
-            'if PYPTH else \'%s\';'
-            % (pkg_path, os.path.pathsep, pkg_path))
+        # their environment, because the scripts will get called via the shell
+        # (via `cmd`). Consider that PYTHONPATH may not be set. Because the
+        # command might run scripts via the shell, prepend script_dir to the
+        # system path also.
+        paths_add = \
+r"""
+os.environ['PATH'] = r'"{script_dir}"' + os.path.pathsep + os.environ['PATH']
+PYTHONPATH = os.environ.get('PYTHONPATH')
+if PYTHONPATH is None:
+    os.environ['PYTHONPATH'] = r'"{pkg_path}"'
+else:
+    os.environ['PYTHONPATH'] = r'"{pkg_path}"' + os.path.pathsep + PYTHONPATH
+""".format(**locals())
     if print_location:
         p_loc = 'print(%s.__file__);' % mod_name
     else:
@@ -142,20 +144,17 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
     tmpdir = tempfile.mkdtemp()
     try:
         os.chdir(tmpdir)
-        whole_cmd = ('%s -c "import sys; sys.path.insert(1,\'%s\'); '
-                     '%s'
-                     'import %s;'
-                     '%s'
-                     '%s'
-                     '%s"' % (PYTHON,
-                              pkg_path,
-                              exe_pth_add,
-                              mod_name,
-                              py_pth_add,
-                              p_loc,
-                              cmd)
-                    )
-        res = back_tick(whole_cmd, ret_err=True)
+        with open('script.py', 'wt') as fobj:
+            fobj.write(
+r"""
+import os
+import sys
+sys.path.insert(0, r"{pkg_path}")
+{paths_add}
+import {mod_name}
+{p_loc}
+{cmd}""".format(**locals()))
+        res = back_tick('{0} script.py'.format(PYTHON), ret_err=True)
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmpdir)
