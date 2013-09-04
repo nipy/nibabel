@@ -41,4 +41,4 @@ def test_run_mod_cmd():
                               'pth2',
                               False)
     assert_equal(serr, '')
-    assert_equal(sout2, 'pth2' + pathsep + sout)
+    assert_equal(sout2, '"pth2"' + pathsep + sout)
