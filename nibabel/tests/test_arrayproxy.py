@@ -10,6 +10,8 @@
 """
 from __future__ import division, print_function, absolute_import
 
+import warnings
+
 from ..externals.six import BytesIO
 from ..tmpdirs import InTemporaryDirectory
 
@@ -27,32 +29,43 @@ class FunkyHeader(object):
     def __init__(self, shape):
         self.shape = shape
 
-    def copy(self):
-        return self.__class__(self.shape[:])
-
     def get_data_shape(self):
         return self.shape[:]
 
-    def data_from_fileobj(self, fileobj):
-        return np.arange(np.prod(self.shape)).reshape(self.shape)
+    def get_data_dtype(self):
+        return np.int32
+
+    def get_data_offset(self):
+        return 16
+
+    def get_slope_inter(self):
+        return 1.0, 0.0
+
+    def copy(self):
+        # Not needed when we remove header property
+        return FunkyHeader(self.shape)
 
 
 def test_init():
     bio = BytesIO()
     shape = [2,3,4]
+    dtype = np.int32
+    arr = np.arange(24, dtype=dtype).reshape(shape)
+    bio.seek(16)
+    bio.write(arr.tostring(order='F'))
     hdr = FunkyHeader(shape)
     ap = ArrayProxy(bio, hdr)
     assert_true(ap.file_like is bio)
     assert_equal(ap.shape, shape)
     # shape should be read only
     assert_raises(AttributeError, setattr, ap, 'shape', shape)
-    # Check there has been a copy of the header
-    assert_false(ap.header is hdr)
+    # Get the data
+    assert_array_equal(np.asarray(ap), arr)
     # Check we can modify the original header without changing the ap version
     hdr.shape[0] = 6
     assert_not_equal(ap.shape, shape)
-    # Get the data
-    assert_array_equal(np.asarray(ap), np.arange(24).reshape((2,3,4)))
+    # Data stays the same, also
+    assert_array_equal(np.asarray(ap), arr)
 
 
 def write_raw_data(arr, hdr, fileobj):
@@ -73,7 +86,9 @@ def test_nifti1_init():
     assert_true(ap.file_like == bio)
     assert_equal(ap.shape, shape)
     # Check there has been a copy of the header
-    assert_false(ap.header is hdr)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        assert_false(ap.header is hdr)
     # Get the data
     assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
     with InTemporaryDirectory():

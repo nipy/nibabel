@@ -1,6 +1,7 @@
 """ Validate image API """
 from __future__ import division, print_function, absolute_import
 
+import warnings
 from io import BytesIO
 
 import numpy as np
@@ -170,6 +171,15 @@ class TestAnalyzeProxyAPI(ValidateAPI):
         assert_array_equal(prox, params['arr_out'])
         fio.read() # move to end of file
         assert_array_equal(prox, params['arr_out'])
+
+    def validate_deprecated_header(self, pmaker, params):
+        prox, fio, hdr = pmaker()
+        with warnings.catch_warnings(record=True) as warns:
+            warnings.simplefilter("always")
+            # Header is a copy of original
+            assert_false(prox.header is hdr)
+            assert_equal(prox.header, hdr)
+            assert_equal(warns.pop(0).category, FutureWarning)
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):

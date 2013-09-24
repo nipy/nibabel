@@ -19,8 +19,9 @@ The API is - at minimum:
   * if you pass a header into the __init__, then modifying the original
     header will not affect the result of the array return.
 """
+import warnings
 
-from .volumeutils import BinOpener
+from .volumeutils import BinOpener, array_from_file, apply_read_scaling
 
 
 class ArrayProxy(object):
@@ -32,17 +33,35 @@ class ArrayProxy(object):
     variants, including Nifti1, and with the MGH format, apparently.
 
     It requires a ``header`` object with methods:
-    * copy
     * get_data_shape
-    * data_from_fileobj
+    * get_data_dtype
+    * get_data_offset
+    * get_slope_inter
+
+    The header should also have a 'copy' method.  This requirement will go away
+    when the deprecated 'header' propoerty goes away.
 
     Other image types might need to implement their own implementation of this
     API.  See :mod:`minc` for an example.
     """
     def __init__(self, file_like, header):
         self.file_like = file_like
-        self.header = header.copy()
+        # Copies of values needed to read array
         self._shape = header.get_data_shape()
+        self._dtype = header.get_data_dtype()
+        self._offset = header.get_data_offset()
+        self._slope, self._inter = header.get_slope_inter()
+        self._slope = 1.0 if self._slope is None else self._slope
+        self._inter = 0.0 if self._inter is None else self._inter
+        # Reference to original header; we will remove this soon
+        self._header = header.copy()
+
+    @property
+    def header(self):
+        warnings.warn('We will remove the header property from proxies soon',
+                      FutureWarning,
+                      stacklevel=2)
+        return self._header
 
     @property
     def shape(self):
@@ -51,5 +70,9 @@ class ArrayProxy(object):
     def __array__(self):
         ''' Read of data from file '''
         with BinOpener(self.file_like) as fileobj:
-            data = self.header.data_from_fileobj(fileobj)
-        return data
+            raw_data = array_from_file(self._shape,
+                                       self._dtype,
+                                       fileobj,
+                                       self._offset)
+        # Upcast as necessary for big slopes, intercepts
+        return apply_read_scaling(raw_data, self._slope, self._inter)
