@@ -1,0 +1,9 @@
+[run]
+branch = True
+source = nibabel, nisext
+include = */nibabel/*, */nisext/*
+omit =
+    nibabel/externals/*
+    nibabel/benchmarks/*
+    nisext/ast.py
+    nisext/codegen.py

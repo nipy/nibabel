@@ -57,6 +57,7 @@ dist/
 *.egg-info/
 .shelf
 .tox/
+.coverage
 
 # Logs and databases #
 ######################
