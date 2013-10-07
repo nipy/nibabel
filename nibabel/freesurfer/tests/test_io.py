@@ -87,6 +87,7 @@ def test_annot():
         assert_true(labels.shape == (163842, ))
         assert_true(ctab.shape == (len(names), 5))
 
+        labels_orig = None
         if a == 'aparc':
             labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
@@ -99,8 +100,12 @@ def test_annot():
             write_annot(annot_path, labels, ctab, names)
 
             labels2, ctab2, names2 = read_annot(annot_path)
+            if labels_orig is not None:
+                labels_orig_2, _, _ = read_annot(annot_path, orig_ids=True)
 
         np.testing.assert_array_equal(labels, labels2)
+        if labels_orig is not None:
+            np.testing.assert_array_equal(labels_orig, labels_orig_2)
         np.testing.assert_array_equal(ctab, ctab2)
         assert_equal(names, names2)
 
