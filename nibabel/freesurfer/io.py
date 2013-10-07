@@ -263,6 +263,7 @@ def write_annot(filepath, labels, ctab, names):
         write(vnum)
 
         # convert labels into coded CLUT values
+        labels[np.where(labels == -1)] = 0
         clut_labels = ctab[:, -1][labels]
 
         # vno, label
