@@ -36,7 +36,7 @@ def _fread3_many(fobj, n):
         An array of 3 byte int
     """
     b1, b2, b3 = np.fromfile(fobj, ">u1", 3 * n).reshape(-1,
-                                                    3).astype(np.int).T
+                                                         3).astype(np.int).T
     return (b1 << 16) + (b2 << 8) + b3
 
 
@@ -113,7 +113,7 @@ def write_geometry(filepath, coords, faces, create_stamp=None):
 
     if create_stamp is None:
         create_stamp = "created by %s on %s" % (getpass.getuser(),
-            time.ctime())
+                                                time.ctime())
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
@@ -184,6 +184,7 @@ def read_annot(filepath, orig_ids=False):
         vnum = np.fromfile(fobj, dt, 1)[0]
         data = np.fromfile(fobj, dt, vnum * 2).reshape(vnum, 2)
         labels = data[:, 1]
+
         ctab_exists = np.fromfile(fobj, dt, 1)[0]
         if not ctab_exists:
             raise Exception('Color table not found in annotation file')
@@ -220,7 +221,7 @@ def read_annot(filepath, orig_ids=False):
                 names.append(name)
                 ctab[i, :4] = np.fromfile(fobj, dt, 4)
                 ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
-                                ctab[i, 2] * (2 ** 16))
+                              ctab[i, 2] * (2 ** 16))
         ctab[:, 3] = 255
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
@@ -228,6 +229,68 @@ def read_annot(filepath, orig_ids=False):
         labels[~mask] = -1
         labels[mask] = ord[np.searchsorted(ctab[ord, -1], labels[mask])]
     return labels, ctab, names
+
+
+def write_annot(filepath, labels, ctab, names):
+    """Write out a Freesurfer annotation file.
+
+    See:
+    http://ftp.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
+
+    Parameters
+    ----------
+    filepath : str
+        Path to annotation file to be written
+    labels : ndarray, shape (n_vertices,)
+        Annotation id at each vertex.
+    ctab : ndarray, shape (n_labels, 5)
+        RGBA + label id colortable array.
+    names : list of str
+        The names of the labels. The length of the list is n_labels.
+    """
+    with open(filepath, "wb") as fobj:
+        dt = ">i4"
+        vnum = len(labels)
+
+        def write(num, dtype=dt):
+            np.array([num]).astype(dtype).tofile(fobj)
+
+        def write_string(s):
+            write(len(s))
+            write(s, dtype='|S%d' % len(s))
+
+        # vtxct
+        write(vnum)
+
+        # convert labels into coded CLUT values
+        clut_labels = ctab[:, -1][labels]
+        clut_labels[np.where(labels == -1)] = 0
+
+        # vno, label
+        data = np.vstack((np.array(range(vnum)).astype(dt),
+                          clut_labels.astype(dt))).T
+        data.byteswap().tofile(fobj)
+
+        # tag
+        write(1)
+
+        # ctabversion
+        write(-2)
+
+        # maxstruc
+        write(np.max(labels) + 1)
+
+        # File of LUT is unknown.
+        write_string('NOFILE')
+
+        # num_entries
+        write(ctab.shape[0])
+
+        for ind, (clu, name) in enumerate(zip(ctab, names)):
+            write(ind)
+            write_string(name)
+            for val in clu[:-1]:
+                write(val)
 
 
 def read_label(filepath, read_scalars=False):
