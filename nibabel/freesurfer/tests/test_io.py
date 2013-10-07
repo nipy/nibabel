@@ -11,7 +11,7 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from .. import read_geometry, read_morph_data, read_annot, read_label, \
-                write_geometry
+    write_geometry, write_annot
 
 
 have_freesurfer = True
@@ -47,7 +47,7 @@ def test_geometry():
     with InTemporaryDirectory():
         surf_path = 'test'
         create_stamp = "created by %s on %s" % (getpass.getuser(),
-            time.ctime())
+                                                time.ctime())
         write_geometry(surf_path, coords, faces, create_stamp)
 
         coords2, faces2 = read_geometry(surf_path)
@@ -87,10 +87,27 @@ def test_annot():
         assert_true(labels.shape == (163842, ))
         assert_true(ctab.shape == (len(names), 5))
 
+        labels_orig = None
         if a == 'aparc':
             labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
             assert_true(np.sum(labels_orig == 0) > 0)
+
+        # Test equivalence of freesurfer- and nibabel-generated annot files
+        # with respect to read_annot()
+        with InTemporaryDirectory():
+            annot_path = 'test'
+            write_annot(annot_path, labels, ctab, names)
+
+            labels2, ctab2, names2 = read_annot(annot_path)
+            if labels_orig is not None:
+                labels_orig_2, _, _ = read_annot(annot_path, orig_ids=True)
+
+        np.testing.assert_array_equal(labels, labels2)
+        if labels_orig is not None:
+            np.testing.assert_array_equal(labels_orig, labels_orig_2)
+        np.testing.assert_array_equal(ctab, ctab2)
+        assert_equal(names, names2)
 
 
 @freesurfer_test
