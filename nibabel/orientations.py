@@ -90,17 +90,18 @@ def io_orientation(affine, tol=None):
             R[out_ax, :] = 0
     return ornt
 
+
 def ornt_transform(start_ornt, end_ornt):
     '''Return the orientation that transforms from `start_ornt` to `end_ornt`.
-    
+
     Parameters
     ----------
     start_ornt : (n,2) orientation array
         Initial orientation.
-        
+
     end_ornt : (n,2) orientation array
         Final orientation.
-       
+
     Returns
     -------
     orientations : (p, 2) ndarray
@@ -127,6 +128,7 @@ def ornt_transform(start_ornt, end_ornt):
             raise ValueError("Unable to find out axis %d in start_ornt" % 
                              end_out_idx)
     return result
+
 
 def apply_orientation(arr, ornt):
     ''' Apply transformations implied by `ornt` to the first
