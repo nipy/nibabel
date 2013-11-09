@@ -10,7 +10,8 @@
 
 The API is - at minimum:
 
-* The object has an attribute ``shape``
+* The object has a read-only attribute ``shape``
+* read only ``is_proxy`` attribute / property
 * the object returns the data array from ``np.asarray(obj)``
 * that modifying no object outside ``obj`` will affect the result of
   ``np.asarray(obj)``.  Specifically:
@@ -66,6 +67,10 @@ class ArrayProxy(object):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    def is_proxy(self):
+        return True
 
     def __array__(self):
         ''' Read of data from file '''

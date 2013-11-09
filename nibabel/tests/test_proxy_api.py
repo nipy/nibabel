@@ -3,6 +3,7 @@
 Minimum array proxy API is:
 
 * read only shape attribute / property
+* read only is_proxy attribute / property
 * returns array from np.asarray(prox)
 
 And:
@@ -73,6 +74,13 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(prox.shape, params['shape'])
         # Read only
         assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
+
+    def validate_is_proxy(self, pmaker, params):
+        # Check shape
+        prox, fio, hdr = pmaker()
+        assert_true(prox.is_proxy)
+        # Read only
+        assert_raises(AttributeError, setattr, prox, 'is_proxy', False)
 
     def validate_asarray(self, pmaker, params):
         # Check proxy returns expected array from asarray

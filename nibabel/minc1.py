@@ -210,6 +210,10 @@ class MincImageArrayProxy(object):
     def shape(self):
         return self._shape
 
+    @property
+    def is_proxy(self):
+        return True
+
     def __array__(self):
         ''' Read of data from file '''
         return self.minc_file.get_scaled_data()
