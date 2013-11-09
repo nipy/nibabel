@@ -660,7 +660,15 @@ class EcatImageArrayProxy(object):
         self._data = None
         x, y, z = subheader.get_shape()
         nframes = subheader.get_nframes()
-        self.shape = (x, y, z, nframes)
+        self._shape = (x, y, z, nframes)
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def is_proxy(self):
+        return True
 
     def __array__(self):
         ''' Read of data from file

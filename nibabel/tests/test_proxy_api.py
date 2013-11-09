@@ -37,9 +37,11 @@ from ..externals.netcdf import netcdf_file
 from .. import minc2
 from ..optpkg import optional_package
 h5py, have_h5py, _ = optional_package('h5py')
+from .. import ecat
 
 from ..arrayproxy import ArrayProxy
 
+from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
@@ -289,3 +291,26 @@ if have_h5py:
         eg_fname = 'small.mnc'
         eg_shape = (18, 28, 29)
         opener = h5py.File
+
+
+class TestEcatAPI(_TestProxyAPI):
+    eg_fname = 'tinypet.v'
+    eg_shape = (10, 10, 3, 1)
+
+    def obj_params(self):
+        eg_path = pjoin(DATA_PATH, self.eg_fname)
+        img = ecat.load(eg_path)
+        arr_out = img.get_data()
+        def eg_func():
+            img = ecat.load(eg_path)
+            sh = img.get_subheaders()
+            prox = ecat.EcatImageArrayProxy(sh)
+            fobj = open(eg_path, 'rb')
+            return prox, fobj, sh
+        yield (eg_func,
+               dict(shape=self.eg_shape,
+                    dtype_out=np.float64,
+                    arr_out=arr_out))
+
+    def validate_header_isolated(self, pmaker, params):
+        raise SkipTest('ECAT header does not support dtype get')
