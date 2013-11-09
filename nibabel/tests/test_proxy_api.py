@@ -121,6 +121,9 @@ class _TestProxyAPI(ValidateAPI):
 
 class TestAnalyzeProxyAPI(_TestProxyAPI):
     """ Specific Analyze-type array proxy API test
+
+    The analyze proxy extends the general API by adding read-only attributes
+    ``slope, inter, offset``
     """
     proxy_class = ArrayProxy
     header_class = AnalyzeHeader
@@ -215,6 +218,16 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                                             new_hdr)
                                 params = params.copy()
                                 yield fname_func, params
+
+    def validate_slope_inter_offset(self, pmaker, params):
+        # Check slope, inter, offset
+        prox, fio, hdr = pmaker()
+        for attr_name in ('slope', 'inter', 'offset'):
+            expected = params[attr_name]
+            assert_array_equal(getattr(prox, attr_name), expected)
+            # Read only
+            assert_raises(AttributeError,
+                          setattr, prox, attr_name, expected)
 
     def validate_deprecated_header(self, pmaker, params):
         prox, fio, hdr = pmaker()

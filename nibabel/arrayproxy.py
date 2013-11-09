@@ -72,6 +72,18 @@ class ArrayProxy(object):
     def is_proxy(self):
         return True
 
+    @property
+    def slope(self):
+        return self._slope
+
+    @property
+    def inter(self):
+        return self._inter
+
+    @property
+    def offset(self):
+        return self._offset
+
     def __array__(self):
         ''' Read of data from file '''
         with BinOpener(self.file_like) as fileobj:
