@@ -1,4 +1,21 @@
-""" Validate image API """
+""" Validate image proxy API
+
+Minimum array proxy API is:
+
+* read only shape attribute / property
+* returns array from np.asarray(prox)
+
+And:
+
+* that modifying no object outside ``prox`` will affect the result of
+  ``np.asarray(obj)``.  Specifically:
+  * Changes in position (``obj.tell()``) of any passed file-like objects
+    will not affect the output of from ``np.asarray(proxy)``.
+  * if you pass a header into the __init__, then modifying the original
+    header will not affect the result of the array return.
+
+These last are to allow the proxy to be re-used with different images.
+"""
 from __future__ import division, print_function, absolute_import
 
 import warnings
@@ -25,19 +42,64 @@ from ..tmpdirs import InTemporaryDirectory
 from .test_api_validators import ValidateAPI
 
 
-class TestAnalyzeProxyAPI(ValidateAPI):
-    """ General array proxy API test
+class _TestProxyAPI(ValidateAPI):
+    """ Base class for testing proxy APIs
 
-    The API is - at minimum:
+    Assumes that real classes will provide an `obj_params` method which is a
+    generator returning 2 tuples of (<proxy_maker>, <param_dict>).
+    <proxy_maker> is a function returning a 3 tuple of (<proxy>, <fileobj>,
+    <header>).  <param_dict> is a dictionary containing at least keys
+    ``arr_out`` (expected output array from proxy), ``dtype_out`` (expected
+    output dtype for array) and ``shape`` (shape of array).
 
-    * The object has an attribute ``shape``
-    * the object returns the data array from ``np.asarray(obj)``
-    * that modifying no object outside ``obj`` will affect the result of
-      ``np.asarray(obj)``.  Specifically:
-      * Changes in position (``obj.tell()``) of any passed file-like objects
-        will not affect the output of from ``np.asarray(proxy)``.
-      * if you pass a header into the __init__, then modifying the original
-        header will not affect the result of the array return.
+    The <header> above should support at least "get_data_dtype",
+    "set_data_dtype", "get_data_shape", "set_data_shape"
+    """
+    # Flag True if offset can be set into header of image
+    settable_offset = False
+
+    def validate_shape(self, pmaker, params):
+        # Check shape
+        prox, fio, hdr = pmaker()
+        assert_array_equal(prox.shape, params['shape'])
+        # Read only
+        assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
+
+    def validate_asarray(self, pmaker, params):
+        # Check proxy returns expected array from asarray
+        prox, fio, hdr = pmaker()
+        out = np.asarray(prox)
+        assert_array_equal(out, params['arr_out'])
+        assert_equal(out.dtype.type, params['dtype_out'])
+        # Shape matches expected shape
+        assert_equal(out.shape, params['shape'])
+
+    def validate_header_isolated(self, pmaker, params):
+        # Confirm altering input header has no effect
+        prox, fio, hdr = pmaker()
+        assert_array_equal(prox, params['arr_out'])
+        # Mess up header badly and hope for same correct result
+        if hdr.get_data_dtype() == np.uint8:
+            hdr.set_data_dtype(np.int16)
+        else:
+            hdr.set_data_dtype(np.uint8)
+        hdr.set_data_shape(np.array(hdr.get_data_shape()) + 1)
+        if self.settable_offset:
+            hdr.set_data_offset(32)
+        assert_array_equal(prox, params['arr_out'])
+
+    def validate_fileobj_isolated(self, pmaker, params):
+        # Check file position of read independent of file-like object
+        prox, fio, hdr = pmaker()
+        if isinstance(fio, string_types):
+            return
+        assert_array_equal(prox, params['arr_out'])
+        fio.read() # move to end of file
+        assert_array_equal(prox, params['arr_out'])
+
+
+class TestAnalyzeProxyAPI(_TestProxyAPI):
+    """ Specific Analyze-type array proxy API test
     """
     proxy_class = ArrayProxy
     header_class = AnalyzeHeader
@@ -132,45 +194,6 @@ class TestAnalyzeProxyAPI(ValidateAPI):
                                             new_hdr)
                                 params = params.copy()
                                 yield fname_func, params
-
-    def validate_shape(self, pmaker, params):
-        # Check shape
-        prox, fio, hdr = pmaker()
-        assert_array_equal(prox.shape, params['shape'])
-        # Read only
-        assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
-
-    def validate_asarray(self, pmaker, params):
-        # Check proxy returns expected array from asarray
-        prox, fio, hdr = pmaker()
-        out = np.asarray(prox)
-        assert_array_equal(out, params['arr_out'])
-        assert_equal(out.dtype.type, params['dtype_out'])
-        # Shape matches expected shape
-        assert_equal(out.shape, params['shape'])
-
-    def validate_header_isolated(self, pmaker, params):
-        # Confirm altering input header has no effect
-        prox, fio, hdr = pmaker()
-        assert_array_equal(prox, params['arr_out'])
-        # Mess up header badly and hope for same correct result
-        if hdr.get_data_dtype() == np.uint8:
-            hdr.set_data_dtype(np.int16)
-        else:
-            hdr.set_data_dtype(np.uint8)
-        hdr.set_data_shape(np.array(hdr.get_data_shape()) + 1)
-        if self.settable_offset:
-            hdr.set_data_offset(32)
-        assert_array_equal(prox, params['arr_out'])
-
-    def validate_fileobj_isolated(self, pmaker, params):
-        # Check file position of read independent of file-like object
-        prox, fio, hdr = pmaker()
-        if isinstance(fio, string_types):
-            return
-        assert_array_equal(prox, params['arr_out'])
-        fio.read() # move to end of file
-        assert_array_equal(prox, params['arr_out'])
 
     def validate_deprecated_header(self, pmaker, params):
         prox, fio, hdr = pmaker()
