@@ -601,6 +601,36 @@ def _check_slicer(sliceobj, arr, fobj, offset, order,
     assert_array_equal(arr[sliceobj], new_slice)
 
 
+def slicer_samples(shape):
+    """ Generator returns slice samples for given `shape`
+    """
+    ndim = len(shape)
+    slicers_list = []
+    for i in range(ndim):
+        slicers_list.append(_slices_for_len(shape[i]))
+        for sliceobj in product(*slicers_list):
+            yield sliceobj
+    # Nones and ellipses
+    yield (None,)
+    if ndim == 0:
+        return
+    yield (None, 0)
+    yield (0, None)
+    yield (Ellipsis, 1)
+    yield (1, Ellipsis)
+    yield (None, Ellipsis)
+    yield (Ellipsis, None)
+    yield (Ellipsis, None, None)
+    if ndim == 1:
+        return
+    yield (1, None, slice(None))
+    yield (Ellipsis, 2, None)
+    yield (1, Ellipsis, None)
+    if ndim == 2:
+        return
+    yield (slice(None), 1, 2, None)
+
+
 def test_fileslice():
     shapes = (15, 16, 17)
     for n_dim in range(1, len(shapes) + 1):
@@ -611,25 +641,8 @@ def test_fileslice():
                 fobj = BytesIO()
                 fobj.write(b'\0' * offset)
                 fobj.write(arr.tostring(order=order))
-                slicers_list = []
-                for i in range(n_dim):
-                    slicers_list.append(_slices_for_len(shape[i]))
-                    for sliceobj in product(*slicers_list):
-                        _check_slicer(sliceobj, arr, fobj, offset, order)
-    # Try some Nones and Ellipses
-    for order in 'FC':
-        arr = np.arange(24).reshape((2, 3, 4))
-        fobj = BytesIO()
-        fobj.write(b'\0' * offset)
-        fobj.write(arr.tostring(order=order))
-        _check_slicer((None,), arr, fobj, offset, order)
-        _check_slicer((None, 1), arr, fobj, offset, order)
-        _check_slicer((1, None, slice(None)), arr, fobj, offset, order)
-        _check_slicer((slice(None), 1, 2, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, 2, None), arr, fobj, offset, order)
-        _check_slicer((1, Ellipsis, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, None, None), arr, fobj, offset, order)
+                for sliceobj in slicer_samples(shape):
+                    _check_slicer(sliceobj, arr, fobj, offset, order)
 
 
 def test_fileslice_errors():
