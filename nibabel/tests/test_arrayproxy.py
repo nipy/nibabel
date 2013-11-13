@@ -24,6 +24,8 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
+from .test_fileslice import slicer_samples
+
 
 class FunkyHeader(object):
     def __init__(self, shape):
@@ -99,3 +101,26 @@ def test_nifti1_init():
         assert_true(ap.file_like == 'test.nii')
         assert_equal(ap.shape, shape)
         assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
+
+
+def test_proxy_slicing():
+    shapes = (15, 16, 17)
+    for n_dim in range(1, len(shapes) + 1):
+        shape = shapes[:n_dim]
+        arr = np.arange(np.prod(shape)).reshape(shape)
+        for offset in (0, 20):
+            fobj = BytesIO()
+            fobj.write(b'\0' * offset)
+            fobj.write(arr.tostring(order='F'))
+            hdr = Nifti1Header()
+            hdr.set_data_offset(offset)
+            hdr.set_data_dtype(arr.dtype)
+            hdr.set_data_shape(shape)
+            prox = ArrayProxy(fobj, hdr)
+            for sliceobj in slicer_samples(shape):
+                assert_array_equal(arr[sliceobj], prox[sliceobj])
+    # Check slicing works with scaling
+    hdr.set_slope_inter(2.0, 1.0)
+    prox = ArrayProxy(fobj, hdr)
+    sliceobj = (None, slice(None), 1, -1)
+    assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])

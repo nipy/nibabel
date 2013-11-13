@@ -23,6 +23,7 @@ The API is - at minimum:
 import warnings
 
 from .volumeutils import BinOpener, array_from_file, apply_read_scaling
+from .fileslice import fileslice
 
 
 class ArrayProxy(object):
@@ -91,5 +92,16 @@ class ArrayProxy(object):
                                        self._dtype,
                                        fileobj,
                                        self._offset)
+        # Upcast as necessary for big slopes, intercepts
+        return apply_read_scaling(raw_data, self._slope, self._inter)
+
+    def __getitem__(self, slicer):
+        with BinOpener(self.file_like) as fileobj:
+            raw_data = fileslice(fileobj,
+                                 slicer,
+                                 self._shape,
+                                 self._dtype,
+                                 self._offset,
+                                 order = 'F')
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
