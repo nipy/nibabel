@@ -107,6 +107,19 @@ class _TestMincFile(object):
             min = 0.2082842439,
             max = 0.2094327615,
             mean = 0.2091292083),
+        dict(
+            fname = pjoin(data_path, 'minc1_4d.mnc'),
+            shape = (2, 10,20,20),
+            type = np.uint8,
+            affine = np.array([[0, 0, 2.0, -20],
+                               [0, 2.0, 0, -20],
+                               [2.0, 0, 0, -10],
+                               [0, 0, 0, 1]]),
+            zooms = (1., 2., 2., 2.),
+            # These values from mincstats
+            min = 0.2078431373,
+            max = 1.498039216,
+            mean = 0.9090422837),
     ]
 
     def test_mincfile(self):
