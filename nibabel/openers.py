@@ -13,6 +13,12 @@ from os.path import splitext
 import gzip
 import bz2
 
+def _gzip_open(fileish, *args, **kwargs):
+    # open gzip files with faster reads on large files using larger chuncks
+    gzip_file = gzip.open(fileish, *args, **kwargs)
+    gzip_file.max_read_chunk = 100 * 1024 * 1024 # 100Mb
+    return gzip_file
+
 
 class Opener(object):
     """ Class to accept, maybe open, and context-manage file-likes / filenames
