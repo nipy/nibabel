@@ -134,6 +134,10 @@ class Minc1File(object):
                              'data type range')
         return np.asarray(valid_range, dtype=np.float)
 
+    def _get_scalar(self, var):
+        """ Get scalar value from NetCDF scalar """
+        return var.getValue()
+
     def _normalize(self, data):
         """ Scale image data with recorded scalefactors
 
@@ -166,8 +170,8 @@ class Minc1File(object):
                             'do not match')
         dmin, dmax = self._get_valid_range()
         if nscales == 0:
-            imax = np.asarray(image_max)
-            imin = np.asarray(image_min)
+            imax = self._get_scalar(image_max)
+            imin = self._get_scalar(image_min)
             sc = (imax-imin) / (dmax-dmin)
             return np.clip(data, dmin, dmax) * sc + (imin - dmin * sc)
         out_data = np.empty(data.shape, np.float)

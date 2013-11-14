@@ -41,7 +41,20 @@ if have_h5py:
                 min = 0.1185331417,
                 max = 92.87690699,
                 mean = 31.2127952),
-        ]
+        dict(
+            fname = pjoin(data_path, 'minc2_1_scale.mnc'),
+            shape = (10,20,20),
+            type = np.uint8,
+            affine = np.array([[0, 0, 2.0, -20],
+                               [0, 2.0, 0, -20],
+                               [2.0, 0, 0, -10],
+                               [0, 0, 0, 1]]),
+            zooms = (2., 2., 2.),
+            # These values from mincstats
+            min = 0.2082842439,
+            max = 0.2094327615,
+            mean = 0.2091292083),
+    ]
 
     class TestMinc2Image(tm2.TestMinc1Image):
         image_class = Minc2Image

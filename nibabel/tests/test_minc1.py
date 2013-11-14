@@ -86,14 +86,27 @@ class _TestMincFile(object):
             shape = (10,20,20),
             type = np.uint8,
             affine = np.array([[0, 0, 2.0, -20],
-                            [0, 2.0, 0, -20],
-                            [2.0, 0, 0, -10],
-                            [0, 0, 0, 1]]),
+                               [0, 2.0, 0, -20],
+                               [2.0, 0, 0, -10],
+                               [0, 0, 0, 1]]),
             zooms = (2., 2., 2.),
             # These values from SPM2
             min = 0.20784314,
             max = 0.74901961,
             mean = 0.60602819),
+        dict(
+            fname = pjoin(data_path, 'minc1_1_scale.mnc'),
+            shape = (10,20,20),
+            type = np.uint8,
+            affine = np.array([[0, 0, 2.0, -20],
+                               [0, 2.0, 0, -20],
+                               [2.0, 0, 0, -10],
+                               [0, 0, 0, 1]]),
+            zooms = (2., 2., 2.),
+            # These values from mincstats
+            min = 0.2082842439,
+            max = 0.2094327615,
+            mean = 0.2091292083),
     ]
 
     def test_mincfile(self):
