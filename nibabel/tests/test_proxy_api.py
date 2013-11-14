@@ -295,7 +295,9 @@ class TestMinc1API(_TestProxyAPI):
     file_class = minc1.Minc1File
     eg_fname = 'tiny.mnc'
     eg_shape = (10, 20, 20)
-    opener = netcdf_file
+    @staticmethod
+    def opener(f):
+        return netcdf_file(f, mode='r')
 
     def obj_params(self):
         """ Iterator returning (``proxy_creator``, ``proxy_params``) pairs
@@ -330,7 +332,9 @@ if have_h5py:
         file_class = minc2.Minc2File
         eg_fname = 'small.mnc'
         eg_shape = (18, 28, 29)
-        opener = h5py.File
+        @staticmethod
+        def opener(f):
+            return h5py.File(f, mode='r')
 
 
 class TestEcatAPI(_TestProxyAPI):
