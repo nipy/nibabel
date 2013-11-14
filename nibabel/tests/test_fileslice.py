@@ -141,18 +141,23 @@ def test_slice2outax():
 
 def _slices_for_len(L):
     # Example slices for a dimension of length L
-    return (
+    if L == 0:
+        raise ValueError('Need length > 0')
+    sdefs = [
         0,
         L // 2,
         L - 1,
         -1,
-        -2,
         slice(None),
-        slice(L-1),
-        slice(1, L-1),
-        slice(1, L-1, 2),
-        slice(L-1, 1, -1),
-        slice(L-1, 1, -2))
+        slice(L-1)]
+    if L > 1:
+        sdefs += [
+            -2,
+            slice(1, L-1),
+            slice(1, L-1, 2),
+            slice(L-1, 1, -1),
+            slice(L-1, 1, -2)]
+    return tuple(sdefs)
 
 
 def test_slice2len():
@@ -647,19 +652,19 @@ def slicer_samples(shape):
         return
     yield (None, 0)
     yield (0, None)
-    yield (Ellipsis, 1)
-    yield (1, Ellipsis)
+    yield (Ellipsis, -1)
+    yield (-1, Ellipsis)
     yield (None, Ellipsis)
     yield (Ellipsis, None)
     yield (Ellipsis, None, None)
     if ndim == 1:
         return
-    yield (1, None, slice(None))
-    yield (Ellipsis, 2, None)
-    yield (1, Ellipsis, None)
+    yield (0, None, slice(None))
+    yield (Ellipsis, -1, None)
+    yield (0, Ellipsis, None)
     if ndim == 2:
         return
-    yield (slice(None), 1, 2, None)
+    yield (slice(None), 0, -1, None)
 
 
 def test_fileslice():
