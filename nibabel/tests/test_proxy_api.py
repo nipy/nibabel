@@ -41,7 +41,7 @@ from ..optpkg import optional_package
 h5py, have_h5py, _ = optional_package('h5py')
 from .. import ecat
 
-from ..arrayproxy import ArrayProxy
+from ..arrayproxy import ArrayProxy, is_proxy
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
@@ -100,6 +100,8 @@ class _TestProxyAPI(ValidateAPI):
         # Check shape
         prox, fio, hdr = pmaker()
         assert_true(prox.is_proxy)
+        assert_true(is_proxy(prox))
+        assert_false(is_proxy(np.arange(10)))
         # Read only
         assert_raises(AttributeError, setattr, prox, 'is_proxy', False)
 

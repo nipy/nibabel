@@ -17,7 +17,7 @@ from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
-from ..arrayproxy import ArrayProxy
+from ..arrayproxy import ArrayProxy, is_proxy
 from ..nifti1 import Nifti1Header
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -124,3 +124,17 @@ def test_proxy_slicing():
     prox = ArrayProxy(fobj, hdr)
     sliceobj = (None, slice(None), 1, -1)
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
+
+
+def test_is_proxy():
+    # Test is_proxy function
+    hdr = FunkyHeader((2, 3, 4))
+    bio = BytesIO()
+    prox = ArrayProxy(bio, hdr)
+    assert_true(is_proxy(prox))
+    assert_false(is_proxy(bio))
+    assert_false(is_proxy(hdr))
+    assert_false(is_proxy(np.zeros((2, 3, 4))))
+    class NP(object):
+        is_proxy = False
+    assert_false(is_proxy(NP()))

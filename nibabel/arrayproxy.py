@@ -105,3 +105,12 @@ class ArrayProxy(object):
                                  order = 'F')
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
+
+
+def is_proxy(obj):
+    """ Return True if `obj` is an array proxy
+    """
+    try:
+        return obj.is_proxy
+    except AttributeError:
+        return False
