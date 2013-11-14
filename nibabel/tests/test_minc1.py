@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 from __future__ import division, print_function, absolute_import
 
-import os
+from os.path import join as pjoin
 import gzip
 import bz2
 import warnings
@@ -29,7 +29,7 @@ from ..testing import data_path
 
 from . import test_spatialimages as tsi
 
-EG_FNAME = os.path.join(data_path, 'tiny.mnc')
+EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
 def test_old_namespace():
     # Check old names are defined in minc1 module and top level
@@ -80,43 +80,47 @@ class _TestMincFile(object):
     file_class = Minc1File
     fname = EG_FNAME
     opener = netcdf_file
-    example_params = dict(
-        fname = os.path.join(data_path, 'tiny.mnc'),
-        shape = (10,20,20),
-        type = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (2., 2., 2.),
-        # These values from SPM2
-        min = 0.20784314,
-        max = 0.74901961,
-        mean = 0.60602819)
+    test_files = [
+        dict(
+            fname = pjoin(data_path, 'tiny.mnc'),
+            shape = (10,20,20),
+            type = np.uint8,
+            affine = np.array([[0, 0, 2.0, -20],
+                            [0, 2.0, 0, -20],
+                            [2.0, 0, 0, -10],
+                            [0, 0, 0, 1]]),
+            zooms = (2., 2., 2.),
+            # These values from SPM2
+            min = 0.20784314,
+            max = 0.74901961,
+            mean = 0.60602819),
+    ]
 
     def test_mincfile(self):
-        mnc_obj = self.opener(self.example_params['fname'], 'r')
-        mnc = self.file_class(mnc_obj)
-        assert_equal(mnc.get_data_dtype().type, self.example_params['type'])
-        assert_equal(mnc.get_data_shape(), self.example_params['shape'])
-        assert_equal(mnc.get_zooms(), self.example_params['zooms'])
-        assert_array_equal(mnc.get_affine(), self.example_params['affine'])
-        data = mnc.get_scaled_data()
-        assert_equal(data.shape, self.example_params['shape'])
+        for tp in self.test_files:
+            mnc_obj = self.opener(tp['fname'], 'r')
+            mnc = self.file_class(mnc_obj)
+            assert_equal(mnc.get_data_dtype().type, tp['type'])
+            assert_equal(mnc.get_data_shape(), tp['shape'])
+            assert_equal(mnc.get_zooms(), tp['zooms'])
+            assert_array_equal(mnc.get_affine(), tp['affine'])
+            data = mnc.get_scaled_data()
+            assert_equal(data.shape, tp['shape'])
 
     def test_load(self):
         # Check highest level load of minc works
-        img = load(self.example_params['fname'])
-        data = img.get_data()
-        assert_equal(data.shape, self.example_params['shape'])
-        # min, max, mean values from read in SPM2
-        assert_array_almost_equal(data.min(), self.example_params['min'])
-        assert_array_almost_equal(data.max(), self.example_params['max'])
-        assert_array_almost_equal(data.mean(), self.example_params['mean'])
-        # check if mnc can be converted to nifti
-        ni_img = Nifti1Image.from_image(img)
-        assert_array_equal(ni_img.get_affine(), self.example_params['affine'])
-        assert_array_equal(ni_img.get_data(), data)
+        for tp in self.test_files:
+            img = load(tp['fname'])
+            data = img.get_data()
+            assert_equal(data.shape, tp['shape'])
+            # min, max, mean values from read in SPM2
+            assert_array_almost_equal(data.min(), tp['min'])
+            assert_array_almost_equal(data.max(), tp['max'])
+            assert_array_almost_equal(data.mean(), tp['mean'])
+            # check if mnc can be converted to nifti
+            ni_img = Nifti1Image.from_image(img)
+            assert_array_equal(ni_img.get_affine(), tp['affine'])
+            assert_array_equal(ni_img.get_data(), data)
 
 
 class TestMinc1File(_TestMincFile):
@@ -124,18 +128,19 @@ class TestMinc1File(_TestMincFile):
     def test_compressed(self):
         # we can read minc compressed
         # Not so for MINC2; hence this small sub-class
-        content = open(self.example_params['fname'], 'rb').read()
-        openers_exts = ((gzip.open, '.gz'), (bz2.BZ2File, '.bz2'))
-        with InTemporaryDirectory():
-            for opener, ext in openers_exts:
-                fname = 'test.mnc' + ext
-                fobj = opener(fname, 'wb')
-                fobj.write(content)
-                fobj.close()
-                img = self.module.load(fname)
-                data = img.get_data()
-                assert_array_almost_equal(data.mean(), self.example_params['mean'])
-                del img
+        for tp in self.test_files:
+            content = open(tp['fname'], 'rb').read()
+            openers_exts = ((gzip.open, '.gz'), (bz2.BZ2File, '.bz2'))
+            with InTemporaryDirectory():
+                for opener, ext in openers_exts:
+                    fname = 'test.mnc' + ext
+                    fobj = opener(fname, 'wb')
+                    fobj.write(content)
+                    fobj.close()
+                    img = self.module.load(fname)
+                    data = img.get_data()
+                    assert_array_almost_equal(data.mean(), tp['mean'])
+                    del img
 
 
 class TestMinc1Image(tsi.TestSpatialImage):

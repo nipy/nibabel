@@ -1,8 +1,9 @@
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*- # vi: set ft=python sts=4 ts=4 sw=4 et: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ## #
 #   See COPYING file distributed along with the NiBabel package for the #   copyright and license terms. #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ## from __future__ import division, print_function, absolute_import
+from __future__ import division, print_function, absolute_import
 
-import os
+from os.path import join as pjoin
 
 import numpy as np
 
@@ -26,20 +27,21 @@ if have_h5py:
         module = minc2
         file_class = Minc2File
         opener = h5py.File
-        example_params = dict(
-            fname = os.path.join(data_path, 'small.mnc'),
-            shape = (18, 28, 29),
-            type = np.int16,
-            affine = np.array([[0, 0, 7.0, -98],
-                            [0, 8.0, 0, -134],
-                            [9.0, 0, 0, -72],
-                            [0, 0, 0, 1]]),
-            zooms = (9., 8., 7.),
-            # These values from mincstats
-            min = 0.1185331417,
-            max = 92.87690699,
-            mean = 31.2127952)
-
+        test_files = [
+            dict(
+                fname = pjoin(data_path, 'small.mnc'),
+                shape = (18, 28, 29),
+                type = np.int16,
+                affine = np.array([[0, 0, 7.0, -98],
+                                   [0, 8.0, 0, -134],
+                                   [9.0, 0, 0, -72],
+                                   [0, 0, 0, 1]]),
+                zooms = (9., 8., 7.),
+                # These values from mincstats
+                min = 0.1185331417,
+                max = 92.87690699,
+                mean = 31.2127952),
+        ]
 
     class TestMinc2Image(tm2.TestMinc1Image):
         image_class = Minc2Image
