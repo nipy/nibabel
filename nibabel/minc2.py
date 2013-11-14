@@ -105,9 +105,33 @@ class Minc2File(Minc1File):
         """ Get scalar value from HDF5 scalar """
         return var.value
 
-    def get_scaled_data(self):
-        data =  np.asarray(self._image)
-        return self._normalize(data)
+    def _get_array(self, var):
+        """ Get array from HDF5 array """
+        return np.asanyarray(var)
+
+    def get_scaled_data(self, sliceobj=()):
+        """ Return scaled data for slice definition `sliceobj`
+
+        Parameters
+        ----------
+        sliceobj : tuple, optional
+            slice definition. If not specified, return whole array
+
+        Returns
+        -------
+        scaled_arr : array
+            array from minc file with scaling applied
+        """
+        if sliceobj == ():
+            raw_data = np.asanyarray(self._image)
+        else: # Try slicing into the HDF array (maybe it's possible)
+            try:
+                raw_data = self._image[sliceobj]
+            except (ValueError, TypeError):
+                raw_data = np.asanyarray(self._image)[sliceobj]
+            else:
+                raw_data = np.asanyarray(raw_data)
+        return self._normalize(raw_data, sliceobj)
 
 
 class Minc2Image(Minc1Image):

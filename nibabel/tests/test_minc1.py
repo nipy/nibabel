@@ -28,6 +28,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..testing import data_path
 
 from . import test_spatialimages as tsi
+from .test_fileslice import slicer_samples
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -133,6 +134,23 @@ class _TestMincFile(object):
             data = mnc.get_scaled_data()
             assert_equal(data.shape, tp['shape'])
 
+    def test_mincfile_slicing(self):
+        # Test slicing and scaling of mincfile data
+        for tp in self.test_files:
+            mnc_obj = self.opener(tp['fname'], 'r')
+            mnc = self.file_class(mnc_obj)
+            data = mnc.get_scaled_data()
+            for slicedef in ((slice(None),),
+                            (1,),
+                            (slice(None), 1),
+                            (1, slice(None)),
+                            (slice(None), 1, 1),
+                            (1, slice(None), 1),
+                            (1, 1, slice(None)),
+                            ):
+                sliced_data = mnc.get_scaled_data(slicedef)
+                assert_array_equal(sliced_data, data[slicedef])
+
     def test_load(self):
         # Check highest level load of minc works
         for tp in self.test_files:
@@ -147,6 +165,16 @@ class _TestMincFile(object):
             ni_img = Nifti1Image.from_image(img)
             assert_array_equal(ni_img.get_affine(), tp['affine'])
             assert_array_equal(ni_img.get_data(), data)
+
+    def test_array_proxy_slicing(self):
+        # Test slicing of array proxy
+        for tp in self.test_files:
+            img = load(tp['fname'])
+            arr = img.get_data()
+            prox = img.dataobj
+            assert_true(prox.is_proxy)
+            for sliceobj in slicer_samples(img.shape):
+                assert_array_equal(arr[sliceobj], prox[sliceobj])
 
 
 class TestMinc1File(_TestMincFile):
