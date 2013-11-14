@@ -2,9 +2,11 @@
 
 Minimum array proxy API is:
 
-* read only shape attribute / property
-* read only is_proxy attribute / property
-* returns array from np.asarray(prox)
+* read only ``shape`` property
+* read only ``is_proxy`` property
+* returns array from ``np.asarray(prox)``
+* returns array slice from ``prox[<slice_spec>]`` where ``<slice_spec>`` is any
+  non-fancy slice specification.
 
 And:
 
@@ -52,6 +54,23 @@ from ..testing import data_path as DATA_PATH
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
+
+def _some_slicers(shape):
+    ndim = len(shape)
+    slicers = np.eye(ndim).astype(np.int).astype(object)
+    slicers[slicers == 0] = slice(None)
+    for i in range(ndim):
+        if i % 2:
+            slicers[i, i] = -1
+        elif shape[i] < 2: # some proxy examples have length 1 axes
+            slicers[i, i] = 0
+    # Add a newaxis to keep us on our toes
+    no_pos = ndim // 2
+    slicers = np.hstack((slicers[:, :no_pos],
+                         np.empty((ndim, 1)),
+                         slicers[:, no_pos:]))
+    slicers[:, no_pos] = None
+    return [tuple(s) for s in slicers]
 
 
 class _TestProxyAPI(ValidateAPI):
@@ -117,6 +136,14 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(prox, params['arr_out'])
         fio.read() # move to end of file
         assert_array_equal(prox, params['arr_out'])
+
+    def validate_proxy_slicing(self, pmaker, params):
+        # Confirm that proxy object can be sliced correctly
+        arr = params['arr_out']
+        shape = arr.shape
+        prox, fio, hdr = pmaker()
+        for sliceobj in _some_slicers(shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
 
 
 class TestAnalyzeProxyAPI(_TestProxyAPI):
