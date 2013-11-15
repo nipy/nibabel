@@ -733,8 +733,10 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     Parameters
     ----------
     arr : array-like
-    slope : scalar
-    inter : scalar
+    slope : float, optional
+        slope value to apply to `arr` (``arr * slope + inter``)
+    inter : float, optional
+        intercept value to apply to `arr` (``arr * slope + inter``)
 
     Returns
     -------
@@ -751,11 +753,13 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     if arr.dtype.kind in 'iu':
         if (slope, inter) == (1, np.round(inter)):
             # (u)int to (u)int offset-only scaling
-            inter = inter.astype(_inter_type(arr.dtype, inter))
+            inter = inter.astype(_inter_type(arr.dtype, np.asscalar(inter)))
         else: # int to float; get enough precision to avoid infs
-            # Find floating point type for which scaling does not overflow, starting
-            # at given type
-            ftype = int_scinter_ftype(arr.dtype, slope, inter, slope.dtype.type)
+            # Find floating point type for which scaling does not overflow,
+            # starting at given type
+            default = (slope.dtype.type if slope.dtype.kind == 'f'
+                       else np.float64)
+            ftype = int_scinter_ftype(arr.dtype, slope, inter, default)
             slope = slope.astype(ftype)
             inter = inter.astype(ftype)
     if slope != 1.0:

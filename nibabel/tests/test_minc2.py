@@ -22,7 +22,7 @@ from . import test_minc1 as tm2
 
 
 if have_h5py:
-    class TestMinc1File(tm2._TestMincFile):
+    class TestMinc2File(tm2._TestMincFile):
         module = minc2
         file_class = Minc2File
         opener = h5py.File

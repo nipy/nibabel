@@ -204,7 +204,15 @@ class MincImageArrayProxy(object):
     '''
     def __init__(self, minc_file):
         self.minc_file = minc_file
-        self.shape = minc_file.get_data_shape()
+        self._shape = minc_file.get_data_shape()
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def is_proxy(self):
+        return True
 
     def __array__(self):
         ''' Read of data from file '''

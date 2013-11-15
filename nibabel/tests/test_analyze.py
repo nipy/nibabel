@@ -337,6 +337,13 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             ehdr.set_data_dtype(dt)
             assert_true(ehdr['datatype'] == code)
 
+    def test_offset(self):
+        # Test get / set offset
+        hdr = self.header_class()
+        offset = hdr.get_data_offset()
+        hdr.set_data_offset(offset + 16)
+        assert_equal(hdr.get_data_offset(), offset + 16)
+
     def test_data_shape_zooms_affine(self):
         hdr = self.header_class()
         for shape in ((1,2,3),(0,),(1,),(1,2),(1,2,3,4)):

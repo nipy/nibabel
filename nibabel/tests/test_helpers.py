@@ -14,7 +14,7 @@ def bytesio_filemap(klass):
 
 
 def bytesio_round_trip(img):
-    """ Save then load from bytesio
+    """ Save then load image from bytesio
     """
     klass = img.__class__
     bytes_map = bytesio_filemap(klass)

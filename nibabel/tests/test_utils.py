@@ -339,6 +339,14 @@ def test_apply_scaling():
         np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, best_float())
 
 
+def test_apply_read_scaling_ints():
+    # Test that apply_read_scaling copes with integer scaling inputs
+    arr = np.arange(10, dtype=np.int16)
+    assert_array_equal(apply_read_scaling(arr, 1, 0), arr)
+    assert_array_equal(apply_read_scaling(arr, 1, 1), arr + 1)
+    assert_array_equal(apply_read_scaling(arr, 2, 1), arr * 2 + 1)
+
+
 def test__inter_type():
     # Test routine to get intercept type
     bf = best_float()

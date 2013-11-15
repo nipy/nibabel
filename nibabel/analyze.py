@@ -25,6 +25,7 @@ with methods::
     .get/set_data_shape
     .get/set_data_dtype
     .get/set_zooms
+    .get/set_data_offset
     .get_base_affine()
     .get_best_affine()
     .data_to_fileobj
@@ -681,6 +682,11 @@ class AnalyzeHeader(LabeledWrapStruct):
 
     def as_analyze_map(self):
         return self
+
+    def set_data_offset(self, offset):
+        """ Set offset into data file to read data
+        """
+        self._structarr['vox_offset'] = offset
 
     def get_data_offset(self):
         ''' Return offset into data file to read data
