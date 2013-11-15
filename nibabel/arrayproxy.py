@@ -8,17 +8,21 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Array proxy base class
 
-The API is - at minimum:
+The proxy API is - at minimum:
 
 * The object has a read-only attribute ``shape``
-* read only ``is_proxy`` attribute / property
-* the object returns the data array from ``np.asarray(obj)``
-* that modifying no object outside ``obj`` will affect the result of
+* read only ``is_proxy`` attribute / property set to True
+* the object returns the data array from ``np.asarray(prox)``
+* returns array slice from ``prox[<slice_spec>]`` where ``<slice_spec>`` is any
+  ndarray slice specification that does not use numpy 'advanced indexing'.
+* modifying no object outside ``obj`` will affect the result of
   ``np.asarray(obj)``.  Specifically:
   * Changes in position (``obj.tell()``) of passed file-like objects will
     not affect the output of from ``np.asarray(proxy)``.
   * if you pass a header into the __init__, then modifying the original
     header will not affect the result of the array return.
+
+See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
 
@@ -27,14 +31,17 @@ from .fileslice import fileslice
 
 
 class ArrayProxy(object):
-    """
+    """ Class to act as proxy for the array that can be read from a file
+
     The array proxy allows us to freeze the passed fileobj and header such that
     it returns the expected data array.
 
-    This fairly generic implementation allows us to deal with Analyze and its
-    variants, including Nifti1, and with the MGH format, apparently.
+    This implementation assumes a contiguous array in the file object, with one
+    of the numpy dtypes, starting at a given file position ``offset`` with
+    single ``slope`` and ``intercept`` scaling to produce output values.
 
-    It requires a ``header`` object with methods:
+    The class ``__init__`` requires a ``header`` object with methods:
+
     * get_data_shape
     * get_data_dtype
     * get_data_offset
@@ -43,8 +50,11 @@ class ArrayProxy(object):
     The header should also have a 'copy' method.  This requirement will go away
     when the deprecated 'header' propoerty goes away.
 
-    Other image types might need to implement their own implementation of this
-    API.  See :mod:`minc` for an example.
+    This implementation allows us to deal with Analyze and its variants,
+    including Nifti1, and with the MGH format.
+
+    Other image types might need more specific classes to implement the API.
+    API.  See :mod:`nibabel.minc1` and :mod:`nibabel.ecat` for examples.
     """
     # Assume Fortran array memory layout
     order = 'F'

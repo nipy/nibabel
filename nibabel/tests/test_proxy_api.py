@@ -1,9 +1,17 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Validate image proxy API
 
 Minimum array proxy API is:
 
 * read only ``shape`` property
-* read only ``is_proxy`` property
+* read only ``is_proxy`` property set to True
 * returns array from ``np.asarray(prox)``
 * returns array slice from ``prox[<slice_spec>]`` where ``<slice_spec>`` is any
   non-fancy slice specification.
