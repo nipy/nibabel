@@ -48,6 +48,11 @@ class FunkyHeader(object):
         return FunkyHeader(self.shape)
 
 
+class CArrayProxy(ArrayProxy):
+    # C array memory layout
+    order = 'C'
+
+
 def test_init():
     bio = BytesIO()
     shape = [2,3,4]
@@ -67,6 +72,12 @@ def test_init():
     hdr.shape[0] = 6
     assert_not_equal(ap.shape, shape)
     # Data stays the same, also
+    assert_array_equal(np.asarray(ap), arr)
+    # C order also possible
+    bio = BytesIO()
+    bio.seek(16)
+    bio.write(arr.tostring(order='C'))
+    ap = CArrayProxy(bio, FunkyHeader((2, 3, 4)))
     assert_array_equal(np.asarray(ap), arr)
 
 
@@ -109,18 +120,22 @@ def test_proxy_slicing():
         shape = shapes[:n_dim]
         arr = np.arange(np.prod(shape)).reshape(shape)
         for offset in (0, 20):
-            fobj = BytesIO()
-            fobj.write(b'\0' * offset)
-            fobj.write(arr.tostring(order='F'))
             hdr = Nifti1Header()
             hdr.set_data_offset(offset)
             hdr.set_data_dtype(arr.dtype)
             hdr.set_data_shape(shape)
-            prox = ArrayProxy(fobj, hdr)
-            for sliceobj in slicer_samples(shape):
-                assert_array_equal(arr[sliceobj], prox[sliceobj])
+            for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
+                fobj = BytesIO()
+                fobj.write(b'\0' * offset)
+                fobj.write(arr.tostring(order=order))
+                prox = klass(fobj, hdr)
+                for sliceobj in slicer_samples(shape):
+                    assert_array_equal(arr[sliceobj], prox[sliceobj])
     # Check slicing works with scaling
     hdr.set_slope_inter(2.0, 1.0)
+    fobj = BytesIO()
+    fobj.write(b'\0' * offset)
+    fobj.write(arr.tostring(order='F'))
     prox = ArrayProxy(fobj, hdr)
     sliceobj = (None, slice(None), 1, -1)
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])

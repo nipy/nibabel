@@ -46,6 +46,9 @@ class ArrayProxy(object):
     Other image types might need to implement their own implementation of this
     API.  See :mod:`minc` for an example.
     """
+    # Assume Fortran array memory layout
+    order = 'F'
+
     def __init__(self, file_like, header):
         self.file_like = file_like
         # Copies of values needed to read array
@@ -91,7 +94,8 @@ class ArrayProxy(object):
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
-                                       self._offset)
+                                       offset=self._offset,
+                                       order=self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
@@ -102,7 +106,7 @@ class ArrayProxy(object):
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order = 'F')
+                                 order = self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
