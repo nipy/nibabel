@@ -77,8 +77,8 @@ char unused_str[15];  /*!< unused, filled with \0 */     /* 525 */
 typedef struct nifti_2_header nifti_2_header ;
 """
 
-# nifti2 flat header definition for Analyze-like first 348 bytes
-# first number in comments indicates offset in file header in bytes
+# nifti2 flat header definition for first 540 bytes
+# First number in comments indicates offset in file header in bytes
 header_dtd = [
     ('sizeof_hdr', 'i4'), # 0; must be 540
     ('magic', 'S4'),      # 4; must be 'ni2\0' or 'n+2\0'
