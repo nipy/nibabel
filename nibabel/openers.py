@@ -38,7 +38,7 @@ class Opener(object):
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
-    gz_def = (gzip.open, ('mode', 'compresslevel'))
+    gz_def = (_gzip_open, ('mode', 'compresslevel'))
     bz2_def = (bz2.BZ2File, ('mode', 'buffering', 'compresslevel'))
     compress_ext_map = {
         '.gz': gz_def,
