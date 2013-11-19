@@ -163,10 +163,10 @@ def test_two_to_one():
     assert_equal(img.get_header()['magic'], b'n+1')
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
-    # check that the single format vox offset is set correctly
+    # check that the single format vox offset stays at zero
     img.to_file_map()
     assert_equal(img.get_header()['magic'], b'n+1')
-    assert_equal(img.get_header()['vox_offset'], 352)
+    assert_equal(img.get_header()['vox_offset'], 0)
     # make a new pair image, with the single image header
     pimg = ni1.Nifti1Pair(data, affine, img.get_header())
     isio = BytesIO()
@@ -174,33 +174,33 @@ def test_two_to_one():
     pimg.file_map['image'].fileobj = isio
     pimg.file_map['header'].fileobj = hsio
     pimg.to_file_map()
-    # the offset remains the same
+    # the offset stays at zero (but is 352 on disk)
     assert_equal(pimg.get_header()['magic'], b'ni1')
-    assert_equal(pimg.get_header()['vox_offset'], 352)
+    assert_equal(pimg.get_header()['vox_offset'], 0)
     assert_array_equal(pimg.get_data(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    assert_equal(ana_img.get_header()['vox_offset'], 352)
+    assert_equal(ana_img.get_header()['vox_offset'], 0)
     # back to the single image, save it again to a stringio
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     img.to_file_map()
-    assert_equal(img.get_header()['vox_offset'], 352)
+    assert_equal(img.get_header()['vox_offset'], 0)
     aimg = ana.AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 352)
+    assert_equal(aimg.get_header()['vox_offset'], 0)
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 352)
+    assert_equal(aimg.get_header()['vox_offset'], 0)
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 352)
+    assert_equal(aimg.get_header()['vox_offset'], 0)
     nfimg = ni1.Nifti1Pair.from_image(img)
-    assert_equal(nfimg.get_header()['vox_offset'], 352)
+    assert_equal(nfimg.get_header()['vox_offset'], 0)
     # now set the vox offset directly
     hdr = nfimg.get_header()
-    hdr['vox_offset'] = 0
-    assert_equal(nfimg.get_header()['vox_offset'], 0)
+    hdr['vox_offset'] = 16
+    assert_equal(nfimg.get_header()['vox_offset'], 16)
     # check it gets properly set by the nifti single image
     nfimg = ni1.Nifti1Image.from_image(img)
-    assert_equal(nfimg.get_header()['vox_offset'], 352)
+    assert_equal(nfimg.get_header()['vox_offset'], 0)
 
 
 def test_negative_load_save():

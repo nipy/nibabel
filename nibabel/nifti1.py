@@ -606,15 +606,19 @@ class Nifti1Header(SpmAnalyzeHeader):
         return hdr
 
     def write_to(self, fileobj):
-        # First check that vox offset is large enough
+        # First check that vox offset is large enough; set if necessary
         if self.is_single:
             vox_offset = self._structarr['vox_offset']
             min_vox_offset = (self.single_vox_offset +
                               self.extensions.get_sizeondisk())
-            if vox_offset < min_vox_offset:
-                raise HeaderDataError('vox offset of %d, but need at least %d'
-                                      % (vox_offset, min_vox_offset))
+            if vox_offset == 0: # vox offset unset; set as necessary
+                self._structarr['vox_offset'] = min_vox_offset
+            elif vox_offset < min_vox_offset:
+                raise HeaderDataError(
+                    'vox offset set to {0}, but need at least {1}'.format(
+                        vox_offset, min_vox_offset))
         super(Nifti1Header, self).write_to(fileobj)
+        # Write extensions
         if len(self.extensions) == 0:
             # If single file, write required 0 stream to signal no extensions
             if self.is_single:
@@ -1466,7 +1470,8 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_pixdims,
                 klass._chk_scale_inter,
                 klass._chk_qfac,
-                klass._chk_magic_offset,
+                klass._chk_magic,
+                klass._chk_offset,
                 klass._chk_qform_code,
                 klass._chk_sform_code)
 
@@ -1527,24 +1532,27 @@ class Nifti1Header(SpmAnalyzeHeader):
         return hdr, rep
 
     @staticmethod
-    def _chk_magic_offset(hdr, fix=False):
+    def _chk_magic(hdr, fix=False):
+        rep = Report(HeaderDataError)
+        magic = np.asscalar(hdr['magic'])
+        if magic in (hdr.pair_magic, hdr.single_magic):
+            return hdr, rep
+        rep.problem_msg = ('magic string "%s" is not valid' %
+                            asstr(magic))
+        rep.problem_level = 45
+        if fix:
+            rep.fix_msg = 'leaving as is, but future errors are likely'
+        return hdr, rep
+
+    @staticmethod
+    def _chk_offset(hdr, fix=False):
         rep = Report(HeaderDataError)
         # for ease of later string formatting, use scalar of byte string
         magic = np.asscalar(hdr['magic'])
-        offset = hdr['vox_offset']
-        if magic == hdr.single_magic: # one file
-            if offset >= hdr.single_vox_offset:
-                if not offset % 16:
-                    return hdr, rep
-                else:
-                    # SPM uses memory mapping to read the data, and
-                    # apparently this has to start on 16 byte boundaries
-                    rep.problem_msg = ('vox offset (=%s) not divisible '
-                                       'by 16, not SPM compatible' % offset)
-                    rep.problem_level = 30
-                    if fix:
-                        rep.fix_msg = 'leaving at current value'
-                    return hdr, rep
+        offset = np.asscalar(hdr['vox_offset'])
+        if offset == 0:
+            return hdr, rep
+        if magic == hdr.single_magic and offset < hdr.single_vox_offset:
             rep.problem_level = 40
             rep.problem_msg = ('vox offset %d too low for '
                                'single file nifti1' % offset)
@@ -1552,13 +1560,16 @@ class Nifti1Header(SpmAnalyzeHeader):
                 hdr['vox_offset'] = hdr.single_vox_offset
                 rep.fix_msg = 'setting to minimum value of {0}'.format(
                     hdr.single_vox_offset)
-        elif magic != hdr.pair_magic: # two files
-            # unrecognized nii magic string, oh dear
-            rep.problem_msg = ('magic string "%s" is not valid' %
-                               asstr(magic))
-            rep.problem_level = 45
-            if fix:
-                rep.fix_msg = 'leaving as is, but future errors are likely'
+            return hdr, rep
+        if not offset % 16:
+            return hdr, rep
+        # SPM uses memory mapping to read the data, and
+        # apparently this has to start on 16 byte boundaries
+        rep.problem_msg = ('vox offset (={0:g}) not divisible '
+                           'by 16, not SPM compatible'.format(offset))
+        rep.problem_level = 30
+        if fix:
+            rep.fix_msg = 'leaving at current value'
         return hdr, rep
 
     @classmethod
@@ -1842,13 +1853,6 @@ class Nifti1Image(Nifti1Pair):
         super(Nifti1Image, self).update_header()
         hdr = self._header
         hdr['magic'] = hdr.single_magic
-        # make sure that there is space for the header.  If any
-        # extensions, figure out necessary vox_offset for extensions to
-        # fit
-        min_vox_offset = (hdr.single_vox_offset +
-                          hdr.extensions.get_sizeondisk())
-        if hdr['vox_offset'] < min_vox_offset:
-            hdr['vox_offset'] = min_vox_offset
 
 
 def load(filename):
