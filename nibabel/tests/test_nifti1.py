@@ -60,7 +60,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr = self.header_class()
         assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], hdr.pair_vox_offset)
+        assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
         hdr = self.header_class.from_fileobj(open(self.example_file, 'rb'))
@@ -571,7 +571,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
         hdr = self.header_class()
         assert_equal(hdr['magic'], hdr.single_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], hdr.single_vox_offset)
+        assert_equal(hdr['vox_offset'], 0)
 
     def test_binblock_is_file(self):
         # Override test that binary string is the same as the file on disk; in

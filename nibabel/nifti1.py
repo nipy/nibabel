@@ -644,10 +644,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
         if klass.is_single:
             hdr_data['magic'] = klass.single_magic
-            hdr_data['vox_offset'] = klass.single_vox_offset
         else:
             hdr_data['magic'] = klass.pair_magic
-            hdr_data['vox_offset'] = klass.pair_vox_offset
         return hdr_data
 
     @classmethod
