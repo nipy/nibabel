@@ -904,7 +904,7 @@ class AnalyzeImage(SpatialImage):
             file_map = self.file_map
         data = self.get_data()
         self.update_header()
-        hdr = self.get_header()
+        
         out_dtype = self.get_data_dtype()
         arr_writer = make_array_writer(data,
                                        out_dtype,
@@ -919,7 +919,31 @@ class AnalyzeImage(SpatialImage):
             imgf = hdrf
         else:
             imgf = img_fh.get_prepare_fileobj(mode='wb')
+        #the arr_writer doesn't seem to contain any information about slope and inter, but default values
         slope, inter = get_slope_inter(arr_writer)
+        #So for instance when creating a nifti file and setting slope and inter, this information is then not saved to disk
+        #ASSUMPTION: when converting image data from float to int the slope and inter are computed from a linear scaling of the intensities
+        #ASSUMPTION DEDUCTION: When linear scaling intensities the resulting image could have distorted/compressed intensity dynamics
+        
+        #however we need to get the slope and inter from the image we're trying to save to disk
+        #UPDATE SLOPE
+        if hdr.has_data_slope and isinstance(hdr.get_slope_inter()[0], float):
+           #SLOPE is used in a multiplicative way, thus the update below
+            slope_user = hdr.get_slope_inter()[0]
+        else:
+            slope_user = 1.0            
+        slope *= slope_user
+        #UPDATE INTER
+        if hdr.has_data_intercept and isinstance(hdr.get_slope_inter()[1], float):
+            #INTER is used in an additive way, thus the update below
+            inter_user = hdr.get_slope_inter()[1]
+        else:
+            inter_user = 0.0
+        inter += inter_user
+        #SANITY CHECK FOR THE RESULTING INTER SCALE
+        if not np.all(np.isfinite(slope_user*data.flatten()+inter_user)):
+         #THE MESSAGE could be more thought through
+          raise ValueError('The user provided slope and intercept %s cause numerical under/over flow'%(str(hdr.get_slope_inter())))
         self._write_header(hdrf, hdr, slope, inter)
         # Write image
         shape = hdr.get_data_shape()
