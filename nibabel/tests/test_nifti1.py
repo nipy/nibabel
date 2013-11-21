@@ -120,22 +120,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
             hdr = self.header_class.from_header(hdr, check=True)
             assert_equal(hdr.get_slope_inter(), outup)
 
-    def test_nifti_log_checks(self):
+    def test_nifti_scale_checks(self):
+        # Check slope and intercept
         # in addition to analyze header checks
         HC = self.header_class
-        # intercept and slope
         hdr = HC()
         # Slope of 0 is OK
         hdr['scl_slope'] = 0
-        fhdr, message, raiser = self.log_chk(hdr, 0)
-        assert_equal((fhdr, message), (hdr, ''))
+        self.assert_no_log_err(hdr)
         # But not with non-zero intercept
         hdr['scl_inter'] = 3
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
-                           'Unused "scl_inter" is 3.0; should be 0; '
-                           'setting "scl_inter" to 0')
+                     'Unused "scl_inter" is 3.0; should be 0; '
+                     'setting "scl_inter" to 0')
         # Or not-finite intercept
         hdr['scl_inter'] = np.nan
         # NaN string representation can be odd on windows
@@ -143,8 +142,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
-                           'Unused "scl_inter" is %s; should be 0; '
-                           'setting "scl_inter" to 0' % nan_str)
+                     'Unused "scl_inter" is %s; should be 0; '
+                     'setting "scl_inter" to 0' % nan_str)
         # Reset to usable scale
         hdr['scl_slope'] = 1
         # not finite inter is more of a problem
@@ -152,9 +151,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
-                           '"scl_slope" is 1.0; but "scl_inter" is %s; '
-                           '"scl_inter" should be finite; setting '
-                           '"scl_inter" to 0' % nan_str)
+                     '"scl_slope" is 1.0; but "scl_inter" is %s; '
+                     '"scl_inter" should be finite; setting '
+                     '"scl_inter" to 0' % nan_str)
         assert_raises(*raiser)
         # Not finite scale also bad, generates message for scale and offset
         hdr['scl_slope'] = np.nan
@@ -162,10 +161,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(fhdr['scl_slope'], 0)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
-                           '"scl_slope" is nan; should be finite; '
-                           'Unused "scl_inter" is nan; should be 0; '
-                           'setting "scl_slope" to 0 (no scaling); '
-                           'setting "scl_inter" to 0')
+                     '"scl_slope" is nan; should be finite; '
+                     'Unused "scl_inter" is nan; should be 0; '
+                     'setting "scl_slope" to 0 (no scaling); '
+                     'setting "scl_inter" to 0')
         assert_raises(*raiser)
         # Or just scale if inter is already 0
         hdr['scl_inter'] = 0
@@ -173,23 +172,45 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(fhdr['scl_slope'], 0)
         assert_equal(fhdr['scl_inter'], 0)
         assert_equal(message,
-                           '"scl_slope" is nan; should be finite; '
-                           'setting "scl_slope" to 0 (no scaling)')
+                     '"scl_slope" is nan; should be finite; '
+                     'setting "scl_slope" to 0 (no scaling)')
         assert_raises(*raiser)
+
+    def test_nifti_qsform_checks(self):
+        # qfac, qform, sform checks
         # qfac
+        HC = self.header_class
         hdr = HC()
         hdr['pixdim'][0] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['pixdim'][0], 1)
-        assert_equal(message, 'pixdim[0] (qfac) should be 1 '
-                           '(default) or -1; setting qfac to 1')
+        assert_equal(message,
+                     'pixdim[0] (qfac) should be 1 '
+                     '(default) or -1; setting qfac to 1')
+        # qform, sform
+        hdr = HC()
+        hdr['qform_code'] = -1
+        fhdr, message, raiser = self.log_chk(hdr, 30)
+        assert_equal(fhdr['qform_code'], 0)
+        assert_equal(message,
+                     'qform_code -1 not valid; setting to 0')
+        hdr = HC()
+        hdr['sform_code'] = -1
+        fhdr, message, raiser = self.log_chk(hdr, 30)
+        assert_equal(fhdr['sform_code'], 0)
+        assert_equal(message,
+                     'sform_code -1 not valid; setting to 0')
+
+    def test_magic_offset_checks(self):
         # magic and offset
+        HC = self.header_class
         hdr = HC()
         hdr['magic'] = 'ooh'
         fhdr, message, raiser = self.log_chk(hdr, 45)
         assert_equal(fhdr['magic'], b'ooh')
-        assert_equal(message, 'magic string "ooh" is not valid; '
-                           'leaving as is, but future errors are likely')
+        assert_equal(message,
+                     'magic string "ooh" is not valid; '
+                     'leaving as is, but future errors are likely')
         # For pairs, any offset is OK, but should be divisible by 16
         # Singles need offset of at least 352 (nifti1) or 540 (nifti2) bytes,
         # with the divide by 16 rule
@@ -198,11 +219,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
                                    (hdr.single_magic, svo + 32, svo + 40)):
             hdr['magic'] = magic
             hdr['vox_offset'] = 0
-            fhdr, message, raiser = self.log_chk(hdr, 0)
-            assert_equal((fhdr, message), (hdr, ''))
+            self.assert_no_log_err(hdr)
             hdr['vox_offset'] = ok
-            fhdr, message, raiser = self.log_chk(hdr, 0)
-            assert_equal((fhdr, message), (hdr, ''))
+            self.assert_no_log_err(hdr)
             hdr['vox_offset'] = bad_spm
             fhdr, message, raiser = self.log_chk(hdr, 30)
             assert_equal(fhdr['vox_offset'], bad_spm)
@@ -215,22 +234,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr['vox_offset'] = 10
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['vox_offset'], hdr.single_vox_offset)
-        assert_equal(message, 'vox offset 10 too low for single '
-                           'file nifti1; setting to minimum value '
-                           'of ' + str(hdr.single_vox_offset))
-        # qform, sform
-        hdr = HC()
-        hdr['qform_code'] = -1
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['qform_code'], 0)
-        assert_equal(message, 'qform_code -1 not valid; '
-                           'setting to 0')
-        hdr = HC()
-        hdr['sform_code'] = -1
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['sform_code'], 0)
-        assert_equal(message, 'sform_code -1 not valid; '
-                           'setting to 0')
+        assert_equal(message,
+                     'vox offset 10 too low for single '
+                     'file nifti1; setting to minimum value '
+                     'of ' + str(hdr.single_vox_offset))
 
     def test_freesurfer_hack(self):
         # For large vector images, Freesurfer appears to set dim[1] to -1 and

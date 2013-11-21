@@ -196,6 +196,12 @@ class _TestWrapStructBase(TestCase):
                   level)
         return hdrc, message, raiser
 
+    def assert_no_log_err(self, hdr):
+        """ Assert that no logging or errors result from this `hdr`
+        """
+        fhdr, message, raiser = self.log_chk(hdr, 0)
+        assert_equal((fhdr, message), (hdr, ''))
+
     def test_bytes(self):
         # Test get of bytes
         hdr1 = self.header_class()
