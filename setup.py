@@ -57,7 +57,7 @@ if 'setuptools' in sys.modules:
     )
 
 if sys.version_info < (2, 7):
-        REQUIRES.append('ordereddict')
+    REQUIRES.append('ordereddict')
 
 def main(**extra_args):
     setup(name=NAME,
