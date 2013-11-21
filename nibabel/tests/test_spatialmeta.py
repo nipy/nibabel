@@ -19,6 +19,11 @@ from unittest import TestCase
 
 from .. import spatialmeta
 
+try:
+    range = xrange
+except NameError:  # python 3
+    pass
+
 def test_is_constant():
     ok_(spatialmeta.is_constant([0]))
     ok_(spatialmeta.is_constant([0, 0]))
@@ -289,12 +294,12 @@ def test_get_value():
     sm.set_nested('varies_over()', ('test1',), 'foo')
     sm.set_nested('varies_over(0)', ('test2',), ['foo', 'bar'])
     sm.set_nested('varies_over(1)', ('test3',), ['foo', 'bar', 'baz'])
-    sm.set_nested('varies_over(2)', ('test4',), range(5))
-    sm.set_nested('varies_over(3)', ('test5',), range(7))
-    sm.set_nested('varies_over(4)', ('test6',), range(11))
-    sm.set_nested('varies_over(0,3)', ('test7',), range(14))
-    sm.set_nested('varies_over(0,4)', ('test8',), range(22))
-    sm.set_nested('varies_over(0,3,4)', ('test9',), range(154))
+    sm.set_nested('varies_over(2)', ('test4',), list(range(5)))
+    sm.set_nested('varies_over(3)', ('test5',), list(range(7)))
+    sm.set_nested('varies_over(4)', ('test6',), list(range(11)))
+    sm.set_nested('varies_over(0,3)', ('test7',), list(range(14)))
+    sm.set_nested('varies_over(0,4)', ('test8',), list(range(22)))
+    sm.set_nested('varies_over(0,3,4)', ('test9',), list(range(154)))
     
     assert_raises(IndexError, sm.get_value, ('test1',), (0, 0, 0))
     assert_raises(IndexError, sm.get_value, ('test1',), (0, 0, 0, 0, 0, 0))
@@ -326,7 +331,7 @@ def test_simplify_noop():
     sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
     for idx, cls in enumerate(sm.get_classes()):
         test_key = ('test%d' % idx,)
-        sm.set_nested(cls, test_key, range(sm.get_n_vals(cls)))
+        sm.set_nested(cls, test_key, list(range(sm.get_n_vals(cls))))
         eq_(sm.simplify(test_key), False)
     
 def test_simplify_const():
@@ -359,7 +364,7 @@ def test_simplify_const_per_vol():
                       ('test%d' % test_idx,), 
                       [x // dim_size for x in range(dim_size*7*11)])
         eq_(sm.simplify(key), True)
-        eq_(sm.get_values_and_class(key), (range(7*11), 'varies_over(3,4)'))
+        eq_(sm.get_values_and_class(key), (list(range(7*11)), 'varies_over(3,4)'))
 
 def test_simplify_repeat_per_vol():
     sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
@@ -371,4 +376,4 @@ def test_simplify_repeat_per_vol():
                       [x % dim_size for x in range(dim_size*7*11)])
         eq_(sm.simplify(key), True)
         eq_(sm.get_values_and_class(key), 
-            (range(dim_size), 'varies_over(%d)' % test_idx))
+            (list(range(dim_size)), 'varies_over(%d)' % test_idx))

@@ -55,9 +55,8 @@ if 'setuptools' in sys.modules:
             test='nose>=0.10.1',
             nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
     )
-
-if sys.version_info < (2, 7):
-    REQUIRES.append('ordereddict')
+    if sys.version_info < (2, 7):
+        extra_setuptools_args['install_requires'] = ['ordereddict']
 
 def main(**extra_args):
     setup(name=NAME,

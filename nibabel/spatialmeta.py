@@ -30,7 +30,7 @@ except NameError:  # python 3
     basestring = str
 
 try:
-    xrange = range
+    range = xrange
 except NameError:  # python 3
     pass
 
