@@ -7,11 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for spatialmeta"""
+from __future__ import division
 
 import sys
 from os import path
 from glob import glob
-from collections import OrderedDict
 import numpy as np
 
 from nose.tools import ok_, eq_, assert_raises
@@ -352,18 +352,18 @@ def test_simplify_const():
 def test_simplify_const_per_vol():
     shape = (2,3,5,7,11)
     sm = spatialmeta.SpatialMeta(shape, np.eye(4))
-    for test_idx in xrange(3):
+    for test_idx in range(3):
         dim_size = sm.shape[test_idx]
         key = ('test%d' % test_idx,)
         sm.set_nested('varies_over(%d,3,4)' % test_idx, 
                       ('test%d' % test_idx,), 
-                      [x / dim_size for x in range(dim_size*7*11)])
+                      [x // dim_size for x in range(dim_size*7*11)])
         eq_(sm.simplify(key), True)
         eq_(sm.get_values_and_class(key), (range(7*11), 'varies_over(3,4)'))
 
 def test_simplify_repeat_per_vol():
     sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
-    for test_idx in xrange(3):
+    for test_idx in range(3):
         dim_size = sm.shape[test_idx]
         key = ('test%d' % test_idx,)
         sm.set_nested('varies_over(%d,3,4)' % test_idx, 

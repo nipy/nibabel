@@ -11,17 +11,28 @@ SpatialMeta class for tracking potentially varying meta data associated
 with a spatial image. Can be merged or split along any dimension while 
 maintaining the correct set of meta data.
 """
+from __future__ import division
 
 import sys, json, warnings, itertools, re
 from copy import deepcopy
-from collections import OrderedDict, Mapping, Container
+from collections import Mapping, Container
 from itertools import combinations, product
 import numpy as np
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 try:
     basestring
 except NameError:  # python 3
     basestring = str
+
+try:
+    xrange = range
+except NameError:  # python 3
+    pass
 
 def is_constant(sequence, period=None):
     '''Returns true if all elements in (each period of) the sequence are 
@@ -45,7 +56,7 @@ def is_constant(sequence, period=None):
             raise ValueError('The sequence length is not evenly '
                              'divisible by the period length.')
                              
-        for period_idx in range(seq_len / period):
+        for period_idx in range(seq_len // period):
             start_idx = period_idx * period
             end_idx = start_idx + period
             if not all(val == sequence[start_idx] 
@@ -74,7 +85,7 @@ def is_repeating(sequence, period):
         raise ValueError('The sequence length is not evenly divisible by the '
                          'period length.')
                          
-    for period_idx in range(1, seq_len / period):
+    for period_idx in range(1, seq_len // period):
         start_idx = period_idx * period
         end_idx = start_idx + period
         if sequence[start_idx:end_idx] != sequence[:period]:
@@ -210,20 +221,20 @@ class SpatialMeta(object):
         result = ['varies_over()']
 
         #Add classification for each individual (non-singular) dimension
-        for dim_idx in xrange(n_dims):
+        for dim_idx in range(n_dims):
             if shape[dim_idx] != 1:
                 result.append('varies_over(%d)' % dim_idx)
             
         #Find number of non-spatial dimensions
         n_non_spatial = 0
         ns_dim_idxs = []
-        for dim_idx in xrange(3, n_dims):
+        for dim_idx in range(3, n_dims):
             if shape[dim_idx] != 1:
                 n_non_spatial += 1
                 ns_dim_idxs.append(dim_idx)
                 
         #Elements can vary over any combination of non-spatial dimensions
-        for n_ns_dim in xrange(2, n_non_spatial + 1):
+        for n_ns_dim in range(2, n_non_spatial + 1):
             for ns_dims in combinations(ns_dim_idxs, n_ns_dim):
                 result.append('varies_over(' + 
                               ','.join(str(x) for x in ns_dims) + ')'
@@ -231,8 +242,8 @@ class SpatialMeta(object):
             
         #Elements can vary over a combination of one spatial dimension and any 
         #number of non-spatial dimensions
-        for sp_dim in xrange(3):
-            for n_ns_dim in xrange(1, n_non_spatial + 1):
+        for sp_dim in range(3):
+            for n_ns_dim in range(1, n_non_spatial + 1):
                 for ns_dims in combinations(ns_dim_idxs, n_ns_dim):
                     result.append('varies_over(' + 
                                   ','.join(str(x) 
@@ -342,7 +353,7 @@ class SpatialMeta(object):
             prev_dicts.append(curr_dict)
             curr_dict = curr_dict[sub_key]
         else:
-            for depth_idx in xrange(len(keys)-1, -1, -1):
+            for depth_idx in range(len(keys)-1, -1, -1):
                 del prev_dicts[depth_idx][keys[depth_idx]]
                 if len(prev_dicts[depth_idx]) != 0:
                     break
@@ -462,7 +473,7 @@ class SpatialMeta(object):
             return values
             
         val_idx = 0
-        for varying_idx in xrange(n_varying - 1, -1, -1):
+        for varying_idx in range(n_varying - 1, -1, -1):
             dim_idx = varying_dims[varying_idx]
             step_size = 1
             for inner_dim_idx in varying_dims[:varying_idx]:
@@ -504,9 +515,9 @@ class SpatialMeta(object):
         for dim, dim_size in enumerate(self.shape):
             #Don't iterate over spatial dims that are non-varying
             if dim < 3 and not dim in varying_dims:
-                idx_iters.append(xrange(1))
+                idx_iters.append(range(1))
             else:
-                idx_iters.append(xrange(dim_size))
+                idx_iters.append(range(dim_size))
         
         #Build list of values at each of these indices
         result = []
@@ -526,7 +537,7 @@ class SpatialMeta(object):
         shape = self.shape
         result = full_values
         #Iterate over the current varying dims in reverse order
-        for curr_dim_idx in xrange(len(curr_varying) - 1, -1, -1):
+        for curr_dim_idx in range(len(curr_varying) - 1, -1, -1):
             curr_dim = curr_varying[curr_dim_idx]
             #If the current varying dim is still varying in the new dims 
             #there is nothing to do
@@ -582,7 +593,7 @@ class SpatialMeta(object):
             #Build list of classes we could potentially reclassify to
             valid_classes = self.get_classes()
             potential_classes = []
-            for n_varying in xrange(1, curr_n_varying):
+            for n_varying in range(1, curr_n_varying):
                 for varying_dims in combinations(curr_varying, n_varying):
                     cls = ('varies_over(' + 
                            ','.join(str(x) for x in varying_dims) + 

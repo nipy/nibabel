@@ -56,6 +56,9 @@ if 'setuptools' in sys.modules:
             nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
     )
 
+if sys.version_info < (2, 7):
+        REQUIRES.append('ordereddict')
+
 def main(**extra_args):
     setup(name=NAME,
           maintainer=MAINTAINER,
