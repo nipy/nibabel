@@ -162,7 +162,6 @@ class TestNestedElements(TestCase):
         eq_(self.sm.get_nested('varies_over()', ('test2', 'subtest2')), 
             [2, 3, 0]
            )
-        eq_(self.sm.get_nested('varies_over()', ('test2', 'subtest2', 0)), 2)
         eq_(self.sm.get_nested('varies_over()', ('test2', 'subtest3')), 
             {'subsubtest1' : 'baz'}
            )
@@ -171,6 +170,7 @@ class TestNestedElements(TestCase):
             'baz'
            ) 
         eq_(self.sm.get_nested('varies_over(0)', ('test3',)), 'foobar')
+        
         
         assert_raises(KeyError, 
                       self.sm.get_nested, 
@@ -181,6 +181,11 @@ class TestNestedElements(TestCase):
                       self.sm.get_nested, 
                       'varies_over()', 
                       ('test3',)
+                     )
+        assert_raises(KeyError,
+                      self.sm.get_nested,
+                      'varies_over()',
+                      ('test2', 'subtest2', 0)
                      )
         
     def test_contains_nested(self):
@@ -317,4 +322,53 @@ def test_get_value():
     eq_(sm.get_value(('test9',), (0, 2, 3, 2, 3)), 46)
     eq_(sm.get_value(('test9',), (1, 2, 3, 2, 3)), 47)
     
+def test_simplify_noop():
+    sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
+    for idx, cls in enumerate(sm.get_classes()):
+        test_key = ('test%d' % idx,)
+        sm.set_nested(cls, test_key, range(sm.get_n_vals(cls)))
+        eq_(sm.simplify(test_key), False)
     
+def test_simplify_const():
+    sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
+    for idx, cls in enumerate(sm.get_classes()):
+        if cls == 'varies_over()':
+            continue
+        test_key = ('test%d' % idx,)
+        sm.set_nested(cls, test_key, [idx] * sm.get_n_vals(cls))
+        eq_(sm.simplify(test_key), True)
+        eq_(sm.get_values_and_class(test_key), (idx, 'varies_over()'))
+    
+    sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
+    for idx, cls in enumerate(sm.get_classes()):
+        test_key = ('test%d' % idx,)
+        if cls == 'varies_over()':
+            sm.set_nested(cls, test_key, None)
+        else:
+            sm.set_nested(cls, test_key, [None] * sm.get_n_vals(cls))
+        eq_(sm.simplify(test_key), True)
+        eq_(sm.get_values_and_class(test_key), (None, None))
+    
+def test_simplify_const_per_vol():
+    shape = (2,3,5,7,11)
+    sm = spatialmeta.SpatialMeta(shape, np.eye(4))
+    for test_idx in xrange(3):
+        dim_size = sm.shape[test_idx]
+        key = ('test%d' % test_idx,)
+        sm.set_nested('varies_over(%d,3,4)' % test_idx, 
+                      ('test%d' % test_idx,), 
+                      [x / dim_size for x in range(dim_size*7*11)])
+        eq_(sm.simplify(key), True)
+        eq_(sm.get_values_and_class(key), (range(7*11), 'varies_over(3,4)'))
+
+def test_simplify_repeat_per_vol():
+    sm = spatialmeta.SpatialMeta((2,3,5,7,11), np.eye(4))
+    for test_idx in xrange(3):
+        dim_size = sm.shape[test_idx]
+        key = ('test%d' % test_idx,)
+        sm.set_nested('varies_over(%d,3,4)' % test_idx, 
+                      ('test%d' % test_idx,), 
+                      [x % dim_size for x in range(dim_size*7*11)])
+        eq_(sm.simplify(key), True)
+        eq_(sm.get_values_and_class(key), 
+            (range(dim_size), 'varies_over(%d)' % test_idx))

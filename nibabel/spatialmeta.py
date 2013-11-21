@@ -15,7 +15,7 @@ maintaining the correct set of meta data.
 import sys, json, warnings, itertools, re
 from copy import deepcopy
 from collections import OrderedDict, Mapping, Container
-from itertools import combinations
+from itertools import combinations, product
 import numpy as np
 
 try:
@@ -245,7 +245,10 @@ class SpatialMeta(object):
     @classmethod
     def get_varying_dims(klass, classification):
         '''Return list of dimensions this classification varies over.'''
-        val_str = re.match('varies_over\((.*)\)', classification).groups()[0]
+        match = re.match('varies_over\((.*)\)', classification)
+        if not match:
+            raise ValueError("Invalid classification")
+        val_str = match.groups()[0]
         if val_str == '':
             return []
         else:
@@ -291,10 +294,9 @@ class SpatialMeta(object):
         '''
         curr_elem = self._data[classification]
         for key in keys:
-            #Restrict indexing into strings as this is almost never wanted 
-            #and we can provide a more informative error
-            if isinstance(curr_elem, basestring):
-                raise KeyError("Nested element not found")
+            #Only look into nested mappings
+            if not isinstance(curr_elem, Mapping):
+                raise KeyError("Keys not found: %s" % (keys,))
             curr_elem = curr_elem[key]
         return curr_elem
             
@@ -340,13 +342,12 @@ class SpatialMeta(object):
             prev_dicts.append(curr_dict)
             curr_dict = curr_dict[sub_key]
         else:
-            print prev_dicts
             for depth_idx in xrange(len(keys)-1, -1, -1):
                 del prev_dicts[depth_idx][keys[depth_idx]]
                 if len(prev_dicts[depth_idx]) != 0:
                     break
             return
-        raise KeyError("No such key: %s" % (keys,))
+        raise KeyError("Keys not found: %s" % (keys,))
             
     def iter_elements(self, classification):
         '''Generates the key tuple and value for each meta data element of the 
@@ -425,12 +426,12 @@ class SpatialMeta(object):
                                                  )
         
     def get_values_and_class(self, keys):
-        '''Get all values for the provided key. 
+        '''Get all values and the classification for the provided key. 
 
         Parameters
         ----------
         keys : tuple
-            The meta data key.
+            The meta data key specifying a leaf element.
             
         Returns
         -------
@@ -453,6 +454,23 @@ class SpatialMeta(object):
                 return (curr_dict, classification)
         return (None, None)
         
+    def _get_value(self, values, varying_dims, vox_idx):
+        '''Get the single value for a given voxel index. '''
+        shape = self.shape
+        n_varying = len(varying_dims)
+        if n_varying == 0:
+            return values
+            
+        val_idx = 0
+        for varying_idx in xrange(n_varying - 1, -1, -1):
+            dim_idx = varying_dims[varying_idx]
+            step_size = 1
+            for inner_dim_idx in varying_dims[:varying_idx]:
+                step_size *= shape[inner_dim_idx]
+            val_idx += step_size * vox_idx[dim_idx]
+
+        return values[val_idx]
+        
     def get_value(self, keys, vox_idx):
         '''Get a single value for the provided meta data key and voxel index.
         
@@ -472,32 +490,129 @@ class SpatialMeta(object):
               ):
             raise IndexError("Voxel index is out of range")
             
-        vals, classification = self.get_values_and_class(keys)
+        values, classification = self.get_values_and_class(keys)
         varying_dims = self.get_varying_dims(classification)
-        n_varying = len(varying_dims)
-        if n_varying == 0:
-            return vals
-        val_idx = 0
-        for varying_idx in xrange(n_varying - 1, -1, -1):
-            dim_idx = varying_dims[varying_idx]
-            step_size = 1
-            for inner_dim_idx in varying_dims[:varying_idx]:
-                step_size *= shape[inner_dim_idx]
-            val_idx += step_size * vox_idx[dim_idx]
-
-        return vals[val_idx]
-    
-    def simplify(self, key):
-        '''Try to simplify (reduce the number of values) of a single meta data 
-        element by changing its classification. Return True if the 
-        classification is changed, otherwise False. Looks for values that are 
-        constant over some period. Constant elements with a value of None will 
-        be deleted.
         
-        You should only need to call this after adding some meta data 
-        yourself.
+        return self._get_value(values, varying_dims, vox_idx)
+    
+    def _get_expanded(self, values, varying_dims):
+        '''Expand the values so there is one value per slice (if there is a 
+        varying spatial dim) or per volume (if all varying dims are 
+        non-spatial)'''
+        #Build list of iterators to produce the indices we are interested in
+        idx_iters = []
+        for dim, dim_size in enumerate(self.shape):
+            #Don't iterate over spatial dims that are non-varying
+            if dim < 3 and not dim in varying_dims:
+                idx_iters.append(xrange(1))
+            else:
+                idx_iters.append(xrange(dim_size))
+        
+        #Build list of values at each of these indices
+        result = []
+        for vox_idx in product(*idx_iters[::-1]):
+            vox_idx = vox_idx[::-1]
+            result.append(self._get_value(values, 
+                                          varying_dims, 
+                                          vox_idx)
+                         )
+        
+        return result
+    
+    def _get_reduced(self, full_values, curr_varying, new_varying):
+        '''Try to reduce the set of per slice/volume values generated from 
+        the curr_varying dims using the new_varying dims. Returns None if the 
+        reduction is not possible.'''
+        shape = self.shape
+        result = full_values
+        #Iterate over the current varying dims in reverse order
+        for curr_dim_idx in xrange(len(curr_varying) - 1, -1, -1):
+            curr_dim = curr_varying[curr_dim_idx]
+            #If the current varying dim is still varying in the new dims 
+            #there is nothing to do
+            if curr_dim in new_varying:
+                continue
+            
+            #Otherwise we see if the values from lower dims are repeating
+            period = 1
+            for dim in curr_varying[:curr_dim_idx]:
+                period *= shape[dim]
+            if not period == 1:
+                if is_repeating(result, period):
+                    result = result[:period]
+                else:
+                    return None
+            else:
+                period = shape[curr_dim]
+                if is_constant(result, period):
+                    result = [x for x in result[::period]]
+                else:
+                    return None
+            
+        return result
+    
+    def simplify(self, keys):
+        '''Try to reduce the number of varying dimensions of a single meta 
+        data element by changing its classification. Return True if the 
+        classification is changed, otherwise False. Looks for values that are 
+        constant or repeating over some period. Constant elements with a 
+        value of None will be deleted.
         '''
-
+        values, curr_class = self.get_values_and_class(keys)
+        if curr_class is None:
+            raise KeyError("Keys not found: %s" % (keys,))
+        curr_varying = self.get_varying_dims(curr_class)
+        curr_n_varying = len(curr_varying)
+        
+        if curr_n_varying == 0:
+            #If the element is already constant just check if the value is 
+            #None
+            if not values is None:
+                return False
+        elif is_constant(values):
+            #Test if the values are globally constant
+            val = values[0]
+            if not val is None:
+                self.set_nested('varies_over()', keys, values[0])
+        elif curr_n_varying == 1:
+            #If there is only one varying dim and we can't reclassify as 
+            #globally constant then we are done
+            return False
+        else:
+            #Build list of classes we could potentially reclassify to
+            valid_classes = self.get_classes()
+            potential_classes = []
+            for n_varying in xrange(1, curr_n_varying):
+                for varying_dims in combinations(curr_varying, n_varying):
+                    cls = ('varies_over(' + 
+                           ','.join(str(x) for x in varying_dims) + 
+                           ')'
+                          )
+                    if cls in valid_classes:
+                        potential_classes.append(cls)
+                        
+            #Sort the list of classes by the associated number of values
+            potential_classes.sort(key=self.get_n_vals)
+            
+            #Expand the current set of values
+            full_vals = self._get_expanded(values, curr_varying)
+            
+            #Try each of the potential reclassifications
+            for new_cls in potential_classes:
+                new_varying = self.get_varying_dims(new_cls)
+                reduced_vals = self._get_reduced(full_vals, 
+                                                 curr_varying,
+                                                 new_varying)
+                if not reduced_vals is None:
+                    self.set_nested(new_cls, keys, reduced_vals)
+                    break
+            else:
+                return False
+            
+        #We haven't returned False yet, so the element was reclassified
+        self.remove_nested(curr_class, keys)
+        return True
+        
     def get_subset(self, dim, idx):
         '''Get a SpatialMeta object containing a subset of the meta data 
         corresponding to a single index along a given dimension.
