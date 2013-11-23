@@ -29,3 +29,19 @@ import logging
 error_level = 40
 logger = logging.getLogger('nibabel.global')
 logger.addHandler(logging.StreamHandler())
+
+class ErrorLevel(object):
+    """ Context manager to set log error level
+    """
+    def __init__(self, level):
+        self.level = level
+
+    def __enter__(self):
+        global error_level
+        self._original_level = error_level
+        error_level = self.level
+
+    def __exit__(self, exc, value, tb):
+        global error_level
+        error_level = self._original_level
+        return False
