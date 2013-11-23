@@ -132,6 +132,10 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
         test_analyze.TestAnalyzeImage.test_big_offset_exts
     ))
 
+    test_header_scaling = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_header_scaling
+    ))
+
     @scipy_skip
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types

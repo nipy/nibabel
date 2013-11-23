@@ -16,6 +16,7 @@ import os
 import re
 import logging
 import pickle
+import itertools
 
 import numpy as np
 
@@ -691,6 +692,58 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img_str = pickle.dumps(img_prox)
         img2_prox = pickle.loads(img_str)
         assert_array_equal(img.get_data(), img2_prox.get_data())
+
+    def assert_null_scaling(self, arr, slope, inter):
+        # Assert scaling makes not difference to img, load, save
+        img_class = self.image_class
+        input_hdr = img_class.header_class()
+        input_hdr.set_slope_inter(slope, inter)
+        img = img_class(arr, np.eye(4), input_hdr)
+        img_hdr = img.header
+        img_hdr.set_slope_inter(slope, inter)
+        assert_array_equal(img.get_data(), arr)
+        # First do raw save / read
+        fm = bytesio_filemap(img)
+        img_fobj = fm['image'].fileobj
+        hdr_fobj = img_fobj if not 'header' in fm else fm['header'].fileobj
+        img_hdr.write_to(hdr_fobj)
+        img_hdr.data_to_fileobj(arr, img_fobj)
+        raw_rt_img = img_class.from_file_map(fm)
+        assert_array_equal(raw_rt_img.get_data(), arr)
+        # Automated round trip
+        rt_img = bytesio_round_trip(img)
+        assert_array_equal(rt_img.get_data(), arr)
+
+    def test_header_scaling(self):
+        # For images that implement scaling, test effect of scaling
+        #
+        # This tests the affect of creating an image with a header containing
+        # the scaling, then writing the image and reading again.  So the scaling
+        # can be affected by the processing of the header when creating the
+        # image, or by interpretation of the scaling when creating the array.
+        #
+        # Analyze does not implement any scaling, but this test class is the
+        # base class for all Analyze-derived classes, such as NIfTI
+        img_class = self.image_class
+        hdr_class = img_class.header_class
+        if not hdr_class.has_data_slope:
+            return
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        invalid_slopes = (0, np.nan, np.inf, -np.inf)
+        for slope in (1,) + invalid_slopes:
+            self.assert_null_scaling(arr, slope, None)
+        if not hdr_class.has_data_intercept:
+            return
+        invalid_inters = (np.nan, np.inf, -np.inf)
+        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        for slope, inter in (invalid_pairs + bad_slopes_good_inter):
+            self.assert_null_scaling(arr, slope, inter)
+        # Valid slopes but invalid intercept raises an error
+        for slope, inter in good_slope_bad_inters:
+            assert_raises(HeaderDataError,
+                          self.assert_null_scaling, arr, slope, inter)
 
 
 def test_unsupported():
