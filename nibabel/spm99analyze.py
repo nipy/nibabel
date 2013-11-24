@@ -92,25 +92,6 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         raise HeaderTypeError('Cannot set non-zero intercept '
                               'for SPM headers')
 
-    @classmethod
-    def _get_checks(klass):
-        checks = super(SpmAnalyzeHeader, klass)._get_checks()
-        return checks + (klass._chk_scale,)
-
-    @staticmethod
-    def _chk_scale(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        scale = hdr['scl_slope']
-        if np.isfinite(scale):
-            return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = ('scale slope is %s; should be finite'
-                           % scale)
-        if fix:
-            hdr['scl_slope'] = 1
-            rep.fix_msg = 'setting scalefactor "scl_slope" to 1'
-        return hdr, rep
-
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     ''' Adds origin functionality to base SPM header '''

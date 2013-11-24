@@ -111,22 +111,6 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
             return scale, dc_offset
         return None, None
 
-    @classmethod
-    def _chk_scale(klass, hdr, fix=True):
-        rep = Report(HeaderDataError)
-        scale, offset = hdr.get_slope_inter()
-        # scl_slope of 0 is valid and implies no scaling OR intercept
-        if not scale is None or hdr['scl_slope'] == 0:
-            return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = ('no valid scaling in scalefactor (=%s) '
-                           'or cal / gl fields; scalefactor assumed 1.0'
-                           % scale)
-        if fix:
-            hdr['scl_slope'] = 1
-            rep.fix_msg = 'setting scalefactor "scl_slope" to 1'
-        return hdr, rep
-
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     header_class = Spm2AnalyzeHeader

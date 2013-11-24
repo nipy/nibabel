@@ -1471,56 +1471,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_datatype,
                 klass._chk_bitpix,
                 klass._chk_pixdims,
-                klass._chk_scale_inter,
                 klass._chk_qfac,
                 klass._chk_magic,
                 klass._chk_offset,
                 klass._chk_qform_code,
                 klass._chk_sform_code)
-
-    @staticmethod
-    def _chk_scale_inter(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        scale = hdr['scl_slope']
-        offset = hdr['scl_inter']
-        usable_scale = np.isfinite(scale) and scale !=0
-        # Nonzero finite scale, and valid offset
-        if usable_scale and np.isfinite(offset) or (offset, scale) == (0, 0):
-            return hdr, rep
-        # If scale is usable but the intercept is not finite, that's a serious
-        # problem
-        if usable_scale and not np.isfinite(offset):
-            rep.problem_level = 40
-            rep.problem_msg = ('"scl_slope" is %s; but "scl_inter" is %s; '
-                               '"scl_inter" should be finite'
-                               % (scale, offset))
-            if fix:
-                hdr['scl_inter'] = 0
-                rep.fix_msg = 'setting "scl_inter" to 0'
-            return hdr, rep
-        level = 0
-        msgs = []
-        fix_msgs = []
-        # Non-finite scale is obviously an error.  We still need to check the
-        # intercept though
-        if not np.isfinite(scale):
-            level = 30
-            msgs.append('"scl_slope" is %s; should be finite' % scale)
-            if fix:
-                hdr['scl_slope'] = 0
-                fix_msgs.append('setting "scl_slope" to 0 (no scaling)')
-        # We've established scale is not usable, so inter will be ignored.  That
-        # means we can go a bit easy on bad intercepts
-        if offset != 0:
-            if level == 0: level = 20
-            msgs.append('Unused "scl_inter" is %s; should be 0' % offset)
-            if fix:
-                hdr['scl_inter'] = 0
-                fix_msgs.append('setting "scl_inter" to 0')
-        rep.problem_level = level
-        rep.problem_msg = '; '.join(msgs)
-        rep.fix_msg = '; '.join(fix_msgs)
-        return hdr, rep
 
     @staticmethod
     def _chk_qfac(hdr, fix=False):

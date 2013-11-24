@@ -41,26 +41,6 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
         assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
         assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
 
-    def test_spm_scale_checks(self):
-        # checks for scale
-        hdr = self.header_class()
-        hdr['scl_slope'] = np.nan
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        yield assert_equal(fhdr['scl_slope'], 1)
-        problem_msg = ('no valid scaling in scalefactor '
-                       '(=None) or cal / gl fields; '
-                       'scalefactor assumed 1.0')
-        yield assert_equal(message,
-                           problem_msg +
-                           '; setting scalefactor "scl_slope" to 1')
-        yield assert_raises(*raiser)
-        dxer = self.header_class.diagnose_binaryblock
-        yield assert_equal(dxer(hdr.binaryblock),
-                           problem_msg)
-        hdr['scl_slope'] = np.inf
-        yield assert_equal(dxer(hdr.binaryblock),
-                           problem_msg)
-
 
 class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):
     # class for testing images

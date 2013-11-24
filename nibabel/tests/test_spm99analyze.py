@@ -106,30 +106,6 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
                            'very large origin values '
                            'relative to dims')
 
-    def test_spm_scale_checks(self):
-        # checks for scale
-        hdr = self.header_class()
-        hdr['scl_slope'] = np.nan
-        # NaN and Inf string representation can be odd on windows, so we
-        # check against the representation on this system
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 1)
-        assert_equal(message, 'scale slope is %s; '
-                           'should be finite; '
-                           'setting scalefactor "scl_slope" to 1' %
-                           np.nan)
-        assert_raises(*raiser)
-        dxer = self.header_class.diagnose_binaryblock
-        assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is %s; '
-                           'should be finite' % np.nan)
-        hdr['scl_slope'] = np.inf
-        # Inf string representation can be odd on windows
-        assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is %s; '
-                           'should be finite'
-                           % np.inf)
-
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     # class for testing images

@@ -180,6 +180,25 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
                            'and setting to abs of pixdim values')
         assert_raises(*raiser)
 
+    def test_no_scaling_fixes(self):
+        # Check we do not fix slope or intercept
+        #
+        # We used to fix difficult-to-interpret slope and intercept values in
+        # headers that support them.  Now we pass everything and let the
+        # `get_slope_inter()` routine reinterpet diffireinterpet difficult
+        # values.
+        # Analyze doesn't support slope or intercept; the tests are here for
+        # children of this class that do support them.
+        HC = self.header_class
+        if not HC.has_data_slope:
+            return
+        hdr = HC()
+        slopes = (1, 0, np.nan, np.inf, -np.inf)
+        inters = (0, np.nan, np.inf, -np.inf) if HC.has_data_intercept else (0,)
+        for slope, inter in itertools.product(slopes, inters):
+            hdr.set_slope_inter(slope)
+            self.assert_no_log_err(hdr)
+
     def test_logger_error(self):
         # Check that we can reset the logger and error level
         HC = self.header_class

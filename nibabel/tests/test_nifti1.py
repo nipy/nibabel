@@ -134,62 +134,6 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
             hdr['scl_inter'] = inter
             assert_raises(HeaderDataError, hdr.get_slope_inter)
 
-    def test_nifti_scale_checks(self):
-        # Check slope and intercept
-        # in addition to analyze header checks
-        HC = self.header_class
-        hdr = HC()
-        # Slope of 0 is OK
-        hdr['scl_slope'] = 0
-        self.assert_no_log_err(hdr)
-        # But not with non-zero intercept
-        hdr['scl_inter'] = 3
-        fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                     'Unused "scl_inter" is 3.0; should be 0; '
-                     'setting "scl_inter" to 0')
-        # Or not-finite intercept
-        hdr['scl_inter'] = np.nan
-        # NaN string representation can be odd on windows
-        nan_str = '%s' % np.nan
-        fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                     'Unused "scl_inter" is %s; should be 0; '
-                     'setting "scl_inter" to 0' % nan_str)
-        # Reset to usable scale
-        hdr['scl_slope'] = 1
-        # not finite inter is more of a problem
-        hdr['scl_inter'] = np.nan # severity 30
-        fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                     '"scl_slope" is 1.0; but "scl_inter" is %s; '
-                     '"scl_inter" should be finite; setting '
-                     '"scl_inter" to 0' % nan_str)
-        assert_raises(*raiser)
-        # Not finite scale also bad, generates message for scale and offset
-        hdr['scl_slope'] = np.nan
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 0)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                     '"scl_slope" is nan; should be finite; '
-                     'Unused "scl_inter" is nan; should be 0; '
-                     'setting "scl_slope" to 0 (no scaling); '
-                     'setting "scl_inter" to 0')
-        assert_raises(*raiser)
-        # Or just scale if inter is already 0
-        hdr['scl_inter'] = 0
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 0)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                     '"scl_slope" is nan; should be finite; '
-                     'setting "scl_slope" to 0 (no scaling)')
-        assert_raises(*raiser)
-
     def test_nifti_qsform_checks(self):
         # qfac, qform, sform checks
         # qfac
