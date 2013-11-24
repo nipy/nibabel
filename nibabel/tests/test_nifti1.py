@@ -68,6 +68,27 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['sizeof_hdr'], self.sizeof_hdr)
 
+    def test_scaling(self):
+        # Test scaling in header
+        hdr = self.header_class()
+        assert_true(hdr.default_x_flip)
+        shape = (1,2,3)
+        hdr.set_data_shape(shape)
+        hdr.set_data_dtype(np.float32)
+        data = np.arange(0, 3, 0.5).reshape(shape)
+        S = BytesIO()
+        # Writing to float datatype doesn't need scaling
+        hdr.data_to_fileobj(data, S)
+        assert_array_equal(hdr.get_slope_inter(), (1, 0))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+        # Writing to integer datatype does need scaling
+        hdr.set_data_dtype(np.int8)
+        hdr.data_to_fileobj(data, S)
+        assert_false(np.allclose(hdr.get_slope_inter(), (1, 0)))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
         # See tests for apply_read_scaling in test_utils
@@ -82,6 +103,22 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
+
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        for intup, outup in (((2.0,), (2.0, 0.0)),
+                            ((None,), (None, None)),
+                            ((3.0, None), (3.0, 0.0)),
+                            ((0.0, None), (None, None)),
+                            ((None, 0.0), (None, None)),
+                            ((None, 3.0), (None, None)),
+                            ((2.0, 3.0), (2.0, 3.0))):
+            hdr.set_slope_inter(*intup)
+            assert_equal(hdr.get_slope_inter(), outup)
+            # Check set survives through checking
+            hdr = self.header_class.from_header(hdr, check=True)
+            assert_equal(hdr.get_slope_inter(), outup)
 
     def test_nifti_log_checks(self):
         # in addition to analyze header checks
@@ -511,22 +548,6 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         times = [None, 4, 1, 3, 0, 2, None]
         hdr.set_slice_times(times)
         assert_equal(hdr['slice_code'], 6)
-
-    def test_slope_inter(self):
-        hdr = self.header_class()
-        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-        for intup, outup in (((2.0,), (2.0, 0.0)),
-                            ((None,), (None, None)),
-                            ((3.0, None), (3.0, 0.0)),
-                            ((0.0, None), (None, None)),
-                            ((None, 0.0), (None, None)),
-                            ((None, 3.0), (None, None)),
-                            ((2.0, 3.0), (2.0, 3.0))):
-            hdr.set_slope_inter(*intup)
-            assert_equal(hdr.get_slope_inter(), outup)
-            # Check set survives through checking
-            hdr = self.header_class.from_header(hdr, check=True)
-            assert_equal(hdr.get_slope_inter(), outup)
 
     def test_xyzt_units(self):
         hdr = self.header_class()

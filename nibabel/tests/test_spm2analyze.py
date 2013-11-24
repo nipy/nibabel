@@ -21,6 +21,23 @@ from . import test_spm99analyze
 class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
     header_class = Spm2AnalyzeHeader
 
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        for intup, outup in (((2.0,), (2.0, 0.0)),
+                            ((None,), (None, None)),
+                            ((1.0, None), (1.0, 0.0)),
+                            ((0.0, None), (None, None)),
+                            ((None, 0.0), (None, None))):
+            hdr.set_slope_inter(*intup)
+            assert_equal(hdr.get_slope_inter(), outup)
+            # Check set survives through checking
+            hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
+            assert_equal(hdr.get_slope_inter(), outup)
+        # Setting not-zero to offset raises error
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
+
     def test_spm_scale_checks(self):
         # checks for scale
         hdr = self.header_class()
@@ -51,22 +68,3 @@ def test_origin_affine():
     # check that origin affine works, only
     hdr = Spm2AnalyzeHeader()
     aff = hdr.get_origin_affine()
-
-
-def test_slope_inter():
-    hdr = Spm2AnalyzeHeader()
-    assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-    for intup, outup in (((2.0,), (2.0, 0.0)),
-                         ((None,), (None, None)),
-                         ((1.0, None), (1.0, 0.0)),
-                         ((0.0, None), (None, None)),
-                         ((None, 0.0), (None, None))):
-        hdr.set_slope_inter(*intup)
-        assert_equal(hdr.get_slope_inter(), outup)
-        # Check set survives through checking
-        hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
-        assert_equal(hdr.get_slope_inter(), outup)
-    # Setting not-zero to offset raises error
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
-

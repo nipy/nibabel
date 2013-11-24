@@ -482,56 +482,54 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
              [ 0.,  0.,  1., -3.],
              [ 0.,  0.,  0.,  1.]])
 
+    def test_scaling(self):
+        # Test integer scaling from float
+        # Analyze headers cannot do float-integer scaling
+        hdr = self.header_class()
+        assert_true(hdr.default_x_flip)
+        shape = (1,2,3)
+        hdr.set_data_shape(shape)
+        hdr.set_data_dtype(np.float32)
+        data = np.ones(shape, dtype=np.float64)
+        S = BytesIO()
+        # Writing to float datatype doesn't need scaling
+        hdr.data_to_fileobj(data, S)
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+        # Writing to integer datatype does, and raises an error
+        hdr.set_data_dtype(np.int32)
+        assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
+        # unless we aren't scaling, in which case we convert the floats to
+        # integers and write
+        _write_data(hdr, data, S)
+        rdata = hdr.data_from_fileobj(S)
+        assert_true(np.allclose(data, rdata))
+        # This won't work for floats that aren't close to integers
+        data_p5 = data + 0.5
+        _write_data(hdr, data_p5, S)
+        rdata = hdr.data_from_fileobj(S)
+        assert_false(np.allclose(data_p5, rdata))
+
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (None, None))
+        for slinter in ((None,),
+                        (None, None),
+                        (1.0,),
+                        (1.0, None),
+                        (None, 0),
+                        (1.0, 0)):
+            hdr.set_slope_inter(*slinter)
+            assert_equal(hdr.get_slope_inter(), (None, None))
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
+
 
 def test_best_affine():
     hdr = AnalyzeHeader()
     hdr.set_data_shape((3,5,7))
     hdr.set_zooms((4,5,6))
     assert_array_equal(hdr.get_base_affine(), hdr.get_best_affine())
-
-
-def test_scaling():
-    # Test integer scaling from float
-    # Analyze headers cannot do float-integer scaling '''
-    hdr = AnalyzeHeader()
-    assert_true(hdr.default_x_flip)
-    shape = (1,2,3)
-    hdr.set_data_shape(shape)
-    hdr.set_data_dtype(np.float32)
-    data = np.ones(shape, dtype=np.float64)
-    S = BytesIO()
-    # Writing to float datatype doesn't need scaling
-    hdr.data_to_fileobj(data, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_array_almost_equal(data, rdata)
-    # Writing to integer datatype does, and raises an error
-    hdr.set_data_dtype(np.int32)
-    assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
-    # unless we aren't scaling, in which case we convert the floats to
-    # integers and write
-    _write_data(hdr, data, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_true(np.allclose(data, rdata))
-    # This won't work for floats that aren't close to integers
-    data_p5 = data + 0.5
-    _write_data(hdr, data_p5, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_false(np.allclose(data_p5, rdata))
-
-
-def test_slope_inter():
-    hdr = AnalyzeHeader()
-    assert_equal(hdr.get_slope_inter(), (None, None))
-    for slinter in ((None,),
-                    (None, None),
-                    (1.0,),
-                    (1.0, None),
-                    (None, 0),
-                    (1.0, 0)):
-        hdr.set_slope_inter(*slinter)
-        assert_equal(hdr.get_slope_inter(), (None, None))
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
 
 
 def test_data_code_error():
