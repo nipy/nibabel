@@ -27,7 +27,10 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
         for intup, outup in (((2.0,), (2.0, 0.0)),
                             ((None,), (None, None)),
                             ((1.0, None), (1.0, 0.0)),
-                            ((0.0, None), (None, None)),
+                            ((0.0, None), (None, None)), # Null scalings
+                            ((np.nan, None), (None, None)),
+                            ((np.inf, None), (None, None)),
+                            ((-np.inf, None), (None, None)),
                             ((None, 0.0), (None, None))):
             hdr.set_slope_inter(*intup)
             assert_equal(hdr.get_slope_inter(), outup)

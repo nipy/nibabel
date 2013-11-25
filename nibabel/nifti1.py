@@ -1013,18 +1013,21 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_slope_inter()
         (1.0, 1.0)
         >>> hdr['scl_inter'] = np.inf
-        >>> hdr.get_slope_inter()
-        (1.0, None)
+        >>> hdr.get_slope_inter() #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        HeaderDataError: Valid slope but invalid intercept inf
         '''
         # Note that we are returning float (float64) scalefactors and
         # intercepts, although they are stored as in nifti1 as float32.
-        scale = float(self['scl_slope'])
-        dc_offset = float(self['scl_inter'])
-        if scale == 0 or not np.isfinite(scale):
+        slope = float(self['scl_slope'])
+        inter = float(self['scl_inter'])
+        if slope == 0 or not np.isfinite(slope):
             return None, None
-        if not np.isfinite(dc_offset):
-            dc_offset = None
-        return scale, dc_offset
+        if not np.isfinite(inter):
+            raise HeaderDataError(
+                'Valid slope but invalid intercept {0}'.format(inter))
+        return slope, inter
 
     def set_slope_inter(self, slope, inter=0.0):
         ''' Set slope and / or intercept into header

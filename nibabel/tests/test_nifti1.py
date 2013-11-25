@@ -10,6 +10,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import warnings
+import itertools
 
 import numpy as np
 
@@ -107,18 +108,31 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
     def test_slope_inter(self):
         hdr = self.header_class()
         assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        bad_slopes = (0, np.nan, -np.inf, np.inf)
+        bad_inters = (np.nan, -np.inf, np.inf)
+        bads_bads = itertools.product((None,) + bad_slopes, (None,) + bad_inters)
+        slopes_bad_inter_ok = itertools.product(bad_slopes, (0, 1))
+        all_bad = itertools.chain(bads_bads,
+                                  slopes_bad_inter_ok)
+        bad_tests = zip(all_bad, itertools.repeat(((None, None))))
         for intup, outup in (((2.0,), (2.0, 0.0)),
-                            ((None,), (None, None)),
-                            ((3.0, None), (3.0, 0.0)),
-                            ((0.0, None), (None, None)),
-                            ((None, 0.0), (None, None)),
-                            ((None, 3.0), (None, None)),
-                            ((2.0, 3.0), (2.0, 3.0))):
+                             ((None,), (None, None)),
+                             ((3.0, None), (3.0, 0.0)),
+                             ((0.0, None), (None, None)),
+                             ((None, 0.0), (None, None)),
+                             ((None, 3.0), (None, None)),
+                             ((2.0, 3.0), (2.0, 3.0))) + tuple(bad_tests):
             hdr.set_slope_inter(*intup)
             assert_equal(hdr.get_slope_inter(), outup)
             # Check set survives through checking
             hdr = self.header_class.from_header(hdr, check=True)
             assert_equal(hdr.get_slope_inter(), outup)
+        slopes_ok_inters_bad = itertools.product((1, 2), bad_inters)
+        hdr = self.header_class()
+        for slope, inter in slopes_ok_inters_bad:
+            hdr['scl_slope'] = slope
+            hdr['scl_inter'] = inter
+            assert_raises(HeaderDataError, hdr.get_slope_inter)
 
     def test_nifti_scale_checks(self):
         # Check slope and intercept

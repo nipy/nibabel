@@ -59,7 +59,8 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         is always None because SPM99 analyze cannot store intercepts.
         '''
         slope = self._structarr['scl_slope']
-        if slope == 0.0:
+        # Return invalid slopes as None
+        if np.isnan(slope) or slope in (0, -np.inf, np.inf):
             return None, None
         return slope, None
 
