@@ -878,6 +878,18 @@ class TestNifti1Pair(tana.TestAnalyzeImage):
         # Pixdims as in the original header
         assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
 
+    def test_read_no_extensions(self):
+        IC = self.image_class
+        arr = np.arange(24).reshape((2,3,4))
+        img = IC(arr, np.eye(4))
+        assert_equal(len(img.header.extensions), 0)
+        img_rt = bytesio_round_trip(img)
+        assert_equal(len(img_rt.header.extensions), 0)
+        # Check simple round trip with large offset
+        img.header.set_data_offset(1024)
+        img_rt = bytesio_round_trip(img)
+        assert_equal(len(img_rt.header.extensions), 0)
+
 
 class TestNifti1Image(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests

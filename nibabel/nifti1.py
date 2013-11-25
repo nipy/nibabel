@@ -594,7 +594,9 @@ class Nifti1Header(SpmAnalyzeHeader):
         # has this as a 4 byte string; if the first value is not zero, then we
         # have extensions.
         extension_status = fileobj.read(4)
-        if len(extension_status) < 4 or extension_status[0] == b'\x00':
+        # Need to test *slice* of extension_status to preserve byte string type
+        # on Python 3
+        if len(extension_status) < 4 or extension_status[0:1] == b'\x00':
             return hdr
         # If this is a detached header file read to end
         if not klass.is_single:
