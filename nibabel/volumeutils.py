@@ -729,7 +729,7 @@ def seek_tell(fileobj, offset, write0=False):
         assert fileobj.tell() == offset
 
 
-def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
+def apply_read_scaling(arr, slope = None, inter = None):
     """ Apply scaling in `slope` and `inter` to array `arr`
 
     This is for loading the array from a file (as opposed to the reverse scaling
@@ -746,10 +746,12 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
     Parameters
     ----------
     arr : array-like
-    slope : float, optional
-        slope value to apply to `arr` (``arr * slope + inter``)
-    inter : float, optional
-        intercept value to apply to `arr` (``arr * slope + inter``)
+    slope : None or float, optional
+        slope value to apply to `arr` (``arr * slope + inter``).  None
+        corresponds to a value of 1.0
+    inter : None or float, optional
+        intercept value to apply to `arr` (``arr * slope + inter``).  None
+        corresponds to a value of 0.0
 
     Returns
     -------
@@ -758,6 +760,10 @@ def apply_read_scaling(arr, slope = 1.0, inter = 0.0):
         scaling. If scaling is default (1, 0), then `ret` may be `arr` ``ret is
         arr``.
     """
+    if slope is None:
+        slope = 1.0
+    if inter is None:
+        inter = 0.0
     if (slope, inter) == (1, 0):
         return arr
     shape = arr.shape

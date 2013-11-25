@@ -350,6 +350,14 @@ def test_apply_read_scaling_ints():
     assert_array_equal(apply_read_scaling(arr, 2, 1), arr * 2 + 1)
 
 
+def test_apply_read_scaling_nones():
+    # Check that we can pass None as slope and inter to apply read scaling
+    arr = np.arange(10, dtype=np.int16)
+    assert_array_equal(apply_read_scaling(arr, None, None), arr)
+    assert_array_equal(apply_read_scaling(arr, 2, None), arr * 2)
+    assert_array_equal(apply_read_scaling(arr, None, 1), arr + 1)
+
+
 def test__inter_type():
     # Test routine to get intercept type
     bf = best_float()
