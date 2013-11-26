@@ -72,7 +72,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         slope) + inter``
 
         Note that the SPM Analyze header can't save an intercept value,
-        and we raise an error for ``inter != 0``
+        and we raise an error unless `inter` is None, NaN or 0
 
         Parameters
         ----------
@@ -87,7 +87,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         if slope is None:
             slope = 0.0
         self._structarr['scl_slope'] = slope
-        if inter is None or inter == 0:
+        if inter in (None, 0) or np.isnan(inter):
             return
         raise HeaderTypeError('Cannot set non-zero intercept '
                               'for SPM headers')

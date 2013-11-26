@@ -534,6 +534,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_equal(hdr.get_slope_inter(), (None, None))
         for slinter in ((None,),
                         (None, None),
+                        (np.nan, np.nan),
+                        (np.nan, None),
+                        (None, np.nan),
                         (1.0,),
                         (1.0, None),
                         (None, 0),

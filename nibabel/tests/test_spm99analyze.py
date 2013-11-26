@@ -75,7 +75,9 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
                             ((None,), (None, None)),
                             ((1.0, None), (1.0, None)),
                             ((0.0, None), (None, None)), # null scalings
+                            ((np.nan, np.nan), (None, None)),
                             ((np.nan, None), (None, None)),
+                            ((None, np.nan), (None, None)),
                             ((np.inf, None), (None, None)),
                             ((-np.inf, None), (None, None)),
                             ((None, 0.0), (None, None))):

@@ -717,17 +717,18 @@ class AnalyzeHeader(LabeledWrapStruct):
         slope) + inter``
 
         In this case, for Analyze images, we can't store the slope or the
-        intercept, so this method only checks that `slope` is None or 1.0, and
-        that `inter` is None or 0.
+        intercept, so this method only checks that `slope` is None or NaN or
+        1.0, and that `inter` is None or NaN or 0.
 
         Parameters
         ----------
         slope : None or float
-            If float, value must be 1.0 or we raise a ``HeaderTypeError``
+            If float, value must be NaN or 1.0 or we raise a ``HeaderTypeError``
         inter : None or float, optional
             If float, value must be 0.0 or we raise a ``HeaderTypeError``
         '''
-        if (slope is None or slope == 1.0) and (inter is None or inter == 0):
+        if ((slope in (None, 1) or np.isnan(slope)) and
+            (inter in (None, 0) or np.isnan(inter))):
             return
         raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
                               'for Analyze headers')

@@ -119,6 +119,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
                              ((None,), (None, None)),
                              ((3.0, None), (3.0, 0.0)),
                              ((0.0, None), (None, None)),
+                             ((np.nan, np.nan), (None, None)),
+                             ((np.nan, None), (None, None)),
+                             ((np.nan, 1), (None, None)),
                              ((None, 0.0), (None, None)),
                              ((None, 3.0), (None, None)),
                              ((2.0, 3.0), (2.0, 3.0))) + tuple(bad_tests):
