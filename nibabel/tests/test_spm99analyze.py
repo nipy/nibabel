@@ -89,6 +89,9 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         # Setting not-zero to offset raises error
         assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
         assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
+        # Default slope is NaN
+        hdr.set_slope_inter(None, None)
+        assert_array_equal(hdr['scl_slope'], np.nan)
 
     def test_origin_checks(self):
         HC = self.header_class

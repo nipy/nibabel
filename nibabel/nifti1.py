@@ -1029,7 +1029,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                 'Valid slope but invalid intercept {0}'.format(inter))
         return slope, inter
 
-    def set_slope_inter(self, slope, inter=0.0):
+    def set_slope_inter(self, slope, inter=None):
         ''' Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
@@ -1039,16 +1039,17 @@ class Nifti1Header(SpmAnalyzeHeader):
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope`  of 0. When the slope is set to 0 or a
-           not-finite value, ``get_slope_inter`` returns (None, None), i.e.
-           `inter` is ignored unless there is a valid value for `slope`.
+           If None, implies `slope`  of NaN. When the slope is set to NaN, 0 or
+           a +-np.inf, ``get_slope_inter`` returns (None, None), i.e.  `inter`
+           is ignored unless there is a valid value for `slope`.
         inter : None or float, optional
-           intercept.  None implies inter value of 0.
+           intercept.  None gives value of 0 unless `slope` is NaN, in which
+           case, value is also NaN
         '''
         if slope is None:
-            slope = 0.0
+            slope = np.nan
         if inter is None:
-            inter = 0.0
+            inter = np.nan if np.isnan(slope) else 0
         self._structarr['scl_slope'] = slope
         self._structarr['scl_inter'] = inter
 

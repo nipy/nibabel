@@ -136,6 +136,16 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
             hdr['scl_slope'] = slope
             hdr['scl_inter'] = inter
             assert_raises(HeaderDataError, hdr.get_slope_inter)
+        # Default value for slope is NaN.  Default value for inter is 0 unless
+        # slope is None or NaN
+        hdr = self.header_class()
+        for slope, inter in itertools.product(bad_slopes, (None, np.nan)):
+            hdr.set_slope_inter(slope, inter)
+            expected_slope = np.nan if slope is None else slope
+            inter_default = np.nan if np.isnan(expected_slope) else 0
+            expected_inter = inter_default if inter is None else inter
+            assert_array_equal(hdr['scl_slope'], expected_slope)
+            assert_array_equal(hdr['scl_inter'], expected_inter)
 
     def test_nifti_qsform_checks(self):
         # qfac, qform, sform checks

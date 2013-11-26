@@ -85,7 +85,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
            store intercepts.
         '''
         if slope is None:
-            slope = 0.0
+            slope = np.nan
         self._structarr['scl_slope'] = slope
         if inter in (None, 0) or np.isnan(inter):
             return

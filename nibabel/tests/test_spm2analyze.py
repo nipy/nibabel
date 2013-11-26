@@ -13,6 +13,8 @@ import numpy as np
 from ..spatialimages import HeaderTypeError
 from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 
+from numpy.testing import assert_array_equal
+
 from ..testing import assert_equal, assert_raises
 
 from . import test_spm99analyze
@@ -42,6 +44,9 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
         # Setting not-zero to offset raises error
         assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
         assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
+        # Default slope is NaN
+        hdr.set_slope_inter(None, None)
+        assert_array_equal(hdr['scl_slope'], np.nan)
 
 
 class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):
