@@ -8,6 +8,8 @@ from platform import processor, machine
 
 import numpy as np
 
+from .externals.six import integer_types
+
 
 class CastingError(Exception):
     pass
@@ -431,7 +433,7 @@ def int_to_float(val, flt_type):
     # The following works around a nasty numpy 1.4.1 bug such that:
     # >>> int(np.uint32(2**32-1)
     # -1
-    if not isinstance(val, int):
+    if not isinstance(val, integer_types):
         val = int(str(val))
     faval = np.longdouble(0)
     while val != 0:
