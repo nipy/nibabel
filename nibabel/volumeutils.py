@@ -587,7 +587,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         return
     if not order in 'FC':
         raise ValueError('Order should be one of F or C')
-    # Force upcasting for floats by making atleast_1d
+    # Force upcasting for floats by making atleast_1d.
     slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
     # (u)int to (u)int with inter alone - select precision
     if (slope == 1 and inter != 0 and
@@ -595,7 +595,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         inter == np.round(inter)): # (u)int to (u)int offset only scaling
         # Does range of in type minus inter fit in out type? If so, use that as
         # working type.  Otherwise use biggest float for max integer precision
-        inter = inter.astype(_inter_type(in_dtype, -inter, out_dtype))
+        inter = inter.astype(_inter_type(in_dtype, -np.squeeze(inter), out_dtype))
     # Do we need float -> int machinery?
     needs_f2i = out_dtype.kind in 'iu' and (
         in_dtype.kind == 'f' or

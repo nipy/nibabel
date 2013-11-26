@@ -288,8 +288,23 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
 
 
+def test_a2f_int_scaling():
+    # Check that we can use integers for intercept and divslope
+    arr = np.array([0, 1, 128, 255], dtype=np.uint8)
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, np.uint8, intercept=1)
+    assert_array_equal(back_arr, np.clip(arr - 1., 0, 255))
+    back_arr = write_return(arr, fobj, np.uint8, divslope=2)
+    assert_array_equal(back_arr, np.round(np.clip(arr / 2., 0, 255)))
+    back_arr = write_return(arr, fobj, np.uint8, intercept=1, divslope=2)
+    assert_array_equal(back_arr, np.round(np.clip((arr - 1.) / 2., 0, 255)))
+    back_arr = write_return(arr, fobj, np.int16, intercept=1, divslope=2)
+    assert_array_equal(back_arr, np.round((arr - 1.) / 2.))
+
+
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
+    fileobj.seek(0)
     array_to_file(data, fileobj, out_dtype, *args, **kwargs)
     data = array_from_file(data.shape, out_dtype, fileobj)
     return data
