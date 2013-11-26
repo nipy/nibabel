@@ -302,6 +302,56 @@ def test_a2f_int_scaling():
     assert_array_equal(back_arr, np.round((arr - 1.) / 2.))
 
 
+def test_a2f_int2int():
+    # Test behavior of array_to_file when writing different types with and
+    # without scaling
+    arr1 = np.array([0, 1, 128, 255])
+    arr2 = np.array([-128, 0, 1, 127])
+    fobj = BytesIO()
+    for in_arr in (arr1, arr2):
+        for in_dtype in (np.uint8, np.int8, np.float32):
+            arr = in_arr.astype(in_dtype)
+            for intercept, divslope in (
+                (0, 1), # No scaling case
+                (0.5, 1),
+                (0, 0.5),
+                (-1, 1),
+                (1, 1),
+                (-1, 0.5),
+                (-1, 2),
+                (1, 0.5),
+                (1, 2)):
+                for out_dtype in (np.uint8, np.int8, np.int16, np.float32):
+                    if out_dtype in CFLOAT_TYPES:
+                        dti = np.finfo(out_dtype)
+                        round = lambda x : x
+                    else:
+                        dti = np.iinfo(out_dtype)
+                        round = np.round
+                    back_arr = write_return(arr, fobj,
+                                            out_dtype=out_dtype,
+                                            divslope=divslope,
+                                            intercept=intercept)
+                    exp_back = (arr - float(intercept)) / float(divslope)
+                    exp_back = np.clip(round(exp_back), dti.min, dti.max)
+                    assert_array_equal(back_arr, exp_back)
+
+
+def test_a2f_non_numeric():
+    # Reminder that we may get structured dtypes
+    dt = np.dtype([('f1', 'f'), ('f2', 'i2')])
+    arr = np.zeros((2,), dtype=dt)
+    arr['f1'] = 0.4, 0.6
+    arr['f2'] = 10, 12
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, dt)
+    assert_array_equal(back_arr, arr)
+    back_arr = write_return(arr, fobj, float)
+    assert_array_equal(back_arr, arr.astype(float))
+    assert_raises(ValueError, write_return, arr, fobj, float, mn=0)
+    assert_raises(ValueError, write_return, arr, fobj, float, mx=10)
+
+
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
     fileobj.seek(0)

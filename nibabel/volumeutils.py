@@ -507,10 +507,21 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
 def array_to_file(data, fileobj, out_dtype=None, offset=0,
                   intercept=0.0, divslope=1.0,
                   mn=None, mx=None, order='F', nan2zero=True):
-    ''' Helper function for writing arrays to disk
+    ''' Helper function for writing arrays to file objects
 
     Writes arrays as scaled by `intercept` and `divslope`, and clipped
     at (prescaling) `mn` minimum, and `mx` maximum.
+
+    * Clip `data` array at min `mn`, max `max` where there are not None ->
+      ``clipped`` (this is *pre scale clipping*)
+    * Scale ``clipped`` with ``clipped_scaled = (clipped - intercept) /
+      divslope``
+    * Clip ``clipped_scaled`` to fit into range of `out_dtype` (*post scale
+      clipping*) -> ``clipped_scaled_clipped``
+    * If converting to integer `out_dtype` and `nan2zero` is True, set NaN
+      values in ``clipped_scaled_clipped`` to 0
+    * Write ``clipped_scaled_clipped_n2z`` to fileobj `fileobj` starting at
+      offset `offset` in memory layout `order`
 
     Parameters
     ----------
@@ -590,21 +601,36 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # Force upcasting for floats by making atleast_1d.
     slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
     # (u)int to (u)int with inter alone - select precision
-    if (slope == 1 and inter != 0 and
-        in_dtype.kind in 'iu' and out_dtype.kind in 'iu' and
+    int2int = in_dtype.kind in 'iu' and out_dtype.kind in 'iu'
+    if (slope == 1 and inter != 0 and int2int and
         inter == np.round(inter)): # (u)int to (u)int offset only scaling
         # Does range of in type minus inter fit in out type? If so, use that as
         # working type.  Otherwise use biggest float for max integer precision
         inter = inter.astype(_inter_type(in_dtype, -np.squeeze(inter), out_dtype))
     # Do we need float -> int machinery?
+    # needs_f2i is True if we have an output integer type and the input or
+    # working type is floating point
     needs_f2i = out_dtype.kind in 'iu' and (
         in_dtype.kind == 'f' or
         slope != 1 or
         (inter != 0 and inter.dtype.kind == 'f'))
     if not needs_f2i:
-        # Apply min max thresholding the standard way
+        # Could be float to float, int to int, int to float
+        # Do we need to do clipping before scaling with inter?
         needs_pre_clip = (mn, mx) != (None, None)
-        if needs_pre_clip:
+        # If we have a non-zero intercept and we got here, the intercept check
+        # has already checked if we fit in range of the output dtype.
+        # We consider floats to have infinite range.  So we only need to clip
+        # the output if the output is an integer and the intercept is 0
+        if int2int and inter == 0:
+            assert divslope == 1
+            mn, mx = _dt_min_max(in_dtype, mn, mx)
+            mn_out, mx_out = _dt_min_max(out_dtype, None, None)
+            if mn < mn_out or mx > mx_out:
+                needs_pre_clip = True
+                mn, mx = max(mn, mn_out), min(mx, mx_out)
+        elif needs_pre_clip:
+            # Only do this if needed - to guard against non-numeric dtypes
             mn, mx = _dt_min_max(in_dtype, mn, mx)
     else: # We do need float to int machinery
         # Replace Nones in (mn, mx) with type min / max if necessary
@@ -638,6 +664,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         if post_mn > post_mx: # slope could be negative
             post_mn, post_mx = post_mx, post_mn
         # Ensure safe thresholds applied too
+        # The thresholds assume that the data are in `wtype` dtype after applying
+        # the slope and intercept.
         both_mn, both_mx = shared_range(w_type, out_dtype)
         post_mn = np.max([post_mn, both_mn])
         post_mx = np.min([post_mx, both_mx])
@@ -675,7 +703,7 @@ def _dt_min_max(dtype_like, mn, mx):
         info = np.iinfo(dt)
         mnmx = (info.min, info.max)
     else:
-        raise NotImplementedError("unknown dtype")
+        raise ValueError("unknown dtype")
     return mnmx[0] if mn is None else mn, mnmx[1] if mx is None else mx
 
 
