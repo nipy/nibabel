@@ -1,5 +1,9 @@
 """ Test slicing of file-like objects """
 
+import sys
+
+PY2 = sys.version_info[0] < 3
+
 from io import BytesIO
 from itertools import product
 from functools import partial
@@ -197,6 +201,9 @@ def test_threshold_heuristic():
     assert_equal(threshold_heuristic(1, 9, 1, skip_thresh=7), None)
     assert_equal(threshold_heuristic(1, 9, 2, skip_thresh=16), 'full')
     assert_equal(threshold_heuristic(1, 9, 2, skip_thresh=15), None)
+    # long if on Python 2
+    if PY2:
+        assert_equal(threshold_heuristic(long(1), 9, 1, skip_thresh=8), 'full')
     # full slice, smallest step size
     assert_equal(threshold_heuristic(
         slice(0, 9, 1), 9, 2, skip_thresh=2),
@@ -450,6 +457,15 @@ def test_optimize_read_slicers():
         (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends1),
         ((slice(None), slice(None), slice(None)),
           (slice(None), slice(0, 5, 1), slice(None))))
+    # Check longs as integer slices
+    sn = slice(None)
+    assert_equal(optimize_read_slicers(
+        (1, 2, 3), (2, 3, 4), 4, _always),
+        ((sn, sn, 3), (1, 2)))
+    if PY2: # Check we can pass in longs as well
+        assert_equal(optimize_read_slicers(
+            (long(1), long(2), long(3)), (2, 3, 4), 4, _always),
+            ((sn, sn, 3), (1, 2)))
 
 
 def test_slicers2segments():
@@ -471,6 +487,10 @@ def test_slicers2segments():
     assert_equal(slicers2segments(
         (slice(None), slice(None), 2), (10, 6, 4), 7, 4),
         [[7 + 10 * 6 * 2 * 4, 10 * 6 * 4]])
+    if PY2: # Check we can pass longs on Python 2
+        assert_equal(
+            slicers2segments((long(0), long(1), long(2)), (10, 6, 4), 7, 4),
+            [[7 + 10 * 4 + 10 * 6 * 2 * 4, 4]])
 
 
 def test_calc_slicedefs():

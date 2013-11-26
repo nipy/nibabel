@@ -5,6 +5,7 @@ from __future__ import division
 import operator
 from mmap import mmap
 
+from .externals.six import integer_types
 from .externals.six.moves import reduce
 
 import numpy as np
@@ -288,7 +289,7 @@ def threshold_heuristic(slicer,
     for the maximum skip distance seemed to work well, as measured by times on
     ``nibabel.benchmarks.bench_fileslice``
     """
-    if isinstance(slicer, int):
+    if isinstance(slicer, integer_types):
         gap_size = (dim_len - 1) * stride
         return 'full' if gap_size <= skip_thresh else None
     step_size = abs(slicer.step) * stride
@@ -485,7 +486,7 @@ def optimize_read_slicers(sliceobj, in_shape, itemsize, heuristic):
         array before passing to this function.
     itemsize : int
         element size in array (bytes)
-    heuristic : callable, optional
+    heuristic : callable
         function taking slice object, axis length, and stride length as
         arguments, returning one of 'full', 'contiguous', None.  See
         :func:`optimize_slicer`; see :func:`threshold_heuristic` for an example.
@@ -522,7 +523,7 @@ def optimize_read_slicers(sliceobj, in_shape, itemsize, heuristic):
             slicer, dim_len, all_full, is_last, stride, heuristic)
         read_slicers.append(read_slicer)
         all_full = all_full and read_slicer == slice(None)
-        if not isinstance(read_slicer, int):
+        if not isinstance(read_slicer, integer_types):
             post_slicers.append(post_slicer)
         stride *= dim_len
     return tuple(read_slicers), tuple(post_slicers)
@@ -559,7 +560,7 @@ def slicers2segments(read_slicers, in_shape, offset, itemsize):
             continue
         dim_len = in_shape[real_no]
         real_no += 1
-        is_int = isinstance(read_slicer, int)
+        is_int = isinstance(read_slicer, integer_types)
         if not is_int: # slicer is (now) a slice
             # make slice full (it will always be positive)
             read_slicer = fill_slicer(read_slicer, dim_len)
