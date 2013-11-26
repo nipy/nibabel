@@ -40,7 +40,7 @@ class ScalingError(WriterError):
 
 class ArrayWriter(object):
 
-    def __init__(self, array, out_dtype=None, calc_scale=True):
+    def __init__(self, array, out_dtype=None, **kwargs):
         """ Initialize array writer
 
         Parameters
@@ -52,6 +52,11 @@ class ArrayWriter(object):
             `out_dtype`` needs to be the same as the dtype of the input `array`
             or a swapped version of the same.
         \*\*kwargs : keyword arguments
+            This class processes only:
+
+            * check_scaling : bool
+              If True, check if scaling needed and raise error if so. Default is
+              True
 
         Examples
         --------
@@ -61,7 +66,9 @@ class ArrayWriter(object):
         Traceback (most recent call last):
             ...
         WriterError: Scaling needed but cannot scale
+        >>> aw = ArrayWriter(arr, np.int8, check_scaling=False)
         """
+        check_scaling = kwargs.pop('check_scaling', True)
         self._array = np.asanyarray(array)
         arr_dtype = self._array.dtype
         if out_dtype is None:
@@ -70,7 +77,7 @@ class ArrayWriter(object):
             out_dtype = np.dtype(out_dtype)
         self._out_dtype = out_dtype
         self._finite_range = None
-        if self.scaling_needed():
+        if check_scaling and self.scaling_needed():
             raise WriterError("Scaling needed but cannot scale")
 
     def scaling_needed(self):
@@ -573,7 +580,7 @@ def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
     has_intercept : {True, False}
         If True, array write can use intercept to adapt the array to `out_type`
     \*\*kwargs : other keyword arguments
-        to pass to the arraywriter class, if it accepts them.
+        to pass to the arraywriter class
 
     Returns
     -------
@@ -600,4 +607,4 @@ def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
         return SlopeInterArrayWriter(data, out_type, **kwargs)
     if has_slope:
         return SlopeArrayWriter(data, out_type, **kwargs)
-    return ArrayWriter(data, out_type)
+    return ArrayWriter(data, out_type, **kwargs)

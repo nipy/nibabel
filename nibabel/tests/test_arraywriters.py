@@ -123,6 +123,22 @@ def test_arraywriters():
             assert_true(arr_back.flags.c_contiguous)
 
 
+def test_arraywriter_check_scaling():
+    # Check keyword-only argument to ArrayWriter
+    # Within range - OK
+    arr = np.array([0, 1, 128, 255], np.uint8)
+    aw = ArrayWriter(arr)
+    # Out of range, scaling needed, default is error
+    assert_raises(WriterError, ArrayWriter, arr, np.int8)
+    # Make default explicit
+    assert_raises(WriterError, ArrayWriter, arr, np.int8, check_scaling=True)
+    # Turn off scaling check
+    aw = ArrayWriter(arr, np.int8, check_scaling=False)
+    assert_array_equal(round_trip(aw), np.clip(arr, 0, 127))
+    # Has to be keyword
+    assert_raises(TypeError, ArrayWriter, arr, np.int8, False)
+
+
 def test_scaling_needed():
     # Structured types return True if dtypes same, raise error otherwise
     dt_def = [('f', 'i4')]
@@ -607,6 +623,8 @@ def test_float_int_spread():
 
 def rt_err_estimate(arr_t, out_dtype, slope, inter):
     # Error attributable to rounding
+    slope = 1 if slope is None else slope
+    inter = 1 if inter is None else inter
     max_int_miss = slope / 2.
     # Estimate error attributable to floating point slope / inter;
     # Remove inter / slope, put in a float type to simulate the type
