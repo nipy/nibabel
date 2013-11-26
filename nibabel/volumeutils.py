@@ -625,7 +625,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         if int2int and inter == 0:
             assert divslope == 1
             mn, mx = _dt_min_max(in_dtype, mn, mx)
-            mn_out, mx_out = _dt_min_max(out_dtype, None, None)
+            mn_out, mx_out = _dt_min_max(out_dtype)
             if mn < mn_out or mx > mx_out:
                 needs_pre_clip = True
                 mn, mx = max(mn, mn_out), min(mx, mx_out)
@@ -691,7 +691,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         fileobj.write(dslice.tostring())
 
 
-def _dt_min_max(dtype_like, mn, mx):
+def _dt_min_max(dtype_like, mn=None, mx=None):
     """ Return ``mx` unless ``mx`` is None, else type max, likewise for ``mn``
 
     ``mn``, ``mx`` can be None, in which case return the type min / max.
