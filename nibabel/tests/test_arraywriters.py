@@ -31,6 +31,7 @@ from __future__ import division, print_function, absolute_import
 import sys
 from platform import python_compiler, machine
 from distutils.version import LooseVersion
+import itertools
 
 import numpy as np
 
@@ -40,7 +41,7 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
 
-from ..casting import int_abs, type_info
+from ..casting import int_abs, type_info, shared_range
 
 from ..volumeutils import array_from_file, apply_read_scaling
 
@@ -177,7 +178,9 @@ def test_scaling_needed():
         for out_t in IUINT_TYPES:
             assert_false(ArrayWriter(arr_0, out_t).scaling_needed())
             assert_false(ArrayWriter(arr_e, out_t).scaling_needed())
-    # Going to (u)ints, non-finite arrays don't need scaling
+    # Going to (u)ints, non-finite arrays don't need scaling for writers that
+    # can do scaling because these use finite_range to threshold the input data,
+    # but ArrayWriter does not do this. so scaling_needed is True
     for in_t in FLOAT_TYPES:
         arr_nan = np.zeros(10, in_t) + np.nan
         arr_inf = np.zeros(10, in_t) + np.inf
@@ -185,7 +188,10 @@ def test_scaling_needed():
         arr_mix = np.array([np.nan, np.inf, -np.inf], dtype=in_t)
         for out_t in IUINT_TYPES:
             for arr in (arr_nan, arr_inf, arr_minf, arr_mix):
-                assert_false(ArrayWriter(arr, out_t).scaling_needed())
+                assert_true(
+                    ArrayWriter(arr, out_t, check_scaling=False).scaling_needed())
+                assert_false(SlopeArrayWriter(arr, out_t).scaling_needed())
+                assert_false(SlopeInterArrayWriter(arr, out_t).scaling_needed())
     # Floats as input always need scaling
     for in_t in FLOAT_TYPES:
         arr = np.ones(10, in_t)
@@ -217,16 +223,30 @@ def test_scaling_needed():
 
 
 def test_special_rt():
-    # Test that zeros; none finite - round trip to zeros
-    for arr in (np.array([np.inf, np.nan, -np.inf]),
-                np.zeros((3,))):
-        for in_dtt in FLOAT_TYPES:
-            for out_dtt in IUINT_TYPES:
-                for klass in (ArrayWriter, SlopeArrayWriter,
-                              SlopeInterArrayWriter):
-                    aw = klass(arr.astype(in_dtt), out_dtt)
-                    assert_equal(get_slope_inter(aw), (1, 0))
-                    assert_array_equal(round_trip(aw), 0)
+    # Test that zeros; none finite - round trip to zeros for scaleable types
+    # For ArrayWriter, these error for default creation, when forced to create
+    # the writer, they round trip to out_dtype max
+    arr = np.array([np.inf, np.nan, -np.inf])
+    for in_dtt in FLOAT_TYPES:
+        for out_dtt in IUINT_TYPES:
+            in_arr = arr.astype(in_dtt)
+            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            aw = ArrayWriter(in_arr, out_dtt, check_scaling=False)
+            mn, mx = shared_range(float, out_dtt)
+            assert_true(np.allclose(round_trip(aw).astype(float),
+                                    [mx, 0, mn]))
+            for klass in (SlopeArrayWriter, SlopeInterArrayWriter):
+                aw = klass(in_arr, out_dtt)
+                assert_equal(get_slope_inter(aw), (1, 0))
+                assert_array_equal(round_trip(aw), 0)
+    for in_dtt, out_dtt, awt in itertools.product(
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        arr = np.zeros((3,), dtype=in_dtt)
+        aw = awt(arr, out_dtt)
+        assert_equal(get_slope_inter(aw), (1, 0))
+        assert_array_equal(round_trip(aw), 0)
 
 
 def test_high_int2uint():
@@ -248,11 +268,14 @@ def test_slope_inter_castable():
                 arr = np.zeros((5,), dtype=in_dtt)
                 aw = klass(arr, out_dtt) # no error
     # Test special case of none finite
+    # This raises error for ArrayWriter, but not for the others
     arr = np.array([np.inf, np.nan, -np.inf])
     for in_dtt in FLOAT_TYPES:
-        for out_dtt in FLOAT_TYPES + IUINT_TYPES:
-            for klass in (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter):
-                aw = klass(arr.astype(in_dtt), out_dtt) # no error
+        for out_dtt in IUINT_TYPES:
+            in_arr = arr.astype(in_dtt)
+            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            aw = SlopeArrayWriter(arr.astype(in_dtt), out_dtt) # no error
+            aw = SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt) # no error
     for in_dtt, out_dtt, arr, slope_only, slope_inter, neither in (
         (np.float32, np.float32, 1, True, True, True),
         (np.float64, np.float32, 1, True, True, True),

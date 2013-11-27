@@ -90,8 +90,7 @@ class ArrayWriter(object):
         * If input or output is an object or structured type, raise
         * If input is complex, raise
         * If the output is float, return False
-        * If there is no finite value in the input array, or the input array is
-          all 0, return False (the writer will strip the non-finite values)
+        * If the input array is all zero, return False
         * By now we are casting to (u)int. If the input type is a float, return
           True (we do need scaling)
         * Now input and output types are (u)ints. If the min and max in the data
@@ -118,9 +117,11 @@ class ArrayWriter(object):
         if out_dtype.kind == 'f':
             return False
         # Now we need to look at the data for special cases
+        if data.size == 0:
+            return False
         mn, mx = self.finite_range() # this is cached
-        if (mn, mx) in ((0, 0), (np.inf, -np.inf)):
-            # Data all zero, or no data is finite
+        if (mn, mx) == (0, 0):
+            # Data all zero
             return False
         # Floats -> (u)ints always need scaling
         if arr_dtype.kind == 'f':
@@ -153,15 +154,6 @@ class ArrayWriter(object):
             self._finite_range = finite_range(self._array)
         return self._finite_range
 
-    def _writing_range(self):
-        """ Finite range for thresholding on write """
-        if self._out_dtype.kind in 'iu' and self._array.dtype.kind == 'f':
-            mn, mx = self.finite_range()
-            if (mn, mx) == (np.inf, -np.inf): # no finite data
-                mn, mx = 0, 0
-            return mn, mx
-        return None, None
-
     def to_fileobj(self, fileobj, order='F', nan2zero=True):
         """ Write array into `fileobj`
 
@@ -176,13 +168,12 @@ class ArrayWriter(object):
             ``astype``, and the behavior is undefined.  Ignored for floating
             point output.
         """
-        mn, mx = self._writing_range()
         array_to_file(self._array,
                       fileobj,
                       self._out_dtype,
                       offset=None,
-                      mn=mn,
-                      mx=mx,
+                      mn=None,
+                      mx=None,
                       order=order,
                       nan2zero=nan2zero)
 
@@ -250,6 +241,31 @@ class SlopeArrayWriter(ArrayWriter):
         if calc_scale:
             self.calc_scale()
 
+    def scaling_needed(self):
+        """ Checks if scaling is needed for input array
+
+        Raises WriterError if no scaling possible.
+
+        The rules are in the code, but:
+        * If numpy will cast, return False (no scaling needed)
+        * If input or output is an object or structured type, raise
+        * If input is complex, raise
+        * If the output is float, return False
+        * If the input array is all zero, return False
+        * If there is no finite value, return False (the writer will strip the
+          non-finite values)
+        * By now we are casting to (u)int. If the input type is a float, return
+          True (we do need scaling)
+        * Now input and output types are (u)ints. If the min and max in the data
+          are within range of the output type, return False
+        * Otherwise return True
+        """
+        if not super(SlopeArrayWriter, self).scaling_needed():
+            return False
+        mn, mx = self.finite_range() # this is cached
+        # No finite data - no scaling needed
+        return (mn, mx) != (np.inf, -np.inf)
+
     def reset(self):
         """ Set object to values before any scaling calculation """
         self.slope = 1.0
@@ -273,6 +289,15 @@ class SlopeArrayWriter(ArrayWriter):
             return
         self._do_scaling()
         self._scale_calced = True
+
+    def _writing_range(self):
+        """ Finite range for thresholding on write """
+        if self._out_dtype.kind in 'iu' and self._array.dtype.kind == 'f':
+            mn, mx = self.finite_range()
+            if (mn, mx) == (np.inf, -np.inf): # no finite data
+                mn, mx = 0, 0
+            return mn, mx
+        return None, None
 
     def to_fileobj(self, fileobj, order='F', nan2zero=True):
         """ Write array into `fileobj`
