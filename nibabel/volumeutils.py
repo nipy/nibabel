@@ -600,18 +600,24 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         raise ValueError('Order should be one of F or C')
     # Force upcasting for floats by making atleast_1d.
     slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
-    # (u)int to (u)int with inter alone - select precision
-    int2int = in_dtype.kind in 'iu' and out_dtype.kind in 'iu'
-    if (slope == 1 and inter != 0 and int2int and
-        inter == np.round(inter)): # (u)int to (u)int offset only scaling
+    # shortcuts for clarity
+    int_in = in_dtype.kind in 'iu'
+    int_out = out_dtype.kind in 'iu'
+    flt_in = in_dtype.kind == 'f'
+    # (u)int to (u)int with integer inter no slope: set inter to be suitable
+    # integer type if we can stay within the integers after applying inter
+    if (int_in and int_out and
+        slope == 1 and inter != 0 and
+        inter == np.round(inter)):
+        # (u)int to (u)int offset only scaling
         # Does range of in type minus inter fit in out type? If so, use that as
         # working type.  Otherwise use biggest float for max integer precision
         inter = inter.astype(_inter_type(in_dtype, -np.squeeze(inter), out_dtype))
     # Do we need float -> int machinery?
     # needs_f2i is True if we have an output integer type and the input or
     # working type is floating point
-    needs_f2i = out_dtype.kind in 'iu' and (
-        in_dtype.kind == 'f' or
+    needs_f2i = int_out and (
+        flt_in or
         slope != 1 or
         (inter != 0 and inter.dtype.kind == 'f'))
     # Do we need to cast the input type before thresholding etc?
@@ -624,7 +630,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # has already checked if we fit in range of the output dtype.
         # We consider floats to have infinite range.  So we only need to clip
         # the output if the output is an integer and the intercept is 0
-        if int2int and inter == 0:
+        if int_in and int_out and inter == 0:
             assert divslope == 1
             mn, mx = _dt_min_max(in_dtype, mn, mx)
             mn_out, mx_out = _dt_min_max(out_dtype)
