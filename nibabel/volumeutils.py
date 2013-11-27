@@ -614,6 +614,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         in_dtype.kind == 'f' or
         slope != 1 or
         (inter != 0 and inter.dtype.kind == 'f'))
+    # Do we need to cast the input type before thresholding etc?
+    needs_in_cast = False
     if not needs_f2i:
         # Could be float to float, int to int, int to float
         # Do we need to do clipping before scaling with inter?
@@ -638,10 +640,12 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # Check what working type we need to cover range
         w_type = working_type(in_dtype, slope, inter)
         assert w_type in np.sctypes['float']
+        # Make sure at least float32 (don't use float16)
+        w_type = better_float_of(w_type, np.float32)
         w_type = best_write_scale_ftype(np.array(dt_mnmx, dtype=in_dtype),
                                         slope, inter, w_type)
-        slope = slope.astype(w_type)
-        inter = inter.astype(w_type)
+        if w_type != in_dtype.type:
+            needs_in_cast = True
         # Apply thresholding after scaling
         needs_pre_clip = False
         # We need to know the result of applying slope and inter to the min and
@@ -654,7 +658,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # have to do an extra copy before filling nans with 0, to avoid
         # overwriting the input array
         # Run min, max, 0 through scaling / rint
-        specials = np.array(dt_mnmx + (0,), dtype=in_dtype)
+        specials = np.array(dt_mnmx + (0,), dtype=w_type)
         if inter != 0.0:
             specials = specials - inter
         if slope != 1.0:
@@ -673,6 +677,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if order == 'F' or (data.ndim == 2 and data.shape[1] == 1):
         data = data.T
     for dslice in data: # cycle over first dimension to save memory
+        if needs_in_cast:
+            dslice = dslice.astype(w_type)
         if needs_pre_clip:
             dslice = np.clip(dslice, mn, mx)
         if inter != 0.0:
