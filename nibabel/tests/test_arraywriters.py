@@ -43,7 +43,7 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
 
 from ..casting import int_abs, type_info, shared_range
 
-from ..volumeutils import array_from_file, apply_read_scaling
+from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -138,6 +138,39 @@ def test_arraywriter_check_scaling():
     assert_array_equal(round_trip(aw), np.clip(arr, 0, 127))
     # Has to be keyword
     assert_raises(TypeError, ArrayWriter, arr, np.int8, False)
+
+
+def test_no_scaling():
+    # Test arraywriter when writing different types without scaling
+    # Test only types fitting completely in float64 to avoid the fancy tricks
+    # that array_to_file uses
+    WITHIN_F64 = (np.int8, np.int16, np.int32, np.uint8, np.uint16, np.uint32,
+                  np.float32, np.float64)
+    if hasattr(np, 'float16'): # float16 landed in numpy 1.6
+        WITHIN_F64 += (np.float16,)
+    for in_dtype, out_dtype, awt in itertools.product(
+        WITHIN_F64,
+        WITHIN_F64,
+        (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
+        mn_out, mx_out = _dt_min_max(out_dtype)
+        kwargs = (dict(check_scaling=False) if awt == ArrayWriter
+                  else dict(calc_scale=False))
+        aw = awt(arr, out_dtype, **kwargs)
+        back_arr = round_trip(aw)
+        exp_back = arr.astype(float)
+        if out_dtype not in CFLOAT_TYPES:
+            exp_back = np.round(exp_back)
+        if (hasattr(aw, 'slope') and
+            in_dtype in FLOAT_TYPES and out_dtype in IUINT_TYPES):
+            # Finite scaling sets infs to min / max
+            exp_back = np.clip(exp_back, 0, 1)
+        else:
+            exp_back = np.clip(exp_back, mn_out, mx_out)
+        exp_back = exp_back.astype(out_dtype)
+        # Sometimes working precision is float32 - allow for small differences
+        assert_true(np.allclose(back_arr.astype(float), exp_back.astype(float)))
 
 
 def test_scaling_needed():
