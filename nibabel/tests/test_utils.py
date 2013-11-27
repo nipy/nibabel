@@ -36,9 +36,12 @@ from ..volumeutils import (array_from_file,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
-                           rec2dict)
+                           rec2dict,
+                           _dt_min_max,
+                          )
 
-from ..casting import (floor_log2, type_info, best_float, OK_FLOATS)
+from ..casting import (floor_log2, type_info, best_float, OK_FLOATS,
+                       shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -305,36 +308,31 @@ def test_a2f_int_scaling():
 def test_a2f_int2int():
     # Test behavior of array_to_file when writing different types with and
     # without scaling
-    arr1 = np.array([0, 1, 128, 255])
-    arr2 = np.array([-128, 0, 1, 127])
     fobj = BytesIO()
-    for in_arr in (arr1, arr2):
-        for in_dtype in (np.uint8, np.int8, np.float32):
-            arr = in_arr.astype(in_dtype)
-            for intercept, divslope in (
-                (0, 1), # No scaling case
-                (0.5, 1),
-                (0, 0.5),
-                (-1, 1),
-                (1, 1),
-                (-1, 0.5),
-                (-1, 2),
-                (1, 0.5),
-                (1, 2)):
-                for out_dtype in (np.uint8, np.int8, np.int16, np.float32):
-                    if out_dtype in CFLOAT_TYPES:
-                        dti = np.finfo(out_dtype)
-                        round = lambda x : x
-                    else:
-                        dti = np.iinfo(out_dtype)
-                        round = np.round
-                    back_arr = write_return(arr, fobj,
-                                            out_dtype=out_dtype,
-                                            divslope=divslope,
-                                            intercept=intercept)
-                    exp_back = (arr - float(intercept)) / float(divslope)
-                    exp_back = np.clip(round(exp_back), dti.min, dti.max)
-                    assert_array_equal(back_arr, exp_back)
+    # Test only types fitting completely in float64 to avoid the fancy tricks
+    # that array_to_file uses
+    WITHIN_F64 = (np.int8, np.int16, np.int32, np.uint8, np.uint16, np.uint32,
+                  np.float32, np.float64)
+    if hasattr(np, 'float16'): # float16 landed in numpy 1.6
+        WITHIN_F64 += (np.float16,)
+    for in_dtype, out_dtype, intercept, divslope in itertools.product(
+        WITHIN_F64,
+        WITHIN_F64,
+        (0, 0.5, -1, 1),
+        (1, 0.5, 2)):
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
+        mn_out, mx_out = _dt_min_max(out_dtype)
+        back_arr = write_return(arr, fobj,
+                                out_dtype=out_dtype,
+                                divslope=divslope,
+                                intercept=intercept)
+        exp_back = (arr.astype(float) - intercept) / divslope
+        if out_dtype not in CFLOAT_TYPES:
+            exp_back = np.round(exp_back)
+        exp_back = np.clip(exp_back, mn_out, mx_out).astype(out_dtype)
+        # Sometimes working precision is float32 - allow for small differences
+        assert_true(np.allclose(back_arr.astype(float), exp_back.astype(float)))
 
 
 def test_a2f_non_numeric():
@@ -350,6 +348,19 @@ def test_a2f_non_numeric():
     assert_array_equal(back_arr, arr.astype(float))
     assert_raises(ValueError, write_return, arr, fobj, float, mn=0)
     assert_raises(ValueError, write_return, arr, fobj, float, mx=10)
+
+
+def test_a2f_f2i():
+    # Test float to int with no scaling
+    arr = np.array([-np.inf, -1, 0, 1, np.inf, np.nan])
+    fobj = BytesIO()
+    for out_dtype in IUINT_TYPES:
+        mn, mx = shared_range(float, out_dtype)
+        back_arr = write_return(arr, fobj, out_dtype)
+        exp_arr = arr.copy()
+        exp_arr[np.isnan(arr)] = 0
+        exp_arr = np.clip(exp_arr, mn, mx).astype(out_dtype)
+        assert_array_equal(back_arr, exp_arr)
 
 
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
