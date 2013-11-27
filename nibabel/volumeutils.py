@@ -600,6 +600,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         raise ValueError('Order should be one of F or C')
     # Force upcasting for floats by making atleast_1d.
     slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
+    # Default working point type for applying slope / inter
+    slope, inter = np.asfarray(slope), np.asfarray(inter)
     # shortcuts for clarity
     int_in = in_dtype.kind in 'iu'
     int_out = out_dtype.kind in 'iu'

@@ -309,15 +309,9 @@ def test_a2f_int2int():
     # Test behavior of array_to_file when writing different types with and
     # without scaling
     fobj = BytesIO()
-    # Test only types fitting completely in float64 to avoid the fancy tricks
-    # that array_to_file uses
-    WITHIN_F64 = (np.int8, np.int16, np.int32, np.uint8, np.uint16, np.uint32,
-                  np.float32, np.float64)
-    if hasattr(np, 'float16'): # float16 landed in numpy 1.6
-        WITHIN_F64 += (np.float16,)
     for in_dtype, out_dtype, intercept, divslope in itertools.product(
-        WITHIN_F64,
-        WITHIN_F64,
+        FLOAT_TYPES + IUINT_TYPES,
+        FLOAT_TYPES + IUINT_TYPES,
         (0, 0.5, -1, 1),
         (1, 0.5, 2)):
         mn_in, mx_in = _dt_min_max(in_dtype)
@@ -330,8 +324,9 @@ def test_a2f_int2int():
         exp_back = (arr.astype(float) - intercept) / divslope
         if out_dtype not in CFLOAT_TYPES:
             exp_back = np.round(exp_back)
-        exp_back = np.clip(exp_back, mn_out, mx_out).astype(out_dtype)
-        # Sometimes working precision is float32 - allow for small differences
+            exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+        exp_back = exp_back.astype(out_dtype)
+        # Allow for small differences in large numbers
         assert_true(np.allclose(back_arr.astype(float), exp_back.astype(float)))
 
 
