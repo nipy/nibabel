@@ -260,6 +260,37 @@ class Header(object):
         return np.ndarray(shape, dtype, data_bytes, order='F')
 
 
+def supported_np_types(obj):
+    """ Numpy data types that instance `obj` supports
+
+    Parameters
+    ----------
+    obj : object
+        Object implementing `get_data_dtype` and `set_data_dtype`.  The object
+        should raise ``HeaderDataError`` for setting unsupported dtypes. The
+        object will likely be a header or a :class:`SpatialImage`
+
+    Returns
+    -------
+    np_types : set
+        set of numpy types that `obj` supports
+    """
+    dt = obj.get_data_dtype()
+    supported = []
+    for name, np_types in np.sctypes.items():
+        for np_type in np_types:
+            try:
+                obj.set_data_dtype(np_type)
+            except HeaderDataError:
+                continue
+            # Did set work?
+            if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
+                supported.append(np_type)
+    # Reset original header dtype
+    obj.set_data_dtype(dt)
+    return set(supported)
+
+
 class ImageDataError(Exception):
     pass
 

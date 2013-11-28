@@ -21,8 +21,9 @@ import itertools
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
-from ..volumeutils import array_to_file, apply_read_scaling
-from ..spatialimages import (HeaderDataError, HeaderTypeError)
+from ..volumeutils import array_to_file
+from ..spatialimages import (HeaderDataError, HeaderTypeError,
+                             supported_np_types)
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
@@ -55,6 +56,17 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
+    supported_np_types = set((np.uint8,
+                              np.int16,
+                              np.int32,
+                              np.float32,
+                              np.float64,
+                              np.complex64))
+
+    def test_supported_types(self):
+        hdr = self.header_class()
+        assert_equal(self.supported_np_types,
+                     supported_np_types(hdr))
 
     def get_bad_bb(self):
         # A value for the binary block that should raise an error
@@ -564,6 +576,12 @@ def test_data_code_error():
 class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
     can_save = True
+    supported_np_types = TestAnalyzeHeader.supported_np_types
+
+    def test_supported_types(self):
+        img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
+        assert_equal(self.supported_np_types,
+                     supported_np_types(img))
 
     def test_default_header(self):
         # Check default header is as expected

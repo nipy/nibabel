@@ -20,7 +20,6 @@ from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
 from ..eulerangles import euler2mat
 from ..affines import from_matvec
-from ..volumeutils import apply_read_scaling
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
@@ -57,6 +56,17 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
     header_class = Nifti1PairHeader
     example_file = header_file
     quat_dtype = np.float32
+    supported_np_types = tana.TestAnalyzeHeader.supported_np_types.union((
+        np.int8,
+        np.uint16,
+        np.uint32,
+        np.int64,
+        np.uint64,
+        np.complex128))
+    if have_binary128():
+        supported_np_types = supported_np_types.union((
+            np.longdouble,
+            np.longcomplex))
 
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
@@ -595,6 +605,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
 class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
+    supported_np_types = TestNifti1PairHeader.supported_np_types
 
     def test_none_qsform(self):
         # Check that affine gets set to q/sform if header is None
