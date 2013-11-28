@@ -30,3 +30,22 @@ def assert_dt_equal(a, b):
     Avoids failed comparison between int32 / int64 and intp
     """
     assert_equal(np.dtype(a).str, np.dtype(b).str)
+
+
+def assert_allclose_safely(a, b, match_nans=True):
+    """ Allclose in integers go all wrong for large integers
+    """
+    a = np.asarray(a)
+    b = np.asarray(b)
+    if match_nans:
+        nans = np.isnan(a)
+        np.testing.assert_array_equal(nans, np.isnan(b))
+        if np.any(nans):
+            nans = np.logical_not(nans)
+            a = a[nans]
+            b = b[nans]
+    if a.dtype.kind in 'ui':
+        a = a.astype(float)
+    if b.dtype.kind in 'ui':
+        b = b.astype(float)
+    assert_true(np.allclose(a, b))

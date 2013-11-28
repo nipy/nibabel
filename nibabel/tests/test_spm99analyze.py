@@ -30,7 +30,9 @@ from ..casting import type_info, shared_range
 from ..volumeutils import apply_read_scaling, _dt_min_max
 from ..spatialimages import supported_np_types
 
-from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
+from nose.tools import assert_true, assert_equal, assert_raises
+
+from ..testing import assert_allclose_safely
 
 from . import test_analyze
 from .test_helpers import bytesio_round_trip
@@ -247,14 +249,18 @@ class ScalingMixin(object):
             img.header.set_slope_inter(slope, inter)
             rt_img = bytesio_round_trip(img)
             back_arr = rt_img.get_data()
-            exp_back = arr.astype(float)
-            if out_dtype in np.sctypes['int'] + np.sctypes['uint']:
+            exp_back = arr.copy()
+            if in_dtype not in COMPLEX_TYPES:
+                exp_back = arr.astype(float)
+            if out_dtype in IUINT_TYPES:
                 exp_back = np.round(exp_back)
                 exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-            exp_back = exp_back.astype(out_dtype)
+                exp_back = exp_back.astype(out_dtype).astype(float)
+            else:
+                exp_back = arr.astype(out_dtype)
             # Allow for small differences in large numbers
-            assert_true(np.allclose(back_arr.astype(float),
-                                    exp_back.astype(float) * slope + inter))
+            assert_allclose_safely(back_arr,
+                                   exp_back * slope + inter)
 
     def test_write_scaling(self):
         # Check writes with scaling set

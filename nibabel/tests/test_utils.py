@@ -48,7 +48,7 @@ from numpy.testing import (assert_array_almost_equal,
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from ..testing import assert_dt_equal
+from ..testing import assert_dt_equal, assert_allclose_safely
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -327,7 +327,7 @@ def test_a2f_int2int():
             exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
         exp_back = exp_back.astype(out_dtype)
         # Allow for small differences in large numbers
-        assert_true(np.allclose(back_arr.astype(float), exp_back.astype(float)))
+        assert_allclose_safely(back_arr, exp_back)
 
 
 def test_a2f_non_numeric():

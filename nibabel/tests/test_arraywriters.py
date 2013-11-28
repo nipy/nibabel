@@ -52,6 +52,8 @@ from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_not_equal,
                         assert_raises)
 
+from ..testing import assert_allclose_safely
+
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -162,7 +164,7 @@ def test_no_scaling():
                 exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
         exp_back = exp_back.astype(out_dtype)
         # Sometimes working precision is float32 - allow for small differences
-        assert_true(np.allclose(back_arr.astype(float), exp_back.astype(float)))
+        assert_allclose_safely(back_arr, exp_back)
 
 
 def test_scaling_needed():
