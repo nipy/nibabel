@@ -38,23 +38,28 @@ def nifti1img_to_hdf(fname, spatial_img, h5path='/img', append=True):
     append: bool
     True if you don't want to erase the content of the file
     if it already exists, False otherwise.
+
+    @note:
+    HDF5 open modes
+    >>> 'r' Readonly, file must exist
+    >>> 'r+' Read/write, file must exist
+    >>> 'w' Create file, truncate if exists
+    >>> 'w-' Create file, fail if exists
+    >>> 'a' Read/write if exists, create otherwise (default)
     """
     mode = 'w'
     if append:
-        mode = 'r+'
+        mode = 'a'
 
-    f = h5py.File(fname, mode)
+    with h5py.File(fname, mode) as f:
+        h5img = f.create_group(h5path)
+        h5img['data']   = spatial_img.get_data()
+        h5img['extra']  = spatial_img.get_extra()
+        h5img['affine'] = spatial_img.get_affine()
 
-    h5img = f.create_group(h5path)
-    h5img['data']   = spatial_img.get_data()
-    h5img['extra']  = spatial_img.get_extra()
-    h5img['affine'] = spatial_img.get_affine()
-
-    hdr = spatial_img.get_header()
-    for k in hdr.keys():
-        h5img['data'].attrs[k] = hdr[k]
-
-    f.close()
+        hdr = spatial_img.get_header()
+        for k in hdr.keys():
+            h5img['data'].attrs[k] = hdr[k]
 
 
 def hdfgroup_to_nifti1image(fname, h5path):
@@ -69,16 +74,13 @@ def hdfgroup_to_nifti1image(fname, h5path):
 
     @return: nibabel Nifti1Image
     """
-    f = h5py.File(fname, 'r')
+    with h5py.File(fname, 'r') as f:
+        h5img  = f[h5path]
+        data   = h5img['data'][()]
+        extra  = h5img['extra'][()]
+        affine = h5img['affine'][()]
 
-    h5img  = f[h5path]
-    data   = h5img['data'].value
-    extra  = h5img['extra'].value
-    affine = h5img['affine'].value
-
-    header = get_nifti1hdr_from_h5attrs(h5img['data'].attrs)
-
-    f.close()
+        header = get_nifti1hdr_from_h5attrs(h5img['data'].attrs)
 
     img = Nifti1Image(data, affine, header=header, extra=extra)
 
