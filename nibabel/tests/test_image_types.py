@@ -19,7 +19,8 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 AnalyzeImage, AnalyzeHeader,
                 Minc1Image, Minc2Image,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
-                MGHImage, all_image_classes)
+                MGHImage, BvVtcImage, BvMskImage,
+                BvVmpImage, BvVmrImage, all_image_classes)
 
 from nose.tools import assert_true
 
@@ -116,7 +117,11 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                                       ('tiny.mnc', Minc1Image),
                                       ('small.mnc', Minc2Image),
                                       ('test.mgz', MGHImage),
-                                      ('analyze.hdr', Spm2AnalyzeImage)]:
+                                      ('analyze.hdr', Spm2AnalyzeImage),
+                                      ('test.vtc', BvVtcImage),
+                                      ('test.msk', BvMskImage),
+                                      ('test.vmp', BvVmpImage),
+                                      ('test.vmr', BvVmrImage)]:
         # print('Testing: %s %s' % (img_filename, image_klass.__name__))
         test_image_class(pjoin(DATA_PATH, img_filename), image_klass)
 

@@ -17,7 +17,7 @@ from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
-from ..arrayproxy import ArrayProxy, is_proxy
+from ..arrayproxy import ArrayProxy, CArrayProxy, is_proxy
 from ..nifti1 import Nifti1Header
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -48,11 +48,6 @@ class FunkyHeader(object):
     def copy(self):
         # Not needed when we remove header property
         return FunkyHeader(self.shape)
-
-
-class CArrayProxy(ArrayProxy):
-    # C array memory layout
-    order = 'C'
 
 
 def test_init():

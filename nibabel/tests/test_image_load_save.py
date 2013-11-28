@@ -23,11 +23,13 @@ from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
                 Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, all_image_classes)
+                AnalyzeImage, MGHImage, BvVtcImage, BvMskImage, BvVmpImage,
+                BvVmrImage, all_image_classes)
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
-from ..spatialimages import SpatialImage
+from ..spatialimages import (SpatialImage, supported_np_types,
+                             supported_dimensions)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal
@@ -56,10 +58,16 @@ def test_conversion_spatialimages():
         for r_class in klasses:
             if not r_class.makeable:
                 continue
+            if npt not in supported_np_types(r_class.header_class()) or \
+               len(shape) not in supported_dimensions(r_class.header_class()):
+                continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
             for w_class in klasses:
                 if not w_class.makeable:
+                    continue
+                if npt not in supported_np_types(w_class.header_class()) or \
+                   len(shape) not in supported_dimensions(w_class.header_class()):
                     continue
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
@@ -322,3 +330,15 @@ def test_guessed_image_type():
     assert_equal(nils.guessed_image_type(
         pjoin(DATA_PATH, 'analyze.hdr')),
         Spm2AnalyzeImage)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'test.vtc')),
+        BvVtcImage)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'test.msk')),
+        BvMskImage)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'test.vmp')),
+        BvVmpImage)
+    assert_equal(nils.guessed_image_type(
+        pjoin(DATA_PATH, 'test.vmr')),
+        BvVmrImage)

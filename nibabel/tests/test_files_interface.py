@@ -15,7 +15,8 @@ import numpy as np
 from .. import Nifti1Image, Nifti1Pair, MGHImage, all_image_classes
 from ..externals.six import BytesIO
 from ..fileholders import FileHolderError
-from ..spatialimages import SpatialImage
+from ..spatialimages import (SpatialImage, supported_np_types,
+                             supported_dimensions)
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
@@ -23,9 +24,6 @@ from numpy.testing import assert_array_equal
 
 
 def test_files_spatialimages():
-    # test files creation in image classes
-    arr = np.zeros((2, 3, 4))
-    aff = np.eye(4)
     klasses = [klass for klass in all_image_classes
                if klass.rw and issubclass(klass, SpatialImage)]
     for klass in klasses:
@@ -37,12 +35,21 @@ def test_files_spatialimages():
         # If we can't create new images in memory without loading, bail here
         if not klass.makeable:
             continue
-        # MGHImage accepts only a few datatypes
-        # so we force a type change to float32
-        if klass == MGHImage:
-            img = klass(arr.astype(np.float32), aff)
-        else:
-            img = klass(arr, aff)
+        # test files creation in image classes
+        arr = np.zeros((2, 3, 4))
+        aff = np.eye(4)
+        # some Image types accept only a few datatypes and shapes
+        # so we check and force a type change to a compatible dtype
+        try:
+            supported_dims = supported_dimensions(klass.header_class())
+            if len(arr.shape) not in supported_dims:
+                arr = np.ones(tuple([d+2 for d in range(supported_dims.pop())]))
+        except:
+            pass
+        supported_dtypes = supported_np_types(klass.header_class())
+        if arr.dtype not in supported_dtypes:
+            arr = arr.astype(supported_dtypes.pop())
+        img = klass(arr, aff)
         for key, value in img.file_map.items():
             assert_equal(value.filename, None)
             assert_equal(value.fileobj, None)
@@ -86,14 +93,25 @@ def test_files_interface():
 
 def test_round_trip_spatialimages():
     # write an image to files
-    data = np.arange(24, dtype='i4').reshape((2, 3, 4))
-    aff = np.eye(4)
     klasses = [klass for klass in all_image_classes
                if klass.rw and issubclass(klass, SpatialImage)]
     for klass in klasses:
         file_map = klass.make_file_map()
         for key in file_map:
             file_map[key].fileobj = BytesIO()
+        data = np.arange(24, dtype='i4').reshape((2, 3, 4))
+        aff = np.eye(4)
+        # some Image types accept only a few datatypes and shapes
+        # so we check and force a type change to a compatible dtype
+        try:
+            supported_dims = supported_dimensions(klass.header_class())
+            if len(data.shape) not in supported_dims:
+                data = np.ones(tuple([d+2 for d in range(supported_dims.pop())]))
+        except:
+            pass
+        supported_dtypes = supported_np_types(klass.header_class())
+        if data.dtype not in supported_dtypes:
+            data = data.astype(supported_dtypes.pop())
         img = klass(data, aff)
         img.file_map = file_map
         img.to_file_map()

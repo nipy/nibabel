@@ -17,6 +17,7 @@ from ...externals.six import BytesIO
 from .. import load, save
 from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage
+from ...spatialimages import HeaderDataError
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
 
@@ -138,7 +139,7 @@ def bad_dtype_mgh():
 
 def test_bad_dtype_mgh():
     # Now test the above function
-    assert_raises(MGHError, bad_dtype_mgh)
+    assert_raises(HeaderDataError, bad_dtype_mgh)
 
 
 def test_filename_exts():
