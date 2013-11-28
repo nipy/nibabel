@@ -52,7 +52,8 @@ from ..testing import assert_dt_equal, assert_allclose_safely
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
-CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
+COMPLEX_TYPES = np.sctypes['complex']
+CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
@@ -321,11 +322,19 @@ def test_a2f_int2int():
                                 out_dtype=out_dtype,
                                 divslope=divslope,
                                 intercept=intercept)
-        exp_back = (arr.astype(float) - intercept) / divslope
-        if out_dtype not in CFLOAT_TYPES:
-            exp_back = np.round(exp_back)
+        exp_back = arr.copy()
+        if in_dtype not in COMPLEX_TYPES:
+            exp_back = exp_back.astype(float)
+        if intercept != 0:
+            exp_back -= intercept
+        if divslope != 1:
+            exp_back /= divslope
+        if out_dtype in IUINT_TYPES:
+            exp_back = np.round(exp_back).astype(float)
             exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-        exp_back = exp_back.astype(out_dtype)
+            exp_back = exp_back.astype(out_dtype)
+        else:
+            exp_back = exp_back.astype(out_dtype)
         # Allow for small differences in large numbers
         assert_allclose_safely(back_arr, exp_back)
 

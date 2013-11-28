@@ -257,7 +257,7 @@ class ScalingMixin(object):
                 exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
                 exp_back = exp_back.astype(out_dtype).astype(float)
             else:
-                exp_back = arr.astype(out_dtype)
+                exp_back = exp_back.astype(out_dtype)
             # Allow for small differences in large numbers
             assert_allclose_safely(back_arr,
                                    exp_back * slope + inter)
