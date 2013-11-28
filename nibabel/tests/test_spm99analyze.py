@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import numpy as np
+import itertools
 
 from ..externals.six import BytesIO
 
@@ -25,13 +26,22 @@ scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
-from ..casting import type_info
-from ..volumeutils import apply_read_scaling
+from ..casting import type_info, shared_range
+from ..volumeutils import apply_read_scaling, _dt_min_max
+from ..spatialimages import supported_np_types
 
 from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
 
 from . import test_analyze
 from .test_helpers import bytesio_round_trip
+
+FLOAT_TYPES = np.sctypes['float']
+COMPLEX_TYPES = np.sctypes['complex']
+INT_TYPES = np.sctypes['int']
+UINT_TYPES = np.sctypes['uint']
+CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
+IUINT_TYPES = INT_TYPES + UINT_TYPES
+NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -216,6 +226,35 @@ class ScalingMixin(object):
         self._set_raw_scaling(hdr, 1, 0 if hdr.has_data_intercept else None)
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
+
+    def test_no_scaling(self):
+        # Test writing image converting types when no scaling
+        img_class = self.image_class
+        hdr_class = img_class.header_class
+        hdr = hdr_class()
+        supported_types = supported_np_types(hdr)
+        slope = 2
+        inter = 10 if hdr.has_data_intercept else 0
+        for in_dtype, out_dtype in itertools.product(
+            FLOAT_TYPES + IUINT_TYPES,
+            supported_types):
+            # Need to check complex scaling
+            mn_in, mx_in = _dt_min_max(in_dtype)
+            arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
+            arr = arr[:, None, None] # To 3D for no good reason
+            img = img_class(arr, np.eye(4), hdr)
+            img.set_data_dtype(out_dtype)
+            img.header.set_slope_inter(slope, inter)
+            rt_img = bytesio_round_trip(img)
+            back_arr = rt_img.get_data()
+            exp_back = arr.astype(float)
+            if out_dtype in np.sctypes['int'] + np.sctypes['uint']:
+                exp_back = np.round(exp_back)
+                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            exp_back = exp_back.astype(out_dtype)
+            # Allow for small differences in large numbers
+            assert_true(np.allclose(back_arr.astype(float),
+                                    exp_back.astype(float) * slope + inter))
 
     def test_write_scaling(self):
         # Check writes with scaling set
