@@ -272,6 +272,22 @@ class ScalingMixin(object):
         ):
             self._check_write_scaling(slope, inter, e_slope, e_inter)
 
+    def test_nan2zero_range_ok(self):
+        # Check that a floating point image with range not including zero gets
+        # nans scaled correctly
+        img_class = self.image_class
+        arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+        arr[0, 0, 0] = np.nan
+        arr[1, 0, 0] = 256 # to push outside uint8 range
+        img = img_class(arr, np.eye(4))
+        rt_img = bytesio_round_trip(img)
+        assert_array_equal(rt_img.get_data(), arr)
+        # Uncontroversial so far, but now check that nan2zero works correctly
+        # for int type
+        img.set_data_dtype(np.uint8)
+        rt_img = bytesio_round_trip(img)
+        assert_equal(rt_img.get_data()[0, 0, 0], 0)
+
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
     # class for testing images

@@ -54,7 +54,8 @@ from ..testing import assert_dt_equal, assert_allclose_safely
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
-IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
+INT_TYPES = np.sctypes['int']
+IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
@@ -355,6 +356,56 @@ def test_a2f_nanpos():
     assert_array_equal(back_arr, 0)
     back_arr = write_return(arr, fobj, np.int8, intercept=10, divslope=2)
     assert_array_equal(back_arr, -5)
+
+
+def test_a2f_nan2zero_range():
+    # array_to_file should check if nan can be represented as zero
+    # This comes about when the writer can't write the value (-intercept /
+    # divslope) because it does not fit in the output range.  Input clipping
+    # should not affect this
+    fobj = BytesIO()
+    # No problem for input integer types - they don't have NaNs
+    for dt in INT_TYPES:
+        arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mn=1, nan2zero=False)
+        assert_array_equal([1, 1, 1, 2], back_arr)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mx=-1, nan2zero=False)
+        assert_array_equal([-1, -1, -1, -1], back_arr)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, intercept=129, nan2zero=False)
+        assert_array_equal([-128, -128, -128, -127], back_arr)
+        back_arr = write_return(arr_no_nan, fobj, np.int8,
+                                intercept=257.1, divslope=2, nan2zero=False)
+        assert_array_equal([-128, -128, -128, -128], back_arr)
+    for dt in CFLOAT_TYPES:
+        arr = np.array([-1, 0, 1, np.nan], dtype=dt)
+        # Error occurs for arrays without nans too
+        arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        # No errors from explicit thresholding
+        # mn thresholding excluding zero
+        assert_array_equal([1, 1, 1, 0],
+                           write_return(arr, fobj, np.int8, mn=1))
+        # mx thresholding excluding zero
+        assert_array_equal([-1, -1, -1, 0],
+                           write_return(arr, fobj, np.int8, mx=-1))
+        # Errors from datatype threshold after scaling
+        back_arr = write_return(arr, fobj, np.int8, intercept=128)
+        assert_array_equal([-128, -128, -127, -128], back_arr)
+        assert_raises(ValueError, write_return, arr, fobj, np.int8, intercept=129)
+        assert_raises(ValueError, write_return, arr_no_nan, fobj, np.int8, intercept=129)
+        # OK with nan2zero false
+        back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
+        assert_array_equal([-128, -128, -128, 0], back_arr)
+        # divslope
+        back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
+        assert_array_equal([-128, -128, -128, -128], back_arr)
+        assert_raises(ValueError, write_return, arr, fobj, np.int8,
+                      intercept=257.1, divslope=2)
+        assert_raises(ValueError, write_return, arr_no_nan, fobj, np.int8,
+                      intercept=257.1, divslope=2)
+        # OK with nan2zero false
+        back_arr = write_return(arr, fobj, np.int8,
+                                intercept=257.1, divslope=2, nan2zero=False)
+        assert_array_equal([-128, -128, -128, 0], back_arr)
 
 
 def test_a2f_non_numeric():
