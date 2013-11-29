@@ -8,6 +8,10 @@ Run benchmarks with::
 If you have doctests enabled by default in nose (with a noserc file or
 environment variable), and you have a numpy version <= 1.6.1, this will also run
 the doctests, let's hope they pass.
+
+Run this benchmark with:
+
+    nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_load_save.py
 """
 from __future__ import division, print_function
 
