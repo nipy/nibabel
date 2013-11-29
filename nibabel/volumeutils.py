@@ -558,8 +558,13 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         True.  If False, NaNs will be represented as numpy does when casting;
         this depends on the underlying C library and is undefined. In practice
         `nan2zero` == False might be a good choice when you completely sure
-        there will be no NaNs in the data. This value ignore for float ouptut
-        types.
+        there will be no NaNs in the data. This value ignored for float ouptut
+        types.  NaNs are treated as zero *before* applying `intercept` and
+        `divslope` - so an array ``[np.nan]`` with an `intercept` of 10 becomes
+        ``[-10]`` after conversion to integer `out_dtype` with `nan2zero` set.
+        That is because you will likely apply `divslope` and `intercept` in
+        reverse order when reading the data back, returning the zero you
+        probably expected from the input NaN.
 
     Examples
     --------

@@ -344,6 +344,16 @@ def test_a2f_int2int():
         assert_allclose_safely(back_arr, exp_back)
 
 
+def test_a2f_nanpos():
+    # Strange behavior of nan2zero
+    arr = np.array([np.nan])
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, np.int8, divslope=2)
+    assert_array_equal(back_arr, 0)
+    back_arr = write_return(arr, fobj, np.int8, intercept=10, divslope=2)
+    assert_array_equal(back_arr, -5)
+
+
 def test_a2f_non_numeric():
     # Reminder that we may get structured dtypes
     dt = np.dtype([('f1', 'f'), ('f2', 'i2')])
