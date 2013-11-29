@@ -46,6 +46,13 @@ def bench_load_save():
     print('%30s %6.2f' % ('Save float64 to int16', mtime))
     mtime = measure('img.from_file_map(img.file_map)', repeat)
     print('%30s %6.2f' % ('Load from int16', mtime))
+    # Set a lot of NaNs to check timing
+    arr[:, :, :20] = np.nan
+    mtime = measure('img.to_file_map()', repeat)
+    print('%30s %6.2f' % ('Save float64 to int16, NaNs', mtime))
+    mtime = measure('img.from_file_map(img.file_map)', repeat)
+    print('%30s %6.2f' % ('Load from int16, NaNs', mtime))
+    # Int16 input, float output
     arr = np.random.random_integers(low=-1000,high=-1000, size=img_shape)
     arr = arr.astype(np.int16)
     img = Nifti1Image(arr, np.eye(4))
