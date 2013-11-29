@@ -721,6 +721,32 @@ def _write_data(data,
                 slope = 1.,
                 post_clips = None,
                 nan_fill = None):
+    """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
+
+    Parameters
+    ----------
+    data : ndarray
+    fileobj : object
+        implementing ``obj.write``
+    out_dtype : numpy type
+        Type to which to cast output data just before writing
+    order : {'F', 'C'}
+        memory layout of array in fileobj after writing
+    in_cast : None or numpy type, optional
+        If not None, inital cast to do on `data` slices before further
+        processing
+    pre_clips : None or 2-sequence, optional
+        If not None, minimum and maximum of input values at which to clip.
+    inter : scalar or array, optional
+        Intercept to subtract before writing ``out = data - inter``
+    slope : scalar or array, optional
+        Slope by which to divide before writing ``out2 = out / slope``
+    post_clips : None or 2-sequence, optional
+        If not None, minimum and maximum of scaled values at which to clip.
+    nan_fill : None or scalar, optional
+        If not None, values that were NaN in `data` will receive `nan_fill`
+        in array as output to disk (after scaling).
+    """
     data = np.atleast_2d(data) # Trick to allow loop below for 1D arrays
     if order == 'F' or (data.ndim == 2 and data.shape[1] == 1):
         data = data.T
