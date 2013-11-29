@@ -145,8 +145,8 @@ def test_arraywriter_check_scaling():
 def test_no_scaling():
     # Test arraywriter when writing different types without scaling
     for in_dtype, out_dtype, awt in itertools.product(
-        FLOAT_TYPES + IUINT_TYPES,
-        FLOAT_TYPES + IUINT_TYPES,
+        NUMERIC_TYPES,
+        NUMERIC_TYPES,
         (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
         mn_in, mx_in = _dt_min_max(in_dtype)
         arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)

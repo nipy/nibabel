@@ -164,6 +164,7 @@ def test_a2f_upscale():
 
 
 def test_a2f_min_max():
+    # Check min and max thresholding of array to file
     str_io = BytesIO()
     for in_dt in (np.float32, np.int8):
         for out_dt in (np.float32, np.int8):
@@ -184,6 +185,10 @@ def test_a2f_min_max():
     # Even when scaling is negative
     data_back = write_return(arr, str_io, np.int, 0, 1, -0.5, 1, 2)
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
+    # Check complex numbers
+    arr = np.arange(4, dtype=np.complex64) + 100j
+    data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
+    assert_array_equal(data_back, [1, 1, 2, 2])
 
 
 def test_a2f_order():
@@ -311,8 +316,8 @@ def test_a2f_int2int():
     # without scaling
     fobj = BytesIO()
     for in_dtype, out_dtype, intercept, divslope in itertools.product(
-        FLOAT_TYPES + IUINT_TYPES,
-        FLOAT_TYPES + IUINT_TYPES,
+        NUMERIC_TYPES,
+        NUMERIC_TYPES,
         (0, 0.5, -1, 1),
         (1, 0.5, 2)):
         mn_in, mx_in = _dt_min_max(in_dtype)
