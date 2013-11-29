@@ -311,7 +311,7 @@ def test_a2f_int_scaling():
     assert_array_equal(back_arr, np.round((arr - 1.) / 2.))
 
 
-def test_a2f_int2int():
+def test_a2f_scaled_unscaled():
     # Test behavior of array_to_file when writing different types with and
     # without scaling
     fobj = BytesIO()
@@ -321,13 +321,16 @@ def test_a2f_int2int():
         (0, 0.5, -1, 1),
         (1, 0.5, 2)):
         mn_in, mx_in = _dt_min_max(in_dtype)
-        arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
+        nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
+        arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
         back_arr = write_return(arr, fobj,
                                 out_dtype=out_dtype,
                                 divslope=divslope,
                                 intercept=intercept)
         exp_back = arr.copy()
+        if out_dtype in IUINT_TYPES:
+            exp_back[np.isnan(exp_back)] = 0
         if in_dtype not in COMPLEX_TYPES:
             exp_back = exp_back.astype(float)
         if intercept != 0:
@@ -367,19 +370,6 @@ def test_a2f_non_numeric():
     assert_array_equal(back_arr, arr.astype(float))
     assert_raises(ValueError, write_return, arr, fobj, float, mn=0)
     assert_raises(ValueError, write_return, arr, fobj, float, mx=10)
-
-
-def test_a2f_f2i():
-    # Test float to int with no scaling
-    arr = np.array([-np.inf, -1, 0, 1, np.inf, np.nan])
-    fobj = BytesIO()
-    for out_dtype in IUINT_TYPES:
-        mn, mx = shared_range(float, out_dtype)
-        back_arr = write_return(arr, fobj, out_dtype)
-        exp_arr = arr.copy()
-        exp_arr[np.isnan(arr)] = 0
-        exp_arr = np.clip(exp_arr, mn, mx).astype(out_dtype)
-        assert_array_equal(back_arr, exp_arr)
 
 
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
