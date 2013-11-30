@@ -22,6 +22,9 @@ Array writers may be able to scale the array or apply an intercept, or do
 something else to make sense of conversions between float and int, or between
 larger ints and smaller.
 """
+from __future__ import division, absolute_import
+
+import warnings
 
 import numpy as np
 
@@ -54,7 +57,12 @@ class ArrayWriter(object):
         \*\*kwargs : keyword arguments
             This class processes only:
 
-            * check_scaling : bool
+            * nan2zero : bool, optional
+              Whether to set NaN values to 0 when writing integer output.
+              Defaults to True.  If False, NaNs get converted with numpy
+              ``astype``, and the behavior is undefined.  Ignored for floating
+              point output.
+            * check_scaling : bool, optional
               If True, check if scaling needed and raise error if so. Default is
               True
 
@@ -68,6 +76,7 @@ class ArrayWriter(object):
         WriterError: Scaling needed but cannot scale
         >>> aw = ArrayWriter(arr, np.int8, check_scaling=False)
         """
+        nan2zero = kwargs.pop('nan2zero', True)
         check_scaling = kwargs.pop('check_scaling', True)
         self._array = np.asanyarray(array)
         arr_dtype = self._array.dtype
@@ -77,6 +86,7 @@ class ArrayWriter(object):
             out_dtype = np.dtype(out_dtype)
         self._out_dtype = out_dtype
         self._finite_range = None
+        self._nan2zero = nan2zero
         if check_scaling and self.scaling_needed():
             raise WriterError("Scaling needed but cannot scale")
 
@@ -154,7 +164,18 @@ class ArrayWriter(object):
             self._finite_range = finite_range(self._array)
         return self._finite_range
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=True):
+    def _check_nan2zero(self, nan2zero):
+        if nan2zero is None:
+            return
+        if nan2zero != self._nan2zero:
+            raise WriterError('Deprecated `nan2zero` argument to `to_fileobj` '
+                              'must be same as class value set in __init__')
+        warnings.warn('Please remove `nan2zero` from call to ' '`to_fileobj` '
+                      'and use in instance __init__ instead',
+                        DeprecationWarning,
+                        stacklevel=3)
+
+    def to_fileobj(self, fileobj, order='F', nan2zero=None):
         """ Write array into `fileobj`
 
         Parameters
@@ -162,12 +183,10 @@ class ArrayWriter(object):
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {True, False}, optional
-            Whether to set NaN values to 0 when writing integer output.
-            Defaults to True.  If False, NaNs get converted with numpy
-            ``astype``, and the behavior is undefined.  Ignored for floating
-            point output.
+        nan2zero : {None, True, False}, optional, deprecated
+            Deprecated version of argument to __init__ with same name
         """
+        self._check_nan2zero(nan2zero)
         array_to_file(self._array,
                       fileobj,
                       self._out_dtype,
@@ -175,7 +194,7 @@ class ArrayWriter(object):
                       mn=None,
                       mx=None,
                       order=order,
-                      nan2zero=nan2zero)
+                      nan2zero=self._nan2zero)
 
 
 class SlopeArrayWriter(ArrayWriter):
@@ -195,7 +214,7 @@ class SlopeArrayWriter(ArrayWriter):
     """
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
-                 scaler_dtype=np.float32):
+                 scaler_dtype=np.float32, **kwargs):
         """ Initialize array writer
 
         Parameters
@@ -212,6 +231,14 @@ class SlopeArrayWriter(ArrayWriter):
             ``obj.calc_scale()`` - see examples
         scaler_dtype : dtype-like, optional
             specifier for numpy dtype for scaling
+        \*\*kwargs : keyword arguments
+            This class processes only:
+
+            * nan2zero : bool, optional
+              Whether to set NaN values to 0 when writing integer output.
+              Defaults to True.  If False, NaNs get converted with numpy
+              ``astype``, and the behavior is undefined.  Ignored for floating
+              point output.
 
         Examples
         --------
@@ -229,6 +256,7 @@ class SlopeArrayWriter(ArrayWriter):
         >>> aw.slope
         2.0
         """
+        nan2zero = kwargs.pop('nan2zero', True)
         self._array = np.asanyarray(array)
         arr_dtype = self._array.dtype
         if out_dtype is None:
@@ -238,6 +266,7 @@ class SlopeArrayWriter(ArrayWriter):
         self._out_dtype = out_dtype
         self.scaler_dtype = np.dtype(scaler_dtype)
         self.reset()
+        self._nan2zero = nan2zero
         if calc_scale:
             self.calc_scale()
 
@@ -299,7 +328,7 @@ class SlopeArrayWriter(ArrayWriter):
             return mn, mx
         return None, None
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=True):
+    def to_fileobj(self, fileobj, order='F', nan2zero=None):
         """ Write array into `fileobj`
 
         Parameters
@@ -307,12 +336,10 @@ class SlopeArrayWriter(ArrayWriter):
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {True, False}, optional
-            Whether to set NaN values to 0 when writing integer output.
-            Defaults to True.  If False, NaNs get converted with numpy
-            ``astype``, and the behavior is undefined.  Ignored for floating
-            point output.
+        nan2zero : {None, True, False}, optional, deprecated
+            Deprecated version of argument to __init__ with same name
         """
+        self._check_nan2zero(nan2zero)
         mn, mx = self._writing_range()
         array_to_file(self._array,
                       fileobj,
@@ -322,7 +349,7 @@ class SlopeArrayWriter(ArrayWriter):
                       mn=mn,
                       mx=mx,
                       order=order,
-                      nan2zero=nan2zero)
+                      nan2zero=self._nan2zero)
 
     def _do_scaling(self):
         arr = self._array
@@ -411,7 +438,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     """
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
-                 scaler_dtype=np.float32):
+                 scaler_dtype=np.float32, **kwargs):
         """ Initialize array writer
 
         Parameters
@@ -428,6 +455,14 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             ``obj.calc_scale()`` - see examples
         scaler_dtype : dtype-like, optional
             specifier for numpy dtype for slope, intercept
+        \*\*kwargs : keyword arguments
+            This class processes only:
+
+            * nan2zero : bool, optional
+              Whether to set NaN values to 0 when writing integer output.
+              Defaults to True.  If False, NaNs get converted with numpy
+              ``astype``, and the behavior is undefined.  Ignored for floating
+              point output.
 
         Examples
         --------
@@ -448,7 +483,8 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         super(SlopeInterArrayWriter, self).__init__(array,
                                                     out_dtype,
                                                     calc_scale,
-                                                    scaler_dtype)
+                                                    scaler_dtype,
+                                                    **kwargs)
 
     def reset(self):
         """ Set object to values before any scaling calculation """
@@ -461,7 +497,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         self._inter = np.squeeze(self.scaler_dtype.type(val))
     inter = property(_get_inter, _set_inter, None, 'get/set inter')
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=True):
+    def to_fileobj(self, fileobj, order='F', nan2zero=None):
         """ Write array into `fileobj`
 
         Parameters
@@ -469,12 +505,10 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {True, False}, optional
-            Whether to set NaN values to 0 when writing integer output.
-            Defaults to True.  If False, NaNs get converted with numpy
-            ``astype``, and the behavior is undefined.  Ignored for floating
-            point output.
+        nan2zero : {None, True, False}, optional, deprecated
+            Deprecated version of argument to __init__ with same name
         """
+        self._check_nan2zero(nan2zero)
         mn, mx = self._writing_range()
         array_to_file(self._array,
                       fileobj,
@@ -485,7 +519,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
                       mn=mn,
                       mx=mx,
                       order=order,
-                      nan2zero=nan2zero)
+                      nan2zero=self._nan2zero)
 
     def _iu2iu(self):
         # (u)int to (u)int

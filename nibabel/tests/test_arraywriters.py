@@ -53,6 +53,7 @@ from nose.tools import (assert_true, assert_false,
                         assert_raises)
 
 from ..testing import assert_allclose_safely
+from ..checkwarns import ErrorWarnings
 
 
 FLOAT_TYPES = np.sctypes['float']
@@ -66,10 +67,10 @@ NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 NP_VERSION = LooseVersion(np.__version__)
 
 
-def round_trip(writer, order='F', nan2zero=True, apply_scale=True):
+def round_trip(writer, order='F', apply_scale=True):
     sio = BytesIO()
     arr = writer.array
-    writer.to_fileobj(sio, order, nan2zero=nan2zero)
+    writer.to_fileobj(sio, order)
     data_back = array_from_file(arr.shape, writer.out_dtype, sio, order=order)
     slope, inter = get_slope_inter(writer)
     if apply_scale:
@@ -468,22 +469,48 @@ def test_io_scaling():
 
 
 def test_nan2zero():
-    # Test conditions under which nans written to zero
+    # Test conditions under which nans written to zero, and error conditions
+    # nan2zero as argument to `to_fileobj` deprecated, raises error if not the
+    # same as input nan2zero - meaning that by default, nan2zero of False will
+    # raise an error.
     arr = np.array([np.nan, 99.], dtype=np.float32)
-    aw = SlopeInterArrayWriter(arr, np.float32)
-    data_back = round_trip(aw)
-    assert_array_equal(np.isnan(data_back), [True, False])
-    # nan2zero ignored for floats
-    data_back = round_trip(aw, nan2zero=True)
-    assert_array_equal(np.isnan(data_back), [True, False])
-    # Integer output with nan2zero gives zero
-    aw = SlopeInterArrayWriter(arr, np.int32)
-    data_back = round_trip(aw, nan2zero=True)
-    assert_array_equal(data_back, [0, 99])
-    # Integer output with nan2zero=False gives whatever astype gives
-    data_back = round_trip(aw, nan2zero=False)
-    astype_res = np.array(np.nan).astype(np.int32) * aw.slope + aw.inter
-    assert_array_equal(data_back, [astype_res, 99])
+    for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
+                        (SlopeArrayWriter, dict(calc_scale=False)),
+                        (SlopeInterArrayWriter, dict(calc_scale=False))):
+        # nan2zero default is True
+        # nan2zero ignored for floats
+        aw = awt(arr, np.float32, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(np.isnan(data_back), [True, False])
+        # Deprecation warning for nan2zero as argument to `to_fileobj`
+        with ErrorWarnings():
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', True)
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', nan2zero=True)
+        # Error if nan2zero is not the value set at initialization
+        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', False)
+        # set explicitly
+        aw = awt(arr, np.float32, nan2zero=True, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(np.isnan(data_back), [True, False])
+        # Integer output with nan2zero gives zero
+        aw = awt(arr, np.int32, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(data_back, [0, 99])
+        # Integer output with nan2zero=False gives whatever astype gives
+        aw = awt(arr, np.int32, nan2zero=False, **kwargs)
+        data_back = round_trip(aw)
+        astype_res = np.array(np.nan).astype(np.int32)
+        assert_array_equal(data_back, [astype_res, 99])
+        # Deprecation warning for nan2zero as argument to `to_fileobj`
+        with ErrorWarnings():
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', False)
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', nan2zero=False)
+        # Error if nan2zero is not the value set at initialization
+        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', True)
 
 
 def test_byte_orders():
