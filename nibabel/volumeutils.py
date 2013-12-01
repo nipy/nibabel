@@ -1355,12 +1355,15 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     raise ValueError('Overflow using highest floating point type')
 
 
-def finite_range(arr):
-    ''' Return range (min, max) of finite values of ``arr``
+def finite_range(arr, check_nan=False):
+    ''' Return range (min, max) or range and flag (min, max, has_nan) from `arr`
 
     Parameters
     ----------
-    arr : array
+    arr : array-like
+    check_nan : {False, True}, optional
+        Whether to return third output, a bool signaling whether there are NaN
+        values in `arr`
 
     Returns
     -------
@@ -1368,12 +1371,18 @@ def finite_range(arr):
        minimum of values in (flattened) array
     mx : scalar
        maximum of values in (flattened) array
+    has_nan : bool
+       Returned if `check_nan` is True. `has_nan` is True if there are one or
+       more NaN values in `arr`
 
     Examples
     --------
     >>> a = np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]])
     >>> finite_range(a)
     (-1.0, 1.0)
+    >>> a = np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]])
+    >>> finite_range(a, check_nan=True)
+    (-1.0, 1.0, True)
     >>> a = np.array([[np.nan],[np.nan]])
     >>> finite_range(a) == (np.inf, -np.inf)
     True
@@ -1389,26 +1398,56 @@ def finite_range(arr):
        ...
     TypeError: Can only handle floats and (u)ints
     '''
+    arr = np.asarray(arr)
+    if arr.size == 0:
+        return (np.inf, -np.inf) + (False,) * check_nan
     # Resort array to slowest->fastest memory change indices
     stride_order = np.argsort(arr.strides)[::-1]
     sarr = arr.transpose(stride_order)
     kind = sarr.dtype.kind
     if kind in 'iu':
+        if check_nan:
+            return np.min(sarr), np.max(sarr), False
         return np.min(sarr), np.max(sarr)
     if kind != 'f':
         raise TypeError('Can only handle floats and (u)ints')
     # Deal with 1D arrays in loop below
     sarr = np.atleast_2d(sarr)
-    # Loop to avoid big isfinite temporary
-    mx = -np.inf
-    mn = np.inf
-    for s in range(sarr.shape[0]):
-        tmp = sarr[s]
-        tmp = tmp[np.isfinite(tmp)]
-        if tmp.size:
-            mx = max(np.max(tmp), mx)
-            mn = min(np.min(tmp), mn)
-    return mn, mx
+    # Loop to avoid big temporary arrays
+    t_info = np.finfo(sarr.dtype)
+    t_mn, t_mx = t_info.min, t_info.max
+    has_nan = False
+    n_slices = sarr.shape[0]
+    maxes = np.zeros(n_slices, dtype=sarr.dtype) - np.inf
+    mins = np.zeros(n_slices, dtype=sarr.dtype) + np.inf
+    for s in range(n_slices):
+        this_slice = sarr[s] # view
+        if not has_nan:
+            maxes[s] = np.max(this_slice)
+            # May have a non-nan non-inf max before we trip on min. If so,
+            # record so we don't recalculate
+            max_good = False
+            if np.isnan(maxes[s]):
+                has_nan = True
+            elif maxes[s] != np.inf:
+                max_good = True
+                mins[s] = np.min(this_slice)
+                if mins[s] != -np.inf:
+                    # Only case where we escape the default np.isfinite
+                    # algorithm
+                    continue
+        tmp = this_slice[np.isfinite(this_slice)]
+        if tmp.size == 0: # No finite values
+            # Reset max, min in case set in tests above
+            maxes[s] = -np.inf
+            mins[s] = np.inf
+            continue
+        if not max_good:
+            maxes[s] = np.max(tmp)
+        mins[s] = np.min(tmp)
+    if check_nan:
+        return np.nanmin(mins), np.nanmax(maxes), has_nan
+    return np.nanmin(mins), np.nanmax(maxes)
 
 
 def shape_zoom_affine(shape, zooms, x_flip=True):
