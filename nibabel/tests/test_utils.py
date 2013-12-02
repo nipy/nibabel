@@ -275,14 +275,21 @@ def test_a2f_big_scalers():
     info = type_info(np.float32)
     arr = np.array([info['min'], np.nan, info['max']], dtype=np.float32)
     str_io = BytesIO()
-    # Intercept causes overflow - does routine scale correctly?
-    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120))
+    # Intercept causes overflow - does routine scale correctly? It appears to,
+    # but the middle zero for nan is only because casting the massive negative
+    # value to int8 emerges as zero - so the returned zero for NaN is a bad
+    # test. We need nan2zero off because we can't store the scaled value for 0
+    # in the output type - so an input 0 will not round trip (scaling then
+    # reverse scaling) to 0 - and neither will NaN
+    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
+                  nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
-    # Scales also if mx, mn specified?
+    # Scales also if mx, mn specified? Same notes and complaints as for the test
+    # above.
     str_io.seek(0)
     array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
-                  intercept=np.float32(2**120))
+                  intercept=np.float32(2**120), nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
     # And if slope causes overflow?
