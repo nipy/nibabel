@@ -360,6 +360,18 @@ def test_a2f_scaled_unscaled():
         nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
         arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
+        nan_fill = -intercept / divslope
+        if out_dtype in IUINT_TYPES:
+            nan_fill = np.round(nan_fill)
+        if (in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out):
+            assert_raises(ValueError,
+                          array_to_file,
+                          arr,
+                          fobj,
+                          out_dtype=out_dtype,
+                          divslope=divslope,
+                          intercept=intercept)
+            continue
         back_arr = write_return(arr, fobj,
                                 out_dtype=out_dtype,
                                 divslope=divslope,

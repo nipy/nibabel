@@ -657,6 +657,9 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
                 return _write_data(data, fileobj, out_dtype, order,
                                    inter=inter,
                                    pre_clips=pre_clips)
+        # In any case, we do not want to check for nans beause we've already
+        # disallowed scaling that generates nans
+        nan2zero = False
     # We are either scaling into c/floats or starting with c/floats, then we're
     # going to integers
     # Because we're going to integers, complex inter and slope will only slow us
