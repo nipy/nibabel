@@ -436,14 +436,16 @@ def test_a2f_nan2zero_range():
     # No problem for input integer types - they don't have NaNs
     for dt in INT_TYPES:
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
-        back_arr = write_return(arr_no_nan, fobj, np.int8, mn=1, nan2zero=False)
+        # No errors from explicit thresholding (nor for input float types)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mn=1, nan2zero=True)
         assert_array_equal([1, 1, 1, 2], back_arr)
-        back_arr = write_return(arr_no_nan, fobj, np.int8, mx=-1, nan2zero=False)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mx=-1, nan2zero=True)
         assert_array_equal([-1, -1, -1, -1], back_arr)
-        back_arr = write_return(arr_no_nan, fobj, np.int8, intercept=129, nan2zero=False)
+        # Pushing zero outside the output data range does not generate error
+        back_arr = write_return(arr_no_nan, fobj, np.int8, intercept=129, nan2zero=True)
         assert_array_equal([-128, -128, -128, -127], back_arr)
         back_arr = write_return(arr_no_nan, fobj, np.int8,
-                                intercept=257.1, divslope=2, nan2zero=False)
+                                intercept=257.1, divslope=2, nan2zero=True)
         assert_array_equal([-128, -128, -128, -128], back_arr)
     for dt in CFLOAT_TYPES:
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
