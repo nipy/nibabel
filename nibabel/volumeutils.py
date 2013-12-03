@@ -1394,9 +1394,12 @@ def finite_range(arr, check_nan=False):
     (0, 4)
     >>> a = a + 1j
     >>> finite_range(a)
+    (1j, (4+1j))
+    >>> a = np.zeros((2,), dtype=[('f1', 'i2')])
+    >>> finite_range(a)
     Traceback (most recent call last):
        ...
-    TypeError: Can only handle floats and (u)ints
+    TypeError: Can only handle numeric types
     '''
     arr = np.asarray(arr)
     if arr.size == 0:
@@ -1409,8 +1412,8 @@ def finite_range(arr, check_nan=False):
         if check_nan:
             return np.min(sarr), np.max(sarr), False
         return np.min(sarr), np.max(sarr)
-    if kind != 'f':
-        raise TypeError('Can only handle floats and (u)ints')
+    if kind not in 'cf':
+        raise TypeError('Can only handle numeric types')
     # Deal with 1D arrays in loop below
     sarr = np.atleast_2d(sarr)
     # Loop to avoid big temporary arrays
