@@ -587,6 +587,13 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> sio.getvalue() == data.tostring('C')
     True
     '''
+    # Shield special case
+    div_none = divslope is None
+    if not np.all(
+        np.isfinite((intercept, 1.0 if div_none else divslope))):
+        raise ValueError('divslope and intercept must be finite')
+    if divslope == 0:
+        raise ValueError('divslope cannot be zero')
     data = np.asanyarray(data)
     in_dtype = data.dtype
     if out_dtype is None:
@@ -595,7 +602,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     if not offset is None:
         seek_tell(fileobj, offset)
-    if (divslope is None or
+    if (div_none or
         (mn, mx) == (0, 0) or
         (None not in (mn, mx) and mx < mn)
        ):

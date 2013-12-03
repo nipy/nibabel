@@ -393,6 +393,40 @@ def test_a2f_nanpos():
     assert_array_equal(back_arr, -5)
 
 
+def test_a2f_bad_scaling():
+    # Test that pathological scalers raise an error
+    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ['int',
+                                                       'uint',
+                                                       'float',
+                                                       'complex']],
+                         [])
+    for in_type, out_type, slope, inter in itertools.product(
+        NUMERICAL_TYPES,
+        NUMERICAL_TYPES,
+        (None, 1, 0, np.nan, -np.inf, np.inf),
+        (0, np.nan, -np.inf, np.inf)):
+        arr = np.ones((2,), dtype=in_type)
+        fobj = BytesIO()
+        if (slope, inter) == (1, 0):
+            assert_array_equal(arr,
+                               write_return(arr, fobj, out_type,
+                                            intercept=inter,
+                                            divslope=slope))
+        elif (slope, inter) == (None, 0):
+            assert_array_equal(0,
+                               write_return(arr, fobj, out_type,
+                                            intercept=inter,
+                                            divslope=slope))
+        else:
+            assert_raises(ValueError,
+                          array_to_file,
+                          arr,
+                          fobj,
+                          np.int8,
+                          intercept=inter,
+                          divslope=slope)
+
+
 def test_a2f_nan2zero_range():
     # array_to_file should check if nan can be represented as zero
     # This comes about when the writer can't write the value (-intercept /
