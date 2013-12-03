@@ -214,17 +214,45 @@ def test_a2f_nan2zero():
     arr = np.array([[np.nan, 0],[0, np.nan]])
     data_back = write_return(arr, str_io, ndt) # float, thus no effect
     assert_array_equal(data_back, arr)
-    # True is the default, but just to show its possible
+    # True is the default, but just to show it's possible
     data_back = write_return(arr, str_io, ndt, nan2zero=True)
     assert_array_equal(data_back, arr)
-    data_back = write_return(arr, str_io,
-                             np.dtype(np.int64), nan2zero=True)
+    data_back = write_return(arr, str_io, np.int64, nan2zero=True)
     assert_array_equal(data_back, [[0, 0],[0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
-    data_back = write_return(arr, str_io,
-                             np.dtype(np.int64), nan2zero=False)
+    data_back = write_return(arr, str_io, np.int64, nan2zero=False)
     assert_array_equal(data_back, arr.astype(np.int64))
+
+
+def test_a2f_nan2zero_scaling():
+    # Check that nan gets translated to the nearest equivalent to zero
+    #
+    # nan can be represented as zero of we can store (0 - intercept) / divslope
+    # in the output data - because reading back the data as `stored_array  * divslope +
+    # intercept` will reconstruct zeros for the nans in the original input.
+    #
+    # Check with array containing nan, matching array containing zero and
+    # Array containing zero
+    # Array values otherwise not including zero without scaling
+    # Same with negative sign
+    # Array values including zero before scaling but not after
+    bio = BytesIO()
+    for in_dt, out_dt, zero_in, inter in itertools.product(
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (True, False),
+        (0, -100)):
+        in_info = np.finfo(in_dt)
+        out_info = np.iinfo(out_dt)
+        mx = min(in_info.max, out_info.max * 2., 2**32) + inter
+        mn = 0 if zero_in or inter else 100
+        vals = [np.nan] + [mn, mx]
+        nan_arr = np.array(vals, dtype=in_dt)
+        zero_arr = np.nan_to_num(nan_arr)
+        back_nan = write_return(nan_arr, bio, np.int64, intercept=inter)
+        back_zero = write_return(zero_arr, bio, np.int64, intercept=inter)
+        assert_array_equal(back_nan, back_zero)
 
 
 def test_a2f_offset():
