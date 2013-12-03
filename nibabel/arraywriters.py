@@ -7,13 +7,19 @@ Array writers have init signature::
 and methods
 
 * scaling_needed() - returns True if array requires scaling for write
-*.finite_range() - returns min, max of self.array
+* finite_range() - returns min, max of self.array
 * to_fileobj(fileobj, offset=None, order='F')
 
-They have attributes:
+They must have attributes / properties of:
 
 * array
 * out_dtype
+* has_nan
+
+They may have attributes:
+
+* slope
+* inter
 
 They are designed to write arrays to a fileobj with reasonable memory
 efficiency.
@@ -86,6 +92,7 @@ class ArrayWriter(object):
             out_dtype = np.dtype(out_dtype)
         self._out_dtype = out_dtype
         self._finite_range = None
+        self._has_nan = None
         self._nan2zero = nan2zero
         if check_scaling and self.scaling_needed():
             raise WriterError("Scaling needed but cannot scale")
@@ -158,10 +165,25 @@ class ArrayWriter(object):
         """ Return `out_dtype` from arraywriter """
         return self._out_dtype
 
+    @property
+    def has_nan(self):
+        """ True if array has NaNs
+        """
+        # Structured types raise an error for finite range; don't run finite
+        # range unless we have to.
+        if self._has_nan is None:
+            if self._array.dtype.kind in 'fc':
+                self.finite_range()
+            else:
+                self._has_nan = False
+        return self._has_nan
+
     def finite_range(self):
         """ Return (maybe cached) finite range of data array """
         if self._finite_range is None:
-            self._finite_range = finite_range(self._array)
+            mn, mx, has_nan = finite_range(self._array, True)
+            self._finite_range = (mn, mx)
+            self._has_nan = has_nan
         return self._finite_range
 
     def _check_nan2zero(self, nan2zero):
@@ -267,6 +289,7 @@ class SlopeArrayWriter(ArrayWriter):
         self.scaler_dtype = np.dtype(scaler_dtype)
         self.reset()
         self._nan2zero = nan2zero
+        self._has_nan = None
         if calc_scale:
             self.calc_scale()
 

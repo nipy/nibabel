@@ -1,30 +1,6 @@
 """ Testing array writer objects
 
-Array writers have init signature::
-
-    def __init__(self, array, out_dtype=None, order='F')
-
-and methods
-
-* to_fileobj(fileobj, offset=None)
-
-They do have attributes:
-
-* array
-* out_dtype
-* order
-
-They may have attributes:
-
-* slope
-* inter
-
-They are designed to write arrays to a fileobj with reasonable memory
-efficiency.
-
-Subclasses of array writers may be able to scale the array or apply an
-intercept, or do something else to make sense of conversions between float and
-int, or between larger ints and smaller.
+See docstring of :mod:`nibabel.arraywriters` for API.
 """
 from __future__ import division, print_function, absolute_import
 
@@ -733,3 +709,65 @@ def test_rt_bias():
             # Hokey use of max_miss as a std estimate
             bias_thresh = np.max([max_miss / np.sqrt(count), eps])
             assert_true(np.abs(bias) < bias_thresh)
+
+
+def test_finite_range_nan():
+    # Test finite range method and has_nan property
+    for in_arr, res in (
+        ([[-1, 0, 1],[np.inf, np.nan, -np.inf]], (-1, 1)),
+        (np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]]), (-1, 1)),
+        ([[np.nan],[np.nan]], (np.inf, -np.inf)), # all nans slices
+        (np.zeros((3, 4, 5)) + np.nan, (np.inf, -np.inf)),
+        ([[-np.inf],[np.inf]], (np.inf, -np.inf)), # all infs slices
+        (np.zeros((3, 4, 5)) + np.inf, (np.inf, -np.inf)),
+        ([[np.nan, -1, 2], [-2, np.nan, 1]], (-2, 2)),
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([[-np.inf, 2], [np.nan, 1]], (1, 2)), # good max case
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([np.nan], (np.inf, -np.inf)),
+        ([np.inf], (np.inf, -np.inf)),
+        ([-np.inf], (np.inf, -np.inf)),
+        ([np.inf, 1], (1, 1)), # only look at finite values
+        ([-np.inf, 1], (1, 1)),
+        ([[],[]], (np.inf, -np.inf)), # empty array
+        (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+        (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
+        ([0., 1, 2, 3], (0,3)),
+        # Complex comparison works as if they are floats
+        ([[np.nan, -1-100j, 2], [-2, np.nan, 1+100j]], (-2, 2)),
+        ([[np.nan, -1, 2-100j], [-2+100j, np.nan, 1]], (-2+100j, 2-100j)),
+    ):
+        for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
+                            (SlopeArrayWriter, {}),
+                            (SlopeArrayWriter, dict(calc_scale=False)),
+                            (SlopeInterArrayWriter, {}),
+                            (SlopeInterArrayWriter, dict(calc_scale=False))):
+            for out_type in NUMERIC_TYPES:
+                has_nan = np.any(np.isnan(in_arr))
+                try:
+                    aw = awt(in_arr, out_type, **kwargs)
+                except WriterError:
+                    continue
+                # Should not matter about the order of finite range method call
+                # and has_nan property - test this is true
+                assert_equal(aw.has_nan, has_nan)
+                assert_equal(aw.finite_range(), res)
+                aw = awt(in_arr, out_type, **kwargs)
+                assert_equal(aw.finite_range(), res)
+                assert_equal(aw.has_nan, has_nan)
+                # Check float types work as complex
+                in_arr = np.array(in_arr)
+                if in_arr.dtype.kind == 'f':
+                    c_arr = in_arr.astype(np.complex)
+                    try:
+                        aw = awt(c_arr, out_type, **kwargs)
+                    except WriterError:
+                        continue
+                    aw = awt(c_arr, out_type, **kwargs)
+                    assert_equal(aw.has_nan, has_nan)
+                    assert_equal(aw.finite_range(), res)
+            # Structured type cannot be nan and we can test this
+            a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
+            aw = awt(a, a.dtype, **kwargs)
+            assert_raises(TypeError, aw.finite_range)
+            assert_false(aw.has_nan)
