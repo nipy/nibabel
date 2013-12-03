@@ -711,6 +711,48 @@ def test_rt_bias():
             assert_true(np.abs(bias) < bias_thresh)
 
 
+def test_nan2zero_scaling():
+    # Scaling needs to take into account whether nan can be represented as zero
+    # in the input data (before scaling).
+    # nan can be represented as zero of we can store (0 - intercept) / divslope
+    # in the output data - because reading back the data as `stored_array  * divslope +
+    # intercept` will reconstruct zeros for the nans in the original input.
+    #
+    # Make array requiring scaling for which range does not cover zero -> arr
+    # Append nan to arr -> nan_arr
+    # Append 0 to arr -> zero_arr
+    # Write / read nan_arr, zero_arr
+    # Confirm nan, 0 generated same output value
+    for awt, in_dt, out_dt, sign in itertools.product(
+        (SlopeArrayWriter, SlopeInterArrayWriter),
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (-1, 1),
+        ):
+        in_info = np.finfo(in_dt)
+        out_info = np.iinfo(out_dt)
+        # Skip inpossible combinations
+        if in_info.min == 0 and sign == -1:
+            continue
+        mx = min(in_info.max, out_info.max * 2., 2**32)
+        vals = [np.nan] + [100, mx]
+        nan_arr = np.array(vals, dtype=in_dt) * sign
+        # Check that nan scales to same value as zero within same array
+        nan_arr_0 = np.array([0] + vals, dtype=in_dt) * sign
+        # Check that nan scales to almost the same value as zero in another array
+        zero_arr = np.nan_to_num(nan_arr)
+        nan_aw = awt(nan_arr, out_dt, nan2zero=True)
+        back_nan = round_trip(nan_aw) * float(sign)
+        nan_0_aw = awt(nan_arr_0, out_dt, nan2zero=True)
+        back_nan_0 = round_trip(nan_0_aw) * float(sign)
+        zero_aw = awt(zero_arr, out_dt, nan2zero=True)
+        back_zero = round_trip(zero_aw) * float(sign)
+        assert_true(np.allclose(back_nan[1:], back_zero[1:]))
+        assert_array_equal(back_nan[1:], back_nan_0[2:])
+        assert_true(np.abs(back_nan[0] - back_zero[0]) < 1e-2)
+        assert_equal(*back_nan_0[:2])
+
+
 def test_finite_range_nan():
     # Test finite range method and has_nan property
     for in_arr, res in (
