@@ -695,19 +695,21 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     post_mn, post_mx, nan_fill = np.rint(specials)
     if post_mn > post_mx: # slope could be negative
         post_mn, post_mx = post_mx, post_mn
-    # Ensure safe thresholds applied too
+    # Make sure that the thresholds exclude any value that will get badly cast
+    # to the integer type.  This is not the same as using the maximumum of the
+    # output dtype as thresholds, because these may not be exactly represented
+    # in the float type.
+    #
     # The thresholds assume that the data are in `wtype` dtype after applying
     # the slope and intercept.
     both_mn, both_mx = shared_range(w_type, out_dtype)
     # Check we haven't excluded the value equivalent to zero if we need it
-    if nan2zero and ( # allow some rounding slack for test
-        (nan_fill < both_mn and not np.allclose(nan_fill, both_mn)) or
-        (nan_fill > both_mx and not np.allclose(nan_fill, both_mx))
-    ):
-        raise ValueError("Scaled value for zero ({0}) outside "
-                         "representable range {1}, {2}; "
-                         "change scaling or set nan2zero to "
-                         "False?".format(nan_fill, both_mn, both_mx))
+    if nan2zero:
+        if np.array(nan_fill, dtype=out_dtype) != nan_fill:
+            raise ValueError("Scaled value for zero ({0}) outside "
+                             "representable range {1}, {2}; "
+                             "change scaling or set nan2zero to "
+                             "False?".format(nan_fill, both_mn, both_mx))
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
