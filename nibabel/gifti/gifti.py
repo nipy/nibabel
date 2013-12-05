@@ -179,11 +179,11 @@ def data_tag(dataarray, encoding, datatype, ordering):
         c.seek(0)
         da = c.read()
     elif enclabel == 'B64BIN':
-        da = base64.encodestring(dataarray.tostring(ord))
+        da = base64.encodebytes(dataarray.tostring(ord))
     elif enclabel == 'B64GZ':
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
-        da = base64.encodestring(comp)
+        da = base64.encodebytes(comp)
         da = da.decode()
     elif enclabel == 'External':
         raise NotImplementedError("In what format are the external files?")

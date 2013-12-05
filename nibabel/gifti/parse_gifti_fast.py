@@ -39,7 +39,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         return da
     elif enclabel == 'B64BIN':
         # GIFTI_ENCODING_B64BIN
-        dec = base64.decodestring(data.encode('ascii'))
+        dec = base64.decodebytes(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         newarr = np.fromstring(dec, dtype = dt)
@@ -49,7 +49,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_B64GZ
         # convert to bytes array for python 3.2
         # http://diveintopython3.org/strings.html#byte-arrays
-        dec = base64.decodestring(data.encode('ascii'))
+        dec = base64.decodebytes(data.encode('ascii'))
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
