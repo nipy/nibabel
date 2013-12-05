@@ -334,24 +334,24 @@ def parse_gifti_file(fname, buffer_size = None):
         buffer_sz_val =  35000000
     else:
         buffer_sz_val = buffer_size
-    datasource = open(fname,'rb')
-    parser = ParserCreate()
-    parser.buffer_text = True
-    try:
-        parser.buffer_size = buffer_sz_val
-    except AttributeError:
-        if not buffer_size is None:
-            raise ValueError('Cannot set buffer size for parser')
-    HANDLER_NAMES = ['StartElementHandler',
-                     'EndElementHandler',
-                     'CharacterDataHandler']
-    out = Outputter()
-    for name in HANDLER_NAMES:
-        setattr(parser, name, getattr(out, name))
-    try:
-        parser.ParseFile(datasource)
-    except ExpatError:
-        print('An expat error occured while parsing the  Gifti file.')
+    with open(fname,'rb') as datasource:
+        parser = ParserCreate()
+        parser.buffer_text = True
+        try:
+            parser.buffer_size = buffer_sz_val
+        except AttributeError:
+            if not buffer_size is None:
+                raise ValueError('Cannot set buffer size for parser')
+        HANDLER_NAMES = ['StartElementHandler',
+                         'EndElementHandler',
+                         'CharacterDataHandler']
+        out = Outputter()
+        for name in HANDLER_NAMES:
+            setattr(parser, name, getattr(out, name))
+        try:
+            parser.ParseFile(datasource)
+        except ExpatError:
+            print('An expat error occured while parsing the  Gifti file.')
     # Reality check for pending data
     assert out.pending_data is False
     # update filename
