@@ -71,21 +71,23 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
-        Note that the SPM Analyze header can't save an intercept value,
-        and we raise an error unless `inter` is None, NaN or 0
+        The SPM Analyze header can't save an intercept value, and we raise an
+        error unless `inter` is None, NaN or 0
 
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is not, we ignore the
-           passed value of `inter`
+           If None, implies `slope` of NaN.  NaN is a signal to the image
+           writing routines to rescale on save.  0, Inf, -Inf are invalid and
+           cause a HeaderDataError
         inter : None or float, optional
-           intercept (dc offset).  If float, must be 0, because SPM99 cannot
-           store intercepts.
+           intercept. Must be None, NaN or 0, because SPM99 cannot store
+           intercepts.
         '''
         if slope is None:
             slope = np.nan
+        if slope in (0, -np.inf, np.inf):
+            raise HeaderDataError('Slope cannot be 0 or infinite')
         self._structarr['scl_slope'] = slope
         if inter in (None, 0) or np.isnan(inter):
             return

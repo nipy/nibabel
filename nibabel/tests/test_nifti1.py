@@ -119,45 +119,59 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
 
     def test_slope_inter(self):
         hdr = self.header_class()
+        nan, inf, minf = np.nan, np.inf, -np.inf
+        HDE = HeaderDataError
         assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-        bad_slopes = (0, np.nan, -np.inf, np.inf)
-        bad_inters = (np.nan, -np.inf, np.inf)
-        bads_bads = itertools.product((None,) + bad_slopes, (None,) + bad_inters)
-        slopes_bad_inter_ok = itertools.product(bad_slopes, (0, 1))
-        all_bad = itertools.chain(bads_bads,
-                                  slopes_bad_inter_ok)
-        bad_tests = zip(all_bad, itertools.repeat(((None, None))))
-        for intup, outup in (((2.0,), (2.0, 0.0)),
-                             ((None,), (None, None)),
-                             ((3.0, None), (3.0, 0.0)),
-                             ((0.0, None), (None, None)),
-                             ((np.nan, np.nan), (None, None)),
-                             ((np.nan, None), (None, None)),
-                             ((np.nan, 1), (None, None)),
-                             ((None, 0.0), (None, None)),
-                             ((None, 3.0), (None, None)),
-                             ((2.0, 3.0), (2.0, 3.0))) + tuple(bad_tests):
-            hdr.set_slope_inter(*intup)
-            assert_equal(hdr.get_slope_inter(), outup)
-            # Check set survives through checking
-            hdr = self.header_class.from_header(hdr, check=True)
-            assert_equal(hdr.get_slope_inter(), outup)
-        slopes_ok_inters_bad = itertools.product((1, 2), bad_inters)
-        hdr = self.header_class()
-        for slope, inter in slopes_ok_inters_bad:
-            hdr['scl_slope'] = slope
-            hdr['scl_inter'] = inter
-            assert_raises(HeaderDataError, hdr.get_slope_inter)
-        # Default value for slope is NaN.  Default value for inter is 0 unless
-        # slope is None or NaN
-        hdr = self.header_class()
-        for slope, inter in itertools.product(bad_slopes, (None, np.nan)):
-            hdr.set_slope_inter(slope, inter)
-            expected_slope = np.nan if slope is None else slope
-            inter_default = np.nan if np.isnan(expected_slope) else 0
-            expected_inter = inter_default if inter is None else inter
-            assert_array_equal(hdr['scl_slope'], expected_slope)
-            assert_array_equal(hdr['scl_inter'], expected_inter)
+        for in_tup, exp_err, out_tup, raw_values in (
+            # Null scalings
+            ((None, None), None, (None, None), (nan, nan)),
+            ((nan, None), None, (None, None), (nan, nan)),
+            ((None, nan), None, (None, None), (nan, nan)),
+            ((nan, nan), None, (None, None), (nan, nan)),
+            # Can only be one null
+            ((None, 0), HDE, (None, None), (nan, 0)),
+            ((nan, 0), HDE, (None, None), (nan, 0)),
+            ((1, None), HDE, (None, None), (1, nan)),
+            ((1, nan), HDE, (None, None), (1, nan)),
+            # Bad slope plus anything generates an error
+            ((0, 0), HDE, (None, None), (0, 0)),
+            ((0, None), HDE, (None, None), (0, nan)),
+            ((0, nan), HDE, (None, None), (0, nan)),
+            ((0, inf), HDE, (None, None), (0, inf)),
+            ((0, minf), HDE, (None, None), (0, minf)),
+            ((inf, 0), HDE, (None, None), (inf, 0)),
+            ((inf, None), HDE, (None, None), (inf, nan)),
+            ((inf, nan), HDE, (None, None), (inf, nan)),
+            ((inf, inf), HDE, (None, None), (inf, inf)),
+            ((inf, minf), HDE, (None, None), (inf, minf)),
+            ((minf, 0), HDE, (None, None), (minf, 0)),
+            ((minf, None), HDE, (None, None), (minf, nan)),
+            ((minf, nan), HDE, (None, None), (minf, nan)),
+            ((minf, inf), HDE, (None, None), (minf, inf)),
+            ((minf, minf), HDE, (None, None), (minf, minf)),
+            # Good slope and bad intercept generates error for get_slope_inter
+            ((2, None), HDE, HDE, (2, nan)),
+            ((2, nan), HDE, HDE, (2, nan)),
+            ((2, inf), HDE, HDE, (2, inf)),
+            ((2, minf), HDE, HDE, (2, minf))):
+            # Good slope and inter - you guessed it
+            ((2, 0), None, (None, None), (2, 0)),
+            ((2, 1), None, (None, None), (2, 1)),
+            hdr = self.header_class()
+            if not exp_err is None:
+                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                in_list = [v if not v is None else np.nan for v in in_tup]
+                hdr['scl_slope'], hdr['scl_inter'] = in_list
+            else:
+                hdr.set_slope_inter(*in_tup)
+                if isinstance(out_tup, Exception):
+                    assert_raises(out_tup, hdr.get_slope_inter)
+                else:
+                    assert_equal(hdr.get_slope_inter(), out_tup)
+                    # Check set survives through checking
+                    hdr = self.header_class.from_header(hdr, check=True)
+                    assert_equal(hdr.get_slope_inter(), out_tup)
+            assert_array_equal([hdr['scl_slope'], hdr['scl_inter']], raw_values)
 
     def test_nifti_qsform_checks(self):
         # qfac, qform, sform checks

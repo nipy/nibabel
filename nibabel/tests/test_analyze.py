@@ -206,10 +206,13 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         if not HC.has_data_slope:
             return
         hdr = HC()
+        has_inter = HC.has_data_intercept
         slopes = (1, 0, np.nan, np.inf, -np.inf)
-        inters = (0, np.nan, np.inf, -np.inf) if HC.has_data_intercept else (0,)
+        inters = (0, np.nan, np.inf, -np.inf) if has_inter else (0,)
         for slope, inter in itertools.product(slopes, inters):
-            hdr.set_slope_inter(slope)
+            hdr['scl_slope'] = slope
+            if has_inter:
+                hdr['scl_inter'] = inter
             self.assert_no_log_err(hdr)
 
     def test_logger_error(self):

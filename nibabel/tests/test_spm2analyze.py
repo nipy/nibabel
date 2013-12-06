@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from ..spatialimages import HeaderTypeError
+from ..spatialimages import HeaderTypeError, HeaderDataError
 from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 
 from numpy.testing import assert_array_equal
@@ -26,27 +26,34 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
     def test_slope_inter(self):
         hdr = self.header_class()
         assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-        for intup, outup in (((2.0,), (2.0, 0.0)),
-                            ((None,), (None, None)),
-                            ((1.0, None), (1.0, 0.0)),
-                            ((0.0, None), (None, None)), # Null scalings
-                            ((np.nan, np.nan), (None, None)),
-                            ((np.nan, None), (None, None)),
-                            ((np.nan, None), (None, None)),
-                            ((np.inf, None), (None, None)),
-                            ((-np.inf, None), (None, None)),
-                            ((None, 0.0), (None, None))):
-            hdr.set_slope_inter(*intup)
-            assert_equal(hdr.get_slope_inter(), outup)
-            # Check set survives through checking
-            hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
-            assert_equal(hdr.get_slope_inter(), outup)
-        # Setting not-zero to offset raises error
-        assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
-        assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
-        # Default slope is NaN
-        hdr.set_slope_inter(None, None)
-        assert_array_equal(hdr['scl_slope'], np.nan)
+        for in_tup, exp_err, out_tup, raw_slope in (
+            ((2.0,), None, (2.0, 0.), 2.),
+            ((None,), None, (None, None), np.nan),
+            ((1.0, None), None, (1.0, 0.), 1.),
+            # non zero intercept causes error
+            ((None, 1.1), HeaderTypeError, (None, None), np.nan),
+            ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
+            # null scalings
+            ((0.0, None), HeaderDataError, (None, None), 0.),
+            ((np.nan, np.nan), None, (None, None), np.nan),
+            ((np.nan, None), None, (None, None), np.nan),
+            ((None, np.nan), None, (None, None), np.nan),
+            ((np.inf, None), HeaderDataError, (None, None), np.inf),
+            ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
+            ((None, 0.0), None, (None, None), np.nan)):
+            hdr = self.header_class()
+            if not exp_err is None:
+                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                # raw set
+                if not in_tup[0] is None:
+                    hdr['scl_slope'] = in_tup[0]
+            else:
+                hdr.set_slope_inter(*in_tup)
+                assert_equal(hdr.get_slope_inter(), out_tup)
+                # Check set survives through checking
+                hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
+                assert_equal(hdr.get_slope_inter(), out_tup)
+            assert_array_equal(hdr['scl_slope'], raw_slope)
 
 
 class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):

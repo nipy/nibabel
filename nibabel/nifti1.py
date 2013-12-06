@@ -1036,20 +1036,30 @@ class Nifti1Header(SpmAnalyzeHeader):
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
+        (`slope`, `inter`) of (NaN, NaN) is a signal to a containing image to
+        set `slope`, `inter` automatically on write.
+
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope`  of NaN. When the slope is set to NaN, 0 or
-           a +-np.inf, ``get_slope_inter`` returns (None, None), i.e.  `inter`
-           is ignored unless there is a valid value for `slope`.
+           If None, implies `slope`  of NaN. If `slope` is None or NaN then
+           `inter` should be None or NaN.  Values of 0, Inf or -Inf raise
+           HeaderDataError
         inter : None or float, optional
-           intercept.  None gives value of 0 unless `slope` is NaN, in which
-           case, value is also NaN
+           Intercept. If None, implies `inter` of NaN. If `slope` is None or
+           NaN then `inter` should be None or NaN.  Values of Inf or -Inf raise
+           HeaderDataError
         '''
         if slope is None:
             slope = np.nan
         if inter is None:
-            inter = np.nan if np.isnan(slope) else 0
+            inter = np.nan
+        if slope in (0, np.inf, -np.inf):
+            raise HeaderDataError('Slope cannot be 0 or infinite')
+        if inter in (np.inf, -np.inf):
+            raise HeaderDataError('Intercept cannot be infinite')
+        if np.diff(np.isnan([slope, inter])):
+            raise HeaderDataError('None or both of slope, inter should be nan')
         self._structarr['scl_slope'] = slope
         self._structarr['scl_inter'] = inter
 
