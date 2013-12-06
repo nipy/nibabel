@@ -423,32 +423,33 @@ class SlopeArrayWriter(ArrayWriter):
                 return
         self._range_scale(mn, mx)
 
-    def _range_scale(self, mn, mx):
+    def _range_scale(self, in_min, in_max):
         """ Calculate scaling based on data range and output type """
         out_dtype = self._out_dtype
         info = type_info(out_dtype)
-        t_mn_mx = info['min'], info['max']
+        out_min, out_max = info['min'], info['max']
         big_float = best_float()
         if out_dtype.kind == 'f':
             # But we want maximum precision for the calculations. Casting will
             # not lose precision because min/max are of fp type.
-            t_min, t_max = np.array(t_mn_mx, dtype = big_float)
+            out_min, out_max = np.array((out_min, out_max), dtype = big_float)
         else: # (u)int
-            t_min, t_max = [int_to_float(v, big_float) for v in t_mn_mx]
+            out_min, out_max = [int_to_float(v, big_float)
+                                for v in out_min, out_max]
         if self._out_dtype.kind == 'u':
-            if mn < 0 and mx > 0:
+            if in_min < 0 and in_max > 0:
                 raise WriterError('Cannot scale negative and positive '
                                   'numbers to uint without intercept')
-            if mx <= 0: # All input numbers <= 0
-                self.slope = mn / t_max
+            if in_max <= 0: # All input numbers <= 0
+                self.slope = in_min / out_max
             else: # All input numbers > 0
-                self.slope = mx / t_max
+                self.slope = in_max / out_max
             return
-        # Scaling to int. We need the bigger slope of (mn/t_min) and
-        # (mx/t_max). If the mn or the max is the wrong side of 0, that
+        # Scaling to int. We need the bigger slope of (in_min/out_min) and
+        # (in_max/out_max). If in_min or in_max is the wrong side of 0, that
         # will make these negative and so they won't worry us
-        mx_slope = mx / t_max
-        mn_slope = mn / t_min
+        mx_slope = in_max / out_max
+        mn_slope = in_min / out_min
         self.slope = np.max([mx_slope, mn_slope])
 
 
@@ -585,50 +586,82 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         # Try slope options (sign flip) and then range scaling
         super(SlopeInterArrayWriter, self)._iu2iu()
 
-    def _range_scale(self, mn, mx):
+    def _range_scale(self, in_min, in_max):
         """ Calculate scaling, intercept based on data range and output type """
-        out_dtype = self._out_dtype
-        if mx == mn: # Only one number in array
-            self.inter = mn
+        if in_max == in_min: # Only one number in array
+            self.slope = 1.
+            self.inter = in_min
             return
-        # Straight mx-mn can overflow.
-        big_float = best_float() # usually longdouble except in win 32
-        if self._array.dtype.kind == 'f': # Already floats
+        big_float = best_float()
+        in_dtype = self._array.dtype
+        out_dtype = self._out_dtype
+        working_dtype = self.scaler_dtype
+        if in_dtype.kind == 'f': # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
             # no casting
-            mn2mx = np.diff(np.array([mn, mx], dtype=big_float))
+            in_range = np.diff(np.array([in_min, in_max], dtype=big_float))
         else: # max possible (u)int range is 2**64-1 (int64, uint64)
             # int_to_float covers this range.  On windows longdouble is the same
-            # as double so mn2mx will be 2**64 - thus overestimating slope
-            # slightly.  Casting to int needed to allow mx-mn to be larger than
+            # as double so in_range will be 2**64 - thus overestimating slope
+            # slightly.  Casting to int needed to allow in_max-in_min to be larger than
             # the largest (u)int value
-            mn2mx = int_to_float(as_int(mx) - as_int(mn), big_float)
+            in_range = int_to_float(as_int(in_max) - as_int(in_min), big_float)
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
-            t_mn_mx = info['min'], info['max']
+            out_min, out_max = info['min'], info['max']
         else:
-            t_mn_mx = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
-            t_mn_mx = shared_range(self.scaler_dtype, out_dtype)
-            t_mn_mx = [big_float(v) for v in t_mn_mx]
+            # Use shared range to avoid rounding to values outside range. This
+            # doesn't matter much except for the case of nan2zero were we need
+            # to be able to represent the scaled zero correctly in order not to
+            # raise an error when writing
+            out_min, out_max = shared_range(working_dtype, out_dtype)
+            out_min, out_max = np.array((out_min, out_max), dtype = big_float)
         # We want maximum precision for the calculations. Casting will
         # not lose precision because min/max are of fp type.
-        assert [v.dtype.kind for v in t_mn_mx] == ['f', 'f']
-        scaled_mn2mx = np.diff(np.array(t_mn_mx, dtype = big_float))
-        slope = mn2mx / scaled_mn2mx
-        self.inter = mn - t_mn_mx[0] * slope
+        assert [v.dtype.kind for v in out_min, out_max] == ['f', 'f']
+        out_range = out_max - out_min
+        """
+        Think of the input values as a line starting (left) at in_min and ending
+        (right) at in_max.
+
+        The output values will be a line starting at out_min and ending at
+        out_max.
+
+        We are going to match the input line to the output line by subtracting
+        `inter` then dividing by `slope`.
+
+        Slope must scale the input line to have the same length as the output
+        line.  We find this scale factor by dividing the input range (line
+        length) by the output range (line length)
+        """
+        slope = in_range / out_range
+        """
+        Now we know the slope, we need the intercept.  The intercept will be
+        such that:
+
+            (in_min - inter) / slope = out_min
+
+        Solving for the intercept:
+
+            inter = in_min - out_min * slope
+        """
+        # Minimize absolute value of intercept
+        inter = in_min - out_min * slope # match left ends
+        # slope, inter properties force scaling_dtype cast
+        self.inter = inter
         self.slope = slope
         if not np.all(np.isfinite([self.slope, self.inter])):
             raise ScalingError("Slope / inter not both finite")
         # Check nan fill value
-        if not (0 in (mn, mx) and self._nan2zero and self.has_nan):
+        if not (0 in (in_min, in_max) and self._nan2zero and self.has_nan):
             return
         nan_fill_f = -self.inter / self.slope
         nan_fill_i = np.rint(nan_fill_f)
         if nan_fill_i == np.array(nan_fill_i, dtype=out_dtype):
             return
         # recalculate intercept using dtype of inter, scale
-        self.inter = -np.clip(nan_fill_f, *t_mn_mx) * self.slope
+        self.inter = -np.clip(nan_fill_f, out_min, out_max) * self.slope
         nan_fill_i = np.rint(-self.inter / self.slope)
         assert nan_fill_i == np.array(nan_fill_i, dtype=out_dtype)
 
