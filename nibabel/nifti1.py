@@ -1618,12 +1618,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     # Copy docstring
     __init__.doc = analyze.AnalyzeImage.__init__.__doc__
 
-    def _write_header(self, header_file, header, slope, inter):
-        super(Nifti1Pair, self)._write_header(header_file,
-                                              header,
-                                              slope,
-                                              inter)
-
     def update_header(self):
         ''' Harmonize header with image data and affine
 
@@ -1833,20 +1827,6 @@ class Nifti1Image(Nifti1Pair):
         be the same
         """
         return file_map['image'], file_map['image']
-
-    def _write_header(self, header_file, header, slope, inter):
-        super(Nifti1Image, self)._write_header(header_file,
-                                               header,
-                                               slope,
-                                               inter)
-        # We need to set the header offset ready for writing the image.
-        # Streams like bz2 do not allow write seeks, even forward.  We
-        # check where to go, and write zeros up until the data part of
-        # the file
-        offset = header.get_data_offset()
-        diff = offset-header_file.tell()
-        if diff > 0:
-            header_file.write(b'\x00' * diff)
 
     def update_header(self):
         ''' Harmonize header with image data and affine '''
