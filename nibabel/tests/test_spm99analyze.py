@@ -157,10 +157,10 @@ class ScalingMixin(object):
         # Assert scaling makes not difference to img, load, save
         img_class = self.image_class
         input_hdr = img_class.header_class()
-        input_hdr.set_slope_inter(slope, inter)
+        self._set_raw_scaling(input_hdr, slope, inter)
         img = img_class(arr, np.eye(4), input_hdr)
         img_hdr = img.header
-        img_hdr.set_slope_inter(slope, inter)
+        self._set_raw_scaling(input_hdr, slope, inter)
         assert_array_equal(img.get_data(), arr)
         # First do raw save / read
         fm = bytesio_filemap(img)
@@ -198,12 +198,9 @@ class ScalingMixin(object):
         invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
         bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
         good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
-        for slope, inter in (invalid_pairs + bad_slopes_good_inter):
+        for slope, inter in (invalid_pairs + bad_slopes_good_inter +
+                             good_slope_bad_inters):
             self.assert_null_scaling(arr, slope, inter)
-        # Valid slopes but invalid intercept raises an error
-        for slope, inter in good_slope_bad_inters:
-            assert_raises(HeaderDataError,
-                          self.assert_null_scaling, arr, slope, inter)
 
     def _check_write_scaling(self,
                              slope,
