@@ -28,14 +28,14 @@ from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
 from ..casting import type_info, shared_range
 from ..volumeutils import apply_read_scaling, _dt_min_max
-from ..spatialimages import supported_np_types
+from ..spatialimages import supported_np_types, HeaderDataError
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
 from ..testing import assert_allclose_safely
 
 from . import test_analyze
-from .test_helpers import bytesio_round_trip
+from .test_helpers import bytesio_round_trip, bytesio_filemap
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -128,6 +128,8 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
 
 class ScalingMixin(object):
     # Mixin to add scaling checks to image test class
+    # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
+    # these tests for Nifti scaling, hence the mixin.
 
     def assert_scaling_equal(self, hdr, slope, inter):
         h_slope, h_inter = self._get_raw_scaling(hdr)
@@ -150,6 +152,58 @@ class ScalingMixin(object):
         hdr['scl_slope'] = slope
         if not inter is None:
             raise ValueError('inter should be None')
+
+    def assert_null_scaling(self, arr, slope, inter):
+        # Assert scaling makes not difference to img, load, save
+        img_class = self.image_class
+        input_hdr = img_class.header_class()
+        input_hdr.set_slope_inter(slope, inter)
+        img = img_class(arr, np.eye(4), input_hdr)
+        img_hdr = img.header
+        img_hdr.set_slope_inter(slope, inter)
+        assert_array_equal(img.get_data(), arr)
+        # First do raw save / read
+        fm = bytesio_filemap(img)
+        img_fobj = fm['image'].fileobj
+        hdr_fobj = img_fobj if not 'header' in fm else fm['header'].fileobj
+        img_hdr.write_to(hdr_fobj)
+        img_hdr.data_to_fileobj(arr, img_fobj)
+        raw_rt_img = img_class.from_file_map(fm)
+        assert_array_equal(raw_rt_img.get_data(), arr)
+        # Automated round trip
+        rt_img = bytesio_round_trip(img)
+        assert_array_equal(rt_img.get_data(), arr)
+
+    def test_header_scaling(self):
+        # For images that implement scaling, test effect of scaling
+        #
+        # This tests the affect of creating an image with a header containing
+        # the scaling, then writing the image and reading again.  So the scaling
+        # can be affected by the processing of the header when creating the
+        # image, or by interpretation of the scaling when creating the array.
+        #
+        # Analyze does not implement any scaling, but this test class is the
+        # base class for all Analyze-derived classes, such as NIfTI
+        img_class = self.image_class
+        hdr_class = img_class.header_class
+        if not hdr_class.has_data_slope:
+            return
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        invalid_slopes = (0, np.nan, np.inf, -np.inf)
+        for slope in (1,) + invalid_slopes:
+            self.assert_null_scaling(arr, slope, None)
+        if not hdr_class.has_data_intercept:
+            return
+        invalid_inters = (np.nan, np.inf, -np.inf)
+        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        for slope, inter in (invalid_pairs + bad_slopes_good_inter):
+            self.assert_null_scaling(arr, slope, inter)
+        # Valid slopes but invalid intercept raises an error
+        for slope, inter in good_slope_bad_inters:
+            assert_raises(HeaderDataError,
+                          self.assert_null_scaling, arr, slope, inter)
 
     def _check_write_scaling(self,
                              slope,
@@ -310,9 +364,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         test_analyze.TestAnalyzeImage.test_big_offset_exts
     ))
 
-    test_header_scaling = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_header_scaling
-    ))
+    test_header_scaling = scipy_skip(ScalingMixin.test_header_scaling)
 
     test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
 
