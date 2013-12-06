@@ -12,6 +12,8 @@ from __future__ import division
 from ..externals.six import BytesIO
 import tempfile
 import warnings
+import functools
+import itertools
 
 import numpy as np
 
@@ -24,6 +26,7 @@ from ..volumeutils import (array_from_file,
                            calculate_scale,
                            can_cast,
                            write_zeros,
+                           seek_tell,
                            apply_read_scaling,
                            _inter_type,
                            working_type,
@@ -512,6 +515,95 @@ def test_write_zeros():
     bio.truncate(0)
     write_zeros(bio, 200, 256)
     assert_equal(bio.getvalue(), b'\x00'*200)
+
+
+def test_seek_tell():
+    # Test seek tell routine
+    bio = BytesIO()
+    in_files = bio, 'test.bin', 'test.gz', 'test.bz2'
+    start = 10
+    end = 100
+    diff = end - start
+    tail = 7
+    with InTemporaryDirectory():
+        for in_file, write0 in itertools.product(in_files, (False, True)):
+            st = functools.partial(seek_tell, write0=write0)
+            bio.seek(0)
+            # First write the file
+            with BinOpener(in_file, 'wb') as fobj:
+                assert_equal(fobj.tell(), 0)
+                # already at position - OK
+                st(fobj, 0)
+                assert_equal(fobj.tell(), 0)
+                # Move position by writing
+                fobj.write(b'\x01' * start)
+                assert_equal(fobj.tell(), start)
+                # Files other than BZ2Files can seek forward on write, leaving
+                # zeros in their wake.  BZ2Files can't seek when writing, unless
+                # we enable the write0 flag to seek_tell
+                if not write0 and in_file == 'test.bz2': # Can't seek write in bz2
+                    # write the zeros by hand for the read test below
+                    fobj.write(b'\x00' * diff)
+                else:
+                    st(fobj, end)
+                    assert_equal(fobj.tell(), end)
+                # Write tail
+                fobj.write(b'\x02' * tail)
+            bio.seek(0)
+            # Now read back the file testing seek_tell in reading mode
+            with BinOpener(in_file, 'rb') as fobj:
+                assert_equal(fobj.tell(), 0)
+                st(fobj, 0)
+                assert_equal(fobj.tell(), 0)
+                st(fobj, start)
+                assert_equal(fobj.tell(), start)
+                st(fobj, end)
+                assert_equal(fobj.tell(), end)
+                # Seek anywhere works in read mode for all files
+                st(fobj, 0)
+            bio.seek(0)
+            # Check we have the expected written output
+            with BinOpener(in_file, 'rb') as fobj:
+                assert_equal(fobj.read(),
+                             b'\x01' * start + b'\x00' * diff + b'\x02' * tail)
+        for in_file in ('test2.gz', 'test2.bz2'):
+            # Check failure of write seek backwards
+            with BinOpener(in_file, 'wb') as fobj:
+                fobj.write(b'g' * 10)
+                assert_equal(fobj.tell(), 10)
+                seek_tell(fobj, 10)
+                assert_equal(fobj.tell(), 10)
+                assert_raises(IOError, seek_tell, fobj, 5)
+            # Make sure read seeks don't affect file
+            with BinOpener(in_file, 'rb') as fobj:
+                seek_tell(fobj, 10)
+                seek_tell(fobj, 0)
+            with BinOpener(in_file, 'rb') as fobj:
+                assert_equal(fobj.read(), b'g' * 10)
+
+
+def test_seek_tell_logic():
+    # Test logic of seek_tell write0 with dummy class
+    # Seek works? OK
+    bio = BytesIO()
+    seek_tell(bio, 10)
+    assert_equal(bio.tell(), 10)
+    class BabyBio(BytesIO):
+        def seek(self, *args):
+            raise IOError()
+    bio = BabyBio()
+    # Fresh fileobj, position 0, can't seek - error
+    assert_raises(IOError, bio.seek, 10)
+    # Put fileobj in correct position by writing
+    ZEROB = b'\x00'
+    bio.write(ZEROB * 10)
+    seek_tell(bio, 10) # already there, nothing to do
+    assert_equal(bio.tell(), 10)
+    assert_equal(bio.getvalue(), ZEROB * 10)
+    # Try write zeros to get to new position
+    assert_raises(IOError, bio.seek, 20)
+    seek_tell(bio, 20, write0=True)
+    assert_equal(bio.getvalue(), ZEROB * 20)
 
 
 def test_BinOpener():
