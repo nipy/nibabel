@@ -30,6 +30,7 @@ from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
 from ..tmpdirs import InTemporaryDirectory
+from ..arraywriters import WriterError
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -783,6 +784,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         for slope, inter in good_slope_bad_inters:
             assert_raises(HeaderDataError,
                           self.assert_null_scaling, arr, slope, inter)
+
+    def test_no_finite_values(self):
+        # save of data with no finite values to int type raises error if we have
+        # no scaling
+        data = np.zeros((2, 3, 4))
+        data[:, 0] = np.nan
+        data[:, 1] = np.inf
+        data[:, 2] = -np.inf
+        img = self.image_class(data, None)
+        img.set_data_dtype(np.int16)
+        assert_equal(img.get_data_dtype(), np.dtype(np.int16))
+        fm = bytesio_filemap(img)
+        if not img.header.has_data_slope:
+            assert_raises(WriterError, img.to_file_map, fm)
+            return
+        img.to_file_map(fm)
+        img_back = self.image_class.from_file_map(fm)
+        assert_array_equal(img_back.dataobj, 0)
 
 
 def test_unsupported():
