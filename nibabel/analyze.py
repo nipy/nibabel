@@ -937,7 +937,9 @@ class AnalyzeImage(SpatialImage):
         if data.shape != shape:
             raise HeaderDataError('Data should be shape (%s)' %
                                   ', '.join(str(s) for s in shape))
-        seek_tell(imgf, hdr.get_data_offset())
+        # Seek to writing position, get there by writing zeros if seek fails
+        seek_tell(imgf, hdr.get_data_offset(), write0=True)
+        # Write array data
         arr_writer.to_fileobj(imgf)
         hdrf.close_if_mine()
         if not hdr_img_same:

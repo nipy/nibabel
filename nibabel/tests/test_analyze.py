@@ -27,6 +27,7 @@ from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
+from ..tmpdirs import InTemporaryDirectory
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -623,6 +624,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         # Making a new image with this header resets to zero
         img_again = img_klass(arr, aff, img.header)
         assert_equal(img_again.header.get_data_offset(), 0)
+
+    def test_big_offset_exts(self):
+        # Check writing offset beyond data works for different file extensions
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        img_ext = img_klass.files_types[0][1]
+        with InTemporaryDirectory():
+            for offset in (0, 2048):
+                # Set offset in in-memory image
+                for compressed_ext in ('', '.gz', '.bz2'):
+                    img = img_klass(arr, aff)
+                    img.header.set_data_offset(offset)
+                    fname = 'test' + img_ext + compressed_ext
+                    img.to_filename(fname)
+                    img_back = img_klass.from_filename(fname)
+                    assert_array_equal(arr, img_back.dataobj)
+            del img, img_back
 
     def test_header_updating(self):
         # Only update on changes
