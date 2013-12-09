@@ -18,6 +18,18 @@ from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 
+# {en,de}codestring in deprecated in Python3, but
+# {en,de}codebytes not available in Python2. 
+# Therefore set the proper functions depending on the Python version.
+import base64
+if sys.version < '3':
+    base64_encodebytes = base64.encodestring
+    base64_decodebytes = base64.decodestring
+else:
+    base64_encodebytes = base64.encodebytes
+    base64_decodebytes = base64.decodebytes
+                   
+
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
@@ -168,7 +180,6 @@ class GiftiCoordSystem(object):
 
 def data_tag(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding """
-    import base64
     import zlib
     ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
@@ -179,11 +190,11 @@ def data_tag(dataarray, encoding, datatype, ordering):
         c.seek(0)
         da = c.read()
     elif enclabel == 'B64BIN':
-        da = base64.encodestring(dataarray.tostring(ord))
+        da = base64_encodebytes(dataarray.tostring(ord))
     elif enclabel == 'B64GZ':
         # first compress
         comp = zlib.compress(dataarray.tostring(ord))
-        da = base64.encodestring(comp)
+        da = base64_encodebytes(comp)
         da = da.decode()
     elif enclabel == 'External':
         raise NotImplementedError("In what format are the external files?")
