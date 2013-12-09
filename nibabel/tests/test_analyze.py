@@ -36,6 +36,7 @@ from ..testing import (assert_equal, assert_not_equal, assert_true,
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
+from .test_helpers import bytesio_filemap, bytesio_round_trip
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
@@ -542,6 +543,16 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
     can_save = True
 
+    def test_default_header(self):
+        # Check default header is as expected
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        img = self.image_class(arr, None)
+        hdr = self.image_class.header_class()
+        hdr.set_data_shape(arr.shape)
+        hdr.set_data_dtype(arr.dtype)
+        hdr.set_data_offset(0)
+        assert_equal(img.header, hdr)
+
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
         # from img.get_data() is not affected by subsequent changes to
@@ -587,6 +598,31 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         assert_array_equal(affine, img.get_affine())
         # Not OK - affine wrong shape
         assert_raises(ValueError, IC, data, np.diag([2, 3, 4]))
+
+    def test_offset_to_zero(self):
+        # Check offset is always set to zero when creating images
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        assert_equal(img.header.get_data_offset(), 0)
+        # Save to BytesIO object(s), make sure offset still zero
+        bytes_map = bytesio_filemap(img_klass)
+        img.to_file_map(bytes_map)
+        assert_equal(img.header.get_data_offset(), 0)
+        # Set offset in in-memory image
+        big_off = 1024
+        img.header.set_data_offset(big_off)
+        assert_equal(img.header.get_data_offset(), big_off)
+        # Offset is in proxy but not in image after saving to fileobj
+        img_rt = bytesio_round_trip(img)
+        assert_equal(img_rt.dataobj.offset, big_off)
+        assert_equal(img_rt.header.get_data_offset(), 0)
+        # The original header still has the big_off value
+        img.header.set_data_offset(big_off)
+        # Making a new image with this header resets to zero
+        img_again = img_klass(arr, aff, img.header)
+        assert_equal(img_again.header.get_data_offset(), 0)
 
     def test_header_updating(self):
         # Only update on changes

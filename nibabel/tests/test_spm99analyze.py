@@ -124,6 +124,10 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
         test_analyze.TestAnalyzeImage.test_header_updating
     ))
 
+    test_offset_to_zero = (scipy_skip(
+        test_analyze.TestAnalyzeImage.test_offset_to_zero
+    ))
+
     @scipy_skip
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types

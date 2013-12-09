@@ -25,7 +25,7 @@ from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       data_type_codes, extension_codes, slice_order_codes)
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
-from .test_helpers import bytesio_round_trip
+from .test_helpers import bytesio_filemap, bytesio_round_trip
 
 from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
@@ -60,7 +60,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr = self.header_class()
         assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], hdr.pair_vox_offset)
+        assert_equal(hdr['vox_offset'], 0)
 
     def test_from_eg_file(self):
         hdr = self.header_class.from_fileobj(open(self.example_file, 'rb'))
@@ -153,11 +153,32 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(fhdr['magic'], b'ooh')
         assert_equal(message, 'magic string "ooh" is not valid; '
                            'leaving as is, but future errors are likely')
-        hdr['magic'] = hdr.single_magic # single file needs suitable offset
-        hdr['vox_offset'] = 0
+        # For pairs, any offset is OK, but should be divisible by 16
+        # Singles need offset of at least 352 (nifti1) or 540 (nifti2) bytes,
+        # with the divide by 16 rule
+        svo = hdr.single_vox_offset
+        for magic, ok, bad_spm in ((hdr.pair_magic, 32, 40),
+                                   (hdr.single_magic, svo + 32, svo + 40)):
+            hdr['magic'] = magic
+            hdr['vox_offset'] = 0
+            fhdr, message, raiser = self.log_chk(hdr, 0)
+            assert_equal((fhdr, message), (hdr, ''))
+            hdr['vox_offset'] = ok
+            fhdr, message, raiser = self.log_chk(hdr, 0)
+            assert_equal((fhdr, message), (hdr, ''))
+            hdr['vox_offset'] = bad_spm
+            fhdr, message, raiser = self.log_chk(hdr, 30)
+            assert_equal(fhdr['vox_offset'], bad_spm)
+            assert_equal(message,
+                         'vox offset (={0:g}) not divisible by 16, '
+                         'not SPM compatible; leaving at current '
+                         'value'.format(bad_spm))
+        # Check minimum offset (if offset set)
+        hdr['magic'] = hdr.single_magic
+        hdr['vox_offset'] = 10
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['vox_offset'], hdr.single_vox_offset)
-        assert_equal(message, 'vox offset 0 too low for single '
+        assert_equal(message, 'vox offset 10 too low for single '
                            'file nifti1; setting to minimum value '
                            'of ' + str(hdr.single_vox_offset))
         # qform, sform
@@ -550,7 +571,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
         hdr = self.header_class()
         assert_equal(hdr['magic'], hdr.single_magic)
         assert_equal(hdr['scl_slope'], 1)
-        assert_equal(hdr['vox_offset'], hdr.single_vox_offset)
+        assert_equal(hdr['vox_offset'], 0)
 
     def test_binblock_is_file(self):
         # Override test that binary string is the same as the file on disk; in
@@ -570,9 +591,9 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
             assert_raises(HeaderDataError, hdr.set_data_dtype, np.longdouble)
 
 
-class TestNifti1Image(tana.TestAnalyzeImage):
+class TestNifti1Pair(tana.TestAnalyzeImage):
     # Run analyze-flavor spatialimage tests
-    image_class = Nifti1Image
+    image_class = Nifti1Pair
 
     def test_none_qsform(self):
         # Check that affine gets set to q/sform if header is None
@@ -764,8 +785,8 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         # Check an offset beyond data does not raise an error
         img = self.image_class(np.zeros((2,3,4)), np.eye(4))
         ext = dict(img.files_types)['image']
-        hdr = img.get_header()
-        hdr['vox_offset'] = 400
+        hdr_len = len(img.header.binaryblock)
+        img.header['vox_offset'] = hdr_len + 400
         with InTemporaryDirectory():
             img.to_filename('another_file' + ext)
 
@@ -777,6 +798,7 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
         affine = np.diag([1, 2, 3, 1])
         img = IC(data, affine)
+        assert_equal(img.header.get_data_offset(), 0)
         assert_equal(img.shape, shape)
         img.set_data_dtype(npt)
         img2 = bytesio_round_trip(img)
@@ -856,10 +878,36 @@ class TestNifti1Image(tana.TestAnalyzeImage):
         # Pixdims as in the original header
         assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
 
+    def test_read_no_extensions(self):
+        IC = self.image_class
+        arr = np.arange(24).reshape((2,3,4))
+        img = IC(arr, np.eye(4))
+        assert_equal(len(img.header.extensions), 0)
+        img_rt = bytesio_round_trip(img)
+        assert_equal(len(img_rt.header.extensions), 0)
+        # Check simple round trip with large offset
+        img.header.set_data_offset(1024)
+        img_rt = bytesio_round_trip(img)
+        assert_equal(len(img_rt.header.extensions), 0)
 
-class TestNifti1Pair(TestNifti1Image):
+
+class TestNifti1Image(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests
-    image_class = Nifti1Pair
+    image_class = Nifti1Image
+
+    def test_offset_errors(self):
+        # Test that explicit offset too low raises error
+        IC = self.image_class
+        arr = np.arange(24).reshape((2,3,4))
+        img = IC(arr, np.eye(4))
+        assert_equal(img.header.get_data_offset(), 0)
+        # Saving with zero offset is OK
+        img_rt = bytesio_round_trip(img)
+        assert_equal(img_rt.header.get_data_offset(), 0)
+        # Saving with too low offset explicitly set gives error
+        fm = bytesio_filemap(IC)
+        img.header.set_data_offset(16)
+        assert_raises(HeaderDataError, img.to_file_map, fm)
 
 
 def test_extension_basics():
