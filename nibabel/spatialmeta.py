@@ -18,6 +18,7 @@ from copy import deepcopy
 from collections import Mapping, Container
 from itertools import combinations, product
 import numpy as np
+from six import iteritems
 
 try:
     from collections import OrderedDict
@@ -375,13 +376,13 @@ class SpatialMeta(object):
         if not classification in valid_classes:
             raise ValueError("Not a valid classification: %s" % classification)
         
-        iters = [(tuple(), self._data[classification].iteritems())]
+        iters = [(tuple(), iteritems(self._data[classification]))]
         while iters:
             key_prefix, it = iters.pop()
             for k, v in it:
                 new_prefix = (key_prefix + (k,))
                 if isinstance(v, Mapping):
-                    iters.append((new_prefix, v.iteritems()))
+                    iters.append((new_prefix, iteritems(v)))
                 else:
                     yield (new_prefix, v)
     
