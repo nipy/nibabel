@@ -81,4 +81,3 @@ def write(image, filename):
     # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
     with codecs.open(filename, 'wb', encoding='utf-8') as f:
         f.write(image.to_xml())
-        f.close()
