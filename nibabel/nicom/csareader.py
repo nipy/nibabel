@@ -4,7 +4,7 @@
 import numpy as np
 
 from .structreader import Unpacker
-from .utils import find_private_section
+from .utils import find_private_element
 
 # DICOM VR code to Python type
 _CONVERTERS = {
@@ -36,8 +36,7 @@ def get_csa_header(dcm_data, csa_type='image'):
     Parameters
     ----------
     dcm_data : dicom.Dataset
-       DICOM dataset.  Should implement ``__getitem__`` and, if initial check
-       for presence of ``dcm_data[(0x29, 0x10)]`` passes, should satisfy
+       DICOM dataset.  Should implement ``__getitem__`` and should satisfy
        interface for ``find_private_section``.
     csa_type : {'image', 'series'}, optional
        Type of CSA field to read; default is 'image'
@@ -55,15 +54,13 @@ def get_csa_header(dcm_data, csa_type='image'):
         element_offset = 0x20
     else:
         raise ValueError('Invalid CSA header type "%s"' % csa_type)
-    if not (0x29, 0x10) in dcm_data: # Cannot be Siemens CSA
+    csa_elem = find_private_element(dcm_data, 
+                                    0x29, 
+                                    'SIEMENS CSA HEADER', 
+                                    element_offset)
+    if csa_elem is None:
         return None
-    section_start = find_private_section(dcm_data, 0x29, 'SIEMENS CSA HEADER')
-    if section_start is None:
-        return None
-    element_no = section_start + element_offset
-    # Assume tag exists
-    tag = dcm_data[(0x29, element_no)]
-    return read(tag.value)
+    return read(csa_elem.value)
 
 
 def read(csa_str):
