@@ -418,30 +418,38 @@ def test_io_scaling():
     # Test scaling works for max, min when going from larger to smaller type,
     # and from float to integer.
     bio = BytesIO()
-    for in_type, out_type, err in ((np.int16, np.int16, None),
-                                   (np.int16, np.int8, None),
-                                   (np.uint16, np.uint8, None),
-                                   (np.int32, np.int8, None),
-                                   (np.float32, np.uint8, None),
-                                   (np.float32, np.int16, None)):
+    for in_type, out_type in itertools.product(
+        (np.int16, np.uint16, np.float32),
+        (np.int8, np.uint8, np.int16, np.uint16)):
         out_dtype = np.dtype(out_type)
-        arr = np.zeros((3,), dtype=in_type)
         info = type_info(in_type)
-        arr[0], arr[1] = info['min'], info['max']
-        aw = SlopeInterArrayWriter(arr, out_dtype, calc_scale=False)
-        if not err is None:
-            assert_raises(err, aw.calc_scale)
-            continue
-        aw.calc_scale()
-        aw.to_fileobj(bio)
-        bio.seek(0)
-        arr2 = array_from_file(arr.shape, out_dtype, bio)
-        arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
-        # Max rounding error for integer type
-        max_miss = aw.slope / 2.
-        assert_true(np.all(np.abs(arr - arr3) <= max_miss))
-        bio.truncate(0)
-        bio.seek(0)
+        imin, imax = info['min'], info['max']
+        if imin == 0: # unsigned int
+            val_tuples = ((0, imax),
+                          (100, imax))
+        else:
+            val_tuples = ((imin, 0, imax),
+                          (imin, 0),
+                          (0, imax),
+                          (imin, 100, imax))
+        if imin != 0:
+            val_tuples += ((imin, 0),
+                           (0, imax))
+        for vals in val_tuples:
+            arr = np.array(vals, dtype=in_type)
+            aw = SlopeInterArrayWriter(arr, out_dtype, calc_scale=False)
+            aw.calc_scale()
+            aw.to_fileobj(bio)
+            bio.seek(0)
+            arr2 = array_from_file(arr.shape, out_dtype, bio)
+            arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
+            # Max rounding error for integer type
+            # Slope might be negative
+            max_miss = np.abs(aw.slope) / 2.
+            abs_err = np.abs(arr - arr3)
+            assert_true(np.all(abs_err <= max_miss))
+            bio.truncate(0)
+            bio.seek(0)
 
 
 def test_nan2zero():
