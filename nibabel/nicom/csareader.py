@@ -6,6 +6,11 @@ import numpy as np
 from .structreader import Unpacker
 from .utils import find_private_element
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 # DICOM VR code to Python type
 _CONVERTERS = {
     'FL': float, # float
@@ -26,6 +31,38 @@ class CSAError(Exception):
 class CSAReadError(CSAError):
     pass
 
+
+def header_to_key_val_mapping(csa_header):
+    '''Convert the CSA header produced by the ``read`` function into a 
+    simpler key/value mapping.
+    
+    Parameters
+    ----------
+    csa_header : dict
+        The result from the ``read`` function.
+        
+    Returns
+    -------
+    result : OrderedDict
+        Result where the keys come from the 'tags' sub dictionary of 
+        `csa_header`. The values come from the 'items' within that tags sub 
+        sub dictionary. If items has only one element it will be unpacked 
+        from the list. Items with zero elements are removed.
+    '''
+    if csa_header is None:
+        return None
+    
+    result = OrderedDict()
+    for tag in csa_header['tags']:
+        items = csa_header['tags'][tag]['items']
+        if len(items) == 0:
+            continue
+        elif len(items) == 1:
+            result[tag] = items[0]
+        else:
+            result[tag] = items
+    return result
+    
 
 def get_csa_header(dcm_data, csa_type='image'):
     ''' Get CSA header information from DICOM header
