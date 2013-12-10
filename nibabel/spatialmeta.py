@@ -18,7 +18,7 @@ from copy import deepcopy
 from collections import Mapping, Container
 from itertools import combinations, product
 import numpy as np
-from six import iteritems
+from .externals.six import iteritems
 
 try:
     from collections import OrderedDict
