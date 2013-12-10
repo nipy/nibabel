@@ -11,7 +11,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 
-from ..utils import find_private_section
+from ..utils import find_private_section, find_private_element
 
 from .test_dicomwrappers import (have_dicom, dicom_test,
                                  IO_DATA_PATH, DATA, DATA_PHILIPS)
@@ -25,6 +25,10 @@ def test_find_private_section_real():
                  0x1000)
     assert_equal(find_private_section(DATA, 0x29, 'SIEMENS MEDCOM HEADER2'),
                  0x1100)
+    assert_equal(find_private_section(DATA, 0x19, 'SIEMENS MR HEADER'),
+                 0x1000)
+    assert_equal(find_private_section(DATA, 0x51, 'SIEMENS MR HEADER'),
+                 0x1000)
     assert_equal(find_private_section(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER'),
                  None)
     # Make fake datasets
@@ -65,3 +69,22 @@ def test_find_private_section_real():
     assert_equal(find_private_section(ds, 0x11, 'near section'), 0x1300)
     ds.add_new((0x11, 0x15), 'LO', b'far section')
     assert_equal(find_private_section(ds, 0x11, 'far section'), 0x1500)
+
+@dicom_test
+def test_find_private_element():
+    #Find a specific private element
+    assert_equal(find_private_element(DATA, 
+                                      0x19, 
+                                      'SIEMENS MR HEADER', 
+                                      0x8).value,
+                 'IMAGE NUM 4 ')
+    assert_equal(find_private_element(DATA, 
+                                      0x19, 
+                                      'SIEMENS MR HEADER', 
+                                      0xb).value,
+                 '40')
+    assert_equal(find_private_element(DATA, 
+                                      0x51, 
+                                      'SIEMENS MR HEADER', 
+                                      0xb).value,
+                 '128p*128')

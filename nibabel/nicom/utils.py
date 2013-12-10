@@ -48,6 +48,36 @@ def find_private_section(dcm_data, group_no, creator):
             if creator.search(name) != None:
                 return elno * 0x100
         else: # string - needs exact match
-            if creator == name:
+            if creator == name.strip():
                 return elno * 0x100
     return None
+
+
+def find_private_element(dcm_data, group_no, creator, elem_least_sig):
+    """ Return the private element in group `group_no` given creator name 
+    `creator` and the two least significant bytes of the element number 
+    `elem_least_sig`.
+
+    Paramters
+    ---------
+    dcm_data : dicom ``dataset``
+        Iterating over `dcm_data` produces ``elements`` with attributes ``tag``,
+        ``VR``, ``value``
+    group_no : int
+        Group number in which to search
+    creator : str or bytes or regex
+        Name of section - e.g. 'SIEMENS CSA HEADER' - or regex to search for
+        section name.  Regex used via ``creator.search(element_value)`` where
+        ``element_value`` is the value of the data element.
+    elem_least_sig : int
+        The two least significant bytes of the element number
+
+    Returns
+    -------
+    element : dicom ``element``
+        The private element or None if not found
+    """
+    sect_start = find_private_section(dcm_data, group_no, creator)
+    if sect_start is None:
+        return None
+    return dcm_data.get((group_no, sect_start | elem_least_sig))
