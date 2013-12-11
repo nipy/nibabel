@@ -79,6 +79,5 @@ def write(image, filename):
     The Gifti file is stored in endian convention of the current machine.
     """
     # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
-    f = codecs.open(filename, 'wb', encoding='utf-8')
-    f.write(image.to_xml())
-    f.close()
+    with codecs.open(filename, 'wb', encoding='utf-8') as f:
+        f.write(image.to_xml())
