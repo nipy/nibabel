@@ -31,7 +31,6 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
-from nose import SkipTest
 
 from ..testing import data_path
 
@@ -1101,13 +1100,17 @@ class TestNifti1General(object):
         assert_equal(wnim.get_data_dtype(), np.int16)
         # Header scaling reset to default by image creation
         assert_equal(wnim.get_header().get_slope_inter(), (None, None))
+        # But we can reset it again after image creation
+        wnim.header.set_slope_inter(2, 8)
+        assert_equal(wnim.header.get_slope_inter(), (2, 8))
         # write into the air again ;-)
         lnim = bytesio_round_trip(wnim)
         assert_equal(lnim.get_data_dtype(), np.int16)
-        # the test below does not pass, because the slope and inter are
-        # always reset from the data, by the image write
-        raise SkipTest
-        assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
+        # Scaling applied
+        assert_array_equal(lnim.get_data(), data * 2. + 8.)
+        # slope, inter reset by image creation, but saved in proxy
+        assert_equal(lnim.header.get_slope_inter(), (None, None))
+        assert_equal((lnim.dataobj.slope, lnim.dataobj.inter), (2, 8))
 
     def test_load(self):
         # test module level load.  We try to load a nii and an .img and a .hdr and
