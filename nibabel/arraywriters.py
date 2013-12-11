@@ -599,13 +599,18 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         if in_dtype.kind == 'f': # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
             # no casting
-            in_range = np.diff(np.array([in_min, in_max], dtype=big_float))
+            in_min, in_max = np.array([in_min, in_max], dtype=big_float)
+            in_range = np.diff([in_min, in_max])
         else: # max possible (u)int range is 2**64-1 (int64, uint64)
             # int_to_float covers this range.  On windows longdouble is the same
             # as double so in_range will be 2**64 - thus overestimating slope
             # slightly.  Casting to int needed to allow in_max-in_min to be larger than
             # the largest (u)int value
-            in_range = int_to_float(as_int(in_max) - as_int(in_min), big_float)
+            in_min, in_max = as_int(in_min), as_int(in_max)
+            in_range = int_to_float(in_max - in_min, big_float)
+            # Cast to float for later processing.
+            in_min, in_max = [int_to_float(v, big_float)
+                              for v in in_min, in_max]
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
@@ -645,9 +650,41 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         Solving for the intercept:
 
             inter = in_min - out_min * slope
+
+        We can also flip the sign of the slope.  In that case we match the
+        in_max to the out_min:
+
+            (in_max - inter_flipped) / -slope = out_min
+            inter_flipped = in_max + out_min * slope
+
+        When we reconstruct the data, we're going to do:
+
+            data = saved_data * slope + inter
+
+        We can't change the range of the saved data (the whole range of the
+        integer type) or the range of the output data (the values we input). We
+        can change the intermediate values ``saved_data * slope`` by choosing
+        the sign of the slope to match the in_min or in_max to the left or right
+        end of the saved data range.
+
+        If the out_dtype is signed int, then abs(out_min) = abs(out_max) + 1 and
+        the absolute value and therefore precision for values at the left and
+        right of the saved data range are very similar (e.g. -128 * slope, 127 *
+        slope respectively).
+
+        If the out_dtype is unsigned int, then the absolute value at the left is
+        0 and the precision is much higher than for the right end of the range
+        (e.g. 0 * slope, 255 * slope).
+
+        If the out_dtype is unsigned int then we choose the sign of the slope to
+        match the smaller of the in_min, in_max to the zero end of the saved
+        range.
         """
-        # Minimize absolute value of intercept
-        inter = in_min - out_min * slope # match left ends
+        if out_min == 0 and np.abs(in_max) < np.abs(in_min):
+            inter = in_max + out_min * slope
+            slope *= -1
+        else:
+            inter = in_min - out_min * slope
         # slope, inter properties force scaling_dtype cast
         self.inter = inter
         self.slope = slope

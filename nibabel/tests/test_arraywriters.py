@@ -437,10 +437,8 @@ def test_io_scaling():
                            (0, imax))
         for vals in val_tuples:
             arr = np.array(vals, dtype=in_type)
-            aw = SlopeInterArrayWriter(arr, out_dtype, calc_scale=False)
-            aw.calc_scale()
+            aw = SlopeInterArrayWriter(arr, out_dtype)
             aw.to_fileobj(bio)
-            bio.seek(0)
             arr2 = array_from_file(arr.shape, out_dtype, bio)
             arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
             # Max rounding error for integer type
@@ -448,8 +446,37 @@ def test_io_scaling():
             max_miss = np.abs(aw.slope) / 2.
             abs_err = np.abs(arr - arr3)
             assert_true(np.all(abs_err <= max_miss))
+            if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
+                # Check that error is minimized for 0 as min or max
+                assert_true(min(abs_err) == abs_err[arr == 0])
             bio.truncate(0)
             bio.seek(0)
+
+
+def test_input_ranges():
+    # Test we get good precision for a range of input data
+    arr = np.arange(-500, 501, 10, dtype=np.float)
+    bio = BytesIO()
+    working_type = np.float32
+    work_eps = np.finfo(working_type).eps
+    for out_type, offset in itertools.product(
+        IUINT_TYPES,
+        range(-1000, 1000, 100)):
+        aw = SlopeInterArrayWriter(arr, out_type)
+        aw.to_fileobj(bio)
+        arr2 = array_from_file(arr.shape, out_type, bio)
+        arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
+        # Max rounding error for integer type
+        # Slope might be negative
+        max_miss = np.abs(aw.slope) / working_type(2.) + work_eps * 10
+        abs_err = np.abs(arr - arr3)
+        max_err = np.abs(arr) * work_eps + max_miss
+        assert_true(np.all(abs_err <= max_err))
+        if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
+            # Check that error is minimized for 0 as min or max
+            assert_true(min(abs_err) == abs_err[arr == 0])
+        bio.truncate(0)
+        bio.seek(0)
 
 
 def test_nan2zero():
