@@ -30,7 +30,7 @@ from ..casting import type_info, shared_range
 from ..volumeutils import apply_read_scaling, _dt_min_max
 from ..spatialimages import supported_np_types, HeaderDataError
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from ..testing import assert_allclose_safely
 
@@ -46,15 +46,14 @@ IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
-    header_class = Spm99AnalyzeHeader
+class HeaderScalingMixin(object):
+    """ Mixin to add scaling tests to header tests
 
-    def test_empty(self):
-        super(TestSpm99AnalyzeHeader, self).test_empty()
-        hdr = self.header_class()
-        assert_equal(hdr['scl_slope'], 1)
+    Needs to be a mixin so nifti tests can use this method without inheriting
+    directly from the SPM header tests
+    """
 
-    def test_scaling(self):
+    def test_data_scaling(self):
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
         hdr.set_data_dtype(np.int16)
@@ -63,10 +62,31 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         # This uses scaling
         hdr.data_to_fileobj(data, S3)
         data_back = hdr.data_from_fileobj(S3)
+        # almost equal
         assert_array_almost_equal(data, data_back, 4)
+        # But not quite
+        assert_false(np.all(data == data_back))
         # This is exactly the same call, just testing it works twice
         data_back2 = hdr.data_from_fileobj(S3)
         assert_array_equal(data_back, data_back2, 4)
+        # Rescaling is the default
+        hdr.data_to_fileobj(data, S3, rescale=True)
+        data_back = hdr.data_from_fileobj(S3)
+        assert_array_almost_equal(data, data_back, 4)
+        assert_false(np.all(data == data_back))
+        # This doesn't use scaling, and so gets perfect precision
+        hdr.data_to_fileobj(data, S3, rescale=False)
+        data_back = hdr.data_from_fileobj(S3)
+        assert_true(np.all(data == data_back))
+
+
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin):
+    header_class = Spm99AnalyzeHeader
+
+    def test_empty(self):
+        super(TestSpm99AnalyzeHeader, self).test_empty()
+        hdr = self.header_class()
+        assert_equal(hdr['scl_slope'], 1)
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -161,24 +181,28 @@ class ScalingMixin(object):
             raise ValueError('inter should be None')
 
     def assert_null_scaling(self, arr, slope, inter):
-        # Assert scaling makes not difference to img, load, save
+        # Assert scaling makes no difference to img, load, save
         img_class = self.image_class
         input_hdr = img_class.header_class()
+        # Scaling makes no difference to array returned from get_data
         self._set_raw_scaling(input_hdr, slope, inter)
         img = img_class(arr, np.eye(4), input_hdr)
         img_hdr = img.header
         self._set_raw_scaling(input_hdr, slope, inter)
         assert_array_equal(img.get_data(), arr)
-        # First do raw save / read
+        # Scaling has no effect on image as written via header (with rescaling
+        # turned off).
         fm = bytesio_filemap(img)
         img_fobj = fm['image'].fileobj
         hdr_fobj = img_fobj if not 'header' in fm else fm['header'].fileobj
         img_hdr.write_to(hdr_fobj)
-        img_hdr.data_to_fileobj(arr, img_fobj)
+        img_hdr.data_to_fileobj(arr, img_fobj, rescale=False)
         raw_rt_img = img_class.from_file_map(fm)
         assert_array_equal(raw_rt_img.get_data(), arr)
-        # Automated round trip
-        rt_img = bytesio_round_trip(img)
+        # Scaling makes no difference for image round trip
+        fm = bytesio_filemap(img)
+        img.to_file_map(fm)
+        rt_img = img_class.from_file_map(fm)
         assert_array_equal(rt_img.get_data(), arr)
 
     def test_header_scaling(self):

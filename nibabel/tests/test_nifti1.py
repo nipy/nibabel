@@ -10,7 +10,6 @@
 from __future__ import division, print_function, absolute_import
 import os
 import warnings
-import itertools
 
 import numpy as np
 
@@ -52,7 +51,7 @@ A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
 
-class TestNifti1PairHeader(tana.TestAnalyzeHeader):
+class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     header_class = Nifti1PairHeader
     example_file = header_file
     quat_dtype = np.float32
@@ -81,26 +80,32 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['sizeof_hdr'], self.sizeof_hdr)
 
-    def test_scaling(self):
+    def test_data_scaling(self):
         # Test scaling in header
+        super(TestNifti1PairHeader, self).test_data_scaling()
         hdr = self.header_class()
-        assert_true(hdr.default_x_flip)
-        shape = (1,2,3)
-        hdr.set_data_shape(shape)
+        data = np.arange(0, 3, 0.5).reshape((1, 2, 3))
+        hdr.set_data_shape(data.shape)
         hdr.set_data_dtype(np.float32)
-        data = np.arange(0, 3, 0.5).reshape(shape)
         S = BytesIO()
-        # Writing to float datatype doesn't need scaling
-        hdr.data_to_fileobj(data, S)
+        # Writing to float datatype with scaling gives slope, inter as identities
+        hdr.data_to_fileobj(data, S, rescale=True)
         assert_array_equal(hdr.get_slope_inter(), (1, 0))
         rdata = hdr.data_from_fileobj(S)
         assert_array_almost_equal(data, rdata)
-        # Writing to integer datatype does need scaling
+        # Writing to integer datatype with scaling gives non-identity scaling
         hdr.set_data_dtype(np.int8)
-        hdr.data_to_fileobj(data, S)
+        hdr.set_slope_inter(1, 0)
+        hdr.data_to_fileobj(data, S, rescale=True)
         assert_false(np.allclose(hdr.get_slope_inter(), (1, 0)))
         rdata = hdr.data_from_fileobj(S)
         assert_array_almost_equal(data, rdata)
+        # Without scaling does rounding, doesn't alter scaling
+        hdr.set_slope_inter(1, 0)
+        hdr.data_to_fileobj(data, S, rescale=False)
+        assert_array_equal(hdr.get_slope_inter(), (1, 0))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(np.round(data), rdata)
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors

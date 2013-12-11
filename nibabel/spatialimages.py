@@ -246,8 +246,20 @@ class Header(object):
 
     get_best_affine = get_base_affine
 
-    def data_to_fileobj(self, data, fileobj):
-        ''' Write image data to file in fortran order '''
+    def data_to_fileobj(self, data, fileobj, rescale=True):
+        ''' Write image data to file in Fortran memory layout
+
+        Parameters
+        ----------
+        data : array-like
+            data to write
+        fileobj : file-like object
+            file-like object implementing 'write'
+        rescale : {True, False}, optional
+            Whether to try and rescale data to match output dtype specified by
+            header. For this minimal header, `rescale` has no effect
+        '''
+        data = np.asarray(data)
         dtype = self.get_data_dtype()
         fileobj.write(data.astype(dtype).tostring(order='F'))
 

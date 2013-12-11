@@ -463,12 +463,12 @@ class AnalyzeHeader(LabeledWrapStruct):
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(data, slope, inter)
 
-    def data_to_fileobj(self, data, fileobj):
-        ''' Write `data` to `fileobj`, maybe modifying `self`
+    def data_to_fileobj(self, data, fileobj, rescale=True):
+        ''' Write `data` to `fileobj`, maybe rescaling data, modifying `self`
 
         In writing the data, we match the header to the written data, by
-        setting the header scaling factors.  Thus we modify `self` in
-        the process of writing the data.
+        setting the header scaling factors, iff `rescale` is True.  Thus we
+        modify `self` in the process of writing the data.
 
         Parameters
         ----------
@@ -477,6 +477,10 @@ class AnalyzeHeader(LabeledWrapStruct):
         fileobj : file-like object
            Object with file interface, implementing ``write`` and
            ``seek``
+        rescale : {True, False}, optional
+            Whether to try and rescale data to match output dtype specified by
+            header. If True and scaling needed and header cannot scale, then
+            raise ``HeaderTypeError``.
 
         Examples
         --------
@@ -497,13 +501,16 @@ class AnalyzeHeader(LabeledWrapStruct):
             raise HeaderDataError('Data should be shape (%s)' %
                                   ', '.join(str(s) for s in shape))
         out_dtype = self.get_data_dtype()
-        try:
-            arr_writer = make_array_writer(data,
-                                           out_dtype,
-                                           self.has_data_slope,
-                                           self.has_data_intercept)
-        except WriterError as e:
-            raise HeaderTypeError(str(e))
+        if rescale:
+            try:
+                arr_writer = make_array_writer(data,
+                                               out_dtype,
+                                               self.has_data_slope,
+                                               self.has_data_intercept)
+            except WriterError as e:
+                raise HeaderTypeError(str(e))
+        else:
+            arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
         seek_tell(fileobj, self.get_data_offset())
         arr_writer.to_fileobj(fileobj)
         self.set_slope_inter(*get_slope_inter(arr_writer))

@@ -21,7 +21,6 @@ import itertools
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
-from ..volumeutils import array_to_file
 from ..spatialimages import (HeaderDataError, HeaderTypeError,
                              supported_np_types)
 from ..analyze import AnalyzeHeader, AnalyzeImage
@@ -45,13 +44,6 @@ from .test_helpers import bytesio_filemap, bytesio_round_trip
 header_file = os.path.join(data_path, 'analyze.hdr')
 
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
-
-def _write_data(hdr, data, fileobj):
-    # auxilary function to write data
-    out_dtype = hdr.get_data_dtype()
-    offset = hdr.get_data_offset()
-    array_to_file(data, fileobj, out_dtype, offset)
-
 
 class TestAnalyzeHeader(_TestLabeledWrapStruct):
     header_class = AnalyzeHeader
@@ -336,14 +328,19 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # Try scaling down to integer
         hdr.set_data_dtype(np.uint8)
         S3 = BytesIO()
-        # Analyze header cannot do scaling, but, if not scaling, AnalyzeHeader
-        # is OK
-        _write_data(hdr, data, S3)
+        # Analyze header cannot do scaling, so turn off scaling with
+        # 'rescale=False'
+        hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_array_almost_equal(data, data_back)
-        # But, the data won't always be same as input if not scaling
+        # If the header can't do scaling, rescale raises an error
+        if not hdr.has_data_slope:
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, S3)
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, S3,
+                          rescale=True)
+        # If not scaling we lose precision from rounding
         data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        _write_data(hdr, data, S3)
+        hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_false(np.allclose(data, data_back))
         # Test RGB image
@@ -531,17 +528,18 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr.data_to_fileobj(data, S)
         rdata = hdr.data_from_fileobj(S)
         assert_array_almost_equal(data, rdata)
-        # Writing to integer datatype does, and raises an error
+        # Now test writing to integers
         hdr.set_data_dtype(np.int32)
-        assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
-        # unless we aren't scaling, in which case we convert the floats to
-        # integers and write
-        _write_data(hdr, data, S)
+        # Writing to int needs scaling, and raises an error if we can't scale
+        if not hdr.has_data_slope:
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
+        # But if we aren't scaling, convert the floats to integers and write
+        hdr.data_to_fileobj(data, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert_true(np.allclose(data, rdata))
         # This won't work for floats that aren't close to integers
         data_p5 = data + 0.5
-        _write_data(hdr, data_p5, S)
+        hdr.data_to_fileobj(data_p5, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert_false(np.allclose(data_p5, rdata))
 
