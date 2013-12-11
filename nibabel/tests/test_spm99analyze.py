@@ -287,6 +287,7 @@ class ScalingMixin(object):
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
 
+    @scipy_skip
     def test_no_scaling(self):
         # Test writing image converting types when no scaling
         img_class = self.image_class
@@ -330,6 +331,7 @@ class ScalingMixin(object):
         ):
             self._check_write_scaling(slope, inter, e_slope, e_inter)
 
+    @scipy_skip
     def test_nan2zero_range_ok(self):
         # Check that a floating point image with range not including zero gets
         # nans scaled correctly
