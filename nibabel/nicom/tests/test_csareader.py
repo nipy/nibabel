@@ -65,6 +65,17 @@ def test_csa_len0():
     assert_equal(len(tags), 44)
 
 
+def test_read_write_rt():
+    #Try doing a read-write-read round trip and make sure the dictionary 
+    #representation of the header is the same. We can't exactly reproduce the 
+    #original string representation currently.
+    for csa_str in (CSA2_B0, CSA2_B1000):
+        print "Testing round_trip"
+        csa_info = csa.read(csa_str)
+        new_csa_str = csa.write(csa_info)
+        new_csa_info = csa.read(new_csa_str)
+        assert_equal(csa_info, new_csa_info)
+
 def test_csa_params():
     for csa_str in (CSA2_B0, CSA2_B1000):
         csa_info = csa.read(csa_str)
