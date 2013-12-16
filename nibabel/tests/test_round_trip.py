@@ -23,8 +23,8 @@ def round_trip(arr, out_dtype):
     img.set_data_dtype(out_dtype)
     img.to_file_map()
     back = Nifti1Image.from_file_map(img.file_map)
-    hdr = back.get_header()
-    return (back.get_data(),) + hdr.get_slope_inter()
+    # Recover array and calculated scaling from array proxy object
+    return back.get_data(), back.dataobj.slope, back.dataobj.inter
 
 
 def check_params(in_arr, in_type, out_type):
