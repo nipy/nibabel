@@ -26,10 +26,12 @@ scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
 from ..casting import type_info
+from ..volumeutils import apply_read_scaling
 
 from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
 
 from . import test_analyze
+from .test_helpers import bytesio_round_trip
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
@@ -112,7 +114,121 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
                            'relative to dims')
 
 
-class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
+class ScalingMixin(object):
+    # Mixin to add scaling checks to image test class
+
+    def assert_scaling_equal(self, hdr, slope, inter):
+        h_slope, h_inter = self._get_raw_scaling(hdr)
+        assert_array_equal(h_slope, slope)
+        assert_array_equal(h_inter, inter)
+
+    def assert_scale_me_scaling(self, hdr):
+        # Assert that header `hdr` has "scale-me" scaling
+        slope, inter = self._get_raw_scaling(hdr)
+        if not slope is None:
+            assert_true(np.isnan(slope))
+        if not inter is None:
+            assert_true(np.isnan(inter))
+
+    def _get_raw_scaling(self, hdr):
+        return hdr['scl_slope'], None
+
+    def _set_raw_scaling(self, hdr, slope, inter):
+        # Brutal set of slope and inter
+        hdr['scl_slope'] = slope
+        if not inter is None:
+            raise ValueError('inter should be None')
+
+    def _check_write_scaling(self,
+                             slope,
+                             inter,
+                             effective_slope,
+                             effective_inter):
+        # Test that explicit set of slope / inter forces write of data using
+        # this slope, inter
+        # We use this helper function for children of the Analyze header
+        img_class = self.image_class
+        arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+        # We're going to test rounding later
+        arr[0, 0, 0] = 0.4
+        arr[1, 0, 0] = 0.6
+        aff = np.eye(4)
+        # Implicit header gives scale-me scaling
+        img = img_class(arr, aff)
+        self.assert_scale_me_scaling(img.header)
+        # Input header scaling reset when creating image
+        hdr = img.header
+        self._set_raw_scaling(hdr, slope, inter)
+        img = img_class(arr, aff)
+        self.assert_scale_me_scaling(img.header)
+        # Array from image unchanged by scaling
+        assert_array_equal(img.get_data(), arr)
+        # As does round trip
+        img_rt = bytesio_round_trip(img)
+        self.assert_scale_me_scaling(img_rt.header)
+        # Round trip array is not scaled
+        assert_array_equal(img_rt.get_data(), arr)
+        # Explicit scaling causes scaling after round trip
+        self._set_raw_scaling(img.header, slope, inter)
+        self.assert_scaling_equal(img.header, slope, inter)
+        # Array from image unchanged by scaling
+        assert_array_equal(img.get_data(), arr)
+        # But the array scaled after round trip
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(arr,
+                                              effective_slope,
+                                              effective_inter))
+        # The scaling set into the array proxy
+        do_slope, do_inter = img.header.get_slope_inter()
+        assert_array_equal(img_rt.dataobj.slope,
+                           1 if do_slope is None else do_slope)
+        assert_array_equal(img_rt.dataobj.inter,
+                           0 if do_inter is None else do_inter)
+        # The new header scaling has been reset
+        self.assert_scale_me_scaling(img_rt.header)
+        # But the original is the same as it was when we set it
+        self.assert_scaling_equal(img.header, slope, inter)
+        # The data gets rounded nicely if we need to do conversion
+        img.header.set_data_dtype(np.uint8)
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(np.round(arr),
+                                              effective_slope,
+                                              effective_inter))
+        # But we have to clip too
+        arr[-1, -1, -1] = 256
+        arr[-2, -1, -1] = -1
+        img_rt = bytesio_round_trip(img)
+        exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(exp_unscaled_arr,
+                                              effective_slope,
+                                              effective_inter))
+
+    def test_int_int_scaling(self):
+        # Check int to int conversion without slope, inter
+        img_class = self.image_class
+        arr = np.array([-1, 0, 256], dtype=np.int16)[:, None, None]
+        img = img_class(arr, np.eye(4))
+        hdr = img.header
+        img.set_data_dtype(np.uint8)
+        self._set_raw_scaling(hdr, 1, 0 if hdr.has_data_intercept else None)
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
+
+    def test_write_scaling(self):
+        # Check writes with scaling set
+        for slope, inter, e_slope, e_inter in (
+            (1, None, 1, None),
+            (0, None, 1, None),
+            (np.inf, None, 1, None),
+            (2, None, 2, None),
+        ):
+            self._check_write_scaling(slope, inter, e_slope, e_inter)
+
+
+class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
 
@@ -136,6 +252,10 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     test_header_scaling = (scipy_skip(
         test_analyze.TestAnalyzeImage.test_header_scaling
     ))
+
+    test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
+
+    test_write_scaling = scipy_skip(ScalingMixin.test_write_scaling)
 
     @scipy_skip
     def test_mat_read(self):

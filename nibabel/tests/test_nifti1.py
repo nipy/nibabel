@@ -20,6 +20,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..spatialimages import HeaderDataError
 from ..eulerangles import euler2mat
 from ..affines import from_matvec
+from ..volumeutils import apply_read_scaling
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
@@ -37,6 +38,7 @@ from nose import SkipTest
 from ..testing import data_path
 
 from . import test_analyze as tana
+from . import test_spm99analyze as tspm
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
@@ -590,7 +592,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
             assert_raises(HeaderDataError, hdr.set_data_dtype, np.longdouble)
 
 
-class TestNifti1Pair(tana.TestAnalyzeImage):
+class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
 
@@ -888,6 +890,24 @@ class TestNifti1Pair(tana.TestAnalyzeImage):
         img.header.set_data_offset(1024)
         img_rt = bytesio_round_trip(img)
         assert_equal(len(img_rt.header.extensions), 0)
+
+    def _get_raw_scaling(self, hdr):
+        return hdr['scl_slope'], hdr['scl_inter']
+
+    def _set_raw_scaling(self, hdr, slope, inter):
+        # Brutal set of slope and inter
+        hdr['scl_slope'] = slope
+        hdr['scl_inter'] = inter
+
+    def test_write_scaling(self):
+        # Check we can set slope, inter on write
+        for slope, inter, e_slope, e_inter in (
+            (1, 0, 1, 0),
+            (2, 0, 2, 0),
+            (2, 1, 2, 1),
+            (0, 0, 1, 0),
+            (np.inf, 0, 1, 0)):
+            self._check_write_scaling(slope, inter, e_slope, e_inter)
 
 
 class TestNifti1Image(TestNifti1Pair):

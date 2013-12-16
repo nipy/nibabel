@@ -21,7 +21,7 @@ import itertools
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
-from ..volumeutils import array_to_file
+from ..volumeutils import array_to_file, apply_read_scaling
 from ..spatialimages import (HeaderDataError, HeaderTypeError)
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..nifti1 import Nifti1Header
