@@ -81,7 +81,6 @@ zooms, in particular, negative X zooms.  We did not do this because the image
 can be loaded with and without a default flip, so the saved zoom will not
 constrain the affine.
 '''
-import sys
 
 import numpy as np
 
