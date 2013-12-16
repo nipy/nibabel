@@ -1042,14 +1042,15 @@ class TestNifti1General(object):
         hdr = img.get_header()
         assert_equal(hdr.get_data_dtype(), np.int16)
         # default should have no scaling
-        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        assert_array_equal(hdr.get_slope_inter(), (None, None))
         # set scaling
         hdr.set_slope_inter(2, 8)
         assert_equal(hdr.get_slope_inter(), (2, 8))
         # now build new image with updated header
         wnim = self.single_class(data, np.eye(4), header=hdr)
         assert_equal(wnim.get_data_dtype(), np.int16)
-        assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
+        # Header scaling reset to default by image creation
+        assert_equal(wnim.get_header().get_slope_inter(), (None, None))
         # write into the air again ;-)
         lnim = bytesio_round_trip(wnim)
         assert_equal(lnim.get_data_dtype(), np.int16)

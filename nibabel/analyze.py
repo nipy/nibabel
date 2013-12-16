@@ -839,6 +839,7 @@ class AnalyzeImage(SpatialImage):
             dataobj, affine, header, extra, file_map)
         # Reset consumable values
         self._header.set_data_offset(0)
+        self._header.set_slope_inter(None, None)
     __init__.__doc__ = SpatialImage.__init__.__doc__
 
     def get_header(self):

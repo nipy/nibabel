@@ -573,6 +573,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         hdr.set_data_shape(arr.shape)
         hdr.set_data_dtype(arr.dtype)
         hdr.set_data_offset(0)
+        hdr.set_slope_inter(np.nan, np.nan)
         assert_equal(img.header, hdr)
 
     def test_data_hdr_cache(self):
