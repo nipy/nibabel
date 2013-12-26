@@ -507,22 +507,11 @@ class MGHImage(SpatialImage):
         self.update_header()
         hdr = self.get_header()
         with file_map['image'].get_prepare_fileobj('wb') as mghf:
-            self._write_header(mghf, hdr)
+            hdr.writehdr_to(mghf)
             self._write_data(mghf, data, hdr)
             self._write_footer(mghf, hdr)
         self._header = hdr
         self.file_map = file_map
-
-    def _write_header(self, mghfile, header):
-        ''' Utility routine to write header
-
-        Parameters
-        ----------
-        mghfile  : file-like
-           file-like object implementing ``write``, open for writing
-        header : header object
-        '''
-        header.writehdr_to(mghfile)
 
     def _write_data(self, mghfile, data, header):
         ''' Utility routine to write image

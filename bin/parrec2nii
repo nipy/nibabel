@@ -12,6 +12,7 @@ import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
 from nibabel.loadsave import read_img_data
 from nibabel.filename_parser import splitext_addext
+from nibabel.volumeutils import seek_tell
 
 # global verbosity switch
 verbose_switch = False
@@ -171,12 +172,16 @@ def proc_file(infile, opts):
 
     verbose('Writing %s' % outfilename)
     # first write the header
-    nimg._write_header(outfile, nhdr, slope, intercept)
+    nhdr.set_slope_inter(slope, intercept)
+    nhdr.write_to(outfile)
+    # Seek to data offset position
+    offset = nhdr.get_data_offset()
+    seek_tell(outfile, offset, write0=True)
     # now the data itself, but prevent any casting or scaling
     nibabel.volumeutils.array_to_file(
             raw_data,
             outfile,
-            offset=nhdr.get_data_offset())
+            offset=offset)
     # done
     outfile.close()
 

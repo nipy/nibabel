@@ -699,7 +699,7 @@ def write_zeros(fileobj, count, block_size=8194):
     fileobj.write(b'\x00' * rem)
 
 
-def seek_tell(fileobj, offset):
+def seek_tell(fileobj, offset, write0=False):
     """ Seek in `fileobj` or check we're in the right place already
 
     Parameters
@@ -708,12 +708,25 @@ def seek_tell(fileobj, offset):
         object implementing ``seek`` and (if seek raises an IOError) ``tell``
     offset : int
         position in file to which to seek
+    write0 : {False, True}, optional
+        If True, and standard seek fails, try to write zeros to the file to
+        reach `offset`.  This can be useful when writing bz2 files, that cannot
+        do write seeks.
     """
     try:
         fileobj.seek(offset)
     except IOError as e:
-        if fileobj.tell() != offset:
+        # This can be a negative seek in write mode for gz file object or any
+        # seek in write mode for a bz2 file object
+        pos = fileobj.tell()
+        if pos == offset:
+            return
+        if not write0:
             raise IOError(str(e))
+        if pos > offset:
+            raise IOError("Can't write to seek backwards")
+        fileobj.write(b'\x00' * (offset - pos))
+        assert fileobj.tell() == offset
 
 
 def apply_read_scaling(arr, slope = 1.0, inter = 0.0):

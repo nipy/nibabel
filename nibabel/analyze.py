@@ -883,22 +883,6 @@ class AnalyzeImage(SpatialImage):
         """
         return file_map['header'], file_map['image']
 
-    def _write_header(self, header_file, header, slope, inter):
-        ''' Utility routine to write header
-
-        Parameters
-        ----------
-        header_file : file-like
-           file-like object implementing ``write``, open for writing
-        header : header object
-        slope : None or float
-           slope for data scaling
-        inter : None or float
-           intercept for data scaling
-        '''
-        header.set_slope_inter(slope, inter)
-        header.write_to(header_file)
-
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
 
@@ -931,13 +915,17 @@ class AnalyzeImage(SpatialImage):
         offset = hdr.get_data_offset()
         # Set values as necessary
         slope, inter = get_slope_inter(arr_writer)
-        self._write_header(hdrf, hdr, slope, inter)
+        hdr.set_slope_inter(slope, inter)
+        # Write header (this may modify data offset)
+        hdr.write_to(hdrf)
         # Write image
         shape = hdr.get_data_shape()
         if data.shape != shape:
             raise HeaderDataError('Data should be shape (%s)' %
                                   ', '.join(str(s) for s in shape))
-        seek_tell(imgf, hdr.get_data_offset())
+        # Seek to writing position, get there by writing zeros if seek fails
+        seek_tell(imgf, hdr.get_data_offset(), write0=True)
+        # Write array data
         arr_writer.to_fileobj(imgf)
         hdrf.close_if_mine()
         if not hdr_img_same:
