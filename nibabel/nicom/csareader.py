@@ -13,7 +13,7 @@ try:
     basestring
 except NameError:  # python 3
     basestring = str
-    
+
 try:
     range = xrange
 except NameError:  # python 3
@@ -51,25 +51,25 @@ class CSAWriteError(CSAError):
 
 
 def header_to_key_val_mapping(csa_header):
-    '''Convert the CSA header produced by the ``read`` function into a 
+    '''Convert the CSA header produced by the ``read`` function into a
     simpler key/value mapping.
-    
+
     Parameters
     ----------
     csa_header : dict
         The result from the ``read`` function.
-        
+
     Returns
     -------
     result : OrderedDict
-        Result where the keys come from the 'tags' sub dictionary of 
-        `csa_header`. The values come from the 'items' within that tags sub 
-        sub dictionary. If items has only one element it will be unpacked 
+        Result where the keys come from the 'tags' sub dictionary of
+        `csa_header`. The values come from the 'items' within that tags sub
+        sub dictionary. If items has only one element it will be unpacked
         from the list. Items with zero elements are removed.
     '''
     if csa_header is None:
         return None
-    
+
     result = OrderedDict()
     for tag in csa_header['tags']:
         items = csa_header['tags'][tag]['items']
@@ -80,7 +80,7 @@ def header_to_key_val_mapping(csa_header):
         else:
             result[tag] = items
     return result
-    
+
 
 def get_csa_header(dcm_data, csa_type='image'):
     ''' Get CSA header information from DICOM header
@@ -109,9 +109,9 @@ def get_csa_header(dcm_data, csa_type='image'):
         element_offset = 0x20
     else:
         raise ValueError('Invalid CSA header type "%s"' % csa_type)
-    csa_elem = find_private_element(dcm_data, 
-                                    0x29, 
-                                    'SIEMENS CSA HEADER', 
+    csa_elem = find_private_element(dcm_data,
+                                    0x29,
+                                    'SIEMENS CSA HEADER',
                                     element_offset)
     if csa_elem is None:
         return None
@@ -228,17 +228,17 @@ def write(csa_header):
     if not 0 < csa_header['n_tags'] <= 128:
         raise CSAWriteError('Number of tags `t` should be '
                            '0 < t <= 128')
-    result.append(struct.pack('2I', 
-                              csa_header['n_tags'], 
+    result.append(struct.pack('2I',
+                              csa_header['n_tags'],
                               csa_header['check'])
                  )
-    
-    #Build list of tags in correct order
+
+    # Build list of tags in correct order
     tags = list(csa_header['tags'].items())
     tags.sort(key=lambda x: x[1]['tag_no'])
     tag0_n_items = tags[0][1]['n_items']
-    
-    #Add the information for each tag
+
+    # Add the information for each tag
     for tag_name, tag_dict in tags:
         vm = tag_dict['vm']
         vr = tag_dict['vr']
@@ -252,16 +252,16 @@ def write(csa_header):
                                   n_items,
                                   tag_dict['last3'])
                      )
-                            
-        #Figure out the number of values for this tag
+
+        # Figure out the number of values for this tag
         if vm == 0:
             n_values = n_items
         else:
             n_values = vm
-        
-        #Add each item for this tag
+
+        # Add each item for this tag
         for item_no in range(n_items):
-            #Figure out the item length
+            # Figure out the item length
             if item_no >= n_values or tag_dict['items'][item_no] == '':
                 item_len = 0
             else:
@@ -270,10 +270,10 @@ def write(csa_header):
                     item = six.u(str(item))
                 item_nt_str = make_nt_str(item)
                 item_len = len(item_nt_str)
-            
-            #These values aren't actually preserved in the dict 
-            #representation of the header. Best we can do is set the ones 
-            #that determine the item length appropriately.
+
+            # These values aren't actually preserved in the dict
+            # representation of the header. Best we can do is set the ones
+            # that determine the item length appropriately.
             x0, x1, x2, x3 = 0, 0, 0, 0
             if csa_header['type'] == 1:  # CSA1 - odd length calculation
                 x0 = tag0_n_items + item_len
@@ -284,17 +284,17 @@ def write(csa_header):
             else: # CSA2
                 x1 = item_len
             result.append(struct.pack('4i', x0, x1, x2, x3))
-            
+
             if item_len == 0:
                 continue
-                
+
             result.append(item_nt_str)
             # go to 4 byte boundary
             plus4 = item_len % 4
             if plus4 != 0:
                 result.append(b'\x00' * (4 - plus4))
     return ''.join(result)
-    
+
 
 def get_scalar(csa_dict, tag_name):
     try:
@@ -397,7 +397,7 @@ def nt_str(s):
 
 def make_nt_str(s):
     ''' Create a null terminated byte string from a unicode object.
-    
+
     Parameters
     ----------
     s : unicode
@@ -408,4 +408,3 @@ def make_nt_str(s):
        s encoded as latin-1 with a null char appended
     '''
     return s.encode('latin-1') + b'\x00'
-

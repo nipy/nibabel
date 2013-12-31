@@ -330,8 +330,8 @@ def test_rotation_matrix():
 
 @dicom_test
 def test_use_csa_sign():
-    #Test that we get the same slice normal, even after swapping the iop 
-    #directions
+    # Test that we get the same slice normal, even after swapping the iop
+    # directions
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     iop = dw.image_orient_patient
     dw.image_orient_patient = np.c_[iop[:,1], iop[:,0]]
@@ -341,8 +341,8 @@ def test_use_csa_sign():
 
 @dicom_test
 def test_assert_parallel():
-    #Test that we get an AssertionError if the cross product and the CSA 
-    #slice normal are not parallel
+    # Test that we get an AssertionError if the cross product and the CSA
+    # slice normal are not parallel
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
     assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
@@ -350,8 +350,8 @@ def test_assert_parallel():
 
 @dicom_test
 def test_decimal_rescale():
-    #Test that we don't get back a data array with dtype np.object when our
-    #rescale slope is a decimal
+    # Test that we don't get back a data array with dtype np.object when our
+    # rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
     assert_not_equal(dw.get_data().dtype, np.object)
 

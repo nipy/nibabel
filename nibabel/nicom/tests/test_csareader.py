@@ -53,7 +53,7 @@ def test_csa_to_key_val():
     assert_equal(len(b_matrix), 6)
     b_value = csa_dict['B_value']
     assert_equal(b_value, 1000)
-        
+
 
 def test_csas0():
     for csa_str in (CSA2_B0, CSA2_B1000):
@@ -81,9 +81,9 @@ def test_csa_len0():
 
 
 def test_read_write_rt():
-    #Try doing a read-write-read round trip and make sure the dictionary 
-    #representation of the header is the same. We can't exactly reproduce the 
-    #original string representation currently.
+    # Try doing a read-write-read round trip and make sure the dictionary
+    # representation of the header is the same. We can't exactly reproduce the
+    # original string representation currently.
     for csa_str in (CSA2_B0, CSA2_B1000):
         csa_info = csa.read(csa_str)
         new_csa_str = csa.write(csa_info)

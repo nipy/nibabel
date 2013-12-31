@@ -54,7 +54,7 @@ def find_private_section(dcm_data, group_no, creator):
 
 
 def find_private_element(dcm_data, group_no, creator, elem_offset):
-    """ Return the private element in group `group_no` given creator name 
+    """ Return the private element in group `group_no` given creator name
     `creator` and the offset for the element number `elem_offset`.
 
     Paramters
@@ -82,4 +82,3 @@ def find_private_element(dcm_data, group_no, creator, elem_offset):
     if sect_start is None:
         return None
     return dcm_data.get((group_no, sect_start + elem_offset))
-
