@@ -43,6 +43,7 @@ from . import ecat
 # object imports
 from .fileholders import FileHolder, FileHolderError
 from .loadsave import load, save
+from .arrayproxy import is_proxy
 from .analyze import AnalyzeHeader, AnalyzeImage
 from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage

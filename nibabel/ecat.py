@@ -12,9 +12,10 @@ import numpy as np
 
 from .volumeutils import (native_code, swapped_code, make_dt_codes,
                            array_from_file)
-from .spatialimages import SpatialImage, ImageDataError
+from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
+from .fileslice import canonical_slicers, predict_shape, slice2outax
 
 
 MAINHDRSZ = 502
@@ -673,14 +674,48 @@ class EcatImageArrayProxy(object):
     def __array__(self):
         ''' Read of data from file
 
-        This reads ALL FRAMES into one array, can be memory expensive use
-        subheader.data_from_fileobj(frame) for less memory intensive reads
+        This reads ALL FRAMES into one array, can be memory expensive.
+
+        If you want to read only some slices, use the slicing syntax
+        (``__getitem__``) below, or ``subheader.data_from_fileobj(frame)``
         '''
         data = np.empty(self.shape)
         frame_mapping = self._subheader._mlist.get_frame_order()
         for i in sorted(frame_mapping):
             data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
         return data
+
+    def __getitem__(self, sliceobj):
+        """ Return slice `sliceobj` from ECAT data, optimizing if possible
+        """
+        sliceobj = canonical_slicers(sliceobj, self.shape)
+        # Indices into sliceobj referring to image axes
+        ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+        assert len(ax_inds) == len(self.shape)
+        frame_mapping = self._subheader._mlist.get_frame_order()
+        # Analyze index for 4th axis
+        slice3 = sliceobj[ax_inds[3]]
+        # We will load volume by volume.  Make slicer into volume by dropping
+        # index over the volume axis
+        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3]+1:]
+        # int index for 4th axis, load one slice
+        if isinstance(slice3, int):
+            data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
+            return data[in_slicer]
+        # slice axis for 4th axis, we will iterate over slices
+        out_shape = predict_shape(sliceobj, self.shape)
+        out_data = np.empty(out_shape)
+        # Slice into output data with out_slicer
+        out_slicer = [slice(None)] * len(out_shape)
+        # Work out axis corresponding to volume in output
+        in2out_ind = slice2outax(len(self.shape), sliceobj)[3]
+        # Iterate over specified 4th axis indices
+        for i in list(range(self.shape[3]))[slice3]:
+            data = self._subheader.data_from_fileobj(
+                frame_mapping[i][0])
+            out_slicer[in2out_ind] = i
+            out_data[tuple(out_slicer)] = data[in_slicer]
+        return out_data
 
 
 class EcatImage(SpatialImage):

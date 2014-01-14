@@ -8,32 +8,40 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Array proxy base class
 
-The API is - at minimum:
+The proxy API is - at minimum:
 
 * The object has a read-only attribute ``shape``
-* read only ``is_proxy`` attribute / property
-* the object returns the data array from ``np.asarray(obj)``
-* that modifying no object outside ``obj`` will affect the result of
+* read only ``is_proxy`` attribute / property set to True
+* the object returns the data array from ``np.asarray(prox)``
+* returns array slice from ``prox[<slice_spec>]`` where ``<slice_spec>`` is any
+  ndarray slice specification that does not use numpy 'advanced indexing'.
+* modifying no object outside ``obj`` will affect the result of
   ``np.asarray(obj)``.  Specifically:
   * Changes in position (``obj.tell()``) of passed file-like objects will
     not affect the output of from ``np.asarray(proxy)``.
   * if you pass a header into the __init__, then modifying the original
     header will not affect the result of the array return.
+
+See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
 
 from .volumeutils import BinOpener, array_from_file, apply_read_scaling
+from .fileslice import fileslice
 
 
 class ArrayProxy(object):
-    """
+    """ Class to act as proxy for the array that can be read from a file
+
     The array proxy allows us to freeze the passed fileobj and header such that
     it returns the expected data array.
 
-    This fairly generic implementation allows us to deal with Analyze and its
-    variants, including Nifti1, and with the MGH format, apparently.
+    This implementation assumes a contiguous array in the file object, with one
+    of the numpy dtypes, starting at a given file position ``offset`` with
+    single ``slope`` and ``intercept`` scaling to produce output values.
 
-    It requires a ``header`` object with methods:
+    The class ``__init__`` requires a ``header`` object with methods:
+
     * get_data_shape
     * get_data_dtype
     * get_data_offset
@@ -42,9 +50,15 @@ class ArrayProxy(object):
     The header should also have a 'copy' method.  This requirement will go away
     when the deprecated 'header' propoerty goes away.
 
-    Other image types might need to implement their own implementation of this
-    API.  See :mod:`minc` for an example.
+    This implementation allows us to deal with Analyze and its variants,
+    including Nifti1, and with the MGH format.
+
+    Other image types might need more specific classes to implement the API.
+    API.  See :mod:`nibabel.minc1` and :mod:`nibabel.ecat` for examples.
     """
+    # Assume Fortran array memory layout
+    order = 'F'
+
     def __init__(self, file_like, header):
         self.file_like = file_like
         # Copies of values needed to read array
@@ -90,6 +104,27 @@ class ArrayProxy(object):
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
-                                       self._offset)
+                                       offset=self._offset,
+                                       order=self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
+
+    def __getitem__(self, slicer):
+        with BinOpener(self.file_like) as fileobj:
+            raw_data = fileslice(fileobj,
+                                 slicer,
+                                 self._shape,
+                                 self._dtype,
+                                 self._offset,
+                                 order = self.order)
+        # Upcast as necessary for big slopes, intercepts
+        return apply_read_scaling(raw_data, self._slope, self._inter)
+
+
+def is_proxy(obj):
+    """ Return True if `obj` is an array proxy
+    """
+    try:
+        return obj.is_proxy
+    except AttributeError:
+        return False

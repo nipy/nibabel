@@ -1,10 +1,20 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Validate image proxy API
 
 Minimum array proxy API is:
 
-* read only shape attribute / property
-* read only is_proxy attribute / property
-* returns array from np.asarray(prox)
+* read only ``shape`` property
+* read only ``is_proxy`` property set to True
+* returns array from ``np.asarray(prox)``
+* returns array slice from ``prox[<slice_spec>]`` where ``<slice_spec>`` is any
+  non-fancy slice specification.
 
 And:
 
@@ -39,7 +49,7 @@ from ..optpkg import optional_package
 h5py, have_h5py, _ = optional_package('h5py')
 from .. import ecat
 
-from ..arrayproxy import ArrayProxy
+from ..arrayproxy import ArrayProxy, is_proxy
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
@@ -52,6 +62,23 @@ from ..testing import data_path as DATA_PATH
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
+
+def _some_slicers(shape):
+    ndim = len(shape)
+    slicers = np.eye(ndim).astype(np.int).astype(object)
+    slicers[slicers == 0] = slice(None)
+    for i in range(ndim):
+        if i % 2:
+            slicers[i, i] = -1
+        elif shape[i] < 2: # some proxy examples have length 1 axes
+            slicers[i, i] = 0
+    # Add a newaxis to keep us on our toes
+    no_pos = ndim // 2
+    slicers = np.hstack((slicers[:, :no_pos],
+                         np.empty((ndim, 1)),
+                         slicers[:, no_pos:]))
+    slicers[:, no_pos] = None
+    return [tuple(s) for s in slicers]
 
 
 class _TestProxyAPI(ValidateAPI):
@@ -81,6 +108,8 @@ class _TestProxyAPI(ValidateAPI):
         # Check shape
         prox, fio, hdr = pmaker()
         assert_true(prox.is_proxy)
+        assert_true(is_proxy(prox))
+        assert_false(is_proxy(np.arange(10)))
         # Read only
         assert_raises(AttributeError, setattr, prox, 'is_proxy', False)
 
@@ -117,6 +146,14 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(prox, params['arr_out'])
         fio.read() # move to end of file
         assert_array_equal(prox, params['arr_out'])
+
+    def validate_proxy_slicing(self, pmaker, params):
+        # Confirm that proxy object can be sliced correctly
+        arr = params['arr_out']
+        shape = arr.shape
+        prox, fio, hdr = pmaker()
+        for sliceobj in _some_slicers(shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
 
 
 class TestAnalyzeProxyAPI(_TestProxyAPI):
@@ -268,7 +305,9 @@ class TestMinc1API(_TestProxyAPI):
     file_class = minc1.Minc1File
     eg_fname = 'tiny.mnc'
     eg_shape = (10, 20, 20)
-    opener = netcdf_file
+    @staticmethod
+    def opener(f):
+        return netcdf_file(f, mode='r')
 
     def obj_params(self):
         """ Iterator returning (``proxy_creator``, ``proxy_params``) pairs
@@ -303,7 +342,9 @@ if have_h5py:
         file_class = minc2.Minc2File
         eg_fname = 'small.mnc'
         eg_shape = (18, 28, 29)
-        opener = h5py.File
+        @staticmethod
+        def opener(f):
+            return h5py.File(f, mode='r')
 
 
 class TestEcatAPI(_TestProxyAPI):

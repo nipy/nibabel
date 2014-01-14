@@ -71,7 +71,11 @@ class Minc2File(Minc1File):
         # Dimensions for a particular variable
         # Differs for MINC1 and MINC2 - see:
         # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
-        return var.attrs['dimorder'].split(',')
+        try:
+            dimorder = var.attrs['dimorder']
+        except KeyError: # No specified dimensions
+            return []
+        return dimorder.split(',')
 
     def get_data_dtype(self):
         return self._image.dtype
@@ -97,9 +101,37 @@ class Minc2File(Minc1File):
                                  'data type range')
         return np.asarray(valid_range, dtype=np.float)
 
-    def get_scaled_data(self):
-        data =  np.asarray(self._image)
-        return self._normalize(data)
+    def _get_scalar(self, var):
+        """ Get scalar value from HDF5 scalar """
+        return var.value
+
+    def _get_array(self, var):
+        """ Get array from HDF5 array """
+        return np.asanyarray(var)
+
+    def get_scaled_data(self, sliceobj=()):
+        """ Return scaled data for slice definition `sliceobj`
+
+        Parameters
+        ----------
+        sliceobj : tuple, optional
+            slice definition. If not specified, return whole array
+
+        Returns
+        -------
+        scaled_arr : array
+            array from minc file with scaling applied
+        """
+        if sliceobj == ():
+            raw_data = np.asanyarray(self._image)
+        else: # Try slicing into the HDF array (maybe it's possible)
+            try:
+                raw_data = self._image[sliceobj]
+            except (ValueError, TypeError):
+                raw_data = np.asanyarray(self._image)[sliceobj]
+            else:
+                raw_data = np.asanyarray(raw_data)
+        return self._normalize(raw_data, sliceobj)
 
 
 class Minc2Image(Minc1Image):

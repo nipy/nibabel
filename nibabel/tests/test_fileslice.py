@@ -10,7 +10,7 @@ from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          predict_shape, read_segments, _positive_slice,
                          threshold_heuristic, optimize_slicer, slice2len,
                          fill_slicer, optimize_read_slicers, slicers2segments,
-                         calc_slicedefs, _simple_fileslice)
+                         calc_slicedefs, _simple_fileslice, slice2outax)
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -103,25 +103,61 @@ def test_canonical_slicers():
     # Check out of range integer raises error
     assert_raises(ValueError, canonical_slicers, (10,), shape)
     assert_raises(ValueError, canonical_slicers, (1, 10), shape)
+    assert_raises(ValueError, canonical_slicers, (10,), shape, True)
+    assert_raises(ValueError, canonical_slicers, (1, 10), shape, True)
+    # Unless check_inds is False
+    assert_equal(canonical_slicers((10,), shape, False), (10, slice(None)))
+    assert_equal(canonical_slicers((1, 10,), shape, False), (1, 10))
     # Check negative -> positive
     assert_equal(canonical_slicers(-1, shape), (9, slice(None)))
     assert_equal(canonical_slicers((slice(None), -1), shape), (slice(None), 9))
 
 
+def test_slice2outax():
+    # Test function giving output axes from input ndims and slice
+    sn = slice(None)
+    assert_equal(slice2outax(1, (sn,)), (0,))
+    assert_equal(slice2outax(1, (1,)), (None,))
+    assert_equal(slice2outax(1, (None,)), (1,))
+    assert_equal(slice2outax(1, (None, 1)), (None,))
+    assert_equal(slice2outax(1, (None, 1, None)), (None,))
+    assert_equal(slice2outax(1, (None, sn)), (1,))
+    assert_equal(slice2outax(2, (sn,)), (0, 1))
+    assert_equal(slice2outax(2, (sn, sn)), (0, 1))
+    assert_equal(slice2outax(2, (1,)), (None, 0))
+    assert_equal(slice2outax(2, (sn, 1)), (0, None))
+    assert_equal(slice2outax(2, (None,)), (1, 2))
+    assert_equal(slice2outax(2, (None, 1)), (None, 1))
+    assert_equal(slice2outax(2, (None, 1, None)), (None, 2))
+    assert_equal(slice2outax(2, (None, 1, None, 2)), (None, None))
+    assert_equal(slice2outax(2, (None, sn, None, 1)), (1, None))
+    assert_equal(slice2outax(3, (sn,)), (0, 1, 2))
+    assert_equal(slice2outax(3, (sn, sn)), (0, 1, 2))
+    assert_equal(slice2outax(3, (sn, None, sn)), (0, 2, 3))
+    assert_equal(slice2outax(3, (sn, None, sn, None, sn)), (0, 2, 4))
+    assert_equal(slice2outax(3, (1,)), (None, 0, 1))
+    assert_equal(slice2outax(3, (None, sn, None, 1)), (1, None, 3))
+
+
 def _slices_for_len(L):
     # Example slices for a dimension of length L
-    return (
+    if L == 0:
+        raise ValueError('Need length > 0')
+    sdefs = [
         0,
         L // 2,
         L - 1,
         -1,
-        -2,
         slice(None),
-        slice(L-1),
-        slice(1, L-1),
-        slice(1, L-1, 2),
-        slice(L-1, 1, -1),
-        slice(L-1, 1, -2))
+        slice(L-1)]
+    if L > 1:
+        sdefs += [
+            -2,
+            slice(1, L-1),
+            slice(1, L-1, 2),
+            slice(L-1, 1, -1),
+            slice(L-1, 1, -2)]
+    return tuple(sdefs)
 
 
 def test_slice2len():
@@ -601,6 +637,36 @@ def _check_slicer(sliceobj, arr, fobj, offset, order,
     assert_array_equal(arr[sliceobj], new_slice)
 
 
+def slicer_samples(shape):
+    """ Generator returns slice samples for given `shape`
+    """
+    ndim = len(shape)
+    slicers_list = []
+    for i in range(ndim):
+        slicers_list.append(_slices_for_len(shape[i]))
+        for sliceobj in product(*slicers_list):
+            yield sliceobj
+    # Nones and ellipses
+    yield (None,)
+    if ndim == 0:
+        return
+    yield (None, 0)
+    yield (0, None)
+    yield (Ellipsis, -1)
+    yield (-1, Ellipsis)
+    yield (None, Ellipsis)
+    yield (Ellipsis, None)
+    yield (Ellipsis, None, None)
+    if ndim == 1:
+        return
+    yield (0, None, slice(None))
+    yield (Ellipsis, -1, None)
+    yield (0, Ellipsis, None)
+    if ndim == 2:
+        return
+    yield (slice(None), 0, -1, None)
+
+
 def test_fileslice():
     shapes = (15, 16, 17)
     for n_dim in range(1, len(shapes) + 1):
@@ -611,25 +677,8 @@ def test_fileslice():
                 fobj = BytesIO()
                 fobj.write(b'\0' * offset)
                 fobj.write(arr.tostring(order=order))
-                slicers_list = []
-                for i in range(n_dim):
-                    slicers_list.append(_slices_for_len(shape[i]))
-                    for sliceobj in product(*slicers_list):
-                        _check_slicer(sliceobj, arr, fobj, offset, order)
-    # Try some Nones and Ellipses
-    for order in 'FC':
-        arr = np.arange(24).reshape((2, 3, 4))
-        fobj = BytesIO()
-        fobj.write(b'\0' * offset)
-        fobj.write(arr.tostring(order=order))
-        _check_slicer((None,), arr, fobj, offset, order)
-        _check_slicer((None, 1), arr, fobj, offset, order)
-        _check_slicer((1, None, slice(None)), arr, fobj, offset, order)
-        _check_slicer((slice(None), 1, 2, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, 2, None), arr, fobj, offset, order)
-        _check_slicer((1, Ellipsis, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, None), arr, fobj, offset, order)
-        _check_slicer((Ellipsis, None, None), arr, fobj, offset, order)
+                for sliceobj in slicer_samples(shape):
+                    _check_slicer(sliceobj, arr, fobj, offset, order)
 
 
 def test_fileslice_errors():

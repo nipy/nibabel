@@ -26,6 +26,7 @@ from ..testing import data_path
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase
+from .test_fileslice import slicer_samples
 
 ecat_file = os.path.join(data_path, 'tinypet.v')
 
@@ -215,6 +216,14 @@ class TestEcatImage(TestCase):
         # Check it rereads
         data3 = np.array(data_prox)
         assert_array_equal(data3, dat)
+
+    def test_array_proxy_slicing(self):
+        # Test slicing of array proxy
+        arr = self.img.get_data()
+        prox = self.img.dataobj
+        assert_true(prox.is_proxy)
+        for sliceobj in slicer_samples(self.img.shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
 
     def test_isolation(self):
         # Test image isolated from external changes to affine

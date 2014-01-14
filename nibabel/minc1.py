@@ -11,6 +11,7 @@ import numpy as np
 from .externals.netcdf import netcdf_file
 
 from .spatialimages import SpatialImage
+from .fileslice import canonical_slicers
 
 from .deprecated import FutureWarningMixin
 
@@ -134,8 +135,16 @@ class Minc1File(object):
                              'data type range')
         return np.asarray(valid_range, dtype=np.float)
 
-    def _normalize(self, data):
-        """ Scale image data with recorded scalefactors
+    def _get_scalar(self, var):
+        """ Get scalar value from NetCDF scalar """
+        return var.getValue()
+
+    def _get_array(self, var):
+        """ Get array from NetCDF array """
+        return var.data
+
+    def _normalize(self, data, sliceobj=()):
+        """ Apply scaling to image data `data` already sliced with `sliceobj`
 
         http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node13.html
 
@@ -146,58 +155,87 @@ class Minc1File(object):
         The "image-max" and "image-min" are variables that describe the
         "max" and "min" of image over some dimensions of "image".
 
-        The usual case is that "image" has dimensions ["zspace",
-        "yspace", "xspace"] and "image-max" has dimensions
-        ["zspace"].
+        The usual case is that "image" has dimensions ["zspace", "yspace",
+        "xspace"] and "image-max" has dimensions ["zspace"], but there can be up
+        to two dimensions for over which scaling is specified.
+
+        Parameters
+        ----------
+        data : ndarray
+            data after applying `sliceobj` slicing to full image
+        sliceobj : tuple, optional
+            slice definition. If not specified, assume no slicing has been
+            applied to `data`
         """
         ddt = self.get_data_dtype()
         if ddt.type in np.sctypes['float']:
             return data
         image_max = self._image_max
         image_min = self._image_min
-        mx_dims = self._get_dimensions(self._image_max)
-        mn_dims = self._get_dimensions(self._image_min)
+        mx_dims = self._get_dimensions(image_max)
+        mn_dims = self._get_dimensions(image_min)
         if mx_dims != mn_dims:
             raise MincError('"image-max" and "image-min" do not '
                              'have the same dimensions')
         nscales = len(mx_dims)
+        if nscales > 2:
+            raise MincError('More than two scaling dimensions')
         if mx_dims != self._dim_names[:nscales]:
             raise MincError('image-max and image dimensions '
                             'do not match')
         dmin, dmax = self._get_valid_range()
-        if nscales == 0:
-            imax = np.asarray(image_max)
-            imin = np.asarray(image_min)
-            sc = (imax-imin) / (dmax-dmin)
-            return np.clip(data, dmin, dmax) * sc + (imin - dmin * sc)
-        out_data = np.empty(data.shape, np.float)
-
-        def _norm_slice(sdef):
-            imax = image_max[sdef]
-            imin = image_min[sdef]
-            in_data = np.clip(data[sdef], dmin, dmax)
-            sc = (imax-imin) / (dmax-dmin)
-            return in_data * sc + (imin - dmin * sc)
-
-        if nscales == 1:
-            for i in range(data.shape[0]):
-                out_data[i] = _norm_slice(i)
-        elif nscales == 2:
-            for i in range(data.shape[0]):
-                for j in range(data.shape[1]):
-                    out_data[i, j] = _norm_slice((i,j))
-        else:
-            raise MincError('More than two scaling dimensions')
+        out_data = np.clip(data, dmin, dmax)
+        if nscales == 0: # scalar values
+            imax = self._get_scalar(image_max)
+            imin = self._get_scalar(image_min)
+        else: # 1D or 2D array of scaling values
+            # We need to get the correct values from image-max and image-min to
+            # do the scaling.
+            shape = self.get_data_shape()
+            sliceobj = canonical_slicers(sliceobj, shape)
+            # Indices into sliceobj referring to image axes
+            ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+            assert len(ax_inds) == len(shape)
+            # Slice imax, imin using same slicer as for data
+            nscales_ax = ax_inds[nscales]
+            i_slicer = sliceobj[:nscales_ax]
+            # Fill slicer to broadcast against sliced data; add length 1 axis
+            # for each axis except int axes (which are dropped by slicing)
+            broad_part = tuple(None for s in sliceobj[ax_inds[nscales]:]
+                               if not isinstance(s, int))
+            i_slicer += broad_part
+            imax = self._get_array(image_max)[i_slicer]
+            imin = self._get_array(image_min)[i_slicer]
+        slope = (imax-imin) / (dmax-dmin)
+        inter = (imin - dmin * slope)
+        out_data *= slope
+        out_data += inter
         return out_data
 
-    def get_scaled_data(self):
+    def get_scaled_data(self, sliceobj=()):
+        """ Return scaled data for slice definition `sliceobj`
+
+        Parameters
+        ----------
+        sliceobj : tuple, optional
+            slice definition. If not specified, return whole array
+
+        Returns
+        -------
+        scaled_arr : array
+            array from minc file with scaling applied
+        """
+        if sliceobj == ():
+            raw_data = self._image.data
+        else:
+            raw_data = self._image.data[sliceobj]
         dtype = self.get_data_dtype()
-        data =  np.asarray(self._image.data).view(dtype)
-        return self._normalize(data)
+        data =  np.asarray(raw_data).view(dtype)
+        return self._normalize(data, sliceobj)
 
 
 class MincImageArrayProxy(object):
-    ''' Minc implemention of array proxy protocol
+    ''' Minc implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
@@ -218,11 +256,15 @@ class MincImageArrayProxy(object):
         ''' Read of data from file '''
         return self.minc_file.get_scaled_data()
 
+    def __getitem__(self, sliceobj):
+        """ Read slice `sliceobj` of data from file """
+        return self.minc_file.get_scaled_data(sliceobj)
+
 
 class Minc1Image(SpatialImage):
     ''' Class for MINC 1 format images
 
-    The MINC 1 image class uses the default header type, rather than a specific
+    The MINC1 image class uses the default header type, rather than a specific
     MINC header type - and reads the relevant information from the MINC file on
     load.
     '''
