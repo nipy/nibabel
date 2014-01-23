@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import numpy as np
+import itertools
 
 from ..externals.six import BytesIO
 
@@ -25,22 +26,34 @@ scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
-from ..casting import type_info
+from ..casting import type_info, shared_range
+from ..volumeutils import apply_read_scaling, _dt_min_max
+from ..spatialimages import supported_np_types, HeaderDataError
 
-from ..testing import (assert_equal, assert_true, assert_false, assert_raises)
+from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+
+from ..testing import assert_allclose_safely
 
 from . import test_analyze
+from .test_helpers import bytesio_round_trip, bytesio_filemap
+
+FLOAT_TYPES = np.sctypes['float']
+COMPLEX_TYPES = np.sctypes['complex']
+INT_TYPES = np.sctypes['int']
+UINT_TYPES = np.sctypes['uint']
+CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
+IUINT_TYPES = INT_TYPES + UINT_TYPES
+NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
-    header_class = Spm99AnalyzeHeader
+class HeaderScalingMixin(object):
+    """ Mixin to add scaling tests to header tests
 
-    def test_empty(self):
-        super(TestSpm99AnalyzeHeader, self).test_empty()
-        hdr = self.header_class()
-        assert_equal(hdr['scl_slope'], 1)
+    Needs to be a mixin so nifti tests can use this method without inheriting
+    directly from the SPM header tests
+    """
 
-    def test_scaling(self):
+    def test_data_scaling(self):
         hdr = self.header_class()
         hdr.set_data_shape((1,2,3))
         hdr.set_data_dtype(np.int16)
@@ -49,10 +62,31 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         # This uses scaling
         hdr.data_to_fileobj(data, S3)
         data_back = hdr.data_from_fileobj(S3)
+        # almost equal
         assert_array_almost_equal(data, data_back, 4)
+        # But not quite
+        assert_false(np.all(data == data_back))
         # This is exactly the same call, just testing it works twice
         data_back2 = hdr.data_from_fileobj(S3)
         assert_array_equal(data_back, data_back2, 4)
+        # Rescaling is the default
+        hdr.data_to_fileobj(data, S3, rescale=True)
+        data_back = hdr.data_from_fileobj(S3)
+        assert_array_almost_equal(data, data_back, 4)
+        assert_false(np.all(data == data_back))
+        # This doesn't use scaling, and so gets perfect precision
+        hdr.data_to_fileobj(data, S3, rescale=False)
+        data_back = hdr.data_from_fileobj(S3)
+        assert_true(np.all(data == data_back))
+
+
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin):
+    header_class = Spm99AnalyzeHeader
+
+    def test_empty(self):
+        super(TestSpm99AnalyzeHeader, self).test_empty()
+        hdr = self.header_class()
+        assert_equal(hdr['scl_slope'], 1)
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -67,6 +101,38 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
+
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (1.0, None))
+        for in_tup, exp_err, out_tup, raw_slope in (
+            ((2.0,), None, (2.0, None), 2.),
+            ((None,), None, (None, None), np.nan),
+            ((1.0, None), None, (1.0, None), 1.),
+            # non zero intercept causes error
+            ((None, 1.1), HeaderTypeError, (None, None), np.nan),
+            ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
+            # null scalings
+            ((0.0, None), HeaderDataError, (None, None), 0.),
+            ((np.nan, np.nan), None, (None, None), np.nan),
+            ((np.nan, None), None, (None, None), np.nan),
+            ((None, np.nan), None, (None, None), np.nan),
+            ((np.inf, None), HeaderDataError, (None, None), np.inf),
+            ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
+            ((None, 0.0), None, (None, None), np.nan)):
+            hdr = self.header_class()
+            if not exp_err is None:
+                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                # raw set
+                if not in_tup[0] is None:
+                    hdr['scl_slope'] = in_tup[0]
+            else:
+                hdr.set_slope_inter(*in_tup)
+                assert_equal(hdr.get_slope_inter(), out_tup)
+                # Check set survives through checking
+                hdr = Spm99AnalyzeHeader.from_header(hdr, check=True)
+                assert_equal(hdr.get_slope_inter(), out_tup)
+            assert_array_equal(hdr['scl_slope'], raw_slope)
 
     def test_origin_checks(self):
         HC = self.header_class
@@ -86,32 +152,228 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader):
                            'very large origin values '
                            'relative to dims')
 
-    def test_spm_scale_checks(self):
-        # checks for scale
-        hdr = self.header_class()
-        hdr['scl_slope'] = np.nan
-        # NaN and Inf string representation can be odd on windows, so we
-        # check against the representation on this system
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 1)
-        assert_equal(message, 'scale slope is %s; '
-                           'should be finite; '
-                           'setting scalefactor "scl_slope" to 1' %
-                           np.nan)
-        assert_raises(*raiser)
-        dxer = self.header_class.diagnose_binaryblock
-        assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is %s; '
-                           'should be finite' % np.nan)
-        hdr['scl_slope'] = np.inf
-        # Inf string representation can be odd on windows
-        assert_equal(dxer(hdr.binaryblock),
-                           'scale slope is %s; '
-                           'should be finite'
-                           % np.inf)
+
+class ScalingMixin(object):
+    # Mixin to add scaling checks to image test class
+    # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
+    # these tests for Nifti scaling, hence the mixin.
+
+    def assert_scaling_equal(self, hdr, slope, inter):
+        h_slope, h_inter = self._get_raw_scaling(hdr)
+        assert_array_equal(h_slope, slope)
+        assert_array_equal(h_inter, inter)
+
+    def assert_scale_me_scaling(self, hdr):
+        # Assert that header `hdr` has "scale-me" scaling
+        slope, inter = self._get_raw_scaling(hdr)
+        if not slope is None:
+            assert_true(np.isnan(slope))
+        if not inter is None:
+            assert_true(np.isnan(inter))
+
+    def _get_raw_scaling(self, hdr):
+        return hdr['scl_slope'], None
+
+    def _set_raw_scaling(self, hdr, slope, inter):
+        # Brutal set of slope and inter
+        hdr['scl_slope'] = slope
+        if not inter is None:
+            raise ValueError('inter should be None')
+
+    def assert_null_scaling(self, arr, slope, inter):
+        # Assert scaling makes no difference to img, load, save
+        img_class = self.image_class
+        input_hdr = img_class.header_class()
+        # Scaling makes no difference to array returned from get_data
+        self._set_raw_scaling(input_hdr, slope, inter)
+        img = img_class(arr, np.eye(4), input_hdr)
+        img_hdr = img.header
+        self._set_raw_scaling(input_hdr, slope, inter)
+        assert_array_equal(img.get_data(), arr)
+        # Scaling has no effect on image as written via header (with rescaling
+        # turned off).
+        fm = bytesio_filemap(img)
+        img_fobj = fm['image'].fileobj
+        hdr_fobj = img_fobj if not 'header' in fm else fm['header'].fileobj
+        img_hdr.write_to(hdr_fobj)
+        img_hdr.data_to_fileobj(arr, img_fobj, rescale=False)
+        raw_rt_img = img_class.from_file_map(fm)
+        assert_array_equal(raw_rt_img.get_data(), arr)
+        # Scaling makes no difference for image round trip
+        fm = bytesio_filemap(img)
+        img.to_file_map(fm)
+        rt_img = img_class.from_file_map(fm)
+        assert_array_equal(rt_img.get_data(), arr)
+
+    def test_header_scaling(self):
+        # For images that implement scaling, test effect of scaling
+        #
+        # This tests the affect of creating an image with a header containing
+        # the scaling, then writing the image and reading again.  So the scaling
+        # can be affected by the processing of the header when creating the
+        # image, or by interpretation of the scaling when creating the array.
+        #
+        # Analyze does not implement any scaling, but this test class is the
+        # base class for all Analyze-derived classes, such as NIfTI
+        img_class = self.image_class
+        hdr_class = img_class.header_class
+        if not hdr_class.has_data_slope:
+            return
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        invalid_slopes = (0, np.nan, np.inf, -np.inf)
+        for slope in (1,) + invalid_slopes:
+            self.assert_null_scaling(arr, slope, None)
+        if not hdr_class.has_data_intercept:
+            return
+        invalid_inters = (np.nan, np.inf, -np.inf)
+        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        for slope, inter in (invalid_pairs + bad_slopes_good_inter +
+                             good_slope_bad_inters):
+            self.assert_null_scaling(arr, slope, inter)
+
+    def _check_write_scaling(self,
+                             slope,
+                             inter,
+                             effective_slope,
+                             effective_inter):
+        # Test that explicit set of slope / inter forces write of data using
+        # this slope, inter
+        # We use this helper function for children of the Analyze header
+        img_class = self.image_class
+        arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+        # We're going to test rounding later
+        arr[0, 0, 0] = 0.4
+        arr[1, 0, 0] = 0.6
+        aff = np.eye(4)
+        # Implicit header gives scale-me scaling
+        img = img_class(arr, aff)
+        self.assert_scale_me_scaling(img.header)
+        # Input header scaling reset when creating image
+        hdr = img.header
+        self._set_raw_scaling(hdr, slope, inter)
+        img = img_class(arr, aff)
+        self.assert_scale_me_scaling(img.header)
+        # Array from image unchanged by scaling
+        assert_array_equal(img.get_data(), arr)
+        # As does round trip
+        img_rt = bytesio_round_trip(img)
+        self.assert_scale_me_scaling(img_rt.header)
+        # Round trip array is not scaled
+        assert_array_equal(img_rt.get_data(), arr)
+        # Explicit scaling causes scaling after round trip
+        self._set_raw_scaling(img.header, slope, inter)
+        self.assert_scaling_equal(img.header, slope, inter)
+        # Array from image unchanged by scaling
+        assert_array_equal(img.get_data(), arr)
+        # But the array scaled after round trip
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(arr,
+                                              effective_slope,
+                                              effective_inter))
+        # The scaling set into the array proxy
+        do_slope, do_inter = img.header.get_slope_inter()
+        assert_array_equal(img_rt.dataobj.slope,
+                           1 if do_slope is None else do_slope)
+        assert_array_equal(img_rt.dataobj.inter,
+                           0 if do_inter is None else do_inter)
+        # The new header scaling has been reset
+        self.assert_scale_me_scaling(img_rt.header)
+        # But the original is the same as it was when we set it
+        self.assert_scaling_equal(img.header, slope, inter)
+        # The data gets rounded nicely if we need to do conversion
+        img.header.set_data_dtype(np.uint8)
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(np.round(arr),
+                                              effective_slope,
+                                              effective_inter))
+        # But we have to clip too
+        arr[-1, -1, -1] = 256
+        arr[-2, -1, -1] = -1
+        img_rt = bytesio_round_trip(img)
+        exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
+        assert_array_equal(img_rt.get_data(),
+                           apply_read_scaling(exp_unscaled_arr,
+                                              effective_slope,
+                                              effective_inter))
+
+    def test_int_int_scaling(self):
+        # Check int to int conversion without slope, inter
+        img_class = self.image_class
+        arr = np.array([-1, 0, 256], dtype=np.int16)[:, None, None]
+        img = img_class(arr, np.eye(4))
+        hdr = img.header
+        img.set_data_dtype(np.uint8)
+        self._set_raw_scaling(hdr, 1, 0 if hdr.has_data_intercept else None)
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
+
+    @scipy_skip
+    def test_no_scaling(self):
+        # Test writing image converting types when no scaling
+        img_class = self.image_class
+        hdr_class = img_class.header_class
+        hdr = hdr_class()
+        supported_types = supported_np_types(hdr)
+        slope = 2
+        inter = 10 if hdr.has_data_intercept else 0
+        for in_dtype, out_dtype in itertools.product(
+            FLOAT_TYPES + IUINT_TYPES,
+            supported_types):
+            # Need to check complex scaling
+            mn_in, mx_in = _dt_min_max(in_dtype)
+            arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
+            arr = arr[:, None, None] # To 3D for no good reason
+            img = img_class(arr, np.eye(4), hdr)
+            img.set_data_dtype(out_dtype)
+            img.header.set_slope_inter(slope, inter)
+            rt_img = bytesio_round_trip(img)
+            back_arr = rt_img.get_data()
+            exp_back = arr.copy()
+            if in_dtype not in COMPLEX_TYPES:
+                exp_back = arr.astype(float)
+            if out_dtype in IUINT_TYPES:
+                exp_back = np.round(exp_back)
+                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+                exp_back = exp_back.astype(out_dtype).astype(float)
+            else:
+                exp_back = exp_back.astype(out_dtype)
+            # Allow for small differences in large numbers
+            assert_allclose_safely(back_arr,
+                                   exp_back * slope + inter)
+
+    def test_write_scaling(self):
+        # Check writes with scaling set
+        for slope, inter, e_slope, e_inter in (
+            (1, None, 1, None),
+            (0, None, 1, None),
+            (np.inf, None, 1, None),
+            (2, None, 2, None),
+        ):
+            self._check_write_scaling(slope, inter, e_slope, e_inter)
+
+    @scipy_skip
+    def test_nan2zero_range_ok(self):
+        # Check that a floating point image with range not including zero gets
+        # nans scaled correctly
+        img_class = self.image_class
+        arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+        arr[0, 0, 0] = np.nan
+        arr[1, 0, 0] = 256 # to push outside uint8 range
+        img = img_class(arr, np.eye(4))
+        rt_img = bytesio_round_trip(img)
+        assert_array_equal(rt_img.get_data(), arr)
+        # Uncontroversial so far, but now check that nan2zero works correctly
+        # for int type
+        img.set_data_dtype(np.uint8)
+        rt_img = bytesio_round_trip(img)
+        assert_equal(rt_img.get_data()[0, 0, 0], 0)
 
 
-class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
+class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
 
@@ -131,6 +393,12 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage):
     test_big_offset_exts = (scipy_skip(
         test_analyze.TestAnalyzeImage.test_big_offset_exts
     ))
+
+    test_header_scaling = scipy_skip(ScalingMixin.test_header_scaling)
+
+    test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
+
+    test_write_scaling = scipy_skip(ScalingMixin.test_write_scaling)
 
     @scipy_skip
     def test_mat_read(self):
@@ -235,22 +503,3 @@ def test_origin_affine():
          [ 0.,  2.,  0., -4.],
          [ 0.,  0.,  1., -3.],
          [ 0.,  0.,  0.,  1.]])
-
-
-def test_slope_inter():
-    hdr = Spm99AnalyzeHeader()
-    assert_equal(hdr.get_slope_inter(), (1.0, None))
-    for intup, outup in (((2.0,), (2.0, None)),
-                         ((None,), (None, None)),
-                         ((1.0, None), (1.0, None)),
-                         ((0.0, None), (None, None)),
-                         ((None, 0.0), (None, None))):
-        hdr.set_slope_inter(*intup)
-        assert_equal(hdr.get_slope_inter(), outup)
-        # Check set survives through checking
-        hdr = Spm99AnalyzeHeader.from_header(hdr, check=True)
-        assert_equal(hdr.get_slope_inter(), outup)
-    # Setting not-zero to offset raises error
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, None, 1.1)
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 2.0, 1.1)
-

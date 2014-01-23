@@ -1,36 +1,13 @@
 """ Testing array writer objects
 
-Array writers have init signature::
-
-    def __init__(self, array, out_dtype=None, order='F')
-
-and methods
-
-* to_fileobj(fileobj, offset=None)
-
-They do have attributes:
-
-* array
-* out_dtype
-* order
-
-They may have attributes:
-
-* slope
-* inter
-
-They are designed to write arrays to a fileobj with reasonable memory
-efficiency.
-
-Subclasses of array writers may be able to scale the array or apply an
-intercept, or do something else to make sense of conversions between float and
-int, or between larger ints and smaller.
+See docstring of :mod:`nibabel.arraywriters` for API.
 """
 from __future__ import division, print_function, absolute_import
 
 import sys
 from platform import python_compiler, machine
 from distutils.version import LooseVersion
+import itertools
 
 import numpy as np
 
@@ -40,9 +17,9 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
 
-from ..casting import int_abs, type_info
+from ..casting import int_abs, type_info, shared_range
 
-from ..volumeutils import array_from_file, apply_read_scaling
+from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -50,6 +27,9 @@ from numpy.testing import (assert_array_almost_equal,
 from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_not_equal,
                         assert_raises)
+
+from ..testing import assert_allclose_safely
+from ..checkwarns import ErrorWarnings
 
 
 FLOAT_TYPES = np.sctypes['float']
@@ -63,10 +43,10 @@ NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 NP_VERSION = LooseVersion(np.__version__)
 
 
-def round_trip(writer, order='F', nan2zero=True, apply_scale=True):
+def round_trip(writer, order='F', apply_scale=True):
     sio = BytesIO()
     arr = writer.array
-    writer.to_fileobj(sio, order, nan2zero=nan2zero)
+    writer.to_fileobj(sio, order)
     data_back = array_from_file(arr.shape, writer.out_dtype, sio, order=order)
     slope, inter = get_slope_inter(writer)
     if apply_scale:
@@ -123,6 +103,47 @@ def test_arraywriters():
             assert_true(arr_back.flags.c_contiguous)
 
 
+def test_arraywriter_check_scaling():
+    # Check keyword-only argument to ArrayWriter
+    # Within range - OK
+    arr = np.array([0, 1, 128, 255], np.uint8)
+    aw = ArrayWriter(arr)
+    # Out of range, scaling needed, default is error
+    assert_raises(WriterError, ArrayWriter, arr, np.int8)
+    # Make default explicit
+    assert_raises(WriterError, ArrayWriter, arr, np.int8, check_scaling=True)
+    # Turn off scaling check
+    aw = ArrayWriter(arr, np.int8, check_scaling=False)
+    assert_array_equal(round_trip(aw), np.clip(arr, 0, 127))
+    # Has to be keyword
+    assert_raises(TypeError, ArrayWriter, arr, np.int8, False)
+
+
+def test_no_scaling():
+    # Test arraywriter when writing different types without scaling
+    for in_dtype, out_dtype, awt in itertools.product(
+        NUMERIC_TYPES,
+        NUMERIC_TYPES,
+        (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
+        kwargs = (dict(check_scaling=False) if awt == ArrayWriter
+                  else dict(calc_scale=False))
+        aw = awt(arr, out_dtype, **kwargs)
+        back_arr = round_trip(aw)
+        exp_back = arr.astype(float)
+        if out_dtype in IUINT_TYPES:
+            exp_back = np.round(exp_back)
+            if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
+                # Finite scaling sets infs to min / max
+                exp_back = np.clip(exp_back, 0, 1)
+            else:
+                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+        exp_back = exp_back.astype(out_dtype)
+        # Sometimes working precision is float32 - allow for small differences
+        assert_allclose_safely(back_arr, exp_back)
+
+
 def test_scaling_needed():
     # Structured types return True if dtypes same, raise error otherwise
     dt_def = [('f', 'i4')]
@@ -161,7 +182,9 @@ def test_scaling_needed():
         for out_t in IUINT_TYPES:
             assert_false(ArrayWriter(arr_0, out_t).scaling_needed())
             assert_false(ArrayWriter(arr_e, out_t).scaling_needed())
-    # Going to (u)ints, non-finite arrays don't need scaling
+    # Going to (u)ints, non-finite arrays don't need scaling for writers that
+    # can do scaling because these use finite_range to threshold the input data,
+    # but ArrayWriter does not do this. so scaling_needed is True
     for in_t in FLOAT_TYPES:
         arr_nan = np.zeros(10, in_t) + np.nan
         arr_inf = np.zeros(10, in_t) + np.inf
@@ -169,7 +192,10 @@ def test_scaling_needed():
         arr_mix = np.array([np.nan, np.inf, -np.inf], dtype=in_t)
         for out_t in IUINT_TYPES:
             for arr in (arr_nan, arr_inf, arr_minf, arr_mix):
-                assert_false(ArrayWriter(arr, out_t).scaling_needed())
+                assert_true(
+                    ArrayWriter(arr, out_t, check_scaling=False).scaling_needed())
+                assert_false(SlopeArrayWriter(arr, out_t).scaling_needed())
+                assert_false(SlopeInterArrayWriter(arr, out_t).scaling_needed())
     # Floats as input always need scaling
     for in_t in FLOAT_TYPES:
         arr = np.ones(10, in_t)
@@ -201,16 +227,30 @@ def test_scaling_needed():
 
 
 def test_special_rt():
-    # Test that zeros; none finite - round trip to zeros
-    for arr in (np.array([np.inf, np.nan, -np.inf]),
-                np.zeros((3,))):
-        for in_dtt in FLOAT_TYPES:
-            for out_dtt in IUINT_TYPES:
-                for klass in (ArrayWriter, SlopeArrayWriter,
-                              SlopeInterArrayWriter):
-                    aw = klass(arr.astype(in_dtt), out_dtt)
-                    assert_equal(get_slope_inter(aw), (1, 0))
-                    assert_array_equal(round_trip(aw), 0)
+    # Test that zeros; none finite - round trip to zeros for scaleable types
+    # For ArrayWriter, these error for default creation, when forced to create
+    # the writer, they round trip to out_dtype max
+    arr = np.array([np.inf, np.nan, -np.inf])
+    for in_dtt in FLOAT_TYPES:
+        for out_dtt in IUINT_TYPES:
+            in_arr = arr.astype(in_dtt)
+            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            aw = ArrayWriter(in_arr, out_dtt, check_scaling=False)
+            mn, mx = shared_range(float, out_dtt)
+            assert_true(np.allclose(round_trip(aw).astype(float),
+                                    [mx, 0, mn]))
+            for klass in (SlopeArrayWriter, SlopeInterArrayWriter):
+                aw = klass(in_arr, out_dtt)
+                assert_equal(get_slope_inter(aw), (1, 0))
+                assert_array_equal(round_trip(aw), 0)
+    for in_dtt, out_dtt, awt in itertools.product(
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        arr = np.zeros((3,), dtype=in_dtt)
+        aw = awt(arr, out_dtt)
+        assert_equal(get_slope_inter(aw), (1, 0))
+        assert_array_equal(round_trip(aw), 0)
 
 
 def test_high_int2uint():
@@ -232,11 +272,14 @@ def test_slope_inter_castable():
                 arr = np.zeros((5,), dtype=in_dtt)
                 aw = klass(arr, out_dtt) # no error
     # Test special case of none finite
+    # This raises error for ArrayWriter, but not for the others
     arr = np.array([np.inf, np.nan, -np.inf])
     for in_dtt in FLOAT_TYPES:
-        for out_dtt in FLOAT_TYPES + IUINT_TYPES:
-            for klass in (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter):
-                aw = klass(arr.astype(in_dtt), out_dtt) # no error
+        for out_dtt in IUINT_TYPES:
+            in_arr = arr.astype(in_dtt)
+            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            aw = SlopeArrayWriter(arr.astype(in_dtt), out_dtt) # no error
+            aw = SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt) # no error
     for in_dtt, out_dtt, arr, slope_only, slope_inter, neither in (
         (np.float32, np.float32, 1, True, True, True),
         (np.float64, np.float32, 1, True, True, True),
@@ -375,49 +418,110 @@ def test_io_scaling():
     # Test scaling works for max, min when going from larger to smaller type,
     # and from float to integer.
     bio = BytesIO()
-    for in_type, out_type, err in ((np.int16, np.int16, None),
-                                   (np.int16, np.int8, None),
-                                   (np.uint16, np.uint8, None),
-                                   (np.int32, np.int8, None),
-                                   (np.float32, np.uint8, None),
-                                   (np.float32, np.int16, None)):
+    for in_type, out_type in itertools.product(
+        (np.int16, np.uint16, np.float32),
+        (np.int8, np.uint8, np.int16, np.uint16)):
         out_dtype = np.dtype(out_type)
-        arr = np.zeros((3,), dtype=in_type)
         info = type_info(in_type)
-        arr[0], arr[1] = info['min'], info['max']
-        aw = SlopeInterArrayWriter(arr, out_dtype, calc_scale=False)
-        if not err is None:
-            assert_raises(err, aw.calc_scale)
-            continue
-        aw.calc_scale()
+        imin, imax = info['min'], info['max']
+        if imin == 0: # unsigned int
+            val_tuples = ((0, imax),
+                          (100, imax))
+        else:
+            val_tuples = ((imin, 0, imax),
+                          (imin, 0),
+                          (0, imax),
+                          (imin, 100, imax))
+        if imin != 0:
+            val_tuples += ((imin, 0),
+                           (0, imax))
+        for vals in val_tuples:
+            arr = np.array(vals, dtype=in_type)
+            aw = SlopeInterArrayWriter(arr, out_dtype)
+            aw.to_fileobj(bio)
+            arr2 = array_from_file(arr.shape, out_dtype, bio)
+            arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
+            # Max rounding error for integer type
+            # Slope might be negative
+            max_miss = np.abs(aw.slope) / 2.
+            abs_err = np.abs(arr - arr3)
+            assert_true(np.all(abs_err <= max_miss))
+            if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
+                # Check that error is minimized for 0 as min or max
+                assert_true(min(abs_err) == abs_err[arr == 0])
+            bio.truncate(0)
+            bio.seek(0)
+
+
+def test_input_ranges():
+    # Test we get good precision for a range of input data
+    arr = np.arange(-500, 501, 10, dtype=np.float)
+    bio = BytesIO()
+    working_type = np.float32
+    work_eps = np.finfo(working_type).eps
+    for out_type, offset in itertools.product(
+        IUINT_TYPES,
+        range(-1000, 1000, 100)):
+        aw = SlopeInterArrayWriter(arr, out_type)
         aw.to_fileobj(bio)
-        bio.seek(0)
-        arr2 = array_from_file(arr.shape, out_dtype, bio)
+        arr2 = array_from_file(arr.shape, out_type, bio)
         arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
         # Max rounding error for integer type
-        max_miss = aw.slope / 2.
-        assert_true(np.all(np.abs(arr - arr3) <= max_miss))
+        # Slope might be negative
+        max_miss = np.abs(aw.slope) / working_type(2.) + work_eps * 10
+        abs_err = np.abs(arr - arr3)
+        max_err = np.abs(arr) * work_eps + max_miss
+        assert_true(np.all(abs_err <= max_err))
+        if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
+            # Check that error is minimized for 0 as min or max
+            assert_true(min(abs_err) == abs_err[arr == 0])
         bio.truncate(0)
         bio.seek(0)
 
 
 def test_nan2zero():
-    # Test conditions under which nans written to zero
+    # Test conditions under which nans written to zero, and error conditions
+    # nan2zero as argument to `to_fileobj` deprecated, raises error if not the
+    # same as input nan2zero - meaning that by default, nan2zero of False will
+    # raise an error.
     arr = np.array([np.nan, 99.], dtype=np.float32)
-    aw = SlopeInterArrayWriter(arr, np.float32)
-    data_back = round_trip(aw)
-    assert_array_equal(np.isnan(data_back), [True, False])
-    # nan2zero ignored for floats
-    data_back = round_trip(aw, nan2zero=True)
-    assert_array_equal(np.isnan(data_back), [True, False])
-    # Integer output with nan2zero gives zero
-    aw = SlopeInterArrayWriter(arr, np.int32)
-    data_back = round_trip(aw, nan2zero=True)
-    assert_array_equal(data_back, [0, 99])
-    # Integer output with nan2zero=False gives whatever astype gives
-    data_back = round_trip(aw, nan2zero=False)
-    astype_res = np.array(np.nan).astype(np.int32) * aw.slope + aw.inter
-    assert_array_equal(data_back, [astype_res, 99])
+    for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
+                        (SlopeArrayWriter, dict(calc_scale=False)),
+                        (SlopeInterArrayWriter, dict(calc_scale=False))):
+        # nan2zero default is True
+        # nan2zero ignored for floats
+        aw = awt(arr, np.float32, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(np.isnan(data_back), [True, False])
+        # Deprecation warning for nan2zero as argument to `to_fileobj`
+        with ErrorWarnings():
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', True)
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', nan2zero=True)
+        # Error if nan2zero is not the value set at initialization
+        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', False)
+        # set explicitly
+        aw = awt(arr, np.float32, nan2zero=True, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(np.isnan(data_back), [True, False])
+        # Integer output with nan2zero gives zero
+        aw = awt(arr, np.int32, **kwargs)
+        data_back = round_trip(aw)
+        assert_array_equal(data_back, [0, 99])
+        # Integer output with nan2zero=False gives whatever astype gives
+        aw = awt(arr, np.int32, nan2zero=False, **kwargs)
+        data_back = round_trip(aw)
+        astype_res = np.array(np.nan).astype(np.int32)
+        assert_array_equal(data_back, [astype_res, 99])
+        # Deprecation warning for nan2zero as argument to `to_fileobj`
+        with ErrorWarnings():
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', False)
+            assert_raises(DeprecationWarning,
+                          aw.to_fileobj, BytesIO(), 'F', nan2zero=False)
+        # Error if nan2zero is not the value set at initialization
+        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', True)
 
 
 def test_byte_orders():
@@ -607,6 +711,8 @@ def test_float_int_spread():
 
 def rt_err_estimate(arr_t, out_dtype, slope, inter):
     # Error attributable to rounding
+    slope = 1 if slope is None else slope
+    inter = 1 if inter is None else inter
     max_int_miss = slope / 2.
     # Estimate error attributable to floating point slope / inter;
     # Remove inter / slope, put in a float type to simulate the type
@@ -638,3 +744,107 @@ def test_rt_bias():
             # Hokey use of max_miss as a std estimate
             bias_thresh = np.max([max_miss / np.sqrt(count), eps])
             assert_true(np.abs(bias) < bias_thresh)
+
+
+def test_nan2zero_scaling():
+    # Scaling needs to take into account whether nan can be represented as zero
+    # in the input data (before scaling).
+    # nan can be represented as zero of we can store (0 - intercept) / divslope
+    # in the output data - because reading back the data as `stored_array  * divslope +
+    # intercept` will reconstruct zeros for the nans in the original input.
+    #
+    # Make array requiring scaling for which range does not cover zero -> arr
+    # Append nan to arr -> nan_arr
+    # Append 0 to arr -> zero_arr
+    # Write / read nan_arr, zero_arr
+    # Confirm nan, 0 generated same output value
+    for awt, in_dt, out_dt, sign in itertools.product(
+        (SlopeArrayWriter, SlopeInterArrayWriter),
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (-1, 1),
+        ):
+        in_info = np.finfo(in_dt)
+        out_info = np.iinfo(out_dt)
+        # Skip inpossible combinations
+        if in_info.min == 0 and sign == -1:
+            continue
+        mx = min(in_info.max, out_info.max * 2., 2**32)
+        vals = [np.nan] + [100, mx]
+        nan_arr = np.array(vals, dtype=in_dt) * sign
+        # Check that nan scales to same value as zero within same array
+        nan_arr_0 = np.array([0] + vals, dtype=in_dt) * sign
+        # Check that nan scales to almost the same value as zero in another array
+        zero_arr = np.nan_to_num(nan_arr)
+        nan_aw = awt(nan_arr, out_dt, nan2zero=True)
+        back_nan = round_trip(nan_aw) * float(sign)
+        nan_0_aw = awt(nan_arr_0, out_dt, nan2zero=True)
+        back_nan_0 = round_trip(nan_0_aw) * float(sign)
+        zero_aw = awt(zero_arr, out_dt, nan2zero=True)
+        back_zero = round_trip(zero_aw) * float(sign)
+        assert_true(np.allclose(back_nan[1:], back_zero[1:]))
+        assert_array_equal(back_nan[1:], back_nan_0[2:])
+        assert_true(np.abs(back_nan[0] - back_zero[0]) < 1e-2)
+        assert_equal(*back_nan_0[:2])
+
+
+def test_finite_range_nan():
+    # Test finite range method and has_nan property
+    for in_arr, res in (
+        ([[-1, 0, 1],[np.inf, np.nan, -np.inf]], (-1, 1)),
+        (np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]]), (-1, 1)),
+        ([[np.nan],[np.nan]], (np.inf, -np.inf)), # all nans slices
+        (np.zeros((3, 4, 5)) + np.nan, (np.inf, -np.inf)),
+        ([[-np.inf],[np.inf]], (np.inf, -np.inf)), # all infs slices
+        (np.zeros((3, 4, 5)) + np.inf, (np.inf, -np.inf)),
+        ([[np.nan, -1, 2], [-2, np.nan, 1]], (-2, 2)),
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([[-np.inf, 2], [np.nan, 1]], (1, 2)), # good max case
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([np.nan], (np.inf, -np.inf)),
+        ([np.inf], (np.inf, -np.inf)),
+        ([-np.inf], (np.inf, -np.inf)),
+        ([np.inf, 1], (1, 1)), # only look at finite values
+        ([-np.inf, 1], (1, 1)),
+        ([[],[]], (np.inf, -np.inf)), # empty array
+        (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+        (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
+        ([0., 1, 2, 3], (0,3)),
+        # Complex comparison works as if they are floats
+        ([[np.nan, -1-100j, 2], [-2, np.nan, 1+100j]], (-2, 2)),
+        ([[np.nan, -1, 2-100j], [-2+100j, np.nan, 1]], (-2+100j, 2-100j)),
+    ):
+        for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
+                            (SlopeArrayWriter, {}),
+                            (SlopeArrayWriter, dict(calc_scale=False)),
+                            (SlopeInterArrayWriter, {}),
+                            (SlopeInterArrayWriter, dict(calc_scale=False))):
+            for out_type in NUMERIC_TYPES:
+                has_nan = np.any(np.isnan(in_arr))
+                try:
+                    aw = awt(in_arr, out_type, **kwargs)
+                except WriterError:
+                    continue
+                # Should not matter about the order of finite range method call
+                # and has_nan property - test this is true
+                assert_equal(aw.has_nan, has_nan)
+                assert_equal(aw.finite_range(), res)
+                aw = awt(in_arr, out_type, **kwargs)
+                assert_equal(aw.finite_range(), res)
+                assert_equal(aw.has_nan, has_nan)
+                # Check float types work as complex
+                in_arr = np.array(in_arr)
+                if in_arr.dtype.kind == 'f':
+                    c_arr = in_arr.astype(np.complex)
+                    try:
+                        aw = awt(c_arr, out_type, **kwargs)
+                    except WriterError:
+                        continue
+                    aw = awt(c_arr, out_type, **kwargs)
+                    assert_equal(aw.has_nan, has_nan)
+                    assert_equal(aw.finite_range(), res)
+            # Structured type cannot be nan and we can test this
+            a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
+            aw = awt(a, a.dtype, **kwargs)
+            assert_raises(TypeError, aw.finite_range)
+            assert_false(aw.has_nan)

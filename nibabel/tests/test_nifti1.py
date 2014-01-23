@@ -31,11 +31,11 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
-from nose import SkipTest
 
 from ..testing import data_path
 
 from . import test_analyze as tana
+from . import test_spm99analyze as tspm
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
@@ -50,10 +50,21 @@ A[:3,:3] = np.array(R) * Z # broadcasting does the job
 A[:3,3] = T
 
 
-class TestNifti1PairHeader(tana.TestAnalyzeHeader):
+class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     header_class = Nifti1PairHeader
     example_file = header_file
     quat_dtype = np.float32
+    supported_np_types = tana.TestAnalyzeHeader.supported_np_types.union((
+        np.int8,
+        np.uint16,
+        np.uint32,
+        np.int64,
+        np.uint64,
+        np.complex128))
+    if have_binary128():
+        supported_np_types = supported_np_types.union((
+            np.longdouble,
+            np.longcomplex))
 
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
@@ -67,6 +78,33 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         assert_equal(hdr.endianness, '<')
         assert_equal(hdr['magic'], hdr.pair_magic)
         assert_equal(hdr['sizeof_hdr'], self.sizeof_hdr)
+
+    def test_data_scaling(self):
+        # Test scaling in header
+        super(TestNifti1PairHeader, self).test_data_scaling()
+        hdr = self.header_class()
+        data = np.arange(0, 3, 0.5).reshape((1, 2, 3))
+        hdr.set_data_shape(data.shape)
+        hdr.set_data_dtype(np.float32)
+        S = BytesIO()
+        # Writing to float datatype with scaling gives slope, inter as identities
+        hdr.data_to_fileobj(data, S, rescale=True)
+        assert_array_equal(hdr.get_slope_inter(), (1, 0))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+        # Writing to integer datatype with scaling gives non-identity scaling
+        hdr.set_data_dtype(np.int8)
+        hdr.set_slope_inter(1, 0)
+        hdr.data_to_fileobj(data, S, rescale=True)
+        assert_false(np.allclose(hdr.get_slope_inter(), (1, 0)))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+        # Without scaling does rounding, doesn't alter scaling
+        hdr.set_slope_inter(1, 0)
+        hdr.data_to_fileobj(data, S, rescale=False)
+        assert_array_equal(hdr.get_slope_inter(), (1, 0))
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(np.round(data), rdata)
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -83,76 +121,97 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
 
-    def test_nifti_log_checks(self):
-        # in addition to analyze header checks
-        HC = self.header_class
-        # intercept and slope
-        hdr = HC()
-        # Slope of 0 is OK
-        hdr['scl_slope'] = 0
-        fhdr, message, raiser = self.log_chk(hdr, 0)
-        assert_equal((fhdr, message), (hdr, ''))
-        # But not with non-zero intercept
-        hdr['scl_inter'] = 3
-        fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                           'Unused "scl_inter" is 3.0; should be 0; '
-                           'setting "scl_inter" to 0')
-        # Or not-finite intercept
-        hdr['scl_inter'] = np.nan
-        # NaN string representation can be odd on windows
-        nan_str = '%s' % np.nan
-        fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                           'Unused "scl_inter" is %s; should be 0; '
-                           'setting "scl_inter" to 0' % nan_str)
-        # Reset to usable scale
-        hdr['scl_slope'] = 1
-        # not finite inter is more of a problem
-        hdr['scl_inter'] = np.nan # severity 30
-        fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                           '"scl_slope" is 1.0; but "scl_inter" is %s; '
-                           '"scl_inter" should be finite; setting '
-                           '"scl_inter" to 0' % nan_str)
-        assert_raises(*raiser)
-        # Not finite scale also bad, generates message for scale and offset
-        hdr['scl_slope'] = np.nan
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 0)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                           '"scl_slope" is nan; should be finite; '
-                           'Unused "scl_inter" is nan; should be 0; '
-                           'setting "scl_slope" to 0 (no scaling); '
-                           'setting "scl_inter" to 0')
-        assert_raises(*raiser)
-        # Or just scale if inter is already 0
-        hdr['scl_inter'] = 0
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['scl_slope'], 0)
-        assert_equal(fhdr['scl_inter'], 0)
-        assert_equal(message,
-                           '"scl_slope" is nan; should be finite; '
-                           'setting "scl_slope" to 0 (no scaling)')
-        assert_raises(*raiser)
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        nan, inf, minf = np.nan, np.inf, -np.inf
+        HDE = HeaderDataError
+        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        for in_tup, exp_err, out_tup, raw_values in (
+            # Null scalings
+            ((None, None), None, (None, None), (nan, nan)),
+            ((nan, None), None, (None, None), (nan, nan)),
+            ((None, nan), None, (None, None), (nan, nan)),
+            ((nan, nan), None, (None, None), (nan, nan)),
+            # Can only be one null
+            ((None, 0), HDE, (None, None), (nan, 0)),
+            ((nan, 0), HDE, (None, None), (nan, 0)),
+            ((1, None), HDE, (None, None), (1, nan)),
+            ((1, nan), HDE, (None, None), (1, nan)),
+            # Bad slope plus anything generates an error
+            ((0, 0), HDE, (None, None), (0, 0)),
+            ((0, None), HDE, (None, None), (0, nan)),
+            ((0, nan), HDE, (None, None), (0, nan)),
+            ((0, inf), HDE, (None, None), (0, inf)),
+            ((0, minf), HDE, (None, None), (0, minf)),
+            ((inf, 0), HDE, (None, None), (inf, 0)),
+            ((inf, None), HDE, (None, None), (inf, nan)),
+            ((inf, nan), HDE, (None, None), (inf, nan)),
+            ((inf, inf), HDE, (None, None), (inf, inf)),
+            ((inf, minf), HDE, (None, None), (inf, minf)),
+            ((minf, 0), HDE, (None, None), (minf, 0)),
+            ((minf, None), HDE, (None, None), (minf, nan)),
+            ((minf, nan), HDE, (None, None), (minf, nan)),
+            ((minf, inf), HDE, (None, None), (minf, inf)),
+            ((minf, minf), HDE, (None, None), (minf, minf)),
+            # Good slope and bad intercept generates error for get_slope_inter
+            ((2, None), HDE, HDE, (2, nan)),
+            ((2, nan), HDE, HDE, (2, nan)),
+            ((2, inf), HDE, HDE, (2, inf)),
+            ((2, minf), HDE, HDE, (2, minf))):
+            # Good slope and inter - you guessed it
+            ((2, 0), None, (None, None), (2, 0)),
+            ((2, 1), None, (None, None), (2, 1)),
+            hdr = self.header_class()
+            if not exp_err is None:
+                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                in_list = [v if not v is None else np.nan for v in in_tup]
+                hdr['scl_slope'], hdr['scl_inter'] = in_list
+            else:
+                hdr.set_slope_inter(*in_tup)
+                if isinstance(out_tup, Exception):
+                    assert_raises(out_tup, hdr.get_slope_inter)
+                else:
+                    assert_equal(hdr.get_slope_inter(), out_tup)
+                    # Check set survives through checking
+                    hdr = self.header_class.from_header(hdr, check=True)
+                    assert_equal(hdr.get_slope_inter(), out_tup)
+            assert_array_equal([hdr['scl_slope'], hdr['scl_inter']], raw_values)
+
+    def test_nifti_qsform_checks(self):
+        # qfac, qform, sform checks
         # qfac
+        HC = self.header_class
         hdr = HC()
         hdr['pixdim'][0] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['pixdim'][0], 1)
-        assert_equal(message, 'pixdim[0] (qfac) should be 1 '
-                           '(default) or -1; setting qfac to 1')
+        assert_equal(message,
+                     'pixdim[0] (qfac) should be 1 '
+                     '(default) or -1; setting qfac to 1')
+        # qform, sform
+        hdr = HC()
+        hdr['qform_code'] = -1
+        fhdr, message, raiser = self.log_chk(hdr, 30)
+        assert_equal(fhdr['qform_code'], 0)
+        assert_equal(message,
+                     'qform_code -1 not valid; setting to 0')
+        hdr = HC()
+        hdr['sform_code'] = -1
+        fhdr, message, raiser = self.log_chk(hdr, 30)
+        assert_equal(fhdr['sform_code'], 0)
+        assert_equal(message,
+                     'sform_code -1 not valid; setting to 0')
+
+    def test_magic_offset_checks(self):
         # magic and offset
+        HC = self.header_class
         hdr = HC()
         hdr['magic'] = 'ooh'
         fhdr, message, raiser = self.log_chk(hdr, 45)
         assert_equal(fhdr['magic'], b'ooh')
-        assert_equal(message, 'magic string "ooh" is not valid; '
-                           'leaving as is, but future errors are likely')
+        assert_equal(message,
+                     'magic string "ooh" is not valid; '
+                     'leaving as is, but future errors are likely')
         # For pairs, any offset is OK, but should be divisible by 16
         # Singles need offset of at least 352 (nifti1) or 540 (nifti2) bytes,
         # with the divide by 16 rule
@@ -161,11 +220,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
                                    (hdr.single_magic, svo + 32, svo + 40)):
             hdr['magic'] = magic
             hdr['vox_offset'] = 0
-            fhdr, message, raiser = self.log_chk(hdr, 0)
-            assert_equal((fhdr, message), (hdr, ''))
+            self.assert_no_log_err(hdr)
             hdr['vox_offset'] = ok
-            fhdr, message, raiser = self.log_chk(hdr, 0)
-            assert_equal((fhdr, message), (hdr, ''))
+            self.assert_no_log_err(hdr)
             hdr['vox_offset'] = bad_spm
             fhdr, message, raiser = self.log_chk(hdr, 30)
             assert_equal(fhdr['vox_offset'], bad_spm)
@@ -178,22 +235,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr['vox_offset'] = 10
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(fhdr['vox_offset'], hdr.single_vox_offset)
-        assert_equal(message, 'vox offset 10 too low for single '
-                           'file nifti1; setting to minimum value '
-                           'of ' + str(hdr.single_vox_offset))
-        # qform, sform
-        hdr = HC()
-        hdr['qform_code'] = -1
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['qform_code'], 0)
-        assert_equal(message, 'qform_code -1 not valid; '
-                           'setting to 0')
-        hdr = HC()
-        hdr['sform_code'] = -1
-        fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert_equal(fhdr['sform_code'], 0)
-        assert_equal(message, 'sform_code -1 not valid; '
-                           'setting to 0')
+        assert_equal(message,
+                     'vox offset 10 too low for single '
+                     'file nifti1; setting to minimum value '
+                     'of ' + str(hdr.single_vox_offset))
 
     def test_freesurfer_hack(self):
         # For large vector images, Freesurfer appears to set dim[1] to -1 and
@@ -512,22 +557,6 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader):
         hdr.set_slice_times(times)
         assert_equal(hdr['slice_code'], 6)
 
-    def test_slope_inter(self):
-        hdr = self.header_class()
-        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
-        for intup, outup in (((2.0,), (2.0, 0.0)),
-                            ((None,), (None, None)),
-                            ((3.0, None), (3.0, 0.0)),
-                            ((0.0, None), (None, None)),
-                            ((None, 0.0), (None, None)),
-                            ((None, 3.0), (None, None)),
-                            ((2.0, 3.0), (2.0, 3.0))):
-            hdr.set_slope_inter(*intup)
-            assert_equal(hdr.get_slope_inter(), outup)
-            # Check set survives through checking
-            hdr = self.header_class.from_header(hdr, check=True)
-            assert_equal(hdr.get_slope_inter(), outup)
-
     def test_xyzt_units(self):
         hdr = self.header_class()
         assert_equal(hdr.get_xyzt_units(), ('unknown', 'unknown'))
@@ -591,9 +620,10 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
             assert_raises(HeaderDataError, hdr.set_data_dtype, np.longdouble)
 
 
-class TestNifti1Pair(tana.TestAnalyzeImage):
+class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
+    supported_np_types = TestNifti1PairHeader.supported_np_types
 
     def test_none_qsform(self):
         # Check that affine gets set to q/sform if header is None
@@ -890,6 +920,24 @@ class TestNifti1Pair(tana.TestAnalyzeImage):
         img_rt = bytesio_round_trip(img)
         assert_equal(len(img_rt.header.extensions), 0)
 
+    def _get_raw_scaling(self, hdr):
+        return hdr['scl_slope'], hdr['scl_inter']
+
+    def _set_raw_scaling(self, hdr, slope, inter):
+        # Brutal set of slope and inter
+        hdr['scl_slope'] = slope
+        hdr['scl_inter'] = inter
+
+    def test_write_scaling(self):
+        # Check we can set slope, inter on write
+        for slope, inter, e_slope, e_inter in (
+            (1, 0, 1, 0),
+            (2, 0, 2, 0),
+            (2, 1, 2, 1),
+            (0, 0, 1, 0),
+            (np.inf, 0, 1, 0)):
+            self._check_write_scaling(slope, inter, e_slope, e_inter)
+
 
 class TestNifti1Image(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests
@@ -1043,21 +1091,26 @@ class TestNifti1General(object):
         hdr = img.get_header()
         assert_equal(hdr.get_data_dtype(), np.int16)
         # default should have no scaling
-        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        assert_array_equal(hdr.get_slope_inter(), (None, None))
         # set scaling
         hdr.set_slope_inter(2, 8)
         assert_equal(hdr.get_slope_inter(), (2, 8))
         # now build new image with updated header
         wnim = self.single_class(data, np.eye(4), header=hdr)
         assert_equal(wnim.get_data_dtype(), np.int16)
-        assert_equal(wnim.get_header().get_slope_inter(), (2, 8))
+        # Header scaling reset to default by image creation
+        assert_equal(wnim.get_header().get_slope_inter(), (None, None))
+        # But we can reset it again after image creation
+        wnim.header.set_slope_inter(2, 8)
+        assert_equal(wnim.header.get_slope_inter(), (2, 8))
         # write into the air again ;-)
         lnim = bytesio_round_trip(wnim)
         assert_equal(lnim.get_data_dtype(), np.int16)
-        # the test below does not pass, because the slope and inter are
-        # always reset from the data, by the image write
-        raise SkipTest
-        assert_equal(lnim.get_header().get_slope_inter(), (2, 8))
+        # Scaling applied
+        assert_array_equal(lnim.get_data(), data * 2. + 8.)
+        # slope, inter reset by image creation, but saved in proxy
+        assert_equal(lnim.header.get_slope_inter(), (None, None))
+        assert_equal((lnim.dataobj.slope, lnim.dataobj.inter), (2, 8))
 
     def test_load(self):
         # test module level load.  We try to load a nii and an .img and a .hdr and

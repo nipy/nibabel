@@ -59,7 +59,8 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         is always None because SPM99 analyze cannot store intercepts.
         '''
         slope = self._structarr['scl_slope']
-        if slope == 0.0:
+        # Return invalid slopes as None
+        if np.isnan(slope) or slope in (0, -np.inf, np.inf):
             return None, None
         return slope, None
 
@@ -70,45 +71,28 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
-        Note that the SPM Analyze header can't save an intercept value,
-        and we raise an error for ``inter != 0``
+        The SPM Analyze header can't save an intercept value, and we raise an
+        error unless `inter` is None, NaN or 0
 
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope` of 1.0, `inter` of 0.0 (i.e. no
-           scaling of the image data).  If `slope` is not, we ignore the
-           passed value of `inter`
+           If None, implies `slope` of NaN.  NaN is a signal to the image
+           writing routines to rescale on save.  0, Inf, -Inf are invalid and
+           cause a HeaderDataError
         inter : None or float, optional
-           intercept (dc offset).  If float, must be 0, because SPM99 cannot
-           store intercepts.
+           intercept. Must be None, NaN or 0, because SPM99 cannot store
+           intercepts.
         '''
         if slope is None:
-            slope = 0.0
+            slope = np.nan
+        if slope in (0, -np.inf, np.inf):
+            raise HeaderDataError('Slope cannot be 0 or infinite')
         self._structarr['scl_slope'] = slope
-        if inter is None or inter == 0:
+        if inter in (None, 0) or np.isnan(inter):
             return
         raise HeaderTypeError('Cannot set non-zero intercept '
                               'for SPM headers')
-
-    @classmethod
-    def _get_checks(klass):
-        checks = super(SpmAnalyzeHeader, klass)._get_checks()
-        return checks + (klass._chk_scale,)
-
-    @staticmethod
-    def _chk_scale(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        scale = hdr['scl_slope']
-        if np.isfinite(scale):
-            return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = ('scale slope is %s; should be finite'
-                           % scale)
-        if fix:
-            hdr['scl_slope'] = 1
-            rep.fix_msg = 'setting scalefactor "scl_slope" to 1'
-        return hdr, rep
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):

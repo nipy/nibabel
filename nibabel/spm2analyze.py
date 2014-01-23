@@ -33,7 +33,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     template_dtype = header_dtype
 
     def get_slope_inter(self):
-        ''' Get data scaling (slope) and offset (intercept) from header data
+        ''' Get data scaling (slope) and intercept from header data
 
         Uses the algorithm from SPM2 spm_vol_ana.m by John Ashburner
 
@@ -51,11 +51,9 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         Returns
         -------
         scl_slope : None or float
-            scaling (slope).  None if there is no valid scaling from
-            these fields
+            slope.  None if there is no valid scaling from these fields
         scl_inter : None or float
-            offset (intercept).  Also None if there is no valid scaling,
-            offset
+            intercept.  Also None if there is no valid slope, intercept
 
         Examples
         --------
@@ -95,37 +93,21 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         True
         '''
         # get scaling factor from 'scl_slope' (funused1)
-        scale = float(self['scl_slope'])
-        if np.isfinite(scale) and scale:
+        slope = float(self['scl_slope'])
+        if np.isfinite(slope) and slope:
             # try to get offset from scl_inter
-            dc_offset = float(self['scl_inter'])
-            if not np.isfinite(dc_offset):
-                dc_offset = 0.0
-            return scale, dc_offset
+            inter = float(self['scl_inter'])
+            if not np.isfinite(inter):
+                inter = 0.0
+            return slope, inter
         # no non-zero and finite scaling, try gl/cal fields
         unscaled_range = self['glmax'] - self['glmin']
         scaled_range = self['cal_max'] - self['cal_min']
         if unscaled_range and scaled_range:
-            scale = float(scaled_range) / unscaled_range
-            dc_offset = self['cal_min'] - scale * self['glmin']
-            return scale, dc_offset
+            slope = float(scaled_range) / unscaled_range
+            inter = self['cal_min'] - slope * self['glmin']
+            return slope, inter
         return None, None
-
-    @classmethod
-    def _chk_scale(klass, hdr, fix=True):
-        rep = Report(HeaderDataError)
-        scale, offset = hdr.get_slope_inter()
-        # scl_slope of 0 is valid and implies no scaling OR intercept
-        if not scale is None or hdr['scl_slope'] == 0:
-            return hdr, rep
-        rep.problem_level = 30
-        rep.problem_msg = ('no valid scaling in scalefactor (=%s) '
-                           'or cal / gl fields; scalefactor assumed 1.0'
-                           % scale)
-        if fix:
-            hdr['scl_slope'] = 1
-            rep.fix_msg = 'setting scalefactor "scl_slope" to 1'
-        return hdr, rep
 
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):

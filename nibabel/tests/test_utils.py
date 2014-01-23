@@ -36,21 +36,26 @@ from ..volumeutils import (array_from_file,
                            make_dt_codes,
                            native_code,
                            shape_zoom_affine,
-                           rec2dict)
+                           rec2dict,
+                           _dt_min_max,
+                          )
 
-from ..casting import (floor_log2, type_info, best_float, OK_FLOATS)
+from ..casting import (floor_log2, type_info, best_float, OK_FLOATS,
+                       shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from ..testing import assert_dt_equal
+from ..testing import assert_dt_equal, assert_allclose_safely
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
-CFLOAT_TYPES = np.sctypes['complex'] + FLOAT_TYPES
-IUINT_TYPES = np.sctypes['int'] + np.sctypes['uint']
+COMPLEX_TYPES = np.sctypes['complex']
+CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
+INT_TYPES = np.sctypes['int']
+IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
@@ -160,6 +165,7 @@ def test_a2f_upscale():
 
 
 def test_a2f_min_max():
+    # Check min and max thresholding of array to file
     str_io = BytesIO()
     for in_dt in (np.float32, np.int8):
         for out_dt in (np.float32, np.int8):
@@ -180,6 +186,10 @@ def test_a2f_min_max():
     # Even when scaling is negative
     data_back = write_return(arr, str_io, np.int, 0, 1, -0.5, 1, 2)
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
+    # Check complex numbers
+    arr = np.arange(4, dtype=np.complex64) + 100j
+    data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
+    assert_array_equal(data_back, [1, 1, 2, 2])
 
 
 def test_a2f_order():
@@ -204,17 +214,45 @@ def test_a2f_nan2zero():
     arr = np.array([[np.nan, 0],[0, np.nan]])
     data_back = write_return(arr, str_io, ndt) # float, thus no effect
     assert_array_equal(data_back, arr)
-    # True is the default, but just to show its possible
+    # True is the default, but just to show it's possible
     data_back = write_return(arr, str_io, ndt, nan2zero=True)
     assert_array_equal(data_back, arr)
-    data_back = write_return(arr, str_io,
-                             np.dtype(np.int64), nan2zero=True)
+    data_back = write_return(arr, str_io, np.int64, nan2zero=True)
     assert_array_equal(data_back, [[0, 0],[0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
-    data_back = write_return(arr, str_io,
-                             np.dtype(np.int64), nan2zero=False)
+    data_back = write_return(arr, str_io, np.int64, nan2zero=False)
     assert_array_equal(data_back, arr.astype(np.int64))
+
+
+def test_a2f_nan2zero_scaling():
+    # Check that nan gets translated to the nearest equivalent to zero
+    #
+    # nan can be represented as zero of we can store (0 - intercept) / divslope
+    # in the output data - because reading back the data as `stored_array  * divslope +
+    # intercept` will reconstruct zeros for the nans in the original input.
+    #
+    # Check with array containing nan, matching array containing zero and
+    # Array containing zero
+    # Array values otherwise not including zero without scaling
+    # Same with negative sign
+    # Array values including zero before scaling but not after
+    bio = BytesIO()
+    for in_dt, out_dt, zero_in, inter in itertools.product(
+        FLOAT_TYPES,
+        IUINT_TYPES,
+        (True, False),
+        (0, -100)):
+        in_info = np.finfo(in_dt)
+        out_info = np.iinfo(out_dt)
+        mx = min(in_info.max, out_info.max * 2., 2**32) + inter
+        mn = 0 if zero_in or inter else 100
+        vals = [np.nan] + [mn, mx]
+        nan_arr = np.array(vals, dtype=in_dt)
+        zero_arr = np.nan_to_num(nan_arr)
+        back_nan = write_return(nan_arr, bio, np.int64, intercept=inter)
+        back_zero = write_return(zero_arr, bio, np.int64, intercept=inter)
+        assert_array_equal(back_nan, back_zero)
 
 
 def test_a2f_offset():
@@ -265,14 +303,21 @@ def test_a2f_big_scalers():
     info = type_info(np.float32)
     arr = np.array([info['min'], np.nan, info['max']], dtype=np.float32)
     str_io = BytesIO()
-    # Intercept causes overflow - does routine scale correctly?
-    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120))
+    # Intercept causes overflow - does routine scale correctly? It appears to,
+    # but the middle zero for nan is only because casting the massive negative
+    # value to int8 emerges as zero - so the returned zero for NaN is a bad
+    # test. We need nan2zero off because we can't store the scaled value for 0
+    # in the output type - so an input 0 will not round trip (scaling then
+    # reverse scaling) to 0 - and neither will NaN
+    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
+                  nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
-    # Scales also if mx, mn specified?
+    # Scales also if mx, mn specified? Same notes and complaints as for the test
+    # above.
     str_io.seek(0)
     array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
-                  intercept=np.float32(2**120))
+                  intercept=np.float32(2**120), nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
     # And if slope causes overflow?
@@ -288,8 +333,182 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
 
 
+def test_a2f_int_scaling():
+    # Check that we can use integers for intercept and divslope
+    arr = np.array([0, 1, 128, 255], dtype=np.uint8)
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, np.uint8, intercept=1)
+    assert_array_equal(back_arr, np.clip(arr - 1., 0, 255))
+    back_arr = write_return(arr, fobj, np.uint8, divslope=2)
+    assert_array_equal(back_arr, np.round(np.clip(arr / 2., 0, 255)))
+    back_arr = write_return(arr, fobj, np.uint8, intercept=1, divslope=2)
+    assert_array_equal(back_arr, np.round(np.clip((arr - 1.) / 2., 0, 255)))
+    back_arr = write_return(arr, fobj, np.int16, intercept=1, divslope=2)
+    assert_array_equal(back_arr, np.round((arr - 1.) / 2.))
+
+
+def test_a2f_scaled_unscaled():
+    # Test behavior of array_to_file when writing different types with and
+    # without scaling
+    fobj = BytesIO()
+    for in_dtype, out_dtype, intercept, divslope in itertools.product(
+        NUMERIC_TYPES,
+        NUMERIC_TYPES,
+        (0, 0.5, -1, 1),
+        (1, 0.5, 2)):
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
+        arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        mn_out, mx_out = _dt_min_max(out_dtype)
+        nan_fill = -intercept / divslope
+        if out_dtype in IUINT_TYPES:
+            nan_fill = np.round(nan_fill)
+        if (in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out):
+            assert_raises(ValueError,
+                          array_to_file,
+                          arr,
+                          fobj,
+                          out_dtype=out_dtype,
+                          divslope=divslope,
+                          intercept=intercept)
+            continue
+        back_arr = write_return(arr, fobj,
+                                out_dtype=out_dtype,
+                                divslope=divslope,
+                                intercept=intercept)
+        exp_back = arr.copy()
+        if out_dtype in IUINT_TYPES:
+            exp_back[np.isnan(exp_back)] = 0
+        if in_dtype not in COMPLEX_TYPES:
+            exp_back = exp_back.astype(float)
+        if intercept != 0:
+            exp_back -= intercept
+        if divslope != 1:
+            exp_back /= divslope
+        if out_dtype in IUINT_TYPES:
+            exp_back = np.round(exp_back).astype(float)
+            exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            exp_back = exp_back.astype(out_dtype)
+        else:
+            exp_back = exp_back.astype(out_dtype)
+        # Allow for small differences in large numbers
+        assert_allclose_safely(back_arr, exp_back)
+
+
+def test_a2f_nanpos():
+    # Strange behavior of nan2zero
+    arr = np.array([np.nan])
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, np.int8, divslope=2)
+    assert_array_equal(back_arr, 0)
+    back_arr = write_return(arr, fobj, np.int8, intercept=10, divslope=2)
+    assert_array_equal(back_arr, -5)
+
+
+def test_a2f_bad_scaling():
+    # Test that pathological scalers raise an error
+    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ['int',
+                                                       'uint',
+                                                       'float',
+                                                       'complex']],
+                         [])
+    for in_type, out_type, slope, inter in itertools.product(
+        NUMERICAL_TYPES,
+        NUMERICAL_TYPES,
+        (None, 1, 0, np.nan, -np.inf, np.inf),
+        (0, np.nan, -np.inf, np.inf)):
+        arr = np.ones((2,), dtype=in_type)
+        fobj = BytesIO()
+        if (slope, inter) == (1, 0):
+            assert_array_equal(arr,
+                               write_return(arr, fobj, out_type,
+                                            intercept=inter,
+                                            divslope=slope))
+        elif (slope, inter) == (None, 0):
+            assert_array_equal(0,
+                               write_return(arr, fobj, out_type,
+                                            intercept=inter,
+                                            divslope=slope))
+        else:
+            assert_raises(ValueError,
+                          array_to_file,
+                          arr,
+                          fobj,
+                          np.int8,
+                          intercept=inter,
+                          divslope=slope)
+
+
+def test_a2f_nan2zero_range():
+    # array_to_file should check if nan can be represented as zero
+    # This comes about when the writer can't write the value (-intercept /
+    # divslope) because it does not fit in the output range.  Input clipping
+    # should not affect this
+    fobj = BytesIO()
+    # No problem for input integer types - they don't have NaNs
+    for dt in INT_TYPES:
+        arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        # No errors from explicit thresholding (nor for input float types)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mn=1, nan2zero=True)
+        assert_array_equal([1, 1, 1, 2], back_arr)
+        back_arr = write_return(arr_no_nan, fobj, np.int8, mx=-1, nan2zero=True)
+        assert_array_equal([-1, -1, -1, -1], back_arr)
+        # Pushing zero outside the output data range does not generate error
+        back_arr = write_return(arr_no_nan, fobj, np.int8, intercept=129, nan2zero=True)
+        assert_array_equal([-128, -128, -128, -127], back_arr)
+        back_arr = write_return(arr_no_nan, fobj, np.int8,
+                                intercept=257.1, divslope=2, nan2zero=True)
+        assert_array_equal([-128, -128, -128, -128], back_arr)
+    for dt in CFLOAT_TYPES:
+        arr = np.array([-1, 0, 1, np.nan], dtype=dt)
+        # Error occurs for arrays without nans too
+        arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        # No errors from explicit thresholding
+        # mn thresholding excluding zero
+        assert_array_equal([1, 1, 1, 0],
+                           write_return(arr, fobj, np.int8, mn=1))
+        # mx thresholding excluding zero
+        assert_array_equal([-1, -1, -1, 0],
+                           write_return(arr, fobj, np.int8, mx=-1))
+        # Errors from datatype threshold after scaling
+        back_arr = write_return(arr, fobj, np.int8, intercept=128)
+        assert_array_equal([-128, -128, -127, -128], back_arr)
+        assert_raises(ValueError, write_return, arr, fobj, np.int8, intercept=129)
+        assert_raises(ValueError, write_return, arr_no_nan, fobj, np.int8, intercept=129)
+        # OK with nan2zero false
+        back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
+        assert_array_equal([-128, -128, -128, 0], back_arr)
+        # divslope
+        back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
+        assert_array_equal([-128, -128, -128, -128], back_arr)
+        assert_raises(ValueError, write_return, arr, fobj, np.int8,
+                      intercept=257.1, divslope=2)
+        assert_raises(ValueError, write_return, arr_no_nan, fobj, np.int8,
+                      intercept=257.1, divslope=2)
+        # OK with nan2zero false
+        back_arr = write_return(arr, fobj, np.int8,
+                                intercept=257.1, divslope=2, nan2zero=False)
+        assert_array_equal([-128, -128, -128, 0], back_arr)
+
+
+def test_a2f_non_numeric():
+    # Reminder that we may get structured dtypes
+    dt = np.dtype([('f1', 'f'), ('f2', 'i2')])
+    arr = np.zeros((2,), dtype=dt)
+    arr['f1'] = 0.4, 0.6
+    arr['f2'] = 10, 12
+    fobj = BytesIO()
+    back_arr = write_return(arr, fobj, dt)
+    assert_array_equal(back_arr, arr)
+    back_arr = write_return(arr, fobj, float)
+    assert_array_equal(back_arr, arr.astype(float))
+    assert_raises(ValueError, write_return, arr, fobj, float, mn=0)
+    assert_raises(ValueError, write_return, arr, fobj, float, mx=10)
+
+
 def write_return(data, fileobj, out_dtype, *args, **kwargs):
     fileobj.truncate(0)
+    fileobj.seek(0)
     array_to_file(data, fileobj, out_dtype, *args, **kwargs)
     data = array_from_file(data.shape, out_dtype, fileobj)
     return data
@@ -348,6 +567,14 @@ def test_apply_read_scaling_ints():
     assert_array_equal(apply_read_scaling(arr, 1, 0), arr)
     assert_array_equal(apply_read_scaling(arr, 1, 1), arr + 1)
     assert_array_equal(apply_read_scaling(arr, 2, 1), arr * 2 + 1)
+
+
+def test_apply_read_scaling_nones():
+    # Check that we can pass None as slope and inter to apply read scaling
+    arr = np.arange(10, dtype=np.int16)
+    assert_array_equal(apply_read_scaling(arr, None, None), arr)
+    assert_array_equal(apply_read_scaling(arr, 2, None), arr * 2)
+    assert_array_equal(apply_read_scaling(arr, None, 1), arr + 1)
 
 
 def test__inter_type():

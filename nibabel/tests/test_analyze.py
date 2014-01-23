@@ -16,18 +16,20 @@ import os
 import re
 import logging
 import pickle
+import itertools
 
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
-from ..volumeutils import array_to_file
-from ..spatialimages import (HeaderDataError, HeaderTypeError)
+from ..spatialimages import (HeaderDataError, HeaderTypeError,
+                             supported_np_types)
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..nifti1 import Nifti1Header
 from ..loadsave import read_img_data
 from .. import imageglobals
 from ..casting import as_int
 from ..tmpdirs import InTemporaryDirectory
+from ..arraywriters import WriterError
 
 from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
@@ -43,17 +45,21 @@ header_file = os.path.join(data_path, 'analyze.hdr')
 
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 
-def _write_data(hdr, data, fileobj):
-    # auxilary function to write data
-    out_dtype = hdr.get_data_dtype()
-    offset = hdr.get_data_offset()
-    array_to_file(data, fileobj, out_dtype, offset)
-
-
 class TestAnalyzeHeader(_TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
+    supported_np_types = set((np.uint8,
+                              np.int16,
+                              np.int32,
+                              np.float32,
+                              np.float64,
+                              np.complex64))
+
+    def test_supported_types(self):
+        hdr = self.header_class()
+        assert_equal(self.supported_np_types,
+                     supported_np_types(hdr))
 
     def get_bad_bb(self):
         # A value for the binary block that should raise an error
@@ -179,6 +185,28 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
                            'and setting to abs of pixdim values')
         assert_raises(*raiser)
 
+    def test_no_scaling_fixes(self):
+        # Check we do not fix slope or intercept
+        #
+        # We used to fix difficult-to-interpret slope and intercept values in
+        # headers that support them.  Now we pass everything and let the
+        # `get_slope_inter()` routine reinterpet diffireinterpet difficult
+        # values.
+        # Analyze doesn't support slope or intercept; the tests are here for
+        # children of this class that do support them.
+        HC = self.header_class
+        if not HC.has_data_slope:
+            return
+        hdr = HC()
+        has_inter = HC.has_data_intercept
+        slopes = (1, 0, np.nan, np.inf, -np.inf)
+        inters = (0, np.nan, np.inf, -np.inf) if has_inter else (0,)
+        for slope, inter in itertools.product(slopes, inters):
+            hdr['scl_slope'] = slope
+            if has_inter:
+                hdr['scl_inter'] = inter
+            self.assert_no_log_err(hdr)
+
     def test_logger_error(self):
         # Check that we can reset the logger and error level
         HC = self.header_class
@@ -300,14 +328,19 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # Try scaling down to integer
         hdr.set_data_dtype(np.uint8)
         S3 = BytesIO()
-        # Analyze header cannot do scaling, but, if not scaling, AnalyzeHeader
-        # is OK
-        _write_data(hdr, data, S3)
+        # Analyze header cannot do scaling, so turn off scaling with
+        # 'rescale=False'
+        hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_array_almost_equal(data, data_back)
-        # But, the data won't always be same as input if not scaling
+        # If the header can't do scaling, rescale raises an error
+        if not hdr.has_data_slope:
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, S3)
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, S3,
+                          rescale=True)
+        # If not scaling we lose precision from rounding
         data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        _write_data(hdr, data, S3)
+        hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_false(np.allclose(data, data_back))
         # Test RGB image
@@ -481,56 +514,58 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
              [ 0.,  0.,  1., -3.],
              [ 0.,  0.,  0.,  1.]])
 
+    def test_scaling(self):
+        # Test integer scaling from float
+        # Analyze headers cannot do float-integer scaling
+        hdr = self.header_class()
+        assert_true(hdr.default_x_flip)
+        shape = (1,2,3)
+        hdr.set_data_shape(shape)
+        hdr.set_data_dtype(np.float32)
+        data = np.ones(shape, dtype=np.float64)
+        S = BytesIO()
+        # Writing to float datatype doesn't need scaling
+        hdr.data_to_fileobj(data, S)
+        rdata = hdr.data_from_fileobj(S)
+        assert_array_almost_equal(data, rdata)
+        # Now test writing to integers
+        hdr.set_data_dtype(np.int32)
+        # Writing to int needs scaling, and raises an error if we can't scale
+        if not hdr.has_data_slope:
+            assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
+        # But if we aren't scaling, convert the floats to integers and write
+        hdr.data_to_fileobj(data, S, rescale=False)
+        rdata = hdr.data_from_fileobj(S)
+        assert_true(np.allclose(data, rdata))
+        # This won't work for floats that aren't close to integers
+        data_p5 = data + 0.5
+        hdr.data_to_fileobj(data_p5, S, rescale=False)
+        rdata = hdr.data_from_fileobj(S)
+        assert_false(np.allclose(data_p5, rdata))
+
+    def test_slope_inter(self):
+        hdr = self.header_class()
+        assert_equal(hdr.get_slope_inter(), (None, None))
+        for slinter in ((None,),
+                        (None, None),
+                        (np.nan, np.nan),
+                        (np.nan, None),
+                        (None, np.nan),
+                        (1.0,),
+                        (1.0, None),
+                        (None, 0),
+                        (1.0, 0)):
+            hdr.set_slope_inter(*slinter)
+            assert_equal(hdr.get_slope_inter(), (None, None))
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
+        assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
+
 
 def test_best_affine():
     hdr = AnalyzeHeader()
     hdr.set_data_shape((3,5,7))
     hdr.set_zooms((4,5,6))
     assert_array_equal(hdr.get_base_affine(), hdr.get_best_affine())
-
-
-def test_scaling():
-    # Test integer scaling from float
-    # Analyze headers cannot do float-integer scaling '''
-    hdr = AnalyzeHeader()
-    assert_true(hdr.default_x_flip)
-    shape = (1,2,3)
-    hdr.set_data_shape(shape)
-    hdr.set_data_dtype(np.float32)
-    data = np.ones(shape, dtype=np.float64)
-    S = BytesIO()
-    # Writing to float datatype doesn't need scaling
-    hdr.data_to_fileobj(data, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_array_almost_equal(data, rdata)
-    # Writing to integer datatype does, and raises an error
-    hdr.set_data_dtype(np.int32)
-    assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
-    # unless we aren't scaling, in which case we convert the floats to
-    # integers and write
-    _write_data(hdr, data, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_true(np.allclose(data, rdata))
-    # This won't work for floats that aren't close to integers
-    data_p5 = data + 0.5
-    _write_data(hdr, data_p5, S)
-    rdata = hdr.data_from_fileobj(S)
-    assert_false(np.allclose(data_p5, rdata))
-
-
-def test_slope_inter():
-    hdr = AnalyzeHeader()
-    assert_equal(hdr.get_slope_inter(), (None, None))
-    for slinter in ((None,),
-                    (None, None),
-                    (1.0,),
-                    (1.0, None),
-                    (None, 0),
-                    (1.0, 0)):
-        hdr.set_slope_inter(*slinter)
-        assert_equal(hdr.get_slope_inter(), (None, None))
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
-    assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
 
 
 def test_data_code_error():
@@ -543,6 +578,12 @@ def test_data_code_error():
 class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
     can_save = True
+    supported_np_types = TestAnalyzeHeader.supported_np_types
+
+    def test_supported_types(self):
+        img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
+        assert_equal(self.supported_np_types,
+                     supported_np_types(img))
 
     def test_default_header(self):
         # Check default header is as expected
@@ -552,6 +593,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         hdr.set_data_shape(arr.shape)
         hdr.set_data_dtype(arr.dtype)
         hdr.set_data_offset(0)
+        hdr.set_slope_inter(np.nan, np.nan)
         assert_equal(img.header, hdr)
 
     def test_data_hdr_cache(self):
@@ -691,6 +733,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img_str = pickle.dumps(img_prox)
         img2_prox = pickle.loads(img_str)
         assert_array_equal(img.get_data(), img2_prox.get_data())
+
+    def test_no_finite_values(self):
+        # save of data with no finite values to int type raises error if we have
+        # no scaling
+        data = np.zeros((2, 3, 4))
+        data[:, 0] = np.nan
+        data[:, 1] = np.inf
+        data[:, 2] = -np.inf
+        img = self.image_class(data, None)
+        img.set_data_dtype(np.int16)
+        assert_equal(img.get_data_dtype(), np.dtype(np.int16))
+        fm = bytesio_filemap(img)
+        if not img.header.has_data_slope:
+            assert_raises(WriterError, img.to_file_map, fm)
+            return
+        img.to_file_map(fm)
+        img_back = self.image_class.from_file_map(fm)
+        assert_array_equal(img_back.dataobj, 0)
 
 
 def test_unsupported():

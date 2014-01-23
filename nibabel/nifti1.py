@@ -1013,39 +1013,53 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_slope_inter()
         (1.0, 1.0)
         >>> hdr['scl_inter'] = np.inf
-        >>> hdr.get_slope_inter()
-        (1.0, None)
+        >>> hdr.get_slope_inter() #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        HeaderDataError: Valid slope but invalid intercept inf
         '''
         # Note that we are returning float (float64) scalefactors and
         # intercepts, although they are stored as in nifti1 as float32.
-        scale = float(self['scl_slope'])
-        dc_offset = float(self['scl_inter'])
-        if scale == 0 or not np.isfinite(scale):
+        slope = float(self['scl_slope'])
+        inter = float(self['scl_inter'])
+        if slope == 0 or not np.isfinite(slope):
             return None, None
-        if not np.isfinite(dc_offset):
-            dc_offset = None
-        return scale, dc_offset
+        if not np.isfinite(inter):
+            raise HeaderDataError(
+                'Valid slope but invalid intercept {0}'.format(inter))
+        return slope, inter
 
-    def set_slope_inter(self, slope, inter=0.0):
+    def set_slope_inter(self, slope, inter=None):
         ''' Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
         data is ``arr``, then the scaled image data will be ``(arr *
         slope) + inter``
 
+        (`slope`, `inter`) of (NaN, NaN) is a signal to a containing image to
+        set `slope`, `inter` automatically on write.
+
         Parameters
         ----------
         slope : None or float
-           If None, implies `slope`  of 0. When the slope is set to 0 or a
-           not-finite value, ``get_slope_inter`` returns (None, None), i.e.
-           `inter` is ignored unless there is a valid value for `slope`.
+           If None, implies `slope`  of NaN. If `slope` is None or NaN then
+           `inter` should be None or NaN.  Values of 0, Inf or -Inf raise
+           HeaderDataError
         inter : None or float, optional
-           intercept.  None implies inter value of 0.
+           Intercept. If None, implies `inter` of NaN. If `slope` is None or
+           NaN then `inter` should be None or NaN.  Values of Inf or -Inf raise
+           HeaderDataError
         '''
         if slope is None:
-            slope = 0.0
+            slope = np.nan
         if inter is None:
-            inter = 0.0
+            inter = np.nan
+        if slope in (0, np.inf, -np.inf):
+            raise HeaderDataError('Slope cannot be 0 or infinite')
+        if inter in (np.inf, -np.inf):
+            raise HeaderDataError('Intercept cannot be infinite')
+        if np.diff(np.isnan([slope, inter])):
+            raise HeaderDataError('None or both of slope, inter should be nan')
         self._structarr['scl_slope'] = slope
         self._structarr['scl_inter'] = inter
 
@@ -1468,56 +1482,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 klass._chk_datatype,
                 klass._chk_bitpix,
                 klass._chk_pixdims,
-                klass._chk_scale_inter,
                 klass._chk_qfac,
                 klass._chk_magic,
                 klass._chk_offset,
                 klass._chk_qform_code,
                 klass._chk_sform_code)
-
-    @staticmethod
-    def _chk_scale_inter(hdr, fix=False):
-        rep = Report(HeaderDataError)
-        scale = hdr['scl_slope']
-        offset = hdr['scl_inter']
-        usable_scale = np.isfinite(scale) and scale !=0
-        # Nonzero finite scale, and valid offset
-        if usable_scale and np.isfinite(offset) or (offset, scale) == (0, 0):
-            return hdr, rep
-        # If scale is usable but the intercept is not finite, that's a serious
-        # problem
-        if usable_scale and not np.isfinite(offset):
-            rep.problem_level = 40
-            rep.problem_msg = ('"scl_slope" is %s; but "scl_inter" is %s; '
-                               '"scl_inter" should be finite'
-                               % (scale, offset))
-            if fix:
-                hdr['scl_inter'] = 0
-                rep.fix_msg = 'setting "scl_inter" to 0'
-            return hdr, rep
-        level = 0
-        msgs = []
-        fix_msgs = []
-        # Non-finite scale is obviously an error.  We still need to check the
-        # intercept though
-        if not np.isfinite(scale):
-            level = 30
-            msgs.append('"scl_slope" is %s; should be finite' % scale)
-            if fix:
-                hdr['scl_slope'] = 0
-                fix_msgs.append('setting "scl_slope" to 0 (no scaling)')
-        # We've established scale is not usable, so inter will be ignored.  That
-        # means we can go a bit easy on bad intercepts
-        if offset != 0:
-            if level == 0: level = 20
-            msgs.append('Unused "scl_inter" is %s; should be 0' % offset)
-            if fix:
-                hdr['scl_inter'] = 0
-                fix_msgs.append('setting "scl_inter" to 0')
-        rep.problem_level = level
-        rep.problem_msg = '; '.join(msgs)
-        rep.fix_msg = '; '.join(fix_msgs)
-        return hdr, rep
 
     @staticmethod
     def _chk_qfac(hdr, fix=False):

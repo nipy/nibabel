@@ -77,19 +77,48 @@ def test_scale_min_max():
 
 def test_finite_range():
     # Finite range utility function
-    a = np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]])
-    assert_equal(finite_range(a), (-1.0, 1.0))
-    a = np.array([[np.nan],[np.nan]])
-    assert_equal(finite_range(a), (np.inf, -np.inf))
-    a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
-    assert_equal(finite_range(a), (-3, 4))
-    a = np.array([[1, 0, 1],[2,3,4]], dtype=np.uint)
-    assert_equal(finite_range(a), (0, 4))
-    a = a + 1j
+    for in_arr, res in (
+        ([[-1, 0, 1],[np.inf, np.nan, -np.inf]], (-1, 1)),
+        (np.array([[-1, 0, 1],[np.inf, np.nan, -np.inf]]), (-1, 1)),
+        ([[np.nan],[np.nan]], (np.inf, -np.inf)), # all nans slices
+        (np.zeros((3, 4, 5)) + np.nan, (np.inf, -np.inf)),
+        ([[-np.inf],[np.inf]], (np.inf, -np.inf)), # all infs slices
+        (np.zeros((3, 4, 5)) + np.inf, (np.inf, -np.inf)),
+        ([[np.nan, -1, 2], [-2, np.nan, 1]], (-2, 2)),
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([[-np.inf, 2], [np.nan, 1]], (1, 2)), # good max case
+        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
+        ([np.nan], (np.inf, -np.inf)),
+        ([np.inf], (np.inf, -np.inf)),
+        ([-np.inf], (np.inf, -np.inf)),
+        ([np.inf, 1], (1, 1)), # only look at finite values
+        ([-np.inf, 1], (1, 1)),
+        ([[],[]], (np.inf, -np.inf)), # empty array
+        (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+        (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
+        ([0., 1, 2, 3], (0,3)),
+        # Complex comparison works as if they are floats
+        ([[np.nan, -1-100j, 2], [-2, np.nan, 1+100j]], (-2, 2)),
+        ([[np.nan, -1, 2-100j], [-2+100j, np.nan, 1]], (-2+100j, 2-100j)),
+    ):
+        assert_equal(finite_range(in_arr), res)
+        assert_equal(finite_range(in_arr, False), res)
+        assert_equal(finite_range(in_arr, check_nan=False), res)
+        has_nan = np.any(np.isnan(in_arr))
+        assert_equal(finite_range(in_arr, True), res + (has_nan,))
+        assert_equal(finite_range(in_arr, check_nan=True), res + (has_nan,))
+        in_arr = np.array(in_arr)
+        flat_arr = in_arr.ravel()
+        assert_equal(finite_range(flat_arr), res)
+        assert_equal(finite_range(flat_arr, True), res + (has_nan,))
+        # Check float types work as complex
+        if in_arr.dtype.kind == 'f':
+            c_arr = in_arr.astype(np.complex)
+            assert_equal(finite_range(c_arr), res)
+            assert_equal(finite_range(c_arr, True), res + (has_nan,))
+    # Test error cases
+    a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
     assert_raises(TypeError, finite_range, a)
-    # 1D case
-    a = np.array([0., 1, 2, 3])
-    assert_equal(finite_range(a), (0,3))
 
 
 def test_calculate_scale():
