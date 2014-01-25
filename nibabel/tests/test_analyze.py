@@ -579,6 +579,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
     image_class = AnalyzeImage
     can_save = True
     supported_np_types = TestAnalyzeHeader.supported_np_types
+    # Flag to skip bz2 save tests if they are going to break
+    bad_bz2 = False
 
     def test_supported_types(self):
         img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
@@ -673,10 +675,13 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img_ext = img_klass.files_types[0][1]
+        compressed_exts = ['', '.gz']
+        if not self.bad_bz2:
+            compressed_exts.append('.bz2')
         with InTemporaryDirectory():
             for offset in (0, 2048):
                 # Set offset in in-memory image
-                for compressed_ext in ('', '.gz', '.bz2'):
+                for compressed_ext in compressed_exts:
                     img = img_klass(arr, aff)
                     img.header.set_data_offset(offset)
                     fname = 'test' + img_ext + compressed_ext

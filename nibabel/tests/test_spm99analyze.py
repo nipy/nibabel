@@ -35,7 +35,7 @@ from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 from ..testing import assert_allclose_safely
 
 from . import test_analyze
-from .test_helpers import bytesio_round_trip, bytesio_filemap
+from .test_helpers import (bytesio_round_trip, bytesio_filemap, bz2_mio_error)
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -376,6 +376,8 @@ class ScalingMixin(object):
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
+    # Flag to skip bz2 save tests if they are going to break
+    bad_bz2 = bz2_mio_error()
 
     # Decorating the old way, before the team invented @
     test_data_hdr_cache = (scipy_skip(
