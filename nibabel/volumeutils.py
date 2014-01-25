@@ -664,7 +664,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # going to integers
     # Because we're going to integers, complex inter and slope will only slow us
     # down, cast to float
-    slope, inter = [v.astype(_matching_float(v.dtype)) for v in slope, inter]
+    slope, inter = [v.astype(_matching_float(v.dtype)) for v in (slope, inter)]
     # We'll do the thresholding on the scaled data, so turn off the thresholding
     # on the unscaled data
     pre_clips = None
@@ -685,7 +685,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     extremes = np.array(dt_mnmx, dtype=cast_in_dtype)
     w_type = best_write_scale_ftype(extremes, slope, inter, w_type)
     # Push up precision by casting the slope, inter
-    slope, inter = [v.astype(w_type) for v in slope, inter]
+    slope, inter = [v.astype(w_type) for v in (slope, inter)]
     # We need to know the result of applying slope and inter to the min and
     # max of the array, in order to clip the output array, after applying
     # the slope and inter.  Otherwise we'd need to clip twice, once before

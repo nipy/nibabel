@@ -435,7 +435,7 @@ class SlopeArrayWriter(ArrayWriter):
             out_min, out_max = np.array((out_min, out_max), dtype = big_float)
         else: # (u)int
             out_min, out_max = [int_to_float(v, big_float)
-                                for v in out_min, out_max]
+                                for v in (out_min, out_max)]
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError('Cannot scale negative and positive '
@@ -610,7 +610,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_range = int_to_float(in_max - in_min, big_float)
             # Cast to float for later processing.
             in_min, in_max = [int_to_float(v, big_float)
-                              for v in in_min, in_max]
+                              for v in (in_min, in_max)]
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
@@ -624,7 +624,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             out_min, out_max = np.array((out_min, out_max), dtype = big_float)
         # We want maximum precision for the calculations. Casting will
         # not lose precision because min/max are of fp type.
-        assert [v.dtype.kind for v in out_min, out_max] == ['f', 'f']
+        assert [v.dtype.kind for v in (out_min, out_max)] == ['f', 'f']
         out_range = out_max - out_min
         """
         Think of the input values as a line starting (left) at in_min and ending
