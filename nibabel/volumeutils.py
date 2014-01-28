@@ -15,8 +15,7 @@ import bz2
 
 import numpy as np
 
-from .casting import (shared_range, type_info, as_int, best_float, OK_FLOATS,
-                      able_int_type)
+from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
 
 sys_is_le = sys.byteorder == 'little'
@@ -648,15 +647,6 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
             pre_clips = max(mn, mn_out), min(mx, mx_out)
             return _write_data(data, fileobj, out_dtype, order,
                                pre_clips=pre_clips)
-        # Last chance to avoid going via floats is if the integer data plus an
-        # integer intercept fits into the integer out type
-        if slope == 1 and inter !=0 and inter == np.round(inter):
-            inter_conv_type = _inter_type(in_dtype, -np.squeeze(inter), out_dtype)
-            inter = inter.astype(inter_conv_type)
-            if inter.dtype.kind in 'iu':
-                return _write_data(data, fileobj, out_dtype, order,
-                                   inter=inter,
-                                   pre_clips=pre_clips)
         # In any case, we do not want to check for nans beause we've already
         # disallowed scaling that generates nans
         nan2zero = False
@@ -911,66 +901,19 @@ def apply_read_scaling(arr, slope = None, inter = None):
     # Force float / float upcasting by promoting to arrays
     arr, slope, inter = [np.atleast_1d(v) for v in (arr, slope, inter)]
     if arr.dtype.kind in 'iu':
-        if (slope, inter) == (1, np.round(inter)):
-            # (u)int to (u)int offset-only scaling
-            inter = inter.astype(_inter_type(arr.dtype, np.asscalar(inter)))
-        else: # int to float; get enough precision to avoid infs
-            # Find floating point type for which scaling does not overflow,
-            # starting at given type
-            default = (slope.dtype.type if slope.dtype.kind == 'f'
-                       else np.float64)
-            ftype = int_scinter_ftype(arr.dtype, slope, inter, default)
-            slope = slope.astype(ftype)
-            inter = inter.astype(ftype)
+        # int to float; get enough precision to avoid infs
+        # Find floating point type for which scaling does not overflow,
+        # starting at given type
+        default = (slope.dtype.type if slope.dtype.kind == 'f'
+                    else np.float64)
+        ftype = int_scinter_ftype(arr.dtype, slope, inter, default)
+        slope = slope.astype(ftype)
+        inter = inter.astype(ftype)
     if slope != 1.0:
         arr = arr * slope
     if inter != 0.0:
         arr = arr + inter
     return arr.reshape(shape)
-
-
-def _inter_type(in_type, inter, out_type=None):
-    """ Return intercept type for array type `in_type`, starting value `inter`
-
-    When scaling from an (u)int to a (u)int, we can often just use the intercept
-    `inter`.  This routine is for that case. It works out if the min and max of
-    `in_type`, plus the `inter` can fit into any other integer type, returning
-    that type if so.  Otherwise it returns the most capable float.
-
-    Parameters
-    ----------
-    in_type : numpy type
-        Any specifier for a numpy dtype
-    inter : scalar
-        intercept
-    out_type : None or numpy type, optional
-        If not None, check any proposed `inter_type` to see whether the
-        resulting values will fit within `out_type`; if so return proposed
-        `inter_type`, otherwise return highest precision float
-
-    Returns
-    -------
-    inter_type : numpy type
-        Type to which inter should be cast for best integer scaling
-    """
-    info = np.iinfo(in_type)
-    inter = as_int(inter)
-    out_mn, out_mx = info.min + inter, info.max + inter
-    values = [out_mn, out_mx, info.min, info.max]
-    i_type = able_int_type(values + [inter])
-    if i_type is None:
-        return best_float()
-    if out_type is None:
-        return i_type
-    # The proposal so far is to use an integer type i_type as the working type.
-    # However, we might already know the output type to which we will cast.  If
-    # the maximum range in the working type will not fit into the known output
-    # type, this would require extra casting, so we back off to the best
-    # floating point type.
-    o_info = np.iinfo(out_type)
-    if out_mn >= o_info.min and out_mx <= o_info.max:
-        return i_type
-    return best_float()
 
 
 def working_type(in_type, slope=1.0, inter=0.0):

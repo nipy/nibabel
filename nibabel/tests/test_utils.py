@@ -28,7 +28,6 @@ from ..volumeutils import (array_from_file,
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
-                           _inter_type,
                            working_type,
                            best_write_scale_ftype,
                            better_float_of,
@@ -560,12 +559,12 @@ def test_apply_scaling():
                  np.float64)
     assert_equal(apply_read_scaling(np.int8(0), f32(-1e38), f32(0.0)).dtype,
                  np.float64)
-    # Test that integer casting during read scaling works
-    assert_dt_equal(apply_read_scaling(i16_arr, 1.0, 1.0).dtype, np.int32)
+    # Non-zero intercept still generates floats
+    assert_dt_equal(apply_read_scaling(i16_arr, 1.0, 1.0).dtype, float)
     assert_dt_equal(apply_read_scaling(
-        np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, np.int64)
+        np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, float)
     assert_dt_equal(apply_read_scaling(
-        np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, best_float())
+        np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float)
 
 
 def test_apply_read_scaling_ints():
@@ -582,34 +581,6 @@ def test_apply_read_scaling_nones():
     assert_array_equal(apply_read_scaling(arr, None, None), arr)
     assert_array_equal(apply_read_scaling(arr, 2, None), arr * 2)
     assert_array_equal(apply_read_scaling(arr, None, 1), arr + 1)
-
-
-def test__inter_type():
-    # Test routine to get intercept type
-    bf = best_float()
-    for in_type, inter, out_type, exp_out in (
-        (np.int8, 0, None, np.int8),
-        (np.int8, 0, np.int8, np.int8),
-        (np.int8, 1, None, np.int16),
-        (np.int8, 1, np.int8, bf),
-        (np.int8, 1, np.int16, np.int16),
-        (np.uint8, 0, None, np.uint8),
-        (np.uint8, 1, None, np.uint16),
-        (np.uint8, -1, None, np.int16),
-        (np.int16, 1, None, np.int32),
-        (np.uint16, 0, None, np.uint16),
-        (np.uint16, 1, None, np.uint32),
-        (np.int32, 1, None, np.int64),
-        (np.uint32, 1, None, np.uint64),
-        (np.int64, 1, None, bf),
-        (np.uint64, 1, None, bf),
-    ):
-        assert_dt_equal(_inter_type(in_type, inter, out_type), exp_out)
-        # Check that casting is as expected
-        A = np.zeros((1,), dtype=in_type)
-        B = np.array([inter], dtype=exp_out)
-        ApBt = (A + B).dtype.type
-        assert_dt_equal(ApBt, exp_out)
 
 
 def test_int_scinter():
