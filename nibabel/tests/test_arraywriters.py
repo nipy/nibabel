@@ -764,12 +764,13 @@ def test_nan2zero_scaling():
         IUINT_TYPES,
         (-1, 1),
         ):
-        in_info = np.finfo(in_dt)
-        out_info = np.iinfo(out_dt)
+        # Use fixed-up type information to avoid bugs, especially on PPC
+        in_info = type_info(in_dt)
+        out_info = type_info(out_dt)
         # Skip inpossible combinations
-        if in_info.min == 0 and sign == -1:
+        if in_info['min'] == 0 and sign == -1:
             continue
-        mx = min(in_info.max, out_info.max * 2., 2**32)
+        mx = min(in_info['max'], out_info['max'] * 2., 2**32)
         vals = [np.nan] + [100, mx]
         nan_arr = np.array(vals, dtype=in_dt) * sign
         # Check that nan scales to same value as zero within same array
