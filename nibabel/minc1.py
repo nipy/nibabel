@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import numpy as np
 
+from .externals.six import integer_types
 from .externals.netcdf import netcdf_file
 
 from .spatialimages import SpatialImage
@@ -202,7 +203,7 @@ class Minc1File(object):
             # Fill slicer to broadcast against sliced data; add length 1 axis
             # for each axis except int axes (which are dropped by slicing)
             broad_part = tuple(None for s in sliceobj[ax_inds[nscales]:]
-                               if not isinstance(s, int))
+                               if not isinstance(s, integer_types))
             i_slicer += broad_part
             imax = self._get_array(image_max)[i_slicer]
             imin = self._get_array(image_min)[i_slicer]

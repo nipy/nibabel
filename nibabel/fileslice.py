@@ -141,7 +141,7 @@ def slice2outax(ndim, sliceobj):
     out_ax_no = 0
     out_ax_inds = []
     for obj in sliceobj:
-        if isinstance(obj, int):
+        if isinstance(obj, integer_types):
             out_ax_inds.append(None)
             continue
         if not obj is None:
