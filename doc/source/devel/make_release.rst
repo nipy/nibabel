@@ -69,6 +69,10 @@ Release checklist
 
   becase this will be the output used by pypi_
 
+* Check the dependencies listed in ``nibabel/info.py`` (e.g.
+  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should at
+  least match. Do they still hold?
+
 * Do a final check on the `nipy buildbot`_
 
 * If you have travis-ci_ building set up you might want to push the code in it's
