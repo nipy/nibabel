@@ -500,8 +500,15 @@ def test_a2f_non_numeric():
     fobj = BytesIO()
     back_arr = write_return(arr, fobj, dt)
     assert_array_equal(back_arr, arr)
-    back_arr = write_return(arr, fobj, float)
-    assert_array_equal(back_arr, arr.astype(float))
+    # Some versions of numpy can cast structured types to float, others not
+    try:
+        arr.astype(float)
+    except ValueError:
+        pass
+    else:
+        back_arr = write_return(arr, fobj, float)
+        assert_array_equal(back_arr, arr.astype(float))
+    # mn, mx never work for structured types
     assert_raises(ValueError, write_return, arr, fobj, float, mn=0)
     assert_raises(ValueError, write_return, arr, fobj, float, mx=10)
 
