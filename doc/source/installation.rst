@@ -70,10 +70,10 @@ NiBabel from source.
 Requirements
 ------------
 
-*  Python_ 2.5 or greater
+*  Python_ 2.6 or greater
 *  NumPy_ 1.2 or greater
 *  SciPy_ (for full SPM-ANALYZE support)
-*  PyDICOM_ 0.9.5 or greater (for DICOM support)
+*  PyDICOM_ 0.9.7 or greater (for DICOM support)
 *  `Python Imaging Library`_ (for PNG conversion in DICOMFS)
 *  nose_ 0.11 or greater (to run the tests)
 *  sphinx_ (to build the documentation)
@@ -112,11 +112,11 @@ If sudo is not configured (or even installed) you might have to use
 Now fire up Python and try importing the module to see if everything is fine.
 It should look similar to this::
 
-  Python 2.5.5 (r255:77872, Apr 21 2010, 08:44:16) 
-  [GCC 4.4.3] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import nibabel
-  >>>
 
+    Python 2.7.3 (v2.7.3:70274d53c1dd, Apr  9 2012, 20:52:43)
+    [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import nibabel
+    >>>
 
 .. include:: links_names.txt

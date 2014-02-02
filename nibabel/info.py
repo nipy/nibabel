@@ -89,7 +89,7 @@ License
 =======
 
 Nibabel is licensed under the terms of the MIT license. Some code included with
-nibabel is licensed under the BSD license.  Please the COPYING file in the
+nibabel is licensed under the BSD license.  Please see the COPYING file in the
 nibabel distribution.
 """
 

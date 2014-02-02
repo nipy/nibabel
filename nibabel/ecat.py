@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 import warnings
+from numbers import Integral
 
 import numpy as np
 
@@ -699,7 +700,7 @@ class EcatImageArrayProxy(object):
         # index over the volume axis
         in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3]+1:]
         # int index for 4th axis, load one slice
-        if isinstance(slice3, int):
+        if isinstance(slice3, Integral):
             data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
             return data[in_slicer]
         # slice axis for 4th axis, we will iterate over slices
