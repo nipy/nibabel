@@ -300,25 +300,23 @@ def test_a2f_zeros():
 def test_a2f_big_scalers():
     # Check that clip works even for overflowing scalers / data
     info = type_info(np.float32)
-    arr = np.array([info['min'], np.nan, info['max']], dtype=np.float32)
+    arr = np.array([info['min'], 0, info['max']], dtype=np.float32)
     str_io = BytesIO()
-    # Intercept causes overflow - does routine scale correctly? It appears to,
-    # but the middle zero for nan is only because casting the massive negative
-    # value to int8 emerges as zero - so the returned zero for NaN is a bad
-    # test. We need nan2zero off because we can't store the scaled value for 0
-    # in the output type - so an input 0 will not round trip (scaling then
-    # reverse scaling) to 0 - and neither will NaN
+    # Intercept causes overflow - does routine scale correctly?
+    # We check whether the routine correctly clips extreme values.
+    # We need nan2zero=False because we can't represent 0 in the input, given
+    # the scaling and the output range.
     array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
                   nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
-    assert_array_equal(data_back, [-128, 0, 127])
+    assert_array_equal(data_back, [-128, -128, 127])
     # Scales also if mx, mn specified? Same notes and complaints as for the test
     # above.
     str_io.seek(0)
     array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
                   intercept=np.float32(2**120), nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
-    assert_array_equal(data_back, [-128, 0, 127])
+    assert_array_equal(data_back, [-128, -128, 127])
     # And if slope causes overflow?
     str_io.seek(0)
     array_to_file(arr, str_io, np.int8, divslope=np.float32(0.5))
@@ -474,9 +472,10 @@ def test_a2f_nan2zero_range():
         assert_array_equal([-128, -128, -127, -128], back_arr)
         assert_raises(ValueError, write_return, arr, fobj, np.int8, intercept=129)
         assert_raises(ValueError, write_return, arr_no_nan, fobj, np.int8, intercept=129)
-        # OK with nan2zero false
+        # OK with nan2zero false, but we get whatever nan casts to
+        nan_cast = np.array(np.nan).astype(np.int8)
         back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
-        assert_array_equal([-128, -128, -128, 0], back_arr)
+        assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
         back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
         assert_array_equal([-128, -128, -128, -128], back_arr)
@@ -487,7 +486,7 @@ def test_a2f_nan2zero_range():
         # OK with nan2zero false
         back_arr = write_return(arr, fobj, np.int8,
                                 intercept=257.1, divslope=2, nan2zero=False)
-        assert_array_equal([-128, -128, -128, 0], back_arr)
+        assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 
 def test_a2f_non_numeric():
