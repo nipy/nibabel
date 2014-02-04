@@ -692,7 +692,8 @@ def ok_floats():
 
     Remove longdouble if it has no higher precision than float64
     """
-    floats = np.sctypes['float']
+    # copy float list so we don't change the numpy global
+    floats = np.sctypes['float'][:]
     if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
     return sorted(floats, key=lambda f : type_info(f)['nmant'])
