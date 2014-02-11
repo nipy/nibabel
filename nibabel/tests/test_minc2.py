@@ -71,3 +71,5 @@ if have_h5py:
 
     class TestMinc2Image(tm2.TestMinc1Image):
         image_class = Minc2Image
+        eg_images = (pjoin(data_path, 'small.mnc'),)
+        module = minc2
