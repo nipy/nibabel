@@ -13,6 +13,8 @@ from ..loadsave import load, read_img_data
 from ..spatialimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory
 
+from .test_spm99analyze import have_scipy
+
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
@@ -24,11 +26,11 @@ data_path = pjoin(dirname(__file__), 'data')
 
 def test_read_img_data():
     for fname in ('example4d.nii.gz',
-                  # 'example_nifti2.nii.gz',
-                  # 'minc1_1_scale.mnc',
-                  # 'minc1_4d.mnc',
-                  # 'test.mgz',
-                  # 'tiny.mnc'
+                  'example_nifti2.nii.gz',
+                  'minc1_1_scale.mnc',
+                  'minc1_4d.mnc',
+                  'test.mgz',
+                  'tiny.mnc'
                  ):
         fpath = pjoin(data_path, fname)
         img = load(fpath)
@@ -36,9 +38,9 @@ def test_read_img_data():
         data2 = read_img_data(img)
         assert_array_equal(data, data2)
         # These examples have null scaling - assert prefer=unscaled is the same
-        # if hasattr(dao, 'slope'):
-        if 1:
-            # assert_equal((dao.slope, dao.inter), (1, 0))
+        dao = img.dataobj
+        if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
+            assert_equal((dao.slope, dao.inter), (1, 0))
             assert_array_equal(read_img_data(img, prefer='unscaled'), data)
 
 
@@ -46,14 +48,11 @@ def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)
     out_dtype = np.dtype(np.int16)
+    classes = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image)
+    if have_scipy:
+        classes += (Spm99AnalyzeImage, Spm2AnalyzeImage)
     with InTemporaryDirectory():
-        for i, img_class in enumerate((Spm99AnalyzeImage,
-                                       Spm2AnalyzeImage,
-                                       Nifti1Pair,
-                                       Nifti1Image,
-                                       Nifti2Pair,
-                                       Nifti2Image,
-                                      )):
+        for i, img_class in enumerate(classes):
             img = img_class(data, np.eye(4))
             img.set_data_dtype(out_dtype)
             # No filemap => error
