@@ -153,3 +153,21 @@ def test_is_proxy():
     class NP(object):
         is_proxy = False
     assert_false(is_proxy(NP()))
+
+
+def test_get_unscaled():
+    # Test fetch of raw array
+    class FunkyHeader2(FunkyHeader):
+        def get_slope_inter(self):
+            return 2.1, 3.14
+    shape = (2, 3, 4)
+    hdr = FunkyHeader2(shape)
+    bio = BytesIO()
+    # Check standard read works
+    arr = np.arange(24, dtype=np.int32).reshape(shape, order='F')
+    bio.write(b'\x00' * hdr.get_data_offset())
+    bio.write(arr.tostring(order='F'))
+    prox = ArrayProxy(bio, hdr)
+    assert_array_almost_equal(np.array(prox), arr * 2.1 + 3.14)
+    # Check unscaled read works
+    assert_array_almost_equal(prox.get_unscaled(), arr)
