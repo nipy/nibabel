@@ -26,5 +26,24 @@ def test_header():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
     assert_equal(hdr.get_data_dtype(), np.dtype(np.int16))
-    # hdr appears to have ms as zoom; should probably fix
-    assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0 * 1000))
+    assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
+    assert_equal(hdr.get_data_offset(), 0)
+    assert_almost_equal(hdr.get_slope_inter(),
+                        (1.2903541326522827, 0.0), 5)
+
+
+def test_header_scaling():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    fp_scaling = np.squeeze(hdr.get_data_scaling('fp'))
+    dv_scaling = np.squeeze(hdr.get_data_scaling('dv'))
+    # Check default is dv scaling
+    assert_array_equal(np.squeeze(hdr.get_data_scaling()), dv_scaling)
+    # And that it's almost the same as that from the converted nifti
+    assert_almost_equal(dv_scaling, (1.2903541326522827, 0.0), 5)
+    # Check that default for get_slope_inter is dv scaling
+    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='dv')):
+        assert_array_equal(hdr.get_slope_inter(), dv_scaling)
+    # Check we can change the default
+    assert_false(np.all(fp_scaling == dv_scaling))
+    fp_hdr = PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='fp')
+    assert_array_equal(fp_hdr.get_slope_inter(), fp_scaling)

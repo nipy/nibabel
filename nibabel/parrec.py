@@ -21,7 +21,7 @@ import copy
 
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
-from .volumeutils import Recoder
+from .volumeutils import Recoder, array_from_file, apply_read_scaling
 from .arrayproxy import ArrayProxy
 
 # PAR header versions we claim to understand
@@ -223,7 +223,7 @@ def parse_PAR_header(fobj):
 
 class PARRECHeader(Header):
     """PAR/REC header"""
-    def __init__(self, info, image_defs):
+    def __init__(self, info, image_defs, default_scaling='dv'):
         """
         Parameters
         ----------
@@ -233,11 +233,14 @@ class PARRECHeader(Header):
         image_defs : array
           Structured array with image definitions from the PAR file (as returned
           by `parse_PAR_header()`).
+        default_scaling : {'dv', 'fp'}
+          Default scaling method to use for :meth:`get_slope_inter`` - see
+          :meth:`get_data_scaling` for detail
         """
         self.general_info = info
         self.image_defs = image_defs
         self._slice_orientation = None
-
+        self.default_scaling = default_scaling
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
@@ -310,6 +313,9 @@ class PARRECHeader(Header):
                             slice_thickness))
         return voxsize
 
+    def get_data_offset(self):
+        """ PAR header always has 0 data offset (into REC file) """
+        return 0
 
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
@@ -336,7 +342,8 @@ class PARRECHeader(Header):
         # time axis?
         if len(zooms) > 3  and self.general_info['max_dynamics'] > 1:
             # DTI also has 4D
-            zooms[3] = self.general_info['repetition_time']
+            # Convert time from milliseconds to seconds
+            zooms[3] = self.general_info['repetition_time'] / 1000.
         return zooms
 
 
@@ -530,6 +537,12 @@ class PARRECHeader(Header):
             raise ValueError("Unknown scling method '%s'." % method)
         return (slope, intercept)
 
+    def get_slope_inter(self):
+        """ Utility method to get default slope, intercept scaling
+        """
+        return tuple(
+            np.asscalar(v)
+            for v in self.get_data_scaling(method=self.default_scaling))
 
     def get_slice_orientation(self):
         """Returns the slice orientation label.
@@ -546,34 +559,51 @@ class PARRECHeader(Header):
 
 
     def raw_data_from_fileobj(self, fileobj):
-        """Returns memmap array of raw unscaled image data.
+        ''' Read unscaled data array from `fileobj`
 
         Array axes correspond to x,y,z,t.
-        """
-        # memmap the data -- it is guaranteed to be uncompressed and all
-        # properties are known
-        # read in Fortran order to have spatial axes first
-        data = np.memmap(fileobj,
-                         dtype=self.get_data_dtype(),
-                         mode='c', # copy-on-write
-                         shape=self.get_data_shape_in_file(),
-                         order='F')
-        return data
 
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           unscaled data array
+        '''
+        dtype = self.get_data_dtype()
+        shape = self.get_data_shape()
+        offset = self.get_data_offset()
+        return array_from_file(shape, dtype, fileobj, offset)
 
     def data_from_fileobj(self, fileobj):
-        """Returns scaled image data.
+        ''' Read scaled data array from `fileobj`
 
-        Behaves identical to `PARRECHeader.raw_data_from_fileobj()`, but
-        returns scaled image data. This causes the images data to be loaded into
-        memory.
-        """
-        unscaled = self.raw_data_from_fileobj(fileobj)
-        slope, intercept = self.get_data_scaling()
-        scaled = unscaled * slope
-        scaled += intercept
-        return scaled
+        Use this routine to get the scaled image data from an image file
+        `fileobj`, given a header `self`.  "Scaled" means, with any header
+        scaling factors applied to the raw data in the file.  Use
+        `raw_data_from_fileobj` to get the raw data.
 
+        Parameters
+        ----------
+        fileobj : file-like
+           Must be open, and implement ``read`` and ``seek`` methods
+
+        Returns
+        -------
+        arr : ndarray
+           scaled data array
+        '''
+        # read unscaled data
+        data = self.raw_data_from_fileobj(fileobj)
+        # get scalings from header.  Value of None means not present in header
+        slope, inter = self.get_slope_inter()
+        slope = 1.0 if slope is None else slope
+        inter = 0.0 if inter is None else inter
+        # Upcast as necessary for big slopes, intercepts
+        return apply_read_scaling(data, slope, inter)
 
 
 class PARRECImage(SpatialImage):
@@ -585,7 +615,7 @@ class PARRECImage(SpatialImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        with file_map['header'].get_prepare_fileobj() as hdr_fobj:
+        with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = PARRECHeader.from_fileobj(hdr_fobj)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr)
