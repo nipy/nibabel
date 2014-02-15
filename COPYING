@@ -19,12 +19,12 @@ documentation is covered by the MIT license.
 
   The MIT License
 
-  Copyright (c) 2009-2011 Matthew Brett <matthew.brett@gmail.com>
-  Copyright (c) 2010-2011 Stephan Gerhard <git@unidesign.ch>
+  Copyright (c) 2009-2014 Matthew Brett <matthew.brett@gmail.com>
+  Copyright (c) 2010-2013 Stephan Gerhard <git@unidesign.ch>
   Copyright (c) 2006-2010 Michael Hanke <michael.hanke@gmail.com>
   Copyright (c) 2011 Christian Haselgrove <christian.haselgrove@umassmed.edu>
   Copyright (c) 2010-2011 Jarrod Millman <jarrod.millman@gmail.com>
-  Copyright (c) 2011-2012 Yaroslav Halchenko <debian@onerussian.com>
+  Copyright (c) 2011-2014 Yaroslav Halchenko <debian@onerussian.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -45,8 +45,8 @@ documentation is covered by the MIT license.
   THE SOFTWARE.
 
 
-3rd Party Code
-==============
+3rd party code and data
+=======================
 
 Some code distributed within the nibabel sources was developed by other
 projects. This code is distributed under its respective licenses that are
@@ -150,3 +150,14 @@ subject to the following conditions:
     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
+
+Philips PAR/REC data
+--------------------
+
+The files::
+
+    nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.PAR
+    nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.REC
+
+are from http://psydata.ovgu.de/philips_achieva_testfiles, and released under
+the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
