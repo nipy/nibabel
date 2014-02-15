@@ -108,6 +108,9 @@ class Opener(object):
     def close(self, *args, **kwargs):
         return self.fobj.close(*args, **kwargs)
 
+    def __iter__(self):
+        return iter(self.fobj)
+
     def close_if_mine(self):
         """ Close ``self.fobj`` iff we opened it in the constructor
         """

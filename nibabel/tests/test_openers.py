@@ -7,7 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for openers module '''
+import os
+
 from ..externals.six import BytesIO
+from ..py3k import asstr
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -163,3 +166,32 @@ def test_close_if_mine():
             is_str = type(input) is type('')
             if has_closed:
                 assert_equal(fobj.closed, is_str)
+
+
+def test_iter():
+    # Check we can iterate over lines, if the underlying file object allows it
+    lines = \
+"""On the
+blue ridged mountains
+of
+virginia
+""".split('\n')
+    with InTemporaryDirectory():
+        sobj = BytesIO()
+        for input, does_t in (('test.txt', True),
+                              ('test.txt.gz', True),
+                              ('test.txt.bz2', False),
+                              (sobj, True)):
+            with Opener(input, 'wb') as fobj:
+                for line in lines:
+                    fobj.write(line + os.linesep)
+            with Opener(input, 'rb') as fobj:
+                for back_line, line in zip(fobj, lines):
+                    assert_equal(asstr(back_line).rstrip(), line)
+            if not does_t:
+                continue
+            with Opener(input, 'rt') as fobj:
+                for back_line, line in zip(fobj, lines):
+                    assert_equal(back_line.rstrip(), line)
+        lobj = Opener(Lunk(''))
+        assert_raises(TypeError, list, lobj)
