@@ -115,8 +115,8 @@ image_def_dtype = np.dtype(image_def_dtd)
 
 # slice orientation codes
 slice_orientation_codes = Recoder((# code, label
-    (1, 'transversal'),
-    (2, 'sagital'),
+    (1, 'transverse'),
+    (2, 'sagittal'),
     (3, 'coronal')), fields=('code', 'label'))
 
 
@@ -411,14 +411,14 @@ class PARRECHeader(Header):
         voxsize = self.get_voxel_size()
 
         slice_orientation = self.get_slice_orientation()
-        if slice_orientation == 'sagital':
+        if slice_orientation == 'sagittal':
             # inplane: AP, FH   slices: RL
             recfg_data_axis = np.mat([[  0,  0,  1],
                                       [ -1,  0,  0],
                                       [  0, -1,  0]])
             # fov is already like the data
             fov = fov
-        elif slice_orientation == 'transversal':
+        elif slice_orientation == 'transverse':
             # inplane: RL, AP   slices: FH
             recfg_data_axis = np.mat([[ -1,  0,  0],
                                       [  0, -1,  0],
@@ -549,7 +549,7 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        {'transversal', 'sagital', 'coronal'}
+        {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
             self._slice_orientation = \

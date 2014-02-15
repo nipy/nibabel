@@ -47,3 +47,16 @@ def test_header_scaling():
     assert_false(np.all(fp_scaling == dv_scaling))
     fp_hdr = PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='fp')
     assert_array_equal(fp_hdr.get_slope_inter(), fp_scaling)
+
+
+def test_orientation():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    assert_array_equal(HDR_DEFS['slice orientation'], 1)
+    assert_equal(hdr.get_slice_orientation(), 'transverse')
+    hdr_defc = HDR_DEFS.copy()
+    hdr = PARRECHeader(HDR_INFO, hdr_defc)
+    hdr_defc['slice orientation'] = 2
+    assert_equal(hdr.get_slice_orientation(), 'sagittal')
+    hdr_defc['slice orientation'] = 3
+    hdr = PARRECHeader(HDR_INFO, hdr_defc)
+    assert_equal(hdr.get_slice_orientation(), 'coronal')
