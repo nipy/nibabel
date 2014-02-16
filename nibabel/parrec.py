@@ -19,6 +19,9 @@ import warnings
 import numpy as np
 import copy
 
+from .externals.six import binary_type
+from .py3k import asbytes
+
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, apply_read_scaling
@@ -199,12 +202,14 @@ def parse_PAR_header(fobj):
         item_counter = 0
         # for all image properties we know about
         for props in image_def_dtd:
-            if np.issubdtype(image_defs[props[0]].dtype, str):
+            if np.issubdtype(image_defs[props[0]].dtype, binary_type):
                 # simple string
-                image_defs[props[0]][i] = items[item_counter]
+                image_defs[props[0]][i] = asbytes(items[item_counter])
                 item_counter += 1
             elif len(props) == 2:
                 # prop with numerical dtype
+                if props[1] == 'S30':
+                    1/0
                 image_defs[props[0]][i] = props[1](items[item_counter])
                 item_counter += 1
             elif len(props) == 3:

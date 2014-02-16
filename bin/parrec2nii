@@ -165,10 +165,10 @@ def proc_file(infile, opts):
     if opts.compressed:
         verbose('Using gzip compression')
         outfilename += '.nii.gz'
-        outfile = gzip.open(outfilename, 'w')
+        outfile = gzip.open(outfilename, 'wb')
     else:
         outfilename += '.nii'
-        outfile = open(outfilename, 'w')
+        outfile = open(outfilename, 'wb')
 
     verbose('Writing %s' % outfilename)
     # first write the header
