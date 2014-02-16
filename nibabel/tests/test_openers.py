@@ -9,8 +9,8 @@
 ''' Test for openers module '''
 import os
 
-from ..externals.six import BytesIO
-from ..py3k import asstr
+from ..externals.six import PY3, BytesIO
+from ..py3k import asstr, asbytes
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -176,15 +176,16 @@ blue ridged mountains
 of
 virginia
 """.split('\n')
+    gz_does_t = not PY3
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input, does_t in (('test.txt', True),
-                              ('test.txt.gz', True),
+                              ('test.txt.gz', gz_does_t),
                               ('test.txt.bz2', False),
                               (sobj, True)):
             with Opener(input, 'wb') as fobj:
                 for line in lines:
-                    fobj.write(line + os.linesep)
+                    fobj.write(asbytes(line + os.linesep))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
                     assert_equal(asstr(back_line).rstrip(), line)
