@@ -13,6 +13,7 @@ import gzip
 import bz2
 import warnings
 import types
+from io import BytesIO
 
 import numpy as np
 
@@ -20,7 +21,7 @@ from .. import load, Nifti1Image
 from ..externals.netcdf import netcdf_file
 from ..deprecated import ModuleProxy
 from .. import minc1
-from ..minc1 import Minc1File, Minc1Image
+from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -197,5 +198,27 @@ class TestMinc1File(_TestMincFile):
                     del img
 
 
+# Test the Minc header
+def test_header_data_io():
+    bio = BytesIO()
+    hdr = MincHeader()
+    arr = np.arange(24).reshape((2, 3, 4))
+    assert_raises(NotImplementedError, hdr.data_to_fileobj, arr, bio)
+    assert_raises(NotImplementedError, hdr.data_from_fileobj, bio)
+
+
 class TestMinc1Image(tsi.TestSpatialImage):
     image_class = Minc1Image
+    eg_images = (pjoin(data_path, 'tiny.mnc'),)
+    module = minc1
+
+    def test_data_to_from_fileobj(self):
+        # Check data_from_fileobj of header raises an error
+        for fpath in self.eg_images:
+            img = self.module.load(fpath)
+            bio = BytesIO()
+            arr = np.arange(24).reshape((2, 3, 4))
+            assert_raises(NotImplementedError,
+                          img.header.data_to_fileobj, arr, bio)
+            assert_raises(NotImplementedError,
+                          img.header.data_from_fileobj, bio)

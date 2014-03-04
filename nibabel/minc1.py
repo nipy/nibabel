@@ -12,7 +12,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
-from .spatialimages import SpatialImage
+from .spatialimages import Header, SpatialImage
 from .fileslice import canonical_slicers
 
 from .deprecated import FutureWarningMixin
@@ -263,6 +263,19 @@ class MincImageArrayProxy(object):
         return self.minc_file.get_scaled_data(sliceobj)
 
 
+class MincHeader(Header):
+    # We don't use the data layout - this just in case we do later
+    data_layout = 'C'
+
+    def data_to_fileobj(self, data, fileobj, rescale=True):
+        """ See Header class for an implementation we can't use """
+        raise NotImplementedError
+
+    def data_from_fileobj(self, fileobj):
+        """ See Header class for an implementation we can't use """
+        raise NotImplementedError
+
+
 class Minc1Image(SpatialImage):
     ''' Class for MINC 1 format images
 
@@ -270,6 +283,7 @@ class Minc1Image(SpatialImage):
     MINC header type - and reads the relevant information from the MINC file on
     load.
     '''
+    header_class = MincHeader
     files_types = (('image', '.mnc'),)
     _compressed_exts = ('.gz', '.bz2')
 
