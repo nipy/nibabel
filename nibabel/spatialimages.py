@@ -153,6 +153,7 @@ class HeaderTypeError(Exception):
 class Header(object):
     ''' Template class to implement header protocol '''
     default_x_flip = True
+    data_layout = 'F'
 
     def __init__(self,
                  data_dtype=np.float32,
@@ -247,7 +248,7 @@ class Header(object):
     get_best_affine = get_base_affine
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
-        ''' Write image data to file in Fortran memory layout
+        ''' Write array data `data` as binary to `fileobj`
 
         Parameters
         ----------
@@ -261,15 +262,15 @@ class Header(object):
         '''
         data = np.asarray(data)
         dtype = self.get_data_dtype()
-        fileobj.write(data.astype(dtype).tostring(order='F'))
+        fileobj.write(data.astype(dtype).tostring(order=self.data_layout))
 
     def data_from_fileobj(self, fileobj):
-        ''' Read data in fortran order '''
+        ''' Read binary image data from `fileobj` '''
         dtype = self.get_data_dtype()
         shape = self.get_data_shape()
         data_size = int(np.prod(shape) * dtype.itemsize)
         data_bytes = fileobj.read(data_size)
-        return np.ndarray(shape, dtype, data_bytes, order='F')
+        return np.ndarray(shape, dtype, data_bytes, order=self.data_layout)
 
 
 def supported_np_types(obj):

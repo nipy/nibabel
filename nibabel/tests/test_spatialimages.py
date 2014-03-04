@@ -157,26 +157,29 @@ def test_affine():
 
 
 def test_read_data():
-    hdr = Header(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
-    fobj = BytesIO()
-    data = np.arange(6).reshape((1,2,3))
-    hdr.data_to_fileobj(data, fobj)
-    assert_equal(fobj.getvalue(),
-                 data.astype(np.int32).tostring(order='F'))
-    # data_to_fileobj accepts kwarg 'rescale', but no effect in this case
-    fobj.seek(0)
-    hdr.data_to_fileobj(data, fobj, rescale=True)
-    assert_equal(fobj.getvalue(),
-                 data.astype(np.int32).tostring(order='F'))
-    # data_to_fileobj can be a list
-    fobj.seek(0)
-    hdr.data_to_fileobj(data.tolist(), fobj, rescale=True)
-    assert_equal(fobj.getvalue(),
-                 data.astype(np.int32).tostring(order='F'))
-    # Read data back again
-    fobj.seek(0)
-    data2 = hdr.data_from_fileobj(fobj)
-    assert_array_equal(data, data2)
+    class CHeader(Header):
+        data_layout='C'
+    for klass, order in ((Header, 'F'), (CHeader, 'C')):
+        hdr = klass(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
+        fobj = BytesIO()
+        data = np.arange(6).reshape((1,2,3))
+        hdr.data_to_fileobj(data, fobj)
+        assert_equal(fobj.getvalue(),
+                     data.astype(np.int32).tostring(order=order))
+        # data_to_fileobj accepts kwarg 'rescale', but no effect in this case
+        fobj.seek(0)
+        hdr.data_to_fileobj(data, fobj, rescale=True)
+        assert_equal(fobj.getvalue(),
+                     data.astype(np.int32).tostring(order=order))
+        # data_to_fileobj can be a list
+        fobj.seek(0)
+        hdr.data_to_fileobj(data.tolist(), fobj, rescale=True)
+        assert_equal(fobj.getvalue(),
+                     data.astype(np.int32).tostring(order=order))
+        # Read data back again
+        fobj.seek(0)
+        data2 = hdr.data_from_fileobj(fobj)
+        assert_array_equal(data, data2)
 
 
 class DataLike(object):
