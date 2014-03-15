@@ -60,3 +60,14 @@ def test_orientation():
     hdr_defc['slice orientation'] = 3
     hdr = PARRECHeader(HDR_INFO, hdr_defc)
     assert_equal(hdr.get_slice_orientation(), 'coronal')
+
+def test_affine():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    default = hdr.get_affine()
+    scanner = hdr.get_affine(origin='scanner')
+    fov = hdr.get_affine(origin='fov')
+    assert_array_equal(default, scanner)
+    # rotation part is same
+    assert_array_equal(scanner[:3, :3], fov[:3,:3])
+    # offset not
+    assert_false(np.all(scanner[:3, 3] == fov[:3, 3]))
