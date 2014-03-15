@@ -463,7 +463,7 @@ class PARRECHeader(Header):
         elif origin == 'scanner':
             # offset to scanner's iso center (always in ap, fh, rl)
             # -- turn into rl, ap, fh and then lr, pa, fh
-            iso_offset = self.general_info['off_center'][[2,0,1]] * [-1,-1,0]
+            iso_offset = self.general_info['off_center'][[2,0,1]] * [-1,-1,1]
             aff[:3,3] += iso_offset
         return aff
 
