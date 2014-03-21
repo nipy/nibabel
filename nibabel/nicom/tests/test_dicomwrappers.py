@@ -149,16 +149,16 @@ def test_wrapper_from_data():
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     assert_true(dw.is_mosaic)
     # Check that multiframe requires minimal set of DICOM tags
-    fake_data = dict()
-    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
+    fake_data = dicom.dataset.Dataset({})
+    fake_data.add_new((0x8, 0x16), 'UI', '1.2.840.10008.5.1.4.1.1.4.2')
     dw = didw.wrapper_from_data(fake_data)
     assert_false(dw.is_multiframe)
     # use the correct SOPClassUID
-    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
+    fake_data.SOPClassUID = '1.2.840.10008.5.1.4.1.1.4.1'
     assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
-    fake_data['PerFrameFunctionalGroupsSequence'] = [None]
+    fake_data.add_new((0x5200, 0x9230), 'SQ', [dicom.dataset.Dataset({})])
     assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
-    fake_data['SharedFunctionalGroupsSequence'] = [None]
+    fake_data.add_new((0x5200, 0x9229), 'SQ', [dicom.dataset.Dataset({})])
     # minimal set should now be met
     dw = didw.wrapper_from_data(fake_data)
     assert_true(dw.is_multiframe)
@@ -302,14 +302,14 @@ def test_orthogonal():
     assert_true(np.allclose(np.eye(3), np.dot(R, R.T), atol=1e-6))
 
     # Test the threshold for rotation matrix orthogonality
-    d = {}
-    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
+    d = dicom.dataset.Dataset({})
+    d.add_new((0x20, 0x37), 'DS', [0, 1, 0, 1, 0, 0])
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d['ImageOrientationPatient'] = [1e-5, 1, 0, 1, 0, 0]
+    d.ImageOrientationPatient = [1e-5, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_almost_equal(dw.rotation_matrix, np.eye(3), 5)
-    d['ImageOrientationPatient'] = [1e-4, 1, 0, 1, 0, 0]
+    d.ImageOrientationPatient = [1e-4, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_raises(didw.WrapperPrecisionError, getattr, dw, 'rotation_matrix')
 
@@ -317,11 +317,11 @@ def test_orthogonal():
 @dicom_test
 def test_rotation_matrix():
     # Test rotation matrix and slice normal
-    d = {}
-    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
+    d = dicom.dataset.Dataset({})
+    d.add_new((0x20, 0x37), 'DS', [0, 1, 0, 1, 0, 0])
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d['ImageOrientationPatient'] = [1, 0, 0, 0, 1, 0]
+    d.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, [[0, 1, 0],
                                             [1, 0, 0],
@@ -330,8 +330,8 @@ def test_rotation_matrix():
 
 @dicom_test
 def test_use_csa_sign():
-    #Test that we get the same slice normal, even after swapping the iop 
-    #directions
+    # Test that we get the same slice normal, even after swapping the iop
+    # directions
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     iop = dw.image_orient_patient
     dw.image_orient_patient = np.c_[iop[:,1], iop[:,0]]
@@ -341,8 +341,8 @@ def test_use_csa_sign():
 
 @dicom_test
 def test_assert_parallel():
-    #Test that we get an AssertionError if the cross product and the CSA 
-    #slice normal are not parallel
+    # Test that we get an AssertionError if the cross product and the CSA
+    # slice normal are not parallel
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
     assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
@@ -350,8 +350,8 @@ def test_assert_parallel():
 
 @dicom_test
 def test_decimal_rescale():
-    #Test that we don't get back a data array with dtype np.object when our
-    #rescale slope is a decimal
+    # Test that we don't get back a data array with dtype np.object when our
+    # rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
     assert_not_equal(dw.get_data().dtype, np.object)
 
