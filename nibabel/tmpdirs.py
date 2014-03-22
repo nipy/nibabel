@@ -31,7 +31,7 @@ class TemporaryDirectory(object):
     >>> os.path.exists(tmpdir)
     False
     """
-    def __init__(self, suffix="", prefix=template, dir=None, chdir=False):
+    def __init__(self, suffix="", prefix=template, dir=None):
         self.name = mkdtemp(suffix, prefix, dir)
         self._closed = False
 
