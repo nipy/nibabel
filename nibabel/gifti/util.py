@@ -33,4 +33,4 @@ gifti_endian_codes = Recoder(
     ((0, "GIFTI_ENDIAN_UNDEF", "Undef", "undef"),
      (1, "GIFTI_ENDIAN_BIG", "BigEndian", "big"),
      (2, "GIFTI_ENDIAN_LITTLE", "LittleEndian", "little"),
-    ), fields = ('code', 'giistring', 'specs', 'byteorder'))
+    ), fields = ('code', 'label', 'giistring', 'byteorder'))
