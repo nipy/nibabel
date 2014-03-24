@@ -322,7 +322,7 @@ class GiftiDataArray(object):
                       str(self.num_dim), \
                       str(di), \
                       gifti_encoding_codes.specs[self.encoding], \
-                      gifti_endian_codes.giistring[self.endian], \
+                      gifti_endian_codes.specs[self.endian], \
                       self.ext_fname,
                       self.ext_offset,
                       )
