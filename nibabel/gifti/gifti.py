@@ -338,7 +338,7 @@ class GiftiDataArray(object):
         print('Dimensionality: ', self.num_dim)
         print('Dimensions: ', self.dims)
         print('Encoding: ', gifti_encoding_codes.specs[self.encoding])
-        print('Endian: ', gifti_endian_codes.giistring[self.endian])
+        print('Endian: ', gifti_endian_codes.specs[self.endian])
         print('ExternalFileName: ', self.ext_fname)
         print('ExternalFileOffset: ', self.ext_offset)
         if not self.coordsys == None:

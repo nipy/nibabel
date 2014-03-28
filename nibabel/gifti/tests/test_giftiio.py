@@ -13,6 +13,7 @@ from os.path import join as pjoin, dirname
 import numpy as np
 
 from ... import gifti as gi
+from ..util import gifti_endian_codes
 from ...nifti1 import xform_codes
 
 from ...tmpdirs import InTemporaryDirectory
@@ -29,6 +30,10 @@ DATA_FILE1 = pjoin(IO_DATA_PATH, 'ascii.gii')
 DATA_FILE2 = pjoin(IO_DATA_PATH, 'gzipbase64.gii')
 DATA_FILE3 = pjoin(IO_DATA_PATH, 'label.gii')
 DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
+# The base64bin file uses non-standard encoding and endian strings, and has
+# line-breaks in the base64 encoded data, both of which will break other
+# readers, such as Connectome workbench; for example:
+# wb_command -gifti-convert ASCII base64bin.gii test.gii
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 
@@ -64,8 +69,6 @@ DATA_FILE4_darr1 = np.array([[-0.57811606],
        [-0.48011276],
        [-0.45624232],
        [-0.31101292]], dtype=np.float32)
-       
-DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
 
 DATA_FILE5_darr1 = np.array([[ 155.17539978,  135.58103943,   98.30715179],
        [ 140.33973694,  190.0491333 ,   73.24776459],
@@ -78,7 +81,6 @@ DATA_FILE5_darr1 = np.array([[ 155.17539978,  135.58103943,   98.30715179],
        [ 178.11087036,  115.28820038,   57.17986679],
        [ 142.81582642,   82.82115173,   31.02205276]], dtype=np.float32)
 
-
 DATA_FILE5_darr2 = np.array([[ 6402, 17923, 25602],
        [14085, 25602, 17923],
        [25602, 14085,  4483],
@@ -89,6 +91,9 @@ DATA_FILE5_darr2 = np.array([[ 6402, 17923, 25602],
        [25603,  3525, 25604],
        [ 1123, 17922, 12168],
        [25604, 12168, 17922]], dtype=np.int32)
+
+DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
+
 
 def test_read_ordering():
     # DATA_FILE1 has an expected darray[0].data shape of (3,3).  However if we
@@ -141,10 +146,13 @@ def test_dataarray4():
     img4 = gi.read(DATA_FILE4)
     assert_array_almost_equal(img4.darrays[0].data[:10], DATA_FILE4_darr1)
 
+
 def test_dataarray5():
-    img3 = gi.read(DATA_FILE5)
-    assert_array_almost_equal(img3.darrays[0].data, DATA_FILE5_darr1)
-    assert_array_almost_equal(img3.darrays[1].data, DATA_FILE5_darr2)
+    img5 = gi.read(DATA_FILE5)
+    for da in img5.darrays:
+        assert_equal(gifti_endian_codes.byteorder[da.endian], 'little')
+    assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
+    assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
 
 
 def test_readwritedata():
