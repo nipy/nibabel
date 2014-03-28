@@ -155,6 +155,32 @@ def test_dataarray5():
     assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
 
 
+def test_base64_written():
+    with InTemporaryDirectory():
+        with open(DATA_FILE5, 'rb') as fobj:
+            contents = fobj.read()
+        # Confirm the bad tags are still in the file
+        assert_true(b'GIFTI_ENCODING_B64BIN' in contents)
+        assert_true(b'GIFTI_ENDIAN_LITTLE' in contents)
+        # The good ones are missing
+        assert_false(b'Base64Binary' in contents)
+        assert_false(b'LittleEndian' in contents)
+        # Round trip
+        img5 = gi.read(DATA_FILE5)
+        gi.write(img5, 'fixed.gii')
+        with open('fixed.gii', 'rb') as fobj:
+            contents = fobj.read()
+        # The bad codes have gone, replaced by the good ones
+        assert_false(b'GIFTI_ENCODING_B64BIN' in contents)
+        assert_false(b'GIFTI_ENDIAN_LITTLE' in contents)
+        assert_true(b'Base64Binary' in contents)
+        assert_true(b'LittleEndian' in contents)
+        img5_fixed = gi.read('fixed.gii')
+        darrays = img5_fixed.darrays
+        assert_array_almost_equal(darrays[0].data, DATA_FILE5_darr1)
+        assert_array_almost_equal(darrays[1].data, DATA_FILE5_darr2)
+
+
 def test_readwritedata():
     img = gi.read(DATA_FILE2)
     with InTemporaryDirectory():
