@@ -10,8 +10,6 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 
-from ..externals.six import BytesIO
-
 import numpy as np
 
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
@@ -22,13 +20,6 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 # {en,de}codebytes not available in Python2. 
 # Therefore set the proper functions depending on the Python version.
 import base64
-if sys.version < '3':
-    base64_encodebytes = base64.standard_b64encode
-    base64_decodebytes = base64.standard_b64decode
-else:
-    base64_encodebytes = base64.encodebytes
-    base64_decodebytes = base64.decodebytes
-                   
 
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
@@ -140,6 +131,15 @@ class GiftiLabel(object):
         return (self.red, self.green, self.blue, self.alpha)
 
 
+def _arr2txt(arr, elem_fmt):
+    arr = np.asarray(arr)
+    assert arr.dtype.names is None
+    if arr.ndim == 1:
+        arr = arr[:, None]
+    fmt = ' '.join([elem_fmt] * arr.shape[1])
+    return '\n'.join(fmt % tuple(row) for row in arr)
+
+
 class GiftiCoordSystem(object):
     dataspace = int
     xformspace = int
@@ -162,12 +162,8 @@ class GiftiCoordSystem(object):
 \t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n"""
                % (xform_codes.niistring[self.dataspace],
                   xform_codes.niistring[self.xformspace]))
-        e = BytesIO()
-        np.savetxt(e, self.xform, '%10.6f')
-        e.seek(0)
         res = res + "<MatrixData>\n"
-        res = res + e.read().decode()
-        e.close()
+        res += _arr2txt(self.xform, '%10.6f')
         res = res + "</MatrixData>\n"
         res = res + "</CoordinateSystemTransformMatrix>\n" 
         return res
@@ -184,23 +180,17 @@ def data_tag(dataarray, encoding, datatype, ordering):
     ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
     if enclabel == 'ASCII':
-        c = BytesIO()
-        # np.savetxt(c, dataarray, format, delimiter for columns)
-        np.savetxt(c, dataarray, datatype, ' ')
-        c.seek(0)
-        da = c.read()
-    elif enclabel == 'B64BIN':
-        da = base64_encodebytes(dataarray.tostring(ord))
-    elif enclabel == 'B64GZ':
-        # first compress
-        comp = zlib.compress(dataarray.tostring(ord))
-        da = base64_encodebytes(comp)
-        da = da.decode()
+        da = _arr2txt(dataarray, datatype)
+    elif enclabel in ('B64BIN', 'B64GZ'):
+        out = dataarray.tostring(ord)
+        if enclabel == 'B64GZ':
+            out = zlib.compress(out)
+        da = base64.b64encode(out).decode()
     elif enclabel == 'External':
         raise NotImplementedError("In what format are the external files?")
     else:
         da = ''
-    return "<Data>"+da+"</Data>\n"
+    return "<Data>" + da +"</Data>\n"
 
 
 class GiftiDataArray(object):

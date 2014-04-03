@@ -245,8 +245,8 @@ def test_backward_compat_endian_bug():
                          'EndElementHandler',
                          'CharacterDataHandler']
         out = Outputter()
-        dstr = ''.join(datasource.readlines())
-        dstr2 = dstr.replace("LittleEndian", "GIFTI_ENDIAN_LITTLE")
+        dstr = b''.join(datasource.readlines())
+        dstr2 = dstr.replace(b"LittleEndian", b"GIFTI_ENDIAN_LITTLE")
         for name in HANDLER_NAMES:
             setattr(parser, name, getattr(out, name))
         try:
