@@ -107,44 +107,59 @@ def test_read_ordering():
 
 
 def test_metadata():
-
     for i, dat in enumerate(datafiles):
-        
         img = gi.read(dat)
         me = img.get_metadata()
         medat = me.get_metadata()
-
         assert_equal(numda[i], img.numDA)
         assert_equal(img.version,'1.0')
 
 
 def test_dataarray1():
-    
-    img = gi.read(DATA_FILE1)
-    assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
-    assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
-    
-    me=img.darrays[0].meta.get_metadata()
-    
-    assert_true('AnatomicalStructurePrimary' in me)
-    assert_true('AnatomicalStructureSecondary' in me)
-    assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
-    
-    assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
-    assert_equal(xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
-    assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
+    img1 = gi.read(DATA_FILE1)
+    # Round trip
+    with InTemporaryDirectory():
+        gi.write(img1, 'test.gii')
+        bimg = gi.read('test.gii')
+    for img in (img1, bimg):
+        assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
+        assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
+        me=img.darrays[0].meta.get_metadata()
+        assert_true('AnatomicalStructurePrimary' in me)
+        assert_true('AnatomicalStructureSecondary' in me)
+        assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
+        assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
+        assert_equal(xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
+        assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
+
 
 def test_dataarray2():
     img2 = gi.read(DATA_FILE2)
-    assert_array_almost_equal(img2.darrays[0].data[:10], DATA_FILE2_darr1)
-    
+    # Round trip
+    with InTemporaryDirectory():
+        gi.write(img2, 'test.gii')
+        bimg = gi.read('test.gii')
+    for img in (img2, bimg):
+        assert_array_almost_equal(img.darrays[0].data[:10], DATA_FILE2_darr1)
+
+
 def test_dataarray3():
     img3 = gi.read(DATA_FILE3)
-    assert_array_almost_equal(img3.darrays[0].data[30:50], DATA_FILE3_darr1)
+    with InTemporaryDirectory():
+        gi.write(img3, 'test.gii')
+        bimg = gi.read('test.gii')
+    for img in (img3, bimg):
+        assert_array_almost_equal(img.darrays[0].data[30:50], DATA_FILE3_darr1)
+
 
 def test_dataarray4():
     img4 = gi.read(DATA_FILE4)
-    assert_array_almost_equal(img4.darrays[0].data[:10], DATA_FILE4_darr1)
+    # Round trip
+    with InTemporaryDirectory():
+        gi.write(img4, 'test.gii')
+        bimg = gi.read('test.gii')
+    for img in (img4, bimg):
+        assert_array_almost_equal(img.darrays[0].data[:10], DATA_FILE4_darr1)
 
 
 def test_dataarray5():
@@ -153,6 +168,7 @@ def test_dataarray5():
         assert_equal(gifti_endian_codes.byteorder[da.endian], 'little')
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
     assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
+    # Round trip tested below
 
 
 def test_base64_written():
@@ -217,14 +233,19 @@ def test_getbyintent():
 
 
 def test_labeltable():
-    img = gi.read(DATA_FILE6)
-    assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
-    assert_equal(len(img.labeltable.labels), 36)
-    labeldict = img.labeltable.get_labels_as_dict()
-    assert_true(660700 in labeldict)
-    assert_equal(labeldict[660700], 'entorhinal')
-    assert_equal(img.labeltable.labels[1].key, 2647065)
-    assert_equal(img.labeltable.labels[1].red, 0.0980392)
-    assert_equal(img.labeltable.labels[1].green, 0.392157)
-    assert_equal(img.labeltable.labels[1].blue, 0.156863)
-    assert_equal(img.labeltable.labels[1].alpha, 1)
+    img6 = gi.read(DATA_FILE6)
+    # Round trip
+    with InTemporaryDirectory():
+        gi.write(img6, 'test.gii')
+        bimg = gi.read('test.gii')
+    for img in (img6, bimg):
+        assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
+        assert_equal(len(img.labeltable.labels), 36)
+        labeldict = img.labeltable.get_labels_as_dict()
+        assert_true(660700 in labeldict)
+        assert_equal(labeldict[660700], 'entorhinal')
+        assert_equal(img.labeltable.labels[1].key, 2647065)
+        assert_equal(img.labeltable.labels[1].red, 0.0980392)
+        assert_equal(img.labeltable.labels[1].green, 0.392157)
+        assert_equal(img.labeltable.labels[1].blue, 0.156863)
+        assert_equal(img.labeltable.labels[1].alpha, 1)
