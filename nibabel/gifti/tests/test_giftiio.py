@@ -194,3 +194,29 @@ def test_labeltable():
     assert_equal(img.labeltable.labels[1].green, 0.392157)
     assert_equal(img.labeltable.labels[1].blue, 0.156863)
     assert_equal(img.labeltable.labels[1].alpha, 1)
+
+from ..parse_gifti_fast import ParserCreate, Outputter, ExpatError
+
+def test_backward_compat_endian_bug():
+    with open(DATA_FILE6,'rb') as datasource:
+        parser = ParserCreate()
+        parser.buffer_text = True
+        buffer_sz_val =  35000000
+        try:
+            parser.buffer_size = buffer_sz_val
+        except AttributeError:
+            if not buffer_size is None:
+                raise ValueError('Cannot set buffer size for parser')
+        HANDLER_NAMES = ['StartElementHandler',
+                         'EndElementHandler',
+                         'CharacterDataHandler']
+        out = Outputter()
+        dstr = ''.join(datasource.readlines())
+        dstr2 = dstr.replace("LittleEndian", "GIFTI_ENDIAN_LITTLE")
+        for name in HANDLER_NAMES:
+            setattr(parser, name, getattr(out, name))
+        try:
+            parser.Parse(dstr2)
+        except ExpatError:
+            print('An expat error occured while parsing the  Gifti file.')
+        assert_equal(out.img.darrays[0].endian, 2)

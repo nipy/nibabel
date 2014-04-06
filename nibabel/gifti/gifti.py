@@ -23,8 +23,8 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 # Therefore set the proper functions depending on the Python version.
 import base64
 if sys.version < '3':
-    base64_encodebytes = base64.encodestring
-    base64_decodebytes = base64.decodestring
+    base64_encodebytes = base64.standard_b64encode
+    base64_decodebytes = base64.standard_b64decode
 else:
     base64_encodebytes = base64.encodebytes
     base64_decodebytes = base64.decodebytes
@@ -322,7 +322,7 @@ class GiftiDataArray(object):
                       str(self.num_dim), \
                       str(di), \
                       gifti_encoding_codes.specs[self.encoding], \
-                      gifti_endian_codes.giistring[self.endian], \
+                      gifti_endian_codes.specs[self.endian], \
                       self.ext_fname,
                       self.ext_offset,
                       )
