@@ -200,6 +200,8 @@ def data_tag(dataarray, encoding, datatype, ordering):
         raise NotImplementedError("In what format are the external files?")
     else:
         da = ''
+    # this is a kludge to get rid of line feeds within the data
+    da=da.replace('\n','')
     return "<Data>"+da+"</Data>\n"
 
 
@@ -322,7 +324,7 @@ class GiftiDataArray(object):
                       str(self.num_dim), \
                       str(di), \
                       gifti_encoding_codes.specs[self.encoding], \
-                      gifti_endian_codes.giistring[self.endian], \
+                      gifti_endian_codes.specs[self.endian], \
                       self.ext_fname,
                       self.ext_offset,
                       )
@@ -338,7 +340,7 @@ class GiftiDataArray(object):
         print('Dimensionality: ', self.num_dim)
         print('Dimensions: ', self.dims)
         print('Encoding: ', gifti_encoding_codes.specs[self.encoding])
-        print('Endian: ', gifti_endian_codes.giistring[self.endian])
+        print('Endian: ', gifti_endian_codes.specs[self.endian])
         print('ExternalFileName: ', self.ext_fname)
         print('ExternalFileOffset: ', self.ext_offset)
         if not self.coordsys == None:
