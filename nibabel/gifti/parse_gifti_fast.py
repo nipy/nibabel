@@ -17,9 +17,9 @@ from xml.parsers.expat import ParserCreate, ExpatError
 import numpy as np
 
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
-from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel, GiftiLabelTable,
-                    GiftiNVPairs, GiftiDataArray, GiftiCoordSystem,
-                    base64_decodebytes)
+from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel,
+                    GiftiLabelTable, GiftiNVPairs, GiftiDataArray,
+                    GiftiCoordSystem)
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 
@@ -40,7 +40,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         return da
     elif enclabel == 'B64BIN':
         # GIFTI_ENCODING_B64BIN
-        dec = base64_decodebytes(data.encode('ascii'))
+        dec = base64.b64decode(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
         newarr = np.fromstring(dec, dtype = dt)
@@ -50,7 +50,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         # GIFTI_ENCODING_B64GZ
         # convert to bytes array for python 3.2
         # http://diveintopython3.org/strings.html#byte-arrays
-        dec = base64_decodebytes(data.encode('ascii'))
+        dec = base64.b64decode(data.encode('ascii'))
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
