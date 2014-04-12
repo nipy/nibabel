@@ -115,6 +115,6 @@ def test_read_img_data_nifti():
             img_back.header.set_data_offset(1026)
             # Check we pick up new offset
             exp_offset = np.zeros((data.size,), data.dtype) + old_inter
-            exp_offset[:-1] = data_back.ravel(order='F')[1:]
+            exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
             assert_array_equal(exp_offset, read_img_data(img_back))

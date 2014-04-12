@@ -9,6 +9,7 @@
 from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
+import sys
 
 import numpy as np
 
@@ -190,7 +191,10 @@ def test_base64_written():
         assert_false(b'GIFTI_ENCODING_B64BIN' in contents)
         assert_false(b'GIFTI_ENDIAN_LITTLE' in contents)
         assert_true(b'Base64Binary' in contents)
-        assert_true(b'LittleEndian' in contents)
+        if sys.byteorder == 'little':
+            assert_true(b'LittleEndian' in contents)
+        else:
+            assert_true(b'BigEndian' in contents)
         img5_fixed = gi.read('fixed.gii')
         darrays = img5_fixed.darrays
         assert_array_almost_equal(darrays[0].data, DATA_FILE5_darr1)
