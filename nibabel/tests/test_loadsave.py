@@ -103,7 +103,6 @@ def test_read_img_data_nifti():
             assert_array_equal(actual_unscaled,
                                read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
-            del img_back
             img.header.set_data_offset(1024)
             img.to_file_map()
             # Write an integer of zeros after
@@ -118,3 +117,4 @@ def test_read_img_data_nifti():
             exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
             assert_array_equal(exp_offset, read_img_data(img_back))
+            del img_back
