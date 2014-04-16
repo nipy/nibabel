@@ -104,6 +104,8 @@ def test_read_img_data_nifti():
                                read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
+            # Delete array still pointing to file, so Windows can re-use
+            del unscaled_back
             img.to_file_map()
             # Write an integer of zeros after
             with open(img_fname, 'ab') as fobj:
