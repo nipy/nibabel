@@ -703,13 +703,22 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # The thresholds assume that the data are in `wtype` dtype after applying
     # the slope and intercept.
     both_mn, both_mx = shared_range(w_type, out_dtype)
-    # Check we haven't excluded the value equivalent to zero if we need it
-    if nan2zero:
-        if np.array(nan_fill, dtype=out_dtype) != nan_fill:
-            raise ValueError("Scaled value for zero ({0}) outside "
-                             "representable range {1}, {2}; "
-                             "change scaling or set nan2zero to "
-                             "False?".format(nan_fill, both_mn, both_mx))
+    # Check that nan2zero output value is in range
+    if nan2zero and not both_mn <= nan_fill <= both_mx:
+        # Estimated error for (0 - inter) / slope is 2 * eps * abs(inter /
+        # slope).  Assume errors are for working float type. Round for integer
+        # rounding
+        est_err = np.round(2 * np.finfo(w_type).eps * abs(inter / slope))
+        if ((nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or
+            (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
+            # nan_fill can be (just) outside clip range
+            nan_fill = np.clip(nan_fill, both_mn, both_mx)
+        else:
+            raise ValueError("nan_fill == {0}, outside safe int range "
+                             "({1}-{2}); change scaling or "
+                             "set nan2zero=False?".format(
+                                 nan_fill, int(both_mn), int(both_mx)))
+    # Make sure non-nan output clipped to shared range
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
