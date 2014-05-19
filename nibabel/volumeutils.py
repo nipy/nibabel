@@ -734,6 +734,8 @@ def _write_data(data,
                 nan_fill = None):
     """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
 
+    Does not modify `data` in-place.
+
     Parameters
     ----------
     data : ndarray
@@ -758,9 +760,13 @@ def _write_data(data,
         If not None, values that were NaN in `data` will receive `nan_fill`
         in array as output to disk (after scaling).
     """
-    data = np.atleast_2d(data) # Trick to allow loop below for 1D arrays
-    if order == 'F' or (data.ndim == 2 and data.shape[1] == 1):
+    data = np.squeeze(data)
+    if data.ndim < 2: # Trick to allow loop over rows for 1D arrays
+        data = np.atleast_2d(data)
+    elif order == 'F':
         data = data.T
+    nan_need_copy = ((pre_clips, in_cast, inter, slope, post_clips) ==
+                     (None, None, 0, 1, None))
     for dslice in data: # cycle over first dimension to save memory
         if not pre_clips is None:
             dslice = np.clip(dslice, *pre_clips)
@@ -775,6 +781,8 @@ def _write_data(data,
         if not nan_fill is None:
             nans = np.isnan(dslice)
             if np.any(nans):
+                if nan_need_copy:
+                    dslice = dslice.copy()
                 dslice[nans] = nan_fill
         if dslice.dtype != out_dtype:
             dslice = dslice.astype(out_dtype)
