@@ -42,12 +42,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.todo',
               'sphinx.ext.mathjax',
               'sphinx.ext.inheritance_diagram',
-              # we have a local copy of autosummary from the unreleased sphinx
-              # 1.0 -- reason: the 0.6 extension creates half-empty summaries
-              'autosummary',
+              'sphinx.ext.autosummary',
+              'math_dollar', # has to go before numpydoc
               # we have a local copy of the extension, imported from NumPy 1.3
               # this also includes the docscrape* extensions
-              'math_dollar', # has to go before numpydoc
               'numpydoc',
               'only_directives',
               'math_dollar',
