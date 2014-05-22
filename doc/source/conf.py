@@ -40,7 +40,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               #'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
-              'sphinx.ext.pngmath',
+              'sphinx.ext.mathjax',
               'sphinx.ext.inheritance_diagram',
               # we have a local copy of autosummary from the unreleased sphinx
               # 1.0 -- reason: the 0.6 extension creates half-empty summaries
