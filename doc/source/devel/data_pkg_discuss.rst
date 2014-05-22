@@ -87,9 +87,9 @@ tag, but perhaps it's reasonable to restrict tags to refer to revisions.  A
 refers to a static state of the data.  An example might be a numbered version.
 So, a package may have a revision uniquely identified by a revision id
 ``af5bd6``.  We might decide to label this revision ``release-0.3`` (the
-equivalent of applying a git tag).  ``release-0.3`` is the tag and ``af5bd6``
-is the revision id.  Different sources of the same package might possibly
-produce different tags [#tag-sources]_
+equivalent of applying a git tag).  ``release-0.3`` is the tag and ``af5bd6`` is
+the revision id.  Different sources of the same package might possibly produce
+different tags [#tag-sources]_
 
 Pinstance version
 =================
@@ -354,7 +354,7 @@ Discovery
 
 .. rubric:: Footnotes
 
-.. [tag-sources]
+.. [#tag-sources]
 
     Revsion ids could for example be hashes of the package instantiation
     (package contents), so they could be globally unique to the contents,
