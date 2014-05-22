@@ -7,6 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
+""" Utilities to load and save image objects """
+
 import numpy as np
 
 from .filename_parser import types_filenames, splitext_addext

@@ -17,6 +17,7 @@ The proxy API is - at minimum:
   ndarray slice specification that does not use numpy 'advanced indexing'.
 * modifying no object outside ``obj`` will affect the result of
   ``np.asarray(obj)``.  Specifically:
+
   * Changes in position (``obj.tell()``) of passed file-like objects will
     not affect the output of from ``np.asarray(proxy)``.
   * if you pass a header into the __init__, then modifying the original

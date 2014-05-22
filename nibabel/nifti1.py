@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading / writing functions for nifti1 image format
+''' Read / write access to NIfTI1 image format
 '''
 from __future__ import division, print_function
 import warnings
@@ -804,11 +804,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         code : None, string or integer, optional
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
+
             * If affine is None, `code`-> 0
             * If affine not None and existing qform code in header == 0,
               `code`-> 2 (aligned)
             * If affine not None and existing qform code in header != 0,
               `code`-> existing qform code in header
+
         strip_shears : bool, optional
             Whether to strip shears in `affine`.  If True, shears will be
             silently stripped. If False, the presence of shears will raise a
@@ -935,6 +937,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         code : None, string or integer, optional
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
+
             * If affine is None, `code`-> 0
             * If affine not None and existing sform code in header == 0,
               `code`-> 2 (aligned)
@@ -1622,8 +1625,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
         ----------
         coded : bool, optional
             If True, return {affine or None}, and qform code.  If False, just
-            return affine.  {affine or None} means, return None if qform code ==
-            0, and affine otherwise.
+            return affine.  {affine or None} means, return None if qform code
+            == 0, and affine otherwise.
 
         Returns
         -------
@@ -1650,19 +1653,21 @@ class Nifti1Pair(analyze.AnalyzeImage):
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
+
             * If affine is None, `code`-> 0
             * If affine not None and existing qform code in header == 0,
-             `code`-> 2 (aligned)
+              `code`-> 2 (aligned)
             * If affine not None and existing qform code in header != 0,
-             `code`-> existing qform code in header
+              `code`-> existing qform code in header
+
         strip_shears : bool, optional
             Whether to strip shears in `affine`.  If True, shears will be
             silently stripped. If False, the presence of shears will raise a
             ``HeaderDataError``
         update_affine : bool, optional
-            Whether to update the image affine from the header best affine after
-            setting the qform. Must be keyword argument (because of different
-            position in `set_qform`). Default is True
+            Whether to update the image affine from the header best affine
+            after setting the qform. Must be keyword argument (because of
+            different position in `set_qform`). Default is True
 
         See also
         --------
@@ -1733,15 +1738,17 @@ class Nifti1Pair(analyze.AnalyzeImage):
         code : None, string or integer
             String or integer giving meaning of transform in *affine*.
             The default is None.  If code is None, then:
+
             * If affine is None, `code`-> 0
             * If affine not None and existing sform code in header == 0,
-             `code`-> 2 (aligned)
+              `code`-> 2 (aligned)
             * If affine not None and existing sform code in header != 0,
-             `code`-> existing sform code in header
+              `code`-> existing sform code in header
+
         update_affine : bool, optional
-            Whether to update the image affine from the header best affine after
-            setting the qform.  Must be keyword argument (because of different
-            position in `set_qform`). Default is True
+            Whether to update the image affine from the header best affine
+            after setting the qform.  Must be keyword argument (because of
+            different position in `set_qform`). Default is True
 
         See also
         --------

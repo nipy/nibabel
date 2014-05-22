@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header and image for the basic Mayo Analyze format
+''' Read / write access to the basic Mayo Analyze format
 
 ===========================
  The Analyze header format
@@ -317,7 +317,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> AnalyzeHeader.guessed_endian(hdr_data) == native_code
         True
 
-        This is overridden by the ``dim``[0] value though:
+        This is overridden by the ``dim[0]`` value though:
 
         >>> hdr_data['sizeof_hdr'] = 1543569408
         >>> hdr_data['dim'][0] = 1

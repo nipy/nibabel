@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading / writing functions for nifti2 image format
+''' Read / write access to NIfTI2 image format
 
 Format described here:
 

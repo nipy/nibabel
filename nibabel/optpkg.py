@@ -9,6 +9,7 @@ else:
 
 from .tripwire import TripWire
 
+
 def optional_package(name, trip_msg=None):
     """ Return package-like thing and module setup for package `name`
 
@@ -32,8 +33,8 @@ def optional_package(name, trip_msg=None):
         callable usually set as ``setup_module`` in calling namespace, to allow
         skipping tests.
 
-    Example
-    -------
+    Examples
+    --------
     Typical use would be something like this at the top of a module using an
     optional package:
 

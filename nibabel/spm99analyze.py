@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading functions for SPM version of analyze format '''
+''' Read / write access to SPM99 version of analyze image format '''
 import warnings
 import numpy as np
 

@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading functions for SPM2 version of analyze format '''
-
+''' Read / write access to SPM2 version of analyze image format '''
 import numpy as np
 
 from .spatialimages import HeaderDataError

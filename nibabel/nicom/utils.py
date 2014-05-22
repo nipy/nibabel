@@ -13,11 +13,11 @@ def find_private_section(dcm_data, group_no, creator):
     element number of these tags give the start of matching information, in the
     higher tag numbers.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     dcm_data : dicom ``dataset``
-        Iterating over `dcm_data` produces ``elements`` with attributes ``tag``,
-        ``VR``, ``value``
+        Iterating over `dcm_data` produces ``elements`` with attributes
+        ``tag``, ``VR``, ``value``
     group_no : int
         Group number in which to search
     creator : str or bytes or regex

@@ -6,6 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""" Read ECAT format images """
+
 import warnings
 from numbers import Integral
 

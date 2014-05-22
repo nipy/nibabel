@@ -6,6 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""" Read MINC1 format images """
+
 from numbers import Integral
 
 import numpy as np
