@@ -17,7 +17,7 @@ matrix:
 before_install:
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" < "3" ]]; then
-      easy_install -U pydicom;
+      pip install pydicom;
       fi
     - if [ "${COVERAGE}" == "--with-coverage" ]; then
       pip install coverage;
