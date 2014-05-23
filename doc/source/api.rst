@@ -51,6 +51,14 @@ Image Utilities
    volumeutils
    eulerangles
 
+Float / integer conversion
+==========================
+
+.. autosummary::
+    :toctree: reference
+
+    arraywriters
+    casting
 
 Miscellaneous Helpers
 =====================
@@ -61,13 +69,16 @@ Miscellaneous Helpers
    arrayproxy
    affines
    batteryrunners
+   data
    fileholders
    filename_parser
    onetime
+   openers
    tmpdirs
+   wrapstruct
 
-Full API reference
-==================
+Alphabetical API reference
+==========================
 
 .. toctree::
     :maxdepth: 2
