@@ -1,4 +1,18 @@
-""" Validate image API """
+""" Validate image API
+
+What is the image API?
+
+* ``img.dataobj`` (something that can be made into an array with
+  ``np.array(img.dataobj)``
+* ``img.header`` (image metadata) (no changes in the image metadata should
+  change ``dataobj``, ``affine``, ``shape``)
+* ``img.affine`` (4x4 matrix relating spatial voxel coordinates to world)
+* ``img.shape`` (shape of data as read with ``np.array(img.dataobj)``
+* ``img.get_data()`` (returns data as read with ``np.array(img.dataobj)``)
+* ``img.uncache()`` (``img.get_data()`` is allowed to cache the result of the
+  array creation.  If it does, this call uncaches it.  Implement this as a
+  no-op if `get_data()`` does not cache.
+"""
 from __future__ import division, print_function, absolute_import
 
 import warnings
