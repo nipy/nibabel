@@ -53,7 +53,7 @@ if __name__ == '__main__':
     if source_version != installed_version:
         abort("Installed version does not match source version")
 
-    docwriter = ApiDocWriter(package, rst_extension='.rst')
+    docwriter = ApiDocWriter(package, rst_extension='.rst', other_defines=False)
     docwriter.package_skip_patterns += [r'\.fixes$',
                                         r'\.fixes.*$',
                                         r'\.externals$',
