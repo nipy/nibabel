@@ -513,7 +513,7 @@ def optimize_read_slicers(sliceobj, in_shape, itemsize, heuristic):
         Can be assumed to be canonical in the sense of ``canonical_slicers``
     in_shape : sequence
         shape of underlying array to be sliced.  Array for `in_shape` assumed to
-        be already in 'F' order. Reorder shape / sliceobj for slicing a `C'
+        be already in 'F' order. Reorder shape / sliceobj for slicing a 'C'
         array before passing to this function.
     itemsize : int
         element size in array (bytes)

@@ -295,10 +295,12 @@ def read_mlist(fileobj, endianness):
     -------
     mlist : (nframes, 4) ndarray
         matrix list is an array with ``nframes`` rows and columns:
+
         * 0 - Matrix identifier.
         * 1 - subheader record number
         * 2 - Last record number of matrix data block.
         * 3 - Matrix status:
+
           * 1 - exists - rw
           * 2 - exists - ro
           * 3 - matrix deleted

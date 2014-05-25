@@ -160,7 +160,7 @@ class Nifti2Header(Nifti1Header):
         Notes
         -----
         Does not use Nifti1 freesurfer hack for large vectors described in
-        :meth:`Nifti1Header.set_data_shape
+        :meth:`Nifti1Header.set_data_shape`
         '''
         return AnalyzeHeader.get_data_shape(self)
 
@@ -178,7 +178,7 @@ class Nifti2Header(Nifti1Header):
         Notes
         -----
         Does not apply nifti1 Freesurfer hack for long vectors (see
-        :meth:`Nifti1Header.set_data_shape)
+        :meth:`Nifti1Header.set_data_shape`)
         '''
         AnalyzeHeader.set_data_shape(self, shape)
 

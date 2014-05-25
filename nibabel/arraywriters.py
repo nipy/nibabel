@@ -103,6 +103,7 @@ class ArrayWriter(object):
         Raises WriterError if no scaling possible.
 
         The rules are in the code, but:
+
         * If numpy will cast, return False (no scaling needed)
         * If input or output is an object or structured type, raise
         * If input is complex, raise
@@ -110,8 +111,8 @@ class ArrayWriter(object):
         * If the input array is all zero, return False
         * By now we are casting to (u)int. If the input type is a float, return
           True (we do need scaling)
-        * Now input and output types are (u)ints. If the min and max in the data
-          are within range of the output type, return False
+        * Now input and output types are (u)ints. If the min and max in the
+          data are within range of the output type, return False
         * Otherwise return True
         """
         data = self._array
@@ -306,6 +307,7 @@ class SlopeArrayWriter(ArrayWriter):
         Raises WriterError if no scaling possible.
 
         The rules are in the code, but:
+
         * If numpy will cast, return False (no scaling needed)
         * If input or output is an object or structured type, raise
         * If input is complex, raise
@@ -315,8 +317,8 @@ class SlopeArrayWriter(ArrayWriter):
           non-finite values)
         * By now we are casting to (u)int. If the input type is a float, return
           True (we do need scaling)
-        * Now input and output types are (u)ints. If the min and max in the data
-          are within range of the output type, return False
+        * Now input and output types are (u)ints. If the min and max in the
+          data are within range of the output type, return False
         * Otherwise return True
         """
         if not super(SlopeArrayWriter, self).scaling_needed():

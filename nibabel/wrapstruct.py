@@ -12,16 +12,20 @@
  wrapstruct
 ============
 
-The ``WrapStruct`` class is a wrapper around a numpy structured array type.
+The :class:`WrapStruct` class is a wrapper around a numpy structured array type.
 
 It implements:
 
 * Mappingness from the underlying structured array fields
 * ``from_fileobj``, ``write_to`` methods to read and write data to fileobj
 * A mechanism for setting checks and fixes to the data on object creation
-* A pretty printing mechanism whereby field values can be displayed as
-  corresponding strings (see ``get_value_label`` and ``__str_``_
 * Endianness guessing, and on-the-fly swapping
+
+The :class:`LabeledWrapStruct` subclass adds:
+
+* A pretty printing mechanism whereby field values can be displayed as
+  corresponding strings (see :meth:`LabeledWrapStruct.get_value_label` and
+  :meth:`LabeledWrapStruct.__str_`)
 
 Mappingness
 -----------

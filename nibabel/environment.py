@@ -28,7 +28,7 @@ def get_home_dir():
 
 def get_nipy_user_dir():
     """Get the NIPY user directory
-    
+
     This uses the logic in `get_home_dir` to find the home directory
     and the adds either .nipy or _nipy to the end of the path.
 
@@ -66,7 +66,7 @@ def get_nipy_user_dir():
 
 
 def get_nipy_system_dir():
-    ''' Get systemwide NIPY configuration file directory
+    r''' Get systemwide NIPY configuration file directory
 
     On posix systems this will be ``/etc/nipy``.
     On Windows, the directory is less useful, but by default it will be
@@ -87,7 +87,6 @@ def get_nipy_system_dir():
     Examples
     --------
     >>> pth = get_nipy_system_dir()
-
     '''
     if os.name == 'nt':
         return r'C:\etc\nipy'

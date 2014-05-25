@@ -19,7 +19,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
 
     * Rounds numbers to nearest integer
     * Clips values to prevent overflows when casting
-    * Converts NaN to 0 (for `nan2zero`==True
+    * Converts NaN to 0 (for `nan2zero` == True)
 
     Casting floats to integers is delicate because the result is undefined
     and platform specific for float values outside the range of `int_type`.

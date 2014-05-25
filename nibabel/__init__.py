@@ -75,4 +75,6 @@ except ImportError:
     def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')
 
 from .pkg_info import get_pkg_info as _get_pkg_info
-get_info = lambda : _get_pkg_info(os.path.dirname(__file__))
+
+def get_info():
+    return _get_pkg_info(os.path.dirname(__file__))
