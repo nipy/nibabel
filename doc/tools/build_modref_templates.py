@@ -24,6 +24,12 @@ def abort(error):
 if __name__ == '__main__':
     package = sys.argv[1]
     outdir = sys.argv[2]
+    try:
+        other_defines = sys.argv[3]
+    except IndexError:
+        other_defines = True
+    else:
+        other_defines = other_defines in ('True', 'true', '1')
 
     # Check that the package is available. If not, the API documentation is not
     # (re)generated and existing API documentation sources will be used.
@@ -53,7 +59,8 @@ if __name__ == '__main__':
     if source_version != installed_version:
         abort("Installed version does not match source version")
 
-    docwriter = ApiDocWriter(package, rst_extension='.rst', other_defines=False)
+    docwriter = ApiDocWriter(package, rst_extension='.rst',
+                             other_defines=other_defines)
     docwriter.package_skip_patterns += [r'\.fixes$',
                                         r'\.fixes.*$',
                                         r'\.externals$',

@@ -39,7 +39,7 @@ api-clean:
 api: api-stamp
 api-stamp:
 	@mkdir -p $(API_DIR)
-	$(PYTHON) tools/build_modref_templates.py nibabel $(API_DIR)
+	$(PYTHON) tools/build_modref_templates.py nibabel $(API_DIR) False
 	@echo "Build API docs...done."
 	@touch $@
 
