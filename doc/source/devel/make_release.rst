@@ -44,7 +44,7 @@ Release checklist
   outstanding issues that can be closed, and whether there are any issues that
   should delay the release.  Label them !
 
-* Review and update the release notes.  Review and update the :file:`Changelog`
+* Review and update the release notes.  Review and update the ``Changelog``
   file.  Get a partial list of contributors with something like::
 
       git log 1.2.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
@@ -181,7 +181,7 @@ Release checklist
 
 * The release should now be ready.
 
-* Edit :file:`nibabel/info.py` to set ``_version_extra`` to ``''``; commit.
+* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit.
   Then::
 
     make source-release
