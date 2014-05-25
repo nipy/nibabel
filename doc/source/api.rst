@@ -41,6 +41,7 @@ Image Utilities
 .. autosummary::
    :toctree: reference
 
+   eulerangles
    funcs
    imageclasses
    imageglobals
@@ -49,7 +50,7 @@ Image Utilities
    quaternions
    spatialimages
    volumeutils
-   eulerangles
+
 
 Float / integer conversion
 ==========================
@@ -59,6 +60,15 @@ Float / integer conversion
 
     arraywriters
     casting
+
+System utilities
+================
+
+.. autosummary::
+    :toctree: reference
+
+    data
+    environment
 
 Miscellaneous Helpers
 =====================
@@ -70,11 +80,16 @@ Miscellaneous Helpers
    affines
    batteryrunners
    data
+   dft
    fileholders
    filename_parser
+   fileslice
    onetime
    openers
+   optpkg
+   rstutils
    tmpdirs
+   tripwire
    wrapstruct
 
 Alphabetical API reference
