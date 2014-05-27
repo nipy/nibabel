@@ -703,13 +703,22 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # The thresholds assume that the data are in `wtype` dtype after applying
     # the slope and intercept.
     both_mn, both_mx = shared_range(w_type, out_dtype)
-    # Check we haven't excluded the value equivalent to zero if we need it
-    if nan2zero:
-        if np.array(nan_fill, dtype=out_dtype) != nan_fill:
-            raise ValueError("Scaled value for zero ({0}) outside "
-                             "representable range {1}, {2}; "
-                             "change scaling or set nan2zero to "
-                             "False?".format(nan_fill, both_mn, both_mx))
+    # Check that nan2zero output value is in range
+    if nan2zero and not both_mn <= nan_fill <= both_mx:
+        # Estimated error for (0 - inter) / slope is 2 * eps * abs(inter /
+        # slope).  Assume errors are for working float type. Round for integer
+        # rounding
+        est_err = np.round(2 * np.finfo(w_type).eps * abs(inter / slope))
+        if ((nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or
+            (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
+            # nan_fill can be (just) outside clip range
+            nan_fill = np.clip(nan_fill, both_mn, both_mx)
+        else:
+            raise ValueError("nan_fill == {0}, outside safe int range "
+                             "({1}-{2}); change scaling or "
+                             "set nan2zero=False?".format(
+                                 nan_fill, int(both_mn), int(both_mx)))
+    # Make sure non-nan output clipped to shared range
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
@@ -733,6 +742,8 @@ def _write_data(data,
                 post_clips = None,
                 nan_fill = None):
     """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
+
+    Does not modify `data` in-place.
 
     Parameters
     ----------
@@ -758,9 +769,13 @@ def _write_data(data,
         If not None, values that were NaN in `data` will receive `nan_fill`
         in array as output to disk (after scaling).
     """
-    data = np.atleast_2d(data) # Trick to allow loop below for 1D arrays
-    if order == 'F' or (data.ndim == 2 and data.shape[1] == 1):
+    data = np.squeeze(data)
+    if data.ndim < 2: # Trick to allow loop over rows for 1D arrays
+        data = np.atleast_2d(data)
+    elif order == 'F':
         data = data.T
+    nan_need_copy = ((pre_clips, in_cast, inter, slope, post_clips) ==
+                     (None, None, 0, 1, None))
     for dslice in data: # cycle over first dimension to save memory
         if not pre_clips is None:
             dslice = np.clip(dslice, *pre_clips)
@@ -775,6 +790,8 @@ def _write_data(data,
         if not nan_fill is None:
             nans = np.isnan(dslice)
             if np.any(nans):
+                if nan_need_copy:
+                    dslice = dslice.copy()
                 dslice[nans] = nan_fill
         if dslice.dtype != out_dtype:
             dslice = dslice.astype(out_dtype)
