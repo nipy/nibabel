@@ -4,7 +4,6 @@ See docstring of :mod:`nibabel.arraywriters` for API.
 """
 from __future__ import division, print_function, absolute_import
 
-import sys
 from platform import python_compiler, machine
 from distutils.version import LooseVersion
 import itertools
@@ -17,7 +16,7 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
 
-from ..casting import int_abs, type_info, shared_range
+from ..casting import int_abs, type_info, shared_range, on_powerpc
 
 from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
@@ -54,17 +53,6 @@ def round_trip(writer, order='F', apply_scale=True):
     return data_back
 
 
-def maybe_bad_c256(flt_type):
-    # I was getting very strange behavior with byte-swapped complex 256 on
-    # Python 3.3 numpy 1.7.0.  For that exact combination, return True
-    if sys.version_info[0] < 3 or sys.version_info[1] < 3:
-        return False
-    if NP_VERSION != LooseVersion('1.7.0'):
-        return False
-    dt = np.dtype(flt_type)
-    return (dt.kind == 'c' and dt.itemsize == 32)
-
-
 def test_arraywriters():
     # Test initialize
     # Simple cases
@@ -80,9 +68,16 @@ def test_arraywriters():
             assert_true(aw.array is arr)
             assert_equal(aw.out_dtype, arr.dtype)
             assert_array_equal(arr, round_trip(aw))
-            # Byteswapped is OK - except for complex256 on some numpies
-            if not maybe_bad_c256(type):
-                bs_arr = arr.byteswap().newbyteorder('S')
+            # Byteswapped should be OK
+            bs_arr = arr.byteswap().newbyteorder('S')
+            # Except on some numpies for complex256, where the array does not
+            # equal itself
+            if not np.all(bs_arr == arr):
+                np_ver = LooseVersion(np.__version__)
+                assert_true(np_ver <= LooseVersion('1.7.0'))
+                assert_true(on_powerpc())
+                assert_true(type == np.complex256)
+            else:
                 bs_aw = klass(bs_arr)
                 # assert against original array because POWER7 was running into
                 # trouble using the byteswapped array (bs_arr)
