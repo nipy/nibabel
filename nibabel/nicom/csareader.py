@@ -7,22 +7,8 @@ import struct
 from .structreader import Unpacker
 from .utils import find_private_element
 
-from ..externals import six
-
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
-
-try:
-    range = xrange
-except NameError:  # python 3
-    pass
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from ..externals import OrderedDict
+from ..externals.six import string_types, u
 
 
 # DICOM VR code to Python type
@@ -266,8 +252,8 @@ def write(csa_header):
                 item_len = 0
             else:
                 item = tag_dict['items'][item_no]
-                if not isinstance(item, basestring):
-                    item = six.u(str(item))
+                if not isinstance(item, string_types):
+                    item = u(str(item))
                 item_nt_str = make_nt_str(item)
                 item_len = len(item_nt_str)
 
