@@ -220,7 +220,8 @@ class EcatHeader(WrapStruct):
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
-                 check=True):
+                 check=True,
+                 modified=None):
         """Initialize Ecat header from bytes object
 
         Parameters
@@ -235,7 +236,8 @@ class EcatHeader(WrapStruct):
             Whether to check and fix header for errors.  No checks currently
             implemented, so value has no effect.
         """
-        super(EcatHeader, self).__init__(binaryblock, endianness, check)
+        super(EcatHeader, self).__init__(binaryblock, endianness, check,
+                                         modified=modified)
 
     @classmethod
     def guessed_endian(klass, hdr):

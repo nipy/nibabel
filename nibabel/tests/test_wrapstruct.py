@@ -69,6 +69,8 @@ class _TestWrapStructBase(TestCase):
         # You can also pass in a check flag, without data this has no
         # effect
         hdr = self.header_class(check=False)
+        # And no fields were modified so far
+        assert_equal(hdr.modified, set())
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
@@ -389,9 +391,12 @@ class TestMyWrapStruct(_TestWrapStructBase):
         hdr2 = hdr.copy()
         assert_equal(hdr, hdr2)
         self._set_something_into_hdr(hdr)
+        assert_equal(hdr.modified, set(['a_str']))
+        assert_equal(hdr2.modified, set())
         assert_not_equal(hdr, hdr2)
         self._set_something_into_hdr(hdr2)
         assert_equal(hdr, hdr2)
+        assert_equal(hdr2.modified, set(['a_str']))
 
     def test_copy(self):
         hdr = self.header_class()
@@ -399,8 +404,11 @@ class TestMyWrapStruct(_TestWrapStructBase):
         assert_equal(hdr, hdr2)
         self._set_something_into_hdr(hdr)
         assert_not_equal(hdr, hdr2)
+        assert_equal(hdr.modified, set(['a_str']))
+        assert_equal(hdr2.modified, set([]))
         self._set_something_into_hdr(hdr2)
         assert_equal(hdr, hdr2)
+        assert_equal(hdr2.modified, set(['a_str']))
 
     def test_checks(self):
         # Test header checks
@@ -411,11 +419,27 @@ class TestMyWrapStruct(_TestWrapStructBase):
         # An integer should be 1
         hdr = hdr_t.copy()
         hdr['an_integer'] = 2
+        assert_equal(hdr.modified, set(['an_integer']))
         assert_equal(self._dxer(hdr), 'an_integer should be 1')
         # String should be lower case
         hdr = hdr_t.copy()
         hdr['a_str'] = 'My Name'
         assert_equal(self._dxer(hdr), 'a_str should be lower case')
+
+    def test_modified(self):
+        hdr = self.header_class()
+        assert_equal(hdr.modified, set([]))
+        hdr['an_integer'] = 1
+        assert_equal(hdr.modified, set(['an_integer']))
+        hdr2 = hdr.copy()
+        hdr2['a_str'] = 0
+        assert_equal(hdr.modified, set(['an_integer']))
+        assert_equal(hdr2.modified, set(['an_integer', 'a_str']))
+        hdr.reset_modified()
+        assert_equal(hdr.modified, set([]))
+        assert_equal(hdr2.modified, set(['an_integer', 'a_str']))
+        hdr2.reset_modified()
+        assert_equal(hdr2.modified, set())
 
     def test_log_checks(self):
         # Test logging, fixing, errors for header checking

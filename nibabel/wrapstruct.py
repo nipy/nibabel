@@ -16,7 +16,7 @@ The :class:`WrapStruct` class is a wrapper around a numpy structured array type.
 
 It implements:
 
-* Mappingness from the underlying structured array fields
+* Mapping to and from the underlying structured array fields
 * ``from_fileobj``, ``write_to`` methods to read and write data to fileobj
 * A mechanism for setting checks and fixes to the data on object creation
 * Endianness guessing, and on-the-fly swapping
@@ -27,15 +27,15 @@ The :class:`LabeledWrapStruct` subclass adds:
   corresponding strings (see :meth:`LabeledWrapStruct.get_value_label` and
   :meth:`LabeledWrapStruct.__str_`)
 
-Mappingness
------------
+Mapping
+-------
 
 You can access and set fields of the contained structarr using standard
 __getitem__ / __setitem__ syntax:
 
     wrapped['field'] = 10
 
-Wrapped structures also implement general mappingness:
+Wrapped structures also implement general mapping interface:
 
     wrapped.keys()
     wrapped.items()
@@ -94,7 +94,7 @@ whereas::
 
 would raise some error, with output to logging (see below).
 
-If we want the created object, come what may::
+It is possible to obtain a "faulty" object by disabling checks::
 
    hdr = WrapStruct.from_fileobj(bad_fileobj, check=False)
 
@@ -127,7 +127,8 @@ class WrapStruct(object):
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
-                 check=True):
+                 check=True,
+                 modified=None):
         ''' Initialize WrapStruct from binary data block
 
         Parameters
@@ -141,6 +142,8 @@ class WrapStruct(object):
         check : bool, optional
             Whether to check content of binary data in initialization.
             Default is True.
+        modified : set, optional
+            Which fields should be marked as being ever modified
 
         Examples
         --------
@@ -153,6 +156,13 @@ class WrapStruct(object):
         >>> wstr1['integer']
         array(1, dtype=int16)
         '''
+
+        if modified is None:
+            modified = set()
+        elif not isinstance(modified, set):
+            modified = set(modified) # to guarantee the proper type
+        self._modified = modified  # which fields were modified
+
         if binaryblock is None:
             self._structarr = self.__class__.default_structarr(endianness)
             return
@@ -263,8 +273,11 @@ class WrapStruct(object):
             return native_code
         return swapped_code
 
+    # TODO: __copy__ and __deepcopy__?
+    # Current copy() seems to repopulate a new array, so per se is a deep one
+
     def copy(self):
-        ''' Return copy of structure
+        ''' Return a (deep) copy of structure
 
         >>> wstr = WrapStruct()
         >>> wstr['integer'] = 3
@@ -276,7 +289,10 @@ class WrapStruct(object):
         '''
         return self.__class__(
                 self.binaryblock,
-                self.endianness, check=False)
+                self.endianness,
+                check=False,
+                modified=self._modified.copy()
+            )
 
     def __eq__(self, other):
         ''' equality between two structures defined by binaryblock
@@ -327,6 +343,7 @@ class WrapStruct(object):
         >>> wstr['integer']
         array(3, dtype=int16)
         '''
+        self._modified.add(item)
         self._structarr[item] = value
 
     def __iter__(self):
@@ -348,6 +365,10 @@ class WrapStruct(object):
     def get(self, k, d=None):
         ''' Return value for the key k if present or d otherwise'''
         return (k in self.keys()) and self._structarr[k] or d
+
+    def reset_modified(self):
+        '''Resets a set of marked to be modified fields to empty set'''
+        self._modified = set()
 
     def check_fix(self, logger=None, error_level=None):
         ''' Check structured data with checks '''
@@ -410,6 +431,21 @@ class WrapStruct(object):
         AttributeError: can't set attribute
         '''
         return self._structarr
+
+    @property
+    def modified(self):
+        ''' Set of fields which were modified
+
+        Examples
+        --------
+        >>> wstr1 = WrapStruct() # with default data
+        >>> wstr1.modified
+        set([])
+        >>> wstr1['integer'] = 10
+        >>> wstr1.modified
+        set(['integer'])
+        '''
+        return self._modified
 
     def __str__(self):
         ''' Return string representation for printing '''
@@ -478,7 +514,8 @@ class WrapStruct(object):
         wstr_data = self._structarr.byteswap()
         return self.__class__(wstr_data.tostring(),
                               endianness,
-                              check=False)
+                              check=False,
+                              modified=self._modified)
 
     @classmethod
     def _get_checks(klass):

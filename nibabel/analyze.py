@@ -193,7 +193,8 @@ class AnalyzeHeader(LabeledWrapStruct):
     def __init__(self,
                  binaryblock=None,
                  endianness=None,
-                 check=True):
+                 check=True,
+                 modified=None):
         ''' Initialize header from binary data block
 
         Parameters
@@ -248,7 +249,8 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> hdr4.endianness == swapped_code
         True
         '''
-        super(AnalyzeHeader, self).__init__(binaryblock, endianness, check)
+        super(AnalyzeHeader, self).__init__(binaryblock, endianness, check,
+                                            modified=modified)
 
     @classmethod
     def guessed_endian(klass, hdr):
@@ -559,8 +561,8 @@ class AnalyzeHeader(LabeledWrapStruct):
         if dtype.type is np.void and not dtype.fields:
             raise HeaderDataError(
                 'data dtype "%s" known but not supported' % datatype)
-        self._structarr['datatype'] = code
-        self._structarr['bitpix'] = dtype.itemsize * 8
+        self['datatype'] = code
+        self['bitpix'] = dtype.itemsize * 8
 
     def get_data_shape(self):
         ''' Get shape of data
@@ -686,6 +688,7 @@ class AnalyzeHeader(LabeledWrapStruct):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1:ndim+1] = zooms[:]
+        self._modified.add('pixdim')
 
     def as_analyze_map(self):
         return self
@@ -693,7 +696,7 @@ class AnalyzeHeader(LabeledWrapStruct):
     def set_data_offset(self, offset):
         """ Set offset into data file to read data
         """
-        self._structarr['vox_offset'] = offset
+        self['vox_offset'] = offset
 
     def get_data_offset(self):
         ''' Return offset into data file to read data
@@ -915,6 +918,7 @@ class AnalyzeImage(SpatialImage):
         inter = (np.asscalar(hdr['scl_inter']) if hdr.has_data_intercept
                  else np.nan)
         # Check whether to calculate slope / inter
+        # import pydb; pydb.debugger()
         scale_me = np.all(np.isnan((slope, inter)))
         if scale_me:
             arr_writer = make_array_writer(data,

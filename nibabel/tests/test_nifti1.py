@@ -1055,6 +1055,9 @@ def test_nifti_extensions():
     assert_true(exts_container.count('comment') == 2)
     assert_true(exts_container.count('afni') == 1)
     assert_true((exts_container.get_sizeondisk()) % 16 == 0)
+    # Test that from_header copy constructor could populate new extensions
+    hdr2 = Nifti1Header.from_header(hdr)
+    assert_equal(len(hdr2.extensions), 3)
     # delete one
     del exts_container[1]
     assert_true(exts_container.get_codes() == [6, 4])

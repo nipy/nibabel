@@ -567,12 +567,14 @@ class Nifti1Header(SpmAnalyzeHeader):
                  binaryblock=None,
                  endianness=None,
                  check=True,
-                 extensions=()):
+                 extensions=(),
+                 modified=None):
         ''' Initialize header from binary data block and extensions
         '''
         super(Nifti1Header, self).__init__(binaryblock,
                                            endianness,
-                                           check)
+                                           check,
+                                           modified=modified)
         self.extensions = self.exts_klass(extensions)
 
     def copy(self):
@@ -584,7 +586,8 @@ class Nifti1Header(SpmAnalyzeHeader):
             self.binaryblock,
             self.endianness, 
             False,
-            self.extensions)
+            self.extensions, # TODO: shouldn't they be copied here?
+            modified=self.modified.copy())
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
@@ -653,7 +656,6 @@ class Nifti1Header(SpmAnalyzeHeader):
     @classmethod
     def from_header(klass, header=None, check=True):
         ''' Class method to create header from another header
-
         Extend Analyze header copy by copying extensions from other Nifti types.
 
         Parameters
