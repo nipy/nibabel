@@ -10,9 +10,7 @@
 DICOM anonymization tools.
 """
 
-import sys, os, re, argparse, warnings, struct, uuid, hashlib
-from os import path
-from random import random
+import re
 from copy import deepcopy
 
 from ..py3k import asbytes
@@ -27,7 +25,8 @@ except ImportError:
     pass
 
 
-IMPLEMENTATION_CLASS_UID = '2.25.3434918901144735809493181392'
+IMPLEMENTATION_CLASS_UID = \
+    '2.25.56673623021697310393208625527934694391102160334513451665944'
 """ The UID used for the ImplementationClassUID tag."""
 
 
@@ -428,11 +427,17 @@ class DicomAnonymizer(object):
             file_meta.MediaStorageSOPInstanceUID = dcm_data.SOPInstanceUID
             file_meta.ImplementationClassUID = IMPLEMENTATION_CLASS_UID
             if dcm_data.is_little_endian and dcm_data.is_implicit_VR:
-                file_meta.add_new((2, 0x10), 'UI', dicom.UID.ImplicitVRLittleEndian)
+                file_meta.add_new((2, 0x10),
+                                  'UI',
+                                  dicom.UID.ImplicitVRLittleEndian)
             elif dcm_data.is_little_endian and not dcm_data.is_implicit_VR:
-                file_meta.add_new((2, 0x10), 'UI', dicom.UID.ExplicitVRLittleEndian)
+                file_meta.add_new((2, 0x10),
+                                  'UI',
+                                  dicom.UID.ExplicitVRLittleEndian)
             elif not dcm_data.is_little_endian and not dcm_data.is_implicit_VR:
-                file_meta.add_new((2, 0x10), 'UI', dicom.UID.ExplicitVRBigEndian)
+                file_meta.add_new((2, 0x10),
+                                  'UI',
+                                  dicom.UID.ExplicitVRBigEndian)
             else:
                 raise NotImplementedError("pydicom has not been verified for "
                                           "Big Endian with Implicit VR")
