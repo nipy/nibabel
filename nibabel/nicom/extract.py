@@ -50,11 +50,11 @@ def csa_image_trans_func(elem):
     return csareader.header_to_key_val_mapping(csareader.read(elem.value))
 
 
-csa_image_trans = Translator('CsaImage',
-                             0x29,
-                             0x10,
-                             'SIEMENS CSA HEADER',
-                             csa_image_trans_func)
+csa_image_trans = PrivateTranslator('CsaImage',
+                                    0x29,
+                                    0x10,
+                                    'SIEMENS CSA HEADER',
+                                    csa_image_trans_func)
 '''Translator for the CSA image sub header.'''
 
 
@@ -77,11 +77,11 @@ def csa_series_trans_func(elem):
     return csa_dict
 
 
-csa_series_trans = Translator('CsaSeries',
-                              0x29,
-                              0x20,
-                              'SIEMENS CSA HEADER',
-                              csa_series_trans_func)
+csa_series_trans = PrivateTranslator('CsaSeries',
+                                     0x29,
+                                     0x20,
+                                     'SIEMENS CSA HEADER',
+                                     csa_series_trans_func)
 '''Translator for parsing the CSA series sub header.'''
 
 
@@ -116,7 +116,7 @@ default_conversions = {'DS' : float,
 
 
 def make_unicode(in_str):
-    '''Try to convetrt in_str to unicode'''
+    '''Try to convert in_str to unicode'''
     for encoding in ('utf8', 'latin1'):
         try:
             result = unicode(in_str, encoding=encoding)
@@ -136,10 +136,6 @@ class MetaExtractor(object):
 
     Parameters
     ----------
-    anonymizer : callable
-        A callable that takes a DICOM dataset and returns the anonymized
-        version.
-
     translators : sequence
         A sequence of `Translator` objects each of which can convert a
         private DICOM element into a dictionary. Overrides the anonymizer.
@@ -152,20 +148,14 @@ class MetaExtractor(object):
         Convert any exceptions from translators into warnings.
     '''
 
-    def __init__(self, anonymizer=None, translators=None, conversions=None,
+    def __init__(self, translators=None, conversions=None,
                  warn_on_trans_except=True):
-        if ignore_rules is None:
-            self.ignore_rules = default_ignore_rules
-        else:
-            self.ignore_rules = ignore_rules
-        if translators is None:
+        self.translators = translators
+        if self.translators is None:
             self.translators = default_translators
-        else:
-            self.translators = translators
+        self.conversions = conversions
         if conversions is None:
             self.conversions = default_conversions
-        else:
-            self.conversions = conversions
         self.warn_on_trans_except = warn_on_trans_except
 
     def _get_elem_key(self, elem):

@@ -115,6 +115,7 @@ def make_uid(entropy_srcs=None, prefix='2.25.'):
 
     return prefix  + str(int_val)
 
+
 def as_to_years(age_str):
     '''Take the value from a DICOM element with VR 'AS' and return the age
     in years as a float.'''
