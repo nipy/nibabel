@@ -95,10 +95,20 @@ class TestNifti2General(TestNifti1General):
     module = nifti2
     example_file = image_file
 
-
-def test_nifti12_conversion():
+def check_nifti12_conversion(in_type, out_type, exts):
     shape = (2, 3, 4)
     dtype_type = np.int64
+    in_hdr = in_type()
+    in_hdr.set_data_shape(shape)
+    in_hdr.set_data_dtype(dtype_type)
+    in_hdr.extensions[:] = exts
+    out_hdr = out_type.from_header(in_hdr)
+    assert_equal(out_hdr.get_data_shape(), shape)
+    assert_equal(out_hdr.get_data_dtype(), dtype_type)
+    assert_equal(in_hdr.extensions, out_hdr.extensions)
+
+
+def test_nifti12_conversion():
     ext1 = Nifti1Extension(6, b'My comment')
     ext2 = Nifti1Extension(6, b'Fresh comment')
     for in_type, out_type in ((Nifti1Header, Nifti2Header),
@@ -107,11 +117,4 @@ def test_nifti12_conversion():
                               (Nifti2Header, Nifti1Header),
                               (Nifti2PairHeader, Nifti1Header),
                               (Nifti2PairHeader, Nifti1PairHeader)):
-        in_hdr = in_type()
-        in_hdr.set_data_shape(shape)
-        in_hdr.set_data_dtype(dtype_type)
-        in_hdr.extensions[:] = [ext1, ext2]
-        out_hdr = out_type.from_header(in_hdr)
-        assert_equal(out_hdr.get_data_shape(), shape)
-        assert_equal(out_hdr.get_data_dtype(), dtype_type)
-        assert_equal(in_hdr.extensions, out_hdr.extensions)
+        yield check_nifti12_conversion, in_type, out_type, [ext1, ext2]
