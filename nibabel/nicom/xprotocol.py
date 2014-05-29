@@ -15,10 +15,7 @@ from collections import Mapping
 from copy import deepcopy
 import warnings
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from ..externals import OrderedDict
 
 
 def iter_with_override(input_iter):

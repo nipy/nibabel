@@ -9,10 +9,7 @@
 """
 Parse the "Phoenix" meta data format found in a variety of Siemens MR files.
 """
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from ..externals import OrderedDict
 
 
 class PhoenixParseError(Exception):

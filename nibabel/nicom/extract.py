@@ -14,22 +14,18 @@ from __future__ import division, print_function, absolute_import
 
 import struct, warnings
 from collections import namedtuple, defaultdict
-from . import csareader, xprotocol, phoenix, anon
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from . import csareader, xprotocol, phoenix, anon
+from ..externals import OrderedDict
 
 try:
     import dicom
     from dicom.datadict import keyword_for_tag
-except ImportError:
-    pass
-else:
     # This is needed to allow extraction on files with invalid values (e.g. too
     # long of a decimal string)
     dicom.config.enforce_valid_values = False
+except ImportError:
+    pass
 
 
 class PrivateTranslator(object):
@@ -47,6 +43,7 @@ class PrivateTranslator(object):
 
     def translate(self, elem):
         raise NotImplementedError
+
 
 def csa_image_trans_func(elem):
     '''Function for translating the CSA image sub header.'''
