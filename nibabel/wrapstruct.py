@@ -157,21 +157,18 @@ class WrapStruct(object):
         array(1, dtype=int16)
         '''
 
-        if modified is None:
-            modified = set()
-        elif not isinstance(modified, set):
-            modified = set(modified) # to guarantee the proper type
-        self._modified = modified  # which fields were modified
-
+        self._modified = set()  # Blank set so "constructor" functionality works
         if binaryblock is None:
             self._structarr = self.__class__.default_structarr(endianness)
+            self._set_modified(modified)
             return
+
         # check size
         if len(binaryblock) != self.template_dtype.itemsize:
             raise WrapStructError('Binary block is wrong size')
         wstr = np.ndarray(shape=(),
-                         dtype=self.template_dtype,
-                         buffer=binaryblock)
+                          dtype=self.template_dtype,
+                          buffer=binaryblock)
         if endianness is None:
             endianness = self.__class__.guessed_endian(wstr)
         else:
@@ -179,12 +176,20 @@ class WrapStruct(object):
         if endianness != native_code:
             dt = self.template_dtype.newbyteorder(endianness)
             wstr = np.ndarray(shape=(),
-                             dtype=dt,
-                             buffer=binaryblock)
+                              dtype=dt,
+                              buffer=binaryblock)
         self._structarr = wstr.copy()
         if check:
             self.check_fix()
+        self._set_modified(modified)
         return
+
+    def _set_modified(self, modified):
+        if modified is None:
+            modified = set()
+        elif not isinstance(modified, set):
+            modified = set(modified) # to guarantee the proper type
+        self._modified = modified  # which fields were modified
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):

@@ -249,6 +249,7 @@ class ScalingMixin(object):
         aff = np.eye(4)
         # Implicit header gives scale-me scaling
         img = img_class(arr, aff)
+        assert_equal(img.header.modified, set())
         self.assert_scale_me_scaling(img.header)
         # Input header scaling reset when creating image
         hdr = img.header

@@ -918,7 +918,7 @@ class AnalyzeImage(SpatialImage):
         inter = (np.asscalar(hdr['scl_inter']) if hdr.has_data_intercept
                  else np.nan)
         # Check whether to calculate slope / inter
-        # import pydb; pydb.debugger()
+        print "MODIFIED: ", hdr.modified
         scale_me = np.all(np.isnan((slope, inter)))
         if scale_me:
             arr_writer = make_array_writer(data,
@@ -929,7 +929,7 @@ class AnalyzeImage(SpatialImage):
             arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
-        # analyze images but most often this is because it's a single nifti file
+        # analyze images but most often this fis because it's a single nifti file
         hdr_img_same = hdr_fh.same_file_as(img_fh)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
         if hdr_img_same:
