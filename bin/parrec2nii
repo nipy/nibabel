@@ -10,7 +10,6 @@ import gzip
 import nibabel
 import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
-from nibabel.loadsave import read_img_data
 from nibabel.filename_parser import splitext_addext
 from nibabel.volumeutils import seek_tell
 
@@ -86,7 +85,7 @@ def proc_file(infile, opts):
     pr_img = pr.load(infile)
     pr_hdr = pr_img.get_header()
     # get the raw unscaled data form the REC file
-    raw_data = read_img_data(pr_img, prefer='unscaled')
+    raw_data = pr_img.dataobj.get_unscaled()
 
     # compute affine with desired origin
     affine = pr_hdr.get_affine(origin=opts.origin)
