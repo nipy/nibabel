@@ -13,7 +13,63 @@ scanner. It is an ASCII header (PAR) plus a binary blob (REC).
 
 This implementation aims to read version 4.2 of this format. Other versions
 could probably be supported, but the author is lacking samples of them.
+
+###############
+PAR file format
+###############
+
+The PAR format appears to have two sections:
+
+General information
+###################
+
+This is a set of lines each giving one key : value pair, examples::
+
+    .    EPI factor        <0,1=no EPI>     :   39
+    .    Dynamic scan      <0=no 1=yes> ?   :   1
+    .    Diffusion         <0=no 1=yes> ?   :   0
+
+(from nibabe/tests/data/phantom_EPI_asc_CLEAR_2_1.PAR)
+
+Image information
+#################
+
+There is a ``#`` prefixed list of fields under the heading "IMAGE INFORMATION
+DEFINITION".  From the same file, here is the start of this list::
+
+    # === IMAGE INFORMATION DEFINITION =============================================
+    #  The rest of this file contains ONE line per image, this line contains the following information:
+    #
+    #  slice number                             (integer)
+    #  echo number                              (integer)
+    #  dynamic scan number                      (integer)
+
+There follows a space separated table with values for these fields, each row
+containing all the named values. Here's the first few lines from the example
+file above::
+
+    # === IMAGE INFORMATION ==========================================================
+    #  sl ec  dyn ph ty    idx pix scan% rec size                (re)scale              window        angulation              offcentre        thick   gap   info      spacing     echo     dtime   ttime    diff  avg  flip    freq   RR-int  turbo delay b grad cont anis         diffusion       L.ty
+
+    1   1    1  1 0 2     0  16    62   64   64     0.00000   1.29035 4.28404e-003  1070  1860 -13.26  -0.00  -0.00    2.51   -0.81   -8.69  6.000  2.000 0 1 0 2  3.750  3.750  30.00    0.00     0.00    0.00   0   90.00     0    0    0    39   0.0  1   1    8    0   0.000    0.000    0.000  1
+    2   1    1  1 0 2     1  16    62   64   64     0.00000   1.29035 4.28404e-003  1122  1951 -13.26  -0.00  -0.00    2.51    6.98  -10.53  6.000  2.000 0 1 0 2  3.750  3.750  30.00    0.00     0.00    0.00   0   90.00     0    0    0    39   0.0  1   1    8    0   0.000    0.000    0.000  1
+    3   1    1  1 0 2     2  16    62   64   64     0.00000   1.29035 4.28404e-003  1137  1977 -13.26  -0.00  -0.00    2.51   14.77  -12.36  6.000  2.000 0 1 0 2  3.750  3.750  30.00    0.00     0.00    0.00   0   90.00     0    0    0    39   0.0  1   1    8    0   0.000    0.000    0.000  1
+
+###########
+Orientation
+###########
+
+PAR files refer to orientations "ap", "fh" and "rl". These appear to correspond
+to NIfTI output axes like this:
+
+* ap = anterior -> posterior = NIfTI negative Y
+* fh = foot -> head = NIfTI Z
+* fl = right -> left = NIfTI negative X
+
+The orientation of the PAR axes corresponds to DICOM's LPS coordinate system
+(right to Left, anterior to Posterior, inferior to Superior).
 """
+from __future__ import print_function, division
 
 import warnings
 import numpy as np
@@ -30,6 +86,7 @@ from .arrayproxy import ArrayProxy
 # PAR header versions we claim to understand
 supported_versions = ['V4.2']
 
+# General information dict definitions
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
 _hdr_key_dict = {
@@ -70,6 +127,7 @@ _hdr_key_dict = {
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
     }
 
+# Image information as coded into a numpy structured array
 # header items order per image definition line
 image_def_dtd = [
     ('slice number', int),
@@ -138,14 +196,15 @@ def parse_PAR_header(fobj):
     Parameters
     ----------
     fobj : file-object
-      The PAR header file object.
+        The PAR header file object.
 
     Returns
     -------
-    (dict, array)
-      The dictionary contains all "General Information" from the header file,
-      while the (structured) has the properties of all image definitions in the
-      header
+    general_info : dict
+        Contains all "General Information" from the header file
+    image_info : ndarray
+        Structured array with fields giving all "Image information" in the
+        header
     """
     # containers for relevant header lines
     general_info = {}
@@ -236,8 +295,8 @@ class PARRECHeader(Header):
           "General information" from the PAR file (as returned by
           `parse_PAR_header()`).
         image_defs : array
-          Structured array with image definitions from the PAR file (as returned
-          by `parse_PAR_header()`).
+          Structured array with image definitions from the PAR file (as
+          returned by `parse_PAR_header()`).
         default_scaling : {'dv', 'fp'}
           Default scaling method to use for :meth:`get_slope_inter`` - see
           :meth:`get_data_scaling` for detail
@@ -258,34 +317,40 @@ class PARRECHeader(Header):
                         zooms=self._get_zooms()
                        )
 
-
     @classmethod
     def from_header(klass, header=None):
         if header is None:
             raise PARRECError('Cannot create PARRECHeader from air.')
         if type(header) == klass:
             return header.copy()
-        raise PARRECError('Cannot create PARREC header from non-PARREC header.')
-
+        raise PARRECError('Cannot create PARREC header from '
+                          'non-PARREC header.')
 
     @classmethod
     def from_fileobj(klass, fileobj):
         info, image_defs = parse_PAR_header(fileobj)
         return klass(info, image_defs)
 
-
     def copy(self):
         return PARRECHeader(
                 copy.deepcopy(self.general_info),
                 self.image_defs.copy())
 
-
     def _get_unique_image_prop(self, name):
-        """Scan all image definitions and return the unique value of a property.
+        """Scan image definitions and return unique value of a property.
 
-        If the requested property is an array this method behave _not_ like
-        `np.unique`. It will return the unique combination of all array elements
-        for any image definition, and _not_ the unique element values.
+        If the requested property is an array this method does _not_ behave
+        like `np.unique`. It will return the unique combination of all array
+        elements for any image definition, and _not_ the unique element values.
+
+        Parameters
+        ----------
+        name : str
+            Name of the property
+
+        Returns
+        -------
+        unique_value : array
 
         Raises
         ------
@@ -302,13 +367,14 @@ class PARRECHeader(Header):
         else:
             return np.array([uprop[0] for uprop in uprops])
 
-
     def get_voxel_size(self):
         """Returns the spatial extent of a voxel.
 
+        Does not include the slice gap in the slice extent.
+
         Returns
         -------
-        Array
+        vox_size: shape (3,) ndarray
         """
         # slice orientation for the whole image series
         slice_thickness = self._get_unique_image_prop('slice thickness')[0]
@@ -330,7 +396,6 @@ class PARRECHeader(Header):
         else:
             return 3
 
-
     def _get_zooms(self):
         """Compute image zooms from header data.
 
@@ -351,26 +416,26 @@ class PARRECHeader(Header):
             zooms[3] = self.general_info['repetition_time'] / 1000.
         return zooms
 
-
     def get_affine(self, origin='scanner'):
         """Compute affine transformation into scanner space.
 
         The method only considers global rotation and offset settings in the
-        header and ignore potentially deviating information in the image
+        header and ignores potentially deviating information in the image
         definitions.
 
         Parameters
         ----------
         origin : {'scanner', 'fov'}
-          Transformation origin. By default the transformation is computed
-          relative to the scanner's iso center. If 'fov' is requested
-          the transformation origin will be the center of the field of view
-          instead.
+            Transformation origin. By default the transformation is computed
+            relative to the scanner's iso center. If 'fov' is requested the
+            transformation origin will be the center of the field of view
+            instead.
 
         Returns
         -------
-        array
-          4x4 array, with axis order corresponding to (x,y,z) or (lr, pa, fh).
+        aff : (4, 4) array
+            4x4 array, with output axis order corresponding to (x,y,z) or (lr,
+            pa, fh).
         """
         # hdr has deg, we need radian
         # order is [ap, fh, rl]
@@ -402,6 +467,7 @@ class PARRECHeader(Header):
         # order is [ap, fh, rl]
         #           x   y   z
         #           0   1   2
+        # euler2mat does rotation around z, y, x axes in that order
         rot_nibabel = euler2mat(ang_rad[1], ang_rad[0], ang_rad[2])
 
         # XXX for now put some safety net, until we have recorded proper
@@ -467,14 +533,19 @@ class PARRECHeader(Header):
             aff[:3,3] += iso_offset
         return aff
 
-
     def get_data_shape_in_file(self):
         """Return the shape of the binary blob in the REC file.
 
         Returns
         -------
-        tuple
-          (inplaneX, inplaneY, nslices, ndynamics/ndirections)
+        n_inplaneX : int
+            number of voxels in Y direction
+        n_inplaneY : int
+            number of voxels in Y direction
+        n_slices : int
+            number of slices
+        n_vols : int
+            number of dynamic scans / number of directions in diffusion
         """
         # e.g. number of volumes
         ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
@@ -499,7 +570,6 @@ class PARRECHeader(Header):
         else:
             return tuple(inplane_shape) + (nslices,)
 
-
     def get_data_scaling(self, method="dv"):
         """Returns scaling slope and intercept.
 
@@ -507,6 +577,13 @@ class PARRECHeader(Header):
         ----------
         method : {'fp', 'dv'}
           Scaling settings to be reported -- see notes below.
+
+        Returns
+        -------
+        slope : float
+            scaling slope
+        intercept : float
+            scaling intercept
 
         Notes
         -----
@@ -554,14 +631,13 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        {'transverse', 'sagittal', 'coronal'}
+        orientation : {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
             self._slice_orientation = \
                 slice_orientation_codes.label[
                     self._get_unique_image_prop('slice orientation')[0]]
         return self._slice_orientation
-
 
     def raw_data_from_fileobj(self, fileobj):
         ''' Read unscaled data array from `fileobj`
@@ -571,7 +647,7 @@ class PARRECHeader(Header):
         Parameters
         ----------
         fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
+            Must be open, and implement ``read`` and ``seek`` methods
 
         Returns
         -------
