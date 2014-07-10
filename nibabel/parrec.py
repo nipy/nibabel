@@ -388,6 +388,11 @@ class PARRECHeader(Header):
         """ PAR header always has 0 data offset (into REC file) """
         return 0
 
+    def set_data_offset(self, offset):
+        """ PAR header always has 0 data offset (into REC file) """
+        if offset != 0:
+            raise PARRECError("PAR header assumes offset 0")
+
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
         if self.general_info['max_dynamics'] > 1 \

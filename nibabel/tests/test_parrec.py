@@ -5,7 +5,7 @@ from os.path import join as pjoin, dirname
 
 import numpy as np
 
-from ..parrec import parse_PAR_header, PARRECHeader
+from ..parrec import parse_PAR_header, PARRECHeader, PARRECError
 from ..openers import Opener
 
 from numpy.testing import (assert_almost_equal,
@@ -60,6 +60,16 @@ def test_orientation():
     hdr_defc['slice orientation'] = 3
     hdr = PARRECHeader(HDR_INFO, hdr_defc)
     assert_equal(hdr.get_slice_orientation(), 'coronal')
+
+
+def test_data_offset():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    assert_equal(hdr.get_data_offset(), 0)
+    # Can set 0
+    hdr.set_data_offset(0)
+    # Can't set anything else
+    assert_raises(PARRECError, hdr.set_data_offset, 1)
+
 
 def test_affine():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
