@@ -551,7 +551,7 @@ class PARRECHeader(Header):
         Returns
         -------
         n_inplaneX : int
-            number of voxels in Y direction
+            number of voxels in X direction
         n_inplaneY : int
             number of voxels in Y direction
         n_slices : int
