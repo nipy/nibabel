@@ -20,6 +20,18 @@ EG_PAR = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
 EG_REC = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.REC')
 with Opener(EG_PAR, 'rt') as _fobj:
     HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
+# Affine as we determined it mid-2014
+AN_OLD_AFFINE = np.array(
+    [[-3.64994708, 0.,   1.83564171, 123.66276611],
+     [0.,         -3.75, 0.,          115.617    ],
+     [0.86045705,  0.,   7.78655376, -27.91161211],
+     [0.,          0.,   0.,           1.        ]])
+# Affine from Philips-created NIfTI
+PHILIPS_AFFINE = np.array(
+    [[  -3.65  ,   -0.0016,    1.8356,  125.4881],
+     [   0.0016,   -3.75  ,   -0.0004,  117.4916],
+     [   0.8604,    0.0002,    7.7866,  -28.3411],
+     [   0.    ,    0.    ,    0.    ,    1.    ]])
 
 
 def test_header():
@@ -81,3 +93,7 @@ def test_affine():
     assert_array_equal(scanner[:3, :3], fov[:3,:3])
     # offset not
     assert_false(np.all(scanner[:3, 3] == fov[:3, 3]))
+    # Regression test against what we were getting before
+    assert_almost_equal(default, AN_OLD_AFFINE)
+    # Test against RZS of Philips affine
+    assert_almost_equal(default[:3, :3], PHILIPS_AFFINE[:3, :3], 2)
