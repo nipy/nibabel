@@ -48,7 +48,7 @@ extensions = ['sphinx.ext.autodoc',
               # this also includes the docscrape* extensions
               'numpydoc',
               'only_directives',
-              'math_dollar',
+              'plot_directive',
               ]
 
 # the following doesn't work with sphinx < 1.0, but will make a separate
@@ -69,7 +69,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2012, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
+copyright = u'2006-2014, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

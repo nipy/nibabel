@@ -150,3 +150,24 @@ subject to the following conditions:
     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
+
+
+mni_icbm152_t1_tal_nlin_asym_09a
+--------------------------------
+
+The file ``doc/source/someone.nii.gz`` is a subsampled version of the file
+``mni_icbm152_t1_tal_nlin_asym_09a.nii`` from the MNI non-linear templates
+archive ``mni_icbm152_t1_tal_nlin_asym_09a``.  The original image has the
+following license (where 'softwware' refers to the image):
+
+    Copyright (C) 1993-2004 Louis Collins, McConnell Brain Imaging Centre,
+    Montreal Neurological Institute, McGill University.
+
+    Permission to use, copy, modify, and distribute this software and its
+    documentation for any purpose and without fee is hereby granted, provided
+    that the above copyright notice appear in all copies.  The authors and
+    McGill University make no representations about the suitability of this
+    software for any purpose.  It is provided "as is" without express or
+    implied warranty.  The authors are not responsible for any data loss,
+    equipment damage, property loss, or injury to subjects or patients
+    resulting from the use or misuse of this software package.

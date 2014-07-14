@@ -179,8 +179,13 @@
 .. _`wikipedia PET`: http://en.wikipedia.org/wiki/Positron_emission_tomography
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
+.. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 .. _GIFTI: http://www.nitrc.org/projects/gifti
+.. _MINC1:
+    https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
+.. _MINC2:
+    https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
 
 .. Mathematical methods
 .. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
@@ -190,6 +195,7 @@
 .. _`wikipedia spherical coordinate system`: http://en.wikipedia.org/wiki/Spherical_coordinate_system
 .. _`mathworld spherical coordinate system`: http://mathworld.wolfram.com/SphericalCoordinates.html
 .. _`wikipedia affine`: http://en.wikipedia.org/wiki/Affine_transformation
+.. _`wikipedia affine transform`: http://en.wikipedia.org/wiki/Affine_transformation
 .. _`wikipedia linear transform`: http://en.wikipedia.org/wiki/Linear_transformation
 .. _`wikipedia rotation matrix`: http://en.wikipedia.org/wiki/Rotation_matrix
 .. _`wikipedia homogenous coordinates`: http://en.wikipedia.org/wiki/Homogeneous_coordinates
@@ -205,9 +211,12 @@
 .. _0SAGA: http://nipyworld.blogspot.com/2010/11/0saga-software-model.html
 
 .. People
-.. _Matthew Brett: https://cirl.berkeley.edu/mb312/
+.. _Matthew Brett: http://matthew.dynevor.org
 .. _Yaroslav O. Halchenko: http://www.onerussian.com
 .. _Michael Hanke: http://mih.voxindeserto.de
 .. _Gaël Varoquaux: http://gael-varoquaux.info/
 .. _Stephan Gerhard: http://www.unidesign.ch
 
+.. Substitutions
+.. |emdash| unicode:: U+02014
+.. |--| unicode:: U+02014
