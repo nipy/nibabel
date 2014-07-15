@@ -92,7 +92,7 @@ The plot directive has the following configuration options:
     plot_basedir
         Base directory, to which ``plot::`` file names are relative
         to.  (If None or empty, file names are relative to the
-        directoly where the file containing the directive is.)
+        directory where the file containing the directive is.)
 
     plot_formats
         File formats to generate. List of tuples or strings::
@@ -111,7 +111,7 @@ The plot directive has the following configuration options:
 
     plot_apply_rcparams
         By default, rcParams are applied when `context` option is not used in
-        a plot  directive.  This configuration option overrides this behaviour
+        a plot directive.  This configuration option overrides this behavior
         and applies rcParams before each plot.
 
     plot_working_directory
@@ -123,9 +123,7 @@ The plot directive has the following configuration options:
         helper modules for all code are located.
 
     plot_template
-        Provide a customized template for preparing resturctured text.
-
-
+        Provide a customized template for preparing restructured text.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -348,9 +346,9 @@ TEMPLATE = """
 
 {{ only_html }}
 
-   {% if (source_link and html_show_source_link) or (html_show_formats and not multi_image) %}
+   {% if source_link or (html_show_formats and not multi_image) %}
    (
-   {%- if source_link and html_show_source_link -%}
+   {%- if source_link -%}
    `Source code <{{ source_link }}>`__
    {%- endif -%}
    {%- if html_show_formats and not multi_image -%}
@@ -770,7 +768,9 @@ def run(arguments, content, options, state_machine, state, lineno):
         only_latex = ".. only:: latex"
         only_texinfo = ".. only:: texinfo"
 
-        if j == 0:
+        # Not-None src_link signals the need for a source link in the generated
+        # html
+        if j == 0 and config.plot_html_show_source_link:
             src_link = source_link
         else:
             src_link = None
@@ -780,7 +780,6 @@ def run(arguments, content, options, state_machine, state, lineno):
             dest_dir=dest_dir_link,
             build_dir=build_dir_link,
             source_link=src_link,
-            html_show_source_link=config.plot_html_show_source_link,
             multi_image=len(images) > 1,
             only_html=only_html,
             only_latex=only_latex,
