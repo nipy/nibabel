@@ -55,6 +55,7 @@ the array.
     >>> slice_1 = epi_img_data[:, 30, :]
     >>> slice_2 = epi_img_data[:, :, 16]
     >>> show_slices([slice_0, slice_1, slice_2])
+    >>> plt.suptitle("Center slices for EPI image")
 
 We collected an anatomical image in the same session.  We can load that image
 and look at slices in the three axes:
@@ -76,6 +77,7 @@ and look at slices in the three axes:
     >>> show_slices([anat_img_data[28, :, :],
     ...              anat_img_data[:, 33, :],
     ...              anat_img_data[:, :, 28]])
+    >>> plt.suptitle("Center slices for anatomical image")
 
 As is usually the case, we had a different field of view for the anatomical
 scan, and so the anatomical image has a different shape, size, and orientation
@@ -154,8 +156,8 @@ able to relate the data from ``someones_epi.nii.gz`` to
 ``someones_anatomy.nii.gz``.  We can't easily do this at the moment, because
 we collected the anatomical image with a different field of view and
 orientation to the EPI image, so the voxel coordinates in the EPI image refer
-to different locations in the space to the voxel coordinates in the anatomical
-image.
+to different locations in the magnet to the voxel coordinates in the
+anatomical image.
 
 We solve this problem by keeping track of the relationship of voxel
 coordinates to some *reference space*.  In particular, the *affine array*
@@ -168,9 +170,9 @@ coordinates to the reference space) for both images, we can use this
 information to relate voxel coordinates in ``someones_epi.nii.gz`` to spatially
 equivalent voxel coordinates in ``someones_anatomy.nii.gz``.
 
-*******************
-The reference space
-*******************
+*****************************
+The isocenter reference space
+*****************************
 
 What does "space" mean in the phrase "reference space"?  The space is defined
 by a set of axes. For our 3D spatial world, it is a set of 3 independent axes.
@@ -212,43 +214,51 @@ convention "scanner RAS+", meaning that Right, Anterior, Posterior are all
 positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
-looks at the front of the scanner, from the foot of the subject.
-Unfortunately, this means that you have to read people's definitions carefully
-when you are trying to work out what space they are referring to. We nibabel /
-nipy agree with most other brain imaging folk in that we always use "right" to
-mean the subject's right.
+looks at the front of the scanner, from the foot the scanner bed.
+Unfortunately, this means that you may have to read coordinate system
+definitions carefully if you are not familiar with a particular convention. We
+nibabel / nipy folks agree with most of our brain imaging friends in that we
+always use "right" to mean the subject's right.
+
+Now we have defined the isocenter RAS+ reference space, we can define
+coordinates in that space.  For example, coordinate (0, 0, 0) would be at
+the magnet isocenter, and (10, -5, -3) would be 10 millimeters to the right of
+isocenter, 5mm posterior (towards the floor) and 3mm inferior (towards the
+foot of the scanner bed).
+
+************************************
+Voxel coordinates are in voxel space
+************************************
+
+We have not yet made this explicit, but voxel coordinates are also in a space.
+In this case the space is defined by the three voxel axes, where 0, 0, 0 is
+the center of the first voxel in the array.  Voxel coordinates are therefore
+defined in voxel space.
 
 ****************************************************
 The affine matrix as a transformation between spaces
 ****************************************************
 
-So far we've dealt with voxel coordinates, which are indices into the image
-data array.
+We have voxel coordinates (in voxel space).  We want to get scanner RAS+
+coordinates corresponding to the voxel coordinates.  We need a *coordinate
+transform* to take us from voxel coordinates to scanner RAS+ coordinates.
 
-Now we have defined the reference space, we can define coordinates in that
-space too.  For example, coordinate (0, 0, 0) would be at the magnet
-isocenter, and (10, -5, -3) would be 10 millimeters to the right of isocenter,
-5mm posterior (towards the floor) and 3mm inferior (towards the foot of the
-scanner bed).
+In general, we have some voxel space coordinate $(i, j, k)$, and we want to
+generate the reference space coordinate $(x, y, z)$.
 
-Now the question is, how do we record the relationship of voxel coordinates to
-coordinates in the reference space?
-
-Specifically, if we have some voxel coordinate $(i, j, k)$, how do we generate
-the reference space coordinate $(x, y, z)$?
-
-Imagine we had solved this, and we had some function $f$ that accepts a voxel
-coordinate and returns a coordinate in the reference space:
+Imagine we had solved this, and we had a coordinate transform function $f$
+that accepts a voxel coordinate and returns a coordinate in the reference
+space:
 
 .. math::
 
     (x, y, z) = f(i, j, k)
 
-$f$ is a function that transforms coordinates in voxel space (voxel
-coordinates) into coordinates in the reference space (reference coordinates).
-So our question is, what is the function $f$?
+$f$ accepts a coordinate in the *input* space and returns a coordinate in the
+*output* space.  In our case the input space is voxel space and the output
+space is scanner RAS+.
 
-In general $f$ could be a complicated non-linear function, but in practice, we
+In theory $f$ could be a complicated non-linear function, but in practice, we
 know that the scanner collects data on a regular grid.  This means that the
 relationship between $(i, j, k)$ and $(x, y, z)$ is linear (actually
 *affine*), and can be encoded with linear (actually affine) transformations
@@ -256,7 +266,7 @@ comprising translations, rotations and zooms (`wikipedia linear transform`_,
 `wikipedia affine transform`_).
 
 A rotation in three dimensions can be represented as a 3 by 3 *rotation
-matrix* (`wikipedia rotation matrix`_).  For example, here's a rotation by
+matrix* (`wikipedia rotation matrix`_).  For example, here is a rotation by
 $\theta$ radians around the third array axis:
 
 .. math::
@@ -290,6 +300,28 @@ This is a rotation by $\phi$ radians around the second array axis:
     \cos(\phi) & 0 & \sin(\phi) \\
     0 & 1 & 0 \\
     -\sin(\phi) & 0 & \cos(\phi) \\
+    \end{bmatrix}
+    \begin{bmatrix}
+    i\\
+    j\\
+    k\\
+    \end{bmatrix}
+
+.. _rotate-axis-0:
+
+A rotation of $\gamma$ radians around the first array axis:
+
+.. math::
+
+    \begin{bmatrix}
+    x\\
+    y\\
+    z\\
+    \end{bmatrix} =
+    \begin{bmatrix}
+    1 & 0 & 0 \\
+    0 & \cos(\gamma) & 0 & -\sin(\gamma) \\
+    0 & \sin(\gamma) & 0 & \cos(\gamma) \\
     \end{bmatrix}
     \begin{bmatrix}
     i\\
@@ -401,14 +433,14 @@ as:
     z\\
     \end{bmatrix} =
     \begin{bmatrix}
-    a \\
-    b \\
-    c \\
-    \end{bmatrix} +
-    \begin{bmatrix}
     i\\
     j\\
     k\\
+    \end{bmatrix} +
+    \begin{bmatrix}
+    a \\
+    b \\
+    c \\
     \end{bmatrix}
 
 We can write our function $f$ as a combination of matrix multiplication by
@@ -450,7 +482,7 @@ then the image affine matrix $A$ is:
     0 & 0 & 0 & 1 \\
     \end{bmatrix}
 
-Why the extra row of $[0, 0, 0, 1]$?  Wee need this row because we have
+Why the extra row of $[0, 0, 0, 1]$?  We need this row because we have
 rephrased the combination of rotations / zooms and translations as a
 transformation in *homogenous coordinates* (see `wikipedia homogenous
 coordinates`_).  This is a trick that allows us to put the translation part
@@ -486,9 +518,8 @@ combine two sets of [rotations, zooms, translations] by matrix multiplication
 of the two corresponding affine matrices.
 
 In practice, although it is common to combine 3D transformations using 4 by 4
-affine matrices, we nearly always *apply* the transformations by breaking up
-the affine matrix into its component $M$ matrix and $(a, b, c)$ vector and
-doing:
+affine matrices, we usually *apply* the transformations by breaking up the
+affine matrix into its component $M$ matrix and $(a, b, c)$ vector and doing:
 
 .. math::
 
@@ -513,9 +544,9 @@ transformations in this way is mathematically the same as using the full 4 by
 4 form, without the inconvenience of adding the extra 1 to our input and
 output vectors.
 
-*********************************************************************
+*****************************************************************
 The inverse of the affine gives the mapping from scanner to voxel
-*********************************************************************
+*****************************************************************
 
 The affine arrays we have described so far have another pleasant property |--|
 they are usually invertible.  As y'all know, the inverse of a matrix $A$ is
@@ -591,8 +622,10 @@ the EPI scan:
     :context:
     :nofigs:
 
+    >>> # Set numpy to print 3 decimal points and suppress small values
     >>> import numpy as np
     >>> np.set_printoptions(precision=3, suppress=True)
+    >>> # Print the affine
     >>> epi_img.affine
     array([[  3.   ,   0.   ,   0.   , -78.   ],
            [  0.   ,   2.866,  -0.887, -76.   ],
@@ -601,7 +634,10 @@ the EPI scan:
 
 As you see, the last row is $[0, 0, 0, 1]$
 
-For simplicity of application, we split this into $M$ and $(a, b, c)$:
+Applying the affine
+===================
+
+To make the affine simpler to apply, we split it into $M$ and $(a, b, c)$:
 
 .. plot::
     :context:
@@ -618,11 +654,11 @@ Then we can define our function $f$:
 
     >>> def f(i, j, k):
     ...    """ Return X, Y, Z coordinates for i, j, k """
-    ...    return M.dot((i, j, k)) + abc
+    ...    return M.dot([i, j, k]) + abc
 
-The labels on the localizer image give the impression that the voxel
-coordinate for center of ``someones_epi.nii.gz`` was a little above the magnet
-isocenter.  Now we can check:
+The labels on the localizer image give the impression that the center voxel
+of ``someones_epi.nii.gz`` was a little above the magnet isocenter.  Now we
+can check:
 
 .. plot::
     :context:
@@ -647,37 +683,30 @@ to the end of the vector to apply the 4 by 4 affine matrix.
     >>> epi_img.affine.dot(list(epi_vox_center) + [1])
     array([ 0.   , -4.205,  8.453,  1.   ])
 
-We can apply this affine function to give the position of any voxel, relative
-to the scanner RAS+ reference space.
+The parameters in the affine array can therefore give the position of any
+voxel coordinate, relative to the scanner RAS+ reference space.
 
-We can use matrix inversion on the affines to map between voxels in the EPI
-image and voxels in the structural image.
+Now we can apply the affine, we can use matrix inversion on the anatomical
+affine to map between voxels in the EPI image and voxels in the anatomical
+image.
 
 .. plot::
     :context:
     :nofigs:
 
     >>> import numpy.linalg as npl
-    >>> def vox_epi2anat(i, j, k):
-    ...    """ voxel coordinates in structural for input EPI coords """
-    ...    anat_vox2anat_mm = anat_img.affine
-    ...    anat_mm2anat_vox = npl.inv(anat_vox2anat_mm)
-    ...    epi_vox2epi_mm = epi_img.affine
-    ...    epi_vox2anat_vox = anat_mm2anat_vox.dot(epi_vox2epi_mm)
-    ...    vv_M = epi_vox2anat_vox[:3, :3]
-    ...    vv_abc = epi_vox2anat_vox[:3, 3]
-    ...    return vv_M.dot((i, j, k)) + vv_abc
+    >>> epi_vox2anat_vox = npl.inv(anat_img.affine).dot(epi_img.affine)
 
-So, what is the voxel coordinate in the anatomical corresponding to the voxel
-center of the EPI image?
+What is the voxel coordinate in the anatomical corresponding to the voxel
+center of the EPI image? We apply the affine:
 
 .. plot::
     :context:
     :nofigs:
 
-    >>> vox_epi2anat(epi_vox_center[0], epi_vox_center[1], epi_vox_center[2])
-    array([ 28.364,  31.562,  36.165])
-
+    >>> epi_vox2anat_vox.dot(
+    ...     [epi_vox_center[0], epi_vox_center[1], epi_vox_center[2], 1])
+    array([ 28.364,  31.562,  36.165,   1.   ])
 
 The voxel coordinate of the center voxel of the anatomical image is:
 
@@ -689,13 +718,102 @@ The voxel coordinate of the center voxel of the anatomical image is:
     >>> anat_vox_center
     array([ 28. ,  33. ,  27.5])
 
-The voxel location in the anatomical image that matches the center voxel of the EPI image is nearly
-exactly half way across the first axis, a voxel or two back from the
-anatomical voxel center on the second axis, and about 9 voxels above the
-anatomical voxel center.  We can check the localizer image by eye to see
-whether this makes sense, by seeing how the red EPI field of view center
+The voxel location in the anatomical image that matches the center voxel of
+the EPI image is nearly exactly half way across the first axis, a voxel or two
+back from the anatomical voxel center on the second axis, and about 9 voxels
+above the anatomical voxel center.  We can check the localizer image by eye to
+see whether this makes sense, by seeing how the red EPI field of view center
 relates to the blue anatomical field of view center and the blue anatomical
 image field of view.
+
+The affine as a series of transformations
+=========================================
+
+You can think of the image affine as a combination of a series of
+transformations to go from voxel coordinates to mm coordinates in terms of the
+magnet isocenter.  Here is the EPI affine broken down into a series of
+transformations, with the results shown on the localizer image:
+
+.. image:: /images/illustrating_affine.png
+
+We start by putting the voxel grid onto the isocenter coordinate
+system, so a translation of one voxel equates to a translation of one
+millimeter in the isocenter coordinate system.  Our EPI image would then have
+the black bounding box in the image above.  Next we scale the voxels to
+millimeters by scaling by the voxel size (green bounding box). We could do
+this with an affine:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> scaling_affine = np.array([[3, 0, 0, 0],
+    ...                            [0, 3, 0, 0],
+    ...                            [0, 0, 3, 0],
+    ...                            [0, 0, 0, 1]])
+
+After applying this affine, when we move one voxel in any direction, we are
+moving 3 millimeters in that direction:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> one_vox_axis_0 = [1, 0, 0]
+    >>> scaling_affine.dot(one_vox_axis_0 + [1])
+    array([3, 0, 0, 1])
+
+Next we rotate the scaled voxels around the first axis by 0.3 radians (see
+:ref:`rotate around first axis <rotate-axis-0>`):
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> cos_gamma = np.cos(0.3)
+    >>> sin_gamma = np.sin(0.3)
+    >>> rotation_affine = np.array([[1, 0, 0, 0],
+    ...                            [0, cos_gamma, -sin_gamma, 0],
+    ...                            [0, sin_gamma, cos_gamma, 0],
+    ...                            [0, 0, 0, 1]])
+
+Our affine so far looks like this:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> affine_so_far = rotation_affine.dot(scaling_affine)
+    >>> affine_so_far
+    array([[ 3.   ,  0.   ,  0.   ,  0.   ],
+           [ 0.   ,  2.866, -0.887,  0.   ],
+           [ 0.   ,  0.887,  2.866,  0.   ],
+           [ 0.   ,  0.   ,  0.   ,  1.   ]])
+
+The EPI voxel block coordinates transformed by ``affine_so_far`` are at the
+position of the yellow box on the figure.
+
+Finally we translate the 0, 0, 0 coordinate at the bottom, posterior, left
+corner of our array to be at its final position relative to the isocenter,
+which is -78, -76, -64:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> translation_affine = np.array([[1, 0, 0, -78],
+    ...                                [0, 1, 0, -76],
+    ...                                [0, 0, 1, -64],
+    ...                                [0, 0, 0, 1]])
+    >>> whole_affine = translation_affine.dot(affine_so_far)
+    >>> whole_affine
+    array([[  3.   ,   0.   ,   0.   , -78.   ],
+           [  0.   ,   2.866,  -0.887, -76.   ],
+           [  0.   ,   0.887,   2.866, -64.   ],
+           [  0.   ,   0.   ,   0.   ,   1.   ]])
+
+This brings the affine-transformed voxel coordinates to the red box on the
+figure, matching the position on the localizer.
 
 **********************
 Other reference spaces
@@ -752,20 +870,13 @@ slightly different trajectory from the MNI Y axis.  Like the MNI RAS+ space,
 the Talairach axes also run left to right, posterior to anterior and inferior
 superior, so this is the Talairach RAS+ space.
 
-***********************
-Input and output spaces
-***********************
-
-In the examples thus far we have talked about voxel space and output RAS+
-spaces such as scanner RAS+ and MNI RAS+.  The affine maps input voxel
-coordinates to output RAS+ coordinates.
-
-There are conventions other than RAS+ for the output space.  For example,
+There are conventions other than RAS+ for the reference space.  For example,
 DICOM files map input voxel coordinates to coordinates in scanner LPS+ space.
 LPS+ space has the origin at the scanner isocenter, but the X axis goes from
-right to Left, the Y axis goes from anterior to Posterior, and the Z axis
-goes from inferior to Superior.  A positive X coordinate in this space would
-mean the point was to the *left* of magnet isocenter.
+right to the subject's Left, the Y axis goes from anterior to Posterior, and
+the Z axis goes from inferior to Superior.  A positive X coordinate in this
+space would mean the point was to the subject's *left* compared to the magnet
+isocenter.
 
 ****************************************
 Nibabel always uses an RAS+ output space

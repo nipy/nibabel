@@ -56,27 +56,30 @@ sagittal = data[mid_x, :, :].T
 # 3 points on a not-completely-rectangular box. The box is to give a by-eye
 # estimate, then we work out the box side lengths and make a rectangular box
 # from those, using the origin point
-bl = np.array((20, 15)) * 2
-br = np.array((92, 70)) * 2
-tl = np.array((7, 63)) * 2
+epi_bl = np.array((20, 15)) * 2
+epi_br = np.array((92, 70)) * 2
+epi_tl = np.array((7, 63)) * 2
 # Find lengths of sides
-epi_y_len = np.sqrt((np.subtract(bl, tl)**2).sum())
-epi_x_len = np.sqrt((np.subtract(bl, br)**2).sum())
+epi_y_len = np.sqrt((np.subtract(epi_bl, epi_tl)**2).sum())
+epi_x_len = np.sqrt((np.subtract(epi_bl, epi_br)**2).sum())
 x, y = 0, 1
 # Make a rectangular box with these sides
-orth_epi_box = np.array((bl,
-                         [bl[x] + epi_x_len, bl[y]],
-                         [bl[x], bl[y] + epi_y_len],
-                         [bl[x] + epi_x_len, bl[y] + epi_y_len]))
+
+def make_ortho_box(bl, x_len, y_len):
+    """ Make a box with sides parallel to the axes
+    """
+    return np.array((bl,
+                     [bl[x] + x_len, bl[y]],
+                     [bl[x], bl[y] + y_len],
+                     [bl[x] + x_len, bl[y] + y_len]))
+
+orth_epi_box = make_ortho_box(epi_bl, epi_x_len, epi_y_len)
 
 # Structural bounding box
-bl = (25, 3)
+anat_bl = (25, 3)
 anat_x_len = 185
 anat_y_len = 155
-anat_box = np.array((bl,
-                         [bl[x] + anat_x_len, bl[y]],
-                         [bl[x], bl[y] + anat_y_len],
-                         [bl[x] + anat_x_len, bl[y] + anat_y_len]))
+anat_box = make_ortho_box(anat_bl, anat_x_len, anat_y_len)
 
 
 def plot_line(pt1, pt2, fmt='r-', label=None):
@@ -111,16 +114,25 @@ def labeled_point(pt, marker, text, markersize=10, color='k'):
              color=color)
 
 
+def plot_localizer():
+    plt.imshow(sagittal, cmap="gray", origin='lower', extent=sag_extents)
+    plt.xlabel('mm from isocenter')
+    plt.ylabel('mm from isocenter')
+
+
 def save_plot():
     # Plot using global variables
-    plt.imshow(sagittal, cmap="gray", origin='lower')
-    plot_box(rot_box, label='EPI bounding box')
-    plot_box(anat_box, 'b-', label='Structural bounding box')
-    labeled_point(epi_center, 'ro', 'EPI FOV center')
-    labeled_point(anat_center, 'bo', 'Structural FOV center')
-    labeled_point(iso_center, 'g^', 'Magnet isocenter')
+    plot_localizer()
+    def vx2mm(pts):
+        return pts - iso_center
+    plot_box(vx2mm(rot_box), label='EPI bounding box')
+    plot_box(vx2mm(anat_box), 'b-', label='Structural bounding box')
+    labeled_point(vx2mm(epi_center), 'ro', 'EPI FOV center')
+    labeled_point(vx2mm(anat_center), 'bo', 'Structural FOV center')
+    labeled_point(vx2mm(iso_center), 'g^', 'Magnet isocenter')
     plt.axis('tight')
     plt.legend(loc='lower right')
+    plt.title('Scanner localizer image')
     plt.savefig('localizer.png')
 
 
@@ -128,7 +140,10 @@ angle = 0.3
 rot_box = rotate_box(orth_epi_box, angle, orth_epi_box[0])
 epi_center = np.mean(rot_box, axis=0)
 anat_center = np.mean(anat_box, axis=0)
-iso_center = (np.array(sagittal.shape[::-1]) - 1) / 2
+# y axis on the plot is first axis of image
+sag_y, sag_x = sagittal.shape
+iso_center = (np.array([sag_x, sag_y]) - 1) / 2.
+sag_extents = [-iso_center[0], iso_center[0], -iso_center[1], iso_center[1]]
 
 # Back to image coordinates
 br_img = np.array([0, rot_box[0, 0], rot_box[0, 1]])
@@ -169,3 +184,19 @@ anat_data = anat.get_data()
 save_plot()
 nipy.save_image(epi, 'someones_epi.nii.gz', dtype_from='uint8')
 nipy.save_image(anat, 'someones_anatomy.nii.gz', dtype_from='uint8')
+
+# Do progressive transforms
+epi2_vox = make_ortho_box((0, 0), epi_vox_shape[1], epi_vox_shape[2])
+epi_vox_sizes = np.sqrt(np.sum(epi_vox2mm[:3, :3] ** 2, axis=0))
+epi2_scaled = np.diag(epi_vox_sizes[1:]).dot(epi2_vox.T).T
+epi2_rotted = rotate_box(epi2_scaled, angle, (0, 0))
+epi2_pulled = epi2_rotted + epi_vox2mm[1:3, 3]
+plt.figure()
+plot_localizer()
+plot_box(epi2_vox, 'k', label='voxels')
+plot_box(epi2_scaled, 'g', label='scaled')
+plot_box(epi2_rotted, 'y', label='scaled, rotated')
+plot_box(epi2_pulled, 'r', label='scaled, rotated, translated')
+plt.legend(loc='upper left')
+plt.title('Anatomy of an affine transform')
+plt.savefig('illustrating_affine.png')
