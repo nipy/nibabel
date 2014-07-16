@@ -248,3 +248,7 @@ latex_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+# Config of plot_directive
+plot_include_source = True
+plot_html_show_source_link = False
