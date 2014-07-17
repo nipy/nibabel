@@ -116,7 +116,7 @@ def read(csa_str):
         # CSA1 specific length modifier
         if tag_no == 1:
             tag0_n_items = n_items
-        assert n_items < 100
+        assert n_items < 200
         items = []
         for item_no in range(n_items):
             x0,x1,x2,x3 = up_str.unpack('4i')
