@@ -141,6 +141,8 @@ has a red box that shows the position of the slice block for
 ``someones_epi.nii.gz`` and a blue box for the slice block of
 ``someones_anatomy.nii.gz``:
 
+.. _localizer-image:
+
 .. image:: /images/localizer.png
 
 The localizer is oriented to the magnet, so that the left and right borders of
@@ -170,70 +172,112 @@ coordinates to the reference space) for both images, we can use this
 information to relate voxel coordinates in ``someones_epi.nii.gz`` to spatially
 equivalent voxel coordinates in ``someones_anatomy.nii.gz``.
 
-*****************************
-The isocenter reference space
-*****************************
+***********************************
+The scanner-subject reference space
+***********************************
 
 What does "space" mean in the phrase "reference space"?  The space is defined
-by a set of axes. For our 3D spatial world, it is a set of 3 independent axes.
+by an ordered set of axes. For our 3D spatial world, it is a set of 3
+independent axes.
 
 We can decide what space we want to use, by choosing these axes.  We need to
 choose the origin of the axes, their direction and their units.
 
-To start with, we are going to use the following reference axes:
+To start with, we define a set of three orthogonal *scanner axes*.
+
+The scanner axes
+================
 
 * The origin of the axes is at the magnet isocenter. This is coordinate (0, 0,
   0) in our reference space. All three axes pass through the isocenter.
 * The units for all three axes are millimeters.
-* The first axis goes from negative values to the left of isocenter to
-  positive values to the right of isocenter. Left is the subject's left, and
-  also the left of an observer behind the scanner looking down the bore at the
-  top of the subject's head. The axis is parallel to the floor of the scanning
-  room. Call this the *X* axis.
-* The second axis goes from negative values below isocenter to positive values
-  above isocenter.  "Below" means towards the floor, and "above" means towards
-  the ceiling. The axis is parallel to the left and right walls of the scanner
-  room. Call this the *Y* axis. The Y axis is at right angles to the X and Z
-  axes.
-* The third axis goes from negative values towards the foot of the scanner bed
-  to positive values at the opposite side of the magnet bore.  The axis is
-  parallel to the floor of the scanner room and to the scanner bed.  Call this
-  the *Z* axis.  The Z axis is at right angles to the X and Y axes.
+* Imagine an observer standing behind the scanner looking through the magnet
+  bore towards the end of the scanner bed.  Imagine a line traveling towards
+  the observer through the center of the magnet bore, parallel to the bed,
+  with the zero point at the magnet isocenter, and positive values closer to
+  the observer.  Call this line the *scanner-bore* axis.
+* Draw a line traveling from the scanner room floor up through the magnet
+  isocenter towards the ceiling, at right angles to the scanner bore axis.
+  0 is at isocenter and positive values are towards the ceiling.  Call this
+  the *scanner-floor/ceiling* axis.
+* Draw a line at right angles to the other two lines, traveling from the
+  observer's left, parallel to the floor, and through the magnet isocenter to
+  the observer's right.  0 is at isocenter and positive values are to the
+  right. Call this the *scanner-left/right*.
 
-This convention is usually called *scanner RAS*, because the origin comes from
-the scanner isocenter, the axes are oriented relative to the magnet, and the
-X, Y, Z axes go from left to Right; posterior to Anterior; and inferior to
-Superior respectively, relative to the subject in the scanner.  Yes, it is
-confusing that right, anterior, superior refer to the subject rather than the
-scanner, but that's the convention we are stuck with.
+If we make the axes have order (scanner left-right; scanner floor-ceiling;
+scanner bore) then we have an ordered set of 3 axes and therefore the
+definition of a 3D *space*.  Call the first axis the "X" axis, the second "Y"
+and the third "Z". A coordinate of $(x, y, z) = (10, -5, -3)$ in this space
+refers to the point in space 10mm to the (fictional observer's) right of
+isocenter, 5mm towards the floor from the isocenter, and 3mm towards the foot
+of the scanner bed.  This reference space is sometimes known as "scanner XYZ".
+It was the standard reference space for the predecessor to DICOM, called ACR /
+NEMA 2.0.
 
-Although it is common to call this convention "RAS", it is not quite
-universal, because some use "R" in "RAS" to mean that the X axis *starts* on
-the right, rather than ends on the right. To be safe, we'll call this
-convention "scanner RAS+", meaning that Right, Anterior, Posterior are all
-positive values on these axes.
+From scanner to subject
+=======================
+
+If the subject is lying in the usual position for a brain scan, face up
+and head first in the scanner, then scanner-left/right is also the left-right
+axis of the subject's head, scanner-floor/ceiling is the anterior-posterior
+axis of the head and scanner-bore is the inferior-posterior axis of the head.
+
+Sometimes the subject is not lying in the standard position.  For example, the
+subject may be lying with their face pointing to the right (in terms of the
+scanner-left/right axis). In that case "scanner XYZ" will not tell us about
+the subject's left and right, but only the scanner left and right.  We might
+prefer to know where we are in terms of the subject's left and right.
+
+To deal with this problem, most reference spaces use subject- or patient-
+centered scanner coordinate systems.  In these systems, the axes are still the
+scanner axes above, but the ordering and direction of the axes comes from the
+position of the subject.  The most common subject-centered scanner coordinate
+system in neuroimaging is called "scanner RAS" (right, anterior, superior).
+Here the scanner axes are reordered and flipped so that the first axis is the
+scanner axis that is closest to the left to right axis of the subject, the
+second is the closest scanner axis to the anterior-posterior axis of the
+subject, and the third is the closest scanner axis to the inferior-superior
+axis of the subject.  For example, if the subject was lying face to the right
+in the scanner, then the first (X) axis of the reference system would be
+scanner-floor/ceiling, but reversed so that positive values are towards the
+floor.  This axis goes from left to right in the subject, with positive values
+to the right.  The second (Y) axis would be scanner-left/right
+(anterior-posterior in the subject), and the Z axis would be scanner-bore
+(inferior-posterior).
+
+Naming reference spaces
+=======================
+
+Reading names of reference spaces can be confusing because of different
+meanings that authors use for the same terms, such as 'left' and 'right'.
+
+We are using the term "RAS" to mean that the axes are (in terms of the
+subject): left to Right; posterior to Anterior; and inferior to Superior,
+respectively.  Although it is common to call this convention "RAS", it is not
+quite universal, because some use "R", "A" and "S" in "RAS" to mean that the
+axes *starts* on the right, anterior, superior of the subject, rather than
+*ending* on the right, anterior, superior.  In other words, they would use
+"RAS" to refer to a coordinate system we would call "LPI".  To be safe, we'll
+call our interpretation of the RAS convention "RAS+", meaning that Right,
+Anterior, Posterior are all positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
 looks at the front of the scanner, from the foot the scanner bed.
-Unfortunately, this means that you may have to read coordinate system
-definitions carefully if you are not familiar with a particular convention. We
-nibabel / nipy folks agree with most of our brain imaging friends in that we
-always use "right" to mean the subject's right.
-
-Now we have defined the isocenter RAS+ reference space, we can define
-coordinates in that space.  For example, coordinate (0, 0, 0) would be at
-the magnet isocenter, and (10, -5, -3) would be 10 millimeters to the right of
-isocenter, 5mm posterior (towards the floor) and 3mm inferior (towards the
-foot of the scanner bed).
+Unfortunately, this means that you have to read coordinate system definitions
+carefully if you are not familiar with a particular convention. We nibabel /
+nipy folks agree with most of our brain imaging friends and many of our
+enemies in that we always use "right" to mean the subject's right.
 
 ************************************
 Voxel coordinates are in voxel space
 ************************************
 
 We have not yet made this explicit, but voxel coordinates are also in a space.
-In this case the space is defined by the three voxel axes, where 0, 0, 0 is
-the center of the first voxel in the array.  Voxel coordinates are therefore
-defined in voxel space.
+In this case the space is defined by the three voxel axes (first axis, second
+axis, third axis), where 0, 0, 0 is the center of the first voxel in the
+array and the units on the axes are voxels.  Voxel coordinates are therefore
+defined in a reference space called *voxel space*.
 
 ****************************************************
 The affine matrix as a transformation between spaces
@@ -417,8 +461,8 @@ This can also be written:
 
 This might be obvious because the matrix multiplication is the result of
 applying each transformation in turn on the coordinates output from the
-previous transformation. Combining the transformations works because matrix
-multiplication is associative.
+previous transformation. Combining the transformations into a single matrix
+$M$ works because matrix multiplication is associative -- $ABCD = (ABC)D$.
 
 A translation in three dimensions can be represented as a length 3 vector to
 be added to the length 3 coordinate.  For example, a translation of $a$ units
@@ -656,9 +700,9 @@ Then we can define our function $f$:
     ...    """ Return X, Y, Z coordinates for i, j, k """
     ...    return M.dot([i, j, k]) + abc
 
-The labels on the localizer image give the impression that the center voxel
-of ``someones_epi.nii.gz`` was a little above the magnet isocenter.  Now we
-can check:
+The labels on the :ref:`localizer image <localizer-image>` give the impression
+that the center voxel of ``someones_epi.nii.gz`` was a little above the magnet
+isocenter.  Now we can check:
 
 .. plot::
     :context:
@@ -672,6 +716,9 @@ That means the center of the image field of view is at the isocenter of the
 magnet on the left to right axis, and is around 4.2mm posterior to the
 isocenter and ~8.5 mm above the isocenter.
 
+The parameters in the affine array can therefore give the position of any
+voxel coordinate, relative to the scanner RAS+ reference space.
+
 We get the same result from applying the affine directly instead of using $M$
 and $(a, b, c)$ in our function. As above, we need to add a 1
 to the end of the vector to apply the 4 by 4 affine matrix.
@@ -683,8 +730,17 @@ to the end of the vector to apply the 4 by 4 affine matrix.
     >>> epi_img.affine.dot(list(epi_vox_center) + [1])
     array([ 0.   , -4.205,  8.453,  1.   ])
 
-The parameters in the affine array can therefore give the position of any
-voxel coordinate, relative to the scanner RAS+ reference space.
+In fact nibabel has a function ``apply_affine`` that applies an affine to an
+$(i, j, k)$ point by splitting the affine into $M$ and $abc$ then multiplying
+and adding as above:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> from nibabel.affines import apply_affine
+    >>> apply_affine(epi_img.affine, epi_vox_center)
+    array([ 0.   , -4.205,  8.453])
 
 Now we can apply the affine, we can use matrix inversion on the anatomical
 affine to map between voxels in the EPI image and voxels in the anatomical
@@ -698,15 +754,14 @@ image.
     >>> epi_vox2anat_vox = npl.inv(anat_img.affine).dot(epi_img.affine)
 
 What is the voxel coordinate in the anatomical corresponding to the voxel
-center of the EPI image? We apply the affine:
+center of the EPI image?
 
 .. plot::
     :context:
     :nofigs:
 
-    >>> epi_vox2anat_vox.dot(
-    ...     [epi_vox_center[0], epi_vox_center[1], epi_vox_center[2], 1])
-    array([ 28.364,  31.562,  36.165,   1.   ])
+    >>> apply_affine(epi_vox2anat_vox, epi_vox_center)
+    array([ 28.364,  31.562,  36.165])
 
 The voxel coordinate of the center voxel of the anatomical image is:
 
@@ -721,10 +776,10 @@ The voxel coordinate of the center voxel of the anatomical image is:
 The voxel location in the anatomical image that matches the center voxel of
 the EPI image is nearly exactly half way across the first axis, a voxel or two
 back from the anatomical voxel center on the second axis, and about 9 voxels
-above the anatomical voxel center.  We can check the localizer image by eye to
-see whether this makes sense, by seeing how the red EPI field of view center
-relates to the blue anatomical field of view center and the blue anatomical
-image field of view.
+above the anatomical voxel center.  We can check the :ref:`localizer image
+<localizer-image>` by eye to see whether this makes sense, by seeing how the
+red EPI field of view center relates to the blue anatomical field of view
+center and the blue anatomical image field of view.
 
 The affine as a series of transformations
 =========================================
@@ -760,8 +815,8 @@ moving 3 millimeters in that direction:
     :nofigs:
 
     >>> one_vox_axis_0 = [1, 0, 0]
-    >>> scaling_affine.dot(one_vox_axis_0 + [1])
-    array([3, 0, 0, 1])
+    >>> apply_affine(scaling_affine, one_vox_axis_0)
+    array([3, 0, 0])
 
 Next we rotate the scaled voxels around the first axis by 0.3 radians (see
 :ref:`rotate around first axis <rotate-axis-0>`):
@@ -776,13 +831,6 @@ Next we rotate the scaled voxels around the first axis by 0.3 radians (see
     ...                            [0, cos_gamma, -sin_gamma, 0],
     ...                            [0, sin_gamma, cos_gamma, 0],
     ...                            [0, 0, 0, 1]])
-
-Our affine so far looks like this:
-
-.. plot::
-    :context:
-    :nofigs:
-
     >>> affine_so_far = rotation_affine.dot(scaling_affine)
     >>> affine_so_far
     array([[ 3.   ,  0.   ,  0.   ,  0.   ],
@@ -813,7 +861,7 @@ which is -78, -76, -64:
            [  0.   ,   0.   ,   0.   ,   1.   ]])
 
 This brings the affine-transformed voxel coordinates to the red box on the
-figure, matching the position on the localizer.
+figure, matching the position on the :ref:`localizer <localizer-image>`.
 
 **********************
 Other reference spaces
@@ -857,7 +905,8 @@ particular brain template.  It is not a real-world space because it does not
 refer to any particular place but to a position relative to a template.
 
 The axes are still left to right, posterior to anterior and inferior to
-superior.  This is still an RAS+ space |--| the MNI RAS+ space.
+superior in terms of the template subject.  This is still an RAS+ space |--|
+the MNI RAS+ space.
 
 An image aligned to this template will therefore have an affine giving the
 relationship between voxels in the aligned image and the MNI RAS+ space.
@@ -872,11 +921,11 @@ superior, so this is the Talairach RAS+ space.
 
 There are conventions other than RAS+ for the reference space.  For example,
 DICOM files map input voxel coordinates to coordinates in scanner LPS+ space.
-LPS+ space has the origin at the scanner isocenter, but the X axis goes from
-right to the subject's Left, the Y axis goes from anterior to Posterior, and
-the Z axis goes from inferior to Superior.  A positive X coordinate in this
-space would mean the point was to the subject's *left* compared to the magnet
-isocenter.
+Scanner LPS+ space uses the same scanner axes and isocenter as scanner RAS+,
+but the X axis goes from right to the subject's Left, the Y axis goes from
+anterior to Posterior, and the Z axis goes from inferior to Superior.  A
+positive X coordinate in this space would mean the point was to the subject's
+*left* compared to the magnet isocenter.
 
 ****************************************
 Nibabel always uses an RAS+ output space
@@ -885,12 +934,104 @@ Nibabel always uses an RAS+ output space
 Nibabel images always use RAS+ output coordinates, regardless of the preferred
 output coordinates of the underlying format.  For example, we convert affines
 for DICOM images to output RAS+ coordinates instead of LPS+ coordinates. We
-chose this convention because it is by the far the most popular in
-neuroimaging; it is the standard used by NIfTI_ and MINC_ formats.
+chose this convention because it is the most popular in neuroimaging; for
+example, it is the standard used by NIfTI_ and MINC_ formats.
 
 Nibabel does not enforce a particular RAS+ space. For example, NIfTI images
 contain codes that specify whether the affine maps to scanner or MNI or
 Talairach RAS+ space.  For the moment, you have to consult the specifics of
 each format to find which RAS+ space the affine maps to.
+
+****************************************
+Radiological vs neurological conventions
+****************************************
+
+It is relatively common to talk about images being in "radiological" compared
+to "neurological" convention.   Now we have the vocabulary to be explicit
+about what these terms mean.
+
+Radiologists like looking at their images with the patient's left on the right
+of the image.   If they are looking at a brain image, it is as if they were
+looking at the brain slice from the point of view of the patient's feet.
+Neurologists like looking at brain images with the patient's right on the
+right of the image.  This perspective is as if the neurologist is looking at
+the slice from the top of the patient's head.  The convention is one of image
+display. The image can have any voxel arrangement on disk or memory, and any
+output reference space; it is only necessary for the software displaying the
+image to know the reference space and the (probably affine) mapping between
+voxel space and reference space; then the software can work out which voxels
+are on the left or right of the subject and flip the images to the taste of
+the viewer. We could unpack these uses as *neurological display convention*
+and *radiological display convention*.
+
+Radiological and neurological are sometimes used to refer to particular
+alignments of the voxel input axes to scanner RAS+ output axes. If we look at
+the affine mapping between voxel space and scanner RAS+, we may find that
+moving along the first voxel axis by one unit results in a equivalent scanner
+RAS+ movement that is mainly left to right.  This can happen with a diagonal
+affine mapping to scanner RAS+:
+
+.. plot::
+    :context:
+    :nofigs:
+
+    >>> diag_affine = np.array([[3., 0,  0,  0],
+    ...                         [0,  3., 0,  0],
+    ...                         [0,  0, 4.5, 0],
+    ...                         [0,  0,  0,  1]])
+    >>> ijk = [1, 0, 0] # moving one unit on the first voxel axis
+    >>> apply_affine(diag_affine, ijk)
+    array([ 3.,  0.,  0.])
+
+In this case the voxel axes are aligned to the output axes, in the sense that
+moving in a positive direction on the first voxel axis results in increasing
+values on the "R+" output axis, and similarly for the second voxel axis with
+output "A+" and the third voxel axis with output "S+".
+
+Some people therefore refer to this alignment of voxel and RAS+ axes as
+*RAS" voxel axes*.
+
+Very confusingly, some people also refer to an image with "RAS" voxel axes as
+having "neurological" voxel layout. This is because the simplest way to
+display slices from this voxel array will result in the left of the subject
+appearing towards the left hand side of the screen and therefore neurological
+display convention. If we take a slice over the third axis of the image data
+array (``epi_img_data[:, : 0]``), the resulting slice will have a first array
+axis going from left to right in terms of spatial position and the second
+array axis going from posterior to anterior.  If we display this image with
+the first axis going from left to right on screen and the second from bottom
+to top, it will have the subject's right towards the right of the screen, and
+anterior towards the top of the screen, as neurologists like it.  Similarly,
+an "LAS" alignment of voxel axes to RAS+ axes would result in an image with
+the left of the subject towards the right of the screen, as radiologists like
+it.  "LAS" voxel axes can also be called "radiological" voxel
+layout for this reason [#memory-layout]_.
+
+Over time it has become more common for the scanner to generate images with
+almost any orientation of the voxel axes relative to the reference axes.
+Maybe for this reason, the terms "radiological" and "neurological" are less
+commonly used as applied to voxel layout.  We nipyers try to avoid the
+terms neurological or radiological for voxel layout because they can make it
+harder to separate the idea of voxel and reference space axes and the affine
+as a mapping between them.
+
+.. rubric:: Footnotes
+
+.. [#memory-layout] We have deliberately not fully defined what we mean by
+    "voxel layout" in the text.  Conceptually, an image array could be stored
+    in any layout on disk; the definition of the image format specifies how
+    the image reader should interpret the data on disk to return the right
+    array value for a given voxel coordinate.  The relationship of the values
+    on disk to the coordinate values in the array has no bearing on the fact
+    that the voxel axes align to the output axes.  In practice the terms RAS /
+    neurological and LAS / radiogical as applied to voxel layout appear to
+    refer exclusively to the situation where image arrays are stored in
+    "Fortran array layout" on disk.  Imagine an image array of shape $(I, J,
+    K)$ with values of length $v$. For an image of 64-bit floating point
+    values, $v = 8$. An image array is stored in Fortran array layout only if
+    the value for voxel coordinate (1, 0, 0) is $v$ bytes on disk from the
+    value for (0, 0, 0); (0, 1, 0) is $I * v$ bytes from (0, 0, 0); and (0, 0,
+    1) is $I * J * v$ bytes from (0, 0, 0).  Analyze_ and NIfTI_ images use
+    Fortran array layout.
 
 .. include:: links_names.txt
