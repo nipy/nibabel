@@ -42,6 +42,21 @@ def test_csa_header_read():
     assert_true(csa.is_mosaic(csa.get_csa_header(data2, 'image')))
 
 
+def test_csa_to_key_val():
+    csa_info = csa.read(CSA2_B0)
+    csa_dict = csa.header_to_key_val_mapping(csa_info)
+    assert_equal(len(csa_dict.keys()), 28)
+    assert_equal(csa_dict['NumberOfImagesInMosaic'], 48)
+    csa_info = csa.read(CSA2_B1000)
+    csa_dict = csa.header_to_key_val_mapping(csa_info)
+    assert_equal(len(csa_dict.keys()), 30)
+    assert_equal(csa_dict['NumberOfImagesInMosaic'], 48)
+    b_matrix = csa_dict['B_matrix']
+    assert_equal(len(b_matrix), 6)
+    b_value = csa_dict['B_value']
+    assert_equal(b_value, 1000)
+
+
 def test_csas0():
     for csa_str in (CSA2_B0, CSA2_B1000):
         csa_info = csa.read(csa_str)
@@ -81,6 +96,18 @@ def test_csa_nitem():
         assert_equal(len(csa_info['tags']), 1)
     finally:
         csa.MAX_CSA_ITEMS = n_items_thresh
+
+
+def test_read_write_rt():
+    # Try doing a read-write-read round trip and make sure the dictionary
+    # representation of the header is the same. We can't exactly reproduce the
+    # original string representation currently.
+    for csa_str in (CSA2_B0, CSA2_B1000):
+        print "Testing round_trip"
+        csa_info = csa.read(csa_str)
+        new_csa_str = csa.write(csa_info)
+        new_csa_info = csa.read(new_csa_str)
+        assert_equal(csa_info, new_csa_info)
 
 
 def test_csa_params():
