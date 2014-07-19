@@ -8,6 +8,10 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
 from os.path import dirname, abspath, join as pjoin
+from warnings import catch_warnings
+from nibabel.externals.six.moves import zip
+from numpy.testing import assert_array_equal
+
 
 import numpy as np
 from warnings import catch_warnings, simplefilter
@@ -54,6 +58,20 @@ def assert_allclose_safely(a, b, match_nans=True):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b))
+
+
+def assert_arrays_equal(arrays1, arrays2):
+    for arr1, arr2 in zip(arrays1, arrays2):
+        assert_array_equal(arr1, arr2)
+
+
+def assert_streamlines_equal(s1, s2):
+    assert_equal(s1.get_header(), s2.get_header())
+
+    for (points1, scalars1, properties1), (points2, scalars2, properties2) in zip(s1, s2):
+        assert_array_equal(points1, points2)
+        assert_array_equal(scalars1, scalars2)
+        assert_array_equal(properties1, properties2)
 
 
 class suppress_warnings(catch_warnings):
