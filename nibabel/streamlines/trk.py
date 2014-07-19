@@ -1,107 +1,92 @@
+from __future__ import division
+
 # Documentation available here:
 # http://www.trackvis.org/docs/?subsect=fileformat
-from pdb import set_trace as dbg
 
+from ..externals.six.moves import xrange
+import struct
 import os
 import warnings
+
 import numpy as np
-from numpy.lib.recfunctions import append_fields
 
 from nibabel.openers import Opener
-from nibabel.volumeutils import (native_code, swapped_code, endian_codes)
+from nibabel.volumeutils import (native_code, swapped_code)
 
-from nibabel.streamlines.base_format import DynamicStreamlineFile
+from nibabel.streamlines.base_format import Streamlines, StreamlinesFile
 from nibabel.streamlines.header import Field
+from nibabel.streamlines.base_format import DataError, HeaderError
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
 # See http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
-header_1_dtd = [
-    (Field.MAGIC_NUMBER, 'S6'),
-    (Field.DIMENSIONS, 'h', 3),
-    (Field.VOXEL_SIZES, 'f4', 3),
-    (Field.ORIGIN, 'f4', 3),
-    (Field.NB_SCALARS_PER_POINT, 'h'),
-    ('scalar_name', 'S20', 10),
-    (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
-    ('property_name', 'S20', 10),
-    ('reserved', 'S508'),
-    (Field.VOXEL_ORDER, 'S4'),
-    ('pad2', 'S4'),
-    ('image_orientation_patient', 'f4', 6),
-    ('pad1', 'S2'),
-    ('invert_x', 'S1'),
-    ('invert_y', 'S1'),
-    ('invert_z', 'S1'),
-    ('swap_xy', 'S1'),
-    ('swap_yz', 'S1'),
-    ('swap_zx', 'S1'),
-    (Field.NB_STREAMLINES, 'i4'),
-    ('version', 'i4'),
-    ('hdr_size', 'i4'),
-    ]
+header_1_dtd = [(Field.MAGIC_NUMBER, 'S6'),
+                (Field.DIMENSIONS, 'h', 3),
+                (Field.VOXEL_SIZES, 'f4', 3),
+                (Field.ORIGIN, 'f4', 3),
+                (Field.NB_SCALARS_PER_POINT, 'h'),
+                ('scalar_name', 'S20', 10),
+                (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
+                ('property_name', 'S20', 10),
+                ('reserved', 'S508'),
+                (Field.VOXEL_ORDER, 'S4'),
+                ('pad2', 'S4'),
+                ('image_orientation_patient', 'f4', 6),
+                ('pad1', 'S2'),
+                ('invert_x', 'S1'),
+                ('invert_y', 'S1'),
+                ('invert_z', 'S1'),
+                ('swap_xy', 'S1'),
+                ('swap_yz', 'S1'),
+                ('swap_zx', 'S1'),
+                (Field.NB_STREAMLINES, 'i4'),
+                ('version', 'i4'),
+                ('hdr_size', 'i4'),
+                ]
 
 # Version 2 adds a 4x4 matrix giving the affine transformtation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
 # coordinates (axes L->R, P->A, I->S).  IF (0 based) value [3, 3] from
 # this matrix is 0, this means the matrix is not recorded.
-header_2_dtd = [
-    (Field.MAGIC_NUMBER, 'S6'),
-    (Field.DIMENSIONS, 'h', 3),
-    (Field.VOXEL_SIZES, 'f4', 3),
-    (Field.ORIGIN, 'f4', 3),
-    (Field.NB_SCALARS_PER_POINT, 'h'),
-    ('scalar_name', 'S20', 10),
-    (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
-    ('property_name', 'S20', 10),
-    (Field.VOXEL_TO_WORLD, 'f4', (4,4)), # new field for version 2
-    ('reserved', 'S444'),
-    (Field.VOXEL_ORDER, 'S4'),
-    ('pad2', 'S4'),
-    ('image_orientation_patient', 'f4', 6),
-    ('pad1', 'S2'),
-    ('invert_x', 'S1'),
-    ('invert_y', 'S1'),
-    ('invert_z', 'S1'),
-    ('swap_xy', 'S1'),
-    ('swap_yz', 'S1'),
-    ('swap_zx', 'S1'),
-    (Field.NB_STREAMLINES, 'i4'),
-    ('version', 'i4'),
-    ('hdr_size', 'i4'),
-    ]
+header_2_dtd = [(Field.MAGIC_NUMBER, 'S6'),
+                (Field.DIMENSIONS, 'h', 3),
+                (Field.VOXEL_SIZES, 'f4', 3),
+                (Field.ORIGIN, 'f4', 3),
+                (Field.NB_SCALARS_PER_POINT, 'h'),
+                ('scalar_name', 'S20', 10),
+                (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
+                ('property_name', 'S20', 10),
+                (Field.VOXEL_TO_WORLD, 'f4', (4, 4)),  # new field for version 2
+                ('reserved', 'S444'),
+                (Field.VOXEL_ORDER, 'S4'),
+                ('pad2', 'S4'),
+                ('image_orientation_patient', 'f4', 6),
+                ('pad1', 'S2'),
+                ('invert_x', 'S1'),
+                ('invert_y', 'S1'),
+                ('invert_z', 'S1'),
+                ('swap_xy', 'S1'),
+                ('swap_yz', 'S1'),
+                ('swap_zx', 'S1'),
+                (Field.NB_STREAMLINES, 'i4'),
+                ('version', 'i4'),
+                ('hdr_size', 'i4'),
+                ]
 
 # Full header numpy dtypes
 header_1_dtype = np.dtype(header_1_dtd)
 header_2_dtype = np.dtype(header_2_dtd)
 
 
-class HeaderError(Exception):
-    pass
+class TrkFile(StreamlinesFile):
+    ''' Convenience class to encapsulate TRK format. '''
 
+    MAGIC_NUMBER = b"TRACK"
+    HEADER_SIZE = 1000
 
-class DataError(Exception):
-    pass
-
-
-class TrkFile(DynamicStreamlineFile):
-    MAGIC_NUMBER = "TRACK"
-    OFFSET = 1000
-
-    def __init__(self, hdr, streamlines, scalars, properties):
-        self.filename = None
-        
-        self.hdr = hdr
-        self.streamlines = streamlines
-        self.scalars = scalars
-        self.properties = properties
-
-    #####
-    # Static Methods
-    ###
     @classmethod
     def get_magic_number(cls):
-        ''' Return TRK's magic number '''
+        ''' Return TRK's magic number. '''
         return cls.MAGIC_NUMBER
 
     @classmethod
@@ -111,354 +96,355 @@ class TrkFile(DynamicStreamlineFile):
         Parameters
         ----------
         fileobj : string or file-like object
-           If string, a filename; otherwise an open file-like object
-           pointing to TRK file (and ready to read from the beginning
-           of the TRK header data)
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header data)
 
         Returns
         -------
         is_correct_format : boolean
-           Returns True if `fileobj` is in TRK format, False otherwise.
+            Returns True if `fileobj` is in TRK format.
         '''
-        with Opener(fileobj) as fileobj:
-            magic_number = fileobj.read(5)
-            fileobj.seek(-5, os.SEEK_CUR)
+        with Opener(fileobj) as f:
+            magic_number = f.read(5)
+            f.seek(-5, os.SEEK_CUR)
             return magic_number == cls.MAGIC_NUMBER
 
         return False
 
     @classmethod
-    def load(cls, fileobj):
-        hdr = {}
-        pos_header = 0
-        pos_data = 0
+    def sanity_check(cls, fileobj):
+        ''' Check if data is consistent with information contained in the header.
+        [Might be useful]
 
-        with Opener(fileobj) as fileobj:
-            pos_header = fileobj.tell()
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header data)
 
-            #####
+        Returns
+        -------
+        is_consistent : boolean
+            Returns True if data is consistent with header, False otherwise.
+        '''
+        is_consistent = True
+
+        with Opener(fileobj) as f:
+            start_position = f.tell()
+
             # Read header
-            ###
-            hdr_str = fileobj.read(header_2_dtype.itemsize)
-            hdr = np.fromstring(string=hdr_str, dtype=header_2_dtype)
+            hdr_str = f.read(header_2_dtype.itemsize)
+            hdr_rec = np.fromstring(string=hdr_str, dtype=header_2_dtype)
 
-            if hdr['version'] == 1:
-                hdr = np.fromstring(string=hdr_str, dtype=header_1_dtype)
-            elif hdr['version'] == 2:
-                pass # Nothing more to do here
+            if hdr_rec['version'] == 1:
+                hdr_rec = np.fromstring(string=hdr_str, dtype=header_1_dtype)
+            elif hdr_rec['version'] == 2:
+                pass  # Nothing more to do here
             else:
-                raise HeaderError('NiBabel only supports versions 1 and 2.')
+                warnings.warn("NiBabel only supports versions 1 and 2 (not v.{0}).".format(hdr_rec['version']))
+                os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+                return False
 
-            # Make header a dictionnary instead of ndarray
-            hdr = dict(zip(hdr.dtype.names, hdr[0]))
+            # Convert the first record of `hdr_rec` into a dictionnary
+            hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0]))
 
             # Check endianness
-            #hdr = append_fields(hdr, Field.ENDIAN, [native_code], usemask=False)
             hdr[Field.ENDIAN] = native_code
-            if hdr['hdr_size'] != 1000:
+            if hdr['hdr_size'] != cls.HEADER_SIZE:
                 hdr[Field.ENDIAN] = swapped_code
-                hdr = hdr.newbyteorder()
-                if hdr['hdr_size'] != 1000:
-                    raise HeaderError('Invalid hdr_size of {0}'.format(hdr['hdr_size']))
-            
+                hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0].newbyteorder()))  # Swap byte order
+                if hdr['hdr_size'] != cls.HEADER_SIZE:
+                    warnings.warn("Invalid hdr_size: {0} instead of {1}".format(hdr['hdr_size'], cls.HEADER_SIZE))
+                    os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+                    return False
+
+            # By default, the voxel order is LPS.
+            # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
+            if hdr[Field.VOXEL_ORDER] == "":
+                is_consistent = False
+                warnings.warn("Voxel order is not specified, will assume 'LPS' since it is Trackvis software's default.")
+
             # Add more header fields implied by trk format.
-            #hdr = append_fields(hdr, Field.WORLD_ORDER, ["RAS"], usemask=False)
-            hdr[Field.WORLD_ORDER] = "RAS"
-
-            pos_data = fileobj.tell()
-
             i4_dtype = np.dtype(hdr[Field.ENDIAN] + "i4")
             f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
 
-            nb_streamlines = 0
+            pts_and_scalars_size = (3 + hdr[Field.NB_SCALARS_PER_POINT]) * f4_dtype.itemsize
+            properties_size = hdr[Field.NB_PROPERTIES_PER_STREAMLINE] * f4_dtype.itemsize
 
-            #Either verify the number of streamlines specified in the header is correct or
-            # count the actual number of streamlines in case it was not specified in the header.
+            #Verify the number of streamlines specified in the header is correct.
+            nb_streamlines = 0
             while True:
                 # Read number of points of the streamline
-                buf = fileobj.read(i4_dtype.itemsize)
+                buf = f.read(i4_dtype.itemsize)
 
                 if buf == '':
-                    break # EOF
+                    break  # EOF
 
-                nb_pts = np.fromstring(buf,
-                                       dtype=i4_dtype,
-                                       count=1)
+                nb_pts = struct.unpack(i4_dtype.str[:-1], buf)[0]
 
-                bytes_to_skip = nb_pts * 3  # x, y, z coordinates
-                bytes_to_skip += nb_pts * hdr[Field.NB_SCALARS_PER_POINT]
-                bytes_to_skip += hdr[Field.NB_PROPERTIES_PER_STREAMLINE]
+                bytes_to_skip = nb_pts * pts_and_scalars_size
+                bytes_to_skip += properties_size
 
                 # Seek to the next streamline in the file.
-                fileobj.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
+                f.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
 
                 nb_streamlines += 1
 
             if hdr[Field.NB_STREAMLINES] != nb_streamlines:
-                warnings.warn('The number of streamlines specified in header ({1}) does not match ' +
-                             'the actual number of streamlines contained in this file ({1}). ' +
-                             'The latter will be used.'.format(hdr[Field.NB_STREAMLINES], nb_streamlines))
+                is_consistent = False
+                warnings.warn(('The number of streamlines specified in header ({1}) does not match '
+                              'the actual number of streamlines contained in this file ({1}). '
+                               ).format(hdr[Field.NB_STREAMLINES], nb_streamlines))
+
+            os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+
+        return is_consistent
+
+    @classmethod
+    def load(cls, fileobj, lazy_load=True):
+        ''' Loads streamlines from a file-like object.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header)
+
+        lazy_load : boolean
+            Load streamlines in a lazy manner i.e. they will not be kept
+            in memory. For postprocessing speed, turn off this option.
+
+        Returns
+        -------
+        streamlines : Streamlines object
+            Returns an object containing streamlines' data and header
+            information. See 'nibabel.Streamlines'.
+        '''
+        hdr = {}
+
+        with Opener(fileobj) as f:
+            hdr['pos_header'] = f.tell()
+
+            # Read header
+            hdr_str = f.read(header_2_dtype.itemsize)
+            hdr_rec = np.fromstring(string=hdr_str, dtype=header_2_dtype)
+
+            if hdr_rec['version'] == 1:
+                hdr_rec = np.fromstring(string=hdr_str, dtype=header_1_dtype)
+            elif hdr_rec['version'] == 2:
+                pass  # Nothing more to do here
+            else:
+                raise HeaderError('NiBabel only supports versions 1 and 2.')
+
+            # Convert the first record of `hdr_rec` into a dictionnary
+            hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0]))
+
+            # Check endianness
+            hdr[Field.ENDIAN] = native_code
+            if hdr['hdr_size'] != cls.HEADER_SIZE:
+                hdr[Field.ENDIAN] = swapped_code
+                hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0].newbyteorder()))  # Swap byte order
+                if hdr['hdr_size'] != cls.HEADER_SIZE:
+                    raise HeaderError('Invalid hdr_size: {0} instead of {1}'.format(hdr['hdr_size'], cls.HEADER_SIZE))
+
+            # By default, the voxel order is LPS.
+            # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
+            if hdr[Field.VOXEL_ORDER] == "":
+                hdr[Field.VOXEL_ORDER] = "LPS"
+
+            # Add more header fields implied by trk format.
+            hdr[Field.WORLD_ORDER] = "RAS"
+            hdr['pos_data'] = f.tell()
+
+        points      = lambda: (x[0] for x in TrkFile._read_data(hdr, fileobj))
+        scalars     = lambda: (x[1] for x in TrkFile._read_data(hdr, fileobj))
+        properties  = lambda: (x[2] for x in TrkFile._read_data(hdr, fileobj))
+        data        = lambda: TrkFile._read_data(hdr, fileobj)
+
+        if lazy_load:
+            streamlines = Streamlines(points, scalars, properties, hdr=hdr)
+            streamlines.data = data
+            return streamlines
+
+        return Streamlines(*zip(*data()), hdr=hdr)
+
+    @staticmethod
+    def _read_data(hdr, fileobj):
+        ''' Read streamlines' data from a file-like object using a TRK's header. '''
+        i4_dtype = np.dtype(hdr[Field.ENDIAN] + "i4")
+        f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
+
+        with Opener(fileobj) as f:
+            nb_pts_and_scalars = 3 + int(hdr[Field.NB_SCALARS_PER_POINT])
+            pts_and_scalars_size = nb_pts_and_scalars * f4_dtype.itemsize
+
+            slice_pts_and_scalars = lambda data: (data, [])
+            if hdr[Field.NB_SCALARS_PER_POINT] > 0:
+                # This is faster than np.split
+                slice_pts_and_scalars = lambda data: (data[:, :3], data[:, 3:])
+
+            # Using np.fromfile would be faster, but does not support StringIO
+            read_pts_and_scalars = lambda nb_pts: slice_pts_and_scalars(np.ndarray(shape=(nb_pts, nb_pts_and_scalars),
+                                                                                   dtype=f4_dtype,
+                                                                                   buffer=f.read(nb_pts * pts_and_scalars_size)))
+
+            properties_size = int(hdr[Field.NB_PROPERTIES_PER_STREAMLINE]) * f4_dtype.itemsize
+            read_properties = lambda: []
+            if hdr[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
+                read_properties = lambda: np.fromstring(f.read(properties_size),
+                                                        dtype=f4_dtype,
+                                                        count=hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
+
+            f.seek(hdr['pos_data'], os.SEEK_SET)
+
+            for i in xrange(hdr[Field.NB_STREAMLINES]):
+                # Read number of points of the next streamline.
+                nb_pts = struct.unpack(i4_dtype.str[:-1], f.read(i4_dtype.itemsize))[0]
+
+                # Read streamline's data
+                pts, scalars = read_pts_and_scalars(nb_pts)
+                properties = read_properties()
+                yield pts, scalars, properties
+
+    @classmethod
+    def get_empty_header(cls):
+        ''' Return an empty TRK's header. '''
+        hdr = np.zeros(1, dtype=header_2_dtype)
+
+        #Default values
+        hdr[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
+        hdr[Field.VOXEL_SIZES] = (1, 1, 1)
+        hdr[Field.DIMENSIONS] = (1, 1, 1)
+        hdr[Field.VOXEL_TO_WORLD] = np.eye(4)
+        hdr['version'] = 2
+        hdr['hdr_size'] = cls.HEADER_SIZE
+
+        return hdr
+
+    @classmethod
+    def save(cls, streamlines, fileobj):
+        ''' Saves streamlines to a file-like object.
+
+        Parameters
+        ----------
+        streamlines : Streamlines object
+            Object containing streamlines' data and header information.
+            See 'nibabel.Streamlines'.
+
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header data)
+        '''
+        hdr = cls.get_empty_header()
+
+        #Override hdr's fields by those contain in `streamlines`'s header
+        for k, v in streamlines.get_header().items():
+            if k in header_2_dtype.fields.keys():
+                hdr[k] = v
+
+        # Check which endianess to use to write data.
+        endianess = streamlines.get_header().get(Field.ENDIAN, native_code)
+
+        if endianess == swapped_code:
+            hdr = hdr.newbyteorder()
+
+        i4_dtype = np.dtype(endianess + "i4")
+        f4_dtype = np.dtype(endianess + "f4")
+
+        # Keep counts for correcting incoherent fields or warn.
+        nb_streamlines  = 0
+        nb_points       = 0
+        nb_scalars      = 0
+        nb_properties   = 0
+
+        # Write header + data of streamlines
+        with Opener(fileobj, mode="wb") as f:
+            pos = f.tell()
+            f.write(hdr[0].tostring())
+
+            for points, scalars, properties in streamlines:
+                if len(scalars) > 0 and len(scalars) != len(points):
+                    raise DataError("Missing scalars for some points!")
+
+                points = np.array(points, dtype=f4_dtype)
+                scalars = np.array(scalars, dtype=f4_dtype).reshape((len(points), -1))
+                properties = np.array(properties, dtype=f4_dtype)
+
+                data = struct.pack(i4_dtype.str[:-1], len(points))
+                data += np.concatenate((points, scalars), axis=1).tostring()
+                data += properties.tostring()
+                f.write(data)
+
+                nb_streamlines  += 1
+                nb_points       += len(points)
+                nb_scalars      += scalars.size
+                nb_properties   += len(properties)
+
+            # Either correct or warn if header and data are incoherent.
+            #TODO: add a warn option as a function parameter
+            nb_scalars_per_point = nb_scalars / nb_points
+            nb_properties_per_streamline = nb_properties / nb_streamlines
+
+            # Check for errors
+            if nb_scalars_per_point != int(nb_scalars_per_point):
+                raise DataError("Nb. of scalars differs from one point to another!")
+
+            if nb_properties_per_streamline != int(nb_properties_per_streamline):
+                raise DataError("Nb. of properties differs from one streamline to another!")
 
             hdr[Field.NB_STREAMLINES] = nb_streamlines
+            hdr[Field.NB_SCALARS_PER_POINT] = nb_scalars_per_point
+            hdr[Field.NB_PROPERTIES_PER_STREAMLINE] = nb_properties_per_streamline
 
-        trk_file = cls(hdr, [], [], [])
-        trk_file.pos_header = pos_header
-        trk_file.pos_data = pos_data
-        trk_file.streamlines
+            f.seek(pos, os.SEEK_SET)
+            f.write(hdr[0].tostring())  # Overwrite header with updated one.
 
-        return trk_file
-        # cls(hdr, streamlines, scalars, properties)
+    @staticmethod
+    def pretty_print(streamlines):
+        ''' Gets a formatted string contaning header's information
+        relevant to the TRK format.
 
-    def get_header(self):
-        return self.hdr
+        Parameters
+        ----------
+        streamlines : Streamlines object
+            Object containing streamlines' data and header information.
+            See 'nibabel.Streamlines'.
 
-    def get_points(self, as_generator=False):
-        self.fileobj.seek(self.pos_data, os.SEEK_SET)
-        pos = self.pos_data
+        Returns
+        -------
+        info : string
+            Header's information relevant to the TRK format.
+        '''
+        hdr = streamlines.get_header()
 
-        i4_dtype = np.dtype(self.hdr[Field.ENDIAN] + "i4")
-        f4_dtype = np.dtype(self.hdr[Field.ENDIAN] + "f4")
+        info = ""
+        info += "MAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
+        info += "v.{0}".format(hdr['version'])
+        info += "dim: {0}".format(hdr[Field.DIMENSIONS])
+        info += "voxel_sizes: {0}".format(hdr[Field.VOXEL_SIZES])
+        info += "orgin: {0}".format(hdr[Field.ORIGIN])
+        info += "nb_scalars: {0}".format(hdr[Field.NB_SCALARS_PER_POINT])
+        info += "scalar_name:\n {0}".format("\n".join(hdr['scalar_name']))
+        info += "nb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
+        info += "property_name:\n {0}".format("\n".join(hdr['property_name']))
+        info += "vox_to_world: {0}".format(hdr[Field.VOXEL_TO_WORLD])
+        info += "world_order: {0}".format(hdr[Field.WORLD_ORDER])
+        info += "voxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
+        info += "image_orientation_patient: {0}".format(hdr['image_orientation_patient'])
+        info += "pad1: {0}".format(hdr['pad1'])
+        info += "pad2: {0}".format(hdr['pad2'])
+        info += "invert_x: {0}".format(hdr['invert_x'])
+        info += "invert_y: {0}".format(hdr['invert_y'])
+        info += "invert_z: {0}".format(hdr['invert_z'])
+        info += "swap_xy: {0}".format(hdr['swap_xy'])
+        info += "swap_yz: {0}".format(hdr['swap_yz'])
+        info += "swap_zx: {0}".format(hdr['swap_zx'])
+        info += "n_count: {0}".format(hdr[Field.NB_STREAMLINES])
+        info += "hdr_size: {0}".format(hdr['hdr_size'])
+        info += "endianess: {0}".format(hdr[Field.ENDIAN])
 
-        for i in range(self.hdr[Field.NB_STREAMLINES]):
-            # Read number of points of the streamline
-            nb_pts = np.fromstring(self.fileobj.read(i4_dtype.itemsize),
-                                   dtype=i4_dtype,
-                                   count=1)
-            
-            # Read points of the streamline
-            pts = np.fromstring(self.fileobj.read(nb_pts * 3 * i4_dtype.itemsize),
-                                dtype=[f4_dtype, f4_dtype, f4_dtype],
-                                count=nb_pts)
-
-            pos = self.fileobj.tell()
-            yield pts
-            self.fileobj.seek(pos, os.SEEK_SET)
-
-            bytes_to_skip = nb_pts * self.hdr[Field.NB_SCALARS_PER_POINT]
-            bytes_to_skip += self.hdr[Field.NB_PROPERTIES_PER_STREAMLINE]
-
-            # Seek to the next streamline in the file.
-            self.fileobj.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
-
-    #####
-    # Methods
-    ###
-
-
-
-
-# import os
-# import logging
-# import numpy as np
-
-# from tractconverter.formats.header import Header as H
-
-
-# def readBinaryBytes(f, nbBytes, dtype):
-#     buff = f.read(nbBytes * dtype.itemsize)
-#     return np.frombuffer(buff, dtype=dtype)
-
-
-# class TRK:
-#     # self.hdr
-#     # self.filename
-#     # self.hdr[H.ENDIAN]
-#     # self.FIBER_DELIMITER
-#     # self.END_DELIMITER
-
-#     @staticmethod
-#     def create(filename, hdr, anatFile=None):
-#         f = open(filename, 'wb')
-#         f.write(TRK.MAGIC_NUMBER + "\n")
-#         f.close()
-
-#         trk = TRK(filename, load=False)
-#         trk.hdr = hdr
-#         trk.writeHeader()
-
-#         return trk
-
-#     #####
-#     # Methods
-#     ###
-#     def __init__(self, filename, anatFile=None, load=True):
-#         if not TRK._check(filename):
-#             raise NameError("Not a TRK file.")
-
-#         self.filename = filename
-#         self.hdr = {}
-#         if load:
-#             self._load()
-
-#     def _load(self):
-#         f = open(self.filename, 'rb')
-
-#         #####
-#         # Read header
-#         ###
-#         self.hdr[H.MAGIC_NUMBER] = f.read(6)
-#         self.hdr[H.DIMENSIONS] = np.frombuffer(f.read(6), dtype='<i2')
-#         self.hdr[H.VOXEL_SIZES] = np.frombuffer(f.read(12), dtype='<f4')
-#         self.hdr[H.ORIGIN] = np.frombuffer(f.read(12), dtype='<f4')
-#         self.hdr[H.NB_SCALARS_PER_POINT] = np.frombuffer(f.read(2), dtype='<i2')[0]
-#         self.hdr['scalar_name'] = [f.read(20) for i in range(10)]
-#         self.hdr[H.NB_PROPERTIES_PER_STREAMLINE] = np.frombuffer(f.read(2), dtype='<i2')[0]
-#         self.hdr['property_name'] = [f.read(20) for i in range(10)]
-
-#         self.hdr[H.VOXEL_TO_WORLD] = np.frombuffer(f.read(64), dtype='<f4').reshape(4, 4)
-#         self.hdr[H.WORLD_ORDER] = "RAS"
-
-#         # Skip reserved bytes
-#         f.seek(444, os.SEEK_CUR)
-
-#         self.hdr[H.VOXEL_ORDER] = f.read(4)
-#         self.hdr["pad2"] = f.read(4)
-#         self.hdr["image_orientation_patient"] = np.frombuffer(f.read(24), dtype='<f4')
-#         self.hdr["pad1"] = f.read(2)
-
-#         self.hdr["invert_x"] = f.read(1) == '\x01'
-#         self.hdr["invert_y"] = f.read(1) == '\x01'
-#         self.hdr["invert_z"] = f.read(1) == '\x01'
-#         self.hdr["swap_xy"] = f.read(1) == '\x01'
-#         self.hdr["swap_yz"] = f.read(1) == '\x01'
-#         self.hdr["swap_zx"] = f.read(1) == '\x01'
-
-#         self.hdr[H.NB_FIBERS] = np.frombuffer(f.read(4), dtype='<i4')
-#         self.hdr["version"] = np.frombuffer(f.read(4), dtype='<i4')
-#         self.hdr["hdr_size"] = np.frombuffer(f.read(4), dtype='<i4')
-
-#         # Check if little or big endian
-#         self.hdr[H.ENDIAN] = '<'
-#         if self.hdr["hdr_size"] != self.OFFSET:
-#             self.hdr[H.ENDIAN] = '>'
-#             self.hdr[H.NB_FIBERS] = self.hdr[H.NB_FIBERS].astype('>i4')
-#             self.hdr["version"] = self.hdr["version"].astype('>i4')
-#             self.hdr["hdr_size"] = self.hdr["hdr_size"].astype('>i4')
-
-#         nb_fibers = 0
-#         self.hdr[H.NB_POINTS] = 0
-
-#         #Either verify the number of streamlines specified in the header is correct or
-#         # count the actual number of streamlines in case it is not specified in the header.
-#         remainingBytes = os.path.getsize(self.filename) - self.OFFSET
-#         while remainingBytes > 0:
-#             # Read points
-#             nbPoints = readBinaryBytes(f, 1, np.dtype(self.hdr[H.ENDIAN] + "i4"))[0]
-#             self.hdr[H.NB_POINTS] += nbPoints
-#             # This seek is used to go to the next points number indication in the file.
-#             f.seek((nbPoints * (3 + self.hdr[H.NB_SCALARS_PER_POINT])
-#                    + self.hdr[H.NB_PROPERTIES_PER_STREAMLINE]) * 4, 1)  # Relative seek
-#             remainingBytes -= (nbPoints * (3 + self.hdr[H.NB_SCALARS_PER_POINT])
-#                                + self.hdr[H.NB_PROPERTIES_PER_STREAMLINE]) * 4 + 4
-#             nb_fibers += 1
-
-#         if self.hdr[H.NB_FIBERS] != nb_fibers:
-#             logging.warn('The number of streamlines specified in header ({1}) does not match ' +
-#                          'the actual number of streamlines contained in this file ({1}). ' +
-#                          'The latter will be used.'.format(self.hdr[H.NB_FIBERS], nb_fibers))
-
-#         self.hdr[H.NB_FIBERS] = nb_fibers
-
-#         f.close()
-
-#     def writeHeader(self):
-#         # Get the voxel size and format it as an array.
-#         voxel_sizes = np.asarray(self.hdr.get(H.VOXEL_SIZES, (1.0, 1.0, 1.0)), dtype='<f4')
-#         dimensions = np.asarray(self.hdr.get(H.DIMENSIONS, (0, 0, 0)), dtype='<i2')
-
-#         f = open(self.filename, 'wb')
-#         f.write(self.MAGIC_NUMBER + "\0")  # id_string
-#         f.write(dimensions)  # dim
-#         f.write(voxel_sizes)  # voxel_size
-#         f.write(np.zeros(12, dtype='i1'))  # origin
-#         f.write(np.zeros(2, dtype='i1'))  # n_scalars
-#         f.write(np.zeros(200, dtype='i1'))  # scalar_name
-#         f.write(np.zeros(2, dtype='i1'))  # n_properties
-#         f.write(np.zeros(200, dtype='i1'))  # property_name
-#         f.write(np.eye(4, dtype='<f4'))  # vos_to_ras
-#         f.write(np.zeros(444, dtype='i1'))  # reserved
-#         f.write(np.zeros(4, dtype='i1'))  # voxel_order
-#         f.write(np.zeros(4, dtype='i1'))  # pad2
-#         f.write(np.zeros(24, dtype='i1'))  # image_orientation_patient
-#         f.write(np.zeros(2, dtype='i1'))  # pad1
-#         f.write(np.zeros(1, dtype='i1'))  # invert_x
-#         f.write(np.zeros(1, dtype='i1'))  # invert_y
-#         f.write(np.zeros(1, dtype='i1'))  # invert_z
-#         f.write(np.zeros(1, dtype='i1'))  # swap_xy
-#         f.write(np.zeros(1, dtype='i1'))  # swap_yz
-#         f.write(np.zeros(1, dtype='i1'))  # swap_zx
-#         f.write(np.array(self.hdr[H.NB_FIBERS], dtype='<i4'))
-#         f.write(np.array([2], dtype='<i4'))  # version
-#         f.write(np.array(self.OFFSET, dtype='<i4'))  # hdr_size, should be 1000
-#         f.close()
-
-#     def close(self):
-#         pass
-
-#     def __iadd__(self, fibers):
-#         f = open(self.filename, 'ab')
-#         for fib in fibers:
-#             f.write(np.array([len(fib)], '<i4').tostring())
-#             f.write(fib.astype("<f4").tostring())
-#         f.close()
-
-#         return self
-
-#     #####
-#     # Iterate through fibers
-#     ###
-#     def __iter__(self):
-#         f = open(self.filename, 'rb')
-#         f.seek(self.OFFSET)
-
-#         remainingBytes = os.path.getsize(self.filename) - self.OFFSET
-
-#         cpt = 0
-#         while cpt < self.hdr[H.NB_FIBERS] or remainingBytes > 0:
-#             # Read points
-#             nbPoints = readBinaryBytes(f, 1, np.dtype(self.hdr[H.ENDIAN] + "i4"))[0]
-#             ptsAndScalars = readBinaryBytes(f,
-#                                             nbPoints * (3 + self.hdr[H.NB_SCALARS_PER_POINT]),
-#                                             np.dtype(self.hdr[H.ENDIAN] + "f4"))
-
-#             newShape = [-1, 3 + self.hdr[H.NB_SCALARS_PER_POINT]]
-#             ptsAndScalars = ptsAndScalars.reshape(newShape)
-
-#             pointsWithoutScalars = ptsAndScalars[:, 0:3]
-#             yield pointsWithoutScalars
-
-#             # For now, we do not process the tract properties, so just skip over them.
-#             remainingBytes -= nbPoints * (3 + self.hdr[H.NB_SCALARS_PER_POINT]) * 4 + 4
-#             remainingBytes -= self.hdr[H.NB_PROPERTIES_PER_STREAMLINE] * 4
-#             cpt += 1
-
-#         f.close()
-
-#     def __str__(self):
-#         text = ""
-#         text += "MAGIC NUMBER: {0}".format(self.hdr[H.MAGIC_NUMBER])
-#         text += "v.{0}".format(self.hdr['version'])
-#         text += "dim: {0}".format(self.hdr[H.DIMENSIONS])
-#         text += "voxel_sizes: {0}".format(self.hdr[H.VOXEL_SIZES])
-#         text += "orgin: {0}".format(self.hdr[H.ORIGIN])
-#         text += "nb_scalars: {0}".format(self.hdr[H.NB_SCALARS_PER_POINT])
-#         text += "scalar_name:\n {0}".format("\n".join(self.hdr['scalar_name']))
-#         text += "nb_properties: {0}".format(self.hdr[H.NB_PROPERTIES_PER_STREAMLINE])
-#         text += "property_name:\n {0}".format("\n".join(self.hdr['property_name']))
-#         text += "vox_to_world: {0}".format(self.hdr[H.VOXEL_TO_WORLD])
-#         text += "world_order: {0}".format(self.hdr[H.WORLD_ORDER])
-#         text += "voxel_order: {0}".format(self.hdr[H.VOXEL_ORDER])
-#         text += "image_orientation_patient: {0}".format(self.hdr['image_orientation_patient'])
-#         text += "pad1: {0}".format(self.hdr['pad1'])
-#         text += "pad2: {0}".format(self.hdr['pad2'])
-#         text += "invert_x: {0}".format(self.hdr['invert_x'])
-#         text += "invert_y: {0}".format(self.hdr['invert_y'])
-#         text += "invert_z: {0}".format(self.hdr['invert_z'])
-#         text += "swap_xy: {0}".format(self.hdr['swap_xy'])
-#         text += "swap_yz: {0}".format(self.hdr['swap_yz'])
-#         text += "swap_zx: {0}".format(self.hdr['swap_zx'])
-#         text += "n_count: {0}".format(self.hdr[H.NB_FIBERS])
-#         text += "hdr_size: {0}".format(self.hdr['hdr_size'])
-#         text += "endianess: {0}".format(self.hdr[H.ENDIAN])
-
-#         return text
+        return info

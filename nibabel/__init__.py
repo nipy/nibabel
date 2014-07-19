@@ -23,9 +23,9 @@ Quickstart
    img3 = nib.load('spm_file.img')
 
    data = img1.get_data()
-   affine = img1.affine
+   affine = img1.get_affine()
 
-   print(img1)
+   print img1
 
    nib.save(img1, 'my_file_copy.nii.gz')
 
@@ -63,6 +63,7 @@ from .orientations import (io_orientation, orientation_affine,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
 from . import trackvis
+from .streamlines import Streamlines
 from . import mriutils
 from . import viewers
 
