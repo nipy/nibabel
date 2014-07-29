@@ -68,9 +68,19 @@ def test_csa_len0():
 
 
 def test_csa_nitem():
-    # testing csa.read's ability to raise an error when n_items >200
-    assert_raises(AssertionError, csa.read, CSA_STR_200n_items)
-    assert csa.read(CSA_STR_valid)
+    # testing csa.read's ability to raise an error when n_items >= 200
+    assert_raises(csa.CSAReadError, csa.read, CSA_STR_200n_items)
+    # OK when < 200
+    csa_info = csa.read(CSA_STR_valid)
+    assert_equal(len(csa_info['tags']), 1)
+    # OK after changing module global
+    n_items_thresh = csa.MAX_CSA_ITEMS
+    try:
+        csa.MAX_CSA_ITEMS = 1000
+        csa_info = csa.read(CSA_STR_200n_items)
+        assert_equal(len(csa_info['tags']), 1)
+    finally:
+        csa.MAX_CSA_ITEMS = n_items_thresh
 
 
 def test_csa_params():
