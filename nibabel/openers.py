@@ -13,10 +13,15 @@ from os.path import splitext
 import gzip
 import bz2
 
+# The largest memory chunk that gzip can use for reads
+GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024 # 100Mb
+
+
 def _gzip_open(fileish, *args, **kwargs):
-    # open gzip files with faster reads on large files using larger chuncks
+    # open gzip files with faster reads on large files using larger chunks
+    # See https://github.com/nipy/nibabel/pull/210 for discussion
     gzip_file = gzip.open(fileish, *args, **kwargs)
-    gzip_file.max_read_chunk = 100 * 1024 * 1024 # 100Mb
+    gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
     return gzip_file
 
 
