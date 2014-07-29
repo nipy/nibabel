@@ -18,6 +18,8 @@ from .test_dicomwrappers import (have_dicom, dicom_test,
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
 CSA2_0len = gzip.open(pjoin(IO_DATA_PATH, 'csa2_zero_len.bin.gz'), 'rb').read()
+CSA_STR_valid = open(pjoin(IO_DATA_PATH, 'csa_str_valid.bin'), 'rb').read()
+CSA_STR_200n_items = open(pjoin(IO_DATA_PATH, 'csa_str_200n_items.bin'), 'rb').read()
 
 
 @dicom_test
@@ -63,6 +65,12 @@ def test_csa_len0():
     assert_equal(csa_info['n_tags'], 44)
     tags = csa_info['tags']
     assert_equal(len(tags), 44)
+
+
+def test_csa_nitem():
+    # testing csa.read's ability to raise an error when n_items >200
+    assert_raises(AssertionError, csa.read, CSA_STR_200n_items)
+    assert csa.read(CSA_STR_valid)
 
 
 def test_csa_params():
