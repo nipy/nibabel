@@ -8,12 +8,10 @@ Stephan's TODO
 Matthew's TODO
 --------------
 
-* Expose _data as dataobj
-* Implement slicing on dataobj (BIAP2)
 * Move file_map to {filename, fileobj, (filename, offset), (fileobj, offset)
   with suitable change warning
-* RO properties for affine, header.  Update docs
-* is_proxy helper function and attribute for proxy objects
 * consider deprecating data_dtype methods for images.
 * new data package model
-
+* output_space property for images
+* dirty attribute for images
+* consider adding io_implementation to images to do I/O
