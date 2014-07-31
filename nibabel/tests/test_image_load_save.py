@@ -66,7 +66,7 @@ def test_conversion():
                 w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
-                assert_array_equal(img2.get_affine(), affine)
+                assert_array_equal(img2.affine, affine)
 
 
 def test_save_load_endian():
@@ -124,7 +124,7 @@ def test_save_load():
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
         assert_array_equal(re_img.get_data(), data)
-        assert_array_equal(re_img.get_affine(), affine)
+        assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
         # windows errors when trying to open files or delete the
         # temporary directory. 
@@ -134,20 +134,20 @@ def test_save_load():
             re_img2 = nils.load(sifn)
             assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
             assert_array_equal(re_img2.get_data(), data)
-            assert_array_equal(re_img2.get_affine(), affine)
+            assert_array_equal(re_img2.affine, affine)
             del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
             assert_true(isinstance(re_img3,
                                          spm99.Spm99AnalyzeImage))
             assert_array_equal(re_img3.get_data(), data)
-            assert_array_equal(re_img3.get_affine(), affine)
+            assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
             del re_img3
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
         assert_array_equal(re_img.get_data(), data)
-        assert_array_equal(re_img.get_affine(), affine)
+        assert_array_equal(re_img.affine, affine)
         del re_img
 
 

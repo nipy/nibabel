@@ -637,10 +637,10 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         affine = np.diag([2, 3, 4, 1])
         # OK - affine correct shape
         img = IC(data, affine)
-        assert_array_equal(affine, img.get_affine())
+        assert_array_equal(affine, img.affine)
         # OK - affine can be array-like
         img = IC(data, affine.tolist())
-        assert_array_equal(affine, img.get_affine())
+        assert_array_equal(affine, img.affine)
         # Not OK - affine wrong shape
         assert_raises(ValueError, IC, data, np.diag([2, 3, 4]))
 
@@ -708,7 +708,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         hdr = img.get_header()
         assert_array_equal(hdr.get_zooms(), (2, 3, 4))
         # Modify affine in-place? Update on save.
-        img.get_affine()[0,0] = 9
+        img.affine[0,0] = 9
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()

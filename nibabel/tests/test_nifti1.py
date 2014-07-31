@@ -675,11 +675,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         assert_equal(hdr_back['qform_code'], 3)
         assert_equal(hdr_back['sform_code'], 4)
         # Modify affine in-place - does it hold?
-        img.get_affine()[0,0] = 9
+        img.affine[0,0] = 9
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
         exp_aff = np.diag([9,1,1,1])
-        assert_array_equal(img_back.get_affine(), exp_aff)
+        assert_array_equal(img_back.affine, exp_aff)
         hdr_back = img.get_header()
         assert_array_equal(hdr_back.get_sform(), exp_aff)
         assert_array_equal(hdr_back.get_qform(), exp_aff)
@@ -688,7 +688,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         # Test that updating occurs only if affine is not allclose
         img = self.image_class(np.zeros((2,3,4)), np.eye(4))
         hdr = img.get_header()
-        aff = img.get_affine()
+        aff = img.affine
         aff[:] = np.diag([1.1, 1.1, 1.1, 1]) # inexact floats
         hdr.set_qform(aff, 2)
         hdr.set_sform(aff, 2)
@@ -701,11 +701,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         hdr = img.get_header()
         new_affine = np.diag([1.1, 1.1, 1.1, 1])
         # Affine is same as sform (best affine)
-        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # Reset affine to something different again
         aff_affine = np.diag([3.3, 4.5, 6.6, 1])
-        img.get_affine()[:] = aff_affine
-        assert_array_almost_equal(img.get_affine(), aff_affine)
+        img.affine[:] = aff_affine
+        assert_array_almost_equal(img.affine, aff_affine)
         # Set qform using new_affine
         img.set_qform(new_affine, 1)
         assert_array_almost_equal(img.get_qform(), new_affine)
@@ -717,11 +717,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         assert_equal(code, 1)
         assert_array_almost_equal(qaff, new_affine)
         # Image affine now reset to best affine (which is sform)
-        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # Reset image affine and try update_affine == False
-        img.get_affine()[:] = aff_affine
+        img.affine[:] = aff_affine
         img.set_qform(new_affine, 1, update_affine=False)
-        assert_array_almost_equal(img.get_affine(), aff_affine)
+        assert_array_almost_equal(img.affine, aff_affine)
         # Clear qform using None, zooms unchanged
         assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
         img.set_qform(None)
@@ -729,13 +729,13 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         assert_equal((qaff, code), (None, 0))
         assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
         # Best affine similarly
-        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # If sform is not set, qform should update affine
         img.set_sform(None)
         img.set_qform(new_affine, 1)
         qaff, code = img.get_qform(coded=True)
         assert_equal(code, 1)
-        assert_array_almost_equal(img.get_affine(), new_affine)
+        assert_array_almost_equal(img.affine, new_affine)
         new_affine[0, 1] = 2
         # If affine has has shear, should raise Error if strip_shears=False
         img.set_qform(new_affine, 2)
@@ -760,8 +760,8 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         qform_affine = np.diag([1.2, 1.2, 1.2, 1])
         # Reset image affine to something different again
         aff_affine = np.diag([3.3, 4.5, 6.6, 1])
-        img.get_affine()[:] = aff_affine
-        assert_array_almost_equal(img.get_affine(), aff_affine)
+        img.affine[:] = aff_affine
+        assert_array_almost_equal(img.affine, aff_affine)
         # Sform, Qform codes are 'aligned',  'unknown' by default
         assert_equal((hdr['sform_code'], hdr['qform_code']), (2, 0))
         # Set sform using new_affine when qform is 0
@@ -775,11 +775,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         assert_equal(code, 1)
         assert_array_almost_equal(saff, new_affine)
         # Because we've reset the sform with update_affine, the affine changes
-        assert_array_almost_equal(img.get_affine(), hdr.get_best_affine())
+        assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # Reset image affine and try update_affine == False
-        img.get_affine()[:] = aff_affine
+        img.affine[:] = aff_affine
         img.set_sform(new_affine, 1, update_affine=False)
-        assert_array_almost_equal(img.get_affine(), aff_affine)
+        assert_array_almost_equal(img.affine, aff_affine)
         # zooms do not get updated when qform is 0
         assert_array_almost_equal(img.get_qform(), orig_aff)
         assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
@@ -791,7 +791,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         saff, code = img.get_sform(coded=True)
         assert_equal(code, 1)
         assert_array_almost_equal(saff, new_affine)
-        assert_array_almost_equal(img.get_affine(), new_affine)
+        assert_array_almost_equal(img.affine, new_affine)
         # zooms follow qform
         assert_array_almost_equal(hdr.get_zooms(), [1.2, 1.2, 1.2])
         # Clear sform using None, best_affine should fall back on qform
@@ -801,15 +801,15 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         # Sform holds previous affine from last set
         assert_array_almost_equal(hdr.get_sform(), saff)
         # Image affine follows qform
-        assert_array_almost_equal(img.get_affine(), qform_affine)
-        assert_array_almost_equal(hdr.get_best_affine(), img.get_affine())
+        assert_array_almost_equal(img.affine, qform_affine)
+        assert_array_almost_equal(hdr.get_best_affine(), img.affine)
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_sform, strange=True)
         # updating None affine should also work
         img = self.image_class(np.zeros((2,3,4)), None)
         new_affine = np.eye(4)
         img.set_sform(new_affine, 2)
-        assert_array_almost_equal(img.get_affine(), new_affine)
+        assert_array_almost_equal(img.affine, new_affine)
 
     def test_hdr_diff(self):
         # Check an offset beyond data does not raise an error

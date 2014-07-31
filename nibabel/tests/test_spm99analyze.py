@@ -415,7 +415,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         img.to_file_map()
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(), aff)
+        assert_array_equal(r_img.affine, aff)
         # mat files are for matlab and have 111 voxel origins.  We need to
         # adjust for that, when loading and saving.  Check for signs of that in
         # the saved mat file
@@ -442,7 +442,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(),
+        assert_array_equal(r_img.affine,
                            np.dot(np.diag([6,7,8,1]), to_111))
         # But will use M if present
         mat_fileobj.seek(0)
@@ -450,7 +450,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         savemat(mat_fileobj, dict(M=np.diag([3,4,5,1])))
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(),
+        assert_array_equal(r_img.affine,
                            np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
 
     def test_none_affine(self):
@@ -466,7 +466,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
             value.fileobj = BytesIO()
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
-        assert_array_equal(img_back.get_affine(), aff)
+        assert_array_equal(img_back.affine, aff)
 
 
 def test_origin_affine():

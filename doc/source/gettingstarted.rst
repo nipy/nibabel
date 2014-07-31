@@ -53,7 +53,7 @@ True
 The image also has an affine transformation that determines the
 world-coordinates of the image elements.
 
->>> img.get_affine().shape
+>>> img.affine.shape
 (4, 4)
 
 This information is available without the need to load anything of the main

@@ -174,7 +174,7 @@ def test_header_updating():
     2.0000   3.0000   1.0000   -11.5000
     3.0000   1.0000   2.0000   -11.5000
     0.0000   0.0000   0.0000     1.0000"""))
-    assert_almost_equal(mgz.get_affine(), exp_aff, 6)
+    assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
     assert_equal(hdr['delta'], 1)
@@ -203,7 +203,7 @@ def test_cosine_order():
     aff = np.diag([2., 3, 4, 1])
     aff[0] = [2, 1, 0, 10]
     img = MGHImage(data, aff)
-    assert_almost_equal(img.get_affine(), aff, 6)
+    assert_almost_equal(img.affine, aff, 6)
     img_fobj = BytesIO()
     img2 = _mgh_rt(img, img_fobj)
     hdr2 = img2.get_header()
