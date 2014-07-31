@@ -505,7 +505,7 @@ class MGHImage(SpatialImage):
             file_map = self.file_map
         data = self.get_data()
         self.update_header()
-        hdr = self.get_header()
+        hdr = self.header
         with file_map['image'].get_prepare_fileobj('wb') as mghf:
             hdr.writehdr_to(mghf)
             self._write_data(mghf, data, hdr)

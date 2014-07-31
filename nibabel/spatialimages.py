@@ -79,7 +79,7 @@ Analyze-type images (including nifti) support this, but others may not
 Sometimes you might to avoid any loss of precision by making the
 data type the same as the input::
 
-    hdr = img.get_header()
+    hdr = img.header
     hdr.set_data_dtype(data.dtype)
     img.to_filename(fname)
 
@@ -401,13 +401,12 @@ class SpatialImage(object):
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = SpatialImage(data, affine)
-        >>> hdr = img.get_header()
         >>> img.shape == (2, 3, 4)
         True
         >>> img.update_header()
-        >>> hdr.get_data_shape() == (2, 3, 4)
+        >>> img.header.get_data_shape() == (2, 3, 4)
         True
-        >>> hdr.get_zooms()
+        >>> img.header.get_zooms()
         (1.0, 2.0, 3.0)
         '''
         hdr = self._header
@@ -688,9 +687,8 @@ class SpatialImage(object):
         Parameters
         ----------
         img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header`` and
-           ``extra``.
+           In fact, an object with the API of ``spatialimage`` - specifically
+           ``dataobj``, ``affine``, ``header`` and ``extra``.
         filename : str
            Filename, implying name to which to save image.
         '''
@@ -705,15 +703,14 @@ class SpatialImage(object):
         ----------
         img : ``spatialimage`` instance
            In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header`` and
-           ``extra``.
+           specifically ``dataobj``, ``affine``, ``header`` and ``extra``.
 
         Returns
         -------
         cimg : ``spatialimage`` instance
            Image, of our own class
         '''
-        return klass(img._dataobj,
-                     img._affine,
-                     klass.header_class.from_header(img._header),
+        return klass(img.dataobj,
+                     img.affine,
+                     klass.header_class.from_header(img.header),
                      extra=img.extra.copy())

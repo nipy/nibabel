@@ -434,7 +434,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         # mat resulting should have a flip.  The 'mat' matrix does include flips
         # and so should be unaffected by the flipping.  If both are present we
         # prefer the the 'mat' matrix.
-        assert_true(img.get_header().default_x_flip) # check the default
+        assert_true(img.header.default_x_flip) # check the default
         flipper = np.diag([-1,1,1,1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
@@ -460,7 +460,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         img_klass = self.image_class
         # With a None affine - no matfile written
         img = img_klass(np.zeros((2,3,4)), None)
-        aff = img.get_header().get_best_affine()
+        aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()

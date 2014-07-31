@@ -617,7 +617,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img2 = IC.from_file_map(fm)
         assert_equal(img2.shape, shape)
         assert_equal(img2.get_data_dtype().type, np.int16)
-        hdr = img2.get_header()
+        hdr = img2.header
         hdr.set_data_shape((3,2,2))
         assert_equal(hdr.get_data_shape(), (3,2,2))
         hdr.set_data_dtype(np.uint8)
@@ -695,24 +695,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img_klass = self.image_class
         # With a None affine - don't overwrite zooms
         img = img_klass(np.zeros((2,3,4)), None)
-        hdr = img.get_header()
+        hdr = img.header
         hdr.set_zooms((4,5,6))
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()
-        hdr_back = img.from_file_map(img.file_map).get_header()
+        hdr_back = img.from_file_map(img.file_map).header
         assert_array_equal(hdr_back.get_zooms(), (4,5,6))
         # With a real affine, update zooms
         img = img_klass(np.zeros((2,3,4)), np.diag([2,3,4,1]), hdr)
-        hdr = img.get_header()
+        hdr = img.header
         assert_array_equal(hdr.get_zooms(), (2, 3, 4))
         # Modify affine in-place? Update on save.
         img.affine[0,0] = 9
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()
-        hdr_back = img.from_file_map(img.file_map).get_header()
+        hdr_back = img.from_file_map(img.file_map).header
         assert_array_equal(hdr.get_zooms(), (9, 3, 4))
         # Modify data in-place?  Update on save
         data = img.get_data()
@@ -729,7 +729,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage):
         img_str = pickle.dumps(img)
         img2 = pickle.loads(img_str)
         assert_array_equal(img.get_data(), img2.get_data())
-        assert_equal(img.get_header(), img2.get_header())
+        assert_equal(img.header, img2.header)
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()

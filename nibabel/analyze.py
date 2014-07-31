@@ -850,11 +850,6 @@ class AnalyzeImage(SpatialImage):
         self._header.set_slope_inter(None, None)
     __init__.__doc__ = SpatialImage.__init__.__doc__
 
-    def get_header(self):
-        ''' Return header
-        '''
-        return self._header
-
     def get_data_dtype(self):
         return self._header.get_data_dtype()
 

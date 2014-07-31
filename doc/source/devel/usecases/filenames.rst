@@ -63,7 +63,7 @@ in memory has diverged very far from the image on disk:
    >>> img = nib.load(fname)
    >>> idata = img.get_data()
    >>> idata[:] = 0
-   >>> hdr = img.get_header()
+   >>> hdr = img.header
    >>> hdr['descrip'] = 'something strange'
    >>> img.get_filename() == fname
    True

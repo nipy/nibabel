@@ -84,7 +84,7 @@ def squeeze_image(img):
     data = data.reshape(shape)
     return klass(data,
                  img.affine,
-                 img.get_header(),
+                 img.header,
                  img.extra)
 
 
@@ -113,7 +113,7 @@ def concat_images(images, check_affines=True):
         is_filename = True
     i0shape = img0.shape
     affine = img0.affine
-    header = img0.get_header()
+    header = img0.header
     out_shape = (n_imgs, ) + i0shape
     out_data = np.empty(out_shape)
     for i, img in enumerate(images):
@@ -135,8 +135,8 @@ def four_to_three(img):
     ----------
     img :  image
        4D image instance of some class with methods ``get_data``,
-       ``get_header`` and ``get_affine``, and a class constructor
-       allowing Klass(data, affine, header)
+       ``header`` and ``affine``, and a class constructor
+       allowing klass(data, affine, header)
 
     Returns
     -------
@@ -144,7 +144,7 @@ def four_to_three(img):
        list of 3D images
     '''
     arr = img.get_data()
-    header = img.get_header()
+    header = img.header
     affine = img.affine
     image_maker = img.__class__
     if arr.ndim != 4:
@@ -197,7 +197,7 @@ def as_closest_canonical(img, enforce_diag=False):
     # we need to transform the data
     arr = img.get_data()
     t_arr = apply_orientation(arr, ornt)
-    return img.__class__(t_arr, out_aff, img.get_header())
+    return img.__class__(t_arr, out_aff, img.header)
 
 
 def _aff_is_diag(aff):

@@ -652,7 +652,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
 
     def _qform_rt(self, img):
         # Round trip image after setting qform, sform codes
-        hdr = img.get_header()
+        hdr = img.header
         hdr['qform_code'] = 3
         hdr['sform_code'] = 4
         # Save / reload using bytes IO objects
@@ -666,12 +666,12 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         img_klass = self.image_class
         # None affine
         img = img_klass(np.zeros((2,3,4)), None)
-        hdr_back = self._qform_rt(img).get_header()
+        hdr_back = self._qform_rt(img).header
         assert_equal(hdr_back['qform_code'], 3)
         assert_equal(hdr_back['sform_code'], 4)
         # Try non-None affine
         img = img_klass(np.zeros((2,3,4)), np.eye(4))
-        hdr_back = self._qform_rt(img).get_header()
+        hdr_back = self._qform_rt(img).header
         assert_equal(hdr_back['qform_code'], 3)
         assert_equal(hdr_back['sform_code'], 4)
         # Modify affine in-place - does it hold?
@@ -680,14 +680,14 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         img_back = img.from_file_map(img.file_map)
         exp_aff = np.diag([9,1,1,1])
         assert_array_equal(img_back.affine, exp_aff)
-        hdr_back = img.get_header()
+        hdr_back = img.header
         assert_array_equal(hdr_back.get_sform(), exp_aff)
         assert_array_equal(hdr_back.get_qform(), exp_aff)
 
     def test_header_update_affine(self):
         # Test that updating occurs only if affine is not allclose
         img = self.image_class(np.zeros((2,3,4)), np.eye(4))
-        hdr = img.get_header()
+        hdr = img.header
         aff = img.affine
         aff[:] = np.diag([1.1, 1.1, 1.1, 1]) # inexact floats
         hdr.set_qform(aff, 2)
@@ -698,7 +698,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
 
     def test_set_qform(self):
         img = self.image_class(np.zeros((2,3,4)), np.diag([2.2, 3.3, 4.3, 1]))
-        hdr = img.get_header()
+        hdr = img.header
         new_affine = np.diag([1.1, 1.1, 1.1, 1])
         # Affine is same as sform (best affine)
         assert_array_almost_equal(img.affine, hdr.get_best_affine())
@@ -755,7 +755,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
     def test_set_sform(self):
         orig_aff = np.diag([2.2, 3.3, 4.3, 1])
         img = self.image_class(np.zeros((2,3,4)), orig_aff)
-        hdr = img.get_header()
+        hdr = img.header
         new_affine = np.diag([1.1, 1.1, 1.1, 1])
         qform_affine = np.diag([1.2, 1.2, 1.2, 1])
         # Reset image affine to something different again
@@ -840,7 +840,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
                 img3 = IC.load(fname)
                 assert_true(isinstance(img3, img.__class__))
                 assert_array_equal(img3.get_data(), data)
-                assert_equal(img3.get_header(), img.get_header())
+                assert_equal(img3.header, img.header)
                 # del to avoid windows errors of form 'The process cannot
                 # access the file because it is being used'
                 del img3
@@ -858,7 +858,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         hdr.set_sform(saff)
         assert_array_equal(hdr.get_sform(), saff)
         simg = IC(arr, None, hdr)
-        img_hdr = simg.get_header()
+        img_hdr = simg.header
         # Check qform, sform, pixdims are the same
         assert_array_equal(img_hdr.get_qform(), qaff)
         assert_array_equal(img_hdr.get_sform(), saff)
@@ -867,7 +867,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         re_simg = bytesio_round_trip(simg)
         assert_array_equal(re_simg.get_data(), arr)
         # Check qform, sform, pixdims are the same
-        rimg_hdr = re_simg.get_header()
+        rimg_hdr = re_simg.header
         assert_array_equal(rimg_hdr.get_qform(), qaff)
         assert_array_equal(rimg_hdr.get_sform(), saff)
         assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
@@ -881,7 +881,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         aff = np.diag([2, 3, 4, 1])
         # Default is sform set, qform not set
         img = IC(arr, aff)
-        hdr = img.get_header()
+        hdr = img.header
         assert_equal(hdr['qform_code'], 0)
         assert_equal(hdr['sform_code'], 2)
         assert_array_equal(hdr.get_zooms(), [2, 3, 4])
@@ -892,7 +892,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         hdr.set_sform(saff, code='talairach')
         assert_array_equal(hdr.get_zooms(), [3, 4, 5])
         img = IC(arr, aff, hdr)
-        new_hdr = img.get_header()
+        new_hdr = img.header
         # Again affine is sort of anonymous space
         assert_equal(new_hdr['qform_code'], 0)
         assert_equal(new_hdr['sform_code'], 2)
@@ -900,7 +900,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
         # But if no affine passed, codes and matrices stay the same
         img = IC(arr, None, hdr)
-        new_hdr = img.get_header()
+        new_hdr = img.header
         assert_equal(new_hdr['qform_code'], 1) # scanner
         assert_array_equal(new_hdr.get_qform(), qaff)
         assert_equal(new_hdr['sform_code'], 3) # Still talairach
@@ -1039,7 +1039,7 @@ def test_extension_io():
 def test_nifti_extensions():
     nim = load(image_file)
     # basic checks of the available extensions
-    hdr = nim.get_header()
+    hdr = nim.header
     exts_container = hdr.extensions
     assert_equal(len(exts_container), 2)
     assert_equal(exts_container.count('comment'), 2)
@@ -1076,19 +1076,19 @@ class TestNifti1General(object):
     def test_loadsave_cycle(self):
         nim = self.module.load(self.example_file)
         # ensure we have extensions
-        hdr = nim.get_header()
+        hdr = nim.header
         exts_container = hdr.extensions
         assert_true(len(exts_container) > 0)
         # write into the air ;-)
         lnim = bytesio_round_trip(nim)
-        hdr = lnim.get_header()
+        hdr = lnim.header
         lexts_container = hdr.extensions
         assert_equal(exts_container,
                     lexts_container)
         # build int16 image
         data = np.ones((2,3,4,5), dtype='int16')
         img = self.single_class(data, np.eye(4))
-        hdr = img.get_header()
+        hdr = img.header
         assert_equal(hdr.get_data_dtype(), np.int16)
         # default should have no scaling
         assert_array_equal(hdr.get_slope_inter(), (None, None))
@@ -1099,7 +1099,7 @@ class TestNifti1General(object):
         wnim = self.single_class(data, np.eye(4), header=hdr)
         assert_equal(wnim.get_data_dtype(), np.int16)
         # Header scaling reset to default by image creation
-        assert_equal(wnim.get_header().get_slope_inter(), (None, None))
+        assert_equal(wnim.header.get_slope_inter(), (None, None))
         # But we can reset it again after image creation
         wnim.header.set_slope_inter(2, 8)
         assert_equal(wnim.header.get_slope_inter(), (2, 8))
@@ -1155,7 +1155,7 @@ class TestNifti1General(object):
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
                 arr_back_sc = img_back.get_data()
-                slope, inter = img_back.get_header().get_slope_inter()
+                slope, inter = img_back.header.get_slope_inter()
                 # Get estimate for error
                 max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
                 # Simulate allclose test with large atol
@@ -1177,7 +1177,7 @@ class TestNifti1General(object):
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
                 arr_back_sc = img_back.get_data()
-                slope, inter = img_back.get_header().get_slope_inter()
+                slope, inter = img_back.header.get_slope_inter()
                 bias = np.mean(arr_t - arr_back_sc)
                 # Get estimate for error
                 max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)

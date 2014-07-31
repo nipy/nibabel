@@ -204,12 +204,12 @@ class TestSpatialImage(TestCase):
         aff[0,0] = 99
         assert_false(np.all(img.affine == aff))
         # header, created by image creation
-        ihdr = img.get_header()
+        ihdr = img.header
         # Pass it back in
         img = img_klass(arr, aff, ihdr)
         # Check modifying header outside does not modify image
         ihdr.set_zooms((4, 5, 6))
-        assert_not_equal(img.get_header(), ihdr)
+        assert_not_equal(img.header, ihdr)
 
     def test_float_affine(self):
         # Check affines get converted to float
