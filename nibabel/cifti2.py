@@ -73,58 +73,6 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                          'CIFTI_STRUCTURE_THALAMUS_LEFT',
                          'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
-'''
-CIFTI_ELEMENTS = {'CIFTI': {'Attributes': ['Version'],
-                            'Children': [('Matrix', '1')],
-                            'Parent': None
-                            },
-                  'Matrix': {'Attributes': None,
-                             'Children': [('Metadata', '?'),
-                                          ('MatrixIndicesMap', '+')],
-                             'Parent': ['CIFTI']
-                             },
-                  'Metadata': {'Attributes': None,
-                               'Children': [('MD', '*')],
-                               'Parent': ['Matrix', 'NamedMap']
-                               },
-                  'MD': {'Attributes': None,
-                         'Children': [('Name', '1'),
-                                      ('Value', '1')],
-                         'Parent': ['Metadata']
-                         },
-                  'Name': {'Attributes': None,
-                           'Children': None,
-                           'Parent': ['MD']
-                           },
-                  'Value': {'Attributes': None,
-                            'Children': None,
-                            'Parent': ['MD']
-                            },
-                  'MatrixIndicesMap': {'Attributes': ['AppliesToMatrixDimension',
-                                                      ('IndicesMapToDataType',
-                                                       CIFTI_MAP_TYPES),
-                                                      'NumberOfSeriesPoints',
-                                                      'SeriesExponent',
-                                                      'SeriesStart',
-                                                      'SeriesStep',
-                                                      ('SeriesUnit',
-                                                       CIFTI_SERIESUNIT_TYPES)],
-                                       'Children': [('BrainModel', '*'),
-                                                    ('NamedMap', '*'),
-                                                    ('Parcel', '*'),
-                                                    ('Surface', '*'),
-                                                    ('Volume', '?')],
-                                       'Parent': ['Matrix']
-                                       },
-                  'NamedMap': {'Attributes': None,
-                               'Children': [('MapName', '1'),
-                                            ('LabelTable', '?'),
-                                            ('MetaData', '?')],
-                               'Parent': ['MatrixIndicesMap']
-                               },
-
-                  }
-'''
 
 class CiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
