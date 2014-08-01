@@ -11,7 +11,7 @@ from nose.tools import assert_equal, assert_raises
 def test_rst_table():
     # Tests for printable table function
     R, C = 3, 4
-    cell_values = np.arange(R * C).reshape((R, C))
+    cell_values = np.arange(R * C, dtype=np.float).reshape((R, C))
     assert_equal(rst_table(cell_values),
 """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
@@ -60,7 +60,7 @@ A title
 | row[2] |  8.00  |  9.00  | 10.00  | 11.00  |
 +--------+--------+--------+--------+--------+"""
                 )
-    assert_equal(rst_table(cell_values, val_fmt = '{0}'),
+    assert_equal(rst_table(cell_values.astype(int), val_fmt = '{0}'),
 """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
 +========+========+========+========+========+
@@ -71,7 +71,7 @@ A title
                 )
     # Doing a fancy cell format
     cell_values_back = np.arange(R * C)[::-1].reshape((R, C))
-    cell_3d = np.dstack((cell_values, cell_values_back))
+    cell_3d = np.dstack((cell_values, cell_values_back)).astype(int)
     assert_equal(rst_table(cell_3d, val_fmt = '{0[0]}-{0[1]}'),
 """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
