@@ -2,16 +2,21 @@
 """
 from __future__ import division, print_function
 
+import sys
 import numpy as np
 
 from ..rstutils import rst_table
 
+from nose import SkipTest
 from nose.tools import assert_equal, assert_raises
 
 def test_rst_table():
     # Tests for printable table function
     R, C = 3, 4
     cell_values = np.arange(R * C).reshape((R, C))
+    if (sys.version_info[:3] == (3, 2, 3) and np.__version__ == '1.6.1'):
+        raise SkipTest("Known (later fixed) bug in python3.2/numpy "
+                       "treating np.int64 as str")
     assert_equal(rst_table(cell_values),
 """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
