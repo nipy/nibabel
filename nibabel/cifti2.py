@@ -24,7 +24,7 @@ from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
-DEBUG_PRINT = True
+DEBUG_PRINT = False
 
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
@@ -100,17 +100,19 @@ class CiftiMetaData(object):
             self.data_as_dict[ele.name] = ele.value
         return self.data_as_dict
 
-    def to_xml(self):
+    def to_xml(self, prefix='', indent='    '):
         if len(self.data) == 0:
-            return "<MetaData/>\n"
-        res = "<MetaData>\n"
+            return ''
+        res = "%s<MetaData>\n" % prefix
+        preindent = prefix + indent
         for ele in self.data:
-            nvpair = """<MD>
-\t<Name><![CDATA[%s]]></Name>
-\t<Value><![CDATA[%s]]></Value>
-</MD>\n""" % (ele.name, ele.value)
-            res = res + nvpair
-        res = res + "</MetaData>\n"
+            nvpair = """%s<MD>
+%s<Name>%s</Name>
+%s<Value>%s</Value>
+%s</MD>\n""" % (preindent, preindent + indent, ele.name, preindent + indent,
+                  ele.value, preindent)
+            res += nvpair
+        res += "%s</MetaData>\n" % prefix
         return res
 
     def print_summary(self):
@@ -137,10 +139,10 @@ class CiftiLabelTable(object):
             self.labels_as_dict[ele.key] = ele.label
         return self.labels_as_dict
 
-    def to_xml(self):
+    def to_xml(self, prefix='', indent='    '):
         if len(self.labels) == 0:
-            return "<LabelTable/>\n"
-        res = "<LabelTable>\n"
+            return ''
+        res = "%s<LabelTable>\n" % prefix
         for ele in self.labels:
             col = ''
             if not ele.red is None:
@@ -151,10 +153,10 @@ class CiftiLabelTable(object):
                 col += ' Blue="%s"' % str(ele.blue)
             if not ele.alpha is None:
                 col += ' Alpha="%s"' % str(ele.alpha)
-            lab = """\t<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
-                (str(ele.key), col, ele.label)
-            res = res + lab
-        res = res + "</LabelTable>\n"
+            lab = """%s<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
+                (prefix + indent, str(ele.key), col, ele.label)
+            res += lab
+        res += "%s</LabelTable>\n" % prefix
         return res
 
     def print_summary(self):
@@ -244,6 +246,16 @@ class CiftiNamedMap(object):
         else:
             print("Not a valid CiftiLabelTable instance")
 
+    def to_xml(self, prefix='', indent='    '):
+        if self.map_name is None:
+            return ''
+        res = "%s<NamedMap>\n" % prefix
+        res += self.meta.to_xml(prefix=prefix + indent, indent=indent)
+        res += self.label_table.to_xml(prefix=prefix + indent, indent=indent)
+        res += "%s<MapName>%s</MapName>\n" % (prefix + indent, self.map_name)
+        res += "%s</NamedMap>\n" % prefix
+        return res
+
 
 class CiftiSurface(object):
     """Class for Surface """
@@ -254,12 +266,29 @@ class CiftiSurface(object):
         self.brainStructure = brainStructure
         self.surfaceNumberOfVertices = surfaceNumberOfVertices
 
+    def to_xml(self, prefix='', indent='    '):
+        if self.brainStructure is None:
+            return ''
+        res = ('%s<Surface BrainStructure="%s" '
+               'SurfaceNumberOfVertices"%s" />\n') % (prefix,
+                                                      self.brainStructure,
+                                                      self.surfaceNumberOfVertices)
+        return res
 
 class CiftiVoxelIndicesIJK(object):
     indices = np.array
 
     def __init__(self, indices=None):
         self.indices = indices
+
+    def to_xml(self, prefix='', indent='    '):
+        if self.indices is None:
+            return ''
+        res = '%s<VoxelIndicesIJK>' % prefix
+        for row in self.indices:
+            res += ' '.join(row.astype(str).tolist()) + '\n'
+        res += '</VoxelIndicesIJK>\n'
+        return res
 
 
 class CiftiVertices(object):
@@ -270,6 +299,14 @@ class CiftiVertices(object):
     def __init__(self, brain_structure=None, vertices=None):
         self.vertices = vertices
         self.brainStructure = brain_structure
+
+    def to_xml(self, prefix='', indent='    '):
+        if self.vertices is None:
+            return ''
+        res = '%s<Vertices BrainStructure="%s">' % (prefix, self.brainStructure)
+        res += ' '.join(self.vertices.astype(str).tolist())
+        res += '</Vertices>\n'
+        return res
 
 
 class CiftiParcel(object):
@@ -314,6 +351,16 @@ class CiftiParcel(object):
         self.vertices.pop(ith)
         self.numVA -= 1
 
+    def to_xml(self, prefix='', indent='    '):
+        if self.name is None:
+            return ''
+        res = '%s<Parcel Name="%s">\n' % (prefix, self.name)
+        res += self.voxelIndicesIJK.to_xml(prefix=prefix + indent, indent=indent)
+        for vertices in self.vertices:
+            res += vertices.to_xml(prefix=prefix + indent, indent=indent)
+        res += "%s</Parcel>\n" % prefix
+        return res
+
 
 class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
 
@@ -323,6 +370,16 @@ class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
     def __init__(self, meter_exponent=None, matrix=None):
         self.meterExponent = meter_exponent
         self.matrix = matrix
+
+    def to_xml(self, prefix='', indent='    '):
+        if self.matrix is None:
+            return ''
+        res = ('%s<TransformationMatrixVoxelIndices'
+               'IJKtoXYZ MeterExponend="%d">') % (prefix, self.meterExponent)
+        for row in self.matrix:
+            res += '\n' + ' '.join(['%.10f' % val for val in row])
+        res += "</TransformationMatrixVoxelIndicesIJKtoXYZ>\n"
+        return res
 
 
 class CiftiVolume(object):
@@ -334,12 +391,28 @@ class CiftiVolume(object):
         self.volumeDimensions = volume_dimensions
         self.transformationMatrixVoxelIndicesIJKtoXYZ = transform_matrix
 
+    def to_xml(self, prefix='', indent='    '):
+        if not self.volumeDimensions:
+            return ''
+        res = '%s<Volume VolumeDimensions="%s">\n' % (prefix,
+              ','.join([str(val) for val in self.volumeDimensions]))
+        res += self.transformationMatrixVoxelIndicesIJKtoXYZ.to_xml(prefix=prefix + '\t')
+        res += "%s</Volume>\n" % prefix
+        return res
+
 
 class CiftiVertexIndices(object):
     indices = np.array
 
     def __init__(self, indices=None):
         self.indices = indices
+
+    def to_xml(self, prefix='', indent='    '):
+        if self.indices is None:
+            return ''
+        indices = ' '.join(self.indices.astype(str).tolist())
+        res = '%s<VertexIndices>%s</VertexIndices>\n' % (prefix, indices)
+        return res
 
 
 class CiftiBrainModel(object):
@@ -363,8 +436,12 @@ class CiftiBrainModel(object):
 
         if voxel_indices_ijk is not None:
             self.voxelIndicesIJK = voxel_indices_ijk
+        else:
+            self.voxelIndicesIJK = CiftiVoxelIndicesIJK()
         if vertex_indices is not None:
             self.vertexIndices = vertex_indices
+        else:
+            self.vertexIndices = CiftiVertexIndices()
 
     @property
     def voxelIndicesIJK(self):
@@ -383,6 +460,27 @@ class CiftiBrainModel(object):
     def vertexIndices(self, value):
         assert isinstance(value, CiftiVertexIndices)
         self._vertexIndices = value
+
+    def to_xml(self, prefix='', indent='    '):
+        if self.indexOffset is None:
+            return ''
+        attrs = []
+        for key in ['IndexOffset', 'IndexCount', 'ModelType', 'BrainStructure',
+                    'SurfaceNumberOfVertices']:
+            attr = key[0].lower() + key[1:]
+            value = getattr(self, attr)
+            if value is not None:
+                attrs += ['%s="%s"' % (key, value)]
+        attrs = ' '.join(attrs)
+        res = '%s<BrainModel %s>\n' % (prefix, attrs)
+        if self.voxelIndicesIJK:
+            res += self.voxelIndicesIJK.to_xml(prefix=prefix + indent,
+                                               indent=indent)
+        if self.vertexIndices:
+            res += self.vertexIndices.to_xml(prefix=prefix + indent,
+                                             indent=indent)
+        res += "%s</BrainModel>\n" % prefix
+        return res
 
 
 class CiftiMatrixIndicesMap(object):
@@ -529,6 +627,32 @@ class CiftiMatrixIndicesMap(object):
         """ Removes the volume element from the CiftiMatrixIndicesMap """
         self.volume = None
 
+    def to_xml(self, prefix='', indent='    '):
+        if self.appliesToMatrixDimension is None:
+            return ''
+        attrs = []
+        for key in ['AppliesToMatrixDimension', 'IndicesMapToDataType',
+                    'NumberOfSeriesPoints', 'SeriesExponent', 'SeriesStart',
+                    'SeriesStep', 'SeriesUnit']:
+            attr = key[0].lower() + key[1:]
+            value = getattr(self, attr)
+            if value is not None:
+                attrs += ['%s="%s"' % (key, value)]
+        attrs = ' '.join(attrs)
+        res = '%s<MatrixIndicesMap %s>\n' % (prefix, attrs)
+        for named_map in self.namedMaps:
+            res += named_map.to_xml(prefix=prefix + indent, indent=indent)
+        for surface in self.surfaces:
+            res += surface.to_xml(prefix=prefix + indent, indent=indent)
+        for parcel in self.parcels:
+            res += parcel.to_xml(prefix=prefix + indent, indent=indent)
+        if self.volume:
+            res += self.volume.to_xml(prefix=prefix + indent, indent=indent)
+        for model in self.brainModels:
+            res += model.to_xml(prefix=prefix + indent, indent=indent)
+        res += "%s</MatrixIndicesMap>\n" % prefix
+        return res
+
 
 class CiftiMatrix(object):
 
@@ -582,6 +706,17 @@ class CiftiMatrix(object):
         self.mims.pop(ith)
         self.numMIM -= 1
 
+    def to_xml(self, prefix='', indent='    '):
+        if self.numMIM == 0:
+            return ''
+        res = '%s<Matrix>\n' % prefix
+        if self.meta:
+            res += self.meta.to_xml(prefix=prefix + indent, indent=indent)
+        for mim in self.mims:
+            res += mim.to_xml(prefix=prefix + indent, indent=indent)
+        res += "%s</Matrix>\n" % prefix
+        return res
+
 
 class CiftiHeader(object):
     ''' Class for Cifti2 header extension '''
@@ -594,6 +729,12 @@ class CiftiHeader(object):
         else:
             self.matrix = matrix
         self.version = version
+
+    def to_xml(self, prefix='', indent='    '):
+        res = '%s<CIFTI Version="%s">\n' % (prefix, self.version)
+        res += self.matrix.to_xml(prefix=prefix + indent, indent=indent)
+        res += "%s</CIFTI>\n" % prefix
+        return res
 
 
 class Outputter(object):
@@ -742,6 +883,7 @@ class Outputter(object):
             parent = self.struct_state[-1]
             assert isinstance(parent, (CiftiParcel, CiftiBrainModel))
             parent.voxelIndicesIJK = CiftiVoxelIndicesIJK()
+
             self.write_to = 'VoxelIndices'
         elif name == "Volume":
             mim = self.struct_state[-1]
