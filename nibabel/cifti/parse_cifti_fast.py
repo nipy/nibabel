@@ -47,7 +47,7 @@ class Outputter(object):
             # create gifti image
             self.header = CiftiHeader()
             self.header.version = attrs['Version']
-            if LooseVersion(self.header.version) < LooseVersion('2.0'):
+            if LooseVersion(self.header.version) < LooseVersion('2'):
                 raise ValueError('Only CIFTI-2 files are supported')
             self.fsm_state.append('CIFTI')
             self.struct_state.append(self.header)
