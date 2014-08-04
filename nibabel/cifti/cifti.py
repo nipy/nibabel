@@ -19,13 +19,9 @@ Stuff about the CIFTI file format here:
 '''
 from __future__ import division, print_function, absolute_import
 
-from StringIO import StringIO
-from xml.parsers.expat import ParserCreate, ExpatError
-
 import numpy as np
 
 DEBUG_PRINT = False
-
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
                    'CIFTI_INDEX_TYPE_SERIES',
@@ -222,9 +218,8 @@ class CiftiNamedMap(object):
         """
         if isinstance(meta, CiftiMetaData):
             self.meta = meta
-            print("New Metadata set.")
         else:
-            print("Not a valid CiftiMetaData instance")
+            raise TypeError("Not a valid CiftiMetaData instance")
 
     def get_label_table(self):
         return self.label_table
@@ -242,9 +237,8 @@ class CiftiNamedMap(object):
         """
         if isinstance(label_table, CiftiLabelTable):
             self.label_table = label_table
-            print("New LabelTable set.")
         else:
-            print("Not a valid CiftiLabelTable instance")
+            raise TypeError("Not a valid CiftiLabelTable instance")
 
     def to_xml(self, prefix='', indent='    '):
         if self.map_name is None:
@@ -375,7 +369,7 @@ class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
         if self.matrix is None:
             return ''
         res = ('%s<TransformationMatrixVoxelIndices'
-               'IJKtoXYZ MeterExponend="%d">') % (prefix, self.meterExponent)
+               'IJKtoXYZ MeterExponent="%d">') % (prefix, self.meterExponent)
         for row in self.matrix:
             res += '\n' + ' '.join(['%.10f' % val for val in row])
         res += "</TransformationMatrixVoxelIndicesIJKtoXYZ>\n"
@@ -684,9 +678,8 @@ class CiftiMatrix(object):
         """
         if isinstance(meta, CiftiMetaData):
             self.meta = meta
-            print("New Metadata set.")
         else:
-            print("Not a valid CiftiMetaData instance")
+            raise TypeError("Not a valid CiftiMetaData instance")
 
     def add_cifti_matrix_indices_map(self, mim):
         """ Adds a matrix indices map to the CiftiMatrix
@@ -736,363 +729,102 @@ class CiftiHeader(object):
         res += "%s</CIFTI>\n" % prefix
         return res
 
+    @classmethod
+    def from_header(klass, header=None):
+        if header is None:
+            return klass()
+        if type(header) == klass:
+            return header.copy()
+        raise ValueError('header is not a CiftiHeader')
 
-class Outputter(object):
+class CiftiImage(object):
+    header_class = CiftiHeader
 
-    def __init__(self, intent_code, filename):
-        self.intent_code = intent_code
-        self.data_type = '.'.join(filename.split('.')[:-2])
-        self.initialize()
+    def __init__(self, data, header, nifti_header):
+        self.header = header
+        self.data = data
+        self.extra = nifti_header
 
-    def initialize(self):
-        """ Initialize outputter
-        """
-        # finite state machine stack
-        self.fsm_state = []
-        self.struct_state = []
+    @classmethod
+    def instance_to_filename(klass, img, filename):
+        ''' Save `img` in our own format, to name implied by `filename`
 
-        # temporary constructs
-        self.nvpair = None
-        self.da = None
-        self.coordsys = None
-        self.lata = None
-        self.label = None
+        This is a class method
 
-        self.meta = None
-        self.count_mim = True
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``spatialimage`` -
+           specifically ``get_data``, ``get_affine``, ``get_header`` and
+           ``extra``.
+        filename : str
+           Filename, implying name to which to save image.
+        '''
+        img = klass.from_image(img)
+        img.to_filename(filename)
 
-        # where to write CDATA:
-        self.write_to = None
-        self.header = None
+    @classmethod
+    def from_image(klass, img):
+        ''' Class method to create new instance of own class from `img`
 
-        # Collecting char buffer fragments
-        self._char_blocks = None
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``spatialimage`` -
+           specifically ``get_data``, ``get_affine``, ``get_header`` and
+           ``extra``.
 
-    def StartElementHandler(self, name, attrs):
-        self.flush_chardata()
-        if DEBUG_PRINT:
-            print('Start element:\n\t', repr(name), attrs)
-        if name == 'CIFTI':
-            # create gifti image
-            self.header = CiftiHeader()
-            if 'Version' in attrs:
-                self.header.version = attrs['Version']
-            self.fsm_state.append('CIFTI')
-            self.struct_state.append(self.header)
-        elif name == 'Matrix':
-            self.fsm_state.append('Matrix')
-            matrix = CiftiMatrix()
-            header = self.struct_state[-1]
-            assert isinstance(header, CiftiHeader)
-            header.matrix = matrix
-            self.struct_state.append(matrix)
-        elif name == 'MetaData':
-            self.fsm_state.append('MetaData')
-            meta = CiftiMetaData()
-            parent = self.struct_state[-1]
-            assert isinstance(parent, (CiftiMatrix, CiftiNamedMap))
-            self.struct_state.append(meta)
-        elif name == 'MD':
-            pair = CiftiNVPair()
-            self.fsm_state.append('MD')
-            self.struct_state.append(pair)
-        elif name == 'Name':
-            self.write_to = 'Name'
-        elif name == 'Value':
-            self.write_to = 'Value'
-        elif name == 'MatrixIndicesMap':
-            self.fsm_state.append('MatrixIndicesMap')
-            mim = CiftiMatrixIndicesMap(appliesToMatrixDimension=int(attrs["AppliesToMatrixDimension"]),
-                                        indicesMapToDataType=attrs["IndicesMapToDataType"])
-            for key, dtype in [("NumberOfSeriesPoints", int),
-                               ("SeriesExponent", int),
-                               ("SeriesStart", float),
-                               ("SeriesStep", float),
-                               ("SeriesUnit", str)]:
-                if key in attrs:
-                    var = key[0].lower() + key[1:]
-                    setattr(mim, var, dtype(attrs[key]))
-            matrix = self.struct_state[-1]
-            assert isinstance(matrix, CiftiMatrix)
-            matrix.add_cifti_matrix_indices_map(mim)
-            self.struct_state.append(mim)
-        elif name == 'NamedMap':
-            self.fsm_state.append('NamedMap')
-            named_map = CiftiNamedMap()
-            mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
-            self.struct_state.append(named_map)
-            mim.add_cifti_named_map(named_map)
-        elif name == 'LabelTable':
-            named_map = self.struct_state[-1]
-            mim = self.struct_state[-2]
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_LABELS"
-            lata = CiftiLabelTable()
-            assert isinstance(named_map, CiftiNamedMap)
-            self.fsm_state.append('LabelTable')
-            self.struct_state.append(lata)
-        elif name == 'Label':
-            lata = self.struct_state[-1]
-            assert isinstance(lata, CiftiLabelTable)
-            label = CiftiLabel()
-            if "Key" in attrs:
-                label.key = int(attrs["Key"])
-            if "Red" in attrs:
-                label.red = float(attrs["Red"])
-            if "Green" in attrs:
-                label.green = float(attrs["Green"])
-            if "Blue" in attrs:
-                label.blue = float(attrs["Blue"])
-            if "Alpha" in attrs:
-                label.alpha = float(attrs["Alpha"])
-            self.write_to = 'Label'
-            self.fsm_state.append('Label')
-            self.struct_state.append(label)
-        elif name == "MapName":
-            named_map = self.struct_state[-1]
-            assert isinstance(named_map, CiftiNamedMap)
-            self.fsm_state.append('MapName')
-            self.write_to = 'MapName'
-        elif name == "Surface":
-            surface = CiftiSurface()
-            mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_PARCELS"
-            surface.brainStructure = attrs["BrainStructure"]
-            surface.surfaceNumberOfVertices = int(attrs["SurfaceNumberOfVertices"])
-            mim.add_cifti_surface(surface)
-        elif name == "Parcel":
-            parcel = CiftiParcel()
-            mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
-            parcel.name = attrs["Name"]
-            mim.add_cifti_parcel(parcel)
-            self.fsm_state.append('Parcel')
-            self.struct_state.append(parcel)
-        elif name == "Vertices":
-            vertices = CiftiVertices()
-            parcel = self.struct_state[-1]
-            assert isinstance(parcel, CiftiParcel)
-            vertices.brainStructure = attrs["BrainStructure"]
-            assert vertices.brainStructure in CIFTI_BrainStructures
-            parcel.add_cifti_vertices(vertices)
-            self.fsm_state.append('Vertices')
-            self.struct_state.append(vertices)
-            self.write_to = 'Vertices'
-        elif name == "VoxelIndicesIJK":
-            parent = self.struct_state[-1]
-            assert isinstance(parent, (CiftiParcel, CiftiBrainModel))
-            parent.voxelIndicesIJK = CiftiVoxelIndicesIJK()
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        '''
+        return klass(img._dataobj,
+                     klass.header_class.from_header(img.header),
+                     extra=img.extra.copy())
 
-            self.write_to = 'VoxelIndices'
-        elif name == "Volume":
-            mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
-            dimensions = tuple([int(val) for val in
-                                attrs["VolumeDimensions"].split(',')])
-            volume = CiftiVolume(volume_dimensions=dimensions)
-            mim.volume = volume
-            self.fsm_state.append('Volume')
-            self.struct_state.append(volume)
-        elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
-            volume = self.struct_state[-1]
-            assert isinstance(volume, CiftiVolume)
-            transform = CiftiTransformationMatrixVoxelIndicesIJKtoXYZ()
-            transform.meterExponent = int(attrs["MeterExponent"])
-            volume.transformationMatrixVoxelIndicesIJKtoXYZ = transform
-            self.fsm_state.append('TransformMatrix')
-            self.struct_state.append(transform)
-            self.write_to = 'TransformMatrix'
-        elif name == "BrainModel":
-            model = CiftiBrainModel()
-            mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_BRAIN_MODELS"
-            for key, dtype in [("IndexOffset", int),
-                               ("IndexCount", int),
-                               ("ModelType", str),
-                               ("BrainStructure", str),
-                               ("SurfaceNumberOfVertices", int)]:
-                if key in attrs:
-                    var = key[0].lower() + key[1:]
-                    setattr(model, var, dtype(attrs[key]))
-            assert model.brainStructure in CIFTI_BrainStructures
-            assert model.modelType in CIFTI_MODEL_TYPES
-            mim.add_cifti_brain_model(model)
-            self.fsm_state.append('BrainModel')
-            self.struct_state.append(model)
-        elif name == "VertexIndices":
-            index = CiftiVertexIndices()
-            model = self.struct_state[-1]
-            assert isinstance(model, CiftiBrainModel)
-            self.fsm_state.append('VertexIndices')
-            model.vertexIndices = index
-            self.struct_state.append(index)
-            self.write_to = "VertexIndices"
+    def to_filename(self, filename):
+        if not filename.endswith('nii'):
+            ValueError('CIFTI files have to be stored as uncompressed NIFTI2')
+        from ..nifti2 import Nifti2Image
+        from ..nifti1 import Nifti1Extensions, Nifti1Extension
+        data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
+        header = self.extra
+        extension = Nifti1Extension(32, self.header.to_xml())
+        header.extensions.append(extension)
+        img = Nifti2Image(data, None, header)
+        img.to_filename(filename)
 
-    def EndElementHandler(self, name):
-        self.flush_chardata()
-        if DEBUG_PRINT:
-            print('End element:\n\t', repr(name))
-        if name == 'CIFTI':
-            # remove last element of the list
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == 'Matrix':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == 'MetaData':
-            self.fsm_state.pop()
-            meta = self.struct_state.pop()
-            parent = self.struct_state[-1]
-            parent.set_metadata(meta)
-        elif name == 'MD':
-            self.fsm_state.pop()
-            pair = self.struct_state.pop()
-            meta = self.struct_state[-1]
-            if pair.name is not None:
-                meta.data.append(pair)
-        elif name == 'Name':
-            self.write_to = None
-        elif name == 'Value':
-            self.write_to = None
-        elif name == 'MatrixIndicesMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == 'NamedMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == 'LabelTable':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == 'Label':
-            self.fsm_state.pop()
-            label = self.struct_state.pop()
-            lata = self.struct_state[-1]
-            lata.labels.append(label)
-            self.write_to = None
-        elif name == "MapName":
-            self.fsm_state.pop()
-            self.write_to = None
-        elif name == "Parcel":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == "Vertices":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-            self.write_to = None
-        elif name == "VoxelIndicesIJK":
-            self.write_to = None
-        elif name == "Volume":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-            self.write_to = None
-        elif name == "BrainModel":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-        elif name == "VertexIndices":
-            self.fsm_state.pop()
-            self.struct_state.pop()
-            self.write_to = None
-
-    def CharacterDataHandler(self, data):
-        """ Collect character data chunks pending collation
-
-        The parser breaks the data up into chunks of size depending on the
-        buffer_size of the parser.  A large bit of character data, with standard
-        parser buffer_size (such as 8K) can easily span many calls to this
-        function.  We thus collect the chunks and process them when we hit start
-        or end tags.
-        """
-        if self._char_blocks is None:
-            self._char_blocks = []
-        self._char_blocks.append(data)
-
-    def flush_chardata(self):
-        """ Collate and process collected character data
-        """
-        if self._char_blocks is None:
-            return
-        # Just join the strings to get the data.  Maybe there are some memory
-        # optimizations we could do by passing the list of strings to the
-        # read_data_block function.
-        data = ''.join(self._char_blocks)
-        # Reset the char collector
-        self._char_blocks = None
-        # Process data
-        if self.write_to == 'Name':
-            data = data.strip()
-            pair = self.struct_state[-1]
-            assert isinstance(pair, CiftiNVPair)
-            pair.name = data
-        elif self.write_to == 'Value':
-            data = data.strip()
-            pair = self.struct_state[-1]
-            assert isinstance(pair, CiftiNVPair)
-            pair.value = data
-        elif self.write_to == 'Vertices':
-            # conversion to numpy array
-            c = StringIO(data)
-            vertices = self.struct_state[-1]
-            vertices.vertices = np.genfromtxt(c, dtype=np.int)
-            c.close()
-        elif self.write_to == 'VoxelIndices':
-            # conversion to numpy array
-            c = StringIO(data)
-            parent = self.struct_state[-1]
-            parent.voxelIndicesIJK.indices = np.genfromtxt(c, dtype=np.int)
-            c.close()
-        elif self.write_to == 'VertexIndices':
-            # conversion to numpy array
-            c = StringIO(data)
-            index = self.struct_state[-1]
-            index.indices = np.genfromtxt(c, dtype=np.int)
-            c.close()
-        elif self.write_to == 'TransformMatrix':
-            # conversion to numpy array
-            c = StringIO(data)
-            transform = self.struct_state[-1]
-            transform.matrix = np.genfromtxt(c, dtype=np.float)
-            c.close()
-        elif self.write_to == 'Label':
-            label = self.struct_state[-1]
-            label.label = data.strip()
-        elif self.write_to == 'MapName':
-            named_map = self.struct_state[-1]
-            named_map.map_name = data.strip()
-
-    @property
-    def pending_data(self):
-        " True if there is character data pending for processing "
-        return not self._char_blocks is None
-
-
-def parse_cifti_string(cifti_string, intent_code, filename):
-    """ Parse cifti header, return
+def load(filename):
+    """ Load cifti2 from `filename`
 
     Parameters
     ----------
-    string : str
-        string containing cifti header
+    filename : str
+        filename of image to be loaded
 
     Returns
     -------
-    header : cifti header
+    img : CiftiImage
+        cifti image instance
+
+    Raises
+    ------
+    ImageFileError: if `filename` doesn't look like cifti
+    IOError : if `filename` does not exist
     """
-    if not filename.endswith('nii'):
-        raise ValueError('File must be uncompressed to be valid CIFTI')
-    parser = ParserCreate()
-    HANDLER_NAMES = ['StartElementHandler',
-                     'EndElementHandler',
-                     'CharacterDataHandler']
-    out = Outputter(intent_code=intent_code, filename=filename)
-    for name in HANDLER_NAMES:
-        setattr(parser, name, getattr(out, name))
-    try:
-        parser.Parse(cifti_string, True)
-    except ExpatError:
-        print('An expat error occured while parsing the  Gifti file.')
-    return out.header
+    from ..nifti2 import load as Nifti2load
+    return Nifti2load(filename)
+
+
+def save(img, filename):
+    """ Save cifti to `filename`
+
+    Parameters
+    ----------
+    filename : str
+        filename to which to save image
+    """
+    CiftiImage.instance_to_filename(img, filename)
+
+

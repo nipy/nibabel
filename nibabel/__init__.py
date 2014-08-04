@@ -66,7 +66,6 @@ from . import trackvis
 from . import mriutils
 from . import streamlines
 from . import viewers
-from .cifti2 import parse_cifti_string
 
 # be friendly on systems with ancient numpy -- no tests, but at least
 # importable
