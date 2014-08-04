@@ -39,7 +39,12 @@ def load(filename):
     img : ``SpatialImage``
        Image of guessed type
     '''
-    return guessed_image_type(filename).from_filename(filename)
+
+    img = guessed_image_type(filename).from_filename(filename)
+    if isinstance(img, Nifti2Image):
+        if img.is_cifti:
+            return img.as_cifti()
+    return img
 
 
 def guessed_image_type(filename):
