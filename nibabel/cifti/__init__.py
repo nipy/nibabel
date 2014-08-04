@@ -19,7 +19,7 @@
 
 from .parse_cifti_fast import create_cifti_image
 from .cifti import (CiftiMetaData, CiftiHeader, CiftiImage, CiftiLabel,
-                    CiftiLabelTable, CiftiNVPair, CiftiVertexIndices,
+                    CiftiLabelTable, CiftiVertexIndices,
                     CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
                     CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,

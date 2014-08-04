@@ -16,7 +16,7 @@ from xml.parsers.expat import ParserCreate, ExpatError
 import numpy as np
 
 from .cifti import (CiftiMetaData, CiftiImage, CiftiHeader, CiftiLabel,
-                    CiftiLabelTable, CiftiNVPair, CiftiVertexIndices,
+                    CiftiLabelTable, CiftiVertexIndices,
                     CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
                     CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,
@@ -66,7 +66,7 @@ class Outputter(object):
             assert isinstance(parent, (CiftiMatrix, CiftiNamedMap))
             self.struct_state.append(meta)
         elif name == 'MD':
-            pair = CiftiNVPair()
+            pair = ['', '']
             self.fsm_state.append('MD')
             self.struct_state.append(pair)
         elif name == 'Name':
@@ -223,7 +223,7 @@ class Outputter(object):
             self.fsm_state.pop()
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
-            if pair.name is not None:
+            if pair[0]:
                 meta.data.append(pair)
         elif name == 'Name':
             self.write_to = None
@@ -299,13 +299,11 @@ class Outputter(object):
         if self.write_to == 'Name':
             data = data.strip()
             pair = self.struct_state[-1]
-            assert isinstance(pair, CiftiNVPair)
-            pair.name = data
+            pair[0] = data
         elif self.write_to == 'Value':
             data = data.strip()
             pair = self.struct_state[-1]
-            assert isinstance(pair, CiftiNVPair)
-            pair.value = data
+            pair[1] = data
         elif self.write_to == 'Vertices':
             # conversion to numpy array
             c = StringIO(data.strip().decode('utf-8'))
@@ -320,13 +318,13 @@ class Outputter(object):
             c.close()
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
-            c = StringIO(data.strip().decode('utf-8'))
+            c = StringIO(data.strip())
             index = self.struct_state[-1]
             index.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
-            c = StringIO(data.strip().decode('utf-8'))
+            c = StringIO(data.strip())
             transform = self.struct_state[-1]
             transform.matrix = np.genfromtxt(c, dtype=np.float)
             c.close()

@@ -81,16 +81,3 @@ def test_readwritedata():
             assert_array_almost_equal(img.data,
                                       img2.data)
 
-
-def test_newmetadata():
-    img = ci.CiftiImage()
-    attr = ci.CiftiNVPair(name = 'mykey', value = 'val1')
-    newmeta = ci.CiftiMetaData(attr)
-    img.header.matrix.meta = newmeta
-    myme = img.header.matrix.meta.get_metadata()
-    assert_true('mykey' in myme)
-    newmeta = ci.CiftiMetaData.from_dict( {'mykey1' : 'val2'} )
-    img.header.matrix.meta = newmeta
-    myme = img.header.matrix.meta.get_metadata()
-    assert_true('mykey1' in myme)
-    assert_false('mykey' in myme)
