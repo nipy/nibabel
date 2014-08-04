@@ -257,16 +257,26 @@ class Nifti2Image(Nifti1Image):
         img = super(Nifti2Image, klass).from_file_map(file_map)
         hdr = img.get_header()
         intent_code = hdr.get_intent('code')[0]
+        img.is_cifti = False
         if intent_code >= 3000 and intent_code < 3100:
-            cifti_header = None
-            if  hdr.extensions is not None:
-                for extension in hdr.extensions:
-                    if extension.get_code() == 32:
-                        cifti_header = extension.get_content()
-            if cifti_header is None:
-                raise ValueError(('Nifti2 header does not contain a CIFTI '
-                                  'extension'))
-            img = create_cifti_image(img, cifti_header, intent_code)
+            img.is_cifti = True
+            img = img.to_cifti()
+        return img
+
+    def to_cifti(self):
+        if not self.is_cifti:
+            TypeError('Nifti2 image is not a CIFTI file')
+        hdr = self.get_header()
+        intent_code = hdr.get_intent('code')[0]
+        cifti_header = None
+        if hdr.extensions is not None:
+            for extension in hdr.extensions:
+                if extension.get_code() == 32:
+                    cifti_header = extension.get_content()
+        if cifti_header is None:
+            raise ValueError(('Nifti2 header does not contain a CIFTI '
+                              'extension'))
+        img = create_cifti_image(self, cifti_header, intent_code)
         return img
 
 def load(filename):
