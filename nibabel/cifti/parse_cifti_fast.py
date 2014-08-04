@@ -361,10 +361,7 @@ def parse_cifti_string(cifti_string):
     out = Outputter()
     for name in HANDLER_NAMES:
         setattr(parser, name, getattr(out, name))
-    try:
-        parser.Parse(cifti_string, True)
-    except ExpatError:
-        print('An expat error occured while parsing the  Cifti file.')
+    parser.Parse(cifti_string, True)
     return out.header
 
 def create_cifti_image(nifti2_image, cifti_header, intent_code):
@@ -374,6 +371,8 @@ def create_cifti_image(nifti2_image, cifti_header, intent_code):
         if ext.get_code() == 32:
             nifti_header.extensions.remove(ext)
             break
+    with open('test.xml', 'wt') as fp:
+        fp.writelines(cifti_header)
     header = parse_cifti_string(cifti_header)
     img = CiftiImage(data, header, nifti_header)
     return img

@@ -263,10 +263,9 @@ class CiftiSurface(object):
     def to_xml(self, prefix='', indent='    '):
         if self.brainStructure is None:
             return ''
-        res = ('%s<Surface BrainStructure="%s" '
-               'SurfaceNumberOfVertices"%s" />\n') % (prefix,
-                                                      self.brainStructure,
-                                                      self.surfaceNumberOfVertices)
+        res = ('%s<Surface BrainStructure="%s" SurfaceNumberOfVertices="%s" '
+               '/>\n') % (prefix, self.brainStructure,
+                          self.surfaceNumberOfVertices)
         return res
 
 class CiftiVoxelIndicesIJK(object):
@@ -740,8 +739,10 @@ class CiftiHeader(object):
 class CiftiImage(object):
     header_class = CiftiHeader
 
-    def __init__(self, data, header, nifti_header):
-        self.header = header
+    def __init__(self, data=None, header=None, nifti_header=None):
+        self.header = CiftiHeader()
+        if header is not None:
+            self.header = header
         self.data = data
         self.extra = nifti_header
 
