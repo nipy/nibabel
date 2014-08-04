@@ -42,7 +42,11 @@ def load(filename, **kwargs):
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
         if is_valid:
-            return image_klass.from_filename(filename, **kwargs)
+            img = image_klass.from_filename(filename, **kwargs)
+            if 'Nifti2Image' in str(image_klass):
+                if img.is_cifti:
+                    return img.as_cifti()
+            return img
 
     raise ImageFileError('Cannot work out file type of "%s"' %
                          filename)

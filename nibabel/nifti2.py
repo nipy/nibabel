@@ -252,18 +252,17 @@ class Nifti2Image(Nifti1Image):
     header_class = Nifti2Header
     _meta_sniff_len = header_class.sizeof_hdr
 
-    @classmethod
-    def from_file_map(klass, file_map):
-        img = super(Nifti2Image, klass).from_file_map(file_map)
-        hdr = img.get_header()
+    @property
+    def is_cifti(self):
+        hdr = self.get_header()
         intent_code = hdr.get_intent('code')[0]
-        img.is_cifti = False
+        cifti_header = False
         if intent_code >= 3000 and intent_code < 3100:
-            img.is_cifti = True
-            img = img.to_cifti()
-        return img
+            cifti_header = True
+        return cifti_header
 
-    def to_cifti(self):
+    def as_cifti(self):
+        """Convert NIFTI-2 file to CIFTI"""
         if not self.is_cifti:
             TypeError('Nifti2 image is not a CIFTI file')
         hdr = self.get_header()
