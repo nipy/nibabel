@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 from __future__ import division, print_function, absolute_import
 
+from distutils.version import LooseVersion
+
 from ..externals.six import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
 
@@ -44,8 +46,9 @@ class Outputter(object):
         if name == 'CIFTI':
             # create gifti image
             self.header = CiftiHeader()
-            if 'Version' in attrs:
-                self.header.version = attrs['Version']
+            self.header.version = attrs['Version']
+            if LooseVersion(self.header.version) < LooseVersion('2.0'):
+                raise ValueError('Only CIFTI-2 files are supported')
             self.fsm_state.append('CIFTI')
             self.struct_state.append(self.header)
         elif name == 'Matrix':
@@ -361,7 +364,7 @@ def parse_cifti_string(cifti_string):
     try:
         parser.Parse(cifti_string, True)
     except ExpatError:
-        print('An expat error occured while parsing the  Gifti file.')
+        print('An expat error occured while parsing the  Cifti file.')
     return out.header
 
 def create_cifti_image(nifti2_image, cifti_header, intent_code):
