@@ -308,25 +308,25 @@ class Outputter(object):
             pair.value = data
         elif self.write_to == 'Vertices':
             # conversion to numpy array
-            c = StringIO(data)
+            c = StringIO(data.strip().decode('utf-8'))
             vertices = self.struct_state[-1]
             vertices.vertices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
-            c = StringIO(data)
+            c = StringIO(data.strip().decode('utf-8'))
             parent = self.struct_state[-1]
             parent.voxelIndicesIJK.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
-            c = StringIO(data)
+            c = StringIO(data.strip().decode('utf-8'))
             index = self.struct_state[-1]
             index.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
-            c = StringIO(data)
+            c = StringIO(data.strip().decode('utf-8'))
             transform = self.struct_state[-1]
             transform.matrix = np.genfromtxt(c, dtype=np.float)
             c.close()
