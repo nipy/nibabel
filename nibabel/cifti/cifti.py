@@ -310,9 +310,9 @@ class CiftiParcel(object):
 
     def __init__(self, name=None, voxel_indices_ijk=None, vertices=None):
         self.name = name
-        self.voxelIndicesIJK = voxel_indices_ijk
+        self._voxelIndicesIJK = CiftiVoxelIndicesIJK()
         if voxel_indices_ijk is not None:
-            self._voxelIndicesIJK = voxel_indices_ijk
+            self.voxelIndicesIJK = voxel_indices_ijk
         if vertices is None:
             vertices = []
         self.vertices = vertices
