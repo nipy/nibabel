@@ -21,7 +21,8 @@ from .cifti import (CiftiMetaData, CiftiImage, CiftiHeader, CiftiLabel,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
                     CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,
                     CiftiVertices, CiftiVolume, CIFTI_BrainStructures,
-                    CIFTI_MODEL_TYPES)
+                    CIFTI_MODEL_TYPES,
+                    CiftiDenseDataSeries)
 
 DEBUG_PRINT = False
 
@@ -371,8 +372,9 @@ def create_cifti_image(nifti2_image, cifti_header, intent_code):
         if ext.get_code() == 32:
             nifti_header.extensions.remove(ext)
             break
-    with open('test.xml', 'wt') as fp:
-        fp.writelines(cifti_header)
     header = parse_cifti_string(cifti_header)
-    img = CiftiImage(data, header, nifti_header)
+    if intent_code == 3002:
+        img = CiftiDenseDataSeries(data, header, nifti_header)
+    else:
+        img = CiftiImage(data, header, nifti_header)
     return img
