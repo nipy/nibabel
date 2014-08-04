@@ -22,6 +22,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 DEBUG_PRINT = False
+
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
                    'CIFTI_INDEX_TYPE_SERIES',
@@ -71,58 +72,77 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
 
 
 class CiftiMetaData(object):
-    """ A list of GiftiNVPairs in stored in
-    the list self.data """
-    def __init__(self, nvpair = None):
+    """ A list of CiftiNVPairs in stored in the list self.data """
+
+    def __init__(self, nvpair=None):
         self.data = []
-        if not nvpair is None:
-            if isinstance(nvpair, list):
-                self.data.extend(nvpair)
+        self.add_metadata(nvpair)
+
+    def _add_remove_metadata(self, metadata, func):
+        pairs = []
+        if isinstance(metadata, (list, tuple)):
+            if isinstance(metadata[0], basestring):
+                if len(metadata) != 2:
+                    raise ValueError('nvpair must be a 2-list or 2-tuple')
+                pairs = [tuple((metadata[0], metadata[1]))]
             else:
-                self.data.append(nvpair)
+                for item in metadata:
+                    self._add_remove_metadata(item, func)
+                return
+        elif isinstance(metadata, dict):
+            pairs = metadata.items()
+        else:
+            raise ValueError('nvpair input must be a list, tuple or dict')
+        for pair in pairs:
+            if func == 'add':
+                if pair not in self.data:
+                    self.data.append(pair)
+            elif func == 'remove':
+                self.data.remove(pair)
+            else:
+                raise ValueError('Unknown func %s' % func)
 
-    @classmethod
-    def from_dict(klass, data_dict):
-        meda = klass()
-        for k,v in data_dict.items():
-            nv = CiftiNVPair(k, v)
-            meda.data.append(nv)
-        return meda
+    def add_metadata(self, metadata):
+        """Add metadata key-value pairs
 
-    def get_metadata(self):
-        """ Returns metadata as dictionary """
-        self.data_as_dict = {}
-        for ele in self.data:
-            self.data_as_dict[ele.name] = ele.value
-        return self.data_as_dict
+        This allows storing multiple keys with the same name but different
+        values.
+
+
+        Parameters
+        ----------
+        metadata : 2-List, 2-Tuple, Dictionary, List[2-List or 2-Tuple]
+                     Tuple[2-List or 2-Tuple]
+
+        Returns
+        -------
+        None
+
+        """
+        if metadata is None:
+            return
+        self._add_remove_metadata(metadata, 'add')
+
+    def remove_metadata(self, metadata):
+        if metadata is None:
+            return
+        self._add_remove_metadata(metadata, 'remove')
 
     def to_xml(self, prefix='', indent='    '):
         if len(self.data) == 0:
             return ''
         res = "%s<MetaData>\n" % prefix
         preindent = prefix + indent
-        for ele in self.data:
+        for name, value in self.data:
             nvpair = """%s<MD>
 %s<Name>%s</Name>
 %s<Value>%s</Value>
-%s</MD>\n""" % (preindent, preindent + indent, ele.name, preindent + indent,
-                  ele.value, preindent)
+%s</MD>\n""" % (preindent, preindent + indent, name, preindent + indent,
+                value, preindent)
             res += nvpair
         res += "%s</MetaData>\n" % prefix
         return res
 
-    def print_summary(self):
-        print(self.get_metadata())
-
-
-class CiftiNVPair(object):
-
-    name = str
-    value = str
-
-    def __init__(self, name = '', value = ''):
-        self.name = name
-        self.value = value
 
 class CiftiLabelTable(object):
 
@@ -160,16 +180,6 @@ class CiftiLabelTable(object):
 
 
 class CiftiLabel(object):
-    key = int
-    label = str
-    # rgba
-    # freesurfer examples seem not to conform
-    # to datatype "NIFTI_TYPE_RGBA32" because they
-    # are floats, not unsigned 32-bit integers
-    red = float
-    green = float
-    blue = float
-    alpha = float
 
     def __init__(self, key = 0, label = '', red = None,\
                   green = None, blue = None, alpha = None):
@@ -337,7 +347,7 @@ class CiftiParcel(object):
             self.vertices.append(vertices)
             self.numVA += 1
         else:
-            print("mim paramater must be of type CiftiMatrixIndicesMap")
+            raise TypeError("Not a valid CiftiVertices instance")
 
     def remove_cifti_vertices(self, ith):
         """ Removes the ith vertices element from the CiftiParcel """
@@ -543,7 +553,7 @@ class CiftiMatrixIndicesMap(object):
             self.brainModels.append(brain_model)
             self.numBrainModels += 1
         else:
-            print("brain_model parameter must be of type CiftiBrainModel")
+            raise TypeError("Not a valid CiftiBrainModel instance")
 
     def remove_cifti_brain_model(self, ith):
         """ Removes the ith brain model element from the CiftiMatrixIndicesMap """
@@ -561,7 +571,7 @@ class CiftiMatrixIndicesMap(object):
             self.namedMaps.append(named_map)
             self.numNamedMaps += 1
         else:
-            print("named_map parameter must be of type CiftiNamedMap")
+            raise TypeError("Not a valid CiftiNamedMap instance")
 
     def remove_cifti_named_map(self, ith):
         """ Removes the ith named_map element from the CiftiMatrixIndicesMap """
@@ -579,7 +589,7 @@ class CiftiMatrixIndicesMap(object):
             self.parcels.append(parcel)
             self.numParcels += 1
         else:
-            print("parcel parameter must be of type CiftiParcel")
+            raise TypeError("Not a valid CiftiParcel instance")
 
     def remove_cifti_parcel(self, ith):
         """ Removes the ith parcel element from the CiftiMatrixIndicesMap """
@@ -597,7 +607,7 @@ class CiftiMatrixIndicesMap(object):
             self.surfaces.append(surface)
             self.numSurfaces += 1
         else:
-            print("surface parameter must be of type CiftiSurface")
+            raise TypeError("Not a valid CiftiSurface instance")
 
     def remove_cifti_surface(self, ith):
         """ Removes the ith surface element from the CiftiMatrixIndicesMap """
@@ -614,7 +624,7 @@ class CiftiMatrixIndicesMap(object):
         if isinstance(volume, CiftiVolume):
             self.volume = volume
         else:
-            print("volume parameter must be of type CiftiVolume")
+            raise TypeError("Not a valid CiftiVolume instance")
 
     def remove_cifti_volume(self):
         """ Removes the volume element from the CiftiMatrixIndicesMap """
@@ -691,7 +701,7 @@ class CiftiMatrix(object):
             self.mims.append(mim)
             self.numMIM += 1
         else:
-            print("mim paramater must be of type CiftiMatrixIndicesMap")
+            raise TypeError("Not a valid CiftiMatrixIndicesMap instance")
 
     def remove_cifti_matrix_indices_map(self, ith):
         """ Removes the ith matrix indices map element from the CiftiMatrix """
@@ -788,7 +798,7 @@ class CiftiImage(object):
         if not filename.endswith('nii'):
             ValueError('CIFTI files have to be stored as uncompressed NIFTI2')
         from ..nifti2 import Nifti2Image
-        from ..nifti1 import Nifti1Extensions, Nifti1Extension
+        from ..nifti1 import Nifti1Extension
         data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
         header = self.extra
         extension = Nifti1Extension(32, self.header.to_xml())
@@ -837,7 +847,7 @@ def load(filename):
     IOError : if `filename` does not exist
     """
     from ..nifti2 import load as Nifti2load
-    return Nifti2load(filename)
+    return Nifti2load(filename).as_cifti()
 
 
 def save(img, filename):
