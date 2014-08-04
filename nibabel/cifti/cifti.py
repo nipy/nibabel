@@ -799,7 +799,6 @@ class CiftiImage(object):
 
 class CiftiDenseDataSeries(CiftiImage):
     """Class to handle Dense Data Series
-
     Dense Data Series
     -----------------
 
@@ -814,7 +813,7 @@ class CiftiDenseDataSeries(CiftiImage):
     voxel in the mapping that applies along the second dimension. A data series
     is often a timeseries, but it can also represent other data types such as a
     series of sampling depths along the surface normal from the white to pial
-    surface.  It retains the ‘t’ in dtseries from CIFTI-1 naming conventions.
+    surface.  It retains the 't' in dtseries from CIFTI-1 naming conventions.
     """
     suffix = '.dtseries.nii'
 
