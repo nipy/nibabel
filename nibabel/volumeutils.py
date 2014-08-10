@@ -599,14 +599,14 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = in_dtype
     else:
         out_dtype = np.dtype(out_dtype)
-    if not offset is None:
+    if offset is not None:
         seek_tell(fileobj, offset)
     if (div_none or
-            (mn, mx) == (0, 0) or
-            ((mn is not None and mx is not None) and mx < mn)):
+        (mn, mx) == (0, 0) or
+        ((mn is not None and mx is not None) and mx < mn)):
         write_zeros(fileobj, data.size * out_dtype.itemsize)
         return
-    if not order in 'FC':
+    if order not in 'FC':
         raise ValueError('Order should be one of F or C')
     # Simple cases
     pre_clips = None if (mn is None and mx is None) else (mn, mx)
@@ -614,10 +614,10 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if in_dtype.type == np.void:
         if not null_scaling:
             raise ValueError('Cannot scale non-numeric types')
-        if not pre_clips is None:
+        if pre_clips is not None:
             raise ValueError('Cannot clip non-numeric types')
         return _write_data(data, fileobj, out_dtype, order)
-    if not pre_clips is None:
+    if pre_clips is not None:
         pre_clips = _dt_min_max(in_dtype, *pre_clips)
     if null_scaling and np.can_cast(in_dtype, out_dtype):
         return _write_data(data, fileobj, out_dtype, order,
@@ -639,8 +639,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     assert out_kind in 'iu'
     if in_kind in 'iu':
         if null_scaling:
-            # Must be large int to small int conversion; add clipping to pre scale
-            # thresholds
+            # Must be large int to small int conversion; add clipping to
+            # pre scale thresholds
             mn, mx = _dt_min_max(in_dtype, mn, mx)
             mn_out, mx_out = _dt_min_max(out_dtype)
             pre_clips = max(mn, mn_out), min(mx, mx_out)
@@ -692,7 +692,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         specials = specials / slope
     assert specials.dtype.type == w_type
     post_mn, post_mx, nan_fill = np.rint(specials)
-    if post_mn > post_mx: # slope could be negative
+    if post_mn > post_mx:  # slope could be negative
         post_mn, post_mx = post_mx, post_mn
     # Make sure that the thresholds exclude any value that will get badly cast
     # to the integer type.  This is not the same as using the maximumum of the
@@ -709,7 +709,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # rounding
         est_err = np.round(2 * np.finfo(w_type).eps * abs(inter / slope))
         if ((nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or
-            (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
+                (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
             # nan_fill can be (just) outside clip range
             nan_fill = np.clip(nan_fill, both_mn, both_mx)
         else:
@@ -722,24 +722,24 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
     return _write_data(data, fileobj, out_dtype, order,
-                       in_cast = in_cast,
-                       pre_clips = pre_clips,
-                       inter = inter,
-                       slope = slope,
-                       post_clips = (post_mn, post_mx),
-                       nan_fill = nan_fill if nan2zero else None)
+                       in_cast=in_cast,
+                       pre_clips=pre_clips,
+                       inter=inter,
+                       slope=slope,
+                       post_clips=(post_mn, post_mx),
+                       nan_fill=nan_fill if nan2zero else None)
 
 
 def _write_data(data,
                 fileobj,
                 out_dtype,
                 order,
-                in_cast = None,
-                pre_clips = None,
-                inter = 0.,
-                slope = 1.,
-                post_clips = None,
-                nan_fill = None):
+                in_cast=None,
+                pre_clips=None,
+                inter=0.,
+                slope=1.,
+                post_clips=None,
+                nan_fill=None):
     """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
 
     Does not modify `data` in-place.
