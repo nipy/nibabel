@@ -79,7 +79,7 @@ from __future__ import print_function, division
 
 import warnings
 import numpy as np
-import copy
+from copy import deepcopy
 
 from .externals.six import binary_type
 from .py3k import asbytes
@@ -336,13 +336,11 @@ class PARRECHeader(Header):
         # functionality
         # dtype
         dtype = np.typeDict[
-                    'int'
-                    + str(self._get_unique_image_prop('image pixel size')[0])]
+            'int' + str(self._get_unique_image_prop('image pixel size')[0])]
         Header.__init__(self,
                         data_dtype=dtype,
                         shape=self.get_data_shape_in_file(),
-                        zooms=self._get_zooms()
-                       )
+                        zooms=self._get_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -359,9 +357,8 @@ class PARRECHeader(Header):
         return klass(info, image_defs)
 
     def copy(self):
-        return PARRECHeader(
-                copy.deepcopy(self.general_info),
-                self.image_defs.copy())
+        return PARRECHeader(deepcopy(self.general_info),
+                            self.image_defs.copy())
 
     def _get_unique_image_prop(self, name):
         """Scan image definitions and return unique value of a property.
@@ -423,7 +420,8 @@ class PARRECHeader(Header):
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
         if self.general_info['max_dynamics'] > 1 \
-           or self.general_info['max_gradient_orient'] > 1:
+           or self.general_info['max_gradient_orient'] > 1 \
+           or self.general_info['max_echoes'] > 1:
             return 4
         else:
             return 3
@@ -442,10 +440,11 @@ class PARRECHeader(Header):
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
         # time axis?
-        if len(zooms) > 3  and self.general_info['max_dynamics'] > 1:
+        if len(zooms) > 3 and self.general_info['max_dynamics'] > 1:
             # DTI also has 4D
             # Convert time from milliseconds to seconds
             zooms[3] = self.general_info['repetition_time'] / 1000.
+        # we leave it at the default (1) for 4D echo data
         return zooms
 
     def get_affine(self, origin='scanner'):
@@ -521,30 +520,39 @@ class PARRECHeader(Header):
         n_slices : int
             number of slices
         n_vols : int
-            number of dynamic scans / number of directions in diffusion
+            number of dynamic scans, number of directions in diffusion, or
+            number of echos
         """
         # e.g. number of volumes
         ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
         # DTI volumes (b-values-1 x directions)
         # there is some awkward exception to this rule for b-values > 2
         # XXX need to get test image...
-        ndtivolumes = (self.general_info['max_diffusion_values'] - 1) \
-                        * self.general_info['max_gradient_orient']
+        ndtivolumes = ((self.general_info['max_diffusion_values'] - 1)
+                       * self.general_info['max_gradient_orient'])
         nslices = len(np.unique(self.image_defs['slice number']))
         if not nslices == self.general_info['max_slices']:
             raise PARRECError("Header inconsistency: Found %i slices, "
                               "but header claims to have %i."
                               % (nslices, self.general_info['max_slices']))
+        nechos = len(np.unique(self.image_defs['echo number']))
+
+        # there should not be more than one: multiple dynamics, DTI, echos
+        lens = [ndynamics, ndtivolumes, nechos]
+        if sum(x > 1 for x in lens) > 1:
+            raise RuntimeError('Cannot have multiple dynamics, dtivolumes, '
+                               'or echos in the same file, found %s of each, '
+                               'respectively' % lens)
 
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
-
-        # there should not be both: multiple dynamics and DTI
+        shape = inplane_shape + (nslices,)
         if ndynamics > 1:
-            return inplane_shape + (nslices, ndynamics)
+            shape = shape + (ndynamics,)
         elif ndtivolumes > 1:
-            return inplane_shape + (nslices, ndtivolumes)
-        else:
-            return tuple(inplane_shape) + (nslices,)
+            shape = shape + (ndtivolumes,)
+        elif nechos > 1:
+            shape = shape + (nechos,)
+        return shape
 
     def get_data_scaling(self, method="dv"):
         """Returns scaling slope and intercept.
@@ -574,11 +582,12 @@ class PARRECHeader(Header):
         DV = PV * RS + RI
         FP = DV / (RS * SS)
         """
-        # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
-        #      out which one means what
+        # XXX: FP tends to become HUGE, DV seems to be more reasonable ->
+        #      figure out which one means what
 
         # although the is a per-image scaling in the header, it looks like
         # there is just one unique factor and intercept per whole image series
+        # XXX This is not always true, should throw exception if not
         scale_slope = self._get_unique_image_prop('scale slope')
         rescale_slope = self._get_unique_image_prop('rescale slope')
         rescale_intercept = self._get_unique_image_prop('rescale intercept')
@@ -618,7 +627,8 @@ class PARRECHeader(Header):
     def raw_data_from_fileobj(self, fileobj):
         ''' Read unscaled data array from `fileobj`
 
-        Array axes correspond to x,y,z,t.
+        Array axes correspond to x,y,z,t. For other orderings, you
+        must reorder after the fact.
 
         Parameters
         ----------
@@ -673,7 +683,7 @@ class PARRECImage(SpatialImage):
     @classmethod
     def from_file_map(klass, file_map):
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
-            hdr = PARRECHeader.from_fileobj(hdr_fobj)
+            hdr = klass.header_class.from_fileobj(hdr_fobj)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr)
         return klass(data,

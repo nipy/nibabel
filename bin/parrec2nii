@@ -4,6 +4,7 @@
 from __future__ import division, print_function, absolute_import
 
 from optparse import OptionParser, Option
+import numpy as np
 import sys
 import os
 import gzip
@@ -20,8 +21,8 @@ verbose_switch = False
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-                usage="%s [OPTIONS] <PAR files>\n\n" % sys.argv[0] + __doc__,
-                version="%prog " + nibabel.__version__)
+        usage="%s [OPTIONS] <PAR files>\n\n" % sys.argv[0] + __doc__,
+        version="%prog " + nibabel.__version__)
 
     p.add_option(
         Option("-v", "--verbose", action="store_true",
@@ -31,8 +32,8 @@ def get_opt_parser():
         Option("-o", "--output-dir",
                action="store", type="string", dest="outdir",
                default=None,
-               help=\
-"""Destination directory for NIfTI files. Default: current directory."""))
+               help="""
+Destination directory for NIfTI files. Default: current directory."""))
     p.add_option(
         Option("-c", "--compressed", action="store_true",
                dest="compressed", default=False,
@@ -40,15 +41,15 @@ def get_opt_parser():
     p.add_option(
         Option("--origin", action="store",
                dest="origin", default="scanner",
-               help=\
-"""Reference point of the q-form transformation of the NIfTI image. If 'scanner'
+               help="""
+Reference point of the q-form transformation of the NIfTI image. If 'scanner'
 the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
 coordinate will be the center of the recorded volume (field of view). Default:
 'scanner'."""))
     p.add_option(
         Option("--minmax", action="store", nargs=2,
-               dest="minmax", help=\
-"""Mininum and maximum settings to be stored in the NIfTI header. If any of
+               dest="minmax", help="""
+Mininum and maximum settings to be stored in the NIfTI header. If any of
 them is set to 'parse', the scaled data is scanned for the actual minimum and
 maximum. To bypass this potentially slow and memory intensive step (the data
 has to be scaled and fully loaded into memory), fixed values can be provided as
@@ -58,13 +59,13 @@ as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
     p.add_option(
         Option("--store-header", action="store_true",
                dest="store_header", default=False,
-               help=\
-"""If set, all information from the PAR header is stored in an extension of
+               help="""
+If set, all information from the PAR header is stored in an extension of
 the NIfTI file header. Default: off"""))
     p.add_option(
         Option("--scaling", action="store", dest="scaling", default='dv',
-               help=\
-"""Choose data scaling setting. The PAR header defines two different data
+               help="""
+Choose data scaling setting. The PAR header defines two different data
 scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
 values). Either one can be chosen, or scaling can be disabled completely
 ('off').  Note that neither method will actually scale the data, but just store
@@ -76,9 +77,11 @@ def verbose(msg, indent=0):
     if verbose_switch:
         print("%s%s" % (' ' * indent, msg))
 
+
 def error(msg, exit_code):
     sys.stderr.write(msg + '\n')
     sys.exit(exit_code)
+
 
 def proc_file(infile, opts):
     # load the PAR header
@@ -86,6 +89,19 @@ def proc_file(infile, opts):
     pr_hdr = pr_img.header
     # get the raw unscaled data form the REC file
     raw_data = pr_img.dataobj.get_unscaled()
+
+    # determine if our order is XYTZ instead of XYZT (Phillips scanners)
+    # If it's XYZT, then the slice number (Z) will iterate slowest (no diff)
+    order_rev = np.diff(pr_hdr.image_defs['slice number'][:2])[0]
+    assert order_rev in (0, 1)
+    order_rev = (order_rev == 0)
+    if raw_data.ndim > 3 and order_rev:
+        verbose('XYTZ order detected, reordering data')
+        assert raw_data.flags['C_CONTIGUOUS'] is True
+        reorder = [0, 1, 3, 2]
+        raw_data = np.reshape(raw_data, [raw_data.shape[n] for n in reorder],
+                              order='F')
+        raw_data = np.transpose(raw_data, reorder)
 
     # compute affine with desired origin
     affine = pr_hdr.get_affine(origin=opts.origin)
@@ -96,7 +112,7 @@ def proc_file(infile, opts):
 
     if 'parse' in opts.minmax:
         # need to get the scaled data
-        verbose('Load (and scale) the data to determine value range')
+        verbose('Loading (and scaling) the data to determine value range')
         if opts.scaling == 'off':
             scaled_data = raw_data
         else:
@@ -128,10 +144,10 @@ def proc_file(infile, opts):
 
     # image description
     descr = "%s;%s;%s;%s" % (
-                pr_hdr.general_info['exam_name'],
-                pr_hdr.general_info['patient_name'],
-                pr_hdr.general_info['exam_date'].replace(' ',''),
-                pr_hdr.general_info['protocol_name'])
+        pr_hdr.general_info['exam_name'],
+        pr_hdr.general_info['patient_name'],
+        pr_hdr.general_info['exam_date'].replace(' ', ''),
+        pr_hdr.general_info['protocol_name'])
     nhdr.structarr['descrip'] = descr[:80]
 
     if pr_hdr.general_info['max_dynamics'] > 1:
@@ -156,7 +172,7 @@ def proc_file(infile, opts):
 
     # figure out the output filename
     outfilename = splitext_addext(os.path.basename(infile))[0]
-    if not opts.outdir is None:
+    if opts.outdir is not None:
         # set output path
         outfilename = os.path.join(opts.outdir, outfilename)
 
@@ -177,10 +193,7 @@ def proc_file(infile, opts):
     offset = nhdr.get_data_offset()
     seek_tell(outfile, offset, write0=True)
     # now the data itself, but prevent any casting or scaling
-    nibabel.volumeutils.array_to_file(
-            raw_data,
-            outfile,
-            offset=offset)
+    nibabel.volumeutils.array_to_file(raw_data, outfile, offset=offset)
     # done
     outfile.close()
 
@@ -192,7 +205,7 @@ def main():
     global verbose_switch
     verbose_switch = opts.verbose
 
-    if not opts.origin in ['scanner', 'fov']:
+    if opts.origin not in ['scanner', 'fov']:
         error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
 
     # store any exceptions
@@ -206,7 +219,7 @@ def main():
 
     if len(errs):
         error('Caught %i exceptions. Dump follows:\n\n %s'
-                % (len(errs), '\n'.join(errs)), 1)
+              % (len(errs), '\n'.join(errs)), 1)
     else:
         verbose('Done')
 
