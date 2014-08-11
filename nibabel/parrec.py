@@ -189,20 +189,20 @@ image_def_dtd = [
     ('image_flip_angle', float),
     ('cardiac frequency', int,),
     ('minimum RR-interval', int,),
-    ('maximum RR-interval', int,), 
+    ('maximum RR-interval', int,),
     ('TURBO factor', int,),
     ('Inversion delay', float),
-    ('diffusion b value number', int,),    # (imagekey!)
-    ('gradient orientation number', int,), # (imagekey!)
-    ('contrast type', 'S30'),              # XXX might be too short?
-    ('diffusion anisotropy type', 'S30'),  # XXX might be too short?
+    ('diffusion b value number', int,),     # (imagekey!)
+    ('gradient orientation number', int,),  # (imagekey!)
+    ('contrast type', 'S30'),               # XXX might be too short?
+    ('diffusion anisotropy type', 'S30'),   # XXX might be too short?
     ('diffusion', float, (3,)),
     ('label type', int,),                  # (imagekey!)
     ]
 image_def_dtype = np.dtype(image_def_dtd)
 
 # slice orientation codes
-slice_orientation_codes = Recoder((# code, label
+slice_orientation_codes = Recoder((  # code, label
     (1, 'transverse'),
     (2, 'sagittal'),
     (3, 'coronal')), fields=('code', 'label'))
@@ -217,13 +217,31 @@ class PARRECError(Exception):
     pass
 
 
-def parse_PAR_header(fobj):
+def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
+    """Helper to alert user about truncated files and adjust computation"""
+    extra = (not must_exceed_one) or (n_expected > 1)
+    if extra and n_have != n_expected:
+        msg = ("Header inconsistency: Found <= %i %s, but expected %i."
+               % (n_have, name, n_expected))
+        if not permit:
+            raise PARRECError(msg)
+        msg += " Assuming %i valid %s." % (n_have - 1, name)
+        warnings.warn(msg)
+        # we assume up to the penultimate data line is correct
+        n_have -= 1
+    return n_have
+
+
+def parse_PAR_header(fobj, permit_truncated=False):
     """Parse a PAR header and aggregate all information into useful containers.
 
     Parameters
     ----------
     fobj : file-object
         The PAR header file object.
+    permit_truncated : bool
+        If True, a warning is emitted instead of an error when a truncated
+        recording is detected.
 
     Returns
     -------
@@ -246,14 +264,14 @@ def parse_PAR_header(fobj):
             # try to get the header version
             if line.count('image export tool'):
                 version = line.split()[-1]
-                if not version in supported_versions:
+                if version not in supported_versions:
                     warnings.warn(
-                          "PAR/REC version '%s' is currently not "
-                          "supported -- making an attempt to read "
-                          "nevertheless. Please email the NiBabel "
-                          "mailing list, if you are interested in "
-                          "adding support for this version."
-                          % version)
+                        "PAR/REC version '%s' is currently not "
+                        "supported -- making an attempt to read "
+                        "nevertheless. Please email the NiBabel "
+                        "mailing list, if you are interested in "
+                        "adding support for this version."
+                        % version)
             else:
                 # just a comment
                 continue
@@ -309,6 +327,29 @@ def parse_PAR_header(fobj):
                 image_defs[props[0]][i] = value
                 item_counter += nelements
 
+    # DTI volumes (b-values-1 x directions)
+    # there is some awkward exception to this rule for b-values > 2
+    # XXX need to get test image...
+    max_dti_volumes = ((general_info['max_diffusion_values'] - 1)
+                       * general_info['max_gradient_orient'])
+    n_b = len(np.unique(image_defs['diffusion b value number']))
+    n_grad = len(np.unique(image_defs['gradient orientation number']))
+    n_dti_volumes = (n_b - 1) * n_grad
+    n_slices = len(np.unique(image_defs['slice number']))
+    n_echoes = len(np.unique(image_defs['echo number']))
+    n_dynamics = len(np.unique(image_defs['dynamic scan number']))
+    pt = permit_truncated
+    n_slices = _check_truncation('slices', n_slices,
+                                 general_info['max_slices'], pt, False)
+    n_echoes = _check_truncation('echoes', n_echoes,
+                                 general_info['max_echoes'], pt, True)
+    n_dynamics = _check_truncation('dynamics', n_dynamics,
+                                   general_info['max_dynamics'], pt, True)
+    n_dti_volumes = _check_truncation('dti volumes', n_dti_volumes,
+                                      max_dti_volumes, pt, True)
+    general_info.update(n_dti_volumes=n_dti_volumes, n_echoes=n_echoes,
+                        n_dynamics=n_dynamics, n_slices=n_slices,
+                        max_dti_volumes=max_dti_volumes)
     return general_info, image_defs
 
 
@@ -352,8 +393,8 @@ class PARRECHeader(Header):
                           'non-PARREC header.')
 
     @classmethod
-    def from_fileobj(klass, fileobj):
-        info, image_defs = parse_PAR_header(fileobj)
+    def from_fileobj(klass, fileobj, permit_truncated=False):
+        info, image_defs = parse_PAR_header(fileobj, permit_truncated)
         return klass(info, image_defs)
 
     def copy(self):
@@ -419,9 +460,9 @@ class PARRECHeader(Header):
 
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
-        if self.general_info['max_dynamics'] > 1 \
-           or self.general_info['max_gradient_orient'] > 1 \
-           or self.general_info['max_echoes'] > 1:
+        if self.general_info['n_dynamics'] > 1 \
+           or self.general_info['n_dti_volumes'] > 1 \
+           or self.general_info['n_echoes'] > 1:
             return 4
         else:
             return 3
@@ -440,7 +481,7 @@ class PARRECHeader(Header):
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
         # time axis?
-        if len(zooms) > 3 and self.general_info['max_dynamics'] > 1:
+        if len(zooms) > 3 and self.general_info['n_dynamics'] > 1:
             # DTI also has 4D
             # Convert time from milliseconds to seconds
             zooms[3] = self.general_info['repetition_time'] / 1000.
@@ -521,37 +562,24 @@ class PARRECHeader(Header):
             number of slices
         n_vols : int
             number of dynamic scans, number of directions in diffusion, or
-            number of echos
+            number of echoes
         """
-        # e.g. number of volumes
-        ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
-        # DTI volumes (b-values-1 x directions)
-        # there is some awkward exception to this rule for b-values > 2
-        # XXX need to get test image...
-        ndtivolumes = ((self.general_info['max_diffusion_values'] - 1)
-                       * self.general_info['max_gradient_orient'])
-        nslices = len(np.unique(self.image_defs['slice number']))
-        if not nslices == self.general_info['max_slices']:
-            raise PARRECError("Header inconsistency: Found %i slices, "
-                              "but header claims to have %i."
-                              % (nslices, self.general_info['max_slices']))
-        nechos = len(np.unique(self.image_defs['echo number']))
-
-        # there should not be more than one: multiple dynamics, DTI, echos
-        lens = [ndynamics, ndtivolumes, nechos]
+        # there should not be more than one: multiple dynamics, DTI, echoes
+        lens = [self.general_info[x] for x in ['n_dynamics', 'n_dti_volumes',
+                                               'n_echoes']]
         if sum(x > 1 for x in lens) > 1:
-            raise RuntimeError('Cannot have multiple dynamics, dtivolumes, '
-                               'or echos in the same file, found %s of each, '
-                               'respectively' % lens)
+            raise PARRECError('Cannot have multiple dynamics, dti volumes, '
+                              'or echoes in the same file, found %s of each, '
+                              'respectively' % lens)
 
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
-        shape = inplane_shape + (nslices,)
-        if ndynamics > 1:
-            shape = shape + (ndynamics,)
-        elif ndtivolumes > 1:
-            shape = shape + (ndtivolumes,)
-        elif nechos > 1:
-            shape = shape + (nechos,)
+        shape = inplane_shape + (self.general_info['n_slices'],)
+        if self.general_info['n_dynamics'] > 1:
+            shape = shape + (self.general_info['n_dynamics'],)
+        elif self.general_info['n_dti_volumes'] > 1:
+            shape = shape + (self.general_info['n_dti_volumes'],)
+        elif self.general_info['n_echoes'] > 1:
+            shape = shape + (self.general_info['n_echoes'],)
         return shape
 
     def get_data_scaling(self, method="dv"):
@@ -681,9 +709,11 @@ class PARRECImage(SpatialImage):
     ImageArrayProxy = ArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map, permit_truncated=False):
+        pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
-            hdr = klass.header_class.from_fileobj(hdr_fobj)
+            hdr = klass.header_class.from_fileobj(hdr_fobj,
+                                                  permit_truncated=pt)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr)
         return klass(data,
@@ -693,4 +723,7 @@ class PARRECImage(SpatialImage):
                      file_map=file_map)
 
 
-load = PARRECImage.load
+def load(filename, permit_truncated=False):
+    file_map = PARRECImage.filespec_to_file_map(filename)
+    return PARRECImage.from_file_map(file_map, permit_truncated)
+load.__doc__ = PARRECImage.load.__doc__
