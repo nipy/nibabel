@@ -25,30 +25,30 @@ def get_opt_parser():
         version="%prog " + nibabel.__version__)
 
     p.add_option(
-        Option("-v", "--verbose", action="store_true",
-               dest="verbose", default=False,
-               help="Make some noise."))
+        Option("-v", "--verbose", action="store_true", dest="verbose",
+               default=False, help="Make some noise."))
     p.add_option(
-        Option("-o", "--output-dir",
-               action="store", type="string", dest="outdir",
-               default=None,
-               help="""
+        Option("-o", "--output-dir", action="store", type="string",
+               dest="outdir", default=None, help="""
 Destination directory for NIfTI files. Default: current directory."""))
     p.add_option(
         Option("-c", "--compressed", action="store_true",
                dest="compressed", default=False,
                help="Whether to write compressed NIfTI files or not."))
     p.add_option(
-        Option("--origin", action="store",
-               dest="origin", default="scanner",
+        Option("-p", "--permit-truncated", action="store_true",
+               dest="permit_truncated", default=False, help="""
+Permit conversion of truncated recordings. Support for this is experimental,
+and results *must* be checked afterward for validity."""))
+    p.add_option(
+        Option("--origin", action="store", dest="origin", default="scanner",
                help="""
 Reference point of the q-form transformation of the NIfTI image. If 'scanner'
 the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
 coordinate will be the center of the recorded volume (field of view). Default:
 'scanner'."""))
     p.add_option(
-        Option("--minmax", action="store", nargs=2,
-               dest="minmax", help="""
+        Option("--minmax", action="store", nargs=2, dest="minmax", help="""
 Mininum and maximum settings to be stored in the NIfTI header. If any of
 them is set to 'parse', the scaled data is scanned for the actual minimum and
 maximum. To bypass this potentially slow and memory intensive step (the data
@@ -57,9 +57,8 @@ space-separated pair, e.g. '5.4 120.4'. It is possible to set a fixed minimum
 as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
     p.set_defaults(minmax=('parse', 'parse'))
     p.add_option(
-        Option("--store-header", action="store_true",
-               dest="store_header", default=False,
-               help="""
+        Option("--store-header", action="store_true", dest="store_header",
+               default=False, help="""
 If set, all information from the PAR header is stored in an extension of
 the NIfTI file header. Default: off"""))
     p.add_option(
@@ -70,6 +69,10 @@ scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
 values). Either one can be chosen, or scaling can be disabled completely
 ('off').  Note that neither method will actually scale the data, but just store
 the corresponding settings in the NIfTI header. Default: 'dv'"""))
+    p.add_option(
+        Option("--overwrite", action="store_true", dest="overwrite",
+               default=False, help="""
+Overwrite file if it exists. Default: False"""))
     return p
 
 
@@ -84,8 +87,24 @@ def error(msg, exit_code):
 
 
 def proc_file(infile, opts):
+    # figure out the output filename, and see if it exists
+    outfilename = splitext_addext(os.path.basename(infile))[0]
+    if opts.outdir is not None:
+        # set output path
+        outfilename = os.path.join(opts.outdir, outfilename)
+
+    # prep a file
+    if opts.compressed:
+        verbose('Using gzip compression')
+        outfilename += '.nii.gz'
+    else:
+        outfilename += '.nii'
+    if os.path.isfile(outfilename) and not opts.overwrite:
+        raise IOError('Output file "%s" exists, use --overwrite to '
+                      'overwrite it' % outfilename)
+
     # load the PAR header
-    pr_img = pr.load(infile)
+    pr_img = pr.load(infile, opts.permit_truncated)
     pr_hdr = pr_img.header
     # get the raw unscaled data form the REC file
     raw_data = pr_img.dataobj.get_unscaled()
@@ -170,19 +189,11 @@ def proc_file(infile, opts):
     # finalize the header: set proper data offset, pixdims, ...
     nimg.update_header()
 
-    # figure out the output filename
-    outfilename = splitext_addext(os.path.basename(infile))[0]
-    if opts.outdir is not None:
-        # set output path
-        outfilename = os.path.join(opts.outdir, outfilename)
-
     # prep a file
     if opts.compressed:
         verbose('Using gzip compression')
-        outfilename += '.nii.gz'
         outfile = gzip.open(outfilename, 'wb')
     else:
-        outfilename += '.nii'
         outfile = open(outfilename, 'wb')
 
     verbose('Writing %s' % outfilename)
