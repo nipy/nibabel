@@ -83,8 +83,8 @@ def squeeze_image(img):
     data = img.get_data()
     data = data.reshape(shape)
     return klass(data,
-                 img.get_affine(),
-                 img.get_header(),
+                 img.affine,
+                 img.header,
                  img.extra)
 
 
@@ -112,15 +112,15 @@ def concat_images(images, check_affines=True):
         img0 = load(img0)
         is_filename = True
     i0shape = img0.shape
-    affine = img0.get_affine()
-    header = img0.get_header()
+    affine = img0.affine
+    header = img0.header
     out_shape = (n_imgs, ) + i0shape
     out_data = np.empty(out_shape)
     for i, img in enumerate(images):
         if is_filename:
             img = load(img)
         if check_affines:
-            if not np.all(img.get_affine() == affine):
+            if not np.all(img.affine == affine):
                 raise ValueError('Affines do not match')
         out_data[i] = img.get_data()
     out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
@@ -135,8 +135,8 @@ def four_to_three(img):
     ----------
     img :  image
        4D image instance of some class with methods ``get_data``,
-       ``get_header`` and ``get_affine``, and a class constructor
-       allowing Klass(data, affine, header)
+       ``header`` and ``affine``, and a class constructor
+       allowing klass(data, affine, header)
 
     Returns
     -------
@@ -144,8 +144,8 @@ def four_to_three(img):
        list of 3D images
     '''
     arr = img.get_data()
-    header = img.get_header()
-    affine = img.get_affine()
+    header = img.header
+    affine = img.affine
     image_maker = img.__class__
     if arr.ndim != 4:
         raise ValueError('Expecting four dimensions')
@@ -179,7 +179,7 @@ def as_closest_canonical(img, enforce_diag=False):
        already has the correct data ordering, we just return `img`
        unmodified.
     '''
-    aff = img.get_affine()
+    aff = img.affine
     ornt = io_orientation(aff)
     if np.all(ornt == [[0, 1],
                        [1,1],
@@ -197,7 +197,7 @@ def as_closest_canonical(img, enforce_diag=False):
     # we need to transform the data
     arr = img.get_data()
     t_arr = apply_orientation(arr, ornt)
-    return img.__class__(t_arr, out_aff, img.get_header())
+    return img.__class__(t_arr, out_aff, img.header)
 
 
 def _aff_is_diag(aff):

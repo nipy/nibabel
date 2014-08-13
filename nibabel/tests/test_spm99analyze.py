@@ -415,7 +415,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         img.to_file_map()
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(), aff)
+        assert_array_equal(r_img.affine, aff)
         # mat files are for matlab and have 111 voxel origins.  We need to
         # adjust for that, when loading and saving.  Check for signs of that in
         # the saved mat file
@@ -434,7 +434,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         # mat resulting should have a flip.  The 'mat' matrix does include flips
         # and so should be unaffected by the flipping.  If both are present we
         # prefer the the 'mat' matrix.
-        assert_true(img.get_header().default_x_flip) # check the default
+        assert_true(img.header.default_x_flip) # check the default
         flipper = np.diag([-1,1,1,1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
@@ -442,7 +442,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(),
+        assert_array_equal(r_img.affine,
                            np.dot(np.diag([6,7,8,1]), to_111))
         # But will use M if present
         mat_fileobj.seek(0)
@@ -450,7 +450,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         savemat(mat_fileobj, dict(M=np.diag([3,4,5,1])))
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
-        assert_array_equal(r_img.get_affine(),
+        assert_array_equal(r_img.affine,
                            np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
 
     def test_none_affine(self):
@@ -460,13 +460,13 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         img_klass = self.image_class
         # With a None affine - no matfile written
         img = img_klass(np.zeros((2,3,4)), None)
-        aff = img.get_header().get_best_affine()
+        aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
-        assert_array_equal(img_back.get_affine(), aff)
+        assert_array_equal(img_back.affine, aff)
 
 
 def test_origin_affine():

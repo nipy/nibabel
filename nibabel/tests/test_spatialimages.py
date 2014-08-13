@@ -200,25 +200,25 @@ class TestSpatialImage(TestCase):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img = img_klass(arr, aff)
-        assert_array_equal(img.get_affine(), aff)
+        assert_array_equal(img.affine, aff)
         aff[0,0] = 99
-        assert_false(np.all(img.get_affine() == aff))
+        assert_false(np.all(img.affine == aff))
         # header, created by image creation
-        ihdr = img.get_header()
+        ihdr = img.header
         # Pass it back in
         img = img_klass(arr, aff, ihdr)
         # Check modifying header outside does not modify image
         ihdr.set_zooms((4, 5, 6))
-        assert_not_equal(img.get_header(), ihdr)
+        assert_not_equal(img.header, ihdr)
 
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class
         arr = np.arange(3, dtype=np.int16)
         img = img_klass(arr, np.eye(4, dtype=np.float32))
-        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        assert_equal(img.affine.dtype, np.dtype(np.float64))
         img = img_klass(arr, np.eye(4, dtype=np.int16))
-        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        assert_equal(img.affine.dtype, np.dtype(np.float64))
 
     def test_images(self):
         # Assumes all possible images support int16
@@ -226,7 +226,7 @@ class TestSpatialImage(TestCase):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = self.image_class(arr, None)
         assert_array_equal(img.get_data(), arr)
-        assert_equal(img.get_affine(), None)
+        assert_equal(img.affine, None)
 
     def test_default_header(self):
         # Check default header is as expected

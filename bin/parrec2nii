@@ -84,7 +84,7 @@ def error(msg, exit_code):
 def proc_file(infile, opts):
     # load the PAR header
     pr_img = pr.load(infile)
-    pr_hdr = pr_img.get_header()
+    pr_hdr = pr_img.header
     # get the raw unscaled data form the REC file
     raw_data = read_img_data(pr_img, prefer='unscaled')
 
@@ -93,7 +93,7 @@ def proc_file(infile, opts):
 
     # create an nifti image instance -- to get a matching header
     nimg = nifti1.Nifti1Image(raw_data, affine)
-    nhdr = nimg.get_header()
+    nhdr = nimg.header
 
     if 'parse' in opts.minmax:
         # need to get the scaled data

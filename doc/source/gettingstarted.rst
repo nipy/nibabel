@@ -53,7 +53,7 @@ True
 The image also has an affine transformation that determines the
 world-coordinates of the image elements.
 
->>> img.get_affine().shape
+>>> img.affine.shape
 (4, 4)
 
 This information is available without the need to load anything of the main
@@ -69,7 +69,7 @@ a NumPy_ array
 The complete information embedded in an image header is available via a
 format-specific header object.
 
->>> hdr = img.get_header()
+>>> hdr = img.header
 
 In case of this NIfTI_ file it allows accessing all NIfTI-specific information,
 e.g.
@@ -98,7 +98,7 @@ needs some image data and an image coordinate transformation.
 >>> img = nib.Nifti1Image(data, np.eye(4))
 >>> img.get_data_dtype() == np.dtype(np.int16)
 True
->>> img.get_header().get_xyzt_units()
+>>> img.header.get_xyzt_units()
 ('unknown', 'unknown')
 
 In this case, identity is used as the affine transformation. The image header

@@ -164,7 +164,7 @@ class _TestMincFile(object):
             assert_array_almost_equal(data.mean(), tp['mean'])
             # check if mnc can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
-            assert_array_equal(ni_img.get_affine(), tp['affine'])
+            assert_array_equal(ni_img.affine, tp['affine'])
             assert_array_equal(ni_img.get_data(), data)
 
     def test_array_proxy_slicing(self):

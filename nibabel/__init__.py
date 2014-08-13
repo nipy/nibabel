@@ -23,9 +23,9 @@ Quickstart
    img3 = nib.load('spm_file.img')
 
    data = img1.get_data()
-   affine = img1.get_affine()
+   affine = img1.affine
 
-   print img1
+   print(img1)
 
    nib.save(img1, 'my_file_copy.nii.gz')
 

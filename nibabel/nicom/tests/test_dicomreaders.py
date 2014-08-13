@@ -21,7 +21,7 @@ def test_read_dwi():
     img = didr.mosaic_to_nii(DATA)
     arr = img.get_data()
     assert_equal(arr.shape, (128,128,48))
-    assert_array_almost_equal(img.get_affine(), EXPECTED_AFFINE)
+    assert_array_almost_equal(img.affine, EXPECTED_AFFINE)
 
 
 @dicom_test

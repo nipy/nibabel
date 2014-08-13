@@ -1600,7 +1600,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
         >>> img = Nifti1Image(data, affine)
-        >>> hdr = img.get_header()
+        >>> hdr = img.header
         >>> np.all(hdr.get_qform() == affine)
         True
         >>> np.all(hdr.get_sform() == affine)

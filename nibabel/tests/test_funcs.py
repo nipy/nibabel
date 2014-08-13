@@ -47,14 +47,14 @@ def test_concat():
         for img0, img1, img2, img3 in (imgs, img_files):
             all_imgs = concat_images([img0, img1])
             assert_array_equal(all_imgs.get_data(), all_data)
-            assert_array_equal(all_imgs.get_affine(), affine)
+            assert_array_equal(all_imgs.affine, affine)
             # check that not-matching affines raise error
             assert_raises(ValueError, concat_images, [img0, img2])
             assert_raises(ValueError, concat_images, [img0, img3])
             # except if check_affines is False
             all_imgs = concat_images([img0, img1])
             assert_array_equal(all_imgs.get_data(), all_data)
-            assert_array_equal(all_imgs.get_affine(), affine)
+            assert_array_equal(all_imgs.affine, affine)
         # Delete images as prophylaxis for windows access errors
         for img in imgs:
             del(img)

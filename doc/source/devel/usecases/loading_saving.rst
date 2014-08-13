@@ -80,10 +80,10 @@ keep track of the header and affine, we could cache them when loading
 the image::
 
    img = nibabel.load('some_image.nii')
-   hdr = img.get_header()
-   assert img._cache['header'] == img.get_header()
+   hdr = img.header
+   assert img._cache['header'] == img.header
    hdr.set_data_dtype(np.complex64)
-   assert img._cache['header'] != img.get_header()
+   assert img._cache['header'] != img.header
 
 When asking to return a filename, or similar, check the current header
 and current affine (the header may be separate from the affine for an
@@ -99,7 +99,7 @@ The user can override the result of these checks directly::
 
    img = nibabel.load('some_image.nii')
    assert img.is_dirty == False
-   hdr = img.get_header()
+   hdr = img.header
    hdr.set_data_dtype(np.complex64)
    assert img.is_dirty == True
    img.is_dirty == False
