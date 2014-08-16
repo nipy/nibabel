@@ -13,15 +13,15 @@ def apply_affine(aff, pts):
     coordinate dimension of `pts` should be the last.
 
     For the 3D case, `aff` will be shape (4,4) and `pts` will have final axis
-    length 3 - maybe it will just be N by 3. The return value is the transformed
-    points, in this case::
+    length 3 - maybe it will just be N by 3. The return value is the
+    transformed points, in this case::
 
         res = np.dot(aff[:3,:3], pts.T) + aff[:3,3:4]
         transformed_pts = res.T
 
-    Notice though, that this routine is more general, in that `aff` can have any
-    shape (N,N), and `pts` can have any shape, as long as the last dimension is
-    for the coordinates, and is therefore length N-1.
+    This routine is more general than 3D, in that `aff` can have any shape
+    (N,N), and `pts` can have any shape, as long as the last dimension is for
+    the coordinates, and is therefore length N-1.
 
     Parameters
     ----------
@@ -29,8 +29,8 @@ def apply_affine(aff, pts):
         Homogenous affine, for 3D points, will be 4 by 4. Contrary to first
         appearance, the affine will be applied on the left of `pts`.
     pts : (..., N-1) array-like
-        Points, where the last dimension contains the coordinates of each point.
-        For 3D, the last dimension will be length 3.
+        Points, where the last dimension contains the coordinates of each
+        point.  For 3D, the last dimension will be length 3.
 
     Returns
     -------
