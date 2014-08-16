@@ -4,7 +4,7 @@
 import numpy as np
 import numpy.linalg as npl
 
-from ..spaces import vox2out_vox
+from ..spaces import vox2out_vox, slice2volume
 from ..affines import apply_affine
 from ..eulerangles import euler2mat
 
@@ -101,3 +101,18 @@ def test_vox2out_vox():
     # Voxel sizes must be positive
     assert_raises(ValueError, vox2out_vox, (2, 3, 4), np.eye(4), [-1, 1, 1])
     assert_raises(ValueError, vox2out_vox, (2, 3, 4), np.eye(4), [1, 0, 1])
+
+
+def test_slice2volume():
+    # Get affine expressing selection of single slice from volume
+    for axis, def_aff in zip((0, 1, 2), (
+        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
+        [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
+        for val in (0, 5, 10):
+            exp_aff = np.array(def_aff)
+            exp_aff[axis, -1] = val
+            assert_array_equal(slice2volume(val, axis), exp_aff)
+    assert_raises(ValueError, slice2volume, -1, 0)
+    assert_raises(ValueError, slice2volume, 0, -1)
+    assert_raises(ValueError, slice2volume, 0, 3)
