@@ -331,10 +331,10 @@ def parse_PAR_header(fobj, permit_truncated=False):
     # there is some awkward exception to this rule for b-values > 2
     # XXX need to get test image...
     max_dti_volumes = ((general_info['max_diffusion_values'] - 1)
-                       * general_info['max_gradient_orient'])
+                       * general_info['max_gradient_orient']) + 1
     n_b = len(np.unique(image_defs['diffusion b value number']))
     n_grad = len(np.unique(image_defs['gradient orientation number']))
-    n_dti_volumes = (n_b - 1) * n_grad
+    n_dti_volumes = (n_b - 1) * n_grad + 1
     n_slices = len(np.unique(image_defs['slice number']))
     n_echoes = len(np.unique(image_defs['echo number']))
     n_dynamics = len(np.unique(image_defs['dynamic scan number']))
