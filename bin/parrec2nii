@@ -41,6 +41,10 @@ Destination directory for NIfTI files. Default: current directory."""))
 Permit conversion of truncated recordings. Support for this is experimental,
 and results *must* be checked afterward for validity."""))
     p.add_option(
+        Option("-b", "--bvs", action="store_true", dest="bvs", default=False,
+               help="""
+Output bvals/bvecs files in addition to NIFTI image."""))
+    p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help="""
 Reference point of the q-form transformation of the NIfTI image. If 'scanner'
@@ -88,17 +92,17 @@ def error(msg, exit_code):
 
 def proc_file(infile, opts):
     # figure out the output filename, and see if it exists
-    outfilename = splitext_addext(os.path.basename(infile))[0]
+    basefilename = splitext_addext(os.path.basename(infile))[0]
     if opts.outdir is not None:
         # set output path
-        outfilename = os.path.join(opts.outdir, outfilename)
+        basefilename = os.path.join(opts.outdir, basefilename)
 
     # prep a file
     if opts.compressed:
         verbose('Using gzip compression')
-        outfilename += '.nii.gz'
+        outfilename = basefilename + '.nii.gz'
     else:
-        outfilename += '.nii'
+        outfilename = basefilename + '.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
         raise IOError('Output file "%s" exists, use --overwrite to '
                       'overwrite it' % outfilename)
@@ -106,6 +110,7 @@ def proc_file(infile, opts):
     # load the PAR header
     pr_img = pr.load(infile, opts.permit_truncated)
     pr_hdr = pr_img.header
+
     # get the raw unscaled data form the REC file
     raw_data = pr_img.dataobj.get_unscaled()
 
@@ -196,17 +201,69 @@ def proc_file(infile, opts):
     else:
         outfile = open(outfilename, 'wb')
 
-    verbose('Writing %s' % outfilename)
-    # first write the header
-    nhdr.set_slope_inter(slope, intercept)
-    nhdr.write_to(outfile)
-    # Seek to data offset position
-    offset = nhdr.get_data_offset()
-    seek_tell(outfile, offset, write0=True)
-    # now the data itself, but prevent any casting or scaling
-    nibabel.volumeutils.array_to_file(raw_data, outfile, offset=offset)
+    try:
+        verbose('Writing %s' % outfilename)
+        # first write the header
+        nhdr.set_slope_inter(slope, intercept)
+        nhdr.write_to(outfile)
+        # Seek to data offset position
+        offset = nhdr.get_data_offset()
+        seek_tell(outfile, offset, write0=True)
+        # now the data itself, but prevent any casting or scaling
+        nibabel.volumeutils.array_to_file(raw_data, outfile, offset=offset)
+    finally:
+        outfile.close()
+
+    # write out bvals/bvecs if requested
+    if opts.bvs:
+        verbose('Writing .bvals and .bvecs files')
+        # bvals
+        gen_info = pr_hdr.general_info
+        shape = (gen_info['n_dti_volumes'], gen_info['n_slices'])
+        shape = (shape[1], shape[0]) if order_rev else shape
+        bvals = np.reshape(pr_hdr.image_defs['diffusion_b_factor'], shape)
+        bvals = bvals.T if order_rev else bvals
+        if not np.all(np.diff(bvals, axis=1) == 0):
+            raise RuntimeError('Could not output bvals: inconsistent values')
+
+        # bvecs
+        shape = (3, pr_hdr.general_info['n_dti_volumes'],
+                 pr_hdr.general_info['n_slices'])
+        shape = (shape[0], shape[2], shape[1]) if order_rev else shape
+        bvecs = np.reshape(pr_hdr.image_defs['diffusion'].T, shape)
+        bvecs = np.swapaxis(bvecs, 2, 1) if order_rev else bvecs
+        if not np.all(np.diff(bvecs, axis=2) == 0):
+            raise RuntimeError('Could not output bvecs: inconsistent values')
+        bvecs = bvecs[:, :, 0]
+
+        # restore XYZ order to bvecs
+        assert np.all(bvecs[:, 0] == 0)  # first col should be zeros
+        order = []
+        mults = []
+        for ii in range(3):
+            idx = np.where(bvecs[:, ii+1] != 0)[0]
+            assert len(idx) == 1
+            order.append(idx[0])
+            mults.append(bvecs[idx[0], ii+1])
+        assert np.array_equal(np.unique(order), [0, 1, 2])
+        assert np.array_equal(np.abs(mults), [1, 1, 1])
+        bvecs = bvecs[order] * np.array(mults)[:, np.newaxis]
+        bvecs[bvecs == -0.0] = 0.0
+
+        # Actually write files
+        bval_fname = basefilename + '.bvals'
+        bvec_fname = basefilename + '.bvecs'
+        with open(bval_fname, 'w') as fid:
+            # np.savetxt could do this, but it's just a loop anyway
+            for val in bvals[:, 0]:
+                fid.write('%s ' % val)
+            fid.write('\n')
+        with open(bvec_fname, 'w') as fid:
+            for row in bvecs:
+                for val in row:
+                    fid.write('%s ' % val)
+                fid.write('\n')
     # done
-    outfile.close()
 
 
 def main():
