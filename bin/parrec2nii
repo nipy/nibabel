@@ -72,7 +72,9 @@ Choose data scaling setting. The PAR header defines two different data
 scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
 values). Either one can be chosen, or scaling can be disabled completely
 ('off').  Note that neither method will actually scale the data, but just store
-the corresponding settings in the NIfTI header. Default: 'dv'"""))
+the corresponding settings in the NIfTI header, unless non-uniform scaling
+is used, in which case the data is stored in the file in scaled form.
+Default: 'dv'"""))
     p.add_option(
         Option("--overwrite", action="store_true", dest="overwrite",
                default=False, help="""
@@ -116,9 +118,7 @@ def proc_file(infile, opts):
 
     # determine if our order is XYTZ instead of XYZT (Phillips scanners)
     # If it's XYZT, then the slice number (Z) will iterate slowest (no diff)
-    order_rev = np.diff(pr_hdr.image_defs['slice number'][:2])[0]
-    assert order_rev in (0, 1)
-    order_rev = (order_rev == 0)
+    order_rev = pr_hdr.order_xytz
     if raw_data.ndim > 3 and order_rev:
         verbose('XYTZ order detected, reordering data')
         assert raw_data.flags['C_CONTIGUOUS'] is True
@@ -141,8 +141,7 @@ def proc_file(infile, opts):
             scaled_data = raw_data
         else:
             slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
-            scaled_data = slope * raw_data
-            scaled_data += intercept
+            scaled_data = slope * raw_data + intercept
     if opts.minmax[0] == 'parse':
         nhdr.structarr['cal_min'] = scaled_data.min()
     else:
@@ -183,13 +182,23 @@ def proc_file(infile, opts):
         # anatomical or DTI
         nhdr.set_xyzt_units('mm', 'unknown')
 
-    # get original scaling
+    # get original scaling, and decide if we scale in-place or not
+    scale_data = False
     if opts.scaling == 'off':
-        slope = 1.0
-        intercept = 0.0
+        slope = 1.
+        intercept = 0.
     else:
+        verbose('Using data scaling "%s"' % opts.scaling)
         slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
-        nhdr.set_slope_inter(slope, intercept)
+        uni_s = np.unique(slope)
+        uni_i = np.unique(intercept)
+        if len(uni_s) == 1 and len(uni_i) == 1:
+            slope = uni_s[0]
+            intercept = uni_i[0]
+        else:
+            verbose("Multiple scale-factors detected, data will be saved "
+                    "in scaled form")
+            scale_data = True
 
     # finalize the header: set proper data offset, pixdims, ...
     nimg.update_header()
@@ -204,18 +213,22 @@ def proc_file(infile, opts):
     try:
         verbose('Writing %s' % outfilename)
         # first write the header
-        nhdr.set_slope_inter(slope, intercept)
+        if scale_data:
+            data = ((raw_data * slope) + intercept).astype(raw_data.dtype)
+            nhdr.set_slope_inter(1., 0.)
+        else:
+            nhdr.set_slope_inter(slope, intercept)
+            data = raw_data
         nhdr.write_to(outfile)
-        # Seek to data offset position
+        # Now the data
         offset = nhdr.get_data_offset()
         seek_tell(outfile, offset, write0=True)
-        # now the data itself, but prevent any casting or scaling
-        nibabel.volumeutils.array_to_file(raw_data, outfile, offset=offset)
+        nibabel.volumeutils.array_to_file(data, outfile, offset=offset)
     finally:
         outfile.close()
 
     # write out bvals/bvecs if requested
-    if opts.bvs:
+    if opts.bvs and pr_hdr.general_info['n_dti_volumes'] > 1:
         verbose('Writing .bvals and .bvecs files')
         # bvals
         gen_info = pr_hdr.general_info
@@ -263,6 +276,8 @@ def proc_file(infile, opts):
                 for val in row:
                     fid.write('%s ' % val)
                 fid.write('\n')
+    elif opts.bvs:
+        verbose('No DTI volumes detected, bvals and bvecs not written')
     # done
 
 
