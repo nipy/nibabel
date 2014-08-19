@@ -293,11 +293,14 @@ def proc_file(infile, opts):
         verbose('No DTI volumes detected, bvals and bvecs not written')
     if opts.dwell_time:
         dwell_time = pr_hdr.get_dwell_time(opts.field_strength)
-        verbose('Writing dwell time (%0.3f sec) calculated assuming %sT magnet'
-                % (dwell_time, opts.field_strength))
-        dwell_fname = basefilename + '.dwell_time'
-        with open(dwell_fname, 'w') as fid:
-            fid.write('%r\n' % dwell_time)
+        if dwell_time is None:
+            verbose('No EPI factors, dwell time not written')
+        else:
+            verbose('Writing dwell time (%r sec) calculated assuming %sT '
+                    'magnet' % (dwell_time, opts.field_strength))
+            dwell_fname = basefilename + '.dwell_time'
+            with open(dwell_fname, 'w') as fid:
+                fid.write('%r\n' % dwell_time)
     # done
 
 
