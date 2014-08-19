@@ -410,6 +410,33 @@ class PARRECHeader(Header):
         order_rev = (order_rev == 0)
         return order_rev
 
+    def get_dwell_time(self, field_strength=3.):
+        """Calculate the dwell time of the recording
+
+        Parameters
+        ----------
+        field_strength : float
+            Strength of the magnet in T, e.g. ``3.0`` for a 3T magnet
+            recording. Providing this value is necessary because the
+            field strength is not encoded in the PAR file.
+
+        Returns
+        -------
+        dwell_time : float
+            The dwell time in seconds.
+        """
+        field_strength = float(field_strength)  # Tesla
+        assert field_strength > 0.
+        water_fat_shift = self.general_info['water_fat_shift']  # pixels
+        echo_train_length = self.general_info['epi_factor']  # int
+        # constants
+        gyromagnetic_ratio = 42.57  # MHz/T
+        proton_water_fat_shift = 3.4  # ppm
+        dwell_time = ((echo_train_length - 1) * water_fat_shift /
+                      (gyromagnetic_ratio * proton_water_fat_shift
+                       * field_strength * (echo_train_length + 1)))
+        return dwell_time
+
     def _get_unique_image_prop(self, name):
         """Scan image definitions and return unique value of a property.
 
