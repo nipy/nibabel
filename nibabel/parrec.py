@@ -338,6 +338,7 @@ def parse_PAR_header(fobj, permit_truncated=False):
     n_slices = len(np.unique(image_defs['slice number']))
     n_echoes = len(np.unique(image_defs['echo number']))
     n_dynamics = len(np.unique(image_defs['dynamic scan number']))
+    n_seq = len(np.unique(image_defs['scanning sequence']))
     pt = permit_truncated
     n_slices = _check_truncation('slices', n_slices,
                                  general_info['max_slices'], pt, False)
@@ -349,7 +350,8 @@ def parse_PAR_header(fobj, permit_truncated=False):
                                       max_dti_volumes, pt, True)
     general_info.update(n_dti_volumes=n_dti_volumes, n_echoes=n_echoes,
                         n_dynamics=n_dynamics, n_slices=n_slices,
-                        max_dti_volumes=max_dti_volumes)
+                        max_dti_volumes=max_dti_volumes, n_seq=n_seq,
+                        max_types=n_seq)
     return general_info, image_defs
 
 
@@ -401,6 +403,13 @@ class PARRECHeader(Header):
         return PARRECHeader(deepcopy(self.general_info),
                             self.image_defs.copy())
 
+    @property
+    def order_xytz(self):
+        order_rev = np.diff(self.image_defs['slice number'][:2])[0]
+        assert order_rev in (0, 1)
+        order_rev = (order_rev == 0)
+        return order_rev
+
     def _get_unique_image_prop(self, name):
         """Scan image definitions and return unique value of a property.
 
@@ -432,6 +441,32 @@ class PARRECHeader(Header):
         else:
             return np.array([uprop[0] for uprop in uprops])
 
+    def _get_broadcastable_prop(self, name):
+        """Scan image definitions and return broadcastable value of a property.
+
+        If the requested property is an array this method gives
+        scale factors that can be combined and applied to the raw data.
+
+        Parameters
+        ----------
+        name : str
+            Name of the property
+
+        Returns
+        -------
+        value : array
+        """
+        dims = self.get_data_shape_in_file()[2:]
+        prop = self.image_defs[name]
+        # this will break for truncated recs, but it's probably okay for now
+        assert np.prod(dims) == len(prop)
+        if self.order_xytz:
+            prop = prop.reshape(dims)
+        else:
+            prop = prop.reshape(dims[::-1]).T
+        prop = prop[np.newaxis, np.newaxis, ...]  # array expansion
+        return prop
+
     def get_voxel_size(self):
         """Returns the spatial extent of a voxel.
 
@@ -462,7 +497,8 @@ class PARRECHeader(Header):
         """Return the number of dimensions of the image data."""
         if self.general_info['n_dynamics'] > 1 \
            or self.general_info['n_dti_volumes'] > 1 \
-           or self.general_info['n_echoes'] > 1:
+           or self.general_info['n_echoes'] > 1 \
+           or self.general_info['n_seq'] > 1:
             return 4
         else:
             return 3
@@ -566,7 +602,7 @@ class PARRECHeader(Header):
         """
         # there should not be more than one: multiple dynamics, DTI, echoes
         lens = [self.general_info[x] for x in ['n_dynamics', 'n_dti_volumes',
-                                               'n_echoes']]
+                                               'n_echoes', 'n_seq']]
         if sum(x > 1 for x in lens) > 1:
             raise PARRECError('Cannot have multiple dynamics, dti volumes, '
                               'or echoes in the same file, found %s of each, '
@@ -580,6 +616,8 @@ class PARRECHeader(Header):
             shape = shape + (self.general_info['n_dti_volumes'],)
         elif self.general_info['n_echoes'] > 1:
             shape = shape + (self.general_info['n_echoes'],)
+        elif self.general_info['n_seq'] > 1:
+            shape = shape + (self.general_info['n_seq'],)
         return shape
 
     def get_data_scaling(self, method="dv"):
@@ -592,9 +630,9 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        slope : float
+        slope : array
             scaling slope
-        intercept : float
+        intercept : array
             scaling intercept
 
         Notes
@@ -610,34 +648,25 @@ class PARRECHeader(Header):
         DV = PV * RS + RI
         FP = DV / (RS * SS)
         """
-        # XXX: FP tends to become HUGE, DV seems to be more reasonable ->
-        #      figure out which one means what
-
-        # although the is a per-image scaling in the header, it looks like
-        # there is just one unique factor and intercept per whole image series
-        # XXX This is not always true, should throw exception if not
-        scale_slope = self._get_unique_image_prop('scale slope')
-        rescale_slope = self._get_unique_image_prop('rescale slope')
-        rescale_intercept = self._get_unique_image_prop('rescale intercept')
+        # These will be 3D or 4D
+        scale_slope = self._get_broadcastable_prop('scale slope')
+        rescale_slope = self._get_broadcastable_prop('rescale slope')
+        rescale_intercept = self._get_broadcastable_prop('rescale intercept')
 
         if method == 'dv':
             slope = rescale_slope
             intercept = rescale_intercept
         elif method == 'fp':
-            # actual slopes per definition above
             slope = 1.0 / scale_slope
-            # actual intercept per definition above
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
             raise ValueError("Unknown scling method '%s'." % method)
         return (slope, intercept)
 
     def get_slope_inter(self):
-        """ Utility method to get default slope, intercept scaling
+        """ Utility method to get default slope, intercept scaling arrays
         """
-        return tuple(
-            np.asscalar(v)
-            for v in self.get_data_scaling(method=self.default_scaling))
+        return self.get_data_scaling(method=self.default_scaling)
 
     def get_slice_orientation(self):
         """Returns the slice orientation label.
@@ -695,8 +724,6 @@ class PARRECHeader(Header):
         data = self.raw_data_from_fileobj(fileobj)
         # get scalings from header.  Value of None means not present in header
         slope, inter = self.get_slope_inter()
-        slope = 1.0 if slope is None else slope
-        inter = 0.0 if inter is None else inter
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(data, slope, inter)
 

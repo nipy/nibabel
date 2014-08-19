@@ -876,19 +876,19 @@ def seek_tell(fileobj, offset, write0=False):
         assert fileobj.tell() == offset
 
 
-def apply_read_scaling(arr, slope = None, inter = None):
+def apply_read_scaling(arr, slope=None, inter=None):
     """ Apply scaling in `slope` and `inter` to array `arr`
 
-    This is for loading the array from a file (as opposed to the reverse scaling
-    when saving an array to file)
+    This is for loading the array from a file (as opposed to the reverse
+    scaling when saving an array to file)
 
     Return data will be ``arr * slope + inter``. The trick is that we have to
     find a good precision to use for applying the scaling.  The heuristic is
     that the data is always upcast to the higher of the types from `arr,
     `slope`, `inter` if `slope` and / or `inter` are not default values. If the
-    dtype of `arr` is an integer, then we assume the data more or less fills the
-    integer range, and upcast to a type such that the min, max of ``arr.dtype``
-    * scale + inter, will be finite.
+    dtype of `arr` is an integer, then we assume the data more or less fills
+    the integer range, and upcast to a type such that the min, max of
+    ``arr.dtype`` * scale + inter, will be finite.
 
     Parameters
     ----------
