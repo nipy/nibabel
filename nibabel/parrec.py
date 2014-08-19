@@ -423,12 +423,15 @@ class PARRECHeader(Header):
         Returns
         -------
         dwell_time : float
-            The dwell time in seconds.
+            The dwell time in seconds. Returns None if the dwell
+            time cannot be calculated (i.e., not using an EPI sequence).
         """
         field_strength = float(field_strength)  # Tesla
         assert field_strength > 0.
         water_fat_shift = self.general_info['water_fat_shift']  # pixels
         echo_train_length = self.general_info['epi_factor']  # int
+        if echo_train_length <= 0:
+            return None
         # constants
         gyromagnetic_ratio = 42.57  # MHz/T
         proton_water_fat_shift = 3.4  # ppm
