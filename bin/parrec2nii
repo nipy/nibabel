@@ -292,11 +292,12 @@ def proc_file(infile, opts):
     elif opts.bvs:
         verbose('No DTI volumes detected, bvals and bvecs not written')
     if opts.dwell_time:
-        verbose('Writing .dwell_time file')
         dwell_time = pr_hdr.get_dwell_time(opts.field_strength)
+        verbose('Writing dwell time (%0.3f sec) calculated assuming %sT magnet'
+                % (dwell_time, opts.field_strength))
         dwell_fname = basefilename + '.dwell_time'
         with open(dwell_fname, 'w') as fid:
-            fid.write('%s\n' % dwell_time)
+            fid.write('%r\n' % dwell_time)
     # done
 
 
