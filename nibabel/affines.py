@@ -5,6 +5,8 @@
 
 import numpy as np
 
+from .externals.six.moves import reduce
+
 
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
@@ -225,3 +227,23 @@ def append_diag(aff, steps, starts=()):
     # Add translations for new affine, plus last 1
     aff_plus[old_n_out:,-1] = list(starts) + [1]
     return aff_plus
+
+
+def dot_reduce(*args):
+    """ Apply numpy dot product function from right to left on arrays
+
+    For passed arrays :math:`A, B, C, ... Z` returns :math:`A \dot B \dot C ...
+    \dot Z` where "." is the numpy array dot product.
+
+    Parameters
+    ----------
+    \*\*args : arrays
+        Arrays that can be passed to numpy ``dot`` function
+
+    Returns
+    -------
+    dot_product : array
+        If there are N arguments, result of ``arg[0].dot(arg[1].dot(arg[2].dot
+        ...  arg[N-2].dot(arg[N-1])))...``
+    """
+    return reduce(lambda x, y: np.dot(y, x), args[::-1])
