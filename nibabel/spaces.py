@@ -1,3 +1,11 @@
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# vi: set ft=python sts=4 ts=4 sw=4 et:
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+#
+#   See COPYING file distributed along with the NiBabel package for the
+#   copyright and license terms.
+#
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Routines to work with spaces
 
 A space is defined by coordinate axes.
@@ -32,7 +40,7 @@ def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
     Parameters
     ----------
     in_shape : sequence
-        shape of implied input image voxel block. Up to length 3
+        shape of implied input image voxel block. Up to length 3.
     in_affine : (4, 4) array-like
         affine mapping voxel coordinates in `in_shape` to output coordinates.
     voxel_sizes : None or sequence
@@ -45,15 +53,17 @@ def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
     output_shape : sequence
         Shape of output image that has voxel axes aligned to original image
         output space axes, and encloses all the voxel data from the original
-        image implied by `in_shape`
+        image implied by `in_shape`.
     output_affine : (4, 4) array
         Affine of output image that has voxel axes aligned to the output axes
         implied by `in_affine`. Top-left 3 x 3 part of affine is diagonal with
-        all positive entries.
+        all positive entries.  The entries come from `voxel_sizes` if
+        specified, or are all 1.  If the image is < 3D, then the missing
+        dimensions will have a 1 in the matching diagonal.
     """
     n_axes = len(in_shape)
     if n_axes > 3:
-        raise ValueError('Only deal with 3D images')
+        raise ValueError('This function can only deal with 3D images')
     if n_axes < 3:
         in_shape += (1,) * (3 - n_axes)
     out_vox = np.ones((3,))
@@ -75,7 +85,7 @@ def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
 
 
 def slice2volume(index, axis, shape=None):
-    """ Affine expressing selection of single slice from 3D volume
+    """ Affine expressing selection of a single slice from 3D volume
 
     Imagine we have taken a slice from an image data array, ``s = data[:, :,
     index]``.  This function returns the affine to map the array coordinates of
