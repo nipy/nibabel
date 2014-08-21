@@ -202,7 +202,7 @@ def read_img_data(img, prefer='scaled'):
     # the consumed values back from the proxy
     if is_proxy(dao) and (default_offset or default_scaling):
         hdr = hdr.copy()
-        if default_offset:
+        if default_offset and dao.offset != 0:
             hdr.set_data_offset(dao.offset)
         if default_scaling and (dao.slope, dao.inter) != (1, 0):
             hdr.set_slope_inter(dao.slope, dao.inter)

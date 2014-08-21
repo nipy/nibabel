@@ -19,12 +19,12 @@ documentation is covered by the MIT license.
 
   The MIT License
 
-  Copyright (c) 2009-2011 Matthew Brett <matthew.brett@gmail.com>
-  Copyright (c) 2010-2011 Stephan Gerhard <git@unidesign.ch>
+  Copyright (c) 2009-2014 Matthew Brett <matthew.brett@gmail.com>
+  Copyright (c) 2010-2013 Stephan Gerhard <git@unidesign.ch>
   Copyright (c) 2006-2010 Michael Hanke <michael.hanke@gmail.com>
   Copyright (c) 2011 Christian Haselgrove <christian.haselgrove@umassmed.edu>
   Copyright (c) 2010-2011 Jarrod Millman <jarrod.millman@gmail.com>
-  Copyright (c) 2011-2012 Yaroslav Halchenko <debian@onerussian.com>
+  Copyright (c) 2011-2014 Yaroslav Halchenko <debian@onerussian.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -45,8 +45,8 @@ documentation is covered by the MIT license.
   THE SOFTWARE.
 
 
-3rd Party Code
-==============
+3rd party code and data
+=======================
 
 Some code distributed within the nibabel sources was developed by other
 projects. This code is distributed under its respective licenses that are
@@ -151,7 +151,6 @@ subject to the following conditions:
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
-
 mni_icbm152_t1_tal_nlin_asym_09a
 --------------------------------
 
@@ -171,3 +170,24 @@ following license (where 'softwware' refers to the image):
     implied warranty.  The authors are not responsible for any data loss,
     equipment damage, property loss, or injury to subjects or patients
     resulting from the use or misuse of this software package.
+
+Philips PAR/REC data
+--------------------
+
+The files::
+
+    nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.PAR
+    nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.REC
+    nibabel/tests/data/Phantom_EPI_3mm_cor_20APtrans_15RLrot_SENSE_15_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_cor_SENSE_8_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15AP_SENSE_13_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15FH_SENSE_12_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15RL_SENSE_11_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_SENSE_7_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_-30AP_10RL_20FH_SENSE_14_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_15FH_SENSE_9_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_15RL_SENSE_10_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_SENSE_6_1.PAR
+
+are from http://psydata.ovgu.de/philips_achieva_testfiles, and released under
+the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/

@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from ..affines import (apply_affine, append_diag, to_matvec, from_matvec)
+from ..affines import (apply_affine, append_diag, to_matvec, from_matvec,
+                       dot_reduce)
 
 
 from nose.tools import assert_equal, assert_raises
@@ -123,3 +124,23 @@ def test_append_diag():
                         [0,0,0,0,1]])
     # Length of starts has to match length of steps
     assert_raises(ValueError, append_diag, aff, [5,6], [9])
+
+
+def test_dot_reduce():
+    # Chaining numpy dot
+    # Error for no arguments
+    assert_raises(TypeError, dot_reduce)
+    # Anything at all on its own, passes through
+    assert_equal(dot_reduce(1), 1)
+    assert_equal(dot_reduce(None), None)
+    assert_equal(dot_reduce([1, 2, 3]), [1, 2, 3])
+    # Two or more -> dot product
+    vec = [1, 2, 3]
+    mat = np.arange(4, 13).reshape((3, 3))
+    assert_array_equal(dot_reduce(vec, mat), np.dot(vec, mat))
+    assert_array_equal(dot_reduce(mat, vec), np.dot(mat, vec))
+    mat2 = np.arange(13, 22).reshape((3, 3))
+    assert_array_equal(dot_reduce(mat2, vec, mat),
+                       np.dot(mat2, np.dot(vec, mat)))
+    assert_array_equal(dot_reduce(mat, vec, mat2, ),
+                       np.dot(mat, np.dot(vec, mat2)))

@@ -15,7 +15,14 @@ import re
 
 from subprocess import Popen, PIPE
 
+import numpy as np
+
+from ..tmpdirs import InTemporaryDirectory
+from ..loadsave import load
+
 from nose.tools import assert_true, assert_not_equal, assert_equal
+
+from numpy.testing import assert_almost_equal
 
 def script_test(func):
     # Decorator to label test as a script_test
@@ -108,11 +115,27 @@ sform_code 11776 not valid""" % (dirty_hdr,)
     assert_equal(_proc_stdout(stdout), expected)
 
 
+def vox_size(affine):
+    return np.sqrt(np.sum(affine[:3,:3] ** 2, axis=0))
+
+
 @script_test
 def test_parrec2nii():
     # Test parrec2nii script
-    # We need some data for this one
     cmd = 'parrec2nii --help'
     code, stdout, stderr = run_command(cmd)
     stdout = stdout.decode('latin1')
     assert_true(stdout.startswith('Usage'))
+    in_fname = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
+    out_froot = 'phantom_EPI_asc_CLEAR_2_1.nii'
+    with InTemporaryDirectory():
+        run_command('parrec2nii "{0}"'.format(in_fname))
+        img = load(out_froot)
+        assert_equal(img.shape, (64, 64, 9, 3))
+        assert_equal(img.get_data_dtype(), np.dtype(np.int16))
+        # Check against values from Philips converted nifti image
+        data = img.get_data()
+        assert_true(np.allclose(
+            (data.min(), data.max(), data.mean()),
+            (0.0, 2299.4110643863678, 194.95876256117265)))
+        assert_almost_equal(vox_size(img.get_affine()), (3.75, 3.75, 8))

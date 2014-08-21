@@ -10,7 +10,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, inv_ornt_aff, flip_axis,
+from .orientations import (io_orientation, inv_ornt_aff,
                            apply_orientation, OrientationError)
 from .loadsave import load
 
@@ -204,4 +204,3 @@ def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
-
