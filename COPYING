@@ -158,6 +158,16 @@ The files::
 
     nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.PAR
     nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.REC
+    nibabel/tests/data/Phantom_EPI_3mm_cor_20APtrans_15RLrot_SENSE_15_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_cor_SENSE_8_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15AP_SENSE_13_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15FH_SENSE_12_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_15RL_SENSE_11_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_sag_SENSE_7_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_-30AP_10RL_20FH_SENSE_14_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_15FH_SENSE_9_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_15RL_SENSE_10_1.PAR
+    nibabel/tests/data/Phantom_EPI_3mm_tra_SENSE_6_1.PAR
 
 are from http://psydata.ovgu.de/philips_achieva_testfiles, and released under
 the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
