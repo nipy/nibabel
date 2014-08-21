@@ -257,7 +257,7 @@ def proc_file(infile, opts):
                  pr_hdr.general_info['n_slices'])
         shape = (shape[0], shape[2], shape[1]) if order_rev else shape
         bvecs = np.reshape(pr_hdr.image_defs['diffusion'].T, shape)
-        bvecs = np.swapaxis(bvecs, 2, 1) if order_rev else bvecs
+        bvecs = np.swapaxes(bvecs, 2, 1) if order_rev else bvecs
         if not np.all(np.diff(bvecs, axis=2) == 0):
             raise RuntimeError('Could not output bvecs: inconsistent values')
         bvecs = bvecs[:, :, 0]
