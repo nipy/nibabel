@@ -12,6 +12,12 @@ A space is defined by coordinate axes.
 
 A voxel space can be expressed by a shape implying an array, where the axes are
 the axes of the array.
+
+A mapped voxel space (mapped voxels) is either:
+
+* an image, with attributes ``shape`` (the voxel space) and ``affine`` (the
+  mapping), or
+* a length 2 sequence with the same information (shape, affine).
 """
 
 from itertools import product
@@ -21,12 +27,11 @@ import numpy as np
 from .affines import apply_affine
 
 
-def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
-    """ output-aligned shape, affine for input voxels implied by `in_shape`
+def vox2out_vox(mapped_voxels, voxel_sizes=None):
+    """ output-aligned shape, affine for input implied by `mapped_voxels`
 
-    The input (voxel) space is given by `in_shape`
-
-    The mapping between input space and output space is `in_affine`
+    The input (voxel) space, and the affine mapping to output space, are given
+    in `mapped_voxels`.
 
     The output space is implied by the affine, we don't need to know what that
     is, we just return something with the same (implied) output space.
@@ -39,10 +44,11 @@ def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
 
     Parameters
     ----------
-    in_shape : sequence
-        shape of implied input image voxel block. Up to length 3.
-    in_affine : (4, 4) array-like
-        affine mapping voxel coordinates in `in_shape` to output coordinates.
+    mapped_voxels : object or length 2 sequence
+        If object, has attributes ``shape`` giving input voxel shape, and
+        ``affine`` giving mapping of input voxels to output space. If length 2
+        sequence, elements are (shape, affine) with same meaning as above. The
+        affine is a (4, 4) array-like.
     voxel_sizes : None or sequence
         Gives the diagonal entries of `output_affine` (except the trailing 1
         for the homogenous coordinates) (``output_affine == np.diag(voxel_sizes
@@ -53,14 +59,18 @@ def vox2out_vox(in_shape, in_affine, voxel_sizes=None):
     output_shape : sequence
         Shape of output image that has voxel axes aligned to original image
         output space axes, and encloses all the voxel data from the original
-        image implied by `in_shape`.
+        image implied by input shape.
     output_affine : (4, 4) array
         Affine of output image that has voxel axes aligned to the output axes
-        implied by `in_affine`. Top-left 3 x 3 part of affine is diagonal with
+        implied by input affine. Top-left 3 x 3 part of affine is diagonal with
         all positive entries.  The entries come from `voxel_sizes` if
         specified, or are all 1.  If the image is < 3D, then the missing
         dimensions will have a 1 in the matching diagonal.
     """
+    try:
+        in_shape, in_affine = mapped_voxels.shape, mapped_voxels.affine
+    except AttributeError:
+        in_shape, in_affine = mapped_voxels
     n_axes = len(in_shape)
     if n_axes > 3:
         raise ValueError('This function can only deal with 3D images')

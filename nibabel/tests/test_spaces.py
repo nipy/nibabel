@@ -5,7 +5,8 @@ import numpy as np
 import numpy.linalg as npl
 
 from ..spaces import vox2out_vox, slice2volume
-from ..affines import apply_affine
+from ..affines import apply_affine, from_matvec
+from ..nifti1 import Nifti1Image
 from ..eulerangles import euler2mat
 
 
@@ -36,71 +37,65 @@ def assert_all_in(in_shape, in_affine, out_shape, out_affine):
 
 def test_vox2out_vox():
     # Test world space bounding box
-    shape, aff = vox2out_vox((2, 3, 4), np.eye(4))
+    # Test basic case, identity, no voxel sizes passed
+    shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
     assert_array_equal(shape, (2, 3, 4))
-    assert_true(isinstance(shape, tuple))
-    assert_true(isinstance(shape[0], int))
     assert_array_equal(aff, np.eye(4))
-    assert_all_in((2, 3, 4), np.eye(4), shape, aff)
-    shape, aff = vox2out_vox((2, 3, 4), np.diag([-1, 1, 1, 1]))
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, [[1, 0, 0, -1], # axis reversed -> -ve offset
-                             [0, 1, 0, 0],
-                             [0, 0, 1, 0],
-                             [0, 0, 0, 1]])
-    assert_all_in((2, 3, 4), np.diag([-1, 1, 1, 1]), shape, aff)
-    # zooms for affine > 1 -> larger grid with default 1mm output voxels
-    shape, aff = vox2out_vox((2, 3, 4), np.diag([4, 5, 6, 1]))
-    assert_array_equal(shape, (5, 11, 19))
-    assert_array_equal(aff, np.eye(4))
-    assert_all_in((2, 3, 4), np.diag([4, 5, 6, 1]), shape, aff)
-    # set output voxels to be same size as input. back to original shape
-    shape, aff = vox2out_vox((2, 3, 4), np.diag([4, 5, 6, 1]), (4, 5, 6))
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, np.diag([4, 5, 6, 1]))
-    assert_all_in((2, 3, 4), np.diag([4, 5, 6, 1]), shape, aff)
-    # zero point preserved
-    in_aff = [[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]]
-    shape, aff = vox2out_vox((2, 3, 4), in_aff)
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, in_aff)
-    assert_all_in((2, 3, 4), in_aff, shape, aff)
-    in_aff = [[1, 0, 0, -1], [0, 1, 0, -2], [0, 0, 1, -3], [0, 0, 0, 1]]
-    shape, aff = vox2out_vox((2, 3, 4), in_aff)
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, in_aff)
-    assert_all_in((2, 3, 4), in_aff, shape, aff)
-    # rotation around third axis
-    in_aff = np.eye(4)
-    in_aff[:3, :3] = euler2mat(np.pi / 4)
-    shape, aff = vox2out_vox((2, 3, 4), in_aff)
-    # x diff, y diff now 3 cos pi / 4 == 2.12, ceil to 3, add 1
-    assert_array_equal(shape, (4, 4, 4))
-    # most negative x now 2 cos pi / 4
-    assert_almost_equal(aff, [[1, 0, 0, -2 * np.cos(np.pi / 4)],
-                              [0, 1, 0, 0],
-                              [0, 0, 1, 0],
-                              [0, 0, 0, 1]])
-    assert_all_in((2, 3, 4), in_aff, shape, aff)
+    # Some affines as input to the tests
+    trans_123 = [[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]]
+    trans_m123 = [[1, 0, 0, -1], [0, 1, 0, -2], [0, 0, 1, -3], [0, 0, 0, 1]]
+    rot_3 = from_matvec(euler2mat(np.pi / 4), [0, 0, 0])
+    for in_shape, in_aff, vox, out_shape, out_aff in (
+        # Identity
+        ((2, 3, 4), np.eye(4), None, (2, 3, 4), np.eye(4)),
+        # Flip first axis
+        ((2, 3, 4), np.diag([-1, 1, 1, 1]), None,
+         (2, 3, 4), [[1, 0, 0, -1], # axis reversed -> -ve offset
+                     [0, 1, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1]]),
+        # zooms for affine > 1 -> larger grid with default 1mm output voxels
+        ((2, 3, 4), np.diag([4, 5, 6, 1]), None,
+         (5, 11, 19), np.eye(4)),
+        # set output voxels to be same size as input. back to original shape
+        ((2, 3, 4), np.diag([4, 5, 6, 1]), (4, 5, 6),
+         (2, 3, 4), np.diag([4, 5, 6, 1])),
+        # Translation preserved in output
+        ((2, 3, 4), trans_123, None,
+         (2, 3, 4), trans_123),
+        ((2, 3, 4), trans_m123, None,
+         (2, 3, 4), trans_m123),
+        # rotation around 3rd axis
+        ((2, 3, 4), rot_3, None,
+         # x diff, y diff now 3 cos pi / 4 == 2.12, ceil to 3, add 1
+         # most negative x now 2 cos pi / 4
+         (4, 4, 4), [[1, 0, 0, -2 * np.cos(np.pi / 4)],
+                     [0, 1, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1]]),
+        # Less than 3 axes
+        ((2, 3), np.eye(4), None,
+         (2, 3),  np.eye(4)),
+        ((2,), np.eye(4), None,
+         (2,),  np.eye(4)),
+        # Number of voxel sizes matches length
+        ((2, 3), np.diag([4, 5, 6, 1]), (4, 5),
+         (2, 3), np.diag([4, 5, 1, 1])),
+    ):
+        img = Nifti1Image(np.ones(in_shape), in_aff)
+        for input in ((in_shape, in_aff), img):
+            shape, aff = vox2out_vox(input, vox)
+            assert_all_in(in_shape, in_aff, shape, aff)
+            assert_equal(shape, out_shape)
+            assert_almost_equal(aff, out_aff)
+            assert_true(isinstance(shape, tuple))
+            assert_true(isinstance(shape[0], int))
     # Enforce number of axes
-    assert_raises(ValueError, vox2out_vox, (2, 3, 4, 5), np.eye(4))
-    assert_raises(ValueError, vox2out_vox, (2, 3, 4, 5, 6), np.eye(4))
-    # Less than 3 is OK
-    shape, aff = vox2out_vox((2, 3), np.eye(4))
-    assert_array_equal(shape, (2, 3))
-    assert_array_equal(aff, np.eye(4))
-    assert_all_in((2, 3), np.eye(4), shape, aff)
-    shape, aff = vox2out_vox((2,), np.eye(4))
-    assert_array_equal(shape, (2,))
-    assert_array_equal(aff, np.eye(4))
-    assert_all_in((2,), np.eye(4), shape, aff)
-    # Number of voxel sizes matches length
-    shape, aff = vox2out_vox((2, 3), np.diag([4, 5, 6, 1]), (4, 5))
-    assert_array_equal(shape, (2, 3))
-    assert_array_equal(aff, np.diag([4, 5, 1, 1]))
+    assert_raises(ValueError, vox2out_vox, ((2, 3, 4, 5), np.eye(4)))
+    assert_raises(ValueError, vox2out_vox, ((2, 3, 4, 5, 6), np.eye(4)))
     # Voxel sizes must be positive
-    assert_raises(ValueError, vox2out_vox, (2, 3, 4), np.eye(4), [-1, 1, 1])
-    assert_raises(ValueError, vox2out_vox, (2, 3, 4), np.eye(4), [1, 0, 1])
+    assert_raises(ValueError, vox2out_vox, ((2, 3, 4), np.eye(4), [-1, 1, 1]))
+    assert_raises(ValueError, vox2out_vox, ((2, 3, 4), np.eye(4), [1, 0, 1]))
 
 
 def test_slice2volume():
