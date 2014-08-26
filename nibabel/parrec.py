@@ -86,29 +86,28 @@ from .py3k import asbytes
 
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
-from .volumeutils import Recoder, array_from_file, apply_read_scaling
-from .arrayproxy import ArrayProxy
-from .affines import from_matvec, dot_reduce
+from .volumeutils import Recoder, array_from_file, BinOpener
+from .affines import from_matvec, dot_reduce, apply_affine
 
 # PSL to RAS affine
-PSL_TO_RAS = np.array([[0, 0, -1, 0], # L -> R
-                       [-1, 0, 0, 0], # P -> A
-                       [0, 1, 0, 0],  # S -> S
+PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
+                       [-1, 0, 0, 0],  # P -> A
+                       [0, 1, 0, 0],   # S -> S
                        [0, 0, 0, 1]])
 
 # Acquisition (tra/sag/cor) to PSL axes
 # These come from looking at transverse, sagittal, coronal datasets where we
 # can see the LR, PA, SI orientation of the slice axes from the scanned object
 ACQ_TO_PSL = dict(
-    transverse = np.array([[  0,  1,  0, 0], # P
-                           [  0,  0,  1, 0], # S
-                           [  1,  0,  0, 0], # L
-                           [  0,  0,  0, 1]]),
-    sagittal = np.diag([1, -1, -1, 1]),
-    coronal = np.array([[  0,  0,  1, 0], # P
-                        [  0, -1,  0, 0], # S
-                        [  1,  0,  0, 0], # L
-                        [  0,  0,  0, 1]])
+    transverse=np.array([[0,  1,  0, 0],  # P
+                         [0,  0,  1, 0],  # S
+                         [1,  0,  0, 0],  # L
+                         [0,  0,  0, 1]]),
+    sagittal=np.diag([1, -1, -1, 1]),
+    coronal=np.array([[0,  0,  1, 0],  # P
+                      [0, -1,  0, 0],  # S
+                      [1,  0,  0, 0],  # L
+                      [0,  0,  0, 1]])
 )
 # PAR header versions we claim to understand
 supported_versions = ['V4.2']
@@ -331,10 +330,13 @@ def parse_PAR_header(fobj, permit_truncated=False):
     # there is some awkward exception to this rule for b-values > 2
     # XXX need to get test image...
     max_dti_volumes = ((general_info['max_diffusion_values'] - 1)
-                       * general_info['max_gradient_orient']) + 1
+                       * general_info['max_gradient_orient'])
     n_b = len(np.unique(image_defs['diffusion b value number']))
     n_grad = len(np.unique(image_defs['gradient orientation number']))
-    n_dti_volumes = (n_b - 1) * n_grad + 1
+    n_dti_volumes = (n_b - 1) * n_grad
+    # XXX TODO This needs to be a conditional!
+    max_dti_volumes += 1
+    n_dti_volumes += 1
     n_slices = len(np.unique(image_defs['slice number']))
     n_echoes = len(np.unique(image_defs['echo number']))
     n_dynamics = len(np.unique(image_defs['dynamic scan number']))
@@ -355,9 +357,76 @@ def parse_PAR_header(fobj, permit_truncated=False):
     return general_info, image_defs
 
 
+def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
+                   scaling=None):
+    """Get data from REC file
+
+    Parameters
+    ----------
+    rec_fileobj : file-like
+        The file to process.
+    in_shape : tuple
+        The input shape inferred from the PAR file.
+    dtype : dtype
+        The datatype.
+    slice_indices : array of int
+        The indices used to re-index the resulting array properly.
+    out_shape : tuple
+        The output shape.
+    scaling : array | None
+        Scaling to use.
+
+    Returns
+    -------
+    data : array
+        The scaled and sorted array.
+    """
+    rec_data = array_from_file(in_shape, dtype, rec_fileobj)
+    rec_data = rec_data[..., slice_indices]
+    rec_data = rec_data.reshape(out_shape, order='F')
+    if not scaling is None:
+         # Don't do in-place b/c this goes int16 -> float64
+        rec_data = rec_data * scaling[0] + scaling[1]
+    return rec_data
+
+
+class PARRECArrayProxy(object):
+    def __init__(self, file_like, header, scaling):
+        self.file_like = file_like
+        # Copies of values needed to read array
+        self._shape = header.get_data_shape()
+        self._dtype = header.get_data_dtype()
+        self._slice_indices = header.sorted_slice_indices
+        self._slice_scaling = header.get_data_scaling(scaling)
+        self._rec_shape = header.get_rec_shape()
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def is_proxy(self):
+        return True
+
+    def get_unscaled(self):
+        with BinOpener(self.file_like) as fileobj:
+            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
+                                  self._slice_indices, self._shape)
+
+    def __array__(self):
+        with BinOpener(self.file_like) as fileobj:
+            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
+                                  self._slice_indices, self._shape,
+                                  scaling=self._slice_scaling)
+
+
 class PARRECHeader(Header):
     """PAR/REC header"""
-    def __init__(self, info, image_defs, default_scaling='dv'):
+    def __init__(self, info, image_defs):
         """
         Parameters
         ----------
@@ -367,14 +436,10 @@ class PARRECHeader(Header):
         image_defs : array
           Structured array with image definitions from the PAR file (as
           returned by `parse_PAR_header()`).
-        default_scaling : {'dv', 'fp'}
-          Default scaling method to use for :meth:`get_slope_inter`` - see
-          :meth:`get_data_scaling` for detail
         """
         self.general_info = info
         self.image_defs = image_defs
         self._slice_orientation = None
-        self.default_scaling = default_scaling
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
@@ -403,42 +468,52 @@ class PARRECHeader(Header):
         return PARRECHeader(deepcopy(self.general_info),
                             self.image_defs.copy())
 
-    @property
-    def order_xytz(self):
-        order_rev = np.diff(self.image_defs['slice number'][:2])[0]
-        assert order_rev in (0, 1)
-        order_rev = (order_rev == 0)
-        return order_rev
+    def as_analyze_map(self):
+        return dict(descr="%s;%s;%s;%s"
+                    % (self.general_info['exam_name'],
+                       self.general_info['patient_name'],
+                       self.general_info['exam_date'].replace(' ', ''),
+                       self.general_info['protocol_name']))
 
-    def get_dwell_time(self, field_strength=3.):
-        """Calculate the dwell time of the recording
+    def get_water_fat_shift(self):
+        """Water fat shift, in pixels"""
+        return self.general_info['water_fat_shift']
 
-        Parameters
-        ----------
-        field_strength : float
-            Strength of the magnet in T, e.g. ``3.0`` for a 3T magnet
-            recording. Providing this value is necessary because the
-            field strength is not encoded in the PAR file.
+    def get_echo_train_length(self):
+        """Echo train length of the recording"""
+        return self.general_info['epi_factor']
+
+    def get_q_vectors(self):
+        """Get Q vectors from the data
 
         Returns
         -------
-        dwell_time : float
-            The dwell time in seconds. Returns None if the dwell
-            time cannot be calculated (i.e., not using an EPI sequence).
+        q_vectors : array
+            Array of q vectors (bvals * bvecs).
         """
-        field_strength = float(field_strength)  # Tesla
-        assert field_strength > 0.
-        water_fat_shift = self.general_info['water_fat_shift']  # pixels
-        echo_train_length = self.general_info['epi_factor']  # int
-        if echo_train_length <= 0:
-            return None
-        # constants
-        gyromagnetic_ratio = 42.57  # MHz/T
-        proton_water_fat_shift = 3.4  # ppm
-        dwell_time = ((echo_train_length - 1) * water_fat_shift /
-                      (gyromagnetic_ratio * proton_water_fat_shift
-                       * field_strength * (echo_train_length + 1)))
-        return dwell_time
+        bvals, bvecs = self.get_bvals_bvecs()
+        return bvecs * bvals[:, np.newaxis]
+
+    def get_bvals_bvecs(self):
+        """Get bvals and bvecs from data
+
+        Returns
+        -------
+        b_vals : array
+            Array of b values, shape (n_directions,).
+        b_vectors : array
+            Array of b vectors, shape (n_directions, 3).
+        """
+        reorder = self.sorted_slice_indices
+        bvals = self.image_defs['diffusion_b_factor'][reorder]
+        bvecs = self.image_defs['diffusion'][reorder]
+        shape = self.get_data_shape_in_file()
+        bvals = bvals[::shape[-1]]
+        bvecs = bvecs[::shape[-1]]
+        # rotate bvecs to match stored image orientation
+        permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
+        bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
+        return bvals, bvecs
 
     def _get_unique_image_prop(self, name):
         """Scan image definitions and return unique value of a property.
@@ -470,32 +545,6 @@ class PARRECHeader(Header):
                               'suppported.' % (name, uprops))
         else:
             return np.array([uprop[0] for uprop in uprops])
-
-    def _get_broadcastable_prop(self, name):
-        """Scan image definitions and return broadcastable value of a property.
-
-        If the requested property is an array this method gives
-        scale factors that can be combined and applied to the raw data.
-
-        Parameters
-        ----------
-        name : str
-            Name of the property
-
-        Returns
-        -------
-        value : array
-        """
-        dims = self.get_data_shape_in_file()[2:]
-        prop = self.image_defs[name]
-        # this will break for truncated recs, but it's probably okay for now
-        assert np.prod(dims) == len(prop)
-        if self.order_xytz:
-            prop = prop.reshape(dims)
-        else:
-            prop = prop.reshape(dims[::-1]).T
-        prop = prop[np.newaxis, np.newaxis, ...]  # array expansion
-        return prop
 
     def get_voxel_size(self):
         """Returns the spatial extent of a voxel.
@@ -679,24 +728,23 @@ class PARRECHeader(Header):
         FP = DV / (RS * SS)
         """
         # These will be 3D or 4D
-        scale_slope = self._get_broadcastable_prop('scale slope')
-        rescale_slope = self._get_broadcastable_prop('rescale slope')
-        rescale_intercept = self._get_broadcastable_prop('rescale intercept')
-
+        scale_slope = self.image_defs['scale slope']
+        rescale_slope = self.image_defs['rescale slope']
+        rescale_intercept = self.image_defs['rescale intercept']
         if method == 'dv':
-            slope = rescale_slope
-            intercept = rescale_intercept
+            slope, intercept = rescale_slope, rescale_intercept
         elif method == 'fp':
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
             raise ValueError("Unknown scling method '%s'." % method)
-        return (slope, intercept)
-
-    def get_slope_inter(self):
-        """ Utility method to get default slope, intercept scaling arrays
-        """
-        return self.get_data_scaling(method=self.default_scaling)
+        reorder = self.sorted_slice_indices
+        slope = slope[reorder]
+        intercept = intercept[reorder]
+        shape = (1, 1) + self.get_data_shape()[2:]
+        slope = slope.reshape(shape, order='F')
+        intercept = intercept.reshape(shape, order='F')
+        return slope, intercept
 
     def get_slice_orientation(self):
         """Returns the slice orientation label.
@@ -706,56 +754,26 @@ class PARRECHeader(Header):
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
-            self._slice_orientation = \
-                slice_orientation_codes.label[
-                    self._get_unique_image_prop('slice orientation')[0]]
+            lab = self._get_unique_image_prop('slice orientation')[0]
+            self._slice_orientation = slice_orientation_codes.label[lab]
         return self._slice_orientation
 
-    def raw_data_from_fileobj(self, fileobj):
-        ''' Read unscaled data array from `fileobj`
+    def get_rec_shape(self):
+        inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
+        return inplane_shape + (len(self.image_defs),)
 
-        Array axes correspond to x,y,z,t. For other orderings, you
-        must reorder after the fact.
+    @property
+    def sorted_slice_indices(self):
+        """Indices to sort (and maybe discard) slices in REC file
 
-        Parameters
-        ----------
-        fileobj : file-like
-            Must be open, and implement ``read`` and ``seek`` methods
-
-        Returns
-        -------
-        arr : ndarray
-           unscaled data array
-        '''
-        dtype = self.get_data_dtype()
-        shape = self.get_data_shape()
-        offset = self.get_data_offset()
-        return array_from_file(shape, dtype, fileobj, offset)
-
-    def data_from_fileobj(self, fileobj):
-        ''' Read scaled data array from `fileobj`
-
-        Use this routine to get the scaled image data from an image file
-        `fileobj`, given a header `self`.  "Scaled" means, with any header
-        scaling factors applied to the raw data in the file.  Use
-        `raw_data_from_fileobj` to get the raw data.
-
-        Parameters
-        ----------
-        fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
-
-        Returns
-        -------
-        arr : ndarray
-           scaled data array
-        '''
-        # read unscaled data
-        data = self.raw_data_from_fileobj(fileobj)
-        # get scalings from header.  Value of None means not present in header
-        slope, inter = self.get_slope_inter()
-        # Upcast as necessary for big slopes, intercepts
-        return apply_read_scaling(data, slope, inter)
+        Returns list for indexing into a single dimension of an array.
+        """
+        # No attempt to detect missing combinations or early stop
+        keys = ['slice number', 'scanning sequence', 'image_type_mr',
+                'gradient orientation number', 'dynamic scan number',
+                'echo number']
+        keys = [self.image_defs[k] for k in keys]
+        return np.lexsort(keys)
 
 
 class PARRECImage(SpatialImage):
@@ -763,24 +781,21 @@ class PARRECImage(SpatialImage):
     header_class = PARRECHeader
     files_types = (('image', '.rec'), ('header', '.par'))
 
-    ImageArrayProxy = ArrayProxy
+    ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map, permit_truncated=False):
+    def from_file_map(klass, file_map, permit_truncated, scaling):
         pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj,
                                                   permit_truncated=pt)
         rec_fobj = file_map['image'].get_prepare_fileobj()
-        data = klass.ImageArrayProxy(rec_fobj, hdr)
-        return klass(data,
-                     hdr.get_affine(),
-                     header=hdr,
-                     extra=None,
+        data = klass.ImageArrayProxy(rec_fobj, hdr, scaling)
+        return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
 
-def load(filename, permit_truncated=False):
+def load(filename, permit_truncated=False, scaling='dv'):
     file_map = PARRECImage.filespec_to_file_map(filename)
-    return PARRECImage.from_file_map(file_map, permit_truncated)
+    return PARRECImage.from_file_map(file_map, permit_truncated, scaling)
 load.__doc__ = PARRECImage.load.__doc__

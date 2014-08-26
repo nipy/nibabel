@@ -12,7 +12,7 @@ import nibabel
 import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
-from nibabel.volumeutils import seek_tell
+from nibabel.volumeutils import seek_tell, array_to_file
 
 # global verbosity switch
 verbose_switch = False
@@ -26,72 +26,82 @@ def get_opt_parser():
 
     p.add_option(
         Option("-v", "--verbose", action="store_true", dest="verbose",
-               default=False, help="Make some noise."))
+               default=False,
+               help="""Make some noise."""))
     p.add_option(
         Option("-o", "--output-dir", action="store", type="string",
-               dest="outdir", default=None, help="""
-Destination directory for NIfTI files. Default: current directory."""))
+               dest="outdir", default=None,
+               help="""Destination directory for NIfTI files.
+                       Default: current directory."""))
     p.add_option(
         Option("-c", "--compressed", action="store_true",
                dest="compressed", default=False,
                help="Whether to write compressed NIfTI files or not."))
     p.add_option(
         Option("-p", "--permit-truncated", action="store_true",
-               dest="permit_truncated", default=False, help="""
-Permit conversion of truncated recordings. Support for this is experimental,
-and results *must* be checked afterward for validity."""))
+               dest="permit_truncated", default=False,
+               help="""Permit conversion of truncated recordings. Support for
+                       this is experimental, and results *must* be checked
+                       afterward for validity."""))
     p.add_option(
         Option("-b", "--bvs", action="store_true", dest="bvs", default=False,
-               help="""
-Output bvals/bvecs files in addition to NIFTI image."""))
+               help="""Output bvals/bvecs files in addition to NIFTI
+                       image."""))
     p.add_option(
         Option("-d", "--dwell-time", action="store_true", default=False,
                dest="dwell_time",
-               help="""
-Calculate the scan dwell time. If supplied, the magnetic field strength
-should also be supplied using --field-strength (default 3). The field strength
-must be supplied because it is not encoded in the PAR/REC format."""))
+               help="""Calculate the scan dwell time. If supplied, the magnetic
+                       field strength should also be supplied using
+                       --field-strength (default 3). The field strength
+                       must be supplied because it is not encoded in the
+                       PAR/REC format."""))
     p.add_option(
         Option("--field-strength", action="store", default=3., type="float",
-               dest="field_strength", help="""
-The magnetic field strength of the recording, only needed for --dwell-time.
-The field strength must be supplied because it is not encoded in the PAR/REC
-format."""))
+               dest="field_strength",
+               help="""The magnetic field strength of the recording, only
+                       needed for --dwell-time. The field strength must be
+                       supplied because it is not encoded in the PAR/REC
+                       format."""))
     p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
-               help="""
-Reference point of the q-form transformation of the NIfTI image. If 'scanner'
-the (0,0,0) coordinates will refer to the scanner's iso center. If 'fov', this
-coordinate will be the center of the recorded volume (field of view). Default:
-'scanner'."""))
+               help="""Reference point of the q-form transformation of the
+                       NIfTI image. If 'scanner' the (0,0,0) coordinates will
+                       refer to the scanner's iso center. If 'fov', this
+                       coordinate will be the center of the recorded volume
+                       (field of view). Default: 'scanner'."""))
     p.add_option(
-        Option("--minmax", action="store", nargs=2, dest="minmax", help="""
-Mininum and maximum settings to be stored in the NIfTI header. If any of
-them is set to 'parse', the scaled data is scanned for the actual minimum and
-maximum. To bypass this potentially slow and memory intensive step (the data
-has to be scaled and fully loaded into memory), fixed values can be provided as
-space-separated pair, e.g. '5.4 120.4'. It is possible to set a fixed minimum
-as scan for the actual maximum (and vice versa). Default: 'parse parse'."""))
+        Option("--minmax", action="store", nargs=2, dest="minmax",
+               help="""Mininum and maximum settings to be stored in the NIfTI
+                       header. If any of them is set to 'parse', the scaled
+                       data is scanned for the actual minimum and maximum.
+                       To bypass this potentially slow and memory intensive
+                       step (the data has to be scaled and fully loaded into
+                       memory), fixed values can be provided as space-separated
+                       pair, e.g. '5.4 120.4'. It is possible to set a fixed
+                       minimum as scan for the actual maximum (and vice versa).
+                       Default: 'parse parse'."""))
     p.set_defaults(minmax=('parse', 'parse'))
     p.add_option(
         Option("--store-header", action="store_true", dest="store_header",
-               default=False, help="""
-If set, all information from the PAR header is stored in an extension of
-the NIfTI file header. Default: off"""))
+               default=False,
+               help="""If set, all information from the PAR header is stored
+                       in an extension ofthe NIfTI file header.
+                       Default: off"""))
     p.add_option(
         Option("--scaling", action="store", dest="scaling", default='dv',
-               help="""
-Choose data scaling setting. The PAR header defines two different data
-scaling settings: 'dv' (values displayed on console) and 'fp' (floating point
-values). Either one can be chosen, or scaling can be disabled completely
-('off').  Note that neither method will actually scale the data, but just store
-the corresponding settings in the NIfTI header, unless non-uniform scaling
-is used, in which case the data is stored in the file in scaled form.
-Default: 'dv'"""))
+               help="""Choose data scaling setting. The PAR header defines two
+                       different data scaling settings: 'dv' (values displayed
+                       on console) and 'fp' (floating point values). Either
+                       one can be chosen, or scaling can be disabled completely
+                       ('off').  Note that neither method will actually scale
+                       the data, but just store the corresponding settings in
+                       the NIfTI header, unless non-uniform scaling is used,
+                       in which case the data is stored in the file in scaled
+                       form. Default: 'dv'"""))
     p.add_option(
         Option("--overwrite", action="store_true", dest="overwrite",
-               default=False, help="""
-Overwrite file if it exists. Default: False"""))
+               default=False,
+               help="""Overwrite file if it exists. Default: False"""))
     return p
 
 
@@ -122,29 +132,13 @@ def proc_file(infile, opts):
         raise IOError('Output file "%s" exists, use --overwrite to '
                       'overwrite it' % outfilename)
 
-    # load the PAR header
-    pr_img = pr.load(infile, opts.permit_truncated)
+    # load the PAR header and data
+    scaling = None if opts.scaling == 'off' else opts.scaling
+    pr_img = pr.load(infile, opts.permit_truncated, scaling)
     pr_hdr = pr_img.header
-
-    # get the raw unscaled data form the REC file
     raw_data = pr_img.dataobj.get_unscaled()
-
-    # determine if our order is XYTZ instead of XYZT (Phillips scanners)
-    # If it's XYZT, then the slice number (Z) will iterate slowest (no diff)
-    order_rev = pr_hdr.order_xytz
-    if raw_data.ndim > 3 and order_rev:
-        verbose('XYTZ order detected, reordering data')
-        assert raw_data.flags['C_CONTIGUOUS'] is True
-        reorder = [0, 1, 3, 2]
-        raw_data = np.reshape(raw_data, [raw_data.shape[n] for n in reorder],
-                              order='F')
-        raw_data = np.transpose(raw_data, reorder)
-
-    # compute affine with desired origin
     affine = pr_hdr.get_affine(origin=opts.origin)
-
-    # create an nifti image instance -- to get a matching header
-    nimg = nifti1.Nifti1Image(raw_data, affine)
+    nimg = nifti1.Nifti1Image(raw_data, affine, pr_hdr)
     nhdr = nimg.header
 
     if 'parse' in opts.minmax:
@@ -165,26 +159,14 @@ def proc_file(infile, opts):
         nhdr.structarr['cal_max'] = float(opts.minmax[1])
 
     # container for potential NIfTI1 header extensions
-    exts = nifti1.Nifti1Extensions()
-
     if opts.store_header:
+        exts = nifti1.Nifti1Extensions()
         # dump the full PAR header content into an extension
-        fobj = open(infile, 'r')
-        hdr_dump = fobj.read()
-        dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
-        fobj.close()
+        with open(infile, 'r') as fobj:
+            hdr_dump = fobj.read()
+            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
         exts.append(dump_ext)
-
-    # put any extensions into the image
-    nimg.extra['extensions'] = exts
-
-    # image description
-    descr = "%s;%s;%s;%s" % (
-        pr_hdr.general_info['exam_name'],
-        pr_hdr.general_info['patient_name'],
-        pr_hdr.general_info['exam_date'].replace(' ', ''),
-        pr_hdr.general_info['protocol_name'])
-    nhdr.structarr['descrip'] = descr[:80]
+        nimg.extra['extensions'] = exts
 
     if pr_hdr.general_info['max_dynamics'] > 1:
         # fMRI
@@ -194,25 +176,6 @@ def proc_file(infile, opts):
     else:
         # anatomical or DTI
         nhdr.set_xyzt_units('mm', 'unknown')
-
-    # get original scaling, and decide if we scale in-place or not
-    scale_data = False
-    if opts.scaling == 'off':
-        slope = 1.
-        intercept = 0.
-    else:
-        verbose('Using data scaling "%s"' % opts.scaling)
-        slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
-        uni_s = np.unique(slope)
-        uni_i = np.unique(intercept)
-        if len(uni_s) == 1 and len(uni_i) == 1:
-            slope = uni_s[0]
-            intercept = uni_i[0]
-        else:
-            verbose("Multiple scale-factors detected, data will be saved "
-                    "in scaled form")
-            scale_data = True
-
     # finalize the header: set proper data offset, pixdims, ...
     nimg.update_header()
 
@@ -223,76 +186,50 @@ def proc_file(infile, opts):
     else:
         outfile = open(outfilename, 'wb')
 
-    try:
-        verbose('Writing %s' % outfilename)
-        # first write the header
-        if scale_data:
-            data = ((raw_data * slope) + intercept).astype(raw_data.dtype)
-            nhdr.set_slope_inter(1., 0.)
-        else:
-            nhdr.set_slope_inter(slope, intercept)
-            data = raw_data
-        nhdr.write_to(outfile)
-        # Now the data
-        offset = nhdr.get_data_offset()
-        seek_tell(outfile, offset, write0=True)
-        nibabel.volumeutils.array_to_file(data, outfile, offset=offset)
-    finally:
-        outfile.close()
+    # get original scaling, and decide if we scale in-place or not
+    if opts.scaling == 'off':
+        slope = np.array([1.])
+        intercept = np.array([0.])
+    else:
+        verbose('Using data scaling "%s"' % opts.scaling)
+        slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+    verbose('Writing %s' % outfilename)
+    if not np.any(np.diff(slope)) and not np.any(np.diff(intercept)):
+        # Single scalefactor case
+        nhdr.set_slope_inter(slope.ravel()[0], intercept.ravel()[0])
+        data = raw_data
+    else:
+        # Multi scalefactor case
+        nhdr.set_slope_inter(1, 0)
+        nhdr.set_data_dtype(np.float64)
+        data = pr_img.dataobj.__array__()
+    nhdr.write_to(outfile)
+    offset = nhdr.get_data_offset()
+    seek_tell(outfile, offset, write0=True)
+    array_to_file(data, outfile, offset=offset)
 
     # write out bvals/bvecs if requested
     if opts.bvs and pr_hdr.general_info['n_dti_volumes'] > 1:
         verbose('Writing .bvals and .bvecs files')
-        # bvals
-        gen_info = pr_hdr.general_info
-        shape = (gen_info['n_dti_volumes'], gen_info['n_slices'])
-        shape = (shape[1], shape[0]) if order_rev else shape
-        bvals = np.reshape(pr_hdr.image_defs['diffusion_b_factor'], shape)
-        bvals = bvals.T if order_rev else bvals
-        if not np.all(np.diff(bvals, axis=1) == 0):
-            raise RuntimeError('Could not output bvals: inconsistent values')
-
-        # bvecs
-        shape = (3, pr_hdr.general_info['n_dti_volumes'],
-                 pr_hdr.general_info['n_slices'])
-        shape = (shape[0], shape[2], shape[1]) if order_rev else shape
-        bvecs = np.reshape(pr_hdr.image_defs['diffusion'].T, shape)
-        bvecs = np.swapaxes(bvecs, 2, 1) if order_rev else bvecs
-        if not np.all(np.diff(bvecs, axis=2) == 0):
-            raise RuntimeError('Could not output bvecs: inconsistent values')
-        bvecs = bvecs[:, :, 0]
-
-        # restore XYZ order to bvecs
-        assert np.all(bvecs[:, 0] == 0)  # first col should be zeros
-        order = []
-        mults = []
-        for ii in range(3):
-            idx = np.where(bvecs[:, ii+1] != 0)[0]
-            assert len(idx) == 1
-            order.append(idx[0])
-            mults.append(bvecs[idx[0], ii+1])
-        assert np.array_equal(np.unique(order), [0, 1, 2])
-        assert np.array_equal(np.abs(mults), [1, 1, 1])
-        bvecs = bvecs[order] * np.array(mults)[:, np.newaxis]
-        bvecs[bvecs == -0.0] = 0.0
-
-        # Actually write files
+        bvals, bvecs = pr_hdr.get_bvals_bvecs()
         bval_fname = basefilename + '.bvals'
         bvec_fname = basefilename + '.bvecs'
         with open(bval_fname, 'w') as fid:
             # np.savetxt could do this, but it's just a loop anyway
-            for val in bvals[:, 0]:
+            for val in bvals:
                 fid.write('%s ' % val)
             fid.write('\n')
         with open(bvec_fname, 'w') as fid:
-            for row in bvecs:
+            for row in bvecs.T:
                 for val in row:
                     fid.write('%s ' % val)
                 fid.write('\n')
     elif opts.bvs:
         verbose('No DTI volumes detected, bvals and bvecs not written')
     if opts.dwell_time:
-        dwell_time = pr_hdr.get_dwell_time(opts.field_strength)
+        dwell_time = nibabel.calculate_dwell_time(
+            pr_hdr.get_water_fat_shift(), pr_hdr.get_echo_train_length(),
+            opts.field_strength)
         if dwell_time is None:
             verbose('No EPI factors, dwell time not written')
         else:
@@ -322,6 +259,8 @@ def main():
             proc_file(infile, opts)
         except Exception as e:
             errs.append('%s: %s' % (infile, e))
+            raise  # XXX REMOVE
+        print('')
 
     if len(errs):
         error('Caught %i exceptions. Dump follows:\n\n %s'
