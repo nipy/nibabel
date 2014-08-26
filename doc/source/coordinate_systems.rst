@@ -21,7 +21,7 @@ Introducing Someone
 We have scanned someone called "Someone", and we have a two MRI images of
 their brain, a single EPI volume, and a structural scan.  In general we never
 use the person's name in the image filenames, but we make an
-exception in this case: 
+exception in this case:
 
 * :download:`somones_epi.nii.gz </downloads/someones_epi.nii.gz>`.
 * :download:`somones_anatomy.nii.gz </downloads/someones_anatomy.nii.gz>`.
@@ -309,6 +309,33 @@ relationship between $(i, j, k)$ and $(x, y, z)$ is linear (actually
 comprising translations, rotations and zooms (`wikipedia linear transform`_,
 `wikipedia affine transform`_).
 
+Scaling (zooming) in three dimensions can be represented by a diagonal 3 by 3
+matrix.  Here's how to zoom the first dimension by $p$, the second by $q$ and
+the third by $r$ units:
+
+.. math::
+
+    \begin{bmatrix}
+    x\\
+    y\\
+    z\\
+    \end{bmatrix} =
+    \begin{bmatrix}
+    p i\\
+    q j\\
+    r k\\
+    \end{bmatrix} =
+    \begin{bmatrix}
+    p & 0 & 0 \\
+    0 & q & 0 \\
+    0 & 0 & r \\
+    \end{bmatrix}
+    \begin{bmatrix}
+    i\\
+    j\\
+    k\\
+    \end{bmatrix}
+
 A rotation in three dimensions can be represented as a 3 by 3 *rotation
 matrix* (`wikipedia rotation matrix`_).  For example, here is a rotation by
 $\theta$ radians around the third array axis:
@@ -373,9 +400,11 @@ A rotation of $\gamma$ radians around the first array axis:
     k\\
     \end{bmatrix}
 
-Scaling (zooming) in three dimensions can be represented by a diagonal 3 by 3
-matrix.  Here's how to zoom the first dimension by $p$, the second by $q$ and
-the third by $r$ units:
+Zoom and rotation matrices can be combined by matrix multiplication.
+
+Here's a scaling of $p, q, r$ units followed by a rotation of $\theta$ radians
+around the third axis followed by a rotation of $\phi$ radians around the
+second axis:
 
 .. math::
 
@@ -384,33 +413,6 @@ the third by $r$ units:
     y\\
     z\\
     \end{bmatrix} =
-    \begin{bmatrix}
-    p & 0 & 0 \\
-    0 & q & 0 \\
-    0 & 0 & r \\
-    \end{bmatrix}
-    \begin{bmatrix}
-    i\\
-    j\\
-    k\\
-    \end{bmatrix}
-
-Rotations and zoom matrices can by combined by matrix multiplication.  Here's
-a rotation of $\theta$ radians around the third axis followed by a rotation of
-$\phi$ radians around the second axis, followed by scaling of $p, q, r$ units:
-
-.. math::
-
-    \begin{bmatrix}
-    x\\
-    y\\
-    z\\
-    \end{bmatrix} =
-    \begin{bmatrix}
-    p & 0 & 0 \\
-    0 & q & 0 \\
-    0 & 0 & r \\
-    \end{bmatrix}
     \begin{bmatrix}
     \cos(\phi) & 0 & \sin(\phi) \\
     0 & 1 & 0 \\
@@ -420,6 +422,11 @@ $\phi$ radians around the second axis, followed by scaling of $p, q, r$ units:
     \cos(\theta) &  -\sin(\theta) & 0 \\
     \sin(\theta) & \cos(\theta) & 0 \\
     0 & 0 & 1 \\
+    \end{bmatrix}
+    \begin{bmatrix}
+    p & 0 & 0 \\
+    0 & q & 0 \\
+    0 & 0 & r \\
     \end{bmatrix}
     \begin{bmatrix}
     i\\
@@ -433,11 +440,6 @@ This can also be written:
 
     M =
     \begin{bmatrix}
-    p & 0 & 0 \\
-    0 & q & 0 \\
-    0 & 0 & r \\
-    \end{bmatrix}
-    \begin{bmatrix}
     \cos(\phi) & 0 & \sin(\phi) \\
     0 & 1 & 0 \\
     -\sin(\phi) & 0 & \cos(\phi) \\
@@ -446,6 +448,11 @@ This can also be written:
     \cos(\theta) &  -\sin(\theta) & 0 \\
     \sin(\theta) & \cos(\theta) & 0 \\
     0 & 0 & 1 \\
+    \end{bmatrix}
+    \begin{bmatrix}
+    p & 0 & 0 \\
+    0 & q & 0 \\
+    0 & 0 & r \\
     \end{bmatrix}
 
     \begin{bmatrix}
