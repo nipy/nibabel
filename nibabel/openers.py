@@ -64,8 +64,6 @@ class Opener(object):
         if not isfile(fileish):
             if isfile(_ + ext.upper()):
                 fileish = _ + ext.upper()
-            else:
-                raise IOError('File not found: %s' % fileish)
         if ext in self.compress_ext_map:
             is_compressor = True
             opener, arg_names = self.compress_ext_map[ext]
