@@ -8,6 +8,13 @@ import numpy as np
 from .externals.six.moves import reduce
 
 
+class AffineError(ValueError):
+    """ Errors in calculating or using affines """
+    # Inherits from ValueError to keep compatibility with ValueError previously
+    # raised in append_diag
+    pass
+
+
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
 
@@ -213,7 +220,7 @@ def append_diag(aff, steps, starts=()):
     if len(starts) == 0:
         starts = np.zeros(n_steps, dtype=steps.dtype)
     elif len(starts) != n_steps:
-        raise ValueError('Steps should have same length as starts')
+        raise AffineError('Steps should have same length as starts')
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
     aff_plus = np.zeros((old_n_out + n_steps + 1,
