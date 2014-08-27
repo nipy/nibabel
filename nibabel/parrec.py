@@ -88,6 +88,7 @@ from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, BinOpener
 from .affines import from_matvec, dot_reduce, apply_affine
+from .nifti1 import unit_codes
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
@@ -469,11 +470,20 @@ class PARRECHeader(Header):
                             self.image_defs.copy())
 
     def as_analyze_map(self):
-        return dict(descr="%s;%s;%s;%s"
-                    % (self.general_info['exam_name'],
-                       self.general_info['patient_name'],
-                       self.general_info['exam_date'].replace(' ', ''),
-                       self.general_info['protocol_name']))
+        """Convert PAR parameters to NIFTI1 format"""
+        # Entries in the dict correspond to the parameters found in
+        # the NIfTI1 header, specifically in nifti1.py `header_dtd` defs.
+        # Here we set the parameters we can to simplify PAR/REC
+        # to NIfTI conversion.
+        descr = ("%s;%s;%s;%s"
+                 % (self.general_info['exam_name'],
+                    self.general_info['patient_name'],
+                    self.general_info['exam_date'].replace(' ', ''),
+                    self.general_info['protocol_name']))[:80]  # max len
+        is_fmri = (self.general_info['max_dynamics'] > 1)
+        t = 'msec' if is_fmri else 'unknown'
+        xyzt_units = unit_codes['mm'] + unit_codes[t]
+        return dict(descr=descr, xyzt_units=xyzt_units)  # , pixdim=pixdim)
 
     def get_water_fat_shift(self):
         """Water fat shift, in pixels"""
@@ -507,7 +517,7 @@ class PARRECHeader(Header):
         reorder = self.sorted_slice_indices
         bvals = self.image_defs['diffusion_b_factor'][reorder]
         bvecs = self.image_defs['diffusion'][reorder]
-        shape = self.get_data_shape_in_file()
+        shape = self.get_data_shape()
         bvals = bvals[::shape[-1]]
         bvecs = bvecs[::shape[-1]]
         # rotate bvecs to match stored image orientation
@@ -595,12 +605,9 @@ class PARRECHeader(Header):
         # voxel size (inplaneX, inplaneY, slices)
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
-        # time axis?
         if len(zooms) > 3 and self.general_info['n_dynamics'] > 1:
-            # DTI also has 4D
             # Convert time from milliseconds to seconds
             zooms[3] = self.general_info['repetition_time'] / 1000.
-        # we leave it at the default (1) for 4D echo data
         return zooms
 
     def get_affine(self, origin='scanner'):
@@ -767,13 +774,19 @@ class PARRECHeader(Header):
         """Indices to sort (and maybe discard) slices in REC file
 
         Returns list for indexing into a single dimension of an array.
+
+        If the recording is truncated, this will take care of discarding
+        any indices that are not meant to be used.
         """
         # No attempt to detect missing combinations or early stop
         keys = ['slice number', 'scanning sequence', 'image_type_mr',
                 'gradient orientation number', 'dynamic scan number',
                 'echo number']
         keys = [self.image_defs[k] for k in keys]
-        return np.lexsort(keys)
+        # Figure out how many we need to remove from the end, and trim them
+        # Based on our sorting, they should always be last
+        n_used = np.prod(self.get_data_shape()[2:])
+        return np.lexsort(keys)[:n_used]
 
 
 class PARRECImage(SpatialImage):

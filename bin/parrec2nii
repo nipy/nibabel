@@ -167,15 +167,6 @@ def proc_file(infile, opts):
             dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
         exts.append(dump_ext)
         nimg.extra['extensions'] = exts
-
-    if pr_hdr.general_info['max_dynamics'] > 1:
-        # fMRI
-        nhdr.structarr['pixdim'][4] = pr_hdr.general_info['repetition_time']
-        # store units -- always mm and msec
-        nhdr.set_xyzt_units('mm', 'msec')
-    else:
-        # anatomical or DTI
-        nhdr.set_xyzt_units('mm', 'unknown')
     # finalize the header: set proper data offset, pixdims, ...
     nimg.update_header()
 
@@ -212,20 +203,20 @@ def proc_file(infile, opts):
     if opts.bvs and pr_hdr.general_info['n_dti_volumes'] > 1:
         verbose('Writing .bvals and .bvecs files')
         bvals, bvecs = pr_hdr.get_bvals_bvecs()
-        bval_fname = basefilename + '.bvals'
-        bvec_fname = basefilename + '.bvecs'
-        with open(bval_fname, 'w') as fid:
+        with open(basefilename + '.bvals', 'w') as fid:
             # np.savetxt could do this, but it's just a loop anyway
             for val in bvals:
                 fid.write('%s ' % val)
             fid.write('\n')
-        with open(bvec_fname, 'w') as fid:
+        with open(basefilename + '.bvecs', 'w') as fid:
             for row in bvecs.T:
                 for val in row:
                     fid.write('%s ' % val)
                 fid.write('\n')
     elif opts.bvs:
         verbose('No DTI volumes detected, bvals and bvecs not written')
+
+    # write out dwell time if requested
     if opts.dwell_time:
         dwell_time = nibabel.calculate_dwell_time(
             pr_hdr.get_water_fat_shift(), pr_hdr.get_echo_train_length(),
@@ -235,8 +226,7 @@ def proc_file(infile, opts):
         else:
             verbose('Writing dwell time (%r sec) calculated assuming %sT '
                     'magnet' % (dwell_time, opts.field_strength))
-            dwell_fname = basefilename + '.dwell_time'
-            with open(dwell_fname, 'w') as fid:
+            with open(basefilename + '.dwell_time', 'w') as fid:
                 fid.write('%r\n' % dwell_time)
     # done
 
