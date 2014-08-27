@@ -5,6 +5,7 @@ import sys
 PY2 = sys.version_info[0] < 3
 
 import numpy as np
+import warnings
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
@@ -92,9 +93,11 @@ def test_check_nmant_nexp():
         assert_true(_check_nmant(t, nmant))
         assert_false(_check_nmant(t, nmant - 1))
         assert_false(_check_nmant(t, nmant + 1))
-        assert_true(_check_maxexp(t, maxexp))
+        with warnings.catch_warnings(record=True):  # overflow
+            assert_true(_check_maxexp(t, maxexp))
         assert_false(_check_maxexp(t, maxexp - 1))
-        assert_false(_check_maxexp(t, maxexp + 1))
+        with warnings.catch_warnings(record=True):
+            assert_false(_check_maxexp(t, maxexp + 1))
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)

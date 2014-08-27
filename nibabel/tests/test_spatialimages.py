@@ -10,7 +10,7 @@
 
 """
 from ..externals.six import BytesIO
-
+import warnings
 import numpy as np
 
 from ..spatialimages import (Header, SpatialImage, HeaderDataError,
@@ -292,9 +292,10 @@ class TestSpatialImage(TestCase):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
         img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (1,))
-        img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (2,3,4))
+        with warnings.catch_warnings(record=True):
+            assert_equal(img.get_shape(), (1,))
+            img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
+            assert_equal(img.get_shape(), (2,3,4))
 
     def test_get_data(self):
         # Test array image and proxy image interface

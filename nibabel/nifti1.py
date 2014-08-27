@@ -1061,7 +1061,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise HeaderDataError('Slope cannot be 0 or infinite')
         if inter in (np.inf, -np.inf):
             raise HeaderDataError('Intercept cannot be infinite')
-        if np.diff(np.isnan([slope, inter])):
+        if np.isnan(slope) ^ np.isnan(inter):
             raise HeaderDataError('None or both of slope, inter should be nan')
         self._structarr['scl_slope'] = slope
         self._structarr['scl_inter'] = inter

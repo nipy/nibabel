@@ -256,7 +256,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_data_shape((too_big-1, 1, 1))
         assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
         # The freesurfer case
-        hdr.set_data_shape((too_big, 1, 1))
+        with warnings.catch_warnings(record=True):
+            hdr.set_data_shape((too_big, 1, 1))
         assert_equal(hdr.get_data_shape(), (too_big, 1, 1))
         assert_array_equal(hdr['dim'][:4], [3, -1, 1, 1])
         assert_equal(hdr['glmin'], too_big)
@@ -270,7 +271,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, too_big))
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
-        hdr.set_data_shape((far_too_big-1, 1, 1))
+        with warnings.catch_warnings(record=True):
+            hdr.set_data_shape((far_too_big-1, 1, 1))
         assert_equal(hdr.get_data_shape(), (far_too_big-1, 1, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big,1,1))
         # glmin of zero raises error (implausible vector length)
@@ -280,7 +282,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # Lists or tuples or arrays will work for setting shape
         for shape in ((too_big-1, 1, 1), (too_big, 1, 1)):
             for constructor in (list, tuple, np.array):
-                hdr.set_data_shape(constructor(shape))
+                with warnings.catch_warnings(record=True):
+                    hdr.set_data_shape(constructor(shape))
                 assert_equal(hdr.get_data_shape(), shape)
 
     def test_qform_sform(self):

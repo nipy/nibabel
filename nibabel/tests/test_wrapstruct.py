@@ -24,7 +24,7 @@ With deprecation warnings
 _field_recoders -> field_recoders
 '''
 import logging
-
+import warnings
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
@@ -169,7 +169,7 @@ class _TestWrapStructBase(TestCase):
         logger.addHandler(handler)
         str_io.truncate(0)
         hdrc = hdr.copy()
-        if level == 0: # Should never log or raise error
+        if level == 0:  # Should never log or raise error
             logger.setLevel(0)
             hdrc.check_fix(logger=logger, error_level=0)
             assert_equal(str_io.getvalue(), '')
@@ -228,7 +228,8 @@ class _TestWrapStructBase(TestCase):
         bb_bad = self.get_bad_bb()
         if bb_bad is None:
             return
-        assert_raises(HeaderDataError, self.header_class, bb_bad)
+        with imageglobals.LoggingOutputSuppressor():
+            assert_raises(HeaderDataError, self.header_class, bb_bad)
         # now slips past without check
         _ = self.header_class(bb_bad, check=False)
 

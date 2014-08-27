@@ -125,9 +125,9 @@ def test_array_to_file():
         for code in '<>':
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
-                scale, intercept, mn, mx = calculate_scale(arr,
-                                                           ndt,
-                                                           allow_intercept)
+                with warnings.catch_warnings(record=True):  # deprecated
+                    scale, intercept, mn, mx = \
+                        calculate_scale(arr, ndt, allow_intercept)
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
@@ -188,7 +188,8 @@ def test_a2f_min_max():
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
     # Check complex numbers
     arr = np.arange(4, dtype=np.complex64) + 100j
-    data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
+    with warnings.catch_warnings(record=True):  # cast to real
+        data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
     assert_array_equal(data_back, [1, 1, 2, 2])
 
 
@@ -307,8 +308,9 @@ def test_a2f_big_scalers():
     # We check whether the routine correctly clips extreme values.
     # We need nan2zero=False because we can't represent 0 in the input, given
     # the scaling and the output range.
-    array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
-                  nan2zero=False)
+    with warnings.catch_warnings(record=True):  # overflow
+        array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
+                      nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, -128, 127])
     # Scales also if mx, mn specified? Same notes and complaints as for the test
@@ -320,8 +322,9 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, -128, 127])
     # And if slope causes overflow?
     str_io.seek(0)
-    array_to_file(arr, str_io, np.int8, divslope=np.float32(0.5))
-    data_back = array_from_file(arr.shape, np.int8, str_io)
+    with warnings.catch_warnings(record=True):  # overflow in divide
+        array_to_file(arr, str_io, np.int8, divslope=np.float32(0.5))
+        data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
     # with mn, mx specified?
     str_io.seek(0)
@@ -370,25 +373,26 @@ def test_a2f_scaled_unscaled():
                           divslope=divslope,
                           intercept=intercept)
             continue
-        back_arr = write_return(arr, fobj,
-                                out_dtype=out_dtype,
-                                divslope=divslope,
-                                intercept=intercept)
-        exp_back = arr.copy()
-        if out_dtype in IUINT_TYPES:
-            exp_back[np.isnan(exp_back)] = 0
-        if in_dtype not in COMPLEX_TYPES:
-            exp_back = exp_back.astype(float)
-        if intercept != 0:
-            exp_back -= intercept
-        if divslope != 1:
-            exp_back /= divslope
-        if out_dtype in IUINT_TYPES:
-            exp_back = np.round(exp_back).astype(float)
-            exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-            exp_back = exp_back.astype(out_dtype)
-        else:
-            exp_back = exp_back.astype(out_dtype)
+        with warnings.catch_warnings(record=True):  # cast to real
+            back_arr = write_return(arr, fobj,
+                                    out_dtype=out_dtype,
+                                    divslope=divslope,
+                                    intercept=intercept)
+            exp_back = arr.copy()
+            if out_dtype in IUINT_TYPES:
+                exp_back[np.isnan(exp_back)] = 0
+            if in_dtype not in COMPLEX_TYPES:
+                exp_back = exp_back.astype(float)
+            if intercept != 0:
+                exp_back -= intercept
+            if divslope != 1:
+                exp_back /= divslope
+            if out_dtype in IUINT_TYPES:
+                exp_back = np.round(exp_back).astype(float)
+                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+                exp_back = exp_back.astype(out_dtype)
+            else:
+                exp_back = exp_back.astype(out_dtype)
         # Allow for small differences in large numbers
         assert_allclose_safely(back_arr, exp_back)
 

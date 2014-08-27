@@ -9,6 +9,7 @@
 from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
+
 import gzip
 import bz2
 import warnings
@@ -32,6 +33,7 @@ from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
+
 
 def test_old_namespace():
     # Check old names are defined in minc1 module and top level

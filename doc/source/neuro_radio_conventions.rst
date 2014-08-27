@@ -95,7 +95,7 @@ Here we are showing the middle slice of :download:`an image
     >>> img_data = img.get_data()
     >>> a_slice = img_data[:, :, 28]
     >>> # Need transpose to put first axis left-right, second bottom-top
-    >>> plt.imshow(a_slice.T, cmap="gray", origin="lower")
+    >>> plt.imshow(a_slice.T, cmap="gray", origin="lower")  # doctest: +SKIP
 
 This slice does have the voxels from the right of isocenter towards the right
 of the screen, neurology style.

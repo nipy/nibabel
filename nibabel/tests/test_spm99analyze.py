@@ -9,6 +9,7 @@
 
 import numpy as np
 import itertools
+import warnings
 
 from ..externals.six import BytesIO
 
@@ -330,7 +331,8 @@ class ScalingMixin(object):
             img.set_data_dtype(out_dtype)
             img.header.set_slope_inter(slope, inter)
             rt_img = bytesio_round_trip(img)
-            back_arr = rt_img.get_data()
+            with warnings.catch_warnings(record=True):  # invalid mult
+                back_arr = rt_img.get_data()
             exp_back = arr.copy()
             if in_dtype not in COMPLEX_TYPES:
                 exp_back = arr.astype(float)
@@ -341,8 +343,9 @@ class ScalingMixin(object):
             else:
                 exp_back = exp_back.astype(out_dtype)
             # Allow for small differences in large numbers
-            assert_allclose_safely(back_arr,
-                                   exp_back * slope + inter)
+            with warnings.catch_warnings(record=True):  # invalid value
+                assert_allclose_safely(back_arr,
+                                       exp_back * slope + inter)
 
     def test_write_scaling(self):
         # Check writes with scaling set

@@ -3,7 +3,7 @@
 import os
 
 from platform import machine
-
+import warnings
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
@@ -23,7 +23,8 @@ def test_shared_range():
             # (if this system generates that) or something smaller (because of
             # overflow)
             mn, mx = shared_range(ft, it)
-            ovs = ft(mx) + np.arange(2048, dtype=ft)
+            with warnings.catch_warnings(record=True):
+                ovs = ft(mx) + np.arange(2048, dtype=ft)
             # Float16 can overflow to inf
             bit_bigger = ovs[np.isfinite(ovs)].astype(it)
             casted_mx = ft(mx).astype(it)
@@ -51,7 +52,8 @@ def test_shared_range():
                 assert_equal(mn, 0)
                 continue
             # And something larger for the minimum
-            ovs = ft(mn) - np.arange(2048, dtype=ft)
+            with warnings.catch_warnings(record=True):  # overflow
+                ovs = ft(mn) - np.arange(2048, dtype=ft)
             # Float16 can overflow to inf
             bit_smaller = ovs[np.isfinite(ovs)].astype(it)
             casted_mn = ft(mn).astype(it)

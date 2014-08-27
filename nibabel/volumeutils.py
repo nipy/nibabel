@@ -589,7 +589,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # Shield special case
     div_none = divslope is None
     if not np.all(
-        np.isfinite((intercept, 1.0 if div_none else divslope))):
+            np.isfinite((intercept, 1.0 if div_none else divslope))):
         raise ValueError('divslope and intercept must be finite')
     if divslope == 0:
         raise ValueError('divslope cannot be zero')
@@ -602,15 +602,14 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if not offset is None:
         seek_tell(fileobj, offset)
     if (div_none or
-        (mn, mx) == (0, 0) or
-        (None not in (mn, mx) and mx < mn)
-       ):
+            (mn, mx) == (0, 0) or
+            ((mn is not None and mx is not None) and mx < mn)):
         write_zeros(fileobj, data.size * out_dtype.itemsize)
         return
     if not order in 'FC':
         raise ValueError('Order should be one of F or C')
     # Simple cases
-    pre_clips = None if (mn, mx) == (None, None) else (mn, mx)
+    pre_clips = None if (mn is None and mx is None) else (mn, mx)
     null_scaling = (intercept == 0 and divslope == 1)
     if in_dtype.type == np.void:
         if not null_scaling:
