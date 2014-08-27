@@ -96,25 +96,25 @@ def test_header():
     assert_equal(hdr.get_data_dtype(), np.dtype(np.int16))
     assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
     assert_equal(hdr.get_data_offset(), 0)
-    assert_almost_equal(hdr.get_slope_inter(),
-                        (1.2903541326522827, 0.0), 5)
+    si = np.array([np.unique(x) for x in hdr.get_data_scaling()]).ravel()
+    assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
 
 
 def test_header_scaling():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    fp_scaling = np.squeeze(hdr.get_data_scaling('fp'))
-    dv_scaling = np.squeeze(hdr.get_data_scaling('dv'))
+    def_scaling = [np.unique(x) for x in hdr.get_data_scaling()]
+    fp_scaling = [np.unique(x) for x in hdr.get_data_scaling('fp')]
+    dv_scaling = [np.unique(x) for x in hdr.get_data_scaling('dv')]
     # Check default is dv scaling
-    assert_array_equal(np.squeeze(hdr.get_data_scaling()), dv_scaling)
+    assert_array_equal(def_scaling, dv_scaling)
     # And that it's almost the same as that from the converted nifti
-    assert_almost_equal(dv_scaling, (1.2903541326522827, 0.0), 5)
+    assert_almost_equal(dv_scaling, [[1.2903541326522827], [0.0]], 5)
     # Check that default for get_slope_inter is dv scaling
-    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='dv')):
-        assert_array_equal(hdr.get_slope_inter(), dv_scaling)
+    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS)):
+        scaling = [np.unique(x) for x in hdr.get_data_scaling()]
+        assert_array_equal(scaling, dv_scaling)
     # Check we can change the default
     assert_false(np.all(fp_scaling == dv_scaling))
-    fp_hdr = PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='fp')
-    assert_array_equal(fp_hdr.get_slope_inter(), fp_scaling)
 
 
 def test_orientation():
@@ -146,7 +146,7 @@ def test_affine():
     fov = hdr.get_affine(origin='fov')
     assert_array_equal(default, scanner)
     # rotation part is same
-    assert_array_equal(scanner[:3, :3], fov[:3,:3])
+    assert_array_equal(scanner[:3, :3], fov[:3, :3])
     # offset not
     assert_false(np.all(scanner[:3, 3] == fov[:3, 3]))
     # Regression test against what we were getting before
