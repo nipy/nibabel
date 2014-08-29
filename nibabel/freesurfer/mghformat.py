@@ -402,10 +402,6 @@ class MGHHeader(object):
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
 
-    def _set_format_specifics(self):
-        ''' Set MGH specific header stuff'''
-        self._header_data['version'] = 1
-
     def _set_affine_default(self, hdr):
         ''' If  goodRASFlag is 0, return the default delta, Mdc and Pxyz_c
         '''
