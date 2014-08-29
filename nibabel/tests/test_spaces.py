@@ -34,17 +34,14 @@ def assert_all_in(in_shape, in_affine, out_shape, out_affine):
     assert_true(np.all(out_grid < np.array(out_shape) + TINY))
 
 
-def test_vox2out_vox():
-    # Test world space bounding box
-    # Test basic case, identity, no voxel sizes passed
-    shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, np.eye(4))
+def get_outspace_params():
+    # Return in_shape, in_aff, vox, out_shape, out_aff for output space tests
+    # Put in function to use also for resample_to_output tests
     # Some affines as input to the tests
     trans_123 = [[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]]
     trans_m123 = [[1, 0, 0, -1], [0, 1, 0, -2], [0, 0, 1, -3], [0, 0, 0, 1]]
     rot_3 = from_matvec(euler2mat(np.pi / 4), [0, 0, 0])
-    for in_shape, in_aff, vox, out_shape, out_aff in (
+    return ( # in_shape, in_aff, vox, out_shape, out_aff
         # Identity
         ((2, 3, 4), np.eye(4), None, (2, 3, 4), np.eye(4)),
         # Flip first axis
@@ -80,7 +77,16 @@ def test_vox2out_vox():
         # Number of voxel sizes matches length
         ((2, 3), np.diag([4, 5, 6, 1]), (4, 5),
          (2, 3), np.diag([4, 5, 1, 1])),
-    ):
+    )
+
+
+def test_vox2out_vox():
+    # Test world space bounding box
+    # Test basic case, identity, no voxel sizes passed
+    shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
+    assert_array_equal(shape, (2, 3, 4))
+    assert_array_equal(aff, np.eye(4))
+    for in_shape, in_aff, vox, out_shape, out_aff in get_outspace_params():
         img = Nifti1Image(np.ones(in_shape), in_aff)
         for input in ((in_shape, in_aff), img):
             shape, aff = vox2out_vox(input, vox)
