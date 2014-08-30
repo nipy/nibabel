@@ -31,12 +31,14 @@ from ..casting import as_int
 from ..tmpdirs import InTemporaryDirectory
 from ..arraywriters import WriterError
 
-from numpy.testing import (assert_array_equal,
-                           assert_array_almost_equal)
+from nose.tools import (assert_equal, assert_not_equal, assert_true,
+                        assert_false, assert_raises)
+
+from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 
 from ..testing import (assert_equal, assert_not_equal, assert_true,
                        assert_false, assert_raises, data_path,
-                       suppress_warnings)
+                       suppress_warnings, assert_dt_equal)
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
@@ -239,29 +241,40 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
     def test_data_dtype(self):
         # check getting and setting of data type
         # codes / types supported by all binary headers
-        supported_types = ((2, np.uint8),
-                           (4, np.int16),
-                           (8, np.int32),
-                           (16, np.float32),
-                           (32, np.complex64),
-                           (64, np.float64),
-                           (128, np.dtype([('R','u1'),
-                                           ('G', 'u1'),
-                                           ('B', 'u1')])))
+        all_supported_types = ((2, np.uint8),
+                               (4, np.int16),
+                               (8, np.int32),
+                               (16, np.float32),
+                               (32, np.complex64),
+                               (64, np.float64),
+                               (128, np.dtype([('R','u1'),
+                                               ('G', 'u1'),
+                                               ('B', 'u1')])))
         # and unsupported - here using some labels instead
-        unsupported_types = (np.void, 'none', 'all', 0)
+        all_unsupported_types = (np.void, 'none', 'all', 0)
+        def assert_set_dtype(dt_spec, np_dtype):
+            hdr = self.header_class()
+            hdr.set_data_dtype(dt_spec)
+            assert_dt_equal(hdr.get_data_dtype(), np_dtype)
+        # Test code, type known to be supported by all types
+        for code, npt in all_supported_types:
+            # Can set with code value
+            assert_set_dtype(code, npt)
+            # or numpy type
+            assert_set_dtype(npt, npt)
+            # or numpy dtype
+            assert_set_dtype(np.dtype(npt), npt)
+        # Test numerical types supported by this header type
+        for npt in self.supported_np_types:
+            # numpy type
+            assert_set_dtype(npt, npt)
+            # or numpy dtype
+            assert_set_dtype(np.dtype(npt), npt)
+            # or swapped numpy dtype
+            assert_set_dtype(np.dtype(npt).newbyteorder(), npt)
         hdr = self.header_class()
-        for code, npt in supported_types:
-            # Can set with code value, or numpy dtype, both return the
-            # dtype as output on get
-            hdr.set_data_dtype(code)
-            assert_equal(hdr.get_data_dtype(), npt)
-            hdr.set_data_dtype(npt)
-            assert_equal(hdr.get_data_dtype(), npt)
-        for inp in unsupported_types:
-            assert_raises(HeaderDataError,
-                                hdr.set_data_dtype,
-                                inp)
+        for inp in all_unsupported_types:
+            assert_raises(HeaderDataError, hdr.set_data_dtype, inp)
 
     def test_shapes(self):
         # Test that shape checks work
