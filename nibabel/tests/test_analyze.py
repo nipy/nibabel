@@ -272,6 +272,16 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             assert_set_dtype(np.dtype(npt), npt)
             # or swapped numpy dtype
             assert_set_dtype(np.dtype(npt).newbyteorder(), npt)
+            # or string dtype code
+            assert_set_dtype(np.dtype(npt).str, npt)
+            # or string dtype code without byteorder
+            if np.dtype(npt).str[0] in '=|<>':
+                assert_set_dtype(np.dtype(npt).str[1:], npt)
+        # Test aliases to Python types
+        assert_set_dtype(float, np.float64) # float64 always supported
+        np_sys_int = np.dtype(int).type # int could be 32 or 64 bit
+        if np_sys_int in self.supported_np_types: # no int64 for Analyze
+            assert_set_dtype(int, np_sys_int)
         hdr = self.header_class()
         for inp in all_unsupported_types:
             assert_raises(HeaderDataError, hdr.set_data_dtype, inp)
