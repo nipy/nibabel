@@ -7,6 +7,8 @@ from optparse import OptionParser, Option
 import sys
 import os
 import gzip
+import warnings
+import numpy as np
 import nibabel
 import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
@@ -84,6 +86,21 @@ def proc_file(infile, opts):
     # load the PAR header
     pr_img = pr.load(infile)
     pr_hdr = pr_img.header
+
+    if len(pr_hdr.permuted_shape) > 4:
+        warnings.warn("Multiple dimensions were stacked along 4th dimension:\n"
+                      "Original shape: {}\n"
+                      "Dimension labels: {}\n".format(pr_hdr.permuted_shape,
+                                                      pr_hdr.permuted_labels))
+    else:
+        print("Data dimensions are {}".format(pr_hdr.permuted_labels))
+
+    #error in cases where a unique affine cannot be defined
+    if len(np.unique(pr_hdr.image_defs['image angulation']))>1:
+        raise ValueError("Multiple image angulations within the .PAR")
+    if len(np.unique(pr_hdr.image_defs['slice orientation']))>1:
+        raise ValueError("Multiple slice orientations within the .PAR")
+
     # get the raw unscaled data form the REC file
     raw_data = pr_img.dataobj.get_unscaled()
 
@@ -140,7 +157,7 @@ def proc_file(infile, opts):
         # store units -- always mm and msec
         nhdr.set_xyzt_units('mm', 'msec')
     else:
-        # anatomical or DTI
+        # anatomical, DTI, or other
         nhdr.set_xyzt_units('mm', 'unknown')
 
     # get original scaling
@@ -149,6 +166,18 @@ def proc_file(infile, opts):
         intercept = 0.0
     else:
         slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
+        if isinstance(slope,np.ndarray):
+            if slope.size == 1:
+                slope = slope[0]
+            else:
+                raise ValueError("Can't autoconvert .PAR->.NII for " +
+                                 "volume with non-unique slope")
+        if isinstance(intercept,np.ndarray):
+            if intercept.size == 1:
+                intercept = intercept[0]
+            else:
+                raise ValueError("Can't autoconvert .PAR->.NII for " +
+                                 "volume with non-unique intercept")                
         nhdr.set_slope_inter(slope, intercept)
 
     # finalize the header: set proper data offset, pixdims, ...
