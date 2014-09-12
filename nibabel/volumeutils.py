@@ -894,12 +894,14 @@ def apply_read_scaling(arr, slope = None, inter = None):
     Parameters
     ----------
     arr : array-like
-    slope : None or float, optional
+    slope : None or float or ndarray, optional
         slope value to apply to `arr` (``arr * slope + inter``).  None
-        corresponds to a value of 1.0
-    inter : None or float, optional
+        corresponds to a value of 1.0.  If ndarray, must be broadcastable to the
+        shape of arr
+    inter : None or float or ndarray, optional
         intercept value to apply to `arr` (``arr * slope + inter``).  None
-        corresponds to a value of 0.0
+        corresponds to a value of 0.0.  If ndarray, must be broadcastable to the
+        shape of arr
 
     Returns
     -------
@@ -912,23 +914,28 @@ def apply_read_scaling(arr, slope = None, inter = None):
         slope = 1.0
     if inter is None:
         inter = 0.0
-    if (slope, inter) == (1, 0):
-        return arr
     shape = arr.shape
-    # Force float / float upcasting by promoting to arrays
-    arr, slope, inter = [np.atleast_1d(v) for v in (arr, slope, inter)]
+    if isinstance(slope,np.ndarray) or isinstance(inter,np.ndarray):
+        array_input = True
+    else:
+        if (slope, inter) == (1, 0):
+            return arr
+        array_input = False
+         # Force float / float upcasting by promoting to arrays
+        arr, slope, inter = [np.atleast_1d(v) for v in (arr, slope, inter)]       
     if arr.dtype.kind in 'iu':
         # int to float; get enough precision to avoid infs
         # Find floating point type for which scaling does not overflow,
         # starting at given type
         default = (slope.dtype.type if slope.dtype.kind == 'f'
                     else np.float64)
-        ftype = int_scinter_ftype(arr.dtype, slope, inter, default)
+        ftype = int_scinter_ftype(arr.dtype, np.abs(slope).max(), np.abs(inter).max(), default)
         slope = slope.astype(ftype)
         inter = inter.astype(ftype)
-    if slope != 1.0:
+
+    if array_input or (slope != 1.0):
         arr = arr * slope
-    if inter != 0.0:
+    if array_input or (inter != 0.0):
         arr = arr + inter
     return arr.reshape(shape)
 

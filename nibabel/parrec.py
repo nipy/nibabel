@@ -87,7 +87,7 @@ from .py3k import asbytes
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, apply_read_scaling
-from .arrayproxy import ArrayProxy
+from .arrayproxy import PARArrayProxy
 from .affines import from_matvec, dot_reduce
 
 # PSL to RAS affine
@@ -201,6 +201,10 @@ image_def_dtd = [
     ]
 image_def_dtype = np.dtype(image_def_dtd)
 
+#keep a version without 'label type' for pre V4.2 .PAR files
+image_def_dtd_noASL = [d for d in image_def_dtd if d[0]!='label type']
+image_def_dtype_noASL = np.dtype(image_def_dtd_noASL)
+
 # slice orientation codes
 slice_orientation_codes = Recoder((# code, label
     (1, 'transverse'),
@@ -254,6 +258,9 @@ def parse_PAR_header(fobj):
                           "mailing list, if you are interested in "
                           "adding support for this version."
                           % version)
+
+                #store .PAR version in the general_info dict
+                general_info['version'] = version  
             else:
                 # just a comment
                 continue
@@ -280,7 +287,11 @@ def parse_PAR_header(fobj):
 
     # postproc image def props
     # create an array for all image defs
-    image_defs = np.zeros(len(image_info), dtype=image_def_dtype)
+    if ('version' in general_info) and (general_info['version'] < 'V4.2'):  
+        #no 'label type' field prior to V4.2
+        image_defs = np.zeros(len(image_info), dtype=image_def_dtype_noASL)
+    else:
+        image_defs = np.zeros(len(image_info), dtype=image_def_dtype)
 
     # for every image definition
     for i, line in enumerate(image_info):
@@ -338,11 +349,28 @@ class PARRECHeader(Header):
         dtype = np.typeDict[
                     'int'
                     + str(self._get_unique_image_prop('image pixel size')[0])]
+
+        original_shape, labels, permute_order = self.get_data_shape_in_file()
+        self.original_shape = original_shape
+        self.original_labels = labels
+        
+        self.permute_order = permute_order
+        self.requires_permute = not np.all(np.diff(self.permute_order)==1)
+        self.permuted_shape = tuple(np.asarray(original_shape)[permute_order])
+        self.permuted_labels = tuple(np.asarray(
+                                        self.original_labels)[permute_order])
+
+        shape = np.asarray(self.permuted_shape)
+        #stack dimensions > 4 into 4th dimension
+        if len(shape)>4:
+            shape = (shape[0],shape[1],shape[2],np.prod(shape[3:]))
+
         Header.__init__(self,
                         data_dtype=dtype,
-                        shape=self.get_data_shape_in_file(),
+                        shape=shape,
                         zooms=self._get_zooms()
                        )
+        
 
     @classmethod
     def from_header(klass, header=None):
@@ -422,8 +450,7 @@ class PARRECHeader(Header):
 
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
-        if self.general_info['max_dynamics'] > 1 \
-           or self.general_info['max_gradient_orient'] > 1:
+        if len(self.original_shape) > 3:
             return 4
         else:
             return 3
@@ -442,10 +469,16 @@ class PARRECHeader(Header):
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
         # time axis?
-        if len(zooms) > 3  and self.general_info['max_dynamics'] > 1:
-            # DTI also has 4D
-            # Convert time from milliseconds to seconds
-            zooms[3] = self.general_info['repetition_time'] / 1000.
+        if len(zooms) > 3:
+            #determine if 4th dimension is dynamics only
+            dim4_is_repetitions = ( (self.original_labels[3] == 
+                                    'dynamic scan number') and
+                                  ( np.prod(self.original_shape[3:]) ==
+                                    self.general_info['max_dynamics'])
+                                  )
+            if dim4_is_repetitions:
+                # Convert time from milliseconds to seconds
+                zooms[3] = self.general_info['repetition_time'] / 1000.
         return zooms
 
     def get_affine(self, origin='scanner'):
@@ -514,39 +547,162 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        n_inplaneX : int
-            number of voxels in X direction
-        n_inplaneY : int
-            number of voxels in Y direction
-        n_slices : int
-            number of slices
-        n_vols : int
-            number of dynamic scans / number of directions in diffusion
+        shape : tuple
+            shape of the raw data array
+        labels : tuple
+            labels corresponding to each dimension of shape
+        permute_order : ndarray
+            desired permutation of the data array
         """
-        # e.g. number of volumes
-        ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
-        # DTI volumes (b-values-1 x directions)
-        # there is some awkward exception to this rule for b-values > 2
-        # XXX need to get test image...
-        ndtivolumes = (self.general_info['max_diffusion_values'] - 1) \
-                        * self.general_info['max_gradient_orient']
+
         nslices = len(np.unique(self.image_defs['slice number']))
         if not nslices == self.general_info['max_slices']:
-            raise PARRECError("Header inconsistency: Found %i slices, "
+            raise PARRECError("Header inconsistency: Found %i slices, " 
                               "but header claims to have %i."
                               % (nslices, self.general_info['max_slices']))
 
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
 
-        # there should not be both: multiple dynamics and DTI
-        if ndynamics > 1:
-            return inplane_shape + (nslices, ndynamics)
-        elif ndtivolumes > 1:
-            return inplane_shape + (nslices, ndtivolumes)
-        else:
-            return tuple(inplane_shape) + (nslices,)
+        #warn if more than one 'slice orientation' or 'image angulation'
+        #cannot define a unique affine for the .REC in this case
+        slice_orientations = np.unique(self.image_defs['slice orientation'])
+        if len(slice_orientations) > 1:
+            warnings.warn("More than one slice orientation found in file")
 
-    def get_data_scaling(self, method="dv"):
+        for label in ['image angulation']: #, 'image offcentre']:
+            tuple_list = [tuple(self.image_defs[label][idx,:]) for 
+                                idx in np.arange(
+                                    self.image_defs[label].shape[0])]
+            slice_angulations = len(set(tuple_list))
+            if slice_angulations>1:
+                warnings.warn("More than one {} found in file".format(label))
+
+        type_labels = ('image_type_mr', 'scanning sequence'), 
+
+        #the .REC can contain one or more indices for each of the following labels
+        #collapsed 'image_type_mr' & 'scanning sequence' into one dimension.
+        dynamic_labels = ['label type',
+                          'dynamic scan number',
+                          'slice number',
+                          'echo number',
+                          'cardiac phase number',
+                          ('image_type_mr', 'scanning sequence'), 
+                          'gradient orientation number',
+                          'diffusion b value number'
+                          ]
+
+        #'label type' doesn't exist prior to PAR/REC V4.2
+        if self.general_info['version'] < 'V4.2':
+            dynamic_labels.pop('label type')   
+
+        nonzero_strides = {}
+        dimension_sizes = {}
+        for label in dynamic_labels:
+            
+            #determine unique instances of label and the distance between lines
+            #in the .PAR when the label changes.  
+            if isinstance(label,tuple):  #special case for image_type_mr
+                #zip corresponding value arrays into a tuple
+                vals = zip(*[self.image_defs[l] for l in label])
+                #find .PAR frames where any element of the value tuple changes
+                change_idx = np.unique(np.where(
+                                np.diff(vals,axis=0) != ([0,]*len(label)))[0])
+                #total number of unique value tuples
+                unique_vals = np.unique(vals)
+                #if unique_vals above isn't equal to the number of unique
+                #instances of each element in the tuple, the desired grouping
+                #is invalid
+                for sublabel in label:
+                    unique_sublabel_vals = np.unique(self.image_defs[sublabel])
+                    if len(unique_vals) != len(unique_sublabel_vals):
+                        if len(unique_sublabel_vals)>1: 
+                            raise ValueError("Unsupported .PAR/.REC file ordering")
+                        
+                        
+            else:
+                #find frames where the value changes
+                change_idx = np.where(np.diff(self.image_defs[label])!=0)[0]
+                #total number of unique values
+                unique_vals = np.unique(self.image_defs[label])
+
+            #size of the data along this dimension
+            dimension_sizes[label] = len(unique_vals)           
+
+            #find the stride corresponding to this dimension
+            if len(change_idx)==1:
+                stride = change_idx[0]
+            elif len(change_idx)>1:  
+                stride = np.unique(np.diff(change_idx))
+                if len(stride) > 1: 
+                    raise ValueError(
+                        "non-unique stride for {} found in .PAR file".format(
+                                                                        label))
+                stride = stride[0]
+            else:
+                stride = None
+
+            if stride is not None:
+                #if (self.image_defs.shape[0] / float(stride)) % 1 > 0:
+                #    raise ValueError("total number of frames is not an" + 
+                #                     "integer multiple of the stride")
+                nonzero_strides[label] = stride            
+
+        #dimension_labels & data_shape store only non-singleton dimensions
+        data_shape = tuple(inplane_shape)
+        dimension_labels = ('inplane x','inplane y')
+        #sort for Fortran ordered .REC
+        sorted_strides = sorted(nonzero_strides.items(), key=lambda x:x[1]) 
+        for label,stride in sorted_strides:
+            #replace tuple with string label
+            if label == ('image_type_mr', 'scanning sequence'): 
+                dimension_labels += ('type',)
+            else:
+                dimension_labels += (label,)
+            data_shape += (dimension_sizes[label],)
+
+        ##determine total number of diffusion directions (orientations * bvalues)
+        #ndiffusion = dimension_sizes['gradient orientation number']
+        #ndiffusion *= dimension_sizes['diffusion b value number']
+
+        #insert singleton slice dimension in case of single slice acquisitions
+        if dimension_sizes['slice number'] == 1:
+            data_shape = tuple(np.insert(np.asarray(
+                                        data_shape),2,1))
+            dimension_labels = tuple(np.insert(np.asarray(
+                                        dimension_labels),2,'slice'))
+
+        #specify desired data ordering
+        #For purposes of image.get_data(), all dimensions > 4 will be stacked
+        #into the fourth dimension. 
+        #Note: keep orientation & b-value adjacent in the ordering
+        order_preference = ('inplane x', 
+                            'inplane y',
+                            'slice number',
+                            'dynamic scan number',
+                            'gradient orientation number',  
+                            'diffusion b value number',
+                            )
+        desired_order = ()
+        for label in order_preference:
+            if label in dimension_labels:
+                desired_order = desired_order + (label, )
+
+        #add any remaining dimensions not included in order_preference above
+        remaining_dims = list(dimension_labels)
+        for label in desired_order:
+            remaining_dims.remove(label)
+        if remaining_dims:
+            desired_order = desired_order + tuple(remaining_dims)
+
+        #determine integers to be used with np.transpose() to permute data
+        #stored  in the .REC to the desired_order
+        permute_order = []
+        for label in desired_order:
+            permute_order.append([i for i,v in enumerate(dimension_labels) 
+                                            if v == label][0])
+        return data_shape, dimension_labels, permute_order
+
+    def get_data_scaling(self, method="dv", permuted=True):
         """Returns scaling slope and intercept.
 
         Parameters
@@ -556,10 +712,10 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        slope : float
-            scaling slope
-        intercept : float
-            scaling intercept
+        slope : float or ndarray
+            scaling slope(s)
+        intercept : float or ndarray
+            scaling intercept(s)
 
         Notes
         -----
@@ -576,13 +732,25 @@ class PARRECHeader(Header):
         """
         # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
         #      out which one means what
-
-        # although the is a per-image scaling in the header, it looks like
+        # although the is a per-image scaling in the header, often
         # there is just one unique factor and intercept per whole image series
-        scale_slope = self._get_unique_image_prop('scale slope')
-        rescale_slope = self._get_unique_image_prop('rescale slope')
-        rescale_intercept = self._get_unique_image_prop('rescale intercept')
+        scale_slope = self.image_defs['scale slope']
+        rescale_slope = self.image_defs['rescale slope']
+        rescale_intercept = self.image_defs['rescale intercept']
+        num_scales = len(np.unique(scale_slope))
+        num_rescales = len(np.unique(rescale_slope))
+        num_intercept = len(np.unique(rescale_intercept))
+        if (num_scales > 1) or (num_rescales > 1) or (num_intercept > 1):
+            #(1,1) for later broadcasting across in-plane dimensions
+            full_shape = (1,1)+self.original_shape[2:] 
 
+            scale_slope = scale_slope.reshape(full_shape, order='F')
+            rescale_slope = rescale_slope.reshape(full_shape, order='F')
+            rescale_intercept = rescale_intercept.reshape(full_shape, order='F')
+        else:
+            scale_slope = scale_slope[0]
+            rescale_slope = rescale_slope[0]
+            rescale_intercept = rescale_intercept[0]
         if method == 'dv':
             slope = rescale_slope
             intercept = rescale_intercept
@@ -592,15 +760,21 @@ class PARRECHeader(Header):
             # actual intercept per definition above
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
-            raise ValueError("Unknown scling method '%s'." % method)
+            raise ValueError("Unknown scaling method '%s'." % method)
+        if permuted:
+            if self.requires_permute and isinstance(slope,np.ndarray):
+                slope = np.transpose(slope, self.permute_order)
+
+            if self.requires_permute and isinstance(intercept,np.ndarray):
+                intercept = np.transpose(intercept, self.permute_order)
         return (slope, intercept)
 
-    def get_slope_inter(self):
+    def get_slope_inter(self, permuted=True):
         """ Utility method to get default slope, intercept scaling
         """
         return tuple(
-            np.asscalar(v)
-            for v in self.get_data_scaling(method=self.default_scaling))
+            v for v in self.get_data_scaling(method=self.default_scaling,
+                                             permuted=permuted))
 
     def get_slice_orientation(self):
         """Returns the slice orientation label.
@@ -610,9 +784,13 @@ class PARRECHeader(Header):
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
+            try:
+                ori = self._get_unique_image_prop('slice orientation')[0]
+            except:
+                warnings.warn("Non-unique slice orientation! Using first found")
+                ori = self.image_defs['slice orientation'][0]
             self._slice_orientation = \
-                slice_orientation_codes.label[
-                    self._get_unique_image_prop('slice orientation')[0]]
+                slice_orientation_codes.label[ori]
         return self._slice_orientation
 
     def raw_data_from_fileobj(self, fileobj):
@@ -631,7 +809,7 @@ class PARRECHeader(Header):
            unscaled data array
         '''
         dtype = self.get_data_dtype()
-        shape = self.get_data_shape()
+        shape = self.original_shape
         offset = self.get_data_offset()
         return array_from_file(shape, dtype, fileobj, offset)
 
@@ -668,7 +846,7 @@ class PARRECImage(SpatialImage):
     header_class = PARRECHeader
     files_types = (('image', '.rec'), ('header', '.par'))
 
-    ImageArrayProxy = ArrayProxy
+    ImageArrayProxy = PARArrayProxy
 
     @classmethod
     def from_file_map(klass, file_map):
@@ -682,5 +860,57 @@ class PARRECImage(SpatialImage):
                      extra=None,
                      file_map=file_map)
 
+    def get_data_unraveled(self):
+        """ Unfold permuted 4D data back to original N permuted dimensions.  
+        First four dimensions remain x,y,slice,(time or diffusion).  Labels 
+        corresponding to each dimension are returned as well.
+
+        Returns
+        -------
+        data : array
+            array of image data
+        data_labels : tuple
+            tuple of labels corresponding to each image dimension
+        """
+        if self._data_cache is None:
+            data = np.asanyarray(self._dataobj)
+        else:
+            data = self._data_cache
+
+        hdr = self._header
+        if self.shape != hdr.permuted_shape:
+            data = data.reshape(hdr.permuted_shape,order='F')
+        return data, hdr.permuted_labels
+
+    def raw_data_from_fileobj(self):
+        """ convenience wrapper to the method from the header
+
+        Returns
+        -------
+        data : array
+            array of image data
+        data_labels : tuple
+            tuple of labels corresponding to each image dimension        
+        """
+        data = self._header.raw_data_from_fileobj(
+            self.file_map['image'].get_prepare_fileobj())
+
+        return data, self._header.original_labels
+        
+    def data_from_fileobj(self):
+        """ convenience wrapper to the method from the header
+
+        Returns
+        -------
+        data : array
+            array of image data
+        data_labels : tuple
+            tuple of labels corresponding to each image dimension 
+        """
+        data = self._header.data_from_fileobj(
+            self.file_map['image'].get_prepare_fileobj())
+
+        return data, self._header.original_labels
+        
 
 load = PARRECImage.load

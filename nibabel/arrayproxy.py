@@ -26,6 +26,7 @@ The proxy API is - at minimum:
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
+import numpy as np
 
 from .volumeutils import BinOpener, array_from_file, apply_read_scaling
 from .fileslice import fileslice
@@ -127,6 +128,40 @@ class ArrayProxy(object):
                                  order = self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
+
+
+
+
+class PARArrayProxy(ArrayProxy):
+    """ like ArrayProxy, but reads in based on 'original_shape' 
+        then permutes/reshapes to 4D NIFTI
+        output will always be ordered as:
+            (x,y,slice,*remaining_dims)
+    """
+    order = 'F'  #Fortran order
+
+    def get_unscaled(self):
+        ''' Read of data from file
+
+        This is an optional part of the proxy API
+        '''
+        with BinOpener(self.file_like) as fileobj:
+            raw_data = array_from_file(self._header.original_shape, 
+                                       self._dtype,
+                                       fileobj,
+                                       offset=self._offset,
+                                       order=self.order)
+
+            #permute if needed
+            if self._header.requires_permute:
+                raw_data = np.transpose(raw_data,
+                                self._header.permute_order)
+
+            #reshape if needed
+            if self._shape != self._header.original_shape:
+                raw_data = raw_data.reshape(self._shape,order=self.order)
+
+        return raw_data
 
 
 def is_proxy(obj):
