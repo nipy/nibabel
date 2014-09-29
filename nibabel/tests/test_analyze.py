@@ -560,6 +560,53 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.1)
         assert_raises(HeaderTypeError, hdr.set_slope_inter, 1.0, 0.1)
 
+    def test_from_analyze_map(self):
+        # Test that any header can pass values from a mapping
+        klass = self.header_class
+        # Header needs to implement data_dtype, data_shape, zooms
+        class H1(object): pass
+        assert_raises(AttributeError, klass.from_header, H1())
+        class H2(object):
+            def get_data_dtype(self):
+                return np.dtype('u1')
+        assert_raises(AttributeError, klass.from_header, H2())
+        class H3(H2):
+            def get_data_shape(self):
+                return (2, 3, 4)
+        assert_raises(AttributeError, klass.from_header, H3())
+        class H4(H3):
+            def get_zooms(self):
+                return 4., 5., 6.
+        exp_hdr = klass()
+        exp_hdr.set_data_dtype(np.dtype('u1'))
+        exp_hdr.set_data_shape((2, 3, 4))
+        exp_hdr.set_zooms((4, 5, 6))
+        assert_equal(klass.from_header(H4()), exp_hdr)
+        # cal_max, cal_min get properly set from ``as_analyze_map``
+        class H5(H4):
+            def as_analyze_map(self):
+                return dict(cal_min=-100, cal_max=100)
+        exp_hdr['cal_min'] = -100
+        exp_hdr['cal_max'] = 100
+        assert_equal(klass.from_header(H5()), exp_hdr)
+        # set_* methods override fields fron header
+        class H6(H5):
+            def as_analyze_map(self):
+                return dict(datatype=4, bitpix=32,
+                            cal_min=-100, cal_max=100)
+        assert_equal(klass.from_header(H6()), exp_hdr)
+        # Any mapping will do, including a Nifti header
+        class H7(H5):
+            def as_analyze_map(self):
+                n_hdr = Nifti1Header()
+                n_hdr.set_data_dtype(np.dtype('i2'))
+                n_hdr['cal_min'] = -100
+                n_hdr['cal_max'] = 100
+                return n_hdr
+        # Values from methods still override values from header (shape, dtype,
+        # zooms still at defaults from n_hdr header fields above)
+        assert_equal(klass.from_header(H7()), exp_hdr)
+
 
 def test_best_affine():
     hdr = AnalyzeHeader()

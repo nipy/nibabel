@@ -1466,14 +1466,17 @@ class Nifti1Header(SpmAnalyzeHeader):
         t_code = unit_codes[t]
         self.structarr['xyzt_units'] = xyz_code + t_code
 
-    def _set_format_specifics(self):
-        ''' Utility routine to set format specific header stuff '''
-        if self.is_single:
-            self._structarr['magic'] = self.single_magic
-            if self._structarr['vox_offset'] < self.single_vox_offset:
-                self._structarr['vox_offset'] = self.single_vox_offset
-        else:
-            self._structarr['magic'] = self.pair_magic
+    def _clean_after_mapping(self):
+        ''' Set format-specific stuff after converting header from mapping
+
+        Clean up header after it has been initialized from an
+        ``as_analyze_map`` method of another header type
+
+        See :meth:`nibabel.analyze.AnalyzeHeader._clean_after_mapping` for a
+        more detailed description.
+        '''
+        self._structarr['magic'] = (self.single_magic if self.is_single
+                                    else self.pair_magic)
 
     ''' Checks only below here '''
 

@@ -79,36 +79,36 @@ from __future__ import print_function, division
 
 import warnings
 import numpy as np
-import copy
+from copy import deepcopy
 
 from .externals.six import binary_type
 from .py3k import asbytes
 
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
-from .volumeutils import Recoder, array_from_file, apply_read_scaling
-from .arrayproxy import ArrayProxy
-from .affines import from_matvec, dot_reduce
+from .volumeutils import Recoder, array_from_file, BinOpener
+from .affines import from_matvec, dot_reduce, apply_affine
+from .nifti1 import unit_codes
 
 # PSL to RAS affine
-PSL_TO_RAS = np.array([[0, 0, -1, 0], # L -> R
-                       [-1, 0, 0, 0], # P -> A
-                       [0, 1, 0, 0],  # S -> S
+PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
+                       [-1, 0, 0, 0],  # P -> A
+                       [0, 1, 0, 0],   # S -> S
                        [0, 0, 0, 1]])
 
 # Acquisition (tra/sag/cor) to PSL axes
 # These come from looking at transverse, sagittal, coronal datasets where we
 # can see the LR, PA, SI orientation of the slice axes from the scanned object
 ACQ_TO_PSL = dict(
-    transverse = np.array([[  0,  1,  0, 0], # P
-                           [  0,  0,  1, 0], # S
-                           [  1,  0,  0, 0], # L
-                           [  0,  0,  0, 1]]),
-    sagittal = np.diag([1, -1, -1, 1]),
-    coronal = np.array([[  0,  0,  1, 0], # P
-                        [  0, -1,  0, 0], # S
-                        [  1,  0,  0, 0], # L
-                        [  0,  0,  0, 1]])
+    transverse=np.array([[0,  1,  0, 0],  # P
+                         [0,  0,  1, 0],  # S
+                         [1,  0,  0, 0],  # L
+                         [0,  0,  0, 1]]),
+    sagittal=np.diag([1, -1, -1, 1]),
+    coronal=np.array([[0,  0,  1, 0],  # P
+                      [0, -1,  0, 0],  # S
+                      [1,  0,  0, 0],  # L
+                      [0,  0,  0, 1]])
 )
 # PAR header versions we claim to understand
 supported_versions = ['V4.2']
@@ -189,20 +189,20 @@ image_def_dtd = [
     ('image_flip_angle', float),
     ('cardiac frequency', int,),
     ('minimum RR-interval', int,),
-    ('maximum RR-interval', int,), 
+    ('maximum RR-interval', int,),
     ('TURBO factor', int,),
     ('Inversion delay', float),
-    ('diffusion b value number', int,),    # (imagekey!)
-    ('gradient orientation number', int,), # (imagekey!)
-    ('contrast type', 'S30'),              # XXX might be too short?
-    ('diffusion anisotropy type', 'S30'),  # XXX might be too short?
+    ('diffusion b value number', int,),     # (imagekey!)
+    ('gradient orientation number', int,),  # (imagekey!)
+    ('contrast type', 'S30'),               # XXX might be too short?
+    ('diffusion anisotropy type', 'S30'),   # XXX might be too short?
     ('diffusion', float, (3,)),
     ('label type', int,),                  # (imagekey!)
     ]
 image_def_dtype = np.dtype(image_def_dtd)
 
 # slice orientation codes
-slice_orientation_codes = Recoder((# code, label
+slice_orientation_codes = Recoder((  # code, label
     (1, 'transverse'),
     (2, 'sagittal'),
     (3, 'coronal')), fields=('code', 'label'))
@@ -217,13 +217,31 @@ class PARRECError(Exception):
     pass
 
 
-def parse_PAR_header(fobj):
+def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
+    """Helper to alert user about truncated files and adjust computation"""
+    extra = (not must_exceed_one) or (n_expected > 1)
+    if extra and n_have != n_expected:
+        msg = ("Header inconsistency: Found <= %i %s, but expected %i."
+               % (n_have, name, n_expected))
+        if not permit:
+            raise PARRECError(msg)
+        msg += " Assuming %i valid %s." % (n_have - 1, name)
+        warnings.warn(msg)
+        # we assume up to the penultimate data line is correct
+        n_have -= 1
+    return n_have
+
+
+def parse_PAR_header(fobj, permit_truncated=False):
     """Parse a PAR header and aggregate all information into useful containers.
 
     Parameters
     ----------
     fobj : file-object
         The PAR header file object.
+    permit_truncated : bool
+        If True, a warning is emitted instead of an error when a truncated
+        recording is detected.
 
     Returns
     -------
@@ -246,14 +264,14 @@ def parse_PAR_header(fobj):
             # try to get the header version
             if line.count('image export tool'):
                 version = line.split()[-1]
-                if not version in supported_versions:
+                if version not in supported_versions:
                     warnings.warn(
-                          "PAR/REC version '%s' is currently not "
-                          "supported -- making an attempt to read "
-                          "nevertheless. Please email the NiBabel "
-                          "mailing list, if you are interested in "
-                          "adding support for this version."
-                          % version)
+                        "PAR/REC version '%s' is currently not "
+                        "supported -- making an attempt to read "
+                        "nevertheless. Please email the NiBabel "
+                        "mailing list, if you are interested in "
+                        "adding support for this version."
+                        % version)
             else:
                 # just a comment
                 continue
@@ -309,12 +327,107 @@ def parse_PAR_header(fobj):
                 image_defs[props[0]][i] = value
                 item_counter += nelements
 
+    # DTI volumes (b-values-1 x directions)
+    # there is some awkward exception to this rule for b-values > 2
+    # XXX need to get test image...
+    max_dti_volumes = ((general_info['max_diffusion_values'] - 1)
+                       * general_info['max_gradient_orient'])
+    n_b = len(np.unique(image_defs['diffusion b value number']))
+    n_grad = len(np.unique(image_defs['gradient orientation number']))
+    n_dti_volumes = (n_b - 1) * n_grad
+    # XXX TODO This needs to be a conditional!
+    max_dti_volumes += 1
+    n_dti_volumes += 1
+    n_slices = len(np.unique(image_defs['slice number']))
+    n_echoes = len(np.unique(image_defs['echo number']))
+    n_dynamics = len(np.unique(image_defs['dynamic scan number']))
+    n_seq = len(np.unique(image_defs['scanning sequence']))
+    pt = permit_truncated
+    n_slices = _check_truncation('slices', n_slices,
+                                 general_info['max_slices'], pt, False)
+    n_echoes = _check_truncation('echoes', n_echoes,
+                                 general_info['max_echoes'], pt, True)
+    n_dynamics = _check_truncation('dynamics', n_dynamics,
+                                   general_info['max_dynamics'], pt, True)
+    n_dti_volumes = _check_truncation('dti volumes', n_dti_volumes,
+                                      max_dti_volumes, pt, True)
+    general_info.update(n_dti_volumes=n_dti_volumes, n_echoes=n_echoes,
+                        n_dynamics=n_dynamics, n_slices=n_slices,
+                        max_dti_volumes=max_dti_volumes, n_seq=n_seq,
+                        max_types=n_seq)
     return general_info, image_defs
+
+
+def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
+                   scaling=None):
+    """Get data from REC file
+
+    Parameters
+    ----------
+    rec_fileobj : file-like
+        The file to process.
+    in_shape : tuple
+        The input shape inferred from the PAR file.
+    dtype : dtype
+        The datatype.
+    slice_indices : array of int
+        The indices used to re-index the resulting array properly.
+    out_shape : tuple
+        The output shape.
+    scaling : array | None
+        Scaling to use.
+
+    Returns
+    -------
+    data : array
+        The scaled and sorted array.
+    """
+    rec_data = array_from_file(in_shape, dtype, rec_fileobj)
+    rec_data = rec_data[..., slice_indices]
+    rec_data = rec_data.reshape(out_shape, order='F')
+    if not scaling is None:
+         # Don't do in-place b/c this goes int16 -> float64
+        rec_data = rec_data * scaling[0] + scaling[1]
+    return rec_data
+
+
+class PARRECArrayProxy(object):
+    def __init__(self, file_like, header, scaling):
+        self.file_like = file_like
+        # Copies of values needed to read array
+        self._shape = header.get_data_shape()
+        self._dtype = header.get_data_dtype()
+        self._slice_indices = header.sorted_slice_indices
+        self._slice_scaling = header.get_data_scaling(scaling)
+        self._rec_shape = header.get_rec_shape()
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def is_proxy(self):
+        return True
+
+    def get_unscaled(self):
+        with BinOpener(self.file_like) as fileobj:
+            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
+                                  self._slice_indices, self._shape)
+
+    def __array__(self):
+        with BinOpener(self.file_like) as fileobj:
+            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
+                                  self._slice_indices, self._shape,
+                                  scaling=self._slice_scaling)
 
 
 class PARRECHeader(Header):
     """PAR/REC header"""
-    def __init__(self, info, image_defs, default_scaling='dv'):
+    def __init__(self, info, image_defs):
         """
         Parameters
         ----------
@@ -324,25 +437,19 @@ class PARRECHeader(Header):
         image_defs : array
           Structured array with image definitions from the PAR file (as
           returned by `parse_PAR_header()`).
-        default_scaling : {'dv', 'fp'}
-          Default scaling method to use for :meth:`get_slope_inter`` - see
-          :meth:`get_data_scaling` for detail
         """
         self.general_info = info
         self.image_defs = image_defs
         self._slice_orientation = None
-        self.default_scaling = default_scaling
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
         dtype = np.typeDict[
-                    'int'
-                    + str(self._get_unique_image_prop('image pixel size')[0])]
+            'int' + str(self._get_unique_image_prop('image pixel size')[0])]
         Header.__init__(self,
                         data_dtype=dtype,
                         shape=self.get_data_shape_in_file(),
-                        zooms=self._get_zooms()
-                       )
+                        zooms=self._get_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -354,14 +461,69 @@ class PARRECHeader(Header):
                           'non-PARREC header.')
 
     @classmethod
-    def from_fileobj(klass, fileobj):
-        info, image_defs = parse_PAR_header(fileobj)
+    def from_fileobj(klass, fileobj, permit_truncated=False):
+        info, image_defs = parse_PAR_header(fileobj, permit_truncated)
         return klass(info, image_defs)
 
     def copy(self):
-        return PARRECHeader(
-                copy.deepcopy(self.general_info),
-                self.image_defs.copy())
+        return PARRECHeader(deepcopy(self.general_info),
+                            self.image_defs.copy())
+
+    def as_analyze_map(self):
+        """Convert PAR parameters to NIFTI1 format"""
+        # Entries in the dict correspond to the parameters found in
+        # the NIfTI1 header, specifically in nifti1.py `header_dtd` defs.
+        # Here we set the parameters we can to simplify PAR/REC
+        # to NIfTI conversion.
+        descr = ("%s;%s;%s;%s"
+                 % (self.general_info['exam_name'],
+                    self.general_info['patient_name'],
+                    self.general_info['exam_date'].replace(' ', ''),
+                    self.general_info['protocol_name']))[:80]  # max len
+        is_fmri = (self.general_info['max_dynamics'] > 1)
+        t = 'msec' if is_fmri else 'unknown'
+        xyzt_units = unit_codes['mm'] + unit_codes[t]
+        return dict(descr=descr, xyzt_units=xyzt_units)  # , pixdim=pixdim)
+
+    def get_water_fat_shift(self):
+        """Water fat shift, in pixels"""
+        return self.general_info['water_fat_shift']
+
+    def get_echo_train_length(self):
+        """Echo train length of the recording"""
+        return self.general_info['epi_factor']
+
+    def get_q_vectors(self):
+        """Get Q vectors from the data
+
+        Returns
+        -------
+        q_vectors : array
+            Array of q vectors (bvals * bvecs).
+        """
+        bvals, bvecs = self.get_bvals_bvecs()
+        return bvecs * bvals[:, np.newaxis]
+
+    def get_bvals_bvecs(self):
+        """Get bvals and bvecs from data
+
+        Returns
+        -------
+        b_vals : array
+            Array of b values, shape (n_directions,).
+        b_vectors : array
+            Array of b vectors, shape (n_directions, 3).
+        """
+        reorder = self.sorted_slice_indices
+        bvals = self.image_defs['diffusion_b_factor'][reorder]
+        bvecs = self.image_defs['diffusion'][reorder]
+        shape = self.get_data_shape()
+        bvals = bvals[::shape[-1]]
+        bvecs = bvecs[::shape[-1]]
+        # rotate bvecs to match stored image orientation
+        permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
+        bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
+        return bvals, bvecs
 
     def _get_unique_image_prop(self, name):
         """Scan image definitions and return unique value of a property.
@@ -422,8 +584,10 @@ class PARRECHeader(Header):
 
     def get_ndim(self):
         """Return the number of dimensions of the image data."""
-        if self.general_info['max_dynamics'] > 1 \
-           or self.general_info['max_gradient_orient'] > 1:
+        if self.general_info['n_dynamics'] > 1 \
+           or self.general_info['n_dti_volumes'] > 1 \
+           or self.general_info['n_echoes'] > 1 \
+           or self.general_info['n_seq'] > 1:
             return 4
         else:
             return 3
@@ -441,9 +605,7 @@ class PARRECHeader(Header):
         # voxel size (inplaneX, inplaneY, slices)
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
-        # time axis?
-        if len(zooms) > 3  and self.general_info['max_dynamics'] > 1:
-            # DTI also has 4D
+        if len(zooms) > 3 and self.general_info['n_dynamics'] > 1:
             # Convert time from milliseconds to seconds
             zooms[3] = self.general_info['repetition_time'] / 1000.
         return zooms
@@ -521,30 +683,28 @@ class PARRECHeader(Header):
         n_slices : int
             number of slices
         n_vols : int
-            number of dynamic scans / number of directions in diffusion
+            number of dynamic scans, number of directions in diffusion, or
+            number of echoes
         """
-        # e.g. number of volumes
-        ndynamics = len(np.unique(self.image_defs['dynamic scan number']))
-        # DTI volumes (b-values-1 x directions)
-        # there is some awkward exception to this rule for b-values > 2
-        # XXX need to get test image...
-        ndtivolumes = (self.general_info['max_diffusion_values'] - 1) \
-                        * self.general_info['max_gradient_orient']
-        nslices = len(np.unique(self.image_defs['slice number']))
-        if not nslices == self.general_info['max_slices']:
-            raise PARRECError("Header inconsistency: Found %i slices, "
-                              "but header claims to have %i."
-                              % (nslices, self.general_info['max_slices']))
+        # there should not be more than one: multiple dynamics, DTI, echoes
+        lens = [self.general_info[x] for x in ['n_dynamics', 'n_dti_volumes',
+                                               'n_echoes', 'n_seq']]
+        if sum(x > 1 for x in lens) > 1:
+            raise PARRECError('Cannot have multiple dynamics, dti volumes, '
+                              'or echoes in the same file, found %s of each, '
+                              'respectively' % lens)
 
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
-
-        # there should not be both: multiple dynamics and DTI
-        if ndynamics > 1:
-            return inplane_shape + (nslices, ndynamics)
-        elif ndtivolumes > 1:
-            return inplane_shape + (nslices, ndtivolumes)
-        else:
-            return tuple(inplane_shape) + (nslices,)
+        shape = inplane_shape + (self.general_info['n_slices'],)
+        if self.general_info['n_dynamics'] > 1:
+            shape = shape + (self.general_info['n_dynamics'],)
+        elif self.general_info['n_dti_volumes'] > 1:
+            shape = shape + (self.general_info['n_dti_volumes'],)
+        elif self.general_info['n_echoes'] > 1:
+            shape = shape + (self.general_info['n_echoes'],)
+        elif self.general_info['n_seq'] > 1:
+            shape = shape + (self.general_info['n_seq'],)
+        return shape
 
     def get_data_scaling(self, method="dv"):
         """Returns scaling slope and intercept.
@@ -556,9 +716,9 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        slope : float
+        slope : array
             scaling slope
-        intercept : float
+        intercept : array
             scaling intercept
 
         Notes
@@ -574,33 +734,24 @@ class PARRECHeader(Header):
         DV = PV * RS + RI
         FP = DV / (RS * SS)
         """
-        # XXX: FP tends to become HUGE, DV seems to be more reasonable -> figure
-        #      out which one means what
-
-        # although the is a per-image scaling in the header, it looks like
-        # there is just one unique factor and intercept per whole image series
-        scale_slope = self._get_unique_image_prop('scale slope')
-        rescale_slope = self._get_unique_image_prop('rescale slope')
-        rescale_intercept = self._get_unique_image_prop('rescale intercept')
-
+        # These will be 3D or 4D
+        scale_slope = self.image_defs['scale slope']
+        rescale_slope = self.image_defs['rescale slope']
+        rescale_intercept = self.image_defs['rescale intercept']
         if method == 'dv':
-            slope = rescale_slope
-            intercept = rescale_intercept
+            slope, intercept = rescale_slope, rescale_intercept
         elif method == 'fp':
-            # actual slopes per definition above
             slope = 1.0 / scale_slope
-            # actual intercept per definition above
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
             raise ValueError("Unknown scling method '%s'." % method)
-        return (slope, intercept)
-
-    def get_slope_inter(self):
-        """ Utility method to get default slope, intercept scaling
-        """
-        return tuple(
-            np.asscalar(v)
-            for v in self.get_data_scaling(method=self.default_scaling))
+        reorder = self.sorted_slice_indices
+        slope = slope[reorder]
+        intercept = intercept[reorder]
+        shape = (1, 1) + self.get_data_shape()[2:]
+        slope = slope.reshape(shape, order='F')
+        intercept = intercept.reshape(shape, order='F')
+        return slope, intercept
 
     def get_slice_orientation(self):
         """Returns the slice orientation label.
@@ -610,57 +761,32 @@ class PARRECHeader(Header):
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
-            self._slice_orientation = \
-                slice_orientation_codes.label[
-                    self._get_unique_image_prop('slice orientation')[0]]
+            lab = self._get_unique_image_prop('slice orientation')[0]
+            self._slice_orientation = slice_orientation_codes.label[lab]
         return self._slice_orientation
 
-    def raw_data_from_fileobj(self, fileobj):
-        ''' Read unscaled data array from `fileobj`
+    def get_rec_shape(self):
+        inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
+        return inplane_shape + (len(self.image_defs),)
 
-        Array axes correspond to x,y,z,t.
+    @property
+    def sorted_slice_indices(self):
+        """Indices to sort (and maybe discard) slices in REC file
 
-        Parameters
-        ----------
-        fileobj : file-like
-            Must be open, and implement ``read`` and ``seek`` methods
+        Returns list for indexing into a single dimension of an array.
 
-        Returns
-        -------
-        arr : ndarray
-           unscaled data array
-        '''
-        dtype = self.get_data_dtype()
-        shape = self.get_data_shape()
-        offset = self.get_data_offset()
-        return array_from_file(shape, dtype, fileobj, offset)
-
-    def data_from_fileobj(self, fileobj):
-        ''' Read scaled data array from `fileobj`
-
-        Use this routine to get the scaled image data from an image file
-        `fileobj`, given a header `self`.  "Scaled" means, with any header
-        scaling factors applied to the raw data in the file.  Use
-        `raw_data_from_fileobj` to get the raw data.
-
-        Parameters
-        ----------
-        fileobj : file-like
-           Must be open, and implement ``read`` and ``seek`` methods
-
-        Returns
-        -------
-        arr : ndarray
-           scaled data array
-        '''
-        # read unscaled data
-        data = self.raw_data_from_fileobj(fileobj)
-        # get scalings from header.  Value of None means not present in header
-        slope, inter = self.get_slope_inter()
-        slope = 1.0 if slope is None else slope
-        inter = 0.0 if inter is None else inter
-        # Upcast as necessary for big slopes, intercepts
-        return apply_read_scaling(data, slope, inter)
+        If the recording is truncated, this will take care of discarding
+        any indices that are not meant to be used.
+        """
+        # No attempt to detect missing combinations or early stop
+        keys = ['slice number', 'scanning sequence', 'image_type_mr',
+                'gradient orientation number', 'dynamic scan number',
+                'echo number']
+        keys = [self.image_defs[k] for k in keys]
+        # Figure out how many we need to remove from the end, and trim them
+        # Based on our sorting, they should always be last
+        n_used = np.prod(self.get_data_shape()[2:])
+        return np.lexsort(keys)[:n_used]
 
 
 class PARRECImage(SpatialImage):
@@ -668,19 +794,21 @@ class PARRECImage(SpatialImage):
     header_class = PARRECHeader
     files_types = (('image', '.rec'), ('header', '.par'))
 
-    ImageArrayProxy = ArrayProxy
+    ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map, permit_truncated, scaling):
+        pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
-            hdr = PARRECHeader.from_fileobj(hdr_fobj)
+            hdr = klass.header_class.from_fileobj(hdr_fobj,
+                                                  permit_truncated=pt)
         rec_fobj = file_map['image'].get_prepare_fileobj()
-        data = klass.ImageArrayProxy(rec_fobj, hdr)
-        return klass(data,
-                     hdr.get_affine(),
-                     header=hdr,
-                     extra=None,
+        data = klass.ImageArrayProxy(rec_fobj, hdr, scaling)
+        return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
 
-load = PARRECImage.load
+def load(filename, permit_truncated=False, scaling='dv'):
+    file_map = PARRECImage.filespec_to_file_map(filename)
+    return PARRECImage.from_file_map(file_map, permit_truncated, scaling)
+load.__doc__ = PARRECImage.load.__doc__
