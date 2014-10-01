@@ -12,7 +12,7 @@ import nibabel
 import nibabel.parrec as pr
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
-from nibabel.volumeutils import seek_tell, array_to_file
+from nibabel.volumeutils import array_to_file
 
 # global verbosity switch
 verbose_switch = False
@@ -196,16 +196,15 @@ def proc_file(infile, opts):
     if not np.any(np.diff(slope)) and not np.any(np.diff(intercept)):
         # Single scalefactor case
         nhdr.set_slope_inter(slope.ravel()[0], intercept.ravel()[0])
-        data = raw_data
+        data_obj = raw_data
     else:
         # Multi scalefactor case
         nhdr.set_slope_inter(1, 0)
         nhdr.set_data_dtype(np.float64)
-        data = pr_img.dataobj.__array__()
+        data_obj = pr_img.dataobj
     nhdr.write_to(outfile)
     offset = nhdr.get_data_offset()
-    seek_tell(outfile, offset, write0=True)
-    array_to_file(data, outfile, offset=offset)
+    array_to_file(data_obj, outfile, offset=offset)
 
     # write out bvals/bvecs if requested
     if opts.bvs and pr_hdr.general_info['n_dti_volumes'] > 1:
