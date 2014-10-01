@@ -524,8 +524,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Parameters
     ----------
-    data : array
-        array to write
+    data : array-like
+        array or array-like to write.
     fileobj : file-like
         file-like object implementing ``write`` method.
     out_dtype : None or dtype, optional
