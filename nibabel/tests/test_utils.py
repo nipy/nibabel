@@ -131,6 +131,11 @@ def test_array_to_file():
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
+    # Test array-like
+    str_io = BytesIO()
+    array_to_file(arr.tolist(), str_io, float)
+    data_back = array_from_file(arr.shape, float, str_io)
+    assert_array_almost_equal(arr, data_back)
 
 
 def test_a2f_intercept_scale():
