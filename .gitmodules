@@ -1,0 +1,3 @@
+[submodule "nibabel-data/nitest-balls1"]
+	path = nibabel-data/nitest-balls1
+	url = https://github.com/yarikoptic/nitest-balls1
