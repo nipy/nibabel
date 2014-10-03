@@ -60,7 +60,7 @@ def get_opt_parser():
                    supplied because it is not encoded in the PAR/REC
                    format.""")))
     p.add_option(
-        Option("--field-strength", action="store", default=3., type="float",
+        Option("--field-strength", action="store", type="float",
                dest="field_strength",
                help=_oneline(
                    """The magnetic field strength of the recording, only needed
@@ -245,6 +245,8 @@ def main():
 
     if opts.origin not in ['scanner', 'fov']:
         error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
+    if opts.dwell_time and opts.field_strength is None:
+        error('Need --field-strength for dwell time calculation', 1)
 
     # store any exceptions
     errs = []
