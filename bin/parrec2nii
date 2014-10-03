@@ -256,8 +256,6 @@ def main():
             proc_file(infile, opts)
         except Exception as e:
             errs.append('%s: %s' % (infile, e))
-            raise  # XXX REMOVE
-        print('')
 
     if len(errs):
         error('Caught %i exceptions. Dump follows:\n\n %s'
