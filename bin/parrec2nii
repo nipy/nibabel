@@ -14,9 +14,6 @@ import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
 from nibabel.volumeutils import array_to_file
 
-# global verbosity switch
-verbose_switch = False
-
 
 def _oneline(big_str):
     return ' '.join(L.strip() for L in big_str.splitlines())
@@ -114,7 +111,7 @@ def get_opt_parser():
 
 
 def verbose(msg, indent=0):
-    if verbose_switch:
+    if verbose.switch:
         print("%s%s" % (' ' * indent, msg))
 
 
@@ -242,8 +239,7 @@ def main():
     parser = get_opt_parser()
     (opts, infiles) = parser.parse_args()
 
-    global verbose_switch
-    verbose_switch = opts.verbose
+    verbose.switch = opts.verbose
 
     if opts.origin not in ['scanner', 'fov']:
         error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
