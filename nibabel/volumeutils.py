@@ -15,6 +15,7 @@ import bz2
 
 import numpy as np
 
+from os.path import exists, splitext
 from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
 
@@ -1512,6 +1513,38 @@ class BinOpener(Opener):
     __doc__ = Opener.__doc__
     compress_ext_map = Opener.compress_ext_map.copy()
     compress_ext_map['.mgz'] = Opener.gz_def
+
+
+def fname_ext_ul_case(fname):
+    """ `fname` with ext changed to upper / lower case if file exists
+
+    Check for existence of `fname`.  If it does exist, return unmodified.  If
+    it doesn't, check for existence of `fname` with case changed from lower to
+    upper, or upper to lower.  Return this modified `fname` if it exists.
+    Otherwise return `fname` unmodified
+
+    Parameters
+    ----------
+    fname : str
+        filename.
+
+    Returns
+    -------
+    mod_fname : str
+        filename, maybe with extension of opposite case
+    """
+    if exists(fname):
+        return fname
+    froot, ext = splitext(fname)
+    if ext == ext.lower():
+        mod_fname = froot + ext.upper()
+        if exists(mod_fname):
+            return mod_fname
+    elif ext == ext.upper():
+        mod_fname = froot + ext.lower()
+        if exists(mod_fname):
+            return mod_fname
+    return fname
 
 
 def allopen(fileish, *args, **kwargs):

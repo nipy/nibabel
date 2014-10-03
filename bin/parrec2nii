@@ -13,7 +13,7 @@ import nibabel.parrec as pr
 from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
-from nibabel.volumeutils import array_to_file
+from nibabel.volumeutils import array_to_file, fname_ext_ul_case
 
 
 def _oneline(big_str):
@@ -140,6 +140,7 @@ def proc_file(infile, opts):
 
     # load the PAR header and data
     scaling = None if opts.scaling == 'off' else opts.scaling
+    infile = fname_ext_ul_case(infile)
     pr_img = pr.load(infile, opts.permit_truncated, scaling)
     pr_hdr = pr_img.header
     raw_data = pr_img.dataobj.get_unscaled()
