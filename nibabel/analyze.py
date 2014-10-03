@@ -373,26 +373,23 @@ class AnalyzeHeader(LabeledWrapStruct):
         obj = klass(check=check)
         if header is None:
             return obj
-        try: # check if there is a specific conversion routine
+        if hasattr(header, 'as_analyze_map'):
+            # header is convertible from a field mapping
             mapping = header.as_analyze_map()
-        except AttributeError:
-            # most basic conversion
-            obj.set_data_dtype(header.get_data_dtype())
-            obj.set_data_shape(header.get_data_shape())
-            obj.set_zooms(header.get_zooms())
-            return obj
-        # header is convertible from a field mapping
-        for key, value in mapping.items():
-            try:
-                obj[key] = value
-            except (ValueError, KeyError):
-                # the presence of the mapping certifies the fields as
-                # being of the same meaning as for Analyze types
-                pass
-        # set any fields etc that are specific to this format (overriden by
-        # sub-classes)
-        obj._set_format_specifics()
-        # Check for unsupported datatypes
+            for key in mapping:
+                try:
+                    obj[key] = mapping[key]
+                except (ValueError, KeyError):
+                    # the presence of the mapping certifies the fields as being
+                    # of the same meaning as for Analyze types, so we can
+                    # safely discard fields with names not known to this header
+                    # type on the basis they are from the wrong Analyze dialect
+                    pass
+            # set any fields etc that are specific to this format (overriden by
+            # sub-classes)
+            obj._clean_after_mapping()
+        # Fallback basic conversion always done.
+        # More specific warning for unsupported datatypes
         orig_code = header.get_data_dtype()
         try:
             obj.set_data_dtype(orig_code)
@@ -402,13 +399,32 @@ class AnalyzeHeader(LabeledWrapStruct):
                                   % (header.__class__,
                                      header.get_value_label('datatype'),
                                      klass))
+        obj.set_data_dtype(header.get_data_dtype())
+        obj.set_data_shape(header.get_data_shape())
+        obj.set_zooms(header.get_zooms())
         if check:
             obj.check_fix()
         return obj
 
-    def _set_format_specifics(self):
-        ''' Utility routine to set format specific header stuff
+    def _clean_after_mapping(self):
+        ''' Set format-specific stuff after converting header from mapping
+
+        This routine cleans up Analyze-type headers that have had their fields
+        set from an Analyze map returned by the ``as_analyze_map`` method.
+        Nifti 1 / 2, SPM Analyze, Analyze are all Analyze-type headers.
+        Because this map can set fields that are illegal for particular
+        subtypes of the Analyze header, this routine cleans these up before the
+        resulting header is checked and returned.
+
+        For example, a Nifti1 single (``.nii``) header has magic "n+1".
+        Passing the nifti single header for conversion to a Nifti1Pair header
+        using the ``as_analyze_map`` method will by default set the header
+        magic to "n+1", when it should be "ni1" for the pair header.  This
+        method is for that kind of case - so the specific header can set fields
+        like magic correctly, even though the mapping has given a wrong value.
         '''
+        # All current Nifti etc fields that are present in the Analyze header
+        # have the same meaning as they do for Analyze.
         pass
 
     def raw_data_from_fileobj(self, fileobj):
@@ -688,6 +704,42 @@ class AnalyzeHeader(LabeledWrapStruct):
         pixdims[1:ndim+1] = zooms[:]
 
     def as_analyze_map(self):
+        """ Return header as mapping for conversion to Analyze types
+
+        Collect data from custom header type to fill in fields for Analyze and
+        derived header types (such as Nifti1 and Nifti2).
+
+        When Analyze types convert another header type to their own type, they
+        call this this method to check if there are other Analyze / Nifti
+        fields that the source header would like to set.
+
+        Returns
+        -------
+        analyze_map : mapping
+            Object that can be used as a mapping thus::
+
+                for key in analyze_map:
+                    value = analyze_map[key]
+
+            where ``key`` is the name of a field that can be set in an Analyze
+            header type, such as Nifti1, and ``value`` is a value for the
+            field.  For example, `analyze_map` might be a something like
+            ``dict(regular='y', slice_duration=0.3)`` where ``regular`` is a
+            field present in both Analyze and Nifti1, and ``slice_duration`` is
+            a field restricted to Nifti1 and Nifti2.  If a particular Analyze
+            header type does not recognize the field name, it will throw away
+            the value without error.  See :meth:`Analyze.from_header`.
+
+        Notes
+        -----
+        You can also return a Nifti header with the relevant fields set.
+
+        Your header still needs methods ``get_data_dtype``, ``get_data_shape``
+        and ``get_zooms``, for the conversion, and these get called *after*
+        using the analyze map, so the methods will override values set in the
+        map.
+        """
+        # In the case of Analyze types, the header is already such a mapping
         return self
 
     def set_data_offset(self, offset):
