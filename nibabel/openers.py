@@ -9,7 +9,7 @@
 """ Context manager openers for various fileobject types
 """
 
-from os.path import splitext, isfile
+from os.path import splitext
 import gzip
 import bz2
 
@@ -49,10 +49,6 @@ class Opener(object):
             self._name = None
             return
         _, ext = splitext(fileish)
-        # allow for ext to be lower or upper case
-        if not isfile(fileish):
-            if isfile(_ + ext.upper()):
-                fileish = _ + ext.upper()
         if ext in self.compress_ext_map:
             is_compressor = True
             opener, arg_names = self.compress_ext_map[ext]
