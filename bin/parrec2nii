@@ -171,7 +171,6 @@ def proc_file(infile, opts):
             hdr_dump = fobj.read()
             dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
         exts.append(dump_ext)
-        nimg.extra['extensions'] = exts
     # finalize the header: set proper data offset, pixdims, ...
     nimg.update_header()
 
