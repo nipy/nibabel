@@ -17,7 +17,8 @@ import numpy as np
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 
-from nose.tools import assert_true, assert_not_equal, assert_equal
+from nose.tools import (assert_true, assert_false, assert_not_equal,
+                        assert_equal)
 
 from numpy.testing import assert_almost_equal
 
@@ -133,3 +134,31 @@ def test_parrec2nii_with_data():
                 if par_root != 'fieldmap':
                     assert_true(np.allclose(conved_img.dataobj,
                                             nimg.dataobj))
+    with InTemporaryDirectory():
+        # Test some options
+        dti_par = pjoin(BALLS, 'PARREC', 'DTI.PAR')
+        run_command(['parrec2nii', dti_par])
+        assert_true(exists('DTI.nii'))
+        assert_false(exists('DTI.bvals'))
+        assert_false(exists('DTI.bvecs'))
+        # Does not overwrite unless option given
+        code, stdout, stderr = run_command(['parrec2nii', dti_par],
+                                           check_code=False)
+        assert_equal(code, 1)
+        # Writes bvals, bvecs files if asked
+        run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
+        assert_true(exists('DTI.bvals'))
+        assert_true(exists('DTI.bvecs'))
+        assert_false(exists('DTI.dwell_time'))
+        # Need field strength if requesting dwell time
+        code, _, _, = run_command(
+            ['parrec2nii', '--overwrite', '--dwell-time', dti_par],
+            check_code=False)
+        assert_equal(code, 1)
+        run_command(
+            ['parrec2nii', '--overwrite', '--dwell-time',
+             '--field-strength', '3', dti_par])
+        exp_dwell = (26 * 9.087) / (42.576 * 3.4 * 3 * 28)
+        with open('DTI.dwell_time', 'rt') as fobj:
+            contents = fobj.read().strip()
+        assert_almost_equal(float(contents), exp_dwell)
