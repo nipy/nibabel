@@ -10,6 +10,7 @@ import os
 import gzip
 import nibabel
 import nibabel.parrec as pr
+from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
 from nibabel.volumeutils import array_to_file
@@ -221,10 +222,12 @@ def proc_file(infile, opts):
 
     # write out dwell time if requested
     if opts.dwell_time:
-        dwell_time = nibabel.calculate_dwell_time(
-            pr_hdr.get_water_fat_shift(), pr_hdr.get_echo_train_length(),
-            opts.field_strength)
-        if dwell_time is None:
+        try:
+            dwell_time = calculate_dwell_time(
+                pr_hdr.get_water_fat_shift(),
+                pr_hdr.get_echo_train_length(),
+                opts.field_strength)
+        except MRIError:
             verbose('No EPI factors, dwell time not written')
         else:
             verbose('Writing dwell time (%r sec) calculated assuming %sT '
