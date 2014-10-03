@@ -26,8 +26,8 @@ def types_filenames(template_fname, types_exts,
     ''' Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
-    Analyze image, that expects and 'image' file type, with, extension
-    ``.img``, and a 'header' file type, with extension ``.hdr``.
+    Analyze image, that expects an 'image' file type with extension ``.img``,
+    and a 'header' file type, with extension ``.hdr``.
 
     Parameters
     ----------

@@ -9,10 +9,10 @@
 ''' Very simple spatial image class
 
 The image class maintains the association between a 3D (or greater)
-array, and an affine transform that maps voxel coordinates to some real
-world space.  It also has a ``header`` - some standard set of meta-data
-that is specific to the image format - and ``extra`` - a dictionary
-container for any other metadata.
+array, and an affine transform that maps voxel coordinates to some world space.
+It also has a ``header`` - some standard set of meta-data that is specific to
+the image format, and ``extra`` - a dictionary container for any other
+metadata.
 
 It has attributes:
 
@@ -58,20 +58,20 @@ You can load the data into an image from file with::
 
    img.from_filename(fname)
 
-The image stores its associated files in its ``files`` attribute.  In
-order to just save an image, for which you know there is an associated
-filename, or other storage, you can do::
+The image stores its associated files in its ``file_map`` attribute.  In order
+to just save an image, for which you know there is an associated filename, or
+other storage, you can do::
 
    img.to_file_map()
 
-You can get the data out again with of::
+You can get the data out again with::
 
     img.get_data()
 
 Less commonly, for some image types that support it, you might want to
-fetch out the unscaled array via the header::
+fetch out the unscaled array via the object containing the data::
 
-    unscaled_data = img.get_unscaled_data()
+    unscaled_data = img.dataoobj.get_unscaled()
 
 Analyze-type images (including nifti) support this, but others may not
 (MINC, for example).
@@ -595,8 +595,9 @@ class SpatialImage(object):
                                         klass.files_types,
                                         trailing_suffixes=klass._compressed_exts)
         except TypesFilenamesError:
-            raise ImageFileError('Filespec "%s" does not look right for '
-                             'class %s ' % (filespec, klass))
+            raise ImageFileError(
+                'Filespec "{0}" does not look right for class {1}'.format(
+                    filespec, klass))
         file_map = {}
         for key, fname in filenames.items():
             file_map[key] = FileHolder(filename=fname)
