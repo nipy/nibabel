@@ -10,14 +10,11 @@ import os
 import gzip
 import nibabel
 import nibabel.parrec as pr
+from nibabel.parrec import one_line
 from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
 from nibabel.volumeutils import array_to_file, fname_ext_ul_case
-
-
-def _oneline(big_str):
-    return ' '.join(L.strip() for L in big_str.splitlines())
 
 
 def get_opt_parser():
@@ -32,7 +29,7 @@ def get_opt_parser():
     p.add_option(
         Option("-o", "--output-dir", action="store", type="string",
                dest="outdir", default=None,
-               help=_oneline("""Destination directory for NIfTI files.
+               help=one_line("""Destination directory for NIfTI files.
                              Default: current directory.""")))
     p.add_option(
         Option("-c", "--compressed", action="store_true",
@@ -41,19 +38,19 @@ def get_opt_parser():
     p.add_option(
         Option("-p", "--permit-truncated", action="store_true",
                dest="permit_truncated", default=False,
-               help=_oneline(
+               help=one_line(
                    """Permit conversion of truncated recordings. Support for
                    this is experimental, and results *must* be checked
                    afterward for validity.""")))
     p.add_option(
         Option("-b", "--bvs", action="store_true", dest="bvs", default=False,
-               help=_oneline(
+               help=one_line(
                    """Output bvals/bvecs files in addition to NIFTI
                    image.""")))
     p.add_option(
         Option("-d", "--dwell-time", action="store_true", default=False,
                dest="dwell_time",
-               help=_oneline(
+               help=one_line(
                    """Calculate the scan dwell time. If supplied, the magnetic
                    field strength should also be supplied using
                    --field-strength (default 3). The field strength must be
@@ -62,13 +59,13 @@ def get_opt_parser():
     p.add_option(
         Option("--field-strength", action="store", type="float",
                dest="field_strength",
-               help=_oneline(
+               help=one_line(
                    """The magnetic field strength of the recording, only needed
                    for --dwell-time. The field strength must be supplied
                    because it is not encoded in the PAR/REC format.""")))
     p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
-               help=_oneline(
+               help=one_line(
                    """Reference point of the q-form transformation of the NIfTI
                    image. If 'scanner' the (0,0,0) coordinates will refer to
                    the scanner's iso center. If 'fov', this coordinate will be
@@ -76,7 +73,7 @@ def get_opt_parser():
                    'scanner'.""")))
     p.add_option(
         Option("--minmax", action="store", nargs=2, dest="minmax",
-               help=_oneline(
+               help=one_line(
                    """Mininum and maximum settings to be stored in the NIfTI
                    header. If any of them is set to 'parse', the scaled data is
                    scanned for the actual minimum and maximum.  To bypass this
@@ -89,12 +86,12 @@ def get_opt_parser():
     p.add_option(
         Option("--store-header", action="store_true", dest="store_header",
                default=False,
-               help=_oneline(
+               help=one_line(
                    """If set, all information from the PAR header is stored in
                    an extension ofthe NIfTI file header.  Default: off""")))
     p.add_option(
         Option("--scaling", action="store", dest="scaling", default='dv',
-               help=_oneline(
+               help=one_line(
                    """Choose data scaling setting. The PAR header defines two
                    different data scaling settings: 'dv' (values displayed on
                    console) and 'fp' (floating point values). Either one can be
@@ -106,7 +103,7 @@ def get_opt_parser():
     p.add_option(
         Option("--overwrite", action="store_true", dest="overwrite",
                default=False,
-               help=_oneline("""Overwrite file if it exists. Default:
+               help=one_line("""Overwrite file if it exists. Default:
                              False""")))
     return p
 
