@@ -346,9 +346,7 @@ def _calc_extras(general_info, image_defs, permit_truncated):
                 n_echoes=n_echoes,
                 n_dynamics=n_dynamics,
                 n_slices=n_slices,
-                max_dti_volumes=max_dti_volumes,
-                n_seq=n_seq,
-                max_types=n_seq)
+                n_seq=n_seq)
 
 
 def one_line(long_str):
