@@ -80,6 +80,7 @@ from __future__ import print_function, division
 import warnings
 import numpy as np
 from copy import deepcopy
+import re
 
 from .externals.six import binary_type
 from .py3k import asbytes
@@ -217,91 +218,68 @@ class PARRECError(Exception):
     pass
 
 
-def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
-    """Helper to alert user about truncated files and adjust computation"""
-    extra = (not must_exceed_one) or (n_expected > 1)
-    if extra and n_have != n_expected:
-        msg = ("Header inconsistency: Found <= %i %s, but expected %i."
-               % (n_have, name, n_expected))
-        if not permit:
-            raise PARRECError(msg)
-        msg += " Assuming %i valid %s." % (n_have - 1, name)
-        warnings.warn(msg)
-        # we assume up to the penultimate data line is correct
-        n_have -= 1
-    return n_have
-
-
-def parse_PAR_header(fobj, permit_truncated=False):
-    """Parse a PAR header and aggregate all information into useful containers.
-
-    Parameters
-    ----------
-    fobj : file-object
-        The PAR header file object.
-    permit_truncated : bool
-        If True, a warning is emitted instead of an error when a truncated
-        recording is detected.
-
-    Returns
-    -------
-    general_info : dict
-        Contains all "General Information" from the header file
-    image_info : ndarray
-        Structured array with fields giving all "Image information" in the
-        header
-    """
-    # containers for relevant header lines
-    general_info = {}
-    image_info = []
+def _split_header(fobj):
+    """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
-
-    # single pass through the header
+    gen_dict = {}
+    image_lines = []
+    # Small state-machine
+    state = 'top-header'
     for line in fobj:
-        # no junk
         line = line.strip()
-        if line.startswith('#'):
-            # try to get the header version
-            if line.count('image export tool'):
+        if line == '':
+            continue
+        if state == 'top-header':
+            if not line.startswith('#'):
+                state = 'general-info'
+            elif 'image export tool' in line:
                 version = line.split()[-1]
-                if version not in supported_versions:
-                    warnings.warn(
-                        "PAR/REC version '%s' is currently not "
-                        "supported -- making an attempt to read "
-                        "nevertheless. Please email the NiBabel "
-                        "mailing list, if you are interested in "
-                        "adding support for this version."
-                        % version)
-            else:
-                # just a comment
-                continue
-        elif line.startswith('.'):
-            # read 'general information' and store in a dict
-            first_colon = line[1:].find(':') + 1
-            key = line[1:first_colon].strip()
-            value = line[first_colon + 1:].strip()
-            # get props for this hdr field
-            props = _hdr_key_dict[key]
-            # turn values into meaningful dtype
-            if len(props) == 2:
-                # only dtype spec and no shape
-                value = props[1](value)
-            elif len(props) == 3:
-                # array with dtype and shape
-                value = np.fromstring(value, props[1], sep=' ')
-                value.shape = props[2]
-            general_info[props[0]] = value
-        elif line:
-            # anything else is an image definition: store for later
-            # processing
-            image_info.append(line)
+        if state == 'general-info':
+            if not line.startswith('.'):
+                state = 'comment-block'
+            else: # Let match raise error for unexpected field format
+                key, value = GEN_RE.match(line).groups()
+                gen_dict[key] = value
+        if state == 'comment-block':
+            if not line.startswith('#'):
+                state = 'image-info'
+        if state == 'image-info':
+            if line.startswith('#'):
+                break
+            image_lines.append(line)
+    return version, gen_dict, image_lines
 
+
+GEN_RE = re.compile(r".\s+(.*?)\s*:\s+(.*)")
+
+
+def _process_gen_dict(gen_dict):
+    """ Process `gen_dict` key, values into `general_info`
+    """
+    general_info = {}
+    for key, value in gen_dict.items():
+        # get props for this hdr field
+        props = _hdr_key_dict[key]
+        # turn values into meaningful dtype
+        if len(props) == 2:
+            # only dtype spec and no shape
+            value = props[1](value)
+        elif len(props) == 3:
+            # array with dtype and shape
+            value = np.fromstring(value, props[1], sep=' ')
+            value.shape = props[2]
+        general_info[props[0]] = value
+    return general_info
+
+
+def _process_image_lines(image_lines):
+    """ Process image information definition lines
+    """
     # postproc image def props
     # create an array for all image defs
-    image_defs = np.zeros(len(image_info), dtype=image_def_dtype)
-
+    image_defs = np.zeros(len(image_lines), dtype=image_def_dtype)
     # for every image definition
-    for i, line in enumerate(image_info):
+    for i, line in enumerate(image_lines):
         items = line.split()
         item_counter = 0
         # for all image properties we know about
@@ -326,7 +304,27 @@ def parse_PAR_header(fobj, permit_truncated=False):
                 # store
                 image_defs[props[0]][i] = value
                 item_counter += nelements
+    return image_defs
 
+
+def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
+    """Helper to alert user about truncated files and adjust computation"""
+    extra = (not must_exceed_one) or (n_expected > 1)
+    if extra and n_have != n_expected:
+        msg = ("Header inconsistency: Found <= %i %s, but expected %i."
+               % (n_have, name, n_expected))
+        if not permit:
+            raise PARRECError(msg)
+        msg += " Assuming %i valid %s." % (n_have - 1, name)
+        warnings.warn(msg)
+        # we assume up to the penultimate data line is correct
+        n_have -= 1
+    return n_have
+
+
+def _calc_extras(general_info, image_defs, permit_truncated):
+    """ Calculate, return values from `general info`, `image_defs`
+    """
     # DTI volumes (b-values-1 x directions)
     # there is some awkward exception to this rule for b-values > 2
     # XXX need to get test image...
@@ -351,10 +349,51 @@ def parse_PAR_header(fobj, permit_truncated=False):
                                    general_info['max_dynamics'], pt, True)
     n_dti_volumes = _check_truncation('dti volumes', n_dti_volumes,
                                       max_dti_volumes, pt, True)
-    general_info.update(n_dti_volumes=n_dti_volumes, n_echoes=n_echoes,
-                        n_dynamics=n_dynamics, n_slices=n_slices,
-                        max_dti_volumes=max_dti_volumes, n_seq=n_seq,
-                        max_types=n_seq)
+    return dict(n_dti_volumes=n_dti_volumes,
+                n_echoes=n_echoes,
+                n_dynamics=n_dynamics,
+                n_slices=n_slices,
+                max_dti_volumes=max_dti_volumes,
+                n_seq=n_seq,
+                max_types=n_seq)
+
+
+def one_line(long_str):
+    """ Make maybe mutli-line `long_str` into one long line """
+    return ' '.join(line.strip() for line in long_str.splitlines())
+
+
+def parse_PAR_header(fobj, permit_truncated=False):
+    """Parse a PAR header and aggregate all information into useful containers.
+
+    Parameters
+    ----------
+    fobj : file-object
+        The PAR header file object.
+    permit_truncated : bool, optional
+        If True, a warning is emitted instead of an error when a truncated
+        recording is detected.
+
+    Returns
+    -------
+    general_info : dict
+        Contains all "General Information" from the header file
+    image_info : ndarray
+        Structured array with fields giving all "Image information" in the
+        header
+    """
+    # single pass through the header
+    version, gen_dict, image_lines = _split_header(fobj)
+    if version not in supported_versions:
+        warnings.warn(one_line(
+            """ PAR/REC version '{0}' is currently not supported -- making an
+            attempt to read nevertheless. Please email the NiBabel mailing
+            list, if you are interested in adding support for this version.
+            """.format(version)))
+    general_info = _process_gen_dict(gen_dict)
+    image_defs = _process_image_lines(image_lines)
+    extra_info = _calc_extras(general_info, image_defs, permit_truncated)
+    general_info.update(extra_info)
     return general_info, image_defs
 
 
