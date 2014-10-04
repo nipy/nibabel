@@ -82,7 +82,7 @@ import numpy as np
 from copy import deepcopy
 import re
 
-from .externals.six import binary_type
+from .externals.six import string_types
 from .py3k import asbytes
 
 from .spatialimages import SpatialImage, Header
@@ -284,26 +284,19 @@ def _process_image_lines(image_lines):
         item_counter = 0
         # for all image properties we know about
         for props in image_def_dtd:
-            if np.issubdtype(image_defs[props[0]].dtype, binary_type):
-                # simple string
-                image_defs[props[0]][i] = asbytes(items[item_counter])
-                item_counter += 1
-            elif len(props) == 2:
-                # prop with numerical dtype
-                if props[1] == 'S30':
-                    1/0
-                image_defs[props[0]][i] = props[1](items[item_counter])
+            if len(props) == 2:
+                name, np_type = props
+                value = items[item_counter]
+                if not np.dtype(np_type).kind == 'S':
+                    value = np_type(value)
                 item_counter += 1
             elif len(props) == 3:
-                # array prop with dtype
-                nelements = np.prod(props[2])
-                # get as many elements as necessary
-                itms = items[item_counter:item_counter + nelements]
-                # convert to array with dtype
-                value = np.fromstring(" ".join(itms), props[1], sep=' ')
-                # store
-                image_defs[props[0]][i] = value
+                name, np_type, shape = props
+                nelements = np.prod(shape)
+                value  = items[item_counter:item_counter + nelements]
+                value  = [np_type(v) for v in value]
                 item_counter += nelements
+            image_defs[name][i] = value
     return image_defs
 
 
