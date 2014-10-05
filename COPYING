@@ -191,3 +191,17 @@ The files::
 
 are from http://psydata.ovgu.de/philips_achieva_testfiles, and released under
 the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
+
+The files:
+
+    nibabel/nibabel/tests/data/DTI.PAR
+    nibabel/nibabel/tests/data/NA.PAR
+    nibabel/nibabel/tests/data/T1.PAR
+    nibabel/nibabel/tests/data/T2-interleaved.PAR
+    nibabel/nibabel/tests/data/T2.PAR
+    nibabel/nibabel/tests/data/T2_-interleaved.PAR
+    nibabel/nibabel/tests/data/T2_.PAR
+    nibabel/nibabel/tests/data/fieldmap.PAR
+
+are from https://github.com/yarikoptic/nitest-balls1, also released under the
+the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
