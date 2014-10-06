@@ -703,8 +703,8 @@ class PARRECHeader(Header):
         # voxel size (inplaneX, inplaneY, slices)
         zooms[:3] = self.get_voxel_size()
         zooms[2] += slice_gap
-        if len(zooms) > 3 and self.general_info['n_dynamics'] > 1:
-            # Convert time from milliseconds to seconds
+        # If 4D dynamic scan, convert time from milliseconds to seconds
+        if len(zooms) > 3 and self.general_info['dyn_scan']:
             zooms[3] = self.general_info['repetition_time'] / 1000.
         return zooms
 
