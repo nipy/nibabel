@@ -254,3 +254,13 @@ def test_null_diffusion_params():
         hdr = PARRECHeader(gen_info, slice_info)
         assert_equal(hdr.get_bvals_bvecs(), (None, None))
         assert_equal(hdr.get_q_vectors(), None)
+
+
+def test_epi_params():
+    # Check EPI conversion
+    for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
+        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        with open(epi_par, 'rt') as fobj:
+            epi_hdr = PARRECHeader.from_fileobj(fobj)
+        assert_equal(len(epi_hdr.get_data_shape()), 4)
+        assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
