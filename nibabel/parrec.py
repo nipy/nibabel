@@ -609,11 +609,17 @@ class PARRECHeader(Header):
             Array of b vectors, shape (n_directions, 3).
         """
         reorder = self.sorted_slice_indices
-        bvals = self.image_defs['diffusion_b_factor'][reorder]
-        bvecs = self.image_defs['diffusion'][reorder]
-        shape = self.get_data_shape()
-        bvals = bvals[::shape[-1]]
-        bvecs = bvecs[::shape[-1]]
+        n_slices, n_vols = self.get_data_shape()[-2:]
+        bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
+            (n_slices, n_vols), order='F')
+        # All bvals within volume should be the same
+        assert not np.any(np.diff(bvals, axis=0))
+        bvals = bvals[0]
+        bvecs = self.image_defs['diffusion'][reorder].reshape(
+            (n_slices, n_vols, 3), order='F')
+        # All 3 values of bvecs should be same within volume
+        assert not np.any(np.diff(bvecs, axis=0))
+        bvecs = bvecs[0]
         # rotate bvecs to match stored image orientation
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
