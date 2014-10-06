@@ -91,6 +91,19 @@ PREVIOUS_AFFINES={
          [   0.  ,    0.  ,    0.  ,    1.  ]]),
 }
 
+# Original values for b values in DTI.PAR, still in PSL orientation
+DTI_PAR_BVECS = np.array([[-0.667,  -0.667,  -0.333],
+                          [-0.333,   0.667,  -0.667],
+                          [-0.667,   0.333,   0.667],
+                          [-0.707,  -0.000,  -0.707],
+                          [-0.707,   0.707,   0.000],
+                          [-0.000,   0.707,   0.707],
+                          [ 0.000,   0.000,   0.000],
+                          [ 0.000,   0.000,   0.000]])
+
+# DTI.PAR values for bvecs
+DTI_PAR_BVALS = [1000] * 6 + [0, 1000]
+
 
 def test_header():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
@@ -223,4 +236,9 @@ def test_diffusion_parameters():
     assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
     assert_equal(dti_hdr.general_info['diffusion'], 1)
     bvals, bvecs = dti_hdr.get_bvals_bvecs()
-    # assert_almost_equal(bvals, [1000] * 6 + [0, 0])
+    assert_almost_equal(bvals, DTI_PAR_BVALS)
+    # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
+    # Permute to match bvec directions to acquisition directions
+    assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
+    # Check q vectors
+    assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
