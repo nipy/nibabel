@@ -592,10 +592,13 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        q_vectors : array
-            Array of q vectors (bvals * bvecs).
+        q_vectors : None or array
+            Array of q vectors (bvals * bvecs), or None if not a diffusion
+            acquisition.
         """
         bvals, bvecs = self.get_bvals_bvecs()
+        if (bvals, bvecs) == (None, None):
+            return None
         return bvecs * bvals[:, np.newaxis]
 
     def get_bvals_bvecs(self):
@@ -603,11 +606,15 @@ class PARRECHeader(Header):
 
         Returns
         -------
-        b_vals : array
-            Array of b values, shape (n_directions,).
-        b_vectors : array
-            Array of b vectors, shape (n_directions, 3).
+        b_vals : None or array
+            Array of b values, shape (n_directions,), or None if not a
+            diffusion acquisition.
+        b_vectors : None or array
+            Array of b vectors, shape (n_directions, 3), or None if not a
+            diffusion acquisition.
         """
+        if self.general_info['diffusion'] == 0:
+            return None, None
         reorder = self.sorted_slice_indices
         n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
