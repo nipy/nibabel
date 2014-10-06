@@ -1,7 +1,7 @@
 """ Testing parrec module
 """
 
-from os.path import join as pjoin, dirname
+from os.path import join as pjoin, dirname, basename
 from glob import glob
 
 import numpy as np
@@ -242,3 +242,15 @@ def test_diffusion_parameters():
     assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+
+
+def test_null_diffusion_params():
+    # Test non-diffusion PARs return None for diffusion params
+    for par in glob(pjoin(DATA_PATH, '*.PAR')):
+        if basename(par) in ('DTI.PAR', 'NA.PAR'):
+            continue
+        with open(par, 'rt') as fobj:
+            gen_info, slice_info = parse_PAR_header(fobj)
+        hdr = PARRECHeader(gen_info, slice_info)
+        assert_equal(hdr.get_bvals_bvecs(), (None, None))
+        assert_equal(hdr.get_q_vectors(), None)
