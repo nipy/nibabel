@@ -2,11 +2,13 @@
 """
 
 from os.path import join as pjoin, dirname
+from glob import glob
 
 import numpy as np
 from numpy import array as npa
 
-from ..parrec import parse_PAR_header, PARRECHeader, PARRECError
+from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
+                      vol_is_full)
 from ..openers import Opener
 
 from numpy.testing import (assert_almost_equal,
@@ -164,3 +166,50 @@ def test_affine_regression():
         with open(fname, 'rt') as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
+
+
+def test_vol_number():
+    # Test algorithm for calculating volume number
+    assert_array_equal(vol_numbers([1, 3, 0]), [0, 0, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 0]), [ 0, 0, 0, 1])
+    assert_array_equal(vol_numbers([1, 3, 0, 0, 0]), [0, 0, 0, 1, 2])
+    assert_array_equal(vol_numbers([1, 3, 0, 0, 4]), [0, 0, 0, 1, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0]),
+                       [0, 0, 0, 1, 1, 1])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0, 4]),
+                       [0, 0, 0, 1, 1, 1, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0, 3, 1, 0]),
+                       [0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+
+def test_vol_is_full():
+    assert_array_equal(vol_is_full([3, 2, 1], 3), True)
+    assert_array_equal(vol_is_full([3, 2, 1], 4), False)
+    assert_array_equal(vol_is_full([4, 2, 1], 4), False)
+    assert_array_equal(vol_is_full([3, 2, 4, 1], 4), True)
+    assert_array_equal(vol_is_full([3, 2, 1], 3, 0), False)
+    assert_array_equal(vol_is_full([3, 2, 0, 1], 3, 0), True)
+    assert_raises(ValueError, vol_is_full, [2, 1, 0], 2)
+    assert_raises(ValueError, vol_is_full, [3, 2, 1], 3, 2)
+    assert_array_equal(vol_is_full([3, 2, 1, 2, 3, 1], 3),
+                       [True] * 6)
+    assert_array_equal(vol_is_full([3, 2, 1, 2, 3], 3),
+                       [True, True, True, False, False])
+
+
+def test_vol_calculations():
+    # Test vol_is_full on sample data
+    for par in glob(pjoin(DATA_PATH, '*.PAR')):
+        with open(par, 'rt') as fobj:
+            gen_info, slice_info = parse_PAR_header(fobj)
+        slice_nos = slice_info['slice number']
+        max_slice = gen_info['max_slices']
+        assert_equal(set(slice_nos), set(range(1, max_slice + 1)))
+        assert_array_equal(vol_is_full(slice_nos, max_slice), True)
+        if par.endswith('NA.PAR'):
+            continue # Cannot parse this one
+        # Fourth dimension shows same number of volumes as vol_numbers
+        hdr = PARRECHeader(gen_info, slice_info)
+        shape = hdr.get_data_shape()
+        d4 = 1 if len(shape) == 3 else shape[3]
+        assert_equal(max(vol_numbers(slice_nos)), d4 - 1)

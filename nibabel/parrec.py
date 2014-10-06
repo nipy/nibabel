@@ -300,6 +300,71 @@ def _process_image_lines(image_lines):
     return image_defs
 
 
+def vol_numbers(slice_nos):
+    """ Calculate volume numbers inferred from slice numbers `slice_nos`
+
+    The volume number for each slice is the number of times this slice has
+    occurred previously in the `slice_nos` sequence
+
+    Parameters
+    ----------
+    slice_nos : sequence
+        Sequence of slice numbers, e.g. ``[1, 2, 3, 4, 1, 2, 3, 4]``.
+
+    Returns
+    -------
+    vol_nos : list
+        A list, the same length of `slice_nos` giving the volume number for
+        each corresponding slice number.
+    """
+    counter = {}
+    vol_nos = []
+    for s_no in slice_nos:
+        count = counter.setdefault(s_no, 0)
+        vol_nos.append(count)
+        counter[s_no] += 1
+    return vol_nos
+
+
+def vol_is_full(slice_nos, slice_max, slice_min=1):
+    """ Vector with True for slices in complete volume, False otherwise
+
+    Parameters
+    ----------
+    slice_nos : sequence
+        Sequence of slice numbers, e.g. ``[1, 2, 3, 4, 1, 2, 3, 4]``.
+    slice_max : int
+        Highest slice number for a full slice set.  Slice set will be
+        ``range(slice_min, slice_max+1)``.
+    slice_min : int
+        Lowest slice number for full slice set.
+
+    Returns
+    -------
+    is_full : array
+        Bool vector with True for slices in full volumes, False for slices in
+        partial volumes.  A full volume is a volume with all slices in the
+        ``slice set`` as defined above.
+
+    Raises
+    ------
+    ValueError if any `slice_nos` value is outside slice set.
+    """
+    slice_set = set(range(slice_min, slice_max + 1))
+    if not slice_set.issuperset(slice_nos):
+        raise ValueError(
+            'Slice numbers outside inclusive range {0} to {1}'.format(
+                slice_min, slice_max))
+    vol_nos = np.array(vol_numbers(slice_nos))
+    slice_nos = np.asarray(slice_nos)
+    is_full = np.ones(slice_nos.shape, dtype=bool)
+    for vol_no in set(vol_nos):
+        ours = vol_nos == vol_no
+        if not set(slice_nos[ours]) == slice_set:
+            is_full[ours] = False
+    return is_full
+
+
 def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
     """Helper to alert user about truncated files and adjust computation"""
     extra = (not must_exceed_one) or (n_expected > 1)
