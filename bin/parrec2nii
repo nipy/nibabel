@@ -202,21 +202,22 @@ def proc_file(infile, opts):
     array_to_file(data_obj, outfile, offset=offset)
 
     # write out bvals/bvecs if requested
-    if opts.bvs and pr_hdr.general_info['n_dti_volumes'] > 1:
-        verbose('Writing .bvals and .bvecs files')
+    if opts.bvs:
         bvals, bvecs = pr_hdr.get_bvals_bvecs()
-        with open(basefilename + '.bvals', 'w') as fid:
-            # np.savetxt could do this, but it's just a loop anyway
-            for val in bvals:
-                fid.write('%s ' % val)
-            fid.write('\n')
-        with open(basefilename + '.bvecs', 'w') as fid:
-            for row in bvecs.T:
-                for val in row:
+        if (bvals, bvecs) == (None, None):
+            verbose('No DTI volumes detected, bvals and bvecs not written')
+        else:
+            verbose('Writing .bvals and .bvecs files')
+            with open(basefilename + '.bvals', 'w') as fid:
+                # np.savetxt could do this, but it's just a loop anyway
+                for val in bvals:
                     fid.write('%s ' % val)
                 fid.write('\n')
-    elif opts.bvs:
-        verbose('No DTI volumes detected, bvals and bvecs not written')
+            with open(basefilename + '.bvecs', 'w') as fid:
+                for row in bvecs.T:
+                    for val in row:
+                        fid.write('%s ' % val)
+                    fid.write('\n')
 
     # write out dwell time if requested
     if opts.dwell_time:

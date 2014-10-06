@@ -24,6 +24,7 @@ from numpy.testing import assert_almost_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
+from .test_parrec import DTI_PAR_BVECS, DTI_PAR_BVALS
 from .test_parrec_data import BALLS, AFF_OFF
 
 
@@ -147,8 +148,9 @@ def test_parrec2nii_with_data():
         assert_equal(code, 1)
         # Writes bvals, bvecs files if asked
         run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
-        assert_true(exists('DTI.bvals'))
-        assert_true(exists('DTI.bvecs'))
+        assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
+        assert_almost_equal(np.loadtxt('DTI.bvecs'),
+                            DTI_PAR_BVECS[:, [2, 0, 1]].T)
         assert_false(exists('DTI.dwell_time'))
         # Need field strength if requesting dwell time
         code, _, _, = run_command(
