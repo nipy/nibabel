@@ -867,16 +867,16 @@ class PARRECHeader(Header):
     def sorted_slice_indices(self):
         """Indices to sort (and maybe discard) slices in REC file
 
-        Returns list for indexing into a single dimension of an array.
+        Returns list for indexing into the last (third) dimension of the REC
+        data array, and (equivalently) the only dimension of
+        ``self.image_defs``.
 
-        If the recording is truncated, this will take care of discarding
-        any indices that are not meant to be used.
+        If the recording is truncated, the returned indices take care of
+        discarding any indices that are not meant to be used.
         """
-        # No attempt to detect missing combinations or early stop
-        keys = ['slice number', 'scanning sequence', 'image_type_mr',
-                'gradient orientation number', 'dynamic scan number',
-                'echo number']
-        keys = [self.image_defs[k] for k in keys]
+        slice_nos = self.image_defs['slice number']
+        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
         # Figure out how many we need to remove from the end, and trim them
         # Based on our sorting, they should always be last
         n_used = np.prod(self.get_data_shape()[2:])
