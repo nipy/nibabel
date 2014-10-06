@@ -689,16 +689,6 @@ class PARRECHeader(Header):
         if offset != 0:
             raise PARRECError("PAR header assumes offset 0")
 
-    def get_ndim(self):
-        """Return the number of dimensions of the image data."""
-        if self.general_info['n_dynamics'] > 1 \
-           or self.general_info['n_dti_volumes'] > 1 \
-           or self.general_info['n_echoes'] > 1 \
-           or self.general_info['n_seq'] > 1:
-            return 4
-        else:
-            return 3
-
     def _get_zooms(self):
         """Compute image zooms from header data.
 
@@ -707,7 +697,8 @@ class PARRECHeader(Header):
         # slice orientation for the whole image series
         slice_gap = self._get_unique_image_prop('slice gap')[0]
         # scaling per image axis
-        zooms = np.ones(self.get_ndim())
+        n_dim = 4 if self._get_n_vols() > 1 else 3
+        zooms = np.ones(n_dim)
         # spatial axes correspond to voxelsize + inter slice gap
         # voxel size (inplaneX, inplaneY, slices)
         zooms[:3] = self.get_voxel_size()
@@ -778,6 +769,17 @@ class PARRECHeader(Header):
         # Currently in PSL; apply PSL -> RAS
         return np.dot(PSL_TO_RAS, psl_aff)
 
+    def _get_n_slices(self):
+        """ Get number of slices for output data """
+        return len(set(self.image_defs['slice number']))
+
+    def _get_n_vols(self):
+        """ Get number of volumes for output data """
+        slice_nos = self.image_defs['slice number']
+        vol_nos = vol_numbers(slice_nos)
+        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        return len(set(np.array(vol_nos)[is_full]))
+
     def get_data_shape_in_file(self):
         """Return the shape of the binary blob in the REC file.
 
@@ -793,25 +795,10 @@ class PARRECHeader(Header):
             number of dynamic scans, number of directions in diffusion, or
             number of echoes
         """
-        # there should not be more than one: multiple dynamics, DTI, echoes
-        lens = [self.general_info[x] for x in ['n_dynamics', 'n_dti_volumes',
-                                               'n_echoes', 'n_seq']]
-        if sum(x > 1 for x in lens) > 1:
-            raise PARRECError('Cannot have multiple dynamics, dti volumes, '
-                              'or echoes in the same file, found %s of each, '
-                              'respectively' % lens)
-
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
-        shape = inplane_shape + (self.general_info['n_slices'],)
-        if self.general_info['n_dynamics'] > 1:
-            shape = shape + (self.general_info['n_dynamics'],)
-        elif self.general_info['n_dti_volumes'] > 1:
-            shape = shape + (self.general_info['n_dti_volumes'],)
-        elif self.general_info['n_echoes'] > 1:
-            shape = shape + (self.general_info['n_echoes'],)
-        elif self.general_info['n_seq'] > 1:
-            shape = shape + (self.general_info['n_seq'],)
-        return shape
+        shape = inplane_shape + (self._get_n_slices(),)
+        n_vols = self._get_n_vols()
+        return shape + (n_vols,) if n_vols > 1 else shape
 
     def get_data_scaling(self, method="dv"):
         """Returns scaling slope and intercept.
