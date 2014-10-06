@@ -213,3 +213,14 @@ def test_vol_calculations():
         shape = hdr.get_data_shape()
         d4 = 1 if len(shape) == 3 else shape[3]
         assert_equal(max(vol_numbers(slice_nos)), d4 - 1)
+
+
+def test_diffusion_parameters():
+    # Check getting diffusion parameters from diffusion example
+    dti_par = pjoin(DATA_PATH, 'DTI.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj)
+    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
+    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    bvals, bvecs = dti_hdr.get_bvals_bvecs()
+    # assert_almost_equal(bvals, [1000] * 6 + [0, 0])
