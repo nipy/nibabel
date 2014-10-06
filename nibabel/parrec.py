@@ -354,16 +354,13 @@ def one_line(long_str):
     return ' '.join(line.strip() for line in long_str.splitlines())
 
 
-def parse_PAR_header(fobj, permit_truncated=False):
+def parse_PAR_header(fobj):
     """Parse a PAR header and aggregate all information into useful containers.
 
     Parameters
     ----------
     fobj : file-object
         The PAR header file object.
-    permit_truncated : bool, optional
-        If True, a warning is emitted instead of an error when a truncated
-        recording is detected.
 
     Returns
     -------
@@ -383,8 +380,6 @@ def parse_PAR_header(fobj, permit_truncated=False):
             """.format(version)))
     general_info = _process_gen_dict(gen_dict)
     image_defs = _process_image_lines(image_lines)
-    extra_info = _calc_extras(general_info, image_defs, permit_truncated)
-    general_info.update(extra_info)
     return general_info, image_defs
 
 
@@ -457,19 +452,23 @@ class PARRECArrayProxy(object):
 
 class PARRECHeader(Header):
     """PAR/REC header"""
-    def __init__(self, info, image_defs):
+    def __init__(self, info, image_defs, permit_truncated=False):
         """
         Parameters
         ----------
         info : dict
-          "General information" from the PAR file (as returned by
-          `parse_PAR_header()`).
+            "General information" from the PAR file (as returned by
+            `parse_PAR_header()`).
         image_defs : array
-          Structured array with image definitions from the PAR file (as
-          returned by `parse_PAR_header()`).
+            Structured array with image definitions from the PAR file (as
+            returned by `parse_PAR_header()`).
+        permit_truncated : bool, optional
+            If True, a warning is emitted instead of an error when a truncated
+            recording is detected.
         """
         self.general_info = info
         self.image_defs = image_defs
+        self.general_info.update(_calc_extras(info, image_defs, permit_truncated))
         self._slice_orientation = None
         # charge with basic properties to be able to use base class
         # functionality
@@ -492,8 +491,8 @@ class PARRECHeader(Header):
 
     @classmethod
     def from_fileobj(klass, fileobj, permit_truncated=False):
-        info, image_defs = parse_PAR_header(fileobj, permit_truncated)
-        return klass(info, image_defs)
+        info, image_defs = parse_PAR_header(fileobj)
+        return klass(info, image_defs, permit_truncated)
 
     def copy(self):
         return PARRECHeader(deepcopy(self.general_info),
