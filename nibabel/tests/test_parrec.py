@@ -282,3 +282,28 @@ def test_truncations():
         hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
         assert_equal(len(wlist), 1)
     assert_equal(hdr.get_data_shape(), (80, 80, 10))
+    # Increase max slices to raise error
+    gen_info['max_slices'] = 11
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_slices'] = 10
+    hdr = PARRECHeader(gen_info, slice_info)
+    # Increase max_echoes
+    gen_info['max_echoes'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_echoes'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
+    # dyamics
+    gen_info['max_dynamics'] = 3
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_dynamics'] = 2
+    hdr = PARRECHeader(gen_info, slice_info)
+    # number of b values
+    gen_info['max_diffusion_values'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_diffusion_values'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
+    # number of unique gradients
+    gen_info['max_gradient_orient'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_gradient_orient'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
