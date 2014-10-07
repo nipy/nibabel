@@ -3,6 +3,7 @@
 
 from os.path import join as pjoin, dirname, basename
 from glob import glob
+from warnings import catch_warnings
 
 import numpy as np
 from numpy import array as npa
@@ -264,3 +265,20 @@ def test_epi_params():
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert_equal(len(epi_hdr.get_data_shape()), 4)
         assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
+
+
+def test_truncations():
+    # Test tests for truncation
+    par = pjoin(DATA_PATH, 'T2_.PAR')
+    with open(par, 'rt') as fobj:
+        gen_info, slice_info = parse_PAR_header(fobj)
+    # Header is well-formed as is
+    hdr = PARRECHeader(gen_info, slice_info)
+    assert_equal(hdr.get_data_shape(), (80, 80, 10, 2))
+    # Drop one line, raises error
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
+    # When we are permissive, we raise a warning, and drop a volume
+    with catch_warnings(record=True) as wlist:
+        hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
+        assert_equal(len(wlist), 1)
+    assert_equal(hdr.get_data_shape(), (80, 80, 10))

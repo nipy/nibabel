@@ -381,7 +381,7 @@ def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
 
 
 def _calc_extras(general_info, image_defs, permit_truncated):
-    """ Calculate, return values from `general info`, `image_defs`
+    """ Calculate, check, return values from `general info`, `image_defs`
     """
     # DTI volumes (b-values-1 x directions)
     # there is some awkward exception to this rule for b-values > 2
@@ -394,7 +394,8 @@ def _calc_extras(general_info, image_defs, permit_truncated):
     # XXX TODO This needs to be a conditional!
     max_dti_volumes += 1
     n_dti_volumes += 1
-    n_slices = len(np.unique(image_defs['slice number']))
+    slice_nos = image_defs['slice number']
+    n_slices = len(set(slice_nos))
     n_echoes = len(np.unique(image_defs['echo number']))
     n_dynamics = len(np.unique(image_defs['dynamic scan number']))
     n_seq = len(np.unique(image_defs['scanning sequence']))
@@ -407,6 +408,12 @@ def _calc_extras(general_info, image_defs, permit_truncated):
                                    general_info['max_dynamics'], pt, True)
     n_dti_volumes = _check_truncation('dti volumes', n_dti_volumes,
                                       max_dti_volumes, pt, True)
+    # Final check for partial volumes
+    if not np.all(vol_is_full(slice_nos, general_info['max_slices'])):
+        msg = "Found one or more partial volume(s)"
+        if not pt:
+            raise PARRECError(msg)
+        warnings.warn(msg)
     return dict(n_dti_volumes=n_dti_volumes,
                 n_echoes=n_echoes,
                 n_dynamics=n_dynamics,
