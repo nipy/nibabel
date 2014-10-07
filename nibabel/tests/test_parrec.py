@@ -211,11 +211,16 @@ def test_vol_is_full():
                        [True, True, True, False, False])
 
 
-def test_vol_calculations():
-    # Test vol_is_full on sample data
+def gen_par_fobj():
     for par in glob(pjoin(DATA_PATH, '*.PAR')):
         with open(par, 'rt') as fobj:
-            gen_info, slice_info = parse_PAR_header(fobj)
+            yield par, fobj
+
+
+def test_vol_calculations():
+    # Test vol_is_full on sample data
+    for par, fobj in gen_par_fobj():
+        gen_info, slice_info = parse_PAR_header(fobj)
         slice_nos = slice_info['slice number']
         max_slice = gen_info['max_slices']
         assert_equal(set(slice_nos), set(range(1, max_slice + 1)))
@@ -247,11 +252,10 @@ def test_diffusion_parameters():
 
 def test_null_diffusion_params():
     # Test non-diffusion PARs return None for diffusion params
-    for par in glob(pjoin(DATA_PATH, '*.PAR')):
+    for par, fobj in gen_par_fobj():
         if basename(par) in ('DTI.PAR', 'NA.PAR'):
             continue
-        with open(par, 'rt') as fobj:
-            gen_info, slice_info = parse_PAR_header(fobj)
+        gen_info, slice_info = parse_PAR_header(fobj)
         hdr = PARRECHeader(gen_info, slice_info)
         assert_equal(hdr.get_bvals_bvecs(), (None, None))
         assert_equal(hdr.get_q_vectors(), None)
