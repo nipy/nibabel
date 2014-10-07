@@ -520,10 +520,9 @@ class PARRECHeader(Header):
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
-        dtype = np.typeDict[
-            'int' + str(self._get_unique_image_prop('image pixel size')[0])]
+        bitpix = self._get_unique_image_prop('image pixel size')[0]
         Header.__init__(self,
-                        data_dtype=dtype,
+                        data_dtype=np.dtype('int' + str(bitpix)).type,
                         shape=self._calc_data_shape(),
                         zooms=self._calc_zooms())
 
