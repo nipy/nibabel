@@ -365,60 +365,35 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     return is_full
 
 
-def _check_truncation(name, n_have, n_expected, permit, must_exceed_one):
-    """Helper to alert user about truncated files and adjust computation"""
-    extra = (not must_exceed_one) or (n_expected > 1)
-    if extra and n_have != n_expected:
-        msg = ("Header inconsistency: Found <= %i %s, but expected %i."
-               % (n_have, name, n_expected))
-        if not permit:
-            raise PARRECError(msg)
-        msg += " Assuming %i valid %s." % (n_have - 1, name)
-        warnings.warn(msg)
-        # we assume up to the penultimate data line is correct
-        n_have -= 1
-    return n_have
+def _truncation_checks(general_info, image_defs, permit_truncated):
+    """ Check for presence of truncation in PAR file parameters
 
-
-def _calc_extras(general_info, image_defs, permit_truncated):
-    """ Calculate, check, return values from `general info`, `image_defs`
+    Raise error if truncation present and `permit_truncated` is False.
     """
-    # DTI volumes (b-values-1 x directions)
-    # there is some awkward exception to this rule for b-values > 2
-    # XXX need to get test image...
-    max_dti_volumes = ((general_info['max_diffusion_values'] - 1)
-                       * general_info['max_gradient_orient'])
-    n_b = len(np.unique(image_defs['diffusion b value number']))
-    n_grad = len(np.unique(image_defs['gradient orientation number']))
-    n_dti_volumes = (n_b - 1) * n_grad
-    # XXX TODO This needs to be a conditional!
-    max_dti_volumes += 1
-    n_dti_volumes += 1
-    slice_nos = image_defs['slice number']
-    n_slices = len(set(slice_nos))
-    n_echoes = len(np.unique(image_defs['echo number']))
-    n_dynamics = len(np.unique(image_defs['dynamic scan number']))
-    n_seq = len(np.unique(image_defs['scanning sequence']))
-    pt = permit_truncated
-    n_slices = _check_truncation('slices', n_slices,
-                                 general_info['max_slices'], pt, False)
-    n_echoes = _check_truncation('echoes', n_echoes,
-                                 general_info['max_echoes'], pt, True)
-    n_dynamics = _check_truncation('dynamics', n_dynamics,
-                                   general_info['max_dynamics'], pt, True)
-    n_dti_volumes = _check_truncation('dti volumes', n_dti_volumes,
-                                      max_dti_volumes, pt, True)
-    # Final check for partial volumes
-    if not np.all(vol_is_full(slice_nos, general_info['max_slices'])):
-        msg = "Found one or more partial volume(s)"
-        if not pt:
+    def _err_or_warn(msg):
+        if not permit_truncated:
             raise PARRECError(msg)
         warnings.warn(msg)
-    return dict(n_dti_volumes=n_dti_volumes,
-                n_echoes=n_echoes,
-                n_dynamics=n_dynamics,
-                n_slices=n_slices,
-                n_seq=n_seq)
+
+    def _chk_trunc(idef_name, gdef_max_name):
+        id_values = image_defs[idef_name + ' number']
+        n_have = len(set(id_values))
+        n_expected = general_info[gdef_max_name]
+        if n_have != n_expected:
+            _err_or_warn(
+                "Header inconsistency: Found {0} {1} values, "
+                "but expected {2}".format(n_have, idef_name, n_expected))
+
+    _chk_trunc('slice', 'max_slices')
+    _chk_trunc('echo', 'max_echoes')
+    _chk_trunc('dynamic scan', 'max_dynamics')
+    _chk_trunc('diffusion b value', 'max_diffusion_values')
+    _chk_trunc('gradient orientation', 'max_gradient_orient')
+
+    # Final check for partial volumes
+    if not np.all(vol_is_full(image_defs['slice number'],
+                              general_info['max_slices'])):
+        _err_or_warn("Found one or more partial volume(s)")
 
 
 def one_line(long_str):
@@ -540,7 +515,7 @@ class PARRECHeader(Header):
         """
         self.general_info = info
         self.image_defs = image_defs
-        self.general_info.update(_calc_extras(info, image_defs, permit_truncated))
+        _truncation_checks(info, image_defs, permit_truncated)
         self._slice_orientation = None
         # charge with basic properties to be able to use base class
         # functionality
