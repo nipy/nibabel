@@ -524,8 +524,8 @@ class PARRECHeader(Header):
             'int' + str(self._get_unique_image_prop('image pixel size')[0])]
         Header.__init__(self,
                         data_dtype=dtype,
-                        shape=self.get_data_shape_in_file(),
-                        zooms=self._get_zooms())
+                        shape=self._calc_data_shape(),
+                        zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -671,10 +671,20 @@ class PARRECHeader(Header):
         if offset != 0:
             raise PARRECError("PAR header assumes offset 0")
 
-    def _get_zooms(self):
+    def _calc_zooms(self):
         """Compute image zooms from header data.
 
         Spatial axis are first three.
+
+        Returns
+        -------
+        zooms : array
+            Length 3 array for 3D image, length 4 array for 4D image.
+
+        Notes
+        -----
+        This routine called in ``__init__``, so may not be able to use
+        some attributes available in the fully initalized object.
         """
         # slice orientation for the whole image series
         slice_gap = self._get_unique_image_prop('slice gap')[0]
@@ -762,20 +772,26 @@ class PARRECHeader(Header):
         is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
         return len(set(np.array(vol_nos)[is_full]))
 
-    def get_data_shape_in_file(self):
-        """Return the shape of the binary blob in the REC file.
+    def _calc_data_shape(self):
+        """ Calculate the output shape of the image data
+
+        Returns length 3 tuple for 3D image, length 4 tuple for 4D.
 
         Returns
         -------
         n_inplaneX : int
-            number of voxels in X direction
+            number of voxels in X direction.
         n_inplaneY : int
-            number of voxels in Y direction
+            number of voxels in Y direction.
         n_slices : int
-            number of slices
+            number of slices.
         n_vols : int
-            number of dynamic scans, number of directions in diffusion, or
-            number of echoes
+            number of volumes or absent for 3D image.
+
+        Notes
+        -----
+        This routine called in ``__init__``, so may not be able to use
+        some attributes available in the fully initalized object.
         """
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         shape = inplane_shape + (self._get_n_slices(),)
