@@ -26,53 +26,62 @@ from ..testing import data_path
 
 from . import test_minc1 as tm2
 
+# Example images in format expected for ``test_image_api``, adding ``zooms``
+# item.
+EXAMPLE_IMAGES = [
+    dict(
+        fname = pjoin(data_path, 'small.mnc'),
+        shape = (18, 28, 29),
+        dtype = np.int16,
+        affine = np.array([[0, 0, 7.0, -98],
+                           [0, 8.0, 0, -134],
+                           [9.0, 0, 0, -72],
+                           [0, 0, 0, 1]]),
+        zooms = (9., 8., 7.),
+        # These values from mincstats
+        data_summary = dict(
+            min = 0.1185331417,
+            max = 92.87690699,
+            mean = 31.2127952),
+        is_proxy = True),
+    dict(
+        fname = pjoin(data_path, 'minc2_1_scale.mnc'),
+        shape = (10,20,20),
+        dtype = np.uint8,
+        affine = np.array([[0, 0, 2.0, -20],
+                           [0, 2.0, 0, -20],
+                           [2.0, 0, 0, -10],
+                           [0, 0, 0, 1]]),
+        zooms = (2., 2., 2.),
+        # These values from mincstats
+        data_summary = dict(
+            min = 0.2082842439,
+            max = 0.2094327615,
+            mean = 0.2091292083),
+        is_proxy = True),
+    dict(
+        fname = pjoin(data_path, 'minc2_4d.mnc'),
+        shape = (2, 10,20,20),
+        dtype = np.uint8,
+        affine = np.array([[0, 0, 2.0, -20],
+                           [0, 2.0, 0, -20],
+                           [2.0, 0, 0, -10],
+                           [0, 0, 0, 1]]),
+        zooms = (1., 2., 2., 2.),
+        # These values from mincstats
+        data_summary = dict(
+            min = 0.2078431373,
+            max = 1.498039216,
+            mean = 0.9090422837),
+        is_proxy = True)
+]
 
 if have_h5py:
     class TestMinc2File(tm2._TestMincFile):
         module = minc2
         file_class = Minc2File
         opener = h5py.File
-        test_files = [
-            dict(
-                fname = pjoin(data_path, 'small.mnc'),
-                shape = (18, 28, 29),
-                type = np.int16,
-                affine = np.array([[0, 0, 7.0, -98],
-                                   [0, 8.0, 0, -134],
-                                   [9.0, 0, 0, -72],
-                                   [0, 0, 0, 1]]),
-                zooms = (9., 8., 7.),
-                # These values from mincstats
-                min = 0.1185331417,
-                max = 92.87690699,
-                mean = 31.2127952),
-        dict(
-            fname = pjoin(data_path, 'minc2_1_scale.mnc'),
-            shape = (10,20,20),
-            type = np.uint8,
-            affine = np.array([[0, 0, 2.0, -20],
-                               [0, 2.0, 0, -20],
-                               [2.0, 0, 0, -10],
-                               [0, 0, 0, 1]]),
-            zooms = (2., 2., 2.),
-            # These values from mincstats
-            min = 0.2082842439,
-            max = 0.2094327615,
-            mean = 0.2091292083),
-        dict(
-            fname = pjoin(data_path, 'minc2_4d.mnc'),
-            shape = (2, 10,20,20),
-            type = np.uint8,
-            affine = np.array([[0, 0, 2.0, -20],
-                               [0, 2.0, 0, -20],
-                               [2.0, 0, 0, -10],
-                               [0, 0, 0, 1]]),
-            zooms = (1., 2., 2., 2.),
-            # These values from mincstats
-            min = 0.2078431373,
-            max = 1.498039216,
-            mean = 0.9090422837),
-    ]
+        test_files = EXAMPLE_IMAGES
 
     class TestMinc2Image(tm2.TestMinc1Image):
         image_class = Minc2Image

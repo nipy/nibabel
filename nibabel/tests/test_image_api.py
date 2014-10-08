@@ -19,24 +19,21 @@ What is the image API?
 """
 from __future__ import division, print_function, absolute_import
 
-from os.path import join as pjoin, dirname, abspath
 import warnings
 
 import numpy as np
 
-try:
-    import scipy
-except ImportError:
-    have_scipy = False
-else:
-    have_scipy = True
+from ..optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
+_, have_h5py, _ = optional_package('h5py')
 
-import nibabel as nib
 from nibabel import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                      Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
                      MGHImage, Minc1Image, Minc2Image)
 from nibabel.spatialimages import SpatialImage
 from nibabel.ecat import EcatImage
+from nibabel import minc1
+from nibabel import minc2
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
@@ -48,6 +45,8 @@ from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
 from .test_helpers import bytesio_round_trip, assert_data_similar
+from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
+from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 
 
 class GenericImageAPI(ValidateAPI):
@@ -347,11 +346,18 @@ class TestNifti2API(TestNifti1API):
 
 class TestMinc1API(ImageHeaderAPI):
     image_maker = Minc1Image
-
+    loader = minc1.load
+    example_images = MINC1_EXAMPLE_IMAGES
 
 
 class TestMinc2API(TestMinc1API):
+    def __init__(self):
+        if not have_h5py:
+            raise SkipTest('Need h5py for these tests')
+
     image_maker = Minc2Image
+    loader = minc2.load
+    example_images = MINC2_EXAMPLE_IMAGES
 
 
 # ECAT is a special case and needs more thought
