@@ -3,7 +3,7 @@
 
 from os.path import join as pjoin, dirname, basename
 from glob import glob
-from warnings import catch_warnings
+from warnings import catch_warnings, simplefilter
 
 import numpy as np
 from numpy import array as npa
@@ -180,6 +180,13 @@ def test_affine_regression():
         with open(fname, 'rt') as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
+
+
+def test_get_voxel_size_deprecated():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    with catch_warnings():
+        simplefilter('error')
+        assert_raises(DeprecationWarning, hdr.get_voxel_size)
 
 
 def test_vol_number():
