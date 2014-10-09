@@ -135,7 +135,7 @@ _hdr_key_dict = {
     'Preparation direction': ('prep_direction',),
     'Technique': ('tech',),
     'Scan resolution  (x, y)': ('scan_resolution', int, (2,)),
-    'Scan mode': ('san_mode',),
+    'Scan mode': ('scan_mode',),
     'Repetition time [ms]': ('repetition_time', float),
     'FOV (ap,fh,rl) [mm]': ('fov', float, (3,)),
     'Water Fat shift [pixels]': ('water_fat_shift', float),
