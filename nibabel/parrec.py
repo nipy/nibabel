@@ -649,10 +649,18 @@ class PARRECHeader(Header):
 
         Does not include the slice gap in the slice extent.
 
+        This function is deprecated and we will remove it in future versions of
+        nibabel.  Please use ``get_zooms`` instead.  If you need the slice
+        thickness not including the slice gap, use ``self.image_defs['slice
+        thickness']``.
+
         Returns
         -------
         vox_size: shape (3,) ndarray
         """
+        warnings.warn('Please use "get_zooms" instead of "get_voxel_size"',
+                      DeprecationWarning,
+                      stacklevel=2)
         # slice orientation for the whole image series
         slice_thickness = self._get_unique_image_prop('slice thickness')[0]
         voxsize_inplane = self._get_unique_image_prop('pixel spacing')
@@ -690,10 +698,10 @@ class PARRECHeader(Header):
         # scaling per image axis
         n_dim = 4 if self._get_n_vols() > 1 else 3
         zooms = np.ones(n_dim)
-        # spatial axes correspond to voxelsize + inter slice gap
-        # voxel size (inplaneX, inplaneY, slices)
-        zooms[:3] = self.get_voxel_size()
-        zooms[2] += slice_gap
+        # spatial sizes are inplane X mm, inplane Y mm + inter slice gap
+        zooms[:2] = self._get_unique_image_prop('pixel spacing')
+        slice_thickness = self._get_unique_image_prop('slice thickness')[0]
+        zooms[2] = slice_thickness + slice_gap
         # If 4D dynamic scan, convert time from milliseconds to seconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
             zooms[3] = self.general_info['repetition_time'] / 1000.
