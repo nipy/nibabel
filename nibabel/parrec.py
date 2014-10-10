@@ -520,7 +520,7 @@ class PARRECHeader(Header):
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
-        bitpix = self._get_unique_image_prop('image pixel size')[0]
+        bitpix = self._get_unique_image_prop('image pixel size')
         Header.__init__(self,
                         data_dtype=np.dtype('int' + str(bitpix)).type,
                         shape=self._calc_data_shape(),
@@ -614,35 +614,32 @@ class PARRECHeader(Header):
         return bvals, bvecs
 
     def _get_unique_image_prop(self, name):
-        """Scan image definitions and return unique value of a property.
+        """ Scan image definitions and return unique value of a property.
 
-        If the requested property is an array this method does _not_ behave
-        like `np.unique`. It will return the unique combination of all array
-        elements for any image definition, and _not_ the unique element values.
+        * Get array for named field of ``self.image_defs``;
+        * Check that all rows in the array are the same and raise error
+          otherwise;
+        * Return the row.
 
         Parameters
         ----------
         name : str
-            Name of the property
+            Name of the property in ``self.image_defs``
 
         Returns
         -------
-        unique_value : array
+        unique_value : scalar or array
 
         Raises
         ------
-        If there is more than a single unique value a `PARRECError` is raised.
+        PARRECError - if the rows of ``self.image_defs[name]`` do not all
+        compare equal
         """
-        prop = self.image_defs[name]
-        if len(prop.shape) > 1:
-            uprops = [np.unique(prop[i]) for i in range(len(prop.shape))]
-        else:
-            uprops = [np.unique(prop)]
-        if not np.prod([len(uprop) for uprop in uprops]) == 1:
-            raise PARRECError('Varying %s in image sequence (%s). This is not '
-                              'suppported.' % (name, uprops))
-        else:
-            return np.array([uprop[0] for uprop in uprops])
+        props = self.image_defs[name]
+        if np.any(np.diff(props, axis=0)):
+            raise PARRECError('Varying {0} in image sequence ({1}). This is '
+                              'not suppported.'.format(name, props))
+        return props[0]
 
     def get_voxel_size(self):
         """Returns the spatial extent of a voxel.
@@ -694,13 +691,13 @@ class PARRECHeader(Header):
         some attributes available in the fully initalized object.
         """
         # slice orientation for the whole image series
-        slice_gap = self._get_unique_image_prop('slice gap')[0]
+        slice_gap = self._get_unique_image_prop('slice gap')
         # scaling per image axis
         n_dim = 4 if self._get_n_vols() > 1 else 3
         zooms = np.ones(n_dim)
         # spatial sizes are inplane X mm, inplane Y mm + inter slice gap
         zooms[:2] = self._get_unique_image_prop('pixel spacing')
-        slice_thickness = self._get_unique_image_prop('slice thickness')[0]
+        slice_thickness = self._get_unique_image_prop('slice thickness')
         zooms[2] = slice_thickness + slice_gap
         # If 4D dynamic scan, convert time from milliseconds to seconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
@@ -860,7 +857,7 @@ class PARRECHeader(Header):
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
         if self._slice_orientation is None:
-            lab = self._get_unique_image_prop('slice orientation')[0]
+            lab = self._get_unique_image_prop('slice orientation')
             self._slice_orientation = slice_orientation_codes.label[lab]
         return self._slice_orientation
 

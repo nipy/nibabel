@@ -318,3 +318,20 @@ def test_truncations():
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
     gen_info['max_gradient_orient'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
+
+
+def test__get_uniqe_image_defs():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS.copy())
+    uip = hdr._get_unique_image_prop
+    assert_equal(uip('image pixel size'), 16)
+    # Make values not same - raise error
+    hdr.image_defs['image pixel size'][3] = 32
+    assert_raises(PARRECError, uip, 'image pixel size')
+    assert_array_equal(uip('recon resolution'), [64, 64])
+    hdr.image_defs['recon resolution'][4, 1] = 32
+    assert_raises(PARRECError, uip, 'recon resolution')
+    assert_array_equal(uip('image angulation'), [-13.26, 0, 0])
+    hdr.image_defs['image angulation'][5, 2] = 1
+    assert_raises(PARRECError, uip, 'image angulation')
+    # This one differs from the outset
+    assert_raises(PARRECError, uip, 'slice number')
