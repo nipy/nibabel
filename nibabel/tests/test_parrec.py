@@ -140,12 +140,10 @@ def test_orientation():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_array_equal(HDR_DEFS['slice orientation'], 1)
     assert_equal(hdr.get_slice_orientation(), 'transverse')
-    hdr_defc = HDR_DEFS.copy()
-    hdr = PARRECHeader(HDR_INFO, hdr_defc)
+    hdr_defc = hdr.image_defs
     hdr_defc['slice orientation'] = 2
     assert_equal(hdr.get_slice_orientation(), 'sagittal')
     hdr_defc['slice orientation'] = 3
-    hdr = PARRECHeader(HDR_INFO, hdr_defc)
     assert_equal(hdr.get_slice_orientation(), 'coronal')
 
 
@@ -357,3 +355,16 @@ def test__get_uniqe_image_defs():
     assert_raises(PARRECError, uip, 'image angulation')
     # This one differs from the outset
     assert_raises(PARRECError, uip, 'slice number')
+
+
+def test_copy_on_init():
+    # Test that input dict / array gets copied when making header
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    assert_false(hdr.general_info is HDR_INFO)
+    hdr.general_info['max_slices'] = 10
+    assert_equal(hdr.general_info['max_slices'], 10)
+    assert_equal(HDR_INFO['max_slices'], 9)
+    assert_false(hdr.image_defs is HDR_DEFS)
+    hdr.image_defs['image pixel size'] = 8
+    assert_array_equal(hdr.image_defs['image pixel size'], 8)
+    assert_array_equal(HDR_DEFS['image pixel size'], 16)
