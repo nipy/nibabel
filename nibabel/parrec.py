@@ -469,7 +469,7 @@ class PARRECArrayProxy(object):
         # Copies of values needed to read array
         self._shape = header.get_data_shape()
         self._dtype = header.get_data_dtype()
-        self._slice_indices = header.sorted_slice_indices
+        self._slice_indices = header.get_sorted_slice_indices()
         self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
@@ -596,7 +596,7 @@ class PARRECHeader(Header):
         """
         if self.general_info['diffusion'] == 0:
             return None, None
-        reorder = self.sorted_slice_indices
+        reorder = self.get_sorted_slice_indices()
         n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
@@ -841,7 +841,7 @@ class PARRECHeader(Header):
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
             raise ValueError("Unknown scling method '%s'." % method)
-        reorder = self.sorted_slice_indices
+        reorder = self.get_sorted_slice_indices()
         slope = slope[reorder]
         intercept = intercept[reorder]
         shape = (1, 1) + self.get_data_shape()[2:]
@@ -865,8 +865,7 @@ class PARRECHeader(Header):
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         return inplane_shape + (len(self.image_defs),)
 
-    @property
-    def sorted_slice_indices(self):
+    def get_sorted_slice_indices(self):
         """Indices to sort (and maybe discard) slices in REC file
 
         Returns list for indexing into the last (third) dimension of the REC
