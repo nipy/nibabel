@@ -513,8 +513,8 @@ class PARRECHeader(Header):
             If True, a warning is emitted instead of an error when a truncated
             recording is detected.
         """
-        self.general_info = info
-        self.image_defs = image_defs
+        self.general_info = info.copy()
+        self.image_defs = image_defs.copy()
         _truncation_checks(info, image_defs, permit_truncated)
         # charge with basic properties to be able to use base class
         # functionality
