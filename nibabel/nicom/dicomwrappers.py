@@ -304,7 +304,7 @@ class Wrapper(object):
         # column, slice)
         vox = self.voxel_sizes
         ipp = self.image_position
-        if orient is None or vox is None or ipp is None:
+        if any(p is None for p in (orient, vox, ipp)):
             raise WrapperError('Not enough information for affine')
         aff = np.eye(4)
         aff[:3, :3] = orient * np.array(vox)

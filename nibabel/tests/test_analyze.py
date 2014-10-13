@@ -152,9 +152,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # datatype not supported
         hdr['datatype'] = 255 # severity 40
         fhdr, message, raiser = self.log_chk(hdr, 40)
-        #assert_equal(message, 'data code 255 not supported; '
-        #                   'not attempting fix')
-        #assert_raises(*raiser)
+        assert_equal(message, 'data code 255 not supported; '
+                     'not attempting fix')
+        assert_raises(*raiser)
         # bitpix
         hdr = HC()
         hdr['datatype'] = 16 # float32
