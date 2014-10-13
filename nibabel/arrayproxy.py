@@ -124,7 +124,7 @@ class ArrayProxy(object):
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order = self.order)
+                                 order=self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
