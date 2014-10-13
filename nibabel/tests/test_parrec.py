@@ -3,11 +3,12 @@
 
 from os.path import join as pjoin, dirname, basename
 from glob import glob
-from warnings import catch_warnings, simplefilter
+from warnings import simplefilter
 
 import numpy as np
 from numpy import array as npa
 
+from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full)
 from ..openers import Opener
@@ -17,6 +18,8 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
+
+from ..testing import catch_warn_reset
 
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -184,9 +187,27 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with catch_warnings():
+    with catch_warn_reset(modules=[parrec]):
         simplefilter('error')
         assert_raises(DeprecationWarning, hdr.get_voxel_size)
+
+
+def test_get_sorted_slice_indices():
+    # Test sorted slice indices
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    n_slices = len(HDR_DEFS)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices))
+    # Reverse - volume order preserved
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1])
+    assert_array_equal(hdr.get_sorted_slice_indices(),
+                       [8,  7,  6,  5,  4,  3,  2,  1,  0,
+                        17, 16, 15, 14, 13, 12, 11, 10, 9,
+                        26, 25, 24, 23, 22, 21, 20, 19, 18])
+    # Omit last slice, only two volumes
+    with catch_warn_reset(modules=[parrec]):
+        simplefilter('ignore')
+        hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
 
 def test_vol_number():
@@ -289,7 +310,8 @@ def test_truncations():
     # Drop one line, raises error
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
     # When we are permissive, we raise a warning, and drop a volume
-    with catch_warnings(record=True) as wlist:
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        simplefilter('always')
         hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
         assert_equal(len(wlist), 1)
     assert_equal(hdr.get_data_shape(), (80, 80, 10))
