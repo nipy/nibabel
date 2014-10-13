@@ -578,7 +578,7 @@ class PARRECHeader(Header):
             acquisition.
         """
         bvals, bvecs = self.get_bvals_bvecs()
-        if (bvals, bvecs) == (None, None):
+        if bvals is None and bvecs is None:
             return None
         return bvecs * bvals[:, np.newaxis]
 
