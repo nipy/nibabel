@@ -516,7 +516,6 @@ class PARRECHeader(Header):
         self.general_info = info
         self.image_defs = image_defs
         _truncation_checks(info, image_defs, permit_truncated)
-        self._slice_orientation = None
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
@@ -856,10 +855,8 @@ class PARRECHeader(Header):
         -------
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
-        if self._slice_orientation is None:
-            lab = self._get_unique_image_prop('slice orientation')
-            self._slice_orientation = slice_orientation_codes.label[lab]
-        return self._slice_orientation
+        lab = self._get_unique_image_prop('slice orientation')
+        return slice_orientation_codes.label[lab]
 
     def get_rec_shape(self):
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
