@@ -35,7 +35,8 @@ from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
 
 from ..testing import (assert_equal, assert_not_equal, assert_true,
-                       assert_false, assert_raises, data_path)
+                       assert_false, assert_raises, data_path,
+                       suppress_warnings)
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
@@ -44,6 +45,7 @@ from .test_helpers import bytesio_filemap, bytesio_round_trip
 header_file = os.path.join(data_path, 'analyze.hdr')
 
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
+
 
 class TestAnalyzeHeader(_TestLabeledWrapStruct):
     header_class = AnalyzeHeader
@@ -97,7 +99,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
-        hdr.set_data_shape((1, 2, 3))
+        with suppress_warnings():
+            hdr.set_data_shape((1, 2, 3))
 
     def test_checks(self):
         # Test header checks
@@ -106,8 +109,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_equal(self._dxer(hdr_t), '')
         hdr = hdr_t.copy()
         hdr['sizeof_hdr'] = 1
-        assert_equal(self._dxer(hdr), 'sizeof_hdr should be ' +
-                     str(self.sizeof_hdr))
+        with suppress_warnings():
+            assert_equal(self._dxer(hdr), 'sizeof_hdr should be ' +
+                         str(self.sizeof_hdr))
         hdr = hdr_t.copy()
         hdr['datatype'] = 0
         assert_equal(self._dxer(hdr), 'data code 0 not supported\n'
@@ -125,8 +129,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         HC = self.header_class
         # magic
         hdr = HC()
-        hdr['sizeof_hdr'] = 350 # severity 30
-        fhdr, message, raiser = self.log_chk(hdr, 30)
+        with suppress_warnings():
+            hdr['sizeof_hdr'] = 350 # severity 30
+            fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['sizeof_hdr'], self.sizeof_hdr)
         assert_equal(message,
                      'sizeof_hdr should be {0}; set sizeof_hdr to {0}'.format(
@@ -139,7 +144,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # datatype not recognized
         hdr = HC()
         hdr['datatype'] = -1 # severity 40
-        fhdr, message, raiser = self.log_chk(hdr, 40)
+        with suppress_warnings():
+            fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(message, 'data code -1 not recognized; '
                            'not attempting fix')
         assert_raises(*raiser)
@@ -147,7 +153,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr['datatype'] = 255 # severity 40
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(message, 'data code 255 not supported; '
-                           'not attempting fix')
+                     'not attempting fix')
         assert_raises(*raiser)
         # bitpix
         hdr = HC()

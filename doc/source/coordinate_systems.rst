@@ -55,7 +55,7 @@ the array.
     >>> slice_1 = epi_img_data[:, 30, :]
     >>> slice_2 = epi_img_data[:, :, 16]
     >>> show_slices([slice_0, slice_1, slice_2])
-    >>> plt.suptitle("Center slices for EPI image")
+    >>> plt.suptitle("Center slices for EPI image")  # doctest: +SKIP
 
 We collected an anatomical image in the same session.  We can load that image
 and look at slices in the three axes:
@@ -77,7 +77,7 @@ and look at slices in the three axes:
     >>> show_slices([anat_img_data[28, :, :],
     ...              anat_img_data[:, 33, :],
     ...              anat_img_data[:, :, 28]])
-    >>> plt.suptitle("Center slices for anatomical image")
+    >>> plt.suptitle("Center slices for anatomical image")  # doctest: +SKIP
 
 As is usually the case, we had a different field of view for the anatomical
 scan, and so the anatomical image has a different shape, size, and orientation

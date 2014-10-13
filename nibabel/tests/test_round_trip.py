@@ -156,7 +156,8 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         # Error from calculation of inter
         inter_err = ulp(scaling_type(inter))
         # Max abs error from floating point
-        Ai = arr - scaling_type(inter)
+        with np.errstate(over='ignore'):
+            Ai = arr - scaling_type(inter)
         Ais = Ai / scaling_type(slope)
         exp_abs_err = inting_err + inter_err + (
             big_bad_ulp(Ai) + big_bad_ulp(Ais))

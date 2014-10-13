@@ -32,7 +32,7 @@ from ..spatialimages import supported_np_types, HeaderDataError
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
-from ..testing import assert_allclose_safely
+from ..testing import assert_allclose_safely, suppress_warnings
 
 from . import test_analyze
 from .test_helpers import (bytesio_round_trip, bytesio_filemap, bz2_mio_error)
@@ -330,7 +330,8 @@ class ScalingMixin(object):
             img.set_data_dtype(out_dtype)
             img.header.set_slope_inter(slope, inter)
             rt_img = bytesio_round_trip(img)
-            back_arr = rt_img.get_data()
+            with suppress_warnings():  # invalid mult
+                back_arr = rt_img.get_data()
             exp_back = arr.copy()
             if in_dtype not in COMPLEX_TYPES:
                 exp_back = arr.astype(float)
@@ -341,8 +342,9 @@ class ScalingMixin(object):
             else:
                 exp_back = exp_back.astype(out_dtype)
             # Allow for small differences in large numbers
-            assert_allclose_safely(back_arr,
-                                   exp_back * slope + inter)
+            with suppress_warnings():  # invalid value
+                assert_allclose_safely(back_arr,
+                                       exp_back * slope + inter)
 
     def test_write_scaling(self):
         # Check writes with scaling set

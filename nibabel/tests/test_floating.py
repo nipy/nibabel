@@ -10,6 +10,7 @@ from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
                        _check_maxexp, ok_floats, on_powerpc, have_binary128,
                        longdouble_precision_improved)
+from ..testing import suppress_warnings
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
@@ -92,9 +93,11 @@ def test_check_nmant_nexp():
         assert_true(_check_nmant(t, nmant))
         assert_false(_check_nmant(t, nmant - 1))
         assert_false(_check_nmant(t, nmant + 1))
-        assert_true(_check_maxexp(t, maxexp))
+        with suppress_warnings():  # overflow
+            assert_true(_check_maxexp(t, maxexp))
         assert_false(_check_maxexp(t, maxexp - 1))
-        assert_false(_check_maxexp(t, maxexp + 1))
+        with suppress_warnings():
+            assert_false(_check_maxexp(t, maxexp + 1))
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)

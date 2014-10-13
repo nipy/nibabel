@@ -10,7 +10,6 @@
 
 """
 from ..externals.six import BytesIO
-
 import numpy as np
 
 from ..spatialimages import (Header, SpatialImage, HeaderDataError,
@@ -24,6 +23,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
+from ..testing import suppress_warnings
 
 
 def test_header_init():
@@ -292,9 +292,10 @@ class TestSpatialImage(TestCase):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
         img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (1,))
-        img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (2,3,4))
+        with suppress_warnings():
+            assert_equal(img.get_shape(), (1,))
+            img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
+            assert_equal(img.get_shape(), (2,3,4))
 
     def test_get_data(self):
         # Test array image and proxy image interface

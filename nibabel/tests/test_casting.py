@@ -3,12 +3,12 @@
 import os
 
 from platform import machine
-
 import numpy as np
 
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
                        as_int, int_abs, floor_log2, able_int_type, best_float,
                        ulp, longdouble_precision_improved)
+from ..testing import suppress_warnings
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -23,7 +23,8 @@ def test_shared_range():
             # (if this system generates that) or something smaller (because of
             # overflow)
             mn, mx = shared_range(ft, it)
-            ovs = ft(mx) + np.arange(2048, dtype=ft)
+            with suppress_warnings():
+                ovs = ft(mx) + np.arange(2048, dtype=ft)
             # Float16 can overflow to inf
             bit_bigger = ovs[np.isfinite(ovs)].astype(it)
             casted_mx = ft(mx).astype(it)
@@ -51,7 +52,8 @@ def test_shared_range():
                 assert_equal(mn, 0)
                 continue
             # And something larger for the minimum
-            ovs = ft(mn) - np.arange(2048, dtype=ft)
+            with suppress_warnings():  # overflow
+                ovs = ft(mn) - np.arange(2048, dtype=ft)
             # Float16 can overflow to inf
             bit_smaller = ovs[np.isfinite(ovs)].astype(it)
             casted_mn = ft(mn).astype(it)

@@ -169,7 +169,7 @@ class Wrapper(object):
         """
         iop = self.image_orient_patient
         s_norm = self.slice_normal
-        if None in (iop, s_norm):
+        if iop is None or s_norm is None:
             return None
         R = np.eye(3)
         # np.fliplr(iop) gives matrix F in
@@ -235,7 +235,7 @@ class Wrapper(object):
         """
         ipp = self.image_position
         s_norm = self.slice_normal
-        if None in (ipp, s_norm):
+        if ipp is None or s_norm is None:
             return None
         return np.inner(ipp, s_norm)
 
@@ -304,7 +304,7 @@ class Wrapper(object):
         # column, slice)
         vox = self.voxel_sizes
         ipp = self.image_position
-        if None in (orient, vox, ipp):
+        if any(p is None for p in (orient, vox, ipp)):
             raise WrapperError('Not enough information for affine')
         aff = np.eye(4)
         aff[:3, :3] = orient * np.array(vox)
@@ -786,7 +786,7 @@ class MosaicWrapper(SiemensWrapper):
         md_rows, md_cols = (self.get('Rows'), self.get('Columns'))
         iop = self.image_orient_patient
         pix_spacing = self.get('PixelSpacing')
-        if None in (ipp, md_rows, md_cols, iop, pix_spacing):
+        if any(x is None for x in (ipp, md_rows, md_cols, iop, pix_spacing)):
             return None
         # PixelSpacing values are python Decimal in pydicom 0.9.7
         pix_spacing = np.array(list(map(float, pix_spacing)))
@@ -881,8 +881,8 @@ def none_or_close(val1, val2, rtol=1e-5, atol=1e-6):
     >>> none_or_close([0,1], [0,2])
     False
     """
-    if (val1, val2) == (None, None):
+    if val1 is None and val2 is None:
         return True
-    if None in (val1, val2):
+    if val1 is None or val2 is None:
         return False
     return np.allclose(val1, val2, rtol, atol)
