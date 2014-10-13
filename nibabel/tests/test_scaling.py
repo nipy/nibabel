@@ -10,12 +10,12 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-import warnings
 
 from ..externals.six import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
 from ..casting import type_info
+from ..testing import suppress_warnings
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -242,7 +242,7 @@ def test_scaling_in_abstract():
                                 ):
         for in_type in np.sctypes[category0]:
             for out_type in np.sctypes[category1]:
-                with warnings.catch_warnings(record=True):  # overflow
+                with suppress_warnings():  # overflow
                     check_int_a2f(in_type, out_type)
 
 

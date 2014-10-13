@@ -17,7 +17,6 @@ import re
 import logging
 import pickle
 import itertools
-import warnings
 
 import numpy as np
 
@@ -36,7 +35,8 @@ from numpy.testing import (assert_array_equal,
                            assert_array_almost_equal)
 
 from ..testing import (assert_equal, assert_not_equal, assert_true,
-                       assert_false, assert_raises, data_path)
+                       assert_false, assert_raises, data_path,
+                       suppress_warnings)
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
@@ -99,7 +99,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             hdr.set_data_shape((1, 2, 3))
 
     def test_checks(self):
@@ -109,7 +109,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_equal(self._dxer(hdr_t), '')
         hdr = hdr_t.copy()
         hdr['sizeof_hdr'] = 1
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             assert_equal(self._dxer(hdr), 'sizeof_hdr should be ' +
                          str(self.sizeof_hdr))
         hdr = hdr_t.copy()
@@ -129,7 +129,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         HC = self.header_class
         # magic
         hdr = HC()
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             hdr['sizeof_hdr'] = 350 # severity 30
             fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['sizeof_hdr'], self.sizeof_hdr)
@@ -144,7 +144,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # datatype not recognized
         hdr = HC()
         hdr['datatype'] = -1 # severity 40
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(message, 'data code -1 not recognized; '
                            'not attempting fix')

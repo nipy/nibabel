@@ -8,7 +8,6 @@ import sys
 from platform import python_compiler, machine
 from distutils.version import LooseVersion
 import itertools
-import warnings
 import numpy as np
 
 from ..externals.six import BytesIO
@@ -28,7 +27,7 @@ from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_not_equal,
                         assert_raises)
 
-from ..testing import assert_allclose_safely
+from ..testing import assert_allclose_safely, suppress_warnings
 from ..checkwarns import ErrorWarnings
 
 
@@ -135,7 +134,7 @@ def test_no_scaling():
         kwargs = (dict(check_scaling=False) if awt == ArrayWriter
                   else dict(calc_scale=False))
         aw = awt(arr, out_dtype, **kwargs)
-        with warnings.catch_warnings(record=True):  # cast to real from cplx
+        with suppress_warnings():  # cast to real from cplx
             back_arr = round_trip(aw)
             exp_back = arr.astype(float)
         if out_dtype in IUINT_TYPES:
@@ -643,7 +642,7 @@ def test_float_int_min_max():
             continue
         for out_dt in IUINT_TYPES:
             try:
-                with warnings.catch_warnings(record=True):  # overflow
+                with suppress_warnings():  # overflow
                     aw = SlopeInterArrayWriter(arr, out_dt)
             except ScalingError:
                 continue

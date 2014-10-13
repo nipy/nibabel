@@ -16,13 +16,12 @@ from ..openers import Opener
 from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
 
 from unittest import TestCase
-import warnings
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing import data_path
+from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase
@@ -112,7 +111,7 @@ class TestEcatMlist(TestCase):
                                             6.01670000e+04,   1.00000000e+00],
                                          [  1.68427580e+07,   6.01680000e+04,
                                             7.22000000e+04,   1.00000000e+00]])
-        with warnings.catch_warnings(record=True):  # STORED order
+        with suppress_warnings():  # STORED order
             assert_true(badordermlist.get_frame_order()[0][0] == 1)
 
     def test_mlist_errors(self):
@@ -132,7 +131,7 @@ class TestEcatMlist(TestCase):
                                     6.01670000e+04,   1.00000000e+00],
                                  [  1.68427580e+07,   6.01680000e+04,
                                     7.22000000e+04,   1.00000000e+00]])        
-        with warnings.catch_warnings(record=True):  # STORED order
+        with suppress_warnings():  # STORED order
             series_framenumbers = mlist.get_series_framenumbers()
         # first frame stored was actually 2nd frame acquired
         assert_true(series_framenumbers[0] == 2)
@@ -140,11 +139,11 @@ class TestEcatMlist(TestCase):
         # true series order is [2,1,3,4,5,6], note counting starts at 1
         assert_true(order == [2, 1, 3, 4, 5, 6])
         mlist._mlist[0,0] = 0
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             frames_order = mlist.get_frame_order()
         neworder =[frames_order[x][0] for x in sorted(frames_order)] 
         assert_true(neworder == [1, 2, 3, 4, 5])
-        with warnings.catch_warnings(record=True):
+        with suppress_warnings():
             assert_raises(IOError,
                           mlist.get_series_framenumbers)
         

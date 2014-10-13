@@ -10,6 +10,7 @@
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
+from warnings import catch_warnings, simplefilter
 
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
@@ -49,3 +50,12 @@ def assert_allclose_safely(a, b, match_nans=True):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b))
+
+
+class suppress_warnings(catch_warnings):
+    """ Version of ``catch_warnings`` class that suppresses warnings
+    """
+    def __enter__(self):
+        res = super(suppress_warnings, self).__enter__()
+        simplefilter('ignore')
+        return res

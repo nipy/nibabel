@@ -48,7 +48,8 @@ from numpy.testing import (assert_array_almost_equal,
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from ..testing import assert_dt_equal, assert_allclose_safely
+from ..testing import (assert_dt_equal, assert_allclose_safely,
+                       suppress_warnings)
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -125,7 +126,7 @@ def test_array_to_file():
         for code in '<>':
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
-                with warnings.catch_warnings(record=True):  # deprecated
+                with suppress_warnings():  # deprecated
                     scale, intercept, mn, mx = \
                         calculate_scale(arr, ndt, allow_intercept)
                 data_back = write_return(arr, str_io, ndt,
@@ -188,7 +189,7 @@ def test_a2f_min_max():
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
     # Check complex numbers
     arr = np.arange(4, dtype=np.complex64) + 100j
-    with warnings.catch_warnings(record=True):  # cast to real
+    with suppress_warnings():  # cast to real
         data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
     assert_array_equal(data_back, [1, 1, 2, 2])
 
@@ -308,7 +309,7 @@ def test_a2f_big_scalers():
     # We check whether the routine correctly clips extreme values.
     # We need nan2zero=False because we can't represent 0 in the input, given
     # the scaling and the output range.
-    with warnings.catch_warnings(record=True):  # overflow
+    with suppress_warnings():  # overflow
         array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
                       nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
@@ -322,7 +323,7 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, -128, 127])
     # And if slope causes overflow?
     str_io.seek(0)
-    with warnings.catch_warnings(record=True):  # overflow in divide
+    with suppress_warnings():  # overflow in divide
         array_to_file(arr, str_io, np.int8, divslope=np.float32(0.5))
         data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
@@ -373,7 +374,7 @@ def test_a2f_scaled_unscaled():
                           divslope=divslope,
                           intercept=intercept)
             continue
-        with warnings.catch_warnings(record=True):  # cast to real
+        with suppress_warnings():  # cast to real
             back_arr = write_return(arr, fobj,
                                     out_dtype=out_dtype,
                                     divslope=divslope,
