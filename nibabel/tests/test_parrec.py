@@ -185,9 +185,10 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with catch_warn_reset(modules=[parrec]):
-        simplefilter('error')
-        assert_raises(DeprecationWarning, hdr.get_voxel_size)
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        simplefilter('always')
+        hdr.get_voxel_size()
+    assert_equal(wlist[0].category, DeprecationWarning)
 
 
 def test_get_sorted_slice_indices():
@@ -202,8 +203,7 @@ def test_get_sorted_slice_indices():
                         17, 16, 15, 14, 13, 12, 11, 10, 9,
                         26, 25, 24, 23, 22, 21, 20, 19, 18])
     # Omit last slice, only two volumes
-    with catch_warn_reset(modules=[parrec]):
-        simplefilter('ignore')
+    with catch_warn_reset(modules=[parrec], record=True):
         hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
@@ -309,7 +309,6 @@ def test_truncations():
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
     # When we are permissive, we raise a warning, and drop a volume
     with catch_warn_reset(modules=[parrec], record=True) as wlist:
-        simplefilter('always')
         hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
         assert_equal(len(wlist), 1)
     assert_equal(hdr.get_data_shape(), (80, 80, 10))
