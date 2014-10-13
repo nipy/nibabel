@@ -658,7 +658,7 @@ class PARRECHeader(Header):
                       DeprecationWarning,
                       stacklevel=2)
         # slice orientation for the whole image series
-        slice_thickness = self._get_unique_image_prop('slice thickness')[0]
+        slice_thickness = self._get_unique_image_prop('slice thickness')
         voxsize_inplane = self._get_unique_image_prop('pixel spacing')
         voxsize = np.array((voxsize_inplane[0],
                             voxsize_inplane[1],
