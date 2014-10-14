@@ -1,7 +1,7 @@
 """ Functions / decorators for finding / requiring nibabel-data directory
 """
 
-from os import environ
+from os import environ, listdir
 from os.path import dirname, realpath, join as pjoin, isdir, exists
 
 from numpy.testing.decorators import skipif
@@ -43,5 +43,7 @@ def needs_nibabel_data(subdir = None):
     if subdir is None:
         return skipif(False)
     required_path = pjoin(nibabel_data, subdir)
-    return skipif(not exists(required_path),
-                  "Need {0} for these tests".format(required_path))
+    # Path should not be empty (as is the case for not-updated submodules)
+    have_files = exists(required_path) and len(listdir(required_path)) > 0
+    return skipif(not have_files,
+                  "Need files in {0} for these tests".format(required_path))
