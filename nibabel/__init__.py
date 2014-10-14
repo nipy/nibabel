@@ -63,6 +63,7 @@ from .orientations import (io_orientation, orientation_affine,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map
 from . import trackvis
+from . import mriutils
 
 # be friendly on systems with ancient numpy -- no tests, but at least
 # importable

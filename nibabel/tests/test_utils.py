@@ -9,6 +9,8 @@
 ''' Test for volumeutils module '''
 from __future__ import division
 
+from os.path import exists
+
 from ..externals.six import BytesIO
 import tempfile
 import warnings
@@ -23,6 +25,7 @@ from ..volumeutils import (array_from_file,
                            array_to_file,
                            allopen, # for backwards compatibility
                            BinOpener,
+                           fname_ext_ul_case,
                            calculate_scale,
                            can_cast,
                            write_zeros,
@@ -132,6 +135,11 @@ def test_array_to_file():
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
+    # Test array-like
+    str_io = BytesIO()
+    array_to_file(arr.tolist(), str_io, float)
+    data_back = array_from_file(arr.shape, float, str_io)
+    assert_array_almost_equal(arr, data_back)
 
 
 def test_a2f_intercept_scale():
@@ -823,6 +831,31 @@ def test_BinOpener():
             assert_true(hasattr(fobj.fobj, 'compress'))
         with BinOpener('test.mgz', 'w') as fobj:
             assert_true(hasattr(fobj.fobj, 'compress'))
+
+
+def test_fname_ext_ul_case():
+    # Get filename ignoring the case of the filename extension
+    with InTemporaryDirectory():
+        with open('afile.TXT', 'wt') as fobj:
+            fobj.write('Interesting information')
+        # OSX usually has case-insensitive file systems; Windows also
+        os_cares_case = not exists('afile.txt')
+        with open('bfile.txt', 'wt') as fobj:
+            fobj.write('More interesting information')
+        # If there is no file, the case doesn't change
+        assert_equal(fname_ext_ul_case('nofile.txt'), 'nofile.txt')
+        assert_equal(fname_ext_ul_case('nofile.TXT'), 'nofile.TXT')
+        # If there is a file, accept upper or lower case for ext
+        if os_cares_case:
+            assert_equal(fname_ext_ul_case('afile.txt'), 'afile.TXT')
+            assert_equal(fname_ext_ul_case('bfile.TXT'), 'bfile.txt')
+        else:
+            assert_equal(fname_ext_ul_case('afile.txt'), 'afile.txt')
+            assert_equal(fname_ext_ul_case('bfile.TXT'), 'bfile.TXT')
+        assert_equal(fname_ext_ul_case('afile.TXT'), 'afile.TXT')
+        assert_equal(fname_ext_ul_case('bfile.txt'), 'bfile.txt')
+        # Not mixed case though
+        assert_equal(fname_ext_ul_case('afile.TxT'), 'afile.TxT')
 
 
 def test_allopen():

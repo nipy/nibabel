@@ -1,12 +1,16 @@
 """ Testing parrec module
 """
 
-from os.path import join as pjoin, dirname
+from os.path import join as pjoin, dirname, basename
+from glob import glob
+from warnings import simplefilter
 
 import numpy as np
 from numpy import array as npa
 
-from ..parrec import parse_PAR_header, PARRECHeader, PARRECError
+from .. import parrec
+from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
+                      vol_is_full)
 from ..openers import Opener
 
 from numpy.testing import (assert_almost_equal,
@@ -14,6 +18,8 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
+
+from ..testing import catch_warn_reset
 
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -89,6 +95,19 @@ PREVIOUS_AFFINES={
          [   0.  ,    0.  ,    0.  ,    1.  ]]),
 }
 
+# Original values for b values in DTI.PAR, still in PSL orientation
+DTI_PAR_BVECS = np.array([[-0.667,  -0.667,  -0.333],
+                          [-0.333,   0.667,  -0.667],
+                          [-0.667,   0.333,   0.667],
+                          [-0.707,  -0.000,  -0.707],
+                          [-0.707,   0.707,   0.000],
+                          [-0.000,   0.707,   0.707],
+                          [ 0.000,   0.000,   0.000],
+                          [ 0.000,   0.000,   0.000]])
+
+# DTI.PAR values for bvecs
+DTI_PAR_BVALS = [1000] * 6 + [0, 1000]
+
 
 def test_header():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
@@ -96,37 +115,35 @@ def test_header():
     assert_equal(hdr.get_data_dtype(), np.dtype(np.int16))
     assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
     assert_equal(hdr.get_data_offset(), 0)
-    assert_almost_equal(hdr.get_slope_inter(),
-                        (1.2903541326522827, 0.0), 5)
+    si = np.array([np.unique(x) for x in hdr.get_data_scaling()]).ravel()
+    assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
 
 
 def test_header_scaling():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    fp_scaling = np.squeeze(hdr.get_data_scaling('fp'))
-    dv_scaling = np.squeeze(hdr.get_data_scaling('dv'))
+    def_scaling = [np.unique(x) for x in hdr.get_data_scaling()]
+    fp_scaling = [np.unique(x) for x in hdr.get_data_scaling('fp')]
+    dv_scaling = [np.unique(x) for x in hdr.get_data_scaling('dv')]
     # Check default is dv scaling
-    assert_array_equal(np.squeeze(hdr.get_data_scaling()), dv_scaling)
+    assert_array_equal(def_scaling, dv_scaling)
     # And that it's almost the same as that from the converted nifti
-    assert_almost_equal(dv_scaling, (1.2903541326522827, 0.0), 5)
+    assert_almost_equal(dv_scaling, [[1.2903541326522827], [0.0]], 5)
     # Check that default for get_slope_inter is dv scaling
-    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='dv')):
-        assert_array_equal(hdr.get_slope_inter(), dv_scaling)
+    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS)):
+        scaling = [np.unique(x) for x in hdr.get_data_scaling()]
+        assert_array_equal(scaling, dv_scaling)
     # Check we can change the default
     assert_false(np.all(fp_scaling == dv_scaling))
-    fp_hdr = PARRECHeader(HDR_INFO, HDR_DEFS, default_scaling='fp')
-    assert_array_equal(fp_hdr.get_slope_inter(), fp_scaling)
 
 
 def test_orientation():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_array_equal(HDR_DEFS['slice orientation'], 1)
     assert_equal(hdr.get_slice_orientation(), 'transverse')
-    hdr_defc = HDR_DEFS.copy()
-    hdr = PARRECHeader(HDR_INFO, hdr_defc)
+    hdr_defc = hdr.image_defs
     hdr_defc['slice orientation'] = 2
     assert_equal(hdr.get_slice_orientation(), 'sagittal')
     hdr_defc['slice orientation'] = 3
-    hdr = PARRECHeader(HDR_INFO, hdr_defc)
     assert_equal(hdr.get_slice_orientation(), 'coronal')
 
 
@@ -146,7 +163,7 @@ def test_affine():
     fov = hdr.get_affine(origin='fov')
     assert_array_equal(default, scanner)
     # rotation part is same
-    assert_array_equal(scanner[:3, :3], fov[:3,:3])
+    assert_array_equal(scanner[:3, :3], fov[:3, :3])
     # offset not
     assert_false(np.all(scanner[:3, 3] == fov[:3, 3]))
     # Regression test against what we were getting before
@@ -164,3 +181,189 @@ def test_affine_regression():
         with open(fname, 'rt') as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
+
+
+def test_get_voxel_size_deprecated():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        simplefilter('always')
+        hdr.get_voxel_size()
+    assert_equal(wlist[0].category, DeprecationWarning)
+
+
+def test_get_sorted_slice_indices():
+    # Test sorted slice indices
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    n_slices = len(HDR_DEFS)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices))
+    # Reverse - volume order preserved
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1])
+    assert_array_equal(hdr.get_sorted_slice_indices(),
+                       [8,  7,  6,  5,  4,  3,  2,  1,  0,
+                        17, 16, 15, 14, 13, 12, 11, 10, 9,
+                        26, 25, 24, 23, 22, 21, 20, 19, 18])
+    # Omit last slice, only two volumes
+    with catch_warn_reset(modules=[parrec], record=True):
+        hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
+
+
+def test_vol_number():
+    # Test algorithm for calculating volume number
+    assert_array_equal(vol_numbers([1, 3, 0]), [0, 0, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 0]), [ 0, 0, 0, 1])
+    assert_array_equal(vol_numbers([1, 3, 0, 0, 0]), [0, 0, 0, 1, 2])
+    assert_array_equal(vol_numbers([1, 3, 0, 0, 4]), [0, 0, 0, 1, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0]),
+                       [0, 0, 0, 1, 1, 1])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0, 4]),
+                       [0, 0, 0, 1, 1, 1, 0])
+    assert_array_equal(vol_numbers([1, 3, 0, 3, 1, 0, 3, 1, 0]),
+                       [0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+
+def test_vol_is_full():
+    assert_array_equal(vol_is_full([3, 2, 1], 3), True)
+    assert_array_equal(vol_is_full([3, 2, 1], 4), False)
+    assert_array_equal(vol_is_full([4, 2, 1], 4), False)
+    assert_array_equal(vol_is_full([3, 2, 4, 1], 4), True)
+    assert_array_equal(vol_is_full([3, 2, 1], 3, 0), False)
+    assert_array_equal(vol_is_full([3, 2, 0, 1], 3, 0), True)
+    assert_raises(ValueError, vol_is_full, [2, 1, 0], 2)
+    assert_raises(ValueError, vol_is_full, [3, 2, 1], 3, 2)
+    assert_array_equal(vol_is_full([3, 2, 1, 2, 3, 1], 3),
+                       [True] * 6)
+    assert_array_equal(vol_is_full([3, 2, 1, 2, 3], 3),
+                       [True, True, True, False, False])
+
+
+def gen_par_fobj():
+    for par in glob(pjoin(DATA_PATH, '*.PAR')):
+        with open(par, 'rt') as fobj:
+            yield par, fobj
+
+
+def test_vol_calculations():
+    # Test vol_is_full on sample data
+    for par, fobj in gen_par_fobj():
+        gen_info, slice_info = parse_PAR_header(fobj)
+        slice_nos = slice_info['slice number']
+        max_slice = gen_info['max_slices']
+        assert_equal(set(slice_nos), set(range(1, max_slice + 1)))
+        assert_array_equal(vol_is_full(slice_nos, max_slice), True)
+        if par.endswith('NA.PAR'):
+            continue # Cannot parse this one
+        # Fourth dimension shows same number of volumes as vol_numbers
+        hdr = PARRECHeader(gen_info, slice_info)
+        shape = hdr.get_data_shape()
+        d4 = 1 if len(shape) == 3 else shape[3]
+        assert_equal(max(vol_numbers(slice_nos)), d4 - 1)
+
+
+def test_diffusion_parameters():
+    # Check getting diffusion parameters from diffusion example
+    dti_par = pjoin(DATA_PATH, 'DTI.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj)
+    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
+    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    bvals, bvecs = dti_hdr.get_bvals_bvecs()
+    assert_almost_equal(bvals, DTI_PAR_BVALS)
+    # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
+    # Permute to match bvec directions to acquisition directions
+    assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
+    # Check q vectors
+    assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+
+
+def test_null_diffusion_params():
+    # Test non-diffusion PARs return None for diffusion params
+    for par, fobj in gen_par_fobj():
+        if basename(par) in ('DTI.PAR', 'NA.PAR'):
+            continue
+        gen_info, slice_info = parse_PAR_header(fobj)
+        hdr = PARRECHeader(gen_info, slice_info)
+        assert_equal(hdr.get_bvals_bvecs(), (None, None))
+        assert_equal(hdr.get_q_vectors(), None)
+
+
+def test_epi_params():
+    # Check EPI conversion
+    for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
+        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        with open(epi_par, 'rt') as fobj:
+            epi_hdr = PARRECHeader.from_fileobj(fobj)
+        assert_equal(len(epi_hdr.get_data_shape()), 4)
+        assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
+
+
+def test_truncations():
+    # Test tests for truncation
+    par = pjoin(DATA_PATH, 'T2_.PAR')
+    with open(par, 'rt') as fobj:
+        gen_info, slice_info = parse_PAR_header(fobj)
+    # Header is well-formed as is
+    hdr = PARRECHeader(gen_info, slice_info)
+    assert_equal(hdr.get_data_shape(), (80, 80, 10, 2))
+    # Drop one line, raises error
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
+    # When we are permissive, we raise a warning, and drop a volume
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
+        assert_equal(len(wlist), 1)
+    assert_equal(hdr.get_data_shape(), (80, 80, 10))
+    # Increase max slices to raise error
+    gen_info['max_slices'] = 11
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_slices'] = 10
+    hdr = PARRECHeader(gen_info, slice_info)
+    # Increase max_echoes
+    gen_info['max_echoes'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_echoes'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
+    # dyamics
+    gen_info['max_dynamics'] = 3
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_dynamics'] = 2
+    hdr = PARRECHeader(gen_info, slice_info)
+    # number of b values
+    gen_info['max_diffusion_values'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_diffusion_values'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
+    # number of unique gradients
+    gen_info['max_gradient_orient'] = 2
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    gen_info['max_gradient_orient'] = 1
+    hdr = PARRECHeader(gen_info, slice_info)
+
+
+def test__get_uniqe_image_defs():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS.copy())
+    uip = hdr._get_unique_image_prop
+    assert_equal(uip('image pixel size'), 16)
+    # Make values not same - raise error
+    hdr.image_defs['image pixel size'][3] = 32
+    assert_raises(PARRECError, uip, 'image pixel size')
+    assert_array_equal(uip('recon resolution'), [64, 64])
+    hdr.image_defs['recon resolution'][4, 1] = 32
+    assert_raises(PARRECError, uip, 'recon resolution')
+    assert_array_equal(uip('image angulation'), [-13.26, 0, 0])
+    hdr.image_defs['image angulation'][5, 2] = 1
+    assert_raises(PARRECError, uip, 'image angulation')
+    # This one differs from the outset
+    assert_raises(PARRECError, uip, 'slice number')
+
+
+def test_copy_on_init():
+    # Test that input dict / array gets copied when making header
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    assert_false(hdr.general_info is HDR_INFO)
+    hdr.general_info['max_slices'] = 10
+    assert_equal(hdr.general_info['max_slices'], 10)
+    assert_equal(HDR_INFO['max_slices'], 9)
+    assert_false(hdr.image_defs is HDR_DEFS)
+    hdr.image_defs['image pixel size'] = 8
+    assert_array_equal(hdr.image_defs['image pixel size'], 8)
+    assert_array_equal(HDR_DEFS['image pixel size'], 16)
