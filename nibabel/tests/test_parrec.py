@@ -108,6 +108,25 @@ DTI_PAR_BVECS = np.array([[-0.667,  -0.667,  -0.333],
 # DTI.PAR values for bvecs
 DTI_PAR_BVALS = [1000] * 6 + [0, 1000]
 
+EXAMPLE_IMAGES = [
+    # Parameters come from load of Philips' conversion to NIfTI
+    # Loaded image was ``phantom_EPI_asc_CLEAR_2_1.nii`` from
+    # http://psydata.ovgu.de/philips_achieva_testfiles/conversion
+    dict(
+        fname = EG_PAR,
+        shape = (64, 64, 9, 3),
+        dtype = np.int16,
+        # We disagree with Philips about the right affine, for the moment, so
+        # use our own affine as determined from a previous load in nibabel
+        affine = AN_OLD_AFFINE,
+        zooms = (3.75, 3.75, 8.0, 2.0),
+        data_summary = dict(
+            min = 0.0,
+            max = 2299.4110643863678,
+            mean = 194.95876256117265),
+        is_proxy = True)
+]
+
 
 def test_header():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)

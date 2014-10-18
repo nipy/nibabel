@@ -34,6 +34,7 @@ from nibabel.spatialimages import SpatialImage
 from nibabel.ecat import EcatImage
 from nibabel import minc1
 from nibabel import minc2
+from nibabel import parrec
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
@@ -47,6 +48,7 @@ from .test_api_validators import ValidateAPI
 from .test_helpers import bytesio_round_trip, assert_data_similar
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
+from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
 
 
 class GenericImageAPI(ValidateAPI):
@@ -358,6 +360,13 @@ class TestMinc2API(TestMinc1API):
     image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES
+
+
+class TestPARRECAPI(LoadImageAPI):
+    def loader(self, fname):
+        return parrec.load(fname)
+
+    example_images = PARREC_EXAMPLE_IMAGES
 
 
 # ECAT is a special case and needs more thought
