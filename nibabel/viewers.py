@@ -57,8 +57,9 @@ class OrthoSlicer3D(object):
     >>> a = np.sin(np.linspace(0,np.pi,20))
     >>> b = np.sin(np.linspace(0,np.pi*5,20))
     >>> data = np.outer(a,b)[..., np.newaxis]*a
-    >>> OrthoSlicer3D(data).show()
+    >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
+    # Skip doctest above b/c not all systems have mpl installed
     def __init__(self, data, axes=None, aspect_ratio=(1, 1, 1), cmap='gray',
                  pcnt_range=None):
         """
