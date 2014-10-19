@@ -45,7 +45,12 @@ before_install:
     - if [[ $DEPENDS == *h5py* ]]; then
       sudo apt-get install libhdf5-serial-dev;
       fi
-# command to install dependencies
+    # Create a (fake) display on Travis so that mpl tests work
+    # TODO: Could also use the `agg` backend instead
+    - if [[ $DEPENDS == "*matplotlib*" ]]; then
+      export DISPLAY=:99.0;
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1400x900x24 -ac +extension GLX +render -noreset;
+      fi;
 install:
     - python setup.py install
     # Point to nibabel data directory
