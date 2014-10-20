@@ -33,14 +33,16 @@ def test_viewer():
     # fake some events
     viewer.on_scroll(nt('event', 'button inaxes')('up', None))  # outside axes
     viewer.on_scroll(nt('event', 'button inaxes')('up', plt.gca()))  # in axes
-    # tracking on
+    # "click" outside axes, then once in each axis, then move without click
     viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
                                                                  None, 1))
-    viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
-                                                                 plt.gca(), 1))
-    # tracking off
+    for im in viewer._ims:
+        viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
+                                                                     im.axes,
+                                                                     1))
     viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
                                                                  None, None))
+    viewer.set_indices(0, 1, 2)
     viewer.close()
 
     # other cases

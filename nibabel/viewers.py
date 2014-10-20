@@ -35,10 +35,10 @@ mpl_img, _, _ = optional_package('matplotlib.image')
 
 def _set_viewer_slice(idx, im):
     """Helper to set a viewer slice number"""
-    im.idx = idx
+    im.idx = max(min(int(round(idx)), im.size - 1), 0)
     im.set_data(im.get_slice(im.idx))
     for fun in im.cross_setters:
-        fun([idx] * 2)
+        fun([im.idx] * 2)
 
 
 class OrthoSlicer3D(object):
@@ -133,24 +133,21 @@ class OrthoSlicer3D(object):
                   origin='lower')
 
         # Start midway through each axis
-        st_x, st_y, st_z = (data_shape - 1) / 2.
-        sts = (st_x, st_y, st_z)
-        n_x, n_y, n_z = data_shape
-        z_get_slice = lambda i: self.data[:, :, min(i, n_z-1)].T
-        y_get_slice = lambda i: self.data[:, min(i, n_y-1), :].T
-        x_get_slice = lambda i: self.data[min(i, n_x-1), :, :].T
-        im1 = ax1.imshow(z_get_slice(st_z), **kw)
-        im2 = ax2.imshow(y_get_slice(st_y), **kw)
-        im3 = ax3.imshow(x_get_slice(st_x), **kw)
+        z_get_slice = lambda i: self.data[:, :, i].T
+        y_get_slice = lambda i: self.data[:, i, :].T
+        x_get_slice = lambda i: self.data[i, :, :].T
+        sts = (data_shape - 1) // 2
+        im1 = ax1.imshow(z_get_slice(sts[2]), **kw)
+        im2 = ax2.imshow(y_get_slice(sts[1]), **kw)
+        im3 = ax3.imshow(x_get_slice(sts[0]), **kw)
+        # idx is the current slice number for each panel
+        im1.idx, im2.idx, im3.idx = sts
+        self._ims = (im1, im2, im3)
         im1.get_slice, im2.get_slice, im3.get_slice = (
             z_get_slice, y_get_slice, x_get_slice)
-        self._ims = (im1, im2, im3)
-
-        # idx is the current slice number for each panel
-        im1.idx, im2.idx, im3.idx = st_z, st_y, st_x
 
         # set the maximum dimensions for indexing
-        im1.size, im2.size, im3.size = n_z, n_y, n_x
+        im1.size, im2.size, im3.size = data_shape
 
         # set up axis crosshairs
         colors = ['r', 'g', 'b']
@@ -191,6 +188,7 @@ class OrthoSlicer3D(object):
         for fig in self.figs:
             fig.canvas.mpl_connect('scroll_event', self.on_scroll)
             fig.canvas.mpl_connect('motion_notify_event', self.on_mousemove)
+            fig.canvas.mpl_connect('button_press_event', self.on_mousemove)
 
     def show(self):
         """ Show the slicer; convenience for ``plt.show()``
@@ -202,6 +200,26 @@ class OrthoSlicer3D(object):
         """
         for f in self.figs:
             plt.close(f)
+
+    def set_indices(self, x=None, y=None, z=None):
+        """Set current displayed slice indices
+
+        Parameters
+        ----------
+        x : int | None
+            Index to use. If None, do not change.
+        y : int | None
+            Index to use. If None, do not change.
+        z : int | None
+            Index to use. If None, do not change.
+        """
+        draw = False
+        for im, val in zip(self._ims, (z, y, x)):
+            if val is not None:
+                im.set_viewer_slice(val)
+                draw = True
+        if draw:
+            self._draw_ims()
 
     def _axis_artist(self, event):
         """Return artist if within axes, and is an image, else None
@@ -216,8 +234,7 @@ class OrthoSlicer3D(object):
         im = self._axis_artist(event)
         if im is None:
             return
-        idx = (im.idx + (1 if event.button == 'up' else -1))
-        idx = max(min(idx, im.size - 1), 0)
+        idx = im.idx + (1 if event.button == 'up' else -1)
         im.set_viewer_slice(idx)
         self._draw_ims()
 
@@ -227,9 +244,7 @@ class OrthoSlicer3D(object):
         im = self._axis_artist(event)
         if im is None:
             return
-        x_im, y_im = im.x_im, im.y_im
-        x, y = np.round((event.xdata, event.ydata)).astype(int)
-        for i, idx in zip((x_im, y_im), (x, y)):
+        for i, idx in zip((im.x_im, im.y_im), (event.xdata, event.ydata)):
             i.set_viewer_slice(idx)
         self._draw_ims()
 
