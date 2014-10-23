@@ -6,39 +6,11 @@ Paul Ivanov.
 from __future__ import division, print_function
 
 import numpy as np
-from functools import partial
 
 from .optpkg import optional_package
 
 plt, _, _ = optional_package('matplotlib.pyplot')
 mpl_img, _, _ = optional_package('matplotlib.image')
-
-# Assumes the following layout
-#
-# ^ +---------+   ^ +---------+
-# | |         |   | |         |
-#   |         |     |         |
-# z |    2    |   z |    3    |
-#   |         |     |         |
-# | |         |   | |         |
-# v +---------+   v +---------+
-#   <--  x  -->     <--  y  -->
-# ^ +---------+
-# | |         |
-#   |         |
-# y |    1    |
-#   |         |
-# | |         |
-# v +---------+
-#   <--  x  -->
-
-
-def _set_viewer_slice(idx, im):
-    """Helper to set a viewer slice number"""
-    im.idx = max(min(int(round(idx)), im.size - 1), 0)
-    im.set_data(im.get_slice(im.idx))
-    for fun in im.cross_setters:
-        fun([im.idx] * 2)
 
 
 class OrthoSlicer3D(object):
@@ -61,26 +33,42 @@ class OrthoSlicer3D(object):
     """
     # Skip doctest above b/c not all systems have mpl installed
     def __init__(self, data, axes=None, aspect_ratio=(1, 1, 1), cmap='gray',
-                 pcnt_range=None):
+                 pcnt_range=(1., 99.), figsize=(8, 8)):
         """
         Parameters
         ----------
-        data : 3 dimensional ndarray
-            The data that will be displayed by the slicer
-        axes : None or length 3 sequence of mpl.Axes, optional
-            3 axes instances for the X, Y, and Z slices, or None (default)
-        aspect_ratio : float or length 3 sequence, optional
-            stretch factors for X, Y, Z directions
-        cmap : colormap identifier, optional
+        data : ndarray
+            The data that will be displayed by the slicer. Should have 3+
+            dimensions.
+        axes : tuple of mpl.Axes | None, optional
+            3 or 4 axes instances for the X, Y, Z slices plus volumes,
+            or None (default).
+        aspect_ratio : array-like, optional
+            Stretch factors for X, Y, Z directions.
+        cmap : str | instance of cmap, optional
             String or cmap instance specifying colormap. Will be passed as
             ``cmap`` argument to ``plt.imshow``.
-        pcnt_range : length 2 sequence, optional
+        pcnt_range : array-like, optional
             Percentile range over which to scale image for display. If None,
             scale between image mean and max.  If sequence, min and max
             percentile over which to scale image.
+        figsize : tuple
+            Figure size (in inches) to use if axes are None.
         """
-        data_shape = np.array(data.shape[:3])  # allow trailing RGB dimension
-        aspect_ratio = np.array(aspect_ratio, float)
+        ar = np.array(aspect_ratio, float)
+        if ar.shape != (3,) or np.any(ar <= 0):
+            raise ValueError('aspect ratio must have exactly 3 elements >= 0')
+        aspect_ratio = dict(x=ar[0], y=ar[1], z=ar[2])
+        data = np.asanyarray(data)
+        if data.ndim < 3:
+            raise RuntimeError('data must have at least 3 dimensions')
+        self._volume_dims = data.shape[3:]
+        self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
+        self._data = data
+        pcnt_range = (0, 100) if pcnt_range is None else pcnt_range
+        vmin, vmax = np.percentile(data, pcnt_range)
+        del data
+
         if axes is None:  # make the axes
             # ^ +---------+   ^ +---------+
             # | |         |   | |         |
@@ -90,105 +78,110 @@ class OrthoSlicer3D(object):
             # | |         |   | |         |
             # v +---------+   v +---------+
             #   <--  x  -->     <--  y  -->
-            # ^ +---------+
-            # | |         |
-            #   |         |
-            # y |    1    |
-            #   |         |
-            # | |         |
-            # v +---------+
-            #   <--  x  -->
-            fig = plt.figure()
-            x, y, z = data_shape * aspect_ratio
-            maxw = float(x + y)
-            maxh = float(y + z)
-            yh = y / maxh
-            xw = x / maxw
-            yw = y / maxw
-            zh = z / maxh
-            # z slice (if usual transverse acquisition => axial slice)
-            ax1 = fig.add_axes((0., 0., xw, yh))
-            # y slice (usually coronal)
-            ax2 = fig.add_axes((0,  yh, xw, zh))
-            # x slice (usually sagittal)
-            ax3 = fig.add_axes((xw, yh, yw, zh))
-            axes = (ax1, ax2, ax3)
+            # ^ +---------+   ^ +---------+
+            # | |         |   | |         |
+            #   |         |     |         |
+            # y |    1    |   A |    4    |
+            #   |         |     |         |
+            # | |         |   | |         |
+            # v +---------+   v +---------+
+            #   <--  x  -->     <--  t  -->
+
+            fig, axes = plt.subplots(2, 2)
+            fig.set_size_inches(figsize, forward=True)
+            self._axes = dict(x=axes[0, 1], y=axes[0, 0], z=axes[1, 0],
+                              v=axes[1, 1])
+            plt.tight_layout(pad=0.1)
+            if not self.multi_volume:
+                fig.delaxes(self._axes['v'])
+                del self._axes['v']
         else:
-            if not np.all(aspect_ratio == 1):
-                raise ValueError('Aspect ratio must be 1 for external axes')
-            ax1, ax2, ax3 = axes
+            self._axes = dict(z=axes[0], y=axes[1], x=axes[2])
+            if len(axes) > 3:
+                self._axes['v'] = axes[3]
 
-        self.data = data
+        kw = dict(vmin=vmin, vmax=vmax, aspect=1, interpolation='nearest',
+                  cmap=cmap, origin='lower')
 
-        if pcnt_range is None:
-            vmin, vmax = data.min(), data.max()
-        else:
-            vmin, vmax = np.percentile(data, pcnt_range)
-
-        kw = dict(vmin=vmin,
-                  vmax=vmax,
-                  aspect='auto',
-                  interpolation='nearest',
-                  cmap=cmap,
-                  origin='lower')
-
-        # Start midway through each axis
-        z_get_slice = lambda i: self.data[:, :, i].T
-        y_get_slice = lambda i: self.data[:, i, :].T
-        x_get_slice = lambda i: self.data[i, :, :].T
-        sts = (data_shape - 1) // 2
-        im1 = ax1.imshow(z_get_slice(sts[2]), **kw)
-        im2 = ax2.imshow(y_get_slice(sts[1]), **kw)
-        im3 = ax3.imshow(x_get_slice(sts[0]), **kw)
-        # idx is the current slice number for each panel
-        im1.idx, im2.idx, im3.idx = sts
-        self._ims = (im1, im2, im3)
-        im1.get_slice, im2.get_slice, im3.get_slice = (
-            z_get_slice, y_get_slice, x_get_slice)
-
-        # set the maximum dimensions for indexing
-        im1.size, im2.size, im3.size = data_shape
+        # Start midway through each axis, idx is current slice number
+        self._ims, self._sizes, self._idx = dict(), dict(), dict()
+        colors = dict()
+        for k, size in zip('xyz', self._data.shape[:3]):
+            self._idx[k] = size // 2
+            self._ims[k] = self._axes[k].imshow(self._get_slice(k), **kw)
+            self._sizes[k] = size
+            colors[k] = (0, 1, 0)
+        self._idx['v'] = 0
+        labels = dict(z='ILSR', y='ALPR', x='AIPS')
 
         # set up axis crosshairs
-        colors = ['r', 'g', 'b']
-        for ax, im, idx_1, idx_2 in zip(axes, self._ims, [0, 0, 1], [1, 2, 2]):
-            im.x_line = ax.plot([sts[idx_1]] * 2,
-                                [-0.5, data.shape[idx_2] - 0.5],
-                                color=colors[idx_1], linestyle='-',
-                                alpha=0.25)[0]
-            im.y_line = ax.plot([-0.5, data.shape[idx_1] - 0.5],
-                                [sts[idx_2]] * 2,
-                                color=colors[idx_2], linestyle='-',
-                                alpha=0.25)[0]
-            ax.axis('tight')
+        for type_, i_1, i_2 in zip('zyx', 'xxy', 'yzz'):
+            ax = self._axes[type_]
+            im = self._ims[type_]
+            label = labels[type_]
+            # add slice lines
+            im.vert_line = ax.plot([self._idx[i_1]] * 2,
+                                   [-0.5, self._sizes[i_2] - 0.5],
+                                   color=colors[i_1], linestyle='-')[0]
+            im.horiz_line = ax.plot([-0.5, self._sizes[i_1] - 0.5],
+                                    [self._idx[i_2]] * 2,
+                                    color=colors[i_2], linestyle='-')[0]
+            # add text labels (top, right, bottom, left)
+            lims = [0, self._sizes[i_1], 0, self._sizes[i_2]]
+            bump = 0.01
+            poss = [[lims[1] / 2., lims[3]],
+                    [(1 + bump) * lims[1], lims[3] / 2.],
+                    [lims[1] / 2., 0],
+                    [lims[0] - bump * lims[1], lims[3] / 2.]]
+            anchors = [['center', 'bottom'], ['left', 'center'],
+                       ['center', 'top'], ['right', 'center']]
+            im.texts = [ax.text(pos[0], pos[1], lab,
+                                horizontalalignment=anchor[0],
+                                verticalalignment=anchor[1])
+                        for pos, anchor, lab in zip(poss, anchors, label)]
+            ax.axis(lims)
+            ax.set_aspect(aspect_ratio[type_])
             ax.patch.set_visible(False)
             ax.set_frame_on(False)
             ax.axes.get_yaxis().set_visible(False)
             ax.axes.get_xaxis().set_visible(False)
 
-        # monkey-patch some functions
-        im1.set_viewer_slice = partial(_set_viewer_slice, im=im1)
-        im2.set_viewer_slice = partial(_set_viewer_slice, im=im2)
-        im3.set_viewer_slice = partial(_set_viewer_slice, im=im3)
+        # Set up volumes axis
+        if self.multi_volume:
+            ax = self._axes['v']
+            ax.set_axis_bgcolor('k')
+            ax.set_title('Volumes')
+            n_vols = np.prod(self._volume_dims)
+            print(n_vols)
+            y = np.mean(np.mean(np.mean(self._data, 0), 0), 0).ravel()
+            y = np.concatenate((y, [y[-1]]))
+            x = np.arange(n_vols + 1) - 0.5
+            step = ax.step(x, y, where='post', color='y')[0]
+            ax.set_xticks(np.unique(np.linspace(0, n_vols - 1, 5).astype(int)))
+            ax.set_xlim(x[0], x[-1])
+            line = ax.plot([0, 0], ax.get_ylim(), color=(0, 1, 0))[0]
+            self._time_lines = [line, step]
 
         # setup pairwise connections between the slice dimensions
-        im1.x_im = im3  # x move in panel 1 (usually axial)
-        im1.y_im = im2  # y move in panel 1
-        im2.x_im = im3  # x move in panel 2 (usually coronal)
-        im2.y_im = im1  # y move in panel 2
-        im3.x_im = im2  # x move in panel 3 (usually sagittal)
-        im3.y_im = im1  # y move in panel 3
+        self._click_update_keys = dict(x='yz', y='xz', z='xy')
 
         # when an index changes, which crosshairs need to be updated
-        im1.cross_setters = [im2.y_line.set_ydata, im3.y_line.set_ydata]
-        im2.cross_setters = [im1.y_line.set_ydata, im3.x_line.set_xdata]
-        im3.cross_setters = [im1.x_line.set_xdata, im2.x_line.set_xdata]
+        self._cross_setters = dict(
+            x=[self._ims['z'].vert_line.set_xdata,
+               self._ims['y'].vert_line.set_xdata],
+            y=[self._ims['z'].horiz_line.set_ydata,
+               self._ims['x'].vert_line.set_xdata],
+            z=[self._ims['y'].horiz_line.set_ydata,
+               self._ims['x'].horiz_line.set_ydata])
 
-        self.figs = set([ax.figure for ax in axes])
-        for fig in self.figs:
-            fig.canvas.mpl_connect('scroll_event', self.on_scroll)
-            fig.canvas.mpl_connect('motion_notify_event', self.on_mousemove)
-            fig.canvas.mpl_connect('button_press_event', self.on_mousemove)
+        self._figs = set([a.figure for a in self._axes.values()])
+        for fig in self._figs:
+            fig.canvas.mpl_connect('scroll_event', self._on_scroll)
+            fig.canvas.mpl_connect('motion_notify_event', self._on_mousemove)
+            fig.canvas.mpl_connect('button_press_event', self._on_mousemove)
+            fig.canvas.mpl_connect('key_press_event', self._on_keypress)
+        plt.draw()
+        self._draw()
 
     def show(self):
         """ Show the slicer; convenience for ``plt.show()``
@@ -198,10 +191,15 @@ class OrthoSlicer3D(object):
     def close(self):
         """Close the viewer figures
         """
-        for f in self.figs:
+        for f in self._figs:
             plt.close(f)
 
-    def set_indices(self, x=None, y=None, z=None):
+    @property
+    def multi_volume(self):
+        """Whether or not the displayed data is multi-volume"""
+        return len(self._volume_dims) > 0
+
+    def set_indices(self, x=None, y=None, z=None, v=None):
         """Set current displayed slice indices
 
         Parameters
@@ -212,46 +210,108 @@ class OrthoSlicer3D(object):
             Index to use. If None, do not change.
         z : int | None
             Index to use. If None, do not change.
+        v : int | None
+            Volume index to use. If None, do not change.
         """
+        x = int(x) if x is not None else None
+        y = int(y) if y is not None else None
+        z = int(z) if z is not None else None
+        v = int(v) if v is not None else None
         draw = False
-        for im, val in zip(self._ims, (z, y, x)):
+        if v is not None:
+            if not self.multi_volume:
+                raise RuntimeError('cannot change volume index of '
+                                   'single-volume image')
+            self._set_vol_idx(v, draw=False)  # delay draw
+            draw = True
+        for key, val in zip('zyx', (z, y, x)):
             if val is not None:
-                im.set_viewer_slice(val)
+                self._set_viewer_slice(key, val)
                 draw = True
         if draw:
-            self._draw_ims()
+            self._draw()
 
-    def _axis_artist(self, event):
-        """Return artist if within axes, and is an image, else None
-        """
-        if not getattr(event, 'inaxes'):
+    def _set_vol_idx(self, idx, draw=True):
+        """Helper to change which volume is shown"""
+        max_ = np.prod(self._volume_dims)
+        self._idx['v'] = max(min(int(round(idx)), max_ - 1), 0)
+        # Must reset what is shown
+        self._current_vol_data = self._data[:, :, :, self._idx['v']]
+        for key in 'xyz':
+            self._ims[key].set_data(self._get_slice(key))
+        self._time_lines[0].set_xdata([self._idx['v']] * 2)
+        if draw:
+            self._draw()
+
+    def _get_slice(self, key):
+        """Helper to get the current slice image"""
+        ii = dict(x=0, y=1, z=2)[key]
+        return np.take(self._current_vol_data, self._idx[key], axis=ii).T
+
+    def _set_viewer_slice(self, key, idx):
+        """Helper to set a viewer slice number"""
+        self._idx[key] = max(min(int(round(idx)), self._sizes[key] - 1), 0)
+        self._ims[key].set_data(self._get_slice(key))
+        for fun in self._cross_setters[key]:
+            fun([self._idx[key]] * 2)
+
+    def _in_axis(self, event):
+        """Return axis key if within one of our axes, else None"""
+        if getattr(event, 'inaxes') is None:
             return None
-        artist = event.inaxes.images[0]
-        return artist if isinstance(artist, mpl_img.AxesImage) else None
+        for key, ax in self._axes.items():
+            if event.inaxes is ax:
+                return key
+        return None
 
-    def on_scroll(self, event):
+    def _on_scroll(self, event):
         assert event.button in ('up', 'down')
-        im = self._axis_artist(event)
-        if im is None:
+        key = self._in_axis(event)
+        if key is None:
             return
-        idx = im.idx + (1 if event.button == 'up' else -1)
-        im.set_viewer_slice(idx)
-        self._draw_ims()
+        delta = 10 if event.key is not None and 'control' in event.key else 1
+        if event.key is not None and 'shift' in event.key:
+            if not self.multi_volume:
+                return
+            key = 'v'  # shift: change volume in any axis
+        idx = self._idx[key] + (delta if event.button == 'up' else -delta)
+        if key == 'v':
+            self._set_vol_idx(idx)
+        else:
+            self._set_viewer_slice(key, idx)
+        self._draw()
 
-    def on_mousemove(self, event):
+    def _on_mousemove(self, event):
         if event.button != 1:  # only enabled while dragging
             return
-        im = self._axis_artist(event)
-        if im is None:
+        key = self._in_axis(event)
+        if key is None:
             return
-        for i, idx in zip((im.x_im, im.y_im), (event.xdata, event.ydata)):
-            i.set_viewer_slice(idx)
-        self._draw_ims()
+        if key == 'v':
+            self._set_vol_idx(event.xdata)
+        else:
+            for sub_key, idx in zip(self._click_update_keys[key],
+                                    (event.xdata, event.ydata)):
+                self._set_viewer_slice(sub_key, idx)
+        self._draw()
 
-    def _draw_ims(self):
-        for im in self._ims:
+    def _on_keypress(self, event):
+        if event.key is not None and 'escape' in event.key:
+            self.close()
+
+    def _draw(self):
+        for im in self._ims.values():
             ax = im.axes
+            ax.draw_artist(ax.patch)
             ax.draw_artist(im)
-            ax.draw_artist(im.x_line)
-            ax.draw_artist(im.y_line)
+            ax.draw_artist(im.vert_line)
+            ax.draw_artist(im.horiz_line)
+            ax.figure.canvas.blit(ax.bbox)
+            for t in im.texts:
+                ax.draw_artist(t)
+        if self.multi_volume:
+            ax = self._axes['v']
+            ax.draw_artist(ax.patch)
+            for artist in self._time_lines:
+                ax.draw_artist(artist)
             ax.figure.canvas.blit(ax.bbox)
