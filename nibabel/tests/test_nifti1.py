@@ -101,7 +101,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_array_almost_equal(data, rdata)
         # Without scaling does rounding, doesn't alter scaling
         hdr.set_slope_inter(1, 0)
-        hdr.data_to_fileobj(data, S, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data, S, rescale=False)
         assert_array_equal(hdr.get_slope_inter(), (1, 0))
         rdata = hdr.data_from_fileobj(S)
         assert_array_almost_equal(np.round(data), rdata)
@@ -939,7 +940,8 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
             (2, 1, 2, 1),
             (0, 0, 1, 0),
             (np.inf, 0, 1, 0)):
-            self._check_write_scaling(slope, inter, e_slope, e_inter)
+            with np.errstate(invalid='ignore'):
+                self._check_write_scaling(slope, inter, e_slope, e_inter)
 
 
 class TestNifti1Image(TestNifti1Pair):

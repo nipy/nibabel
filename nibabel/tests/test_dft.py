@@ -4,10 +4,12 @@
 import os
 from os.path import join as pjoin, dirname
 from ..externals.six import BytesIO
+from ..testing import suppress_warnings
 
 import numpy as np
 
-from .. import dft
+with suppress_warnings():
+    from .. import dft
 from .. import nifti1
 
 from nose import SkipTest
@@ -37,7 +39,7 @@ def test_init():
 def test_study():
     studies = dft.get_studies(data_dir)
     assert_equal(len(studies), 1)
-    assert_equal(studies[0].uid, 
+    assert_equal(studies[0].uid,
                  '1.3.12.2.1107.5.2.32.35119.30000010011408520750000000022')
     assert_equal(studies[0].date, '20100114')
     assert_equal(studies[0].time, '121314.000000')
@@ -52,7 +54,7 @@ def test_series():
     studies = dft.get_studies(data_dir)
     assert_equal(len(studies[0].series), 1)
     ser = studies[0].series[0]
-    assert_equal(ser.uid, 
+    assert_equal(ser.uid,
                  '1.3.12.2.1107.5.2.32.35119.2010011420292594820699190.0.0.0')
     assert_equal(ser.number, '12')
     assert_equal(ser.description, 'CBU_DTI_64D_1A')

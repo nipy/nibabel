@@ -147,7 +147,8 @@ class TestAnalyzeAPI(ValidateAPI):
         assert_equal(img.get_data_dtype().type, params['dtype'])
         # dtype survives round trip
         if self.has_scaling and self.can_save:
-            rt_img = bytesio_round_trip(img)
+            with np.errstate(invalid='ignore'):
+                rt_img = bytesio_round_trip(img)
             assert_equal(rt_img.get_data_dtype().type, params['dtype'])
         # Setting to a different dtype
         img.set_data_dtype(np.float32) # assumed supported for all formats

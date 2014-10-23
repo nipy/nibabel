@@ -72,7 +72,7 @@ class Minc2File(Minc1File):
         # Differs for MINC1 and MINC2 - see:
         # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         try:
-            dimorder = var.attrs['dimorder']
+            dimorder = var.attrs['dimorder'].decode()
         except KeyError: # No specified dimensions
             return []
         return dimorder.split(',')

@@ -94,7 +94,8 @@ def test_casting():
             # We're later going to test if we modify this array
             farr = farr_orig.copy()
             mn, mx = shared_range(ft, it)
-            iarr = float_to_int(farr, it)
+            with np.errstate(invalid='ignore'):
+                iarr = float_to_int(farr, it)
             # Dammit - for long doubles we need to jump through some hoops not
             # to round to numbers outside the range
             if ft is np.longdouble:
@@ -103,8 +104,9 @@ def test_casting():
             exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11], dtype=it)
             assert_array_equal(iarr, exp_arr)
             # Now test infmax version
-            iarr = float_to_int(farr, it, infmax=True)
-            im_exp = np.array([mn, mx, ii.min, ii.max, 0, 0, 11], dtype=it)
+            with np.errstate(invalid='ignore'):
+                iarr = float_to_int(farr, it, infmax=True)
+                im_exp = np.array([mn, mx, ii.min, ii.max, 0, 0, 11], dtype=it)
             # Float16 can overflow to infs
             if farr[0] == -np.inf:
                 im_exp[0] = ii.min
@@ -115,7 +117,8 @@ def test_casting():
             assert_raises(CastingError, float_to_int, farr, it, False)
             # We can pass through NaNs if we really want
             exp_arr[arr.index(np.nan)] = ft(np.nan).astype(it)
-            iarr = float_to_int(farr, it, nan2zero=None)
+            with np.errstate(invalid='ignore'):
+                iarr = float_to_int(farr, it, nan2zero=None)
             assert_array_equal(iarr, exp_arr)
             # Confirm input array is not modified
             nans = np.isnan(farr)
@@ -124,7 +127,8 @@ def test_casting():
     # Test scalars work and return scalars
     assert_array_equal(float_to_int(np.float32(0), np.int16), [0])
     # Test scalar nan OK
-    assert_array_equal(float_to_int(np.nan, np.int16), [0])
+    with np.errstate(invalid='ignore'):
+        assert_array_equal(float_to_int(np.nan, np.int16), [0])
     # Test nans give error if not nan2zero
     assert_raises(CastingError, float_to_int, np.nan, np.int16, False)
 

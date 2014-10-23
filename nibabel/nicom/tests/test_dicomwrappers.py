@@ -330,7 +330,7 @@ def test_rotation_matrix():
 
 @dicom_test
 def test_use_csa_sign():
-    #Test that we get the same slice normal, even after swapping the iop 
+    #Test that we get the same slice normal, even after swapping the iop
     #directions
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     iop = dw.image_orient_patient
@@ -341,7 +341,7 @@ def test_use_csa_sign():
 
 @dicom_test
 def test_assert_parallel():
-    #Test that we get an AssertionError if the cross product and the CSA 
+    #Test that we get an AssertionError if the cross product and the CSA
     #slice normal are not parallel
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]

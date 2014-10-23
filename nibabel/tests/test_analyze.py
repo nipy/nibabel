@@ -336,7 +336,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         S3 = BytesIO()
         # Analyze header cannot do scaling, so turn off scaling with
         # 'rescale=False'
-        hdr.data_to_fileobj(data, S3, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_array_almost_equal(data, data_back)
         # If the header can't do scaling, rescale raises an error
@@ -346,7 +347,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
                           rescale=True)
         # If not scaling we lose precision from rounding
         data = np.arange(6, dtype=np.float64).reshape((1,2,3)) + 0.5
-        hdr.data_to_fileobj(data, S3, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_false(np.allclose(data, data_back))
         # Test RGB image
@@ -398,7 +400,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             assert_equal(hdr.get_zooms(), (1,) * L)
             # errors if zooms do not match shape
             if len(shape):
-                assert_raises(HeaderDataError, 
+                assert_raises(HeaderDataError,
                                     hdr.set_zooms,
                                     (1,) * (L-1))
                 # Errors for negative zooms
@@ -540,12 +542,14 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         if not hdr.has_data_slope:
             assert_raises(HeaderTypeError, hdr.data_to_fileobj, data, BytesIO())
         # But if we aren't scaling, convert the floats to integers and write
-        hdr.data_to_fileobj(data, S, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert_true(np.allclose(data, rdata))
         # This won't work for floats that aren't close to integers
         data_p5 = data + 0.5
-        hdr.data_to_fileobj(data_p5, S, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data_p5, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert_false(np.allclose(data_p5, rdata))
 
