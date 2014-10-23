@@ -26,28 +26,39 @@ def test_viewer():
     # Test viewer
     a = np.sin(np.linspace(0, np.pi, 20))
     b = np.sin(np.linspace(0, np.pi*5, 30))
-    data = np.outer(a, b)[..., np.newaxis] * a
+    data = (np.outer(a, b)[..., np.newaxis] * a)[:, :, :, np.newaxis]
     viewer = OrthoSlicer3D(data)
     plt.draw()
 
-    # fake some events
-    viewer.on_scroll(nt('event', 'button inaxes')('up', None))  # outside axes
-    viewer.on_scroll(nt('event', 'button inaxes')('up', plt.gca()))  # in axes
+    # fake some events, inside and outside axes
+    viewer._on_scroll(nt('event', 'button inaxes key')('up', None, None))
+    for ax in (viewer._axes['x'], viewer._axes['v']):
+        viewer._on_scroll(nt('event', 'button inaxes key')('up', ax, None))
+    viewer._on_scroll(nt('event', 'button inaxes key')('up', ax, 'shift'))
     # "click" outside axes, then once in each axis, then move without click
-    viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
-                                                                 None, 1))
-    for im in viewer._ims:
-        viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
-                                                                     im.axes,
-                                                                     1))
-    viewer.on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
-                                                                 None, None))
+    viewer._on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
+                                                                  None, 1))
+    for ax in viewer._axes.values():
+        viewer._on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
+                                                                      ax, 1))
+    viewer._on_mousemove(nt('event', 'xdata ydata inaxes button')(0.5, 0.5,
+                                                                  None, None))
     viewer.set_indices(0, 1, 2)
+    viewer.set_indices(v=10)
     viewer.close()
 
+    # non-multi-volume
+    viewer = OrthoSlicer3D(data[:, :, :, 0])
+    assert_raises(ValueError, viewer.set_indices, v=10)  # not multi-volume
+    viewer._on_scroll(nt('event', 'button inaxes key')('up', viewer._axes['x'],
+                                                       'shift'))
+    viewer._on_keypress(nt('event', 'key')('escape'))
+
     # other cases
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(1, 4)
     plt.close(fig)
-    OrthoSlicer3D(data, pcnt_range=[0.1, 0.9], axes=axes)
-    assert_raises(ValueError, OrthoSlicer3D, data, aspect_ratio=[1, 2, 3],
-                  axes=axes)
+    OrthoSlicer3D(data, pcnt_range=[0.1, 0.9], axes=axes,
+                  aspect_ratio=[1, 2, 3])
+    OrthoSlicer3D(data, axes=axes[:3])
+    assert_raises(ValueError, OrthoSlicer3D, data, aspect_ratio=[1, 2])
+    assert_raises(ValueError, OrthoSlicer3D, data[:, :, 0, 0])

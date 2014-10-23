@@ -11,6 +11,7 @@ from .optpkg import optional_package
 
 plt, _, _ = optional_package('matplotlib.pyplot')
 mpl_img, _, _ = optional_package('matplotlib.image')
+mpl_patch, _, _ = optional_package('matplotlib.patches')
 
 
 class OrthoSlicer3D(object):
@@ -61,7 +62,7 @@ class OrthoSlicer3D(object):
         aspect_ratio = dict(x=ar[0], y=ar[1], z=ar[2])
         data = np.asanyarray(data)
         if data.ndim < 3:
-            raise RuntimeError('data must have at least 3 dimensions')
+            raise ValueError('data must have at least 3 dimensions')
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
@@ -147,20 +148,23 @@ class OrthoSlicer3D(object):
             ax.axes.get_xaxis().set_visible(False)
 
         # Set up volumes axis
-        if self.multi_volume:
+        if self.multi_volume and 'v' in self._axes:
             ax = self._axes['v']
             ax.set_axis_bgcolor('k')
             ax.set_title('Volumes')
             n_vols = np.prod(self._volume_dims)
-            print(n_vols)
             y = np.mean(np.mean(np.mean(self._data, 0), 0), 0).ravel()
             y = np.concatenate((y, [y[-1]]))
             x = np.arange(n_vols + 1) - 0.5
             step = ax.step(x, y, where='post', color='y')[0]
             ax.set_xticks(np.unique(np.linspace(0, n_vols - 1, 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
-            line = ax.plot([0, 0], ax.get_ylim(), color=(0, 1, 0))[0]
-            self._time_lines = [line, step]
+            lims = ax.get_ylim()
+            patch = mpl_patch.Rectangle([-0.5, lims[0]], 1., np.diff(lims)[0],
+                                       fill=True, facecolor=(0, 1, 0),
+                                       edgecolor=(0, 1, 0), alpha=0.25)
+            ax.add_patch(patch)
+            self._time_lines = [patch, step]
 
         # setup pairwise connections between the slice dimensions
         self._click_update_keys = dict(x='yz', y='xz', z='xy')
@@ -180,11 +184,9 @@ class OrthoSlicer3D(object):
             fig.canvas.mpl_connect('motion_notify_event', self._on_mousemove)
             fig.canvas.mpl_connect('button_press_event', self._on_mousemove)
             fig.canvas.mpl_connect('key_press_event', self._on_keypress)
-        plt.draw()
-        self._draw()
 
     def show(self):
-        """ Show the slicer; convenience for ``plt.show()``
+        """ Show the slicer in blocking mode; convenience for ``plt.show()``
         """
         plt.show()
 
@@ -220,8 +222,8 @@ class OrthoSlicer3D(object):
         draw = False
         if v is not None:
             if not self.multi_volume:
-                raise RuntimeError('cannot change volume index of '
-                                   'single-volume image')
+                raise ValueError('cannot change volume index of single-volume '
+                                 'image')
             self._set_vol_idx(v, draw=False)  # delay draw
             draw = True
         for key, val in zip('zyx', (z, y, x)):
@@ -239,7 +241,7 @@ class OrthoSlicer3D(object):
         self._current_vol_data = self._data[:, :, :, self._idx['v']]
         for key in 'xyz':
             self._ims[key].set_data(self._get_slice(key))
-        self._time_lines[0].set_xdata([self._idx['v']] * 2)
+        self._time_lines[0].set_x(self._idx['v'] - 0.5)
         if draw:
             self._draw()
 
@@ -262,7 +264,6 @@ class OrthoSlicer3D(object):
         for key, ax in self._axes.items():
             if event.inaxes is ax:
                 return key
-        return None
 
     def _on_scroll(self, event):
         assert event.button in ('up', 'down')
@@ -309,7 +310,7 @@ class OrthoSlicer3D(object):
             ax.figure.canvas.blit(ax.bbox)
             for t in im.texts:
                 ax.draw_artist(t)
-        if self.multi_volume:
+        if self.multi_volume and 'v' in self._axes:  # user might only pass 3
             ax = self._axes['v']
             ax.draw_artist(ax.patch)
             for artist in self._time_lines:
