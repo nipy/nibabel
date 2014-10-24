@@ -19,7 +19,7 @@ from numpy.testing import (assert_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
-from ..testing import catch_warn_reset
+from ..testing import catch_warn_reset, suppress_warnings
 
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -27,6 +27,9 @@ EG_PAR = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
 EG_REC = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.REC')
 with Opener(EG_PAR, 'rt') as _fobj:
     HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
+# Fake truncated
+TRUNC_PAR = pjoin(DATA_PATH, 'phantom_truncated.PAR')
+TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [[-3.64994708, 0.,   1.83564171, 123.66276611],
@@ -243,6 +246,16 @@ def gen_par_fobj():
             yield par, fobj
 
 
+def test_truncated_load():
+    # Test loading of truncated header
+    with open(TRUNC_PAR, 'rt') as fobj:
+        gen_info, slice_info = parse_PAR_header(fobj)
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with catch_warn_reset(record=True) as wlist:
+        hdr = PARRECHeader(gen_info, slice_info, True)
+        assert_equal(len(wlist), 1)
+
+
 def test_vol_calculations():
     # Test vol_is_full on sample data
     for par, fobj in gen_par_fobj():
@@ -253,8 +266,10 @@ def test_vol_calculations():
         assert_array_equal(vol_is_full(slice_nos, max_slice), True)
         if par.endswith('NA.PAR'):
             continue # Cannot parse this one
+        # Load truncated without warnings
+        with suppress_warnings():
+            hdr = PARRECHeader(gen_info, slice_info, True)
         # Fourth dimension shows same number of volumes as vol_numbers
-        hdr = PARRECHeader(gen_info, slice_info)
         shape = hdr.get_data_shape()
         d4 = 1 if len(shape) == 3 else shape[3]
         assert_equal(max(vol_numbers(slice_nos)), d4 - 1)
@@ -282,7 +297,8 @@ def test_null_diffusion_params():
         if basename(par) in ('DTI.PAR', 'NA.PAR'):
             continue
         gen_info, slice_info = parse_PAR_header(fobj)
-        hdr = PARRECHeader(gen_info, slice_info)
+        with suppress_warnings():
+            hdr = PARRECHeader(gen_info, slice_info, True)
         assert_equal(hdr.get_bvals_bvecs(), (None, None))
         assert_equal(hdr.get_q_vectors(), None)
 
