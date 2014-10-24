@@ -82,6 +82,7 @@ import numpy as np
 from copy import deepcopy
 import re
 
+from .keywordonly import kw_only_meth
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, BinOpener
@@ -900,6 +901,7 @@ class PARRECImage(SpatialImage):
     ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
+    @kw_only_meth(1)
     def from_file_map(klass, file_map, permit_truncated=False, scaling='dv'):
         pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
@@ -911,13 +913,14 @@ class PARRECImage(SpatialImage):
                      file_map=file_map)
 
     @classmethod
+    @kw_only_meth(1)
     def from_filename(klass, filename, permit_truncated=False, scaling='dv'):
         file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, permit_truncated, scaling)
+        return klass.from_file_map(file_map,
+                                   permit_truncated=permit_truncated,
+                                   scaling=scaling)
 
-    @classmethod
-    def load(klass, filename, permit_truncated=False, scaling='dv'):
-        return klass.from_filename(filename, permit_truncated, scaling)
+    load = from_filename
 
 
 load = PARRECImage.load

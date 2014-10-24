@@ -434,17 +434,25 @@ def test_image_creation():
         (PARRECImage.from_file_map, good_map, trunc_map)):
         img = func(good_param)
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(good_param, False)
+        # permit_truncated is keyword only
+        assert_raises(TypeError, func, good_param, False)
+        img = func(good_param, permit_truncated=False)
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(good_param, False, 'dv')
+        # scaling is keyword only
+        assert_raises(TypeError, func, good_param, False, 'dv')
+        img = func(good_param, permit_truncated=False, scaling='dv')
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(good_param, False, 'fp')
+        img = func(good_param, scaling='dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        # Can use fp scaling
+        img = func(good_param, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)
+        # Truncated raises error without permit_truncated=True
         assert_raises(PARRECError, func, trunc_param)
-        assert_raises(PARRECError, func, trunc_param, False)
-        img = func(trunc_param, True)
+        assert_raises(PARRECError, func, trunc_param, permit_truncated=False)
+        img = func(trunc_param, permit_truncated=True)
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, True, 'dv')
+        img = func(trunc_param, permit_truncated=True, scaling='dv')
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, True, 'fp')
+        img = func(trunc_param, permit_truncated=True, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)

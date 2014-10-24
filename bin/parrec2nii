@@ -138,7 +138,9 @@ def proc_file(infile, opts):
     # load the PAR header and data
     scaling = None if opts.scaling == 'off' else opts.scaling
     infile = fname_ext_ul_case(infile)
-    pr_img = pr.load(infile, opts.permit_truncated, scaling)
+    pr_img = pr.load(infile,
+                     permit_truncated=opts.permit_truncated,
+                     scaling=scaling)
     pr_hdr = pr_img.header
     raw_data = pr_img.dataobj.get_unscaled()
     affine = pr_hdr.get_affine(origin=opts.origin)
