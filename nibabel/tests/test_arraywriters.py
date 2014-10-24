@@ -45,7 +45,8 @@ NP_VERSION = LooseVersion(np.__version__)
 def round_trip(writer, order='F', apply_scale=True):
     sio = BytesIO()
     arr = writer.array
-    writer.to_fileobj(sio, order)
+    with np.errstate(invalid='ignore'):
+        writer.to_fileobj(sio, order)
     data_back = array_from_file(arr.shape, writer.out_dtype, sio, order=order)
     slope, inter = get_slope_inter(writer)
     if apply_scale:
@@ -138,7 +139,8 @@ def test_no_scaling():
             back_arr = round_trip(aw)
             exp_back = arr.astype(float)
         if out_dtype in IUINT_TYPES:
-            exp_back = np.round(exp_back)
+            with np.errstate(invalid='ignore'):
+                exp_back = np.round(exp_back)
             if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
                 # Finite scaling sets infs to min / max
                 exp_back = np.clip(exp_back, 0, 1)

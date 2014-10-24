@@ -187,11 +187,13 @@ def test_a2f_nan2zero():
     data_back = array_from_file(arr.shape, np.float32, str_io)
     assert_array_equal(np.isnan(data_back), [True, False])
     # Integer output with nan2zero gives zero
-    array_to_file(arr, str_io, np.int32, nan2zero=True)
+    with np.errstate(invalid='ignore'):
+        array_to_file(arr, str_io, np.int32, nan2zero=True)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [0, 99])
     # Integer output with nan2zero=False gives whatever astype gives
-    array_to_file(arr, str_io, np.int32, nan2zero=False)
+    with np.errstate(invalid='ignore'):
+        array_to_file(arr, str_io, np.int32, nan2zero=False)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [np.array(np.nan).astype(np.int32), 99])
 

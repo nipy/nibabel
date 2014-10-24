@@ -54,7 +54,7 @@ def test_geometry():
 
         with open(surf_path, 'rb') as fobj:
             magic = np.fromfile(fobj, ">u1", 3)
-            read_create_stamp = fobj.readline().rstrip('\n')
+            read_create_stamp = fobj.readline().decode().rstrip('\n')
 
     assert_equal(create_stamp, read_create_stamp)
 

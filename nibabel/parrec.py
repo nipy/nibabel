@@ -82,9 +82,6 @@ import numpy as np
 from copy import deepcopy
 import re
 
-from .externals.six import string_types
-from .py3k import asbytes
-
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, BinOpener
@@ -237,7 +234,7 @@ def _split_header(fobj):
         if state == 'general-info':
             if not line.startswith('.'):
                 state = 'comment-block'
-            else: # Let match raise error for unexpected field format
+            else:  # Let match raise error for unexpected field format
                 key, value = GEN_RE.match(line).groups()
                 gen_dict[key] = value
         if state == 'comment-block':
@@ -293,8 +290,8 @@ def _process_image_lines(image_lines):
             elif len(props) == 3:
                 name, np_type, shape = props
                 nelements = np.prod(shape)
-                value  = items[item_counter:item_counter + nelements]
-                value  = [np_type(v) for v in value]
+                value = items[item_counter:item_counter + nelements]
+                value = [np_type(v) for v in value]
                 item_counter += nelements
             image_defs[name][i] = value
     return image_defs

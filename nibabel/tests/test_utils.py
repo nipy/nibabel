@@ -122,7 +122,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
 
 
 def test_array_to_file():
-    arr = np.arange(10).reshape(5,2)
+    arr = np.arange(10).reshape(5, 2)
     str_io = BytesIO()
     for tp in (np.uint64, np.float, np.complex):
         dt = np.dtype(tp)
@@ -180,10 +180,12 @@ def test_a2f_min_max():
         for out_dt in (np.float32, np.int8):
             arr = np.arange(4, dtype=in_dt)
             # min thresholding
-            data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1)
+            with np.errstate(invalid='ignore'):
+                data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1)
             assert_array_equal(data_back, [1, 1, 2, 3])
             # max thresholding
-            data_back = write_return(arr, str_io, out_dt, 0, 0, 1, None, 2)
+            with np.errstate(invalid='ignore'):
+                data_back = write_return(arr, str_io, out_dt, 0, 0, 1, None, 2)
             assert_array_equal(data_back, [0, 1, 2, 2])
             # min max thresholding
             data_back = write_return(arr, str_io, out_dt, 0, 0, 1, 1, 2)
@@ -227,11 +229,13 @@ def test_a2f_nan2zero():
     # True is the default, but just to show it's possible
     data_back = write_return(arr, str_io, ndt, nan2zero=True)
     assert_array_equal(data_back, arr)
-    data_back = write_return(arr, str_io, np.int64, nan2zero=True)
+    with np.errstate(invalid='ignore'):
+        data_back = write_return(arr, str_io, np.int64, nan2zero=True)
     assert_array_equal(data_back, [[0, 0],[0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
-    data_back = write_return(arr, str_io, np.int64, nan2zero=False)
+    with np.errstate(invalid='ignore'):
+        data_back = write_return(arr, str_io, np.int64, nan2zero=False)
     assert_array_equal(data_back, arr.astype(np.int64))
 
 
@@ -260,14 +264,15 @@ def test_a2f_nan2zero_scaling():
         vals = [np.nan] + [mn, mx]
         nan_arr = np.array(vals, dtype=in_dt)
         zero_arr = np.nan_to_num(nan_arr)
-        back_nan = write_return(nan_arr, bio, np.int64, intercept=inter)
-        back_zero = write_return(zero_arr, bio, np.int64, intercept=inter)
+        with np.errstate(invalid='ignore'):
+            back_nan = write_return(nan_arr, bio, np.int64, intercept=inter)
+            back_zero = write_return(zero_arr, bio, np.int64, intercept=inter)
         assert_array_equal(back_nan, back_zero)
 
 
 def test_a2f_offset():
     # check that non-zero file offset works
-    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
+    arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     str_io = BytesIO()
     str_io.write(b'a' * 42)
     array_to_file(arr, str_io, np.float, 42)
@@ -283,7 +288,7 @@ def test_a2f_offset():
 
 def test_a2f_dtype_default():
     # that default dtype is input dtype
-    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
+    arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     str_io = BytesIO()
     array_to_file(arr.astype(np.int16), str_io)
     data_back = array_from_file(arr.shape, np.int16, str_io)
@@ -292,7 +297,7 @@ def test_a2f_dtype_default():
 
 def test_a2f_zeros():
     # Check that, if there is no valid data, we get zeros
-    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
+    arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     str_io = BytesIO()
     # With slope=None signal
     array_to_file(arr + np.inf, str_io, np.int32, 0, 0.0, None)

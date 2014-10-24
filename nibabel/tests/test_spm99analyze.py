@@ -75,7 +75,8 @@ class HeaderScalingMixin(object):
         assert_array_almost_equal(data, data_back, 4)
         assert_false(np.all(data == data_back))
         # This doesn't use scaling, and so gets perfect precision
-        hdr.data_to_fileobj(data, S3, rescale=False)
+        with np.errstate(invalid='ignore'):
+            hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_true(np.all(data == data_back))
 
@@ -285,7 +286,8 @@ class ScalingMixin(object):
         self.assert_scaling_equal(img.header, slope, inter)
         # The data gets rounded nicely if we need to do conversion
         img.header.set_data_dtype(np.uint8)
-        img_rt = bytesio_round_trip(img)
+        with np.errstate(invalid='ignore'):
+            img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_data(),
                            apply_read_scaling(np.round(arr),
                                               effective_slope,
@@ -293,7 +295,8 @@ class ScalingMixin(object):
         # But we have to clip too
         arr[-1, -1, -1] = 256
         arr[-2, -1, -1] = -1
-        img_rt = bytesio_round_trip(img)
+        with np.errstate(invalid='ignore'):
+            img_rt = bytesio_round_trip(img)
         exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
         assert_array_equal(img_rt.get_data(),
                            apply_read_scaling(exp_unscaled_arr,
@@ -329,14 +332,16 @@ class ScalingMixin(object):
             img = img_class(arr, np.eye(4), hdr)
             img.set_data_dtype(out_dtype)
             img.header.set_slope_inter(slope, inter)
-            rt_img = bytesio_round_trip(img)
+            with np.errstate(invalid='ignore'):
+                rt_img = bytesio_round_trip(img)
             with suppress_warnings():  # invalid mult
                 back_arr = rt_img.get_data()
             exp_back = arr.copy()
             if in_dtype not in COMPLEX_TYPES:
                 exp_back = arr.astype(float)
             if out_dtype in IUINT_TYPES:
-                exp_back = np.round(exp_back)
+                with np.errstate(invalid='ignore'):
+                    exp_back = np.round(exp_back)
                 exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
                 exp_back = exp_back.astype(out_dtype).astype(float)
             else:
@@ -370,7 +375,8 @@ class ScalingMixin(object):
         # Uncontroversial so far, but now check that nan2zero works correctly
         # for int type
         img.set_data_dtype(np.uint8)
-        rt_img = bytesio_round_trip(img)
+        with np.errstate(invalid='ignore'):
+            rt_img = bytesio_round_trip(img)
         assert_equal(rt_img.get_data()[0, 0, 0], 0)
 
 
