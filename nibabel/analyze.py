@@ -572,9 +572,9 @@ class AnalyzeHeader(LabeledWrapStruct):
             except TypeError:
                 raise HeaderDataError(
                     'data dtype "{0}" not recognized'.format(datatype))
-        if dt not in self._data_type_codes:
-            raise HeaderDataError(
-                'data dtype "{0}" not supported'.format(datatype))
+            if dt not in self._data_type_codes:
+                raise HeaderDataError(
+                    'data dtype "{0}" not supported'.format(datatype))
         code = self._data_type_codes[dt]
         dtype = self._data_type_codes.dtype[code]
         # test for void, being careful of user-defined types
