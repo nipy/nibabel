@@ -10,8 +10,9 @@ from numpy import array as npa
 
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
-                      vol_is_full)
+                      vol_is_full, PARRECImage, PARRECArrayProxy)
 from ..openers import Opener
+from ..fileholders import FileHolder
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -415,3 +416,35 @@ def test_header_copy():
     assert_true(trunc_hdr.permit_truncated)
     trunc_hdr2 = trunc_hdr.copy()
     assert_copy_ok(trunc_hdr, trunc_hdr2)
+
+
+def test_image_creation():
+    # Test parts of image API in parrec image creation
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    arr_prox_dv = np.array(PARRECArrayProxy(EG_REC, hdr, 'dv'))
+    arr_prox_fp = np.array(PARRECArrayProxy(EG_REC, hdr, 'fp'))
+    good_map = dict(image = FileHolder(EG_REC),
+                    header = FileHolder(EG_PAR))
+    trunc_map = dict(image = FileHolder(TRUNC_REC),
+                     header = FileHolder(TRUNC_PAR))
+    for func, good_param, trunc_param in (
+        (PARRECImage.from_filename, EG_PAR, TRUNC_PAR),
+        (PARRECImage.load, EG_PAR, TRUNC_PAR),
+        (parrec.load, EG_PAR, TRUNC_PAR),
+        (PARRECImage.from_file_map, good_map, trunc_map)):
+        img = func(good_param)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(good_param, False)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(good_param, False, 'dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(good_param, False, 'fp')
+        assert_array_equal(img.dataobj, arr_prox_fp)
+        assert_raises(PARRECError, func, trunc_param)
+        assert_raises(PARRECError, func, trunc_param, False)
+        img = func(trunc_param, True)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(trunc_param, True, 'dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(trunc_param, True, 'fp')
+        assert_array_equal(img.dataobj, arr_prox_fp)

@@ -900,7 +900,7 @@ class PARRECImage(SpatialImage):
     ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map, permit_truncated, scaling):
+    def from_file_map(klass, file_map, permit_truncated=False, scaling='dv'):
         pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj,
@@ -910,8 +910,14 @@ class PARRECImage(SpatialImage):
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
+    @classmethod
+    def from_filename(klass, filename, permit_truncated=False, scaling='dv'):
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, permit_truncated, scaling)
 
-def load(filename, permit_truncated=False, scaling='dv'):
-    file_map = PARRECImage.filespec_to_file_map(filename)
-    return PARRECImage.from_file_map(file_map, permit_truncated, scaling)
-load.__doc__ = PARRECImage.load.__doc__
+    @classmethod
+    def load(klass, filename, permit_truncated=False, scaling='dv'):
+        return klass.from_filename(filename, permit_truncated, scaling)
+
+
+load = PARRECImage.load
