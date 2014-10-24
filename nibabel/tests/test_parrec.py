@@ -10,8 +10,9 @@ from numpy import array as npa
 
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
-                      vol_is_full)
+                      vol_is_full, PARRECImage, PARRECArrayProxy)
 from ..openers import Opener
+from ..fileholders import FileHolder
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -19,7 +20,7 @@ from numpy.testing import (assert_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
-from ..testing import catch_warn_reset
+from ..testing import catch_warn_reset, suppress_warnings
 
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -27,6 +28,9 @@ EG_PAR = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
 EG_REC = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.REC')
 with Opener(EG_PAR, 'rt') as _fobj:
     HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
+# Fake truncated
+TRUNC_PAR = pjoin(DATA_PATH, 'phantom_truncated.PAR')
+TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [[-3.64994708, 0.,   1.83564171, 123.66276611],
@@ -243,6 +247,16 @@ def gen_par_fobj():
             yield par, fobj
 
 
+def test_truncated_load():
+    # Test loading of truncated header
+    with open(TRUNC_PAR, 'rt') as fobj:
+        gen_info, slice_info = parse_PAR_header(fobj)
+    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with catch_warn_reset(record=True) as wlist:
+        hdr = PARRECHeader(gen_info, slice_info, True)
+        assert_equal(len(wlist), 1)
+
+
 def test_vol_calculations():
     # Test vol_is_full on sample data
     for par, fobj in gen_par_fobj():
@@ -253,8 +267,10 @@ def test_vol_calculations():
         assert_array_equal(vol_is_full(slice_nos, max_slice), True)
         if par.endswith('NA.PAR'):
             continue # Cannot parse this one
+        # Load truncated without warnings
+        with suppress_warnings():
+            hdr = PARRECHeader(gen_info, slice_info, True)
         # Fourth dimension shows same number of volumes as vol_numbers
-        hdr = PARRECHeader(gen_info, slice_info)
         shape = hdr.get_data_shape()
         d4 = 1 if len(shape) == 3 else shape[3]
         assert_equal(max(vol_numbers(slice_nos)), d4 - 1)
@@ -282,7 +298,8 @@ def test_null_diffusion_params():
         if basename(par) in ('DTI.PAR', 'NA.PAR'):
             continue
         gen_info, slice_info = parse_PAR_header(fobj)
-        hdr = PARRECHeader(gen_info, slice_info)
+        with suppress_warnings():
+            hdr = PARRECHeader(gen_info, slice_info, True)
         assert_equal(hdr.get_bvals_bvecs(), (None, None))
         assert_equal(hdr.get_q_vectors(), None)
 
@@ -367,3 +384,75 @@ def test_copy_on_init():
     hdr.image_defs['image pixel size'] = 8
     assert_array_equal(hdr.image_defs['image pixel size'], 8)
     assert_array_equal(HDR_DEFS['image pixel size'], 16)
+
+
+def assert_arr_dict_equal(dict1, dict2):
+    assert_equal(set(dict1), set(dict2))
+    for key, value1 in dict1.items():
+        value2 = dict2[key]
+        assert_array_equal(value1, value2)
+
+
+def test_header_copy():
+    # Test header copying
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    hdr2 = hdr.copy()
+
+    def assert_copy_ok(hdr1, hdr2):
+        assert_false(hdr1 is hdr2)
+        assert_equal(hdr1.permit_truncated, hdr2.permit_truncated)
+        assert_false(hdr1.general_info is hdr2.general_info)
+        assert_arr_dict_equal(hdr1.general_info, hdr2.general_info)
+        assert_false(hdr1.image_defs is hdr2.image_defs)
+        assert_array_equal(hdr1.image_defs, hdr2.image_defs)
+
+    assert_copy_ok(hdr, hdr2)
+    assert_false(hdr.permit_truncated)
+    assert_false(hdr2.permit_truncated)
+    with open(TRUNC_PAR, 'rt') as fobj:
+        assert_raises(PARRECError, PARRECHeader.from_fileobj, fobj)
+    with open(TRUNC_PAR, 'rt') as fobj:
+        trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+    assert_true(trunc_hdr.permit_truncated)
+    trunc_hdr2 = trunc_hdr.copy()
+    assert_copy_ok(trunc_hdr, trunc_hdr2)
+
+
+def test_image_creation():
+    # Test parts of image API in parrec image creation
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    arr_prox_dv = np.array(PARRECArrayProxy(EG_REC, hdr, 'dv'))
+    arr_prox_fp = np.array(PARRECArrayProxy(EG_REC, hdr, 'fp'))
+    good_map = dict(image = FileHolder(EG_REC),
+                    header = FileHolder(EG_PAR))
+    trunc_map = dict(image = FileHolder(TRUNC_REC),
+                     header = FileHolder(TRUNC_PAR))
+    for func, good_param, trunc_param in (
+        (PARRECImage.from_filename, EG_PAR, TRUNC_PAR),
+        (PARRECImage.load, EG_PAR, TRUNC_PAR),
+        (parrec.load, EG_PAR, TRUNC_PAR),
+        (PARRECImage.from_file_map, good_map, trunc_map)):
+        img = func(good_param)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        # permit_truncated is keyword only
+        assert_raises(TypeError, func, good_param, False)
+        img = func(good_param, permit_truncated=False)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        # scaling is keyword only
+        assert_raises(TypeError, func, good_param, False, 'dv')
+        img = func(good_param, permit_truncated=False, scaling='dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(good_param, scaling='dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        # Can use fp scaling
+        img = func(good_param, scaling='fp')
+        assert_array_equal(img.dataobj, arr_prox_fp)
+        # Truncated raises error without permit_truncated=True
+        assert_raises(PARRECError, func, trunc_param)
+        assert_raises(PARRECError, func, trunc_param, permit_truncated=False)
+        img = func(trunc_param, permit_truncated=True)
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(trunc_param, permit_truncated=True, scaling='dv')
+        assert_array_equal(img.dataobj, arr_prox_dv)
+        img = func(trunc_param, permit_truncated=True, scaling='fp')
+        assert_array_equal(img.dataobj, arr_prox_fp)

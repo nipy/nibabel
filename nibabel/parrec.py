@@ -82,6 +82,7 @@ import numpy as np
 from copy import deepcopy
 import re
 
+from .keywordonly import kw_only_meth
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, BinOpener
@@ -462,6 +463,18 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
 
 class PARRECArrayProxy(object):
     def __init__(self, file_like, header, scaling):
+        """ Initialize PARREC array proxy
+
+        Parameters
+        ----------
+        file_like : file-like object
+            Filename or object implementing ``read, seek, tell``
+        header : PARRECHeader instance
+            Implementing ``get_data_shape, get_data_dtype``,
+            ``get_sorted_slice_indices``, ``get_data_scaling``
+        scaling : {'fp', 'dv'}
+            Type of scaling to use - see header ``get_data_scaling`` method.
+        """
         self.file_like = file_like
         # Copies of values needed to read array
         self._shape = header.get_data_shape()
@@ -512,6 +525,7 @@ class PARRECHeader(Header):
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
+        self.permit_truncated = permit_truncated
         _truncation_checks(info, image_defs, permit_truncated)
         # charge with basic properties to be able to use base class
         # functionality
@@ -538,7 +552,8 @@ class PARRECHeader(Header):
 
     def copy(self):
         return PARRECHeader(deepcopy(self.general_info),
-                            self.image_defs.copy())
+                            self.image_defs.copy(),
+                            self.permit_truncated)
 
     def as_analyze_map(self):
         """Convert PAR parameters to NIFTI1 format"""
@@ -886,7 +901,8 @@ class PARRECImage(SpatialImage):
     ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map, permit_truncated, scaling):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, permit_truncated=False, scaling='dv'):
         pt = permit_truncated
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj,
@@ -896,8 +912,15 @@ class PARRECImage(SpatialImage):
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
+    @classmethod
+    @kw_only_meth(1)
+    def from_filename(klass, filename, permit_truncated=False, scaling='dv'):
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map,
+                                   permit_truncated=permit_truncated,
+                                   scaling=scaling)
 
-def load(filename, permit_truncated=False, scaling='dv'):
-    file_map = PARRECImage.filespec_to_file_map(filename)
-    return PARRECImage.from_file_map(file_map, permit_truncated, scaling)
-load.__doc__ = PARRECImage.load.__doc__
+    load = from_filename
+
+
+load = PARRECImage.load
