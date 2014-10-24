@@ -524,6 +524,7 @@ class PARRECHeader(Header):
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
+        self.permit_truncated = permit_truncated
         _truncation_checks(info, image_defs, permit_truncated)
         # charge with basic properties to be able to use base class
         # functionality
@@ -550,7 +551,8 @@ class PARRECHeader(Header):
 
     def copy(self):
         return PARRECHeader(deepcopy(self.general_info),
-                            self.image_defs.copy())
+                            self.image_defs.copy(),
+                            self.permit_truncated)
 
     def as_analyze_map(self):
         """Convert PAR parameters to NIFTI1 format"""

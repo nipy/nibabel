@@ -383,3 +383,35 @@ def test_copy_on_init():
     hdr.image_defs['image pixel size'] = 8
     assert_array_equal(hdr.image_defs['image pixel size'], 8)
     assert_array_equal(HDR_DEFS['image pixel size'], 16)
+
+
+def assert_arr_dict_equal(dict1, dict2):
+    assert_equal(set(dict1), set(dict2))
+    for key, value1 in dict1.items():
+        value2 = dict2[key]
+        assert_array_equal(value1, value2)
+
+
+def test_header_copy():
+    # Test header copying
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    hdr2 = hdr.copy()
+
+    def assert_copy_ok(hdr1, hdr2):
+        assert_false(hdr1 is hdr2)
+        assert_equal(hdr1.permit_truncated, hdr2.permit_truncated)
+        assert_false(hdr1.general_info is hdr2.general_info)
+        assert_arr_dict_equal(hdr1.general_info, hdr2.general_info)
+        assert_false(hdr1.image_defs is hdr2.image_defs)
+        assert_array_equal(hdr1.image_defs, hdr2.image_defs)
+
+    assert_copy_ok(hdr, hdr2)
+    assert_false(hdr.permit_truncated)
+    assert_false(hdr2.permit_truncated)
+    with open(TRUNC_PAR, 'rt') as fobj:
+        assert_raises(PARRECError, PARRECHeader.from_fileobj, fobj)
+    with open(TRUNC_PAR, 'rt') as fobj:
+        trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+    assert_true(trunc_hdr.permit_truncated)
+    trunc_hdr2 = trunc_hdr.copy()
+    assert_copy_ok(trunc_hdr, trunc_hdr2)
