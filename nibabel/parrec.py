@@ -462,6 +462,18 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
 
 class PARRECArrayProxy(object):
     def __init__(self, file_like, header, scaling):
+        """ Initialize PARREC array proxy
+
+        Parameters
+        ----------
+        file_like : file-like object
+            Filename or object implementing ``read, seek, tell``
+        header : PARRECHeader instance
+            Implementing ``get_data_shape, get_data_dtype``,
+            ``get_sorted_slice_indices``, ``get_data_scaling``
+        scaling : {'fp', 'dv'}
+            Type of scaling to use - see header ``get_data_scaling`` method.
+        """
         self.file_like = file_like
         # Copies of values needed to read array
         self._shape = header.get_data_shape()
