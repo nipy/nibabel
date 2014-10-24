@@ -565,16 +565,22 @@ class AnalyzeHeader(LabeledWrapStruct):
            ...
         HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
         '''
-        try:
-            code = self._data_type_codes[datatype]
-        except KeyError:
-            raise HeaderDataError(
-                'data dtype "%s" not recognized' % datatype)
+        dt = datatype
+        if dt not in self._data_type_codes:
+            try:
+                dt = np.dtype(dt)
+            except TypeError:
+                raise HeaderDataError(
+                    'data dtype "{0}" not recognized'.format(datatype))
+            if dt not in self._data_type_codes:
+                raise HeaderDataError(
+                    'data dtype "{0}" not supported'.format(datatype))
+        code = self._data_type_codes[dt]
         dtype = self._data_type_codes.dtype[code]
         # test for void, being careful of user-defined types
         if dtype.type is np.void and not dtype.fields:
             raise HeaderDataError(
-                'data dtype "%s" known but not supported' % datatype)
+                'data dtype "{0}" known but not supported'.format(datatype))
         self._structarr['datatype'] = code
         self._structarr['bitpix'] = dtype.itemsize * 8
 
