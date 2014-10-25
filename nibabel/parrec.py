@@ -903,10 +903,24 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_file_map(klass, file_map, permit_truncated=False, scaling='dv'):
-        pt = permit_truncated
+        """ Create PARREC image from file map `file_map`
+
+        Parameters
+        ----------
+        file_map : dict
+            dict with keys ``image, header`` and values being fileholder
+            objects for the respective REC and PAR files.
+        permit_truncated : {False, True}, optional, keyword-only
+            If False, raise an error for an image where the header shows signs
+            that fewer slices / volumes were recorded than were expected.
+        scaling : {'dv', 'fp'}, optional, keyword-only
+            Scaling method to apply to data (see
+            :meth:`PARRECHeader.get_data_scaling`).
+        """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
-            hdr = klass.header_class.from_fileobj(hdr_fobj,
-                                                  permit_truncated=pt)
+            hdr = klass.header_class.from_fileobj(
+                hdr_fobj,
+                permit_truncated=permit_truncated)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr, scaling)
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
@@ -915,6 +929,19 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_filename(klass, filename, permit_truncated=False, scaling='dv'):
+        """ Create PARREC image from filename `filename`
+
+        Parameters
+        ----------
+        filename : str
+            Filename of "PAR" or "REC" file
+        permit_truncated : {False, True}, optional, keyword-only
+            If False, raise an error for an image where the header shows signs
+            that fewer slices / volumes were recorded than were expected.
+        scaling : {'dv', 'fp'}, optional, keyword-only
+            Scaling method to apply to data (see
+            :meth:`PARRECHeader.get_data_scaling`).
+        """
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map,
                                    permit_truncated=permit_truncated,
