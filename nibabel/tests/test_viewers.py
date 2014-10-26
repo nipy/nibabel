@@ -27,6 +27,7 @@ def test_viewer():
     a = np.sin(np.linspace(0, np.pi, 20))
     b = np.sin(np.linspace(0, np.pi*5, 30))
     data = (np.outer(a, b)[..., np.newaxis] * a)[:, :, :, np.newaxis]
+    data = data * np.array([1., 2.])  # give it a # of volumes > 1
     viewer = OrthoSlicer3D(data)
     plt.draw()
 
