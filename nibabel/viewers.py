@@ -93,7 +93,7 @@ class OrthoSlicer3D(object):
             self._axes = dict(x=axes[0, 1], y=axes[0, 0], z=axes[1, 0],
                               v=axes[1, 1])
             plt.tight_layout(pad=0.1)
-            if not self.multi_volume:
+            if self.n_volumes <= 1:
                 fig.delaxes(self._axes['v'])
                 del self._axes['v']
         else:
@@ -109,7 +109,7 @@ class OrthoSlicer3D(object):
         colors = dict()
         for k, size in zip('xyz', self._data.shape[:3]):
             self._idx[k] = size // 2
-            self._ims[k] = self._axes[k].imshow(self._get_slice(k), **kw)
+            self._ims[k] = self._axes[k].imshow(self._get_slice_data(k), **kw)
             self._sizes[k] = size
             colors[k] = (0, 1, 0)
         self._idx['v'] = 0
@@ -148,23 +148,24 @@ class OrthoSlicer3D(object):
             ax.axes.get_xaxis().set_visible(False)
 
         # Set up volumes axis
-        if self.multi_volume and 'v' in self._axes:
+        if self.n_volumes > 1 and 'v' in self._axes:
             ax = self._axes['v']
             ax.set_axis_bgcolor('k')
             ax.set_title('Volumes')
-            n_vols = np.prod(self._volume_dims)
-            y = np.mean(np.mean(np.mean(self._data, 0), 0), 0).ravel()
-            y = np.concatenate((y, [y[-1]]))
-            x = np.arange(n_vols + 1) - 0.5
+            y = self._get_voxel_levels()
+            x = np.arange(self.n_volumes + 1) - 0.5
             step = ax.step(x, y, where='post', color='y')[0]
-            ax.set_xticks(np.unique(np.linspace(0, n_vols - 1, 5).astype(int)))
+            ax.set_xticks(np.unique(np.linspace(0, self.n_volumes - 1,
+                                                5).astype(int)))
             ax.set_xlim(x[0], x[-1])
-            lims = ax.get_ylim()
-            patch = mpl_patch.Rectangle([-0.5, lims[0]], 1., np.diff(lims)[0],
-                                       fill=True, facecolor=(0, 1, 0),
-                                       edgecolor=(0, 1, 0), alpha=0.25)
+            yl = [self._data.min(), self._data.max()]
+            yl = [l + s * np.diff(lims)[0] for l, s in zip(yl, [-1.01, 1.01])]
+            patch = mpl_patch.Rectangle([-0.5, yl[0]], 1., np.diff(yl)[0],
+                                        fill=True, facecolor=(0, 1, 0),
+                                        edgecolor=(0, 1, 0), alpha=0.25)
             ax.add_patch(patch)
-            self._time_lines = [patch, step]
+            ax.set_ylim(yl)
+            self._volume_ax_objs = dict(step=step, patch=patch)
 
         # setup pairwise connections between the slice dimensions
         self._click_update_keys = dict(x='yz', y='xz', z='xy')
@@ -197,9 +198,9 @@ class OrthoSlicer3D(object):
             plt.close(f)
 
     @property
-    def multi_volume(self):
-        """Whether or not the displayed data is multi-volume"""
-        return len(self._volume_dims) > 0
+    def n_volumes(self):
+        """Number of volumes in the data"""
+        return int(np.prod(self._volume_dims))
 
     def set_indices(self, x=None, y=None, z=None, v=None):
         """Set current displayed slice indices
@@ -221,31 +222,43 @@ class OrthoSlicer3D(object):
         v = int(v) if v is not None else None
         draw = False
         if v is not None:
-            if not self.multi_volume:
+            if self.n_volumes <= 1:
                 raise ValueError('cannot change volume index of single-volume '
                                  'image')
-            self._set_vol_idx(v, draw=False)  # delay draw
+            self._set_vol_idx(v)
             draw = True
         for key, val in zip('zyx', (z, y, x)):
             if val is not None:
                 self._set_viewer_slice(key, val)
                 draw = True
         if draw:
+            self._update_voxel_levels()
             self._draw()
 
-    def _set_vol_idx(self, idx, draw=True):
-        """Helper to change which volume is shown"""
+    def _get_voxel_levels(self):
+        """Get levels of the current voxel as a function of volume"""
+        y = self._data[self._idx['x'],
+                       self._idx['y'],
+                       self._idx['z'], :].ravel()
+        y = np.concatenate((y, [y[-1]]))
+        return y
+
+    def _update_voxel_levels(self):
+        """Update voxel levels in time plot"""
+        if self.n_volumes > 1:
+            self._volume_ax_objs['step'].set_ydata(self._get_voxel_levels())
+
+    def _set_vol_idx(self, idx):
+        """Change which volume is shown"""
         max_ = np.prod(self._volume_dims)
         self._idx['v'] = max(min(int(round(idx)), max_ - 1), 0)
         # Must reset what is shown
         self._current_vol_data = self._data[:, :, :, self._idx['v']]
         for key in 'xyz':
-            self._ims[key].set_data(self._get_slice(key))
-        self._time_lines[0].set_x(self._idx['v'] - 0.5)
-        if draw:
-            self._draw()
+            self._ims[key].set_data(self._get_slice_data(key))
+        self._volume_ax_objs['patch'].set_x(self._idx['v'] - 0.5)
 
-    def _get_slice(self, key):
+    def _get_slice_data(self, key):
         """Helper to get the current slice image"""
         ii = dict(x=0, y=1, z=2)[key]
         return np.take(self._current_vol_data, self._idx[key], axis=ii).T
@@ -253,7 +266,7 @@ class OrthoSlicer3D(object):
     def _set_viewer_slice(self, key, idx):
         """Helper to set a viewer slice number"""
         self._idx[key] = max(min(int(round(idx)), self._sizes[key] - 1), 0)
-        self._ims[key].set_data(self._get_slice(key))
+        self._ims[key].set_data(self._get_slice_data(key))
         for fun in self._cross_setters[key]:
             fun([self._idx[key]] * 2)
 
@@ -272,7 +285,7 @@ class OrthoSlicer3D(object):
             return
         delta = 10 if event.key is not None and 'control' in event.key else 1
         if event.key is not None and 'shift' in event.key:
-            if not self.multi_volume:
+            if self.n_volumes <= 1:
                 return
             key = 'v'  # shift: change volume in any axis
         idx = self._idx[key] + (delta if event.button == 'up' else -delta)
@@ -280,6 +293,7 @@ class OrthoSlicer3D(object):
             self._set_vol_idx(idx)
         else:
             self._set_viewer_slice(key, idx)
+        self._update_voxel_levels()
         self._draw()
 
     def _on_mousemove(self, event):
@@ -294,6 +308,7 @@ class OrthoSlicer3D(object):
             for sub_key, idx in zip(self._click_update_keys[key],
                                     (event.xdata, event.ydata)):
                 self._set_viewer_slice(sub_key, idx)
+        self._update_voxel_levels()
         self._draw()
 
     def _on_keypress(self, event):
@@ -303,16 +318,15 @@ class OrthoSlicer3D(object):
     def _draw(self):
         for im in self._ims.values():
             ax = im.axes
-            ax.draw_artist(ax.patch)
             ax.draw_artist(im)
             ax.draw_artist(im.vert_line)
             ax.draw_artist(im.horiz_line)
             ax.figure.canvas.blit(ax.bbox)
             for t in im.texts:
                 ax.draw_artist(t)
-        if self.multi_volume and 'v' in self._axes:  # user might only pass 3
+        if self.n_volumes > 1 and 'v' in self._axes:  # user might only pass 3
             ax = self._axes['v']
-            ax.draw_artist(ax.patch)
-            for artist in self._time_lines:
-                ax.draw_artist(artist)
+            ax.draw_artist(ax.patch)  # axis bgcolor to erase old lines
+            for key in ('step', 'patch'):
+                ax.draw_artist(self._volume_ax_objs[key])
             ax.figure.canvas.blit(ax.bbox)
