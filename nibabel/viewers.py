@@ -33,8 +33,8 @@ class OrthoSlicer3D(object):
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
     # Skip doctest above b/c not all systems have mpl installed
-    def __init__(self, data, axes=None, aspect_ratio=(1, 1, 1), cmap='gray',
-                 pcnt_range=(1., 99.), figsize=(8, 8)):
+    def __init__(self, data, axes=None, aspect_ratio=(1, 1, 1), affine=None,
+                 cmap='gray', pcnt_range=(1., 99.), figsize=(8, 8)):
         """
         Parameters
         ----------
@@ -46,13 +46,14 @@ class OrthoSlicer3D(object):
             or None (default).
         aspect_ratio : array-like, optional
             Stretch factors for X, Y, Z directions.
+        affine : array-like | None
+            Affine transform for the data. This is used to determine
+            how the data should be sliced for plotting into the X, Y,
+            and Z view axes. If None, identity is assumed.
         cmap : str | instance of cmap, optional
-            String or cmap instance specifying colormap. Will be passed as
-            ``cmap`` argument to ``plt.imshow``.
+            String or cmap instance specifying colormap.
         pcnt_range : array-like, optional
-            Percentile range over which to scale image for display. If None,
-            scale between image mean and max.  If sequence, min and max
-            percentile over which to scale image.
+            Percentile range over which to scale image for display.
         figsize : tuple
             Figure size (in inches) to use if axes are None.
         """
@@ -63,6 +64,10 @@ class OrthoSlicer3D(object):
         data = np.asanyarray(data)
         if data.ndim < 3:
             raise ValueError('data must have at least 3 dimensions')
+        affine = np.array(affine, float) if affine is not None else np.eye(4)
+        if affine.ndim != 2 or affine.shape != (4, 4):
+            raise ValueError('affine must be a 4x4 matrix')
+        self._affine = affine
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
@@ -116,17 +121,16 @@ class OrthoSlicer3D(object):
         labels = dict(z='ILSR', y='ALPR', x='AIPS')
 
         # set up axis crosshairs
+        self._crosshairs = dict()
         for type_, i_1, i_2 in zip('zyx', 'xxy', 'yzz'):
-            ax = self._axes[type_]
-            im = self._ims[type_]
-            label = labels[type_]
-            # add slice lines
-            im.vert_line = ax.plot([self._idx[i_1]] * 2,
-                                   [-0.5, self._sizes[i_2] - 0.5],
-                                   color=colors[i_1], linestyle='-')[0]
-            im.horiz_line = ax.plot([-0.5, self._sizes[i_1] - 0.5],
-                                    [self._idx[i_2]] * 2,
-                                    color=colors[i_2], linestyle='-')[0]
+            ax, label = self._axes[type_], labels[type_]
+            vert = ax.plot([self._idx[i_1]] * 2,
+                           [-0.5, self._sizes[i_2] - 0.5],
+                           color=colors[i_1], linestyle='-')[0]
+            horiz = ax.plot([-0.5, self._sizes[i_1] - 0.5],
+                            [self._idx[i_2]] * 2,
+                            color=colors[i_2], linestyle='-')[0]
+            self._crosshairs[type_] = dict(vert=vert, horiz=horiz)
             # add text labels (top, right, bottom, left)
             lims = [0, self._sizes[i_1], 0, self._sizes[i_2]]
             bump = 0.01
@@ -136,10 +140,10 @@ class OrthoSlicer3D(object):
                     [lims[0] - bump * lims[1], lims[3] / 2.]]
             anchors = [['center', 'bottom'], ['left', 'center'],
                        ['center', 'top'], ['right', 'center']]
-            im.texts = [ax.text(pos[0], pos[1], lab,
-                                horizontalalignment=anchor[0],
-                                verticalalignment=anchor[1])
-                        for pos, anchor, lab in zip(poss, anchors, label)]
+            for pos, anchor, lab in zip(poss, anchors, label):
+                ax.text(pos[0], pos[1], lab,
+                        horizontalalignment=anchor[0],
+                        verticalalignment=anchor[1])
             ax.axis(lims)
             ax.set_aspect(aspect_ratio[type_])
             ax.patch.set_visible(False)
@@ -172,18 +176,18 @@ class OrthoSlicer3D(object):
 
         # when an index changes, which crosshairs need to be updated
         self._cross_setters = dict(
-            x=[self._ims['z'].vert_line.set_xdata,
-               self._ims['y'].vert_line.set_xdata],
-            y=[self._ims['z'].horiz_line.set_ydata,
-               self._ims['x'].vert_line.set_xdata],
-            z=[self._ims['y'].horiz_line.set_ydata,
-               self._ims['x'].horiz_line.set_ydata])
+            x=[self._crosshairs['z']['vert'].set_xdata,
+               self._crosshairs['y']['vert'].set_xdata],
+            y=[self._crosshairs['z']['horiz'].set_ydata,
+               self._crosshairs['x']['vert'].set_xdata],
+            z=[self._crosshairs['y']['horiz'].set_ydata,
+               self._crosshairs['x']['horiz'].set_ydata])
 
         self._figs = set([a.figure for a in self._axes.values()])
         for fig in self._figs:
             fig.canvas.mpl_connect('scroll_event', self._on_scroll)
-            fig.canvas.mpl_connect('motion_notify_event', self._on_mousemove)
-            fig.canvas.mpl_connect('button_press_event', self._on_mousemove)
+            fig.canvas.mpl_connect('motion_notify_event', self._on_mouse)
+            fig.canvas.mpl_connect('button_press_event', self._on_mouse)
             fig.canvas.mpl_connect('key_press_event', self._on_keypress)
 
     def show(self):
@@ -279,6 +283,7 @@ class OrthoSlicer3D(object):
                 return key
 
     def _on_scroll(self, event):
+        """Handle mpl scroll wheel event"""
         assert event.button in ('up', 'down')
         key = self._in_axis(event)
         if key is None:
@@ -296,7 +301,8 @@ class OrthoSlicer3D(object):
         self._update_voxel_levels()
         self._draw()
 
-    def _on_mousemove(self, event):
+    def _on_mouse(self, event):
+        """Handle mpl mouse move and button press events"""
         if event.button != 1:  # only enabled while dragging
             return
         key = self._in_axis(event)
@@ -312,18 +318,18 @@ class OrthoSlicer3D(object):
         self._draw()
 
     def _on_keypress(self, event):
+        """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
             self.close()
 
     def _draw(self):
-        for im in self._ims.values():
-            ax = im.axes
+        """Update all four (or three) plots"""
+        for key in 'xyz':
+            ax, im = self._axes[key], self._ims[key]
             ax.draw_artist(im)
-            ax.draw_artist(im.vert_line)
-            ax.draw_artist(im.horiz_line)
+            for line in self._crosshairs[key].values():
+                ax.draw_artist(line)
             ax.figure.canvas.blit(ax.bbox)
-            for t in im.texts:
-                ax.draw_artist(t)
         if self.n_volumes > 1 and 'v' in self._axes:  # user might only pass 3
             ax = self._axes['v']
             ax.draw_artist(ax.patch)  # axis bgcolor to erase old lines
