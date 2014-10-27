@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import numpy as np
 
 from .optpkg import optional_package
+from .orientations import aff2axcodes, axcodes2ornt
 
 plt, _, _ = optional_package('matplotlib.pyplot')
 mpl_img, _, _ = optional_package('matplotlib.image')
@@ -33,23 +34,22 @@ class OrthoSlicer3D(object):
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
     # Skip doctest above b/c not all systems have mpl installed
-    def __init__(self, data, axes=None, aspect_ratio=(1, 1, 1), affine=None,
-                 cmap='gray', pcnt_range=(1., 99.), figsize=(8, 8)):
+    def __init__(self, data, affine=None, axes=None, cmap='gray',
+                 pcnt_range=(1., 99.), figsize=(8, 8)):
         """
         Parameters
         ----------
         data : ndarray
             The data that will be displayed by the slicer. Should have 3+
             dimensions.
-        axes : tuple of mpl.Axes | None, optional
-            3 or 4 axes instances for the X, Y, Z slices plus volumes,
-            or None (default).
-        aspect_ratio : array-like, optional
-            Stretch factors for X, Y, Z directions.
         affine : array-like | None
             Affine transform for the data. This is used to determine
             how the data should be sliced for plotting into the X, Y,
-            and Z view axes. If None, identity is assumed.
+            and Z view axes. If None, identity is assumed. The aspect
+            ratio of the data are inferred from the affine transform.
+        axes : tuple of mpl.Axes | None, optional
+            3 or 4 axes instances for the X, Y, Z slices plus volumes,
+            or None (default).
         cmap : str | instance of cmap, optional
             String or cmap instance specifying colormap.
         pcnt_range : array-like, optional
@@ -57,17 +57,17 @@ class OrthoSlicer3D(object):
         figsize : tuple
             Figure size (in inches) to use if axes are None.
         """
-        ar = np.array(aspect_ratio, float)
-        if ar.shape != (3,) or np.any(ar <= 0):
-            raise ValueError('aspect ratio must have exactly 3 elements >= 0')
-        aspect_ratio = dict(x=ar[0], y=ar[1], z=ar[2])
         data = np.asanyarray(data)
         if data.ndim < 3:
             raise ValueError('data must have at least 3 dimensions')
         affine = np.array(affine, float) if affine is not None else np.eye(4)
         if affine.ndim != 2 or affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')
-        self._affine = affine
+        self._affine = affine.copy()
+        self._codes = axcodes2ornt(aff2axcodes(self._affine))  # XXX USE FOR ORDERING
+        print(self._codes)
+        self._scalers = np.abs(self._affine).max(axis=0)[:3]
+        self._inv_affine = np.linalg.inv(affine)
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
@@ -122,7 +122,7 @@ class OrthoSlicer3D(object):
 
         # set up axis crosshairs
         self._crosshairs = dict()
-        for type_, i_1, i_2 in zip('zyx', 'xxy', 'yzz'):
+        for type_, i_1, i_2 in zip('xyz', 'yxx', 'zzy'):
             ax, label = self._axes[type_], labels[type_]
             vert = ax.plot([self._idx[i_1]] * 2,
                            [-0.5, self._sizes[i_2] - 0.5],
@@ -145,7 +145,7 @@ class OrthoSlicer3D(object):
                         horizontalalignment=anchor[0],
                         verticalalignment=anchor[1])
             ax.axis(lims)
-            ax.set_aspect(aspect_ratio[type_])
+            # ax.set_aspect(aspect_ratio[type_])  # XXX FIX
             ax.patch.set_visible(False)
             ax.set_frame_on(False)
             ax.axes.get_yaxis().set_visible(False)
@@ -206,7 +206,7 @@ class OrthoSlicer3D(object):
         """Number of volumes in the data"""
         return int(np.prod(self._volume_dims))
 
-    def set_indices(self, x=None, y=None, z=None, v=None):
+    def set_position(self, x=None, y=None, z=None, v=None):
         """Set current displayed slice indices
 
         Parameters
