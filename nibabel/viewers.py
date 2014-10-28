@@ -250,11 +250,10 @@ class OrthoSlicer3D(object):
 
     def _get_voxel_levels(self):
         """Get levels of the current voxel as a function of volume"""
-        # XXX THIS IS WRONG
-        #y = self._data[self._idx['x'],
-        #               self._idx['y'],
-        #               self._idx['z'], :].ravel()
-        y = self._data[0, 0, 0, :].ravel()
+        idx = [0] * 3
+        for key in 'xyz':
+            idx[self._order[key]] = self._idx[key]
+        y = self._data[idx[0], idx[1], idx[2], :].ravel()
         y = np.concatenate((y, [y[-1]]))
         return y
 
