@@ -68,7 +68,7 @@ class OrthoSlicer3D(object):
         self._affine = affine.copy()
         codes = axcodes2ornt(aff2axcodes(self._affine))
         order = np.argsort([c[0] for c in codes])
-        flips = np.array([c[1] for c in codes])[order]
+        flips = np.array([c[1] < 0 for c in codes])[order]
         self._order = dict(x=int(order[0]), y=int(order[1]), z=int(order[2]))
         self._flips = dict(x=flips[0], y=flips[1], z=flips[2])
         self._scalers = np.abs(self._affine).max(axis=0)[:3]
@@ -128,7 +128,10 @@ class OrthoSlicer3D(object):
 
         # set up axis crosshairs
         self._crosshairs = dict()
-        for type_, i_1, i_2 in zip('xyz', 'yxx', 'zzy'):
+        r = [self._scalers[self._order['z']] / self._scalers[self._order['y']],
+             self._scalers[self._order['z']] / self._scalers[self._order['x']],
+             self._scalers[self._order['y']] / self._scalers[self._order['x']]]
+        for type_, i_1, i_2, ratio in zip('xyz', 'yxx', 'zzy', r):
             ax, label = self._axes[type_], labels[type_]
             vert = ax.plot([self._idx[i_1]] * 2,
                            [-0.5, self._sizes[i_2] - 0.5],
@@ -151,7 +154,7 @@ class OrthoSlicer3D(object):
                         horizontalalignment=anchor[0],
                         verticalalignment=anchor[1])
             ax.axis(lims)
-            # ax.set_aspect(aspect_ratio[type_])  # XXX FIX
+            ax.set_aspect(ratio)
             ax.patch.set_visible(False)
             ax.set_frame_on(False)
             ax.axes.get_yaxis().set_visible(False)
