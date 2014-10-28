@@ -29,7 +29,7 @@ class OrthoSlicer3D(object):
     -------
     >>> import numpy as np
     >>> a = np.sin(np.linspace(0,np.pi,20))
-    >>> b = np.sin(np.linspace(0,np.pi*5,20))
+    >>> b = np.sin(np.linspace(0,np.pi*5,20))asa
     >>> data = np.outer(a,b)[..., np.newaxis]*a
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
@@ -44,11 +44,12 @@ class OrthoSlicer3D(object):
             dimensions.
         affine : array-like | None
             Affine transform for the data. This is used to determine
-            how the data should be sliced for plotting into the X, Y,
-            and Z view axes. If None, identity is assumed. The aspect
-            ratio of the data are inferred from the affine transform.
+            how the data should be sliced for plotting into the saggital,
+            coronal, and axial view axes. If None, identity is assumed.
+            The aspect ratio of the data are inferred from the affine
+            transform.
         axes : tuple of mpl.Axes | None, optional
-            3 or 4 axes instances for the X, Y, Z slices plus volumes,
+            3 or 4 axes instances for the 3 slices plus volumes,
             or None (default).
         cmap : str | instance of cmap, optional
             String or cmap instance specifying colormap.
@@ -63,39 +64,43 @@ class OrthoSlicer3D(object):
         affine = np.array(affine, float) if affine is not None else np.eye(4)
         if affine.ndim != 2 or affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')
+        # determine our orientation
         self._affine = affine.copy()
-        self._codes = axcodes2ornt(aff2axcodes(self._affine))  # XXX USE FOR ORDERING
-        print(self._codes)
+        codes = axcodes2ornt(aff2axcodes(self._affine))
+        order = np.argsort([c[0] for c in codes])
+        flips = np.array([c[1] for c in codes])[order]
+        self._order = dict(x=int(order[0]), y=int(order[1]), z=int(order[2]))
+        self._flips = dict(x=flips[0], y=flips[1], z=flips[2])
         self._scalers = np.abs(self._affine).max(axis=0)[:3]
         self._inv_affine = np.linalg.inv(affine)
+        # current volume info
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
-        pcnt_range = (0, 100) if pcnt_range is None else pcnt_range
         vmin, vmax = np.percentile(data, pcnt_range)
         del data
 
         if axes is None:  # make the axes
             # ^ +---------+   ^ +---------+
             # | |         |   | |         |
+            #   |   Sag   |     |   Cor   |
+            # S |    1    |   S |    2    |
             #   |         |     |         |
-            # z |    2    |   z |    3    |
             #   |         |     |         |
-            # | |         |   | |         |
-            # v +---------+   v +---------+
-            #   <--  x  -->     <--  y  -->
-            # ^ +---------+   ^ +---------+
-            # | |         |   | |         |
+            #   +---------+     +---------+
+            #        A  -->     <--  R
+            # ^ +---------+     +---------+
+            # | |         |     |         |
+            #   |  Axial  |     |         |
+            # A |    3    |     |    4    |
             #   |         |     |         |
-            # y |    1    |   A |    4    |
             #   |         |     |         |
-            # | |         |   | |         |
-            # v +---------+   v +---------+
-            #   <--  x  -->     <--  t  -->
+            #   +---------+     +---------+
+            #   <--  R          <--  t  -->
 
             fig, axes = plt.subplots(2, 2)
             fig.set_size_inches(figsize, forward=True)
-            self._axes = dict(x=axes[0, 1], y=axes[0, 0], z=axes[1, 0],
+            self._axes = dict(x=axes[0, 0], y=axes[0, 1], z=axes[1, 0],
                               v=axes[1, 1])
             plt.tight_layout(pad=0.1)
             if self.n_volumes <= 1:
@@ -111,14 +116,15 @@ class OrthoSlicer3D(object):
 
         # Start midway through each axis, idx is current slice number
         self._ims, self._sizes, self._idx = dict(), dict(), dict()
+        self._vol = 0
         colors = dict()
-        for k, size in zip('xyz', self._data.shape[:3]):
+        for k in 'xyz':
+            size = self._data.shape[self._order[k]]
             self._idx[k] = size // 2
             self._ims[k] = self._axes[k].imshow(self._get_slice_data(k), **kw)
             self._sizes[k] = size
             colors[k] = (0, 1, 0)
-        self._idx['v'] = 0
-        labels = dict(z='ILSR', y='ALPR', x='AIPS')
+        labels = dict(x='SAIP', y='SLIR', z='ALPR')
 
         # set up axis crosshairs
         self._crosshairs = dict()
@@ -231,7 +237,7 @@ class OrthoSlicer3D(object):
                                  'image')
             self._set_vol_idx(v)
             draw = True
-        for key, val in zip('zyx', (z, y, x)):
+        for key, val in zip('xyz', (x, y, z)):
             if val is not None:
                 self._set_viewer_slice(key, val)
                 draw = True
@@ -241,9 +247,11 @@ class OrthoSlicer3D(object):
 
     def _get_voxel_levels(self):
         """Get levels of the current voxel as a function of volume"""
-        y = self._data[self._idx['x'],
-                       self._idx['y'],
-                       self._idx['z'], :].ravel()
+        # XXX THIS IS WRONG
+        #y = self._data[self._idx['x'],
+        #               self._idx['y'],
+        #               self._idx['z'], :].ravel()
+        y = self._data[0, 0, 0, :].ravel()
         y = np.concatenate((y, [y[-1]]))
         return y
 
@@ -255,20 +263,34 @@ class OrthoSlicer3D(object):
     def _set_vol_idx(self, idx):
         """Change which volume is shown"""
         max_ = np.prod(self._volume_dims)
-        self._idx['v'] = max(min(int(round(idx)), max_ - 1), 0)
+        self._vol = max(min(int(round(idx)), max_ - 1), 0)
         # Must reset what is shown
-        self._current_vol_data = self._data[:, :, :, self._idx['v']]
+        self._current_vol_data = self._data[:, :, :, self._vol]
         for key in 'xyz':
             self._ims[key].set_data(self._get_slice_data(key))
-        self._volume_ax_objs['patch'].set_x(self._idx['v'] - 0.5)
+        self._volume_ax_objs['patch'].set_x(self._vol - 0.5)
 
     def _get_slice_data(self, key):
         """Helper to get the current slice image"""
-        ii = dict(x=0, y=1, z=2)[key]
-        return np.take(self._current_vol_data, self._idx[key], axis=ii).T
+        assert key in ['x', 'y', 'z']
+        data = np.take(self._current_vol_data, self._idx[key],
+                       axis=self._order[key])
+        # saggital: get to S/A
+        # coronal: get to S/L
+        # axial: get to A/L
+        xaxes = dict(x='y', y='x', z='x')
+        yaxes = dict(x='z', y='z', z='y')
+        if self._order[xaxes[key]] < self._order[yaxes[key]]:
+            data = data.T
+        if self._flips[xaxes[key]]:
+            data = data[:, ::-1]
+        if self._flips[yaxes[key]]:
+            data = data[::-1]
+        return data
 
     def _set_viewer_slice(self, key, idx):
         """Helper to set a viewer slice number"""
+        assert key in ['x', 'y', 'z']
         self._idx[key] = max(min(int(round(idx)), self._sizes[key] - 1), 0)
         self._ims[key].set_data(self._get_slice_data(key))
         for fun in self._cross_setters[key]:
@@ -293,7 +315,9 @@ class OrthoSlicer3D(object):
             if self.n_volumes <= 1:
                 return
             key = 'v'  # shift: change volume in any axis
-        idx = self._idx[key] + (delta if event.button == 'up' else -delta)
+        assert key in ['x', 'y', 'z', 'v']
+        idx = self._idx[key] if key != 'v' else self._vol
+        idx += delta if event.button == 'up' else -delta
         if key == 'v':
             self._set_vol_idx(idx)
         else:

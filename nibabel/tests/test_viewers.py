@@ -41,22 +41,17 @@ def test_viewer():
     for ax in v._axes.values():
         v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, ax, 1))
     v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, None))
-    v.set_indices(0, 1, 2)
-    v.set_indices(v=10)
     v.close()
 
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
-    assert_raises(ValueError, v.set_indices, v=10)  # not multi-volume
     v._on_scroll(nt('event', 'button inaxes key')('up', v._axes['x'], 'shift'))
     v._on_keypress(nt('event', 'key')('escape'))
 
     # other cases
     fig, axes = plt.subplots(1, 4)
     plt.close(fig)
-    OrthoSlicer3D(data, pcnt_range=[0.1, 0.9], axes=axes,
-                  aspect_ratio=[1, 2, 3])
+    OrthoSlicer3D(data, pcnt_range=[0.1, 0.9], axes=axes)
     OrthoSlicer3D(data, axes=axes[:3])
-    assert_raises(ValueError, OrthoSlicer3D, data, aspect_ratio=[1, 2])
     assert_raises(ValueError, OrthoSlicer3D, data[:, :, 0, 0])
     assert_raises(ValueError, OrthoSlicer3D, data, affine=np.eye(3))
