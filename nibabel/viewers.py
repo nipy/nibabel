@@ -11,10 +11,6 @@ import weakref
 from .optpkg import optional_package
 from .orientations import aff2axcodes, axcodes2ornt
 
-plt, _, _ = optional_package('matplotlib.pyplot')
-mpl_img, _, _ = optional_package('matplotlib.image')
-mpl_patch, _, _ = optional_package('matplotlib.patches')
-
 
 class OrthoSlicer3D(object):
     """Orthogonal-plane slicer.
@@ -59,6 +55,12 @@ class OrthoSlicer3D(object):
         figsize : tuple
             Figure size (in inches) to use if axes are None.
         """
+        # Nest imports so that matplotlib.use() has the appropriate
+        # effect in testing
+        plt, _, _ = optional_package('matplotlib.pyplot')
+        mpl_img, _, _ = optional_package('matplotlib.image')
+        mpl_patch, _, _ = optional_package('matplotlib.patches')
+
         data = np.asanyarray(data)
         if data.ndim < 3:
             raise ValueError('data must have at least 3 dimensions')
@@ -200,11 +202,13 @@ class OrthoSlicer3D(object):
     def show(self):
         """Show the slicer in blocking mode; convenience for ``plt.show()``
         """
+        plt, _, _ = optional_package('matplotlib.pyplot')
         plt.show()
 
     def close(self):
         """Close the viewer figures
         """
+        plt, _, _ = optional_package('matplotlib.pyplot')
         for f in self._figs:
             plt.close(f)
         for link in self._links:
