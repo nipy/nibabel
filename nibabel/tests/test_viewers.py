@@ -10,11 +10,6 @@
 import numpy as np
 from collections import namedtuple as nt
 
-try:
-    import matplotlib
-    matplotlib.use('agg')
-except Exception:
-    pass
 
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
@@ -24,13 +19,16 @@ from numpy.testing import assert_array_equal
 
 from nose.tools import assert_raises
 
-plt, has_mpl = optional_package('matplotlib.pyplot')[:2]
+matplotlib, has_mpl = optional_package('matplotlib')[:2]
 needs_mpl = skipif(not has_mpl, 'These tests need matplotlib')
+if has_mpl:
+    matplotlib.use('Agg')
 
 
 @needs_mpl
 def test_viewer():
     # Test viewer
+    plt = optional_package('matplotlib.pyplot')[0]
     a = np.sin(np.linspace(0, np.pi, 20))
     b = np.sin(np.linspace(0, np.pi*5, 30))
     data = (np.outer(a, b)[..., np.newaxis] * a)[:, :, :, np.newaxis]
