@@ -30,7 +30,7 @@ class OrthoSlicer3D(object):
     -------
     >>> import numpy as np
     >>> a = np.sin(np.linspace(0,np.pi,20))
-    >>> b = np.sin(np.linspace(0,np.pi*5,20))asa
+    >>> b = np.sin(np.linspace(0,np.pi*5,20))
     >>> data = np.outer(a,b)[..., np.newaxis]*a
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
@@ -189,6 +189,7 @@ class OrthoSlicer3D(object):
         self._position[3] = 1.  # convenience for affine multn
         self._changing = False  # keep track of status to avoid loops
         self._links = []  # other viewers this one is linked to
+        plt.draw()
         for fig in self._figs:
             fig.canvas.draw()
         self._set_volume_index(0, update_slices=False)
