@@ -10,6 +10,12 @@
 import numpy as np
 from collections import namedtuple as nt
 
+try:
+    import matplotlib
+    matplotlib.use('agg')
+except Exception:
+    pass
+
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
 
