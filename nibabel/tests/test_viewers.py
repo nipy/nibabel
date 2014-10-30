@@ -38,12 +38,12 @@ def test_viewer():
 
     # fake some events, inside and outside axes
     v._on_scroll(nt('event', 'button inaxes key')('up', None, None))
-    for ax in (v._axes['x'], v._axes['v']):
+    for ax in (v._axes[0], v._axes[3]):
         v._on_scroll(nt('event', 'button inaxes key')('up', ax, None))
     v._on_scroll(nt('event', 'button inaxes key')('up', ax, 'shift'))
     # "click" outside axes, then once in each axis, then move without click
     v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, 1))
-    for ax in v._axes.values():
+    for ax in v._axes:
         v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, ax, 1))
     v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, None))
     v.set_volume_idx(1)
@@ -52,7 +52,7 @@ def test_viewer():
 
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
-    v._on_scroll(nt('event', 'button inaxes key')('up', v._axes['x'], 'shift'))
+    v._on_scroll(nt('event', 'button inaxes key')('up', v._axes[0], 'shift'))
     v._on_keypress(nt('event', 'key')('escape'))
 
     # other cases
