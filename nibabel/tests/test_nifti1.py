@@ -834,13 +834,14 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
         img2 = bytesio_round_trip(img)
         assert_array_equal(img2.get_data(), data)
         with InTemporaryDirectory() as tmpdir:
-            for ext in ('.gz', '.bz2'):
+            for ext in ('', '.gz', '.bz2'):
                 fname = os.path.join(tmpdir, 'test' + img_ext + ext)
                 img.to_filename(fname)
                 img3 = IC.load(fname)
                 assert_true(isinstance(img3, img.__class__))
                 assert_array_equal(img3.get_data(), data)
                 assert_equal(img3.header, img.header)
+                assert_true(isinstance(img3.get_data(), np.memmap if ext == '' else np.ndarray))
                 # del to avoid windows errors of form 'The process cannot
                 # access the file because it is being used'
                 del img3
