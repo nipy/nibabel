@@ -70,10 +70,9 @@ class OrthoSlicer3D(object):
         # determine our orientation
         self._affine = affine.copy()
         codes = axcodes2ornt(aff2axcodes(self._affine))
-        order = np.argsort([c[0] for c in codes])
-        flips = np.array([c[1] < 0 for c in codes])[order]
-        self._order = dict(x=int(order[0]), y=int(order[1]), z=int(order[2]))
-        self._flips = dict(x=flips[0], y=flips[1], z=flips[2])
+        self._order = np.argsort([c[0] for c in codes])
+        self._flips = np.array([c[1] < 0 for c in codes])[self._order]
+        self._flips = list(self._flips) + [False]  # add volume dim
         self._scalers = np.abs(self._affine).max(axis=0)[:3]
         self._inv_affine = np.linalg.inv(affine)
         # current volume info
@@ -87,7 +86,7 @@ class OrthoSlicer3D(object):
             # ^ +---------+   ^ +---------+
             # | |         |   | |         |
             #   |   Sag   |     |   Cor   |
-            # S |    1    |   S |    2    |
+            # S |    0    |   S |    1    |
             #   |         |     |         |
             #   |         |     |         |
             #   +---------+     +---------+
@@ -95,7 +94,7 @@ class OrthoSlicer3D(object):
             # ^ +---------+     +---------+
             # | |         |     |         |
             #   |  Axial  |     |   Vol   |
-            # A |    3    |     |    4    |
+            # A |    2    |     |    3    |
             #   |         |     |         |
             #   |         |     |         |
             #   +---------+     +---------+
@@ -103,40 +102,38 @@ class OrthoSlicer3D(object):
 
             fig, axes = plt.subplots(2, 2)
             fig.set_size_inches(figsize, forward=True)
-            self._axes = dict(x=axes[0, 0], y=axes[0, 1], z=axes[1, 0],
-                              v=axes[1, 1])
+            self._axes = [axes[0, 0], axes[0, 1], axes[1, 0], axes[1, 1]]
             plt.tight_layout(pad=0.1)
             if self.n_volumes <= 1:
-                fig.delaxes(self._axes['v'])
-                del self._axes['v']
+                fig.delaxes(self._axes[3])
+                self._axes.pop(-1)
         else:
-            self._axes = dict(z=axes[0], y=axes[1], x=axes[2])
+            self._axes = [axes[0], axes[1], axes[2]]
             if len(axes) > 3:
-                self._axes['v'] = axes[3]
+                self._axes.append(axes[3])
 
         # Start midway through each axis, idx is current slice number
-        self._ims, self._sizes, self._data_idx = dict(), dict(), dict()
+        self._ims, self._data_idx = list(), list()
 
         # set up axis crosshairs
-        self._crosshairs = dict()
-        r = [self._scalers[self._order['z']] / self._scalers[self._order['y']],
-             self._scalers[self._order['z']] / self._scalers[self._order['x']],
-             self._scalers[self._order['y']] / self._scalers[self._order['x']]]
-        for k in 'xyz':
-            self._sizes[k] = self._data.shape[self._order[k]]
-        for k, xax, yax, ratio, label in zip('xyz', 'yxx', 'zzy', r,
-                                             ('SAIP', 'SLIR', 'ALPR')):
-            ax = self._axes[k]
+        self._crosshairs = [None] * 3
+        r = [self._scalers[self._order[2]] / self._scalers[self._order[1]],
+             self._scalers[self._order[2]] / self._scalers[self._order[0]],
+             self._scalers[self._order[1]] / self._scalers[self._order[0]]]
+        self._sizes = [self._data.shape[o] for o in self._order]
+        for ii, xax, yax, ratio, label in zip([0, 1, 2], [1, 0, 0], [2, 2, 1],
+                                              r, ('SAIP', 'SLIR', 'ALPR')):
+            ax = self._axes[ii]
             d = np.zeros((self._sizes[yax], self._sizes[xax]))
-            self._ims[k] = self._axes[k].imshow(d, vmin=vmin, vmax=vmax,
-                                                aspect=1, cmap=cmap,
-                                                interpolation='nearest',
-                                                origin='lower')
+            im = self._axes[ii].imshow(d, vmin=vmin, vmax=vmax, aspect=1,
+                                       cmap=cmap, interpolation='nearest',
+                                       origin='lower')
+            self._ims.append(im)
             vert = ax.plot([0] * 2, [-0.5, self._sizes[yax] - 0.5],
                            color=(0, 1, 0), linestyle='-')[0]
             horiz = ax.plot([-0.5, self._sizes[xax] - 0.5], [0] * 2,
                             color=(0, 1, 0), linestyle='-')[0]
-            self._crosshairs[k] = dict(vert=vert, horiz=horiz)
+            self._crosshairs[ii] = dict(vert=vert, horiz=horiz)
             # add text labels (top, right, bottom, left)
             lims = [0, self._sizes[xax], 0, self._sizes[yax]]
             bump = 0.01
@@ -156,12 +153,12 @@ class OrthoSlicer3D(object):
             ax.set_frame_on(False)
             ax.axes.get_yaxis().set_visible(False)
             ax.axes.get_xaxis().set_visible(False)
-            self._data_idx[k] = 0
-        self._data_idx['v'] = -1
+            self._data_idx.append(0)
+        self._data_idx.append(-1)  # volume
 
         # Set up volumes axis
-        if self.n_volumes > 1 and 'v' in self._axes:
-            ax = self._axes['v']
+        if self.n_volumes > 1 and len(self._axes) > 3:
+            ax = self._axes[3]
             ax.set_axis_bgcolor('k')
             ax.set_title('Volumes')
             y = np.zeros(self.n_volumes + 1)
@@ -179,7 +176,7 @@ class OrthoSlicer3D(object):
             ax.set_ylim(yl)
             self._volume_ax_objs = dict(step=step, patch=patch)
 
-        self._figs = set([a.figure for a in self._axes.values()])
+        self._figs = set([a.figure for a in self._axes])
         for fig in self._figs:
             fig.canvas.mpl_connect('scroll_event', self._on_scroll)
             fig.canvas.mpl_connect('motion_notify_event', self._on_mouse)
@@ -287,14 +284,14 @@ class OrthoSlicer3D(object):
 
     def _set_volume_index(self, v, update_slices=True):
         """Set the plot data using a volume index"""
-        v = self._data_idx['v'] if v is None else int(round(v))
-        if v == self._data_idx['v']:
+        v = self._data_idx[3] if v is None else int(round(v))
+        if v == self._data_idx[3]:
             return
         max_ = np.prod(self._volume_dims)
-        self._data_idx['v'] = max(min(int(round(v)), max_ - 1), 0)
+        self._data_idx[3] = max(min(int(round(v)), max_ - 1), 0)
         idx = (slice(None), slice(None), slice(None))
         if self._data.ndim > 3:
-            idx = idx + tuple(np.unravel_index(self._data_idx['v'],
+            idx = idx + tuple(np.unravel_index(self._data_idx[3],
                                                self._volume_dims))
         self._current_vol_data = self._data[idx]
         # update all of our slice plots
@@ -314,47 +311,46 @@ class OrthoSlicer3D(object):
         # deal with slicing appropriately
         self._position[:3] = [x, y, z]
         idxs = np.dot(self._inv_affine, self._position)[:3]
-        for key, idx in zip('xyz', idxs):
-            self._data_idx[key] = max(min(int(round(idx)),
-                                      self._sizes[key] - 1), 0)
-        for key in 'xyz':
+        for ii, (size, idx) in enumerate(zip(self._sizes, idxs)):
+            self._data_idx[ii] = max(min(int(round(idx)), size - 1), 0)
+        for ii in range(3):
             # saggital: get to S/A
             # coronal: get to S/L
             # axial: get to A/L
-            data = np.take(self._current_vol_data, self._data_idx[key],
-                           axis=self._order[key])
-            xax = dict(x='y', y='x', z='x')[key]
-            yax = dict(x='z', y='z', z='y')[key]
+            data = np.take(self._current_vol_data, self._data_idx[ii],
+                           axis=self._order[ii])
+            xax = [1, 0, 0][ii]
+            yax = [2, 2, 1][ii]
             if self._order[xax] < self._order[yax]:
                 data = data.T
             if self._flips[xax]:
                 data = data[:, ::-1]
             if self._flips[yax]:
                 data = data[::-1]
-            self._ims[key].set_data(data)
+            self._ims[ii].set_data(data)
             # deal with crosshairs
-            loc = self._data_idx[key]
-            if self._flips[key]:
-                loc = self._sizes[key] - loc
+            loc = self._data_idx[ii]
+            if self._flips[ii]:
+                loc = self._sizes[ii] - loc
             loc = [loc] * 2
-            if key == 'x':
-                self._crosshairs['z']['vert'].set_xdata(loc)
-                self._crosshairs['y']['vert'].set_xdata(loc)
-            elif key == 'y':
-                self._crosshairs['z']['horiz'].set_ydata(loc)
-                self._crosshairs['x']['vert'].set_xdata(loc)
-            else:  # key == 'z'
-                self._crosshairs['y']['horiz'].set_ydata(loc)
-                self._crosshairs['x']['horiz'].set_ydata(loc)
+            if ii == 0:
+                self._crosshairs[2]['vert'].set_xdata(loc)
+                self._crosshairs[1]['vert'].set_xdata(loc)
+            elif ii == 1:
+                self._crosshairs[2]['horiz'].set_ydata(loc)
+                self._crosshairs[0]['vert'].set_xdata(loc)
+            else:  # ii == 2
+                self._crosshairs[1]['horiz'].set_ydata(loc)
+                self._crosshairs[0]['horiz'].set_ydata(loc)
 
         # Update volume trace
-        if self.n_volumes > 1 and 'v' in self._axes:
-            idx = [0] * 3
-            for key in 'xyz':
-                idx[self._order[key]] = self._data_idx[key]
-            vdata = self._data[idx[0], idx[1], idx[2], :].ravel()
+        if self.n_volumes > 1 and len(self._axes) > 3:
+            idx = [None, Ellipsis] * 3
+            for ii in range(3):
+                idx[self._order[ii]] = self._data_idx[ii]
+            vdata = self._data[idx].ravel()
             vdata = np.concatenate((vdata, [vdata[-1]]))
-            self._volume_ax_objs['patch'].set_x(self._data_idx['v'] - 0.5)
+            self._volume_ax_objs['patch'].set_x(self._data_idx[3] - 0.5)
             self._volume_ax_objs['step'].set_ydata(vdata)
         if notify:
             self._notify_links()
@@ -362,60 +358,57 @@ class OrthoSlicer3D(object):
 
     # Matplotlib handlers ####################################################
     def _in_axis(self, event):
-        """Return axis key if within one of our axes, else None"""
+        """Return axis index if within one of our axes, else None"""
         if getattr(event, 'inaxes') is None:
             return None
-        for key, ax in self._axes.items():
+        for ii, ax in enumerate(self._axes):
             if event.inaxes is ax:
-                return key
+                return ii
 
     def _on_scroll(self, event):
         """Handle mpl scroll wheel event"""
         assert event.button in ('up', 'down')
-        key = self._in_axis(event)
-        if key is None:
+        ii = self._in_axis(event)
+        if ii is None:
             return
         if event.key is not None and 'shift' in event.key:
             if self.n_volumes <= 1:
                 return
-            key = 'v'  # shift: change volume in any axis
-        assert key in ['x', 'y', 'z', 'v']
+            ii = 3  # shift: change volume in any axis
+        assert ii in range(4)
         dv = 10. if event.key is not None and 'control' in event.key else 1.
         dv *= 1. if event.button == 'up' else -1.
-        dv *= -1 if self._flips.get(key, False) else 1
-        val = self._data_idx[key] + dv
-        if key == 'v':
+        dv *= -1 if self._flips[ii] else 1
+        val = self._data_idx[ii] + dv
+        if ii == 3:
             self._set_volume_index(val)
         else:
-            coords = {key: val}
-            for k in 'xyz':
-                if k not in coords:
-                    coords[k] = self._data_idx[k]
-            coords = np.array([coords['x'], coords['y'], coords['z'], 1.])
-            coords = np.dot(self._affine, coords)[:3]
-            self._set_position(coords[0], coords[1], coords[2])
+            coords = [self._data_idx[k] for k in range(3)] + [1.]
+            coords[ii] = val
+            self._set_position(*np.dot(self._affine, coords)[:3])
         self._draw()
 
     def _on_mouse(self, event):
         """Handle mpl mouse move and button press events"""
         if event.button != 1:  # only enabled while dragging
             return
-        key = self._in_axis(event)
-        if key is None:
+        ii = self._in_axis(event)
+        if ii is None:
             return
-        if key == 'v':
+        if ii == 3:
             # volume plot directly translates
             self._set_volume_index(event.xdata)
         else:
             # translate click xdata/ydata to physical position
-            xax, yax = dict(x='yz', y='xz', z='xy')[key]
+            xax, yax = [[1, 2], [0, 2], [0, 1]][ii]
             x, y = event.xdata, event.ydata
             x = self._sizes[xax] - x if self._flips[xax] else x
             y = self._sizes[yax] - y if self._flips[yax] else y
-            idxs = {xax: x, yax: y, key: self._data_idx[key]}
-            idxs = np.array([idxs['x'], idxs['y'], idxs['z'], 1.])
-            pos = np.dot(self._affine, idxs)[:3]
-            self._set_position(*pos)
+            idxs = [None, None, None, 1.]
+            idxs[xax] = x
+            idxs[yax] = y
+            idxs[ii] = self._data_idx[ii]
+            self._set_position(*np.dot(self._affine, idxs)[:3])
         self._draw()
 
     def _on_keypress(self, event):
@@ -425,14 +418,14 @@ class OrthoSlicer3D(object):
 
     def _draw(self):
         """Update all four (or three) plots"""
-        for key in 'xyz':
-            ax, im = self._axes[key], self._ims[key]
-            ax.draw_artist(im)
-            for line in self._crosshairs[key].values():
+        for ii in range(3):
+            ax = self._axes[ii]
+            ax.draw_artist(self._ims[ii])
+            for line in self._crosshairs[ii].values():
                 ax.draw_artist(line)
             ax.figure.canvas.blit(ax.bbox)
-        if self.n_volumes > 1 and 'v' in self._axes:  # user might only pass 3
-            ax = self._axes['v']
+        if self.n_volumes > 1 and len(self._axes) > 3:
+            ax = self._axes[3]
             ax.draw_artist(ax.patch)  # axis bgcolor to erase old lines
             for key in ('step', 'patch'):
                 ax.draw_artist(self._volume_ax_objs[key])
