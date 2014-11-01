@@ -17,7 +17,7 @@ from ..viewers import OrthoSlicer3D
 from numpy.testing.decorators import skipif
 from numpy.testing import assert_array_equal
 
-from nose.tools import assert_raises
+from nose.tools import assert_raises, assert_true
 
 matplotlib, has_mpl = optional_package('matplotlib')[:2]
 needs_mpl = skipif(not has_mpl, 'These tests need matplotlib')
@@ -35,6 +35,7 @@ def test_viewer():
     data = data * np.array([1., 2.])  # give it a # of volumes > 1
     v = OrthoSlicer3D(data)
     assert_array_equal(v.position, (0, 0, 0))
+    assert_true('OrthoSlicer3D' in repr(v))
 
     # fake some events, inside and outside axes
     v._on_scroll(nt('event', 'button inaxes key')('up', None, None))
@@ -49,6 +50,7 @@ def test_viewer():
     v.set_volume_idx(1)
     v.set_volume_idx(1)  # should just pass
     v.close()
+    v._draw()  # should be safe
 
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
