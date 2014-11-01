@@ -32,7 +32,7 @@ class OrthoSlicer3D(object):
     """
     # Skip doctest above b/c not all systems have mpl installed
     def __init__(self, data, affine=None, axes=None, cmap='gray',
-                 pcnt_range=(1., 99.), figsize=(8, 8)):
+                 pcnt_range=(1., 99.), figsize=(8, 8), title=None):
         """
         Parameters
         ----------
@@ -60,6 +60,8 @@ class OrthoSlicer3D(object):
         plt, _, _ = optional_package('matplotlib.pyplot')
         mpl_img, _, _ = optional_package('matplotlib.image')
         mpl_patch, _, _ = optional_package('matplotlib.patches')
+        self._title = title
+        self._closed = False
 
         data = np.asanyarray(data)
         if data.ndim < 3:
@@ -107,6 +109,8 @@ class OrthoSlicer3D(object):
             if self.n_volumes <= 1:
                 fig.delaxes(self._axes[3])
                 self._axes.pop(-1)
+            if self._title is not None:
+                fig.canvas.set_window_title(str(title))
         else:
             self._axes = [axes[0], axes[1], axes[2]]
             if len(axes) > 3:
@@ -196,6 +200,14 @@ class OrthoSlicer3D(object):
         self._set_position(0., 0., 0.)
         self._draw()
 
+    def __repr__(self):
+        title = '' if self._title is None else ('%s ' % self._title)
+        vol = '' if self.n_volumes <= 1 else (', %s' % self.n_volumes)
+        r = ('<%s: %s(%s, %s, %s%s)>'
+             % (self.__class__.__name__, title, self._sizes[0], self._sizes[1],
+                self._sizes[2], vol))
+        return r
+
     # User-level functions ###################################################
     def show(self):
         """Show the slicer in blocking mode; convenience for ``plt.show()``
@@ -213,8 +225,9 @@ class OrthoSlicer3D(object):
 
     def _cleanup(self):
         """Clean up before closing"""
-        for link in self._links:
-            link()._unlink(self)
+        self._closed = True
+        for link in list(self._links):  # make a copy before iterating
+            self._unlink(link())
 
     @property
     def n_volumes(self):
@@ -423,6 +436,8 @@ class OrthoSlicer3D(object):
 
     def _draw(self):
         """Update all four (or three) plots"""
+        if self._closed:  # make sure we don't draw when we shouldn't
+            return
         for ii in range(3):
             ax = self._axes[ii]
             ax.draw_artist(self._ims[ii])
