@@ -182,6 +182,7 @@ class OrthoSlicer3D(object):
             fig.canvas.mpl_connect('motion_notify_event', self._on_mouse)
             fig.canvas.mpl_connect('button_press_event', self._on_mouse)
             fig.canvas.mpl_connect('key_press_event', self._on_keypress)
+            fig.canvas.mpl_connect('close_event', self._cleanup)
 
         # actually set data meaningfully
         self._position = np.zeros(4)
@@ -205,9 +206,13 @@ class OrthoSlicer3D(object):
     def close(self):
         """Close the viewer figures
         """
+        self._cleanup()
         plt, _, _ = optional_package('matplotlib.pyplot')
         for f in self._figs:
             plt.close(f)
+
+    def _cleanup(self):
+        """Clean up before closing"""
         for link in self._links:
             link()._unlink(self)
 
