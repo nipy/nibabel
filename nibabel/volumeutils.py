@@ -439,7 +439,7 @@ def _is_compressed_fobj(fobj):
     return isinstance(fobj, COMPRESSED_FILE_LIKES)
 
 
-def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
+def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     ''' Get array from file with specified shape, dtype and file offset
 
     Parameters
@@ -455,6 +455,12 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
         data. Default is 0
     order : {'F', 'C'} string
         order in which to write data.  Default is 'F' (fortran order).
+    mmap : {True, False, 'c', 'r', 'r+'}
+        `mmap` controls the use of numpy memory mapping for reading data.  If
+        False, do not try numpy ``memmap`` for data array.  If one of {'c', 'r',
+        'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of True
+        gives the same behavior as ``mmap='c'``.  If `infile` cannot be
+        memory-mapped, ignore `mmap` value and read array from file.
 
     Returns
     -------
@@ -477,14 +483,19 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     >>> np.all(arr == arr2)
     True
     '''
+    if not mmap in (True, False, 'c', 'r', 'r+'):
+        raise ValueError("mmap value should be one of True, False, 'c', "
+                         "'r', 'r+'")
+    if mmap == True:
+        mmap = 'c'
     in_dtype = np.dtype(in_dtype)
     # Get file-like object from Opener instance
     infile = getattr(infile, 'fobj', infile)
-    if not _is_compressed_fobj(infile):
+    if mmap and not _is_compressed_fobj(infile):
         try: # Try memmapping file on disk
             return np.memmap(infile,
                              in_dtype,
-                             mode='c',
+                             mode=mmap,
                              shape=shape,
                              order=order,
                              offset=offset)
