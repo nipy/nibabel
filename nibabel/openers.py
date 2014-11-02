@@ -48,10 +48,12 @@ class Opener(object):
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
-        None: (open, ('mode', 'buffering'))
+        None: (open, ('mode', 'buffering')) # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
+    #: whether to ignore case looking for compression extensions
+    compress_ext_icase = True
 
     def __init__(self, fileish, *args, **kwargs):
         if self._is_fileobj(fileish):
@@ -59,13 +61,7 @@ class Opener(object):
             self.me_opened = False
             self._name = None
             return
-        _, ext = splitext(fileish)
-        if ext in self.compress_ext_map:
-            is_compressor = True
-            opener, arg_names = self.compress_ext_map[ext]
-        else:
-            is_compressor = False
-            opener, arg_names = self.compress_ext_map[None]
+        opener, arg_names = self._get_opener_argnames(fileish)
         # Get full arguments to check for mode and compresslevel
         full_kwargs = kwargs.copy()
         n_args = len(args)
@@ -73,11 +69,24 @@ class Opener(object):
         # Set default mode
         if not 'mode' in full_kwargs:
             kwargs['mode'] = 'rb'
-        if is_compressor and not 'compresslevel' in kwargs:
+        if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
         self.fobj = opener(fileish, *args, **kwargs)
         self._name = fileish
         self.me_opened = True
+
+    def _get_opener_argnames(self, fileish):
+        _, ext = splitext(fileish)
+        if self.compress_ext_icase:
+            ext = ext.lower()
+            for key in self.compress_ext_map:
+                if key is None:
+                    continue
+                if key.lower() == ext:
+                    return self.compress_ext_map[key]
+        elif ext in self.compress_ext_map:
+            return self.compress_ext_map[ext]
+        return self.compress_ext_map[None]
 
     def _is_fileobj(self, obj):
         """ Is `obj` a file-like object?

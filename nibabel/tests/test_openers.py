@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for openers module '''
 import os
+from gzip import GzipFile
+from bz2 import BZ2File
 
 from ..externals.six import PY3, BytesIO
 from ..py3k import asstr, asbytes
@@ -101,7 +103,7 @@ def test_compressionlevel():
     class MyOpener(Opener):
         default_compresslevel = 5
     with InTemporaryDirectory():
-        for ext in ('gz', 'bz2'):
+        for ext in ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2'):
             for opener, default_val in ((Opener, 1), (MyOpener, 5)):
                 sizes = {}
                 for compresslevel in ('default', 1, 5):
@@ -116,6 +118,36 @@ def test_compressionlevel():
                     sizes[compresslevel] = len(my_selves_smaller)
                 assert_equal(sizes['default'], sizes[default_val])
                 assert_true(sizes[1] > sizes[5])
+
+
+def test_compressed_ext_case():
+    # Test openers usually ignore case for compressed exts
+    contents = b'palindrome of Bolton is notlob'
+    class StrictOpener(Opener):
+        compress_ext_icase = False
+    exts = ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2')
+    with InTemporaryDirectory():
+        # Make a basic file to check type later
+        with open(__file__, 'rb') as a_file:
+            file_class = type(a_file)
+        for ext in exts:
+            fname = 'test.' + ext
+            with Opener(fname, 'wb') as fobj:
+                fobj.write(contents)
+            with Opener(fname, 'rb') as fobj:
+                assert_equal(fobj.read(), contents)
+            os.unlink(fname)
+            with StrictOpener(fname, 'wb') as fobj:
+                fobj.write(contents)
+            with StrictOpener(fname, 'rb') as fobj:
+                assert_equal(fobj.read(), contents)
+            lext = ext.lower()
+            if lext != ext: # extension should not be recognized -> file
+                assert_true(isinstance(fobj.fobj, file_class))
+            elif lext == 'gz':
+                assert_true(isinstance(fobj.fobj, GzipFile))
+            else:
+                assert_true(isinstance(fobj.fobj, BZ2File))
 
 
 def test_name():
