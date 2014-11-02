@@ -590,6 +590,27 @@ class SpatialImage(object):
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
+        """ Make `file_map` for this class from filename `filespec`
+
+        Class method
+
+        Parameters
+        ----------
+        filespec : str
+            Filename that might be for this image file type.
+
+        Returns
+        -------
+        file_map : dict
+            `file_map` dict with (key, value) pairs of (``file_type``,
+            FileHolder instance), where ``file_type`` is a string giving the
+            type of the contained file.
+
+        Raises
+        ------
+        ImageFileError - if `filespec` is not recognizable as being a filename
+        for this image type.
+        """
         try:
             filenames = types_filenames(filespec,
                                         klass.files_types,
