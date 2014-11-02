@@ -60,9 +60,13 @@ def test_conversion():
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
         for r_class_def in class_map.values():
             r_class = r_class_def['class']
+            if not r_class_def['makeable']:
+                continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
             for w_class_def in class_map.values():
+                if not w_class_def['makeable']:
+                    continue
                 w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)

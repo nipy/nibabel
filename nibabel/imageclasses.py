@@ -24,40 +24,48 @@ else:
     have_scipy = True
 
 # mapping of names to classes and class functionality
+
 class_map = {
-    'analyze': {'class': AnalyzeImage,
-                'ext': '.img',
-                'has_affine': False,
-                'rw': True},
+    'analyze': {'class': AnalyzeImage, # Image class
+                'ext': '.img', # characteristic image extension
+                'has_affine': False, # class can store an affine
+                'makeable': True, # empty image can be easily made in memory
+                'rw': True}, # image can be written
     'spm99analyze': {'class': Spm99AnalyzeImage,
                      'ext': '.img',
                      'has_affine': True,
+                     'makeable': True,
                      'rw': have_scipy},
     'spm2analyze': {'class': Spm2AnalyzeImage,
                     'ext': '.img',
                     'has_affine': True,
+                    'makeable': True,
                     'rw': have_scipy},
     'nifti_pair': {'class': Nifti1Pair,
                    'ext': '.img',
-                    'has_affine': True,
+                   'has_affine': True,
+                   'makeable': True,
                    'rw': True},
     'nifti_single': {'class': Nifti1Image,
                      'ext': '.nii',
                      'has_affine': True,
+                     'makeable': True,
                      'rw': True},
     'minc': {'class': Minc1Image,
              'ext': '.mnc',
              'has_affine': True,
+             'makeable': True,
              'rw': False},
     'mgh':{'class': MGHImage,
            'ext': '.mgh',
            'has_affine': True,
+           'makeable': True,
            'rw':True},
     'mgz':{'class': MGHImage,
            'ext': '.mgz',
            'has_affine': True,
+           'makeable': True,
            'rw':True}}
-
 
 
 # mapping of extensions to default image class names
