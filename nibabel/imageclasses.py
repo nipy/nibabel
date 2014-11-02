@@ -13,6 +13,7 @@ from .spm2analyze import Spm2AnalyzeImage
 from .nifti1 import Nifti1Pair, Nifti1Image
 from .minc1 import Minc1Image
 from .freesurfer import MGHImage
+from .parrec import PARRECImage
 from .volumeutils import Recoder
 
 # If we don't have scipy, then we cannot write SPM format files
@@ -65,8 +66,12 @@ class_map = {
            'ext': '.mgz',
            'has_affine': True,
            'makeable': True,
-           'rw':True}}
-
+           'rw':True},
+    'par':{'class': PARRECImage,
+           'ext': '.par',
+           'has_affine': True,
+           'makeable': False,
+           'rw' : False}}
 
 # mapping of extensions to default image class names
 ext_map = Recoder((
@@ -74,4 +79,6 @@ ext_map = Recoder((
     ('nifti_pair', '.img', '.hdr'),
     ('minc', '.mnc'),
     ('mgh', '.mgh'),
-    ('mgz', '.mgz')))
+    ('mgz', '.mgz'),
+    ('par', '.par'),
+))
