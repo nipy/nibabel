@@ -56,20 +56,21 @@ def guessed_image_type(filename):
         Class corresponding to guessed image type
     """
     froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    lext = ext.lower()
     try:
-        img_type = ext_map[ext]
+        img_type = ext_map[lext]
     except KeyError:
         raise ImageFileError('Cannot work out file type of "%s"' %
                              filename)
-    if ext in ('.mgh', '.mgz'):
+    if lext in ('.mgh', '.mgz'):
         klass = class_map[img_type]['class']
-    elif ext == '.mnc':
+    elif lext == '.mnc':
         # Look for HDF5 signature for MINC2
         # http://www.hdfgroup.org/HDF5/doc/H5.format.html
         with Opener(filename) as fobj:
             signature = fobj.read(4)
             klass = Minc2Image if signature == b'\211HDF' else Minc1Image
-    elif ext == '.nii':
+    elif lext == '.nii':
         with BinOpener(filename) as fobj:
             binaryblock = fobj.read(348)
         ft = which_analyze_type(binaryblock)

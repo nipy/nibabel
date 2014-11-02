@@ -463,7 +463,7 @@ class MGHImage(SpatialImage):
     @classmethod
     def filespec_to_file_map(klass, filespec):
         """ Check for compressed .mgz format, then .mgh format """
-        if splitext(filespec)[1] == '.mgz':
+        if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
         return super(MGHImage, klass).filespec_to_file_map(filespec)
 
