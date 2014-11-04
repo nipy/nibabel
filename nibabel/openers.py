@@ -48,7 +48,7 @@ class Opener(object):
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
-        None: (open, ('mode', 'buffering')) # default
+        None: (open, ('mode', 'buffering'))  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
