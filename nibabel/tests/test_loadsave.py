@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 from os.path import dirname, join as pjoin
+import shutil
 
 import numpy as np
 
@@ -11,7 +12,7 @@ from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti2Pair, Nifti2Image)
 from ..loadsave import load, read_img_data
 from ..spatialimages import ImageFileError
-from ..tmpdirs import InTemporaryDirectory
+from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
 from .test_spm99analyze import have_scipy
 
@@ -42,6 +43,12 @@ def test_read_img_data():
         if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
             assert_equal((dao.slope, dao.inter), (1, 0))
             assert_array_equal(read_img_data(img, prefer='unscaled'), data)
+        # Assert all caps filename works as well
+        with TemporaryDirectory() as tmpdir:
+            up_fpath = pjoin(tmpdir, fname.upper())
+            shutil.copyfile(fpath, up_fpath)
+            img = load(up_fpath)
+            assert_array_equal(img.dataobj, data)
 
 
 def test_read_img_data_nifti():

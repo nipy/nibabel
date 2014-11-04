@@ -8,6 +8,7 @@ from warnings import simplefilter
 import numpy as np
 from numpy import array as npa
 
+from .. import load as top_load
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full, PARRECImage, PARRECArrayProxy)
@@ -130,6 +131,12 @@ EXAMPLE_IMAGES = [
             mean = 194.95876256117265),
         is_proxy = True)
 ]
+
+
+def test_top_level_load():
+    # Test PARREC images can be loaded from nib.load
+    img = top_load(EG_PAR)
+    assert_almost_equal(img.affine, AN_OLD_AFFINE)
 
 
 def test_header():
