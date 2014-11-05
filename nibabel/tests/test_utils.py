@@ -16,12 +16,15 @@ import tempfile
 import warnings
 import functools
 import itertools
+import gzip
+import bz2
 
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 
 from ..volumeutils import (array_from_file,
+                           _is_compressed_fobj,
                            array_to_file,
                            allopen, # for backwards compatibility
                            BinOpener,
@@ -60,6 +63,19 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+
+def test__is_compressed_fobj():
+    # _is_compressed helper function
+    with InTemporaryDirectory():
+        for ext, opener, compressed in (('', open, False),
+                                        ('.gz', gzip.open, True),
+                                        ('.bz2', bz2.BZ2File, True)):
+            fname = 'test.bin' + ext
+            for mode in ('wb', 'rb'):
+                fobj = opener(fname, mode)
+                assert_equal(_is_compressed_fobj(fobj), compressed)
+                fobj.close()
 
 
 def test_array_from_file():

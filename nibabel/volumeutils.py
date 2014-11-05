@@ -11,6 +11,7 @@ from __future__ import division, print_function
 
 import sys
 import warnings
+import gzip
 import bz2
 
 import numpy as np
@@ -32,6 +33,9 @@ endian_codes = (# numpy code, aliases
 
 #: default compression level when writing gz and bz2 files
 default_compresslevel = 1
+
+#: file-like classes known to hold compressed data
+COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
 
 
 class Recoder(object):
@@ -424,6 +428,12 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     except WriterError:
         return False
     return True
+
+
+def _is_compressed_fobj(fobj):
+    """ Return True if fobj represents a compressed data file-like object
+    """
+    return isinstance(fobj, COMPRESSED_FILE_LIKES)
 
 
 def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
