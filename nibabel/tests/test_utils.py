@@ -51,7 +51,7 @@ from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from ..testing import (assert_dt_equal, assert_allclose_safely,
                        suppress_warnings)
@@ -76,6 +76,50 @@ def test__is_compressed_fobj():
                 fobj = opener(fname, mode)
                 assert_equal(_is_compressed_fobj(fobj), compressed)
                 fobj.close()
+
+
+def test_fobj_string_assumptions():
+    # Test assumptions made in array_from_file about whether string returned
+    # from file read needs a copy.
+    dtype = np.dtype(np.int32)
+
+    def make_array(n, bytes):
+        arr = np.ndarray(n, dtype, buffer=bytes)
+        arr.flags.writeable = True
+        return arr
+
+    # Check whether file, gzip file, bz2 file reread memory from cache
+    fname = 'test.bin'
+    with InTemporaryDirectory():
+        for n, opener in itertools.product(
+            (256, 1024, 2560, 25600),
+            (open, gzip.open, bz2.BZ2File)):
+            in_arr = np.arange(n, dtype=dtype)
+            # Write array to file
+            fobj_w = opener(fname, 'wb')
+            fobj_w.write(in_arr.tostring())
+            fobj_w.close()
+            # Read back from file
+            fobj_r = opener(fname, 'rb')
+            try:
+                contents1 = fobj_r.read()
+                # Second element is 1
+                assert_false(contents1[0:8] == b'\x00' * 8)
+                out_arr = make_array(n, contents1)
+                assert_array_equal(in_arr, out_arr)
+                # Set second element to 0
+                out_arr[1] = 0
+                # Show this changed the bytes string
+                assert_equal(contents1[:8], b'\x00' * 8)
+                # Reread, to get unmodified contents
+                fobj_r.seek(0)
+                contents2 = fobj_r.read()
+                out_arr2 = make_array(n, contents2)
+                assert_array_equal(in_arr, out_arr2)
+                assert_equal(out_arr[1], 0)
+            finally:
+                fobj_r.close()
+            os.unlink(fname)
 
 
 def test_array_from_file():
