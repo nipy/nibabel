@@ -42,9 +42,8 @@ from ..volumeutils import (array_from_file,
                            _dt_min_max,
                            _write_data,
                           )
-
-from ..casting import (floor_log2, type_info, best_float, OK_FLOATS,
-                       shared_range)
+from ..openers import Opener
+from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -119,6 +118,23 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
         in_buf,
         offset)
     return np.allclose(in_arr, arr)
+
+
+def test_array_from_file_openers():
+    # Test array_from_file also works with Opener objects
+    shape = (2,3,4)
+    dtype = np.dtype(np.float32)
+    in_arr = np.arange(24, dtype=dtype).reshape(shape)
+    with InTemporaryDirectory():
+        for ext, offset in itertools.product(('', '.gz', '.bz2'),
+                                             (0, 5, 10)):
+            fname = 'test.bin' + ext
+            with Opener(fname, 'wb') as out_buf:
+                out_buf.write(b' ' * offset)
+                out_buf.write(in_arr.tostring(order='F'))
+            with Opener(fname, 'rb') as in_buf:
+                out_arr = array_from_file(shape, dtype, in_buf, offset)
+                assert_array_almost_equal(in_arr, out_arr)
 
 
 def test_array_to_file():
