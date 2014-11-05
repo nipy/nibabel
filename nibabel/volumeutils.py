@@ -13,10 +13,10 @@ import sys
 import warnings
 import gzip
 import bz2
+from os.path import exists, splitext
 
 import numpy as np
 
-from os.path import exists, splitext
 from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
 
@@ -36,6 +36,9 @@ default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
+
+#: file-like classes known to return string values that are safe to modify
+SAFE_STRINGERS = (gzip.GzipFile, bz2.BZ2File)
 
 
 class Recoder(object):
@@ -475,44 +478,45 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     True
     '''
     in_dtype = np.dtype(in_dtype)
-    try: # Try memmapping file on disk
-        if isinstance(infile.fobj, bz2.BZ2File):
-            raise ValueError('Can not create memory map from bz2 object')
-        arr = np.memmap(infile,
-                        in_dtype,
-                        mode='c',
-                        shape=shape,
-                        order=order,
-                        offset=offset)
-        # The error raised by memmap, for different file types, has
-        # changed in different incarnations of the numpy routine
-    except (AttributeError, TypeError, ValueError): # then read data
-        infile.seek(offset)
-        if len(shape) == 0:
-            return np.array([])
-        datasize = int(np.prod(shape) * in_dtype.itemsize)
-        if datasize == 0:
-            return np.array([])
-        data_str = infile.read(datasize)
-        if len(data_str) != datasize:
-            if hasattr(infile, 'name'):
-                file_str = 'file "%s"' % infile.name
-            else:
-                file_str = 'file object'
-            msg = 'Expected %s bytes, got %s bytes from %s\n' \
-                  % (datasize, len(data_str), file_str) + \
-                  ' - could the file be damaged?'
-            raise IOError(msg)
-        arr = np.ndarray(shape,
-                         in_dtype,
-                         buffer=data_str,
-                         order=order)
-        # for some types, we can write to the string buffer without
-        # worrying, but others we can't.
-        if hasattr(infile, 'fileno') or isinstance(infile, bz2.BZ2File):
-            arr.flags.writeable = True
-        else:
-            arr = arr.copy()
+    # Get file-like object from Opener instance
+    infile = getattr(infile, 'fobj', infile)
+    if not _is_compressed_fobj(infile):
+        try: # Try memmapping file on disk
+            return np.memmap(infile,
+                             in_dtype,
+                             mode='c',
+                             shape=shape,
+                             order=order,
+                             offset=offset)
+            # The error raised by memmap, for different file types, has
+            # changed in different incarnations of the numpy routine
+        except (AttributeError, TypeError, ValueError):
+            pass
+    if len(shape) == 0:
+        return np.array([])
+    n_bytes = int(np.prod(shape) * in_dtype.itemsize)
+    if n_bytes == 0:
+        return np.array([])
+    # Read data from file
+    infile.seek(offset)
+    if hasattr(infile, 'readinto'):
+        data_bytes = bytearray(n_bytes)
+        n_read = infile.readinto(data_bytes)
+        needs_copy = False
+    else:
+        data_bytes = infile.read(n_bytes)
+        n_read = len(data_bytes)
+        needs_copy = not isinstance(infile, SAFE_STRINGERS)
+    if n_bytes != n_read:
+        raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
+                      ' - could the file be damaged?'.format(
+                          n_bytes,
+                          n_read,
+                          getattr(infile, 'name', 'object')))
+    arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
+    if needs_copy:
+        return arr.copy()
+    arr.flags.writeable = True
     return arr
 
 
