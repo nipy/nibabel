@@ -466,6 +466,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     '''
     in_dtype = np.dtype(in_dtype)
     try: # Try memmapping file on disk
+        if isinstance(infile.fobj, bz2.BZ2File):
+            raise ValueError('Can not create memory map from bz2 object')
         arr = np.memmap(infile,
                         in_dtype,
                         mode='c',

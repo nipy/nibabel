@@ -113,6 +113,9 @@ class Opener(object):
     def mode(self):
         return self.fobj.mode
 
+    def fileno(self):
+        return self.fobj.fileno()
+
     def read(self, *args, **kwargs):
         return self.fobj.read(*args, **kwargs)
 
