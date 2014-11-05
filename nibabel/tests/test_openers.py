@@ -61,6 +61,7 @@ def test_Opener():
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b"Oh what a giveaway"
+    bz2_fileno = hasattr(BZ2File, 'fileno')
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input in ('test.txt',
@@ -78,6 +79,8 @@ def test_Opener_various():
                 if input is sobj:
                     # Fileno is unsupported for BytesIO
                     assert_raises(UnsupportedOperation, fobj.fileno)
+                elif input.endswith('.bz2') and not bz2_fileno:
+                    assert_raises(AttributeError, fobj.fileno)
                 else:
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
