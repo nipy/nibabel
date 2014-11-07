@@ -9,6 +9,7 @@
 ''' Test for volumeutils module '''
 from __future__ import division
 
+import os
 from os.path import exists
 
 from ..externals.six import BytesIO
@@ -195,6 +196,44 @@ def test_array_from_file_openers():
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
                 assert_array_almost_equal(in_arr, out_arr)
+
+
+def test_array_from_file_reread():
+    # Check that reading, modifying, reading again returns original.
+    # This is the live check for the generic checks in
+    # test_fobj_string_assumptions
+    offset = 9
+    fname = 'test.bin'
+    with InTemporaryDirectory():
+        for shape, opener, dtt, order in itertools.product(
+            ((64,), (64, 65), (64, 65, 66)),
+            (open, gzip.open, bz2.BZ2File, BytesIO),
+            (np.int16, np.float32),
+            ('F', 'C')):
+            n_els = np.prod(shape)
+            in_arr = np.arange(n_els, dtype=dtt).reshape(shape)
+            is_bio = hasattr(opener, 'getvalue')
+            # Write array to file
+            fobj_w = opener() if is_bio else opener(fname, 'wb')
+            fobj_w.write(b' ' * offset)
+            fobj_w.write(in_arr.tostring(order=order))
+            if is_bio:
+                fobj_r = fobj_w
+            else:
+                fobj_w.close()
+                fobj_r = opener(fname, 'rb')
+            # Read back from file
+            try:
+                out_arr = array_from_file(shape, dtt, fobj_r, offset, order)
+                assert_array_equal(in_arr, out_arr)
+                out_arr[..., 0] = -1
+                assert_false(np.allclose(in_arr, out_arr))
+                out_arr2 = array_from_file(shape, dtt, fobj_r, offset, order)
+                assert_array_equal(in_arr, out_arr2)
+            finally:
+                fobj_r.close()
+            if not is_bio:
+                os.unlink(fname)
 
 
 def test_array_to_file():
