@@ -331,16 +331,26 @@ class TestSpatialImage(TestCase):
 
 class MmapImageMixin(object):
     """ Mixin for testing images that may return memory maps """
-    def test_load_mmap(self):
-        # Test memory mapping when loading images
+    #: whether to test mode of returned memory map
+    check_mmap_mode = True
+
+    def write_image(self):
+        """ Return an image and an image filname to test against
+        """
         img_klass = self.image_class
         shape = (3, 4, 2)
         data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
         img = img_klass(data, None)
         fname = 'test' + img_klass.files_types[0][1]
+        img.to_filename(fname)
+        return img, fname
+
+    def test_load_mmap(self):
+        # Test memory mapping when loading images
+        img_klass = self.image_class
         with InTemporaryDirectory():
             # This should have no scaling, can be mmapped
-            img.to_filename(fname)
+            img, fname = self.write_image()
             file_map = img.file_map.copy()
             for func, param1 in ((img_klass.from_filename, fname),
                                  (img_klass.load, fname),
@@ -364,7 +374,8 @@ class MmapImageMixin(object):
                         assert_false(isinstance(back_data, np.memmap))
                     else:
                         assert_true(isinstance(back_data, np.memmap))
-                        assert_equal(back_data.mode, expected_mode)
+                        if self.check_mmap_mode:
+                            assert_equal(back_data.mode, expected_mode)
                     del back_img, back_data
                 # Check that mmap is keyword-only
                 assert_raises(TypeError, func, param1, True)
