@@ -696,9 +696,7 @@ class SpatialImage(object):
                 file_map[key].fileobj = mapval
         return file_map
 
-    @classmethod
-    def load(klass, filename):
-        return klass.from_filename(filename)
+    load = from_filename
 
     @classmethod
     def instance_to_filename(klass, img, filename):

@@ -340,11 +340,32 @@ class MmapImageMixin(object):
         with InTemporaryDirectory():
             # This should have no scaling, can be mmapped
             img.to_filename(fname)
-            back_img = img_klass.from_filename(fname)
-            back_data = back_img.get_data()
-            assert_true(isinstance(back_data, np.memmap))
-            assert_equal(back_data.mode, 'c')
-            back_img = img_klass.from_file_map(img.file_map)
-            back_data = back_img.get_data()
-            assert_true(isinstance(back_data, np.memmap))
-            assert_equal(back_data.mode, 'c')
+            file_map = img.file_map.copy()
+            for func, param1 in ((img_klass.from_filename, fname),
+                                 (img_klass.load, fname),
+                                 (img_klass.from_file_map, file_map)):
+                for mmap, expected_mode in (
+                    # mmap value, expected memmap mode
+                    # mmap=None -> no mmap value
+                    # expected mode=None -> no memmap returned
+                    (None, 'c'),
+                    (True, 'c'),
+                    ('c', 'c'),
+                    ('r', 'r'),
+                    (False, None)):
+                    kwargs = {}
+                    if mmap is not None:
+                        kwargs['mmap'] = mmap
+                    back_img = func(param1, **kwargs)
+                    back_data = back_img.get_data()
+                    if expected_mode is None:
+                        assert_false(isinstance(back_data, np.memmap))
+                    else:
+                        assert_true(isinstance(back_data, np.memmap))
+                        assert_equal(back_data.mode, expected_mode)
+                    del back_img, back_data
+                # Check that mmap is keyword-only
+                assert_raises(TypeError, func, param1, True)
+                # Check invalid values raise error
+                assert_raises(ValueError, func, param1, mmap='rw')
+                assert_raises(ValueError, func, param1, mmap='r+')

@@ -95,6 +95,7 @@ from .spatialimages import (HeaderDataError, HeaderTypeError,
 from .fileholders import copy_file_map
 from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
+from .keywordonly import kw_only_meth
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -915,9 +916,30 @@ class AnalyzeImage(SpatialImage):
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True):
         ''' class method to create image from mapping in `file_map ``
+
+        Parameters
+        ----------
+        file_map : dict
+            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            instance giving file-likes for each file needed for this image
+            type.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If `infile`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
+
+        Returns
+        -------
+        img : AnalyzeImage instance
         '''
+        if not mmap in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         hdr_fh, img_fh = klass._get_fileholders(file_map)
         with hdr_fh.get_prepare_fileobj(mode='rb') as hdrf:
             header = klass.header_class.from_fileobj(hdrf)
@@ -925,7 +947,7 @@ class AnalyzeImage(SpatialImage):
         imgf = img_fh.fileobj
         if imgf is None:
             imgf = img_fh.filename
-        data = klass.ImageArrayProxy(imgf, hdr_copy)
+        data = klass.ImageArrayProxy(imgf, hdr_copy, mmap=mmap)
         # Initialize without affine to allow header to pass through unmodified
         img = klass(data, None, header, file_map=file_map)
         # set affine from header though
@@ -934,6 +956,34 @@ class AnalyzeImage(SpatialImage):
                            'affine': img._affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
+
+    @classmethod
+    @kw_only_meth(1)
+    def from_filename(klass, filename, mmap=True):
+        ''' class method to create image from filename `filename`
+
+        Parameters
+        ----------
+        filename : str
+            Filename of image to load
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If `infile`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
+
+        Returns
+        -------
+        img : Analyze Image instance
+        '''
+        if not mmap in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, mmap=mmap)
+
+    load = from_filename
 
     @staticmethod
     def _get_fileholders(file_map):
