@@ -25,6 +25,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from .test_helpers import bytesio_round_trip
 from ..testing import suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
+from .. import load as top_load
 
 
 def test_header_init():
@@ -343,6 +344,7 @@ class MmapImageMixin(object):
             file_map = img.file_map.copy()
             for func, param1 in ((img_klass.from_filename, fname),
                                  (img_klass.load, fname),
+                                 (top_load, fname),
                                  (img_klass.from_file_map, file_map)):
                 for mmap, expected_mode in (
                     # mmap value, expected memmap mode
