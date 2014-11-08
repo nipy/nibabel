@@ -429,7 +429,7 @@ def parse_PAR_header(fobj):
 
 
 def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
-                   scaling=None):
+                   scalings=None, mmap=True):
     """Get data from REC file
 
     Parameters
@@ -444,25 +444,34 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
         The indices used to re-index the resulting array properly.
     out_shape : tuple
         The output shape.
-    scaling : array | None
-        Scaling to use.
+    scalings : {None, sequence}, optional
+        Scalings to use. If not None, a length 2 sequence giving (``slope``,
+        ``intercept``), where ``slope`` and ``intercept`` are arrays that can
+        be broadcast to `out_shape`.
+    mmap : {True, False, 'c', 'r', 'r+'}, optional
+        `mmap` controls the use of numpy memory mapping for reading data.  If
+        False, do not try numpy ``memmap`` for data array.  If one of {'c', 'r',
+        'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of True
+        gives the same behavior as ``mmap='c'``.  If `infile` cannot be
+        memory-mapped, ignore `mmap` value and read array from file.
 
     Returns
     -------
     data : array
         The scaled and sorted array.
     """
-    rec_data = array_from_file(in_shape, dtype, rec_fileobj)
+    rec_data = array_from_file(in_shape, dtype, rec_fileobj, mmap=mmap)
     rec_data = rec_data[..., slice_indices]
     rec_data = rec_data.reshape(out_shape, order='F')
-    if not scaling is None:
-         # Don't do in-place b/c this goes int16 -> float64
-        rec_data = rec_data * scaling[0] + scaling[1]
+    if not scalings is None:
+        # Don't do in-place b/c this goes int16 -> float64
+        rec_data = rec_data * scalings[0] + scalings[1]
     return rec_data
 
 
 class PARRECArrayProxy(object):
-    def __init__(self, file_like, header, scaling):
+    @kw_only_meth(2)
+    def __init__(self, file_like, header, mmap=True, scaling='dv'):
         """ Initialize PARREC array proxy
 
         Parameters
@@ -471,15 +480,26 @@ class PARRECArrayProxy(object):
             Filename or object implementing ``read, seek, tell``
         header : PARRECHeader instance
             Implementing ``get_data_shape, get_data_dtype``,
-            ``get_sorted_slice_indices``, ``get_data_scaling``
-        scaling : {'fp', 'dv'}
+            ``get_sorted_slice_indices``, ``get_data_scaling``,
+            ``get_rec_shape``.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading data.
+            If False, do not try numpy ``memmap`` for data array.  If one of
+            {'c', 'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If `infile`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
+        scaling : {'fp', 'dv'}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
+        if not mmap in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
         # Copies of values needed to read array
         self._shape = header.get_data_shape()
         self._dtype = header.get_data_dtype()
         self._slice_indices = header.get_sorted_slice_indices()
+        self._mmap=mmap
         self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
@@ -498,13 +518,18 @@ class PARRECArrayProxy(object):
     def get_unscaled(self):
         with BinOpener(self.file_like) as fileobj:
             return _data_from_rec(fileobj, self._rec_shape, self._dtype,
-                                  self._slice_indices, self._shape)
+                                  self._slice_indices, self._shape,
+                                  mmap=self._mmap)
 
     def __array__(self):
         with BinOpener(self.file_like) as fileobj:
-            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
-                                  self._slice_indices, self._shape,
-                                  scaling=self._slice_scaling)
+            return _data_from_rec(fileobj,
+                                  self._rec_shape,
+                                  self._dtype,
+                                  self._slice_indices,
+                                  self._shape,
+                                  scalings=self._slice_scaling,
+                                  mmap=self._mmap)
 
 
 class PARRECHeader(Header):
@@ -902,7 +927,8 @@ class PARRECImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, permit_truncated=False, scaling='dv'):
+    def from_file_map(klass, file_map, mmap=True, permit_truncated=False,
+                      scaling='dv'):
         """ Create PARREC image from file map `file_map`
 
         Parameters
@@ -910,6 +936,13 @@ class PARRECImage(SpatialImage):
         file_map : dict
             dict with keys ``image, header`` and values being fileholder
             objects for the respective REC and PAR files.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If `infile`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
@@ -922,19 +955,28 @@ class PARRECImage(SpatialImage):
                 hdr_fobj,
                 permit_truncated=permit_truncated)
         rec_fobj = file_map['image'].get_prepare_fileobj()
-        data = klass.ImageArrayProxy(rec_fobj, hdr, scaling)
+        data = klass.ImageArrayProxy(rec_fobj, hdr,
+                                     mmap=mmap, scaling=scaling)
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
     @classmethod
     @kw_only_meth(1)
-    def from_filename(klass, filename, permit_truncated=False, scaling='dv'):
+    def from_filename(klass, filename, mmap=True, permit_truncated=False,
+                      scaling='dv'):
         """ Create PARREC image from filename `filename`
 
         Parameters
         ----------
         filename : str
             Filename of "PAR" or "REC" file
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If `infile`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
@@ -944,6 +986,7 @@ class PARRECImage(SpatialImage):
         """
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map,
+                                   mmap=mmap,
                                    permit_truncated=permit_truncated,
                                    scaling=scaling)
 

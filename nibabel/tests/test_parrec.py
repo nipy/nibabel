@@ -4,6 +4,7 @@
 from os.path import join as pjoin, dirname, basename
 from glob import glob
 from warnings import simplefilter
+import shutil
 
 import numpy as np
 from numpy import array as npa
@@ -22,6 +23,9 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 from ..testing import catch_warn_reset, suppress_warnings
+
+from .test_arrayproxy import check_mmap
+from . import test_spatialimages as tsi
 
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -447,8 +451,8 @@ def test_header_copy():
 def test_image_creation():
     # Test parts of image API in parrec image creation
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    arr_prox_dv = np.array(PARRECArrayProxy(EG_REC, hdr, 'dv'))
-    arr_prox_fp = np.array(PARRECArrayProxy(EG_REC, hdr, 'fp'))
+    arr_prox_dv = np.array(PARRECArrayProxy(EG_REC, hdr, scaling='dv'))
+    arr_prox_fp = np.array(PARRECArrayProxy(EG_REC, hdr, scaling='fp'))
     good_map = dict(image = FileHolder(EG_REC),
                     header = FileHolder(EG_PAR))
     trunc_map = dict(image = FileHolder(TRUNC_REC),
@@ -482,3 +486,44 @@ def test_image_creation():
         assert_array_equal(img.dataobj, arr_prox_dv)
         img = func(trunc_param, permit_truncated=True, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)
+
+
+class FakeHeader(object):
+    """ Minimal API of header for PARRECArrayProxy
+    """
+    def __init__(self, shape, dtype):
+        self._shape = shape
+        self._dtype = np.dtype(dtype)
+
+    def get_data_shape(self):
+        return self._shape
+
+    def get_data_dtype(self):
+        return self._dtype
+
+    def get_sorted_slice_indices(self):
+        n_slices = np.prod(self._shape[2:])
+        return np.arange(n_slices)
+
+    def get_data_scaling(self, scaling):
+        scale_shape = (1, 1) + self._shape[2:]
+        return np.ones(scale_shape), np.zeros(scale_shape)
+
+    def get_rec_shape(self):
+        n_slices = np.prod(self._shape[2:])
+        return self._shape[:2] + (n_slices,)
+
+
+def test_parrec_proxy():
+    # Test PAR / REC proxy class, including mmap flags
+    shape = (10, 20, 30, 5)
+    hdr = FakeHeader(shape, np.int32)
+    check_mmap(hdr, 0, PARRECArrayProxy, check_mode=False)
+
+
+class TestPARRECImage(tsi.MmapImageMixin):
+    image_class = PARRECImage
+    check_mmap_mode = False
+
+    def write_image(self):
+        return parrec.load(EG_PAR), EG_PAR
