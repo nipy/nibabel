@@ -452,7 +452,7 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
         `mmap` controls the use of numpy memory mapping for reading data.  If
         False, do not try numpy ``memmap`` for data array.  If one of {'c', 'r',
         'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of True
-        gives the same behavior as ``mmap='c'``.  If `infile` cannot be
+        gives the same behavior as ``mmap='c'``.  If `rec_fileobj` cannot be
         memory-mapped, ignore `mmap` value and read array from file.
 
     Returns
@@ -486,9 +486,9 @@ class PARRECArrayProxy(object):
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
             {'c', 'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If `infile`
-            cannot be memory-mapped, ignore `mmap` value and read array from
-            file.
+            value of True gives the same behavior as ``mmap='c'``.  If
+            `file_like` cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
         scaling : {'fp', 'dv'}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
@@ -940,9 +940,9 @@ class PARRECImage(SpatialImage):
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
             If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If `infile`
-            cannot be memory-mapped, ignore `mmap` value and read array from
-            file.
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
@@ -974,9 +974,9 @@ class PARRECImage(SpatialImage):
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
             If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If `infile`
-            cannot be memory-mapped, ignore `mmap` value and read array from
-            file.
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.

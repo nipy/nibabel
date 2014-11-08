@@ -451,8 +451,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     infile : file-like
         open file-like object implementing at least read() and seek()
     offset : int, optional
-        offset in bytes into infile to start reading array
-        data. Default is 0
+        offset in bytes into `infile` to start reading array data. Default is 0
     order : {'F', 'C'} string
         order in which to write data.  Default is 'F' (fortran order).
     mmap : {True, False, 'c', 'r', 'r+'}

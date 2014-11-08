@@ -77,9 +77,9 @@ class ArrayProxy(object):
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
             {'c', 'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If `infile`
-            cannot be memory-mapped, ignore `mmap` value and read array from
-            file.
+            value of True gives the same behavior as ``mmap='c'``.  If
+            `file_like` cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
         """
         if not mmap in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
