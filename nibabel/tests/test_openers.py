@@ -76,7 +76,7 @@ def test_Opener_various():
             with Opener(input, 'rb') as fobj:
                 message_back = fobj.read()
                 assert_equal(message, message_back)
-                if input is sobj:
+                if input == sobj:
                     # Fileno is unsupported for BytesIO
                     assert_raises(UnsupportedOperation, fobj.fileno)
                 elif input.endswith('.bz2') and not bz2_fileno:
