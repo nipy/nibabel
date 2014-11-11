@@ -11,14 +11,16 @@ import os
 from gzip import GzipFile
 from bz2 import BZ2File
 
-from ..externals.six import PY3, BytesIO
+from io import BytesIO, UnsupportedOperation
+from ..externals.six import PY3
 from ..py3k import asstr, asbytes
 
 from ..tmpdirs import InTemporaryDirectory
 
 from ..openers import Opener
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal,
+                        assert_not_equal, assert_raises)
 
 class Lunk(object):
     # bare file-like for testing
@@ -59,6 +61,7 @@ def test_Opener():
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b"Oh what a giveaway"
+    bz2_fileno = hasattr(BZ2File, 'fileno')
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input in ('test.txt',
@@ -73,6 +76,14 @@ def test_Opener_various():
             with Opener(input, 'rb') as fobj:
                 message_back = fobj.read()
                 assert_equal(message, message_back)
+                if input == sobj:
+                    # Fileno is unsupported for BytesIO
+                    assert_raises(UnsupportedOperation, fobj.fileno)
+                elif input.endswith('.bz2') and not bz2_fileno:
+                    assert_raises(AttributeError, fobj.fileno)
+                else:
+                    # Just check there is a fileno
+                    assert_not_equal(fobj.fileno(), 0)
 
 
 def test_file_like_wrapper():

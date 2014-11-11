@@ -655,7 +655,7 @@ def test_data_code_error():
     assert_raises(HeaderDataError, AnalyzeHeader.from_header, hdr)
 
 
-class TestAnalyzeImage(tsi.TestSpatialImage):
+class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     image_class = AnalyzeImage
     can_save = True
     supported_np_types = TestAnalyzeHeader.supported_np_types

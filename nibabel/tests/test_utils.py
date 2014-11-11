@@ -9,6 +9,7 @@
 ''' Test for volumeutils module '''
 from __future__ import division
 
+import os
 from os.path import exists
 
 from ..externals.six import BytesIO
@@ -16,12 +17,15 @@ import tempfile
 import warnings
 import functools
 import itertools
+import gzip
+import bz2
 
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 
 from ..volumeutils import (array_from_file,
+                           _is_compressed_fobj,
                            array_to_file,
                            allopen, # for backwards compatibility
                            BinOpener,
@@ -42,14 +46,13 @@ from ..volumeutils import (array_from_file,
                            _dt_min_max,
                            _write_data,
                           )
-
-from ..casting import (floor_log2, type_info, best_float, OK_FLOATS,
-                       shared_range)
+from ..openers import Opener
+from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from ..testing import (assert_dt_equal, assert_allclose_safely,
                        suppress_warnings)
@@ -61,6 +64,63 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+
+def test__is_compressed_fobj():
+    # _is_compressed helper function
+    with InTemporaryDirectory():
+        for ext, opener, compressed in (('', open, False),
+                                        ('.gz', gzip.open, True),
+                                        ('.bz2', bz2.BZ2File, True)):
+            fname = 'test.bin' + ext
+            for mode in ('wb', 'rb'):
+                fobj = opener(fname, mode)
+                assert_equal(_is_compressed_fobj(fobj), compressed)
+                fobj.close()
+
+
+def test_fobj_string_assumptions():
+    # Test assumptions made in array_from_file about whether string returned
+    # from file read needs a copy.
+    dtype = np.dtype(np.int32)
+
+    def make_array(n, bytes):
+        arr = np.ndarray(n, dtype, buffer=bytes)
+        arr.flags.writeable = True
+        return arr
+
+    # Check whether file, gzip file, bz2 file reread memory from cache
+    fname = 'test.bin'
+    with InTemporaryDirectory():
+        for n, opener in itertools.product(
+            (256, 1024, 2560, 25600),
+            (open, gzip.open, bz2.BZ2File)):
+            in_arr = np.arange(n, dtype=dtype)
+            # Write array to file
+            fobj_w = opener(fname, 'wb')
+            fobj_w.write(in_arr.tostring())
+            fobj_w.close()
+            # Read back from file
+            fobj_r = opener(fname, 'rb')
+            try:
+                contents1 = fobj_r.read()
+                # Second element is 1
+                assert_false(contents1[0:8] == b'\x00' * 8)
+                out_arr = make_array(n, contents1)
+                assert_array_equal(in_arr, out_arr)
+                # Set second element to 0
+                out_arr[1] = 0
+                # Show this changed the bytes string
+                assert_equal(contents1[:8], b'\x00' * 8)
+                # Reread, to get unmodified contents
+                fobj_r.seek(0)
+                contents2 = fobj_r.read()
+                out_arr2 = make_array(n, contents2)
+                assert_array_equal(in_arr, out_arr2)
+                assert_equal(out_arr[1], 0)
+            finally:
+                fobj_r.close()
+            os.unlink(fname)
 
 
 def test_array_from_file():
@@ -119,6 +179,61 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
         in_buf,
         offset)
     return np.allclose(in_arr, arr)
+
+
+def test_array_from_file_openers():
+    # Test array_from_file also works with Opener objects
+    shape = (2,3,4)
+    dtype = np.dtype(np.float32)
+    in_arr = np.arange(24, dtype=dtype).reshape(shape)
+    with InTemporaryDirectory():
+        for ext, offset in itertools.product(('', '.gz', '.bz2'),
+                                             (0, 5, 10)):
+            fname = 'test.bin' + ext
+            with Opener(fname, 'wb') as out_buf:
+                out_buf.write(b' ' * offset)
+                out_buf.write(in_arr.tostring(order='F'))
+            with Opener(fname, 'rb') as in_buf:
+                out_arr = array_from_file(shape, dtype, in_buf, offset)
+                assert_array_almost_equal(in_arr, out_arr)
+
+
+def test_array_from_file_reread():
+    # Check that reading, modifying, reading again returns original.
+    # This is the live check for the generic checks in
+    # test_fobj_string_assumptions
+    offset = 9
+    fname = 'test.bin'
+    with InTemporaryDirectory():
+        for shape, opener, dtt, order in itertools.product(
+            ((64,), (64, 65), (64, 65, 66)),
+            (open, gzip.open, bz2.BZ2File, BytesIO),
+            (np.int16, np.float32),
+            ('F', 'C')):
+            n_els = np.prod(shape)
+            in_arr = np.arange(n_els, dtype=dtt).reshape(shape)
+            is_bio = hasattr(opener, 'getvalue')
+            # Write array to file
+            fobj_w = opener() if is_bio else opener(fname, 'wb')
+            fobj_w.write(b' ' * offset)
+            fobj_w.write(in_arr.tostring(order=order))
+            if is_bio:
+                fobj_r = fobj_w
+            else:
+                fobj_w.close()
+                fobj_r = opener(fname, 'rb')
+            # Read back from file
+            try:
+                out_arr = array_from_file(shape, dtt, fobj_r, offset, order)
+                assert_array_equal(in_arr, out_arr)
+                out_arr[..., 0] = -1
+                assert_false(np.allclose(in_arr, out_arr))
+                out_arr2 = array_from_file(shape, dtt, fobj_r, offset, order)
+                assert_array_equal(in_arr, out_arr2)
+            finally:
+                fobj_r.close()
+            if not is_bio:
+                os.unlink(fname)
 
 
 def test_array_to_file():

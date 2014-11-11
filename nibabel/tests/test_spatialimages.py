@@ -24,6 +24,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
 from ..testing import suppress_warnings
+from ..tmpdirs import InTemporaryDirectory
 
 
 def test_header_init():
@@ -325,3 +326,25 @@ class TestSpatialImage(TestCase):
         rt_img.uncache()
         assert_false(rt_img.get_data() is out_data)
         assert_array_equal(rt_img.get_data(), in_data)
+
+
+class MmapImageMixin(object):
+    """ Mixin for testing images that may return memory maps """
+    def test_load_mmap(self):
+        # Test memory mapping when loading images
+        img_klass = self.image_class
+        shape = (3, 4, 2)
+        data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
+        img = img_klass(data, None)
+        fname = 'test' + img_klass.files_types[0][1]
+        with InTemporaryDirectory():
+            # This should have no scaling, can be mmapped
+            img.to_filename(fname)
+            back_img = img_klass.from_filename(fname)
+            back_data = back_img.get_data()
+            assert_true(isinstance(back_data, np.memmap))
+            assert_equal(back_data.mode, 'c')
+            back_img = img_klass.from_file_map(img.file_map)
+            back_data = back_img.get_data()
+            assert_true(isinstance(back_data, np.memmap))
+            assert_equal(back_data.mode, 'c')

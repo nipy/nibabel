@@ -230,7 +230,7 @@ def test_header_slope_inter():
     assert_equal(hdr.get_slope_inter(), (None, None))
 
 
-class TestMGHImage(tsi.TestSpatialImage):
+class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     """ Apply general image tests to MGHImage
     """
     image_class = MGHImage
