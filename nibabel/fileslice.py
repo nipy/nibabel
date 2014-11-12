@@ -747,3 +747,26 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
     bytes = read_segments(fileobj, segments, n_bytes)
     sliced = np.ndarray(sliced_shape, dtype, buffer=bytes, order=order)
     return sliced[post_slicers]
+
+
+def strided_scalar(shape, scalar=0.):
+    """ Return array shape `shape` where all entries point to value `scalar`
+
+    Parameters
+    ----------
+    shape : sequence
+        Shape of output array.
+    scalar : scalar
+        Scalar value with which to fill array.
+
+    Returns
+    -------
+    strided_arr : array
+        Array of shape `shape` for which all values == `scalar`, built by
+        setting all strides of `strided_arr` to 0, so the scalar is broadcast
+        out to the full array `shape`.
+    """
+    shape = tuple(shape)
+    scalar = np.array(scalar)
+    strides = [0] * len(shape)
+    return np.lib.stride_tricks.as_strided(scalar, shape, strides)

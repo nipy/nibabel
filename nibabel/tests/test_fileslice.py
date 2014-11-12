@@ -14,7 +14,8 @@ from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          predict_shape, read_segments, _positive_slice,
                          threshold_heuristic, optimize_slicer, slice2len,
                          fill_slicer, optimize_read_slicers, slicers2segments,
-                         calc_slicedefs, _simple_fileslice, slice2outax)
+                         calc_slicedefs, _simple_fileslice, slice2outax,
+                         strided_scalar)
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
@@ -625,6 +626,23 @@ def test_predict_shape():
     assert_equal(predict_shape((None, 1), (2, 3)), (1, 3))
     assert_equal(predict_shape((1, None, slice(None)), (2, 3)), (1, 3))
     assert_equal(predict_shape((1, slice(None), None), (2, 3)), (3, 1))
+
+
+def test_strided_scalar():
+    # Utility to make numpy array of given shape from scalar using striding
+    for shape, scalar in product(
+        ((2,), (2, 3,), (2, 3, 4)),
+        (1, 2, np.int16(3))):
+        expected = np.zeros(shape, dtype=np.array(scalar).dtype) + scalar
+        observed = strided_scalar(shape, scalar)
+        assert_array_equal(observed, expected)
+        assert_equal(observed.shape, shape)
+        assert_equal(observed.dtype, expected.dtype)
+        assert_array_equal(observed.strides, 0)
+        observed[..., 0] = 99
+        assert_array_equal(observed, expected * 0 + 99)
+    # Default scalar value is 0
+    assert_array_equal(strided_scalar((2, 3, 4)), np.zeros((2, 3, 4)))
 
 
 def _check_bytes(bytes, arr):
