@@ -165,6 +165,48 @@ def test_array_from_file():
         del in_buf
 
 
+def test_array_from_file_mmap():
+    # Test memory mapping
+    shape = (2, 21)
+    with InTemporaryDirectory():
+        for dt in (np.int16, np.float):
+            arr = np.arange(np.prod(shape), dtype=dt).reshape(shape)
+            with open('test.bin', 'wb') as fobj:
+                fobj.write(arr.tostring(order='F'))
+            with open('test.bin', 'rb') as fobj:
+                res = array_from_file(shape, dt, fobj)
+                assert_array_equal(res, arr)
+                assert_true(isinstance(res, np.memmap))
+                assert_equal(res.mode, 'c')
+            with open('test.bin', 'rb') as fobj:
+                res = array_from_file(shape, dt, fobj, mmap=True)
+                assert_array_equal(res, arr)
+                assert_true(isinstance(res, np.memmap))
+                assert_equal(res.mode, 'c')
+            with open('test.bin', 'rb') as fobj:
+                res = array_from_file(shape, dt, fobj, mmap='c')
+                assert_array_equal(res, arr)
+                assert_true(isinstance(res, np.memmap))
+                assert_equal(res.mode, 'c')
+            with open('test.bin', 'rb') as fobj:
+                res = array_from_file(shape, dt, fobj, mmap='r')
+                assert_array_equal(res, arr)
+                assert_true(isinstance(res, np.memmap))
+                assert_equal(res.mode, 'r')
+            with open('test.bin', 'rb+') as fobj:
+                res = array_from_file(shape, dt, fobj, mmap='r+')
+                assert_array_equal(res, arr)
+                assert_true(isinstance(res, np.memmap))
+                assert_equal(res.mode, 'r+')
+            with open('test.bin', 'rb') as fobj:
+                res = array_from_file(shape, dt, fobj, mmap=False)
+                assert_array_equal(res, arr)
+                assert_false(isinstance(res, np.memmap))
+            with open('test.bin', 'rb') as fobj:
+                assert_raises(ValueError,
+                              array_from_file, shape, dt, fobj, mmap='p')
+
+
 def buf_chk(in_arr, out_buf, in_buf, offset):
     ''' Write contents of in_arr into fileobj, read back, check same '''
     instr = b' ' * offset + in_arr.tostring(order='F')

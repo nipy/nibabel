@@ -26,20 +26,22 @@ from .imageclasses import class_map, ext_map
 from .arrayproxy import is_proxy
 
 
-def load(filename):
+def load(filename, **kwargs):
     ''' Load file given filename, guessing at file type
 
     Parameters
     ----------
     filename : string
        specification of file to load
+    \*\*kwargs : keyword arguments
+        Keyword arguments to format-specific load
 
     Returns
     -------
     img : ``SpatialImage``
        Image of guessed type
     '''
-    return guessed_image_type(filename).from_filename(filename)
+    return guessed_image_type(filename).from_filename(filename, **kwargs)
 
 
 def guessed_image_type(filename):

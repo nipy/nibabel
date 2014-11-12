@@ -171,3 +171,48 @@ def test_get_unscaled():
     assert_array_almost_equal(np.array(prox), arr * 2.1 + 3.14)
     # Check unscaled read works
     assert_array_almost_equal(prox.get_unscaled(), arr)
+
+
+def test_mmap():
+    # Unscaled should return mmap from suitable file, this can be tuned
+    hdr = FunkyHeader((2, 3, 4))
+    check_mmap(hdr, hdr.get_data_offset(), ArrayProxy)
+
+
+def check_mmap(hdr, offset, proxy_class, check_mode=True):
+    shape = hdr.get_data_shape()
+    arr = np.arange(np.prod(shape), dtype=hdr.get_data_dtype()).reshape(shape)
+    fname = 'test.bin'
+    with InTemporaryDirectory():
+        with open(fname, 'wb') as fobj:
+            fobj.write(b' ' * offset)
+            fobj.write(arr.tostring(order='F'))
+        for mmap, expected_mode in (
+            # mmap value, expected memmap mode
+            # mmap=None -> no mmap value
+            # expected mode=None -> no memmap returned
+            (None, 'c'),
+            (True, 'c'),
+            ('c', 'c'),
+            ('r', 'r'),
+            (False, None)):
+            kwargs = {}
+            if mmap is not None:
+                kwargs['mmap'] = mmap
+            prox = proxy_class(fname, hdr, **kwargs)
+            unscaled = prox.get_unscaled()
+            back_data = np.asanyarray(prox)
+            if expected_mode is None:
+                assert_false(isinstance(unscaled, np.memmap))
+                assert_false(isinstance(back_data, np.memmap))
+            else:
+                assert_true(isinstance(unscaled, np.memmap))
+                assert_true(isinstance(back_data, np.memmap))
+                if check_mode:
+                    assert_equal(back_data.mode, expected_mode)
+            del prox, back_data
+            # Check that mmap is keyword-only
+            assert_raises(TypeError, proxy_class, fname, hdr, True)
+            # Check invalid values raise error
+            assert_raises(ValueError, proxy_class, fname, hdr, mmap='rw')
+            assert_raises(ValueError, proxy_class, fname, hdr, mmap='r+')

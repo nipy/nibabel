@@ -25,6 +25,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from .test_helpers import bytesio_round_trip
 from ..testing import suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
+from .. import load as top_load
 
 
 def test_header_init():
@@ -330,21 +331,54 @@ class TestSpatialImage(TestCase):
 
 class MmapImageMixin(object):
     """ Mixin for testing images that may return memory maps """
-    def test_load_mmap(self):
-        # Test memory mapping when loading images
+    #: whether to test mode of returned memory map
+    check_mmap_mode = True
+
+    def write_image(self):
+        """ Return an image and an image filname to test against
+        """
         img_klass = self.image_class
         shape = (3, 4, 2)
         data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
         img = img_klass(data, None)
         fname = 'test' + img_klass.files_types[0][1]
+        img.to_filename(fname)
+        return img, fname
+
+    def test_load_mmap(self):
+        # Test memory mapping when loading images
+        img_klass = self.image_class
         with InTemporaryDirectory():
             # This should have no scaling, can be mmapped
-            img.to_filename(fname)
-            back_img = img_klass.from_filename(fname)
-            back_data = back_img.get_data()
-            assert_true(isinstance(back_data, np.memmap))
-            assert_equal(back_data.mode, 'c')
-            back_img = img_klass.from_file_map(img.file_map)
-            back_data = back_img.get_data()
-            assert_true(isinstance(back_data, np.memmap))
-            assert_equal(back_data.mode, 'c')
+            img, fname = self.write_image()
+            file_map = img.file_map.copy()
+            for func, param1 in ((img_klass.from_filename, fname),
+                                 (img_klass.load, fname),
+                                 (top_load, fname),
+                                 (img_klass.from_file_map, file_map)):
+                for mmap, expected_mode in (
+                    # mmap value, expected memmap mode
+                    # mmap=None -> no mmap value
+                    # expected mode=None -> no memmap returned
+                    (None, 'c'),
+                    (True, 'c'),
+                    ('c', 'c'),
+                    ('r', 'r'),
+                    (False, None)):
+                    kwargs = {}
+                    if mmap is not None:
+                        kwargs['mmap'] = mmap
+                    back_img = func(param1, **kwargs)
+                    back_data = back_img.get_data()
+                    if expected_mode is None:
+                        assert_false(isinstance(back_data, np.memmap))
+                    else:
+                        assert_true(isinstance(back_data, np.memmap))
+                        if self.check_mmap_mode:
+                            assert_equal(back_data.mode, expected_mode)
+                    del back_img, back_data
+                # Check that mmap is keyword-only
+                assert_raises(TypeError, func, param1, True)
+                # Check invalid values raise error
+                assert_raises(ValueError, func, param1, mmap='rw')
+                assert_raises(ValueError, func, param1, mmap='r+')
