@@ -48,6 +48,7 @@ from .. import minc2
 from ..optpkg import optional_package
 h5py, have_h5py, _ = optional_package('h5py')
 from .. import ecat
+from .. import parrec
 
 from ..arrayproxy import ArrayProxy, is_proxy
 
@@ -62,6 +63,8 @@ from ..testing import data_path as DATA_PATH
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
+
+from .test_parrec import EG_PAR, EG_REC
 
 def _some_slicers(shape):
     ndim = len(shape)
@@ -368,3 +371,19 @@ class TestEcatAPI(_TestProxyAPI):
 
     def validate_header_isolated(self, pmaker, params):
         raise SkipTest('ECAT header does not support dtype get')
+
+
+class TestPARRECAPI(_TestProxyAPI):
+
+    def obj_params(self):
+        img = parrec.load(EG_PAR)
+        arr_out = img.get_data()
+        def eg_func():
+            img = parrec.load(EG_PAR)
+            prox = parrec.PARRECArrayProxy(EG_REC, img.header, 'dv')
+            fobj = open(EG_REC, 'rb')
+            return prox, fobj, img.header
+        yield (eg_func,
+               dict(shape = (64, 64, 9, 3),
+                    dtype_out=np.float64,
+                    arr_out=arr_out))

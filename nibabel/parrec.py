@@ -561,6 +561,9 @@ class PARRECArrayProxy(object):
                                   scalings=self._slice_scaling,
                                   mmap=self._mmap)
 
+    def __getitem__(self, slicer):
+        return np.asanyarray(self)[slicer]
+
 
 class PARRECHeader(Header):
     """PAR/REC header"""
