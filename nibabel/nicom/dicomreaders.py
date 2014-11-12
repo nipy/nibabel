@@ -5,6 +5,7 @@ import glob
 
 import numpy as np
 
+from .. import Nifti1Image
 from .dicomwrappers import (wrapper_from_data, wrapper_from_file)
 
 
@@ -28,13 +29,12 @@ def mosaic_to_nii(dcm_data):
     img : ``Nifti1Image``
        Nifti image object
     '''
-    import nibabel as nib
     dcm_w = wrapper_from_data(dcm_data)
     if not dcm_w.is_mosaic:
         raise DicomReadError('data does not appear to be in mosaic format')
     data = dcm_w.get_data()
     aff = np.dot(DPCS_TO_TAL, dcm_w.get_affine())
-    return nib.Nifti1Image(data, aff)
+    return Nifti1Image(data, aff)
 
 
 def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', dicom_kwargs=None):

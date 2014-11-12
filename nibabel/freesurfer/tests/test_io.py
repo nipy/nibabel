@@ -4,7 +4,7 @@ from os.path import join as pjoin
 import getpass
 import time
 
-from nibabel.tmpdirs import InTemporaryDirectory
+from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np

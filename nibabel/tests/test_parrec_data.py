@@ -7,7 +7,7 @@ from os.path import join as pjoin, basename, splitext, exists
 
 import numpy as np
 
-import nibabel as nib
+from .. import load as top_load
 from ..parrec import load
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
@@ -39,7 +39,7 @@ def test_loading():
         # Compare against NIFTI if present
         nifti_fname = pjoin(BALLS, 'NIFTI', par_root + '.nii.gz')
         if exists(nifti_fname):
-            nimg = nib.load(nifti_fname)
+            nimg = top_load(nifti_fname)
             assert_almost_equal(nimg.affine[:3, :3], pimg.affine[:3, :3], 3)
             # The translation part is always off by the same ammout
             aff_off = pimg.affine[:3, 3] - nimg.affine[:3, 3]
@@ -61,5 +61,5 @@ def test_fieldmap():
     fieldmap_par = pjoin(BALLS, 'PARREC', 'fieldmap.PAR')
     fieldmap_nii = pjoin(BALLS, 'NIFTI', 'fieldmap.nii.gz')
     pimg = load(fieldmap_par)
-    nimg = nib.load(fieldmap_nii)
+    nimg = top_load(fieldmap_nii)
     raise SkipTest('Fieldmap remains puzzling')
