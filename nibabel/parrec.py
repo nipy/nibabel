@@ -463,7 +463,7 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
     rec_data = array_from_file(in_shape, dtype, rec_fileobj, mmap=mmap)
     rec_data = rec_data[..., slice_indices]
     rec_data = rec_data.reshape(out_shape, order='F')
-    if not scalings is None:
+    if scalings is not None:
         # Don't do in-place b/c this goes int16 -> float64
         rec_data = rec_data * scalings[0] + scalings[1]
     return rec_data
@@ -485,14 +485,14 @@ class PARRECArrayProxy(object):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
-            {'c', 'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If
-            `file_like` cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of
+            True gives the same behavior as ``mmap='c'``.  If `file_like`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
         scaling : {'fp', 'dv'}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
         # Copies of values needed to read array

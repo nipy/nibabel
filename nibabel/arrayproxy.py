@@ -56,7 +56,8 @@ class ArrayProxy(object):
     including Nifti1, and with the MGH format.
 
     Other image types might need more specific classes to implement the API.
-    API.  See :mod:`nibabel.minc1` and :mod:`nibabel.ecat` for examples.
+    See :mod:`nibabel.minc1`, :mod:`nibabel.ecat` and :mod:`nibabel.parrec` for
+    examples.
     """
     # Assume Fortran array memory layout
     order = 'F'
@@ -76,12 +77,14 @@ class ArrayProxy(object):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
-            {'c', 'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If
-            `file_like` cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of
+            True gives the same behavior as ``mmap='c'``.  If `file_like`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
+        scaling : {'fp', 'dv'}, optional, keyword only
+            Type of scaling to use - see header ``get_data_scaling`` method.
         """
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
         # Copies of values needed to read array

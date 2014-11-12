@@ -938,7 +938,7 @@ class AnalyzeImage(SpatialImage):
         -------
         img : AnalyzeImage instance
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         hdr_fh, img_fh = klass._get_fileholders(file_map)
         with hdr_fh.get_prepare_fileobj(mode='rb') as hdrf:
@@ -978,7 +978,7 @@ class AnalyzeImage(SpatialImage):
         -------
         img : Analyze Image instance
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map, mmap=mmap)
