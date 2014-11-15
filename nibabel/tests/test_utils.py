@@ -239,6 +239,8 @@ def test_array_from_file_openers():
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
                 assert_array_almost_equal(in_arr, out_arr)
+            # Delete object holding onto file for Windows
+            del out_arr
 
 
 def test_array_from_file_reread():
@@ -275,6 +277,8 @@ def test_array_from_file_reread():
                 assert_array_equal(in_arr, out_arr2)
             finally:
                 fobj_r.close()
+            # Delete arrays holding onto file objects so Windows can delete
+            del out_arr, out_arr2
             if not is_bio:
                 os.unlink(fname)
 

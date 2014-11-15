@@ -49,6 +49,7 @@ def test_read_img_data():
             shutil.copyfile(fpath, up_fpath)
             img = load(up_fpath)
             assert_array_equal(img.dataobj, data)
+            del img
 
 
 def test_read_img_data_nifti():
@@ -111,8 +112,8 @@ def test_read_img_data_nifti():
                                read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
-            # Delete array still pointing to file, so Windows can re-use
-            del unscaled_back
+            # Delete arrays still pointing to file, so Windows can re-use
+            del actual_unscaled, unscaled_back
             img.to_file_map()
             # Write an integer of zeros after
             with open(img_fname, 'ab') as fobj:
@@ -126,4 +127,5 @@ def test_read_img_data_nifti():
             exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
             assert_array_equal(exp_offset, read_img_data(img_back))
-            del img_back
+            # Delete stuff that might hold onto file references
+            del img, img_back, data_back

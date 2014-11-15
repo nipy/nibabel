@@ -618,9 +618,11 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
 
     def test_float128(self):
         hdr = self.header_class()
-        if have_binary128():
+        # Allow for Windows visual studio where longdouble is float64
+        ld_dt = np.dtype(np.longdouble)
+        if have_binary128() or ld_dt == np.dtype(np.float64):
             hdr.set_data_dtype(np.longdouble)
-            assert_equal(hdr.get_data_dtype().type, np.longdouble)
+            assert_equal(hdr.get_data_dtype(), ld_dt)
         else:
             assert_raises(HeaderDataError, hdr.set_data_dtype, np.longdouble)
 
