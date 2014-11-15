@@ -556,8 +556,10 @@ class PARRECHeader(Header):
         # functionality
         # dtype
         bitpix = self._get_unique_image_prop('image pixel size')
+        # REC data always little endian?
+        dt = np.dtype('int' + str(bitpix)).newbyteorder('<')
         Header.__init__(self,
-                        data_dtype=np.dtype('int' + str(bitpix)).type,
+                        data_dtype=dt,
                         shape=self._calc_data_shape(),
                         zooms=self._calc_zooms())
 
