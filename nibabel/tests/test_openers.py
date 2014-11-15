@@ -219,11 +219,10 @@ blue ridged mountains
 of
 virginia
 """.split('\n')
-    gz_does_t = not PY3
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input, does_t in (('test.txt', True),
-                              ('test.txt.gz', gz_does_t),
+                              ('test.txt.gz', False),
                               ('test.txt.bz2', False),
                               (sobj, True)):
             with Opener(input, 'wb') as fobj:
