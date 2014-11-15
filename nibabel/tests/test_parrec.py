@@ -15,6 +15,7 @@ from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full, PARRECImage, PARRECArrayProxy)
 from ..openers import Opener
 from ..fileholders import FileHolder
+from ..volumeutils import array_from_file
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -40,6 +41,9 @@ TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
 V4_PAR = pjoin(DATA_PATH, 'phantom_fake_v4.PAR')
 # Fake V4.1
 V41_PAR = pjoin(DATA_PATH, 'phantom_fake_v4_1.PAR')
+# Fake varying scaling
+VARY_PAR = pjoin(DATA_PATH, 'phantom_varscale.PAR')
+VARY_REC = pjoin(DATA_PATH, 'phantom_varscale.REC')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [[-3.64994708, 0.,   1.83564171, 123.66276611],
@@ -554,3 +558,28 @@ def test_bitpix():
     for pix_size in (24, 32):
         hdr_defs['image pixel size'] = pix_size
         assert_raises(PARRECError, PARRECHeader, HDR_INFO, hdr_defs)
+
+
+def test_varying_scaling():
+    # Check the algorithm works as expected for varying scaling
+    img = PARRECImage.load(VARY_REC)
+    rec_shape = (64, 64, 27)
+    with open(VARY_REC, 'rb') as fobj:
+        arr = array_from_file(rec_shape, '<i2', fobj)
+    img_defs = img.header.image_defs
+    slopes = img_defs['rescale slope']
+    inters = img_defs['rescale intercept']
+    sc_slopes = img_defs['scale slope']
+    # Check dv scaling
+    scaled_arr = arr.astype(np.float64)
+    for i in range(arr.shape[2]):
+        scaled_arr[:, :, i] *= slopes[i]
+        scaled_arr[:, :, i] += inters[i]
+    assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
+                        img.get_data(), 9)
+    # Check fp scaling
+    for i in range(arr.shape[2]):
+        scaled_arr[:, :, i] /= (slopes[i] * sc_slopes[i])
+    dv_img = PARRECImage.load(VARY_REC, scaling='fp')
+    assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
+                        dv_img.get_data(), 9)

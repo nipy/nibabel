@@ -63,8 +63,8 @@ from ..testing import data_path as DATA_PATH
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
+from .test_parrec import EG_REC, VARY_REC
 
-from .test_parrec import EG_PAR, EG_REC
 
 def _some_slicers(shape):
     ndim = len(shape)
@@ -375,15 +375,21 @@ class TestEcatAPI(_TestProxyAPI):
 
 class TestPARRECAPI(_TestProxyAPI):
 
-    def obj_params(self):
-        img = parrec.load(EG_PAR)
+    def _func_dict(self, rec_name):
+        img = parrec.load(rec_name)
         arr_out = img.get_data()
         def eg_func():
-            img = parrec.load(EG_PAR)
-            prox = parrec.PARRECArrayProxy(EG_REC, img.header, 'dv')
-            fobj = open(EG_REC, 'rb')
+            img = parrec.load(rec_name)
+            prox = parrec.PARRECArrayProxy(rec_name,
+                                           img.header,
+                                           scaling='dv')
+            fobj = open(rec_name, 'rb')
             return prox, fobj, img.header
-        yield (eg_func,
-               dict(shape = (64, 64, 9, 3),
-                    dtype_out=np.float64,
-                    arr_out=arr_out))
+        return (eg_func,
+                dict(shape = img.shape,
+                     dtype_out=np.float64,
+                     arr_out=arr_out))
+
+    def obj_params(self):
+        yield self._func_dict(EG_REC)
+        yield self._func_dict(VARY_REC)
