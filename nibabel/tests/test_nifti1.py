@@ -65,6 +65,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         supported_np_types = supported_np_types.union((
             np.longdouble,
             np.longcomplex))
+    tana.add_intp(supported_np_types)
 
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)

@@ -49,6 +49,14 @@ header_file = os.path.join(data_path, 'analyze.hdr')
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 
 
+def add_intp(supported_np_types):
+    # Add intp, uintp to supported types as necessary
+    supported_dtypes = [np.dtype(t) for t in supported_np_types]
+    for np_type in (np.intp, np.uintp):
+        if np.dtype(np_type) in supported_dtypes:
+            supported_np_types.add(np_type)
+
+
 class TestAnalyzeHeader(_TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
@@ -59,6 +67,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
                               np.float32,
                               np.float64,
                               np.complex64))
+    add_intp(supported_np_types)
 
     def test_supported_types(self):
         hdr = self.header_class()
