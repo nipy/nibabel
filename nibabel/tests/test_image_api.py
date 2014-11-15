@@ -16,6 +16,7 @@ What is the image API?
 * ``img.uncache()`` (``img.get_data()`` is allowed to cache the result of the
   array creation.  If it does, this call empties that cache.  Implement this
   as a no-op if ``get_data()`` does not cache.
+* ``img[something]`` generates an informative TypeError
 """
 from __future__ import division, print_function, absolute_import
 
@@ -233,6 +234,11 @@ class GenericImageAPI(ValidateAPI):
             assert_array_equal(img.shape, rt_img.shape)
             assert_almost_equal(img.get_data(), rt_img.get_data())
             del rt_img # to allow windows to delete the directory
+
+    def validate_no_slicing(self, imaker, params):
+        img = imaker()
+        assert_raises(TypeError, img.__getitem__, 'string')
+        assert_raises(TypeError, img.__getitem__, slice(None))
 
 
 class LoadImageAPI(GenericImageAPI):

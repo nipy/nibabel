@@ -43,6 +43,9 @@ classmethods:
    * instance_to_filename(img, fname) - save ``img`` instance to
      filename ``fname``.
 
+You cannot slice an image, and trying to slice an image generates an
+informative TypeError.
+
 There are several ways of writing data.
 =======================================
 
@@ -734,3 +737,10 @@ class SpatialImage(object):
                      img.affine,
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
+
+    def __getitem__(self):
+        ''' No slicing or dictionary interface for images
+        '''
+        raise TypeError("Cannot slice image objects; consider slicing image "
+                        "array data with `img.dataobj[slice]` or "
+                        "`img.get_data()[slice]`")
