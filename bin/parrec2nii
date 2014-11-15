@@ -201,8 +201,10 @@ def proc_file(infile, opts):
         data_obj = pr_img.dataobj
     nhdr.write_to(outfile)
     offset = nhdr.get_data_offset()
-    array_to_file(data_obj, outfile, offset=offset)
-
+    array_to_file(data_obj,
+                  outfile,
+                  out_dtype=nhdr.get_data_dtype(), # for endianness
+                  offset=offset)
     # write out bvals/bvecs if requested
     if opts.bvs:
         bvals, bvecs = pr_hdr.get_bvals_bvecs()
