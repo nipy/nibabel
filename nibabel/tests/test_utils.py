@@ -233,7 +233,8 @@ def test_array_from_file_openers():
                                              (0, 5, 10)):
             fname = 'test.bin' + ext
             with Opener(fname, 'wb') as out_buf:
-                out_buf.write(b' ' * offset)
+                if offset != 0: # avoid http://bugs.python.org/issue16828
+                    out_buf.write(b' ' * offset)
                 out_buf.write(in_arr.tostring(order='F'))
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
