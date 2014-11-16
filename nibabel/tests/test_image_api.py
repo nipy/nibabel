@@ -17,6 +17,8 @@ What is the image API?
   array creation.  If it does, this call empties that cache.  Implement this
   as a no-op if ``get_data()`` does not cache.
 * ``img[something]`` generates an informative TypeError
+* ``img.in_memory`` is True for an array image, and for a proxy image that is
+  cached, but False otherwise.
 """
 from __future__ import division, print_function, absolute_import
 
@@ -172,7 +174,11 @@ class GenericImageAPI(ValidateAPI):
             assert_false(isinstance(img.dataobj, np.ndarray))
             proxy_data = np.asarray(img.dataobj)
             proxy_copy = proxy_data.copy()
+            # Not yet cached, proxy image: in_memory is False
+            assert_false(img.in_memory)
             data = img.get_data()
+            # Data now cached
+            assert_true(img.in_memory)
             assert_false(proxy_data is data)
             # changing array data does not change proxy data, or reloaded data
             data[:] = 42
@@ -182,9 +188,12 @@ class GenericImageAPI(ValidateAPI):
             assert_array_equal(img.get_data(), 42)
             # until we uncache
             img.uncache()
+            # Which unsets in_memory
+            assert_false(img.in_memory)
             assert_array_equal(img.get_data(), proxy_copy)
         else: # not proxy
             assert_true(isinstance(img.dataobj, np.ndarray))
+            assert_true(img.in_memory)
             non_proxy_data = np.asarray(img.dataobj)
             data = img.get_data()
             assert_true(non_proxy_data is data)
@@ -196,9 +205,11 @@ class GenericImageAPI(ValidateAPI):
             # Unache has no effect
             img.uncache()
             assert_array_equal(img.get_data(), 42)
-        # Read only
+        # dataobj is read only
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, 'dataobj', fake_data)
+        # So is in_memory
+        assert_raises(AttributeError, setattr, img, 'in_memory', False)
 
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning

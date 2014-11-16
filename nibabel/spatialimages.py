@@ -464,6 +464,13 @@ class SpatialImage(object):
             self._data_cache = np.asanyarray(self._dataobj)
         return self._data_cache
 
+    @property
+    def in_memory(self):
+        """ True when array data is in memory
+        """
+        return (isinstance(self._dataobj, np.ndarray)
+                or self._data_cache is not None)
+
     def uncache(self):
         """ Delete any cached read of data from proxied data
 
