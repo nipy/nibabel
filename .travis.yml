@@ -17,7 +17,7 @@ matrix:
   include:
     - python: 2.7
       env:
-        - COVERAGE=--with-coverage
+        - COVERAGE=1
     # Absolute minimum dependencies
     - python: 2.7
       env:
@@ -37,7 +37,7 @@ before_install:
             pip install pydicom;
         fi
       fi
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then
+    - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
       fi
@@ -51,7 +51,10 @@ script:
     # Change into an innocuous directory and find tests from installation
     - mkdir for_testing
     - cd for_testing
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then cp ../.coveragerc .; fi
-    - nosetests --with-doctest $COVERAGE `python -c "import os; import nibabel; print(os.path.dirname(nibabel.__file__))"`
+    - if [ "${COVERAGE}" == "1" ]; then
+      cp ../.coveragerc .;
+      COVER_ARGS="--with-coverage --cover-package nibabel";
+      fi
+    - nosetests --with-doctest $COVER_ARGS nibabel
 after_success:
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then coveralls; fi
+    - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
