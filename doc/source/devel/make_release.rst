@@ -47,18 +47,20 @@ Release checklist
 * Review and update the release notes.  Review and update the ``Changelog``
   file.  Get a partial list of contributors with something like::
 
-      git log 1.2.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
+      git log 1.3.0.. | grep '^Author' | cut -d' ' -f 2- | sort | uniq
 
-  where ``1.2.0`` was the last release tag name.
+  where ``1.3.0`` was the last release tag name.
 
   Then manually go over ``git shortlog 1.2.0..`` to make sure the release notes
   are as complete as possible and that every contributor was recognized.
 
-* Update thanks to authors in ``doc/source/index.rst`` and consider any updates
-  to the ``AUTHOR`` file.
+* Look at ``doc/source/index.rst`` and add any authors not yet acknowledged.
 
-* Use the opportunity to update the ``.mailmap`` file if there are any duplicate
-  authors listed from ``git shortlog -nse``.
+* Update thanks to authors in ``doc/source/index.rst`` and consider any
+  updates to the ``AUTHOR`` file.
+
+* Use the opportunity to update the ``.mailmap`` file if there are any
+  duplicate authors listed from ``git shortlog -nse``.
 
 * Check the copyright year in ``doc/source/conf.py``
 
@@ -70,8 +72,8 @@ Release checklist
   becase this will be the output used by pypi_
 
 * Check the dependencies listed in ``nibabel/info.py`` (e.g.
-  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should at
-  least match. Do they still hold?
+  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should
+  at least match. Do they still hold?
 
 * Do a final check on the `nipy buildbot`_
 
@@ -95,10 +97,6 @@ Release checklist
 * Make sure all tests pass from sdist::
 
     make sdist-tests
-
-  and bdist_egg::
-
-    make bdist-egg-tests
 
   and the three ways of installing (from tarball, repo, local in repo)::
 
@@ -124,50 +122,18 @@ Release checklist
 
   Fix ``setup.py`` to carry across any files that should be in the distribution.
 
-* You probably have virtualenvs for different python versions.  Check the tests
-  pass for different configurations.  If you have pytox_ and a network
-  connnection, and lots of pythons installed, you might be able to do::
-
-    tox
-
-  and get tests for python 2.5, 2.6, 2.7, 3.2.  I (MB) have my own set of
-  virtualenvs installed and I've set them up to run with::
-
-    tox -e python25,python26,python27,python32,np-1.2.1
-
-  The trick was only to define these ``testenv`` sections in ``tox.ini``.
-
-  These two above run with::
-
-    make tox-fresh
-    make tox-stale
-
-  respectively.
-
-  The long-hand not-tox way looks like this::
+* You probably have virtualenvs for different Python versions.  Check the
+  tests pass for different configurations. The long-hand way looks like this::
 
     workon python26
+    make distclean
     make sdist-tests
     deactivate
 
   etc for the different virtualenvs.
 
-* Check on different platforms, particularly windows and PPC.  I have wine
-  installed on my Mac, and git bash installed under wine.  I run bash and the
-  tests like this::
-
-    wineconsole bash
-    # in wine bash
-    make sdist-tests
-
-  For the PPC I have to log into an old Mac G5 in Berkeley at
-  ``jerry.bic.berkeley.edu``.  Here's an example session::
-
-    ssh jerry.bic.berkeley.edu
-    cd dev_trees/nibabel
-    git co main-master
-    git pull
-    make sdist-tests
+* Check on different platforms, particularly windows and PPC. Look at the
+  `nipy buildbot`_ automated test runs for this.
 
 * Check the documentation doctests::
 
@@ -187,8 +153,8 @@ Release checklist
     make source-release
 
 * Once everything looks good, you are ready to upload the source release to
-  PyPi.  See `setuptools intro`_.  Make sure you have a file ``\$HOME/.pypirc``,
-  of form::
+  PyPi.  See `setuptools intro`_.  Make sure you have a file
+  ``\$HOME/.pypirc``, of form::
 
     [distutils]
     index-servers =
@@ -207,9 +173,9 @@ Release checklist
     python setup.py register
     python setup.py sdist --formats=gztar,zip upload
 
-* Tag the release with tag of form ``1.1.0``::
+* Tag the release with tag of form ``1.4.0``::
 
-    git tag -am 'Second main release' 1.1.0
+    git tag -am 'Fourth main release' 1.4.0
 
 * Push the tag and any other changes to trunk with::
 
@@ -220,13 +186,13 @@ Release checklist
   * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32
   * http://nipy.bic.berkeley.edu/builders/nibabel-bdist64
 
-  For each of these, enter the revision number (e.g. "1.3.0") in the field
+  For each of these, enter the revision number (e.g. "1.4.0") in the field
   "Revision to build". Then get the built binaries in:
 
   * http://nipy.bic.berkeley.edu/dist-32
   * http://nipy.bic.berkeley.edu/dist-64
 
-  and upload them to pypi with the admin files interface.
+  and upload them to pypi with the admin files interface, or using twine_.
 
   If you are already on a windows machine, you could have done the manual
   command to upload instead: ``python setup.py bdist_wininst upload``.
