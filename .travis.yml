@@ -4,6 +4,10 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 language: python
+env:
+    global:
+        - DEPENDS="numpy scipy matplotlib"
+        - PYDICOM=1
 python:
     - 2.6
     - 3.2
@@ -14,17 +18,30 @@ matrix:
     - python: 2.7
       env:
         - COVERAGE=--with-coverage
+    # Absolute minimum dependencies
+    - python: 2.7
+      env:
+        - DEPENDS=numpy==1.5.1 PYDICOM=0
+    # Minimum pydicom dependency
+    - python: 2.7
+      env:
+        - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
 before_install:
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install nose # always
+    - pip install -f http://travis-wheels.scikit-image.org $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
-    - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" < "3" ]]; then
-      pip install pydicom;
+    - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
+        if [ "$PYDICOM" == "1" ]; then
+            pip install pydicom;
+        fi
       fi
     - if [ "${COVERAGE}" == "--with-coverage" ]; then
       pip install coverage;
       pip install coveralls;
       fi
 # command to install dependencies
-# e.g. pip install -r requirements.txt # --use-mirrors
 install:
     - python setup.py install
     # Point to nibabel data directory
