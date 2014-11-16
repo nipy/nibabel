@@ -423,6 +423,13 @@ def assert_arr_dict_equal(dict1, dict2):
         assert_array_equal(value1, value2)
 
 
+def assert_structarr_equal(star1, star2):
+    # Compare structured arrays (array_equal does not work for np 1.5)
+    assert_equal(star1.dtype, star2.dtype)
+    for name in star1.dtype.names:
+        assert_array_equal(star1[name], star2[name])
+
+
 def test_header_copy():
     # Test header copying
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
@@ -434,7 +441,7 @@ def test_header_copy():
         assert_false(hdr1.general_info is hdr2.general_info)
         assert_arr_dict_equal(hdr1.general_info, hdr2.general_info)
         assert_false(hdr1.image_defs is hdr2.image_defs)
-        assert_array_equal(hdr1.image_defs, hdr2.image_defs)
+        assert_structarr_equal(hdr1.image_defs, hdr2.image_defs)
 
     assert_copy_ok(hdr, hdr2)
     assert_false(hdr.permit_truncated)
