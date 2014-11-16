@@ -18,7 +18,7 @@ __version__ = "%s.%s.%s%s" % (_version_major,
                               _version_micro,
                               _version_extra)
 
-CLASSIFIERS = ["Development Status :: 3 - Alpha",
+CLASSIFIERS = ["Development Status :: 4 - Beta",
                "Environment :: Console",
                "Intended Audience :: Science/Research",
                "License :: OSI Approved :: MIT License",
@@ -39,11 +39,11 @@ NiBabel
 Read / write access to some common neuroimaging file formats
 
 This package provides read +/- write access to some common medical and
-neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2),
-GIFTI_, NIfTI1_, NIfTI2_, MINC1_, MINC2_, MGH_ and ECAT_ as well as PAR/REC.
-We can read and write Freesurfer_ geometry, and read Freesurfer morphometry and
-annotation files.  There is some very limited support for DICOM_.  NiBabel is
-the successor of PyNIfTI_.
+neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
+GIFTI_, NIfTI1_, NIfTI2_, MINC1_, MINC2_, MGH_ and ECAT_ as well as Philips
+PAR/REC.  We can read and write Freesurfer_ geometry, and read Freesurfer
+morphometry and annotation files.  There is some very limited support for
+DICOM_.  NiBabel is the successor of PyNIfTI_.
 
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
@@ -65,31 +65,32 @@ information and access to the image data is made available via NumPy arrays.
 Website
 =======
 
-Current information can always be found at the NIPY nibabel website::
-
-    http://nipy.org/nibabel
+Current documentation on nibabel can always be found at the `NIPY nibabel
+website <http://nipy.org/nibabel>`_.
 
 Mailing Lists
 =============
 
-Please see the developer's list here::
-
-    http://mail.scipy.org/mailman/listinfo/nipy-devel
+Please see the `nipy devel list
+<http://mail.scipy.org/mailman/listinfo/nipy-devel>`_. The nipy devel list is
+fine for user and developer questions about nibabel.
 
 Code
 ====
 
 You can find our sources and single-click downloads:
 
-* `Main repository`_ on Github.
-* Documentation_ for all releases and current development tree.
-* Download as a tar/zip file the `current trunk`_.
+* `Main repository`_ on Github;
+* Documentation_ for all releases and current development tree;
+* Download the `current release`_ from pypi;
+* Download `current development version`_ as a zip file;
 * Downloads of all `available releases`_.
 
 .. _main repository: http://github.com/nipy/nibabel
 .. _Documentation: http://nipy.org/nibabel
-.. _current trunk: http://github.com/nipy/nibabel/archives/master
-.. _available releases: http://github.com/nipy/nibabel/downloads
+.. _current release: https://pypi.python.org/pypi/nibabel
+.. _current development version: https://github.com/nipy/nibabel/archive/master.zip
+.. _available releases: https://github.com/nipy/nibabel/releases
 
 License
 =======
@@ -100,7 +101,7 @@ nibabel distribution.
 """
 
 # versions for dependencies
-NUMPY_MIN_VERSION='1.2'
+NUMPY_MIN_VERSION='1.5'
 PYDICOM_MIN_VERSION='0.9.7'
 
 # Main setup parameters
@@ -110,7 +111,7 @@ MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
 URL                 = "http://nipy.org/nibabel"
-DOWNLOAD_URL        = "http://github.com/nipy/nibabel/archives/master"
+DOWNLOAD_URL        = "http://github.com/nipy/nibabel"
 LICENSE             = "MIT license"
 CLASSIFIERS         = CLASSIFIERS
 AUTHOR              = "Matthew Brett, Michael Hanke, Stephan Gerhard"
@@ -121,5 +122,5 @@ MINOR               = _version_minor
 MICRO               = _version_micro
 ISRELEASE           = _version_extra == ''
 VERSION             = __version__
-PROVIDES            = ["nibabel"]
+PROVIDES            = ["nibabel", 'nisext']
 REQUIRES            = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
