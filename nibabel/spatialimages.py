@@ -176,7 +176,7 @@ class Header(object):
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
-        # that a subclass has exactly the same interface as it's parent
+        # that a subclass has exactly the same interface as its parent
         # - for example Nifti1Images inherit from Analyze, but have
         # different field names
         if type(header) == klass:
