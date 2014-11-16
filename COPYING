@@ -2,7 +2,6 @@
 .. ex: set sts=4 ts=4 sw=4 et tw=79:
 .. vim:syntax=rest
 
-
 .. _license:
 
 **********************
@@ -21,7 +20,7 @@ documentation is covered by the MIT license.
 
   Copyright (c) 2009-2014 Matthew Brett <matthew.brett@gmail.com>
   Copyright (c) 2010-2013 Stephan Gerhard <git@unidesign.ch>
-  Copyright (c) 2006-2010 Michael Hanke <michael.hanke@gmail.com>
+  Copyright (c) 2006-2014 Michael Hanke <michael.hanke@gmail.com>
   Copyright (c) 2011 Christian Haselgrove <christian.haselgrove@umassmed.edu>
   Copyright (c) 2010-2011 Jarrod Millman <jarrod.millman@gmail.com>
   Copyright (c) 2011-2014 Yaroslav Halchenko <debian@onerussian.com>
@@ -192,7 +191,7 @@ The files::
 are from http://psydata.ovgu.de/philips_achieva_testfiles, and released under
 the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
 
-The files:
+The files::
 
     nibabel/nibabel/tests/data/DTI.PAR
     nibabel/nibabel/tests/data/NA.PAR
