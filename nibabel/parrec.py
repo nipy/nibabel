@@ -74,6 +74,17 @@ system (right to Left, anterior to Posterior, inferior to Superior), but in a
 different order.
 
 We call the PAR file's axis system "PSL" (Posterior, Superior, Left)
+
+#########
+Data type
+#########
+
+It seems that everyone agrees that Philips stores REC data in little-endian
+format - see https://github.com/nipy/nibabel/issues/274
+
+Philips XML header files, and some previous experience, suggest that the REC
+data is always stored as 8 or 16 bit unsigned integers - see
+https://github.com/nipy/nibabel/issues/275
 """
 from __future__ import print_function, division
 
@@ -556,8 +567,12 @@ class PARRECHeader(Header):
         # functionality
         # dtype
         bitpix = self._get_unique_image_prop('image pixel size')
-        # REC data always little endian?
-        dt = np.dtype('int' + str(bitpix)).newbyteorder('<')
+        if bitpix not in (8, 16):
+            raise PARRECError('Only 8- and 16-bit data supported (not %s)'
+                              'please report this to the nibabel developers'
+                              % bitpix)
+        # REC data always little endian
+        dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
         Header.__init__(self,
                         data_dtype=dt,
                         shape=self._calc_data_shape(),
