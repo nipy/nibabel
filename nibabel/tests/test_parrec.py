@@ -681,6 +681,9 @@ class FakeHeader(object):
         n_slices = np.prod(self._shape[2:])
         return self._shape[:2] + (n_slices,)
 
+    def sorted_labels(self, sorted_indices, collapse_slices):
+        return np.arange(self._shape[-1])
+
 
 def test_parrec_proxy():
     # Test PAR / REC proxy class, including mmap flags
