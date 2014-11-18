@@ -48,6 +48,12 @@ def get_opt_parser():
                    """Output bvals/bvecs files in addition to NIFTI
                    image.""")))
     p.add_option(
+        Option("--norm-bvs", action="store_true", dest="norm_bvs",
+               default=False,
+               help=one_line(
+                   """Normalize bvectors to 1.0, rescaling b-values
+                   appropriately.""")))
+    p.add_option(
         Option("-d", "--dwell-time", action="store_true", default=False,
                dest="dwell_time",
                help=one_line(
@@ -207,7 +213,7 @@ def proc_file(infile, opts):
                   offset=offset)
     # write out bvals/bvecs if requested
     if opts.bvs:
-        bvals, bvecs = pr_hdr.get_bvals_bvecs()
+        bvals, bvecs = pr_hdr.get_bvals_bvecs(normalize_bvecs=opts.norm_bvs)
         if (bvals, bvecs) == (None, None):
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
