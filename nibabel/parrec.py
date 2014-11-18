@@ -411,7 +411,7 @@ def parse_PAR_header(fobj):
     -------
     general_info : dict
         Contains all "General Information" from the header file
-    image_info : ndarray
+    image_defs : ndarray
         Structured array with fields giving all "Image information" in the
         header
     """
@@ -489,7 +489,7 @@ class PARRECArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        scaling : {'fp', 'dv'}, optional, keyword only
+        scaling : {'fp', 'dv', None}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
         if mmap not in (True, False, 'c', 'r'):
@@ -499,8 +499,11 @@ class PARRECArrayProxy(object):
         self._shape = header.get_data_shape()
         self._dtype = header.get_data_dtype()
         self._slice_indices = header.get_sorted_slice_indices()
-        self._mmap=mmap
-        self._slice_scaling = header.get_data_scaling(scaling)
+        self._mmap = mmap
+        if scaling is None:
+            self._slice_scaling = None
+        else:
+            self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
     @property
@@ -878,7 +881,7 @@ class PARRECHeader(Header):
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
-            raise ValueError("Unknown scling method '%s'." % method)
+            raise ValueError("Unknown scaling method '%s'." % method)
         reorder = self.get_sorted_slice_indices()
         slope = slope[reorder]
         intercept = intercept[reorder]
@@ -948,7 +951,7 @@ class PARRECImage(SpatialImage):
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
-        scaling : {'dv', 'fp'}, optional, keyword-only
+        scaling : {'dv', 'fp', None}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
         """
@@ -982,7 +985,7 @@ class PARRECImage(SpatialImage):
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
-        scaling : {'dv', 'fp'}, optional, keyword-only
+        scaling : {'dv', 'fp', None}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
         """
