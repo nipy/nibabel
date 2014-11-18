@@ -534,3 +534,11 @@ class TestPARRECImage(tsi.MmapImageMixin):
 
     def write_image(self):
         return parrec.load(EG_PAR), EG_PAR
+
+
+def test_bitpix():
+    # Check errors for other than 8, 16 bit
+    hdr_defs = HDR_DEFS.copy()
+    for pix_size in (24, 32):
+        hdr_defs['image pixel size'] = pix_size
+        assert_raises(PARRECError, PARRECHeader, HDR_INFO, hdr_defs)

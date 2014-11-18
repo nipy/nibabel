@@ -567,7 +567,11 @@ class PARRECHeader(Header):
         # functionality
         # dtype
         bitpix = self._get_unique_image_prop('image pixel size')
-        # REC data always little endian?
+        if bitpix not in (8, 16):
+            raise PARRECError('Only 8- and 16-bit data supported (not %s)'
+                              'please report this to the nibabel developers'
+                              % bitpix)
+        # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
         Header.__init__(self,
                         data_dtype=dt,
