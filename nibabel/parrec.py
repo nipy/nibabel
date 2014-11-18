@@ -216,6 +216,18 @@ class PARRECError(Exception):
     pass
 
 
+def _unique_rows(a):
+    """
+    find unique rows of a 2D array.  based on discussion at:
+    http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    """
+    if a.ndim != 2:
+        raise ValueError("expected 2D input")
+    b = np.ascontiguousarray(a).view(
+            np.dtype((np.void, a.dtype.itemsize * a.shape[1])))
+    return np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
+
+
 def _split_header(fobj):
     """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
@@ -996,8 +1008,17 @@ class PARRECHeader(Header):
             dynamic_keys.remove('slice number')
 
         non_unique_keys = []
+
         for key in dynamic_keys:
-            if len(np.unique(self.image_defs[key])) > 1:
+            ndim = self.image_defs[key].ndim
+            if ndim == 1:
+                num_unique = len(np.unique(self.image_defs[key]))
+            elif ndim == 2:
+                # for 2D cases, e.g. 'image angulation'
+                num_unique = len(_unique_rows(self.image_defs[key]))
+            else:
+                raise ValueError("unexpected image_defs shape > 2D")
+            if num_unique > 1:
                 non_unique_keys.append(key)
 
         if collapse_slices:
@@ -1014,13 +1035,11 @@ class PARRECHeader(Header):
 
         sort_info = {}
         for key in non_unique_keys:
-            if collapse_slices:
-                sort_info[key] = list(
-                    self.image_defs[key][sorted_indices][sl1_indices])
-            else:
-                sort_info[key] = list(
-                    self.image_defs[key][sorted_indices])
 
+            if collapse_slices:
+                sort_info[key] = self.image_defs[key][sorted_indices][sl1_indices]
+            else:
+                sort_info[key] = self.image_defs[key][sorted_indices]
         return sort_info
 
 
