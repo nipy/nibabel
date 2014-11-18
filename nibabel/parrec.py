@@ -506,6 +506,21 @@ class PARRECArrayProxy(object):
             self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
+        try:
+            # store additional slice & volume label information
+            self._dim_4_labels = header.sorted_labels(
+                    sorted_indices=self._slice_indices,
+                    collapse_slices=True)
+            self._dim_3_4_labels = None
+        except:
+            # if non-unique slice orientations or image angulations, need to
+            # also keep labels for the 3rd (slice) dimension
+            self._dim_4_labels = None
+            self._dim_3_4_labels = header.sorted_labels(
+                sorted_indices=self._slice_indices,
+                collapse_slices=False)
+
+
     @property
     def shape(self):
         return self._shape
@@ -938,6 +953,75 @@ class PARRECHeader(Header):
         # Based on our sorting, they should always be last
         n_used = np.prod(self.get_data_shape()[2:])
         return np.lexsort(keys)[:n_used]
+
+    def sorted_labels(self, sorted_indices=None, collapse_slices=True):
+        """ return a dictionary of lists of the varying values in
+        ``self.image_defs``.  This is useful for custom data sorting.  only
+        keys that have more than 1 unique value across the dataset will exist
+        in the returned `sort_info` dictionary.
+
+        Parameters
+        ----------
+        sorted_indices : array, optional
+            sorted slice indices as returned by
+            ``self.get_sorted_slice_indices``.
+        collapse_slices : bool, optional
+            if True, only return indices corresponding to the first slice
+
+        Returns
+        -------
+        sort_info : dict
+            Each key corresponds to a dynamically varying sequence dimension.
+            The ordering of values corresponds to that in sorted_indices.
+        """
+
+        # define which keys to store sorting info for
+        dynamic_keys = ['slice number',
+                        'cardiac phase number',
+                        'echo number',
+                        'label type',
+                        'image_type_mr',
+                        'dynamic scan number',
+                        'slice orientation',
+                        'image_display_orientation',  # ????
+                        'image angulation',
+                        'scanning sequence',
+                        'gradient orientation number',
+                        'diffusion b value number']
+
+        if sorted_indices is None:
+            sorted_indices = self.get_sorted_slice_indices()
+
+        if collapse_slices:
+            dynamic_keys.remove('slice number')
+
+        non_unique_keys = []
+        for key in dynamic_keys:
+            if len(np.unique(self.image_defs[key])) > 1:
+                non_unique_keys.append(key)
+
+        if collapse_slices:
+            if 'slice orientation' in non_unique_keys:
+                raise ValueError("for non-unique slice orientation, need "
+                                 "collapse_slice=False")
+            if 'image angulation' in non_unique_keys:
+                raise ValueError("for non-unique image angulation, need "
+                                 "collapse_slice=False")
+            if 'image image_display_orientation' in non_unique_keys:  # ???
+                raise ValueError("for non-unique display orientation, need "
+                                 "collapse_slice=False")
+            sl1_indices = self.image_defs['slice number'][sorted_indices] == 1
+
+        sort_info = {}
+        for key in non_unique_keys:
+            if collapse_slices:
+                sort_info[key] = list(
+                    self.image_defs[key][sorted_indices][sl1_indices])
+            else:
+                sort_info[key] = list(
+                    self.image_defs[key][sorted_indices])
+
+        return sort_info
 
 
 class PARRECImage(SpatialImage):
