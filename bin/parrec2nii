@@ -8,6 +8,7 @@ import numpy as np
 import numpy.linalg as npl
 import sys
 import os
+import json
 import nibabel
 import nibabel.parrec as pr
 from nibabel.parrec import one_line
@@ -261,6 +262,18 @@ def proc_file(infile, opts):
                     for val in row:
                         fid.write('%s ' % val)
                     fid.write('\n')
+
+    opts.dim_info = True  # TODO: remove hard-coded value
+    if opts.dim_info and pr_img.dataobj._dim_4_labels is not None:
+        if len(list(pr_img.dataobj._dim_4_labels.keys())) > 0:
+            with open(basefilename + '.ordering.json', 'w') as fid:
+                json.dump(pr_img.dataobj._dim_4_labels, fid, sort_keys=True,
+                          indent=4)
+    elif opts.dim_info and pr_img.dataobj._dim_3_4_labels is not None:
+        if len(list(pr_img.dataobj._dim_3_4_labels.keys())) > 0:
+            with open(basefilename + '.ordering.json', 'w') as fid:
+                json.dump(pr_img.dataobj._dim_3_4_labels, fid, sort_keys=True,
+                          indent=4)
 
     # write out dwell time if requested
     if opts.dwell_time:
