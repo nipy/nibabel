@@ -95,7 +95,7 @@ def test_parrec2nii():
         run_command(['parrec2nii', in_fname])
         img = load(out_froot)
         assert_equal(img.shape, (64, 64, 9, 3))
-        assert_equal(img.get_data_dtype(), np.dtype(np.int16))
+        assert_equal(img.get_data_dtype(), np.dtype(np.uint16))
         # Check against values from Philips converted nifti image
         data = img.get_data()
         assert_true(np.allclose(

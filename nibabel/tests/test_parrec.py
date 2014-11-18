@@ -124,7 +124,7 @@ EXAMPLE_IMAGES = [
     dict(
         fname = EG_PAR,
         shape = (64, 64, 9, 3),
-        dtype = np.int16,
+        dtype = np.uint16,
         # We disagree with Philips about the right affine, for the moment, so
         # use our own affine as determined from a previous load in nibabel
         affine = AN_OLD_AFFINE,
@@ -146,7 +146,7 @@ def test_top_level_load():
 def test_header():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
-    assert_equal(hdr.get_data_dtype(), np.dtype('<i2'))
+    assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
     assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
     assert_equal(hdr.get_data_offset(), 0)
     si = np.array([np.unique(x) for x in hdr.get_data_scaling()]).ravel()
