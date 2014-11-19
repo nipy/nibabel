@@ -224,7 +224,7 @@ def _unique_rows(a):
     if a.ndim != 2:
         raise ValueError("expected 2D input")
     b = np.ascontiguousarray(a).view(
-            np.dtype((np.void, a.dtype.itemsize * a.shape[1])))
+        np.dtype((np.void, a.dtype.itemsize * a.shape[1])))
     return np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
 
 
@@ -518,21 +518,6 @@ class PARRECArrayProxy(object):
             self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
-        try:
-            # store additional slice & volume label information
-            self._dim_4_labels = header.sorted_labels(
-                    sorted_indices=self._slice_indices,
-                    collapse_slices=True)
-            self._dim_3_4_labels = None
-        except:
-            # if non-unique slice orientations or image angulations, need to
-            # also keep labels for the 3rd (slice) dimension
-            self._dim_4_labels = None
-            self._dim_3_4_labels = header.sorted_labels(
-                sorted_indices=self._slice_indices,
-                collapse_slices=False)
-
-
     @property
     def shape(self):
         return self._shape
@@ -692,7 +677,7 @@ class PARRECHeader(Header):
                 non_zeros = np.where(bvec_norms[non_unity_indices] > 1e-2)[0]
                 if len(non_zeros) > 0:
                     bvecs[non_unity_indices[non_zeros]] /= \
-                        bvec_norms[non_unity_indices[non_zeros]][:, None]
+                        bvec_norms[non_unity_indices[non_zeros]][:, np.newaxis]
         # rotate bvecs to match stored image orientation
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
@@ -966,25 +951,27 @@ class PARRECHeader(Header):
         n_used = np.prod(self.get_data_shape()[2:])
         return np.lexsort(keys)[:n_used]
 
-    def sorted_labels(self, sorted_indices=None, collapse_slices=True):
-        """ return a dictionary of lists of the varying values in
-        ``self.image_defs``.  This is useful for custom data sorting.  only
-        keys that have more than 1 unique value across the dataset will exist
-        in the returned `sort_info` dictionary.
+    def get_dimension_labels(self, collapse_slices=True):
+        """ Dynamic labels corresponding to the final data dimension(s).
+
+        This is useful for custom data sorting.  A subset of the info in
+        ``self.image_defs`` is returned in an order that matches the final
+        data dimension(s).  Only labels that have more than one unique value
+        across the dataset will be returned.
 
         Parameters
         ----------
-        sorted_indices : array, optional
-            sorted slice indices as returned by
-            ``self.get_sorted_slice_indices``.
         collapse_slices : bool, optional
-            if True, only return indices corresponding to the first slice
+            If True, only return volume indices (corresponding to the first
+            slice).  If False, return indices corresponding to individual
+            slices as well (with shape matching self.shape[2:]).
 
         Returns
         -------
         sort_info : dict
             Each key corresponds to a dynamically varying sequence dimension.
-            The ordering of values corresponds to that in sorted_indices.
+            The ordering of each value corresponds to that returned by
+            ``self.get_sorted_slice_indices``.
         """
 
         # define which keys to store sorting info for
@@ -1001,21 +988,26 @@ class PARRECHeader(Header):
                         'gradient orientation number',
                         'diffusion b value number']
 
-        if sorted_indices is None:
-            sorted_indices = self.get_sorted_slice_indices()
+        sorted_indices = self.get_sorted_slice_indices()
+        image_defs = self.image_defs
 
         if collapse_slices:
             dynamic_keys.remove('slice number')
 
-        non_unique_keys = []
-
+        # remove any dynamic keys that may not be implemented in older .PAR
+        # versions
         for key in dynamic_keys:
-            ndim = self.image_defs[key].ndim
+            if key not in image_defs:
+                dynamic_keys.remove(key)
+
+        non_unique_keys = []
+        for key in dynamic_keys:
+            ndim = image_defs[key].ndim
             if ndim == 1:
-                num_unique = len(np.unique(self.image_defs[key]))
+                num_unique = len(np.unique(image_defs[key]))
             elif ndim == 2:
                 # for 2D cases, e.g. 'image angulation'
-                num_unique = len(_unique_rows(self.image_defs[key]))
+                num_unique = len(_unique_rows(image_defs[key]))
             else:
                 raise ValueError("unexpected image_defs shape > 2D")
             if num_unique > 1:
@@ -1028,18 +1020,18 @@ class PARRECHeader(Header):
             if 'image angulation' in non_unique_keys:
                 raise ValueError("for non-unique image angulation, need "
                                  "collapse_slice=False")
-            if 'image image_display_orientation' in non_unique_keys:  # ???
+            if 'image_display_orientation' in non_unique_keys:  # ???
                 raise ValueError("for non-unique display orientation, need "
                                  "collapse_slice=False")
-            sl1_indices = self.image_defs['slice number'][sorted_indices] == 1
+            sl1_indices = image_defs['slice number'][sorted_indices] == 1
 
         sort_info = {}
         for key in non_unique_keys:
-
             if collapse_slices:
-                sort_info[key] = self.image_defs[key][sorted_indices][sl1_indices]
+                sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
             else:
-                sort_info[key] = self.image_defs[key][sorted_indices]
+                value = image_defs[key][sorted_indices]
+                sort_info[key] = value.reshape(self.shape[2:])
         return sort_info
 
 

@@ -72,6 +72,17 @@ def get_opt_parser():
                    for --dwell-time. The field strength must be supplied
                    because it is not encoded in the PAR/REC format.""")))
     p.add_option(
+        Option("-i", "--dimension-info", action="store_true", dest="dim_info",
+               default=True,
+               help=one_line(
+                   """Export .PAR dimension labels corresponding to the fourth
+                   dimension of the data.  The dimension info will be stored in
+                   JSON format with a filename matching the input .PAR, but
+                   with the extension .ordering.json.  Only labels that vary
+                   along the 4th dimension are exported.  (e.g. for a single
+                   a single volume structural scan there are no dynamic labels
+                   and no output file will be created)""")))
+    p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help=one_line(
                    """Reference point of the q-form transformation of the NIfTI
@@ -126,22 +137,14 @@ def error(msg, exit_code):
     sys.exit(exit_code)
 
 
-def sort_info_to_lists(sort_info):
-    sort_info = deepcopy(sort_info)
-    # convert from elements from numpy array to lists for easy JSON export
-    for key in sort_info:
-        ndim = sort_info[key].ndim
-        if ndim == 1:
-            sort_info[key] = list(sort_info[key])
-        elif ndim == 2:
-            k = sort_info[key]
-            k_list = []
-            for row in range(k.shape[0]):
-                k_list.append(list(k[row]))
-            sort_info[key] = k_list
-        else:
-            raise ValueError("only 1D and 2D arrays supported")
-    return sort_info
+def convert_arrays_to_lists(input_dict):
+    # convert dictionary of numpy arrays to a dictionary of lists
+    output_dict = deepcopy(input_dict)
+    for key, value in output_dict.items():
+        if not isinstance(value, np.ndarray):
+            raise ValueError("all dictionary entries must be numpy arrays")
+        output_dict[key] = value.tolist()
+    return output_dict
 
 
 def proc_file(infile, opts):
@@ -249,17 +252,16 @@ def proc_file(infile, opts):
                         fid.write('%s ' % val)
                     fid.write('\n')
 
-    opts.dim_info = True  # TODO: remove hard-coded value
-    if opts.dim_info and pr_img.dataobj._dim_4_labels is not None:
-        labels = pr_img.dataobj._dim_4_labels
-    elif opts.dim_info and pr_img.dataobj._dim_3_4_labels is not None:
-        labels = pr_img.dataobj._dim_3_4_labels
-    else:
-        labels = None
-    if labels is not None and len(labels) > 0:
-        sort_info = sort_info_to_lists(labels)
-        with open(basefilename + '.ordering.json', 'w') as fid:
-            json.dump(sort_info, fid, sort_keys=True, indent=4)
+    # export data labels varying along the 4th dimensions
+    if opts.dim_info:
+        if pr_img.dataobj._dim_4_labels is not None:
+            labels = pr_img.header.get_dimension_labels(collapse_slices=True)
+        else:
+            labels = None
+        if labels is not None and len(labels) > 0:
+            labels = convert_arrays_to_lists(labels)
+            with open(basefilename + '.ordering.json', 'w') as fid:
+                json.dump(labels, fid, sort_keys=True, indent=4)
 
     # write out dwell time if requested
     if opts.dwell_time:
