@@ -176,9 +176,11 @@ def test_header_dimension_labels():
     vol_labels = hdr.get_dimension_labels()
     assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
     assert_equal(vol_labels['dynamic scan number'], [1, 2, 3])
+    # check that output is ndarray rather than list
+    assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
     # check case with individual slice labels
     slice_vol_labels = hdr.get_dimension_labels(collapse_slices=False)
-    # verify the expected keys are present
+    # verify that both expected keys are present
     assert_true('slice number' in slice_vol_labels)
     assert_true('dynamic scan number' in slice_vol_labels)
     # verify shape of labels matches final dimensions of data
