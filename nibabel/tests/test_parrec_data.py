@@ -17,8 +17,7 @@ from nose.tools import assert_true, assert_false, assert_equal
 
 from numpy.testing import assert_almost_equal
 
-NIBABEL_DATA = get_nibabel_data()
-BALLS = None if NIBABEL_DATA is None else pjoin(NIBABEL_DATA, 'nitest-balls1')
+BALLS = pjoin(get_nibabel_data(), 'nitest-balls1')
 
 # Amount by which affine translation differs from NIFTI conversion
 AFF_OFF = [-0.93644031, -0.95572686, 0.03288748]

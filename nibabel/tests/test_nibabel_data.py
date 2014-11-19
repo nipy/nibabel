@@ -25,8 +25,8 @@ def test_get_nibabel_data():
     if isdir(local_data):
         assert_equal(nibd.get_nibabel_data(), local_data)
     else:
-        assert_equal(nibd.get_nibabel_data(), None)
+        assert_equal(nibd.get_nibabel_data(), '')
     nibd.environ['NIBABEL_DATA_DIR'] = 'not_a_path'
-    assert_equal(nibd.get_nibabel_data(), None)
+    assert_equal(nibd.get_nibabel_data(), '')
     nibd.environ['NIBABEL_DATA_DIR'] = MY_DIR
     assert_equal(nibd.get_nibabel_data(), MY_DIR)
