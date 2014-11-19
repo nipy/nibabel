@@ -338,6 +338,16 @@ def test_diffusion_parameters():
     assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+    # test bval/bvec normalization
+    bvals_norm, bvecs_norm = dti_hdr.get_bvals_bvecs(normalize_bvecs=True)
+    # bvecs were already normalized, so expect their values to remain unchanged
+    assert_almost_equal(bvecs_norm, DTI_PAR_BVECS[:, [2, 0, 1]])
+    bnorm = np.linalg.norm(bvecs_norm, axis=1)
+    # all bvals where bvecs = [0, 0, 0] got set to 0?
+    assert_equal(np.abs(bvals_norm[bnorm == 0]).sum(), 0)
+    # the other b-vectors were already normalized and should not have changed
+    assert_almost_equal(bvals_norm[bnorm > 0],
+                        np.asarray(DTI_PAR_BVALS)[bnorm > 0])
 
 
 def test_null_diffusion_params():
