@@ -160,8 +160,10 @@ _hdr_key_dict = {
     'Dynamic scan      <0=no 1=yes> ?': ('dyn_scan', int),
     'Diffusion         <0=no 1=yes> ?': ('diffusion', int),
     'Diffusion echo time [ms]': ('diffusion_echo_time', float),
+    # Lines below added for par / rec versions > 4
     'Max. number of diffusion values': ('max_diffusion_values', int),
     'Max. number of gradient orients': ('max_gradient_orient', int),
+    # Line below added for par / rec version > 4.1
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
     }
 
@@ -205,15 +207,19 @@ image_def_dtds['V4'] = [
     ('TURBO factor', int,),
     ('Inversion delay', float)]
 
-# Extra image def fields for 4.2 compared to 4
-image_def_dtds['V4.2'] = image_def_dtds['V4'] + [
+# Extra image def fields for 4.1 compared to 4
+image_def_dtds['V4.1'] = image_def_dtds['V4'] + [
     ('diffusion b value number', int,),     # (imagekey!)
     ('gradient orientation number', int,),  # (imagekey!)
     ('contrast type', 'S30'),               # XXX might be too short?
     ('diffusion anisotropy type', 'S30'),   # XXX might be too short?
     ('diffusion', float, (3,)),
-    ('label type', int,),                  # (imagekey!)
     ]
+
+# Extra image def fields for 4.2 compared to 4.1
+image_def_dtds['V4.2'] = image_def_dtds['V4.1'] + [
+    ('label type', int,),                  # (imagekey!)
+]
 
 #: PAR header versions we claim to understand
 supported_versions = list(image_def_dtds.keys())
