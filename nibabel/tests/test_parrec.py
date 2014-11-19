@@ -345,7 +345,7 @@ def test_diffusion_parameters():
     bnorm = np.linalg.norm(bvecs_norm, axis=1)
     # all bvals where bvecs = [0, 0, 0] got set to 0?
     assert_equal(np.abs(bvals_norm[bnorm == 0]).sum(), 0)
-    # the other b-vectors were already normalized and should not have changed
+    # all other bvals should not have changed
     assert_almost_equal(bvals_norm[bnorm > 0],
                         np.asarray(DTI_PAR_BVALS)[bnorm > 0])
 
