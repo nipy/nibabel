@@ -621,8 +621,14 @@ class PARRECHeader(Header):
         """Echo train length of the recording"""
         return self.general_info['epi_factor']
 
-    def get_q_vectors(self):
+    def get_q_vectors(self, normalize_bvecs=False):
         """Get Q vectors from the data
+
+        Parameters
+        ----------
+        normalize_bvecs : bool, optional
+            whether to scale the b-values by the norm of the b_vectors and then
+            renormalize any non-zero b_vectors to 1.0.
 
         Returns
         -------
@@ -630,7 +636,7 @@ class PARRECHeader(Header):
             Array of q vectors (bvals * bvecs), or None if not a diffusion
             acquisition.
         """
-        bvals, bvecs = self.get_bvals_bvecs()
+        bvals, bvecs = self.get_bvals_bvecs(normalize_bvecs=normalize_bvecs)
         if bvals is None and bvecs is None:
             return None
         return bvecs * bvals[:, np.newaxis]
