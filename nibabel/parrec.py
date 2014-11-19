@@ -994,10 +994,9 @@ class PARRECHeader(Header):
         if collapse_slices:
             dynamic_keys.remove('slice number')
 
-        # remove any dynamic keys that may not be implemented in older .PAR
-        # versions
+        # remove dynamic keys that may not be present in older .PAR versions
         for key in dynamic_keys:
-            if key not in image_defs:
+            if key not in image_defs.dtype.fields:
                 dynamic_keys.remove(key)
 
         non_unique_keys = []
@@ -1031,7 +1030,8 @@ class PARRECHeader(Header):
                 sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
             else:
                 value = image_defs[key][sorted_indices]
-                sort_info[key] = value.reshape(self.shape[2:])
+                sort_info[key] = value.reshape(self.get_data_shape()[2:],
+                                               order='F')
         return sort_info
 
 
