@@ -6,7 +6,7 @@
 language: python
 env:
     global:
-        - DEPENDS="numpy scipy matplotlib"
+        - DEPENDS="numpy scipy matplotlib h5py"
         - PYDICOM=1
 python:
     - 2.6
@@ -30,7 +30,7 @@ before_install:
     - virtualenv venv
     - source venv/bin/activate
     - pip install nose # always
-    - pip install -f http://travis-wheels.scikit-image.org $DEPENDS
+    - pip install --no-index -f http://travis-wheels.scikit-image.org $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
         if [ "$PYDICOM" == "1" ]; then
@@ -40,6 +40,9 @@ before_install:
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
+      fi
+    - if [[ $DEPENDS == *h5py* ]]; then
+      sudo apt-get install libhdf5-serial-dev;
       fi
 # command to install dependencies
 install:
