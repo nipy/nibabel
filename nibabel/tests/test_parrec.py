@@ -175,7 +175,7 @@ def test_header_dimension_labels():
     # check volume labels
     vol_labels = hdr.get_dimension_labels()
     assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
-    assert_equal(vol_labels['dynamic scan number'], [1, 2, 3])
+    assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
     # check that output is ndarray rather than list
     assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
     # check case with individual slice labels
