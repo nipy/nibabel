@@ -24,18 +24,62 @@ NiBabel
 +++++++
 
 Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
-(MH) and Stephan Gerhard (SG). Recently there have been large contributions from
-Krish Subramaniam, Alexandre Gramfort, Cindee Madison, Félix C. Morency,
-Christian Haselgrove.
+(MH) and Stephan Gerhard (SG).
 
-* Upcoming (TBA)
+* 2.0.0 (soon)
 
-  * Nifti2 read / write support
-  * Read support for Minc2
-  * bug fix in freesurfer.read_annot with orig_ids=False when annot contains
-    vertices with no label.
+  This release had large contributions from Eric Larson, Brendan Moloney,
+  Nolan Nichols, Basile Pinsard, Chris Johnson and Nikolaas N. Oosterhof.
+
+  * New feature, bugfix release with minor API breakage;
+  * Minor API breakage: default write of NIfTI / Analyze image data offset
+    value changed from keeping the value as read from file, to shrinking the
+    offset the minimum necessary to make room for the header and any
+    extensions;
+  * Minor API breakage: data scaling in NIfTI / Analyze now set to NaN when
+    reading images.  To read the original data scaling you need to look at the
+    ``slope`` and ``inter`` properties of the image ``dataobj`` attribute;
+  * Minor API breakage: image data offset in NIfTI / Analyze now set to zero
+    when reading images.  TO read the original data offset use the ``offset``
+    property of the image ``dataobj`` attribute;
+  * Images now have properties ``dataobj``, ``affine``, ``header``; we will
+    slowly phase out the ``get_affine`` and ``get_header`` image methods;
+  * The image ``dataobj`` can be sliced using an efficient algorithm to avoid
+    reading unneccesary data from disk.  This makes it possible to do very
+    efficient reads of single volumes from a time series;
+  * You can now set NIfTI / Analyze data scaling explicitly to force this
+    scaling to be written into the header;
+  * NIfTI2 read / write support;
+  * Read support for MINC2;
+  * Much extended read support for PAR / REC, largely due to the work of Eric
+    Larson and Gregory R. Lee giving new code, advice and code review;
+  * Preliminary support for Philips multiframe DICOM images (thanks to Nolan
+    Nichols, Ly Nguyen and Brendan Moloney);
+  * New function to save Freesurfer annotation files (by Github user ohinds);
+  * Method to return MGH format ``vox2ras_tkr`` affine (Eric Larson);
+  * A new API for reading unscaled data from NIfTI and other images, using
+    ``img.dataobj.get_unscaled()``; deprecate previous way of doing this with
+    ``read_img_data`` function;
+  * Bug fix replacing NaN values with zero when writing floating point data as
+    integers.  If the input floating point data range did not include zero,
+    then NaN would not get written to a value corresponding to zero in the
+    output;
+  * Improvements and bug fixes to image orientation calculation and DICOM
+    wrappers by Brendan Moloney;
+  * Bug fix writing GIfTI files with base64 encoding that didn't match the
+    spec, and the wrong field name for the endian code. Thanks to Basile
+    Pinsard and Russ Poldrack for diagnosis and fixes;
+  * Bug fix in freesurfer.read_annot with orig_ids=False when annot contains
+    vertices with no label (Alexandre Gramfort);
+  * More tutorials in the documentation, including introductory tutorial on
+    DICOM, and on coordinate systems;
+  * Lots of code refactoring, including moving to common code-base for Python
+    2 and Python 3;
+  * New mechanism to add images for tests via git submodules.
 
 * 1.3.0 (Tuesday 11 September 2012)
+
+  Special thanks to Chris Johnson, Brendan Moloney and JB Poline.
 
   * New feature and bugfix release
   * Add ability to write Freesurfer triangle files (Chris Johnson)
@@ -55,7 +99,8 @@ Christian Haselgrove.
 
 * 1.2.1 (Wednesday 13 June 2012)
 
-  Particular thanks to Yaroslav Halchecko for fixes and cleanups in this release
+  Particular thanks to Yaroslav Halchecko for fixes and cleanups in this
+  release.
 
   * Bugfix release
   * Make compatible with pydicom 0.9.7
@@ -66,6 +111,9 @@ Christian Haselgrove.
     ``nib-dicomfs``
 
 * 1.2.0 (Sunday 6 May 2012)
+
+  This release had large contributions from Krish Subramaniam, Alexandre
+  Gramfort, Cindee Madison, Félix C. Morency and Christian Haselgrove.
 
   * New feature and bugfix release
   * Freesurfer format support by Krish Subramaniam and Alexandre Gramfort.
@@ -82,6 +130,8 @@ Christian Haselgrove.
     various other useful fixes by Yaroslav Halchenko.
 
 * 1.1.0 (Thursday 28 April 2011)
+
+  Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 
   * New feature release
   * Python 3.2 support
