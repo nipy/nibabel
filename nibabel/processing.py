@@ -115,9 +115,12 @@ def resample_from_to(from_img,
                      to_vox_map,
                      order=3,
                      mode='constant',
-                     cval = 0.,
+                     cval=0.,
                      out_class=Nifti1Image):
     """ Resample image `from_img` to mapped voxel space `to_vox_map`
+
+    Resample using N-d spline interpolation (where N is given by the `order`
+    argument).
 
     Parameters
     ----------
@@ -168,17 +171,17 @@ def resample_from_to(from_img,
                                  rzs,
                                  trans,
                                  to_shape,
-                                 order = order,
-                                 mode = mode,
-                                 cval = cval)
+                                 order=order,
+                                 mode=mode,
+                                 cval=cval)
     return out_class(data, to_affine, from_img.header)
 
 
 def resample_to_output(in_img,
-                       voxel_sizes = None,
+                       voxel_sizes=None,
                        order=3,
                        mode='constant',
-                       cval = 0.,
+                       cval=0.,
                        out_class=Nifti1Image):
     """ Resample image `in_img` to output voxel axes (world space)
 
@@ -190,15 +193,16 @@ def resample_to_output(in_img,
         an image from data, affine and header.
     voxel_sizes : None or sequence
         Gives the diagonal entries of ``out_img.affine` (except the trailing 1
-        for the homogenous coordinates) (``out_img.affine == np.diag(voxel_sizes
-        + [1])``). If None, return identity `out_img.affine`.
+        for the homogenous coordinates) (``out_img.affine ==
+        np.diag(voxel_sizes + [1])``). If None, return identity
+        `out_img.affine`.
     order : int, optional
         The order of the spline interpolation, default is 3.  The order has to
         be in the range 0-5 (see ``scipy.ndimage.affine_transform``).
     mode : str, optional
-        Points outside the boundaries of the input are filled according
-        to the given mode ('constant', 'nearest', 'reflect' or 'wrap').
-        Default is 'constant' (see ``scipy.ndimage.affine_transform``).
+        Points outside the boundaries of the input are filled according to the
+        given mode ('constant', 'nearest', 'reflect' or 'wrap').  Default is
+        'constant' (see ``scipy.ndimage.affine_transform``).
     cval : scalar, optional
         Value used for points outside the boundaries of the input if
         ``mode='constant'``. Default is 0.0 (see
@@ -219,11 +223,11 @@ def resample_to_output(in_img,
     # looks like when resampled into world coordinates
     in_shape = in_img.shape
     n_dim = len(in_shape)
-    if n_dim < 3: # Expand image to 3D, make voxel sizes match
+    if n_dim < 3:  # Expand image to 3D, make voxel sizes match
         new_shape = in_shape + (1,) * (3 - n_dim)
-        data = in_img.get_data().reshape(new_shape) # 2D data should be small
+        data = in_img.get_data().reshape(new_shape)  # 2D data should be small
         in_img = out_class(data, in_img.affine, in_img.header)
-        if not voxel_sizes is None and len(voxel_sizes) == n_dim:
+        if voxel_sizes is not None and len(voxel_sizes) == n_dim:
             # Need to pad out voxel sizes to match new image dimensions
             voxel_sizes = tuple(voxel_sizes) + (1,) * (3 - n_dim)
     out_vox_map = vox2out_vox((in_img.shape, in_img.affine), voxel_sizes)
@@ -232,8 +236,8 @@ def resample_to_output(in_img,
 
 def smooth_image(img,
                  fwhm,
-                 mode = 'nearest',
-                 cval = 0.,
+                 mode='nearest',
+                 cval=0.,
                  out_class=Nifti1Image):
     """ Smooth image `img` along voxel axes by FWHM `fwhm` millimeters
 
@@ -291,6 +295,6 @@ def smooth_image(img,
     # Do the smoothing
     sm_data = spnd.gaussian_filter(img.dataobj,
                                    vox_sd,
-                                   mode = mode,
-                                   cval = cval)
+                                   mode=mode,
+                                   cval=cval)
     return out_class(sm_data, img.affine, img.header)
