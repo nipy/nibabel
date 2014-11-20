@@ -25,9 +25,7 @@ from .. import load as top_load, Nifti1Image
 from nose.tools import assert_equal
 from numpy.testing import (assert_array_equal, assert_almost_equal)
 
-NIBABEL_DATA = get_nibabel_data()
-if NIBABEL_DATA is not None:
-    MINC2_PATH = pjoin(NIBABEL_DATA, 'nitest-minc2')
+MINC2_PATH = pjoin(get_nibabel_data(), 'nitest-minc2')
 
 
 def _make_affine(coses, zooms, starts):

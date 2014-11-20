@@ -8,7 +8,7 @@ from numpy.testing.decorators import skipif
 
 
 def get_nibabel_data():
-    """ Return path to nibabel-data or None if missing
+    """ Return path to nibabel-data or empty string if missing
 
     First use ``NIBABEL_DATA_DIR`` environment variable.
 
@@ -20,7 +20,7 @@ def get_nibabel_data():
         mod = __import__('nibabel')
         containing_path = dirname(dirname(realpath(mod.__file__)))
         nibabel_data = pjoin(containing_path, 'nibabel-data')
-    return nibabel_data if isdir(nibabel_data) else None
+    return nibabel_data if isdir(nibabel_data) else ''
 
 
 def needs_nibabel_data(subdir = None):
@@ -38,7 +38,7 @@ def needs_nibabel_data(subdir = None):
         Decorator skipping tests if required directory not present
     """
     nibabel_data = get_nibabel_data()
-    if nibabel_data is None:
+    if nibabel_data == '':
         return skipif(True, "Need nibabel-data directory for this test")
     if subdir is None:
         return skipif(False)
