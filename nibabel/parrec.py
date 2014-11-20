@@ -102,6 +102,7 @@ from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file, BinOpener
 from .affines import from_matvec, dot_reduce, apply_affine
 from .nifti1 import unit_codes
+from .fileslice import fileslice, strided_scalar
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
@@ -560,6 +561,22 @@ class PARRECArrayProxy(object):
                                   self._shape,
                                   scalings=self._slice_scaling,
                                   mmap=self._mmap)
+
+    def __getitem__(self, slicer):
+        indices = self._slice_indices
+        if indices[0] != 0 or np.any(np.diff(indices) != 1):
+            # We can't load direct from REC file, use inefficient slicing
+            return np.asanyarray(self)[slicer]
+        # Slices all sequential from zero, can use fileslice
+        # This gives more efficient volume by volume loading, for example
+        with BinOpener(self.file_like) as fileobj:
+            raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0, 'F')
+        # Broadcast scaling to shape of original data
+        slopes, inters = self._slice_scaling
+        fake_data = strided_scalar(self._shape)
+        _, slopes, inters = np.broadcast_arrays(fake_data, slopes, inters)
+        # Slice scaling to give output shape
+        return raw_data * slopes[slicer] + inters[slicer]
 
 
 class PARRECHeader(Header):
