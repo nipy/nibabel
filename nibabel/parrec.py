@@ -673,7 +673,7 @@ class PARRECHeader(Header):
         if normalize_bvecs:
             # scale bvals by the norms of the bvecs then normalize any nonzero
             # bvecs
-            bvec_norms = np.linalg.norm(bvecs, axis=1)
+            bvec_norms = np.sqrt(np.sum(bvecs*bvecs, axis=1))
             non_unity_indices = np.where(np.abs(bvec_norms - 1.0) > 1e-2)[0]
             if len(non_unity_indices) > 0:
                 warnings.warn('Not all bvecs were normalized to 1.0. '
