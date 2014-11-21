@@ -8,6 +8,8 @@ import numpy as np
 import sys
 import os
 import gzip
+import json
+from copy import deepcopy
 import nibabel
 import nibabel.parrec as pr
 from nibabel.parrec import one_line
@@ -48,6 +50,12 @@ def get_opt_parser():
                    """Output bvals/bvecs files in addition to NIFTI
                    image.""")))
     p.add_option(
+        Option("--norm-bvs", action="store_true", dest="norm_bvs",
+               default=False,
+               help=one_line(
+                   """Normalize bvectors to 1.0, rescaling b-values
+                   appropriately.""")))
+    p.add_option(
         Option("-d", "--dwell-time", action="store_true", default=False,
                dest="dwell_time",
                help=one_line(
@@ -63,6 +71,17 @@ def get_opt_parser():
                    """The magnetic field strength of the recording, only needed
                    for --dwell-time. The field strength must be supplied
                    because it is not encoded in the PAR/REC format.""")))
+    p.add_option(
+        Option("-i", "--dimension-info", action="store_true", dest="dim_info",
+               default=False,
+               help=one_line(
+                   """Export .PAR dimension labels corresponding to the fourth
+                   dimension of the data.  The dimension info will be stored in
+                   JSON format with a filename matching the input .PAR, but
+                   with the extension .ordering.json.  Only labels that vary
+                   along the 4th dimension are exported.  (e.g. for a single
+                   a single volume structural scan there are no dynamic labels
+                   and no output file will be created)""")))
     p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help=one_line(
@@ -116,6 +135,16 @@ def verbose(msg, indent=0):
 def error(msg, exit_code):
     sys.stderr.write(msg + '\n')
     sys.exit(exit_code)
+
+
+def convert_arrays_to_lists(input_dict):
+    # convert dictionary of numpy arrays to a dictionary of lists
+    output_dict = deepcopy(input_dict)
+    for key, value in output_dict.items():
+        if not isinstance(value, np.ndarray):
+            raise ValueError("all dictionary entries must be numpy arrays")
+        output_dict[key] = value.tolist()
+    return output_dict
 
 
 def proc_file(infile, opts):
@@ -207,7 +236,7 @@ def proc_file(infile, opts):
                   offset=offset)
     # write out bvals/bvecs if requested
     if opts.bvs:
-        bvals, bvecs = pr_hdr.get_bvals_bvecs()
+        bvals, bvecs = pr_hdr.get_bvals_bvecs(normalize_bvecs=opts.norm_bvs)
         if (bvals, bvecs) == (None, None):
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
@@ -222,6 +251,14 @@ def proc_file(infile, opts):
                     for val in row:
                         fid.write('%s ' % val)
                     fid.write('\n')
+
+    # export data labels varying along the 4th dimensions
+    if opts.dim_info:
+        labels = pr_img.header.get_dimension_labels(collapse_slices=True)
+        if len(labels) > 0:
+            labels = convert_arrays_to_lists(labels)
+            with open(basefilename + '.ordering.json', 'w') as fid:
+                json.dump(labels, fid, sort_keys=True, indent=4)
 
     # write out dwell time if requested
     if opts.dwell_time:

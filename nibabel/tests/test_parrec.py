@@ -186,6 +186,24 @@ def test_header_scaling():
     assert_false(np.all(fp_scaling == dv_scaling))
 
 
+def test_header_dimension_labels():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    # check volume labels
+    vol_labels = hdr.get_dimension_labels()
+    assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
+    assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
+    # check that output is ndarray rather than list
+    assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
+    # check case with individual slice labels
+    slice_vol_labels = hdr.get_dimension_labels(collapse_slices=False)
+    # verify that both expected keys are present
+    assert_true('slice number' in slice_vol_labels)
+    assert_true('dynamic scan number' in slice_vol_labels)
+    # verify shape of labels matches final dimensions of data
+    assert_equal(slice_vol_labels['slice number'].shape,
+                 hdr.get_data_shape()[2:])
+
+
 def test_orientation():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_array_equal(HDR_DEFS['slice orientation'], 1)
@@ -336,6 +354,16 @@ def test_diffusion_parameters():
     assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+    # test bval/bvec normalization
+    bvals_norm, bvecs_norm = dti_hdr.get_bvals_bvecs(normalize_bvecs=True)
+    # bvecs were already normalized, so expect their values to remain unchanged
+    assert_almost_equal(bvecs_norm, DTI_PAR_BVECS[:, [2, 0, 1]])
+    bnorm = np.sqrt(np.sum(bvecs_norm*bvecs_norm, axis=1))
+    # all bvals where bvecs = [0, 0, 0] got set to 0?
+    assert_equal(np.abs(bvals_norm[bnorm == 0]).sum(), 0)
+    # all other bvals should not have changed
+    assert_almost_equal(bvals_norm[bnorm > 0],
+                        np.asarray(DTI_PAR_BVALS)[bnorm > 0])
 
 
 def test_null_diffusion_params():
@@ -535,6 +563,9 @@ class FakeHeader(object):
     def get_rec_shape(self):
         n_slices = np.prod(self._shape[2:])
         return self._shape[:2] + (n_slices,)
+
+    def sorted_labels(self, sorted_indices, collapse_slices):
+        return np.arange(self._shape[-1])
 
 
 def test_parrec_proxy():

@@ -244,6 +244,18 @@ class PARRECError(Exception):
     pass
 
 
+def _unique_rows(a):
+    """
+    find unique rows of a 2D array.  based on discussion at:
+    http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    """
+    if a.ndim != 2:
+        raise ValueError("expected 2D input")
+    b = np.ascontiguousarray(a).view(
+        np.dtype((np.void, a.dtype.itemsize * a.shape[1])))
+    return np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
+
+
 def _split_header(fobj):
     """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
@@ -442,7 +454,7 @@ def parse_PAR_header(fobj):
     -------
     general_info : dict
         Contains all "General Information" from the header file
-    image_info : ndarray
+    image_defs : ndarray
         Structured array with fields giving all "Image information" in the
         header
     """
@@ -520,7 +532,7 @@ class PARRECArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        scaling : {'fp', 'dv'}, optional, keyword only
+        scaling : {'fp', 'dv', None}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
         if mmap not in (True, False, 'c', 'r'):
@@ -530,8 +542,11 @@ class PARRECArrayProxy(object):
         self._shape = header.get_data_shape()
         self._dtype = header.get_data_dtype()
         self._slice_indices = header.get_sorted_slice_indices()
-        self._mmap=mmap
-        self._slice_scaling = header.get_data_scaling(scaling)
+        self._mmap = mmap
+        if scaling is None:
+            self._slice_scaling = None
+        else:
+            self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
     @property
@@ -657,8 +672,14 @@ class PARRECHeader(Header):
         """Echo train length of the recording"""
         return self.general_info['epi_factor']
 
-    def get_q_vectors(self):
+    def get_q_vectors(self, normalize_bvecs=False):
         """Get Q vectors from the data
+
+        Parameters
+        ----------
+        normalize_bvecs : bool, optional
+            whether to scale the b-values by the norm of the b_vectors and then
+            renormalize any non-zero b_vectors to 1.0.
 
         Returns
         -------
@@ -666,12 +687,12 @@ class PARRECHeader(Header):
             Array of q vectors (bvals * bvecs), or None if not a diffusion
             acquisition.
         """
-        bvals, bvecs = self.get_bvals_bvecs()
+        bvals, bvecs = self.get_bvals_bvecs(normalize_bvecs=normalize_bvecs)
         if bvals is None and bvecs is None:
             return None
         return bvecs * bvals[:, np.newaxis]
 
-    def get_bvals_bvecs(self):
+    def get_bvals_bvecs(self, normalize_bvecs=False):
         """Get bvals and bvecs from data
 
         Returns
@@ -682,6 +703,9 @@ class PARRECHeader(Header):
         b_vectors : None or array
             Array of b vectors, shape (n_directions, 3), or None if not a
             diffusion acquisition.
+        normalize_bvecs : bool, optional
+            whether to scale the b-values by the norm of the b_vectors and then
+            renormalize any non-zero b_vectors to 1.0.
         """
         if self.general_info['diffusion'] == 0:
             return None, None
@@ -697,6 +721,20 @@ class PARRECHeader(Header):
         # All 3 values of bvecs should be same within volume
         assert not np.any(np.diff(bvecs, axis=0))
         bvecs = bvecs[0]
+        if normalize_bvecs:
+            # scale bvals by the norms of the bvecs then normalize any nonzero
+            # bvecs
+            bvec_norms = np.sqrt(np.sum(bvecs*bvecs, axis=1))
+            non_unity_indices = np.where(np.abs(bvec_norms - 1.0) > 1e-2)[0]
+            if len(non_unity_indices) > 0:
+                warnings.warn('Not all bvecs were normalized to 1.0. '
+                              'bvals will be scaled by the bvec norms')
+                bvals[non_unity_indices] *= bvec_norms[non_unity_indices]
+                # normalize any non-zero b-vectors to 1
+                non_zeros = np.where(bvec_norms[non_unity_indices] > 1e-2)[0]
+                if len(non_zeros) > 0:
+                    bvecs[non_unity_indices[non_zeros]] /= \
+                        bvec_norms[non_unity_indices[non_zeros]][:, np.newaxis]
         # rotate bvecs to match stored image orientation
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
@@ -929,7 +967,7 @@ class PARRECHeader(Header):
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
-            raise ValueError("Unknown scling method '%s'." % method)
+            raise ValueError("Unknown scaling method '%s'." % method)
         reorder = self.get_sorted_slice_indices()
         slope = slope[reorder]
         intercept = intercept[reorder]
@@ -970,6 +1008,88 @@ class PARRECHeader(Header):
         n_used = np.prod(self.get_data_shape()[2:])
         return np.lexsort(keys)[:n_used]
 
+    def get_dimension_labels(self, collapse_slices=True):
+        """ Dynamic labels corresponding to the final data dimension(s).
+
+        This is useful for custom data sorting.  A subset of the info in
+        ``self.image_defs`` is returned in an order that matches the final
+        data dimension(s).  Only labels that have more than one unique value
+        across the dataset will be returned.
+
+        Parameters
+        ----------
+        collapse_slices : bool, optional
+            If True, only return volume indices (corresponding to the first
+            slice).  If False, return indices corresponding to individual
+            slices as well (with shape matching self.shape[2:]).
+
+        Returns
+        -------
+        sort_info : dict
+            Each key corresponds to a dynamically varying sequence dimension.
+            The ordering of each value corresponds to that returned by
+            ``self.get_sorted_slice_indices``.
+        """
+
+        # define which keys to store sorting info for
+        dynamic_keys = ['slice number',
+                        'cardiac phase number',
+                        'echo number',
+                        'label type',
+                        'image_type_mr',
+                        'dynamic scan number',
+                        'slice orientation',
+                        'image_display_orientation',  # ????
+                        'image angulation',
+                        'scanning sequence',
+                        'gradient orientation number',
+                        'diffusion b value number']
+
+        sorted_indices = self.get_sorted_slice_indices()
+        image_defs = self.image_defs
+
+        if collapse_slices:
+            dynamic_keys.remove('slice number')
+
+        # remove dynamic keys that may not be present in older .PAR versions
+        dynamic_keys = [d for d in dynamic_keys if d in
+                        image_defs.dtype.fields]
+
+        non_unique_keys = []
+        for key in dynamic_keys:
+            ndim = image_defs[key].ndim
+            if ndim == 1:
+                num_unique = len(np.unique(image_defs[key]))
+            elif ndim == 2:
+                # for 2D cases, e.g. 'image angulation'
+                num_unique = len(_unique_rows(image_defs[key]))
+            else:
+                raise ValueError("unexpected image_defs shape > 2D")
+            if num_unique > 1:
+                non_unique_keys.append(key)
+
+        if collapse_slices:
+            if 'slice orientation' in non_unique_keys:
+                raise ValueError("for non-unique slice orientation, need "
+                                 "collapse_slice=False")
+            if 'image angulation' in non_unique_keys:
+                raise ValueError("for non-unique image angulation, need "
+                                 "collapse_slice=False")
+            if 'image_display_orientation' in non_unique_keys:  # ???
+                raise ValueError("for non-unique display orientation, need "
+                                 "collapse_slice=False")
+            sl1_indices = image_defs['slice number'][sorted_indices] == 1
+
+        sort_info = {}
+        for key in non_unique_keys:
+            if collapse_slices:
+                sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
+            else:
+                value = image_defs[key][sorted_indices]
+                sort_info[key] = value.reshape(self.get_data_shape()[2:],
+                                               order='F')
+        return sort_info
+
 
 class PARRECImage(SpatialImage):
     """PAR/REC image"""
@@ -999,7 +1119,7 @@ class PARRECImage(SpatialImage):
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
-        scaling : {'dv', 'fp'}, optional, keyword-only
+        scaling : {'dv', 'fp', None}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
         """
@@ -1033,7 +1153,7 @@ class PARRECImage(SpatialImage):
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
-        scaling : {'dv', 'fp'}, optional, keyword-only
+        scaling : {'dv', 'fp', None}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
         """
