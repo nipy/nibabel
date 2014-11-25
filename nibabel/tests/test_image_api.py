@@ -23,6 +23,7 @@ What is the image API?
 from __future__ import division, print_function, absolute_import
 
 import warnings
+from functools import partial
 
 import numpy as np
 
@@ -176,10 +177,21 @@ class GenericImageAPI(ValidateAPI):
             proxy_copy = proxy_data.copy()
             # Not yet cached, proxy image: in_memory is False
             assert_false(img.in_memory)
+            # Load with caching='unchanged'
+            data = img.get_data(caching='unchanged')
+            # Still not cached
+            assert_false(img.in_memory)
+            # Default load, does caching
             data = img.get_data()
             # Data now cached
             assert_true(img.in_memory)
             assert_false(proxy_data is data)
+            # Now caching='unchanged' does nothing, returns cached version
+            data_again = img.get_data(caching='unchanged')
+            assert_true(data is data_again)
+            # caching='fill' does nothing because the cache is already full
+            data_yet_again = img.get_data(caching='fill')
+            assert_true(data is data_yet_again)
             # changing array data does not change proxy data, or reloaded data
             data[:] = 42
             assert_array_equal(proxy_data, proxy_copy)
@@ -191,25 +203,38 @@ class GenericImageAPI(ValidateAPI):
             # Which unsets in_memory
             assert_false(img.in_memory)
             assert_array_equal(img.get_data(), proxy_copy)
-        else: # not proxy
-            assert_true(isinstance(img.dataobj, np.ndarray))
+            # Check caching='fill' does cache data
+            img = imaker()
+            assert_false(img.in_memory)
+            data = img.get_data(caching='fill')
             assert_true(img.in_memory)
-            non_proxy_data = np.asarray(img.dataobj)
-            data = img.get_data()
-            assert_true(non_proxy_data is data)
-            # changing array data does change proxy data, and reloaded data
-            data[:] = 42
-            assert_array_equal(np.asarray(img.dataobj), 42)
-            # It does change the result of get_data
-            assert_array_equal(img.get_data(), 42)
-            # Unache has no effect
-            img.uncache()
-            assert_array_equal(img.get_data(), 42)
+            data_again = img.get_data()
+            assert_true(data is data_again)
+        else: # not proxy
+            for caching in (None, 'fill', 'unchanged'):
+                img = imaker()
+                get_data_func = (img.get_data if caching is None else
+                                 partial(img.get_data, caching=caching))
+                assert_true(isinstance(img.dataobj, np.ndarray))
+                assert_true(img.in_memory)
+                data = get_data_func()
+                assert_true(data is img.dataobj)
+                # changing array data does change proxy data, and reloaded data
+                data[:] = 42
+                assert_array_equal(np.asarray(img.dataobj), 42)
+                # It does change the result of get_data
+                assert_array_equal(get_data_func(), 42)
+                # Unache has no effect
+                img.uncache()
+                assert_array_equal(get_data_func(), 42)
+                assert_true(img.in_memory)
         # dataobj is read only
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, 'dataobj', fake_data)
         # So is in_memory
         assert_raises(AttributeError, setattr, img, 'in_memory', False)
+        # Values to get_data caching parameter must be 'fill' or 'unchanged'
+        assert_raises(ValueError, img.get_data, caching='something')
 
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning

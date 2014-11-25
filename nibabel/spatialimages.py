@@ -448,21 +448,39 @@ class SpatialImage(object):
                 'metadata:',
                 '%s' % self._header))
 
-    def get_data(self):
+    def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scalng applied
 
         If the image data is a array proxy (data not yet read from disk) then
-        read the data, and store in an internal cache.  Future calls to
-        ``get_data`` will return the cached copy.
+        the default behavior (`caching` == "fill") is to read the data, and
+        store in an internal cache.  Future calls to ``get_data`` will return
+        the cached copy.
+
+        Parameters
+        ----------
+        caching : {'fill', 'unchanged'}, optional
+            This argument has no effect in the case where the image data is an
+            array, or the image data has already been cached.  If the image data
+            is an array proxy, and the image data has not yet been cached, then
+            'fill' (the default) will read the data from the array proxy, and
+            store in an internal cache, so that future calls to ``get_data``
+            will return the cached copy.  If 'unchanged' then leave the cache
+            unchanged; return the cached copy if it exists, if not, load the
+            data from disk and return that, but without filling the cache.
 
         Returns
         -------
         data : array
             array of image data
         """
-        if self._data_cache is None:
-            self._data_cache = np.asanyarray(self._dataobj)
-        return self._data_cache
+        if not caching in ('fill', 'unchanged'):
+            raise ValueError('caching value should be "fill" or "unchanged"')
+        if self._data_cache is not None:
+            return self._data_cache
+        data = np.asanyarray(self._dataobj)
+        if caching == 'fill':
+            self._data_cache = data
+        return data
 
     @property
     def in_memory(self):
