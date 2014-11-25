@@ -208,7 +208,7 @@ def proc_file(infile, opts):
     # write out bvals/bvecs if requested
     if opts.bvs:
         bvals, bvecs = pr_hdr.get_bvals_bvecs()
-        if (bvals, bvecs) == (None, None):
+        if bvals is None and bvecs is None:
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
             verbose('Writing .bvals and .bvecs files')
