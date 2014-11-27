@@ -456,6 +456,12 @@ class SpatialImage(object):
         store in an internal cache.  Future calls to ``get_data`` will return
         the cached copy.
 
+        Once the data has been cached and returned from a proxy array, the
+        cached array can be modified by modifying the returned array, because
+        the returned array is a reference to the array in the cache.  Regardless
+        of the `caching` flag, this is always true of an in-memory image (where
+        the image data is an array rather than an array proxy).
+
         Parameters
         ----------
         caching : {'fill', 'unchanged'}, optional
@@ -464,16 +470,17 @@ class SpatialImage(object):
             is an array proxy, and the image data has not yet been cached, then
             'fill' (the default) will read the data from the array proxy, and
             store in an internal cache, so that future calls to ``get_data``
-            will return the cached copy.  If 'unchanged' then leave the cache
-            unchanged; return the cached copy if it exists, if not, load the
-            data from disk and return that, but without filling the cache.
+            will return the cached copy.  If 'unchanged' then leave the current
+            state of caching unchanged; return the cached copy if it exists, if
+            not, load the data from disk and return that, but without filling
+            the cache.
 
         Returns
         -------
         data : array
             array of image data
         """
-        if not caching in ('fill', 'unchanged'):
+        if caching not in ('fill', 'unchanged'):
             raise ValueError('caching value should be "fill" or "unchanged"')
         if self._data_cache is not None:
             return self._data_cache
