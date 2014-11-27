@@ -5,6 +5,7 @@ from __future__ import division, print_function, absolute_import
 
 from optparse import OptionParser, Option
 import numpy as np
+import numpy.linalg as npl
 import sys
 import os
 import nibabel
@@ -14,6 +15,9 @@ from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
 from nibabel.volumeutils import fname_ext_ul_case
+from nibabel.orientations import (io_orientation, inv_ornt_aff,
+                                  apply_orientation)
+from nibabel.affines import apply_affine, from_matvec, to_matvec
 
 
 def get_opt_parser():
@@ -163,6 +167,17 @@ def proc_file(infile, opts):
         intercept = np.array([0.])
         in_data = np.array(pr_img.dataobj)
         out_dtype = np.float64
+    # Reorient data block to LAS+ if necessary
+    ornt = io_orientation(np.diag([-1, 1, 1, 1]).dot(affine))
+    if np.all(ornt == [[0, 1],
+                       [1, 1],
+                       [2, 1]]): # already in LAS+
+        t_aff = np.eye(4)
+    else: # Not in LAS+
+        t_aff = inv_ornt_aff(ornt, pr_img.shape)
+        affine = np.dot(affine, t_aff)
+        in_data = apply_orientation(in_data, ornt)
+    # Make corresponding NIfTI image
     nimg = nifti1.Nifti1Image(in_data, affine, pr_hdr)
     nhdr = nimg.header
     nhdr.set_data_dtype(out_dtype)
@@ -198,6 +213,10 @@ def proc_file(infile, opts):
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
             verbose('Writing .bvals and .bvecs files')
+            # Transform bvecs with reorientation affine
+            orig2new = npl.inv(t_aff)
+            bv_reorient = from_matvec(to_matvec(orig2new)[0], [0, 0, 0])
+            bvecs = apply_affine(bv_reorient, bvecs)
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:
