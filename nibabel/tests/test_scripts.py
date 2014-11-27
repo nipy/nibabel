@@ -86,6 +86,31 @@ def vox_size(affine):
     return np.sqrt(np.sum(affine[:3,:3] ** 2, axis=0))
 
 
+def check_conversion(cmd, pr_data, out_fname):
+    run_command(cmd)
+    img = load(out_fname)
+    data = img.get_data()
+    assert_true(np.allclose(data, pr_data))
+    assert_true(np.allclose(img.header['cal_min'], data.min()))
+    assert_true(np.allclose(img.header['cal_max'], data.max()))
+    # Check minmax options
+    run_command(cmd + ['--minmax', '1', '2'])
+    img = load(out_fname)
+    assert_true(np.allclose(data, pr_data))
+    assert_true(np.allclose(img.header['cal_min'], 1))
+    assert_true(np.allclose(img.header['cal_max'], 2))
+    run_command(cmd + ['--minmax', 'parse', '2'])
+    img = load(out_fname)
+    assert_true(np.allclose(data, pr_data))
+    assert_true(np.allclose(img.header['cal_min'], data.min()))
+    assert_true(np.allclose(img.header['cal_max'], 2))
+    run_command(cmd + ['--minmax', '1', 'parse'])
+    img = load(out_fname)
+    assert_true(np.allclose(data, pr_data))
+    assert_true(np.allclose(img.header['cal_min'], 1))
+    assert_true(np.allclose(img.header['cal_max'], data.max()))
+
+
 @script_test
 def test_parrec2nii():
     # Test parrec2nii script
@@ -104,24 +129,26 @@ def test_parrec2nii():
             data = img.get_data()
             assert_data_similar(data, eg_dict)
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
-            # Check scaling options
-            cmd = ['parrec2nii', '--scaling=dv', fname]
             # Does not overwrite unless option given
-            code, stdout, stderr = run_command(cmd, check_code=False)
+            code, stdout, stderr = run_command(
+                ['parrec2nii', fname], check_code=False)
             assert_equal(code, 1)
-            cmd.append('--overwrite')
-            run_command(cmd)
-            img = load(out_froot)
-            assert_data_similar(img.get_data(), eg_dict)
-            # fp scaling
-            run_command(['parrec2nii', '--scaling=fp', '--overwrite', fname])
+            # Default scaling is dv
+            pr_img = load(fname)
+            base_cmd = ['parrec2nii', '--overwrite', fname]
+            check_conversion(base_cmd, pr_img.get_data(), out_froot)
+            check_conversion(base_cmd + ['--scaling=dv'],
+                             pr_img.get_data(),
+                             out_froot)
+            # fp
             pr_img = load(fname, scaling='fp')
-            img = load(out_froot)
-            assert_true(np.allclose(img.get_data(), pr_img.get_data()))
+            check_conversion(base_cmd + ['--scaling=fp'],
+                             pr_img.get_data(),
+                             out_froot)
             # no scaling
-            run_command(['parrec2nii', '--scaling=off', '--overwrite', fname])
-            img = load(out_froot)
-            assert_almost_equal(img.get_data(), pr_img.dataobj.get_unscaled())
+            check_conversion(base_cmd + ['--scaling=off'],
+                             pr_img.dataobj.get_unscaled(),
+                             out_froot)
 
 
 @script_test
