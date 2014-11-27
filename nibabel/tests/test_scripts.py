@@ -24,8 +24,11 @@ from numpy.testing import assert_almost_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
-from .test_parrec import DTI_PAR_BVECS, DTI_PAR_BVALS
+from ..testing import assert_dt_equal
+from .test_parrec import (DTI_PAR_BVECS, DTI_PAR_BVALS,
+                          EXAMPLE_IMAGES as PARREC_EXAMPLES)
 from .test_parrec_data import BALLS, AFF_OFF
+from .test_helpers import assert_data_similar
 
 
 def _proc_stdout(stdout):
@@ -89,19 +92,18 @@ def test_parrec2nii():
     cmd = ['parrec2nii', '--help']
     code, stdout, stderr = run_command(cmd)
     assert_true(stdout.startswith('Usage'))
-    in_fname = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
-    out_froot = 'phantom_EPI_asc_CLEAR_2_1.nii'
     with InTemporaryDirectory():
-        run_command(['parrec2nii', in_fname])
-        img = load(out_froot)
-        assert_equal(img.shape, (64, 64, 9, 3))
-        assert_equal(img.get_data_dtype(), np.dtype(np.uint16))
-        # Check against values from Philips converted nifti image
-        data = img.get_data()
-        assert_true(np.allclose(
-            (data.min(), data.max(), data.mean()),
-            (0.0, 2299.4110643863678, 194.95876256117265)))
-        assert_almost_equal(vox_size(img.get_affine()), (3.75, 3.75, 8))
+        for eg_dict in PARREC_EXAMPLES:
+            fname = eg_dict['fname']
+            run_command(['parrec2nii', fname])
+            out_froot = splitext(basename(fname))[0] + '.nii'
+            img = load(out_froot)
+            assert_equal(img.shape, eg_dict['shape'])
+            assert_dt_equal(img.get_data_dtype(), eg_dict['dtype'])
+            # Check against values from Philips converted nifti image
+            data = img.get_data()
+            assert_data_similar(data, eg_dict)
+            assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
 
 
 @script_test
