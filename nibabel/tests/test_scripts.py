@@ -129,6 +129,8 @@ def test_parrec2nii():
             data = img.get_data()
             assert_data_similar(data, eg_dict)
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
+            # Standard save does not save extensions
+            assert_equal(len(img.header.extensions), 0)
             # Does not overwrite unless option given
             code, stdout, stderr = run_command(
                 ['parrec2nii', fname], check_code=False)
@@ -149,6 +151,10 @@ def test_parrec2nii():
             check_conversion(base_cmd + ['--scaling=off'],
                              pr_img.dataobj.get_unscaled(),
                              out_froot)
+            # Save extensions
+            run_command(base_cmd + ['--store-header'])
+            img = load(out_froot)
+            assert_equal(len(img.header.extensions), 1)
 
 
 @script_test

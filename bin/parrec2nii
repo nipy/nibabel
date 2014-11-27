@@ -182,12 +182,11 @@ def proc_file(infile, opts):
 
     # container for potential NIfTI1 header extensions
     if opts.store_header:
-        exts = nifti1.Nifti1Extensions()
         # dump the full PAR header content into an extension
         with open(infile, 'r') as fobj:
             hdr_dump = fobj.read()
             dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
-        exts.append(dump_ext)
+        nhdr.extensions.append(dump_ext)
 
     verbose('Writing %s' % outfilename)
     nibabel.save(nimg, outfilename)
