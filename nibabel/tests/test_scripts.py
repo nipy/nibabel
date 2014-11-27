@@ -20,7 +20,7 @@ from ..loadsave import load
 from nose.tools import (assert_true, assert_false, assert_not_equal,
                         assert_equal)
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
@@ -104,6 +104,24 @@ def test_parrec2nii():
             data = img.get_data()
             assert_data_similar(data, eg_dict)
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
+            # Check scaling options
+            cmd = ['parrec2nii', '--scaling=dv', fname]
+            # Does not overwrite unless option given
+            code, stdout, stderr = run_command(cmd, check_code=False)
+            assert_equal(code, 1)
+            cmd.append('--overwrite')
+            run_command(cmd)
+            img = load(out_froot)
+            assert_data_similar(img.get_data(), eg_dict)
+            # fp scaling
+            run_command(['parrec2nii', '--scaling=fp', '--overwrite', fname])
+            pr_img = load(fname, scaling='fp')
+            img = load(out_froot)
+            assert_true(np.allclose(img.get_data(), pr_img.get_data()))
+            # no scaling
+            run_command(['parrec2nii', '--scaling=off', '--overwrite', fname])
+            img = load(out_froot)
+            assert_almost_equal(img.get_data(), pr_img.dataobj.get_unscaled())
 
 
 @script_test

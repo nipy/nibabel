@@ -136,7 +136,7 @@ def proc_file(infile, opts):
                       'overwrite it' % outfilename)
 
     # load the PAR header and data
-    scaling = None if opts.scaling == 'off' else opts.scaling
+    scaling = 'dv' if opts.scaling == 'off' else opts.scaling
     infile = fname_ext_ul_case(infile)
     pr_img = pr.load(infile,
                      permit_truncated=opts.permit_truncated,
