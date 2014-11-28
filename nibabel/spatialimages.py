@@ -451,10 +451,10 @@ class SpatialImage(object):
     def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scalng applied
 
-        If the image data is a array proxy (data not yet read from disk) then
-        the default behavior (`caching` == "fill") is to read the data, and
-        store in an internal cache.  Future calls to ``get_data`` will return
-        the cached copy.
+        If the image data is a array proxy (an object that knows how to load
+        the image data from disk) then the default behavior (`caching` ==
+        "fill") is to read the data from the proxy, and store in an internal
+        cache.  Future calls to ``get_data`` will return the cached copy.
 
         Once the data has been cached and returned from a proxy array, the
         cached array can be modified by modifying the returned array, because
@@ -465,20 +465,84 @@ class SpatialImage(object):
         Parameters
         ----------
         caching : {'fill', 'unchanged'}, optional
-            This argument has no effect in the case where the image data is an
-            array, or the image data has already been cached.  If the image data
-            is an array proxy, and the image data has not yet been cached, then
-            'fill' (the default) will read the data from the array proxy, and
-            store in an internal cache, so that future calls to ``get_data``
-            will return the cached copy.  If 'unchanged' then leave the current
-            state of caching unchanged; return the cached copy if it exists, if
-            not, load the data from disk and return that, but without filling
-            the cache.
+            See the Notes section for a detailed explanation.  This argument
+            specifies whether the image object should fill in an internal
+            cached reference to the returned image data array. "fill" specifies
+            that the image should fill an internal cached reference if
+            currently empty.  Future calls to ``get_data`` will return this
+            cached reference.  You might prefer "fill" to save the image object
+            from having to reload the array data from disk on each call to
+            ``get_data``.  "unchanged" means that the image should not fill in
+            the internal cached reference if the cache is currently empty.  You
+            might prefer "unchanged" to "fill" if you want to make sure that
+            the call to ``get_data`` does not create an extra (cached)
+            reference to the returned array.  In this case it is easier for
+            Python to free the memory from the returned array.
 
         Returns
         -------
         data : array
             array of image data
+
+        See also
+        --------
+        uncache: empty the array data cache
+
+        Notes
+        -----
+        All images have a property ``dataobj`` that represents the image array
+        data.  Images that have been loaded from files usually do not load the
+        array data from file immediately, in order to reduce image load time
+        and memory use.  For these images, ``dataobj`` is an *array proxy*; an
+        object that knows how to load the image array data from file.  Images
+        with an array proxy ``dataobj`` are called *proxy images*. In contrast,
+        images created directly from numpy arrays carry a simple reference to
+        their array data in ``dataobj``.  These are *in-memory images*.
+
+        By default (`caching` == "fill"), when you call ``get_data`` on a
+        proxy image, we load the array data from disk, store (cache) an
+        internal reference to this array data, and return the array.  The next
+        time you call ``get_data``, you will get the cached reference to the
+        array, so we don't have to load the array data from disk again.
+
+        In-memory images are already in memory, so there is no benefit to
+        caching, and the `caching` keywords have no effect.
+
+        For proxy images, you may not want to fill the cache after reading the
+        data from disk because the cache will hold onto the array memory until
+        the image object is deleted, or you use the image ``uncache`` method.
+        If you don't want to fill the cache, then always use
+        ``get_data(caching='unchanged')``; in this case ``get_data`` will not
+        fill the cache (store the reference to the array) if the cache is empty
+        (no reference to the array).  If the cache is full, "unchanged" leaves
+        the cache full and returns the cached array reference.
+
+        The cache can effect the behavior of the image, because if the cache is
+        full, or you have an in-memory image, then modifying the returned array
+        will modify the result of future calls to ``get_data()``.  For example
+        you might do this:
+
+            img = load('my_image.nii') # a proxy image
+            data = img.get_data()
+            data[0, 0, 0] = 99
+
+        In this case the cache is full (default `caching='fill'), and the cache
+        contains a reference to the returned array ``data``, so the next time
+        you call ``get_data()``:
+
+            data_again = img.get_data()
+            data_again is data  # will be True
+            data_again[0, 0, 0] == 99  # will be True
+
+        If you had *initially* used `caching` == 'unchanged' then the returned
+        ``data`` array is loaded from file, but not cached, and:
+
+            img = load('my_image.nii')  # a proxy image
+            data = img.get_data(caching='unchanged')
+            data[0, 0, 0] = 99
+            data_again = img.get_data(caching='unchanged')
+            data_again is data  # will be False
+            data_again[0, 0, 0] == 99  # will be False
         """
         if caching not in ('fill', 'unchanged'):
             raise ValueError('caching value should be "fill" or "unchanged"')
