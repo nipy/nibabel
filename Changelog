@@ -42,6 +42,10 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
   * Minor API breakage: image data offset in NIfTI / Analyze now set to zero
     when reading images.  TO read the original data offset use the ``offset``
     property of the image ``dataobj`` attribute;
+  * New API for managing image caching; images have an ``in_memory`` property
+    that is true if the image data has been loaded into cache, or is already
+    an array in memory; ``get_data`` has new keyword argument ``caching`` to
+    specify whether the cache should be filled by ``get_data``;
   * Images now have properties ``dataobj``, ``affine``, ``header``; we will
     slowly phase out the ``get_affine`` and ``get_header`` image methods;
   * The image ``dataobj`` can be sliced using an efficient algorithm to avoid
@@ -53,6 +57,9 @@ Most work on NiBabel so far has been by Matthew Brett (MB) and Michael Hanke
   * Read support for MINC2;
   * Much extended read support for PAR / REC, largely due to the work of Eric
     Larson and Gregory R. Lee giving new code, advice and code review;
+  * ``parrec2nii`` script outputs images in LAS voxel orientation, which
+    appears to be necessary for compatibility with FSL ``dtifit`` /
+    ``fslview`` diffusion analysis pipeline;
   * Preliminary support for Philips multiframe DICOM images (thanks to Nolan
     Nichols, Ly Nguyen and Brendan Moloney);
   * New function to save Freesurfer annotation files (by Github user ohinds);
