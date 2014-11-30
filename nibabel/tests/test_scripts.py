@@ -16,6 +16,7 @@ import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
+from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
 from nose.tools import (assert_true, assert_false, assert_not_equal,
                         assert_equal)
@@ -89,6 +90,8 @@ def vox_size(affine):
 def check_conversion(cmd, pr_data, out_fname):
     run_command(cmd)
     img = load(out_fname)
+    # Check orientations always LAS
+    assert_equal(aff2axcodes(img.affine), tuple('LAS'))
     data = img.get_data()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
@@ -137,19 +140,22 @@ def test_parrec2nii():
             assert_equal(code, 1)
             # Default scaling is dv
             pr_img = load(fname)
+            flipped_data = flip_axis(pr_img.get_data(), 1)
             base_cmd = ['parrec2nii', '--overwrite', fname]
-            check_conversion(base_cmd, pr_img.get_data(), out_froot)
+            check_conversion(base_cmd, flipped_data, out_froot)
             check_conversion(base_cmd + ['--scaling=dv'],
-                             pr_img.get_data(),
+                             flipped_data,
                              out_froot)
             # fp
             pr_img = load(fname, scaling='fp')
+            flipped_data = flip_axis(pr_img.get_data(), 1)
             check_conversion(base_cmd + ['--scaling=fp'],
-                             pr_img.get_data(),
+                             flipped_data,
                              out_froot)
             # no scaling
+            unscaled_flipped = flip_axis(pr_img.dataobj.get_unscaled(), 1)
             check_conversion(base_cmd + ['--scaling=off'],
-                             pr_img.dataobj.get_unscaled(),
+                             unscaled_flipped,
                              out_froot)
             # Save extensions
             run_command(base_cmd + ['--store-header'])
@@ -161,6 +167,8 @@ def test_parrec2nii():
 @needs_nibabel_data('nitest-balls1')
 def test_parrec2nii_with_data():
     # Use nibabel-data to test conversion
+    # Premultiplier to relate our affines to Philips conversion
+    LAS2LPS = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (80, 80, 10))
     with InTemporaryDirectory():
         for par in glob(pjoin(BALLS, 'PARREC', '*.PAR')):
             par_root, ext = splitext(basename(par))
@@ -171,23 +179,31 @@ def test_parrec2nii_with_data():
             # Do conversion
             run_command(['parrec2nii', par])
             conved_img = load(par_root + '.nii')
+            # Confirm parrec2nii conversions are LAS
+            assert_equal(aff2axcodes(conved_img.affine), tuple('LAS'))
+            # Shape same whether LPS or LAS
             assert_equal(conved_img.shape[:3], (80, 80, 10))
-            # Test against converted NIfTI
+            # Test against original converted NIfTI
             nifti_fname = pjoin(BALLS, 'NIFTI', par_root + '.nii.gz')
             if exists(nifti_fname):
-                nimg = load(nifti_fname)
-                assert_almost_equal(nimg.affine[:3, :3],
-                                    conved_img.affine[:3, :3], 3)
+                philips_img = load(nifti_fname)
+                # Confirm Philips converted image always LPS
+                assert_equal(aff2axcodes(philips_img.affine), tuple('LPS'))
+                # Equivalent to Philips LPS affine
+                equiv_affine = conved_img.affine.dot(LAS2LPS)
+                assert_almost_equal(philips_img.affine[:3, :3],
+                                    equiv_affine[:3, :3], 3)
                 # The translation part is always off by the same ammout
-                aff_off = conved_img.affine[:3, 3] - nimg.affine[:3, 3]
-                assert_almost_equal(aff_off, AFF_OFF, 4)
+                aff_off = equiv_affine[:3, 3] - philips_img.affine[:3, 3]
+                assert_almost_equal(aff_off, AFF_OFF, 3)
                 # The difference is max in the order of 0.5 voxel
-                vox_sizes = np.sqrt((nimg.affine[:3, :3] ** 2).sum(axis=0))
+                vox_sizes = vox_size(philips_img.affine)
                 assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.5))
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
-                    assert_true(np.allclose(conved_img.dataobj,
-                                            nimg.dataobj))
+                    conved_data_lps = flip_axis(conved_img.dataobj, 1)
+                    assert_true(np.allclose(conved_data_lps,
+                                            philips_img.dataobj))
     with InTemporaryDirectory():
         # Test some options
         dti_par = pjoin(BALLS, 'PARREC', 'DTI.PAR')
@@ -202,8 +218,12 @@ def test_parrec2nii_with_data():
         # Writes bvals, bvecs files if asked
         run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
         assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
-        assert_almost_equal(np.loadtxt('DTI.bvecs'),
-                            DTI_PAR_BVECS[:, [2, 0, 1]].T)
+        # Bvecs in header, transposed from PSL to LPS
+        bvecs_LPS = DTI_PAR_BVECS[:, [2, 0, 1]]
+        # Adjust for output flip of Y axis in data and bvecs
+        bvecs_LAS = bvecs_LPS * [1, -1, 1]
+        assert_almost_equal(np.loadtxt('DTI.bvecs'), bvecs_LAS.T)
+        # Dwell time
         assert_false(exists('DTI.dwell_time'))
         # Need field strength if requesting dwell time
         code, _, _, = run_command(
