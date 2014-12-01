@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Very simple spatial image class
+''' A simple spatial image class
 
 The image class maintains the association between a 3D (or greater)
 array, and an affine transform that maps voxel coordinates to some world space.
@@ -27,7 +27,7 @@ methods:
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
      associated.
-   * .get_shape() (Deprecated)
+   * .get_shape() (deprecated)
 
 properties:
 
@@ -451,16 +451,16 @@ class SpatialImage(object):
     def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scalng applied
 
-        If the image data is a array proxy (an object that knows how to load
+        If the image data is an array proxy (an object that knows how to load
         the image data from disk) then the default behavior (`caching` ==
         "fill") is to read the data from the proxy, and store in an internal
-        cache.  Future calls to ``get_data`` will return the cached copy.
+        cache.  Future calls to ``get_data`` will return the cached array.
 
-        Once the data has been cached and returned from a proxy array, the
-        cached array can be modified by modifying the returned array, because
-        the returned array is a reference to the array in the cache.  Regardless
-        of the `caching` flag, this is always true of an in-memory image (where
-        the image data is an array rather than an array proxy).
+        Once the data has been cached and returned from an image array proxy,
+        if you modify the returned array, you will also modify the cached
+        array (because they are the same array).  Regardless of the `caching`
+        flag, this is always true of an in-memory image (where the image data
+        is an array rather than an array proxy).
 
         Parameters
         ----------
@@ -522,27 +522,56 @@ class SpatialImage(object):
         will modify the result of future calls to ``get_data()``.  For example
         you might do this:
 
-            img = load('my_image.nii') # a proxy image
-            data = img.get_data()
-            data[0, 0, 0] = 99
+        >>> import os
+        >>> import nibabel as nib
+        >>> from nibabel.testing import data_path
+        >>> img_fname = os.path.join(data_path, 'example4d.nii.gz')
 
-        In this case the cache is full (default `caching='fill'), and the cache
-        contains a reference to the returned array ``data``, so the next time
-        you call ``get_data()``:
+        >>> img = nib.load(img_fname) # This is a proxy image
+        >>> nib.is_proxy(img.dataobj)
+        True
 
-            data_again = img.get_data()
-            data_again is data  # will be True
-            data_again[0, 0, 0] == 99  # will be True
+        The array is not yet cached by a call to "get_data", so:
+        >>> img.in_memory
+        False
+
+        After we call ``get_data`` using the default `caching='fill', the cache
+        contains a reference to the returned array ``data``:
+
+        >>> data = img.get_data()
+        >>> img.in_memory
+        True
+
+        We modify an element in the returned data array:
+
+        >>> data[0, 0, 0, 0]
+        0
+        >>> data[0, 0, 0, 0] = 99
+        >>> data[0, 0, 0, 0]
+        99
+
+        The next time we call 'get_data', the method returns the cached
+        reference to the (modified) array:
+
+        >>> data_again = img.get_data()
+        >>> data_again is data
+        True
+        >>> data_again[0, 0, 0, 0]
+        99
 
         If you had *initially* used `caching` == 'unchanged' then the returned
-        ``data`` array is loaded from file, but not cached, and:
+        ``data`` array would have been loaded from file, but not cached, and:
 
-            img = load('my_image.nii')  # a proxy image
-            data = img.get_data(caching='unchanged')
-            data[0, 0, 0] = 99
-            data_again = img.get_data(caching='unchanged')
-            data_again is data  # will be False
-            data_again[0, 0, 0] == 99  # will be False
+        >>> img = nib.load(img_fname)  # a proxy image again
+        >>> data = img.get_data(caching='unchanged')
+        >>> img.in_memory
+        False
+        >>> data[0, 0, 0] = 99
+        >>> data_again = img.get_data(caching='unchanged')
+        >>> data_again is data
+        False
+        >>> data_again[0, 0, 0, 0]
+        0
         """
         if caching not in ('fill', 'unchanged'):
             raise ValueError('caching value should be "fill" or "unchanged"')
