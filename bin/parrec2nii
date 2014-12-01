@@ -5,16 +5,19 @@ from __future__ import division, print_function, absolute_import
 
 from optparse import OptionParser, Option
 import numpy as np
+import numpy.linalg as npl
 import sys
 import os
-import gzip
 import nibabel
 import nibabel.parrec as pr
 from nibabel.parrec import one_line
 from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
 from nibabel.filename_parser import splitext_addext
-from nibabel.volumeutils import array_to_file, fname_ext_ul_case
+from nibabel.volumeutils import fname_ext_ul_case
+from nibabel.orientations import (io_orientation, inv_ornt_aff,
+                                  apply_orientation)
+from nibabel.affines import apply_affine, from_matvec, to_matvec
 
 
 def get_opt_parser():
@@ -136,75 +139,73 @@ def proc_file(infile, opts):
                       'overwrite it' % outfilename)
 
     # load the PAR header and data
-    scaling = None if opts.scaling == 'off' else opts.scaling
+    scaling = 'dv' if opts.scaling == 'off' else opts.scaling
     infile = fname_ext_ul_case(infile)
     pr_img = pr.load(infile,
                      permit_truncated=opts.permit_truncated,
                      scaling=scaling)
     pr_hdr = pr_img.header
-    raw_data = pr_img.dataobj.get_unscaled()
     affine = pr_hdr.get_affine(origin=opts.origin)
-    nimg = nifti1.Nifti1Image(raw_data, affine, pr_hdr)
-    nhdr = nimg.header
-
-    if 'parse' in opts.minmax:
-        # need to get the scaled data
-        verbose('Loading (and scaling) the data to determine value range')
-        if opts.scaling == 'off':
-            scaled_data = raw_data
-        else:
-            slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
-            scaled_data = slope * raw_data + intercept
-    if opts.minmax[0] == 'parse':
-        nhdr.structarr['cal_min'] = scaled_data.min()
-    else:
-        nhdr.structarr['cal_min'] = float(opts.minmax[0])
-    if opts.minmax[1] == 'parse':
-        nhdr.structarr['cal_max'] = scaled_data.max()
-    else:
-        nhdr.structarr['cal_max'] = float(opts.minmax[1])
-
-    # container for potential NIfTI1 header extensions
-    if opts.store_header:
-        exts = nifti1.Nifti1Extensions()
-        # dump the full PAR header content into an extension
-        with open(infile, 'r') as fobj:
-            hdr_dump = fobj.read()
-            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
-        exts.append(dump_ext)
-    # finalize the header: set proper data offset, pixdims, ...
-    nimg.update_header()
-
-    # prep a file
-    if opts.compressed:
-        verbose('Using gzip compression')
-        outfile = gzip.open(outfilename, 'wb')
-    else:
-        outfile = open(outfilename, 'wb')
-
+    slope, intercept = pr_hdr.get_data_scaling(scaling)
+    if opts.scaling != 'off':
+        verbose('Using data scaling "%s"' % opts.scaling)
     # get original scaling, and decide if we scale in-place or not
     if opts.scaling == 'off':
         slope = np.array([1.])
         intercept = np.array([0.])
-    else:
-        verbose('Using data scaling "%s"' % opts.scaling)
-        slope, intercept = pr_hdr.get_data_scaling(method=opts.scaling)
-    verbose('Writing %s' % outfilename)
-    if not np.any(np.diff(slope)) and not np.any(np.diff(intercept)):
+        in_data = pr_img.dataobj.get_unscaled()
+        out_dtype = pr_hdr.get_data_dtype()
+    elif not np.any(np.diff(slope)) and not np.any(np.diff(intercept)):
         # Single scalefactor case
-        nhdr.set_slope_inter(slope.ravel()[0], intercept.ravel()[0])
-        data_obj = raw_data
+        slope = slope.ravel()[0]
+        intercept = intercept.ravel()[0]
+        in_data = pr_img.dataobj.get_unscaled()
+        out_dtype = pr_hdr.get_data_dtype()
     else:
         # Multi scalefactor case
-        nhdr.set_slope_inter(1, 0)
-        nhdr.set_data_dtype(np.float64)
-        data_obj = pr_img.dataobj
-    nhdr.write_to(outfile)
-    offset = nhdr.get_data_offset()
-    array_to_file(data_obj,
-                  outfile,
-                  out_dtype=nhdr.get_data_dtype(), # for endianness
-                  offset=offset)
+        slope = np.array([1.])
+        intercept = np.array([0.])
+        in_data = np.array(pr_img.dataobj)
+        out_dtype = np.float64
+    # Reorient data block to LAS+ if necessary
+    ornt = io_orientation(np.diag([-1, 1, 1, 1]).dot(affine))
+    if np.all(ornt == [[0, 1],
+                       [1, 1],
+                       [2, 1]]): # already in LAS+
+        t_aff = np.eye(4)
+    else: # Not in LAS+
+        t_aff = inv_ornt_aff(ornt, pr_img.shape)
+        affine = np.dot(affine, t_aff)
+        in_data = apply_orientation(in_data, ornt)
+    # Make corresponding NIfTI image
+    nimg = nifti1.Nifti1Image(in_data, affine, pr_hdr)
+    nhdr = nimg.header
+    nhdr.set_data_dtype(out_dtype)
+    nhdr.set_slope_inter(slope, intercept)
+
+    if 'parse' in opts.minmax:
+        # need to get the scaled data
+        verbose('Loading (and scaling) the data to determine value range')
+    if opts.minmax[0] == 'parse':
+        nhdr['cal_min'] = in_data.min() * slope + intercept
+    else:
+        nhdr['cal_min'] = float(opts.minmax[0])
+    if opts.minmax[1] == 'parse':
+        nhdr['cal_max'] = in_data.max() * slope + intercept
+    else:
+        nhdr['cal_max'] = float(opts.minmax[1])
+
+    # container for potential NIfTI1 header extensions
+    if opts.store_header:
+        # dump the full PAR header content into an extension
+        with open(infile, 'r') as fobj:
+            hdr_dump = fobj.read()
+            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
+        nhdr.extensions.append(dump_ext)
+
+    verbose('Writing %s' % outfilename)
+    nibabel.save(nimg, outfilename)
+
     # write out bvals/bvecs if requested
     if opts.bvs:
         bvals, bvecs = pr_hdr.get_bvals_bvecs()
@@ -212,6 +213,10 @@ def proc_file(infile, opts):
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
             verbose('Writing .bvals and .bvecs files')
+            # Transform bvecs with reorientation affine
+            orig2new = npl.inv(t_aff)
+            bv_reorient = from_matvec(to_matvec(orig2new)[0], [0, 0, 0])
+            bvecs = apply_affine(bv_reorient, bvecs)
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:

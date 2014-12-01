@@ -929,7 +929,7 @@ class PARRECHeader(Header):
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
-            raise ValueError("Unknown scling method '%s'." % method)
+            raise ValueError("Unknown scaling method '%s'." % method)
         reorder = self.get_sorted_slice_indices()
         slope = slope[reorder]
         intercept = intercept[reorder]
