@@ -96,22 +96,29 @@ def check_conversion(cmd, pr_data, out_fname):
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
+    del img, data  # for windows to be able to later delete the file
     # Check minmax options
     run_command(cmd + ['--minmax', '1', '2'])
     img = load(out_fname)
+    data = img.get_data()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], 2))
+    del img, data  # for windows
     run_command(cmd + ['--minmax', 'parse', '2'])
     img = load(out_fname)
+    data = img.get_data()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], 2))
+    del img, data  # for windows
     run_command(cmd + ['--minmax', '1', 'parse'])
     img = load(out_fname)
+    data = img.get_data()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
+    del img, data
 
 
 @script_test
@@ -134,6 +141,8 @@ def test_parrec2nii():
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
             # Standard save does not save extensions
             assert_equal(len(img.header.extensions), 0)
+            # Delete previous img, data to make Windows happier
+            del img, data
             # Does not overwrite unless option given
             code, stdout, stderr = run_command(
                 ['parrec2nii', fname], check_code=False)
@@ -161,6 +170,7 @@ def test_parrec2nii():
             run_command(base_cmd + ['--store-header'])
             img = load(out_froot)
             assert_equal(len(img.header.extensions), 1)
+            del img  # To help windows delete the file
 
 
 @script_test
