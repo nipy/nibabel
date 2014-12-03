@@ -1,8 +1,8 @@
-""" Testing Siemens CSA header reader
+""" Testing Siemens "XProtocol" parser
 """
 
 from .. import csareader as csa
-from .. import xprotocol as xprotocol
+from .. import xprotocol
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
