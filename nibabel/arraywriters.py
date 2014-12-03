@@ -414,10 +414,10 @@ class SlopeArrayWriter(ArrayWriter):
         if self._out_dtype.kind == 'u':
             # We're checking for a sign flip.  This can only work for uint
             # output, because, for int output, the abs min of the type is
-            # greater than the abs max, so the data either fit into the range
-            # (tested for in _do_scaling), or this test can't pass
-            # Need abs that deals with max neg ints. abs problem only arises
-            # when all the data is set to max neg integer value
+            # greater than the abs max, so the data either fits into the range
+            # (tested for in _do_scaling), or this test can't pass. Need abs
+            # that deals with max neg ints. abs problem only arises when all
+            # the data is set to max neg integer value
             imax = np.iinfo(self._out_dtype).max
             if mx <= 0 and int_abs(mn) <= imax: # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
@@ -589,7 +589,8 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         super(SlopeInterArrayWriter, self)._iu2iu()
 
     def _range_scale(self, in_min, in_max):
-        """ Calculate scaling, intercept based on data range and output type """
+        """ Calculate scaling, intercept based on data range and output type
+        """
         if in_max == in_min: # Only one number in array
             self.slope = 1.
             self.inter = in_min
@@ -604,10 +605,10 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_min, in_max = np.array([in_min, in_max], dtype=big_float)
             in_range = np.diff([in_min, in_max])
         else: # max possible (u)int range is 2**64-1 (int64, uint64)
-            # int_to_float covers this range.  On windows longdouble is the same
-            # as double so in_range will be 2**64 - thus overestimating slope
-            # slightly.  Casting to int needed to allow in_max-in_min to be larger than
-            # the largest (u)int value
+            # int_to_float covers this range.  On windows longdouble is the
+            # same as double so in_range will be 2**64 - thus overestimating
+            # slope slightly.  Casting to int needed to allow in_max-in_min to
+            # be larger than the largest (u)int value
             in_min, in_max = as_int(in_min), as_int(in_max)
             in_range = int_to_float(in_max - in_min, big_float)
             # Cast to float for later processing.
@@ -624,13 +625,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             # raise an error when writing
             out_min, out_max = shared_range(working_dtype, out_dtype)
             out_min, out_max = np.array((out_min, out_max), dtype = big_float)
-        # We want maximum precision for the calculations. Casting will
-        # not lose precision because min/max are of fp type.
+        # We want maximum precision for the calculations. Casting will not lose
+        # precision because min/max are of fp type.
         assert [v.dtype.kind for v in (out_min, out_max)] == ['f', 'f']
         out_range = out_max - out_min
         """
-        Think of the input values as a line starting (left) at in_min and ending
-        (right) at in_max.
+        Think of the input values as a line starting (left) at in_min and
+        ending (right) at in_max.
 
         The output values will be a line starting at out_min and ending at
         out_max.
@@ -666,20 +667,20 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         We can't change the range of the saved data (the whole range of the
         integer type) or the range of the output data (the values we input). We
         can change the intermediate values ``saved_data * slope`` by choosing
-        the sign of the slope to match the in_min or in_max to the left or right
-        end of the saved data range.
+        the sign of the slope to match the in_min or in_max to the left or
+        right end of the saved data range.
 
-        If the out_dtype is signed int, then abs(out_min) = abs(out_max) + 1 and
-        the absolute value and therefore precision for values at the left and
-        right of the saved data range are very similar (e.g. -128 * slope, 127 *
-        slope respectively).
+        If the out_dtype is signed int, then abs(out_min) = abs(out_max) + 1
+        and the absolute value and therefore precision for values at the left
+        and right of the saved data range are very similar (e.g. -128 * slope,
+        127 * slope respectively).
 
-        If the out_dtype is unsigned int, then the absolute value at the left is
-        0 and the precision is much higher than for the right end of the range
-        (e.g. 0 * slope, 255 * slope).
+        If the out_dtype is unsigned int, then the absolute value at the left
+        is 0 and the precision is much higher than for the right end of the
+        range (e.g. 0 * slope, 255 * slope).
 
-        If the out_dtype is unsigned int then we choose the sign of the slope to
-        match the smaller of the in_min, in_max to the zero end of the saved
+        If the out_dtype is unsigned int then we choose the sign of the slope
+        to match the smaller of the in_min, in_max to the zero end of the saved
         range.
         """
         if out_min == 0 and np.abs(in_max) < np.abs(in_min):

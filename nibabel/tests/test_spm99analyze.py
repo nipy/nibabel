@@ -81,7 +81,8 @@ class HeaderScalingMixin(object):
         assert_true(np.all(data == data_back))
 
 
-class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin):
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
+                             HeaderScalingMixin):
     header_class = Spm99AnalyzeHeader
 
     def test_empty(self):
@@ -210,9 +211,10 @@ class ScalingMixin(object):
         # For images that implement scaling, test effect of scaling
         #
         # This tests the affect of creating an image with a header containing
-        # the scaling, then writing the image and reading again.  So the scaling
-        # can be affected by the processing of the header when creating the
-        # image, or by interpretation of the scaling when creating the array.
+        # the scaling, then writing the image and reading again.  So the
+        # scaling can be affected by the processing of the header when creating
+        # the image, or by interpretation of the scaling when creating the
+        # array.
         #
         # Analyze does not implement any scaling, but this test class is the
         # base class for all Analyze-derived classes, such as NIfTI
@@ -227,9 +229,12 @@ class ScalingMixin(object):
         if not hdr_class.has_data_intercept:
             return
         invalid_inters = (np.nan, np.inf, -np.inf)
-        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
-        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
-        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        invalid_pairs = tuple(
+            itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(
+            itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(
+            itertools.product((1, 2), invalid_inters))
         for slope, inter in (invalid_pairs + bad_slopes_good_inter +
                              good_slope_bad_inters):
             self.assert_null_scaling(arr, slope, inter)
@@ -240,8 +245,8 @@ class ScalingMixin(object):
                              effective_slope,
                              effective_inter):
         # Test that explicit set of slope / inter forces write of data using
-        # this slope, inter
-        # We use this helper function for children of the Analyze header
+        # this slope, inter.  We use this helper function for children of the
+        # Analyze header
         img_class = self.image_class
         arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
         # We're going to test rounding later
@@ -316,11 +321,12 @@ class ScalingMixin(object):
 
     @scipy_skip
     def test_no_scaling(self):
-        # Test writing image converting types when no scaling
+        # Test writing image converting types when not calculating scaling
         img_class = self.image_class
         hdr_class = img_class.header_class
         hdr = hdr_class()
         supported_types = supported_np_types(hdr)
+        # Any old non-default slope and intercept
         slope = 2
         inter = 10 if hdr.has_data_intercept else 0
         for in_dtype, out_dtype in itertools.product(
@@ -331,6 +337,7 @@ class ScalingMixin(object):
             arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
             img = img_class(arr, np.eye(4), hdr)
             img.set_data_dtype(out_dtype)
+            # Setting the scaling means we don't calculate it later
             img.header.set_slope_inter(slope, inter)
             with np.errstate(invalid='ignore'):
                 rt_img = bytesio_round_trip(img)
@@ -437,16 +444,17 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         to_111 = np.eye(4)
         to_111[:3,3] = 1
         assert_array_equal(mats['mat'], np.dot(aff, from_111))
-        # The M matrix does not include flips, so if we only
-        # have the M matrix in the mat file, and we have default flipping, the
-        # mat resulting should have a flip.  The 'mat' matrix does include flips
-        # and so should be unaffected by the flipping.  If both are present we
-        # prefer the the 'mat' matrix.
+        # The M matrix does not include flips, so if we only have the M matrix
+        # in the mat file, and we have default flipping, the mat resulting
+        # should have a flip.  The 'mat' matrix does include flips and so
+        # should be unaffected by the flipping.  If both are present we prefer
+        # the the 'mat' matrix.
         assert_true(img.header.default_x_flip) # check the default
         flipper = np.diag([-1,1,1,1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
-        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
+        savemat(mat_fileobj,
+                dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)

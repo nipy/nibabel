@@ -107,8 +107,8 @@ def shared_range(flt_type, int_type):
     """ Min and max in float type that are >=min, <=max in integer type
 
     This is not as easy as it sounds, because the float type may not be able to
-    exactly represent the max or min integer values, so we have to find the next
-    exactly representable floating point value to do the thresholding.
+    exactly represent the max or min integer values, so we have to find the
+    next exactly representable floating point value to do the thresholding.
 
     Parameters
     ----------
