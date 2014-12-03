@@ -155,7 +155,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
                            'relative to dims')
 
 
-class ScalingMixin(object):
+class ImageScalingMixin(object):
     # Mixin to add scaling checks to image test class
     # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
     # these tests for Nifti scaling, hence the mixin.
@@ -385,7 +385,7 @@ class ScalingMixin(object):
         assert_equal(rt_img.get_data()[0, 0, 0], 0)
 
 
-class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
+class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
     # Flag to skip bz2 save tests if they are going to break
@@ -408,15 +408,20 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         test_analyze.TestAnalyzeImage.test_big_offset_exts
     ))
 
-    test_header_scaling = scipy_skip(ScalingMixin.test_header_scaling)
+    test_header_scaling = scipy_skip(
+        ImageScalingMixin.test_header_scaling)
 
-    test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
+    test_int_int_scaling = scipy_skip(
+        ImageScalingMixin.test_int_int_scaling)
 
-    test_write_scaling = scipy_skip(ScalingMixin.test_write_scaling)
+    test_write_scaling = scipy_skip(
+        ImageScalingMixin.test_write_scaling)
 
-    test_no_scaling = scipy_skip(ScalingMixin.test_no_scaling)
+    test_no_scaling = scipy_skip(
+        ImageScalingMixin.test_no_scaling)
 
-    test_nan2zero_range_ok = scipy_skip(ScalingMixin.test_nan2zero_range_ok)
+    test_nan2zero_range_ok = scipy_skip(
+        ImageScalingMixin.test_nan2zero_range_ok)
 
     @scipy_skip
     def test_mat_read(self):

@@ -627,7 +627,7 @@ class TestNifti1SingleHeader(TestNifti1PairHeader):
             assert_raises(HeaderDataError, hdr.set_data_dtype, np.longdouble)
 
 
-class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ScalingMixin):
+class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
