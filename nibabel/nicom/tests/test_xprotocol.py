@@ -1,18 +1,12 @@
 """ Testing Siemens CSA header reader
 """
-from os.path import join as pjoin
-import gzip
-
-import numpy as np
 
 from .. import csareader as csa
 from .. import xprotocol as xprotocol
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
-from .test_dicomwrappers import have_dicom, dicom_test, DATA
+from .test_dicomwrappers import dicom_test, DATA
 
 
 @dicom_test
