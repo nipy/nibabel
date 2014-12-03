@@ -319,7 +319,6 @@ class ScalingMixin(object):
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
 
-    @scipy_skip
     def test_no_scaling(self):
         # Test writing image converting types when not calculating scaling
         img_class = self.image_class
@@ -368,7 +367,6 @@ class ScalingMixin(object):
         ):
             self._check_write_scaling(slope, inter, e_slope, e_inter)
 
-    @scipy_skip
     def test_nan2zero_range_ok(self):
         # Check that a floating point image with range not including zero gets
         # nans scaled correctly
@@ -415,6 +413,10 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
     test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
 
     test_write_scaling = scipy_skip(ScalingMixin.test_write_scaling)
+
+    test_no_scaling = scipy_skip(ScalingMixin.test_no_scaling)
+
+    test_nan2zero_range_ok = scipy_skip(ScalingMixin.test_nan2zero_range_ok)
 
     @scipy_skip
     def test_mat_read(self):
