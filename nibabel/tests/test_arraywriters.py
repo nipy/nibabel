@@ -135,17 +135,29 @@ def test_no_scaling():
         kwargs = (dict(check_scaling=False) if awt == ArrayWriter
                   else dict(calc_scale=False))
         aw = awt(arr, out_dtype, **kwargs)
-        with suppress_warnings():  # cast to real from cplx
+        with suppress_warnings():
             back_arr = round_trip(aw)
-            exp_back = arr.astype(float)
+        exp_back = arr.copy()
         if out_dtype in IUINT_TYPES:
-            with np.errstate(invalid='ignore'):
-                exp_back = np.round(exp_back)
-            if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
-                # Finite scaling sets infs to min / max
-                exp_back = np.clip(exp_back, 0, 1)
-            else:
-                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            if in_dtype in CFLOAT_TYPES:
+                with suppress_warnings():
+                    exp_back = exp_back.astype(float)
+                with np.errstate(invalid='ignore'):
+                    exp_back = np.round(exp_back)
+                if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
+                    # Finite scaling sets infs to min / max
+                    exp_back = np.clip(exp_back, 0, 1)
+                else:
+                    exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            else: # iu input type
+                mn_out, mx_out = _dt_min_max(out_dtype)
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    exp_back = np.clip(exp_back,
+                                       max(mn_in, mn_out),
+                                       min(mx_in, mx_out))
+        elif in_dtype in COMPLEX_TYPES:  # always cast to real from cplx
+            with suppress_warnings():
+                exp_back = exp_back.astype(float)
         exp_back = exp_back.astype(out_dtype)
         # Sometimes working precision is float32 - allow for small differences
         assert_allclose_safely(back_arr, exp_back)

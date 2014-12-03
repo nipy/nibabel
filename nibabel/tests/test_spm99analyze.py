@@ -343,15 +343,29 @@ class ImageScalingMixin(object):
             with suppress_warnings():  # invalid mult
                 back_arr = rt_img.get_data()
             exp_back = arr.copy()
-            if in_dtype not in COMPLEX_TYPES:
-                exp_back = arr.astype(float)
             if out_dtype in IUINT_TYPES:
-                with np.errstate(invalid='ignore'):
-                    exp_back = np.round(exp_back)
-                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-                exp_back = exp_back.astype(out_dtype).astype(float)
-            else:
+                if in_dtype in FLOAT_TYPES:
+                    # Working precision is (at least) float
+                    exp_back = exp_back.astype(float)
+                    with np.errstate(invalid='ignore'):
+                        exp_back = np.round(exp_back)
+                    if in_dtype in FLOAT_TYPES:
+                        # Clip to shared range of working precision
+                        exp_back = np.clip(exp_back,
+                                           *shared_range(float, out_dtype))
+                else:  # iu input type
+                    # Clipping only to integer range
+                    mn_out, mx_out = _dt_min_max(out_dtype)
+                    if (mn_in, mx_in) != (mn_out, mx_out):
+                        exp_back = np.clip(exp_back,
+                                           max(mn_in, mn_out),
+                                           min(mx_in, mx_out))
+                # exp_back = exp_back.astype(out_dtype)
+            if out_dtype in COMPLEX_TYPES:
                 exp_back = exp_back.astype(out_dtype)
+            else:
+                # Cast to working precision
+                exp_back = exp_back.astype(float)
             # Allow for small differences in large numbers
             with suppress_warnings():  # invalid value
                 assert_allclose_safely(back_arr,

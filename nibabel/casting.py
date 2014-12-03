@@ -14,6 +14,11 @@ class CastingError(Exception):
     pass
 
 
+#: Test for VC truncation when casting floats to uint64
+_test_val = 2**63 + 2**11 # Should be exactly representable in float64
+TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
+
+
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     """ Convert floating point array `arr` to type `int_type`
 
@@ -151,6 +156,8 @@ def shared_range(flt_type, int_type):
     mx = floor_exact(ii.max, flt_type)
     if mx == np.inf:
         mx = fi.max
+    elif TRUNC_UINT64 and int_type == np.uint64:
+        mx = min(mx, flt_type(2**63))
     _SHARED_RANGES[key] = (mn, mx)
     return mn, mx
 

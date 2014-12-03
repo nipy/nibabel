@@ -536,6 +536,9 @@ def test_a2f_scaled_unscaled():
         mn_in, mx_in = _dt_min_max(in_dtype)
         nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
         arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        iu_via_float = (in_dtype in CFLOAT_TYPES or
+                        (intercept, divslope) != (0, 1) or
+                        out_dtype in CFLOAT_TYPES)
         mn_out, mx_out = _dt_min_max(out_dtype)
         nan_fill = -intercept / divslope
         if out_dtype in IUINT_TYPES:
@@ -555,20 +558,24 @@ def test_a2f_scaled_unscaled():
                                     divslope=divslope,
                                     intercept=intercept)
             exp_back = arr.copy()
-            if out_dtype in IUINT_TYPES:
-                exp_back[np.isnan(exp_back)] = 0
-            if in_dtype not in COMPLEX_TYPES:
-                exp_back = exp_back.astype(float)
-            if intercept != 0:
-                exp_back -= intercept
-            if divslope != 1:
-                exp_back /= divslope
-            if out_dtype in IUINT_TYPES:
-                exp_back = np.round(exp_back).astype(float)
-                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-                exp_back = exp_back.astype(out_dtype)
-            else:
-                exp_back = exp_back.astype(out_dtype)
+            if iu_via_float:
+                if out_dtype in IUINT_TYPES:
+                    exp_back[np.isnan(exp_back)] = 0
+                if in_dtype not in COMPLEX_TYPES:
+                    exp_back = exp_back.astype(float)
+                if intercept != 0:
+                    exp_back -= intercept
+                if divslope != 1:
+                    exp_back /= divslope
+                if out_dtype in IUINT_TYPES:
+                    exp_back = np.round(exp_back).astype(float)
+                    exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            else: # Not via float, direct iu to iu casting
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    exp_back = np.clip(exp_back,
+                                    max(mn_in, mn_out),
+                                    min(mx_in, mx_out))
+            exp_back = exp_back.astype(out_dtype)
         # Allow for small differences in large numbers
         assert_allclose_safely(back_arr, exp_back)
 

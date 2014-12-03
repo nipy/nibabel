@@ -411,15 +411,16 @@ class SlopeArrayWriter(ArrayWriter):
     def _iu2iu(self):
         # (u)int to (u)int scaling
         mn, mx = self.finite_range()
-        if self._out_dtype.kind == 'u':
+        out_dt = self._out_dtype
+        if out_dt.kind == 'u':
             # We're checking for a sign flip.  This can only work for uint
             # output, because, for int output, the abs min of the type is
             # greater than the abs max, so the data either fits into the range
             # (tested for in _do_scaling), or this test can't pass. Need abs
             # that deals with max neg ints. abs problem only arises when all
             # the data is set to max neg integer value
-            imax = np.iinfo(self._out_dtype).max
-            if mx <= 0 and int_abs(mn) <= imax: # sign flip enough?
+            o_min, o_max = shared_range(self.scaler_dtype, out_dt)
+            if mx <= 0 and int_abs(mn) <= as_int(o_max): # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -563,15 +564,19 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         # range may be greater than the largest integer for this type.
         # as_int needed to work round numpy 1.4.1 int casting bug
         out_dtype = self._out_dtype
-        t_min, t_max = np.iinfo(out_dtype).min, np.iinfo(out_dtype).max
-        type_range = as_int(t_max) - as_int(t_min)
+        # Options in this method are scaling using intercept only.  These will
+        # have to pass through ``self.scaler_dtype`` (because the intercept is
+        # in this type).
+        o_min, o_max = [as_int(v)
+                        for v in shared_range(self.scaler_dtype, out_dtype)]
+        type_range = o_max - o_min
         mn2mx = mx - mn
         if mn2mx <= type_range: # might offset be enough?
-            if t_min == 0: # uint output - take min to 0
+            if o_min == 0:  # uint output - take min to 0
                 # decrease offset with floor_exact, meaning mn >= t_min after
                 # subtraction.  But we may have pushed the data over t_max,
                 # which we check below
-                inter = floor_exact(mn - t_min, self.scaler_dtype)
+                inter = floor_exact(mn - o_min, self.scaler_dtype)
             else: # int output - take midpoint to 0
                 # ceil below increases inter, pushing scale up to 0.5 towards
                 # -inf, because ints have abs min == abs max + 1
@@ -581,8 +586,8 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
                 inter = floor_exact(midpoint, self.scaler_dtype)
             # Need to check still in range after floor_exact-ing
             int_inter = as_int(inter)
-            assert mn - int_inter >= t_min
-            if mx - int_inter <= t_max:
+            assert mn - int_inter >= o_min
+            if mx - int_inter <= o_max:
                 self.inter = inter
                 return
         # Try slope options (sign flip) and then range scaling
