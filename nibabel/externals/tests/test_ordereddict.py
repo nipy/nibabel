@@ -12,9 +12,9 @@ MY_PATH = dirname(realpath(__file__))
 
 def test_right_version():
     # If Python < 2.7, use our own copy, else use system copy
-    class_path = inspect.getfile(OrderedDict)
-    rel_dir = dirname(relpath(realpath(class_path), MY_PATH))
     if sys.version_info[:2] < (2, 7):
+        class_path = realpath(inspect.getfile(OrderedDict))
+        rel_dir = dirname(relpath(class_path, MY_PATH))
         assert_equal(rel_dir, '..')
     else:
         import collections
