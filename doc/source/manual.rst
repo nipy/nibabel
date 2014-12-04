@@ -8,6 +8,5 @@ NiBabel Manual
 
   installation
   gettingstarted
-  installing_data
   legal
   changelog
