@@ -7,7 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
-Parse the "XProtocol" meta data format found in a variety of Siemens MR files.
+Parse the "XProtocol" (or "EVAProtocol") meta data format found in a variety
+of Siemens MR files.
 """
 
 import re, string
@@ -480,8 +481,10 @@ def gen_params(char_iter):
             break
         ident = ''.join(ident_iter)
 
-        # Parse the param type and name, need to special case "XProtocol" tag
-        if ident == 'XProtocol':
+        # Parse the param type and name, need to special case "XProtocol" root.
+        # In older data sets the root name is "EVAProtocol", which we rename
+        # to "XProtocol" for the sake of consistency.
+        if ident in ('XProtocol', 'EVAProtocol'):
             param_type = 'ParamMap'
             name = 'XProtocol'
         else:
