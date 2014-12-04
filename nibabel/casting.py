@@ -14,7 +14,10 @@ class CastingError(Exception):
     pass
 
 
-#: Test for VC truncation when casting floats to uint64
+# Test for VC truncation when casting floats to uint64
+# Christoph Gohlke says this is so for MSVC <= 2010 because VC is using x87
+# instructions; see:
+# https://github.com/scipy/scipy/blob/99bb8411f6391d921cb3f4e56619291e91ddf43b/scipy/ndimage/tests/test_datatypes.py#L51
 _test_val = 2**63 + 2**11 # Should be exactly representable in float64
 TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
 

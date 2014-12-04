@@ -536,13 +536,12 @@ def test_a2f_scaled_unscaled():
         mn_in, mx_in = _dt_min_max(in_dtype)
         nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
         arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
-        iu_via_float = (in_dtype in CFLOAT_TYPES or
-                        (intercept, divslope) != (0, 1) or
-                        out_dtype in CFLOAT_TYPES)
         mn_out, mx_out = _dt_min_max(out_dtype)
+        # 0 when scaled to output will also be the output value for NaN
         nan_fill = -intercept / divslope
         if out_dtype in IUINT_TYPES:
             nan_fill = np.round(nan_fill)
+        # nan2zero will check whether 0 in scaled to a valid value in output
         if (in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out):
             assert_raises(ValueError,
                           array_to_file,
@@ -552,14 +551,25 @@ def test_a2f_scaled_unscaled():
                           divslope=divslope,
                           intercept=intercept)
             continue
-        with suppress_warnings():  # cast to real
+        with suppress_warnings():
             back_arr = write_return(arr, fobj,
                                     out_dtype=out_dtype,
                                     divslope=divslope,
                                     intercept=intercept)
             exp_back = arr.copy()
-            if iu_via_float:
-                if out_dtype in IUINT_TYPES:
+            if (in_dtype in IUINT_TYPES and
+                out_dtype in IUINT_TYPES and
+                (intercept, divslope) == (0, 1)):
+                # Direct iu to iu casting.
+                # Need to clip if ranges not the same.
+                # Use smaller of input, output range to avoid np.clip upcasting
+                # the array because of large clip limits.
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    exp_back = np.clip(exp_back,
+                                    max(mn_in, mn_out),
+                                    min(mx_in, mx_out))
+            else: # Need to deal with nans, casting to float, clipping
+                if in_dtype in CFLOAT_TYPES and out_dtype in IUINT_TYPES:
                     exp_back[np.isnan(exp_back)] = 0
                 if in_dtype not in COMPLEX_TYPES:
                     exp_back = exp_back.astype(float)
@@ -567,14 +577,10 @@ def test_a2f_scaled_unscaled():
                     exp_back -= intercept
                 if divslope != 1:
                     exp_back /= divslope
-                if out_dtype in IUINT_TYPES:
+                if (exp_back.dtype.type in CFLOAT_TYPES and
+                    out_dtype in IUINT_TYPES):
                     exp_back = np.round(exp_back).astype(float)
                     exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-            else: # Not via float, direct iu to iu casting
-                if (mn_in, mx_in) != (mn_out, mx_out):
-                    exp_back = np.clip(exp_back,
-                                    max(mn_in, mn_out),
-                                    min(mx_in, mx_out))
             exp_back = exp_back.astype(out_dtype)
         # Allow for small differences in large numbers
         assert_allclose_safely(back_arr, exp_back)

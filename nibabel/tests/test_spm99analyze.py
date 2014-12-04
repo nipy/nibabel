@@ -343,25 +343,31 @@ class ImageScalingMixin(object):
             with suppress_warnings():  # invalid mult
                 back_arr = rt_img.get_data()
             exp_back = arr.copy()
+            # If converting to floating point type, casting is direct.
+            # Otherwise we will need to do float-(u)int casting at some point
             if out_dtype in IUINT_TYPES:
                 if in_dtype in FLOAT_TYPES:
                     # Working precision is (at least) float
                     exp_back = exp_back.astype(float)
+                    # Float to iu conversion will always round, clip
                     with np.errstate(invalid='ignore'):
                         exp_back = np.round(exp_back)
                     if in_dtype in FLOAT_TYPES:
                         # Clip to shared range of working precision
                         exp_back = np.clip(exp_back,
                                            *shared_range(float, out_dtype))
-                else:  # iu input type
-                    # Clipping only to integer range
+                else:  # iu input and output type
+                    # No scaling, never gets converted to float.
+                    # Does get clipped to range of output type
                     mn_out, mx_out = _dt_min_max(out_dtype)
                     if (mn_in, mx_in) != (mn_out, mx_out):
+                        # Use smaller of input, output range to avoid np.clip
+                        # upcasting the array because of large clip limits.
                         exp_back = np.clip(exp_back,
                                            max(mn_in, mn_out),
                                            min(mx_in, mx_out))
-                # exp_back = exp_back.astype(out_dtype)
             if out_dtype in COMPLEX_TYPES:
+                # always cast to real from complex
                 exp_back = exp_back.astype(out_dtype)
             else:
                 # Cast to working precision
