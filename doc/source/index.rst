@@ -35,7 +35,7 @@ contributed code and discussion (in rough order of appearance):
 * `Gaël Varoquaux`_
 * Ian Nimmo-Smith
 * Jarrod Millman
-* Bertran Thirion
+* Bertrand Thirion
 * Thomas Ballinger
 * Cindee Madison
 * Valentin Haenel
@@ -80,7 +80,7 @@ Support
 =======
 
 If you have problems installing the software or questions about usage,
-documentation or something else related to NiBabel, you can post to the NiPy
+documentation or anything else related to NiBabel, you can post to the NiPy
 mailing list.
 
 :Mailing list:  nipy-devel@neuroimaging.scipy.org [subscription_, archive_]
