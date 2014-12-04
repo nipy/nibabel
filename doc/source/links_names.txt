@@ -18,6 +18,7 @@
 .. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
 .. _nibabel pypi: http://pypi.python.org/pypi/nibabel
 .. _nibabel issues: http://github.com/nipy/nibabel/issues
+.. _nibabel github issues: http://github.com/nipy/nibabel/issues
 
 .. other related projects
 .. _nipy community: http://nipy.org
