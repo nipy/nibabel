@@ -27,8 +27,9 @@ matrix:
       env:
         - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
 before_install:
-    - virtualenv venv
+    - virtualenv --python=python venv
     - source venv/bin/activate
+    - python --version # just to check
     - pip install nose # always
     - pip install --no-index -f http://travis-wheels.scikit-image.org $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
