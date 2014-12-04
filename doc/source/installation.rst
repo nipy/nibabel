@@ -32,18 +32,19 @@ Installer and packages
 pip and the Python package index
 --------------------------------
 
-By far the best way to install NiBabel is via pip_.  If you don't have pip
-already, follow the `pip install instructions`_.
+If you are not using a Linux package manager, then best way to install NiBabel
+is via pip_.  If you don't have pip already, follow the `pip install
+instructions`_.
 
-Then open a terminal (Terminal.app on OSX, cmd or Poweshell on Windows), and
-type::
+Then open a terminal (``Terminal.app`` on OSX, ``cmd`` or ``Powershell`` on
+Windows), and type::
 
     pip install nibabel
 
 This will download and install NiBabel.
 
 If you really like doing stuff manually, you can install NiBabel by downoading
-the source from `NiBabel pypi`_ .  Go to this page and select the source
+the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
 distribution you want.  Download the distribution, unpack it, and then, from
 the unpacked directory, run::
 
