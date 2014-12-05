@@ -221,12 +221,17 @@ def test_parrec2nii_with_data():
         assert_true(exists('DTI.nii'))
         assert_false(exists('DTI.bvals'))
         assert_false(exists('DTI.bvecs'))
+        # ensure trace was removed
+        img = load('DTI.nii')
+        assert_equal(img.shape[-1], len(DTI_PAR_BVALS) - 1)
+        del img
         # Does not overwrite unless option given
         code, stdout, stderr = run_command(['parrec2nii', dti_par],
                                            check_code=False)
         assert_equal(code, 1)
         # Writes bvals, bvecs files if asked
-        run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
+        run_command(['parrec2nii', '--overwrite', '--keep-trace',
+                     '--bvs', dti_par])
         assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
         # Bvecs in header, transposed from PSL to LPS
         bvecs_LPS = DTI_PAR_BVECS[:, [2, 0, 1]]
