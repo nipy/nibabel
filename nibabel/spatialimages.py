@@ -451,16 +451,20 @@ class SpatialImage(object):
     def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scalng applied
 
-        If the image data is an array proxy (an object that knows how to load
-        the image data from disk) then the default behavior (`caching` ==
-        "fill") is to read the data from the proxy, and store in an internal
-        cache.  Future calls to ``get_data`` will return the cached array.
+        The image ``dataobj`` property can be an array proxy or an array.  An
+        array proxy is an object that knows how to load the image data from
+        disk.  An image with an array proxy ``dataobj`` is a *proxy image*; an
+        image with an array in ``dataobj`` is an *array image*.
 
-        Once the data has been cached and returned from an image array proxy,
-        if you modify the returned array, you will also modify the cached
-        array (because they are the same array).  Regardless of the `caching`
-        flag, this is always true of an in-memory image (where the image data
-        is an array rather than an array proxy).
+        The default behavior for ``get_data()`` on a proxy image is to read the
+        data from the proxy, and store in an internal cache.  Future calls to
+        ``get_data`` will return the cached array.  This is the behavior
+        selected with `caching` == "fill"`.
+
+        Once the data has been cached and returned from an array proxy, if you
+        modify the returned array, you will also modify the cached array
+        (because they are the same array).  Regardless of the `caching` flag,
+        this is always true of an array image.
 
         Parameters
         ----------
@@ -494,10 +498,7 @@ class SpatialImage(object):
         data.  Images that have been loaded from files usually do not load the
         array data from file immediately, in order to reduce image load time
         and memory use.  For these images, ``dataobj`` is an *array proxy*; an
-        object that knows how to load the image array data from file.  Images
-        with an array proxy ``dataobj`` are called *proxy images*. In contrast,
-        images created directly from numpy arrays carry a simple reference to
-        their array data in ``dataobj``.  These are *in-memory images*.
+        object that knows how to load the image array data from file.
 
         By default (`caching` == "fill"), when you call ``get_data`` on a
         proxy image, we load the array data from disk, store (cache) an
@@ -505,8 +506,9 @@ class SpatialImage(object):
         time you call ``get_data``, you will get the cached reference to the
         array, so we don't have to load the array data from disk again.
 
-        In-memory images are already in memory, so there is no benefit to
-        caching, and the `caching` keywords have no effect.
+        Array images have a ``dataobj`` property that already refers to an
+        array in memory, so there is no benefit to caching, and the `caching`
+        keywords have no effect.
 
         For proxy images, you may not want to fill the cache after reading the
         data from disk because the cache will hold onto the array memory until
@@ -518,7 +520,7 @@ class SpatialImage(object):
         the cache full and returns the cached array reference.
 
         The cache can effect the behavior of the image, because if the cache is
-        full, or you have an in-memory image, then modifying the returned array
+        full, or you have an array image, then modifying the returned array
         will modify the result of future calls to ``get_data()``.  For example
         you might do this:
 
