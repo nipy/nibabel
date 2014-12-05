@@ -26,6 +26,11 @@ matrix:
     - python: 2.7
       env:
         - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+    # Documentation doctests
+    - python: 2.7
+      env:
+        - DEPENDS="numpy scipy matplotlib h5py sphinx"
+        - DOC_DOC_TEST=1
 before_install:
     - virtualenv venv
     - source venv/bin/activate
@@ -58,6 +63,12 @@ script:
       cp ../.coveragerc .;
       COVER_ARGS="--with-coverage --cover-package nibabel";
       fi
-    - nosetests --with-doctest $COVER_ARGS nibabel
+    - if [ "$DOC_DOC_TEST" == "1" ]; then
+      cd ../doc;
+      make html;
+      make doctest;
+      else
+      nosetests --with-doctest $COVER_ARGS nibabel;
+      fi
 after_success:
     - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
