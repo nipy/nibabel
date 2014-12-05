@@ -213,6 +213,9 @@
 .. _`wikipedia reflection`: http://en.wikipedia.org/wiki/Reflection_(mathematics)
 .. _`wikipedia direction cosine`: http://en.wikipedia.org/wiki/Direction_cosine
 
+.. Programming ideas
+.. _proxy: http://en.wikipedia.org/wiki/Proxy_pattern
+
 .. philosophy
 .. _0SAGA: http://nipyworld.blogspot.com/2010/11/0saga-software-model.html
 

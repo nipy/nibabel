@@ -9,5 +9,6 @@ NiBabel Manual
   installation
   gettingstarted
   nibabel_images
+  images_and_memory
   legal
   changelog
