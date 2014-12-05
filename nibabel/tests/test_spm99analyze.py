@@ -81,7 +81,8 @@ class HeaderScalingMixin(object):
         assert_true(np.all(data == data_back))
 
 
-class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin):
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
+                             HeaderScalingMixin):
     header_class = Spm99AnalyzeHeader
 
     def test_empty(self):
@@ -154,7 +155,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
                            'relative to dims')
 
 
-class ScalingMixin(object):
+class ImageScalingMixin(object):
     # Mixin to add scaling checks to image test class
     # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
     # these tests for Nifti scaling, hence the mixin.
@@ -210,9 +211,10 @@ class ScalingMixin(object):
         # For images that implement scaling, test effect of scaling
         #
         # This tests the affect of creating an image with a header containing
-        # the scaling, then writing the image and reading again.  So the scaling
-        # can be affected by the processing of the header when creating the
-        # image, or by interpretation of the scaling when creating the array.
+        # the scaling, then writing the image and reading again.  So the
+        # scaling can be affected by the processing of the header when creating
+        # the image, or by interpretation of the scaling when creating the
+        # array.
         #
         # Analyze does not implement any scaling, but this test class is the
         # base class for all Analyze-derived classes, such as NIfTI
@@ -227,9 +229,12 @@ class ScalingMixin(object):
         if not hdr_class.has_data_intercept:
             return
         invalid_inters = (np.nan, np.inf, -np.inf)
-        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
-        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
-        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        invalid_pairs = tuple(
+            itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(
+            itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(
+            itertools.product((1, 2), invalid_inters))
         for slope, inter in (invalid_pairs + bad_slopes_good_inter +
                              good_slope_bad_inters):
             self.assert_null_scaling(arr, slope, inter)
@@ -240,8 +245,8 @@ class ScalingMixin(object):
                              effective_slope,
                              effective_inter):
         # Test that explicit set of slope / inter forces write of data using
-        # this slope, inter
-        # We use this helper function for children of the Analyze header
+        # this slope, inter.  We use this helper function for children of the
+        # Analyze header
         img_class = self.image_class
         arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
         # We're going to test rounding later
@@ -314,13 +319,13 @@ class ScalingMixin(object):
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
 
-    @scipy_skip
     def test_no_scaling(self):
-        # Test writing image converting types when no scaling
+        # Test writing image converting types when not calculating scaling
         img_class = self.image_class
         hdr_class = img_class.header_class
         hdr = hdr_class()
         supported_types = supported_np_types(hdr)
+        # Any old non-default slope and intercept
         slope = 2
         inter = 10 if hdr.has_data_intercept else 0
         for in_dtype, out_dtype in itertools.product(
@@ -331,21 +336,42 @@ class ScalingMixin(object):
             arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
             img = img_class(arr, np.eye(4), hdr)
             img.set_data_dtype(out_dtype)
+            # Setting the scaling means we don't calculate it later
             img.header.set_slope_inter(slope, inter)
             with np.errstate(invalid='ignore'):
                 rt_img = bytesio_round_trip(img)
             with suppress_warnings():  # invalid mult
                 back_arr = rt_img.get_data()
             exp_back = arr.copy()
-            if in_dtype not in COMPLEX_TYPES:
-                exp_back = arr.astype(float)
+            # If converting to floating point type, casting is direct.
+            # Otherwise we will need to do float-(u)int casting at some point
             if out_dtype in IUINT_TYPES:
-                with np.errstate(invalid='ignore'):
-                    exp_back = np.round(exp_back)
-                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-                exp_back = exp_back.astype(out_dtype).astype(float)
-            else:
+                if in_dtype in FLOAT_TYPES:
+                    # Working precision is (at least) float
+                    exp_back = exp_back.astype(float)
+                    # Float to iu conversion will always round, clip
+                    with np.errstate(invalid='ignore'):
+                        exp_back = np.round(exp_back)
+                    if in_dtype in FLOAT_TYPES:
+                        # Clip to shared range of working precision
+                        exp_back = np.clip(exp_back,
+                                           *shared_range(float, out_dtype))
+                else:  # iu input and output type
+                    # No scaling, never gets converted to float.
+                    # Does get clipped to range of output type
+                    mn_out, mx_out = _dt_min_max(out_dtype)
+                    if (mn_in, mx_in) != (mn_out, mx_out):
+                        # Use smaller of input, output range to avoid np.clip
+                        # upcasting the array because of large clip limits.
+                        exp_back = np.clip(exp_back,
+                                           max(mn_in, mn_out),
+                                           min(mx_in, mx_out))
+            if out_dtype in COMPLEX_TYPES:
+                # always cast to real from complex
                 exp_back = exp_back.astype(out_dtype)
+            else:
+                # Cast to working precision
+                exp_back = exp_back.astype(float)
             # Allow for small differences in large numbers
             with suppress_warnings():  # invalid value
                 assert_allclose_safely(back_arr,
@@ -361,7 +387,6 @@ class ScalingMixin(object):
         ):
             self._check_write_scaling(slope, inter, e_slope, e_inter)
 
-    @scipy_skip
     def test_nan2zero_range_ok(self):
         # Check that a floating point image with range not including zero gets
         # nans scaled correctly
@@ -380,7 +405,7 @@ class ScalingMixin(object):
         assert_equal(rt_img.get_data()[0, 0, 0], 0)
 
 
-class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
+class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
     # Flag to skip bz2 save tests if they are going to break
@@ -403,11 +428,20 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         test_analyze.TestAnalyzeImage.test_big_offset_exts
     ))
 
-    test_header_scaling = scipy_skip(ScalingMixin.test_header_scaling)
+    test_header_scaling = scipy_skip(
+        ImageScalingMixin.test_header_scaling)
 
-    test_int_int_scaling = scipy_skip(ScalingMixin.test_int_int_scaling)
+    test_int_int_scaling = scipy_skip(
+        ImageScalingMixin.test_int_int_scaling)
 
-    test_write_scaling = scipy_skip(ScalingMixin.test_write_scaling)
+    test_write_scaling = scipy_skip(
+        ImageScalingMixin.test_write_scaling)
+
+    test_no_scaling = scipy_skip(
+        ImageScalingMixin.test_no_scaling)
+
+    test_nan2zero_range_ok = scipy_skip(
+        ImageScalingMixin.test_nan2zero_range_ok)
 
     @scipy_skip
     def test_mat_read(self):
@@ -437,16 +471,17 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ScalingMixin):
         to_111 = np.eye(4)
         to_111[:3,3] = 1
         assert_array_equal(mats['mat'], np.dot(aff, from_111))
-        # The M matrix does not include flips, so if we only
-        # have the M matrix in the mat file, and we have default flipping, the
-        # mat resulting should have a flip.  The 'mat' matrix does include flips
-        # and so should be unaffected by the flipping.  If both are present we
-        # prefer the the 'mat' matrix.
+        # The M matrix does not include flips, so if we only have the M matrix
+        # in the mat file, and we have default flipping, the mat resulting
+        # should have a flip.  The 'mat' matrix does include flips and so
+        # should be unaffected by the flipping.  If both are present we prefer
+        # the the 'mat' matrix.
         assert_true(img.header.default_x_flip) # check the default
         flipper = np.diag([-1,1,1,1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
-        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
+        savemat(mat_fileobj,
+                dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)

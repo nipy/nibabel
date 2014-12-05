@@ -198,7 +198,7 @@ def proc_file(infile, opts):
     # container for potential NIfTI1 header extensions
     if opts.store_header:
         # dump the full PAR header content into an extension
-        with open(infile, 'r') as fobj:
+        with open(infile, 'rb') as fobj:  # contents must be bytes
             hdr_dump = fobj.read()
             dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
         nhdr.extensions.append(dump_ext)
