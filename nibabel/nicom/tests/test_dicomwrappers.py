@@ -15,6 +15,8 @@ except ImportError:
     have_dicom = False
 else:
     have_dicom = True
+    dicom.config.allow_DS_float = True
+    dicom.config.enforce_valid_values = False
 dicom_test = np.testing.dec.skipif(not have_dicom,
                                    'could not import pydicom')
 
