@@ -10,5 +10,6 @@ NiBabel Manual
   gettingstarted
   nibabel_images
   images_and_memory
+  nifti_images
   legal
   changelog
