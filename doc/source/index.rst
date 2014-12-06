@@ -13,6 +13,7 @@ Documentation
 =============
 
 * :ref:`User Documentation <manual>` (manual)
+* :ref:`Tutorials <tutorials>` (relevant tutorials on imaging)
 * :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
 * :ref:`Development Changelog <changelog>` (see what has changed)
@@ -100,6 +101,7 @@ archive search* located in the sidebar of the NiBabel home page.
    :hidden:
 
    manual
+   tutorials
    devel/index
    dicom/dicom
    api
