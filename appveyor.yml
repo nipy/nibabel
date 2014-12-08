@@ -19,7 +19,7 @@ environment:
 
 install:
   # Install miniconda Python
-  - "powershell ./nibabel-data/install_python.ps1"
+  - "powershell ./tools/install_python.ps1"
 
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart

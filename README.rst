@@ -1,13 +1,7 @@
 .. -*- rest -*-
 .. vim:syntax=rest
 
-|Travis|_ |Appveyor|_ |Coveralls|_
-
-.. |Travis| image:: https://api.travis-ci.org/nipy/nibabel.png?branch=master
-.. _Travis: https://travis-ci.org/nipy/nibabel
-
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/l8iq16s39ac0wjvh/branch/master?svg=true
-.. _Travis: https://ci.appveyor.com/project/Eric89GXL/nibabel/branch/master
+|Coveralls|_
 
 .. |Coveralls| image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
 .. _Coveralls: https://coveralls.io/r/nipy/nibabel?branch=master
