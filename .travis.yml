@@ -29,7 +29,6 @@ matrix:
     # Documentation doctests
     - python: 2.7
       env:
-        - DEPENDS="numpy scipy matplotlib h5py sphinx"
         - DOC_DOC_TEST=1
 before_install:
     - virtualenv venv
@@ -64,6 +63,7 @@ script:
       COVER_ARGS="--with-coverage --cover-package nibabel";
       fi
     - if [ "$DOC_DOC_TEST" == "1" ]; then
+      pip install sphinx;
       cd ../doc;
       make html;
       make doctest;
