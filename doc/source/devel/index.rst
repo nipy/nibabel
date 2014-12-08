@@ -11,5 +11,6 @@ Developer documentation page
 
     devguide
     add_test_data
+    add_image_format
     devdiscuss
     make_release
