@@ -97,7 +97,14 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
-    ''' Adds origin functionality to base SPM header '''
+    ''' Class for SPM99 variant of basic Analyze header
+
+    SPM99 variant adds the following to basic Analyze format:
+
+    * voxel origin;
+    * slope scaling of data.
+    '''
+
     def get_origin_affine(self):
         ''' Get affine from header, using SPM origin field if sensible
 
@@ -224,6 +231,8 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
+    """ Class for SPM99 variant of basic Analyze image
+    """
     header_class = Spm99AnalyzeHeader
     files_types = (('image', '.img'),
                    ('header', '.hdr'),

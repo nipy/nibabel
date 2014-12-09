@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading / writing functions for mgh image format
+''' Header and image reading / writing functions for MGH image format
 
 Author: Krish Subramaniam
 '''
@@ -71,7 +71,8 @@ class MGHError(Exception):
 
 
 class MGHHeader(object):
-    '''
+    ''' Class for MGH format header
+
     The header also consists of the footer data which MGH places after the data
     chunk.
     '''
@@ -454,6 +455,8 @@ class MGHHeader(object):
 
 
 class MGHImage(SpatialImage):
+    """ Class for MGH format image
+    """
     header_class = MGHHeader
     files_types = (('image', '.mgh'),)
     _compressed_exts = (('.gz',))

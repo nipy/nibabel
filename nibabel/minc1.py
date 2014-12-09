@@ -37,11 +37,11 @@ _default_dir_cos = {
 
 
 class MincError(Exception):
-    pass
+    """ Error when reading MINC files """
 
 
 class Minc1File(object):
-    ''' Class to wrap MINC 1 format opened netcdf object
+    ''' Class to wrap MINC1 format opened netcdf object
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC file, to pull out useful header
@@ -239,7 +239,7 @@ class Minc1File(object):
 
 
 class MincImageArrayProxy(object):
-    ''' Minc implementation of array proxy protocol
+    ''' MINC implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
@@ -266,6 +266,8 @@ class MincImageArrayProxy(object):
 
 
 class MincHeader(Header):
+    """ Class to contain header for MINC formats
+    """
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
 
@@ -279,7 +281,7 @@ class MincHeader(Header):
 
 
 class Minc1Image(SpatialImage):
-    ''' Class for MINC 1 format images
+    ''' Class for MINC1 format images
 
     The MINC1 image class uses the default header type, rather than a specific
     MINC header type - and reads the relevant information from the MINC file on
@@ -310,6 +312,10 @@ load = Minc1Image.load
 
 # Backwards compatibility
 class MincFile(FutureWarningMixin, Minc1File):
+    """ Deprecated alternative name for Minc1File
+    """
     warn_message = 'MincFile is deprecated; please use Minc1File instead'
 class MincImage(FutureWarningMixin, Minc1Image):
+    """ Deprecated alternative name for Minc1Image
+    """
     warn_message = 'MincImage is deprecated; please use Minc1Image instead'
