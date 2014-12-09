@@ -19,6 +19,7 @@
 .. _nibabel pypi: http://pypi.python.org/pypi/nibabel
 .. _nibabel issues: http://github.com/nipy/nibabel/issues
 .. _nibabel github issues: http://github.com/nipy/nibabel/issues
+.. _nibabel wiki: https://github.com/nipy/nibabel.wiki
 
 .. other related projects
 .. _nipy community: http://nipy.org
