@@ -104,7 +104,7 @@ A nibabel image is the association of:
 
 #. The image array data (as implemented by an array proxy or a numpy array);
 #. An affine relating the image array coordinates to an RAS+ world (see
-   :doc:`coordinate_systems`);
+   :doc:`../coordinate_systems`);
 #. Image metadata in the form of a header.
 
 Your new image constructor may well be the default from
@@ -153,7 +153,7 @@ A recipe for writing a new image format
    submodule (:doc:`add_test_data`).  Check you can read these files correctly
    (see :mod:`nibabel.tests.test_parrec_data` for an example).
 #. Ask for advice as early and as often as you can, either with a
-   work-in-progress pull request (the best if you can) or on the mailing list
-   or via github issues.
+   work-in-progress pull request (the easiest way for us to review) or on
+   the mailing list or via github issues.
 
 .. include:: ../links_names.txt

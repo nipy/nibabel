@@ -88,8 +88,8 @@ like this::
     git submodule add https://bitbucket.org/nipy/rosetta-samples.git nitests-data/rosetta-samples
 
 You should now have a checked out copy of the ``rosetta-samples`` repository
-in the ``nibabel-data/rosetta-samples`` directory.  Commit this submodule add
-to nibabel.
+in the ``nibabel-data/rosetta-samples`` directory.  Commit the submodule that
+is now in your git staging area.
 
 If you are writing tests using files from this repository, you should use the
 ``needs_nibabel_data`` decorator to skip the tests if the data has not been
