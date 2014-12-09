@@ -40,7 +40,8 @@ def calculate_dwell_time(water_fat_shift, echo_train_length, field_strength):
 
     Raises
     ------
-    MRIError if values are out of range
+    MRIError
+        if values are out of range
     """
     if field_strength < 0:
         raise MRIError("Field strength should be positive")

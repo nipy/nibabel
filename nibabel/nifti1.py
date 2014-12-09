@@ -1835,8 +1835,10 @@ def load(filename):
 
     Raises
     ------
-    ImageFileError: if `filename` doesn't look like NIfTI1
-    IOError : if `filename` does not exist
+    ImageFileError
+        if `filename` doesn't look like NIfTI1;
+    IOError
+        if `filename` does not exist.
     """
     try:
         img = Nifti1Image.load(filename)

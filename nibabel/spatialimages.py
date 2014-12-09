@@ -738,8 +738,9 @@ class SpatialImage(object):
 
         Raises
         ------
-        ImageFileError - if `filespec` is not recognizable as being a filename
-        for this image type.
+        ImageFileError
+            if `filespec` is not recognizable as being a filename for this
+            image type.
         """
         try:
             filenames = types_filenames(filespec,

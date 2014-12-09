@@ -509,7 +509,8 @@ class LabeledWrapStruct(WrapStruct):
 
         Raises
         ------
-        ValueError : if field is not coded
+        ValueError
+            if field is not coded.
 
         Examples
         --------
