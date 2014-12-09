@@ -20,5 +20,4 @@ to the current codebase, and are only for discussion of future directions.
     :maxdepth: 2
 
     usecases/index
-    refactoring/index
     data_pkg_design
