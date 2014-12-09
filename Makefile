@@ -281,5 +281,8 @@ tox-stale:
 	# installed)
 	tox -e python25,python26,python27,python32,np-1.2.1
 
+refresh-readme:
+	$(PYTHON) tools/refresh_readme.py
+
 .PHONY: orig-src pylint
 

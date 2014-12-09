@@ -64,8 +64,10 @@ Release checklist
 
 * Check the copyright year in ``doc/source/conf.py``
 
-* Check the ``long_description`` in ``nibabel/info.py``.  Check it matches the
-  ``README`` in the root directory.  Check the output of::
+* Refresh the ``REAMDE.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
+  by running ``make refresh_readme``.
+
+  Check the output of::
 
     rst2html.py README.rst > ~/tmp/readme.html
 

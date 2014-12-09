@@ -7,7 +7,7 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-.. include:: ../../README.rst
+.. include:: _long_description.inc
 
 Documentation
 =============

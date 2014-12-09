@@ -1,6 +1,9 @@
 .. -*- rest -*-
 .. vim:syntax=rest
 
+.. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
+
+
 =======
 NiBabel
 =======

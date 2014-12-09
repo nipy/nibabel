@@ -28,9 +28,11 @@ CLASSIFIERS = ["Development Status :: 4 - Beta",
 
 description  = 'Access a multitude of neuroimaging data formats'
 
-# Note: this long_description is actually a copy/paste from the top-level
-# README.rst, so that it shows up nicely on PyPI.  So please remember to edit
-# it only in one place and sync it correctly.
+# Note: this long_description is the canonical place to edit this text.
+# It also appears in README.rst, but it should get there by running
+# ``tools/refresh_readme.py`` which pulls in this version.
+# We also include this text in the docs by ``..include::`` in
+# ``docs/source/index.rst``.
 long_description = """
 =======
 NiBabel
