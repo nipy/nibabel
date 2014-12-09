@@ -94,13 +94,14 @@ their call syntax is the same for example.
        mat0_intent: 'MNI152'
            descrip: 'NIFTI-1 Image'
 
- 
+
 So, in our (provisional) terms:
 
-* vol.mat == img.affine
-* vol.dim == img.shape
-* vol.dt(1) (vol.dt[0] in Python) is equivalent to img.io_dtype
-* vol.fname == img.filename
+* ``vol.mat`` == ``img.affine``
+* ``vol.dim`` == ``img.shape``
+* ``vol.dt(1)`` (``vol.dt[0]`` in Python) is equivalent to
+  ``img.get_data_dtype()``
+* ``vol.fname`` == ``img.get_filename()``
 
 SPM abstracts the implementation of the image to the ``vol.private``
 member, that is not in fact required by the image interface.
@@ -125,7 +126,6 @@ Images in SPM are always 3D.  Note this behavior:
        private
 
 That is, one vol struct per 3D volume in a 4D dataset.
-
 
 SPM image methods / functions
 =============================
@@ -176,18 +176,18 @@ Creating an image from scratch, and writing plane by plane (slice by slice):
 
 .. sourcecode:: matlab
 
-   >> new_vol = struct();                     
+   >> new_vol = struct();
    >> new_vol.fname = 'yet_another_image.nii';
-   >> new_vol.dim = [91 109 91];              
+   >> new_vol.dim = [91 109 91];
    >> new_vol.dt = [spm_type('float32') 0]; % little endian (0)
    >> new_vol.mat = vol.mat;
    >> new_vol.pinfo = [1 0 0]';
-   >> new_vol = spm_create_vol(new_vol);      
+   >> new_vol = spm_create_vol(new_vol);
    >> for vox_z = 1:new_vol.dim(3)
-   new_vol = spm_write_plane(new_vol, img_arr(:,:,vox_z), vox_z);   
+   new_vol = spm_write_plane(new_vol, img_arr(:,:,vox_z), vox_z);
    end
 
-I think it's true that writing the plane does not change the
+I think it's true that writing the plane does not change the image
 scalefactors, so it's only practical to use ``spm_write_plane`` for data
 for which you already know the dynamic range across the volume.
 
@@ -268,7 +268,6 @@ world coordinates according to the affine looks like:
 
        0.6792
 
-
 Odder sampling, often used, can be difficult to understand:
 
 .. sourcecode:: matlab
@@ -288,14 +287,13 @@ Odder sampling, often used, can be difficult to understand:
 
 This is the simplest use - but in general any affine transform can go in
 ``slice_mat`` above, giving optimized (for speed) sampling of slices
-from volumes, as long as the transform is affine.
+from volumes, as long as the transform is an affine.
 
 Miscellaneous functions operating on vol structs:
 
-* spm_conv_vol - convolves volume with seperable functions in x, y, z
-* spm_render_vol - does a projection of a volume onto a surface
-* spm_vol_check - takes array of vol structs and checks for sameness of
+* ``spm_conv_vol`` - convolves volume with seperable functions in x, y, z
+* ``spm_render_vol`` - does a projection of a volume onto a surface
+* ``spm_vol_check`` - takes array of vol structs and checks for sameness of
   image dimensions and ``mat`` (affines) across the list.
 
-And then, many SPM function accept vol structs are arguments.
-
+And then, many SPM functions accept vol structs as arguments.
