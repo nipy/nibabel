@@ -1646,7 +1646,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_qform
+        set_qform
+        get_sform
         """
         return self._header.get_qform(coded)
 
@@ -1678,7 +1679,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_qform
+        get_qform
+        set_sform
 
         Examples
         --------
@@ -1731,7 +1733,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.get_sform
+        set_sform
+        get_qform
         """
         return self._header.get_sform(coded)
 
@@ -1759,7 +1762,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_sform
+        get_sform
+        set_qform
 
         Examples
         --------
