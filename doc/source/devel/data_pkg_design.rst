@@ -1,7 +1,7 @@
 .. _data-package-design:
 
-Design of data packages for the nipy suite
-==========================================
+Design of data packages for the nibabel and the nipy suite
+==========================================================
 
 See :ref:`data-package-discuss` for a more general discussion of design
 issues.
@@ -17,7 +17,8 @@ data files nipy uses into at least 3 categories
 Files used for routine testing are typically very small data files. They are
 shipped with the software, and live in the code repository. For example, in
 the case of ``nipy`` itself, there are some test files that live in the module
-path ``nipy.testing.data``.
+path ``nipy.testing.data``.  Nibabel ships data files in
+``nibabel.tests.data``.  See :doc:`add_test_data` for discussion.
 
 *template data* and *example data* are example of *data packages*.  What
 follows is a discussion of the design and use of data packages.
@@ -45,7 +46,7 @@ Use cases for data packages
 Using the data package
 ``````````````````````
 
-The programmer will want to use the data something like this:
+The programmer can use the data like this:
 
 .. testcode::
 
@@ -78,9 +79,9 @@ found, and how it should be installed.
 Warnings during installation
 ````````````````````````````
 
-The example data and template data may be important, and it would be
-useful to warn the user if NIPY cannot find either of the two sets of
-data when installing the package.  Thus::
+The example data and template data may be important, and so we want to warn
+the user if NIPY cannot find either of the two sets of data when installing
+the package.  Thus::
 
    python setup.py install
 
@@ -98,23 +99,22 @@ install the data.
 Finding the data
 ````````````````
 
-The routine ``make_datasource`` will need to be able to find the data
-that has been installed.  For the following call:
+The routine ``make_datasource`` will look for data packages that have been
+installed.  For the following call:
 
 >>> templates = make_datasource(dict(relpath='nipy/templates'))
 
-We propose to:
+the code will:
 
 #. Get a list of paths where data is known to be stored with
-   ``nipy.data.get_data_path()``
+   ``nibabel.data.get_data_path()``
 #. For each of these paths, search for directory ``nipy/templates``.  If
    found, and of the correct format (see below), return a datasource,
    otherwise raise an Exception
 
-The paths collected by ``nipy.data.get_data_paths()`` will be
-constructed from ':' (Unix) or ';' separated strings.  The source of the
-strings (in the order in which they will be used in the search above)
-are:
+The paths collected by ``nibabel.data.get_data_paths()`` are constructed from
+':' (Unix) or ';' separated strings.  The source of the strings (in the order
+in which they will be used in the search above) are:
 
 #. The value of the ``NIPY_DATA_PATH`` environment variable, if set
 #. A section = ``DATA``, parameter = ``path`` entry in a
@@ -126,8 +126,8 @@ are:
    ``/etc/nipy`` on Unix, and some suitable equivalent on Windows.
 #. The result of ``os.path.join(sys.prefix, 'share', 'nipy')``
 #. If ``sys.prefix`` is ``/usr``, we add ``/usr/local/share/nipy``. We
-   need this because Python 2.6 in Debian / Ubuntu does default installs
-   to ``/usr/local``.
+   need this because Python >= 2.6 in Debian / Ubuntu does default installs to
+   ``/usr/local``.
 #. The result of ``get_nipy_user_dir()``
 
 Requirements for a data package
@@ -175,7 +175,7 @@ packages have been installed::
           `-- config.ini
 
 The ``<ROOT>`` directory is the directory that will appear somewhere in
-the list from ``nipy.data.get_data_path()``.  The ``nipy`` subdirectory
+the list from ``nibabel.data.get_data_path()``.  The ``nipy`` subdirectory
 signifies data for the ``nipy`` package (as opposed to other
 NIPY-related packages such as ``pbrain``).  The ``data`` subdirectory of
 ``nipy`` contains files from the ``nipy-data`` package.  In the
@@ -192,9 +192,8 @@ giving the version of the data package.
 Installing the data
 ```````````````````
 
-We will use python distutils to install data packages, and the
-``data_files`` mechanism to install the data.  On Unix, with the
-following command::
+We use python distutils to install data packages, and the ``data_files``
+mechanism to install the data.  On Unix, with the following command::
 
    python setup.py install --prefix=/my/prefix
 
@@ -211,8 +210,8 @@ because ``nipy`` is both the project, and the package to which the data
 relates.
 
 If you install to a particular location, you will need to add that location to
-the output of ``nipy.data.get_data_path()`` using one of the mechanisms above,
-for example, in your system configuration::
+the output of ``nibabel.data.get_data_path()`` using one of the mechanisms
+above, for example, in your system configuration::
 
    export NIPY_DATA_PATH=/my/prefix/share/nipy
 
