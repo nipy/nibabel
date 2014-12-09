@@ -209,7 +209,8 @@ def type_info(np_type):
 
     Raises
     ------
-    FloatingError : for floating point types we don't recognize
+    FloatingError
+        for floating point types we don't recognize
 
     Notes
     -----

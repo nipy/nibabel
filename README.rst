@@ -1,11 +1,10 @@
 .. -*- rest -*-
-.. vim:syntax=rest
+.. vim:syntax=rst
 
-|Coveralls|_
+.. image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
+    :target: https://coveralls.io/r/nipy/nibabel?branch=master
 
-.. |Coveralls| image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
-.. _Coveralls: https://coveralls.io/r/nipy/nibabel?branch=master
-
+.. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
 =======
 NiBabel

@@ -7,12 +7,13 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-.. include:: ../../README.rst
+.. include:: _long_description.inc
 
 Documentation
 =============
 
 * :ref:`User Documentation <manual>` (manual)
+* :ref:`Tutorials <tutorials>` (relevant tutorials on imaging)
 * :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
 * :ref:`Development Changelog <changelog>` (see what has changed)
@@ -35,7 +36,7 @@ contributed code and discussion (in rough order of appearance):
 * `Gaël Varoquaux`_
 * Ian Nimmo-Smith
 * Jarrod Millman
-* Bertran Thirion
+* Bertrand Thirion
 * Thomas Ballinger
 * Cindee Madison
 * Valentin Haenel
@@ -80,7 +81,7 @@ Support
 =======
 
 If you have problems installing the software or questions about usage,
-documentation or something else related to NiBabel, you can post to the NiPy
+documentation or anything else related to NiBabel, you can post to the NiPy
 mailing list.
 
 :Mailing list:  nipy-devel@neuroimaging.scipy.org [subscription_, archive_]
@@ -100,6 +101,7 @@ archive search* located in the sidebar of the NiBabel home page.
    :hidden:
 
    manual
+   tutorials
    devel/index
    dicom/dicom
    api

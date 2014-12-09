@@ -894,6 +894,8 @@ class AnalyzeHeader(LabeledWrapStruct):
 
 
 class AnalyzeImage(SpatialImage):
+    """ Class for basic Analyze format image
+    """
     header_class = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')

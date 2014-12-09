@@ -25,8 +25,14 @@ header_dtype = np.dtype(spm99.header_key_dtd +
 
 
 class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
-    ''' SPM2 header; adds possibility of reading, but not writing DC
-    offset for data'''
+    ''' Class for SPM2 variant of basic Analyze header
+
+    SPM2 variant adds the following to basic Analyze format:
+
+    * voxel origin;
+    * slope scaling of data;
+    * reading - but not writing - intercept of data.
+    '''
 
     # Copies of module level definitions
     template_dtype = header_dtype
@@ -110,6 +116,8 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
 
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
+    """ Class for SPM2 variant of basic Analyze image
+    """
     header_class = Spm2AnalyzeHeader
 
 

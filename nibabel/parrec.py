@@ -375,7 +375,8 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
 
     Raises
     ------
-    ValueError if any `slice_nos` value is outside slice set.
+    ValueError
+        if any `slice_nos` value is outside slice set.
     """
     slice_set = set(range(slice_min, slice_max + 1))
     if not slice_set.issuperset(slice_nos):
@@ -721,8 +722,8 @@ class PARRECHeader(Header):
 
         Raises
         ------
-        PARRECError - if the rows of ``self.image_defs[name]`` do not all
-        compare equal
+        PARRECError
+            if the rows of ``self.image_defs[name]`` do not all compare equal.
         """
         props = self.image_defs[name]
         if np.any(np.diff(props, axis=0)):

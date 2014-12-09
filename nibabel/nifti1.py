@@ -7,6 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Read / write access to NIfTI1 image format
+
+NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 '''
 from __future__ import division, print_function
 import warnings
@@ -518,10 +520,10 @@ class Nifti1Extensions(list):
 
 
 class Nifti1Header(SpmAnalyzeHeader):
-    ''' Class for NIFTI1 header
+    ''' Class for NIfTI1 header
 
-    The NIFTI1 header has many more coded fields than the simpler Analyze
-    variants.  Nifti1 headers also have extensions.
+    The NIfTI1 header has many more coded fields than the simpler Analyze
+    variants.  NIfTI1 headers also have extensions.
 
     Nifti allows the header to be a separate file, as part of a nifti image /
     header pair, or to precede the data in a single file.  The object needs to
@@ -1067,7 +1069,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         self._structarr['scl_inter'] = inter
 
     def get_dim_info(self):
-        ''' Gets nifti MRI slice etc dimension information
+        ''' Gets NIfTI MRI slice etc dimension information
 
         Returns
         -------
@@ -1080,7 +1082,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         where ``data array`` is the array returned by ``get_data``
 
-        Because nifti1 files are natively Fortran indexed:
+        Because NIfTI1 files are natively Fortran indexed:
           0 is fastest changing in file
           1 is medium changing in file
           2 is slowest changing in file
@@ -1262,7 +1264,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Notes
         -----
-        The Nifti1 spec appears to require the slice dimension to be
+        The NIfTI1 spec appears to require the slice dimension to be
         defined for slice_duration to have meaning.
         '''
         _, _, slice_dim = self.get_dim_info()
@@ -1572,12 +1574,14 @@ class Nifti1Header(SpmAnalyzeHeader):
 
 
 class Nifti1PairHeader(Nifti1Header):
-    ''' Class for nifti1 pair header '''
+    ''' Class for NIfTI1 pair header '''
     # Signal whether this is single (header + data) file
     is_single = False
 
 
 class Nifti1Pair(analyze.AnalyzeImage):
+    """ Class for NIfTI1 format image, header pair
+    """
     header_class = Nifti1PairHeader
 
     def __init__(self, dataobj, affine, header=None,
@@ -1642,7 +1646,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_qform
+        set_qform
+        get_sform
         """
         return self._header.get_qform(coded)
 
@@ -1674,7 +1679,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_qform
+        get_qform
+        set_sform
 
         Examples
         --------
@@ -1727,7 +1733,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.get_sform
+        set_sform
+        get_qform
         """
         return self._header.get_sform(coded)
 
@@ -1755,7 +1762,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         See also
         --------
-        Nifti1Header.set_sform
+        get_sform
+        set_qform
 
         Examples
         --------
@@ -1795,6 +1803,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
 
 class Nifti1Image(Nifti1Pair):
+    """ Class for single file NIfTI1 format image
+    """
     header_class = Nifti1Header
     files_types = (('image', '.nii'),)
 
@@ -1815,7 +1825,7 @@ class Nifti1Image(Nifti1Pair):
 
 
 def load(filename):
-    """ Load nifti1 single or pair from `filename`
+    """ Load NIfTI1 single or pair from `filename`
 
     Parameters
     ----------
@@ -1825,12 +1835,14 @@ def load(filename):
     Returns
     -------
     img : Nifti1Image or Nifti1Pair
-        nifti1 single or pair image instance
+        NIfTI1 single or pair image instance
 
     Raises
     ------
-    ImageFileError: if `filename` doesn't look like nifti1
-    IOError : if `filename` does not exist
+    ImageFileError
+        if `filename` doesn't look like NIfTI1;
+    IOError
+        if `filename` does not exist.
     """
     try:
         img = Nifti1Image.load(filename)
@@ -1840,7 +1852,7 @@ def load(filename):
 
 
 def save(img, filename):
-    """ Save nifti1 single or pair to `filename`
+    """ Save NIfTI1 single or pair to `filename`
 
     Parameters
     ----------

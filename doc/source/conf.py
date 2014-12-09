@@ -34,6 +34,10 @@ sys.path.append(os.path.abspath('../sphinxext'))
 rel = {}
 execfile('../../nibabel/info.py', rel)
 
+# Write long description from info
+with open('_long_description.inc', 'wt') as fobj:
+    fobj.write(rel['LONG_DESCRIPTION'])
+
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',

@@ -61,13 +61,6 @@ We collected an anatomical image in the same session.  We can load that image
 and look at slices in the three axes:
 
 .. plot::
-    :nofigs:
-    :include-source: false
-
-    # This guy just closes the previous figure so we don't get it twice
-    plt.close('all')
-
-.. plot::
     :context:
 
     >>> anat_img = nib.load('downloads/someones_anatomy.nii.gz')
