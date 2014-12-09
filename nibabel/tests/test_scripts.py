@@ -52,6 +52,7 @@ script_test.__test__ = False # It's not a test
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
+
 @script_test
 def test_nib_ls():
     # test nib-ls script
@@ -84,7 +85,7 @@ sform_code 11776 not valid""" % (dirty_hdr,)
 
 
 def vox_size(affine):
-    return np.sqrt(np.sum(affine[:3,:3] ** 2, axis=0))
+    return np.sqrt(np.sum(affine[:3, :3] ** 2, axis=0))
 
 
 def check_conversion(cmd, pr_data, out_fname):
@@ -184,7 +185,7 @@ def test_parrec2nii_with_data():
             par_root, ext = splitext(basename(par))
             # NA.PAR appears to be a localizer, with three slices in each of
             # the three orientations: sagittal; coronal, transverse
-            if par_root ==  'NA':
+            if par_root == 'NA':
                 continue
             # Do conversion
             run_command(['parrec2nii', par])
@@ -226,8 +227,12 @@ def test_parrec2nii_with_data():
                                            check_code=False)
         assert_equal(code, 1)
         # Writes bvals, bvecs files if asked
-        run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
+        run_command(['parrec2nii', '--overwrite', '--keep-trace',
+                     '--bvs', dti_par])
         assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
+        img = load('DTI.nii')
+        data = img.get_data().copy()
+        del img
         # Bvecs in header, transposed from PSL to LPS
         bvecs_LPS = DTI_PAR_BVECS[:, [2, 0, 1]]
         # Adjust for output flip of Y axis in data and bvecs
@@ -247,3 +252,19 @@ def test_parrec2nii_with_data():
         with open('DTI.dwell_time', 'rt') as fobj:
             contents = fobj.read().strip()
         assert_almost_equal(float(contents), exp_dwell)
+        # ensure trace is removed by default
+        run_command(['parrec2nii', '--overwrite', '--bvs', dti_par])
+        assert_true(exists('DTI.bvals'))
+        assert_true(exists('DTI.bvecs'))
+        img = load('DTI.nii')
+        bvecs_notrace = np.loadtxt('DTI.bvecs').T
+        bvals_notrace = np.loadtxt('DTI.bvals')
+        data_notrace = img.get_data().copy()
+        assert_equal(data_notrace.shape[-1], len(bvecs_notrace))
+        del img
+        # ensure correct volume was removed
+        good_mask = np.logical_or((bvecs_notrace != 0).any(axis=1),
+                                  bvals_notrace == 0)
+        assert_almost_equal(data_notrace, data[..., good_mask])
+        assert_almost_equal(bvals_notrace, np.array(DTI_PAR_BVALS)[good_mask])
+        assert_almost_equal(bvecs_notrace, bvecs_LAS[good_mask])

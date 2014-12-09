@@ -1,6 +1,12 @@
 .. -*- rest -*-
 .. vim:syntax=rest
 
+|Coveralls|_
+
+.. |Coveralls| image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
+.. _Coveralls: https://coveralls.io/r/nipy/nibabel?branch=master
+
+
 =======
 NiBabel
 =======

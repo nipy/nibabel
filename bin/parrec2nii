@@ -104,6 +104,11 @@ def get_opt_parser():
                    non-uniform scaling is used, in which case the data is
                    stored in the file in scaled form. Default: 'dv'""")))
     p.add_option(
+        Option('--keep-trace', action="store_true", dest='keep_trace',
+               default=False,
+               help=one_line("""Do not discard the diagnostic Philips DTI
+                             trace volume, if it exists in the data.""")))
+    p.add_option(
         Option("--overwrite", action="store_true", dest="overwrite",
                default=False,
                help=one_line("""Overwrite file if it exists. Default:
@@ -171,12 +176,26 @@ def proc_file(infile, opts):
     ornt = io_orientation(np.diag([-1, 1, 1, 1]).dot(affine))
     if np.all(ornt == [[0, 1],
                        [1, 1],
-                       [2, 1]]): # already in LAS+
+                       [2, 1]]):  # already in LAS+
         t_aff = np.eye(4)
-    else: # Not in LAS+
+    else:  # Not in LAS+
         t_aff = inv_ornt_aff(ornt, pr_img.shape)
         affine = np.dot(affine, t_aff)
         in_data = apply_orientation(in_data, ornt)
+
+    bvals, bvecs = pr_hdr.get_bvals_bvecs()
+    if not opts.keep_trace:  # discard Philips DTI trace if present
+        if bvals is not None:
+            bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
+            if bad_mask.sum() > 0:
+                pl = 's' if bad_mask.sum() != 1 else ''
+                verbose('Removing %s DTI trace volume%s'
+                        % (bad_mask.sum(), pl))
+                good_mask = ~bad_mask
+                in_data = in_data[..., good_mask]
+                bvals = bvals[good_mask]
+                bvecs = bvecs[good_mask]
+
     # Make corresponding NIfTI image
     nimg = nifti1.Nifti1Image(in_data, affine, pr_hdr)
     nhdr = nimg.header
@@ -208,7 +227,6 @@ def proc_file(infile, opts):
 
     # write out bvals/bvecs if requested
     if opts.bvs:
-        bvals, bvecs = pr_hdr.get_bvals_bvecs()
         if bvals is None and bvecs is None:
             verbose('No DTI volumes detected, bvals and bvecs not written')
         else:
