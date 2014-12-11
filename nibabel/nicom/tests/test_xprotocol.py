@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from .. import csareader as csa
 from .. import xprotocol
+from ..xprotocol import ElemDict, InvalidElemError
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
@@ -57,3 +58,21 @@ def test_xprotocol_parse():
     assert_equal(len(inner_xprotos[1]['XProtocol'].keys()), 1)
     assert_equal(len(inner_xprotos[1]['XProtocol'][''].keys()), 1)
     assert_equal(len(inner_xprotos[1]['XProtocol']['']['EVA'].keys()), 9)
+
+
+def test_elemdict():
+    # Test ElemDict class
+    e = ElemDict()
+    assert_keys_equal(e, [])
+    assert_raises(InvalidElemError, e.__setitem__, 'some', 'thing')
+
+    class C(object):
+        value = 'thing'
+
+    e['some'] = C()
+    assert_keys_equal(e, ['some'])
+    assert_equal(e['some'], 'thing')
+    assert_raises(InvalidElemError, ElemDict, dict(some='thing'))
+    e = ElemDict(dict(some=C()))
+    assert_keys_equal(e, ['some'])
+    assert_equal(e['some'], 'thing')

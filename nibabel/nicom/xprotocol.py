@@ -35,11 +35,12 @@ class ElemDict(MutableMapping):
 
     def __init__(self, mapping=None):
         self._elems = OrderedDict()
-        if mapping is not None:
-            for key, val in mapping.iteritems():
-                if isinstance(val, dict):
-                    val = ElemDict(val)
-                self.set_elem(key, val)
+        if mapping is None:
+            return
+        for key, val in iteritems(mapping):
+            if isinstance(val, dict):
+                val = self.__class__(val)
+            self[key] = val
 
     def __getitem__(self, key):
         return self._elems[key].value
