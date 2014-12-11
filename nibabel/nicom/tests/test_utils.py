@@ -1,5 +1,7 @@
 """ Testing nicom.utils module
 """
+from __future__ import print_function
+
 import re
 
 import numpy as np
@@ -98,17 +100,17 @@ def test_find_private_element():
                                       0x19,
                                       'SIEMENS MR HEADER',
                                       0x8).value,
-                 'IMAGE NUM 4 ')
+                 b'IMAGE NUM 4 ')
     assert_equal(find_private_element(DATA,
                                       0x19,
                                       'SIEMENS MR HEADER',
                                       0xb).value,
-                 '40')
+                 b'40')
     assert_equal(find_private_element(DATA,
                                       0x51,
                                       'SIEMENS MR HEADER',
                                       0xb).value,
-                 '128p*128')
+                 b'128p*128')
 
 
 def test_make_uid():
@@ -116,8 +118,8 @@ def test_make_uid():
     assert_raises(ValueError, make_uid, None, '1'*64)
     # Make sure the result is 64 chars, regardless of prefix
     for prefix in ('1.', '1.2.', '1.' * 30):
-        print prefix
-        print len(make_uid(prefix=prefix))
+        print(prefix)
+        print(len(make_uid(prefix=prefix)))
         assert_true(len(make_uid(prefix=prefix)) == 64)
     # The same entropy inputs give the same results
     assert_equal(make_uid(['blah']), make_uid(['blah']))
@@ -133,6 +135,7 @@ def test_as_to_years():
     assert_almost_equal(as_to_years('2M'), 2. / 12.)
     assert_almost_equal(as_to_years('2D'), 2. / 365.)
     assert_almost_equal(as_to_years('2W'), 2. * (7. / 365.))
+
 
 def test_tm_to_seconds():
     for str_val in ('', '1', '111', '11111', '111111.', '1111111', '1:11',

@@ -14,7 +14,7 @@ JSON).
 from __future__ import division, print_function, absolute_import
 
 import struct, warnings
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 
 from . import csareader, xprotocol, ascconv
 from .utils import find_private_section
@@ -271,7 +271,7 @@ class MetaExtractor(object):
                 translator = trans_map[elem.tag]
                 try:
                     meta = translator.translate(elem)
-                except Exception, e:
+                except Exception as e:
                     if self.warn_on_trans_except:
                         warnings.warn("Exception from translator %s: %s" %
                                       (translator.name, str(e)))

@@ -77,7 +77,7 @@ def iter_with_override(input_iter):
     stack = deque([iter(input_iter)])
     while len(stack) > 0:
         try:
-            elem = stack[0].next()
+            elem = next(stack[0])
         except StopIteration:
             stack.popleft()
             continue
@@ -255,7 +255,7 @@ def parse_map_element(char_iter, default_map):
     while True:
         try:
             content = gen_brace_content(char_iter, ('{', '}'))
-            content.next()
+            next(content)
         except (EmptyIterator, MissingOpenBraceError):
             break
         key = default_keys[key_idx]
@@ -278,7 +278,7 @@ def parse_array_element(char_iter, default_elem):
     while True:
         try:
             content_iter = gen_brace_content(char_iter, ('{', '}'))
-            content_iter.next()
+            next(content_iter)
             content = ''.join(content_iter) #TODO: Avoid this?
         except (EmptyIterator, MissingOpenBraceError):
             break
@@ -343,7 +343,7 @@ def parse_array(char_iter, meta):
     while True:
         try:
             content_iter = gen_brace_content(char_iter, ('{', '}'))
-            content_iter.next()
+            next(content_iter)
             vals.append(elem_type_parse_map[elem_type](content_iter,
                                                        *parse_args)
                        )
@@ -410,7 +410,7 @@ def get_elem(param_type, char_iter):
         # we break
         try:
             ident_iter = gen_brace_content(char_iter, ('<', '>'))
-            ident_iter.next()
+            next(ident_iter)
             ident = ''.join(ident_iter)
         except (MissingOpenBraceError, EmptyIterator):
             break
@@ -427,7 +427,7 @@ def get_elem(param_type, char_iter):
         # The meta values may or may not be enclosed in curly braces.
         try:
             meta_val_iter = gen_brace_content(char_iter, ('{', '}'))
-            meta_val_iter.next()
+            next(meta_val_iter)
         except MissingOpenBraceError:
             # If it is not in curly braces, it must start on the same
             # line as the identifier
@@ -444,7 +444,7 @@ def get_elem(param_type, char_iter):
         # elements).
         try:
             meta_val_ident_iter = gen_brace_content(meta_val_iter, ('<', '>'))
-            meta_val_ident_iter.next()
+            next(meta_val_ident_iter)
             meta_val_ident = ''.join(meta_val_ident_iter)
             re_match = re.match(param_regex, meta_val_ident)
             meta_param_type, name = re_match.groups()
@@ -453,7 +453,7 @@ def get_elem(param_type, char_iter):
             meta_param_val_iter = gen_brace_content(char_iter,
                                                     ('{', '}')
                                                    )
-            meta_param_val_iter.next()
+            next(meta_param_val_iter)
             meta_val = (name, # TODO: Is this always an empty string?
                         get_elem(meta_param_type,
                                  meta_param_val_iter
@@ -474,10 +474,10 @@ def gen_params(char_iter):
         # Get identifier for next parameter, stop if char_iter is empty
         try:
             ident_iter = gen_brace_content(char_iter, ('<', '>'))
-            ident_iter.next()
+            next(ident_iter)
         except EmptyIterator:
             break
-        except MissingOpenBraceError, e:
+        except MissingOpenBraceError:
             break
         ident = ''.join(ident_iter)
 
@@ -497,7 +497,7 @@ def gen_params(char_iter):
         # Get a char iterator for the text of the parameter value
         try:
             val_iter = gen_brace_content(char_iter, ('{', '}'))
-            val_iter.next()
+            next(val_iter)
         except EmptyIterator:
             raise XProtocolParseError("Unable to find value for %s" % name)
 

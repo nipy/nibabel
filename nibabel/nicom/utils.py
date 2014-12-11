@@ -4,9 +4,8 @@ from __future__ import division, print_function, absolute_import
 
 import os, uuid, hashlib, re, string
 from random import random
-from math import ceil
 
-from ..py3k import asstr
+from ..py3k import asstr, asbytes
 
 
 def find_private_section(dcm_data, group_no, creator):
@@ -100,7 +99,6 @@ def make_uid(entropy_srcs=None, prefix='2.25.'):
         List of strings providing the entropy used to generate the UID. If
         None these will be collected from a combination of HW address, time,
         process ID, and randomness.
-
     prefix : str
         The prefix used for the UID.
 
@@ -110,20 +108,20 @@ def make_uid(entropy_srcs=None, prefix='2.25.'):
         The the DICOM uid that was generated.
     '''
     if len(prefix) >= 64:
-        raise ValueError("The prefix must be less that 64 chars long")
+        raise ValueError("The prefix must be less than 64 chars long")
     # Combine all the entropy sources with a hashing algorithm
     if entropy_srcs is None:
         entropy_srcs = [str(uuid.uuid1()), # 128-bit from MAC/time/randomness
                         str(os.getpid()), # Current process ID
                         random().hex() # 64-bit randomness
                        ]
-    hash_val = hashlib.sha256(''.join(entropy_srcs))
+    hash_val = hashlib.sha256(asbytes(''.join(entropy_srcs)))
 
     # Converet this to an int with the maximum available digits
     avail_digits = 64 - len(prefix)
     int_val = int(hash_val.hexdigest(), 16) % (10 ** avail_digits)
     fmt_str = '%%0%dd' % avail_digits
-    return prefix  + (fmt_str % int_val)
+    return prefix + (fmt_str % int_val)
 
 
 def as_to_years(age_str):

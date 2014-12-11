@@ -283,7 +283,7 @@ def write(csa_header):
             plus4 = item_len % 4
             if plus4 != 0:
                 result.append(b'\x00' * (4 - plus4))
-    return ''.join(result)
+    return b''.join(result)
 
 
 def get_scalar(csa_dict, tag_name):

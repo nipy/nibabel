@@ -1,5 +1,6 @@
 """ Testing Siemens "XProtocol" parser
 """
+from __future__ import print_function
 
 from .. import csareader as csa
 from .. import xprotocol
@@ -7,6 +8,10 @@ from .. import xprotocol
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from .test_dicomwrappers import dicom_test, DATA
+
+
+def assert_keys_equal(d, key_list):
+    assert_equal(list(d.keys()), list(key_list))
 
 
 @dicom_test
@@ -22,8 +27,8 @@ def test_xprotocol_parse():
     outer_xproto = outer_xprotos[0]
     # The format has a root containter 'XProtocol', which in turn (always?)
     # contains a anonymous container
-    assert_equal(outer_xproto.keys(), ['XProtocol'])
-    assert_equal(outer_xproto['XProtocol'].keys(), [''])
+    assert_keys_equal(outer_xproto, ['XProtocol'])
+    assert_keys_equal(outer_xproto['XProtocol'], [''])
     # Any element can have meta data associated with it. In this case the
     # root 'XProtocol' element three pieces of meta data
     assert_equal(outer_xproto.get_elem('XProtocol').meta['Name'],
@@ -45,8 +50,8 @@ def test_xprotocol_parse():
     remainder = ''.join(remainder)
     assert_true(remainder.strip().startswith("### ASCCONV BEGIN ###"))
     assert_equal(len(inner_xprotos), 2)
-    assert_equal(inner_xprotos[0].keys(), ['XProtocol'])
-    assert_equal(inner_xprotos[1].keys(), ['XProtocol'])
+    assert_keys_equal(inner_xprotos[0], ['XProtocol'])
+    assert_keys_equal(inner_xprotos[1], ['XProtocol'])
     assert_equal(len(inner_xprotos[0]['XProtocol'].keys()), 21)
     assert_equal(len(inner_xprotos[0]['XProtocol'][''].keys()), 6)
     assert_equal(len(inner_xprotos[1]['XProtocol'].keys()), 1)

@@ -1,5 +1,7 @@
 """ Testing Siemens CSA header reader
 """
+from __future__ import print_function
+
 from os.path import join as pjoin
 import gzip
 
@@ -103,7 +105,6 @@ def test_read_write_rt():
     # representation of the header is the same. We can't exactly reproduce the
     # original string representation currently.
     for csa_str in (CSA2_B0, CSA2_B1000):
-        print "Testing round_trip"
         csa_info = csa.read(csa_str)
         new_csa_str = csa.write(csa_info)
         new_csa_info = csa.read(new_csa_str)
