@@ -256,3 +256,10 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 # Config of plot_directive
 plot_include_source = True
 plot_html_show_source_link = False
+
+# Numpy extensions
+# ----------------
+# Worked out by Steven Silvester in
+# https://github.com/scikit-image/scikit-image/pull/1356
+numpydoc_show_class_members = False
+numpydoc_class_members_toctree = False
