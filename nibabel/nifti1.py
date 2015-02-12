@@ -380,6 +380,64 @@ class Nifti1Extension(object):
         # next 16 byte border
         fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
 
+class Nifti1DicomExtension(Nifti1Extension):
+    """Class for NIfTI1 DICOM header extension.
+
+    This class is a thin wrapper around pydicom to read a binary DICOM
+    byte string. If pydicom is not available, it silently falls back to the
+    standard NiftiExtension class.
+    """
+    def __init__(self, code, content):
+        self._code = code
+        self._raw_content = content
+        self._guess_implicit_VR()
+        self._content = self._unmangle(content)
+
+        super(Nifti1DicomExtension,self)
+
+    def _guess_implicit_VR(self):
+        """Without a DICOM Transfer Syntax, it's difficult to tell if Value
+        Representations (VRs) are included in the DICOM encoding or not.
+        This reads where the first VR would be and checks it against a list of
+        valid VRs"""
+        potential_vr = self._raw_content[8:12]
+        if potential_vr in dicom_converters.keys():
+            self._is_implicit_VR=False
+        else:
+            self._is_implicit_VR=True
+        return self._is_implicit_VR
+
+    def _is_little_endian(self):
+        return True
+
+    def _unmangle(self,value):
+        sio=StringIO(value)
+        ds=read_dataset(sio,self._is_implicit_VR,self._is_little_endian)
+        return ds
+
+    def _mangle(self,value):
+        sio=StringIO()
+        dio=DicomFileLike(sio)
+        dio.is_implicit_VR = self._is_implict_VR
+        dio.is_little_endian = self._is_little_endian
+        ds_len=write_dataset(dio,self._content)
+        dio.seek(0)
+        return dio.read(ds_len)
+
+    def get_sizeondisk(self):
+        """Return the size of the extension in the NIfTI file.
+        """
+        return len(self._mangle(self._content))
+
+try:
+    from dicom.filereader import read_dataset
+    from dicom.filewriter import write_dataset
+    from dicom.filebase import DicomFileLike
+    from dicom.values import converters as dicom_converters
+    from StringIO import StringIO
+except ImportError:
+    """Fall back to standard reader if pydicom unavailable."""
+    Nifti1DicomExtension = Nifti1Extension
 
 # NIfTI header extension type codes (ECODE)
 # see nifti1_io.h for a complete list of all known extensions and
@@ -387,7 +445,7 @@ class Nifti1Extension(object):
 # initiators
 extension_codes = Recoder((
     (0, "ignore", Nifti1Extension),
-    (2, "dicom", Nifti1Extension),
+    (2, "dicom", Nifti1DicomExtension),
     (4, "afni", Nifti1Extension),
     (6, "comment", Nifti1Extension),
     (8, "xcede", Nifti1Extension),
@@ -1863,3 +1921,4 @@ def save(img, filename):
         Nifti1Image.instance_to_filename(img, filename)
     except ImageFileError:
         Nifti1Pair.instance_to_filename(img, filename)
+

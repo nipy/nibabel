@@ -21,8 +21,9 @@ from ..eulerangles import euler2mat
 from ..affines import from_matvec
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
-                      Nifti1Pair, Nifti1Extension, Nifti1Extensions,
-                      data_type_codes, extension_codes, slice_order_codes)
+                      Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
+                      Nifti1Extensions, data_type_codes, extension_codes, 
+                      slice_order_codes)
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
 from .test_helpers import bytesio_filemap, bytesio_round_trip
@@ -40,6 +41,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
+# For DICOM Extension creation
+import struct
 
 # Example transformation matrix
 R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]] # rotation matrix
@@ -1070,6 +1073,29 @@ def test_nifti_extensions():
     assert_true(exts_container.count('comment') == 1)
     assert_true(exts_container.count('afni') == 1)
 
+def test_nifti_dicom_extension():
+    nim = load(image_file)
+    hdr = nim.header
+    exts_container = hdr.extensions
+
+    # create a single dicom tag (Patien ID, [0010,0020]) with Explicit VR
+    dcmext = Nifti1DicomExtension(2,
+        struct.pack('<HH2sH4s',0x10,0x20,'LO',4,'NiPy'))
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+
+    # create a single dicom tag (Patien ID, [0010,0020]) with Implicit VR
+    dcmext = Nifti1DicomExtension(2,
+        struct.pack('<HHL4s',0x10,0x20,4,'NiPy'))
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+
+    # dicom extension access from nifti extensions
+    assert_equal(exts_container.count('dicom'),0)
+    exts_container.append(dcmext)
+    assert_equal(exts_container.count('dicom'), 1)
+    assert_equal(exts_container.get_codes(), [6, 6, 2])
+    # assert_equal((exts_container.get_sizeondisk()) % 16, 0)
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
