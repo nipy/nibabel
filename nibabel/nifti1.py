@@ -411,13 +411,13 @@ class Nifti1DicomExtension(Nifti1Extension):
         return True
 
     def _unmangle(self,value):
-        sio=StringIO(value)
-        ds=read_dataset(sio,self._is_implicit_VR,self._is_little_endian)
+        io=BytesIO(value)
+        ds=read_dataset(io,self._is_implicit_VR,self._is_little_endian)
         return ds
 
     def _mangle(self,value):
-        sio=StringIO()
-        dio=DicomFileLike(sio)
+        io=BytesIO()
+        dio=DicomFileLike(io)
         dio.is_implicit_VR = self._is_implict_VR
         dio.is_little_endian = self._is_little_endian
         ds_len=write_dataset(dio,self._content)
@@ -434,7 +434,7 @@ try:
     from dicom.filewriter import write_dataset
     from dicom.filebase import DicomFileLike
     from dicom.values import converters as dicom_converters
-    from StringIO import StringIO
+    from six import BytesIO
 except ImportError:
     """Fall back to standard reader if pydicom unavailable."""
     Nifti1DicomExtension = Nifti1Extension
