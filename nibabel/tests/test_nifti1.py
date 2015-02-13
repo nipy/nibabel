@@ -41,8 +41,15 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-# For DICOM Extension creation
-import struct
+try:
+    import dicom
+    import struct
+except ImportError:
+    have_dicom = False
+else:
+    have_dicom = True
+dicom_test = np.testing.dec.skipif(not have_dicom,
+    'could not import pydicom')
 
 # Example transformation matrix
 R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]] # rotation matrix
@@ -1073,6 +1080,7 @@ def test_nifti_extensions():
     assert_true(exts_container.count('comment') == 1)
     assert_true(exts_container.count('afni') == 1)
 
+@dicom_test
 def test_nifti_dicom_extension():
     nim = load(image_file)
     hdr = nim.header
