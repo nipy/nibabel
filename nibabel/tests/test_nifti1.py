@@ -1095,16 +1095,20 @@ def test_nifti_dicom_extension():
     assert_equal(len(dcmext.get_content().values()), 1)
 
     # create a single dicom tag (Patien ID, [0010,0020]) with Implicit VR
-    dcmext = Nifti1DicomExtension(2,
-        struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8')))
+    dcmbytes = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2,dcmbytes)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext.get_sizeondisk(), len(dcmbytes))
+    assert_equal(dcmext._mangle(),dcmbytes)
 
     # dicom extension access from nifti extensions
     assert_equal(exts_container.count('dicom'),0)
     exts_container.append(dcmext)
     assert_equal(exts_container.count('dicom'), 1)
     assert_equal(exts_container.get_codes(), [6, 6, 2])
+    assert_equal(dcmext.get_sizeondisk(), len(dcmbytes))
+    assert_equal(dcmext._mangle(),dcmbytes)
     # assert_equal((exts_container.get_sizeondisk()) % 16, 0)
 
 class TestNifti1General(object):

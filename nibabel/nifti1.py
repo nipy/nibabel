@@ -411,14 +411,14 @@ class Nifti1DicomExtension(Nifti1Extension):
         return True
 
     def _unmangle(self,value):
-        io=BytesIO(value)
-        ds=read_dataset(io,self._is_implicit_VR,self._is_little_endian)
+        raw_io=BytesIO(value)
+        ds=read_dataset(raw_io,self._is_implicit_VR,self._is_little_endian)
         return ds
 
-    def _mangle(self,value):
-        io=BytesIO()
-        dio=DicomFileLike(io)
-        dio.is_implicit_VR = self._is_implict_VR
+    def _mangle(self):
+        raw_io=BytesIO()
+        dio=DicomFileLike(raw_io)
+        dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
         ds_len=write_dataset(dio,self._content)
         dio.seek(0)
@@ -427,7 +427,7 @@ class Nifti1DicomExtension(Nifti1Extension):
     def get_sizeondisk(self):
         """Return the size of the extension in the NIfTI file.
         """
-        return len(self._mangle(self._content))
+        return len(self._mangle())
 
 try:
     from dicom.filereader import read_dataset
