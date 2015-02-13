@@ -434,7 +434,7 @@ try:
     from dicom.filewriter import write_dataset
     from dicom.filebase import DicomFileLike
     from dicom.values import converters as dicom_converters
-    from six import BytesIO
+    from io import BytesIO
 except ImportError:
     """Fall back to standard reader if pydicom unavailable."""
     Nifti1DicomExtension = Nifti1Extension
