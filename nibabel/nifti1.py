@@ -393,8 +393,6 @@ class Nifti1DicomExtension(Nifti1Extension):
         self._is_implicit_VR = self._guess_implicit_VR()
         self._content = self._unmangle(content)
 
-        super(Nifti1DicomExtension,self)
-
     def _guess_implicit_VR(self):
         """Without a DICOM Transfer Syntax, it's difficult to tell if Value
         Representations (VRs) are included in the DICOM encoding or not.
@@ -423,16 +421,6 @@ class Nifti1DicomExtension(Nifti1Extension):
         ds_len=write_dataset(dio,value)
         dio.seek(0)
         return dio.read(ds_len)
-
-    def get_sizeondisk(self):
-        """Return the size of the extension in the NIfTI file.
-        """
-        size = len(self._mangle(self._content))
-        size += 8
-        # extensions size has to be a multiple of 16 bytes
-        size += 16 - (size % 16)
-        
-        return size
 
 try:
     from dicom.filereader import read_dataset

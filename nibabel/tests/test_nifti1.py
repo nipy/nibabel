@@ -1087,7 +1087,7 @@ def test_nifti_dicom_extension():
     hdr = nim.header
     exts_container = hdr.extensions
 
-    # create a single dicom tag (Patien ID, [0010,0020]) with Explicit VR
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR
     dcmbytes_explicit = struct.pack('<HH2sH4s',0x10,0x20,
         'LO'.encode('utf-8'),4,'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2,dcmbytes_explicit)
@@ -1099,7 +1099,7 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_explicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
     
-    # create a single dicom tag (Patien ID, [0010,0020]) with Implicit VR
+    # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
     dcmbytes_implicit = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2,dcmbytes_implicit)
     assert_equal(dcmext._guess_implicit_VR(),True)
