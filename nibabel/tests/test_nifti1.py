@@ -44,6 +44,7 @@ image_file = os.path.join(data_path, 'example4d.nii.gz')
 try:
     import dicom
     import struct
+    from io import BytesIO
 except ImportError:
     have_dicom = False
 else:
@@ -1087,29 +1088,37 @@ def test_nifti_dicom_extension():
     exts_container = hdr.extensions
 
     # create a single dicom tag (Patien ID, [0010,0020]) with Explicit VR
-    dcmbytes = struct.pack('<HH2sH4s',0x10,0x20,
+    dcmbytes_explicit = struct.pack('<HH2sH4s',0x10,0x20,
         'LO'.encode('utf-8'),4,'NiPy'.encode('utf-8'))
-    dcmext = Nifti1DicomExtension(2,dcmbytes)
+    dcmext = Nifti1DicomExtension(2,dcmbytes_explicit)
     assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(),False)
+    assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
-
+    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_explicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+    
     # create a single dicom tag (Patien ID, [0010,0020]) with Implicit VR
-    dcmbytes = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
-    dcmext = Nifti1DicomExtension(2,dcmbytes)
+    dcmbytes_implicit = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2,dcmbytes_implicit)
+    assert_equal(dcmext._guess_implicit_VR(),True)
+    assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
-    assert_equal(dcmext.get_sizeondisk(), len(dcmbytes))
-    assert_equal(dcmext._mangle(),dcmbytes)
+    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
     # dicom extension access from nifti extensions
     assert_equal(exts_container.count('dicom'),0)
     exts_container.append(dcmext)
     assert_equal(exts_container.count('dicom'), 1)
     assert_equal(exts_container.get_codes(), [6, 6, 2])
-    assert_equal(dcmext.get_sizeondisk(), len(dcmbytes))
-    assert_equal(dcmext._mangle(),dcmbytes)
-    # assert_equal((exts_container.get_sizeondisk()) % 16, 0)
+    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    raw_io = BytesIO()
+    dcmext.write_to(raw_io,False)
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general

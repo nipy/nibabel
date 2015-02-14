@@ -390,7 +390,7 @@ class Nifti1DicomExtension(Nifti1Extension):
     def __init__(self, code, content):
         self._code = code
         self._raw_content = content
-        self._guess_implicit_VR()
+        self._is_implicit_VR = self._guess_implicit_VR()
         self._content = self._unmangle(content)
 
         super(Nifti1DicomExtension,self)
@@ -400,12 +400,12 @@ class Nifti1DicomExtension(Nifti1Extension):
         Representations (VRs) are included in the DICOM encoding or not.
         This reads where the first VR would be and checks it against a list of
         valid VRs"""
-        potential_vr = self._raw_content[8:12]
+        potential_vr = self._raw_content[4:6].decode()
         if potential_vr in dicom_converters.keys():
-            self._is_implicit_VR=False
+            implicit_VR=False
         else:
-            self._is_implicit_VR=True
-        return self._is_implicit_VR
+            implicit_VR=True
+        return implicit_VR
 
     def _is_little_endian(self):
         return True
@@ -415,19 +415,24 @@ class Nifti1DicomExtension(Nifti1Extension):
         ds=read_dataset(raw_io,self._is_implicit_VR,self._is_little_endian)
         return ds
 
-    def _mangle(self):
+    def _mangle(self, value):
         raw_io=BytesIO()
         dio=DicomFileLike(raw_io)
         dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
-        ds_len=write_dataset(dio,self._content)
+        ds_len=write_dataset(dio,value)
         dio.seek(0)
         return dio.read(ds_len)
 
     def get_sizeondisk(self):
         """Return the size of the extension in the NIfTI file.
         """
-        return len(self._mangle())
+        size = len(self._mangle(self._content))
+        size += 8
+        # extensions size has to be a multiple of 16 bytes
+        size += 16 - (size % 16)
+        
+        return size
 
 try:
     from dicom.filereader import read_dataset
