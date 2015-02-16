@@ -380,7 +380,6 @@ class Nifti1Extension(object):
         # next 16 byte border
         fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
 
-
 class Nifti1DicomExtension(Nifti1Extension):
     """Class for NIfTI1 DICOM header extension.
 
@@ -410,6 +409,7 @@ class Nifti1DicomExtension(Nifti1Extension):
             _is_implicit_VR = self._guess_implicit_VR()
             _is_little_endian = self._guess_little_endian()
         return _is_implicit_VR,_is_little_endian
+
 
     def _check_meta(self):
         """Check the DICOM Transfer Syntax and set encoding appropriately.
