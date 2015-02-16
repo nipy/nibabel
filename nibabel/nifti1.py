@@ -380,6 +380,7 @@ class Nifti1Extension(object):
         # next 16 byte border
         fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
 
+
 class Nifti1DicomExtension(Nifti1Extension):
     """Class for NIfTI1 DICOM header extension.
 
@@ -409,18 +410,19 @@ class Nifti1DicomExtension(Nifti1Extension):
         return True
 
     def _unmangle(self,value):
-        raw_io=BytesIO(value)
-        ds=read_dataset(raw_io,self._is_implicit_VR,self._is_little_endian)
+        bio=BytesIO(value)
+        ds=read_dataset(bio,self._is_implicit_VR,self._is_little_endian)
         return ds
 
     def _mangle(self, value):
-        raw_io=BytesIO()
-        dio=DicomFileLike(raw_io)
+        bio=BytesIO()
+        dio=DicomFileLike(bio)
         dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
         ds_len=write_dataset(dio,value)
         dio.seek(0)
         return dio.read(ds_len)
+
 
 try:
     from dicom.filereader import read_dataset

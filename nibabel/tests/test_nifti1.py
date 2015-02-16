@@ -1117,8 +1117,8 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
-    raw_io = BytesIO()
-    dcmext.write_to(raw_io,False)
+    bio = BytesIO()
+    dcmext.write_to(bio,False)
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
