@@ -426,7 +426,7 @@ class Nifti1DicomExtension(Nifti1Extension):
             is_implicit_VR = False
             is_little_endian = False
         elif transfer_syntax == dicom.UID.DeflatedExplicitVRLittleEndian:
-            zipped = self._bio.read()
+            zipped = fileobj.read()
             unzipped = zlib.decompress(zipped, -zlib.MAX_WBITS)
             self._bio = BytesIO(unzipped)  # a file-like object
             is_implicit_VR = False
@@ -483,7 +483,6 @@ try:
     from dicom.filebase import DicomFileLike
     from dicom.values import converters as dicom_converters
     import dicom.UID
-    import zlib
     from io import BytesIO
 except ImportError:
     """Fall back to standard reader if pydicom unavailable."""

@@ -1144,18 +1144,6 @@ def test_nifti_dicom_extension():
 
     dcmext.write_to(BytesIO(),False)
 
-    dicomtestfiles=[
-        ('data/0_ExplicitVRBigEndian.dcm',dicom.UID.ExplicitVRBigEndian),
-        ('data/0_ExplicitVRLittleEndian.dcm',dicom.UID.ExplicitVRLittleEndian),
-        ('data/0_DeflatedExplicitVRLittleEndian.dcm',dicom.UID.DeflatedExplicitVRLittleEndian)]
-    for fname,encoding in dicomtestfiles:
-        with open(fname,'rb') as dim:
-            dcmbytes_full = dim.read()
-        dcmext = Nifti1DicomExtension(2,dcmbytes_full)
-        assert_equal(dcmext.get_content().PatientID, 'NiPy')
-        assert_equal(dcmext.get_content().file_meta.TransferSyntaxUID,encoding)
-
-
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
 
