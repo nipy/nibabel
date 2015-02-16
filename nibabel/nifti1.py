@@ -462,14 +462,25 @@ class Nifti1DicomExtension(Nifti1Extension):
 
     def _mangle(self, value):
         bio=BytesIO()
-        write_file(bio,value)
-        bio.seek(0)
-        return bio.read()
+        dio=DicomFileLike(bio)
+        if self._preamble:
+            dio.write(self._preamble)  # blank 128 byte preamble
+            _write_file_meta_info(dio, self._meta)
+
+        # Set file VR, endian. MUST BE AFTER writing META INFO (which changes to Explicit LittleEndian)
+        dio.is_implicit_VR = self._is_implicit_VR
+        dio.is_little_endian = self._is_little_endian
+
+        write_dataset(dio, value)
+        # write_file(bio,value)
+        dio.seek(0)
+        return dio.read()
 
 try:
     from dicom.dataset import FileDataset
     from dicom.filereader import read_dataset,read_preamble,_read_file_meta_info
-    from dicom.filewriter import write_file
+    from dicom.filewriter import write_dataset,_write_file_meta_info
+    from dicom.filebase import DicomFileLike
     from dicom.values import converters as dicom_converters
     import dicom.UID
     from io import BytesIO
