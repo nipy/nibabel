@@ -1096,7 +1096,6 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._guess_implicit_VR(),False)
     assert_equal(dcmext._is_implicit_VR,False)
     assert_equal(dcmext._is_little_endian,True)
-    assert_equal(dcmext._check_encoding(),(False,True))
     assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
@@ -1109,7 +1108,6 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._guess_implicit_VR(),True)
     assert_equal(dcmext._is_implicit_VR,True)
     assert_equal(dcmext._is_little_endian,True)
-    assert_equal(dcmext._check_encoding(),(True,True))
     assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
@@ -1128,15 +1126,14 @@ def test_nifti_dicom_extension():
     with open(dicom_file,'rb') as dim:
         dcmbytes_full = dim.read()
     dcmext = Nifti1DicomExtension(2,dcmbytes_full)
-    assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext._is_implicit_VR,True)
     assert_equal(dcmext._is_little_endian,True)
-    assert_equal(dcmext._check_encoding(),(True,True))
+    assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, '1234')
     assert_equal(len(dcmext.get_content().values()), 139)
-    assert_equal(
-        dcmext.get_content().file_meta.TransferSyntaxUID,
-        dicom.filereader.read_file_meta_info(dicom_file).TransferSyntaxUID)
+    # assert_equal(
+    #     dcmext.get_content().file_meta,
+    #     dicom.filereader.read_file_meta_info(dicom_file))
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
     
     # make it round-tripable
