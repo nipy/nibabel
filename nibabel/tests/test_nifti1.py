@@ -40,6 +40,7 @@ from . import test_spm99analyze as tspm
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
+dicom_file = os.path.join(data_path, '0.dcm')
 
 try:
     import dicom
@@ -1093,6 +1094,8 @@ def test_nifti_dicom_extension():
     dcmext = Nifti1DicomExtension(2,dcmbytes_explicit)
     assert_equal(dcmext.__class__, Nifti1DicomExtension)
     assert_equal(dcmext._guess_implicit_VR(),False)
+    assert_equal(dcmext._is_implicit_VR,False)
+    assert_equal(dcmext._is_little_endian,True)
     assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
@@ -1103,6 +1106,8 @@ def test_nifti_dicom_extension():
     dcmbytes_implicit = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2,dcmbytes_implicit)
     assert_equal(dcmext._guess_implicit_VR(),True)
+    assert_equal(dcmext._is_implicit_VR,True)
+    assert_equal(dcmext._is_little_endian,True)
     assert_equal(dcmext.get_code(),2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
@@ -1117,8 +1122,24 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
-    raw_io = BytesIO()
-    dcmext.write_to(raw_io,False)
+    # Use a full dicom file with metadata as a header
+    with open(dicom_file,'rb') as dim:
+        dcmbytes_full = dim.read()
+    dcmext = Nifti1DicomExtension(2,dcmbytes_full)
+    assert_equal(dcmext._is_implicit_VR,True)
+    assert_equal(dcmext._is_little_endian,True)
+    assert_equal(dcmext.get_code(),2)
+    assert_equal(dcmext.get_content().PatientID, '1234')
+    assert_equal(len(dcmext.get_content().values()), 139)
+    # assert_equal(
+    #     dcmext.get_content().file_meta,
+    #     dicom.filereader.read_file_meta_info(dicom_file))
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+    
+    # make it round-tripable
+    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_full)
+
+    dcmext.write_to(BytesIO(),False)
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general

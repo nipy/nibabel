@@ -390,8 +390,51 @@ class Nifti1DicomExtension(Nifti1Extension):
     def __init__(self, code, content):
         self._code = code
         self._raw_content = content
-        self._is_implicit_VR = self._guess_implicit_VR()
+        self._bio = BytesIO(content)
         self._content = self._unmangle(content)
+
+    def _check_encoding(self):
+        """DICOM Data can be stored in the header either as a valid DICOM
+        object, with a preamble, meta info, transfer syntax etc., or as a
+        set of naked tags.  Check for meta info and transfer synatx here
+        and fall back to heuristics if metainfo is missing."""
+        self._bio.seek(0)
+        self._preamble = read_preamble(self._bio,True)  # Attempt to read preamble,
+                                                        # skip if missing w/o error
+
+        if self._preamble:
+            self._meta,_is_implicit_VR,_is_little_endian = self._check_meta()
+        else:
+            self._meta = None
+            _is_implicit_VR = self._guess_implicit_VR()
+            _is_little_endian = self._guess_little_endian()
+        return _is_implicit_VR,_is_little_endian
+
+
+    def _check_meta(self):
+        """Check the DICOM Transfer Syntax and set encoding appropriately.
+        Extracted from dicom.filereader.read_partial, see there for detail"""
+        file_meta_dataset = _read_file_meta_info(self._bio)
+        transfer_syntax = file_meta_dataset.TransferSyntaxUID
+        if transfer_syntax == dicom.UID.ImplicitVRLittleEndian:
+            is_implicit_VR = True
+            is_little_endian = True
+        elif transfer_syntax == dicom.UID.ExplicitVRLittleEndian:
+            is_implicit_VR = False
+            is_little_endian = True
+        elif transfer_syntax == dicom.UID.ExplicitVRBigEndian:
+            is_implicit_VR = False
+            is_little_endian = False
+        elif transfer_syntax == dicom.UID.DeflatedExplicitVRLittleEndian:
+            zipped = fileobj.read()
+            unzipped = zlib.decompress(zipped, -zlib.MAX_WBITS)
+            self._bio = BytesIO(unzipped)  # a file-like object
+            is_implicit_VR = False
+            is_little_endian = True
+        else:
+            is_implicit_VR = False
+            is_little_endian = True
+        return file_meta_dataset, is_implicit_VR, is_little_endian
 
     def _guess_implicit_VR(self):
         """Without a DICOM Transfer Syntax, it's difficult to tell if Value
@@ -405,28 +448,30 @@ class Nifti1DicomExtension(Nifti1Extension):
             implicit_VR=True
         return implicit_VR
 
-    def _is_little_endian(self):
+    def _guess_little_endian(self):
         return True
 
     def _unmangle(self,value):
-        raw_io=BytesIO(value)
-        ds=read_dataset(raw_io,self._is_implicit_VR,self._is_little_endian)
-        return ds
+        self._is_implicit_VR, self._is_little_endian = self._check_encoding()
+
+        ds=read_dataset(self._bio,self._is_implicit_VR,self._is_little_endian)
+        content = FileDataset(
+            self._bio,ds,self._preamble,self._meta,self._is_implicit_VR,self._is_little_endian
+        )
+        return content
 
     def _mangle(self, value):
-        raw_io=BytesIO()
-        dio=DicomFileLike(raw_io)
-        dio.is_implicit_VR = self._is_implicit_VR
-        dio.is_little_endian = self._is_little_endian
-        ds_len=write_dataset(dio,value)
-        dio.seek(0)
-        return dio.read(ds_len)
+        bio=BytesIO()
+        write_file(bio,value)
+        bio.seek(0)
+        return bio.read()
 
 try:
-    from dicom.filereader import read_dataset
-    from dicom.filewriter import write_dataset
-    from dicom.filebase import DicomFileLike
+    from dicom.dataset import FileDataset
+    from dicom.filereader import read_dataset,read_preamble,_read_file_meta_info
+    from dicom.filewriter import write_file
     from dicom.values import converters as dicom_converters
+    import dicom.UID
     from io import BytesIO
 except ImportError:
     """Fall back to standard reader if pydicom unavailable."""
