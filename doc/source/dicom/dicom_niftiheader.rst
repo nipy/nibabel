@@ -52,6 +52,11 @@ Creating a PMOD-compatible header is just as easy::
     >> nim.header.extensions.append(dcmext)
     >> nib.save(nim,'pet_withdcm.nii')
 
+Be careful! Many imaging tools don't maintain information in the extended
+header, so it's possible [likely] that this information may be lost during
+routine use. You'll have to keep track, and re-write the information if
+required.
+
 .. _`NIfTI Extensions Standard`: http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html
 
 .. include:: links_names.txt

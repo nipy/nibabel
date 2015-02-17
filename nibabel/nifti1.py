@@ -412,25 +412,25 @@ class Nifti1DicomExtension(Nifti1Extension):
         valid VRs"""
         potential_vr = self._raw_content[4:6].decode()
         if potential_vr in dicom_converters.keys():
-            implicit_VR=False
+            implicit_VR = False
         else:
-            implicit_VR=True
+            implicit_VR = True
         return implicit_VR
 
     def _guess_little_endian(self):
         return True
 
-    def _unmangle(self,value):
-        bio=BytesIO(value)
-        ds=read_dataset(bio,self._is_implicit_VR,self._is_little_endian)
+    def _unmangle(self, value):
+        bio = BytesIO(value)
+        ds = read_dataset(bio, self._is_implicit_VR, self._is_little_endian)
         return ds
 
     def _mangle(self, dataset):
-        bio=BytesIO()
-        dio=DicomFileLike(bio)
+        bio = BytesIO()
+        dio = DicomFileLike(bio)
         dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
-        ds_len=write_dataset(dio,dataset)
+        ds_len = write_dataset(dio, dataset)
         dio.seek(0)
         return dio.read(ds_len)
 
