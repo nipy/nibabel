@@ -58,6 +58,8 @@ dist/
 .shelf
 .tox/
 .coverage
+parser.out
+parsetab.py
 
 # Logs and databases #
 ######################

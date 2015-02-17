@@ -16,8 +16,9 @@ from __future__ import division, print_function, absolute_import
 import struct, warnings
 from collections import defaultdict
 
-from . import csareader, xprotocol, ascconv
+from . import csareader, ascconv
 from .utils import find_private_section
+from .. import xpparse as xpp
 from ..externals import OrderedDict
 from ..externals.six import iteritems
 
@@ -72,26 +73,25 @@ def csa_series_trans_func(elem):
     # version of Syngo.
     if 'MrPhoenixProtocol' in csa_dict:
         # This is a "newer" data set, everything is in 'MrPhoenixProtocol'
-        outer_xprotos, remainder = \
-            xprotocol.read_protos(csa_dict['MrPhoenixProtocol'])
+        outer_xprotos = xpp.parse(csa_dict['MrPhoenixProtocol'])
         assert len(outer_xprotos) == 1
-        assert ''.join(remainder).strip() == ''
         xproto_dict = outer_xprotos[0]
-        inner_xprotos, remainder = \
-            xprotocol.read_protos(xproto_dict['XProtocol']['']['Protocol0'])
-        xproto_dict['XProtocol']['']['Protocol0'] = \
-            xprotocol.XProtocolElement('ParamArray', inner_xprotos, {})
+        for param in xproto_dict['blocks'][0]['value']:
+            if param['name'] == 'Protocol0':
+                inner_str, ascconv_str = xpp.split_ascconv(param['value'])
+                param['value'] = xpp.parse(xpp.strip_twin_quote(inner_str))
+                break
+        else:
+            raise ValueError("Unable to find inner XProtocol and ASCCONV")
         ascconv_dict = ascconv.parse_ascconv(''.join(remainder),
                                              'MrPhoenixProtocol')
         del csa_dict['MrPhoenixProtocol']
     elif 'MrProtocol' in csa_dict and 'MrEvaProtcol' in csa_dict:
         # This is an "older" data set, XProtocol is in 'MrEvaProtcol' and
         # ASCCONV is in 'MrProtocol'
-        xprotos, remainder = xprotocol.read_protos(csa_dict['MrEvaProtocol'])
+        xprotos = xpp.parse(csa_dict['MrEvaProtocol'])
         assert len(xprotos) == 1
-        assert ''.join(remainder).strip() == ''
         xproto_dict = xprotos[0]
-        assert 'Protocol0' not in xproto_dict
         ascconv_dict = ascconv.parse_ascconv(csa_dict['MrProtocol'],
                                              'MrProtocol')
         del csa_dict['MrEvaProtocol']
