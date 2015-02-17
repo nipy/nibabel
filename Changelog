@@ -22,6 +22,11 @@ NiBabel
 Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
 and Stephan Gerhard (SG).
 
+* 2.0.1
+
+  * Read and write support for DICOM tags in NIfTI Extended Header using
+    pydicom.
+
 * 2.0.0 (Tuesday 9 December 2014)
 
   This release had large contributions from Eric Larson, Brendan Moloney,
