@@ -87,43 +87,6 @@ def find_private_element(dcm_data, group_no, creator, elem_offset):
     return dcm_data.get((group_no, sect_start + elem_offset))
 
 
-def make_uid(entropy_srcs=None, prefix='2.25.'):
-    '''Generate a DICOM UID value.
-
-    Follows the advice given at:
-    http://www.dclunie.com/medical-image-faq/html/part2.html#UID
-
-    Parameters
-    ----------
-    entropy_srcs : list of str or None
-        List of strings providing the entropy used to generate the UID. If
-        None these will be collected from a combination of HW address, time,
-        process ID, and randomness.
-    prefix : str
-        The prefix used for the UID.
-
-    Returns
-    -------
-    uid : str
-        The the DICOM uid that was generated.
-    '''
-    if len(prefix) >= 64:
-        raise ValueError("The prefix must be less than 64 chars long")
-    # Combine all the entropy sources with a hashing algorithm
-    if entropy_srcs is None:
-        entropy_srcs = [str(uuid.uuid1()), # 128-bit from MAC/time/randomness
-                        str(os.getpid()), # Current process ID
-                        random().hex() # 64-bit randomness
-                       ]
-    hash_val = hashlib.sha256(asbytes(''.join(entropy_srcs)))
-
-    # Converet this to an int with the maximum available digits
-    avail_digits = 64 - len(prefix)
-    int_val = int(hash_val.hexdigest(), 16) % (10 ** avail_digits)
-    fmt_str = '%%0%dd' % avail_digits
-    return prefix + (fmt_str % int_val)
-
-
 def as_to_years(age_str):
     '''Convert a DICOM age value (value representation of 'AS') to the age in
     years.

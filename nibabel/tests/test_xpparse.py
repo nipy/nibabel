@@ -665,23 +665,23 @@ def test_pipe_service():
       <ParamLong."DATATHREADS">  { }
       <ParamLong."WATERMARK">  { 16  }
       <ParamString."tdefaultEVAProt">  { "%SiemensEvaDefProt%/DTI/DTI.evp"  }
-      <ParamFunctor."MosaicUnwrapper"> 
+      <ParamFunctor."MosaicUnwrapper">
       {
-        <Class> "MosaicUnwrapper@IceImagePostProcFunctors" 
+        <Class> "MosaicUnwrapper@IceImagePostProcFunctors"
 
         <ParamBool."EXECUTE">  { }
         <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
         <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
         <Connection."c1">  { "ImageReady" "" "ComputeImage"  }
       }
-      <ParamFunctor."DtiIcePostProcFunctor"> 
+      <ParamFunctor."DtiIcePostProcFunctor">
       {
-        <Class> "DtiIcePostProcFunctor@DtiIcePostProc" 
+        <Class> "DtiIcePostProcFunctor@DtiIcePostProc"
 
         <ParamBool."EXECUTE">  { "true"  }
-        <ParamArray."BValue"> 
+        <ParamArray."BValue">
         {
-          <Default> <ParamLong.""> 
+          <Default> <ParamLong."">
           {
           }
           { }
@@ -722,9 +722,9 @@ def test_pipe_service():
         <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
         <Connection."c1">  { "ImageReady" "DtiIcePostProcMosaicDecorator" "ComputeImage"  }
       }
-      <ParamFunctor."DtiIcePostProcMosaicDecorator"> 
+      <ParamFunctor."DtiIcePostProcMosaicDecorator">
       {
-        <Class> "DtiIcePostProcMosaicDecorator@DtiIcePostProc" 
+        <Class> "DtiIcePostProcMosaicDecorator@DtiIcePostProc"
 
         <ParamBool."EXECUTE">  { "true"  }
         <ParamBool."Mosaic">  { "true"  }
