@@ -390,9 +390,20 @@ class Nifti1DicomExtension(Nifti1Extension):
     """
     def __init__(self, code, content):
         self._code = code
-        self._raw_content = content
-        self._is_implicit_VR = self._guess_implicit_VR()
-        self._content = self._unmangle(content)
+        if content.__class__ == Dataset:
+            self._is_implicit_VR = False
+            self._is_little_endian = True
+            self._raw_content = self._mangle(content)
+            self._content = content
+        elif len(content):  # Got a byte string - unmangle it
+            self._raw_content = content
+            self._is_implicit_VR = self._guess_implicit_VR()
+            self._is_little_endian = self._guess_little_endian()
+            self._content = self._unmangle(content)
+        else:
+            self._is_implicit_VR = False
+            self._is_little_endian = True
+            self._content = Dataset()
 
     def _guess_implicit_VR(self):
         """Without a DICOM Transfer Syntax, it's difficult to tell if Value
@@ -406,7 +417,7 @@ class Nifti1DicomExtension(Nifti1Extension):
             implicit_VR=True
         return implicit_VR
 
-    def _is_little_endian(self):
+    def _guess_little_endian(self):
         return True
 
     def _unmangle(self,value):
@@ -414,12 +425,12 @@ class Nifti1DicomExtension(Nifti1Extension):
         ds=read_dataset(bio,self._is_implicit_VR,self._is_little_endian)
         return ds
 
-    def _mangle(self, value):
+    def _mangle(self, dataset):
         bio=BytesIO()
         dio=DicomFileLike(bio)
         dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
-        ds_len=write_dataset(dio,value)
+        ds_len=write_dataset(dio,dataset)
         dio.seek(0)
         return dio.read(ds_len)
 
@@ -428,6 +439,7 @@ try:
     from dicom.filereader import read_dataset
     from dicom.filewriter import write_dataset
     from dicom.filebase import DicomFileLike
+    from dicom.dataset import Dataset
     from dicom.values import converters as dicom_converters
     from io import BytesIO
 except ImportError:

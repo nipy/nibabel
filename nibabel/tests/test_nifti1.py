@@ -1087,6 +1087,19 @@ def test_nifti_dicom_extension():
     hdr = nim.header
     exts_container = hdr.extensions
 
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2,b'')
+    assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+    # use a dataset if provided
+    ds = dicom.dataset.Dataset()
+    ds.add_new((0x10,0x20),'LO','NiPy')
+    dcmext = Nifti1DicomExtension(2,ds)
+    assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+
     # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR
     dcmbytes_explicit = struct.pack('<HH2sH4s',0x10,0x20,
         'LO'.encode('utf-8'),4,'NiPy'.encode('utf-8'))
