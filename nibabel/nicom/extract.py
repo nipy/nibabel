@@ -30,6 +30,11 @@ try:
 except ImportError:
     pass
 
+try:
+    import chardet
+    have_chardet = True
+except ImportError:
+    pass
 
 class PrivateTranslator(object):
     """ Object for translating a private element into a dictionary."""
@@ -117,10 +122,85 @@ default_translators = (csa_image_trans,
 '''Default translators for MetaExtractor.'''
 
 
+def is_ascii(in_str):
+    '''Return true if the given string is valid ASCII.'''
+    if all(' ' <= c <= '~' for c in in_str):
+        return True
+    return False
+
+
+def get_text(byte_str):
+    '''If the given byte string contains text data return it as unicode,
+    otherwise return None.
+
+    If the 'chardet' package is installed, this will be used to detect the
+    text encoding. Otherwise the input will only be decoded if it is ASCII.
+    '''
+    if have_chardet:
+        match = chardet.detect(byte_str)
+        if match['encoding'] is None:
+            return None
+        else:
+            return byte_str.decode(match['encoding'])
+    else:
+        if not is_ascii(byte_str):
+            return None
+        else:
+            return byte_str.decode('ascii')
+
+
 def tag_to_str(tag):
     '''Convert a DICOM tag to a string representation using the group and
     element hex values seprated by an underscore.'''
     return '%#X_%#X' % (tag.group, tag.elem)
+
+
+def make_vr_conv_filter(vr_to_conv_dict):
+    def vr_conv_filter(dcm, elem, value):
+        conv_func = vr_to_conv_dict.get(elem.VR)
+        if conv_func is None:
+            return value
+        elif elem.VM > 1:
+            return [conv_func(x) for x in value]
+        else:
+            return conv_func(value)
+    return vr_conv_filter
+
+
+default_conversions = {'DS' : float,
+                       'IS' : int,
+                       'AT' : str, # TODO: Make this result less ambiguous?
+                       'OW' : get_text,
+                       'OB' : get_text,
+                       'OW or OB' : get_text,
+                       'UN' : get_text,
+                      }
+'''Default dictionary mapping value representations to functions used to
+convert the value'''
+
+
+def make_tag_ignore_filter(tag_list):
+    def tag_ignore_filter(dcm, elem, value):
+        if elem.tag in tag_list:
+            return None
+        return value
+    return tag_ignore_filter
+
+
+def ignore_empty_str(dcm, elem, value):
+    if value == '':
+        return None
+    return value
+
+default_ignore_tags = [dicom.tag.Tag((0x7fe0, 0x10))]
+'''Default set of dicom tags to ignore'''
+
+
+default_filters = [ignore_empty_str,
+                   make_tag_ignore_filter(default_ignore_tags),
+                   make_vr_conv_filter(default_conversions),
+                  ]
+'''Default list of filter functions for the `MetaExtractor` class'''
 
 
 unpack_vr_map = {'SL' : 'i',
@@ -135,53 +215,40 @@ unpack_vr_map = {'SL' : 'i',
 the struct.unpack function.'''
 
 
-default_conversions = {'DS' : float,
-                       'IS' : int,
-                       'AT' : str, # TODO: Make this result less ambiguous?
-                      }
-'''Default dictionary mapping value representations to functions used to
-convert the value'''
-
-
-def make_unicode(in_str):
-    '''Try to convert in_str to unicode'''
-    for encoding in ('utf8', 'latin1'):
-        try:
-            result = unicode(in_str, encoding=encoding)
-        except UnicodeDecodeError:
-            pass
-        else:
-            break
-    else:
-        raise ValueError("Unable to determine string encoding: %s" % in_str)
-    return result
-
-
 class MetaExtractor(object):
     '''Callable object for extracting meta data from a dicom dataset.
 
     Parameters
     ----------
-    translators : sequence
-        A sequence of `Translator` objects each of which can convert a
+    translators : list
+        A list of `Translator` objects each of which can convert a
         private DICOM element into a dictionary.
 
-    conversions : dict
-        Mapping of DICOM value representation (VR) strings to callables
-        that perform some conversion on the value
+    filters : list
+        A list of functions that can filter the values being extracted.
+        The functions take three arguments: the dicom dataset, the dicom
+        element, and the value (which may have already been modified by
+        previous filters). Any filter returning `None` will cause that element
+        to be ignored.
 
     warn_on_trans_except : bool
         Convert any exceptions from translators into warnings.
+
+    Notes
+    -----
+    The `translators` and `filters` arguments will default to the module
+    variables `default_translators` and `default_filters` respectively, if
+    they are `None`. To disable these you must pass an empty list.
     '''
 
-    def __init__(self, translators=None, conversions=None,
+    def __init__(self, translators=None, filters=None,
                  warn_on_trans_except=True):
         self.translators = translators
         if self.translators is None:
             self.translators = default_translators
-        self.conversions = conversions
-        if conversions is None:
-            self.conversions = default_conversions
+        self.filters = filters
+        if filters is None:
+            self.filters = default_filters
         self.warn_on_trans_except = warn_on_trans_except
 
     def _get_elem_key(self, elem):
@@ -200,27 +267,29 @@ class MetaExtractor(object):
 
         return key
 
-    def _get_elem_value(self, elem):
+    def _get_elem_value(self, dcm, elem):
         '''Get the value for any non-translated elements'''
         if elem.VR in unpack_vr_map and isinstance(elem.value, str):
             # TODO: I guess this is a workaround for a pydicom bug, need to
             # check if it is still an issue (and if it is, get it fixed
             # upstream)
             if elem.VM == 1:
-                return struct.unpack(unpack_vr_map[elem.VR], elem.value)[0]
+                result = struct.unpack(unpack_vr_map[elem.VR], elem.value)[0]
             else:
-                return list(struct.unpack(unpack_vr_map[elem.VR], elem.value))
-
-        if elem.VR in self.conversions:
-            if elem.VM == 1:
-                return self.conversions[elem.VR](elem.value)
-            else:
-                return [self.conversions[elem.VR](val) for val in elem.value]
-
-        if elem.VM == 1:
-            return elem.value
+                result = list(struct.unpack(unpack_vr_map[elem.VR], elem.value))
         else:
-            return elem.value[:]
+            if elem.VM == 1:
+                result = elem.value
+            else:
+                result = elem.value[:]
+
+        # Apply filters to the value
+        for filter_func in self.filters:
+            result = filter_func(dcm, elem, result)
+            if result is None:
+                break
+
+        return result
 
     def __call__(self, dcm):
         '''Extract the meta data from a DICOM dataset.
@@ -240,6 +309,9 @@ class MetaExtractor(object):
         Non-private tags use the DICOM keywords as keys. Translators use their
         name.
         '''
+        # Convert text types to unicode
+        dcm.decode()
+
         # Make dict mapping tags to tranlators
         trans_map = {}
         for translator in self.translators:
@@ -260,9 +332,6 @@ class MetaExtractor(object):
 
         result = []
         for elem in dcm:
-            if isinstance(elem.value, str) and elem.value.strip() == '':
-                continue
-
             # Get the name for non-translated elements
             name = self._get_elem_key(elem)
 
@@ -287,13 +356,10 @@ class MetaExtractor(object):
                 for val in elem.value:
                     value.append(self(val))
                 result.append((name, value, elem.tag))
-            # Otherwise just make sure the value is unpacked
             else:
-                result.append((name,
-                               self._get_elem_value(elem),
-                               elem.tag
-                              )
-                             )
+                val = self._get_elem_value(dcm, elem)
+                if val is not None:
+                    result.append((name, val, elem.tag))
 
         # Handle name collisions (can only happen from non-translated private
         # tags)
@@ -305,14 +371,5 @@ class MetaExtractor(object):
             if name_counts[name] > 1:
                 name = name + '_' + tag_to_str(tag)
             result_dict[name] = value
-
-        # Make sure all string values are unicode
-        for name, value in iteritems(result_dict):
-            if isinstance(value, str):
-                result_dict[name] = make_unicode(value)
-            elif (isinstance(value, list) and
-                  len(value) > 0 and
-                  isinstance(value[0], str)):
-                result_dict[name] = [make_unicode(val) for val in value]
 
         return result_dict
