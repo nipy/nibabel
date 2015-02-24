@@ -66,15 +66,34 @@ def test_concat():
     img0_mem = Nifti1Image(data0, affine)
     img1_mem = Nifti1Image(data0 - 10, affine)
 
-    concat_img1 = concat_images([img0_mem, img1_mem])
+    # 4d, same shape, append on axis 3
+    concat_img1 = concat_images([img0_mem, img1_mem], axis=3)
     expected_shape1 = shape_4D.copy()
     expected_shape1[-1] *= 2
     assert_array_equal(concat_img1.shape, expected_shape1)
 
+    # 4d, same shape, append on axis 0
     concat_img2 = concat_images([img0_mem, img1_mem], axis=0)
     expected_shape2 = shape_4D.copy()
     expected_shape2[0] *= 2
     assert_array_equal(concat_img2.shape, expected_shape2)
+
+    # 4d, same shape, append on axis -1
+    concat_img3 = concat_images([img0_mem, img1_mem], axis=-1)
+    expected_shape3 = shape_4D.copy()
+    expected_shape3[-1] *= 2
+    assert_array_equal(concat_img3.shape, expected_shape3)
+
+    # 4d, different shape, append on axis that's different
+    print('%s %s' % (str(concat_img3.shape), str(img1_mem.shape)))
+    concat_img4 = concat_images([concat_img3, img1_mem], axis=-1)
+    expected_shape4 = shape_4D.copy()
+    expected_shape4[-1] *= 3
+    assert_array_equal(concat_img4.shape, expected_shape4)
+
+    # 4d, different shape, append on axis that's not different...
+    # Doesn't work!
+    assert_raises(ValueError, concat_images, [concat_img3, img1_mem], axis=1)
 
 
 def test_closest_canonical():

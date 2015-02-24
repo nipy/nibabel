@@ -117,19 +117,18 @@ def concat_images(images, check_affines=True, axis=None):
     affine = img0.affine
     header = img0.header
     out_shape = (n_imgs, ) + i0shape
-    out_data = np.empty(out_shape)
+    out_data = []
     for i, img in enumerate(images):
         if is_filename:
             img = load(img)
         if check_affines:
             if not np.all(img.affine == affine):
                 raise ValueError('Affines do not match')
-        out_data[i] = img.get_data().copy()
+        out_data.append(img.get_data())
     if axis is not None:
         out_data = np.concatenate(out_data, axis=axis)
-    elif np.all([d.shape[-1] == 1 for d in out_data]):
-        out_data = np.concatenate(out_data, axis=d.ndim-1)
     else:
+        out_data = np.asarray(out_data)
         out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
     klass = img0.__class__
     return klass(out_data, affine, header)
