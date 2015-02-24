@@ -30,70 +30,71 @@ def _as_fname(img):
 
 
 def test_concat():
-    shape = (1,2,5)
-    data0 = np.arange(10).reshape(shape)
-    affine = np.eye(4)
-    img0_mem = Nifti1Image(data0, affine)
-    data1 = data0 - 10
-    img1_mem = Nifti1Image(data1, affine)
-    img2_mem = Nifti1Image(data1, affine+1)
-    img3_mem = Nifti1Image(data1.T, affine)
-    all_data = np.concatenate(
-        [data0[:,:,:,np.newaxis],data1[:,:,:,np.newaxis]],3)
-    # Check filenames and in-memory images work
-    with InTemporaryDirectory():
-        imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
-        img_files = [_as_fname(img) for img in imgs]
-        for img0, img1, img2, img3 in (imgs, img_files):
-            all_imgs = concat_images([img0, img1])
-            assert_array_equal(all_imgs.get_data(), all_data)
-            assert_array_equal(all_imgs.affine, affine)
-            # check that not-matching affines raise error
-            assert_raises(ValueError, concat_images, [img0, img2])
-            assert_raises(ValueError, concat_images, [img0, img3])
-            # except if check_affines is False
-            all_imgs = concat_images([img0, img1])
-            assert_array_equal(all_imgs.get_data(), all_data)
-            assert_array_equal(all_imgs.affine, affine)
-        # Delete images as prophylaxis for windows access errors
-        for img in imgs:
-            del(img)
+    for shape in ((1,2,5), (7,3,1), (13,11,11), (0,1,1)):
+        numel = np.asarray(shape).prod()
+        data0 = np.arange(numel).reshape(shape)
+        affine = np.eye(4)
+        img0_mem = Nifti1Image(data0, affine)
+        data1 = data0 - 10
+        img1_mem = Nifti1Image(data1, affine)
+        img2_mem = Nifti1Image(data1, affine+1)
+        img3_mem = Nifti1Image(data1.T, affine)
+        all_data = np.concatenate(
+            [data0[:,:,:,np.newaxis],data1[:,:,:,np.newaxis]],3)
+        # Check filenames and in-memory images work
+        with InTemporaryDirectory():
+            imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
+            img_files = [_as_fname(img) for img in imgs]
+            for img0, img1, img2, img3 in (imgs, img_files):
+                all_imgs = concat_images([img0, img1])
+                assert_array_equal(all_imgs.get_data(), all_data)
+                assert_array_equal(all_imgs.affine, affine)
+                # check that not-matching affines raise error
+                assert_raises(ValueError, concat_images, [img0, img2])
+                assert_raises(ValueError, concat_images, [img0, img3])
+                # except if check_affines is False
+                all_imgs = concat_images([img0, img1])
+                assert_array_equal(all_imgs.get_data(), all_data)
+                assert_array_equal(all_imgs.affine, affine)
+            # Delete images as prophylaxis for windows access errors
+            for img in imgs:
+                del(img)
 
-    # Test axis parameter and trailing unary dimension
-    shape_4D = np.asarray(shape + (1,))
-    data0 = np.arange(10).reshape(shape_4D)
-    affine = np.eye(4)
-    img0_mem = Nifti1Image(data0, affine)
-    img1_mem = Nifti1Image(data0 - 10, affine)
+        # Test axis parameter and trailing unary dimension
+        shape_4D = np.asarray(shape + (1,))
+        data0 = np.arange(numel).reshape(shape_4D)
+        affine = np.eye(4)
+        img0_mem = Nifti1Image(data0, affine)
+        img1_mem = Nifti1Image(data0 - 10, affine)
 
-    # 4d, same shape, append on axis 3
-    concat_img1 = concat_images([img0_mem, img1_mem], axis=3)
-    expected_shape1 = shape_4D.copy()
-    expected_shape1[-1] *= 2
-    assert_array_equal(concat_img1.shape, expected_shape1)
+        # 4d, same shape, append on axis 3
+        concat_img1 = concat_images([img0_mem, img1_mem], axis=3)
+        expected_shape1 = shape_4D.copy()
+        expected_shape1[-1] *= 2
+        assert_array_equal(concat_img1.shape, expected_shape1)
 
-    # 4d, same shape, append on axis 0
-    concat_img2 = concat_images([img0_mem, img1_mem], axis=0)
-    expected_shape2 = shape_4D.copy()
-    expected_shape2[0] *= 2
-    assert_array_equal(concat_img2.shape, expected_shape2)
+        # 4d, same shape, append on axis 0
+        concat_img2 = concat_images([img0_mem, img1_mem], axis=0)
+        expected_shape2 = shape_4D.copy()
+        expected_shape2[0] *= 2
+        assert_array_equal(concat_img2.shape, expected_shape2)
 
-    # 4d, same shape, append on axis -1
-    concat_img3 = concat_images([img0_mem, img1_mem], axis=-1)
-    expected_shape3 = shape_4D.copy()
-    expected_shape3[-1] *= 2
-    assert_array_equal(concat_img3.shape, expected_shape3)
+        # 4d, same shape, append on axis -1
+        concat_img3 = concat_images([img0_mem, img1_mem], axis=-1)
+        expected_shape3 = shape_4D.copy()
+        expected_shape3[-1] *= 2
+        assert_array_equal(concat_img3.shape, expected_shape3)
 
-    # 4d, different shape, append on axis that's different
-    print('%s %s' % (str(concat_img3.shape), str(img1_mem.shape)))
-    concat_img4 = concat_images([concat_img3, img1_mem], axis=-1)
-    expected_shape4 = shape_4D.copy()
-    expected_shape4[-1] *= 3
-    assert_array_equal(concat_img4.shape, expected_shape4)
+        # 4d, different shape, append on axis that's different
+        print('%s %s' % (str(concat_img3.shape), str(img1_mem.shape)))
+        concat_img4 = concat_images([concat_img3, img1_mem], axis=-1)
+        expected_shape4 = shape_4D.copy()
+        expected_shape4[-1] *= 3
+        assert_array_equal(concat_img4.shape, expected_shape4)
 
-    # 4d, different shape, append on axis that's not different...
-    # Doesn't work!
-    assert_raises(ValueError, concat_images, [concat_img3, img1_mem], axis=1)
+        # 4d, different shape, append on axis that's not different...
+        # Doesn't work!
+        assert_raises(ValueError, concat_images, [concat_img3, img1_mem], axis=1)
 
 
 def test_closest_canonical():
