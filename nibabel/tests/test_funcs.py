@@ -59,6 +59,23 @@ def test_concat():
         for img in imgs:
             del(img)
 
+    # Test axis parameter and trailing unary dimension
+    shape_4D = np.asarray(shape + (1,))
+    data0 = np.arange(10).reshape(shape_4D)
+    affine = np.eye(4)
+    img0_mem = Nifti1Image(data0, affine)
+    img1_mem = Nifti1Image(data0 - 10, affine)
+
+    concat_img1 = concat_images([img0_mem, img1_mem])
+    expected_shape1 = shape_4D.copy()
+    expected_shape1[-1] *= 2
+    assert_array_equal(concat_img1.shape, expected_shape1)
+
+    concat_img2 = concat_images([img0_mem, img1_mem], axis=0)
+    expected_shape2 = shape_4D.copy()
+    expected_shape2[0] *= 2
+    assert_array_equal(concat_img2.shape, expected_shape2)
+
 
 def test_closest_canonical():
     arr = np.arange(24).reshape((2,3,4,1))
