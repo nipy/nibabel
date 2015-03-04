@@ -8,7 +8,7 @@ from nibabel.testing import assert_arrays_equal
 from nose.tools import assert_equal, assert_raises
 
 import nibabel as nib
-from nibabel.streamlines.base_format import Streamlines
+from nibabel.streamlines.base_format import Streamlines, LazyStreamlines
 from nibabel.streamlines.base_format import DataError, HeaderError
 from nibabel.streamlines.header import Field
 from nibabel.streamlines.trk import TrkFile
@@ -36,9 +36,9 @@ class TestTRK(unittest.TestCase):
                                        np.array([3.11, 3.22], dtype="f4")]
 
     def test_load_empty_file(self):
-        empty_trk = nib.streamlines.load(self.empty_trk_filename, lazy_load=False)
+        empty_trk = nib.streamlines.load(self.empty_trk_filename, ref=None, lazy_load=False)
 
-        hdr = empty_trk.get_header()
+        hdr = empty_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], 0)
         assert_equal(len(empty_trk), 0)
 
@@ -56,9 +56,9 @@ class TestTRK(unittest.TestCase):
             pass
 
     def test_load_simple_file(self):
-        simple_trk = nib.streamlines.load(self.simple_trk_filename, lazy_load=False)
+        simple_trk = nib.streamlines.load(self.simple_trk_filename, ref=None, lazy_load=False)
 
-        hdr = simple_trk.get_header()
+        hdr = simple_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(simple_trk), len(self.points))
 
@@ -76,9 +76,9 @@ class TestTRK(unittest.TestCase):
             pass
 
         # Test lazy_load
-        simple_trk = nib.streamlines.load(self.simple_trk_filename, lazy_load=True)
+        simple_trk = nib.streamlines.load(self.simple_trk_filename, ref=None, lazy_load=True)
 
-        hdr = simple_trk.get_header()
+        hdr = simple_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(simple_trk), len(self.points))
 
@@ -96,9 +96,9 @@ class TestTRK(unittest.TestCase):
             pass
 
     def test_load_complex_file(self):
-        complex_trk = nib.streamlines.load(self.complex_trk_filename, lazy_load=False)
+        complex_trk = nib.streamlines.load(self.complex_trk_filename, ref=None, lazy_load=False)
 
-        hdr = complex_trk.get_header()
+        hdr = complex_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(complex_trk), len(self.points))
 
@@ -115,9 +115,9 @@ class TestTRK(unittest.TestCase):
         for point, scalar, prop in complex_trk:
             pass
 
-        complex_trk = nib.streamlines.load(self.complex_trk_filename, lazy_load=True)
+        complex_trk = nib.streamlines.load(self.complex_trk_filename, ref=None, lazy_load=True)
 
-        hdr = complex_trk.get_header()
+        hdr = complex_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(complex_trk), len(self.points))
 
@@ -142,9 +142,9 @@ class TestTRK(unittest.TestCase):
 
         simple_trk_file.seek(0, os.SEEK_SET)
 
-        simple_trk = nib.streamlines.load(simple_trk_file, lazy_load=False)
+        simple_trk = nib.streamlines.load(simple_trk_file, ref=None, lazy_load=False)
 
-        hdr = simple_trk.get_header()
+        hdr = simple_trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(simple_trk), len(self.points))
 
@@ -170,9 +170,9 @@ class TestTRK(unittest.TestCase):
 
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, lazy_load=False)
+        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
 
-        hdr = trk.get_header()
+        hdr = trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(trk), len(self.points))
 
@@ -197,9 +197,9 @@ class TestTRK(unittest.TestCase):
 
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, lazy_load=False)
+        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
 
-        hdr = trk.get_header()
+        hdr = trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(trk), len(self.points))
 
@@ -224,9 +224,9 @@ class TestTRK(unittest.TestCase):
 
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, lazy_load=False)
+        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
 
-        hdr = trk.get_header()
+        hdr = trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(trk), len(self.points))
 
@@ -293,19 +293,17 @@ class TestTRK(unittest.TestCase):
         gen_scalars = (scalar for scalar in self.colors)
         gen_properties = (prop for prop in self.mean_curvature_torsion)
 
-        assert_raises(HeaderError, Streamlines, points=gen_points, scalars=gen_scalars, properties=gen_properties)
-
-        hdr = {Field.NB_STREAMLINES: len(self.points)}
-        streamlines = Streamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties, hdr=hdr)
+        streamlines = LazyStreamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties)
+        #streamlines.header[Field.NB_STREAMLINES] = len(self.points)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
 
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, lazy_load=False)
+        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
 
-        hdr = trk.get_header()
+        hdr = trk.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(trk), len(self.points))
 

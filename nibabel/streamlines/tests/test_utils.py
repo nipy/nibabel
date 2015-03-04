@@ -12,7 +12,7 @@ from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
 import nibabel.streamlines.utils as streamline_utils
 
-from nibabel.streamlines.base_format import Streamlines
+from nibabel.streamlines.base_format import Streamlines, LazyStreamlines
 from nibabel.streamlines.base_format import HeaderError
 from nibabel.streamlines.header import Field
 
@@ -116,9 +116,9 @@ class TestLoadSave(unittest.TestCase):
 
     def test_load_empty_file(self):
         for empty_filename in self.empty_filenames:
-            empty_streamlines = streamline_utils.load(empty_filename, lazy_load=False)
+            empty_streamlines = streamline_utils.load(empty_filename, None, lazy_load=False)
 
-            hdr = empty_streamlines.get_header()
+            hdr = empty_streamlines.header
             assert_equal(hdr[Field.NB_STREAMLINES], 0)
             assert_equal(len(empty_streamlines), 0)
 
@@ -139,9 +139,10 @@ class TestLoadSave(unittest.TestCase):
 
     def test_load_simple_file(self):
         for simple_filename in self.simple_filenames:
-            simple_streamlines = streamline_utils.load(simple_filename, lazy_load=False)
+            simple_streamlines = streamline_utils.load(simple_filename, None, lazy_load=False)
+            assert_true(type(simple_streamlines), Streamlines)
 
-            hdr = simple_streamlines.get_header()
+            hdr = simple_streamlines.header
             assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
             assert_equal(len(simple_streamlines), len(self.points))
 
@@ -156,11 +157,12 @@ class TestLoadSave(unittest.TestCase):
                 pass
 
             # Test lazy_load
-            simple_streamlines = streamline_utils.load(simple_filename, lazy_load=True)
+            simple_streamlines = streamline_utils.load(simple_filename, None, lazy_load=True)
+            assert_true(type(simple_streamlines), LazyStreamlines)
 
-            hdr = simple_streamlines.get_header()
+            hdr = simple_streamlines.header
+            assert_true(Field.NB_STREAMLINES in hdr)
             assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-            assert_equal(len(simple_streamlines), len(self.points))
 
             points = simple_streamlines.points
             assert_arrays_equal(points, self.points)
@@ -171,9 +173,9 @@ class TestLoadSave(unittest.TestCase):
 
     def test_load_complex_file(self):
         for complex_filename in self.complex_filenames:
-            complex_streamlines = streamline_utils.load(complex_filename, lazy_load=False)
+            complex_streamlines = streamline_utils.load(complex_filename, None, lazy_load=False)
 
-        hdr = complex_streamlines.get_header()
+        hdr = complex_streamlines.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(complex_streamlines), len(self.points))
 
@@ -184,9 +186,9 @@ class TestLoadSave(unittest.TestCase):
         for point, scalar, prop in complex_streamlines:
             pass
 
-        complex_streamlines = streamline_utils.load(complex_filename, lazy_load=True)
+        complex_streamlines = streamline_utils.load(complex_filename, None, lazy_load=True)
 
-        hdr = complex_streamlines.get_header()
+        hdr = complex_streamlines.header
         assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
         assert_equal(len(complex_streamlines), len(self.points))
 
@@ -203,9 +205,9 @@ class TestLoadSave(unittest.TestCase):
                 streamlines = Streamlines(self.points)
 
                 streamline_utils.save(streamlines, f.name)
-                simple_streamlines = streamline_utils.load(f, lazy_load=False)
+                simple_streamlines = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = simple_streamlines.get_header()
+                hdr = simple_streamlines.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(simple_streamlines), len(self.points))
 
@@ -219,9 +221,9 @@ class TestLoadSave(unittest.TestCase):
                 streamlines = Streamlines(self.points, scalars=self.colors)
 
                 streamline_utils.save(streamlines, f.name)
-                complex_streamlines = streamline_utils.load(f, lazy_load=False)
+                complex_streamlines = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = complex_streamlines.get_header()
+                hdr = complex_streamlines.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(complex_streamlines), len(self.points))
 
@@ -237,9 +239,9 @@ class TestLoadSave(unittest.TestCase):
                 streamlines = Streamlines(self.points, properties=self.mean_curvature_torsion)
 
                 streamline_utils.save(streamlines, f.name)
-                complex_streamlines = streamline_utils.load(f, lazy_load=False)
+                complex_streamlines = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = complex_streamlines.get_header()
+                hdr = complex_streamlines.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(complex_streamlines), len(self.points))
 
@@ -255,9 +257,9 @@ class TestLoadSave(unittest.TestCase):
                 streamlines = Streamlines(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
 
                 streamline_utils.save(streamlines, f.name)
-                complex_streamlines = streamline_utils.load(f, lazy_load=False)
+                complex_streamlines = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = complex_streamlines.get_header()
+                hdr = complex_streamlines.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(complex_streamlines), len(self.points))
 
@@ -276,15 +278,13 @@ class TestLoadSave(unittest.TestCase):
                 gen_scalars = (scalar for scalar in self.colors)
                 gen_properties = (prop for prop in self.mean_curvature_torsion)
 
-                assert_raises(HeaderError, Streamlines, points=gen_points, scalars=gen_scalars, properties=gen_properties)
-
-                hdr = {Field.NB_STREAMLINES: len(self.points)}
-                streamlines = Streamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties, hdr=hdr)
+                streamlines = LazyStreamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties)
+                #streamlines.hdr[Field.NB_STREAMLINES] = len(self.points)
 
                 streamline_utils.save(streamlines, f.name)
-                streamlines_loaded = streamline_utils.load(f, lazy_load=False)
+                streamlines_loaded = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = streamlines_loaded.get_header()
+                hdr = streamlines_loaded.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(streamlines_loaded), len(self.points))
 
@@ -303,15 +303,13 @@ class TestLoadSave(unittest.TestCase):
                 gen_scalars = lambda: (scalar for scalar in self.colors)
                 gen_properties = lambda: (prop for prop in self.mean_curvature_torsion)
 
-                assert_raises(HeaderError, Streamlines, points=gen_points, scalars=gen_scalars, properties=gen_properties)
-
-                hdr = {Field.NB_STREAMLINES: len(self.points)}
-                streamlines = Streamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties, hdr=hdr)
+                streamlines = LazyStreamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties)
+                #streamlines.hdr[Field.NB_STREAMLINES] = len(self.points)
 
                 streamline_utils.save(streamlines, f.name)
-                streamlines_loaded = streamline_utils.load(f, lazy_load=False)
+                streamlines_loaded = streamline_utils.load(f, None, lazy_load=False)
 
-                hdr = streamlines_loaded.get_header()
+                hdr = streamlines_loaded.header
                 assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
                 assert_equal(len(streamlines_loaded), len(self.points))
 
