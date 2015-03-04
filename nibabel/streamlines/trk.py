@@ -13,7 +13,7 @@ import numpy as np
 from nibabel.openers import Opener
 from nibabel.volumeutils import (native_code, swapped_code)
 
-from nibabel.streamlines.base_format import Streamlines, StreamlinesFile
+from nibabel.streamlines.base_format import Streamlines, LazyStreamlines, StreamlinesFile
 from nibabel.streamlines.header import Field
 from nibabel.streamlines.base_format import DataError, HeaderError
 
@@ -144,7 +144,7 @@ class TrkFile(StreamlinesFile):
                 pass  # Nothing more to do here
             else:
                 warnings.warn("NiBabel only supports versions 1 and 2 (not v.{0}).".format(hdr_rec['version']))
-                os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+                f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
                 return False
 
             # Convert the first record of `hdr_rec` into a dictionnary
@@ -157,7 +157,7 @@ class TrkFile(StreamlinesFile):
                 hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0].newbyteorder()))  # Swap byte order
                 if hdr['hdr_size'] != cls.HEADER_SIZE:
                     warnings.warn("Invalid hdr_size: {0} instead of {1}".format(hdr['hdr_size'], cls.HEADER_SIZE))
-                    os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+                    f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
                     return False
 
             # By default, the voxel order is LPS.
@@ -166,7 +166,6 @@ class TrkFile(StreamlinesFile):
                 is_consistent = False
                 warnings.warn("Voxel order is not specified, will assume 'LPS' since it is Trackvis software's default.")
 
-            # Add more header fields implied by trk format.
             i4_dtype = np.dtype(hdr[Field.ENDIAN] + "i4")
             f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
 
@@ -198,12 +197,12 @@ class TrkFile(StreamlinesFile):
                               'the actual number of streamlines contained in this file ({1}). '
                                ).format(hdr[Field.NB_STREAMLINES], nb_streamlines))
 
-            os.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+            f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
 
         return is_consistent
 
     @classmethod
-    def load(cls, fileobj, lazy_load=True):
+    def load(cls, fileobj, hdr={}, lazy_load=False):
         ''' Loads streamlines from a file-like object.
 
         Parameters
@@ -213,9 +212,11 @@ class TrkFile(StreamlinesFile):
             pointing to TRK file (and ready to read from the beginning
             of the TRK header)
 
-        lazy_load : boolean
+        hdr : dict (optional)
+
+        lazy_load : boolean (optional)
             Load streamlines in a lazy manner i.e. they will not be kept
-            in memory. For postprocessing speed, turn off this option.
+            in memory.
 
         Returns
         -------
@@ -223,11 +224,7 @@ class TrkFile(StreamlinesFile):
             Returns an object containing streamlines' data and header
             information. See 'nibabel.Streamlines'.
         '''
-        hdr = {}
-
         with Opener(fileobj) as f:
-            hdr['pos_header'] = f.tell()
-
             # Read header
             hdr_str = f.read(header_2_dtype.itemsize)
             hdr_rec = np.fromstring(string=hdr_str, dtype=header_2_dtype)
@@ -235,12 +232,12 @@ class TrkFile(StreamlinesFile):
             if hdr_rec['version'] == 1:
                 hdr_rec = np.fromstring(string=hdr_str, dtype=header_1_dtype)
             elif hdr_rec['version'] == 2:
-                pass  # Nothing more to do here
+                pass  # Nothing more to do
             else:
                 raise HeaderError('NiBabel only supports versions 1 and 2.')
 
             # Convert the first record of `hdr_rec` into a dictionnary
-            hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0]))
+            hdr.update(dict(zip(hdr_rec.dtype.names, hdr_rec[0])))
 
             # Check endianness
             hdr[Field.ENDIAN] = native_code
@@ -255,9 +252,12 @@ class TrkFile(StreamlinesFile):
             if hdr[Field.VOXEL_ORDER] == "":
                 hdr[Field.VOXEL_ORDER] = "LPS"
 
-            # Add more header fields implied by trk format.
-            hdr[Field.WORLD_ORDER] = "RAS"
+            # Keep the file position where the data begin.
             hdr['pos_data'] = f.tell()
+
+            # If 'count' field is 0, i.e. not provided, we have to loop until the EOF.
+            if hdr[Field.NB_STREAMLINES] == 0:
+                del hdr[Field.NB_STREAMLINES]
 
         points      = lambda: (x[0] for x in TrkFile._read_data(hdr, fileobj))
         scalars     = lambda: (x[1] for x in TrkFile._read_data(hdr, fileobj))
@@ -265,11 +265,17 @@ class TrkFile(StreamlinesFile):
         data        = lambda: TrkFile._read_data(hdr, fileobj)
 
         if lazy_load:
-            streamlines = Streamlines(points, scalars, properties, hdr=hdr)
-            streamlines.data = data
-            return streamlines
+            count = TrkFile._count(hdr, fileobj)
+            if Field.NB_STREAMLINES in hdr:
+                count = hdr[Field.NB_STREAMLINES]
 
-        return Streamlines(*zip(*data()), hdr=hdr)
+            streamlines = LazyStreamlines(points, scalars, properties, data=data, count=count)
+        else:
+            streamlines = Streamlines(*zip(*data()))
+
+        # Set available header's information
+        streamlines.header.update(hdr)
+        return streamlines
 
     @staticmethod
     def _read_data(hdr, fileobj):
@@ -278,6 +284,8 @@ class TrkFile(StreamlinesFile):
         f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
 
         with Opener(fileobj) as f:
+            start_position = f.tell()
+
             nb_pts_and_scalars = 3 + int(hdr[Field.NB_SCALARS_PER_POINT])
             pts_and_scalars_size = nb_pts_and_scalars * f4_dtype.itemsize
 
@@ -298,20 +306,79 @@ class TrkFile(StreamlinesFile):
                                                         dtype=f4_dtype,
                                                         count=hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
 
+            # Set the file position at the beginning of the data.
             f.seek(hdr['pos_data'], os.SEEK_SET)
 
-            for i in xrange(hdr[Field.NB_STREAMLINES]):
+            #for i in xrange(hdr[Field.NB_STREAMLINES]):
+            nb_streamlines = hdr.get(Field.NB_STREAMLINES, np.inf)
+            i = 0
+            while i < nb_streamlines:
+                nb_pts_str = f.read(i4_dtype.itemsize)
+
+                # Check if we reached EOF
+                if len(nb_pts_str) == 0:
+                    break
+
                 # Read number of points of the next streamline.
-                nb_pts = struct.unpack(i4_dtype.str[:-1], f.read(i4_dtype.itemsize))[0]
+                nb_pts = struct.unpack(i4_dtype.str[:-1], nb_pts_str)[0]
 
                 # Read streamline's data
                 pts, scalars = read_pts_and_scalars(nb_pts)
                 properties = read_properties()
+
+                # TRK's streamlines are in 'voxelmm' space, we send them to voxel space.
+                pts = pts / hdr[Field.VOXEL_SIZES]
+
                 yield pts, scalars, properties
+                i += 1
+
+            # In case the 'count' field was not provided.
+            hdr[Field.NB_STREAMLINES] = i
+
+            # Set the file position where it was.
+            f.seek(start_position, os.SEEK_CUR)
+
+    @staticmethod
+    def _count(hdr, fileobj):
+        ''' Count streamlines from a file-like object using a TRK's header. '''
+        nb_streamlines = 0
+
+        with Opener(fileobj) as f:
+            start_position = f.tell()
+
+            i4_dtype = np.dtype(hdr[Field.ENDIAN] + "i4")
+            f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
+
+            pts_and_scalars_size = (3 + hdr[Field.NB_SCALARS_PER_POINT]) * f4_dtype.itemsize
+            properties_size = hdr[Field.NB_PROPERTIES_PER_STREAMLINE] * f4_dtype.itemsize
+
+            # Set the file position at the beginning of the data.
+            f.seek(hdr['pos_data'], os.SEEK_SET)
+
+            # Count the actual number of streamlines.
+            while True:
+                # Read number of points of the streamline
+                buf = f.read(i4_dtype.itemsize)
+
+                if buf == '':
+                    break  # EOF
+
+                nb_pts = struct.unpack(i4_dtype.str[:-1], buf)[0]
+                bytes_to_skip = nb_pts * pts_and_scalars_size
+                bytes_to_skip += properties_size
+
+                # Seek to the next streamline in the file.
+                f.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
+
+                nb_streamlines += 1
+
+            f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
+
+        return nb_streamlines
 
     @classmethod
-    def get_empty_header(cls):
-        ''' Return an empty TRK's header. '''
+    def create_empty_header(cls):
+        ''' Return an empty TRK compliant header. '''
         hdr = np.zeros(1, dtype=header_2_dtype)
 
         #Default values
@@ -338,16 +405,22 @@ class TrkFile(StreamlinesFile):
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header data)
+
+        hdr : dict (optional)
+
+        Notes
+        -----
+        Streamlines are assumed to be in voxel space.
         '''
-        hdr = cls.get_empty_header()
+        hdr = cls.create_empty_header()
 
         #Override hdr's fields by those contain in `streamlines`'s header
-        for k, v in streamlines.get_header().items():
+        for k, v in streamlines.header.items():
             if k in header_2_dtype.fields.keys():
                 hdr[k] = v
 
         # Check which endianess to use to write data.
-        endianess = streamlines.get_header().get(Field.ENDIAN, native_code)
+        endianess = streamlines.header.get(Field.ENDIAN, native_code)
 
         if endianess == swapped_code:
             hdr = hdr.newbyteorder()
@@ -364,6 +437,7 @@ class TrkFile(StreamlinesFile):
         # Write header + data of streamlines
         with Opener(fileobj, mode="wb") as f:
             pos = f.tell()
+            # Write header
             f.write(hdr[0].tostring())
 
             for points, scalars, properties in streamlines:
@@ -373,6 +447,9 @@ class TrkFile(StreamlinesFile):
                 points = np.array(points, dtype=f4_dtype)
                 scalars = np.array(scalars, dtype=f4_dtype).reshape((len(points), -1))
                 properties = np.array(properties, dtype=f4_dtype)
+
+                # TRK's streamlines need to be in 'voxelmm' space
+                points = points * hdr[Field.VOXEL_SIZES]
 
                 data = struct.pack(i4_dtype.str[:-1], len(points))
                 data += np.concatenate((points, scalars), axis=1).tostring()
@@ -419,7 +496,7 @@ class TrkFile(StreamlinesFile):
         info : string
             Header's information relevant to the TRK format.
         '''
-        hdr = streamlines.get_header()
+        hdr = streamlines.header
 
         info = ""
         info += "MAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
@@ -432,7 +509,7 @@ class TrkFile(StreamlinesFile):
         info += "nb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
         info += "property_name:\n {0}".format("\n".join(hdr['property_name']))
         info += "vox_to_world: {0}".format(hdr[Field.VOXEL_TO_WORLD])
-        info += "world_order: {0}".format(hdr[Field.WORLD_ORDER])
+        #info += "world_order: {0}".format(hdr[Field.WORLD_ORDER])
         info += "voxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
         info += "image_orientation_patient: {0}".format(hdr['image_orientation_patient'])
         info += "pad1: {0}".format(hdr['pad1'])

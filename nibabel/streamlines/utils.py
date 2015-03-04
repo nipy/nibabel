@@ -2,6 +2,9 @@ import os
 
 from ..externals.six import string_types
 
+from nibabel.streamlines import header
+from nibabel.streamlines.base_format import LazyStreamlines
+
 from nibabel.streamlines.trk import TrkFile
 #from nibabel.streamlines.tck import TckFile
 #from nibabel.streamlines.vtk import VtkFile
@@ -61,8 +64,8 @@ def detect_format(fileobj):
     return None
 
 
-def load(fileobj, lazy_load=True, anat=None):
-    ''' Loads streamlines from a file-like object in their native space.
+def load(fileobj, ref, lazy_load=False):
+    ''' Loads streamlines from a file-like object in voxel space.
 
     Parameters
     ----------
@@ -71,26 +74,32 @@ def load(fileobj, lazy_load=True, anat=None):
        pointing to a streamlines file (and ready to read from the beginning
        of the streamlines file's header)
 
+    ref : filename | `Nifti1Image` object | 2D array (3,3) | 2D array (4,4) | None
+        Reference space where streamlines have been created.
+
+    lazy_load : boolean (optional)
+        Load streamlines in a lazy manner i.e. they will not be kept
+        in memory.
+
     Returns
     -------
     obj : instance of ``Streamlines``
        Returns an instance of a ``Streamlines`` class containing data and metadata
        of streamlines loaded from ``fileobj``.
     '''
-
-    # TODO: Ask everyone what should be the behavior if the anat is provided.
-    # if anat is None:
-    #     warnings.warn("WARNING: Streamlines will be loaded in their native space (i.e. as they were saved).")
-
     streamlines_file = detect_format(fileobj)
 
     if streamlines_file is None:
         raise TypeError("Unknown format for 'fileobj': {0}!".format(fileobj))
 
-    return streamlines_file.load(fileobj, lazy_load=lazy_load)
+    hdr = {}
+    if ref is not None:
+        hdr = header.create_header_from_reference(ref)
+
+    return streamlines_file.load(fileobj, hdr=hdr, lazy_load=lazy_load)
 
 
-def save(streamlines, filename):
+def save(streamlines, filename, ref=None):
     ''' Saves a ``Streamlines`` object to a file
 
     Parameters
@@ -100,12 +109,20 @@ def save(streamlines, filename):
 
     filename : string
        Name of the file where the streamlines will be saved. The format will be guessed from ``filename``.
-    '''
 
+    ref : filename | `Nifti1Image` object | 2D array (3,3) | 2D array (4,4) | None (optional)
+        Reference space the streamlines belong to. Default: get ref from `streamlines.header`.
+    '''
     streamlines_file = detect_format(filename)
 
     if streamlines_file is None:
         raise TypeError("Unknown format for 'filename': {0}!".format(filename))
+
+    if ref is not None:
+        # Create a `LazyStreamlines` from `streamlines` but using the new reference image.
+        streamlines = LazyStreamlines(data=iter(streamlines))
+        streamlines.header.update(streamlines.header)
+        streamlines.header.update(header.create_header_from_reference(ref))
 
     streamlines_file.save(streamlines, filename)
 

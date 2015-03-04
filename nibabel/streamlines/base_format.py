@@ -1,3 +1,5 @@
+import numpy as np
+from warnings import warn
 
 from nibabel.streamlines.header import Field
 
@@ -21,6 +23,98 @@ class Streamlines(object):
 
     Parameters
     ----------
+    points : list of ndarray of shape (N, 3)
+        Sequence of T streamlines. One streamline is an ndarray of shape (N, 3)
+        where N is the number of points in a streamline.
+
+    scalars : list of ndarray of shape (N, M)
+        Sequence of T ndarrays of shape (N, M) where T is the number of
+        streamlines defined by ``points``, N is the number of points
+        for a particular streamline and M is the number of scalars
+        associated to each point (excluding the three coordinates).
+
+    properties : list of ndarray of shape (P,)
+        Sequence of T ndarrays of shape (P,) where T is the number of
+        streamlines defined by ``points``, P is the number of properties
+        associated to each streamline.
+
+    hdr : dict
+        Header containing meta information about the streamlines. For a list
+        of common header's fields to use as keys see `nibabel.streamlines.Field`.
+    '''
+    def __init__(self, points=[], scalars=[], properties=[]):  #, hdr={}):
+        # Create basic header from given informations.
+        self._header = {}
+        self._header[Field.VOXEL_TO_WORLD] = np.eye(4)
+
+        self.points      = points
+        self.scalars     = scalars
+        self.properties  = properties
+
+
+    @property
+    def header(self):
+        return self._header
+
+    @property
+    def points(self):
+        return self._points
+
+    @points.setter
+    def points(self, value):
+        self._points = value
+        self._header[Field.NB_STREAMLINES] = len(self.points)
+
+    @property
+    def scalars(self):
+        return self._scalars
+
+    @scalars.setter
+    def scalars(self, value):
+        self._scalars = value
+        self._header[Field.NB_SCALARS_PER_POINT] = 0
+        if len(self.scalars) > 0:
+            self._header[Field.NB_SCALARS_PER_POINT] = len(self.scalars[0])
+
+    @property
+    def properties(self):
+        return self._properties
+
+    @properties.setter
+    def properties(self, value):
+        self._properties = value
+        self._header[Field.NB_PROPERTIES_PER_STREAMLINE] = 0
+        if len(self.properties) > 0:
+            self._header[Field.NB_PROPERTIES_PER_STREAMLINE] = len(self.properties[0])
+
+    def __iter__(self):
+        return zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+
+    def __getitem__(self, idx):
+        pts = self.points[idx]
+        scalars = []
+        if len(self.scalars) > 0:
+            scalars = self.scalars[idx]
+
+        properties = []
+        if len(self.properties) > 0:
+            properties = self.properties[idx]
+
+        return pts, scalars, properties
+
+    def __len__(self):
+        return len(self.points)
+
+
+class LazyStreamlines(Streamlines):
+    ''' Class containing information about streamlines.
+
+    Streamlines objects have three main properties: ``points``, ``scalars``
+    and ``properties``. Streamlines objects can be iterate over producing
+    tuple of ``points``, ``scalars`` and ``properties`` for each streamline.
+
+    Parameters
+    ----------
     points : sequence of ndarray of shape (N, 3)
         Sequence of T streamlines. One streamline is an ndarray of shape (N, 3)
         where N is the number of points in a streamline.
@@ -34,32 +128,21 @@ class Streamlines(object):
     properties : sequence of ndarray of shape (P,)
         Sequence of T ndarrays of shape (P,) where T is the number of
         streamlines defined by ``points``, P is the number of properties
-        associated to each streamlines.
+        associated to each streamline.
 
     hdr : dict
         Header containing meta information about the streamlines. For a list
         of common header's fields to use as keys see `nibabel.streamlines.Field`.
     '''
-    def __init__(self, points=[], scalars=[], properties=[], hdr={}):
-        self.hdr = hdr
+    def __init__(self, points=[], scalars=[], properties=[], data=None, count=None, getitem=None):  #, hdr={}):
+        super(LazyStreamlines, self).__init__(points, scalars, properties)
 
-        self.points      = points
-        self.scalars     = scalars
-        self.properties  = properties
-        self.data        = lambda: zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+        self._data = lambda: zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+        if data is not None:
+            self._data = data if callable(data) else lambda: data
 
-        try:
-            self.length = len(points)
-        except:
-            if Field.NB_STREAMLINES in hdr:
-                self.length = hdr[Field.NB_STREAMLINES]
-            else:
-                raise HeaderError(("Neither parameter 'points' nor 'hdr' contain information about"
-                                  " number of streamlines. Use key '{0}' to set the number of "
-                                  "streamlines in 'hdr'.").format(Field.NB_STREAMLINES))
-
-    def get_header(self):
-        return self.hdr
+        self._count = count
+        self._getitem = getitem
 
     @property
     def points(self):
@@ -67,7 +150,7 @@ class Streamlines(object):
 
     @points.setter
     def points(self, value):
-        self._points = value if callable(value) else (lambda: value)
+        self._points = value if callable(value) else lambda: value
 
     @property
     def scalars(self):
@@ -85,11 +168,44 @@ class Streamlines(object):
     def properties(self, value):
         self._properties = value if callable(value) else lambda: value
 
+    def __getitem__(self, idx):
+        if self._getitem is None:
+            raise AttributeError('`LazyStreamlines` does not support indexing.')
+
+        return self._getitem(idx)
+
     def __iter__(self):
-        return self.data()
+        return self._data()
 
     def __len__(self):
-        return self.length
+        # If length is unknown, we'll try to get it as rapidely and accurately as possible.
+        if self._count is None:
+            # Length might be contained in the header.
+            if Field.NB_STREAMLINES in self.header:
+                return self.header[Field.NB_STREAMLINES]
+
+        if callable(self._count):
+            # Length might be obtained by re-parsing the file (if streamlines come from one).
+            self._count = self._count()
+
+        if self._count is None:
+            try:
+                # Will work if `points` is a finite sequence (e.g. list, ndarray)
+                self._count = len(self.points)
+            except:
+                pass
+
+        if self._count is None:
+            # As a last resort, count them by iterating through the list of points (while keeping a copy).
+            warn("Number of streamlines will be determined manually by looping"
+                 " through the streamlines. Note this will consume any"
+                 " generator used to create this `Streamlines`object. If you"
+                 " know the actual number of streamlines, you might want to"
+                 " set `Field.NB_STREAMLINES` of `self.header` beforehand.")
+
+            return sum(1 for _ in self)
+
+        return self._count
 
 
 class StreamlinesFile:
