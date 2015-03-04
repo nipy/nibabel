@@ -134,6 +134,17 @@ class TestTRK(unittest.TestCase):
         for point, scalar, prop in complex_trk:
             pass
 
+    def test_load_file_with_no_count(self):
+        trk_file = open(self.simple_trk_filename, 'rb').read()
+        # Simulate a TRK file where count was not provided.
+        count = np.array(0, dtype="int32").tostring()
+        trk_file = trk_file[:1000-12] + count + trk_file[1000-8:]
+        streamlines = nib.streamlines.load(BytesIO(trk_file), ref=None, lazy_load=False)
+        assert_equal(len(streamlines), len(self.points))
+
+        streamlines = nib.streamlines.load(BytesIO(trk_file), ref=None, lazy_load=True)
+        assert_equal(len(streamlines), len(self.points))
+
     def test_write_simple_file(self):
         streamlines = Streamlines(self.points)
 
