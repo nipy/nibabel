@@ -178,7 +178,7 @@ class TrkFile(StreamlinesFile):
                 # Read number of points of the streamline
                 buf = f.read(i4_dtype.itemsize)
 
-                if buf == '':
+                if len(buf) == 0:
                     break  # EOF
 
                 nb_pts = struct.unpack(i4_dtype.str[:-1], buf)[0]
@@ -187,7 +187,7 @@ class TrkFile(StreamlinesFile):
                 bytes_to_skip += properties_size
 
                 # Seek to the next streamline in the file.
-                f.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
+                f.seek(bytes_to_skip, os.SEEK_CUR)
 
                 nb_streamlines += 1
 
@@ -265,7 +265,7 @@ class TrkFile(StreamlinesFile):
         data        = lambda: TrkFile._read_data(hdr, fileobj)
 
         if lazy_load:
-            count = TrkFile._count(hdr, fileobj)
+            count = lambda: TrkFile._count(hdr, fileobj)
             if Field.NB_STREAMLINES in hdr:
                 count = hdr[Field.NB_STREAMLINES]
 
@@ -360,7 +360,7 @@ class TrkFile(StreamlinesFile):
                 # Read number of points of the streamline
                 buf = f.read(i4_dtype.itemsize)
 
-                if buf == '':
+                if len(buf) == 0:
                     break  # EOF
 
                 nb_pts = struct.unpack(i4_dtype.str[:-1], buf)[0]
@@ -368,7 +368,7 @@ class TrkFile(StreamlinesFile):
                 bytes_to_skip += properties_size
 
                 # Seek to the next streamline in the file.
-                f.seek(bytes_to_skip * f4_dtype.itemsize, os.SEEK_CUR)
+                f.seek(bytes_to_skip, os.SEEK_CUR)
 
                 nb_streamlines += 1
 
