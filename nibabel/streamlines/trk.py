@@ -113,95 +113,6 @@ class TrkFile(StreamlinesFile):
         return False
 
     @classmethod
-    def sanity_check(cls, fileobj):
-        ''' Check if data is consistent with information contained in the header.
-        [Might be useful]
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TRK file (and ready to read from the beginning
-            of the TRK header data)
-
-        Returns
-        -------
-        is_consistent : boolean
-            Returns True if data is consistent with header, False otherwise.
-        '''
-        is_consistent = True
-
-        with Opener(fileobj) as f:
-            start_position = f.tell()
-
-            # Read header
-            hdr_str = f.read(header_2_dtype.itemsize)
-            hdr_rec = np.fromstring(string=hdr_str, dtype=header_2_dtype)
-
-            if hdr_rec['version'] == 1:
-                hdr_rec = np.fromstring(string=hdr_str, dtype=header_1_dtype)
-            elif hdr_rec['version'] == 2:
-                pass  # Nothing more to do here
-            else:
-                warnings.warn("NiBabel only supports versions 1 and 2 (not v.{0}).".format(hdr_rec['version']))
-                f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
-                return False
-
-            # Convert the first record of `hdr_rec` into a dictionnary
-            hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0]))
-
-            # Check endianness
-            hdr[Field.ENDIAN] = native_code
-            if hdr['hdr_size'] != cls.HEADER_SIZE:
-                hdr[Field.ENDIAN] = swapped_code
-                hdr = dict(zip(hdr_rec.dtype.names, hdr_rec[0].newbyteorder()))  # Swap byte order
-                if hdr['hdr_size'] != cls.HEADER_SIZE:
-                    warnings.warn("Invalid hdr_size: {0} instead of {1}".format(hdr['hdr_size'], cls.HEADER_SIZE))
-                    f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
-                    return False
-
-            # By default, the voxel order is LPS.
-            # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
-            if hdr[Field.VOXEL_ORDER] == "":
-                is_consistent = False
-                warnings.warn("Voxel order is not specified, will assume 'LPS' since it is Trackvis software's default.")
-
-            i4_dtype = np.dtype(hdr[Field.ENDIAN] + "i4")
-            f4_dtype = np.dtype(hdr[Field.ENDIAN] + "f4")
-
-            pts_and_scalars_size = (3 + hdr[Field.NB_SCALARS_PER_POINT]) * f4_dtype.itemsize
-            properties_size = hdr[Field.NB_PROPERTIES_PER_STREAMLINE] * f4_dtype.itemsize
-
-            #Verify the number of streamlines specified in the header is correct.
-            nb_streamlines = 0
-            while True:
-                # Read number of points of the streamline
-                buf = f.read(i4_dtype.itemsize)
-
-                if len(buf) == 0:
-                    break  # EOF
-
-                nb_pts = struct.unpack(i4_dtype.str[:-1], buf)[0]
-
-                bytes_to_skip = nb_pts * pts_and_scalars_size
-                bytes_to_skip += properties_size
-
-                # Seek to the next streamline in the file.
-                f.seek(bytes_to_skip, os.SEEK_CUR)
-
-                nb_streamlines += 1
-
-            if hdr[Field.NB_STREAMLINES] != nb_streamlines:
-                is_consistent = False
-                warnings.warn(('The number of streamlines specified in header ({1}) does not match '
-                              'the actual number of streamlines contained in this file ({1}). '
-                               ).format(hdr[Field.NB_STREAMLINES], nb_streamlines))
-
-            f.seek(start_position, os.SEEK_CUR)  # Set the file position where it was.
-
-        return is_consistent
-
-    @classmethod
     def load(cls, fileobj, hdr={}, lazy_load=False):
         ''' Loads streamlines from a file-like object.
 
@@ -250,6 +161,7 @@ class TrkFile(StreamlinesFile):
             # By default, the voxel order is LPS.
             # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
             if hdr[Field.VOXEL_ORDER] == "":
+                warnings.warn("Voxel order is not specified, will assume 'LPS' since it is Trackvis software's default.")
                 hdr[Field.VOXEL_ORDER] = "LPS"
 
             # Keep the file position where the data begin.
