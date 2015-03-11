@@ -144,7 +144,7 @@ def concat_images(images, check_affines=True, axis=None):
         # Massage the output, to allow combining 3D and 4D images.
         is_3D = [len(d.shape) == 3 for d in out_data]
         is_4D = [len(d.shape) == 4 for d in out_data]
-        if np.any(is_3D) and np.any(is_4D):
+        if np.any(is_3D) and np.any(is_4D):  # Convert all to 4D
             out_data = [data if is_4D[di] else np.reshape(data, data.shape + (1,))
                         for di, data in enumerate(out_data)]
         out_data = np.concatenate(out_data, axis=axis)
