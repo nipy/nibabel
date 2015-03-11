@@ -103,7 +103,8 @@ def test_concat():
                     # Try mem-based, file-based, and mixed
                     imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
                     img_files = [_as_fname(img) for img in imgs]
-                    for img0, img1, img2, img3 in (imgs, img_files):
+                    imgs_mixed = [imgs[0], img_files[1], imgs[2], img_files[3]]
+                    for img0, img1, img2, img3 in (imgs, img_files, imgs_mixed):
                         try:
                             all_imgs = concat_images([img0, img1],
                                                      **concat_imgs_kwargs)

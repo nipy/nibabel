@@ -94,7 +94,7 @@ def concat_images(images, check_affines=True, axis=None):
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage`` or of filenames\s
+       sequence of ``SpatialImage`` or filenames\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
@@ -109,32 +109,33 @@ def concat_images(images, check_affines=True, axis=None):
     '''
     n_imgs = len(images)
     img0 = images[0]
-    is_filename = False
     if not hasattr(img0, 'get_data'):
         img0 = load(img0)
-        is_filename = True
     affine = img0.affine
     header = img0.header
+    i0shape = img0.shape
+    del img0
 
     if axis is None:  # collect images in output array for efficiency
-        out_shape = (n_imgs, ) + img0.shape[:3]
+        out_shape = (n_imgs, ) + i0shape[:3]
         out_data = np.empty(out_shape)
     else:  # collect images in list for use with np.concatenate
         out_data = [None] * n_imgs
 
     for i, img in enumerate(images):
-        if is_filename:
+        if not hasattr(img, 'get_data'):
             img = load(img)
+
         if check_affines and not np.all(img.affine == affine):
             raise ValueError('Affines do not match')
 
+        # Special case for 4D image with size[3] == 1; reshape to work!
         if axis is None and img.get_data().ndim == 4 and img.get_data().shape[3] == 1:
             out_data[i] = np.reshape(img.get_data(), img.get_data().shape[:-1])
         else:
             out_data[i] = img.get_data()
 
-        if is_filename:
-            del img
+        del img
 
     if axis is None:
         out_data = np.rollaxis(out_data, 0, out_data.ndim)
