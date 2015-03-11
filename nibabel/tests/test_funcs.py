@@ -30,6 +30,8 @@ def _as_fname(img):
 
 
 def test_concat():
+    # Smoke test: concat empty list.
+    assert_raises(ValueError, concat_images, [])
 
     # Build combinations of 3D, 4D w/size[3] == 1, and 4D w/size[3] == 3
     all_shapes_3D = ((1, 2, 5), (7, 3, 1), (13, 11, 11), (0, 1, 1))
@@ -126,6 +128,7 @@ def test_concat():
                             assert_false(expect_error, "Expected a concatenation error, but got none.")
                         except ValueError as ve:
                             assert_true(expect_error, ve.message)
+
 
 
 def test_closest_canonical():

@@ -107,26 +107,27 @@ def concat_images(images, check_affines=True, axis=None):
        New image resulting from concatenating `images` across last
        dimension
     '''
-    n_imgs = len(images)
-    img0 = images[0]
-    if not hasattr(img0, 'get_data'):
-        img0 = load(img0)
-    affine = img0.affine
-    header = img0.header
-    i0shape = img0.shape
-    del img0
 
-    if axis is None:  # collect images in output array for efficiency
-        out_shape = (n_imgs, ) + i0shape[:3]
-        out_data = np.empty(out_shape)
-    else:  # collect images in list for use with np.concatenate
-        out_data = [None] * n_imgs
+    n_imgs = len(images)
+    if n_imgs == 0:
+        raise ValueError('Cannot concatenate an empty list of images.')
 
     for i, img in enumerate(images):
         if not hasattr(img, 'get_data'):
             img = load(img)
 
-        if check_affines and not np.all(img.affine == affine):
+        if i == 0:  # first image, initialize data from loaded image
+            affine = img.affine
+            header = img.header
+            klass = img.__class__
+
+            if axis is None:  # collect images in output array for efficiency
+                out_shape = (n_imgs, ) + img.shape[:3]
+                out_data = np.empty(out_shape)
+            else:  # collect images in list for use with np.concatenate
+                out_data = [None] * n_imgs
+
+        elif check_affines and not np.all(img.affine == affine):
             raise ValueError('Affines do not match')
 
         # Special case for 4D image with size[3] == 1; reshape to work!
@@ -148,7 +149,6 @@ def concat_images(images, check_affines=True, axis=None):
                         for di, data in enumerate(out_data)]
         out_data = np.concatenate(out_data, axis=axis)
 
-    klass = img0.__class__
     return klass(out_data, affine, header)
 
 
