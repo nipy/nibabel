@@ -30,71 +30,101 @@ def _as_fname(img):
 
 
 def test_concat():
-    for shape in ((1,2,5), (7,3,1), (13,11,11), (0,1,1)):
-        numel = np.asarray(shape).prod()
-        data0 = np.arange(numel).reshape(shape)
-        affine = np.eye(4)
+
+    # Build combinations of 3D, 4D w/size[3] == 1, and 4D w/size[3] == 3
+    all_shapes_3D = ((1, 2, 5), (7, 3, 1), (13, 11, 11), (0, 1, 1))
+    all_shapes_4D_unary = tuple((shape + (1,) for shape in all_shapes_3D))
+    all_shapes_4D_multi = tuple((shape + (3,) for shape in all_shapes_3D))
+    all_shapes = all_shapes_3D + all_shapes_4D_unary + all_shapes_4D_multi
+
+    affine = np.eye(4)
+    # Loop over all possible combinations of images, in first and
+    #   second position.
+    for data0_shape in all_shapes:
+        data0_numel = np.asarray(data0_shape).prod()
+        data0 = np.arange(data0_numel).reshape(data0_shape)
         img0_mem = Nifti1Image(data0, affine)
-        data1 = data0 - 10
-        img1_mem = Nifti1Image(data1, affine)
-        img2_mem = Nifti1Image(data1, affine+1)
-        img3_mem = Nifti1Image(data1.T, affine)
-        all_data = np.concatenate(
-            [data0[:,:,:,np.newaxis],data1[:,:,:,np.newaxis]],3)
-        # Check filenames and in-memory images work
-        with InTemporaryDirectory():
-            imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
-            img_files = [_as_fname(img) for img in imgs]
-            for img0, img1, img2, img3 in (imgs, img_files):
-                all_imgs = concat_images([img0, img1])
-                assert_array_equal(all_imgs.get_data(), all_data)
-                assert_array_equal(all_imgs.affine, affine)
-                # check that not-matching affines raise error
-                assert_raises(ValueError, concat_images, [img0, img2])
-                assert_raises(ValueError, concat_images, [img0, img3])
-                # except if check_affines is False
-                all_imgs = concat_images([img0, img1])
-                assert_array_equal(all_imgs.get_data(), all_data)
-                assert_array_equal(all_imgs.affine, affine)
-            # Delete images as prophylaxis for windows access errors
-            for img in imgs:
-                del(img)
 
-        # Test axis parameter and trailing unary dimension
-        shape_4D = np.asarray(shape + (1,))
-        data0 = np.arange(numel).reshape(shape_4D)
-        affine = np.eye(4)
-        img0_mem = Nifti1Image(data0, affine)
-        img1_mem = Nifti1Image(data0 - 10, affine)
+        for data1_shape in all_shapes:
+            data1_numel = np.asarray(data1_shape).prod()
+            data1 = np.arange(data1_numel).reshape(data1_shape)
+            img1_mem = Nifti1Image(data1, affine)
+            img2_mem = Nifti1Image(data1, affine+1)  # bad affine
+            img3_mem = Nifti1Image(data1.T, affine)  # bad data shape
 
-        # 4d, same shape, append on axis 3
-        concat_img1 = concat_images([img0_mem, img1_mem], axis=3)
-        expected_shape1 = shape_4D.copy()
-        expected_shape1[-1] *= 2
-        assert_array_equal(concat_img1.shape, expected_shape1)
+            # Loop over every possible axis, including None (explicit and implied)
+            for axis in (list(range(-2, 3)) + [None, '__default__']):
 
-        # 4d, same shape, append on axis 0
-        concat_img2 = concat_images([img0_mem, img1_mem], axis=0)
-        expected_shape2 = shape_4D.copy()
-        expected_shape2[0] *= 2
-        assert_array_equal(concat_img2.shape, expected_shape2)
+                # Allow testing default vs. passing explicit param
+                if axis == '__default__':
+                    np_concat_kwargs = dict(axis=-1)
+                    concat_imgs_kwargs = dict()
+                    axis = None  # Convert downstream
+                elif axis is None:
+                    np_concat_kwargs = dict(axis=-1)
+                    concat_imgs_kwargs = dict(axis=axis)
+                else:
+                    np_concat_kwargs = dict(axis=axis)
+                    concat_imgs_kwargs = dict(axis=axis)
 
-        # 4d, same shape, append on axis -1
-        concat_img3 = concat_images([img0_mem, img1_mem], axis=-1)
-        expected_shape3 = shape_4D.copy()
-        expected_shape3[-1] *= 2
-        assert_array_equal(concat_img3.shape, expected_shape3)
+                # Create expected output
+                try:
+                    # Error will be thrown if the np.concatenate fails.
+                    #   However, when axis=None, the concatenate is possible
+                    #   but our efficient logic (where all images are
+                    #   3D and the same size) fails, so we also
+                    #   have to expect errors for those.
+                    expect_error = False
+                    if data0.ndim == 3 and data1.ndim == 4:
+                        expect_error = axis is None and data1.shape[3] != 1
+                        all_data = np.concatenate([data0[..., np.newaxis], data1],
+                                                  **np_concat_kwargs)
+                    elif data0.ndim == 4 and data1.ndim == 3:
+                        expect_error = axis is None and data0.shape[3] != 1
+                        all_data = np.concatenate([data0, data1[..., np.newaxis]],
+                                                  **np_concat_kwargs)
+                    elif data0.ndim == 4 and data1.ndim == 4:
+                        expect_error = axis is None and (data0.shape[3] != 1 or
+                                                         data1.shape[3] != 1)
+                        all_data = np.concatenate([data0, data1],
+                                                  **np_concat_kwargs)
+                    elif axis is None:  # 3D from here and below
+                        all_data = np.concatenate(
+                            [data0[..., np.newaxis], data1[..., np.newaxis]], 3)
+                    else:  # both 3D, appending on final axis
+                        all_data = np.concatenate([data0, data1],
+                                                  **np_concat_kwargs)
+                except ValueError:
+                    # Shapes are not combinable
+                    expect_error = True
 
-        # 4d, different shape, append on axis that's different
-        print('%s %s' % (str(concat_img3.shape), str(img1_mem.shape)))
-        concat_img4 = concat_images([concat_img3, img1_mem], axis=-1)
-        expected_shape4 = shape_4D.copy()
-        expected_shape4[-1] *= 3
-        assert_array_equal(concat_img4.shape, expected_shape4)
+                # Check filenames and in-memory images work
+                with InTemporaryDirectory():
+                    # Try mem-based, file-based, and mixed
+                    imgs = [img0_mem, img1_mem, img2_mem, img3_mem]
+                    img_files = [_as_fname(img) for img in imgs]
+                    for img0, img1, img2, img3 in (imgs, img_files):
+                        try:
+                            all_imgs = concat_images([img0, img1],
+                                                     **concat_imgs_kwargs)
+                            assert_array_equal(all_imgs.get_data(), all_data)
+                            assert_array_equal(all_imgs.affine, affine)
+                            assert_false(expect_error, "Expected a concatenation error, but got none.")
+                        except ValueError as ve:
+                            assert_true(expect_error, ve.message)
 
-        # 4d, different shape, append on axis that's not different...
-        # Doesn't work!
-        assert_raises(ValueError, concat_images, [concat_img3, img1_mem], axis=1)
+                        # check that not-matching affines raise error
+                        assert_raises(ValueError, concat_images, [img0, img2], **concat_imgs_kwargs)
+                        assert_raises(ValueError, concat_images, [img0, img3], **concat_imgs_kwargs)
+
+                        # except if check_affines is False
+                        try:
+                            all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
+                            assert_array_equal(all_imgs.get_data(), all_data)
+                            assert_array_equal(all_imgs.affine, affine)
+                            assert_false(expect_error, "Expected a concatenation error, but got none.")
+                        except ValueError as ve:
+                            assert_true(expect_error, ve.message)
 
 
 def test_closest_canonical():

@@ -98,9 +98,9 @@ def concat_images(images, check_affines=True, axis=None):
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
-    axis : int, optional
-        If None, concatenates on the last dimension.
-        If not None, concatenates on the specified dimension.
+    axis : None or int, optional
+        If None, concatenates on the 4th dimension.
+        If not None, concatenates on the specified dimension [-2 to 3).
     Returns
     -------
     concat_img : ``SpatialImage``
@@ -113,23 +113,40 @@ def concat_images(images, check_affines=True, axis=None):
     if not hasattr(img0, 'get_data'):
         img0 = load(img0)
         is_filename = True
-    i0shape = img0.shape
     affine = img0.affine
     header = img0.header
-    out_shape = (n_imgs, ) + i0shape
-    out_data = []
+
+    if axis is None:  # collect images in output array for efficiency
+        out_shape = (n_imgs, ) + img0.shape[:3]
+        out_data = np.empty(out_shape)
+    else:  # collect images in list for use with np.concatenate
+        out_data = [None] * n_imgs
+
     for i, img in enumerate(images):
         if is_filename:
             img = load(img)
-        if check_affines:
-            if not np.all(img.affine == affine):
-                raise ValueError('Affines do not match')
-        out_data.append(img.get_data())
-    if axis is not None:
-        out_data = np.concatenate(out_data, axis=axis)
+        if check_affines and not np.all(img.affine == affine):
+            raise ValueError('Affines do not match')
+
+        if axis is None and img.get_data().ndim == 4 and img.get_data().shape[3] == 1:
+            out_data[i] = np.reshape(img.get_data(), img.get_data().shape[:-1])
+        else:
+            out_data[i] = img.get_data()
+
+        if is_filename:
+            del img
+
+    if axis is None:
+        out_data = np.rollaxis(out_data, 0, out_data.ndim)
     else:
-        out_data = np.asarray(out_data)
-        out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
+        # Massage the output, to allow combining 3D and 4D images.
+        is_3D = [len(d.shape) == 3 for d in out_data]
+        is_4D = [len(d.shape) == 4 for d in out_data]
+        if np.any(is_3D) and np.any(is_4D):
+            out_data = [data if is_4D[di] else np.reshape(data, data.shape + (1,))
+                        for di, data in enumerate(out_data)]
+        out_data = np.concatenate(out_data, axis=axis)
+
     klass = img0.__class__
     return klass(out_data, affine, header)
 
