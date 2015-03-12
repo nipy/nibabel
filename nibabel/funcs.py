@@ -94,13 +94,16 @@ def concat_images(images, check_affines=True, axis=None):
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage`` or filenames\s
+       sequence of ``SpatialImage`` or filenames of the same dimensionality\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
     axis : None or int, optional
-        If None, concatenates on the 4th dimension.
-        If not None, concatenates on the specified dimension [-2 to 3).
+        If None, concatenates on a new dimension.  This rrequires all images
+           to be the same shape).
+        If not None, concatenates on the specified dimension.  This requires
+           all images to be the same shape, except on the specified dimension.
+           For 4D images, axis must be between -2 and 3.
     Returns
     -------
     concat_img : ``SpatialImage``
@@ -110,7 +113,7 @@ def concat_images(images, check_affines=True, axis=None):
 
     n_imgs = len(images)
     if n_imgs == 0:
-        raise ValueError('Cannot concatenate an empty list of images.')
+        raise ValueError("Cannot concatenate an empty list of images.")
 
     for i, img in enumerate(images):
         if not hasattr(img, 'get_data'):

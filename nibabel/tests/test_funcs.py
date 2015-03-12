@@ -110,11 +110,12 @@ def test_concat():
                         try:
                             all_imgs = concat_images([img0, img1],
                                                      **concat_imgs_kwargs)
-                            assert_array_equal(all_imgs.get_data(), all_data)
-                            assert_array_equal(all_imgs.affine, affine)
-                            assert_false(expect_error, "Expected a concatenation error, but got none.")
                         except ValueError as ve:
                             assert_true(expect_error, ve.message)
+                        else:
+                            assert_false(expect_error, "Expected a concatenation error, but got none.")
+                            assert_array_equal(all_imgs.get_data(), all_data)
+                            assert_array_equal(all_imgs.affine, affine)
 
                         # check that not-matching affines raise error
                         assert_raises(ValueError, concat_images, [img0, img2], **concat_imgs_kwargs)
@@ -123,12 +124,12 @@ def test_concat():
                         # except if check_affines is False
                         try:
                             all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
-                            assert_array_equal(all_imgs.get_data(), all_data)
-                            assert_array_equal(all_imgs.affine, affine)
-                            assert_false(expect_error, "Expected a concatenation error, but got none.")
                         except ValueError as ve:
                             assert_true(expect_error, ve.message)
-
+                        else:
+                            assert_false(expect_error, "Expected a concatenation error, but got none.")
+                            assert_array_equal(all_imgs.get_data(), all_data)
+                            assert_array_equal(all_imgs.affine, affine)
 
 
 def test_closest_canonical():
