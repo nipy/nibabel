@@ -125,7 +125,7 @@ def concat_images(images, check_affines=True, axis=None):
             klass = img.__class__
 
             if axis is None:  # collect images in output array for efficiency
-                out_shape = (n_imgs, ) + img.shape[:3]
+                out_shape = (n_imgs, ) + img.shape
                 out_data = np.empty(out_shape)
             else:  # collect images in list for use with np.concatenate
                 out_data = [None] * n_imgs
@@ -133,23 +133,13 @@ def concat_images(images, check_affines=True, axis=None):
         elif check_affines and not np.all(img.affine == affine):
             raise ValueError('Affines do not match')
 
-        # Special case for 4D image with size[3] == 1; reshape to work!
-        if axis is None and img.get_data().ndim == 4 and img.get_data().shape[3] == 1:
-            out_data[i] = np.reshape(img.get_data(), img.get_data().shape[:-1])
-        else:
-            out_data[i] = img.get_data()
+        out_data[i] = img.get_data()
 
         del img
 
     if axis is None:
         out_data = np.rollaxis(out_data, 0, out_data.ndim)
     else:
-        # Massage the output, to allow combining 3D and 4D images.
-        is_3D = [len(d.shape) == 3 for d in out_data]
-        is_4D = [len(d.shape) == 4 for d in out_data]
-        if np.any(is_3D) and np.any(is_4D):  # Convert all to 4D
-            out_data = [data if is_4D[di] else np.reshape(data, data.shape + (1,))
-                        for di, data in enumerate(out_data)]
         out_data = np.concatenate(out_data, axis=axis)
 
     return klass(out_data, affine, header)
