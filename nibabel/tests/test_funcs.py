@@ -102,7 +102,7 @@ def test_concat():
                                 all_imgs = concat_images([img0, img1],
                                                          **concat_imgs_kwargs)
                             except ValueError as ve:
-                                assert_true(expect_error, ve.message)
+                                assert_true(expect_error, str(ve))
                             else:
                                 assert_false(expect_error, "Expected a concatenation error, but got none.")
                                 assert_array_equal(all_imgs.get_data(), all_data)
@@ -115,7 +115,7 @@ def test_concat():
                             try:
                                 all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
                             except ValueError as ve:
-                                assert_true(expect_error, ve.message)
+                                assert_true(expect_error, str(ve))
                             else:
                                 assert_false(expect_error, "Expected a concatenation error, but got none.")
                                 assert_array_equal(all_imgs.get_data(), all_data)
