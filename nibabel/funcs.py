@@ -88,6 +88,19 @@ def squeeze_image(img):
                  img.extra)
 
 
+def _shape_equal_excluding(shape1, shape2, exclude_axes=None):
+    """ Helper function to compare two array shapes, excluding any
+    axis specified."""
+
+    if len(shape1) != len(shape2):
+        return False
+
+    idx_mask = np.ones((len(shape1),), dtype=bool)
+    idx_mask[exclude_axes] = False
+    return np.array_equal(np.asarray(shape1)[idx_mask],
+                          np.asarray(shape2)[idx_mask])
+
+
 def concat_images(images, check_affines=True, axis=None):
     ''' Concatenate images in list to single image, along specified dimension
 
@@ -134,10 +147,12 @@ def concat_images(images, check_affines=True, axis=None):
         elif check_affines and not np.all(img.affine == affine):
             raise ValueError('Affines do not match')
 
-        elif axis is None and not np.array_equal(shape, img.shape):
-            # shape mismatch; numpy broadcasting can hide these.
-            raise ValueError("Image %d (shape=%s) does not match first image "
-                             " shape (%s)." % (i, shape, img.shape))
+        elif ((axis is None and not np.array_equal(shape, img.shape)) or
+              (axis is not None and not _shape_equal_excluding(shape, img.shape,
+                                                               exclude_axes=[axis]))):
+            # shape mismatch; numpy broadcast / concatenate can hide these.
+            raise ValueError("Image #%d (shape=%s) does not match the first "
+                             "image shape (%s)." % (i, shape, img.shape))
 
         out_data[i] = img.get_data()
 
