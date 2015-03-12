@@ -122,16 +122,22 @@ def concat_images(images, check_affines=True, axis=None):
         if i == 0:  # first image, initialize data from loaded image
             affine = img.affine
             header = img.header
+            shape = img.shape
             klass = img.__class__
 
             if axis is None:  # collect images in output array for efficiency
-                out_shape = (n_imgs, ) + img.shape
+                out_shape = (n_imgs, ) + shape
                 out_data = np.empty(out_shape)
             else:  # collect images in list for use with np.concatenate
                 out_data = [None] * n_imgs
 
         elif check_affines and not np.all(img.affine == affine):
             raise ValueError('Affines do not match')
+
+        elif axis is None and not np.array_equal(shape, img.shape):
+            # shape mismatch; numpy broadcasting can hide these.
+            raise ValueError("Image %d (shape=%s) does not match first image "
+                             " shape (%s)." % (i, shape, img.shape))
 
         out_data[i] = img.get_data()
 
