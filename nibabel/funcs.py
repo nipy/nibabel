@@ -88,7 +88,7 @@ def squeeze_image(img):
                  img.extra)
 
 
-def _shape_equal_excluding(shape1, shape2, exclude_axes=None):
+def _shape_equal_excluding(shape1, shape2, exclude_axes):
     """ Helper function to compare two array shapes, excluding any
     axis specified."""
 
