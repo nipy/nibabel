@@ -72,6 +72,7 @@ from .minc1 import MincImage
 from .freesurfer import MGHImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
                     as_closest_canonical)
+from .spatialimages import image_like
 from .orientations import (io_orientation, orientation_affine,
                            flip_axis, OrientationError,
                            apply_orientation, aff2axcodes)

@@ -634,3 +634,11 @@ class SpatialImage(DataobjImage):
         new_aff = self.affine.dot(inv_ornt_aff(ornt, self.shape))
 
         return self.__class__(t_arr, new_aff, self.header)
+
+
+def image_like(img, data):
+    ''' Create new SpatialImage with metadata of `img`, and data
+    contained in `data`.
+    '''
+    return img.__class__(data, img.affine, img.header.copy(),
+                         extra=img.extra.copy())

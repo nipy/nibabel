@@ -16,7 +16,7 @@ import numpy as np
 
 from io import BytesIO
 from ..spatialimages import (SpatialHeader, SpatialImage, HeaderDataError,
-                             Header, ImageDataError)
+                             Header, ImageDataError, image_like)
 from ..imageclasses import spatial_axes_first
 
 from unittest import TestCase
@@ -659,3 +659,13 @@ def test_header_deprecated():
 
         MyHeader()
         assert_equal(len(w), 1)
+
+
+def test_image_like():
+    zeros = SpatialImage(np.zeros((2, 3, 4)), np.eye(4))
+    ones = image_like(zeros, np.ones((2, 3, 4)))
+
+    assert np.all(ones.dataobj != zeros.dataobj)
+    assert np.all(ones.affine == zeros.affine)
+    assert ones.header == zeros.header
+    assert ones.extra == zeros.extra
