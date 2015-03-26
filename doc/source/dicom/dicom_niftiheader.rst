@@ -4,9 +4,17 @@
 DICOM Tags in the NIfTI Header
 ##############################
 
-NIfTI images include an extended header (see the `NIfTI Extensions Standard`_) to store, amongst others, DICOM tags and attributes. When NiBabel loads a NIfTI file containing DICOM information (a NIfTI extension with ``ecode == 2``), it parses it and returns a pydicom dataset as the content of the NIfTI extension. This can be read and written to in order to facilitate communication with software that uses specific DICOM codes found in the NIfTI header.
+NIfTI images include an extended header (see the `NIfTI Extensions Standard`_)
+to store, amongst others, DICOM tags and attributes. When NiBabel loads a NIfTI
+file containing DICOM information (a NIfTI extension with ``ecode == 2``), it
+parses it and returns a pydicom dataset as the content of the NIfTI extension.
+This can be read and written to in order to facilitate communication with
+software that uses specific DICOM codes found in the NIfTI header.
 
-For example, the commercial PMOD software stores the Frame Start and Duration times of images using the DICOM tags (0055, 1001) and (0055, 1004). Here's an example of an image created in PMOD with those stored times accessed through nibabel.
+For example, the commercial PMOD software stores the Frame Start and Duration
+times of images using the DICOM tags (0055, 1001) and (0055, 1004). Here's an
+example of an image created in PMOD with those stored times accessed through
+nibabel.
 
 .. code:: python
 
@@ -30,7 +38,7 @@ For example, the commercial PMOD software stores the Frame Start and Duration ti
 +-------------+--------------------------------+---------------------------------------------------------+
 |(0055, 1004) | [Frame Durations (ms) Vector]  | FD: [30000.0, 30000.0, 30000.0, ..., 600000.0, 600000.0 |
 +-------------+--------------------------------+---------------------------------------------------------+
-                      
+
 Access each value as you would with pydicom::
 
     >> ds = dcmext.get_content()
@@ -56,6 +64,9 @@ Be careful! Many imaging tools don't maintain information in the extended
 header, so it's possible [likely] that this information may be lost during
 routine use. You'll have to keep track, and re-write the information if
 required.
+
+Optional Dependency Note: If pydicom is not installed, nibabel uses a generic
+:class:`nibabel.nifti1.Nifti1Extension` header instead of parsing DICOM data.
 
 .. _`NIfTI Extensions Standard`: http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html
 

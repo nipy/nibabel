@@ -22,7 +22,7 @@ from ..affines import from_matvec
 from .. import nifti1 as nifti1
 from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
-                      Nifti1Extensions, data_type_codes, extension_codes, 
+                      Nifti1Extensions, data_type_codes, extension_codes,
                       slice_order_codes)
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
@@ -41,14 +41,10 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-try:
-    import dicom
-    import struct
-    from io import BytesIO
-except ImportError:
-    have_dicom = False
-else:
-    have_dicom = True
+from nibabel.optpkg import optional_package
+dicom, have_dicom, _ = optional_package('dicom')
+import struct
+
 dicom_test = np.testing.dec.skipif(not have_dicom,
     'could not import pydicom')
 
@@ -1111,7 +1107,7 @@ def test_nifti_dicom_extension():
     assert_equal(len(dcmext.get_content().values()), 1)
     assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_explicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
-    
+
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
     dcmbytes_implicit = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2,dcmbytes_implicit)
