@@ -112,11 +112,10 @@ def concat_images(images, check_affines=True, axis=None):
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
     axis : None or int, optional
-        If None, concatenates on a new dimension.  This rrequires all images
+        If None, concatenates on a new dimension.  This requires all images
            to be the same shape).
         If not None, concatenates on the specified dimension.  This requires
            all images to be the same shape, except on the specified dimension.
-           For 4D images, axis must be between -2 and 3.
     Returns
     -------
     concat_img : ``SpatialImage``
