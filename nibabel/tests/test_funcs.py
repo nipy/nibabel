@@ -79,7 +79,6 @@ def test_concat():
                         #   but our efficient logic (where all images are
                         #   3D and the same size) fails, so we also
                         #   have to expect errors for those.
-                        expect_error = data0.ndim != data1.ndim
                         if axis is None:  # 3D from here and below
                             all_data = np.concatenate([data0[..., np.newaxis],
                                                        data1[..., np.newaxis]],
@@ -87,6 +86,7 @@ def test_concat():
                         else:  # both 3D, appending on final axis
                             all_data = np.concatenate([data0, data1],
                                                       **np_concat_kwargs)
+                        expect_error = False
                     except ValueError:
                         # Shapes are not combinable
                         expect_error = True
