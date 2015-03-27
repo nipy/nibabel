@@ -88,19 +88,6 @@ def squeeze_image(img):
                  img.extra)
 
 
-def _shape_equal_excluding(shape1, shape2, exclude_axes):
-    """ Helper function to compare two array shapes, excluding any
-    axis specified."""
-
-    if len(shape1) != len(shape2):
-        return False
-
-    idx_mask = np.ones((len(shape1),), dtype=bool)
-    idx_mask[exclude_axes] = False
-    return np.array_equal(np.asarray(shape1)[idx_mask],
-                          np.asarray(shape2)[idx_mask])
-
-
 def concat_images(images, check_affines=True, axis=None):
     ''' Concatenate images in list to single image, along specified dimension
 
@@ -112,50 +99,53 @@ def concat_images(images, check_affines=True, axis=None):
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
     axis : None or int, optional
-        If None, concatenates on a new dimension.  This requires all images
-           to be the same shape).
-        If not None, concatenates on the specified dimension.  This requires
-           all images to be the same shape, except on the specified dimension.
+        If None, concatenates on a new dimension.  This requires all images to
+        be the same shape.  If not None, concatenates on the specified
+        dimension.  This requires all images to be the same shape, except on
+        the specified dimension.
     Returns
     -------
     concat_img : ``SpatialImage``
        New image resulting from concatenating `images` across last
        dimension
     '''
-
+    images = [load(img) if not hasattr(img, 'get_data')
+              else img for img in images]
     n_imgs = len(images)
     if n_imgs == 0:
         raise ValueError("Cannot concatenate an empty list of images.")
-
+    img0 = images[0]
+    affine = img0.affine
+    header = img0.header
+    klass = img0.__class__
+    shape0 = img0.shape
+    n_dim = len(shape0)
+    if axis is None:
+        # collect images in output array for efficiency
+        out_shape = (n_imgs, ) + shape0
+        out_data = np.empty(out_shape)
+    else:
+        # collect images in list for use with np.concatenate
+        out_data = [None] * n_imgs
+    # Get part of shape we need to check inside loop
+    idx_mask = np.ones((n_dim,), dtype=bool)
+    if axis is not None:
+        idx_mask[axis] = False
+    masked_shape = np.array(shape0)[idx_mask]
     for i, img in enumerate(images):
-        if not hasattr(img, 'get_data'):
-            img = load(img)
-
-        if i == 0:  # first image, initialize data from loaded image
-            affine = img.affine
-            header = img.header
-            shape = img.shape
-            klass = img.__class__
-
-            if axis is None:  # collect images in output array for efficiency
-                out_shape = (n_imgs, ) + shape
-                out_data = np.empty(out_shape)
-            else:  # collect images in list for use with np.concatenate
-                out_data = [None] * n_imgs
-
-        elif check_affines and not np.all(img.affine == affine):
-            raise ValueError('Affines do not match')
-
-        elif ((axis is None and not np.array_equal(shape, img.shape)) or
-              (axis is not None and not _shape_equal_excluding(shape, img.shape,
-                                                               exclude_axes=[axis]))):
-            # shape mismatch; numpy broadcast / concatenate can hide these.
-            raise ValueError("Image #%d (shape=%s) does not match the first "
-                             "image shape (%s)." % (i, shape, img.shape))
-
-        out_data[i] = img.get_data()
-
-        del img
+        if len(img.shape) != n_dim:
+            raise ValueError(
+                'Image {0} has {1} dimensions, image 0 has {2}'.format(
+                    i, len(img.shape), n_dim))
+        if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
+            raise ValueError('shape {0} for image {1} not compatible with '
+                             'first image shape {2} with axis == {0}'.format(
+                                 img.shape, i, shape0, axis))
+        if check_affines and not np.all(img.affine == affine):
+            raise ValueError('Affine for image {0} does not match affine '
+                             'for first image'.format(i))
+        # Do not fill cache in image if it is empty
+        out_data[i] = img.get_data(caching='unchanged')
 
     if axis is None:
         out_data = np.rollaxis(out_data, 0, out_data.ndim)

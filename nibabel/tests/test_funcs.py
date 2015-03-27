@@ -86,6 +86,7 @@ def test_concat():
                         else:  # both 3D, appending on final axis
                             all_data = np.concatenate([data0, data1],
                                                       **np_concat_kwargs)
+                        expect_error = False
                     except ValueError:
                         # Shapes are not combinable
                         expect_error = True
