@@ -6,7 +6,42 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read ECAT format images """
+""" Read ECAT format images
+
+An ECAT format image consists of:
+
+* a *main header*;
+* at least one *matrix list* (mlist);
+
+ECAT thinks of memory locations in terms of *records*.  One record is 512
+bytes.  Thus record 1 is at 0 bytes, record 2 at 512 bytes, and so on.
+
+The matrix list is an array with one row per frame in the data.
+
+Columns in the matrix list are:
+
+* 0 - Matrix identifier (frame number)
+* 1 - matrix data start record number (subheader stored here)
+* 2 - Last record number of matrix data block.
+* 3 - Matrix status:
+    * 1 - exists - rw
+    * 2 - exists - ro
+    * 3 - matrix deleted
+
+There is one sub-header for each image frame (or matrix in the terminology
+above).
+
+A sub-header can also be called an *image header*.
+
+There is very little documentation of this format, and many of the comments in
+this code come from a combination of trial and error and wild speculation.
+
+XMedcon can read and write ECAT 6 format, and read ECAT 7 format: see
+http://xmedcon.sourceforge.net and the ECAT files in the source of XMedCon,
+currently ``libs/tpc/*ecat*`` and ``source/m-ecat*``.  Unfortunately XMedCon is
+GPL and some of the header files are adapted from CTI files (called CTI code
+below).  It's not clear what the licenses are for these files.
+"""
 
 import warnings
 from numbers import Integral
@@ -20,6 +55,7 @@ from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
 
+RECORD_BYTES = 512
 
 MAINHDRSZ = 502
 main_header_dtd = [
@@ -307,39 +343,43 @@ def read_mlist(fileobj, endianness):
 
     Notes
     -----
-    A 'record' appears to be a block of 512 bytes.
+    A 'record' or 'block' is 512 bytes.
 
-    ``record_no`` in the code below is 1-based.  Record 1 may be the main
-    header, and the mlist records start at 2.
+    ``record_no`` in the code below is 1-based.  Record 1 is the main header,
+    and the mlist records start at record number 2.
 
-    The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
-    mlist matrix.
+    The 512 bytes in an mlist record represents 32 rows of the int32 (nframes,
+    4) mlist matrix.
 
     The first row of these 32 looks like a special row.  The 4 values appear
     to be (respectively):
 
     * not sure - maybe negative number of mlist rows (out of 31) that are
-      blank and not used in this record.
-    * record_no - of next set of mlist entries or 0 if no more entries
-    * <no idea>
-    * n_rows - number of mlist rows in this record (between ?0 and 31)
+      blank and not used in this record.  Called `nfree` but unused in CTI
+      code;
+    * record_no - of next set of mlist entries or 2 if no more entries. We also
+      allow 1 or 0 to signal no more entries;
+    * <no idea>.  Called `prvblk` in CTI code, so maybe previous record no;
+    * n_rows - number of mlist rows in this record (between ?0 and 31) (called
+      `nused` in CTI code).
     """
     dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
     if not endianness is native_code:
         dt = dt.newbyteorder(endianness)
     mlists = []
     mlist_index = 0
-    mlist_record_no = 2 # 1-based indexing
+    mlist_record_no = 2  # 1-based indexing, record with first mlist
     while True:
         # Read record containing mlist entries
-        fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
+        fileobj.seek((mlist_record_no - 1) * RECORD_BYTES) # fix 1-based indexing
         dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
-        # First row special
-        v0, mlist_record_no, v2, n_rows = rows[0]
-        if not (v0 + n_rows) == 31: # Some error condition here?
+        # First row special, points to next mlist entries if present
+        n_unused, mlist_record_no, _, n_rows = rows[0]
+        if not (n_unused + n_rows) == 31: # Some error condition here?
             mlist = []
             return mlist
+        # Use all but first housekeeping row
         mlists.append(rows[1:n_rows+1])
         mlist_index += n_rows
         if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
@@ -432,7 +472,7 @@ def get_series_framenumbers(mlist):
 
 
 def read_subheaders(fileobj, mlist, endianness):
-    """retreive all subheaders and return list of subheader recarrays
+    """ Retrieve all subheaders and return list of subheader recarrays
 
     Parameters
     ----------
@@ -446,6 +486,11 @@ def read_subheaders(fileobj, mlist, endianness):
         * 3 - Matrix status:
     endianness : {'<', '>'}
         little / big endian code
+
+    Returns
+    -------
+    subheaders : list
+        List of subheader structured arrays
     """
     subheaders = []
     dt = subhdr_dtype
@@ -470,7 +515,7 @@ class EcatMlist(object):
 
         Container for Ecat mlist
 
-        Data for mlist is numpy array shaem (frames, 4)
+        Data for mlist is numpy array shape (frames, 4)
 
         Columns are:
 
