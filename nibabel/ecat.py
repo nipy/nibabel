@@ -13,28 +13,27 @@ An ECAT format image consists of:
 * a *main header*;
 * at least one *matrix list* (mlist);
 
-ECAT thinks of memory locations in terms of *records*.  One record is 512
-bytes.  Thus record 1 is at 0 bytes, record 2 at 512 bytes, and so on.
+ECAT thinks of memory locations in terms of *blocks*.  One block is 512
+bytes.  Thus block 1 starts at 0 bytes, block 2 at 512 bytes, and so on.
 
 The matrix list is an array with one row per frame in the data.
 
 Columns in the matrix list are:
 
 * 0 - Matrix identifier (frame number)
-* 1 - matrix data start record number (subheader stored here)
-* 2 - Last record number of matrix data block.
+* 1 - matrix data start block number (subheader followed by image data)
+* 2 - Last block number of matrix (image) data
 * 3 - Matrix status:
     * 1 - exists - rw
     * 2 - exists - ro
     * 3 - matrix deleted
 
 There is one sub-header for each image frame (or matrix in the terminology
-above).
+above).  A sub-header can also be called an *image header*.  The sub-header is
+one block (512 bytes), and the frame (image) data follows.
 
-A sub-header can also be called an *image header*.
-
-There is very little documentation of this format, and many of the comments in
-this code come from a combination of trial and error and wild speculation.
+There is very little documentation of the ECAT format, and many of the comments
+in this code come from a combination of trial and error and wild speculation.
 
 XMedcon can read and write ECAT 6 format, and read ECAT 7 format: see
 http://xmedcon.sourceforge.net and the ECAT files in the source of XMedCon,
@@ -55,9 +54,8 @@ from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
 
-RECORD_BYTES = 512
+BLOCK_SIZE = 512
 
-MAINHDRSZ = 502
 main_header_dtd = [
     ('magic_number', '14S'),
     ('original_filename', '32S'),
@@ -332,35 +330,34 @@ def read_mlist(fileobj, endianness):
     mlist : (nframes, 4) ndarray
         matrix list is an array with ``nframes`` rows and columns:
 
-        * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
+        * 0 - Matrix identifier (frame number)
+        * 1 - matrix data start block number (subheader followed by image data)
+        * 2 - Last block number of matrix (image) data
         * 3 - Matrix status:
-
-          * 1 - exists - rw
-          * 2 - exists - ro
-          * 3 - matrix deleted
+            * 1 - exists - rw
+            * 2 - exists - ro
+            * 3 - matrix deleted
 
     Notes
     -----
-    A 'record' or 'block' is 512 bytes.
+    A block is 512 bytes.
 
-    ``record_no`` in the code below is 1-based.  Record 1 is the main header,
-    and the mlist records start at record number 2.
+    ``block_no`` in the code below is 1-based.  block 1 is the main header,
+    and the mlist blocks start at block number 2.
 
-    The 512 bytes in an mlist record represents 32 rows of the int32 (nframes,
+    The 512 bytes in an mlist block contain 32 rows of the int32 (nframes,
     4) mlist matrix.
 
     The first row of these 32 looks like a special row.  The 4 values appear
     to be (respectively):
 
     * not sure - maybe negative number of mlist rows (out of 31) that are
-      blank and not used in this record.  Called `nfree` but unused in CTI
+      blank and not used in this block.  Called `nfree` but unused in CTI
       code;
-    * record_no - of next set of mlist entries or 2 if no more entries. We also
+    * block_no - of next set of mlist entries or 2 if no more entries. We also
       allow 1 or 0 to signal no more entries;
-    * <no idea>.  Called `prvblk` in CTI code, so maybe previous record no;
-    * n_rows - number of mlist rows in this record (between ?0 and 31) (called
+    * <no idea>.  Called `prvblk` in CTI code, so maybe previous block no;
+    * n_rows - number of mlist rows in this block (between ?0 and 31) (called
       `nused` in CTI code).
     """
     dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
@@ -368,21 +365,21 @@ def read_mlist(fileobj, endianness):
         dt = dt.newbyteorder(endianness)
     mlists = []
     mlist_index = 0
-    mlist_record_no = 2  # 1-based indexing, record with first mlist
+    mlist_block_no = 2  # 1-based indexing, block with first mlist
     while True:
-        # Read record containing mlist entries
-        fileobj.seek((mlist_record_no - 1) * RECORD_BYTES) # fix 1-based indexing
+        # Read block containing mlist entries
+        fileobj.seek((mlist_block_no - 1) * BLOCK_SIZE) # fix 1-based indexing
         dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
         # First row special, points to next mlist entries if present
-        n_unused, mlist_record_no, _, n_rows = rows[0]
+        n_unused, mlist_block_no, _, n_rows = rows[0]
         if not (n_unused + n_rows) == 31: # Some error condition here?
             mlist = []
             return mlist
         # Use all but first housekeeping row
         mlists.append(rows[1:n_rows+1])
         mlist_index += n_rows
-        if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
+        if mlist_block_no <= 2: # should block_no in (1, 2) be an error?
             break
     # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
     # true? Should the dtype be uint32 or int32?
@@ -481,8 +478,8 @@ def read_subheaders(fileobj, mlist, endianness):
     mlist : (nframes, 4) ndarray
         Columns are:
         * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
+        * 1 - subheader block number
+        * 2 - Last block number of matrix data block.
         * 3 - Matrix status:
     endianness : {'<', '>'}
         little / big endian code
@@ -496,12 +493,12 @@ def read_subheaders(fileobj, mlist, endianness):
     dt = subhdr_dtype
     if not endianness is native_code:
         dt = dt.newbyteorder(endianness)
-    for mat_id, sh_recno, sh_last_recno, mat_stat in mlist:
-        if sh_recno == 0:
+    for mat_id, sh_blkno, sh_last_blkno, mat_stat in mlist:
+        if sh_blkno == 0:
             break
-        offset = (sh_recno - 1) * 512
+        offset = (sh_blkno - 1) * BLOCK_SIZE
         fileobj.seek(offset)
-        tmpdat = fileobj.read(512)
+        tmpdat = fileobj.read(BLOCK_SIZE)
         sh = np.ndarray(shape=(), dtype=dt, buffer=tmpdat)
         subheaders.append(sh)
     return subheaders
@@ -520,14 +517,14 @@ class EcatMlist(object):
         Columns are:
 
         * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
+        * 1 - subheader block number
+        * 2 - Last block number of matrix data block.
         * 3 - Matrix status:
           * 1 - exists - rw
           * 2 - exists - ro
           * 3 - matrix deleted
 
-        A record above is 512 bytes in the image data file
+        A block above is 512 bytes in the image data file
 
         Parameters
         -----------
@@ -631,7 +628,7 @@ class EcatSubHeader(object):
 
     def _get_frame_offset(self, frame=0):
         mlist = self._mlist._mlist
-        offset = (mlist[frame][1]) * 512
+        offset = (mlist[frame][1]) * BLOCK_SIZE
         return int(offset)
 
     def _get_oriented_data(self, raw_data, orientation=None):
