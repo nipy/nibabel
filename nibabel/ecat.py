@@ -360,7 +360,7 @@ def read_mlist(fileobj, endianness):
     * n_rows - number of mlist rows in this block (between ?0 and 31) (called
       `nused` in CTI code).
     """
-    dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
+    dt = np.dtype(np.int32)
     if not endianness is native_code:
         dt = dt.newbyteorder(endianness)
     mlists = []
@@ -369,7 +369,7 @@ def read_mlist(fileobj, endianness):
     while True:
         # Read block containing mlist entries
         fileobj.seek((mlist_block_no - 1) * BLOCK_SIZE) # fix 1-based indexing
-        dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
+        dat = fileobj.read(BLOCK_SIZE)
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
         # First row special, points to next mlist entries if present
         n_unused, mlist_block_no, _, n_rows = rows[0]
@@ -381,8 +381,6 @@ def read_mlist(fileobj, endianness):
         mlist_index += n_rows
         if mlist_block_no <= 2: # should block_no in (1, 2) be an error?
             break
-    # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
-    # true? Should the dtype be uint32 or int32?
     return np.row_stack(mlists)
 
 
