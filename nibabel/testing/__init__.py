@@ -37,15 +37,19 @@ def assert_dt_equal(a, b):
 def assert_allclose_safely(a, b, match_nans=True):
     """ Allclose in integers go all wrong for large integers
     """
-    a = np.asarray(a)
-    b = np.asarray(b)
+    a = np.atleast_1d(a)  # 0d arrays cannot be indexed
+    a, b = np.broadcast_arrays(a, b)
     if match_nans:
         nans = np.isnan(a)
         np.testing.assert_array_equal(nans, np.isnan(b))
-        if np.any(nans):
-            nans = np.logical_not(nans)
-            a = a[nans]
-            b = b[nans]
+        to_test = ~nans
+    else:
+        to_test = np.ones(a.shape, dtype=bool)
+    # Deal with float128 inf comparisons (bug in numpy 1.9.2)
+    # np.allclose(np.float128(np.inf), np.float128(np.inf)) == False
+    to_test = to_test & (a != b)
+    a = a[to_test]
+    b = b[to_test]
     if a.dtype.kind in 'ui':
         a = a.astype(float)
     if b.dtype.kind in 'ui':
