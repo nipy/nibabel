@@ -76,7 +76,7 @@ def test_assert_allclose_safely():
     b[0, 0, 0] = 1
     assert_raises(AssertionError, assert_allclose_safely, a, b)
     # Test allcloseness of inf, especially np.float128 infs
-    for dtt in (np.float32, np.float64, np.float128):
+    for dtt in np.sctypes['float']:
         a = np.array([-np.inf, 1, np.inf], dtype=dtt)
         b = np.array([-np.inf, 1, np.inf], dtype=dtt)
         assert_allclose_safely(a, b)
