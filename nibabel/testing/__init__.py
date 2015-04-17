@@ -9,7 +9,7 @@
 ''' Utilities for testing '''
 from os.path import dirname, abspath, join as pjoin
 from warnings import catch_warnings
-from nibabel.externals.six.moves import zip
+from nibabel.externals.six.moves import zip, zip_longest
 from numpy.testing import assert_array_equal
 
 
@@ -61,17 +61,16 @@ def assert_allclose_safely(a, b, match_nans=True):
 
 
 def assert_arrays_equal(arrays1, arrays2):
-    for arr1, arr2 in zip(arrays1, arrays2):
+    for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
         assert_array_equal(arr1, arr2)
 
 
 def assert_streamlines_equal(s1, s2):
-    assert_equal(s1.get_header(), s2.get_header())
-
-    for (points1, scalars1, properties1), (points2, scalars2, properties2) in zip(s1, s2):
-        assert_array_equal(points1, points2)
-        assert_array_equal(scalars1, scalars2)
-        assert_array_equal(properties1, properties2)
+    assert_equal(s1.header, s2.header)
+    assert_equal(len(s1), len(s2))
+    assert_arrays_equal(s1.points, s2.points)
+    assert_arrays_equal(s1.scalars, s2.scalars)
+    assert_arrays_equal(s1.properties, s2.properties)
 
 
 class suppress_warnings(catch_warnings):

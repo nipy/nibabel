@@ -1,7 +1,6 @@
 import numpy as np
-import nibabel
 from nibabel.orientations import aff2axcodes
-from nibabel.spatialimages import SpatialImage
+from collections import OrderedDict
 
 
 class Field:
@@ -21,80 +20,92 @@ class Field:
     ORIGIN = "origin"
     VOXEL_TO_WORLD = "voxel_to_world"
     VOXEL_ORDER = "voxel_order"
-    #WORLD_ORDER = "world_order"
     ENDIAN = "endian"
 
 
-def create_header_from_reference(ref):
-    if type(ref) is np.ndarray:
-        return create_header_from_affine(ref)
-    elif isinstance(ref) is SpatialImage:
-        return create_header_from_nifti(ref)
+class StreamlinesHeader(object):
+    def __init__(self):
+        self._nb_streamlines = None
+        self._nb_scalars_per_point = None
+        self._nb_properties_per_streamline = None
+        self._voxel_to_world = np.eye(4)
+        self.extra = OrderedDict()
 
-    # Assume `ref` is a filename:
-    img = nibabel.load(ref)
-    return create_header_from_nifti(img)
+    @property
+    def voxel_to_world(self):
+        return self._voxel_to_world
 
+    @voxel_to_world.setter
+    def voxel_to_world(self, value):
+        self._voxel_to_world = np.array(value, dtype=np.float32)
 
-def create_header_from_nifti(img):
-    ''' Creates a common streamlines' header using a spatial image.
+    @property
+    def voxel_sizes(self):
+        """ Get voxel sizes from voxel_to_world. """
+        return np.sqrt(np.sum(self.voxel_to_world[:3, :3]**2, axis=0))
 
-    Based on the information of the nifti image a dictionnary is created
-    containing the following keys: `Field.ORIGIN`, `Field.DIMENSIONS`,
-    `Field.VOXEL_SIZES`, `Field.VOXEL_TO_WORLD`, `Field.WORLD_ORDER`
-    and `Field.VOXEL_ORDER`.
+    @voxel_sizes.setter
+    def voxel_sizes(self, value):
+        scaling = np.r_[np.array(value), [1]]
+        old_scaling = np.r_[np.array(self.voxel_sizes), [1]]
+        # Remove old scaling and apply new one
+        self.voxel_to_world = np.dot(np.diag(scaling/old_scaling), self.voxel_to_world)
 
-    Parameters
-    ----------
-    img : `SpatialImage` object
-        Image containing information about the anatomy where streamlines
-        were created.
+    @property
+    def voxel_order(self):
+        """ Get voxel order from voxel_to_world. """
+        return "".join(aff2axcodes(self.voxel_to_world))
 
-    Returns
-    -------
-    hdr : dict
-        Header containing meta information about streamlines extracted
-        from the anatomy.
-    '''
-    img_header = img.get_header()
-    affine = img_header.get_best_affine()
+    @property
+    def nb_streamlines(self):
+        return self._nb_streamlines
 
-    hdr = {}
+    @nb_streamlines.setter
+    def nb_streamlines(self, value):
+        self._nb_streamlines = int(value)
 
-    hdr[Field.ORIGIN] = affine[:3, -1]
-    hdr[Field.DIMENSIONS] = img_header.get_data_shape()[:3]
-    hdr[Field.VOXEL_SIZES] = img_header.get_zooms()[:3]
-    hdr[Field.VOXEL_TO_WORLD] = affine
-    #hdr[Field.WORLD_ORDER] = "RAS"  # Nifti space
-    hdr[Field.VOXEL_ORDER] = "".join(aff2axcodes(affine))
+    @property
+    def nb_scalars_per_point(self):
+        return self._nb_scalars_per_point
 
-    return hdr
+    @nb_scalars_per_point.setter
+    def nb_scalars_per_point(self, value):
+        self._nb_scalars_per_point = int(value)
 
+    @property
+    def nb_properties_per_streamline(self):
+        return self._nb_properties_per_streamline
 
-def create_header_from_affine(affine):
-    ''' Creates a common streamlines' header using an affine matrix.
+    @nb_properties_per_streamline.setter
+    def nb_properties_per_streamline(self, value):
+        self._nb_properties_per_streamline = int(value)
 
-    Based on the information of the affine matrix a dictionnary is created
-    containing the following keys: `Field.ORIGIN`, `Field.DIMENSIONS`,
-    `Field.VOXEL_SIZES`, `Field.VOXEL_TO_WORLD`, `Field.WORLD_ORDER`
-    and `Field.VOXEL_ORDER`.
+    @property
+    def extra(self):
+        return self._extra
 
-    Parameters
-    ----------
-    affine : 2D array (3,3) | 2D array (4,4)
-        Affine matrix that transforms streamlines from voxel space to world-space.
+    @extra.setter
+    def extra(self, value):
+        self._extra = OrderedDict(value)
 
-    Returns
-    -------
-    hdr : dict
-        Header containing meta information about streamlines.
-    '''
-    hdr = {}
+    def __eq__(self, other):
+        return (np.allclose(self.voxel_to_world, other.voxel_to_world) and
+                self.nb_streamlines == other.nb_streamlines and
+                self.nb_scalars_per_point == other.nb_scalars_per_point and
+                self.nb_properties_per_streamline == other.nb_properties_per_streamline and
+                repr(self.extra) == repr(other.extra))  # Not the robust way, but will do!
 
-    hdr[Field.ORIGIN] = affine[:3, -1]
-    hdr[Field.VOXEL_SIZES] = np.sqrt(np.sum(affine[:3, :3]**2, axis=0))
-    hdr[Field.VOXEL_TO_WORLD] = affine
-    #hdr[Field.WORLD_ORDER] = "RAS"  # Nifti space
-    hdr[Field.VOXEL_ORDER] = "".join(aff2axcodes(affine))
+    def __repr__(self):
+        txt = "Header{\n"
+        txt += "nb_streamlines: " + repr(self.nb_streamlines) + '\n'
+        txt += "nb_scalars_per_point: " + repr(self.nb_scalars_per_point) + '\n'
+        txt += "nb_properties_per_streamline: " + repr(self.nb_properties_per_streamline) + '\n'
+        txt += "voxel_to_world: " + repr(self.voxel_to_world) + '\n'
+        txt += "voxel_sizes: " + repr(self.voxel_sizes) + '\n'
 
-    return hdr
+        txt += "Extra fields: {\n"
+        for key in sorted(self.extra.keys()):
+            txt += "  " + repr(key) + ": " + repr(self.extra[key]) + "\n"
+
+        txt += "  }\n"
+        return txt + "}"

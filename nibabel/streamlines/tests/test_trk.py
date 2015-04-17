@@ -4,23 +4,52 @@ import numpy as np
 
 from nibabel.externals.six import BytesIO
 
-from nibabel.testing import assert_arrays_equal
-from nose.tools import assert_equal, assert_raises
+from nibabel.testing import suppress_warnings, catch_warn_reset
+from nibabel.testing import assert_arrays_equal, assert_streamlines_equal
+from nose.tools import assert_equal, assert_raises, assert_true
 
-import nibabel as nib
-from nibabel.streamlines.base_format import Streamlines, LazyStreamlines
-from nibabel.streamlines.base_format import DataError, HeaderError
-from nibabel.streamlines.header import Field
-from nibabel.streamlines.trk import TrkFile
+from .. import base_format
+from ..base_format import Streamlines, LazyStreamlines
+from ..base_format import DataError, HeaderError, HeaderWarning, UsageWarning
+
+from .. import trk
+from ..trk import TrkFile
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
+
+
+def isiterable(streamlines):
+    try:
+        for point, scalar, prop in streamlines:
+            pass
+    except:
+        return False
+
+    return True
+
+
+def check_streamlines(streamlines, nb_streamlines, points, scalars, properties):
+    # Check data
+    assert_equal(len(streamlines), nb_streamlines)
+    assert_arrays_equal(streamlines.points, points)
+    assert_arrays_equal(streamlines.scalars, scalars)
+    assert_arrays_equal(streamlines.properties, properties)
+    assert_true(isiterable(streamlines))
+
+    assert_equal(streamlines.header.nb_streamlines, nb_streamlines)
+    nb_scalars_per_point = 0 if len(scalars) == 0 else len(scalars[0][0])
+    nb_properties_per_streamline = 0 if len(properties) == 0 else len(properties[0])
+    assert_equal(streamlines.header.nb_scalars_per_point, nb_scalars_per_point)
+    assert_equal(streamlines.header.nb_properties_per_streamline, nb_properties_per_streamline)
 
 
 class TestTRK(unittest.TestCase):
 
     def setUp(self):
         self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
+        # simple.trk contains only points
         self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
+        # complex.trk contains points, scalars and properties
         self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
 
         self.points = [np.arange(1*3, dtype="f4").reshape((1, 3)),
@@ -35,142 +64,85 @@ class TestTRK(unittest.TestCase):
                                        np.array([2.11, 2.22], dtype="f4"),
                                        np.array([3.11, 3.22], dtype="f4")]
 
+        self.nb_streamlines = len(self.points)
+        self.nb_scalars_per_point = self.colors[0].shape[1]
+        self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
+
     def test_load_empty_file(self):
-        empty_trk = nib.streamlines.load(self.empty_trk_filename, ref=None, lazy_load=False)
+        trk = TrkFile.load(self.empty_trk_filename, ref=None, lazy_load=False)
+        check_streamlines(trk, 0, [], [], [])
 
-        hdr = empty_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], 0)
-        assert_equal(len(empty_trk), 0)
-
-        points = empty_trk.points
-        assert_equal(len(points), 0)
-
-        scalars = empty_trk.scalars
-        assert_equal(len(scalars), 0)
-
-        properties = empty_trk.properties
-        assert_equal(len(properties), 0)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in empty_trk:
-            pass
+        trk = TrkFile.load(self.empty_trk_filename, ref=None, lazy_load=True)
+        # Suppress warning about loading a TRK file in lazy mode with count=0.
+        with suppress_warnings():
+            check_streamlines(trk, 0, [], [], [])
 
     def test_load_simple_file(self):
-        simple_trk = nib.streamlines.load(self.simple_trk_filename, ref=None, lazy_load=False)
+        trk = TrkFile.load(self.simple_trk_filename, ref=None, lazy_load=False)
+        check_streamlines(trk, self.nb_streamlines, self.points, [], [])
 
-        hdr = simple_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(simple_trk), len(self.points))
-
-        points = simple_trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = simple_trk.scalars
-        assert_equal(len(scalars), len(self.points))
-
-        properties = simple_trk.properties
-        assert_equal(len(properties), len(self.points))
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in simple_trk:
-            pass
-
-        # Test lazy_load
-        simple_trk = nib.streamlines.load(self.simple_trk_filename, ref=None, lazy_load=True)
-
-        hdr = simple_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(simple_trk), len(self.points))
-
-        points = simple_trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = simple_trk.scalars
-        assert_equal(len(list(scalars)), len(self.points))
-
-        properties = simple_trk.properties
-        assert_equal(len(list(properties)), len(self.points))
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in simple_trk:
-            pass
+        trk = TrkFile.load(self.simple_trk_filename, ref=None, lazy_load=True)
+        check_streamlines(trk, self.nb_streamlines, self.points, [], [])
 
     def test_load_complex_file(self):
-        complex_trk = nib.streamlines.load(self.complex_trk_filename, ref=None, lazy_load=False)
+        trk = TrkFile.load(self.complex_trk_filename, ref=None, lazy_load=False)
+        check_streamlines(trk, self.nb_streamlines,
+                          self.points, self.colors, self.mean_curvature_torsion)
 
-        hdr = complex_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(complex_trk), len(self.points))
+        trk = TrkFile.load(self.complex_trk_filename, ref=None, lazy_load=True)
+        check_streamlines(trk, self.nb_streamlines,
+                          self.points, self.colors, self.mean_curvature_torsion)
 
-        points = complex_trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = complex_trk.scalars
-        assert_arrays_equal(scalars, self.colors)
-
-        properties = complex_trk.properties
-        assert_arrays_equal(properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in complex_trk:
-            pass
-
-        complex_trk = nib.streamlines.load(self.complex_trk_filename, ref=None, lazy_load=True)
-
-        hdr = complex_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(complex_trk), len(self.points))
-
-        points = complex_trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = complex_trk.scalars
-        assert_arrays_equal(scalars, self.colors)
-
-        properties = complex_trk.properties
-        assert_arrays_equal(properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in complex_trk:
-            pass
-
-    def test_load_file_with_no_count(self):
+    def test_load_file_with_wrong_information(self):
         trk_file = open(self.simple_trk_filename, 'rb').read()
-        # Simulate a TRK file where count was not provided.
-        count = np.array(0, dtype="int32").tostring()
-        trk_file = trk_file[:1000-12] + count + trk_file[1000-8:]
-        streamlines = nib.streamlines.load(BytesIO(trk_file), ref=None, lazy_load=False)
-        assert_equal(len(streamlines), len(self.points))
 
-        streamlines = nib.streamlines.load(BytesIO(trk_file), ref=None, lazy_load=True)
-        assert_equal(len(streamlines), len(self.points))
+        # Simulate a TRK file where `count` was not provided.
+        count = np.array(0, dtype="int32").tostring()
+        new_trk_file = trk_file[:1000-12] + count + trk_file[1000-8:]
+        streamlines = TrkFile.load(BytesIO(new_trk_file), lazy_load=False)
+        check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
+
+        streamlines = TrkFile.load(BytesIO(new_trk_file), lazy_load=True)
+        with catch_warn_reset(record=True, modules=[base_format]) as w:
+            check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, UsageWarning))
+
+        # Simulate a TRK file where `voxel_order` was not provided.
+        voxel_order = np.zeros(1, dtype="|S3").tostring()
+        new_trk_file = trk_file[:948] + voxel_order + trk_file[948+3:]
+        with catch_warn_reset(record=True, modules=[trk]) as w:
+            TrkFile.load(BytesIO(new_trk_file), ref=None)
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("LPS" in str(w[0].message))
+
+        # Simulate a TRK file with an unsupported version.
+        version = np.int32(123).tostring()
+        new_trk_file = trk_file[:992] + version + trk_file[992+4:]
+        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+
+        # Simulate a TRK file with a wrong hdr_size.
+        hdr_size = np.int32(1234).tostring()
+        new_trk_file = trk_file[:996] + hdr_size + trk_file[996+4:]
+        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
 
     def test_write_simple_file(self):
         streamlines = Streamlines(self.points)
 
-        simple_trk_file = BytesIO()
-        TrkFile.save(streamlines, simple_trk_file)
+        trk_file = BytesIO()
+        TrkFile.save(streamlines, trk_file)
+        trk_file.seek(0, os.SEEK_SET)
 
-        simple_trk_file.seek(0, os.SEEK_SET)
+        loaded_streamlines = TrkFile.load(trk_file)
+        check_streamlines(loaded_streamlines, self.nb_streamlines,
+                          self.points, [], [])
 
-        simple_trk = nib.streamlines.load(simple_trk_file, ref=None, lazy_load=False)
+        loaded_streamlines_orig = TrkFile.load(self.simple_trk_filename)
+        assert_streamlines_equal(loaded_streamlines, loaded_streamlines_orig)
 
-        hdr = simple_trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(simple_trk), len(self.points))
-
-        points = simple_trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = simple_trk.scalars
-        assert_equal(len(scalars), len(self.points))
-
-        properties = simple_trk.properties
-        assert_equal(len(properties), len(self.points))
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in simple_trk:
-            pass
+        trk_file.seek(0, os.SEEK_SET)
+        assert_equal(open(self.simple_trk_filename, 'rb').read(), trk_file.read())
 
     def test_write_complex_file(self):
         # With scalars
@@ -178,81 +150,40 @@ class TestTRK(unittest.TestCase):
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
-
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
+        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
 
-        hdr = trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(trk), len(self.points))
-
-        points = trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = trk.scalars
-        assert_arrays_equal(scalars, self.colors)
-
-        properties = trk.properties
-        assert_equal(len(properties), len(self.points))
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in trk:
-            pass
+        check_streamlines(loaded_streamlines, self.nb_streamlines,
+                          self.points, self.colors, [])
 
         # With properties
         streamlines = Streamlines(self.points, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
-
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
-
-        hdr = trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(trk), len(self.points))
-
-        points = trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = trk.scalars
-        assert_equal(len(scalars), len(self.points))
-
-        properties = trk.properties
-        assert_arrays_equal(properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in trk:
-            pass
+        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        check_streamlines(loaded_streamlines, self.nb_streamlines,
+                          self.points, [], self.mean_curvature_torsion)
 
         # With scalars and properties
         streamlines = Streamlines(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
-
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
+        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        check_streamlines(loaded_streamlines, self.nb_streamlines,
+                          self.points, self.colors, self.mean_curvature_torsion)
 
-        hdr = trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(trk), len(self.points))
+        loaded_streamlines_orig = TrkFile.load(self.complex_trk_filename)
+        assert_streamlines_equal(loaded_streamlines, loaded_streamlines_orig)
 
-        points = trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = trk.scalars
-        assert_arrays_equal(scalars, self.colors)
-
-        properties = trk.properties
-        assert_arrays_equal(properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in trk:
-            pass
+        trk_file.seek(0, os.SEEK_SET)
+        assert_equal(open(self.complex_trk_filename, 'rb').read(), trk_file.read())
 
     def test_write_erroneous_file(self):
         # No scalars for every points
@@ -299,34 +230,20 @@ class TestTRK(unittest.TestCase):
         streamlines = Streamlines(self.points, properties=properties)
         assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
-    def test_write_file_from_generator(self):
-        gen_points = (point for point in self.points)
-        gen_scalars = (scalar for scalar in self.colors)
-        gen_properties = (prop for prop in self.mean_curvature_torsion)
+    def test_write_file_lazy_streamlines(self):
+        points = lambda: (point for point in self.points)
+        scalars = lambda: (scalar for scalar in self.colors)
+        properties = lambda: (prop for prop in self.mean_curvature_torsion)
 
-        streamlines = LazyStreamlines(points=gen_points, scalars=gen_scalars, properties=gen_properties)
-        #streamlines.header[Field.NB_STREAMLINES] = len(self.points)
+        streamlines = LazyStreamlines(points, scalars, properties)
+        # No need to manually set `nb_streamlines` in the header since we count
+        # them as writing.
+        #streamlines.header.nb_streamlines = self.nb_streamlines
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
-
         trk_file.seek(0, os.SEEK_SET)
 
-        trk = nib.streamlines.load(trk_file, ref=None, lazy_load=False)
-
-        hdr = trk.header
-        assert_equal(hdr[Field.NB_STREAMLINES], len(self.points))
-        assert_equal(len(trk), len(self.points))
-
-        points = trk.points
-        assert_arrays_equal(points, self.points)
-
-        scalars = trk.scalars
-        assert_arrays_equal(scalars, self.colors)
-
-        properties = trk.properties
-        assert_arrays_equal(properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in trk:
-            pass
+        trk = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        check_streamlines(trk, self.nb_streamlines,
+                          self.points, self.colors, self.mean_curvature_torsion)
