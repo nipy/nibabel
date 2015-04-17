@@ -33,7 +33,3 @@ def pop(iterable):
     "Returns the next item from the iterable else None"
     value = list(itertools.islice(iterable, 1))
     return value[0] if len(value) > 0 else None
-
-# TODO
-def change_space(streamline_file, new_point_space):
-    pass

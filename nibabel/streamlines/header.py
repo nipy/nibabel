@@ -1,6 +1,7 @@
+import copy
 import numpy as np
 from nibabel.orientations import aff2axcodes
-from collections import OrderedDict
+from nibabel.externals import OrderedDict
 
 
 class Field:
@@ -18,7 +19,7 @@ class Field:
     DIMENSIONS = "dimensions"
     MAGIC_NUMBER = "magic_number"
     ORIGIN = "origin"
-    VOXEL_TO_WORLD = "voxel_to_world"
+    to_world_space = "to_world_space"
     VOXEL_ORDER = "voxel_order"
     ENDIAN = "endian"
 
@@ -28,33 +29,33 @@ class StreamlinesHeader(object):
         self._nb_streamlines = None
         self._nb_scalars_per_point = None
         self._nb_properties_per_streamline = None
-        self._voxel_to_world = np.eye(4)
+        self._to_world_space = np.eye(4)
         self.extra = OrderedDict()
 
     @property
-    def voxel_to_world(self):
-        return self._voxel_to_world
+    def to_world_space(self):
+        return self._to_world_space
 
-    @voxel_to_world.setter
-    def voxel_to_world(self, value):
-        self._voxel_to_world = np.array(value, dtype=np.float32)
+    @to_world_space.setter
+    def to_world_space(self, value):
+        self._to_world_space = np.array(value, dtype=np.float32)
 
     @property
     def voxel_sizes(self):
-        """ Get voxel sizes from voxel_to_world. """
-        return np.sqrt(np.sum(self.voxel_to_world[:3, :3]**2, axis=0))
+        """ Get voxel sizes from to_world_space. """
+        return np.sqrt(np.sum(self.to_world_space[:3, :3]**2, axis=0))
 
     @voxel_sizes.setter
     def voxel_sizes(self, value):
         scaling = np.r_[np.array(value), [1]]
         old_scaling = np.r_[np.array(self.voxel_sizes), [1]]
         # Remove old scaling and apply new one
-        self.voxel_to_world = np.dot(np.diag(scaling/old_scaling), self.voxel_to_world)
+        self.to_world_space = np.dot(np.diag(scaling/old_scaling), self.to_world_space)
 
     @property
     def voxel_order(self):
-        """ Get voxel order from voxel_to_world. """
-        return "".join(aff2axcodes(self.voxel_to_world))
+        """ Get voxel order from to_world_space. """
+        return "".join(aff2axcodes(self.to_world_space))
 
     @property
     def nb_streamlines(self):
@@ -88,8 +89,17 @@ class StreamlinesHeader(object):
     def extra(self, value):
         self._extra = OrderedDict(value)
 
+    def copy(self):
+        header = StreamlinesHeader()
+        header._nb_streamlines = self.nb_streamlines
+        header.nb_scalars_per_point = self.nb_scalars_per_point
+        header.nb_properties_per_streamline = self.nb_properties_per_streamline
+        header.to_world_space = self.to_world_space.copy()
+        header.extra = copy.deepcopy(self.extra)
+        return header
+
     def __eq__(self, other):
-        return (np.allclose(self.voxel_to_world, other.voxel_to_world) and
+        return (np.allclose(self.to_world_space, other.to_world_space) and
                 self.nb_streamlines == other.nb_streamlines and
                 self.nb_scalars_per_point == other.nb_scalars_per_point and
                 self.nb_properties_per_streamline == other.nb_properties_per_streamline and
@@ -100,7 +110,7 @@ class StreamlinesHeader(object):
         txt += "nb_streamlines: " + repr(self.nb_streamlines) + '\n'
         txt += "nb_scalars_per_point: " + repr(self.nb_scalars_per_point) + '\n'
         txt += "nb_properties_per_streamline: " + repr(self.nb_properties_per_streamline) + '\n'
-        txt += "voxel_to_world: " + repr(self.voxel_to_world) + '\n'
+        txt += "to_world_space: " + repr(self.to_world_space) + '\n'
         txt += "voxel_sizes: " + repr(self.voxel_sizes) + '\n'
 
         txt += "Extra fields: {\n"

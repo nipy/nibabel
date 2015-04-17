@@ -58,7 +58,7 @@ header_2_dtd = [(Field.MAGIC_NUMBER, 'S6'),
                 ('scalar_name', 'S20', 10),
                 (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
                 ('property_name', 'S20', 10),
-                (Field.VOXEL_TO_WORLD, 'f4', (4, 4)),  # new field for version 2
+                (Field.to_world_space, 'f4', (4, 4)),  # new field for version 2
                 ('reserved', 'S444'),
                 (Field.VOXEL_ORDER, 'S4'),
                 ('pad2', 'S4'),
@@ -217,7 +217,7 @@ class TrkWriter(object):
         header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
         header[Field.VOXEL_SIZES] = (1, 1, 1)
         header[Field.DIMENSIONS] = (1, 1, 1)
-        header[Field.VOXEL_TO_WORLD] = np.eye(4)
+        header[Field.to_world_space] = np.eye(4)
         header['version'] = 2
         header['hdr_size'] = TrkFile.HEADER_SIZE
 
@@ -238,7 +238,7 @@ class TrkWriter(object):
         self.header[Field.NB_SCALARS_PER_POINT] = header.nb_scalars_per_point
         self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = header.nb_properties_per_streamline
         self.header[Field.VOXEL_SIZES] = header.voxel_sizes
-        self.header[Field.VOXEL_TO_WORLD] = header.voxel_to_world
+        self.header[Field.to_world_space] = header.to_world_space
         self.header[Field.VOXEL_ORDER] = header.voxel_order
 
         # Keep counts for correcting incoherent fields or warn.
@@ -392,10 +392,10 @@ class TrkFile(StreamlinesFile):
         trk_reader = TrkReader(fileobj)
 
         # Check if reference space matches one from TRK's header.
-        affine = trk_reader.header[Field.VOXEL_TO_WORLD]
+        affine = trk_reader.header[Field.to_world_space]
         if ref is not None:
             affine = get_affine_from_reference(ref)
-            if not np.allclose(affine, trk_reader.header[Field.VOXEL_TO_WORLD]):
+            if not np.allclose(affine, trk_reader.header[Field.to_world_space]):
                 raise ValueError("Reference space provided does not match the "
                                  " one from the TRK file header. Use `ref=None`"
                                  " to use one contained in the TRK file")
@@ -423,7 +423,7 @@ class TrkFile(StreamlinesFile):
                 streamlines.properties = []
 
         # Set available common information about streamlines in the header
-        streamlines.header.voxel_to_world = affine
+        streamlines.header.to_world_space = affine
 
         # If 'count' field is 0, i.e. not provided, we don't set `nb_streamlines`
         if trk_reader.header[Field.NB_STREAMLINES] > 0:
@@ -468,7 +468,7 @@ class TrkFile(StreamlinesFile):
         refers to the center of the voxel.
         '''
         if ref is not None:
-            streamlines.header.voxel_to_world = get_affine_from_reference(ref)
+            streamlines.header.to_world_space = get_affine_from_reference(ref)
 
         trk_writer = TrkWriter(fileobj, streamlines.header)
         trk_writer.write(streamlines)
@@ -502,7 +502,7 @@ class TrkFile(StreamlinesFile):
         info += "scalar_name:\n {0}".format("\n".join(hdr['scalar_name']))
         info += "nb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
         info += "property_name:\n {0}".format("\n".join(hdr['property_name']))
-        info += "vox_to_world: {0}".format(hdr[Field.VOXEL_TO_WORLD])
+        info += "vox_to_world: {0}".format(hdr[Field.to_world_space])
         info += "voxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
         info += "image_orientation_patient: {0}".format(hdr['image_orientation_patient'])
         info += "pad1: {0}".format(hdr['pad1'])

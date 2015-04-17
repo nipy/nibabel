@@ -117,8 +117,8 @@ class TestStreamlines(unittest.TestCase):
         # World space is (RAS+) with voxel size of 2x3x4mm.
         streamlines.header.voxel_sizes = (2, 3, 4)
 
-        new_points = streamlines.to_world_space()
-        for new_pts, pts in zip(new_points, self.points):
+        new_streamlines = streamlines.to_world_space()
+        for new_pts, pts in zip(new_streamlines.points, self.points):
             for dim, size in enumerate(streamlines.header.voxel_sizes):
                 assert_array_almost_equal(new_pts[:, dim], size*pts[:, dim])
 
@@ -129,7 +129,7 @@ class TestStreamlines(unittest.TestCase):
         assert_equal(streamlines.header.nb_scalars_per_point, 0)
         assert_equal(streamlines.header.nb_properties_per_streamline, 0)
         assert_array_equal(streamlines.header.voxel_sizes, (1, 1, 1))
-        assert_array_equal(streamlines.header.voxel_to_world, np.eye(4))
+        assert_array_equal(streamlines.header.to_world_space, np.eye(4))
         assert_equal(streamlines.header.extra, {})
 
         streamlines = Streamlines(self.points, self.colors, self.mean_curvature_torsion)
@@ -138,15 +138,15 @@ class TestStreamlines(unittest.TestCase):
         assert_equal(streamlines.header.nb_scalars_per_point, self.colors[0].shape[1])
         assert_equal(streamlines.header.nb_properties_per_streamline, self.mean_curvature_torsion[0].shape[0])
 
-        # Modifying voxel_sizes should be reflected in voxel_to_world
+        # Modifying voxel_sizes should be reflected in to_world_space
         streamlines.header.voxel_sizes = (2, 3, 4)
         assert_array_equal(streamlines.header.voxel_sizes, (2, 3, 4))
-        assert_array_equal(np.diag(streamlines.header.voxel_to_world), (2, 3, 4, 1))
+        assert_array_equal(np.diag(streamlines.header.to_world_space), (2, 3, 4, 1))
 
-        # Modifying scaling of voxel_to_world should be reflected in voxel_sizes
-        streamlines.header.voxel_to_world = np.diag([4, 3, 2, 1])
+        # Modifying scaling of to_world_space should be reflected in voxel_sizes
+        streamlines.header.to_world_space = np.diag([4, 3, 2, 1])
         assert_array_equal(streamlines.header.voxel_sizes, (4, 3, 2))
-        assert_array_equal(streamlines.header.voxel_to_world, np.diag([4, 3, 2, 1]))
+        assert_array_equal(streamlines.header.to_world_space, np.diag([4, 3, 2, 1]))
 
         # Test that we can run __repr__ without error.
         repr(streamlines.header)
@@ -313,7 +313,7 @@ class TestLazyStreamlines(unittest.TestCase):
         assert_equal(streamlines.header.nb_scalars_per_point, 0)
         assert_equal(streamlines.header.nb_properties_per_streamline, 0)
         assert_array_equal(streamlines.header.voxel_sizes, (1, 1, 1))
-        assert_array_equal(streamlines.header.voxel_to_world, np.eye(4))
+        assert_array_equal(streamlines.header.to_world_space, np.eye(4))
         assert_equal(streamlines.header.extra, {})
 
         points = lambda: (x for x in self.points)

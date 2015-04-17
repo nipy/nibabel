@@ -140,12 +140,12 @@ class TestLoadSave(unittest.TestCase):
         self.nb_streamlines = len(self.points)
         self.nb_scalars_per_point = self.colors[0].shape[1]
         self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
-        self.voxel_to_world = np.eye(4)
+        self.to_world_space = np.eye(4)
 
     def test_load_empty_file(self):
         for empty_filename in self.empty_filenames:
             streamlines = nib.streamlines.load(empty_filename,
-                                               ref=self.voxel_to_world,
+                                               ref=self.to_world_space,
                                                lazy_load=False)
             assert_true(type(streamlines), Streamlines)
             check_streamlines(streamlines, 0, [], [], [])
@@ -153,7 +153,7 @@ class TestLoadSave(unittest.TestCase):
     def test_load_simple_file(self):
         for simple_filename in self.simple_filenames:
             streamlines = nib.streamlines.load(simple_filename,
-                                               ref=self.voxel_to_world,
+                                               ref=self.to_world_space,
                                                lazy_load=False)
             assert_true(type(streamlines), Streamlines)
             check_streamlines(streamlines, self.nb_streamlines,
@@ -161,7 +161,7 @@ class TestLoadSave(unittest.TestCase):
 
             # Test lazy_load
             streamlines = nib.streamlines.load(simple_filename,
-                                               ref=self.voxel_to_world,
+                                               ref=self.to_world_space,
                                                lazy_load=True)
             assert_true(type(streamlines), LazyStreamlines)
             check_streamlines(streamlines, self.nb_streamlines,
@@ -180,7 +180,7 @@ class TestLoadSave(unittest.TestCase):
                 properties = self.mean_curvature_torsion
 
             streamlines = nib.streamlines.load(complex_filename,
-                                               ref=self.voxel_to_world,
+                                               ref=self.to_world_space,
                                                lazy_load=False)
             assert_true(type(streamlines), Streamlines)
             check_streamlines(streamlines, self.nb_streamlines,
@@ -188,7 +188,7 @@ class TestLoadSave(unittest.TestCase):
 
             # Test lazy_load
             streamlines = nib.streamlines.load(complex_filename,
-                                               ref=self.voxel_to_world,
+                                               ref=self.to_world_space,
                                                lazy_load=True)
             assert_true(type(streamlines), LazyStreamlines)
             check_streamlines(streamlines, self.nb_streamlines,
@@ -199,7 +199,7 @@ class TestLoadSave(unittest.TestCase):
         for ext in nib.streamlines.FORMATS.keys():
             with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
                 nib.streamlines.save(streamlines, f.name)
-                loaded_streamlines = nib.streamlines.load(f, ref=self.voxel_to_world, lazy_load=False)
+                loaded_streamlines = nib.streamlines.load(f, ref=self.to_world_space, lazy_load=False)
                 check_streamlines(loaded_streamlines, self.nb_streamlines,
                                   self.points, [], [])
 
@@ -224,6 +224,6 @@ class TestLoadSave(unittest.TestCase):
                 if cls.can_save_properties():
                     properties = self.mean_curvature_torsion
 
-                loaded_streamlines = nib.streamlines.load(f, ref=self.voxel_to_world, lazy_load=False)
+                loaded_streamlines = nib.streamlines.load(f, ref=self.to_world_space, lazy_load=False)
                 check_streamlines(loaded_streamlines, self.nb_streamlines,
                                   self.points, scalars, properties)
