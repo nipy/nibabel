@@ -1,195 +1,19 @@
 import os
 import unittest
 import numpy as np
+import warnings
 
 from nibabel.testing import assert_arrays_equal
-from nose.tools import assert_equal, assert_raises
-from numpy.testing import assert_array_equal
+from nibabel.testing import suppress_warnings, catch_warn_reset
+from nose.tools import assert_equal, assert_raises, assert_true
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+from nibabel.externals.six.moves import zip
 
-from nibabel.streamlines.base_format import Streamlines, LazyStreamlines
-from nibabel.streamlines.base_format import HeaderError
-from nibabel.streamlines.header import Field
+from .. import base_format
+from ..base_format import Streamlines, LazyStreamlines
+from ..base_format import UsageWarning
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
-
-
-class TestLazyStreamlines(unittest.TestCase):
-
-    def setUp(self):
-        self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
-        self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
-        self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
-
-        self.points = [np.arange(1*3, dtype="f4").reshape((1, 3)),
-                       np.arange(2*3, dtype="f4").reshape((2, 3)),
-                       np.arange(5*3, dtype="f4").reshape((5, 3))]
-
-        self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
-                       np.array([(0, 1, 0)]*2, dtype="f4"),
-                       np.array([(0, 0, 1)]*5, dtype="f4")]
-
-        self.mean_curvature_torsion = [np.array([1.11, 1.22], dtype="f4"),
-                                       np.array([2.11, 2.22], dtype="f4"),
-                                       np.array([3.11, 3.22], dtype="f4")]
-
-    def test_streamlines_creation_from_arrays(self):
-        # Empty
-        streamlines = LazyStreamlines()
-
-        # LazyStreamlines have a default header when created from arrays:
-        #  NB_STREAMLINES, NB_SCALARS_PER_POINT, NB_PROPERTIES_PER_STREAMLINE
-        #  and VOXEL_TO_WORLD.
-        hdr = streamlines.header
-        assert_equal(len(hdr), 1)
-        assert_equal(len(streamlines), 0)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
-            pass
-
-        # Only points
-        streamlines = LazyStreamlines(points=self.points)
-        assert_equal(len(streamlines), len(self.points))
-        assert_arrays_equal(streamlines.points, self.points)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
-            pass
-
-        # Only scalars
-        streamlines = LazyStreamlines(scalars=self.colors)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-
-        # TODO: is it a faulty behavior?
-        assert_equal(len(list(streamlines)), len(self.colors))
-
-        # Points, scalars and properties
-        streamlines = LazyStreamlines(self.points, self.colors, self.mean_curvature_torsion)
-        assert_equal(len(streamlines), len(self.points))
-        assert_arrays_equal(streamlines.points, self.points)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
-            pass
-
-    def test_streamlines_creation_from_generators(self):
-        # Points, scalars and properties
-        points = (x for x in self.points)
-        scalars = (x for x in self.colors)
-        properties = (x for x in self.mean_curvature_torsion)
-
-        streamlines = LazyStreamlines(points, scalars, properties)
-
-        # LazyStreamlines object does not support indexing.
-        assert_raises(AttributeError, streamlines.__getitem__, 0)
-
-        assert_arrays_equal(streamlines.points, self.points)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
-
-        # Have been consumed
-        assert_equal(len(list(streamlines)), 0)
-        assert_equal(len(list(streamlines.points)), 0)
-        assert_equal(len(list(streamlines.scalars)), 0)
-        assert_equal(len(list(streamlines.properties)), 0)
-
-        # Test function len
-        points = (x for x in self.points)
-        streamlines = LazyStreamlines(points, scalars, properties)
-
-        # This will consume generator `points`.
-        # Note this will produce a warning message.
-        assert_equal(len(streamlines), len(self.points))
-        assert_equal(len(streamlines), 0)
-
-        # It will use `Field.NB_STREAMLINES` if it is in the streamlines header
-        # Note this won't produce a warning message.
-        streamlines.header[Field.NB_STREAMLINES] = len(self.points)
-        assert_equal(len(streamlines), len(self.points))
-
-    def test_streamlines_creation_from_functions(self):
-        # Points, scalars and properties
-        points = lambda: (x for x in self.points)
-        scalars = lambda: (x for x in self.colors)
-        properties = lambda: (x for x in self.mean_curvature_torsion)
-
-        streamlines = LazyStreamlines(points, scalars, properties)
-
-        # LazyStreamlines object does not support indexing.
-        assert_raises(AttributeError, streamlines.__getitem__, 0)
-
-        assert_arrays_equal(streamlines.points, self.points)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
-
-        # Have been consumed but lambda functions get re-called.
-        assert_equal(len(list(streamlines)), len(self.points))
-        assert_arrays_equal(streamlines.points, self.points)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
-
-        # Test function `len`
-        # Calling `len` will create a new generator each time.
-        # Note this will produce a warning message.
-        assert_equal(len(streamlines), len(self.points))
-        assert_equal(len(streamlines), len(self.points))
-
-        # It will use `Field.NB_STREAMLINES` if it is in the streamlines header
-        # Note this won't produce a warning message.
-        streamlines.header[Field.NB_STREAMLINES] = len(self.points)
-        assert_equal(len(streamlines), len(self.points))
-
-    def test_len(self):
-        # Points, scalars and properties
-        points = lambda: (x for x in self.points)
-
-        # Function `len` is computed differently depending on available information.
-        # When `points` is a list, `len` will use `len(points)`.
-        streamlines = LazyStreamlines(points=self.points)
-        assert_equal(len(streamlines), len(self.points))
-
-        # When `points` is a generator, `len` will iterate through the streamlines
-        # and consume the generator.
-        # TODO: check that it has raised a warning message.
-        streamlines = LazyStreamlines(points=points())
-        assert_equal(len(streamlines), len(self.points))
-        assert_equal(len(streamlines), 0)
-
-        # When `points` is a callable object that creates a generator, `len` will iterate
-        # through the streamlines.
-        # TODO: check that it has raised a warning message.
-        streamlines = LazyStreamlines(points=points)
-        assert_equal(len(streamlines), len(self.points))
-        assert_equal(len(streamlines), len(self.points))
-
-
-        # No matter what `points` is, if `Field.NB_STREAMLINES` is set in the header
-        # `len` returns that value. If not and `count` argument is specified, `len`
-        # will use that information to return a value.
-        # TODO: check that no warning messages are raised.
-        for pts in [self.points, points(), points]:
-            # `Field.NB_STREAMLINES` is set in the header.
-            streamlines = LazyStreamlines(points=pts)
-            streamlines.header[Field.NB_STREAMLINES] = 42
-            assert_equal(len(streamlines), 42)
-
-            # `count` is an integer.
-            streamlines = LazyStreamlines(points=pts, count=42)
-            assert_equal(len(streamlines), 42)
-
-            # `count` argument is a callable object.
-            nb_calls = [0]
-            def count():
-                nb_calls[0] += 1
-                return 42
-
-            streamlines = LazyStreamlines(points=points, count=count)
-            assert_equal(len(streamlines), 42)
-            assert_equal(len(streamlines), 42)
-            # Check that the callable object is only called once (caching).
-            assert_equal(nb_calls[0], 1)
 
 
 class TestStreamlines(unittest.TestCase):
@@ -211,16 +35,17 @@ class TestStreamlines(unittest.TestCase):
                                        np.array([2.11, 2.22], dtype="f4"),
                                        np.array([3.11, 3.22], dtype="f4")]
 
+        self.nb_streamlines = len(self.points)
+        self.nb_scalars_per_point = self.colors[0].shape[1]
+        self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
+
     def test_streamlines_creation_from_arrays(self):
         # Empty
         streamlines = Streamlines()
         assert_equal(len(streamlines), 0)
-
-        # Streamlines have a default header:
-        #  NB_STREAMLINES, NB_SCALARS_PER_POINT, NB_PROPERTIES_PER_STREAMLINE
-        #  and VOXEL_TO_WORLD.
-        hdr = streamlines.header
-        assert_equal(len(hdr), 4)
+        assert_arrays_equal(streamlines.points, [])
+        assert_arrays_equal(streamlines.scalars, [])
+        assert_arrays_equal(streamlines.properties, [])
 
         # Check if we can iterate through the streamlines.
         for points, scalars, props in streamlines:
@@ -230,18 +55,12 @@ class TestStreamlines(unittest.TestCase):
         streamlines = Streamlines(points=self.points)
         assert_equal(len(streamlines), len(self.points))
         assert_arrays_equal(streamlines.points, self.points)
+        assert_arrays_equal(streamlines.scalars, [])
+        assert_arrays_equal(streamlines.properties, [])
 
         # Check if we can iterate through the streamlines.
         for points, scalars, props in streamlines:
             pass
-
-        # Only scalars
-        streamlines = Streamlines(scalars=self.colors)
-        assert_equal(len(streamlines), 0)
-        assert_arrays_equal(streamlines.scalars, self.colors)
-
-        # TODO: is it a faulty behavior?
-        assert_equal(len(list(streamlines)), len(self.colors))
 
         # Points, scalars and properties
         streamlines = Streamlines(self.points, self.colors, self.mean_curvature_torsion)
@@ -254,27 +73,259 @@ class TestStreamlines(unittest.TestCase):
         for point, scalar, prop in streamlines:
             pass
 
-        # Retrieves streamlines by their index
+    def test_streamlines_getter(self):
+        # Streamlines with only points
+        streamlines = Streamlines(points=self.points)
+
+        selected_streamlines = streamlines[::2]
+        assert_equal(len(selected_streamlines), (len(self.points)+1)//2)
+
+        points, scalars, properties = zip(*selected_streamlines)
+        assert_arrays_equal(points, self.points[::2])
+        assert_equal(sum(map(len, scalars)), 0)
+        assert_equal(sum(map(len, properties)), 0)
+
+        # Streamlines with points, scalars and properties
+        streamlines = Streamlines(self.points, self.colors, self.mean_curvature_torsion)
+
+        # Retrieve streamlines by their index
         for i, (points, scalars, props) in enumerate(streamlines):
             points_i, scalars_i, props_i = streamlines[i]
             assert_array_equal(points_i, points)
             assert_array_equal(scalars_i, scalars)
             assert_array_equal(props_i, props)
 
-    def test_streamlines_creation_from_generators(self):
-        # Points, scalars and properties
-        points = (x for x in self.points)
-        scalars = (x for x in self.colors)
-        properties = (x for x in self.mean_curvature_torsion)
+        # Use slicing
+        r_streamlines = streamlines[::-1]
+        r_points, r_scalars, r_props = zip(*r_streamlines)
+        assert_arrays_equal(r_points, self.points[::-1])
+        assert_arrays_equal(r_scalars, self.colors[::-1])
+        assert_arrays_equal(r_props, self.mean_curvature_torsion[::-1])
 
-        # To create streamlines from generators use LazyStreamlines.
-        assert_raises(TypeError, Streamlines, points, scalars, properties)
-
-    def test_streamlines_creation_from_functions(self):
+    def test_streamlines_creation_from_coroutines(self):
         # Points, scalars and properties
         points = lambda: (x for x in self.points)
         scalars = lambda: (x for x in self.colors)
         properties = lambda: (x for x in self.mean_curvature_torsion)
 
-        # To create streamlines from functions use LazyStreamlines.
+        # To create streamlines from coroutines use `LazyStreamlines`.
         assert_raises(TypeError, Streamlines, points, scalars, properties)
+
+    def test_to_world_space(self):
+        streamlines = Streamlines(self.points)
+
+        # World space is (RAS+) with voxel size of 2x3x4mm.
+        streamlines.header.voxel_sizes = (2, 3, 4)
+
+        new_points = streamlines.to_world_space()
+        for new_pts, pts in zip(new_points, self.points):
+            for dim, size in enumerate(streamlines.header.voxel_sizes):
+                assert_array_almost_equal(new_pts[:, dim], size*pts[:, dim])
+
+    def test_header(self):
+        # Empty Streamlines, with default header
+        streamlines = Streamlines()
+        assert_equal(streamlines.header.nb_streamlines, 0)
+        assert_equal(streamlines.header.nb_scalars_per_point, 0)
+        assert_equal(streamlines.header.nb_properties_per_streamline, 0)
+        assert_array_equal(streamlines.header.voxel_sizes, (1, 1, 1))
+        assert_array_equal(streamlines.header.voxel_to_world, np.eye(4))
+        assert_equal(streamlines.header.extra, {})
+
+        streamlines = Streamlines(self.points, self.colors, self.mean_curvature_torsion)
+
+        assert_equal(streamlines.header.nb_streamlines, len(self.points))
+        assert_equal(streamlines.header.nb_scalars_per_point, self.colors[0].shape[1])
+        assert_equal(streamlines.header.nb_properties_per_streamline, self.mean_curvature_torsion[0].shape[0])
+
+        # Modifying voxel_sizes should be reflected in voxel_to_world
+        streamlines.header.voxel_sizes = (2, 3, 4)
+        assert_array_equal(streamlines.header.voxel_sizes, (2, 3, 4))
+        assert_array_equal(np.diag(streamlines.header.voxel_to_world), (2, 3, 4, 1))
+
+        # Modifying scaling of voxel_to_world should be reflected in voxel_sizes
+        streamlines.header.voxel_to_world = np.diag([4, 3, 2, 1])
+        assert_array_equal(streamlines.header.voxel_sizes, (4, 3, 2))
+        assert_array_equal(streamlines.header.voxel_to_world, np.diag([4, 3, 2, 1]))
+
+        # Test that we can run __repr__ without error.
+        repr(streamlines.header)
+
+
+class TestLazyStreamlines(unittest.TestCase):
+
+    def setUp(self):
+        self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
+        self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
+        self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
+
+        self.points = [np.arange(1*3, dtype="f4").reshape((1, 3)),
+                       np.arange(2*3, dtype="f4").reshape((2, 3)),
+                       np.arange(5*3, dtype="f4").reshape((5, 3))]
+
+        self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
+                       np.array([(0, 1, 0)]*2, dtype="f4"),
+                       np.array([(0, 0, 1)]*5, dtype="f4")]
+
+        self.mean_curvature_torsion = [np.array([1.11, 1.22], dtype="f4"),
+                                       np.array([2.11, 2.22], dtype="f4"),
+                                       np.array([3.11, 3.22], dtype="f4")]
+
+        self.nb_streamlines = len(self.points)
+        self.nb_scalars_per_point = self.colors[0].shape[1]
+        self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
+
+    def test_lazy_streamlines_creation(self):
+        # To create streamlines from arrays use `Streamlines`.
+        assert_raises(TypeError, LazyStreamlines, self.points)
+
+        # Points, scalars and properties
+        points = (x for x in self.points)
+        scalars = (x for x in self.colors)
+        properties = (x for x in self.mean_curvature_torsion)
+
+        # Creating LazyStreamlines from generators is not allowed as
+        # generators get exhausted and are not reusable unline coroutines.
+        assert_raises(TypeError, LazyStreamlines, points)
+        assert_raises(TypeError, LazyStreamlines, self.points, scalars)
+        assert_raises(TypeError, LazyStreamlines, properties_func=properties)
+
+        # Empty `LazyStreamlines`
+        streamlines = LazyStreamlines()
+        with suppress_warnings():
+            assert_equal(len(streamlines), 0)
+        assert_arrays_equal(streamlines.points, [])
+        assert_arrays_equal(streamlines.scalars, [])
+        assert_arrays_equal(streamlines.properties, [])
+
+        # Check if we can iterate through the streamlines.
+        for point, scalar, prop in streamlines:
+            pass
+
+        # Points, scalars and properties
+        points = lambda: (x for x in self.points)
+        scalars = lambda: (x for x in self.colors)
+        properties = lambda: (x for x in self.mean_curvature_torsion)
+
+        streamlines = LazyStreamlines(points, scalars, properties)
+        with suppress_warnings():
+            assert_equal(len(streamlines), self.nb_streamlines)
+
+        # Coroutines get re-called and creates new iterators.
+        assert_arrays_equal(streamlines.points, self.points)
+        assert_arrays_equal(streamlines.scalars, self.colors)
+        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
+        assert_arrays_equal(streamlines.points, self.points)
+        assert_arrays_equal(streamlines.scalars, self.colors)
+        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
+
+        # Create `LazyStreamlines` from a coroutine yielding 3-tuples
+        data = lambda: (x for x in zip(self.points, self.colors, self.mean_curvature_torsion))
+
+        streamlines = LazyStreamlines.create_from_data(data)
+        with suppress_warnings():
+            assert_equal(len(streamlines), self.nb_streamlines)
+        assert_arrays_equal(streamlines.points, self.points)
+        assert_arrays_equal(streamlines.scalars, self.colors)
+        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
+
+        # Check if we can iterate through the streamlines.
+        for point, scalar, prop in streamlines:
+            pass
+
+    def test_lazy_streamlines_indexing(self):
+        points = lambda: (x for x in self.points)
+        scalars = lambda: (x for x in self.colors)
+        properties = lambda: (x for x in self.mean_curvature_torsion)
+
+        # By default, `LazyStreamlines` object does not support indexing.
+        streamlines = LazyStreamlines(points, scalars, properties)
+        assert_raises(AttributeError, streamlines.__getitem__, 0)
+
+        # Create a `LazyStreamlines` object with indexing support.
+        def getitem_without_properties(idx):
+            if isinstance(idx, int) or isinstance(idx, np.integer):
+                return self.points[idx], self.colors[idx]
+
+            return list(zip(self.points[idx], self.colors[idx]))
+
+        streamlines = LazyStreamlines(points, scalars, properties, getitem_without_properties)
+        points, scalars = streamlines[0]
+        assert_array_equal(points, self.points[0])
+        assert_array_equal(scalars, self.colors[0])
+
+        points, scalars = zip(*streamlines[::-1])
+        assert_arrays_equal(points, self.points[::-1])
+        assert_arrays_equal(scalars, self.colors[::-1])
+
+        points, scalars = zip(*streamlines[:-1])
+        assert_arrays_equal(points, self.points[:-1])
+        assert_arrays_equal(scalars, self.colors[:-1])
+
+    def test_lazy_streamlines_len(self):
+        points = lambda: (x for x in self.points)
+        scalars = lambda: (x for x in self.colors)
+        properties = lambda: (x for x in self.mean_curvature_torsion)
+
+        with catch_warn_reset(record=True, modules=[base_format]) as w:
+            warnings.simplefilter("always")  # Always trigger warnings.
+
+            # Calling `len` will create new generators each time.
+            streamlines = LazyStreamlines(points, scalars, properties)
+            # This should produce a warning message.
+            assert_equal(len(streamlines), self.nb_streamlines)
+            assert_equal(len(w), 1)
+
+            streamlines = LazyStreamlines(points, scalars, properties)
+            # This should still produce a warning message.
+            assert_equal(len(streamlines), self.nb_streamlines)
+            assert_equal(len(w), 2)
+            assert_true(issubclass(w[-1].category, UsageWarning))
+
+            # This should *not* produce a warning.
+            assert_equal(len(streamlines), self.nb_streamlines)
+            assert_equal(len(w), 2)
+
+        with catch_warn_reset(record=True, modules=[base_format]) as w:
+            # Once we iterated through the streamlines, we know the length.
+            streamlines = LazyStreamlines(points, scalars, properties)
+            assert_true(streamlines.header.nb_streamlines is None)
+            for s in streamlines:
+                pass
+
+            assert_equal(streamlines.header.nb_streamlines, len(self.points))
+            # This should *not* produce a warning.
+            assert_equal(len(streamlines), len(self.points))
+            assert_equal(len(w), 0)
+
+        with catch_warn_reset(record=True, modules=[base_format]) as w:
+            # It first checks if number of streamlines is in the header.
+            streamlines = LazyStreamlines(points, scalars, properties)
+            streamlines.header.nb_streamlines = 1234
+            # This should *not* produce a warning.
+            assert_equal(len(streamlines), 1234)
+            assert_equal(len(w), 0)
+
+    def test_lazy_streamlines_header(self):
+        # Empty `LazyStreamlines`, with default header
+        streamlines = LazyStreamlines()
+        assert_true(streamlines.header.nb_streamlines is None)
+        assert_equal(streamlines.header.nb_scalars_per_point, 0)
+        assert_equal(streamlines.header.nb_properties_per_streamline, 0)
+        assert_array_equal(streamlines.header.voxel_sizes, (1, 1, 1))
+        assert_array_equal(streamlines.header.voxel_to_world, np.eye(4))
+        assert_equal(streamlines.header.extra, {})
+
+        points = lambda: (x for x in self.points)
+        scalars = lambda: (x for x in self.colors)
+        properties = lambda: (x for x in self.mean_curvature_torsion)
+        streamlines = LazyStreamlines(points)
+        header = streamlines.header
+
+        assert_equal(header.nb_scalars_per_point, 0)
+        streamlines.scalars = scalars
+        assert_equal(header.nb_scalars_per_point, self.nb_scalars_per_point)
+
+        assert_equal(header.nb_properties_per_streamline, 0)
+        streamlines.properties = properties
+        assert_equal(header.nb_properties_per_streamline, self.nb_properties_per_streamline)
