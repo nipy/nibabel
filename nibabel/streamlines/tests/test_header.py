@@ -12,7 +12,7 @@ def test_streamlines_header():
     assert_true(header.nb_scalars_per_point is None)
     assert_true(header.nb_properties_per_streamline is None)
     assert_array_equal(header.voxel_sizes, (1, 1, 1))
-    assert_array_equal(header.voxel_to_world, np.eye(4))
+    assert_array_equal(header.to_world_space, np.eye(4))
     assert_equal(header.extra, {})
 
     # Modify simple attributes
@@ -23,15 +23,15 @@ def test_streamlines_header():
     assert_equal(header.nb_scalars_per_point, 2)
     assert_equal(header.nb_properties_per_streamline, 3)
 
-    # Modifying voxel_sizes should be reflected in voxel_to_world
+    # Modifying voxel_sizes should be reflected in to_world_space
     header.voxel_sizes = (2, 3, 4)
     assert_array_equal(header.voxel_sizes, (2, 3, 4))
-    assert_array_equal(np.diag(header.voxel_to_world), (2, 3, 4, 1))
+    assert_array_equal(np.diag(header.to_world_space), (2, 3, 4, 1))
 
-    # Modifying scaling of voxel_to_world should be reflected in voxel_sizes
-    header.voxel_to_world = np.diag([4, 3, 2, 1])
+    # Modifying scaling of to_world_space should be reflected in voxel_sizes
+    header.to_world_space = np.diag([4, 3, 2, 1])
     assert_array_equal(header.voxel_sizes, (4, 3, 2))
-    assert_array_equal(header.voxel_to_world, np.diag([4, 3, 2, 1]))
+    assert_array_equal(header.to_world_space, np.diag([4, 3, 2, 1]))
 
     # Test that we can run __repr__ without error.
     repr(header)

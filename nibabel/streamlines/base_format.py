@@ -1,3 +1,4 @@
+import numpy as np
 from warnings import warn
 
 from nibabel.externals.six.moves import zip_longest
@@ -111,14 +112,56 @@ class Streamlines(object):
     def __len__(self):
         return len(self.points)
 
-    def to_world_space(self, as_generator=False):
-        affine = self.header.voxel_to_world
-        new_points = (apply_affine(affine, pts) for pts in self.points)
+    def copy(self):
+        """ Returns a copy of this `Streamlines` object. """
+        streamlines = Streamlines(self.points, self.scalars, self.properties)
+        streamlines._header = self.header.copy()
+        return streamlines
 
-        if not as_generator:
-            return list(new_points)
+    def transform(self, affine, lazy=False):
+        """ Applies an affine transformation on the points of each streamline.
 
-        return new_points
+        Parameters
+        ----------
+        affine : 2D array (4,4)
+            Transformation that will be applied on each streamline.
+        lazy : bool (optional)
+            If true output will be a generator of arrays instead of a list.
+
+        Returns
+        -------
+        streamlines
+            If `lazy` is true, a `LazyStreamlines` object is returned,
+            otherwise a `Streamlines` object is returned. In both case,
+            streamlines are in a space defined by `affine`.
+        """
+        points = lambda: (apply_affine(affine, pts) for pts in self.points)
+        if not lazy:
+            points = list(points())
+
+        streamlines = self.copy()
+        streamlines.points = points
+        streamlines.header.to_world_space = np.dot(streamlines.header.to_world_space,
+                                                   np.linalg.inv(affine))
+
+        return streamlines
+
+    def to_world_space(self, lazy=False):
+        """ Sends the streamlines back into world space.
+
+        Parameters
+        ----------
+        lazy : bool (optional)
+            If true output will be a generator of arrays instead of a list.
+
+        Returns
+        -------
+        streamlines
+            If `lazy` is true, a `LazyStreamlines` object is returned,
+            otherwise a `Streamlines` object is returned. In both case,
+            streamlines are in world space.
+        """
+        return self.transform(self.header.to_world_space, lazy)
 
 
 class LazyStreamlines(Streamlines):
@@ -255,8 +298,36 @@ class LazyStreamlines(Streamlines):
 
         return self.header.nb_streamlines
 
+    def copy(self):
+        """ Returns a copy of this `LazyStreamlines` object. """
+        streamlines = LazyStreamlines(self._points, self._scalars, self._properties)
+        streamlines._header = self.header.copy()
+        return streamlines
+
+    def transform(self, affine):
+        """ Applies an affine transformation on the points of each streamline.
+
+        Parameters
+        ----------
+        affine : 2D array (4,4)
+            Transformation that will be applied on each streamline.
+
+        Returns
+        -------
+        streamlines : `LazyStreamlines` object
+            Streamlines living in a space defined by `affine`.
+        """
+        return super(LazyStreamlines, self).transform(affine, lazy=True)
+
     def to_world_space(self):
-        return super(LazyStreamlines, self).to_world_space(as_generator=True)
+        """ Sends the streamlines back into world space.
+
+        Returns
+        -------
+        streamlines : `LazyStreamlines` object
+            Streamlines living in world space.
+        """
+        return super(LazyStreamlines, self).to_world_space(lazy=True)
 
 
 class StreamlinesFile:
