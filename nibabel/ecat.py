@@ -152,14 +152,19 @@ subheader_dtd = [
 subhdr_dtype = np.dtype(subheader_dtd)
 
 # Ecat Data Types
+# See:
+# http://www.turkupetcentre.net/software/libdoc/libtpcimgio/ecat7_8h_source.html#l00060
+# and:
+# http://www.turkupetcentre.net/software/libdoc/libtpcimgio/ecat7r_8c_source.html#l00717
 _dtdefs = ( # code, name, equivalent dtype
-    (1, 'ECAT7_BYTE', np.uint8),
-    (2, 'ECAT7_VAXI2', np.int16),
-    (3, 'ECAT7_VAXI4', np.float32),
-    (4, 'ECAT7_VAXR4', np.float32),
-    (5, 'ECAT7_IEEER4', np.float32),
-    (6, 'ECAT7_SUNI2', np.uint16),
-    (7, 'ECAT7_SUNI4', np.int32))
+           (1, 'ECAT7_BYTE', np.uint8),
+           # Byte signed? https://github.com/nipy/nibabel/pull/302/files#r28275780
+           (2, 'ECAT7_VAXI2', np.int16),
+           (3, 'ECAT7_VAXI4', np.int32),
+           (4, 'ECAT7_VAXR4', np.float32),
+           (5, 'ECAT7_IEEER4', np.float32),
+           (6, 'ECAT7_SUNI2', np.int16),
+           (7, 'ECAT7_SUNI4', np.int32))
 data_type_codes = make_dt_codes(_dtdefs)
 
 

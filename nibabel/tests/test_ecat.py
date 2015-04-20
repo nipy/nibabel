@@ -172,7 +172,7 @@ class TestEcatSubHeader(TestCase):
                                   np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
         assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
         assert_equal(self.subhdr.get_zooms()[2], 3.125)
-        assert_equal(self.subhdr._get_data_dtype(0),np.uint16)
+        assert_equal(self.subhdr._get_data_dtype(0), np.int16)
         #assert_equal(self.subhdr._get_frame_offset(), 1024)
         assert_equal(self.subhdr._get_frame_offset(), 1536)
         dat = self.subhdr.raw_data_from_fileobj()
