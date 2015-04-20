@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 import os
-from os.path import join as pjoin
+from os.path import join as pjoin, isdir
 import getpass
 import time
 
@@ -8,24 +8,31 @@ from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, dec
 
-from .. import read_geometry, read_morph_data, read_annot, read_label, \
-    write_geometry, write_annot
+from .. import (read_geometry, read_morph_data, read_annot, read_label,
+                write_geometry, write_annot)
+
+from ...tests.nibabel_data import get_nibabel_data
 
 
-have_freesurfer = True
-if 'SUBJECTS_DIR' not in os.environ:
-    # Test suite relies on the definition of SUBJECTS_DIR
-    have_freesurfer = False
+DATA_SDIR = 'fsaverage'
 
-freesurfer_test = np.testing.dec.skipif(not have_freesurfer,
-                                        'SUBJECTS_DIR not set')
+have_freesurfer = False
+if 'SUBJECTS_DIR' in os.environ:
+    # May have Freesurfer installed with data
+    data_path = pjoin(os.environ["SUBJECTS_DIR"], DATA_SDIR)
+    have_freesurfer = isdir(data_path)
+else:
+    # May have nibabel test data submodule checked out
+    nib_data = get_nibabel_data()
+    if nib_data != '':
+        data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
+        have_freesurfer = isdir(data_path)
 
-if have_freesurfer:
-    subj_dir = os.environ["SUBJECTS_DIR"]
-    subject_id = 'fsaverage'
-    data_path = pjoin(subj_dir, subject_id)
+freesurfer_test = dec.skipif(
+    not have_freesurfer,
+    'cannot find freesurfer {0} directory'.format(DATA_SDIR))
 
 
 @freesurfer_test
