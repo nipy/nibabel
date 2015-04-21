@@ -3,6 +3,8 @@ import os
 from os.path import join as pjoin, isdir
 import getpass
 import time
+import hashlib
+
 
 from ...tmpdirs import InTemporaryDirectory
 
@@ -33,6 +35,14 @@ else:
 freesurfer_test = dec.skipif(
     not have_freesurfer,
     'cannot find freesurfer {0} directory'.format(DATA_SDIR))
+
+
+def _hash_file_content(fname):
+    hasher = hashlib.md5()
+    with open(fname, 'rb') as afile:
+        buf = afile.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
 
 
 @freesurfer_test
@@ -90,6 +100,8 @@ def test_annot():
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
         annot_path = pjoin(data_path, "label", "%s.%s.annot" % ("lh", a))
+        hash_ = _hash_file_content(annot_path)
+
         labels, ctab, names = read_annot(annot_path)
         assert_true(labels.shape == (163842, ))
         assert_true(ctab.shape == (len(names), 5))
@@ -98,7 +110,14 @@ def test_annot():
         if a == 'aparc':
             labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
-            assert_true(np.sum(labels_orig == 0) > 0)
+            # Handle different version of fsaverage
+            if hash_ == 'bf0b488994657435cdddac5f107d21e8':
+                assert_true(np.sum(labels_orig == 0) == 13887)
+            elif hash_ == 'd4f5b7cbc2ed363ac6fcf89e19353504':
+                assert_true(np.sum(labels_orig == 1639705) == 13327)
+            else:
+                raise RuntimeError("Unknown freesurfer file. Please report "
+                                   "the problem to the maintainer of nibabel.")
 
         # Test equivalence of freesurfer- and nibabel-generated annot files
         # with respect to read_annot()
