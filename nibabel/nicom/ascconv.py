@@ -13,7 +13,7 @@ import ast
 from ..externals import OrderedDict
 
 
-def parse_ascconv(csa_key, input_str):
+def parse_ascconv(csa_key, ascconv_str):
     '''Parse the 'ASCCONV' format from `input_str`.
 
     Parameters
@@ -40,12 +40,9 @@ def parse_ascconv(csa_key, input_str):
         str_delim = '"'
     else:
         raise ValueError('Unknown protocol key: %s' % csa_key)
-    ascconv_start = input_str.find('### ASCCONV BEGIN ###')
-    ascconv_end = input_str.find('### ASCCONV END ###')
-    ascconv_lines = input_str[ascconv_start:ascconv_end].split('\n')[1:-1]
-    ascconv_str = '\n'.join(ascconv_lines)
     # Normalize string start / end markers to something Python understands
     ascconv_str = ascconv_str.replace(str_delim, '"""')
+    ascconv_lines = ascconv_str.split('\n')
     # Use Python's own parser to parse modified ASCCONV assignments
     tree = ast.parse(ascconv_str)
 
