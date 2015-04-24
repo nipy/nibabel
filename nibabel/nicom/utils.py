@@ -16,7 +16,7 @@ def find_private_section(dcm_data, group_no, creator):
     element number of these tags give the start of matching information, in the
     higher tag numbers.
 
-    Paramters
+    Parameters
     ---------
     dcm_data : dicom ``dataset``
         Iterating over `dcm_data` produces ``elements`` with attributes ``tag``,
@@ -60,7 +60,7 @@ def find_private_element(dcm_data, group_no, creator, elem_offset):
     """ Return the private element in group `group_no` given creator name
     `creator` and the offset for the element number `elem_offset`.
 
-    Paramters
+    Parameters
     ---------
     dcm_data : dicom ``dataset``
         Iterating over `dcm_data` produces ``elements`` with attributes ``tag``,
