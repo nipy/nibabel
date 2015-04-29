@@ -7,12 +7,13 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-.. include:: ../../README.rst
+.. include:: _long_description.inc
 
 Documentation
 =============
 
 * :ref:`User Documentation <manual>` (manual)
+* :ref:`Tutorials <tutorials>` (relevant tutorials on imaging)
 * :ref:`API Documentation <api>` (comprehensive reference)
 * :ref:`Developer Guidelines <chap_devguide>` (for those who want to contribute)
 * :ref:`Development Changelog <changelog>` (see what has changed)
@@ -26,17 +27,16 @@ discussions, release procedure and more.
 Authors and Contributors
 ========================
 
-NiBabel has been written and is maintained by `Matthew Brett`_
-and `Michael Hanke`_.  The authors are grateful to the following
-people who have contributed to NiBabel (in rough order of appearance):
+The main authors of NiBabel are `Matthew Brett`_, `Michael Hanke`_ and `Stephan
+Gerhard`_.  The authors are grateful to the following people who have
+contributed code and discussion (in rough order of appearance):
 
 * `Yaroslav O. Halchenko`_
 * Chris Burns
 * `Gaël Varoquaux`_
-* `Stephan Gerhard`_
 * Ian Nimmo-Smith
 * Jarrod Millman
-* Bertran Thirion
+* Bertrand Thirion
 * Thomas Ballinger
 * Cindee Madison
 * Valentin Haenel
@@ -49,6 +49,18 @@ people who have contributed to NiBabel (in rough order of appearance):
 * Félix C. Morency
 * Chris Johnson
 * JB Poline
+* Nolan Nichols
+* Nguyen, Ly
+* Basile Pinsard
+* Kevin S. Hahn
+* Eric Larson
+* Nikolaas N. Oosterhof
+* ohinds
+* Michiel Cottaar
+* Satrajit Ghosh
+* Demian Wassermann
+* Philippe Gervais
+* Justin Lecher
 
 License reprise
 ===============
@@ -69,15 +81,15 @@ Support
 =======
 
 If you have problems installing the software or questions about usage,
-documentation or something else related to NiBabel, you can post to the NiPy
+documentation or anything else related to NiBabel, you can post to the NiPy
 mailing list.
 
 :Mailing list:  nipy-devel@neuroimaging.scipy.org [subscription_, archive_]
 
-It is recommended that all users subscribe to the mailing list.  The mailing
-list is the preferred way to announce changes and additions to the project. The
-mailing list archive can also be searched using the *mailing list archive
-search* located in the sidebar of the NiBabel home page.
+We recommend that anyone using NiBabel subscribes to the mailing list.  The
+mailing list is the preferred way to announce changes and additions to the
+project. You can also search the mailing list archive using the *mailing list
+archive search* located in the sidebar of the NiBabel home page.
 
 .. _subscription: http://mail.scipy.org/mailman/listinfo/nipy-devel
 .. _archive: http://mail.scipy.org/pipermail/nipy-devel
@@ -89,6 +101,7 @@ search* located in the sidebar of the NiBabel home page.
    :hidden:
 
    manual
+   tutorials
    devel/index
    dicom/dicom
    api

@@ -60,13 +60,17 @@ def test_conversion():
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
         for r_class_def in class_map.values():
             r_class = r_class_def['class']
+            if not r_class_def['makeable']:
+                continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
             for w_class_def in class_map.values():
+                if not w_class_def['makeable']:
+                    continue
                 w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
-                assert_array_equal(img2.get_affine(), affine)
+                assert_array_equal(img2.affine, affine)
 
 
 def test_save_load_endian():
@@ -75,37 +79,37 @@ def test_save_load_endian():
     data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
     # Native endian image
     img = Nifti1Image(data, affine)
-    assert_equal(img.get_header().endianness, native_code)
+    assert_equal(img.header.endianness, native_code)
     img2 = round_trip(img)
-    assert_equal(img2.get_header().endianness, native_code)
+    assert_equal(img2.header.endianness, native_code)
     assert_array_equal(img2.get_data(), data)
     # byte swapped endian image
-    bs_hdr = img.get_header().as_byteswapped()
+    bs_hdr = img.header.as_byteswapped()
     bs_img = Nifti1Image(data, affine, bs_hdr)
-    assert_equal(bs_img.get_header().endianness, swapped_code)
+    assert_equal(bs_img.header.endianness, swapped_code)
     # of course the data is the same because it's not written to disk
     assert_array_equal(bs_img.get_data(), data)
     # Check converting to another image
     cbs_img = AnalyzeImage.from_image(bs_img)
     # this will make the header native by doing the header conversion
-    cbs_hdr = cbs_img.get_header()
+    cbs_hdr = cbs_img.header
     assert_equal(cbs_hdr.endianness, native_code)
     # and the byte order follows it back into another image
     cbs_img2 = Nifti1Image.from_image(cbs_img)
-    cbs_hdr2 = cbs_img2.get_header()
+    cbs_hdr2 = cbs_img2.header
     assert_equal(cbs_hdr2.endianness, native_code)
     # Try byteswapped round trip
     bs_img2 = round_trip(bs_img)
     bs_data2 = bs_img2.get_data()
     # now the data dtype was swapped endian, so the read data is too
     assert_equal(bs_data2.dtype.byteorder, swapped_code)
-    assert_equal(bs_img2.get_header().endianness, swapped_code)
+    assert_equal(bs_img2.header.endianness, swapped_code)
     assert_array_equal(bs_data2, data)
     # Now mix up byteswapped data and non-byteswapped header
     mixed_img = Nifti1Image(bs_data2, affine)
-    assert_equal(mixed_img.get_header().endianness, native_code)
+    assert_equal(mixed_img.header.endianness, native_code)
     m_img2 = round_trip(mixed_img)
-    assert_equal(m_img2.get_header().endianness, native_code)
+    assert_equal(m_img2.header.endianness, native_code)
     assert_array_equal(m_img2.get_data(), data)
 
 
@@ -124,7 +128,7 @@ def test_save_load():
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
         assert_array_equal(re_img.get_data(), data)
-        assert_array_equal(re_img.get_affine(), affine)
+        assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
         # windows errors when trying to open files or delete the
         # temporary directory. 
@@ -134,20 +138,20 @@ def test_save_load():
             re_img2 = nils.load(sifn)
             assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
             assert_array_equal(re_img2.get_data(), data)
-            assert_array_equal(re_img2.get_affine(), affine)
+            assert_array_equal(re_img2.affine, affine)
             del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
             assert_true(isinstance(re_img3,
                                          spm99.Spm99AnalyzeImage))
             assert_array_equal(re_img3.get_data(), data)
-            assert_array_equal(re_img3.get_affine(), affine)
+            assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
             del re_img3
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
         assert_array_equal(re_img.get_data(), data)
-        assert_array_equal(re_img.get_affine(), affine)
+        assert_array_equal(re_img.affine, affine)
         del re_img
 
 
@@ -160,47 +164,47 @@ def test_two_to_one():
     affine[:3,3] = [3,2,1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
-    assert_equal(img.get_header()['magic'], b'n+1')
+    assert_equal(img.header['magic'], b'n+1')
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     # check that the single format vox offset stays at zero
     img.to_file_map()
-    assert_equal(img.get_header()['magic'], b'n+1')
-    assert_equal(img.get_header()['vox_offset'], 0)
+    assert_equal(img.header['magic'], b'n+1')
+    assert_equal(img.header['vox_offset'], 0)
     # make a new pair image, with the single image header
-    pimg = ni1.Nifti1Pair(data, affine, img.get_header())
+    pimg = ni1.Nifti1Pair(data, affine, img.header)
     isio = BytesIO()
     hsio = BytesIO()
     pimg.file_map['image'].fileobj = isio
     pimg.file_map['header'].fileobj = hsio
     pimg.to_file_map()
     # the offset stays at zero (but is 352 on disk)
-    assert_equal(pimg.get_header()['magic'], b'ni1')
-    assert_equal(pimg.get_header()['vox_offset'], 0)
+    assert_equal(pimg.header['magic'], b'ni1')
+    assert_equal(pimg.header['vox_offset'], 0)
     assert_array_equal(pimg.get_data(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    assert_equal(ana_img.get_header()['vox_offset'], 0)
+    assert_equal(ana_img.header['vox_offset'], 0)
     # back to the single image, save it again to a stringio
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     img.to_file_map()
-    assert_equal(img.get_header()['vox_offset'], 0)
+    assert_equal(img.header['vox_offset'], 0)
     aimg = ana.AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 0)
+    assert_equal(aimg.header['vox_offset'], 0)
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 0)
+    assert_equal(aimg.header['vox_offset'], 0)
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    assert_equal(aimg.get_header()['vox_offset'], 0)
+    assert_equal(aimg.header['vox_offset'], 0)
     nfimg = ni1.Nifti1Pair.from_image(img)
-    assert_equal(nfimg.get_header()['vox_offset'], 0)
+    assert_equal(nfimg.header['vox_offset'], 0)
     # now set the vox offset directly
-    hdr = nfimg.get_header()
+    hdr = nfimg.header
     hdr['vox_offset'] = 16
-    assert_equal(nfimg.get_header()['vox_offset'], 16)
+    assert_equal(nfimg.header['vox_offset'], 16)
     # check it gets properly set by the nifti single image
     nfimg = ni1.Nifti1Image.from_image(img)
-    assert_equal(nfimg.get_header()['vox_offset'], 0)
+    assert_equal(nfimg.header['vox_offset'], 0)
 
 
 def test_negative_load_save():

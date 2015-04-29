@@ -16,19 +16,19 @@ from ..openers import Opener
 from ..ecat import EcatHeader, EcatMlist, EcatSubHeader, EcatImage
 
 from unittest import TestCase
-
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing import data_path
+from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase
 from .test_fileslice import slicer_samples
 
 ecat_file = os.path.join(data_path, 'tinypet.v')
+
 
 class TestEcatHeader(_TestWrapStructBase):
     header_class = EcatHeader
@@ -111,7 +111,8 @@ class TestEcatMlist(TestCase):
                                             6.01670000e+04,   1.00000000e+00],
                                          [  1.68427580e+07,   6.01680000e+04,
                                             7.22000000e+04,   1.00000000e+00]])
-        assert_true(badordermlist.get_frame_order()[0][0] == 1)
+        with suppress_warnings():  # STORED order
+            assert_true(badordermlist.get_frame_order()[0][0] == 1)
 
     def test_mlist_errors(self):
         fid = open(self.example_file, 'rb')
@@ -130,18 +131,21 @@ class TestEcatMlist(TestCase):
                                     6.01670000e+04,   1.00000000e+00],
                                  [  1.68427580e+07,   6.01680000e+04,
                                     7.22000000e+04,   1.00000000e+00]])        
-        series_framenumbers = mlist.get_series_framenumbers()
+        with suppress_warnings():  # STORED order
+            series_framenumbers = mlist.get_series_framenumbers()
         # first frame stored was actually 2nd frame acquired
         assert_true(series_framenumbers[0] == 2)
         order = [series_framenumbers[x] for x in sorted(series_framenumbers)]
         # true series order is [2,1,3,4,5,6], note counting starts at 1
         assert_true(order == [2, 1, 3, 4, 5, 6])
         mlist._mlist[0,0] = 0
-        frames_order = mlist.get_frame_order()
+        with suppress_warnings():
+            frames_order = mlist.get_frame_order()
         neworder =[frames_order[x][0] for x in sorted(frames_order)] 
         assert_true(neworder == [1, 2, 3, 4, 5])
-        assert_raises(IOError,
-                      mlist.get_series_framenumbers)
+        with suppress_warnings():
+            assert_raises(IOError,
+                          mlist.get_series_framenumbers)
         
         
 
@@ -168,7 +172,7 @@ class TestEcatSubHeader(TestCase):
                                   np.array([ 2.20241979, 2.20241979, 3.125,  1.]))
         assert_equal(self.subhdr.get_zooms()[0], 2.20241978764534)
         assert_equal(self.subhdr.get_zooms()[2], 3.125)
-        assert_equal(self.subhdr._get_data_dtype(0),np.uint16)
+        assert_equal(self.subhdr._get_data_dtype(0), np.int16)
         #assert_equal(self.subhdr._get_frame_offset(), 1024)
         assert_equal(self.subhdr._get_frame_offset(), 1536)
         dat = self.subhdr.raw_data_from_fileobj()
@@ -177,6 +181,7 @@ class TestEcatSubHeader(TestCase):
         assert_equal(self.subhdr.subheaders[0]['scale_factor'].item(),1.0)
         ecat_calib_factor = self.hdr['ecat_calibration_factor']
         assert_equal(ecat_calib_factor, 25007614.0)
+
 
 class TestEcatImage(TestCase):
     image_class = EcatImage

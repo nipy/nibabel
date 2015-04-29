@@ -28,17 +28,17 @@ are on the left or right of the subject and flip the images to the taste of
 the viewer. We could unpack these uses as *neurological display convention*
 and *radiological display convention*.
 
-**************************************
-Neurological / radiological voxel axes
-**************************************
+*********************************
+Alignment of world and voxel axes
+*********************************
 
-Radiological and neurological are sometimes used to refer to particular
-alignments of the voxel input axes to scanner RAS+ output axes. If we look at
-the affine mapping between voxel space and scanner RAS+, we may find that
-moving along the first voxel axis by one unit results in a equivalent scanner
-RAS+ movement that is mainly left to right.  This can happen with a diagonal
-3x3 part of the affine mapping to scanner RAS+ (see
-:doc:`coordinate_systems`):
+As we will see in the next section, radiological and neurological are
+sometimes used to refer to particular alignments of the voxel input axes to
+scanner RAS+ output axes. If we look at the affine mapping between voxel space
+and scanner RAS+, we may find that moving along the first voxel axis by one
+unit results in a equivalent scanner RAS+ movement that is mainly left to
+right.  This can happen with a diagonal 3x3 part of the affine mapping to
+scanner RAS+ (see :doc:`coordinate_systems`):
 
 .. plot::
     :context:
@@ -66,18 +66,18 @@ Some people therefore refer to this alignment of voxel and RAS+ axes as
 Neurological / radiological voxel layout
 ****************************************
 
-Very confusingly, some people also refer to images with "RAS" voxel axes as
-having "neurological" voxel layout. This is because the simplest way to
-display slices from this voxel array will result in the left of the subject
-appearing towards the left hand side of the screen and therefore neurological
-display convention. If we take a slice $k$ over the third axis of the image
-data array (``img_data[:, :, k]``), the resulting slice will have a first
-array axis going from left to right in terms of spatial position and the
-second array axis going from posterior to anterior.  If we display this image
-with the first axis going from left to right on screen and the second from
-bottom to top, it will have the subject's right towards the right of the
-screen, and anterior towards the top of the screen, as neurologists like it.
-Here we are showing the middle slice of :download:`an image
+Very confusingly, some people refer to images with RAS voxel axes as having
+"neurological" voxel layout. This is because the simplest way to display
+slices from this voxel array will result in the left of the subject appearing
+towards the left hand side of the screen and therefore neurological display
+convention. If we take a slice $k$ over the third axis of the image data array
+(``img_data[:, :, k]``), the resulting slice will have a first array axis
+going from left to right in terms of spatial position and the second array
+axis going from posterior to anterior.  If we display this image with the
+first axis going from left to right on screen and the second from bottom to
+top, it will have the subject's right towards the right of the screen, and
+anterior towards the top of the screen, as neurologists like it.  Here we are
+showing the middle slice of :download:`an image
 </downloads/someones_anatomy.nii.gz>` with RAS voxel axes:
 
 .. plot::
@@ -95,7 +95,7 @@ Here we are showing the middle slice of :download:`an image
     >>> img_data = img.get_data()
     >>> a_slice = img_data[:, :, 28]
     >>> # Need transpose to put first axis left-right, second bottom-top
-    >>> plt.imshow(a_slice.T, cmap="gray", origin="lower")
+    >>> plt.imshow(a_slice.T, cmap="gray", origin="lower")  # doctest: +SKIP
 
 This slice does have the voxels from the right of isocenter towards the right
 of the screen, neurology style.

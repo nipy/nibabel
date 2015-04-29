@@ -26,44 +26,46 @@ We'll call our package `dang` - data package new generation.
 Create local-path prundle
 -------------------------
 
->>> import os
->>> import tempfile
->>> pth = tempfile.mkdtemp() # temporary directory
+::
 
-Make a pinstance object
+    >>> import os
+    >>> import tempfile
+    >>> pth = tempfile.mkdtemp() # temporary directory
 
->>> from dang import Pinstance
->>> pri = Prundle(name='my-package')
->>> pri.pkg_name
-'my-package'
->>> pri.meta
-{}
+Make a pinstance object::
 
-Now we make a prundle.   First a directory to contain it
+    >>> from dang import Pinstance
+    >>> pri = Prundle(name='my-package')
+    >>> pri.pkg_name
+    'my-package'
+    >>> pri.meta
+    {}
 
->>> import os
->>> import tempfile
->>> pth = tempfile.mkdtemp() # temporary directory
+Now we make a prundle.   First a directory to contain it::
 
->>> from dang.prundle import LocalPathPrundle
->>> prun = LocalPathPrundle(pri, pth)
+    >>> import os
+    >>> import tempfile
+    >>> pth = tempfile.mkdtemp() # temporary directory
+
+    >>> from dang.prundle import LocalPathPrundle
+    >>> prun = LocalPathPrundle(pri, pth)
 
 At the moment there's nothing in the directory.  The 'write' method will write
-the meta information - here just the package name.
+the meta information - here just the package name::
 
->>> prun.write() # writes meta.ini file
->>> os.listdir(pth)
-['meta.ini']
+    >>> prun.write() # writes meta.ini file
+    >>> os.listdir(pth)
+    ['meta.ini']
 
 The local path prundle data is just the set of files in the temporary directory
 named in ``pth`` above.
 
 Now we've written the package, we can get it by a single call that reads in the
-``meta.ini`` file:
+``meta.ini`` file::
 
->>> prun_back = LocalPathPrundle.from_path(pth)
->>> prun_back.pkg_name
-'my-package'
+    >>> prun_back = LocalPathPrundle.from_path(pth)
+    >>> prun_back.pkg_name
+    'my-package'
 
 Getting prundle data
 --------------------
@@ -79,8 +81,9 @@ In fact, local path distribution objects also have a ``path`` attribute::
 
     >>> fname = os.path.join(prun.path, 'a_file.txt')
 
-The ``path`` attribute might not make sense for objects with greater abstraction
-over the file-system - for example objects encapsulating web content.
+The ``path`` attribute might not make sense for objects with greater
+abstraction over the file-system - for example objects encapsulating web
+content.
 
 *********
 Discovery
@@ -93,8 +96,8 @@ We want to be able to tell the system where prundles are - and the system will
 then be able to return a prundle on request - perhaps by package name.  The
 system here is answering a :ref:`prundle-discovery` query.
 
-We will then want to ask our packaging system whether it knows about the prundle
-we are interested in.
+We will then want to ask our packaging system whether it knows about the
+prundle we are interested in.
 
 Discovery sources
 =================
@@ -150,8 +153,8 @@ from a list of sources.  Something like this::
     >>> dq_res[0].pkg_name
     'my-package'
 
-We'll often want to do exactly this, so we'll add this source pool to those that
-can be returned from our ``get_source`` convenience function::
+We'll often want to do exactly this, so we'll add this source pool to those
+that can be returned from our ``get_source`` convenience function::
 
     >>> src_pool = dpkg.get_source('local-pool')
 
@@ -202,7 +205,7 @@ Discovery sources
 =================
 
 The discovery source has to be able to return prundle objects for the
-prundles it knows about.
+prundles it knows about::
 
     [my-package]
     0 = /some/path
@@ -213,19 +216,19 @@ prundles it knows about.
 Registering a package
 =====================
 
-So far we have a local path distribution, that is a directory with some files in
-it, and our own ``meta.ini`` file, containing the package name and version.  How
-does this package register itself to the default sources?  Of course, we could
-use ``dpkg`` as above::
+So far we have a local path distribution, that is a directory with some files
+in it, and our own ``meta.ini`` file, containing the package name and version.
+How does this package register itself to the default sources?  Of course, we
+could use ``dpkg`` as above::
 
     >>> dst = dpkg.LocalPathDistribution.from_path(path='/a/path')
     >>> local_usr = dpkg.get_source('local-user')
     >>> local_usr.register(dst)
     >>> local_usr.save()
 
-but we wanted to be able to avoid using ``dpkg``.  To do this, there might be a
-supporting script, in the distribution directory, called ``register_me.py``, of
-form given in :download:`register_me.py`.
+but we wanted to be able to avoid using ``dpkg``.  To do this, there might be
+a supporting script, in the distribution directory, called ``register_me.py``,
+of form given in :download:`register_me.py`.
 
 Using discovery sources without dpkg
 ====================================

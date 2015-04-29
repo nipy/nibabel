@@ -76,8 +76,8 @@ class DICOMFS(fuse.Fuse):
                 series_info += 'bits allocated: %d\n' % series.bits_allocated
                 series_info += 'bits stored: %d\n' % series.bits_stored
                 series_info += 'storage instances: %d\n' % len(series.storage_instances)
-                d[series.number] = {'INFO': series_info.encode('ascii', 'replace'), 
-                                    '%s.nii' % series.number: (series.nifti_size, series.as_nifti), 
+                d[series.number] = {'INFO': series_info.encode('ascii', 'replace'),
+                                    '%s.nii' % series.number: (series.nifti_size, series.as_nifti),
                                     '%s.png' % series.number: (series.png_size, series.as_png)}
             pd[study_datetime] = d
         return paths
@@ -148,7 +148,7 @@ class DICOMFS(fuse.Fuse):
         matched_path = self.match_path(path)
         if matched_path is None:
             return -errno.ENOENT
-        for i in xrange(1, 10):
+        for i in range(1, 10):
             if i not in self.fhs:
                 if isinstance(matched_path, str):
                     self.fhs[i] = matched_path

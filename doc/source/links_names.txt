@@ -18,6 +18,9 @@
 .. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
 .. _nibabel pypi: http://pypi.python.org/pypi/nibabel
 .. _nibabel issues: http://github.com/nipy/nibabel/issues
+.. _nibabel github issues: http://github.com/nipy/nibabel/issues
+.. _nibabel wiki: https://github.com/nipy/nibabel.wiki
+.. _nibabel on travis: http://travis-ci.org/nipy/nibabel
 
 .. other related projects
 .. _nipy community: http://nipy.org
@@ -29,6 +32,8 @@
 .. _nipy development guidelines: http://nipy.org/devel
 .. _`nipy github`: http://github.com/nipy/nipy
 .. _nipy buildbot: http://nipy.bic.berkeley.edu
+.. _travis-ci: http://travis-ci.org
+.. _nibotmi: https://github.com/nipy/nibotmi
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -43,6 +48,9 @@
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
+.. _PDDL 1.0: http://opendatacommons.org/licenses/pddl/1.0/
+.. _CC0: http://opendefinition.org/licenses/cc-zero
+
 
 .. Installation
 .. _pypi: http://pypi.python.org/pypi
@@ -75,6 +83,7 @@
 .. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
+.. _bitbucket: http://bitbucket.org
 
 .. Other python projects
 .. _numpy: http://www.scipy.org/NumPy
@@ -94,6 +103,10 @@
 .. _networkx: http://networkx.lanl.gov/
 .. _setuptools: http://pypi.python.org/pypi/setuptools
 .. _distribute: http://packages.python.org/distribute
+.. _pip: https://pip.readthedocs.org/en/latest
+.. _pip install instructions:
+   https://pip.readthedocs.org/en/latest/installing.html
+.. _twine: https://pypi.python.org/pypi/twine
 .. _datapkg: http://okfn.org/projects/datapkg
 .. _python imaging library: http://www.pythonware.com
 
@@ -172,6 +185,7 @@
 .. _enthought: <http://www.enthought.com>
 .. _kitware: http://www.kitware.com
 .. _NeuroDebian: http://neuro.debian.net
+.. _nibabel NeuroDebian: http://neuro.debian.net/pkgs/python-nibabel.html
 .. _nitrc: http://www.nitrc.org
 
 .. General information links
@@ -206,6 +220,9 @@
 .. _`wikipedia shear matrix`: http://en.wikipedia.org/wiki/Shear_matrix
 .. _`wikipedia reflection`: http://en.wikipedia.org/wiki/Reflection_(mathematics)
 .. _`wikipedia direction cosine`: http://en.wikipedia.org/wiki/Direction_cosine
+
+.. Programming ideas
+.. _proxy: http://en.wikipedia.org/wiki/Proxy_pattern
 
 .. philosophy
 .. _0SAGA: http://nipyworld.blogspot.com/2010/11/0saga-software-model.html

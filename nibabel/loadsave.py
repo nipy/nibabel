@@ -26,21 +26,22 @@ from .imageclasses import class_map, ext_map
 from .arrayproxy import is_proxy
 
 
-def load(filename):
+def load(filename, **kwargs):
     ''' Load file given filename, guessing at file type
 
     Parameters
     ----------
     filename : string
        specification of file to load
+    \*\*kwargs : keyword arguments
+        Keyword arguments to format-specific load
 
     Returns
     -------
     img : ``SpatialImage``
        Image of guessed type
     '''
-
-    img = guessed_image_type(filename).from_filename(filename)
+    img = guessed_image_type(filename).from_filename(filename, **kwargs)
     if isinstance(img, Nifti2Image):
         if img.is_cifti:
             return img.as_cifti()
@@ -61,20 +62,21 @@ def guessed_image_type(filename):
         Class corresponding to guessed image type
     """
     froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    lext = ext.lower()
     try:
-        img_type = ext_map[ext]
+        img_type = ext_map[lext]
     except KeyError:
         raise ImageFileError('Cannot work out file type of "%s"' %
                              filename)
-    if ext in ('.mgh', '.mgz'):
+    if lext in ('.mgh', '.mgz', '.par'):
         klass = class_map[img_type]['class']
-    elif ext == '.mnc':
+    elif lext == '.mnc':
         # Look for HDF5 signature for MINC2
         # http://www.hdfgroup.org/HDF5/doc/H5.format.html
         with Opener(filename) as fobj:
             signature = fobj.read(4)
             klass = Minc2Image if signature == b'\211HDF' else Minc1Image
-    elif ext == '.nii':
+    elif lext == '.nii':
         with BinOpener(filename) as fobj:
             binaryblock = fobj.read(348)
         ft = which_analyze_type(binaryblock)
@@ -207,7 +209,7 @@ def read_img_data(img, prefer='scaled'):
     # the consumed values back from the proxy
     if is_proxy(dao) and (default_offset or default_scaling):
         hdr = hdr.copy()
-        if default_offset:
+        if default_offset and dao.offset != 0:
             hdr.set_data_offset(dao.offset)
         if default_scaling and (dao.slope, dao.inter) != (1, 0):
             hdr.set_slope_inter(dao.slope, dao.inter)

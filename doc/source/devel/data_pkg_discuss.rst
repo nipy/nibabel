@@ -4,6 +4,17 @@
 Principles of data package
 ##########################
 
+*******
+Summary
+*******
+
+This is a discussion of data packages, as they are currently implemented in
+nibabel / nipy.
+
+This API proved to be very uncomfortable, and we intend to replace it fairly
+soon.  See ``data_packages.rst`` in the `nibabel wiki`_ for our current
+thinking, not yet implemented.
+
 **********
 Motivation
 **********

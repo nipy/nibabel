@@ -72,7 +72,8 @@ def back_tick(cmd, ret_err=False, as_str=True):
 
     Raises
     ------
-    Raises RuntimeError if command returns non-zero exit code
+    RuntimeError
+        if command returns non-zero exit code.
     """
     proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=NEEDS_SHELL)
     out, err = proc.communicate()

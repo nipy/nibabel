@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 from os.path import dirname, join as pjoin
+import shutil
 
 import numpy as np
 
@@ -11,7 +12,7 @@ from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti2Pair, Nifti2Image)
 from ..loadsave import load, read_img_data
 from ..spatialimages import ImageFileError
-from ..tmpdirs import InTemporaryDirectory
+from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
 from .test_spm99analyze import have_scipy
 
@@ -42,6 +43,13 @@ def test_read_img_data():
         if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
             assert_equal((dao.slope, dao.inter), (1, 0))
             assert_array_equal(read_img_data(img, prefer='unscaled'), data)
+        # Assert all caps filename works as well
+        with TemporaryDirectory() as tmpdir:
+            up_fpath = pjoin(tmpdir, fname.upper())
+            shutil.copyfile(fpath, up_fpath)
+            img = load(up_fpath)
+            assert_array_equal(img.dataobj, data)
+            del img
 
 
 def test_read_img_data_nifti():
@@ -104,8 +112,8 @@ def test_read_img_data_nifti():
                                read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
-            # Delete array still pointing to file, so Windows can re-use
-            del unscaled_back
+            # Delete arrays still pointing to file, so Windows can re-use
+            del actual_unscaled, unscaled_back
             img.to_file_map()
             # Write an integer of zeros after
             with open(img_fname, 'ab') as fobj:
@@ -119,4 +127,5 @@ def test_read_img_data_nifti():
             exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
             assert_array_equal(exp_offset, read_img_data(img_back))
-            del img_back
+            # Delete stuff that might hold onto file references
+            del img, img_back, data_back

@@ -11,7 +11,9 @@ from __future__ import division, print_function
 
 import sys
 import warnings
+import gzip
 import bz2
+from os.path import exists, splitext
 
 import numpy as np
 
@@ -31,6 +33,12 @@ endian_codes = (# numpy code, aliases
 
 #: default compression level when writing gz and bz2 files
 default_compresslevel = 1
+
+#: file-like classes known to hold compressed data
+COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
+
+#: file-like classes known to return string values that are safe to modify
+SAFE_STRINGERS = (gzip.GzipFile, bz2.BZ2File)
 
 
 class Recoder(object):
@@ -425,7 +433,13 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     return True
 
 
-def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
+def _is_compressed_fobj(fobj):
+    """ Return True if fobj represents a compressed data file-like object
+    """
+    return isinstance(fobj, COMPRESSED_FILE_LIKES)
+
+
+def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     ''' Get array from file with specified shape, dtype and file offset
 
     Parameters
@@ -437,10 +451,15 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     infile : file-like
         open file-like object implementing at least read() and seek()
     offset : int, optional
-        offset in bytes into infile to start reading array
-        data. Default is 0
+        offset in bytes into `infile` to start reading array data. Default is 0
     order : {'F', 'C'} string
         order in which to write data.  Default is 'F' (fortran order).
+    mmap : {True, False, 'c', 'r', 'r+'}
+        `mmap` controls the use of numpy memory mapping for reading data.  If
+        False, do not try numpy ``memmap`` for data array.  If one of {'c', 'r',
+        'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of True
+        gives the same behavior as ``mmap='c'``.  If `infile` cannot be
+        memory-mapped, ignore `mmap` value and read array from file.
 
     Returns
     -------
@@ -463,43 +482,51 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F'):
     >>> np.all(arr == arr2)
     True
     '''
+    if not mmap in (True, False, 'c', 'r', 'r+'):
+        raise ValueError("mmap value should be one of True, False, 'c', "
+                         "'r', 'r+'")
+    if mmap == True:
+        mmap = 'c'
     in_dtype = np.dtype(in_dtype)
-    try: # Try memmapping file on disk
-        arr = np.memmap(infile,
-                        in_dtype,
-                        mode='c',
-                        shape=shape,
-                        order=order,
-                        offset=offset)
-        # The error raised by memmap, for different file types, has
-        # changed in different incarnations of the numpy routine
-    except (AttributeError, TypeError, ValueError): # then read data
-        infile.seek(offset)
-        if len(shape) == 0:
-            return np.array([])
-        datasize = int(np.prod(shape) * in_dtype.itemsize)
-        if datasize == 0:
-            return np.array([])
-        data_str = infile.read(datasize)
-        if len(data_str) != datasize:
-            if hasattr(infile, 'name'):
-                file_str = 'file "%s"' % infile.name
-            else:
-                file_str = 'file object'
-            msg = 'Expected %s bytes, got %s bytes from %s\n' \
-                  % (datasize, len(data_str), file_str) + \
-                  ' - could the file be damaged?'
-            raise IOError(msg)
-        arr = np.ndarray(shape,
-                         in_dtype,
-                         buffer=data_str,
-                         order=order)
-        # for some types, we can write to the string buffer without
-        # worrying, but others we can't.
-        if hasattr(infile, 'fileno') or isinstance(infile, bz2.BZ2File):
-            arr.flags.writeable = True
-        else:
-            arr = arr.copy()
+    # Get file-like object from Opener instance
+    infile = getattr(infile, 'fobj', infile)
+    if mmap and not _is_compressed_fobj(infile):
+        try: # Try memmapping file on disk
+            return np.memmap(infile,
+                             in_dtype,
+                             mode=mmap,
+                             shape=shape,
+                             order=order,
+                             offset=offset)
+            # The error raised by memmap, for different file types, has
+            # changed in different incarnations of the numpy routine
+        except (AttributeError, TypeError, ValueError):
+            pass
+    if len(shape) == 0:
+        return np.array([])
+    n_bytes = int(np.prod(shape) * in_dtype.itemsize)
+    if n_bytes == 0:
+        return np.array([])
+    # Read data from file
+    infile.seek(offset)
+    if hasattr(infile, 'readinto'):
+        data_bytes = bytearray(n_bytes)
+        n_read = infile.readinto(data_bytes)
+        needs_copy = False
+    else:
+        data_bytes = infile.read(n_bytes)
+        n_read = len(data_bytes)
+        needs_copy = not isinstance(infile, SAFE_STRINGERS)
+    if n_bytes != n_read:
+        raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
+                      ' - could the file be damaged?'.format(
+                          n_bytes,
+                          n_read,
+                          getattr(infile, 'name', 'object')))
+    arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
+    if needs_copy:
+        return arr.copy()
+    arr.flags.writeable = True
     return arr
 
 
@@ -524,8 +551,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
 
     Parameters
     ----------
-    data : array
-        array to write
+    data : array-like
+        array or array-like to write.
     fileobj : file-like
         file-like object implementing ``write`` method.
     out_dtype : None or dtype, optional
@@ -589,7 +616,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     # Shield special case
     div_none = divslope is None
     if not np.all(
-        np.isfinite((intercept, 1.0 if div_none else divslope))):
+            np.isfinite((intercept, 1.0 if div_none else divslope))):
         raise ValueError('divslope and intercept must be finite')
     if divslope == 0:
         raise ValueError('divslope cannot be zero')
@@ -599,26 +626,25 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = in_dtype
     else:
         out_dtype = np.dtype(out_dtype)
-    if not offset is None:
+    if offset is not None:
         seek_tell(fileobj, offset)
     if (div_none or
         (mn, mx) == (0, 0) or
-        (None not in (mn, mx) and mx < mn)
-       ):
+        ((mn is not None and mx is not None) and mx < mn)):
         write_zeros(fileobj, data.size * out_dtype.itemsize)
         return
-    if not order in 'FC':
+    if order not in 'FC':
         raise ValueError('Order should be one of F or C')
     # Simple cases
-    pre_clips = None if (mn, mx) == (None, None) else (mn, mx)
+    pre_clips = None if (mn is None and mx is None) else (mn, mx)
     null_scaling = (intercept == 0 and divslope == 1)
     if in_dtype.type == np.void:
         if not null_scaling:
             raise ValueError('Cannot scale non-numeric types')
-        if not pre_clips is None:
+        if pre_clips is not None:
             raise ValueError('Cannot clip non-numeric types')
         return _write_data(data, fileobj, out_dtype, order)
-    if not pre_clips is None:
+    if pre_clips is not None:
         pre_clips = _dt_min_max(in_dtype, *pre_clips)
     if null_scaling and np.can_cast(in_dtype, out_dtype):
         return _write_data(data, fileobj, out_dtype, order,
@@ -640,8 +666,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     assert out_kind in 'iu'
     if in_kind in 'iu':
         if null_scaling:
-            # Must be large int to small int conversion; add clipping to pre scale
-            # thresholds
+            # Must be large int to small int conversion; add clipping to
+            # pre scale thresholds
             mn, mx = _dt_min_max(in_dtype, mn, mx)
             mn_out, mx_out = _dt_min_max(out_dtype)
             pre_clips = max(mn, mn_out), min(mx, mx_out)
@@ -693,7 +719,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         specials = specials / slope
     assert specials.dtype.type == w_type
     post_mn, post_mx, nan_fill = np.rint(specials)
-    if post_mn > post_mx: # slope could be negative
+    if post_mn > post_mx:  # slope could be negative
         post_mn, post_mx = post_mx, post_mn
     # Make sure that the thresholds exclude any value that will get badly cast
     # to the integer type.  This is not the same as using the maximumum of the
@@ -710,7 +736,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # rounding
         est_err = np.round(2 * np.finfo(w_type).eps * abs(inter / slope))
         if ((nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or
-            (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
+                (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
             # nan_fill can be (just) outside clip range
             nan_fill = np.clip(nan_fill, both_mn, both_mx)
         else:
@@ -723,24 +749,24 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
     return _write_data(data, fileobj, out_dtype, order,
-                       in_cast = in_cast,
-                       pre_clips = pre_clips,
-                       inter = inter,
-                       slope = slope,
-                       post_clips = (post_mn, post_mx),
-                       nan_fill = nan_fill if nan2zero else None)
+                       in_cast=in_cast,
+                       pre_clips=pre_clips,
+                       inter=inter,
+                       slope=slope,
+                       post_clips=(post_mn, post_mx),
+                       nan_fill=nan_fill if nan2zero else None)
 
 
 def _write_data(data,
                 fileobj,
                 out_dtype,
                 order,
-                in_cast = None,
-                pre_clips = None,
-                inter = 0.,
-                slope = 1.,
-                post_clips = None,
-                nan_fill = None):
+                in_cast=None,
+                pre_clips=None,
+                inter=0.,
+                slope=1.,
+                post_clips=None,
+                nan_fill=None):
     """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
 
     Does not modify `data` in-place.
@@ -877,19 +903,19 @@ def seek_tell(fileobj, offset, write0=False):
         assert fileobj.tell() == offset
 
 
-def apply_read_scaling(arr, slope = None, inter = None):
+def apply_read_scaling(arr, slope=None, inter=None):
     """ Apply scaling in `slope` and `inter` to array `arr`
 
-    This is for loading the array from a file (as opposed to the reverse scaling
-    when saving an array to file)
+    This is for loading the array from a file (as opposed to the reverse
+    scaling when saving an array to file)
 
     Return data will be ``arr * slope + inter``. The trick is that we have to
     find a good precision to use for applying the scaling.  The heuristic is
     that the data is always upcast to the higher of the types from `arr,
     `slope`, `inter` if `slope` and / or `inter` are not default values. If the
-    dtype of `arr` is an integer, then we assume the data more or less fills the
-    integer range, and upcast to a type such that the min, max of ``arr.dtype``
-    * scale + inter, will be finite.
+    dtype of `arr` is an integer, then we assume the data more or less fills
+    the integer range, and upcast to a type such that the min, max of
+    ``arr.dtype`` * scale + inter, will be finite.
 
     Parameters
     ----------
@@ -1513,6 +1539,38 @@ class BinOpener(Opener):
     __doc__ = Opener.__doc__
     compress_ext_map = Opener.compress_ext_map.copy()
     compress_ext_map['.mgz'] = Opener.gz_def
+
+
+def fname_ext_ul_case(fname):
+    """ `fname` with ext changed to upper / lower case if file exists
+
+    Check for existence of `fname`.  If it does exist, return unmodified.  If
+    it doesn't, check for existence of `fname` with case changed from lower to
+    upper, or upper to lower.  Return this modified `fname` if it exists.
+    Otherwise return `fname` unmodified
+
+    Parameters
+    ----------
+    fname : str
+        filename.
+
+    Returns
+    -------
+    mod_fname : str
+        filename, maybe with extension of opposite case
+    """
+    if exists(fname):
+        return fname
+    froot, ext = splitext(fname)
+    if ext == ext.lower():
+        mod_fname = froot + ext.upper()
+        if exists(mod_fname):
+            return mod_fname
+    elif ext == ext.upper():
+        mod_fname = froot + ext.lower()
+        if exists(mod_fname):
+            return mod_fname
+    return fname
 
 
 def allopen(fileish, *args, **kwargs):

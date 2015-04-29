@@ -4,10 +4,10 @@ See docstring of :mod:`nibabel.arraywriters` for API.
 """
 from __future__ import division, print_function, absolute_import
 
+import sys
 from platform import python_compiler, machine
 from distutils.version import LooseVersion
 import itertools
-
 import numpy as np
 
 from ..externals.six import BytesIO
@@ -27,7 +27,7 @@ from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_not_equal,
                         assert_raises)
 
-from ..testing import assert_allclose_safely
+from ..testing import assert_allclose_safely, suppress_warnings
 from ..checkwarns import ErrorWarnings
 
 
@@ -45,7 +45,8 @@ NP_VERSION = LooseVersion(np.__version__)
 def round_trip(writer, order='F', apply_scale=True):
     sio = BytesIO()
     arr = writer.array
-    writer.to_fileobj(sio, order)
+    with np.errstate(invalid='ignore'):
+        writer.to_fileobj(sio, order)
     data_back = array_from_file(arr.shape, writer.out_dtype, sio, order=order)
     slope, inter = get_slope_inter(writer)
     if apply_scale:
@@ -73,17 +74,26 @@ def test_arraywriters():
             # Except on some numpies for complex256, where the array does not
             # equal itself
             if not np.all(bs_arr == arr):
-                np_ver = LooseVersion(np.__version__)
-                assert_true(np_ver <= LooseVersion('1.7.0'))
+                assert_true(NP_VERSION <= LooseVersion('1.7.0'))
                 assert_true(on_powerpc())
                 assert_true(type == np.complex256)
             else:
                 bs_aw = klass(bs_arr)
+                bs_aw_rt = round_trip(bs_aw)
+                # On Ubuntu 13.04 with python 3.3 __eq__ comparison on
+                # arrays with complex numbers fails here for some
+                # reason -- not our fault, and to test correct operation we
+                # will just compare element by element
+                if NP_VERSION == '1.7.1' and sys.version_info[:2] == (3, 3):
+                    assert_array_equal_ = lambda x, y: np.all([x_==y_ for x_,y_ in zip(x,y)])
+                else:
+                    assert_array_equal_ = assert_array_equal
                 # assert against original array because POWER7 was running into
                 # trouble using the byteswapped array (bs_arr)
-                assert_array_equal(arr, round_trip(bs_aw))
+                assert_array_equal_(arr, bs_aw_rt)
                 bs_aw2 = klass(bs_arr, arr.dtype)
-                assert_array_equal(arr, round_trip(bs_aw2))
+                bs_aw2_rt = round_trip(bs_aw2)
+                assert_array_equal(arr, bs_aw2_rt)
             # 2D array
             arr2 = np.reshape(arr, (2, 5))
             a2w = klass(arr2)
@@ -125,15 +135,40 @@ def test_no_scaling():
         kwargs = (dict(check_scaling=False) if awt == ArrayWriter
                   else dict(calc_scale=False))
         aw = awt(arr, out_dtype, **kwargs)
-        back_arr = round_trip(aw)
-        exp_back = arr.astype(float)
+        with suppress_warnings():
+            back_arr = round_trip(aw)
+        exp_back = arr.copy()
+        # If converting to floating point type, casting is direct.
+        # Otherwise we will need to do float-(u)int casting at some point.
         if out_dtype in IUINT_TYPES:
-            exp_back = np.round(exp_back)
-            if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
-                # Finite scaling sets infs to min / max
-                exp_back = np.clip(exp_back, 0, 1)
-            else:
-                exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
+            if in_dtype in CFLOAT_TYPES:
+                # Working precision is (at least) float
+                with suppress_warnings():
+                    exp_back = exp_back.astype(float)
+                # Float to iu conversion will always round, clip
+                with np.errstate(invalid='ignore'):
+                    exp_back = np.round(exp_back)
+                if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
+                    # Finite scaling sets infs to min / max
+                    exp_back = np.clip(exp_back, 0, 1)
+                else:
+                    # Clip to shared range of working precision
+                    exp_back = np.clip(exp_back,
+                                       *shared_range(float, out_dtype))
+            else:  # iu input and output type
+                # No scaling, never gets converted to float.
+                # Does get clipped to range of output type
+                mn_out, mx_out = _dt_min_max(out_dtype)
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    # Use smaller of input, output range to avoid np.clip
+                    # upcasting the array because of large clip limits.
+                    exp_back = np.clip(exp_back,
+                                       max(mn_in, mn_out),
+                                       min(mx_in, mx_out))
+        elif in_dtype in COMPLEX_TYPES:
+            # always cast to real from complex
+            with suppress_warnings():
+                exp_back = exp_back.astype(float)
         exp_back = exp_back.astype(out_dtype)
         # Sometimes working precision is float32 - allow for small differences
         assert_allclose_safely(back_arr, exp_back)
@@ -632,7 +667,8 @@ def test_float_int_min_max():
             continue
         for out_dt in IUINT_TYPES:
             try:
-                aw = SlopeInterArrayWriter(arr, out_dt)
+                with suppress_warnings():  # overflow
+                    aw = SlopeInterArrayWriter(arr, out_dt)
             except ScalingError:
                 continue
             arr_back_sc = round_trip(aw)

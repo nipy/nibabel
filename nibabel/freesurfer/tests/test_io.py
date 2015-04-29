@@ -1,31 +1,48 @@
 from __future__ import division, print_function, absolute_import
 import os
-from os.path import join as pjoin
+from os.path import join as pjoin, isdir
 import getpass
 import time
+import hashlib
 
-from nibabel.tmpdirs import InTemporaryDirectory
+
+from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, dec
 
-from .. import read_geometry, read_morph_data, read_annot, read_label, \
-    write_geometry, write_annot
+from .. import (read_geometry, read_morph_data, read_annot, read_label,
+                write_geometry, write_annot)
+
+from ...tests.nibabel_data import get_nibabel_data
 
 
-have_freesurfer = True
-if 'SUBJECTS_DIR' not in os.environ:
-    # Test suite relies on the definition of SUBJECTS_DIR
-    have_freesurfer = False
+DATA_SDIR = 'fsaverage'
 
-freesurfer_test = np.testing.dec.skipif(not have_freesurfer,
-                                        'SUBJECTS_DIR not set')
+have_freesurfer = False
+if 'SUBJECTS_DIR' in os.environ:
+    # May have Freesurfer installed with data
+    data_path = pjoin(os.environ["SUBJECTS_DIR"], DATA_SDIR)
+    have_freesurfer = isdir(data_path)
+else:
+    # May have nibabel test data submodule checked out
+    nib_data = get_nibabel_data()
+    if nib_data != '':
+        data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
+        have_freesurfer = isdir(data_path)
 
-if have_freesurfer:
-    subj_dir = os.environ["SUBJECTS_DIR"]
-    subject_id = 'fsaverage'
-    data_path = pjoin(subj_dir, subject_id)
+freesurfer_test = dec.skipif(
+    not have_freesurfer,
+    'cannot find freesurfer {0} directory'.format(DATA_SDIR))
+
+
+def _hash_file_content(fname):
+    hasher = hashlib.md5()
+    with open(fname, 'rb') as afile:
+        buf = afile.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
 
 
 @freesurfer_test
@@ -54,7 +71,7 @@ def test_geometry():
 
         with open(surf_path, 'rb') as fobj:
             magic = np.fromfile(fobj, ">u1", 3)
-            read_create_stamp = fobj.readline().rstrip('\n')
+            read_create_stamp = fobj.readline().decode().rstrip('\n')
 
     assert_equal(create_stamp, read_create_stamp)
 
@@ -83,6 +100,8 @@ def test_annot():
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
         annot_path = pjoin(data_path, "label", "%s.%s.annot" % ("lh", a))
+        hash_ = _hash_file_content(annot_path)
+
         labels, ctab, names = read_annot(annot_path)
         assert_true(labels.shape == (163842, ))
         assert_true(ctab.shape == (len(names), 5))
@@ -91,7 +110,14 @@ def test_annot():
         if a == 'aparc':
             labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
-            assert_true(np.sum(labels_orig == 0) > 0)
+            # Handle different version of fsaverage
+            if hash_ == 'bf0b488994657435cdddac5f107d21e8':
+                assert_true(np.sum(labels_orig == 0) == 13887)
+            elif hash_ == 'd4f5b7cbc2ed363ac6fcf89e19353504':
+                assert_true(np.sum(labels_orig == 1639705) == 13327)
+            else:
+                raise RuntimeError("Unknown freesurfer file. Please report "
+                                   "the problem to the maintainer of nibabel.")
 
         # Test equivalence of freesurfer- and nibabel-generated annot files
         # with respect to read_annot()

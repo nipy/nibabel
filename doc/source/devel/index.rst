@@ -10,6 +10,7 @@ Developer documentation page
     :maxdepth: 2
 
     devguide
-    image_design
+    add_test_data
+    add_image_format
     devdiscuss
     make_release

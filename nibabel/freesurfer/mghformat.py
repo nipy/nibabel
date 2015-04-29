@@ -6,18 +6,18 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Header reading / writing functions for mgh image format
+''' Header and image reading / writing functions for MGH image format
 
 Author: Krish Subramaniam
 '''
 from os.path import splitext
 import numpy as np
 
-from nibabel.volumeutils import (array_to_file, array_from_file, Recoder)
-from nibabel.spatialimages import HeaderDataError, ImageFileError, SpatialImage
-from nibabel.fileholders import FileHolder,  copy_file_map
-from nibabel.filename_parser import types_filenames, TypesFilenamesError
-from nibabel.arrayproxy import ArrayProxy
+from ..volumeutils import (array_to_file, array_from_file, Recoder)
+from ..spatialimages import HeaderDataError, SpatialImage
+from ..fileholders import FileHolder,  copy_file_map
+from ..arrayproxy import ArrayProxy
+from ..keywordonly import kw_only_meth
 
 # mgh header
 # See http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -71,7 +71,8 @@ class MGHError(Exception):
 
 
 class MGHHeader(object):
-    '''
+    ''' Class for MGH format header
+
     The header also consists of the footer data which MGH places after the data
     chunk.
     '''
@@ -402,10 +403,6 @@ class MGHHeader(object):
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
 
-    def _set_format_specifics(self):
-        ''' Set MGH specific header stuff'''
-        self._header_data['version'] = 1
-
     def _set_affine_default(self, hdr):
         ''' If  goodRASFlag is 0, return the default delta, Mdc and Pxyz_c
         '''
@@ -458,6 +455,8 @@ class MGHHeader(object):
 
 
 class MGHImage(SpatialImage):
+    """ Class for MGH format image
+    """
     header_class = MGHHeader
     files_types = (('image', '.mgh'),)
     _compressed_exts = (('.gz',))
@@ -467,12 +466,13 @@ class MGHImage(SpatialImage):
     @classmethod
     def filespec_to_file_map(klass, filespec):
         """ Check for compressed .mgz format, then .mgh format """
-        if splitext(filespec)[1] == '.mgz':
+        if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
         return super(MGHImage, klass).filespec_to_file_map(filespec)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True):
         '''Load image from `file_map`
 
         Parameters
@@ -480,17 +480,54 @@ class MGHImage(SpatialImage):
         file_map : None or mapping, optional
            files mapping.  If None (default) use object's ``file_map``
            attribute instead
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
         '''
+        if not mmap in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         mghf = file_map['image'].get_prepare_fileobj('rb')
         header = klass.header_class.from_fileobj(mghf)
         affine = header.get_affine()
         hdr_copy = header.copy()
-        data = klass.ImageArrayProxy(mghf, hdr_copy)
+        data = klass.ImageArrayProxy(mghf, hdr_copy, mmap=mmap)
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
+
+    @classmethod
+    @kw_only_meth(1)
+    def from_filename(klass, filename, mmap=True):
+        ''' class method to create image from filename `filename`
+
+        Parameters
+        ----------
+        filename : str
+            Filename of image to load
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
+
+        Returns
+        -------
+        img : MGHImage instance
+        '''
+        if not mmap in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, mmap=mmap)
+
+    load = from_filename
 
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
@@ -505,7 +542,7 @@ class MGHImage(SpatialImage):
             file_map = self.file_map
         data = self.get_data()
         self.update_header()
-        hdr = self.get_header()
+        hdr = self.header
         with file_map['image'].get_prepare_fileobj('wb') as mghf:
             hdr.writehdr_to(mghf)
             self._write_data(mghf, data, hdr)

@@ -15,6 +15,7 @@ from ..externals.six import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
 from ..casting import type_info
+from ..testing import suppress_warnings
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -186,11 +187,13 @@ def test_a2f_nan2zero():
     data_back = array_from_file(arr.shape, np.float32, str_io)
     assert_array_equal(np.isnan(data_back), [True, False])
     # Integer output with nan2zero gives zero
-    array_to_file(arr, str_io, np.int32, nan2zero=True)
+    with np.errstate(invalid='ignore'):
+        array_to_file(arr, str_io, np.int32, nan2zero=True)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [0, 99])
     # Integer output with nan2zero=False gives whatever astype gives
-    array_to_file(arr, str_io, np.int32, nan2zero=False)
+    with np.errstate(invalid='ignore'):
+        array_to_file(arr, str_io, np.int32, nan2zero=False)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [np.array(np.nan).astype(np.int32), 99])
 
@@ -241,7 +244,8 @@ def test_scaling_in_abstract():
                                 ):
         for in_type in np.sctypes[category0]:
             for out_type in np.sctypes[category1]:
-                check_int_a2f(in_type, out_type)
+                with suppress_warnings():  # overflow
+                    check_int_a2f(in_type, out_type)
 
 
 def check_int_a2f(in_type, out_type):

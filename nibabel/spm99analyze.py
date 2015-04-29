@@ -16,6 +16,7 @@ from .spatialimages import HeaderDataError, HeaderTypeError
 
 from .batteryrunners import Report
 from . import analyze # module import
+from .keywordonly import kw_only_meth
 
 ''' Support subtle variations of SPM version of Analyze '''
 header_key_dtd = analyze.header_key_dtd
@@ -96,7 +97,14 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
-    ''' Adds origin functionality to base SPM header '''
+    ''' Class for SPM99 variant of basic Analyze header
+
+    SPM99 variant adds the following to basic Analyze format:
+
+    * voxel origin;
+    * slope scaling of data.
+    '''
+
     def get_origin_affine(self):
         ''' Get affine from header, using SPM origin field if sensible
 
@@ -223,14 +231,37 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
+    """ Class for SPM99 variant of basic Analyze image
+    """
     header_class = Spm99AnalyzeHeader
     files_types = (('image', '.img'),
                    ('header', '.hdr'),
                    ('mat','.mat'))
 
     @classmethod
-    def from_file_map(klass, file_map):
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map)
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True):
+        ''' class method to create image from mapping in `file_map ``
+
+        Parameters
+        ----------
+        file_map : dict
+            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            instance giving file-likes for each file needed for this image
+            type.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
+
+        Returns
+        -------
+        img : Spm99AnalyzeImage instance
+        '''
+        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map, mmap=mmap)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:

@@ -13,12 +13,12 @@
 Developer discussions
 *********************
 
-Some discussions of usecases and other design issues.  Most of these don't apply
-to the current codebase, and are only for discussion of future directions.
+Some miscellaneous documents on background, future development and work in
+progress.
 
 .. toctree::
     :maxdepth: 2
 
-    usecases/index
-    refactoring/index
+    spm_use
+    modified_images
     data_pkg_design

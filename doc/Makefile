@@ -43,11 +43,13 @@ api-stamp:
 	@echo "Build API docs...done."
 	@touch $@
 
-html: api-stamp
+html-only:
 	mkdir -p $(BUILDROOT)/html $(BUILDROOT)/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDROOT)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDROOT)/html."
+
+html: api-stamp html-only
 
 pickle:
 	mkdir -p $(BUILDROOT)/pickle $(BUILDROOT)/doctrees
@@ -87,7 +89,7 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDROOT)/linkcheck/output.txt."
 
-doctest:
+doctest: api-clean
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDROOT)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in _build/doctest/output.txt."

@@ -10,7 +10,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, inv_ornt_aff, flip_axis,
+from .orientations import (io_orientation, inv_ornt_aff,
                            apply_orientation, OrientationError)
 from .loadsave import load
 
@@ -83,48 +83,75 @@ def squeeze_image(img):
     data = img.get_data()
     data = data.reshape(shape)
     return klass(data,
-                 img.get_affine(),
-                 img.get_header(),
+                 img.affine,
+                 img.header,
                  img.extra)
 
 
-def concat_images(images, check_affines=True):
-    ''' Concatenate images in list to single image, along last dimension
+def concat_images(images, check_affines=True, axis=None):
+    ''' Concatenate images in list to single image, along specified dimension
 
     Parameters
     ----------
     images : sequence
-       sequence of ``SpatialImage`` or of filenames\s
+       sequence of ``SpatialImage`` or filenames of the same dimensionality\s
     check_affines : {True, False}, optional
        If True, then check that all the affines for `images` are nearly
        the same, raising a ``ValueError`` otherwise.  Default is True
-
+    axis : None or int, optional
+        If None, concatenates on a new dimension.  This requires all images to
+        be the same shape.  If not None, concatenates on the specified
+        dimension.  This requires all images to be the same shape, except on
+        the specified dimension.
     Returns
     -------
     concat_img : ``SpatialImage``
        New image resulting from concatenating `images` across last
        dimension
     '''
+    images = [load(img) if not hasattr(img, 'get_data')
+              else img for img in images]
     n_imgs = len(images)
+    if n_imgs == 0:
+        raise ValueError("Cannot concatenate an empty list of images.")
     img0 = images[0]
-    is_filename = False
-    if not hasattr(img0, 'get_data'):
-        img0 = load(img0)
-        is_filename = True
-    i0shape = img0.shape
-    affine = img0.get_affine()
-    header = img0.get_header()
-    out_shape = (n_imgs, ) + i0shape
-    out_data = np.empty(out_shape)
-    for i, img in enumerate(images):
-        if is_filename:
-            img = load(img)
-        if check_affines:
-            if not np.all(img.get_affine() == affine):
-                raise ValueError('Affines do not match')
-        out_data[i] = img.get_data()
-    out_data = np.rollaxis(out_data, 0, len(i0shape)+1)
+    affine = img0.affine
+    header = img0.header
     klass = img0.__class__
+    shape0 = img0.shape
+    n_dim = len(shape0)
+    if axis is None:
+        # collect images in output array for efficiency
+        out_shape = (n_imgs, ) + shape0
+        out_data = np.empty(out_shape)
+    else:
+        # collect images in list for use with np.concatenate
+        out_data = [None] * n_imgs
+    # Get part of shape we need to check inside loop
+    idx_mask = np.ones((n_dim,), dtype=bool)
+    if axis is not None:
+        idx_mask[axis] = False
+    masked_shape = np.array(shape0)[idx_mask]
+    for i, img in enumerate(images):
+        if len(img.shape) != n_dim:
+            raise ValueError(
+                'Image {0} has {1} dimensions, image 0 has {2}'.format(
+                    i, len(img.shape), n_dim))
+        if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
+            raise ValueError('shape {0} for image {1} not compatible with '
+                             'first image shape {2} with axis == {0}'.format(
+                                 img.shape, i, shape0, axis))
+        if check_affines and not np.all(img.affine == affine):
+            raise ValueError('Affine for image {0} does not match affine '
+                             'for first image'.format(i))
+        # Do not fill cache in image if it is empty
+        out_data[i] = img.get_data(caching='unchanged')
+
+    if axis is None:
+        out_data = np.rollaxis(out_data, 0, out_data.ndim)
+    else:
+        out_data = np.concatenate(out_data, axis=axis)
+
     return klass(out_data, affine, header)
 
 
@@ -135,8 +162,8 @@ def four_to_three(img):
     ----------
     img :  image
        4D image instance of some class with methods ``get_data``,
-       ``get_header`` and ``get_affine``, and a class constructor
-       allowing Klass(data, affine, header)
+       ``header`` and ``affine``, and a class constructor
+       allowing klass(data, affine, header)
 
     Returns
     -------
@@ -144,8 +171,8 @@ def four_to_three(img):
        list of 3D images
     '''
     arr = img.get_data()
-    header = img.get_header()
-    affine = img.get_affine()
+    header = img.header
+    affine = img.affine
     image_maker = img.__class__
     if arr.ndim != 4:
         raise ValueError('Expecting four dimensions')
@@ -179,7 +206,7 @@ def as_closest_canonical(img, enforce_diag=False):
        already has the correct data ordering, we just return `img`
        unmodified.
     '''
-    aff = img.get_affine()
+    aff = img.affine
     ornt = io_orientation(aff)
     if np.all(ornt == [[0, 1],
                        [1,1],
@@ -197,11 +224,10 @@ def as_closest_canonical(img, enforce_diag=False):
     # we need to transform the data
     arr = img.get_data()
     t_arr = apply_orientation(arr, ornt)
-    return img.__class__(t_arr, out_aff, img.get_header())
+    return img.__class__(t_arr, out_aff, img.header)
 
 
 def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
-

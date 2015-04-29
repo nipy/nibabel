@@ -9,6 +9,7 @@
 from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
+
 import gzip
 import bz2
 import warnings
@@ -30,8 +31,60 @@ from ..testing import data_path
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
+from .test_helpers import assert_data_similar
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
+
+# Example images in format expected for ``test_image_api``, adding ``zooms``
+# item.
+EXAMPLE_IMAGES = [
+    dict(
+        fname = pjoin(data_path, 'tiny.mnc'),
+        shape = (10,20,20),
+        dtype = np.uint8,
+        affine = np.array([[0, 0, 2.0, -20],
+                           [0, 2.0, 0, -20],
+                           [2.0, 0, 0, -10],
+                           [0, 0, 0, 1]]),
+        zooms = (2., 2., 2.),
+        # These values from SPM2
+        data_summary = dict(
+            min = 0.20784314,
+            max = 0.74901961,
+            mean = 0.60602819),
+        is_proxy = True),
+    dict(
+        fname = pjoin(data_path, 'minc1_1_scale.mnc'),
+        shape = (10,20,20),
+        dtype = np.uint8,
+        affine = np.array([[0, 0, 2.0, -20],
+                           [0, 2.0, 0, -20],
+                           [2.0, 0, 0, -10],
+                           [0, 0, 0, 1]]),
+        zooms = (2., 2., 2.),
+        # These values from mincstats
+        data_summary = dict(
+            min = 0.2082842439,
+            max = 0.2094327615,
+            mean = 0.2091292083),
+        is_proxy = True),
+    dict(
+        fname = pjoin(data_path, 'minc1_4d.mnc'),
+        shape = (2, 10,20,20),
+        dtype = np.uint8,
+        affine = np.array([[0, 0, 2.0, -20],
+                           [0, 2.0, 0, -20],
+                           [2.0, 0, 0, -10],
+                           [0, 0, 0, 1]]),
+        zooms = (1., 2., 2., 2.),
+        # These values from mincstats
+        data_summary = dict(
+            min = 0.2078431373,
+            max = 1.498039216,
+            mean = 0.9090422837),
+        is_proxy = True),
+]
+
 
 def test_old_namespace():
     # Check old names are defined in minc1 module and top level
@@ -82,53 +135,13 @@ class _TestMincFile(object):
     file_class = Minc1File
     fname = EG_FNAME
     opener = netcdf_file
-    test_files = [
-        dict(
-            fname = pjoin(data_path, 'tiny.mnc'),
-            shape = (10,20,20),
-            type = np.uint8,
-            affine = np.array([[0, 0, 2.0, -20],
-                               [0, 2.0, 0, -20],
-                               [2.0, 0, 0, -10],
-                               [0, 0, 0, 1]]),
-            zooms = (2., 2., 2.),
-            # These values from SPM2
-            min = 0.20784314,
-            max = 0.74901961,
-            mean = 0.60602819),
-        dict(
-            fname = pjoin(data_path, 'minc1_1_scale.mnc'),
-            shape = (10,20,20),
-            type = np.uint8,
-            affine = np.array([[0, 0, 2.0, -20],
-                               [0, 2.0, 0, -20],
-                               [2.0, 0, 0, -10],
-                               [0, 0, 0, 1]]),
-            zooms = (2., 2., 2.),
-            # These values from mincstats
-            min = 0.2082842439,
-            max = 0.2094327615,
-            mean = 0.2091292083),
-        dict(
-            fname = pjoin(data_path, 'minc1_4d.mnc'),
-            shape = (2, 10,20,20),
-            type = np.uint8,
-            affine = np.array([[0, 0, 2.0, -20],
-                               [0, 2.0, 0, -20],
-                               [2.0, 0, 0, -10],
-                               [0, 0, 0, 1]]),
-            zooms = (1., 2., 2., 2.),
-            # These values from mincstats
-            min = 0.2078431373,
-            max = 1.498039216,
-            mean = 0.9090422837),
-    ]
+    test_files = EXAMPLE_IMAGES
 
     def test_mincfile(self):
         for tp in self.test_files:
             mnc_obj = self.opener(tp['fname'], 'r')
             mnc = self.file_class(mnc_obj)
-            assert_equal(mnc.get_data_dtype().type, tp['type'])
+            assert_equal(mnc.get_data_dtype().type, tp['dtype'])
             assert_equal(mnc.get_data_shape(), tp['shape'])
             assert_equal(mnc.get_zooms(), tp['zooms'])
             assert_array_equal(mnc.get_affine(), tp['affine'])
@@ -158,13 +171,11 @@ class _TestMincFile(object):
             img = load(tp['fname'])
             data = img.get_data()
             assert_equal(data.shape, tp['shape'])
-            # min, max, mean values from read in SPM2
-            assert_array_almost_equal(data.min(), tp['min'])
-            assert_array_almost_equal(data.max(), tp['max'])
-            assert_array_almost_equal(data.mean(), tp['mean'])
+            # min, max, mean values from read in SPM2 / minctools
+            assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
-            assert_array_equal(ni_img.get_affine(), tp['affine'])
+            assert_array_equal(ni_img.affine, tp['affine'])
             assert_array_equal(ni_img.get_data(), data)
 
     def test_array_proxy_slicing(self):
@@ -194,7 +205,7 @@ class TestMinc1File(_TestMincFile):
                     fobj.close()
                     img = self.module.load(fname)
                     data = img.get_data()
-                    assert_array_almost_equal(data.mean(), tp['mean'])
+                    assert_data_similar(data, tp)
                     del img
 
 

@@ -1,11 +1,26 @@
 .. -*- mode: rst -*-
 
-====================================================
- Relationship between images and io implementations
-====================================================
+##################################################
+Relationship between images and io implementations
+##################################################
 
+********************
+Summary and sign-off
+********************
+
+These were some meditations about splitting the image into two API parts.
+
+The first part would be the lower level IO implementation.  This part is
+rather like a fusion of the :class:`.Header` and :class:`.ArrayProxy` objects
+in current nibabel.  It takes care of lower level details like i/o data dtype,
+shape, offset, and it might help with slicing to get the data.  On top of that
+would be a high level interface implementing ``load``, ``save``, ``filename``,
+``data``.  The top-level image also had the novel idea of a ``mode`` parameter
+which, if ``'r'``, would raise an error on attempting to ``save``.
+
+******
 Images
-======
+******
 
 An image houses the association of the:
 
@@ -29,8 +44,9 @@ images to disk.
 The user does not see the io implementation unless they ask to.  In
 standard use of images they will not need to do this.
 
+******************
 IO implementations
-==================
+******************
 
 By use case.
 

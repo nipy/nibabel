@@ -149,7 +149,6 @@ def test_eye():
 
 
 def test_qrotate():
-    vecs = np.eye(3)
     for vec in np.eye(3):
         for M, q in eg_pairs:
             vdash = nq.rotate_vector(vec, q)

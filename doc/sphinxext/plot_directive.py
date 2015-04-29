@@ -601,7 +601,9 @@ def render_figures(code, code_path, output_dir, output_base, context,
     for i, code_piece in enumerate(code_pieces):
 
         if not context or config.plot_apply_rcparams:
-            clear_state(config.plot_rcparams, close=not context)
+            clear_state(config.plot_rcparams)
+        else:
+            plt.close('all')
 
         run_code(code_piece, code_path, ns, function_name)
 

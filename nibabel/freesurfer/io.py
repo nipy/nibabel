@@ -5,6 +5,9 @@ import getpass
 import time
 
 
+from .. externals.six.moves import xrange
+
+
 def _fread3(fobj):
     """Read a 3-byte int from an open binary file object
 
@@ -82,8 +85,8 @@ def read_geometry(filepath):
                     nface += 1
 
         elif magic == 16777214:  # Triangle file
-            create_stamp = fobj.readline()
-            _ = fobj.readline()
+            fobj.readline()  # create_stamp
+            fobj.readline()
             vnum = np.fromfile(fobj, ">i4", 1)[0]
             fnum = np.fromfile(fobj, ">i4", 1)[0]
             coords = np.fromfile(fobj, ">f4", vnum * 3).reshape(vnum, 3)
@@ -117,7 +120,7 @@ def write_geometry(filepath, coords, faces, create_stamp=None):
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
-        fobj.write("%s\n\n" % create_stamp)
+        fobj.write(("%s\n\n" % create_stamp).encode('utf-8'))
 
         np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
 
@@ -152,7 +155,7 @@ def read_morph_data(filepath):
             curv = np.fromfile(fobj, ">f4", vnum)
         else:
             vnum = magic
-            _ = _fread3(fobj)
+            _fread3(fobj)
             curv = np.fromfile(fobj, ">i2", vnum) / 100
     return curv
 
@@ -211,11 +214,11 @@ def read_annot(filepath, orig_ids=False):
             n_entries = np.fromfile(fobj, dt, 1)[0]
             ctab = np.zeros((n_entries, 5), np.int)
             length = np.fromfile(fobj, dt, 1)[0]
-            _ = np.fromfile(fobj, "|S%d" % length, 1)[0]  # Orig table path
+            np.fromfile(fobj, "|S%d" % length, 1)[0]  # Orig table path
             entries_to_read = np.fromfile(fobj, dt, 1)[0]
             names = list()
             for i in xrange(entries_to_read):
-                _ = np.fromfile(fobj, dt, 1)[0]  # Structure
+                np.fromfile(fobj, dt, 1)[0]  # Structure
                 name_length = np.fromfile(fobj, dt, 1)[0]
                 name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
                 names.append(name)
@@ -223,6 +226,9 @@ def read_annot(filepath, orig_ids=False):
                 ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
                               ctab[i, 2] * (2 ** 16))
         ctab[:, 3] = 255
+
+    labels = labels.astype(np.int)
+
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
         mask = labels != 0
@@ -267,9 +273,9 @@ def write_annot(filepath, labels, ctab, names):
         clut_labels[np.where(labels == -1)] = 0
 
         # vno, label
-        data = np.vstack((np.array(range(vnum)).astype(dt),
-                          clut_labels.astype(dt))).T
-        data.byteswap().tofile(fobj)
+        data = np.vstack((np.array(range(vnum)),
+                          clut_labels)).T.astype(dt)
+        data.tofile(fobj)
 
         # tag
         write(1)

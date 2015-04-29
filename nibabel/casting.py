@@ -14,6 +14,14 @@ class CastingError(Exception):
     pass
 
 
+# Test for VC truncation when casting floats to uint64
+# Christoph Gohlke says this is so for MSVC <= 2010 because VC is using x87
+# instructions; see:
+# https://github.com/scipy/scipy/blob/99bb8411f6391d921cb3f4e56619291e91ddf43b/scipy/ndimage/tests/test_datatypes.py#L51
+_test_val = 2**63 + 2**11 # Should be exactly representable in float64
+TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
+
+
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     """ Convert floating point array `arr` to type `int_type`
 
@@ -107,8 +115,8 @@ def shared_range(flt_type, int_type):
     """ Min and max in float type that are >=min, <=max in integer type
 
     This is not as easy as it sounds, because the float type may not be able to
-    exactly represent the max or min integer values, so we have to find the next
-    exactly representable floating point value to do the thresholding.
+    exactly represent the max or min integer values, so we have to find the
+    next exactly representable floating point value to do the thresholding.
 
     Parameters
     ----------
@@ -151,6 +159,8 @@ def shared_range(flt_type, int_type):
     mx = floor_exact(ii.max, flt_type)
     if mx == np.inf:
         mx = fi.max
+    elif TRUNC_UINT64 and int_type == np.uint64:
+        mx = min(mx, flt_type(2**63))
     _SHARED_RANGES[key] = (mn, mx)
     return mn, mx
 
@@ -199,7 +209,8 @@ def type_info(np_type):
 
     Raises
     ------
-    FloatingError : for floating point types we don't recognize
+    FloatingError
+        for floating point types we don't recognize
 
     Notes
     -----

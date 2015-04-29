@@ -4,6 +4,10 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 language: python
+env:
+    global:
+        - DEPENDS="numpy scipy matplotlib h5py"
+        - PYDICOM=1
 python:
     - 2.6
     - 3.2
@@ -13,26 +17,59 @@ matrix:
   include:
     - python: 2.7
       env:
-        - COVERAGE=--with-coverage
+        - COVERAGE=1
+    # Absolute minimum dependencies
+    - python: 2.7
+      env:
+        - DEPENDS=numpy==1.5.1 PYDICOM=0
+    # Minimum pydicom dependency
+    - python: 2.7
+      env:
+        - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+    # Documentation doctests
+    - python: 2.7
+      env:
+        - DOC_DOC_TEST=1
 before_install:
+    - virtualenv --python=python venv
+    - source venv/bin/activate
+    - python --version # just to check
+    - pip install nose # always
+    - pip install --no-index -f http://travis-wheels.scikit-image.org $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
-    - if [[ "${TRAVIS_PYTHON_VERSION:0:1}" < "3" ]]; then
-      pip install pydicom;
+    - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
+        if [ "$PYDICOM" == "1" ]; then
+            pip install pydicom;
+        fi
       fi
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then
+    - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
       fi
+    - if [[ $DEPENDS == *h5py* ]]; then
+      sudo apt-get install libhdf5-serial-dev;
+      fi
 # command to install dependencies
-# e.g. pip install -r requirements.txt # --use-mirrors
 install:
     - python setup.py install
+    # Point to nibabel data directory
+    - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test
 script:
     # Change into an innocuous directory and find tests from installation
     - mkdir for_testing
     - cd for_testing
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then cp ../.coveragerc .; fi
-    - nosetests --with-doctest $COVERAGE `python -c "import os; import nibabel; print(os.path.dirname(nibabel.__file__))"`
+    - if [ "${COVERAGE}" == "1" ]; then
+      cp ../.coveragerc .;
+      COVER_ARGS="--with-coverage --cover-package nibabel";
+      fi
+    - if [ "$DOC_DOC_TEST" == "1" ]; then
+      pip install sphinx;
+      cd ../doc;
+      make html;
+      make doctest;
+      else
+      nosetests --with-doctest $COVER_ARGS nibabel;
+      fi
 after_success:
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then coveralls; fi
+    - if [ "${COVERAGE}" == "1" ]; then coveralls; fi

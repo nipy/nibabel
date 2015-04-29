@@ -32,6 +32,9 @@ def test_files_images():
             assert_equal(value.filename, None)
             assert_equal(value.fileobj, None)
             assert_equal(value.pos, 0)
+        # If we can't create new images in memory without loading, bail here
+        if not img_def['makeable']:
+            continue
         # MGHImage accepts only a few datatypes
         # so we force a type change to float32
         if klass == MGHImage:

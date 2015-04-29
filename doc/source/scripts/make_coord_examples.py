@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 """ Make graphics and example image for coordinate tutorial
 
-Expects MNI nonlinear template t1 and t2 images in directory of script.
+Expects MNI nonlinear template t1 and t2 images in directory of script -
+specifically these files:
 
-Requires nipy and matplotlib
+* mni_icbm152_t1_tal_nlin_asym_09a.nii
+* mni_icbm152_t2_tal_nlin_asym_09a.nii
+
+Requires nipy and matplotlib.
 
 Executing this script generates the following files in the current directory:
 

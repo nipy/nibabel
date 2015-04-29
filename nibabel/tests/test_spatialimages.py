@@ -10,7 +10,6 @@
 
 """
 from ..externals.six import BytesIO
-
 import numpy as np
 
 from ..spatialimages import (Header, SpatialImage, HeaderDataError,
@@ -24,6 +23,9 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
+from ..testing import suppress_warnings
+from ..tmpdirs import InTemporaryDirectory
+from .. import load as top_load
 
 
 def test_header_init():
@@ -200,25 +202,25 @@ class TestSpatialImage(TestCase):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img = img_klass(arr, aff)
-        assert_array_equal(img.get_affine(), aff)
+        assert_array_equal(img.affine, aff)
         aff[0,0] = 99
-        assert_false(np.all(img.get_affine() == aff))
+        assert_false(np.all(img.affine == aff))
         # header, created by image creation
-        ihdr = img.get_header()
+        ihdr = img.header
         # Pass it back in
         img = img_klass(arr, aff, ihdr)
         # Check modifying header outside does not modify image
         ihdr.set_zooms((4, 5, 6))
-        assert_not_equal(img.get_header(), ihdr)
+        assert_not_equal(img.header, ihdr)
 
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class
         arr = np.arange(3, dtype=np.int16)
         img = img_klass(arr, np.eye(4, dtype=np.float32))
-        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        assert_equal(img.affine.dtype, np.dtype(np.float64))
         img = img_klass(arr, np.eye(4, dtype=np.int16))
-        assert_equal(img.get_affine().dtype, np.dtype(np.float64))
+        assert_equal(img.affine.dtype, np.dtype(np.float64))
 
     def test_images(self):
         # Assumes all possible images support int16
@@ -226,7 +228,7 @@ class TestSpatialImage(TestCase):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = self.image_class(arr, None)
         assert_array_equal(img.get_data(), arr)
-        assert_equal(img.get_affine(), None)
+        assert_equal(img.affine, None)
 
     def test_default_header(self):
         # Check default header is as expected
@@ -292,9 +294,10 @@ class TestSpatialImage(TestCase):
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
         img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (1,))
-        img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
-        assert_equal(img.get_shape(), (2,3,4))
+        with suppress_warnings():
+            assert_equal(img.get_shape(), (1,))
+            img = img_klass(np.zeros((2,3,4), np.int16), np.eye(4))
+            assert_equal(img.get_shape(), (2,3,4))
 
     def test_get_data(self):
         # Test array image and proxy image interface
@@ -324,3 +327,58 @@ class TestSpatialImage(TestCase):
         rt_img.uncache()
         assert_false(rt_img.get_data() is out_data)
         assert_array_equal(rt_img.get_data(), in_data)
+
+
+class MmapImageMixin(object):
+    """ Mixin for testing images that may return memory maps """
+    #: whether to test mode of returned memory map
+    check_mmap_mode = True
+
+    def write_image(self):
+        """ Return an image and an image filname to test against
+        """
+        img_klass = self.image_class
+        shape = (3, 4, 2)
+        data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
+        img = img_klass(data, None)
+        fname = 'test' + img_klass.files_types[0][1]
+        img.to_filename(fname)
+        return img, fname
+
+    def test_load_mmap(self):
+        # Test memory mapping when loading images
+        img_klass = self.image_class
+        with InTemporaryDirectory():
+            # This should have no scaling, can be mmapped
+            img, fname = self.write_image()
+            file_map = img.file_map.copy()
+            for func, param1 in ((img_klass.from_filename, fname),
+                                 (img_klass.load, fname),
+                                 (top_load, fname),
+                                 (img_klass.from_file_map, file_map)):
+                for mmap, expected_mode in (
+                    # mmap value, expected memmap mode
+                    # mmap=None -> no mmap value
+                    # expected mode=None -> no memmap returned
+                    (None, 'c'),
+                    (True, 'c'),
+                    ('c', 'c'),
+                    ('r', 'r'),
+                    (False, None)):
+                    kwargs = {}
+                    if mmap is not None:
+                        kwargs['mmap'] = mmap
+                    back_img = func(param1, **kwargs)
+                    back_data = back_img.get_data()
+                    if expected_mode is None:
+                        assert_false(isinstance(back_data, np.memmap))
+                    else:
+                        assert_true(isinstance(back_data, np.memmap))
+                        if self.check_mmap_mode:
+                            assert_equal(back_data.mode, expected_mode)
+                    del back_img, back_data
+                # Check that mmap is keyword-only
+                assert_raises(TypeError, func, param1, True)
+                # Check invalid values raise error
+                assert_raises(ValueError, func, param1, mmap='rw')
+                assert_raises(ValueError, func, param1, mmap='r+')

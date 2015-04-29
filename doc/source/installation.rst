@@ -13,12 +13,12 @@
 Installation
 ************
 
-NiBabel is a pure python package at the moment, and it should be easy to get
+NiBabel is a pure Python package at the moment, and it should be easy to get
 NiBabel running on any system. For the most popular platforms and operating
 systems there should be packages in the respective native packaging format
 (DEB, RPM or installers). On other systems you can install NiBabel using
-``easy_install`` or by downloading the source package and running the usual
-``python setup.py install``.
+pip_ or by downloading the source package and running the usual ``python
+setup.py install``.
 
 .. This remark below is not yet true; comment to avoid confusion
    To run all of the tests, you may need some extra data packages - see
@@ -29,17 +29,24 @@ Installer and packages
 
 .. _install_pypi:
 
-The python package index
-------------------------
+pip and the Python package index
+--------------------------------
 
-NiBabel is available via `pypi`_.  If you already have setuptools_ or
-distribute_ installed, you can run::
+If you are not using a Linux package manager, then best way to install NiBabel
+is via pip_.  If you don't have pip already, follow the `pip install
+instructions`_.
 
-    easy_install nibabel
+Then open a terminal (``Terminal.app`` on OSX, ``cmd`` or ``Powershell`` on
+Windows), and type::
 
-to download nibabel and its dependencies.  Alternatively go to the `nibabel
-pypi`_ page and select the source distribution you want.  Download the
-distribution, unpack it, and then, from the unpacked directory, run::
+    pip install nibabel
+
+This will download and install NiBabel.
+
+If you really like doing stuff manually, you can install NiBabel by downoading
+the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
+distribution you want.  Download the distribution, unpack it, and then, from
+the unpacked directory, run::
 
     python setup.py install
 
@@ -52,14 +59,12 @@ or (if you need root permission to install on a unix system)::
 Debian/Ubuntu
 -------------
 
-NiBabel is available as a `NeuroDebian package`_. Please follow the instructions
-on the NeuroDebian_ website on how access their repositories. Once this is done,
-installing NiBabel is::
+Our friendas at NeuroDebian_ have packaged NiBabel at `NiBabel NeuroDebian`_.
+Please follow the instructions on the NeuroDebian_ website on how to access
+their repositories. Once this is done, installing NiBabel is::
 
   apt-get update
   apt-get install python-nibabel
-
-.. _NeuroDebian package: http://neuro.debian.net/pkgs/python-nibabel.html
 
 Install from source
 ===================
@@ -71,7 +76,7 @@ Requirements
 ------------
 
 *  Python_ 2.6 or greater
-*  NumPy_ 1.2 or greater
+*  NumPy_ 1.5 or greater
 *  SciPy_ (for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.7 or greater (for DICOM support)
 *  `Python Imaging Library`_ (for PNG conversion in DICOMFS)
@@ -81,11 +86,11 @@ Requirements
 Get the sources
 ---------------
 
-The latest release is always available from `nibabel pypi`_.
+The latest release is always available from `NiBabel pypi`_.
 
 Alternatively, you can download a tarball of the latest development snapshot
 (i.e. the current state of the *master* branch of the NiBabel source code
-repository) from the `nibabel github`_ page.
+repository) from the `NiBabel github`_ page.
 
 If you want to have access to the full NiBabel history and the latest
 development code, do a full clone (aka checkout) of the NiBabel
@@ -95,9 +100,9 @@ repository::
 
 or::
 
-  git clone http://github.com/nipy/nibabel.git
+  git clone https://github.com/nipy/nibabel.git
 
-(The first will be faster, the second more likely to work behind a firewall).
+(The first may be faster, the second more likely to work behind a firewall).
 
 Installation
 ------------
@@ -110,10 +115,9 @@ If sudo is not configured (or even installed) you might have to use
 ``su`` instead.
 
 Now fire up Python and try importing the module to see if everything is fine.
-It should look similar to this::
+It should look something like this::
 
-
-    Python 2.7.3 (v2.7.3:70274d53c1dd, Apr  9 2012, 20:52:43)
+    Python 2.7.8 (v2.7.8:ee879c0ffa11, Jun 29 2014, 21:07:35)
     [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import nibabel

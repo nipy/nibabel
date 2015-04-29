@@ -95,6 +95,7 @@ from .spatialimages import (HeaderDataError, HeaderTypeError,
 from .fileholders import copy_file_map
 from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
+from .keywordonly import kw_only_meth
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -373,26 +374,23 @@ class AnalyzeHeader(LabeledWrapStruct):
         obj = klass(check=check)
         if header is None:
             return obj
-        try: # check if there is a specific conversion routine
+        if hasattr(header, 'as_analyze_map'):
+            # header is convertible from a field mapping
             mapping = header.as_analyze_map()
-        except AttributeError:
-            # most basic conversion
-            obj.set_data_dtype(header.get_data_dtype())
-            obj.set_data_shape(header.get_data_shape())
-            obj.set_zooms(header.get_zooms())
-            return obj
-        # header is convertible from a field mapping
-        for key, value in mapping.items():
-            try:
-                obj[key] = value
-            except (ValueError, KeyError):
-                # the presence of the mapping certifies the fields as
-                # being of the same meaning as for Analyze types
-                pass
-        # set any fields etc that are specific to this format (overriden by
-        # sub-classes)
-        obj._set_format_specifics()
-        # Check for unsupported datatypes
+            for key in mapping:
+                try:
+                    obj[key] = mapping[key]
+                except (ValueError, KeyError):
+                    # the presence of the mapping certifies the fields as being
+                    # of the same meaning as for Analyze types, so we can
+                    # safely discard fields with names not known to this header
+                    # type on the basis they are from the wrong Analyze dialect
+                    pass
+            # set any fields etc that are specific to this format (overriden by
+            # sub-classes)
+            obj._clean_after_mapping()
+        # Fallback basic conversion always done.
+        # More specific warning for unsupported datatypes
         orig_code = header.get_data_dtype()
         try:
             obj.set_data_dtype(orig_code)
@@ -402,13 +400,32 @@ class AnalyzeHeader(LabeledWrapStruct):
                                   % (header.__class__,
                                      header.get_value_label('datatype'),
                                      klass))
+        obj.set_data_dtype(header.get_data_dtype())
+        obj.set_data_shape(header.get_data_shape())
+        obj.set_zooms(header.get_zooms())
         if check:
             obj.check_fix()
         return obj
 
-    def _set_format_specifics(self):
-        ''' Utility routine to set format specific header stuff
+    def _clean_after_mapping(self):
+        ''' Set format-specific stuff after converting header from mapping
+
+        This routine cleans up Analyze-type headers that have had their fields
+        set from an Analyze map returned by the ``as_analyze_map`` method.
+        Nifti 1 / 2, SPM Analyze, Analyze are all Analyze-type headers.
+        Because this map can set fields that are illegal for particular
+        subtypes of the Analyze header, this routine cleans these up before the
+        resulting header is checked and returned.
+
+        For example, a Nifti1 single (``.nii``) header has magic "n+1".
+        Passing the nifti single header for conversion to a Nifti1Pair header
+        using the ``as_analyze_map`` method will by default set the header
+        magic to "n+1", when it should be "ni1" for the pair header.  This
+        method is for that kind of case - so the specific header can set fields
+        like magic correctly, even though the mapping has given a wrong value.
         '''
+        # All current Nifti etc fields that are present in the Analyze header
+        # have the same meaning as they do for Analyze.
         pass
 
     def raw_data_from_fileobj(self, fileobj):
@@ -549,16 +566,22 @@ class AnalyzeHeader(LabeledWrapStruct):
            ...
         HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
         '''
-        try:
-            code = self._data_type_codes[datatype]
-        except KeyError:
-            raise HeaderDataError(
-                'data dtype "%s" not recognized' % datatype)
+        dt = datatype
+        if dt not in self._data_type_codes:
+            try:
+                dt = np.dtype(dt)
+            except TypeError:
+                raise HeaderDataError(
+                    'data dtype "{0}" not recognized'.format(datatype))
+            if dt not in self._data_type_codes:
+                raise HeaderDataError(
+                    'data dtype "{0}" not supported'.format(datatype))
+        code = self._data_type_codes[dt]
         dtype = self._data_type_codes.dtype[code]
         # test for void, being careful of user-defined types
         if dtype.type is np.void and not dtype.fields:
             raise HeaderDataError(
-                'data dtype "%s" known but not supported' % datatype)
+                'data dtype "{0}" known but not supported'.format(datatype))
         self._structarr['datatype'] = code
         self._structarr['bitpix'] = dtype.itemsize * 8
 
@@ -688,6 +711,42 @@ class AnalyzeHeader(LabeledWrapStruct):
         pixdims[1:ndim+1] = zooms[:]
 
     def as_analyze_map(self):
+        """ Return header as mapping for conversion to Analyze types
+
+        Collect data from custom header type to fill in fields for Analyze and
+        derived header types (such as Nifti1 and Nifti2).
+
+        When Analyze types convert another header type to their own type, they
+        call this this method to check if there are other Analyze / Nifti
+        fields that the source header would like to set.
+
+        Returns
+        -------
+        analyze_map : mapping
+            Object that can be used as a mapping thus::
+
+                for key in analyze_map:
+                    value = analyze_map[key]
+
+            where ``key`` is the name of a field that can be set in an Analyze
+            header type, such as Nifti1, and ``value`` is a value for the
+            field.  For example, `analyze_map` might be a something like
+            ``dict(regular='y', slice_duration=0.3)`` where ``regular`` is a
+            field present in both Analyze and Nifti1, and ``slice_duration`` is
+            a field restricted to Nifti1 and Nifti2.  If a particular Analyze
+            header type does not recognize the field name, it will throw away
+            the value without error.  See :meth:`Analyze.from_header`.
+
+        Notes
+        -----
+        You can also return a Nifti header with the relevant fields set.
+
+        Your header still needs methods ``get_data_dtype``, ``get_data_shape``
+        and ``get_zooms``, for the conversion, and these get called *after*
+        using the analyze map, so the methods will override values set in the
+        map.
+        """
+        # In the case of Analyze types, the header is already such a mapping
         return self
 
     def set_data_offset(self, offset):
@@ -835,6 +894,8 @@ class AnalyzeHeader(LabeledWrapStruct):
 
 
 class AnalyzeImage(SpatialImage):
+    """ Class for basic Analyze format image
+    """
     header_class = AnalyzeHeader
     files_types = (('image','.img'), ('header','.hdr'))
     _compressed_exts = ('.gz', '.bz2')
@@ -850,11 +911,6 @@ class AnalyzeImage(SpatialImage):
         self._header.set_slope_inter(None, None)
     __init__.__doc__ = SpatialImage.__init__.__doc__
 
-    def get_header(self):
-        ''' Return header
-        '''
-        return self._header
-
     def get_data_dtype(self):
         return self._header.get_data_dtype()
 
@@ -862,9 +918,30 @@ class AnalyzeImage(SpatialImage):
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True):
         ''' class method to create image from mapping in `file_map ``
+
+        Parameters
+        ----------
+        file_map : dict
+            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            instance giving file-likes for each file needed for this image
+            type.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
+
+        Returns
+        -------
+        img : AnalyzeImage instance
         '''
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         hdr_fh, img_fh = klass._get_fileholders(file_map)
         with hdr_fh.get_prepare_fileobj(mode='rb') as hdrf:
             header = klass.header_class.from_fileobj(hdrf)
@@ -872,7 +949,7 @@ class AnalyzeImage(SpatialImage):
         imgf = img_fh.fileobj
         if imgf is None:
             imgf = img_fh.filename
-        data = klass.ImageArrayProxy(imgf, hdr_copy)
+        data = klass.ImageArrayProxy(imgf, hdr_copy, mmap=mmap)
         # Initialize without affine to allow header to pass through unmodified
         img = klass(data, None, header, file_map=file_map)
         # set affine from header though
@@ -881,6 +958,34 @@ class AnalyzeImage(SpatialImage):
                            'affine': img._affine.copy(),
                            'file_map': copy_file_map(file_map)}
         return img
+
+    @classmethod
+    @kw_only_meth(1)
+    def from_filename(klass, filename, mmap=True):
+        ''' class method to create image from filename `filename`
+
+        Parameters
+        ----------
+        filename : str
+            Filename of image to load
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
+            value of True gives the same behavior as ``mmap='c'``.  If image
+            data file cannot be memory-mapped, ignore `mmap` value and read
+            array from file.
+
+        Returns
+        -------
+        img : Analyze Image instance
+        '''
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, mmap=mmap)
+
+    load = from_filename
 
     @staticmethod
     def _get_fileholders(file_map):

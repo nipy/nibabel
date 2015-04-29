@@ -15,7 +15,6 @@ Format described here:
 Stuff about the CIFTI file format here:
 
     http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
-
 '''
 
 import numpy as np
@@ -126,7 +125,12 @@ header_dtype = np.dtype(header_dtd)
 
 
 class Nifti2Header(Nifti1Header):
-    ''' Class for Nifti2 single file header '''
+    """ Class for NIfTI2 header
+
+    NIfTI2 is a slightly simplified variant of NIfTI1 which replaces 32-bit
+    floats with 64-bit floats, and increases some integer widths to 32 or 64
+    bits.
+    """
     template_dtype = header_dtype
     pair_vox_offset = 0
     single_vox_offset = 544
@@ -220,16 +224,20 @@ class Nifti2Header(Nifti1Header):
 
 
 class Nifti2PairHeader(Nifti2Header):
-    ''' Class for nifti2 pair header '''
+    ''' Class for NIfTI2 pair header '''
     # Signal whether this is single (header + data) file
     is_single = False
 
 
 class Nifti2Pair(Nifti1Pair):
+    """ Class for NIfTI2 format image, header pair
+    """
     header_class = Nifti2PairHeader
 
 
 class Nifti2Image(Nifti1Image):
+    """ Class for single file NIfTI2 format image
+    """
     header_class = Nifti2Header
 
     @property
@@ -259,7 +267,7 @@ class Nifti2Image(Nifti1Image):
         return img
 
 def load(filename):
-    """ Load nifti2 single or pair from `filename`
+    """ Load NIfTI2 single or pair image from `filename`
 
     Parameters
     ----------
@@ -273,8 +281,10 @@ def load(filename):
 
     Raises
     ------
-    ImageFileError: if `filename` doesn't look like nifti2
-    IOError : if `filename` does not exist
+    ImageFileError
+        if `filename` doesn't look like nifti2;
+    IOError
+        if `filename` does not exist.
     """
     try:
         img = Nifti2Image.load(filename)
@@ -284,7 +294,7 @@ def load(filename):
 
 
 def save(img, filename):
-    """ Save nifti2 single or pair to `filename`
+    """ Save NIfTI2 single or pair to `filename`
 
     Parameters
     ----------

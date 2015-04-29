@@ -29,6 +29,7 @@ import warnings
 
 from .volumeutils import BinOpener, array_from_file, apply_read_scaling
 from .fileslice import fileslice
+from .keywordonly import kw_only_meth
 
 
 class ArrayProxy(object):
@@ -55,12 +56,36 @@ class ArrayProxy(object):
     including Nifti1, and with the MGH format.
 
     Other image types might need more specific classes to implement the API.
-    API.  See :mod:`nibabel.minc1` and :mod:`nibabel.ecat` for examples.
+    See :mod:`nibabel.minc1`, :mod:`nibabel.ecat` and :mod:`nibabel.parrec` for
+    examples.
     """
     # Assume Fortran array memory layout
     order = 'F'
 
-    def __init__(self, file_like, header):
+    @kw_only_meth(2)
+    def __init__(self, file_like, header, mmap=True):
+        """ Initialize array proxy instance
+
+        Parameters
+        ----------
+        file_like : object
+            File-like object or filename. If file-like object, should implement
+            at least ``read`` and ``seek``.
+        header : object
+            Header object implementing ``get_data_shape``, ``get_data_dtype``,
+            ``get_data_offset``, ``get_slope_inter``
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading data.
+            If False, do not try numpy ``memmap`` for data array.  If one of
+            {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of
+            True gives the same behavior as ``mmap='c'``.  If `file_like`
+            cannot be memory-mapped, ignore `mmap` value and read array from
+            file.
+        scaling : {'fp', 'dv'}, optional, keyword only
+            Type of scaling to use - see header ``get_data_scaling`` method.
+        """
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
         # Copies of values needed to read array
         self._shape = header.get_data_shape()
@@ -69,6 +94,7 @@ class ArrayProxy(object):
         self._slope, self._inter = header.get_slope_inter()
         self._slope = 1.0 if self._slope is None else self._slope
         self._inter = 0.0 if self._inter is None else self._inter
+        self._mmap = mmap
         # Reference to original header; we will remove this soon
         self._header = header.copy()
 
@@ -109,7 +135,8 @@ class ArrayProxy(object):
                                        self._dtype,
                                        fileobj,
                                        offset=self._offset,
-                                       order=self.order)
+                                       order=self.order,
+                                       mmap=self._mmap)
         return raw_data
 
     def __array__(self):
@@ -124,7 +151,7 @@ class ArrayProxy(object):
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order = self.order)
+                                 order=self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 

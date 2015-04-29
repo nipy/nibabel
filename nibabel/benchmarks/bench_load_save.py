@@ -35,7 +35,7 @@ def bench_load_save():
     img = Nifti1Image(arr, np.eye(4))
     sio = BytesIO()
     img.file_map['image'].fileobj = sio
-    hdr = img.get_header()
+    hdr = img.header
     sys.stdout.flush()
     print()
     print_git_title("Image load save")
@@ -61,7 +61,7 @@ def bench_load_save():
     img = Nifti1Image(arr, np.eye(4))
     sio = BytesIO()
     img.file_map['image'].fileobj = sio
-    hdr = img.get_header()
+    hdr = img.header
     hdr.set_data_dtype(np.float32)
     mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
     print('%30s %6.2f' % ('Save Int16 to float32', mtime))

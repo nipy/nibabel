@@ -1,5 +1,10 @@
 .. -*- rest -*-
-.. vim:syntax=rest
+.. vim:syntax=rst
+
+.. image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
+    :target: https://coveralls.io/r/nipy/nibabel?branch=master
+
+.. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
 =======
 NiBabel
@@ -8,11 +13,11 @@ NiBabel
 Read / write access to some common neuroimaging file formats
 
 This package provides read +/- write access to some common medical and
-neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2),
-GIFTI_, NIfTI1_, NIfTI2_, MINC1_, MINC2_, MGH_ and ECAT_ as well as PAR/REC.
-We can read and write Freesurfer_ geometry, and read Freesurfer morphometry and
-annotation files.  There is some very limited support for DICOM_.  NiBabel is
-the successor of PyNIfTI_.
+neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
+GIFTI_, NIfTI1_, NIfTI2_, MINC1_, MINC2_, MGH_ and ECAT_ as well as Philips
+PAR/REC.  We can read and write Freesurfer_ geometry, and read Freesurfer
+morphometry and annotation files.  There is some very limited support for
+DICOM_.  NiBabel is the successor of PyNIfTI_.
 
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
@@ -34,31 +39,32 @@ information and access to the image data is made available via NumPy arrays.
 Website
 =======
 
-Current information can always be found at the NIPY nibabel website::
-
-    http://nipy.org/nibabel
+Current documentation on nibabel can always be found at the `NIPY nibabel
+website <http://nipy.org/nibabel>`_.
 
 Mailing Lists
 =============
 
-Please see the developer's list here::
-
-    http://mail.scipy.org/mailman/listinfo/nipy-devel
+Please see the `nipy devel list
+<http://mail.scipy.org/mailman/listinfo/nipy-devel>`_. The nipy devel list is
+fine for user and developer questions about nibabel.
 
 Code
 ====
 
 You can find our sources and single-click downloads:
 
-* `Main repository`_ on Github.
-* Documentation_ for all releases and current development tree.
-* Download as a tar/zip file the `current trunk`_.
+* `Main repository`_ on Github;
+* Documentation_ for all releases and current development tree;
+* Download the `current release`_ from pypi;
+* Download `current development version`_ as a zip file;
 * Downloads of all `available releases`_.
 
 .. _main repository: http://github.com/nipy/nibabel
 .. _Documentation: http://nipy.org/nibabel
-.. _current trunk: http://github.com/nipy/nibabel/archives/master
-.. _available releases: http://github.com/nipy/nibabel/downloads
+.. _current release: https://pypi.python.org/pypi/nibabel
+.. _current development version: https://github.com/nipy/nibabel/archive/master.zip
+.. _available releases: https://github.com/nipy/nibabel/releases
 
 License
 =======

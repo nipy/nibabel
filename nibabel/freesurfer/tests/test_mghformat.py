@@ -47,7 +47,7 @@ def test_read_mgh():
     mgz = load(mgz_path)
 
     # header
-    h = mgz.get_header()
+    h = mgz.header
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
@@ -74,7 +74,7 @@ def test_write_mgh():
         save(img, 'tmpsave.mgz')
         # read from the tmp file and see if it checks out
         mgz = load('tmpsave.mgz')
-        h = mgz.get_header()
+        h = mgz.header
         dat = mgz.get_data()
         # Delete loaded image to allow file deletion by windows
         del mgz
@@ -101,7 +101,7 @@ def test_write_noaffine_mgh():
         save(img, 'tmpsave.mgz')
         # read from the tmp file and see if it checks out
         mgz = load('tmpsave.mgz')
-        h = mgz.get_header()
+        h = mgz.header
         # Delete loaded image to allow file deletion by windows
         del mgz
     # header
@@ -167,14 +167,14 @@ def test_header_updating():
     # will be changed if the affine gets updated
     mgz_path = os.path.join(data_path, 'test.mgz')
     mgz = load(mgz_path)
-    hdr = mgz.get_header()
+    hdr = mgz.header
     # Test against mri_info output
     exp_aff = np.loadtxt(BytesIO(b"""
     1.0000   2.0000   3.0000   -13.0000
     2.0000   3.0000   1.0000   -11.5000
     3.0000   1.0000   2.0000   -11.5000
     0.0000   0.0000   0.0000     1.0000"""))
-    assert_almost_equal(mgz.get_affine(), exp_aff, 6)
+    assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
     assert_equal(hdr['delta'], 1)
@@ -182,7 +182,7 @@ def test_header_updating():
     # Save, reload, same thing
     img_fobj = BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
-    hdr2 = mgz2.get_header()
+    hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
     assert_equal(hdr2['delta'], 1)
     # Change affine, change underlying header info
@@ -203,10 +203,10 @@ def test_cosine_order():
     aff = np.diag([2., 3, 4, 1])
     aff[0] = [2, 1, 0, 10]
     img = MGHImage(data, aff)
-    assert_almost_equal(img.get_affine(), aff, 6)
+    assert_almost_equal(img.affine, aff, 6)
     img_fobj = BytesIO()
     img2 = _mgh_rt(img, img_fobj)
-    hdr2 = img2.get_header()
+    hdr2 = img2.header
     RZS = aff[:3, :3]
     zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
     assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
@@ -230,7 +230,7 @@ def test_header_slope_inter():
     assert_equal(hdr.get_slope_inter(), (None, None))
 
 
-class TestMGHImage(tsi.TestSpatialImage):
+class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     """ Apply general image tests to MGHImage
     """
     image_class = MGHImage

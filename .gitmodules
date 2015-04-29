@@ -1,0 +1,12 @@
+[submodule "nibabel-data/nitest-balls1"]
+	path = nibabel-data/nitest-balls1
+	url = https://github.com/yarikoptic/nitest-balls1
+[submodule "nibabel-data/nitest-minc2"]
+	path = nibabel-data/nitest-minc2
+	url = git://github.com/matthew-brett/nitest-minc2.git
+[submodule "nipy-ecattest"]
+	path = nibabel-data/nipy-ecattest
+	url = https://github.com/freec84/nipy-ecattest
+[submodule "nibabel-data/nitest-freesurfer"]
+	path = nibabel-data/nitest-freesurfer
+	url = https://bitbucket.org/nipy/nitest-freesurfer.git

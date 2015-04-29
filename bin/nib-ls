@@ -158,7 +158,7 @@ def proc_file(f, opts):
     row = ["@l%s" % f]
     try:
         vol = nib.load(f)
-        h = vol.get_header()
+        h = vol.header
     except Exception as e:
         row += ['failed']
         verbose(2, "Failed to gather information -- %s" % str(e))

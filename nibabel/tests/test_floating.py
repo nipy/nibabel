@@ -10,6 +10,7 @@ from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
                        _check_maxexp, ok_floats, on_powerpc, have_binary128,
                        longdouble_precision_improved)
+from ..testing import suppress_warnings
 
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
@@ -92,9 +93,11 @@ def test_check_nmant_nexp():
         assert_true(_check_nmant(t, nmant))
         assert_false(_check_nmant(t, nmant - 1))
         assert_false(_check_nmant(t, nmant + 1))
-        assert_true(_check_maxexp(t, maxexp))
+        with suppress_warnings():  # overflow
+            assert_true(_check_maxexp(t, maxexp))
         assert_false(_check_maxexp(t, maxexp - 1))
-        assert_false(_check_maxexp(t, maxexp + 1))
+        with suppress_warnings():
+            assert_false(_check_maxexp(t, maxexp + 1))
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)
@@ -124,7 +127,8 @@ def test_as_int():
     assert_equal(as_int(v), 2**(nmant + 1) -1)
     # Check for predictable overflow
     nexp64 = floor_log2(type_info(np.float64)['max'])
-    val = np.longdouble(2**nexp64) * 2 # outside float64 range
+    with np.errstate(over='ignore'):
+        val = np.longdouble(2**nexp64) * 2  # outside float64 range
     assert_raises(OverflowError, as_int, val)
     assert_raises(OverflowError, as_int, -val)
 
@@ -283,7 +287,8 @@ def test_floor_exact():
 def test_usable_binary128():
     # Check for usable binary128
     yes = have_binary128()
-    exp_test = np.longdouble(2) ** 16383
+    with np.errstate(over='ignore'):
+        exp_test = np.longdouble(2) ** 16383
     assert_equal(yes,
                  exp_test.dtype.itemsize == 16 and
                  np.isfinite(exp_test) and
