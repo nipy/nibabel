@@ -72,7 +72,7 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
 
 
 class CiftiMetaData(object):
-    """ A list of CiftiNVPairs in stored in the list self.data """
+    """ A list of key-value pairs stored in the list self.data """
 
     def __init__(self, nvpair=None):
         self.data = []
@@ -149,6 +149,10 @@ class CiftiLabelTable(object):
     def __init__(self):
         self.labels = []
 
+    @property
+    def num_labels(self):
+        return len(self.labels)
+
     def get_labels_as_dict(self):
         self.labels_as_dict = {}
         for ele in self.labels:
@@ -190,7 +194,8 @@ class CiftiLabel(object):
         self.blue = blue
         self.alpha = alpha
 
-    def get_rgba(self):
+    @property
+    def rgba(self):
         """ Returns RGBA as tuple """
         return (self.red, self.green, self.blue, self.alpha)
 
