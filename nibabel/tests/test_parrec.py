@@ -41,6 +41,8 @@ TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
 V4_PAR = pjoin(DATA_PATH, 'phantom_fake_v4.PAR')
 # Fake V4.1
 V41_PAR = pjoin(DATA_PATH, 'phantom_fake_v4_1.PAR')
+# Anonymized PAR
+ANON_PAR = pjoin(DATA_PATH, 'umass_anonymized.PAR')
 # Fake varying scaling
 VARY_PAR = pjoin(DATA_PATH, 'phantom_varscale.PAR')
 VARY_REC = pjoin(DATA_PATH, 'phantom_varscale.REC')
@@ -583,3 +585,18 @@ def test_varying_scaling():
     dv_img = PARRECImage.load(VARY_REC, scaling='fp')
     assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
                         dv_img.get_data(), 9)
+
+
+def test_anonymized():
+    # Test we can read anonymized PAR correctly
+    with open(ANON_PAR, 'rt') as fobj:
+        anon_hdr = PARRECHeader.from_fileobj(fobj)
+    gen_defs, img_defs = anon_hdr.general_info, anon_hdr.image_defs
+    assert_equal(gen_defs['patient_name'], '')
+    assert_equal(gen_defs['exam_name'], '')
+    assert_equal(gen_defs['protocol_name'], '')
+    assert_equal(gen_defs['series_type'], 'Image   MRSERIES')
+    assert_almost_equal(img_defs['window center'][0], -2374.72283272283, 6)
+    assert_almost_equal(img_defs['window center'][-1], 236.385836385836, 6)
+    assert_almost_equal(img_defs['window width'][0], 767.277167277167, 6)
+    assert_almost_equal(img_defs['window width'][-1], 236.385836385836, 6)
