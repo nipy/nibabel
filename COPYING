@@ -204,3 +204,8 @@ The files::
 
 are from https://github.com/yarikoptic/nitest-balls1, also released under the
 the PDDL version 1.0 available at http://opendatacommons.org/licenses/pddl/1.0/
+
+    nibabel/nibabel/tests/data/umass_anonymized.PAR
+
+is courtesy of the University of Massachusetts Medical School, also released
+under the PDDL.

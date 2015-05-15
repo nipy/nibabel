@@ -185,8 +185,9 @@ image_def_dtds['V4'] = [
     ('rescale intercept', float),
     ('rescale slope', float),
     ('scale slope', float),
-    ('window center', int,),
-    ('window width', int,),
+    # Window center, width recorded as integer but can be float
+    ('window center', float,),
+    ('window width', float,),
     ('image angulation', float, (3,)),
     ('image offcentre', float, (3,)),
     ('slice thickness', float),
@@ -244,6 +245,9 @@ class PARRECError(Exception):
     pass
 
 
+# Value after colon may be absent
+GEN_RE = re.compile(r".\s+(.*?)\s*:\s*(.*)")
+
 def _split_header(fobj):
     """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
@@ -276,7 +280,6 @@ def _split_header(fobj):
     return version, gen_dict, image_lines
 
 
-GEN_RE = re.compile(r".\s+(.*?)\s*:\s+(.*)")
 
 
 def _process_gen_dict(gen_dict):
