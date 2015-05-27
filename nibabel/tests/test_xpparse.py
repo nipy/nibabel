@@ -55,12 +55,9 @@ def assert_tokens(source, expected):
 
 def parse_with_start(start, source):
     lexer = lex.lex(module=SYMBOLS)
-    # Don't read or write cached module tables to avoid start symbol confusion
     parser = yacc.yacc(start=start,
                        module=SYMBOLS,
-                       debug=DEBUG,
-                       tabmodule=None,
-                       write_tables=False)
+                       debug=DEBUG)
     return parser.parse(source, lexer=lexer)
 
 
