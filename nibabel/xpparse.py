@@ -299,11 +299,12 @@ class XProtocolSymbols(object):
 
     def p_param_array(self, p):
         """ param_array : PARAMARRAY '{' attr_list curly_lists '}'
+                        | PARAMARRAY '{' attr_list '}'
         """
         p[0] = dict(type='param_array',
                     name=p[1],
                     attrs=p[3],
-                    value=p[4])
+                    value=p[4] if len(p) == 6 else None)
 
     def p_curly_lists(self, p):
         """ curly_lists : curly_lists curly_list
@@ -408,12 +409,16 @@ class XProtocolSymbols(object):
                     context=p[5])
 
     def p_curly_list(self, p):
-        """ curly_list : '{' string_list '}'
-                       | '{' integer_list '}'
-                       | '{' float_list '}'
-                       | '{' bool_list '}'
+        """ curly_list : '{' attr_list string_list '}'
+                       | '{' attr_list integer_list '}'
+                       | '{' attr_list float_list '}'
+                       | '{' attr_list bool_list '}'
+                       | '{' attr_list curly_lists '}'
         """
-        p[0] = p[2]
+        # TODO: Is it okay to just ignore the attr_list here? Seems like the
+        #       intention is to allow attribute of the parent array to be
+        #       overridden.
+        p[0] = p[3]
 
     def p_scalar_lists(self, p):
         """ string_list : string_list MULTI_STRING

@@ -16,6 +16,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 DATA_PATH = pjoin(dirname(__file__), 'data')
 EG_PROTO = pjoin(DATA_PATH, 'xprotocol_sample.txt')
 DEBUG = True
+assert_equal.__self__.maxDiff = None
 
 SYMBOLS = xpp.XProtocolSymbols()
 
@@ -467,7 +468,92 @@ def test_param_array():
                               ['baseline'],
                               [],
                               []]))
+    assert_parsed("""
+                  <ParamArray."CoilSelectInfo">
+                    {
+                        <MinSize> 0
+                        <MaxSize> 2147483647
+                        <Default> <ParamArray."">
+                        {
+                            <MinSize> 0
+                            <MaxSize> 2147483647
+                            <Default> <ParamMap."">
+                            {
 
+                                <ParamString."CoilElementID">
+                                {
+                                }
+
+                                <ParamDouble."dFFTScale">
+                                {
+                                  <Precision> 16
+                                }
+
+                                <ParamDouble."dRawDataCorrectionFactorRe">
+                                {
+                                  <Precision> 16
+                                }
+
+                                <ParamDouble."dRawDataCorrectionFactorIm">
+                                {
+                                  <Precision> 16
+                                }
+                            }
+
+                        }
+                        { <MinSize> 0  <MaxSize> 2147483647  {  { "SP6"  }  { 0.1211880000000000  }  { 1.0000000000000000  }  { } } {  { "S6S"  }  { 0.1175400000000000  }  { 1.0000000000000000  }  { } } {  { "S6T"  }  { 0.1201290000000000  }  { 1.0000000000000000  }  { } } {  { "SP5"  }  { 0.1108690000000000  }  { 1.0000000000000000  }  { } } {  { "S5S"  }  { 0.1130510000000000  }  { 1.0000000000000000  }  { } } {  { "S5T"  }  { 0.1112670000000000  }  { 1.0000000000000000  }  { } } {  { "BO1"  }  { 0.1098010000000000  }  { 1.0000000000000000  }  { } } {  { "B1T"  }  { 0.1069490000000000  }  { 1.0000000000000000  }  { } } {  { "B1S"  }  { 0.1061290000000000  }  { 1.0000000000000000  }  { } } {  { "BO2"  }  { 0.1054530000000000  }  { 1.0000000000000000  }  { } } {  { "B2T"  }  { 0.1047420000000000  }  { 1.0000000000000000  }  { } } {  { "B2S"  }  { 0.1068250000000000  }  { 1.0000000000000000  }  { } }  }
+
+                    }""",
+                  'param_array',
+                  dict(type='param_array',
+                       name='CoilSelectInfo',
+                       attrs=[('MinSize', 0),
+                              ('MaxSize', 2147483647),
+                              ('Default',
+                               dict(type='param_array',
+                                    name='',
+                                    attrs=[('MinSize', 0),
+                                           ('MaxSize', 2147483647),
+                                           ('Default',
+                                            dict(type='param_map',
+                                                 name='',
+                                                 value=[dict(type='param_string',
+                                                             name='CoilElementID',
+                                                             attrs=[],
+                                                             value=None),
+                                                        dict(type='param_double',
+                                                             name='dFFTScale',
+                                                             attrs=[('Precision', 16)],
+                                                             value=None),
+                                                        dict(type='param_double',
+                                                             name='dRawDataCorrectionFactorRe',
+                                                             attrs=[('Precision', 16)],
+                                                             value=None),
+                                                        dict(type='param_double',
+                                                             name='dRawDataCorrectionFactorIm',
+                                                             attrs=[('Precision', 16)],
+                                                             value=None),
+                                                       ]
+                                                )
+                                           ),
+                                          ],
+                                    value=None)
+                              )],
+                       value=[[[["SP6"], [0.121188], [1.0], []],
+                               [["S6S"], [0.11754], [1.0], []],
+                               [["S6T"], [0.120129], [1.0], []],
+                               [["SP5"], [0.110869], [1.0], []],
+                               [["S5S"], [0.113051], [1.0], []],
+                               [["S5T"], [0.111267], [1.0], []],
+                               [["BO1"], [0.109801], [1.0], []],
+                               [["B1T"], [0.106949], [1.0], []],
+                               [["B1S"], [0.106129], [1.0], []],
+                               [["BO2"], [0.105453], [1.0], []],
+                               [["B2T"], [0.104742], [1.0], []],
+                               [["B2S"], [0.106825], [1.0], []],
+                             ]]
+                      )
+                 )
 
 def test_param_map():
     assert_parsed("""<ParamMap."">
