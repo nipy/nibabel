@@ -137,7 +137,7 @@ website-stamp: $(WWW_DIR) html-stamp pdf-stamp
 	touch $@
 
 upload-html: html-stamp
-	./doc/tools/upload-gh-pages.sh $(WWW_DIR) $(GITHUB_REPO)
+	./tools/upload-gh-pages.sh $(WWW_DIR) $(GITHUB_REPO)
 
 #
 # Sources

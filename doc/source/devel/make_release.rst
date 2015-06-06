@@ -194,11 +194,9 @@ Release checklist
   If you are already on a Windows machine, you could have done the manual
   command to upload instead: ``python setup.py bdist_wininst upload``.
 
-* Now the version number is OK, push the docs to sourceforge with::
+* Now the version number is OK, push the docs to github pages with::
 
-    make upload-htmldoc-mysfusername
-
-  where ``mysfusername`` is obviously your own sourceforge username.
+    make upload-html
 
 * Set up maintenance / development branches
 
