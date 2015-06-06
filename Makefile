@@ -3,7 +3,7 @@ HTML_DIR=build/html
 LATEX_DIR=build/latex
 WWW_DIR=build/website
 DOCSRC_DIR=doc
-GITHUB_REPO=https://github.com/nipy/nibabel
+PROJECT=nibabel
 #
 # The Python executable to be used
 #
@@ -137,7 +137,7 @@ website-stamp: $(WWW_DIR) html-stamp pdf-stamp
 	touch $@
 
 upload-html: html-stamp
-	./tools/upload-gh-pages.sh $(WWW_DIR) $(GITHUB_REPO)
+	./tools/upload-gh-pages.sh $(WWW_DIR) $(PROJECT)
 
 #
 # Sources

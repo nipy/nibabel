@@ -1,15 +1,21 @@
 #!/bin/bash
 # Upload website to gh-pages
+USAGE="$0 <html_dir> <project-name> [<organization-name>]"
 HTML_DIR=$1
 if [ -z "$HTML_DIR" ]; then
-    echo "Need to specify build directory"
+    echo $USAGE
     exit 1
 fi
-UPSTREAM_REPO=$2
-if [ -z "$UPSTREAM_REPO" ]; then
-    echo "Need to specify upstream repo"
+PROJECT=$2
+if [ -z "$PROJECT" ]; then
+    echo $USAGE
     exit 1
 fi
+ORGANIZATION=$3
+if [ -z "$ORGANIZATION" ]; then
+    ORGANIZATION=nipy
+fi
+upstream_repo="https://github.com/$ORGANIZATION/$PROJECT"
 cd $HTML_DIR
 git init
 git checkout -b gh-pages
@@ -18,6 +24,6 @@ git add *
 touch .nojekyll
 git add .nojekyll
 git commit -a -m "Documentation build - no history"
-git remote add origin $UPSTREAM_REPO
+git remote add origin $upstream_repo
 git push origin gh-pages --force
 rm -rf .git  # Yes
