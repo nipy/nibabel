@@ -216,6 +216,7 @@ html_show_sourcelink = True
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'nibabeldoc'
 
+mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 
 # -- Options for LaTeX output --------------------------------------------------
 
