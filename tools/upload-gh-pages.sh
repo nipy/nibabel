@@ -6,6 +6,14 @@ if [ -z "$HTML_DIR" ]; then
     echo $USAGE
     exit 1
 fi
+if [ ! -e "$HTML_DIR/index.html" ]; then
+    echo "$HTML_DIR does not contain an index.html"
+    exit 1
+fi
+if [ -d "$HTML_DIR/.git" ]; then
+    echo "$HTML_DIR already contains a .git directory"
+    exit 1
+fi
 PROJECT=$2
 if [ -z "$PROJECT" ]; then
     echo $USAGE
