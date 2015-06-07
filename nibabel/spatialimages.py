@@ -537,7 +537,7 @@ class SpatialImage(DataobjImage):
         return self.affine
 
     @classmethod
-    def from_image(klass, img):
+    def from_image(klass, img, data=None):
         ''' Class method to create new instance of own class from `img`
 
         Parameters
@@ -551,7 +551,7 @@ class SpatialImage(DataobjImage):
         cimg : ``spatialimage`` instance
            Image, of our own class
         '''
-        return klass(img.dataobj,
+        return klass(img.dataobj if data is None else data,
                      img.affine,
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
@@ -640,5 +640,4 @@ def image_like(img, data):
     ''' Create new SpatialImage with metadata of `img`, and data
     contained in `data`.
     '''
-    return img.__class__(data, img.affine, img.header.copy(),
-                         extra=img.extra.copy())
+    return img.from_image(img, data)
