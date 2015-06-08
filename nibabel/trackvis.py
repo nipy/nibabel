@@ -21,7 +21,7 @@ except NameError:  # python 3
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
-# See http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
+# See https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
 header_1_dtd = [
     ('id_string', 'S6'),
     ('dim', 'h', 3),

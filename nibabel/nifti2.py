@@ -10,11 +10,11 @@
 
 Format described here:
 
-    http://www.nitrc.org/forum/message.php?msg_id=3738
+    https://www.nitrc.org/forum/message.php?msg_id=3738
 
 Stuff about the CIFTI file format here:
 
-    http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+    https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
 '''
 
 import numpy as np
@@ -25,7 +25,7 @@ from .spatialimages import HeaderDataError, ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
 
 r"""
-Header struct from : http://www.nitrc.org/forum/message.php?msg_id=3738
+Header struct from : https://www.nitrc.org/forum/message.php?msg_id=3738
 
 /*! \struct nifti_2_header
     \brief Data structure defining the fields in the nifti2 header.

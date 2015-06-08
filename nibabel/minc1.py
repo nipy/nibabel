@@ -73,7 +73,7 @@ class Minc1File(object):
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
         # Differs for MINC1 and MINC2 - see:
-        # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         return var.dimensions
 
     def get_data_dtype(self):

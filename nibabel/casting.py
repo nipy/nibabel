@@ -79,7 +79,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     Hence we threshold at ``shared_min`` and ``shared_max`` to avoid casting to
     values that are undefined.
 
-    See: http://en.wikipedia.org/wiki/C99 . There are links to the C99 standard
+    See: https://en.wikipedia.org/wiki/C99 . There are links to the C99 standard
     from that page.
     """
     arr = np.asarray(arr)
@@ -601,7 +601,7 @@ def int_abs(arr):
 def floor_log2(x):
     """ floor of log2 of abs(`x`)
 
-    Embarrassingly, from http://en.wikipedia.org/wiki/Binary_logarithm
+    Embarrassingly, from https://en.wikipedia.org/wiki/Binary_logarithm
 
     Parameters
     ----------

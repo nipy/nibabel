@@ -9,7 +9,7 @@ by Chris Rorden, in Delphi (object orientated pascal).  It's part of
 Chris' popular mricron_ collection of programs.  The source appears to
 be best found on the `mricron NITRC site`_.  It's BSD_ licensed. 
 
-.. _mricron NITRC site: http://www.nitrc.org/projects/mricron
+.. _mricron NITRC site: https://www.nitrc.org/projects/mricron
 
 These are working notes looking at Chris' algorithms for working with
 DICOM.

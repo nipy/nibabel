@@ -34,7 +34,7 @@ def bz2_mio_error():
 
     Writing an empty string can fail for bz2 objects in python 3.3:
 
-    http://bugs.python.org/issue16828
+    https://bugs.python.org/issue16828
 
     This in turn causes scipy to give this error when trying to write bz2 mat
     files.

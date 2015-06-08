@@ -180,14 +180,14 @@ Release checklist
 
 * Force builds of the win32 and amd64 binaries from the buildbot. Go to pages:
 
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
 
   For each of these, enter the revision number (e.g. "2.0.0") in the field
   "Revision to build". Then get the built binaries in:
 
-  * http://nipy.bic.berkeley.edu/nibabel-dist
+  * https://nipy.bic.berkeley.edu/nibabel-dist
 
   and upload them to pypi with the admin files interface.
 

@@ -68,7 +68,7 @@ def guessed_image_type(filename):
         klass = class_map[img_type]['class']
     elif lext == '.mnc':
         # Look for HDF5 signature for MINC2
-        # http://www.hdfgroup.org/HDF5/doc/H5.format.html
+        # https://www.hdfgroup.org/HDF5/doc/H5.format.html
         with Opener(filename) as fobj:
             signature = fobj.read(4)
             klass = Minc2Image if signature == b'\211HDF' else Minc1Image

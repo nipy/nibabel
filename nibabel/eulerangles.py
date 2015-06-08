@@ -10,8 +10,8 @@
 
 See:
 
-* http://en.wikipedia.org/wiki/Rotation_matrix
-* http://en.wikipedia.org/wiki/Euler_angles
+* https://en.wikipedia.org/wiki/Rotation_matrix
+* https://en.wikipedia.org/wiki/Euler_angles
 * http://mathworld.wolfram.com/EulerAngles.html
 
 See also: *Representing Attitude with Euler Angles and Quaternions: A
@@ -61,7 +61,7 @@ rotation matrix, we need to define:
   vectors move within the axis frame (extrinsic)
 * the handedness of the coordinate system
 
-See: http://en.wikipedia.org/wiki/Rotation_matrix#Ambiguities
+See: https://en.wikipedia.org/wiki/Rotation_matrix#Ambiguities
 
 We are using the following conventions:
 
@@ -295,7 +295,7 @@ def euler2quat(z=0, y=0, x=0):
     2. Generated formulae from 1.) for quaternions corresponding to
        theta radians rotations about ``x, y, z`` axes
     3. Apply quaternion multiplication formula -
-       http://en.wikipedia.org/wiki/Quaternions#Hamilton_product - to
+       https://en.wikipedia.org/wiki/Quaternions#Hamilton_product - to
        formulae from 2.) to give formula for combined rotations.
     '''
     z = z/2.0
