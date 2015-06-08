@@ -12,22 +12,22 @@
 .. _git: https://git-scm.com/
 .. _github: https://github.com
 .. _github help: https://help.github.com
-.. _msysgit: http://code.google.com/p/msysgit/downloads/list
+.. _msysgit: https://msysgit.github.io/
 .. _git-osx-installer: https://code.google.com/p/git-osx-installer/downloads/list
-.. _subversion: http://subversion.tigris.org/
+.. _subversion: https://subversion.apache.org/
 .. _git cheat sheet: https://github.com/guides/git-cheat-sheet
 .. _pro git book: https://progit.org/
 .. _git svn crash course: https://git-scm.com/course/svn.html
-.. _learn.github: http://learn.github.com/
+.. _learn.github: https://guides.github.com/
 .. _network graph visualizer: https://github.com/blog/39-say-hello-to-the-network-graph-visualizer
 .. _git user manual: https://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 .. _git tutorial: https://www.kernel.org/pub/software/scm/git/docs/gittutorial.html
-.. _git community book: http://book.git-scm.com/
+.. _git community book: https://git-scm.com/book/en/v2
 .. _git ready: http://www.gitready.com/
 .. _git casts: http://www.gitcasts.com/
 .. _Fernando's git page: http://www.fperez.org/py4science/git.html
 .. _git magic: http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html
-.. _git concepts: http://www.eecs.harvard.edu/~cduan/technical/git/
+.. _git concepts: http://www.sbf5.com/~cduan/technical/git/
 .. _git clone: https://www.kernel.org/pub/software/scm/git/docs/git-clone.html
 .. _git checkout: https://www.kernel.org/pub/software/scm/git/docs/git-checkout.html
 .. _git commit: https://www.kernel.org/pub/software/scm/git/docs/git-commit.html
@@ -43,13 +43,13 @@
 .. _git config: https://www.kernel.org/pub/software/scm/git/docs/git-config.html
 .. _why the -a flag?: http://www.gitready.com/beginner/2009/01/18/the-staging-area.html
 .. _git staging area: http://www.gitready.com/beginner/2009/01/18/the-staging-area.html
-.. _tangled working copy problem: http://tomayko.com/writings/the-thing-about-git 
+.. _tangled working copy problem: http://2ndscale.com/rtomayko/2008/the-thing-about-git
 .. _git management: http://kerneltrap.org/Linux/Git_Management
 .. _linux git workflow: https://www.mail-archive.com/dri-devel@lists.sourceforge.net/msg39091.html
 .. _git parable: http://tom.preston-werner.com/2009/05/19/the-git-parable.html
-.. _git foundation: http://matthew-brett.github.com/pydagogue/foundation.html
-.. _deleting master on github: http://matthew-brett.github.com/pydagogue/gh_delete_master.html
-.. _rebase without tears: http://matthew-brett.github.com/pydagogue/rebase_without_tears.html
+.. _git foundation: https://matthew-brett.github.io/pydagogue/foundation.html
+.. _deleting master on github: https://matthew-brett.github.io/pydagogue/gh_delete_master.html
+.. _rebase without tears: https://matthew-brett.github.io/pydagogue/rebase_without_tears.html
 .. _resolving a merge: https://www.kernel.org/pub/software/scm/git/docs/user-manual.html#resolving-a-merge
 .. _ipython git workflow: http://mail.scipy.org/pipermail/ipython-dev/2010-October/006746.html
 

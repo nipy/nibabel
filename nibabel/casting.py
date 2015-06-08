@@ -215,7 +215,7 @@ def type_info(np_type):
     Notes
     -----
     You might be thinking that ``np.finfo`` does this job, and it does, except
-    for PPC long doubles (http://projects.scipy.org/numpy/ticket/2077) and
+    for PPC long doubles (https://github.com/numpy/numpy/issues/2669) and
     float96 on Windows compiled with Mingw. This routine protects against such
     errors in ``np.finfo`` by only accepting values that we know are likely to
     be correct.
@@ -285,7 +285,7 @@ def type_info(np_type):
         # seems to break here too, so we need to use np.longdouble and
         # complexify
         two = np.longdouble(2)
-        # See: http://matthew-brett.github.com/pydagogue/floating_point.html
+        # See: https://matthew-brett.github.io/pydagogue/floating_point.html
         max_val = (two ** 113 - 1) / (two ** 112) * two ** 16383
         if np_type is np.longcomplex:
             max_val += 0j

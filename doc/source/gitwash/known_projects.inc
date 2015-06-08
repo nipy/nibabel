@@ -1,17 +1,17 @@
 .. Known projects
 
 .. PROJECTNAME placeholders
-.. _PROJECTNAME: http://neuroimaging.scipy.org
+.. _PROJECTNAME: http://nipy.org
 .. _`PROJECTNAME github`: https://github.com/nipy
-.. _`PROJECTNAME mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
+.. _`PROJECTNAME mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
 
 .. numpy
-.. _numpy: hhttp://numpy.scipy.org
+.. _numpy: http://www.numpy.org
 .. _`numpy github`: https://github.com/numpy/numpy
 .. _`numpy mailing list`: http://mail.scipy.org/mailman/listinfo/numpy-discussion
 
 .. scipy
-.. _scipy: http://www.scipy.org
+.. _scipy: https://www.scipy.org
 .. _`scipy github`: https://github.com/scipy/scipy
 .. _`scipy mailing list`: http://mail.scipy.org/mailman/listinfo/scipy-dev
 
@@ -21,7 +21,7 @@
 .. _`nipy mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
 
 .. ipython
-.. _ipython: http://ipython.scipy.org
+.. _ipython: https://ipython.org
 .. _`ipython github`: https://github.com/ipython/ipython
 .. _`ipython mailing list`: http://mail.scipy.org/mailman/listinfo/IPython-dev
 

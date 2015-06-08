@@ -256,6 +256,6 @@ Release checklist
 
 * Announce to the mailing lists.
 
-.. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html
+.. _setuptools intro: https://pythonhosted.org/an_example_pypi_project/setuptools.html
 
 .. include:: ../links_names.txt
