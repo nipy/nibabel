@@ -27,49 +27,72 @@ def find_column(input, lexpos):
     return lexpos - last_cr - 1
 
 
+class TagInfo(object):
+    '''Store all relevant info about a XProtocol tag'''
+    def __init__(self, tag_type, token_type=None, elem_type=None, tag_name=None):
+        self.tag_type = tag_type
+        if token_type is None:
+            self.token_type = tag_type.upper()
+        else:
+            self.token_type = token_type
+        if elem_type is None:
+            self.elem_type = tag_type.lower()
+        else:
+            self.elem_type = elem_type
+        self.tag_name = tag_name
+
+    def __repr__(self):
+        return ("TagInfo(tag_type='%s', token_type='%s', elem_type='%s', "
+                "tag_name='%s')") % (self.tag_type,
+                                   self.token_type,
+                                   self.elem_type,
+                                   self.tag_name)
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+
 class XProtocolSymbols(object):
-    # Known basic tag identifiers
-    basic_tag_ids = {'XProtocol': 'XPROTOCOL',
-                     'Class': 'CLASS',
-                     'Dll': 'DLL',
-                     'Control': 'CONTROL',
-                     'Param': 'PARAM',
-                     'Pos': 'POS',
-                     'Repr': 'REPR',
-                     'Line': 'LINE',
-                     'Context': 'CONTEXT',
-                     'EVAStringTable': 'EVASTRINGTABLE',
-                     'Name': 'NAME',
-                     'ID': 'ID',
-                     'Userversion': 'USERVERSION'}
+    # Tags that don't have a name, just a type
+    anon_tags = set(['XProtocol',
+                     'EVAProtocol',
+                     'Control',
+                     'Param',
+                     'Pos',
+                     'Repr',
+                     'Line',
+                     'EVAStringTable',
+                    ])
 
-    # Known tag identifiers with defined types
-    typed_tag_ids = {'ParamBool': 'PARAMBOOL',
-                     'ParamLong': 'PARAMLONG',
-                     'ParamDouble': 'PARAMDOUBLE',
-                     'ParamString': 'PARAMSTRING',
-                     'ParamArray': 'PARAMARRAY',
-                     'ParamMap': 'PARAMMAP',
-                     'ParamChoice': 'PARAMCHOICE',
-                     'ParamFunctor': 'PARAMFUNCTOR',
-                     'ParamCardLayout': 'PARAMCARDLAYOUT',
-                     'PipeService': 'PIPESERVICE',
-                     'EVACardLayout': 'EVACARDLAYOUT',
-                     'Connection': 'CONNECTION',
-                     'Dependency': 'DEPENDENCY',
-                     'Event': 'EVENT',
-                     'Method': 'METHOD'}
+    # Named tags have both a type and a name
+    named_tags = set(['ParamBool',
+                      'ParamLong',
+                      'ParamDouble',
+                      'ParamString',
+                      'ParamArray',
+                      'ParamMap',
+                      'ParamChoice',
+                      'ParamFunctor',
+                      'ParamCardLayout',
+                      'PipeService',
+                      'EVACardLayout',
+                      'Connection',
+                      'Dependency',
+                      'Event',
+                      'Method',
+                     ])
 
+    # Use all uppercase version of tags as the token names in PLY
     tokens = [
         'TAG',
-        'TYPED_TAG',
+        'NAMED_TAG',
         'WHITESPACE',
         'INTEGER',
         'FLOAT',
         'MULTI_STRING',
         'TRUE',
         'FALSE',
-    ] + list(basic_tag_ids.values()) + list(typed_tag_ids.values())
+    ] + [x.upper() for x in anon_tags] + [x.upper() for x in named_tags]
 
     literals = '{}'
 
@@ -88,19 +111,30 @@ class XProtocolSymbols(object):
         self.parser = yacc.yacc(debug=False, module=self)
         self.error_mode = error_mode
 
-    # Basic tag
+    # Anon tag
     def t_TAG(self, t):
-        r'<(?P<tagname>[A-Za-z_][\w_]*)>'
-        t.value = t.lexer.lexmatch.group('tagname')
-        t.type = self.basic_tag_ids.get(t.value, 'TAG')
+        r'<(?P<tagtype>[A-Za-z_][\w_]*)>'
+        tag_type = t.lexer.lexmatch.group('tagtype')
+        if tag_type in self.anon_tags:
+            token = tag_type.upper()
+        else:
+            token = 'TAG'
+        t.type = token
+        t.value = (tag_type, None)
         return t
 
-    # Typed tag
-    def t_TYPED_TAG(self, t):
+    # Named tag
+    def t_NAMED_TAG(self, t):
         r'<(?P<tagtype>[A-Za-z_][\w_]*)\."(?P<tagname>.*?)">'
         match = t.lexer.lexmatch
-        t.value = match.group('tagname')
-        t.type = self.typed_tag_ids.get(match.group('tagtype'), 'TYPED_TAG')
+        tag_type = match.group('tagtype')
+        if tag_type in self.named_tags:
+            token = tag_type.upper()
+        else:
+            token = 'NAMED_TAG'
+        t.type = token
+        tag_name = match.group('tagname')
+        t.value = (tag_type, tag_name)
         return t
 
     # Whitespace
@@ -158,138 +192,38 @@ class XProtocolSymbols(object):
         """
         p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
 
-    def p_xprotocol(self, p):
-        """ xprotocol : XPROTOCOL '{' xp_hdr block_list param_cards depends '}'
-                      | XPROTOCOL '{' xp_hdr block_list eva_cards depends '}'
-                      | XPROTOCOL '{' xp_hdr block_list empty depends '}'
-                      | XPROTOCOL '{' xp_hdr block_list param_cards empty '}'
-                      | XPROTOCOL '{' xp_hdr block_list eva_cards empty '}'
-                      | XPROTOCOL '{' xp_hdr block_list empty empty '}'
+    def p_map_type(self, p):
+        """ xprotocol : XPROTOCOL '{' attr_list block_list '}'
+            xprotocol : EVAPROTOCOL '{' attr_list block_list '}'
+            pipeservice : PIPESERVICE '{' attr_list block_list '}'
+            paramfunctor : PARAMFUNCTOR '{' attr_list block_list '}'
+            parammap : PARAMMAP '{' attr_list block_list '}'
         """
-        p[0] = dict(type='xprotocol',
-                    blocks=p[4],
-                    cards=[] if p[5] is None else p[5],
-                    depends=[] if p[6] is None else p[6])
-        p[0].update(p[3])
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
+                    attrs=[] if p[3] is None else p[3],
+                    value=p[4],
+                   )
 
-    def p_xp_hdr(self, p):
-        """ xp_hdr : xp_hdr xp_hdr_key
-                   | xp_hdr_key
-        """
-        if len(p) == 2:
-            p[0] = dict([p[1]])
-        else:
-            p[0] = p[1]
-            p[0].update(dict([p[2]]))
-
-    def p_xp_hdr_key(self, p):
-        """ xp_hdr_key : name
-                       | id
-                       | user_version
-                       | eva_string_table
-        """
-        p[0] = p[1]
-
-    def p_name(self, p):
-        """ name : NAME MULTI_STRING
-        """
-        p[0] = ('name', p[2])
-
-    def p_id(self, p):
-        """ id : ID INTEGER
-        """
-        p[0] = ('id', p[2])
-
-    def p_user_version(self, p):
-        """ user_version : USERVERSION FLOAT
-        """
-        p[0] = ('user_version', p[2])
-
-    def p_depends(self, p):
-        """ depends : depends dependency
-                    | dependency
-        """
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
-
-    def p_cards(self, p):
-        """ param_cards : param_cards param_card_layout
-                        | param_card_layout
-            eva_cards   : eva_cards eva_card_layout
-                        | eva_card_layout
-        """
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
-
-    def p_pipe_service(self, p):
-        """ pipe_service : PIPESERVICE '{' class block_list '}'
-        """
-        p[0] = {'type': 'pipe_service',
-                'name': p[1],
-                'class': p[3],
-                'value': p[4]}
-
-    def p_param_functor(self, p):
-        """ param_functor : PARAMFUNCTOR '{' class block_list emc '}'
-        """
-        p[0] = {'type': 'param_functor',
-                'name': p[1],
-                'class': p[3],
-                'value': p[4]}
-        for param in p[5]:
-            key = param['type']
-            p[0][key] = param
-
-    def p_param_emc(self, p):
-        """ emc : event method connection
-                | event connection method
-                | method event connection
-                | method connection event
-                | connection event method
-                | connection method event
-        """
-        p[0] = [p[1], p[2], p[3]]
-
-    def p_method(self, p):
+    def p_str_list_type(self, p):
         """ method : METHOD '{' string_list '}'
+            connection : CONNECTION '{' string_list '}'
+            event : EVENT '{' string_list '}'
         """
-        p[0] = dict(type='method',
-                    name=p[1],
-                    args=p[3])
-
-    def p_connection(self, p):
-        """ connection : CONNECTION '{' string_list '}'
-        """
-        p[0] = dict(type='connection',
-                    name=p[1],
-                    args=p[3])
-
-    def p_event(self, p):
-        """ event : EVENT '{' string_list '}'
-        """
-        p[0] = dict(type='event',
-                    name=p[1],
-                    args=p[3])
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
+                    attrs=[],
+                    value=p[3],
+                   )
 
     def p_param_choice(self, p):
-        """ param_choice : PARAMCHOICE '{' attr_list MULTI_STRING '}'
-                         | PARAMCHOICE '{' attr_list empty '}'
+        """ paramchoice : PARAMCHOICE '{' attr_list MULTI_STRING '}'
+                        | PARAMCHOICE '{' attr_list empty '}'
         """
-        p[0] = dict(type='param_choice',
-                    name=p[1],
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
                     attrs=p[3],
                     value=p[4])
-
-    def p_param_map(self, p):
-        """ param_map : PARAMMAP '{' block_list '}'
-        """
-        p[0] = dict(type='param_map',
-                    name=p[1],
-                    value=p[3])
 
     def p_block_list(self, p):
         """ block_list : block_list block
@@ -298,11 +232,11 @@ class XProtocolSymbols(object):
         p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
 
     def p_param_array(self, p):
-        """ param_array : PARAMARRAY '{' attr_list curly_lists '}'
-                        | PARAMARRAY '{' attr_list '}'
+        """ paramarray : PARAMARRAY '{' attr_list curly_lists '}'
+                       | PARAMARRAY '{' attr_list '}'
         """
-        p[0] = dict(type='param_array',
-                    name=p[1],
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
                     attrs=p[3],
                     value=p[4] if len(p) == 6 else None)
 
@@ -319,54 +253,73 @@ class XProtocolSymbols(object):
         p[0] = [[]] if len(p) == 3 else p[1] + [[]]
 
     def p_block(self, p):
-        """ block : param_bool
-                  | param_long
-                  | param_double
-                  | param_string
-                  | param_array
-                  | param_map
-                  | param_choice
-                  | param_functor
-                  | pipe_service
+        """ block : parambool
+                  | paramlong
+                  | paramdouble
+                  | paramstring
+                  | paramarray
+                  | parammap
+                  | paramchoice
+                  | paramfunctor
+                  | pipeservice
+                  | paramcardlayout
+                  | evacardlayout
+                  | dependency
+                  | event
+                  | method
+                  | connection
         """
         p[0] = p[1]
 
-    def p_param_string(self, p):
-        """ param_string : PARAMSTRING '{' attr_list empty '}'
-                         | PARAMSTRING '{' attr_list MULTI_STRING '}'
+    def p_basic_type(self, p):
+        """ paramstring : PARAMSTRING '{' attr_list empty '}'
+                        | PARAMSTRING '{' attr_list MULTI_STRING '}'
+            paramdouble : PARAMDOUBLE '{' attr_list empty '}'
+                        | PARAMDOUBLE '{' attr_list FLOAT '}'
+            paramlong : PARAMLONG '{' attr_list empty '}'
+                      | PARAMLONG '{' attr_list INTEGER '}'
+            parambool : PARAMBOOL '{' attr_list empty '}'
+                      | PARAMBOOL '{' attr_list TRUE '}'
+                      | PARAMBOOL '{' attr_list FALSE '}'
+
         """
-        p[0] = dict(type='param_string',
-                    name=p[1],
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
                     attrs=p[3],
                     value=p[4])
 
-    def p_param_double(self, p):
-        """ param_double : PARAMDOUBLE '{' attr_list empty '}'
-                         | PARAMDOUBLE '{' attr_list FLOAT '}'
+    def p_dependency(self, p):
+        """ dependency : DEPENDENCY '{' string_list attr_list '}'
         """
-        p[0] = dict(type='param_double',
-                    name=p[1],
-                    attrs=p[3],
-                    value=p[4])
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
+                    attrs=[] if p[4] is None else p[4],
+                    value=p[3])
 
-    def p_param_long(self, p):
-        """ param_long : PARAMLONG '{' attr_list empty '}'
-                       | PARAMLONG '{' attr_list INTEGER '}'
+    def p_param_card_layout(self, p):
+        """ paramcardlayout : PARAMCARDLAYOUT '{' repr controls lines '}'
         """
-        p[0] = dict(type='param_long',
-                    name=p[1],
-                    attrs=p[3],
-                    value=p[4])
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
+                    attrs=[],
+                    value=dict(repr=p[3],
+                               controls=p[4],
+                               lines=p[5])
+                   )
 
-    def p_param_bool(self, p):
-        """ param_bool : PARAMBOOL '{' attr_list empty '}'
-                       | PARAMBOOL '{' attr_list TRUE '}'
-                       | PARAMBOOL '{' attr_list FALSE '}'
+    def p_eva_card_layout(self, p):
+        """ evacardlayout : EVACARDLAYOUT '{' MULTI_STRING INTEGER eva_controls lines '}'
+                          | EVACARDLAYOUT '{' MULTI_STRING INTEGER eva_controls empty '}'
         """
-        p[0] = dict(type='param_bool',
-                    name=p[1],
-                    attrs=p[3],
-                    value=p[4])
+        # This appears to be the predecessor of ParamCardLayout
+        p[0] = dict(type=p[1][0],
+                    name=p[1][1],
+                    attrs=[],
+                    value=dict(repr=p[3],
+                               n_controls=p[4],
+                               controls=p[5],
+                               lines=[] if p[6] is None else p[6])
+                   )
 
     def p_attr_list(self, p):
         """ attr_list : attr_list key_value
@@ -381,11 +334,12 @@ class XProtocolSymbols(object):
             p[0] = p[1] + [p[2]]
 
     def p_key_value(self, p):
-        """key_value : TAG curly_list
+        """key_value : evastringtable
+                     | TAG curly_list
                      | TAG scalar
                      | TAG block
         """
-        p[0] = (p[1], p[2])
+        p[0] = p[1] if len(p) == 2 else (p[1][0], p[2])
 
     def p_scalar(self, p):
         """scalar : FLOAT
@@ -395,18 +349,6 @@ class XProtocolSymbols(object):
                   | MULTI_STRING
         """
         p[0] = p[1]
-
-    def p_dependency(self, p):
-        """ dependency : DEPENDENCY '{' string_list empty empty '}'
-                       | DEPENDENCY '{' string_list dll empty '}'
-                       | DEPENDENCY '{' string_list dll context '}'
-                       | DEPENDENCY '{' string_list empty context '}'
-        """
-        p[0] = dict(type='dependency',
-                    name=p[1],
-                    values=p[3],
-                    dll=p[4],
-                    context=p[5])
 
     def p_curly_list(self, p):
         """ curly_list : '{' attr_list string_list '}'
@@ -433,26 +375,6 @@ class XProtocolSymbols(object):
                       | FALSE
         """
         p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
-
-    def p_param_card_layout(self, p):
-        """ param_card_layout : PARAMCARDLAYOUT '{' repr controls lines '}'
-        """
-        p[0] = dict(type='param_card_layout',
-                    name=p[1],
-                    repr=p[3],
-                    controls=p[4],
-                    lines=p[5])
-
-    def p_eva_card_layout(self, p):
-        """ eva_card_layout : EVACARDLAYOUT '{' MULTI_STRING INTEGER eva_controls lines '}'
-        """
-        # This appears to be the predecessor of ParamCardLayout
-        p[0] = dict(type='eva_card_layout',
-                    name=p[1],
-                    repr=p[3],
-                    n_controls=p[4],
-                    controls=p[5],
-                    lines=p[6])
 
     def p_controls(self, p):
         """ controls : controls control
@@ -488,9 +410,9 @@ class XProtocolSymbols(object):
                     repr=p[4])
 
     def p_eva_string_table(self, p):
-        """ eva_string_table : EVASTRINGTABLE '{' INTEGER int_strings '}'
+        """ evastringtable : EVASTRINGTABLE '{' INTEGER int_strings '}'
         """
-        p[0] = (p[1], (p[3], p[4]))
+        p[0] = (p[1][0], (p[3], p[4]))
 
     def p_int_strings(self, p):
         """ int_strings : int_strings int_string
@@ -501,21 +423,6 @@ class XProtocolSymbols(object):
     def p_int_string(self, p):
         """ int_string : INTEGER MULTI_STRING """
         p[0] = (p[1], p[2])
-
-    def p_class(self, p):
-        """class : CLASS MULTI_STRING
-        """
-        p[0] = p[2]
-
-    def p_context(self, p):
-        """context : CONTEXT MULTI_STRING
-        """
-        p[0] = p[2]
-
-    def p_dll(self, p):
-        """dll : DLL MULTI_STRING
-        """
-        p[0] = p[2]
 
     def p_param(self, p):
         """param : PARAM MULTI_STRING
