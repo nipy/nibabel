@@ -27,31 +27,6 @@ def find_column(input, lexpos):
     return lexpos - last_cr - 1
 
 
-class TagInfo(object):
-    '''Store all relevant info about a XProtocol tag'''
-    def __init__(self, tag_type, token_type=None, elem_type=None, tag_name=None):
-        self.tag_type = tag_type
-        if token_type is None:
-            self.token_type = tag_type.upper()
-        else:
-            self.token_type = token_type
-        if elem_type is None:
-            self.elem_type = tag_type.lower()
-        else:
-            self.elem_type = elem_type
-        self.tag_name = tag_name
-
-    def __repr__(self):
-        return ("TagInfo(tag_type='%s', token_type='%s', elem_type='%s', "
-                "tag_name='%s')") % (self.tag_type,
-                                   self.token_type,
-                                   self.elem_type,
-                                   self.tag_name)
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
-
-
 class XProtocolSymbols(object):
     # Tags that don't have a name, just a type
     anon_tags = set(['XProtocol',

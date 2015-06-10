@@ -8,7 +8,6 @@ from ..externals.ply import lex
 from ..externals.ply import yacc
 
 from .. import xpparse as xpp
-from ..xpparse import TagInfo
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
