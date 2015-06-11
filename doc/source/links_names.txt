@@ -14,46 +14,46 @@
 
 .. nibabel
 .. _nibabel: http://nipy.org/nibabel
-.. _`nibabel github`: http://github.com/nipy/nibabel
+.. _`nibabel github`: https://github.com/nipy/nibabel
 .. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
-.. _nibabel pypi: http://pypi.python.org/pypi/nibabel
-.. _nibabel issues: http://github.com/nipy/nibabel/issues
-.. _nibabel github issues: http://github.com/nipy/nibabel/issues
+.. _nibabel pypi: https://pypi.python.org/pypi/nibabel
+.. _nibabel issues: https://github.com/nipy/nibabel/issues
+.. _nibabel github issues: https://github.com/nipy/nibabel/issues
 .. _nibabel wiki: https://github.com/nipy/nibabel.wiki
-.. _nibabel on travis: http://travis-ci.org/nipy/nibabel
+.. _nibabel on travis: https://travis-ci.org/nipy/nibabel
 
 .. other related projects
 .. _nipy community: http://nipy.org
 .. _nipy: http://nipy.org/nipy
 .. _`Brain Imaging Center`: http://bic.berkeley.edu/
 .. _dipy: http://nipy.org/dipy
-.. _`dipy github`: http://github.com/Garyfallidis/dipy
+.. _`dipy github`: https://github.com/Garyfallidis/dipy
 .. _nibabel: http://nipy.org/nibabel
 .. _nipy development guidelines: http://nipy.org/devel
-.. _`nipy github`: http://github.com/nipy/nipy
-.. _nipy buildbot: http://nipy.bic.berkeley.edu
-.. _travis-ci: http://travis-ci.org
+.. _`nipy github`: https://github.com/nipy/nipy
+.. _nipy buildbot: https://nipy.bic.berkeley.edu
+.. _travis-ci: https://travis-ci.org
 .. _nibotmi: https://github.com/nipy/nibotmi
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
-.. _Sphinx: http://sphinx.pocoo.org/
-.. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
+.. _Sphinx: http://sphinx-doc.org/
+.. _`Sphinx reST`: http://sphinx-doc.org/rest.html
 .. _reST: http://docutils.sourceforge.net/rst.html
 .. _docutils: http://docutils.sourceforge.net
 .. _IPython notebook viewer: http://nbviewer.ipython.org
 
 .. Licenses
-.. _GPL: http://www.gnu.org/licenses/gpl.html
+.. _GPL: https://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
-.. _LGPL: http://www.gnu.org/copyleft/lesser.html
+.. _LGPL: https://www.gnu.org/copyleft/lesser.html
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
 .. _PDDL 1.0: http://opendatacommons.org/licenses/pddl/1.0/
 .. _CC0: http://opendefinition.org/licenses/cc-zero
 
 
 .. Installation
-.. _pypi: http://pypi.python.org/pypi
+.. _pypi: https://pypi.python.org/pypi
 
 .. Working process
 .. _pynifti: http://niftilib.sourceforge.net/pynifti/
@@ -63,75 +63,75 @@
 .. _sourceforge: http://nipy.sourceforge.net/
 .. _`nipy launchpad`: https://launchpad.net/nipy
 .. _launchpad: https://launchpad.net/
-.. _`nipy trunk`: http://code.launchpad.net/~nipy-developers/nipy/trunk
-.. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
-.. _`nipy bugs`: https://bugs.launchpad.net/nipy
-.. _sourceforge download page: http://sourceforge.net/projects/nipy/files
+.. _`nipy trunk`: https://github.com/nipy/nipy/tree/master
+.. _`nipy mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _`nipy bugs`: https://github.com/nipy/nipy/issues
+.. _sourceforge download page: https://github.com/nipy/nipy/releases
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
-.. _pylint: http://www.logilab.org/project/pylint
-.. _pyflakes: http://divmod.org/trac/wiki/DivmodPyflakes
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
-.. _github: http://github.com
+.. _pylint: https://bitbucket.org/logilab/pylint/
+.. _pyflakes: https://github.com/pyflakes/pyflakes
+.. _virtualenv: https://virtualenv.pypa.io/en/latest/
+.. _github: https://github.com
 .. _flymake: http://flymake.sourceforge.net/
 .. _rope: http://rope.sourceforge.net/
 .. _pymacs: http://pymacs.progiciels-bpi.ca/pymacs.html
 .. _ropemacs: http://rope.sourceforge.net/ropemacs.html
 .. _ECB: http://ecb.sourceforge.net/
 .. _emacs_python_mode: http://www.emacswiki.org/cgi-bin/wiki/PythonMode
-.. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
+.. _doctest-mode: http://ed.loper.org/projects/doctestmode/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
-.. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
-.. _bitbucket: http://bitbucket.org
+.. _`python coverage tester`: http://nedbatchelder.com/code/coverage/
+.. _bitbucket: https://bitbucket.org
 
 .. Other python projects
-.. _numpy: http://www.scipy.org/NumPy
-.. _scipy: http://www.scipy.org
-.. _ipython: http://ipython.scipy.org
-.. _`ipython github`: http://github.com/ipython/ipython
+.. _numpy: http://www.numpy.org
+.. _scipy: https://www.scipy.org
+.. _ipython: https://ipython.org
+.. _`ipython github`: https://github.com/ipython/ipython
 .. _`ipython mailing list`: http://mail.scipy.org/mailman/listinfo/IPython-dev
-.. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
-.. _matplotlib: http://matplotlib.sourceforge.net
+.. _`ipython manual`: https://ipython.org/ipython-doc/stable/index.html
+.. _matplotlib: http://matplotlib.org/
 .. _pythonxy: http://www.pythonxy.com
-.. _EPD: http://www.enthought.com/products/epd.php
-.. _ETS: http://code.enthought.com/projects/tool-suite.php
-.. _`Enthought Tool Suite`: http://code.enthought.com/projects/tool-suite.php
-.. _python: http://www.python.org
+.. _EPD: https://www.enthought.com/products/epd/
+.. _ETS: http://code.enthought.com/
+.. _`Enthought Tool Suite`: http://code.enthought.com/
+.. _python: https://www.python.org
 .. _mayavi: http://mayavi.sourceforge.net/
-.. _sympy: http://code.google.com/p/sympy/
-.. _networkx: http://networkx.lanl.gov/
-.. _setuptools: http://pypi.python.org/pypi/setuptools
-.. _distribute: http://packages.python.org/distribute
+.. _sympy: http://www.sympy.org/
+.. _networkx: https://networkx.github.io/
+.. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _distribute: https://pythonhosted.org/distribute
 .. _pip: https://pip.readthedocs.org/en/latest
 .. _pip install instructions:
    https://pip.readthedocs.org/en/latest/installing.html
 .. _twine: https://pypi.python.org/pypi/twine
-.. _datapkg: http://okfn.org/projects/datapkg
-.. _python imaging library: http://www.pythonware.com
+.. _datapkg: https://pythonhosted.org/datapkg/
+.. _python imaging library: http://pythonware.com/products/pil/
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
 .. _BrainVISA: http://brainvisa.info
 .. _anatomist: http://brainvisa.info
-.. _pydicom: http://code.google.com/p/pydicom/
+.. _pydicom: http://www.pydicom.org/
 
 .. Not so python imaging projects
-.. _matlab: http://www.mathworks.com
+.. _matlab: https://www.mathworks.com
 .. _spm: http://www.fil.ion.ucl.ac.uk/spm
 .. _spm8: http://www.fil.ion.ucl.ac.uk/spm/software/spm8
 .. _eeglab: http://sccn.ucsd.edu/eeglab
 .. _AFNI: http://afni.nimh.nih.gov/afni
 .. _FSL: http://www.fmrib.ox.ac.uk/fsl
-.. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
-.. _voxbo: http://www.voxbo.org
-.. _mricron: http://www.cabiatl.com/mricro/mricron
+.. _FreeSurfer: https://surfer.nmr.mgh.harvard.edu
+.. _voxbo: https://www.nitrc.org/projects/voxbo/
+.. _mricron: http://www.mccauslandcenter.sc.edu/mricro/mricron/
 .. _slicer: http://www.slicer.org/
 
 .. File formats
 .. _DICOM: http://medical.nema.org/
-.. _`wikipedia DICOM`: http://en.wikipedia.org/wiki/Digital_Imaging_and_Communications_in_Medicine
-.. _GDCM: http://sourceforge.net/apps/mediawiki/gdcm
+.. _`wikipedia DICOM`: https://en.wikipedia.org/wiki/Digital_Imaging_and_Communications_in_Medicine
+.. _GDCM: http://gdcm.sourceforge.net/wiki/
 .. _DICOM standard : http://medical.nema.org/standard.html
 .. _PS 3.1: http://medical.nema.org/Dicom/2011/11_01pu.pdf
 .. _PS 3.2: http://medical.nema.org/Dicom/2011/11_02pu.pdf
@@ -162,67 +162,67 @@
 .. _Nrrd: http://teem.sourceforge.net/nrrd/format.html
 
 .. General software
-.. _gcc: http://gcc.gnu.org
-.. _xcode: http://developer.apple.com/TOOLS/xcode
+.. _gcc: https://gcc.gnu.org
+.. _xcode: https://developer.apple.com/TOOLS/xcode
 .. _mingw: http://www.mingw.org
-.. _cygwin: http://cygwin.com
-.. _macports: http://www.macports.org/
+.. _cygwin: https://cygwin.com
+.. _macports: https://www.macports.org/
 .. _VTK: http://www.vtk.org/
 .. _ITK: http://www.itk.org/
 .. _swig: http://www.swig.org
 
 .. version control
-.. _git: http://git-scm.com
-.. _mercurial: http://mercurial.selenic.com
+.. _git: https://git-scm.com
+.. _mercurial: https://mercurial.selenic.com
 .. _bzr: http://bazaar.canonical.com
-.. _subversion: http://subversion.apache.org
+.. _subversion: https://subversion.apache.org
 
 .. Functional imaging labs
 .. _`functional imaging laboratory`: http://www.fil.ion.ucl.ac.uk
 .. _FMRIB: http://www.fmrib.ox.ac.uk
 
 .. Other organizations
-.. _enthought: <http://www.enthought.com>
+.. _enthought: <https://www.enthought.com>
 .. _kitware: http://www.kitware.com
 .. _NeuroDebian: http://neuro.debian.net
 .. _nibabel NeuroDebian: http://neuro.debian.net/pkgs/python-nibabel.html
-.. _nitrc: http://www.nitrc.org
+.. _nitrc: https://www.nitrc.org
 
 .. General information links
-.. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
-.. _`wikipedia PET`: http://en.wikipedia.org/wiki/Positron_emission_tomography
+.. _`wikipedia FMRI`: https://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
+.. _`wikipedia PET`: https://en.wikipedia.org/wiki/Positron_emission_tomography
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
-.. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
-.. _GIFTI: http://www.nitrc.org/projects/gifti
+.. _MINC: https://www.mcgill.ca/bic/software/minc
+.. _GIFTI: https://www.nitrc.org/projects/gifti
 .. _MINC1:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
 .. _MINC2:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
 
 .. Mathematical methods
-.. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
-.. _`wikipedia PCA`: http://en.wikipedia.org/wiki/Principal_component_analysis
+.. _`wikipedia ICA`: https://en.wikipedia.org/wiki/Independent_component_analysis
+.. _`wikipedia PCA`: https://en.wikipedia.org/wiki/Principal_component_analysis
 
 .. Mathematical ideas
-.. _`wikipedia spherical coordinate system`: http://en.wikipedia.org/wiki/Spherical_coordinate_system
+.. _`wikipedia spherical coordinate system`: https://en.wikipedia.org/wiki/Spherical_coordinate_system
 .. _`mathworld spherical coordinate system`: http://mathworld.wolfram.com/SphericalCoordinates.html
-.. _`wikipedia affine`: http://en.wikipedia.org/wiki/Affine_transformation
-.. _`wikipedia affine transform`: http://en.wikipedia.org/wiki/Affine_transformation
-.. _`wikipedia linear transform`: http://en.wikipedia.org/wiki/Linear_transformation
-.. _`wikipedia rotation matrix`: http://en.wikipedia.org/wiki/Rotation_matrix
-.. _`wikipedia homogenous coordinates`: http://en.wikipedia.org/wiki/Homogeneous_coordinates
-.. _`wikipedia axis angle`: http://en.wikipedia.org/wiki/Axis_angle
-.. _`wikipedia Euler angles`: http://en.wikipedia.org/wiki/Euler_angles
+.. _`wikipedia affine`: https://en.wikipedia.org/wiki/Affine_transformation
+.. _`wikipedia affine transform`: https://en.wikipedia.org/wiki/Affine_transformation
+.. _`wikipedia linear transform`: https://en.wikipedia.org/wiki/Linear_transformation
+.. _`wikipedia rotation matrix`: https://en.wikipedia.org/wiki/Rotation_matrix
+.. _`wikipedia homogenous coordinates`: https://en.wikipedia.org/wiki/Homogeneous_coordinates
+.. _`wikipedia axis angle`: https://en.wikipedia.org/wiki/Axis_angle
+.. _`wikipedia Euler angles`: https://en.wikipedia.org/wiki/Euler_angles
 .. _`Mathworld Euler angles`: http://mathworld.wolfram.com/EulerAngles.html
-.. _`wikipedia quaternion`: http://en.wikipedia.org/wiki/Quaternion
-.. _`wikipedia shear matrix`: http://en.wikipedia.org/wiki/Shear_matrix
-.. _`wikipedia reflection`: http://en.wikipedia.org/wiki/Reflection_(mathematics)
-.. _`wikipedia direction cosine`: http://en.wikipedia.org/wiki/Direction_cosine
+.. _`wikipedia quaternion`: https://en.wikipedia.org/wiki/Quaternion
+.. _`wikipedia shear matrix`: https://en.wikipedia.org/wiki/Shear_matrix
+.. _`wikipedia reflection`: https://en.wikipedia.org/wiki/Reflection_(mathematics)
+.. _`wikipedia direction cosine`: https://en.wikipedia.org/wiki/Direction_cosine
 
 .. Programming ideas
-.. _proxy: http://en.wikipedia.org/wiki/Proxy_pattern
+.. _proxy: https://en.wikipedia.org/wiki/Proxy_pattern
 
 .. philosophy
 .. _0SAGA: http://nipyworld.blogspot.com/2010/11/0saga-software-model.html

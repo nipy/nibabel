@@ -29,7 +29,7 @@ _dt_dict = {
     ('i','signed__'): np.int32,
     }
 
-# See http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
+# See https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
 _default_dir_cos = {
     'xspace': [1,0,0],
     'yspace': [0,1,0],
@@ -52,12 +52,12 @@ class Minc1File(object):
         self._image = mincfile.variables['image']
         self._dim_names = self._image.dimensions
         # The code below will error with vector_dimensions.  See:
-        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node3.html
-        # http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node11.html
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_dimensions
         self._dims = [self._mincfile.variables[s]
                       for s in self._dim_names]
         # We don't currently support irregular spacing
-        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node15.html
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
         for dim in self._dims:
             if dim.spacing != b'regular__':
                 raise ValueError('Irregular spacing not supported')
@@ -65,7 +65,7 @@ class Minc1File(object):
                              if name.endswith('space')]
         # the MINC standard appears to allow the following variables to
         # be undefined.
-        # http://www.bic.mni.mcgill.ca/software/minc/minc1_format/node16.html
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_conversion_variables
         # It wasn't immediately obvious what the defaults were.
         self._image_max = self._mincfile.variables['image-max']
         self._image_min = self._mincfile.variables['image-min']
@@ -73,7 +73,7 @@ class Minc1File(object):
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
         # Differs for MINC1 and MINC2 - see:
-        # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         return var.dimensions
 
     def get_data_dtype(self):
@@ -150,7 +150,7 @@ class Minc1File(object):
     def _normalize(self, data, sliceobj=()):
         """ Apply scaling to image data `data` already sliced with `sliceobj`
 
-        http://www.bic.mni.mcgill.ca/software/minc/prog_guide/node13.html
+        https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Pixel_values_and_real_values
 
         MINC normalization uses "image-min" and "image-max" variables to
         map the data from the valid range of the image to the range

@@ -58,7 +58,7 @@ class Minc2File(Minc1File):
         dimensions = minc_part['dimensions']
         self._dims = [Hdf5Bunch(dimensions[s]) for s in self._dim_names]
         # We don't currently support irregular spacing
-        # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
         for dim in self._dims:
             if dim.spacing != b'regular__':
                 raise ValueError('Irregular spacing not supported')
@@ -70,7 +70,7 @@ class Minc2File(Minc1File):
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
         # Differs for MINC1 and MINC2 - see:
-        # http://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
+        # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         try:
             dimorder = var.attrs['dimorder'].decode()
         except KeyError: # No specified dimensions

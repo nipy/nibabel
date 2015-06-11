@@ -235,7 +235,7 @@ intent_codes = Recoder((
     (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
     # The codes below appear on the CIFTI page, but don't appear to have reached
     # the nifti standard as of 19 August 2013
-    # http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+    # https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
     (3001, 'dense connectivity', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE'),
     (3002, 'dense time connectivity', (),
      'NIFTI_INTENT_CONNECTIVITY_DENSE_TIME'),
@@ -697,7 +697,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         -----
         Allows for freesurfer hack for large vectors described in
         https://github.com/nipy/nibabel/issues/100 and
-        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
         '''
         shape = super(Nifti1Header, self).get_data_shape()
         # Apply freesurfer hack for vector
@@ -724,7 +724,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         -----
         Applies freesurfer hack for large vectors described in
         https://github.com/nipy/nibabel/issues/100 and
-        http://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
         '''
         # Apply freesurfer hack for vector
         hdr = self._structarr

@@ -216,6 +216,7 @@ html_show_sourcelink = True
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'nibabeldoc'
 
+mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -251,7 +252,7 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/': None}
 
 # Config of plot_directive
 plot_include_source = True

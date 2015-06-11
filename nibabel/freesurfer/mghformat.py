@@ -20,7 +20,7 @@ from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
 
 # mgh header
-# See http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+# See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
 header_dtd = [
@@ -253,7 +253,7 @@ class MGHHeader(object):
 
     def get_vox2ras_tkr(self):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
-                http://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+                https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
         ds = np.array(self._header_data['delta'])
         ns = (np.array(self._header_data['dims'][:3]) * ds) / 2.0

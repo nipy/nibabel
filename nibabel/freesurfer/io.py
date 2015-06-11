@@ -241,7 +241,7 @@ def write_annot(filepath, labels, ctab, names):
     """Write out a Freesurfer annotation file.
 
     See:
-    http://ftp.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
+    https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
 
     Parameters
     ----------
