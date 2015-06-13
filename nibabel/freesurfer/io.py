@@ -160,6 +160,25 @@ def read_morph_data(filepath):
     return curv
 
 
+def write_morph_data(filename, values):
+    '''
+    '''
+    with open(filename, 'wb') as f:
+
+      # magic number
+      np.array([255], dtype='>u1').tofile(f)
+      np.array([255], dtype='>u1').tofile(f)
+      np.array([255], dtype='>u1').tofile(f)
+
+      # vertices number and two un-used int4
+      np.array([len(values)], dtype='>i4').tofile(f)
+      np.array([0], dtype='>i4').tofile(f)
+      np.array([1], dtype='>i4').tofile(f)
+
+      # now the data
+      np.array(values, dtype='>f4').tofile(f)
+
+
 def read_annot(filepath, orig_ids=False):
     """Read in a Freesurfer annotation from a .annot file.
 
