@@ -295,35 +295,26 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     def test_freesurfer_ico7_hack(self):
         HC = self.header_class
         hdr = HC()
-
         # Test that using ico7 shape automatically uses factored dimensions
         hdr.set_data_shape((163842, 1, 1))
         assert_array_equal(hdr._structarr['dim'][1:4], np.array([27307, 1, 6]))
-
         # Test consistency of data in .mgh and mri_convert produced .nii
-        nib_data = get_nibabel_data()
-        nitest_path = os.path.join(nib_data, 'nitest-freesurfer')
-
+        nitest_path = os.path.join(get_nibabel_data(), 'nitest-freesurfer')
         mgh = mghload(os.path.join(nitest_path, 'fsaverage', 'surf',
                                    'lh.orig.avg.area.mgh'))
         nii = load(os.path.join(nitest_path, 'derivative', 'fsaverage', 'surf',
                                 'lh.orig.avg.area.nii'))
-
         assert_equal(mgh.shape, nii.shape)
         assert_array_equal(mgh.get_data(), nii.get_data())
         assert_array_equal(nii.header._structarr['dim'][1:4],
                            np.array([27307, 1, 6]))
-
         # Test writing produces consistent nii files
         with InTemporaryDirectory():
             nii.to_filename('test.nii')
-
             nii2 = load('test.nii')
-
             assert_equal(nii.shape, nii2.shape)
             assert_array_equal(nii.get_data(), nii2.get_data())
             assert_array_equal(nii.get_affine(), nii2.get_affine())
-
 
     def test_qform_sform(self):
         HC = self.header_class
