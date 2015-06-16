@@ -698,16 +698,26 @@ class Nifti1Header(SpmAnalyzeHeader):
         Allows for freesurfer hack for large vectors described in
         https://github.com/nipy/nibabel/issues/100 and
         https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+
+        Allows for freesurfer hack for 7th order icosahedron surface described
+        in
+        https://github.com/nipy/nibabel/issues/309
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
         '''
         shape = super(Nifti1Header, self).get_data_shape()
         # Apply freesurfer hack for vector
-        if shape != (-1, 1, 1): # Normal case
+        if shape == (-1, 1, 1):
+            vec_len = int(self._structarr['glmin'])
+            if vec_len == 0:
+                raise HeaderDataError('-1 in dim[1] but 0 in glmin; '
+                                      'inconsistent freesurfer type header?')
+            return (vec_len, 1, 1)
+        # Apply freesurfer hack for ico7 surface
+        elif shape == (27307, 1, 6):
+            return (163842, 1, 1)
+        else:  # Normal case
             return shape
-        vec_len = int(self._structarr['glmin'])
-        if vec_len == 0:
-            raise HeaderDataError('-1 in dim[1] but 0 in glmin; inconsistent '
-                                  'freesurfer type header?')
-        return (vec_len, 1, 1)
 
     def set_data_shape(self, shape):
         ''' Set shape of data
@@ -725,12 +735,22 @@ class Nifti1Header(SpmAnalyzeHeader):
         Applies freesurfer hack for large vectors described in
         https://github.com/nipy/nibabel/issues/100 and
         https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+
+        Allows for freesurfer hack for 7th order icosahedron surface described
+        in
+        https://github.com/nipy/nibabel/issues/309
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
+        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
         '''
-        # Apply freesurfer hack for vector
         hdr = self._structarr
         shape = tuple(shape)
-        if (len(shape) == 3 and shape[1:] == (1, 1) and
-            shape[0] > np.iinfo(hdr['dim'].dtype.base).max): # Freesurfer case
+
+        # Apply freesurfer hack for ico7 surface
+        if shape == (163842, 1, 1):
+            shape = (27307, 1, 6)
+        # Apply freesurfer hack for vector
+        elif (len(shape) == 3 and shape[1:] == (1, 1) and
+                shape[0] > np.iinfo(hdr['dim'].dtype.base).max):
             try:
                 hdr['glmin'] = shape[0]
             except OverflowError:
