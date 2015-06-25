@@ -18,6 +18,7 @@ import numpy.linalg as npl
 
 from .py3k import asstr
 from .volumeutils import Recoder, make_dt_codes, endian_codes
+from .imageglobals import valid_exts
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
@@ -1611,6 +1612,12 @@ class Nifti1Header(SpmAnalyzeHeader):
             rep.fix_msg = 'setting to 0'
         return hdr, rep
 
+    @classmethod
+    def is_header(klass, binaryblock):
+        hdr = np.ndarray(shape=(), dtype=header_dtype,
+                         buffer=binaryblock[:348])
+        return hdr['magic'] in (b'ni1', b'n+1')
+
 
 class Nifti1PairHeader(Nifti1Header):
     ''' Class for NIfTI1 pair header '''
@@ -1618,6 +1625,7 @@ class Nifti1PairHeader(Nifti1Header):
     is_single = False
 
 
+@valid_exts('.img', '.hdr')
 class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
@@ -1841,6 +1849,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 self._affine[:] = self._header.get_best_affine()
 
 
+@valid_exts('.nii')
 class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """

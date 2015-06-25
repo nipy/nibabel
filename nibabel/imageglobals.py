@@ -58,3 +58,13 @@ class LoggingOutputSuppressor(object):
     def __exit__(self, exc, value, tb):
         for handler in self.orig_handlers:
             logger.addHandler(handler)
+
+IMAGE_MAP = {}
+
+
+def valid_exts(*exts):
+    def decorate(klass):
+        for ext in exts:
+            IMAGE_MAP.setdefault(ext, []).append(klass)
+        return klass
+    return decorate

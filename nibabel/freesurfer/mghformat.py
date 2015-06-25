@@ -13,6 +13,7 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
+from ..imageglobals import valid_exts
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder,  copy_file_map
@@ -454,6 +455,7 @@ class MGHHeader(object):
         fileobj.write(ftr_nd.tostring())
 
 
+@valid_exts('.mgh', '.mgz')
 @ImageOpener.register_ext_from_image('.mgz', ImageOpener.gz_def)
 class MGHImage(SpatialImage):
     """ Class for MGH format image

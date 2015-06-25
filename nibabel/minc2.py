@@ -30,6 +30,7 @@ import numpy as np
 from .optpkg import optional_package
 h5py, have_h5py, setup_module = optional_package('h5py')
 
+from .imageglobals import valid_exts
 from .minc1 import Minc1File, Minc1Image, MincError
 
 
@@ -134,6 +135,7 @@ class Minc2File(Minc1File):
         return self._normalize(raw_data, sliceobj)
 
 
+@valid_exts('.mnc')
 class Minc2Image(Minc1Image):
     ''' Class for MINC2 images
 
@@ -159,6 +161,10 @@ class Minc2Image(Minc1Image):
         header = klass.header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
+
+    @classmethod
+    def _minctest(klass, binaryblock):
+        return binaryblock[:4] == b'\211HDF'
 
 
 load = Minc2Image.load

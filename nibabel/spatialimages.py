@@ -141,9 +141,10 @@ import warnings
 
 import numpy as np
 
-from .filename_parser import types_filenames, TypesFilenamesError
+from .filename_parser import types_filenames, TypesFilenamesError, \
+    splitext_addext
 from .fileholders import FileHolder
-from .volumeutils import shape_zoom_affine
+from .volumeutils import shape_zoom_affine, BinOpener
 
 
 class HeaderDataError(Exception):
@@ -865,6 +866,22 @@ class SpatialImage(object):
                      img.affine,
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
+
+    @classmethod
+    def is_image(klass, filename, sniff=None):
+        ftypes = dict(klass.files_types)
+        froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+        lext = ext.lower()
+
+        if lext not in ftypes.values():
+            return False, sniff
+
+        fname = froot + ftypes['header'] if 'header' in ftypes else filename
+        if not sniff:
+            with BinOpener(fname, 'rb') as fobj:
+                sniff = fobj.read(1024)
+
+        return klass.header_class.is_header(sniff), sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images

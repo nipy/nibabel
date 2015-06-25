@@ -100,6 +100,7 @@ from .keywordonly import kw_only_meth
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file
+from .imageglobals import valid_exts
 from .affines import from_matvec, dot_reduce, apply_affine
 from .nifti1 import unit_codes
 from .fileslice import fileslice, strided_scalar
@@ -1017,6 +1018,7 @@ class PARRECHeader(Header):
         return np.lexsort(keys)[:n_used]
 
 
+@valid_exts('.par', '.rec')
 class PARRECImage(SpatialImage):
     """PAR/REC image"""
     header_class = PARRECHeader

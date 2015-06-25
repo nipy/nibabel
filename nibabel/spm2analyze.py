@@ -113,7 +113,16 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
             return slope, inter
         return None, None
 
+    @classmethod
+    def is_header(klass, binaryblock):
+        hdr = np.ndarray(shape=(), dtype=header_dtype,
+                         buffer=binaryblock[:348])
+        bs_hdr = hdr.byteswap()
+        return (binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and
+                348 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr']))
 
+
+@valid_exts('.img', '.hdr')
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     """ Class for SPM2 variant of basic Analyze image
     """
