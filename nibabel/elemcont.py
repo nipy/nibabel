@@ -23,6 +23,11 @@ class Elem(object):
 class InvalidElemError(Exception):
     '''Raised when trying to add an object without a `value` attribute to an
     `ElemDict`.'''
+    def __init__(self, invalid_val):
+        self.invalid_val = invalid_val
+        message = ("Provided value '%s' of type %s does not have a 'value' "
+                   "attribute" % (self.invalid_val, type(invalid_val)))
+        super(InvalidElemError, self).__init__(message)
 
 
 class ElemDict(MutableMapping):
@@ -38,17 +43,15 @@ class ElemDict(MutableMapping):
             raise TypeError("At most one arg expected, got %d" % len(args))
         self._elems = OrderedDict()
         if len(args) == 1:
-            if hasattr(args[0], 'items'):
+            if hasattr(args[0], 'iter_elems'):
+                it = args[0].iter_elems()
+            elif hasattr(args[0], 'items'):
                 it = iteritems(args[0])
             else:
                 it = args[0]
             for key, val in it:
-                if isinstance(val, dict):
-                    val = self.__class__(val)
                 self[key] = val
         for key, val in iteritems(kwargs):
-            if isinstance(val, dict):
-                val = self.__class__(val)
             self[key] = val
 
     def __getitem__(self, key):
@@ -56,7 +59,7 @@ class ElemDict(MutableMapping):
 
     def __setitem__(self, key, val):
         if not hasattr(val, 'value'):
-            raise InvalidElemError()
+            raise InvalidElemError(val)
         self._elems[key] = val
 
     def __delitem__(self, key):
@@ -72,8 +75,20 @@ class ElemDict(MutableMapping):
         return ('ElemDict(%s)' %
                 ', '.join(['%r=%r' % x for x in self.items()]))
 
+    def update(self, other):
+        if isinstance(other, self.__class__):
+            for key, elem in other.iter_elems():
+                self[key] = elem
+        else:
+            for key, elem in iteritems(other):
+                self[key] = elem
+
     def get_elem(self, key):
         return self._elems[key]
+
+    def iter_elems(self):
+        for key in self:
+            yield (key, self._elems[key])
 
 
 class ElemList(MutableSequence):
@@ -86,8 +101,12 @@ class ElemList(MutableSequence):
     def __init__(self, data=None):
         self._elems = list()
         if data is not None:
-            for elem in data:
-                self.append(elem)
+            if isinstance(data, self.__class__):
+                for idx in range(len(data)):
+                    self.append(data.get_elem(idx))
+            else:
+                for elem in data:
+                    self.append(elem)
 
     def _tuple_from_slice(self, slc):
         '''Get (start, end, step) tuple from slice object.
@@ -136,14 +155,35 @@ class ElemList(MutableSequence):
     def __repr__(self):
         return ('ElemList([%s])' % ', '.join(['%r' % x for x in self]))
 
+    def __add__(self, other):
+        result = self.__class__(self)
+        if isinstance(other, self.__class__):
+            for idx in range(len(other)):
+                result.append(other.get_elem(idx))
+        else:
+            for e in other:
+                result.append(e)
+        return result
+
+    def __radd__(self, other):
+        result = self.__class__(other)
+        for idx in range(len(self)):
+            result.append(self.get_elem(idx))
+        return result
+
+    def __iadd__(self, other):
+        if isinstance(other, self.__class__):
+            for idx in range(len(other)):
+                self.append(other.get_elem(idx))
+        else:
+            for e in other:
+                self.append(e)
+        return self
+
     def insert(self, idx, val):
         if not hasattr(val, 'value'):
-            raise InvalidElemError()
+            raise InvalidElemError(val)
         self._elems.insert(idx, val)
-
-    def append(self, val):
-        list_idx = len(self._elems)
-        self.insert(list_idx, val)
 
     def get_elem(self, idx):
         return self._elems[idx]
