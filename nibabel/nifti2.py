@@ -20,6 +20,7 @@ Stuff about the CIFTI file format here:
 import numpy as np
 
 from .analyze import AnalyzeHeader
+from .imageglobals import valid_exts
 from .batteryrunners import Report
 from .spatialimages import HeaderDataError, ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
@@ -221,6 +222,17 @@ class Nifti2Header(Nifti1Header):
             rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
         return hdr, rep
 
+    @classmethod
+    def is_header(klass, binaryblock):
+        if len(binaryblock) < 540:
+            return False
+
+        hdr = np.ndarray(shape=(), dtype=header_dtype,
+                         buffer=binaryblock[:540])
+        bs_hdr = hdr.byteswap()
+        return 540 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr'])
+
+
 
 class Nifti2PairHeader(Nifti2Header):
     ''' Class for NIfTI2 pair header '''
@@ -228,12 +240,14 @@ class Nifti2PairHeader(Nifti2Header):
     is_single = False
 
 
+@valid_exts('.img', '.hdr')
 class Nifti2Pair(Nifti1Pair):
     """ Class for NIfTI2 format image, header pair
     """
     header_class = Nifti2PairHeader
 
 
+@valid_exts('.nii')
 class Nifti2Image(Nifti1Image):
     """ Class for single file NIfTI2 format image
     """

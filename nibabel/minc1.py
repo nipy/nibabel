@@ -14,8 +14,11 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
+from .filename_parser import splitext_addext
+from .imageglobals import valid_exts
 from .spatialimages import Header, SpatialImage
 from .fileslice import canonical_slicers
+from .volumeutils import BinOpener
 
 from .deprecated import FutureWarningMixin
 
@@ -279,6 +282,7 @@ class MincHeader(Header):
         raise NotImplementedError
 
 
+@valid_exts('.mnc')
 class Minc1Image(SpatialImage):
     ''' Class for MINC1 format images
 
@@ -305,6 +309,26 @@ class Minc1Image(SpatialImage):
             header = klass.header_class(data_dtype, shape, zooms)
             data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
+
+    @classmethod
+    def is_image(klass, filename, sniff=None):
+        ftypes = dict(klass.files_types)
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
+        lext = ext.lower()
+
+        if lext not in ftypes.values():
+            return False, sniff
+
+        fname = froot + ftypes['header'] if 'header' in ftypes else filename
+        if not sniff:
+            with BinOpener(fname, 'rb') as fobj:
+                sniff = fobj.read(4)
+
+        return klass._minctest(sniff), sniff
+
+    @classmethod
+    def _minctest(klass, binaryblock):
+        return binaryblock != b'\211HDF'
 
 
 load = Minc1Image.load
