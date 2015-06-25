@@ -89,13 +89,43 @@ class ElemList(MutableSequence):
             for elem in data:
                 self.append(elem)
 
+    def _tuple_from_slice(self, slc):
+        '''Get (start, end, step) tuple from slice object.
+        '''
+        (start, end, step) = slc.indices(len(self))
+        # Replace (0, -1, 1) with (0, 0, 1) (misfeature in .indices()).
+        if step == 1:
+          if end < start:
+            end = start
+          step = None
+        if slc.step == None:
+          step = None
+        return (start, end, step)
+
     def __getitem__(self, idx):
-        return self._elems[idx].value
+        if isinstance(idx, slice):
+            return ElemList(self._elems[idx])
+        else:
+            return self._elems[idx].value
 
     def __setitem__(self, idx, val):
-        if not hasattr(val, 'value'):
-            raise InvalidElemError()
-        self._elems[idx] = val
+        if isinstance(idx, slice):
+            (start, end, step) = self._tuple_from_slice(idx)
+            if step != None:
+                # Extended slice
+                indices = range(start, end, step)
+                if len(val) != len(indices):
+                    raise ValueError(('attempt to assign sequence of size %d' +
+                                      ' to extended slice of size %d') %
+                                     (len(value), len(indices)))
+                for j, assign_val in enumerate(val):
+                    self.insert(indices[j], assign_val)
+            else:
+                # Normal slice
+                for j, assign_val in enumerate(val):
+                    self.insert(start + j, assign_val)
+        else:
+            self.insert(idx, val)
 
     def __delitem__(self, idx):
         del self._elems[idx]

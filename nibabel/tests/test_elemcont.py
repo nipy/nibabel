@@ -45,3 +45,10 @@ def test_elemlist():
     assert_equal(len(el), 1)
     assert_equal(el[0], 'something')
     assert_equal(el.get_elem(0), elem)
+
+def test_elemlist_slicing():
+    el = ElemList()
+    el[5:6] = [Elem('hello'), Elem('there'), Elem('world')]
+    assert_equal([x for x in el], ['hello', 'there', 'world'])
+    assert_true(isinstance(el[:2], ElemList))
+    assert_equal([x for x in el[:2]], ['hello', 'there'])
