@@ -11,15 +11,114 @@ than an AttributeError - breaking the 'properties manifesto'.   So, any
 processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 """
+from __future__ import division, print_function, absolute_import
 
 import operator
+import re
 
 import numpy as np
 
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
+from .utils import find_private_section
+from . import ascconv
 from ..volumeutils import BinOpener
 from ..onetime import setattr_on_read as one_time
+from .. import xpparse as xpp
+
+try:
+    import dicom
+except ImportError:
+    pass
+
+class PrivateTranslator(object):
+    """ Object for translating a private element into a dictionary."""
+
+    def __init__(self, name, group_no, elem_offset, creator):
+        self.name = name
+        self.group_no = group_no
+        self.elem_offset = elem_offset
+        self.creator = creator
+
+    @classmethod
+    def translate(self, elem):
+        raise NotImplementedError()
+
+
+class CsaTranslator(PrivateTranslator):
+    '''Translator for Siemens CSA sub headers.'''
+
+    @classmethod
+    def translate(cls, elem):
+         return csar.header_to_key_val_mapping(csar.read(elem.value))
+
+
+class CsaSeriesTranslator(CsaTranslator):
+    '''Translator for the Siemens CSA "series" subheader, which in turn
+    contains additional subheaders which are also parsed'''
+
+    @classmethod
+    def translate(cls, elem):
+        csa_dict = CsaTranslator.translate(elem)
+        # Exactly where the XProtocol and ASCCONV data is stored depends on the
+        # version of Syngo.
+        if 'MrPhoenixProtocol' in csa_dict:
+            # This is a "newer" data set, everything is in 'MrPhoenixProtocol'
+            outer_xprotos = xpp.parse(csa_dict['MrPhoenixProtocol'])
+            assert len(outer_xprotos) == 1
+            xproto_dict = outer_xprotos[0]
+            for param in xproto_dict['blocks'][0]['value']:
+                if param['name'] == 'Protocol0':
+                    inner_str, ascconv_str = xpp.split_ascconv(param['value'])
+                    param['value'] = xpp.parse(xpp.strip_twin_quote(inner_str))
+                    break
+            else:
+                raise ValueError("Unable to find inner XProtocol and ASCCONV")
+            ascconv_dict = ascconv.parse_ascconv('MrPhoenixProtocol',
+                                                 ascconv_str)
+            del csa_dict['MrPhoenixProtocol']
+        elif 'MrProtocol' in csa_dict and 'MrEvaProtocol' in csa_dict:
+            # This is an "older" data set, XProtocol is in 'MrEvaProtcol' and
+            # ASCCONV is in 'MrProtocol'
+            xprotos = xpp.parse(csa_dict['MrEvaProtocol'])
+            assert len(xprotos) == 1
+            xproto_dict = xprotos[0]
+            print(csa_dict['MrProtocol'])
+            ascconv_dict = ascconv.parse_ascconv('MrProtocol',
+                                                 csa_dict['MrProtocol'])
+            del csa_dict['MrEvaProtocol']
+            del csa_dict['MrProtocol']
+        else:
+            raise ValueError("Unrecognized structure for CSA Series Element")
+
+        # We try to normalize these discrepacies by always putting the parsed
+        # results into the same locations
+        csa_dict['XProtocol'] = xproto_dict
+        csa_dict['ASCCONV'] = ascconv_dict
+
+        return csa_dict
+
+
+csa_image_trans = CsaTranslator('csa_image',
+                                0x29,
+                                0x10,
+                                re.compile('SIEMENS CSA HEADER|'
+                                           'CSA Image Header Info'))
+'''Translator for the CSA image sub header.'''
+
+
+csa_series_trans = CsaSeriesTranslator('csa_series',
+                                       0x29,
+                                       0x20,
+                                       re.compile('SIEMENS CSA HEADER|'
+                                                  'CSA Series Header Info'))
+'''Translator for parsing the CSA series sub header.'''
+
+
+siemens_translators = (csa_image_trans,
+                       csa_series_trans,
+                      )
+'''Default translators for MetaExtractor.'''
 
 
 class WrapperError(Exception):
@@ -49,8 +148,6 @@ def wrapper_from_file(file_like, *args, **kwargs):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
-    import dicom
-
     with BinOpener(file_like) as fobj:
         dcm_data = dicom.read_file(fobj, *args, **kwargs)
     return wrapper_from_data(dcm_data)
@@ -76,15 +173,13 @@ def wrapper_from_data(dcm_data):
         # currently only Philips is using Enhanced Multiframe DICOM
         return MultiframeWrapper(dcm_data)
     # Check for Siemens DICOM format types
-    # Only Siemens will have data for the CSA header
-    csa = csar.get_csa_header(dcm_data)
-    if csa is None:
-        return Wrapper(dcm_data)
-    if csar.is_mosaic(csa):
-        # Mosaic is a "tiled" image
-        return MosaicWrapper(dcm_data, csa)
-    # Assume data is in a single slice format per file
-    return SiemensWrapper(dcm_data, csa)
+    if find_private_section(dcm_data,
+                            csa_image_trans.group_no,
+                            csa_image_trans.creator) is not None:
+        if 'MOSAIC' in dcm_data.ImageType:
+            return MosaicWrapper(dcm_data)
+        return SiemensWrapper(dcm_data)
+    return Wrapper(dcm_data)
 
 
 class Wrapper(object):
@@ -119,17 +214,36 @@ class Wrapper(object):
     b_value = None
     b_vector = None
 
-    def __init__(self, dcm_data):
+    def __init__(self, dcm_data, priv_trans=None):
         """ Initialize wrapper
 
         Parameters
         ----------
-        dcm_data : object
-           object should allow 'get' and '__getitem__' access.  Usually this
-           will be a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file, but a dictionary should also work.
+        dcm_data : dicom.dataset.Dataset
+            The DICOM data set we are wrapping
+
+        priv_trans : list of PrivateTranslator or None
+            One or more translators for private elements in `dcm_data`
         """
         self.dcm_data = dcm_data
+        self.dcm_data.decode()
+        # Convert list of translator objects to dict mapping names to tuples
+        # containing the appropriate dicom tag and the translator object
+        self._trans_map = {}
+        if priv_trans:
+            for translator in priv_trans:
+                sect_start = find_private_section(self.dcm_data,
+                                                  translator.group_no,
+                                                  translator.creator)
+                if sect_start is None:
+                    continue
+                tag = dicom.tag.Tag(translator.group_no,
+                                    sect_start + translator.elem_offset)
+                if translator.name in self._trans_map:
+                    raise ValueError('More than one translator with name {0}'.\
+                                     format(translator.name))
+                self._trans_map[translator.name] = (tag, translator)
+        self._trans_results = {}
 
     @one_time
     def image_shape(self):
@@ -273,14 +387,26 @@ class Wrapper(object):
         return signature
 
     def __getitem__(self, key):
-        """ Return values from DICOM object"""
-        if not key in self.dcm_data:
-            raise KeyError('"%s" not in self.dcm_data' % key)
-        return self.dcm_data.get(key)
+        """ Return values from DICOM object """
+        if key in self._trans_map:
+            if key in self._trans_results:
+                res = self._trans_results[key]
+            else:
+                trans_tag, trans = self._trans_map[key]
+                res = trans.translate(self.dcm_data[trans_tag])
+                self._trans_results[key] = res
+        else:
+            res = self.dcm_data.get(key)
+            if res is None:
+                raise KeyError('"%s" not in self.dcm_data' % key)
+        return res
 
     def get(self, key, default=None):
         """ Get values from underlying dicom data """
-        return self.dcm_data.get(key, default)
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def get_affine(self):
         """ Return mapping between voxel and DICOM coordinate system
@@ -433,17 +559,18 @@ class MultiframeWrapper(Wrapper):
     """
     is_multiframe = True
 
-    def __init__(self, dcm_data):
-        """Initializes MultiframeWrapper
+    def __init__(self, dcm_data, priv_trans=None):
+        """ Initialize wrapper
 
         Parameters
         ----------
-        dcm_data : object
-           object should allow 'get' and '__getitem__' access.  Usually this
-           will be a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file, but a dictionary should also work.
+        dcm_data : dicom.dataset.Dataset
+            The DICOM data set we are wrapping
+
+        priv_trans : list of PrivateTranslator or None
+            One or more translators for private elements in `dcm_data`
         """
-        Wrapper.__init__(self, dcm_data)
+        Wrapper.__init__(self, dcm_data, priv_trans)
         self.dcm_data = dcm_data
         self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
         try:
@@ -581,40 +708,27 @@ class SiemensWrapper(Wrapper):
     """
     is_csa = True
 
-    def __init__(self, dcm_data, csa_header=None):
-        """ Initialize Siemens wrapper
-
-        The Siemens-specific information is in the `csa_header`, either
-        passed in here, or read from the input `dcm_data`.
+    def __init__(self, dcm_data, priv_trans=siemens_translators):
+        """ Initialize wrapper
 
         Parameters
         ----------
-        dcm_data : object
-           object should allow 'get' and '__getitem__' access.  If `csa_header`
-           is None, it should also be possible to extract a CSA header from
-           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
-           resulting from reading a DICOM file.  A dict should also work.
-        csa_header : None or mapping, optional
-           mapping giving values for Siemens CSA image sub-header.  If
-           None, we try and read the CSA information from `dcm_data`.
-           If this fails, we fall back to an empty dict.
+        dcm_data : dicom.dataset.Dataset
+            The DICOM data set we are wrapping
+
+        priv_trans : list of PrivateTranslator or None
+            One or more translators for private elements in `dcm_data`.
+            Defaults to `dicomwrappers.siemens_translators`.
         """
-        super(SiemensWrapper, self).__init__(dcm_data)
-        if dcm_data is None:
-            dcm_data = {}
-        self.dcm_data = dcm_data
-        if csa_header is None:
-            csa_header = csar.get_csa_header(dcm_data)
-            if csa_header is None:
-                csa_header = {}
-        self.csa_header = csa_header
+        super(SiemensWrapper, self).__init__(dcm_data, priv_trans)
+
 
     @one_time
     def slice_normal(self):
         #The std_slice_normal comes from the cross product of the directions
         #in the ImageOrientationPatient
         std_slice_normal = super(SiemensWrapper, self).slice_normal
-        csa_slice_normal = csar.get_slice_normal(self.csa_header)
+        csa_slice_normal = np.array(self['csa_image']['SliceNormalVector'])
         if std_slice_normal is None and csa_slice_normal is None:
             return None
         elif std_slice_normal is None:
@@ -637,7 +751,7 @@ class SiemensWrapper(Wrapper):
     def series_signature(self):
         """ Add ICE dims from CSA header to signature """
         signature = super(SiemensWrapper, self).series_signature
-        ice = csar.get_ice_dims(self.csa_header)
+        ice = self['csa_image']['ICE_Dims']
         if not ice is None:
             ice = ice[:6] + ice[8:9]
         signature['ICE_Dims'] = (ice, lambda x, y: x == y)
@@ -658,17 +772,21 @@ class SiemensWrapper(Wrapper):
            not a Siemens header with the required information.  We return
            None if this is a b0 acquisition
         """
-        hdr = self.csa_header
         # read B matrix as recorded in CSA header.  This matrix refers to
         # the space of the DICOM patient coordinate space.
-        B = csar.get_b_matrix(hdr)
-        if B is None:  # may be not diffusion or B0 image
-            bval_requested = csar.get_b_value(hdr)
+        vals =  self['csa_image'].get('B_matrix')
+        if vals is None:
+            bval_requested = self['csa_image'].get('B_value')
             if bval_requested is None:
                 return None
             if bval_requested != 0:
                 raise csar.CSAError('No B matrix and b value != 0')
             return np.zeros((3, 3))
+        # the 6 vector is the upper triangle of the symmetric B matrix
+        inds = np.array([0, 1, 2, 1, 3, 4, 2, 4, 5])
+        B = np.array(vals)[inds]
+        B = B.reshape(3,3)
+
         # rotation from voxels to DICOM PCS, inverted to give the rotation
         # from DPCS to voxels.  Because this is an orthonormal matrix, its
         # transpose is its inverse
@@ -720,31 +838,26 @@ class MosaicWrapper(SiemensWrapper):
     """
     is_mosaic = True
 
-    def __init__(self, dcm_data, csa_header=None, n_mosaic=None):
-        """ Initialize Siemens Mosaic wrapper
-
-        The Siemens-specific information is in the `csa_header`, either
-        passed in here, or read from the input `dcm_data`.
+    def __init__(self, dcm_data, priv_trans=siemens_translators,
+                 n_mosaic=None):
+        """ Initialize wrapper
 
         Parameters
         ----------
-        dcm_data : object
-           object should allow 'get' and '__getitem__' access.  If `csa_header`
-           is None, it should also be possible for to extract a CSA header from
-           `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
-           resulting from reading a DICOM file.  A dict should also work.
-        csa_header : None or mapping, optional
-           mapping giving values for Siemens CSA image sub-header.
+        dcm_data : dicom.dataset.Dataset
+            The DICOM data set we are wrapping
+
+        priv_trans : list of PrivateTranslator or None
+            One or more translators for private elements in `dcm_data`.
+            Defaults to `dicomwrappers.siemens_translators`.
+
         n_mosaic : None or int, optional
-           number of images in mosaic.  If None, try to get this number
-           from `csa_header`.  If this fails, raise an error
+            Number of images in mosaic.  If None, try to get this number
+            from 'csa_image' subheader.
         """
-        SiemensWrapper.__init__(self, dcm_data, csa_header)
+        SiemensWrapper.__init__(self, dcm_data, priv_trans)
         if n_mosaic is None:
-            try:
-                n_mosaic = csar.get_n_mosaic(self.csa_header)
-            except KeyError:
-                pass
+            n_mosaic = self['csa_image'].get('NumberOfImagesInMosaic')
             if n_mosaic is None or n_mosaic == 0:
                 raise WrapperError('No valid mosaic number in CSA '
                                    'header; is this really '

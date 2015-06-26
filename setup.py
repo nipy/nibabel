@@ -79,6 +79,7 @@ def main(**extra_args):
           provides=PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
+                          'nibabel.externals.ply',
                           'nibabel.externals.tests',
                           'nibabel.gifti',
                           'nibabel.gifti.tests',

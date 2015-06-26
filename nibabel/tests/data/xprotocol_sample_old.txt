@@ -1,0 +1,261 @@
+<EVAProtocol> 
+{
+  <Context> "ONLINE" 
+  <Name> "BOLD Plugin" 
+  <ID> 2 
+  <Userversion> 1.2 
+  
+  <EVAStringTable> 
+  {
+    22 
+    102 "BOLD" 
+    103 "Starting ignore meas" 
+    104 "Paradigm size" 
+    105 "ignore" 
+    106 "active" 
+    107 "baseline" 
+    108 "t-Test" 
+    110 "Threshold" 
+    111 "Window" 
+    112 "constWindow" 
+    113 "Growing Window" 
+    114 "MotionCorrection" 
+    115 "Interpolation" 
+    116 "linear" 
+    117 "3D-k-space" 
+    119 "Filter Setting" 
+    130 "Spacial Filter" 
+    154 "Mosaic" 
+    155 "Sinc" 
+    156 "SincKernelSize" 
+    157 "Meas" 
+    160 "Dyn t-maps" 
+  }
+  
+  <ParamMap.""> 
+  {
+    
+    <ParamFunctor."MosaicUnwrapper"> 
+    {
+      
+      <ParamString."DLL"> 
+      {
+        <Visible> "false" 
+        <Default> "IceFunctorsEva" 
+      }
+      
+      <ParamBool."EXECUTE"> 
+      {
+        <Visible> "false" 
+        <Default> "true" 
+        <LimitRange> { "true" }
+      }
+    }
+    
+    <ParamFunctor."MotionCorrDecorator"> 
+    {
+      
+      <ParamString."DLL"> 
+      {
+        <Visible> "false" 
+        <Default> "IceFunctorsEva" 
+      }
+      
+      <ParamBool."EXECUTE"> 
+      {
+        <Visible> "false" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamBool."MoCo"> 
+      {
+        <Label> "MotionCorrection" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamChoice."InterpolMoCo"> 
+      {
+        <Label> "Interpolation" 
+        <Default> "3D-K-space" 
+        <Limit> { "linear" "3D-K-space" "Sinc" }
+      }
+      
+      <ParamLong."SincKernelSize"> 
+      {
+        <Label> "SincKernelSize" 
+        <Default> 5 
+        <LimitRange> { 1 32 }
+      }
+      
+      <ParamString."ParamDumpPath"> 
+      {
+        <Visible> "false" 
+        <Default> "C:\MedCom\Temp\MotionDetectionParameter" 
+      }
+      
+      <ParamBool."Filter"> 
+      {
+        <Label> "Spacial Filter" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamDouble."FilterWidth"> 
+      {
+        <Label> "Filter Setting" 
+        <Precision> 1 
+        <Default> 1.0 
+        <LimitRange> { 0.1 5.0 }
+      }
+    }
+    
+    <ParamFunctor."MosaicDecorator"> 
+    {
+      
+      <ParamString."DLL"> 
+      {
+        <Default> "IceFunctorsEva" 
+      }
+      
+      <ParamBool."EXECUTE"> 
+      {
+        <Visible> "false" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamBool."Mosaic"> 
+      {
+        <Label> "Mosaic" 
+        <Visible> "false" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+    }
+    
+    <ParamFunctor."FMRIFunctor"> 
+    {
+      
+      <ParamString."DLL"> 
+      {
+        <Default> "IceFunctorsEva" 
+      }
+      
+      <ParamBool."EXECUTE"> 
+      {
+        <Label> "BOLD" 
+        <Visible> "false" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamLong."IgnoreMeas"> 
+      {
+        <Label> "Starting ignore meas" 
+      }
+      
+      <ParamLong."paradigm_size"> 
+      {
+        <Label> "Paradigm size" 
+        <Default> 20 
+      }
+      
+      <ParamArray."paradigm"> 
+      {
+        <Label> "Meas" 
+        <Default> <ParamChoice.""> 
+        {
+          <Limit> { "ignore" "active" "baseline" }
+        }
+        
+        { } 
+        { } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { "baseline"  } 
+        { } 
+        { } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+        { "active"  } 
+      }
+      
+      <ParamBool."t-test"> 
+      {
+        <Label> "t-Test" 
+        <Default> "true" 
+        <LimitRange> { "false" "true" }
+      }
+      
+      <ParamDouble."Threshold"> 
+      {
+        <Label> "Threshold" 
+        <Precision> 2 
+        <Default> 4.00 
+        <LimitRange> { 0.00 40.95 0.10 }
+      }
+      
+      <ParamChoice."window"> 
+      {
+        <Label> "Window" 
+        <Default> "Growing Window" 
+        <Limit> { "constWindow" "Growing Window" }
+      }
+      
+      <ParamBool."AllTTest"> 
+      {
+        <Label> "Dyn t-maps" 
+        <LimitRange> { "false" "true" }
+      }
+    }
+  }
+  
+  <EVACardLayout."BOLD"> 
+  {
+    "LAYOUT_10X2_WIDE_CONTROLS" 
+    18 
+    "FMRIFunctor.t-test" 114 0 "UI_CHECKBOX" 
+    "FMRIFunctor.Threshold" 80 16 "UI_STD" 
+    "FMRIFunctor.window" 80 32 "UI_STD" 
+    "FMRIFunctor.AllTTest" 114 49 "UI_CHECKBOX" 
+    "MosaicDecorator.Mosaic" 114 58 "UI_CHECKBOX" 
+    "FMRIFunctor.IgnoreMeas" 80 81 "UI_STD" 
+    "FMRIFunctor.paradigm_size" 80 110 "UI_STD" 
+    "FMRIFunctor.paradigm" 80 124 "UI_STD" 
+    "FMRIFunctor.paradigm.?" 80 137 "UI_STD" 
+    "MotionCorrDecorator.MoCo" 265 1 "UI_CHECKBOX" 
+    "MotionCorrDecorator.InterpolMoCo" 231 17 "UI_STD" 
+    "MotionCorrDecorator.SincKernelSize" 231 34 "UI_STD" 
+    "MotionCorrDecorator.Filter" 265 49 "UI_CHECKBOX" 
+    "MotionCorrDecorator.FilterWidth" 231 64 "UI_STD" 
+    ".MSR.endless_meas" 265 95 "UI_CHECKBOX" 
+    ".MSR.meas" 231 111 "UI_STD" 
+    ".MSR.delay_in_tr" 231 127 "UI_STD" 
+    ".MSR.multiple_series" 265 140 "UI_CHECKBOX" 
+  }
+  <Dependency."BOLDMoCoInterpol"> {"MotionCorrDecorator.InterpolMoCo" <Context> "ONLINE" }
+  <Dependency."BOLDMoCoSinc"> {"MotionCorrDecorator.InterpolMoCo" "MotionCorrDecorator.SincKernelSize" }
+  <Dependency."1_Availability"> {"MotionCorrDecorator.MoCo" "MotionCorrDecorator.InterpolMoCo" "MotionCorrDecorator.SincKernelSize" }
+  <Dependency."1_Availability"> {"MotionCorrDecorator.Filter" "MotionCorrDecorator.FilterWidth" }
+  <Dependency."1_Size"> {"FMRIFunctor.paradigm_size" "FMRIFunctor.paradigm" }
+  <Dependency."1_NOT_ReadOnly"> {"FMRIFunctor.t-test" "FMRIFunctor.Threshold" "FMRIFunctor.window" "FMRIFunctor.AllTTest" "FMRIFunctor.paradigm" "FMRIFunctor.paradigm.*" }
+  <Dependency."NMeas_Limits"> {"FMRIFunctor.paradigm_size" "FMRIFunctor.IgnoreMeas" <Dll> "MrEVADependenciesOnMSR" <Context> "ONLINE" }
+  <Dependency."BOLD_TTest"> {"FMRIFunctor.t-test" <Dll> "MrEVADependenciesOnMSR" <Context> "ONLINE" }
+  <Dependency."InvalidateMSRProt"> {"FMRIFunctor.paradigm_size" <Dll> "MrEVADependenciesOnMSR" <Context> "ONLINE" }
+  <Dependency."InvalidateMSRProt"> {"FMRIFunctor.IgnoreMeas" <Dll> "MrEVADependenciesOnMSR" <Context> "ONLINE" }
+  <Dependency."InvalidateMSRProt"> {"FMRIFunctor.t-test" <Dll> "MrEVADependenciesOnMSR" <Context> "ONLINE" }
+  <Dependency."nm1_OR_Value"> {"MotionCorrDecorator.MoCo" "MotionCorrDecorator.Filter" "MotionCorrDecorator.EXECUTE" }
+  <Dependency."nm1_OR_Value"> {"MosaicDecorator.Mosaic" "MosaicDecorator.EXECUTE" }
+  <Dependency."nm1_OR_Value"> {"FMRIFunctor.t-test" "FMRIFunctor.EXECUTE" }
+}
