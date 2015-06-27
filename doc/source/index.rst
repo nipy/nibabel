@@ -91,8 +91,8 @@ mailing list is the preferred way to announce changes and additions to the
 project. You can also search the mailing list archive using the *mailing list
 archive search* located in the sidebar of the NiBabel home page.
 
-.. _subscription: http://mail.scipy.org/mailman/listinfo/nipy-devel
-.. _archive: http://mail.scipy.org/pipermail/nipy-devel
+.. _subscription: https://mail.python.org/mailman/listinfo/neuroimaging
+.. _archive: https://mail.python.org/pipermail/neuroimaging
 
 .. include:: links_names.txt
 
