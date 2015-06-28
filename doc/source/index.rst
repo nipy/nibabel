@@ -84,7 +84,7 @@ If you have problems installing the software or questions about usage,
 documentation or anything else related to NiBabel, you can post to the NiPy
 mailing list.
 
-:Mailing list:  nipy-devel@neuroimaging.scipy.org [subscription_, archive_]
+:Mailing list:  neuroimaging@python.org [subscription_, archive_]
 
 We recommend that anyone using NiBabel subscribes to the mailing list.  The
 mailing list is the preferred way to announce changes and additions to the
