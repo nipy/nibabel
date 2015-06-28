@@ -3,7 +3,7 @@
 .. PROJECTNAME placeholders
 .. _PROJECTNAME: http://nipy.org
 .. _`PROJECTNAME github`: https://github.com/nipy
-.. _`PROJECTNAME mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _`PROJECTNAME mailing list`: https://mail.python.org/mailman/listinfo/neuroimaging
 
 .. numpy
 .. _numpy: http://www.numpy.org
@@ -18,7 +18,7 @@
 .. nipy
 .. _nipy: http://nipy.org/nipy
 .. _`nipy github`: https://github.com/nipy/nipy
-.. _`nipy mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _`nipy mailing list`: https://mail.python.org/mailman/listinfo/neuroimaging
 
 .. ipython
 .. _ipython: https://ipython.org
@@ -28,12 +28,12 @@
 .. dipy
 .. _dipy: http://nipy.org/dipy
 .. _`dipy github`: https://github.com/Garyfallidis/dipy
-.. _`dipy mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _`dipy mailing list`: https://mail.python.org/mailman/listinfo/neuroimaging
 
 .. nibabel
 .. _nibabel: http://nipy.org/nibabel
 .. _`nibabel github`: https://github.com/nipy/nibabel
-.. _`nibabel mailing list`: http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _`nibabel mailing list`: https://mail.python.org/mailman/listinfo/neuroimaging
 
 .. marsbar
 .. _marsbar: http://marsbar.sourceforge.net
