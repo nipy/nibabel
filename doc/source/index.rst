@@ -61,6 +61,9 @@ contributed code and discussion (in rough order of appearance):
 * Demian Wassermann
 * Philippe Gervais
 * Justin Lecher
+* Ben Cippolini
+* Chris Markiewicz
+* Clemens C. C. Bauer
 
 License reprise
 ===============
