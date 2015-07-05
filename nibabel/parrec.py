@@ -504,14 +504,14 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
     return rec_data
 
 
-def exts2pars(img_or_hdr):
-    """Parse, return any PAR headers in NIfTI extensions for `img_or_hdr`
+def exts2pars(exts_source):
+    """Parse, return any PAR headers from NIfTI extensions in `exts_source`
 
     Parameters
     ----------
-    img_or_hdr : `Nifti1Image` or `Nifti1Header` instance
-        An image or header that may have PAR headers in the contained NIfTI
-        extensions.
+    exts_source : sequence or `Nifti1Image`, `Nifti1Header` instance
+        A sequence of extensions, or header containing NIfTI extensions, or an
+        image containing a header with NIfTI extensions.
 
     Returns
     -------
@@ -520,11 +520,11 @@ def exts2pars(img_or_hdr):
         element contains a PARRECHeader read from the contained extensions.
     """
     headers = []
-    try:  # Allow images or headers as input
-        hdr = img_or_hdr.header
-    except AttributeError:
-        hdr = img_or_hdr
-    for extension in hdr.extensions:
+    exts_source = (exts_source.header if hasattr(exts_source, 'header')
+                   else exts_source)
+    exts_source = (exts_source.extensions if hasattr(exts_source, 'extensions')
+                   else exts_source)
+    for extension in exts_source:
         content = extension.get_content()
         content = content.decode(getpreferredencoding(False))
         if not content.startswith('# === DATA DESCRIPTION FILE ==='):

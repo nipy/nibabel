@@ -4,7 +4,6 @@
 from os.path import join as pjoin, dirname, basename
 from glob import glob
 from warnings import simplefilter
-import shutil
 
 import numpy as np
 from numpy import array as npa
@@ -22,7 +21,7 @@ from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
 from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+                        assert_equal)
 
 from ..testing import catch_warn_reset, suppress_warnings
 
@@ -609,6 +608,8 @@ def test_exts2par():
     nii_img = Nifti1Image.from_image(par_img)
     assert_equal(exts2pars(nii_img), [])
     assert_equal(exts2pars(nii_img.header), [])
+    assert_equal(exts2pars(nii_img.header.extensions), [])
+    assert_equal(exts2pars([]), [])
     # Add a header extension
     with open(EG_PAR, 'rb') as fobj:
         hdr_dump = fobj.read()
@@ -626,5 +627,10 @@ def test_exts2par():
     assert_equal(hdrs[1].get_slice_orientation(), 'transverse')
     # Add null extension, ignored
     nii_img.header.extensions.append(Nifti1Extension('comment', b''))
-    hdrs = exts2pars(nii_img)
-    assert_equal(len(hdrs), 2)
+    # Check all valid inputs
+    for source in (nii_img,
+                   nii_img.header,
+                   nii_img.header.extensions,
+                   list(nii_img.header.extensions)):
+        hdrs = exts2pars(source)
+        assert_equal(len(hdrs), 2)
