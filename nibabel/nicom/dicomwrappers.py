@@ -74,8 +74,8 @@ class CsaSeriesTranslator(CsaTranslator):
                     break
             else:
                 raise ValueError("Unable to find inner XProtocol and ASCCONV")
-            ascconv_dict = ascconv.parse_ascconv('MrPhoenixProtocol',
-                                                 ascconv_str)
+            ascconv_dict, ascconv_attrs = \
+                ascconv.parse_ascconv('MrPhoenixProtocol', ascconv_str)
             del csa_dict['MrPhoenixProtocol']
         elif 'MrProtocol' in csa_dict and 'MrEvaProtocol' in csa_dict:
             # This is an "older" data set, XProtocol is in 'MrEvaProtcol' and
@@ -84,8 +84,8 @@ class CsaSeriesTranslator(CsaTranslator):
             assert len(xprotos) == 1
             xproto_dict = xprotos[0]
             print(csa_dict['MrProtocol'])
-            ascconv_dict = ascconv.parse_ascconv('MrProtocol',
-                                                 csa_dict['MrProtocol'])
+            ascconv_dict, ascconv_attrs = \
+                ascconv.parse_ascconv('MrProtocol', csa_dict['MrProtocol'])
             del csa_dict['MrEvaProtocol']
             del csa_dict['MrProtocol']
         else:
@@ -95,6 +95,7 @@ class CsaSeriesTranslator(CsaTranslator):
         # results into the same locations
         csa_dict['XProtocol'] = xproto_dict
         csa_dict['ASCCONV'] = ascconv_dict
+        csa_dict['ASCCONV_ATTRS'] = ascconv_attrs
 
         return csa_dict
 

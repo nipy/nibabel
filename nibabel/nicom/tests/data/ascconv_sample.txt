@@ -1,3 +1,4 @@
+### ASCCONV BEGIN ###
 ulVersion                                = 0x14b44b6
 tSequenceFileName                        = ""%SiemensSeq%\ep2d_diff""
 tProtocolName                            = ""CBU+AF8-DTI+AF8-64D+AF8-1A""
@@ -915,3 +916,4 @@ sIR.lScanNumber                          = 1
 sAsl.ulMode                              = 0x1
 WaitForUserStart                         = 0x1
 ucAutoAlignInit                          = 0x1
+### ASCCONV END ###

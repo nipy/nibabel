@@ -9,11 +9,14 @@
 """
 Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
-import ast
+import ast, re
 from ..externals import OrderedDict
 
+ATTR_CONTENT_RE = re.compile(\
+    '### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
+    flags=re.M | re.S)
 
-def parse_ascconv(csa_key, ascconv_str):
+def parse_ascconv(csa_key, ascconv_str, ascconv_attrs=None):
     '''Parse the 'ASCCONV' format from `input_str`.
 
     Parameters
@@ -21,19 +24,23 @@ def parse_ascconv(csa_key, ascconv_str):
     csa_key : str
         The key in the CSA dict for the element containing `input_str`. Should
         be 'MrPheonixProtocol' or 'MrProtocol'.
-    input_str : str
+    ascconv_str : str
         The string we are parsing
 
     Returns
     -------
     prot_dict : OrderedDict
         Meta data pulled from the ASCCONV section.
+    attrs : OrderedDict
+        Any attributes stored in the 'ASCCONV BEGIN' line
 
     Raises
     ------
     SyntaxError
         A line of the ASCCONV section could not be parsed.
     '''
+    attrs, content = ATTR_CONTENT_RE.match(ascconv_str).groups()
+    attrs = OrderedDict((tuple(x.split('=')) for x in attrs.split()))
     if csa_key == 'MrPhoenixProtocol':
         str_delim = '""'
     elif csa_key == 'MrProtocol':
@@ -41,10 +48,10 @@ def parse_ascconv(csa_key, ascconv_str):
     else:
         raise ValueError('Unknown protocol key: %s' % csa_key)
     # Normalize string start / end markers to something Python understands
-    ascconv_str = ascconv_str.replace(str_delim, '"""')
-    ascconv_lines = ascconv_str.split('\n')
+    content = content.replace(str_delim, '"""')
+    ascconv_lines = content.split('\n')
     # Use Python's own parser to parse modified ASCCONV assignments
-    tree = ast.parse(ascconv_str)
+    tree = ast.parse(content)
 
     result = OrderedDict()
     for statement in tree.body:
@@ -54,4 +61,4 @@ def parse_ascconv(csa_key, ascconv_str):
         key = ascconv_lines[statement.lineno - 1].split('=')[0].strip()
         result[key] = value
 
-    return result
+    return result, attrs
