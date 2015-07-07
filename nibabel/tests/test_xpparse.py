@@ -8,6 +8,8 @@ from ..externals.ply import lex
 from ..externals.ply import yacc
 
 from .. import xpparse as xpp
+from ..xpparse import XProtoElem, XProtocol
+from ..elemcont import ElemList, ElemDict
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
@@ -20,6 +22,11 @@ DEBUG = True
 assert_equal.__self__.maxDiff = None
 
 SYMBOLS = xpp.XProtocolSymbols()
+
+
+def test_strip_twin_quote():
+    assert_equal(xpp.strip_twin_quote('""hello""'), '"hello"')
+    assert_equal(xpp.strip_twin_quote('""""'), '""')
 
 
 def test_find_column():
@@ -153,25 +160,25 @@ def test_param_card():
     <Line>  { 276 48 276 140 }
   }""",
                   'paramcardlayout',
-                  dict(type='ParamCardLayout',
-                       name='Inline Compose',
-                       attrs=[],
-                       value=dict(repr="LAYOUT_10X2_WIDE_CONTROLS",
-                                  controls=[
-                                      dict(param="MultiStep.IsInlineCompose",
-                                           pos=[110, 48],
-                                           repr="UI_CHECKBOX"),
-                                      dict(param="MultiStep.ComposingFunction",
-                                           pos=[77, 63],
-                                           repr=None),
-                                      dict(param="MultiStep.ComposingGroup",
-                                           pos=[77, 78],
-                                           repr=None),
-                                      dict(param="MultiStep.IsLastStep",
-                                           pos=[110, 93],
-                                           repr="UI_CHECKBOX")],
-                                  lines=[[126, 48, 126, 140],
-                                         [276, 48, 276, 140]])))
+                  XProtoElem(type='ParamCardLayout',
+                             name='Inline Compose',
+                             attrs=[],
+                             value=dict(repr="LAYOUT_10X2_WIDE_CONTROLS",
+                                        controls=[
+                                          dict(param="MultiStep.IsInlineCompose",
+                                               pos=[110, 48],
+                                               repr="UI_CHECKBOX"),
+                                          dict(param="MultiStep.ComposingFunction",
+                                               pos=[77, 63],
+                                               repr=None),
+                                          dict(param="MultiStep.ComposingGroup",
+                                               pos=[77, 78],
+                                               repr=None),
+                                          dict(param="MultiStep.IsLastStep",
+                                               pos=[110, 93],
+                                               repr="UI_CHECKBOX")],
+                                        lines=[[126, 48, 126, 140],
+                                               [276, 48, 276, 140]])))
 
 
 def test_eva_card_layout():
@@ -187,58 +194,58 @@ def test_eva_card_layout():
     <Line>  { 126 48 126 140 }
     <Line>  { 276 48 276 140 }
     }"""
-    expected = dict(type='EVACardLayout',
-                    name='Inline Compose',
-                    attrs=[],
-                    value=dict(repr="LAYOUT_10X2_WIDE_CONTROLS",
-                               n_controls=4,
-                               controls=[
-                                   dict(param="MultiStep.IsInlineCompose",
-                                        pos=[110, 48],
-                                        repr="UI_CHECKBOX"),
-                                   dict(param="MultiStep.ComposingFunction",
-                                        pos=[77, 63],
-                                        repr='UI_STD'),
-                                   dict(param="MultiStep.ComposingGroup",
-                                        pos=[77, 78],
-                                        repr='UI_STD'),
-                                   dict(param="MultiStep.IsLastStep",
-                                        pos=[110, 93],
-                                        repr="UI_CHECKBOX")],
-                               lines=[[126, 48, 126, 140],
-                                      [276, 48, 276, 140]]))
+    expected = XProtoElem(type='EVACardLayout',
+                          name='Inline Compose',
+                          attrs=[],
+                          value=dict(repr="LAYOUT_10X2_WIDE_CONTROLS",
+                                     n_controls=4,
+                                     controls=[
+                                         dict(param="MultiStep.IsInlineCompose",
+                                              pos=[110, 48],
+                                              repr="UI_CHECKBOX"),
+                                         dict(param="MultiStep.ComposingFunction",
+                                              pos=[77, 63],
+                                              repr='UI_STD'),
+                                         dict(param="MultiStep.ComposingGroup",
+                                              pos=[77, 78],
+                                              repr='UI_STD'),
+                                         dict(param="MultiStep.IsLastStep",
+                                              pos=[110, 93],
+                                              repr="UI_CHECKBOX")],
+                                     lines=[[126, 48, 126, 140],
+                                            [276, 48, 276, 140]]))
     assert_parsed(source, 'evacardlayout', expected)
 
 
 def test_dependency():
     assert_parsed('<Dependency."Value_FALSE"> {"AlwaysFalse" }',
                   'dependency',
-                  dict(type='Dependency',
-                       name='Value_FALSE',
-                       attrs=[],
-                       value=['AlwaysFalse'],
-                      ))
+                  XProtoElem(type='Dependency',
+                             name='Value_FALSE',
+                             attrs=[],
+                             value=['AlwaysFalse'],
+                            ))
     assert_parsed('<Dependency."MrMS_DH_TIMCT"> '
                   '{"MultiStep.IsInlineCompose" '
                   '<Dll> "MrMultiStepDependencies" '
                   '<Context> "ONLINE" }',
                   'dependency',
-                  dict(type='Dependency',
-                       name="MrMS_DH_TIMCT",
-                       attrs=[('Dll', "MrMultiStepDependencies"),
-                              ('Context', "ONLINE"),
-                             ],
-                       value=["MultiStep.IsInlineCompose"]))
+                  XProtoElem(type='Dependency',
+                             name="MrMS_DH_TIMCT",
+                             attrs=[('Dll', "MrMultiStepDependencies"),
+                                    ('Context', "ONLINE"),
+                                   ],
+                             value=["MultiStep.IsInlineCompose"]))
     assert_parsed('<Dependency."1_Availability"> '
                   '{"MultiStep.IsMultistep" "MultiStep.SubStep" '
                   '"MultiStep.IsInlineCombine" <Context> "ONLINE" }',
                   'dependency',
-                  dict(type='Dependency',
-                       name="1_Availability",
-                       attrs=[('Context', "ONLINE")],
-                       value=["MultiStep.IsMultistep",
-                              "MultiStep.SubStep",
-                              "MultiStep.IsInlineCombine"]))
+                  XProtoElem(type='Dependency',
+                             name="1_Availability",
+                             attrs=[('Context', "ONLINE")],
+                             value=["MultiStep.IsMultistep",
+                                    "MultiStep.SubStep",
+                                    "MultiStep.IsInlineCombine"]))
 
 
 def test_scalars():
@@ -310,10 +317,10 @@ def test_param_blocks():
                  }
                   """,
                   'parambool',
-                  dict(type='ParamBool',
-                       name='IsInlineComposed',
-                       attrs=[('LimitRange', [False, True])],
-                       value=None))
+                  XProtoElem(type='ParamBool',
+                             name='IsInlineComposed',
+                             attrs=[('LimitRange', [False, True])],
+                             value=None))
     assert_parsed("""<ParamBool."IsInlineComposed">
                   {
                   <LimitRange> { "false" "true" }
@@ -321,25 +328,25 @@ def test_param_blocks():
                  }
                   """,
                   'parambool',
-                  dict(type='ParamBool',
-                       name='IsInlineComposed',
-                       attrs=[('LimitRange', [False, True])],
-                       value=True))
+                  XProtoElem(type='ParamBool',
+                             name='IsInlineComposed',
+                             attrs=[('LimitRange', [False, True])],
+                             value=True))
     assert_parsed(""" <ParamLong."Count">
                   {
                   1
                  }""",
                   'paramlong',
-                  dict(type='ParamLong',
-                       name='Count',
-                       attrs=[],
-                       value=1))
+                  XProtoElem(type='ParamLong',
+                             name='Count',
+                             attrs=[],
+                             value=1))
     assert_parsed('<ParamString."GROUP">  { "Calculation"  }',
                   'paramstring',
-                  dict(type='ParamString',
-                       name='GROUP',
-                       attrs=[],
-                       value='Calculation'))
+                  XProtoElem(type='ParamString',
+                             name='GROUP',
+                             attrs=[],
+                             value='Calculation'))
     assert_parsed("""<ParamString."GROUP">
                   {
                   <Default> <ParamLong."">
@@ -349,13 +356,13 @@ def test_param_blocks():
                  }
                   """,
                   'paramstring',
-                  dict(type='ParamString',
-                       name='GROUP',
-                       attrs=[('Default', dict(type='ParamLong',
-                                               name='',
-                                               attrs=[],
-                                               value=None))],
-                       value='Calculation'))
+                  XProtoElem(type='ParamString',
+                             name='GROUP',
+                             attrs=[('Default', XProtoElem(type='ParamLong',
+                                                           name='',
+                                                           attrs=[],
+                                                           value=None))],
+                             value='Calculation'))
 
 
 def test_param_double():
@@ -363,32 +370,32 @@ def test_param_double():
     assert_parsed(
         '<ParamDouble."FilterWidth">  { <Precision> 1  1.0  }',
         'paramdouble',
-        dict(type='ParamDouble',
-             name='FilterWidth',
-             attrs=[('Precision', 1)],
-             value=1.0))
+        XProtoElem(type='ParamDouble',
+                   name='FilterWidth',
+                   attrs=[('Precision', 1)],
+                   value=1.0))
     assert_parsed(
         '<ParamDouble."PatchTransX">  { <Precision> 1 }',
         'paramdouble',
-        dict(type='ParamDouble',
-             name='PatchTransX',
-             attrs=[('Precision', 1)],
-             value=None))
+        XProtoElem(type='ParamDouble',
+                   name='PatchTransX',
+                   attrs=[('Precision', 1)],
+                   value=None))
     assert_parsed(
         '<ParamDouble."HRFDelay_s">  { 99999.999  }',
         'paramdouble',
-        dict(type='ParamDouble',
-             name='HRFDelay_s',
-             attrs=[],
-             value=float('99999.999')))
+        XProtoElem(type='ParamDouble',
+                   name='HRFDelay_s',
+                   attrs=[],
+                   value=float('99999.999')))
     # Also in block rule
     assert_parsed(
         '<ParamDouble."HRFDelay_s">  { 99999.999  }',
         'block',
-        dict(type='ParamDouble',
-             name='HRFDelay_s',
-             attrs=[],
-             value=float('99999.999')))
+        XProtoElem(type='ParamDouble',
+                   name='HRFDelay_s',
+                   attrs=[],
+                   value=float('99999.999')))
 
 
 def test_curly_lists():
@@ -418,15 +425,15 @@ def test_param_array():
                   { 450  }
                  }""",
                   'paramarray',
-                  dict(type='ParamArray',
-                       name='EstimatedDuration',
-                       attrs=[('MinSize', 1),
-                              ('MaxSize', 1000000000),
-                              ('Default', dict(type='ParamLong',
-                                               name='',
-                                               attrs=[],
-                                               value=None))],
-                        value=[[450]]))
+                  XProtoElem(type='ParamArray',
+                             name='EstimatedDuration',
+                             attrs=[('MinSize', 1),
+                                    ('MaxSize', 1000000000),
+                                    ('Default', XProtoElem(type='ParamLong',
+                                                           name='',
+                                                           attrs=[],
+                                                           value=None))],
+                             value=[[450]]))
     assert_parsed("""
                   <ParamArray."BValue">
                   {
@@ -436,13 +443,13 @@ def test_param_array():
                   { }
                  }""",
                   'paramarray',
-                  dict(type='ParamArray',
-                       name='BValue',
-                       attrs=[('Default', dict(type='ParamLong',
-                                               name='',
-                                               attrs=[],
-                                               value=None))],
-                       value=[[]]))
+                  XProtoElem(type='ParamArray',
+                             name='BValue',
+                             attrs=[('Default', XProtoElem(type='ParamLong',
+                                                           name='',
+                                                           attrs=[],
+                                                           value=None))],
+                             value=[[]]))
     assert_parsed("""
                   <ParamArray."paradigm">
                   {
@@ -458,134 +465,136 @@ def test_param_array():
 
                  }""",
                   'paramarray',
-                  dict(type='ParamArray',
-                       name='paradigm',
-                       attrs=[('Default',
-                               dict(type='ParamChoice',
-                                    name='',
-                                    attrs=[('Default', 'active'),
-                                           ('Limit', ["ignore",
-                                                      "active",
-                                                      "baseline"])],
-                                    value=None))],
-                       value=[['baseline'],
-                              ['baseline'],
-                              [],
-                              []]))
-    assert_parsed("""
-                  <ParamArray."CoilSelectInfo">
+                  XProtoElem(type='ParamArray',
+                             name='paradigm',
+                             attrs=[('Default',
+                                    XProtoElem(type='ParamChoice',
+                                               name='',
+                                               attrs=[('Default', 'active'),
+                                                      ('Limit', ["ignore",
+                                                                 "active",
+                                                                 "baseline"])],
+                                               value=None))],
+                             value=[['baseline'],
+                                    ['baseline'],
+                                    [],
+                                    []]))
+    src = """
+          <ParamArray."CoilSelectInfo">
+            {
+                <MinSize> 0
+                <MaxSize> 2147483647
+                <Default> <ParamArray."">
+                {
+                    <MinSize> 0
+                    <MaxSize> 2147483647
+                    <Default> <ParamMap."">
                     {
-                        <MinSize> 0
-                        <MaxSize> 2147483647
-                        <Default> <ParamArray."">
+
+                        <ParamString."CoilElementID">
                         {
-                            <MinSize> 0
-                            <MaxSize> 2147483647
-                            <Default> <ParamMap."">
-                            {
-
-                                <ParamString."CoilElementID">
-                                {
-                                }
-
-                                <ParamDouble."dFFTScale">
-                                {
-                                  <Precision> 16
-                                }
-
-                                <ParamDouble."dRawDataCorrectionFactorRe">
-                                {
-                                  <Precision> 16
-                                }
-
-                                <ParamDouble."dRawDataCorrectionFactorIm">
-                                {
-                                  <Precision> 16
-                                }
-                            }
-
                         }
-                        { <MinSize> 0  <MaxSize> 2147483647  {  { "SP6"  }  { 0.1211880000000000  }  { 1.0000000000000000  }  { } } {  { "S6S"  }  { 0.1175400000000000  }  { 1.0000000000000000  }  { } } {  { "S6T"  }  { 0.1201290000000000  }  { 1.0000000000000000  }  { } } {  { "SP5"  }  { 0.1108690000000000  }  { 1.0000000000000000  }  { } } {  { "S5S"  }  { 0.1130510000000000  }  { 1.0000000000000000  }  { } } {  { "S5T"  }  { 0.1112670000000000  }  { 1.0000000000000000  }  { } } {  { "BO1"  }  { 0.1098010000000000  }  { 1.0000000000000000  }  { } } {  { "B1T"  }  { 0.1069490000000000  }  { 1.0000000000000000  }  { } } {  { "B1S"  }  { 0.1061290000000000  }  { 1.0000000000000000  }  { } } {  { "BO2"  }  { 0.1054530000000000  }  { 1.0000000000000000  }  { } } {  { "B2T"  }  { 0.1047420000000000  }  { 1.0000000000000000  }  { } } {  { "B2S"  }  { 0.1068250000000000  }  { 1.0000000000000000  }  { } }  }
 
-                    }""",
-                  'paramarray',
-                  dict(type='ParamArray',
-                       name='CoilSelectInfo',
-                       attrs=[('MinSize', 0),
-                              ('MaxSize', 2147483647),
-                              ('Default',
-                               dict(type='ParamArray',
-                                    name='',
-                                    attrs=[('MinSize', 0),
-                                           ('MaxSize', 2147483647),
-                                           ('Default',
-                                            dict(type='ParamMap',
-                                                 name='',
-                                                 attrs=[],
-                                                 value=[dict(type='ParamString',
-                                                             name='CoilElementID',
-                                                             attrs=[],
-                                                             value=None),
-                                                        dict(type='ParamDouble',
-                                                             name='dFFTScale',
-                                                             attrs=[('Precision', 16)],
-                                                             value=None),
-                                                        dict(type='ParamDouble',
+                        <ParamDouble."dFFTScale">
+                        {
+                          <Precision> 16
+                        }
+
+                        <ParamDouble."dRawDataCorrectionFactorRe">
+                        {
+                          <Precision> 16
+                        }
+
+                        <ParamDouble."dRawDataCorrectionFactorIm">
+                        {
+                          <Precision> 16
+                        }
+                    }
+
+                }
+                { <MinSize> 0  <MaxSize> 2147483647  {  { "SP6"  }  { 0.1211880000000000  }  { 1.0000000000000000  }  { } } {  { "S6S"  }  { 0.1175400000000000  }  { 1.0000000000000000  }  { } } {  { "S6T"  }  { 0.1201290000000000  }  { 1.0000000000000000  }  { } } {  { "SP5"  }  { 0.1108690000000000  }  { 1.0000000000000000  }  { } } {  { "S5S"  }  { 0.1130510000000000  }  { 1.0000000000000000  }  { } } {  { "S5T"  }  { 0.1112670000000000  }  { 1.0000000000000000  }  { } } {  { "BO1"  }  { 0.1098010000000000  }  { 1.0000000000000000  }  { } } {  { "B1T"  }  { 0.1069490000000000  }  { 1.0000000000000000  }  { } } {  { "B1S"  }  { 0.1061290000000000  }  { 1.0000000000000000  }  { } } {  { "BO2"  }  { 0.1054530000000000  }  { 1.0000000000000000  }  { } } {  { "B2T"  }  { 0.1047420000000000  }  { 1.0000000000000000  }  { } } {  { "B2S"  }  { 0.1068250000000000  }  { 1.0000000000000000  }  { } }  }
+
+            }"""
+    def_map = ElemDict(CoilElementID=XProtoElem(type='ParamString',
+                                                name='CoilElementID',
+                                                attrs=[],
+                                                value=None),
+                       dFFTScale=XProtoElem(type='ParamDouble',
+                                            name='dFFTScale',
+                                            attrs=[('Precision', 16)],
+                                            value=None),
+                       dRawDataCorrectionFactorRe=XProtoElem(type='ParamDouble',
                                                              name='dRawDataCorrectionFactorRe',
                                                              attrs=[('Precision', 16)],
                                                              value=None),
-                                                        dict(type='ParamDouble',
+                       dRawDataCorrectionFactorIm=XProtoElem(type='ParamDouble',
                                                              name='dRawDataCorrectionFactorIm',
                                                              attrs=[('Precision', 16)],
-                                                             value=None),
-                                                       ]
-                                                )
-                                           ),
-                                          ],
-                                    value=None)
-                              )],
-                       value=[[[["SP6"], [0.121188], [1.0], []],
-                               [["S6S"], [0.11754], [1.0], []],
-                               [["S6T"], [0.120129], [1.0], []],
-                               [["SP5"], [0.110869], [1.0], []],
-                               [["S5S"], [0.113051], [1.0], []],
-                               [["S5T"], [0.111267], [1.0], []],
-                               [["BO1"], [0.109801], [1.0], []],
-                               [["B1T"], [0.106949], [1.0], []],
-                               [["B1S"], [0.106129], [1.0], []],
-                               [["BO2"], [0.105453], [1.0], []],
-                               [["B2T"], [0.104742], [1.0], []],
-                               [["B2S"], [0.106825], [1.0], []],
-                             ]]
+                                                             value=None)
                       )
-                 )
+    res = XProtoElem(type='ParamArray',
+                     name='CoilSelectInfo',
+                     attrs=[('MinSize', 0),
+                            ('MaxSize', 2147483647),
+                            ('Default',
+                             XProtoElem(type='ParamArray',
+                                        name='',
+                                        attrs=[('MinSize', 0),
+                                               ('MaxSize', 2147483647),
+                                               ('Default',
+                                                XProtoElem(type='ParamMap',
+                                                           name='',
+                                                           attrs=[],
+                                                           value=def_map
+                                                          )
+                                               ),
+                                              ],
+                                        value=None)
+                            )],
+                     value=[[[["SP6"], [0.121188], [1.0], []],
+                             [["S6S"], [0.11754], [1.0], []],
+                             [["S6T"], [0.120129], [1.0], []],
+                             [["SP5"], [0.110869], [1.0], []],
+                             [["S5S"], [0.113051], [1.0], []],
+                             [["S5T"], [0.111267], [1.0], []],
+                             [["BO1"], [0.109801], [1.0], []],
+                             [["B1T"], [0.106949], [1.0], []],
+                             [["B1S"], [0.106129], [1.0], []],
+                             [["BO2"], [0.105453], [1.0], []],
+                             [["B2T"], [0.104742], [1.0], []],
+                             [["B2S"], [0.106825], [1.0], []],
+                           ]]
+                    )
+    assert_parsed(src, 'paramarray', res)
 
 def test_param_map():
-    assert_parsed("""<ParamMap."">
-                  {
+    src = """
+          <ParamMap."">
+          {
 
-                  <ParamBool."IsInlineComposed">
-                  {
-                  <LimitRange> { "false" "true" }
-                 }
+          <ParamBool."IsInlineComposed">
+          {
+          <LimitRange> { "false" "true" }
+         }
 
-                  <ParamLong."Count">
-                  {
-                  1
-                 }
-                 }""",
-                  'parammap',
-                  dict(type='ParamMap',
-                       name='',
-                       attrs=[],
-                       value=[dict(type='ParamBool',
-                                   name='IsInlineComposed',
-                                   attrs=[('LimitRange', [False, True])],
-                                   value=None),
-                              dict(type='ParamLong',
-                                   name='Count',
-                                   attrs=[],
-                                   value=1)]))
+          <ParamLong."Count">
+          {
+          1
+         }
+         }"""
+    res = XProtoElem(type='ParamMap',
+                     name='',
+                     attrs=[],
+                     value=ElemDict(IsInlineComposed=XProtoElem(type='ParamBool',
+                                                                name='IsInlineComposed',
+                                                                attrs=[('LimitRange', [False, True])],
+                                                                value=None),
+                                    Count=XProtoElem(type='ParamLong',
+                                                     name='Count',
+                                                     attrs=[],
+                                                     value=1)))
+    assert_parsed(src, 'parammap', res)
+
 
 
 def test_param_choice():
@@ -598,26 +607,26 @@ def test_param_choice():
         <Limit> { "Angio" "Spine" "Adaptive" }
       }""",
                   'paramchoice',
-                  dict(type='ParamChoice',
-                       name='ComposingFunction',
-                       attrs=[('Label', 'Composing Function'),
-                              ('Tooltip', 'Defines the composing algorithm '
-                               'to be used.'),
-                              ('Default', 'Angio'),
-                              ('Limit', ['Angio', 'Spine', 'Adaptive'])],
-                       value=None))
+                  XProtoElem(type='ParamChoice',
+                             name='ComposingFunction',
+                             attrs=[('Label', 'Composing Function'),
+                                    ('Tooltip', 'Defines the composing algorithm '
+                                     'to be used.'),
+                                    ('Default', 'Angio'),
+                                    ('Limit', ['Angio', 'Spine', 'Adaptive'])],
+                             value=None))
     # Param choice value is a string
     assert_parsed('<ParamChoice."InterpolMoCo">  { <Limit> '
                   '{ "linear" "3D-K-space" "Sinc" "QuinSpline" } '
                   '"3D-K-space"  }',
                   'paramchoice',
-                  dict(type='ParamChoice',
-                       name='InterpolMoCo',
-                       attrs=[('Limit', ['linear',
-                                         '3D-K-space',
-                                         'Sinc',
-                                         'QuinSpline'])],
-                       value='3D-K-space'))
+                  XProtoElem(type='ParamChoice',
+                             name='InterpolMoCo',
+                             attrs=[('Limit', ['linear',
+                                               '3D-K-space',
+                                               'Sinc',
+                                               'QuinSpline'])],
+                             value='3D-K-space'))
 
 
 def test_event():
@@ -625,14 +634,14 @@ def test_event():
                   '"class MrPtr<class MiniHeader,class Parc::Component> &" '
                   '"class ImageControl &" }',
                   'event',
-                  dict(type='Event',
-                       name='ImageReady',
-                       attrs=[],
-                       value=["int32_t",
-                              "class IceAs &",
-                              "class MrPtr<class MiniHeader,"
-                              "class Parc::Component> &",
-                              "class ImageControl &"]))
+                  XProtoElem(type='Event',
+                             name='ImageReady',
+                             attrs=[],
+                             value=["int32_t",
+                                    "class IceAs &",
+                                    "class MrPtr<class MiniHeader,"
+                                    "class Parc::Component> &",
+                                    "class ImageControl &"]))
 
 
 def test_method():
@@ -640,14 +649,14 @@ def test_method():
                   '"class MrPtr<class MiniHeader,class Parc::Component> &" '
                   '"class ImageControl &"  }',
                   'method',
-                  dict(type='Method',
-                       name='ComputeImage',
-                       attrs=[],
-                       value=["int32_t",
-                              "class IceAs &",
-                              "class MrPtr<class MiniHeader,"
-                              "class Parc::Component> &",
-                              "class ImageControl &"]))
+                  XProtoElem(type='Method',
+                             name='ComputeImage',
+                             attrs=[],
+                             value=["int32_t",
+                                    "class IceAs &",
+                                    "class MrPtr<class MiniHeader,"
+                                    "class Parc::Component> &",
+                                    "class ImageControl &"]))
 
 
 def test_connection():
@@ -656,20 +665,20 @@ def test_connection():
                   '"DtiIcePostProcMosaicDecorator" '
                   '"ComputeImage"  }',
                   'connection',
-                  dict(type='Connection',
-                       name='c1',
-                       attrs=[],
-                       value=["ImageReady",
-                              "DtiIcePostProcMosaicDecorator",
-                              "ComputeImage"]))
+                  XProtoElem(type='Connection',
+                             name='c1',
+                             attrs=[],
+                             value=["ImageReady",
+                                    "DtiIcePostProcMosaicDecorator",
+                                    "ComputeImage"]))
     assert_parsed('<Connection."c1">  { "ImageReady" "" "ComputeImage"  }',
                   'connection',
-                  dict(type='Connection',
-                       name='c1',
-                       attrs=[],
-                       value=["ImageReady",
-                              "",
-                              "ComputeImage"]))
+                  XProtoElem(type='Connection',
+                             name='c1',
+                             attrs=[],
+                             value=["ImageReady",
+                                    "",
+                                    "ComputeImage"]))
 
 
 def test_class():
@@ -691,36 +700,39 @@ def test_functor():
 <Connection."c1">  { "ImageReady" "DtiIcePostProcMosaicDecorator" "ComputeImage"  }
 }""",
                   'paramfunctor',
-                  {'type': 'ParamFunctor',
-                   'name': 'MosaicUnwrapper',
-                   'attrs': [('Class', "MosaicUnwrapper@IceImagePostProcFunctors")],
-                   'value': [dict(type='ParamBool',
-                                  name='EXECUTE',
-                                  attrs=[],
-                                  value=None),
-                             dict(type='Event',
-                                  name='ImageReady',
-                                  attrs=[],
-                                  value=["int32_t",
-                                         "class IceAs &",
-                                         "class MrPtr<class MiniHeader,"
-                                         "class Parc::Component> &",
-                                         "class ImageControl &"]),
-                             dict(type='Method',
-                                  name='ComputeImage',
-                                  attrs=[],
-                                  value=["int32_t",
-                                         "class IceAs &",
-                                         "class MrPtr<class MiniHeader,"
-                                         "class Parc::Component> &",
-                                         "class ImageControl &"]),
-                             dict(type='Connection',
-                                  name='c1',
-                                  attrs=[],
-                                  value=["ImageReady",
-                                         "DtiIcePostProcMosaicDecorator",
-                                         "ComputeImage"])
-                            ]})
+                  XProtoElem(type='ParamFunctor',
+                             name='MosaicUnwrapper',
+                             attrs=[('Class',
+                                     "MosaicUnwrapper@IceImagePostProcFunctors")],
+                             value=ElemDict(EXECUTE=XProtoElem(type='ParamBool',
+                                                               name='EXECUTE',
+                                                               attrs=[],
+                                                               value=None),
+                                            ImageReady=XProtoElem(type='Event',
+                                                                  name='ImageReady',
+                                                                  attrs=[],
+                                                                  value=["int32_t",
+                                                                         "class IceAs &",
+                                                                         "class MrPtr<class MiniHeader,"
+                                                                         "class Parc::Component> &",
+                                                                         "class ImageControl &"]),
+                                            ComputeImage=XProtoElem(type='Method',
+                                                                    name='ComputeImage',
+                                                                    attrs=[],
+                                                                    value=["int32_t",
+                                                                           "class IceAs &",
+                                                                           "class MrPtr<class MiniHeader,"
+                                                                           "class Parc::Component> &",
+                                                                           "class ImageControl &"]),
+                                            c1=XProtoElem(type='Connection',
+                                                          name='c1',
+                                                          attrs=[],
+                                                          value=["ImageReady",
+                                                                 "DtiIcePostProcMosaicDecorator",
+                                                                 "ComputeImage"])
+                                           )
+                            )
+                 )
 
 
 def test_pipe_service():
@@ -806,7 +818,8 @@ def test_pipe_service():
       }
       <ParamBool."WIPFlagSetbySequenceDeveloper">  { }
     }""")
-    assert_equal(res['name'], 'EVA')
+    assert_equal(res.name, 'EVA')
+    assert_equal(res.value['DtiIcePostProcFunctor']['CalculatedbValue'], 1400)
 
 
 def test_eva_string_table():
@@ -827,45 +840,51 @@ def test_eva_string_table():
 
 def test_xprotocol():
     # Smoke test to see if we can parse an xprotocol
-    res = parse_with_start('xprotocol', """
-<XProtocol>
-{
-  <Name> "PhoenixMetaProtocol"
-  <ID> 1000002
-  <Userversion> 2.0
+    src = """
+        <XProtocol>
+        {
+          <Name> "PhoenixMetaProtocol"
+          <ID> 1000002
+          <Userversion> 2.0
 
-  <ParamMap."">
-  {
+          <ParamMap."">
+          {
 
-    <ParamBool."IsInlineComposed">
-    {
-      <LimitRange> { "false" "true" }
-    }
+            <ParamBool."IsInlineComposed">
+            {
+              <LimitRange> { "false" "true" }
+            }
 
-    <ParamLong."Count">
-    {
-      1
-    }
-  }
-}""")
-    assert_equal(res,
-                 dict(type='XProtocol',
-                      name=None,
-                      attrs=[('Name', "PhoenixMetaProtocol"),
-                             ('ID', 1000002),
-                             ('Userversion', 2.0)],
-                      value=[dict(type='ParamMap',
-                                  name='',
-                                  attrs=[],
-                                  value=[dict(type='ParamBool',
-                                              name='IsInlineComposed',
-                                              attrs=[('LimitRange',
-                                                      [False, True])],
-                                              value=None),
-                                         dict(type='ParamLong',
-                                              name='Count',
-                                              attrs=[],
-                                              value=1)])]))
+            <ParamLong."Count">
+            {
+              1
+            }
+          }
+        }"""
+    anon_dict = ElemDict(IsInlineComposed=XProtoElem(type='ParamBool',
+                                                     name='IsInlineComposed',
+                                                     attrs=[('LimitRange',
+                                                             [False, True])],
+                                                     value=None),
+                         Count=XProtoElem(type='ParamLong',
+                                          name='Count',
+                                          attrs=[],
+                                          value=1))
+    res = XProtocol(type='XProtocol',
+                    name=None,
+                    attrs=[('Name', "PhoenixMetaProtocol"),
+                           ('ID', 1000002),
+                           ('Userversion', 2.0)],
+                    value=ElemDict([('',
+                                     XProtoElem(type='ParamMap',
+                                                name='',
+                                                attrs=[],
+                                                value=anon_dict))
+                                   ]),
+                     cards=[],
+                     depends=[],
+                    )
+    assert_parsed(src, 'xprotocol', res)
 
 
 def test_errors():
@@ -898,16 +917,28 @@ def test_sample_file():
         contents = fobj.read()
     res = xpp.parse(contents)
     assert_equal(len(res), 1)
-    # Get the embedded protocol string from the protocol contents
-    protocol = res[0]
-    assert_equal(len(protocol['attrs']), 3)
-    assert_equal(len(protocol['value']), 1)
-    for v in protocol['value'][0]['value']:
-        if v['name'].startswith('Protocol'):
-            break
-    proto_str, asc_hdr = xpp.split_ascconv(xpp.strip_twin_quote(v['value']))
-    res2 = xpp.parse(proto_str)
-    assert_equal(len(res2), 2)
+
+    # Look at the XProtoElem for the top-level XProtocol to make sure
+    # attributes are correct
+    xproto = res.get_elem(0)
+    assert_equal(xproto.attrs,
+                 [('Name', 'PhoenixMetaProtocol'),
+                  ('ID', 1000002),
+                  ('Userversion', 2.0)]
+                )
+
+    # Do some checks on the "outer" xprotocol
+    assert_equal(list(res[0].keys()), [''])
+    assert_equal(list(res[0][''].keys()),
+                 ['IsInlineComposed', 'Count', 'Protocol0'])
+    assert_equal(res[0]['']['Count'], 1)
+
+    # Parse the "inner" xprotocol which is stored as a string in the "outer"
+    # xprotocol
+    inner_str = res[0]['']['Protocol0']
+    inner_proto_str, asc_hdr = xpp.split_ascconv(xpp.strip_twin_quote(inner_str))
+    inner_res = xpp.parse(inner_proto_str)
+    assert_equal(len(inner_res), 2)
 
 
 def test_old_sample_file():
@@ -915,7 +946,9 @@ def test_old_sample_file():
         contents = fobj.read()
     res = xpp.parse(contents)
     assert_equal(len(res), 1)
-    # Get the embedded protocol string from the protocol contents
-    protocol = res[0]
-    assert_equal(len(protocol['attrs']), 5)
-    assert_equal(len(protocol['value']), 16)
+    protocol = res.get_elem(0)
+    assert_equal(len(protocol.attrs), 5)
+    assert_equal(len(protocol.value), 1)
+    assert_equal(len(protocol.value[''].keys()), 4)
+    assert_equal(len(protocol.depends), 14)
+    assert_equal(len(protocol.cards), 1)

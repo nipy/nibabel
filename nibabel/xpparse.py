@@ -4,9 +4,18 @@ from __future__ import print_function, absolute_import
 
 import re
 
+from collections import namedtuple
+from .elemcont import ElemDict, ElemList
 from .externals.ply import lex
 from .externals.ply import yacc
 
+
+# TODO: ParamArray values should be converted to the appropriate type based on
+# the 'Default' attribute. Doing this in post-processing rather than in PLY
+# seems much easier.
+
+# TODO: Add ability to parse newer ASCCONV sections like I recently added to
+# dcmstack
 
 def find_column(input, lexpos):
     """ Get line column number given input string `input` and lex pos `lexpos`
@@ -25,6 +34,12 @@ def find_column(input, lexpos):
     """
     last_cr = input.rfind('\n', 0, lexpos)  # -1 if not found
     return lexpos - last_cr - 1
+
+
+XProtoElem = namedtuple('XProtoElem', 'type name attrs value')
+
+
+XProtocol = namedtuple('XProtocol', 'type name attrs value cards depends')
 
 
 class XProtocolSymbols(object):
@@ -165,55 +180,81 @@ class XProtocolSymbols(object):
         """ xprotocols : xprotocols xprotocol
                        | xprotocol
         """
-        p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
+        p[0] = ElemList([p[1]]) if len(p) == 2 else p[1] + ElemList([p[2]])
+
+    def p_xprotocol(self, p):
+        """ xprotocol : XPROTOCOL '{' attr_list block_list param_cards depends '}'
+                      | XPROTOCOL '{' attr_list block_list eva_cards depends '}'
+                      | XPROTOCOL '{' attr_list block_list empty depends '}'
+                      | XPROTOCOL '{' attr_list block_list param_cards empty '}'
+                      | XPROTOCOL '{' attr_list block_list eva_cards empty '}'
+                      | XPROTOCOL '{' attr_list block_list empty empty '}'
+                      | EVAPROTOCOL '{' attr_list block_list param_cards depends '}'
+                      | EVAPROTOCOL '{' attr_list block_list eva_cards depends '}'
+                      | EVAPROTOCOL '{' attr_list block_list empty depends '}'
+                      | EVAPROTOCOL '{' attr_list block_list param_cards empty '}'
+                      | EVAPROTOCOL '{' attr_list block_list eva_cards empty '}'
+                      | EVAPROTOCOL '{' attr_list block_list empty empty '}'
+        """
+        p[0] = XProtocol(type=p[1][0],
+                         name=p[1][1],
+                         attrs=[] if p[3] is None else p[3],
+                         value=p[4],
+                         cards=[] if p[5] is None else p[5],
+                         depends=[] if p[6] is None else p[6],
+                        )
 
     def p_map_type(self, p):
-        """ xprotocol : XPROTOCOL '{' attr_list block_list '}'
-            xprotocol : EVAPROTOCOL '{' attr_list block_list '}'
-            pipeservice : PIPESERVICE '{' attr_list block_list '}'
+        """ pipeservice : PIPESERVICE '{' attr_list block_list '}'
             paramfunctor : PARAMFUNCTOR '{' attr_list block_list '}'
             parammap : PARAMMAP '{' attr_list block_list '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=[] if p[3] is None else p[3],
-                    value=p[4],
-                   )
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=[] if p[3] is None else p[3],
+                          value=p[4]
+                         )
 
     def p_str_list_type(self, p):
         """ method : METHOD '{' string_list '}'
             connection : CONNECTION '{' string_list '}'
             event : EVENT '{' string_list '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=[],
-                    value=p[3],
-                   )
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=[],
+                          value=p[3],
+                         )
 
     def p_param_choice(self, p):
         """ paramchoice : PARAMCHOICE '{' attr_list MULTI_STRING '}'
                         | PARAMCHOICE '{' attr_list empty '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=p[3],
-                    value=p[4])
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=p[3],
+                          value=p[4])
 
     def p_block_list(self, p):
         """ block_list : block_list block
                        | block
         """
-        p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
+        if len(p) == 2:
+            p[0] = ElemDict()
+            p[0][p[1].name] = p[1]
+        else:
+            p[0] = p[1]
+            assert p[2].name not in p[0]
+            p[0][p[2].name] = p[2]
 
     def p_param_array(self, p):
         """ paramarray : PARAMARRAY '{' attr_list curly_lists '}'
                        | PARAMARRAY '{' attr_list '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=p[3],
-                    value=p[4] if len(p) == 6 else None)
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=p[3],
+                          value=p[4] if len(p) == 6 else None)
 
     def p_curly_lists(self, p):
         """ curly_lists : curly_lists curly_list
@@ -237,9 +278,6 @@ class XProtocolSymbols(object):
                   | paramchoice
                   | paramfunctor
                   | pipeservice
-                  | paramcardlayout
-                  | evacardlayout
-                  | dependency
                   | event
                   | method
                   | connection
@@ -258,43 +296,57 @@ class XProtocolSymbols(object):
                       | PARAMBOOL '{' attr_list FALSE '}'
 
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=p[3],
-                    value=p[4])
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=p[3],
+                          value=p[4])
+
+    def p_depends(self, p):
+        """ depends : depends dependency
+                    | dependency
+        """
+        p[0] = ElemList([p[1]]) if len(p) == 2 else p[1] + ElemList([p[2]])
 
     def p_dependency(self, p):
         """ dependency : DEPENDENCY '{' string_list attr_list '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=[] if p[4] is None else p[4],
-                    value=p[3])
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=[] if p[4] is None else p[4],
+                          value=p[3])
+
+    def p_param_cards(self, p):
+        """ param_cards : param_cards paramcardlayout
+                        | paramcardlayout
+            eva_cards : eva_cards evacardlayout
+                      | evacardlayout
+        """
+        p[0] = ElemList([p[1]]) if len(p) == 2 else p[1] + ElemList([p[2]])
 
     def p_param_card_layout(self, p):
         """ paramcardlayout : PARAMCARDLAYOUT '{' repr controls lines '}'
         """
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=[],
-                    value=dict(repr=p[3],
-                               controls=p[4],
-                               lines=p[5])
-                   )
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=[],
+                          value=dict(repr=p[3],
+                                     controls=p[4],
+                                     lines=p[5])
+                         )
 
     def p_eva_card_layout(self, p):
         """ evacardlayout : EVACARDLAYOUT '{' MULTI_STRING INTEGER eva_controls lines '}'
                           | EVACARDLAYOUT '{' MULTI_STRING INTEGER eva_controls empty '}'
         """
         # This appears to be the predecessor of ParamCardLayout
-        p[0] = dict(type=p[1][0],
-                    name=p[1][1],
-                    attrs=[],
-                    value=dict(repr=p[3],
-                               n_controls=p[4],
-                               controls=p[5],
-                               lines=[] if p[6] is None else p[6])
-                   )
+        p[0] = XProtoElem(type=p[1][0],
+                          name=p[1][1],
+                          attrs=[],
+                          value=dict(repr=p[3],
+                                     n_controls=p[4],
+                                     controls=p[5],
+                                     lines=[] if p[6] is None else p[6])
+                         )
 
     def p_attr_list(self, p):
         """ attr_list : attr_list key_value
@@ -450,13 +502,11 @@ class XProtocolSymbols(object):
         return self.parser.parse(in_str, lexer=self.lexer)
 
 
-DBL_QUOTE_RE = re.compile(r'(?<!")""(?!")')
+DBL_QUOTE_RE = re.compile(r'""')
 
 
 def strip_twin_quote(in_str):
-    """ Replaces two double quotes together with one double quote
-
-    Does so safely so that triple double quotes not touched.
+    """ Replaces two double quotes together with one double quote.
     """
     return DBL_QUOTE_RE.sub('"', in_str)
 
