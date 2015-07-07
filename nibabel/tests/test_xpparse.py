@@ -933,12 +933,24 @@ def test_sample_file():
                  ['IsInlineComposed', 'Count', 'Protocol0'])
     assert_equal(res[0]['']['Count'], 1)
 
-    # Parse the "inner" xprotocol which is stored as a string in the "outer"
+    # Parse the "inner" xprotocols which are stored as a string in the "outer"
     # xprotocol
     inner_str = res[0]['']['Protocol0']
     inner_proto_str, asc_hdr = xpp.split_ascconv(xpp.strip_twin_quote(inner_str))
     inner_res = xpp.parse(inner_proto_str)
     assert_equal(len(inner_res), 2)
+    inner0 = inner_res.get_elem(0)
+    inner1 = inner_res.get_elem(1)
+    assert_equal(len(inner0.attrs), 4)
+    assert_equal(len(inner0.value), 1)
+    assert_equal(len(inner0.value['']), 6)
+    assert_equal(len(inner0.cards), 2)
+    assert_equal(len(inner0.depends), 24)
+    assert_equal(len(inner1.attrs), 2)
+    assert_equal(len(inner1.value), 1)
+    assert_equal(len(inner1.value['']), 1)
+    assert_equal(len(inner1.cards), 0)
+    assert_equal(len(inner1.depends), 0)
 
 
 def test_old_sample_file():
