@@ -55,10 +55,10 @@ DICOM_.  NiBabel is the successor of PyNIfTI_.
 .. _MINC2:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
 .. _PyNIfTI: http://niftilib.sourceforge.net/pynifti/
-.. _GIFTI: http://www.nitrc.org/projects/gifti
-.. _MGH: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+.. _GIFTI: https://www.nitrc.org/projects/gifti
+.. _MGH: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 .. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
-.. _Freesurfer: http://surfer.nmr.mgh.harvard.edu
+.. _Freesurfer: https://surfer.nmr.mgh.harvard.edu
 .. _DICOM: http://medical.nema.org/
 
 The various image format classes give full or selective access to header (meta)
@@ -68,7 +68,7 @@ Website
 =======
 
 Current documentation on nibabel can always be found at the `NIPY nibabel
-website <http://nipy.org/nibabel>`_.
+website <https://nipy.github.io/nibabel>`_.
 
 Mailing Lists
 =============
@@ -88,8 +88,8 @@ You can find our sources and single-click downloads:
 * Download `current development version`_ as a zip file;
 * Downloads of all `available releases`_.
 
-.. _main repository: http://github.com/nipy/nibabel
-.. _Documentation: http://nipy.org/nibabel
+.. _main repository: https://github.com/nipy/nibabel
+.. _Documentation: https://nipy.github.io/nibabel
 .. _current release: https://pypi.python.org/pypi/nibabel
 .. _current development version: https://github.com/nipy/nibabel/archive/master.zip
 .. _available releases: https://github.com/nipy/nibabel/releases
@@ -112,8 +112,8 @@ MAINTAINER          = "Matthew Brett, Michael Hanke and Eric Larson"
 MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
-URL                 = "http://nipy.org/nibabel"
-DOWNLOAD_URL        = "http://github.com/nipy/nibabel"
+URL                 = "https://nipy.github.io/nibabel"
+DOWNLOAD_URL        = "https://github.com/nipy/nibabel"
 LICENSE             = "MIT license"
 CLASSIFIERS         = CLASSIFIERS
 AUTHOR              = "Matthew Brett, Michael Hanke, Stephan Gerhard"

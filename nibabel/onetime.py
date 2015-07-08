@@ -17,7 +17,7 @@ References
 [1] How-To Guide for Descriptors, Raymond
 Hettinger. http://users.rcn.com/python/download/Descriptor.htm
 
-[2] Python data model, http://docs.python.org/reference/datamodel.html
+[2] Python data model, https://docs.python.org/reference/datamodel.html
 """
 from __future__ import division, print_function, absolute_import
 

@@ -61,6 +61,9 @@ contributed code and discussion (in rough order of appearance):
 * Demian Wassermann
 * Philippe Gervais
 * Justin Lecher
+* Ben Cippolini
+* Chris Markiewicz
+* Clemens C. C. Bauer
 
 License reprise
 ===============
@@ -84,15 +87,15 @@ If you have problems installing the software or questions about usage,
 documentation or anything else related to NiBabel, you can post to the NiPy
 mailing list.
 
-:Mailing list:  nipy-devel@neuroimaging.scipy.org [subscription_, archive_]
+:Mailing list:  neuroimaging@python.org [subscription_, archive_]
 
 We recommend that anyone using NiBabel subscribes to the mailing list.  The
 mailing list is the preferred way to announce changes and additions to the
 project. You can also search the mailing list archive using the *mailing list
 archive search* located in the sidebar of the NiBabel home page.
 
-.. _subscription: http://mail.scipy.org/mailman/listinfo/nipy-devel
-.. _archive: http://mail.scipy.org/pipermail/nipy-devel
+.. _subscription: https://mail.python.org/mailman/listinfo/neuroimaging
+.. _archive: https://mail.python.org/pipermail/neuroimaging
 
 .. include:: links_names.txt
 

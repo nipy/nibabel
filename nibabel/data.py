@@ -189,8 +189,8 @@ def get_data_path():
     because Debian has patched distutils in Python 2.6 to do default
     distutils installs there:
 
-    * http://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html#s-distutils
-    * http://www.mail-archive.com/debian-python@lists.debian.org/msg05084.html
+    * https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html#s-distutils
+    * https://www.mail-archive.com/debian-python@lists.debian.org/msg05084.html
     '''
     paths = []
     try:

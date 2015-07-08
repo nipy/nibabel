@@ -238,7 +238,7 @@ class install_scripts_bat(install_scripts):
     Notes
     -----
     See discussion at
-    http://matthew-brett.github.com/pydagogue/installing_scripts.html and
+    https://matthew-brett.github.io/pydagogue/installing_scripts.html and
     example at git://github.com/matthew-brett/myscripter.git for more
     background.
     """

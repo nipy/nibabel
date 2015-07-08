@@ -3,7 +3,7 @@ HTML_DIR=build/html
 LATEX_DIR=build/latex
 WWW_DIR=build/website
 DOCSRC_DIR=doc
-SF_USER ?= matthewbrett
+PROJECT=nibabel
 #
 # The Python executable to be used
 #
@@ -121,23 +121,23 @@ gitwash-update: build
 # Website
 #
 
-website: website-stamp
-website-stamp: $(WWW_DIR) htmldoc pdfdoc
+html: html-stamp
+html-stamp: $(WWW_DIR) htmldoc
 	cp -r $(HTML_DIR)/* $(WWW_DIR)
+	touch $@
+
+pdf: pdf-stamp
+pdf-stamp: $(WWW_DIR) pdfdoc
 	cp $(LATEX_DIR)/*.pdf $(WWW_DIR)
 	touch $@
 
+website: website-stamp
+website-stamp: $(WWW_DIR) html-stamp pdf-stamp
+	cp -r $(HTML_DIR)/* $(WWW_DIR)
+	touch $@
 
-upload-website: website
-	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(WWW_DIR)/* \
-		web.sourceforge.net:/home/groups/n/ni/niftilib/htdocs/nibabel/
-
-# This one udates for the specific user named at the top of the makefile
-upload-htmldoc: htmldoc upload-htmldoc-$(SF_USER)
-
-upload-htmldoc-%: htmldoc
-	rsync -rzhvp --delete --chmod=Dg+s,g+rw $(HTML_DIR)/* \
-		$*,nipy@web.sourceforge.net:/home/groups/n/ni/nipy/htdocs/nibabel/
+upload-html: html-stamp
+	./tools/upload-gh-pages.sh $(WWW_DIR) $(PROJECT)
 
 #
 # Sources

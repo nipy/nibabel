@@ -24,8 +24,11 @@ from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                       Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                       data_type_codes, extension_codes, slice_order_codes)
 
+from ..freesurfer import load as mghload
+
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
 from .test_helpers import bytesio_filemap, bytesio_round_trip
+from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
 from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
@@ -242,7 +245,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                      'file nifti1; setting to minimum value '
                      'of ' + str(hdr.single_vox_offset))
 
-    def test_freesurfer_hack(self):
+    def test_freesurfer_large_vector_hack(self):
         # For large vector images, Freesurfer appears to set dim[1] to -1 and
         # then use glmin for the vector length (an i4)
         HC = self.header_class
@@ -287,6 +290,31 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                 with suppress_warnings():
                     hdr.set_data_shape(constructor(shape))
                 assert_equal(hdr.get_data_shape(), shape)
+
+    @needs_nibabel_data('nitest-freesurfer')
+    def test_freesurfer_ico7_hack(self):
+        HC = self.header_class
+        hdr = HC()
+        # Test that using ico7 shape automatically uses factored dimensions
+        hdr.set_data_shape((163842, 1, 1))
+        assert_array_equal(hdr._structarr['dim'][1:4], np.array([27307, 1, 6]))
+        # Test consistency of data in .mgh and mri_convert produced .nii
+        nitest_path = os.path.join(get_nibabel_data(), 'nitest-freesurfer')
+        mgh = mghload(os.path.join(nitest_path, 'fsaverage', 'surf',
+                                   'lh.orig.avg.area.mgh'))
+        nii = load(os.path.join(nitest_path, 'derivative', 'fsaverage', 'surf',
+                                'lh.orig.avg.area.nii'))
+        assert_equal(mgh.shape, nii.shape)
+        assert_array_equal(mgh.get_data(), nii.get_data())
+        assert_array_equal(nii.header._structarr['dim'][1:4],
+                           np.array([27307, 1, 6]))
+        # Test writing produces consistent nii files
+        with InTemporaryDirectory():
+            nii.to_filename('test.nii')
+            nii2 = load('test.nii')
+            assert_equal(nii.shape, nii2.shape)
+            assert_array_equal(nii.get_data(), nii2.get_data())
+            assert_array_equal(nii.get_affine(), nii2.get_affine())
 
     def test_qform_sform(self):
         HC = self.header_class

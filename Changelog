@@ -22,6 +22,27 @@ NiBabel
 Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
 and Stephan Gerhard (SG).
 
+References like "pr/298" refer to github pull request numbers.
+
+* 2.0.1 (Saturday 27 June 2015)
+
+  Contributions from Ben Cipollini, Chris Markiewicz, Alexandre Gramfort,
+  Clemens Bauer, github user freec84.
+
+  * Bugfix release with minor new features;
+  * Added ``axis`` parameter to ``concat_images`` (pr/298) (Ben Cipollini);
+  * Fix for unsigned integer data types in ECAT images (pr/302) (MB, test data
+    and issue report from Github user freec84);
+  * Added new ECAT and Freesurfer data files to automated testing;
+  * Fix for Freesurfer labels error on early numpies (pr/307) (Alexandre
+    Gramfort);
+  * Fixes for PAR / REC header parsing (pr/312) (MB, issue reporting and test
+    data by Clemens C. C. Bauer);
+  * Workaround for reading Freesurfer ico7 surface files (pr/315) (Chris
+    Markiewicz);
+  * Changed to github pages for doc hosting;
+  * Changed docs to point to neuroimaging@python.org mailing list.
+
 * 2.0.0 (Tuesday 9 December 2014)
 
   This release had large contributions from Eric Larson, Brendan Moloney,

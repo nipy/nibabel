@@ -57,13 +57,13 @@ Release checklist
 * Check the copyright year in ``doc/source/conf.py``
 
 * Refresh the ``REAMDE.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
-  by running ``make refresh_readme``.
+  by running ``make refresh-readme``.
 
   Check the output of::
 
     rst2html.py README.rst > ~/tmp/readme.html
 
-  becase this will be the output used by pypi_
+  because this will be the output used by pypi_
 
 * Check the dependencies listed in ``nibabel/info.py`` (e.g.
   ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should
@@ -180,25 +180,23 @@ Release checklist
 
 * Force builds of the win32 and amd64 binaries from the buildbot. Go to pages:
 
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
-  * http://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
 
   For each of these, enter the revision number (e.g. "2.0.0") in the field
   "Revision to build". Then get the built binaries in:
 
-  * http://nipy.bic.berkeley.edu/nibabel-dist
+  * https://nipy.bic.berkeley.edu/nibabel-dist
 
   and upload them to pypi with the admin files interface.
 
   If you are already on a Windows machine, you could have done the manual
   command to upload instead: ``python setup.py bdist_wininst upload``.
 
-* Now the version number is OK, push the docs to sourceforge with::
+* Now the version number is OK, push the docs to github pages with::
 
-    make upload-htmldoc-mysfusername
-
-  where ``mysfusername`` is obviously your own sourceforge username.
+    make upload-html
 
 * Set up maintenance / development branches
 
@@ -258,6 +256,6 @@ Release checklist
 
 * Announce to the mailing lists.
 
-.. _setuptools intro: http://packages.python.org/an_example_pypi_project/setuptools.html
+.. _setuptools intro: https://pythonhosted.org/an_example_pypi_project/setuptools.html
 
 .. include:: ../links_names.txt
