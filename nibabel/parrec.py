@@ -95,6 +95,8 @@ import warnings
 import numpy as np
 from copy import deepcopy
 import re
+from io import StringIO
+from locale import getpreferredencoding
 
 from .keywordonly import kw_only_meth
 from .spatialimages import SpatialImage, Header
@@ -278,8 +280,6 @@ def _split_header(fobj):
                 break
             image_lines.append(line)
     return version, gen_dict, image_lines
-
-
 
 
 def _process_gen_dict(gen_dict):
@@ -502,6 +502,36 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
         # Don't do in-place b/c this goes int16 -> float64
         rec_data = rec_data * scalings[0] + scalings[1]
     return rec_data
+
+
+def exts2pars(exts_source):
+    """Parse, return any PAR headers from NIfTI extensions in `exts_source`
+
+    Parameters
+    ----------
+    exts_source : sequence or `Nifti1Image`, `Nifti1Header` instance
+        A sequence of extensions, or header containing NIfTI extensions, or an
+        image containing a header with NIfTI extensions.
+
+    Returns
+    -------
+    par_headers : list
+        A list of PARRECHeader objects, usually empty or with one element, each
+        element contains a PARRECHeader read from the contained extensions.
+    """
+    headers = []
+    exts_source = (exts_source.header if hasattr(exts_source, 'header')
+                   else exts_source)
+    exts_source = (exts_source.extensions if hasattr(exts_source, 'extensions')
+                   else exts_source)
+    for extension in exts_source:
+        content = extension.get_content()
+        content = content.decode(getpreferredencoding(False))
+        if not content.startswith('# === DATA DESCRIPTION FILE ==='):
+            continue
+        gen_info, image_info = parse_PAR_header(StringIO(content))
+        headers.append(PARRECHeader(gen_info, image_info))
+    return headers
 
 
 class PARRECArrayProxy(object):
