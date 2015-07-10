@@ -534,11 +534,12 @@ class SpatialImage(object):
         True
 
         The array is not yet cached by a call to "get_data", so:
+
         >>> img.in_memory
         False
 
-        After we call ``get_data`` using the default `caching='fill', the cache
-        contains a reference to the returned array ``data``:
+        After we call ``get_data`` using the default `caching` == 'fill', the
+        cache contains a reference to the returned array ``data``:
 
         >>> data = img.get_data()
         >>> img.in_memory
