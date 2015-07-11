@@ -14,7 +14,8 @@ from ..loadsave import load, read_img_data
 from ..spatialimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
-from .test_spm99analyze import have_scipy
+from ..optpkg import optional_package
+have_scipy = optional_package('scipy')[1]
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)

@@ -1,14 +1,15 @@
 """ Helper functions for tests
 """
+from io import BytesIO
 
 import numpy as np
-
-from io import BytesIO
-from ..openers import Opener
-from ..tmpdirs import InTemporaryDirectory
-
 from nose.tools import assert_true
 from numpy.testing import assert_array_equal
+
+from ..openers import Opener
+from ..optpkg import optional_package
+from ..tmpdirs import InTemporaryDirectory
+have_scipy = optional_package('scipy')[1]
 
 
 def bytesio_filemap(klass):
@@ -42,13 +43,12 @@ def bz2_mio_error():
     This won't cause a problem for scipy releases after Jan 24 2014 because of
     commit 98ef522d99 (in scipy)
     """
-    try:
-        import scipy.io
-    except ImportError:
+    if not have_scipy:
         return True
     with InTemporaryDirectory():
         with Opener('test.mat.bz2', 'wb') as fobj:
             try:
+                import scipy.io
                 scipy.io.savemat(fobj, {'a': 1}, format='4')
             except ValueError:
                 return True
