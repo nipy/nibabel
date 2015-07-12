@@ -17,7 +17,7 @@ import numpy as np
 
 # If we don't have scipy, then we cannot write SPM format files
 from ..optpkg import optional_package
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 
 from .. import analyze as ana
 from .. import spm99analyze as spm99

@@ -15,7 +15,7 @@ from ..spatialimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
 from ..optpkg import optional_package
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)

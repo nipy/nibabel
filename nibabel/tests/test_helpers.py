@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 from ..openers import Opener
 from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 
 
 def bytesio_filemap(klass):

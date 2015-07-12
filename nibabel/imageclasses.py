@@ -16,7 +16,7 @@ from .freesurfer import MGHImage
 from .parrec import PARRECImage
 from .volumeutils import Recoder
 from .optpkg import optional_package
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 
 
 # mapping of names to classes and class functionality

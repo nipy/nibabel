@@ -17,7 +17,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 # Decorator to skip tests requiring save / load if scipy not available for mat
 # files
 from ..optpkg import optional_package
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,

@@ -29,7 +29,7 @@ import nibabel as nib
 from nibabel import parrec
 from nibabel.affines import to_matvec
 from nibabel.optpkg import optional_package
-have_scipy = optional_package('scipy')[1]
+_, have_scipy, _ = optional_package('scipy')
 
 
 def resample_img2img(img_to, img_from, order=1, out_class=nib.Nifti1Image):
