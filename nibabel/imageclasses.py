@@ -15,14 +15,9 @@ from .minc1 import Minc1Image
 from .freesurfer import MGHImage
 from .parrec import PARRECImage
 from .volumeutils import Recoder
+from .optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
 
-# If we don't have scipy, then we cannot write SPM format files
-try:
-    import scipy.io
-except ImportError:
-    have_scipy = False
-else:
-    have_scipy = True
 
 # mapping of names to classes and class functionality
 

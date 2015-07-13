@@ -16,13 +16,8 @@ from ..externals.six import BytesIO
 import numpy as np
 
 # If we don't have scipy, then we cannot write SPM format files
-try:
-    import scipy.io
-except ImportError:
-    have_scipy = False
-else:
-    have_scipy = True
-
+from ..optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
 
 from .. import analyze as ana
 from .. import spm99analyze as spm99
