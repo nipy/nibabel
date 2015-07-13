@@ -33,7 +33,6 @@ _, have_scipy, _ = optional_package('scipy')
 
 
 def resample_img2img(img_to, img_from, order=1, out_class=nib.Nifti1Image):
-    global have_scipy
     if not have_scipy:
         raise Exception('Scipy must be installed to run resample_img2img.')
 

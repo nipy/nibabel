@@ -3,13 +3,14 @@
 from io import BytesIO
 
 import numpy as np
-from nose.tools import assert_true
-from numpy.testing import assert_array_equal
 
 from ..openers import Opener
-from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
-_, have_scipy, _ = optional_package('scipy')
+from ..optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy.io')
+
+from nose.tools import assert_true
+from numpy.testing import assert_array_equal
 
 
 def bytesio_filemap(klass):
@@ -45,14 +46,16 @@ def bz2_mio_error():
     """
     if not have_scipy:
         return True
+    import scipy.io
+
     with InTemporaryDirectory():
         with Opener('test.mat.bz2', 'wb') as fobj:
             try:
-                import scipy.io
                 scipy.io.savemat(fobj, {'a': 1}, format='4')
             except ValueError:
                 return True
-    return False
+            else:
+                return False
 
 
 def assert_data_similar(arr, params):
