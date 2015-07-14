@@ -58,6 +58,7 @@ dist/
 .shelf
 .tox/
 .coverage
+cover/
 
 # Logs and databases #
 ######################
