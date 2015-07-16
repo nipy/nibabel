@@ -13,12 +13,21 @@ from .analyze import AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .nifti1 import Nifti1Pair, Nifti1Image
+from .nifti2 import Nifti2Pair, Nifti2Image
 from .minc1 import Minc1Image
+from .minc2 import Minc2Image
 from .freesurfer import MGHImage
 from .parrec import PARRECImage
 from .volumeutils import Recoder
 from .optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
+
+
+# Ordered by the load/save priority.
+all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                     Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
+                     Minc1Image, Minc2Image, MGHImage,
+                     PARRECImage]
 
 
 # DEPRECATED: mapping of names to classes and class functionality

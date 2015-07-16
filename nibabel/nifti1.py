@@ -18,7 +18,6 @@ import numpy.linalg as npl
 
 from .py3k import asstr
 from .volumeutils import Recoder, make_dt_codes, endian_codes
-from .imageglobals import valid_exts
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
@@ -558,6 +557,9 @@ class Nifti1Header(SpmAnalyzeHeader):
     # Magics for single and pair
     pair_magic = b'ni1'
     single_magic = b'n+1'
+
+    # for sniffing type
+    sniff_size = 348
 
     # Quaternion threshold near 0, based on float32 precision
     quaternion_threshold = -np.finfo(np.float32).eps * 3
@@ -1614,8 +1616,11 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     @classmethod
     def is_header(klass, binaryblock):
+        if len(binaryblock) < klass.sniff_size:
+            raise ValueError('Must pass a binary block >= %d bytes' % klass.sniff_size)
+
         hdr = np.ndarray(shape=(), dtype=header_dtype,
-                         buffer=binaryblock[:348])
+                         buffer=binaryblock[:klass.sniff_size])
         return hdr['magic'] in (b'ni1', b'n+1')
 
 
@@ -1625,11 +1630,12 @@ class Nifti1PairHeader(Nifti1Header):
     is_single = False
 
 
-@valid_exts('.img', '.hdr')
 class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
+    nickname = 'nifti_pair'
+    rw = True
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -1849,12 +1855,12 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 self._affine[:] = self._header.get_best_affine()
 
 
-@valid_exts('.nii')
 class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header
     files_types = (('image', '.nii'),)
+    nickname = 'nifti_single'
 
     @staticmethod
     def _get_fileholders(file_map):

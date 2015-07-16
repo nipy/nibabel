@@ -15,8 +15,7 @@ from .filename_parser import splitext_addext
 from .openers import ImageOpener
 from .nifti2 import Nifti2Image, Nifti2Pair
 from .spatialimages import ImageFileError
-from .imageclasses import class_map, ext_map
-from .imageglobals import IMAGE_MAP
+from .imageclasses import class_map, ext_map, all_image_classes
 from .arrayproxy import is_proxy
 
 
@@ -36,20 +35,14 @@ def load(filename, **kwargs):
        Image of guessed type
     '''
 
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
-    lext = ext.lower()
-
-    potential_classes = IMAGE_MAP[lext]
-
-    if len(potential_classes) == 1:
-        return potential_classes[0].from_filename(filename, **kwargs)
-
-    # Allow image tests to cache data
     sniff = None
-    for img_type in IMAGE_MAP[lext]:
-        is_valid, sniff = img_type.is_image(filename, sniff)
+    for image_klass in all_image_classes:
+        is_valid, sniff = image_klass.is_image(filename, sniff)
         if is_valid:
-            return img_type.from_filename(filename, **kwargs)
+            return image_klass.from_filename(filename, **kwargs)
+
+    raise ImageFileError('Cannot work out file type of "%s"' %
+                         filename)
 
 
 def save(img, filename):

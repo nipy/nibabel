@@ -13,7 +13,6 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
-from ..imageglobals import valid_exts
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder,  copy_file_map
@@ -461,8 +460,13 @@ class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
-    files_types = (('image', '.mgh'),)
+    files_types = (('image', '.mgh'),
+                   ('image', '.mgz'))
     _compressed_exts = (('.gz',))
+    nickname = 'mgh'
+    has_affine = True
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 

@@ -32,7 +32,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..arraywriters import WriterError
 
 from nose.tools import (assert_equal, assert_not_equal, assert_true,
-                        assert_false, assert_raises)
+                        assert_false, assert_raises, assert_in)
 
 from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 
@@ -157,8 +157,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr['datatype'] = -1 # severity 40
         with suppress_warnings():
             fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert_equal(message, 'data code -1 not recognized; '
-                           'not attempting fix')
+        assert_in('data code -1 not recognized', message)
+        assert_in('not attempting fix', message)
+
         assert_raises(*raiser)
         # datatype not supported
         hdr['datatype'] = 255 # severity 40
