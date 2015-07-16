@@ -13,9 +13,8 @@ import numpy as np
 
 from .filename_parser import splitext_addext
 from .openers import ImageOpener
-from .nifti2 import Nifti2Image, Nifti2Pair
 from .spatialimages import ImageFileError
-from .imageclasses import class_map, ext_map, all_image_classes
+from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 
 
@@ -59,14 +58,22 @@ def save(img, filename):
     -------
     None
     '''
+
+    # Save the type as expected
     try:
         img.to_filename(filename)
     except ImageFileError:
         pass
     else:
         return
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+
+    # Be nice to users by making common implicit conversions
+    froot, ext, trailing = splitext_addext(filename, img._compressed_exts)
+    lext = ext.lower()
+
     # Special-case Nifti singles and Pairs
+    from .nifti1 import Nifti1Image, Nifti1Pair  # Inline imports, as this file
+    from .nifti2 import Nifti2Image, Nifti2Pair  # really shouldn't reference any image type
     if type(img) == Nifti1Image and ext in ('.img', '.hdr'):
         klass = Nifti1Pair
     elif type(img) == Nifti2Image and ext in ('.img', '.hdr'):
@@ -75,9 +82,14 @@ def save(img, filename):
         klass = Nifti1Image
     elif type(img) == Nifti2Pair and ext == '.nii':
         klass = Nifti2Image
-    else:
-        img_type = ext_map[ext]
-        klass = class_map[img_type]['class']
+    else:  # arbitrary conversion
+        valid_klasses = filter(lambda klass: klass.is_valid_extension(lext),
+                               all_image_classes)
+        if len(valid_klasses) > 0:
+            klass = valid_klasses[0]
+        else:
+            raise ImageFileError('Cannot work out file type of "%s"' %
+                                 filename)
     converted = klass.from_image(img)
     converted.to_filename(filename)
 
