@@ -146,3 +146,13 @@ class Opener(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_if_mine()
+
+    @classmethod
+    def register_extension(opener_klass, ext, func):
+        """Decorator"""
+        def decorate(klass):
+            assert ext not in opener_klass.compress_ext_map, \
+                "Cannot redefine extension-function mappings."
+            opener_klass.compress_ext_map[ext] = func
+            return klass
+        return decorate
