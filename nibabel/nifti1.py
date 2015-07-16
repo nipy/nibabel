@@ -584,7 +584,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         return self.__class__(
             self.binaryblock,
-            self.endianness, 
+            self.endianness,
             False,
             self.extensions)
 
@@ -879,10 +879,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             if affine is None:
                 code = 0
             elif old_code == 0:
-                code = 2 # aligned
+                code = 2  # aligned
             else:
                 code = old_code
-        else: # code set
+        else:  # code set
             code = self._field_recoders['qform_code'][code]
         hdr['qform_code'] = code
         if affine is None:
@@ -1120,8 +1120,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         phase = (info >> 2) & 3
         slice = (info >> 4) & 3
         return (freq-1 if freq else None,
-            phase-1 if phase else None,
-            slice-1 if slice else None)
+                phase-1 if phase else None,
+                slice-1 if slice else None)
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
@@ -1161,11 +1161,11 @@ class Nifti1Header(SpmAnalyzeHeader):
             if inp not in (None, 0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
-        if not freq is None:
+        if freq is not None:
             info = info | ((freq+1) & 3)
-        if not phase is None:
+        if phase is not None:
             info = info | (((phase+1) & 3) << 2)
-        if not slice is None:
+        if slice is not None:
             info = info | (((slice+1) & 3) << 4)
         self._structarr['dim_info'] = info
 
