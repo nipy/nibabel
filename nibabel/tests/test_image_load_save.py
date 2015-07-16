@@ -26,7 +26,7 @@ from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
                 Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, class_map)
+                AnalyzeImage, MGHImage, all_image_classes)
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -53,16 +53,14 @@ def test_conversion():
     affine = np.diag([1, 2, 3, 1])
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-        for r_class_def in class_map.values():
-            r_class = r_class_def['class']
-            if not r_class_def['makeable']:
+        for r_class in all_image_classes:
+            if not r_class.makeable:
                 continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
-            for w_class_def in class_map.values():
-                if not w_class_def['makeable']:
+            for w_class in all_image_classes:
+                if not w_class.makeable:
                     continue
-                w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
                 assert_array_equal(img2.affine, affine)
