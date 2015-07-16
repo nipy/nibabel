@@ -320,11 +320,21 @@ class ImageFileError(Exception):
 
 
 class SpatialImage(object):
+    ''' Template class for images '''
     header_class = Header
     files_types = (('image', None),)
     _compressed_exts = ()
 
-    ''' Template class for images '''
+    @classmethod
+    def is_valid_extension(klass, lext):
+        return np.any([ft[1] == lext for ft in klass.files_types])
+
+    @classmethod
+    def is_valid_filename(klass, filename):
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
+        lext = ext.lower()
+        return klass.is_valid_extension(lext)
+
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
         ''' Initialize image
@@ -869,19 +879,28 @@ class SpatialImage(object):
 
     @classmethod
     def is_image(klass, filename, sniff=None):
-        ftypes = dict(klass.files_types)
-        froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
         lext = ext.lower()
 
-        if lext not in ftypes.values():
+        if not klass.is_valid_extension(lext):
             return False, sniff
+        elif (not hasattr(klass.header_class, 'sniff_size') or
+              not hasattr(klass.header_class, 'is_header')):
+            return True, sniff
 
-        fname = froot + ftypes['header'] if 'header' in ftypes else filename
-        if not sniff:
-            with BinOpener(fname, 'rb') as fobj:
-                sniff = fobj.read(1024)
+        # Determine the metadata location, then sniff it
+        ftypes = dict(klass.files_types)
+        if 'header' not in ftypes:
+            metadata_filename = filename
+        else:
+            metadata_filename = froot + ftypes['header'] + trailing
 
-        return klass.header_class.is_header(sniff), sniff
+        sniff_size = 1024  # klass.header_class.sniff_size
+        if not sniff or len(sniff) < sniff_size:
+            with BinOpener(metadata_filename, 'rb') as fobj:
+                sniff = fobj.read(sniff_size)
+
+        return klass.header_class.is_header(sniff[:sniff_size]), sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
