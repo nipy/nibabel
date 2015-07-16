@@ -137,6 +137,7 @@ try:
 except NameError:  # python 3
     basestring = str
 
+import os.path
 import warnings
 
 import numpy as np
@@ -889,18 +890,30 @@ class SpatialImage(object):
             return True, sniff
 
         # Determine the metadata location, then sniff it
-        ftypes = dict(klass.files_types)
-        if 'header' not in ftypes:
+        header_exts = [ft[1] for ft in klass.files_types if ft[0] == 'header']
+        if len(header_exts) == 0:
             metadata_filename = filename
         else:
-            metadata_filename = froot + ftypes['header'] + trailing
+            # Search for an acceptable existing header;
+            #   could be compressed or not...
+            for ext in header_exts:
+                for tr_ext in np.unique([trailing, ''] + list(klass._compressed_exts)):
+                    metadata_filename = froot + ext + tr_ext
+                    if os.path.exists(metadata_filename):
+                        break
 
-        sniff_size = 1024  # klass.header_class.sniff_size
-        if not sniff or len(sniff) < sniff_size:
-            with BinOpener(metadata_filename, 'rb') as fobj:
-                sniff = fobj.read(sniff_size)
-
-        return klass.header_class.is_header(sniff[:sniff_size]), sniff
+        try:
+            if not sniff or len(sniff) < klass.header_class.sniff_size:
+                # 1024 == large size, for efficiency (could iterate over imageclasses).
+                sniff_size = np.max([1024, klass.header_class.sniff_size])
+                with BinOpener(metadata_filename, 'rb') as fobj:
+                    sniff = fobj.read(sniff_size)
+            return klass.header_class.is_header(sniff[:klass.header_class.sniff_size]), sniff
+        except Exception as e:
+            # Can happen if: file doesn't exist,
+            #   filesize < necessary sniff size (this happens!)
+            #   other unexpected errors.
+            return False, sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
