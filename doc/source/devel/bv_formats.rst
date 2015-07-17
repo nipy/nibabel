@@ -66,7 +66,7 @@ Here are some examples of BV formats:
   associated FMR format file. See `STC format definition`_;
 * VTC |--| "A VTC file contains the functional data (time series) of one
   experimental run (one functional scan) in the space of a 3D anatomical data
-  set (VMR), e.g. in Talairach space.".  See `STC format definition`_;
+  set (VMR), e.g. in Talairach space.".  See `VTC format definition`_;
   This is a different format to the STC (raw data in native-space) format.
   The file is a header followed by ints or floats in
   fastest-to-slowest-changing order of: time; BV X; BV Y; BV Z; where BV X, BV
