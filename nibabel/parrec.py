@@ -58,7 +58,6 @@ file above::
     2   1    1  1 0 2     1  16    62   64   64     0.00000   1.29035 4.28404e-003  1122  1951 -13.26  -0.00  -0.00    2.51    6.98  -10.53  6.000  2.000 0 1 0 2  3.750  3.750  30.00    0.00     0.00    0.00   0   90.00     0    0    0    39   0.0  1   1    8    0   0.000    0.000    0.000  1
     3   1    1  1 0 2     2  16    62   64   64     0.00000   1.29035 4.28404e-003  1137  1977 -13.26  -0.00  -0.00    2.51   14.77  -12.36  6.000  2.000 0 1 0 2  3.750  3.750  30.00    0.00     0.00    0.00   0   90.00     0    0    0    39   0.0  1   1    8    0   0.000    0.000    0.000  1
 
-###########
 Orientation
 ###########
 
@@ -68,17 +67,16 @@ Nibabel's required affine output axes are RAS (left to Right, posterior to
 Anterior, inferior to Superior). The correspondence of the PAR file's axes to
 RAS axes is:
 
-* ap = anterior -> posterior = negative A in RAS
-* fh = foot -> head = S in RAS
-* rl = right -> left = negative R in RAS
+* ap = anterior -> posterior = negative A in RAS = P
+* fh = foot -> head = S in RAS = S
+* rl = right -> left = negative R in RAS = L
+
+We therefore call the PAR file's axis system "PSL" (Posterior, Superior, Left).
 
 The orientation of the PAR file axes corresponds to DICOM's LPS coordinate
 system (right to Left, anterior to Posterior, inferior to Superior), but in a
 different order.
 
-We call the PAR file's axis system "PSL" (Posterior, Superior, Left)
-
-#########
 Data type
 #########
 
@@ -333,8 +331,8 @@ def _process_image_lines(image_lines, version):
 def vol_numbers(slice_nos):
     """ Calculate volume numbers inferred from slice numbers `slice_nos`
 
-    The volume number for each slice is the number of times this slice has
-    occurred previously in the `slice_nos` sequence
+    The volume number for each slice is the number of times this slice number
+    has occurred previously in the `slice_nos` sequence
 
     Parameters
     ----------
@@ -366,8 +364,8 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     slice_max : int
         Highest slice number for a full slice set.  Slice set will be
         ``range(slice_min, slice_max+1)``.
-    slice_min : int
-        Lowest slice number for full slice set.
+    slice_min : int, optional
+        Lowest slice number for full slice set.  Default is 1.
 
     Returns
     -------
@@ -379,7 +377,7 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     Raises
     ------
     ValueError
-        if any `slice_nos` value is outside slice set.
+        if any value in `slice_nos` is outside slice set indices.
     """
     slice_set = set(range(slice_min, slice_max + 1))
     if not slice_set.issuperset(slice_nos):
@@ -465,7 +463,7 @@ def parse_PAR_header(fobj):
 
 def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
                    scalings=None, mmap=True):
-    """Get data from REC file
+    """Load and return array data from REC file
 
     Parameters
     ----------
@@ -485,10 +483,10 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
         be broadcast to `out_shape`.
     mmap : {True, False, 'c', 'r', 'r+'}, optional
         `mmap` controls the use of numpy memory mapping for reading data.  If
-        False, do not try numpy ``memmap`` for data array.  If one of {'c', 'r',
-        'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of True
-        gives the same behavior as ``mmap='c'``.  If `rec_fileobj` cannot be
-        memory-mapped, ignore `mmap` value and read array from file.
+        False, do not try numpy ``memmap`` for data array.  If one of {'c',
+        'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of
+        True gives the same behavior as ``mmap='c'``.  If `rec_fileobj` cannot
+        be memory-mapped, ignore `mmap` value and read array from file.
 
     Returns
     -------
@@ -810,8 +808,8 @@ class PARRECHeader(Header):
 
         Notes
         -----
-        This routine called in ``__init__``, so may not be able to use
-        some attributes available in the fully initalized object.
+        This routine gets called in ``__init__``, so may not be able to use
+        some attributes available in the fully initialized object.
         """
         # slice orientation for the whole image series
         slice_gap = self._get_unique_image_prop('slice gap')
@@ -917,8 +915,8 @@ class PARRECHeader(Header):
 
         Notes
         -----
-        This routine called in ``__init__``, so may not be able to use
-        some attributes available in the fully initalized object.
+        This routine gets called in ``__init__``, so may not be able to use
+        some attributes available in the fully initialized object.
         """
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         shape = inplane_shape + (self._get_n_slices(),)
@@ -945,13 +943,15 @@ class PARRECHeader(Header):
         The PAR header contains two different scaling settings: 'dv' (value on
         console) and 'fp' (floating point value). Here is how they are defined:
 
+        DV = PV * RS + RI
+        FP = DV / (RS * SS)
+
+        where:
+
         PV: value in REC
         RS: rescale slope
         RI: rescale intercept
         SS: scale slope
-
-        DV = PV * RS + RI
-        FP = DV / (RS * SS)
         """
         # These will be 3D or 4D
         scale_slope = self.image_defs['scale slope']
@@ -987,14 +987,22 @@ class PARRECHeader(Header):
         return inplane_shape + (len(self.image_defs),)
 
     def get_sorted_slice_indices(self):
-        """Indices to sort (and maybe discard) slices in REC file
+        """Return indices to sort (and maybe discard) slices in REC file.
 
-        Returns list for indexing into the last (third) dimension of the REC
-        data array, and (equivalently) the only dimension of
-        ``self.image_defs``.
+        Sorts by (fast to slow): slice number, volume number.
+
+        We calculate volume number by looking for repeating slice numbers (see
+        :func:`vol_numbers`).
 
         If the recording is truncated, the returned indices take care of
-        discarding any indices that are not meant to be used.
+        discarding any slice indices from incomplete volumes.
+
+        Returns
+        -------
+        slice_indices : list
+            List for indexing into the last (third) dimension of the REC data
+            array, and (equivalently) the only dimension of
+            ``self.image_defs``.
         """
         slice_nos = self.image_defs['slice number']
         is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
@@ -1026,10 +1034,10 @@ class PARRECImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
@@ -1060,10 +1068,10 @@ class PARRECImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
         permit_truncated : {False, True}, optional, keyword-only
             If False, raise an error for an image where the header shows signs
             that fewer slices / volumes were recorded than were expected.
