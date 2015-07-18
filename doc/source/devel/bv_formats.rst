@@ -11,6 +11,7 @@ Overview
 ********
 
 See :
+
 * All files are little-endian byte order regardless of byte-order on the
   machine writing the data;
 * BV apparently provides a "BVQXtools" library for reading writing BV files in
@@ -31,9 +32,9 @@ from the `VMR format definition`_::
 
 Put another way |--| the correspondence of BV XYZ to Talairach axes is:
 
-* BV X corresponds to Anterior to Posterior;
-* BV Y corresponds to Superior to Inferior;
-* BV Z corresponds to Left to Right.
+* BV X -> Anterior to Posterior;
+* BV Y -> Superior to Inferior;
+* BV Z -> Left to Right.
 
 or:
 
@@ -75,7 +76,8 @@ Here are some examples of BV formats:
 * NR-VMP |--| "A native resolution volume map (NR-VMP) file contains
   statistical results in 3D format.". See `NR-VMP format definition`_
 * AR-VMP |--| "An anatomical-resolution VMP (volume map) file contains
-  statistical results in 3D format." at anatomical scan resolution.  See `AR-VMP format definition`_;
+  statistical results in 3D format" at anatomical scan resolution.  See
+  `AR-VMP format definition`_;
 * VMR |--| 'high-resolution anatomical MR' - see `VMR format definition`_.
 * MSK |--| mask file.  Only documentation appears to be
   http://www.brainvoyager.com/ubb/Forum8/HTML/000087.html
@@ -88,6 +90,7 @@ Here are some examples of BV formats:
 .. _NR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/377-users-guide-23-the-format-of-nr-vmp-files.html
 .. _VTC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html.
 .. _BV file format overview: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/382-developer-guide-26-file-formats-overview.html
+.. _FMR format definition: http://support.brainvoyager.com/installation-introduction/23-file-formats/383-developer-guide-26-the-format-of-fmr-files.html
 .. _STC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/384-developer-guide-26-the-format-of-stc-files.html
 .. _vmr format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
 .. _SMP format definition: : http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html.
