@@ -300,10 +300,9 @@ class Minc1Image(SpatialImage):
     header_class = Minc1Header
     files_types = (('image', '.mnc'),)
     _compressed_exts = ('.gz', '.bz2')
-    has_affine = True
+
     makeable = True
     rw = False
-    nickname = 'minc'
 
     ImageArrayProxy = MincImageArrayProxy
 

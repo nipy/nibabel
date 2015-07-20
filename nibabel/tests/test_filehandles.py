@@ -34,7 +34,7 @@ def test_multiload():
     if N > 5000:
         warn('It would take too long to test file handles, aborting')
         return
-    arr = np.arange(24).reshape((2, 3, 4))
+    arr = np.arange(24).reshape((2,3,4))
     img = Nifti1Image(arr, np.eye(4))
     imgs = []
     try:
@@ -43,10 +43,6 @@ def test_multiload():
         save(img, fname)
         for i in range(N):
             imgs.append(load(fname))
-    except Exception as e:
-        if 'i' in locals():
-            e.message += ' (i == %d)' % i
-        raise Exception(e.message)
     finally:
         del img, imgs
         shutil.rmtree(tmpdir)

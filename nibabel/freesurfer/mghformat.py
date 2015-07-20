@@ -462,8 +462,7 @@ class MGHImage(SpatialImage):
     files_types = (('image', '.mgh'),
                    ('image', '.mgz'))
     _compressed_exts = (('.gz',))
-    nickname = 'mgh'
-    has_affine = True
+
     makeable = True
     rw = True
 

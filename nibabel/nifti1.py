@@ -1634,7 +1634,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
-    nickname = 'nifti_pair'
     rw = True
 
     def __init__(self, dataobj, affine, header=None,
@@ -1860,7 +1859,6 @@ class Nifti1Image(Nifti1Pair):
     """
     header_class = Nifti1Header
     files_types = (('image', '.nii'),)
-    nickname = 'nifti_single'
 
     @staticmethod
     def _get_fileholders(file_map):

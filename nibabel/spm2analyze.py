@@ -132,7 +132,6 @@ class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     """ Class for SPM2 variant of basic Analyze image
     """
     header_class = Spm2AnalyzeHeader
-    nickname = 'spm2analyze'
 
 load = Spm2AnalyzeImage.load
 save = Spm2AnalyzeImage.instance_to_filename
