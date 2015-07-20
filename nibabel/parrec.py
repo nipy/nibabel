@@ -1021,8 +1021,7 @@ class PARRECImage(SpatialImage):
     """PAR/REC image"""
     header_class = PARRECHeader
     files_types = (('image', '.rec'), ('header', '.par'))
-    nickname = 'par'
-    has_affine = True
+
     makeable = False
     rw = False
 

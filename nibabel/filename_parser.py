@@ -131,8 +131,8 @@ def types_filenames(template_fname, types_exts,
         elif found_ext == found_ext.lower():
             proc_ext = lambda s: s.lower()
     for name, ext in types_exts:
-        if name in tfns:  # priority to those found first.
-            continue
+        if name in tfns:  # Allow multipe definitions of image, header, etc,
+            continue      # giving priority to those found first.
         if name == direct_set_name:
             tfns[name] = template_fname
             continue

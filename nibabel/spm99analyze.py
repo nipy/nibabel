@@ -242,7 +242,6 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     has_affine = True
     makeable = True
     rw = have_scipy
-    nickname = 'spm99analyze'
 
     @classmethod
     @kw_only_meth(1)

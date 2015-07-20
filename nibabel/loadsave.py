@@ -72,22 +72,22 @@ def save(img, filename):
     lext = ext.lower()
 
     # Special-case Nifti singles and Pairs
-    from .nifti1 import Nifti1Image, Nifti1Pair  # Inline imports, as this file
+    from .nifti1 import Nifti1Image, Nifti1Pair  # Inline imports, as this module
     from .nifti2 import Nifti2Image, Nifti2Pair  # really shouldn't reference any image type
-    if type(img) == Nifti1Image and ext in ('.img', '.hdr'):
+    if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
         klass = Nifti1Pair
-    elif type(img) == Nifti2Image and ext in ('.img', '.hdr'):
+    elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
         klass = Nifti2Pair
-    elif type(img) == Nifti1Pair and ext == '.nii':
+    elif type(img) == Nifti1Pair and lext == '.nii':
         klass = Nifti1Image
-    elif type(img) == Nifti2Pair and ext == '.nii':
+    elif type(img) == Nifti2Pair and lext == '.nii':
         klass = Nifti2Image
     else:  # arbitrary conversion
-        valid_klasses = filter(lambda klass: klass.is_valid_extension(lext),
+        valid_klasses = filter(lambda klass: klass.is_valid_extension(ext),
                                all_image_classes)
-        if len(valid_klasses) > 0:
-            klass = valid_klasses[0]
-        else:
+        try:
+            klass = next(iter(valid_klasses))
+        except StopIteration:  # if iterator is empty
             raise ImageFileError('Cannot work out file type of "%s"' %
                                  filename)
     converted = klass.from_image(img)

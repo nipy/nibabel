@@ -326,15 +326,8 @@ class SpatialImage(object):
     files_types = (('image', None),)
     _compressed_exts = ()
 
-    @classmethod
-    def is_valid_extension(klass, lext):
-        return np.any([ft[1] == lext for ft in klass.files_types])
-
-    @classmethod
-    def is_valid_filename(klass, filename):
-        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
-        lext = ext.lower()
-        return klass.is_valid_extension(lext)
+    makeable = True  # Used in test code
+    rw = True  # Used in test code
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -879,14 +872,22 @@ class SpatialImage(object):
                      extra=img.extra.copy())
 
     @classmethod
+    def is_valid_extension(klass, ext):
+        return np.any([ft[1] == ext.lower() for ft in klass.files_types])
+
+    @classmethod
+    def is_valid_filename(klass, filename):
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
+        return klass.is_valid_extension(ext)
+
+    @classmethod
     def is_image(klass, filename, sniff=None):
         froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
-        lext = ext.lower()
 
-        if not klass.is_valid_extension(lext):
+        if not klass.is_valid_extension(ext):
             return False, sniff
-        elif (not hasattr(klass.header_class, 'sniff_size') or
-              not hasattr(klass.header_class, 'is_header')):
+        elif (getattr(klass.header_class, 'sniff_size', None) is None or
+              getattr(klass.header_class, 'is_header', None) is None):
             return True, sniff
 
         # Determine the metadata location, then sniff it

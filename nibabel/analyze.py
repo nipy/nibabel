@@ -829,7 +829,7 @@ class AnalyzeHeader(LabeledWrapStruct):
             dtype = klass._data_type_codes.dtype[code]
         except KeyError:
             rep.problem_level = 40
-            rep.problem_msg = 'data code %d not recognized by %s' % (code, klass.__name__)
+            rep.problem_msg = 'data code %d not recognized' % code
         else:
             if dtype.itemsize == 0:
                 rep.problem_level = 40
@@ -899,10 +899,9 @@ class AnalyzeImage(SpatialImage):
     header_class = AnalyzeHeader
     files_types = (('image', '.img'), ('header', '.hdr'))
     _compressed_exts = ('.gz', '.bz2')
-    has_affine = False
+
     makeable = True
     rw = True
-    nickname = 'analyze'
 
     ImageArrayProxy = ArrayProxy
 
