@@ -88,11 +88,11 @@ Here are some examples of BV formats:
 .. _BV file format index page: http://support.brainvoyager.com/automation-aamp-development/23-file-formats.html
 .. _AR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/376-users-guide-23-the-format-of-ar-vmp-files.html
 .. _NR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/377-users-guide-23-the-format-of-nr-vmp-files.html
-.. _VTC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html.
+.. _VTC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html
 .. _BV file format overview: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/382-developer-guide-26-file-formats-overview.html
 .. _FMR format definition: http://support.brainvoyager.com/installation-introduction/23-file-formats/383-developer-guide-26-the-format-of-fmr-files.html
 .. _STC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/384-developer-guide-26-the-format-of-stc-files.html
 .. _vmr format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
-.. _SMP format definition: : http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html.
+.. _SMP format definition: : http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html
 
 .. include:: ../links_names.txt
