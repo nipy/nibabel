@@ -498,7 +498,8 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
     rec_data = rec_data.reshape(out_shape, order='F')
     if scalings is not None:
         # Don't do in-place b/c this goes int16 -> float64
-        rec_data = rec_data * scalings[0] + scalings[1]
+        rec_data = rec_data * scalings[0] 
+        rec_data += scalings[1]
     return rec_data
 
 
