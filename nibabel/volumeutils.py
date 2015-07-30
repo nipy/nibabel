@@ -14,6 +14,8 @@ import warnings
 import gzip
 import bz2
 from os.path import exists, splitext
+from operator import mul
+from functools import reduce
 
 import numpy as np
 
@@ -504,7 +506,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
             pass
     if len(shape) == 0:
         return np.array([])
-    n_bytes = int(np.prod(shape) * in_dtype.itemsize)
+    # Use reduce and mul to work around numpy integer overflow
+    n_bytes = reduce(mul, shape) * in_dtype.itemsize
     if n_bytes == 0:
         return np.array([])
     # Read data from file

@@ -15,9 +15,12 @@
 *.tmp
 .project
 .pydevproject
+*.py.orig
 
-# Not sure what the next two are for
+# Not sure what the next one is for
 *.kpf
+
+# Makefile target file markers
 *-stamp
 
 # Compiled source #
@@ -58,6 +61,7 @@ dist/
 .shelf
 .tox/
 .coverage
+.ropeproject/
 
 # Logs and databases #
 ######################

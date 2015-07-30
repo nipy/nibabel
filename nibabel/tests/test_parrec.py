@@ -4,15 +4,15 @@
 from os.path import join as pjoin, dirname, basename
 from glob import glob
 from warnings import simplefilter
-import shutil
 
 import numpy as np
 from numpy import array as npa
 
 from .. import load as top_load
+from ..nifti1 import Nifti1Image, Nifti1Extension
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
-                      vol_is_full, PARRECImage, PARRECArrayProxy)
+                      vol_is_full, PARRECImage, PARRECArrayProxy, exts2pars)
 from ..openers import Opener
 from ..fileholders import FileHolder
 from ..volumeutils import array_from_file
@@ -21,7 +21,7 @@ from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
 from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+                        assert_equal)
 
 from ..testing import catch_warn_reset, suppress_warnings
 
@@ -600,3 +600,37 @@ def test_anonymized():
     assert_almost_equal(img_defs['window center'][-1], 236.385836385836, 6)
     assert_almost_equal(img_defs['window width'][0], 767.277167277167, 6)
     assert_almost_equal(img_defs['window width'][-1], 236.385836385836, 6)
+
+
+def test_exts2par():
+    # Test we can load PAR headers from NIfTI extensions
+    par_img = PARRECImage.from_filename(EG_PAR)
+    nii_img = Nifti1Image.from_image(par_img)
+    assert_equal(exts2pars(nii_img), [])
+    assert_equal(exts2pars(nii_img.header), [])
+    assert_equal(exts2pars(nii_img.header.extensions), [])
+    assert_equal(exts2pars([]), [])
+    # Add a header extension
+    with open(EG_PAR, 'rb') as fobj:
+        hdr_dump = fobj.read()
+        dump_ext = Nifti1Extension('comment', hdr_dump)
+    nii_img.header.extensions.append(dump_ext)
+    hdrs = exts2pars(nii_img)
+    assert_equal(len(hdrs), 1)
+    # Test attribute from PARRECHeader
+    assert_equal(hdrs[0].get_slice_orientation(), 'transverse')
+    # Add another PAR extension
+    nii_img.header.extensions.append(Nifti1Extension('comment', hdr_dump))
+    hdrs = exts2pars(nii_img)
+    assert_equal(len(hdrs), 2)
+    # Test attribute from PARRECHeader
+    assert_equal(hdrs[1].get_slice_orientation(), 'transverse')
+    # Add null extension, ignored
+    nii_img.header.extensions.append(Nifti1Extension('comment', b''))
+    # Check all valid inputs
+    for source in (nii_img,
+                   nii_img.header,
+                   nii_img.header.extensions,
+                   list(nii_img.header.extensions)):
+        hdrs = exts2pars(source)
+        assert_equal(len(hdrs), 2)

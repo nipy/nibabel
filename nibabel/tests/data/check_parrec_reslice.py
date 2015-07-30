@@ -24,15 +24,19 @@ of the field of view.
 import glob
 import numpy as np
 import numpy.linalg as npl
-np.set_printoptions(suppress=True, precision=4)
 
 import nibabel as nib
 from nibabel import parrec
 from nibabel.affines import to_matvec
+from nibabel.optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
 
-from scipy import ndimage as spnd
 
 def resample_img2img(img_to, img_from, order=1, out_class=nib.Nifti1Image):
+    if not have_scipy:
+        raise Exception('Scipy must be installed to run resample_img2img.')
+
+    from scipy import ndimage as spnd
     vox2vox = npl.inv(img_from.affine).dot(img_to.affine)
     rzs, trans = to_matvec(vox2vox)
     data = spnd.affine_transform(img_from.get_data(),
@@ -49,22 +53,24 @@ def gmean_norm(data):
     return data / gmean
 
 
-normal_fname = "Phantom_EPI_3mm_tra_SENSE_6_1.PAR"
-normal_img = parrec.load(normal_fname)
-normal_data = normal_img.get_data()
-normal_normed = gmean_norm(normal_data)
+if __name__ == '__main__':
+    np.set_printoptions(suppress=True, precision=4)
+    normal_fname = "Phantom_EPI_3mm_tra_SENSE_6_1.PAR"
+    normal_img = parrec.load(normal_fname)
+    normal_data = normal_img.get_data()
+    normal_normed = gmean_norm(normal_data)
 
-print("RMS of standard image {:<44}: {}".format(
-    normal_fname,
-    np.sqrt(np.sum(normal_normed ** 2))))
+    print("RMS of standard image {:<44}: {}".format(
+        normal_fname,
+        np.sqrt(np.sum(normal_normed ** 2))))
 
-for parfile in glob.glob("*.PAR"):
-    if parfile == normal_fname:
-        continue
-    funny_img = parrec.load(parfile)
-    fixed_img = resample_img2img(normal_img, funny_img)
-    fixed_data = fixed_img.get_data()
-    difference_data = normal_normed - gmean_norm(fixed_data)
-    print('RMS resliced {:<52} : {}'.format(
-        parfile,
-        np.sqrt(np.sum(difference_data ** 2))))
+    for parfile in glob.glob("*.PAR"):
+        if parfile == normal_fname:
+            continue
+        funny_img = parrec.load(parfile)
+        fixed_img = resample_img2img(normal_img, funny_img)
+        fixed_data = fixed_img.get_data()
+        difference_data = normal_normed - gmean_norm(fixed_data)
+        print('RMS resliced {:<52} : {}'.format(
+            parfile,
+            np.sqrt(np.sum(difference_data ** 2))))

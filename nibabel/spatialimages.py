@@ -459,7 +459,7 @@ class SpatialImage(object):
         The default behavior for ``get_data()`` on a proxy image is to read the
         data from the proxy, and store in an internal cache.  Future calls to
         ``get_data`` will return the cached array.  This is the behavior
-        selected with `caching` == "fill"`.
+        selected with `caching` == "fill".
 
         Once the data has been cached and returned from an array proxy, if you
         modify the returned array, you will also modify the cached array
@@ -534,11 +534,12 @@ class SpatialImage(object):
         True
 
         The array is not yet cached by a call to "get_data", so:
+
         >>> img.in_memory
         False
 
-        After we call ``get_data`` using the default `caching='fill', the cache
-        contains a reference to the returned array ``data``:
+        After we call ``get_data`` using the default `caching` == 'fill', the
+        cache contains a reference to the returned array ``data``:
 
         >>> data = img.get_data()
         >>> img.in_memory
