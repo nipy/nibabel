@@ -14,7 +14,6 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
-from .filename_parser import splitext_addext
 from .spatialimages import Header, SpatialImage
 from .fileslice import canonical_slicers
 
@@ -284,7 +283,11 @@ class MincHeader(Header):
 class Minc1Header(MincHeader):
     @classmethod
     def is_header(klass, binaryblock):
-        return binaryblock != b'\211HDF'
+        if len(binaryblock) < klass.sizeof_hdr:
+            raise ValueError('Must pass a binary block >= %d bytes' %
+                             klass.sizeof_hdr)
+
+        return binaryblock[:klass.sizeof_hdr] == b'CDF\x01'
 
 
 class Minc1Image(SpatialImage):

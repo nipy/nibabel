@@ -137,7 +137,11 @@ class Minc2File(Minc1File):
 class Minc2Header(MincHeader):
     @classmethod
     def is_header(klass, binaryblock):
-        return binaryblock == b'\211HDF'
+        if len(binaryblock) < klass.sizeof_hdr:
+            raise ValueError('Must pass a binary block >= %d bytes' %
+                             klass.sizeof_hdr)
+
+        return binaryblock[:klass.sizeof_hdr] == b'\211HDF'
 
 
 class Minc2Image(Minc1Image):
@@ -166,10 +170,6 @@ class Minc2Image(Minc1Image):
         header = klass.header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
-
-    @classmethod
-    def _minctest(klass, binaryblock):
-        return binaryblock[:4] == b'\211HDF'
 
 
 load = Minc2Image.load

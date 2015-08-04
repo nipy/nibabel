@@ -912,7 +912,7 @@ class SpatialImage(object):
                 with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sizeof_hdr)
 
-            is_header = klass.header_class.is_header(sniff[:klass_sizeof_hdr])
+            is_header = klass.header_class.is_header(sniff)
         except Exception as e:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)
