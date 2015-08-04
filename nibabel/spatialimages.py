@@ -910,7 +910,7 @@ class SpatialImage(object):
                 sniff_size = np.max([1024, klass.header_class.sniff_size])
                 with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sniff_size)
-            return klass.header_class.is_header(sniff[:klass.header_class.sniff_size]), sniff
+            return klass.header_class.is_header(sniff), sniff
         except Exception as e:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)

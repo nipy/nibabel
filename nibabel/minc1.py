@@ -271,7 +271,7 @@ class MincHeader(Header):
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
 
-    # 
+    # Number of bytes needed to distinguish Minc1 and Minc2 headers
     sniff_size = 4
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
@@ -286,7 +286,7 @@ class MincHeader(Header):
 class Minc1Header(MincHeader):
     @classmethod
     def is_header(klass, binaryblock):
-        return binaryblock != b'\211HDF'
+        return binaryblock[:4] != b'\211HDF'
 
 
 class Minc1Image(SpatialImage):
