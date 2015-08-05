@@ -50,7 +50,7 @@ def bench_array_to_file():
     mtime = measure('array_to_file(arr, BytesIO(), np.int16)', repeat)
     print('%30s %6.2f' % ('Save float64 to int16, infs', mtime))
     # Int16 input, float output
-    arr = np.random.random_integers(low=-1000,high=-1000, size=img_shape)
+    arr = np.random.random_integers(low=-1000, high=1000, size=img_shape)
     arr = arr.astype(np.int16)
     mtime = measure('array_to_file(arr, BytesIO(), np.float32)', repeat)
     print('%30s %6.2f' % ('Save Int16 to float32', mtime))
