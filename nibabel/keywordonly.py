@@ -3,6 +3,7 @@
 
 from functools import wraps
 
+
 def kw_only_func(n):
     """ Return function decorator enforcing maximum of `n` positional arguments
     """

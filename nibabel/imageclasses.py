@@ -22,11 +22,11 @@ _, have_scipy, _ = optional_package('scipy')
 # mapping of names to classes and class functionality
 
 class_map = {
-    'analyze': {'class': AnalyzeImage, # Image class
-                'ext': '.img', # characteristic image extension
-                'has_affine': False, # class can store an affine
-                'makeable': True, # empty image can be easily made in memory
-                'rw': True}, # image can be written
+    'analyze': {'class': AnalyzeImage,  # Image class
+                'ext': '.img',  # characteristic image extension
+                'has_affine': False,  # class can store an affine
+                'makeable': True,  # empty image can be easily made in memory
+                'rw': True},  # image can be written
     'spm99analyze': {'class': Spm99AnalyzeImage,
                      'ext': '.img',
                      'has_affine': True,
@@ -52,21 +52,21 @@ class_map = {
              'has_affine': True,
              'makeable': True,
              'rw': False},
-    'mgh':{'class': MGHImage,
-           'ext': '.mgh',
-           'has_affine': True,
-           'makeable': True,
-           'rw':True},
-    'mgz':{'class': MGHImage,
-           'ext': '.mgz',
-           'has_affine': True,
-           'makeable': True,
-           'rw':True},
-    'par':{'class': PARRECImage,
-           'ext': '.par',
-           'has_affine': True,
-           'makeable': False,
-           'rw' : False}}
+    'mgh': {'class': MGHImage,
+            'ext': '.mgh',
+            'has_affine': True,
+            'makeable': True,
+            'rw': True},
+    'mgz': {'class': MGHImage,
+            'ext': '.mgz',
+            'has_affine': True,
+            'makeable': True,
+            'rw': True},
+    'par': {'class': PARRECImage,
+            'ext': '.par',
+            'has_affine': True,
+            'makeable': False,
+            'rw': False}}
 
 # mapping of extensions to default image class names
 ext_map = Recoder((

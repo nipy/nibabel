@@ -15,7 +15,7 @@ from .externals.six import BytesIO
 from .spatialimages import HeaderDataError, HeaderTypeError
 
 from .batteryrunners import Report
-from . import analyze # module import
+from . import analyze  # module import
 from .keywordonly import kw_only_meth
 
 ''' Support subtle variations of SPM version of Analyze '''
@@ -54,10 +54,10 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         return hdr_data
 
     def get_slope_inter(self):
-        ''' Get scalefactor and intercept 
+        ''' Get scalefactor and intercept
 
-        If scalefactor is 0.0 return None to indicate no scalefactor.  Intercept
-        is always None because SPM99 analyze cannot store intercepts.
+        If scalefactor is 0.0 return None to indicate no scalefactor.
+        Intercept is always None because SPM99 analyze cannot store intercepts.
         '''
         slope = self._structarr['scl_slope']
         # Return invalid slopes as None
@@ -167,9 +167,9 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         file.
 
         Nifti uses the space occupied by the SPM ``origin`` field for important
-        other information (the transform codes), so writing the origin will make
-        the header a confusing Nifti file.  If you work with both Analyze and
-        Nifti, you should probably avoid doing this.
+        other information (the transform codes), so writing the origin will
+        make the header a confusing Nifti file.  If you work with both Analyze
+        and Nifti, you should probably avoid doing this.
 
         Parameters
         ----------
@@ -236,7 +236,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     header_class = Spm99AnalyzeHeader
     files_types = (('image', '.img'),
                    ('header', '.hdr'),
-                   ('mat','.mat'))
+                   ('mat', '.mat'))
 
     @classmethod
     @kw_only_meth(1)
@@ -252,16 +252,17 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
         img : Spm99AnalyzeImage instance
         '''
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map, mmap=mmap)
+        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map,
+                                                            mmap=mmap)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:
@@ -273,14 +274,14 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             return ret
         import scipy.io as sio
         mats = sio.loadmat(BytesIO(contents))
-        if 'mat' in mats: # this overrides a 'M', and includes any flip
+        if 'mat' in mats:  # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
                 warnings.warn('More than one affine in "mat" matrix, '
                               'using first')
                 mat = mat[:, :, 0]
             ret._affine = mat
-        elif 'M' in mats: # the 'M' matrix does not include flips
+        elif 'M' in mats:  # the 'M' matrix does not include flips
             hdr = ret._header
             if hdr.default_x_flip:
                 ret._affine = np.dot(np.diag([-1, 1, 1, 1]), mats['M'])
@@ -290,7 +291,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             raise ValueError('mat file found but no "mat" or "M" in it')
         # Adjust for matlab 1,1,1 voxel origin
         to_111 = np.eye(4)
-        to_111[:3,3] = 1
+        to_111[:3, 3] = 1
         ret._affine = np.dot(ret._affine, to_111)
         return ret
 
@@ -319,7 +320,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             M = mat
         # Adjust for matlab 1,1,1 voxel origin
         from_111 = np.eye(4)
-        from_111[:3,3] = -1
+        from_111[:3, 3] = -1
         M = np.dot(M, from_111)
         mat = np.dot(mat, from_111)
         # use matlab 4 format to allow gzipped write without error

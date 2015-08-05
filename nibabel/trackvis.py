@@ -60,7 +60,7 @@ header_2_dtd = [
     ('scalar_name', 'S20', 10),
     ('n_properties', 'h'),
     ('property_name', 'S20', 10),
-    ('vox_to_ras', 'f4', (4,4)), # new field for version 2
+    ('vox_to_ras', 'f4', (4, 4)),  # new field for version 2
     ('reserved', 'S444'),
     ('voxel_order', 'S4'),
     ('pad2', 'S4'),
@@ -108,20 +108,20 @@ def read(fileobj, as_generator=False, points_space=None):
        Whether to return tracks as sequence (False, default) or as a generator
        (True).
     points_space : {None, 'voxel', 'rasmm'}, optional
-        The coordinates in which you want the points in the *output* streamlines
-        expressed.  If None, then return the points exactly as they are stored
-        in the trackvis file. The points will probably be in trackviz voxmm
-        space - see Notes for ``write`` function.  If 'voxel', we convert the
-        points to voxel space simply by dividing by the recorded voxel size.  If
-        'rasmm' we'll convert the points to RAS mm space (real space). For
-        'rasmm' we check if the affine is set and matches the voxel sizes and
-        voxel order.
+        The coordinates in which you want the points in the *output*
+        streamlines expressed.  If None, then return the points exactly as they
+        are stored in the trackvis file. The points will probably be in
+        trackviz voxmm space - see Notes for ``write`` function.  If 'voxel',
+        we convert the points to voxel space simply by dividing by the recorded
+        voxel size.  If 'rasmm' we'll convert the points to RAS mm space (real
+        space). For 'rasmm' we check if the affine is set and matches the voxel
+        sizes and voxel order.
 
     Returns
     -------
     streamlines : sequence or generator
-       Returns sequence if `as_generator` is False, generator if True.  Value is
-       sequence or generator of 3 element sequences with elements:
+       Returns sequence if `as_generator` is False, generator if True.  Value
+       is sequence or generator of 3 element sequences with elements:
 
        #. points : ndarray shape (N,3)
           where N is the number of points
@@ -139,8 +139,9 @@ def read(fileobj, as_generator=False, points_space=None):
     of the returned `hdr` or `streamlines`
 
     Points are in trackvis *voxel mm*.  Each track has N points, each with 3
-    coordinates, ``x, y, z``, where ``x`` is the floating point voxel coordinate
-    along the first image axis, multiplied by the voxel size for that axis.
+    coordinates, ``x, y, z``, where ``x`` is the floating point voxel
+    coordinate along the first image axis, multiplied by the voxel size for
+    that axis.
     '''
     fileobj = BinOpener(fileobj)
     hdr_str = fileobj.read(header_2_dtype.itemsize)
@@ -163,7 +164,7 @@ def read(fileobj, as_generator=False, points_space=None):
     version = hdr['version']
     if version not in (1, 2):
         raise HeaderError('Reader only supports versions 1 and 2')
-    if version == 1: # make a new header with the same data
+    if version == 1:  # make a new header with the same data
         hdr = np.ndarray(shape=(),
                          dtype=header_1_dtype,
                          buffer=hdr_str)
@@ -173,7 +174,7 @@ def read(fileobj, as_generator=False, points_space=None):
     _check_hdr_points_space(hdr, points_space)
     # prepare transforms for later use
     if points_space == 'voxel':
-        zooms = hdr['voxel_size'][None,:].astype('f4')
+        zooms = hdr['voxel_size'][None, :].astype('f4')
     elif points_space == 'rasmm':
         zooms = hdr['voxel_size']
         affine = hdr['vox_to_ras']
@@ -189,6 +190,7 @@ def read(fileobj, as_generator=False, points_space=None):
     stream_count = hdr['n_count']
     if stream_count < 0:
         raise HeaderError('Unexpected negative n_count')
+
     def track_gen():
         n_streams = 0
         # For case where there are no scalars or no properties
@@ -200,27 +202,22 @@ def read(fileobj, as_generator=False, points_space=None):
                 if stream_count:
                     raise HeaderError(
                         'Expecting %s points, found only %s' % (
-                                stream_count, n_streams))
+                            stream_count, n_streams))
                 break
             n_pts = struct.unpack(i_fmt, n_str)[0]
             pts_str = fileobj.read(n_pts * pt_size)
-            pts = np.ndarray(
-                shape = (n_pts, pt_cols),
-                dtype = f4dt,
-                buffer = pts_str)
+            pts = np.ndarray(shape=(n_pts, pt_cols), dtype=f4dt,
+                             buffer=pts_str)
             if n_p:
                 ps_str = fileobj.read(ps_size)
-                ps = np.ndarray(
-                    shape = (n_p,),
-                    dtype = f4dt,
-                    buffer = ps_str)
-            xyz = pts[:,:3]
+                ps = np.ndarray(shape=(n_p,), dtype=f4dt, buffer=ps_str)
+            xyz = pts[:, :3]
             if points_space == 'voxel':
                 xyz = xyz / zooms
             elif points_space == 'rasmm':
                 xyz = apply_affine(tv2mm, xyz)
             if n_s:
-                scalars = pts[:,3:]
+                scalars = pts[:, 3:]
             yield (xyz, scalars, ps)
             n_streams += 1
             # deliberately misses case where stream_count is 0
@@ -275,12 +272,12 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     points_space : {None, 'voxel', 'rasmm'}, optional
         The coordinates in which the points in the input streamlines are
         expressed.  If None, then assume the points are as you want them
-        (probably trackviz voxmm space - see Notes).  If 'voxel', the points are
-        in voxel space, and we will transform them to trackviz voxmm space.  If
-        'rasmm' the points are in RAS mm space (real space).  We transform them
-        to trackvis voxmm space.  If 'voxel' or 'rasmm' we insist that the voxel
-        sizes and ordering are set to non-default values.  If 'rasmm' we also
-        check if the affine is set and matches the voxel sizes
+        (probably trackviz voxmm space - see Notes).  If 'voxel', the points
+        are in voxel space, and we will transform them to trackviz voxmm space.
+        If 'rasmm' the points are in RAS mm space (real space).  We transform
+        them to trackvis voxmm space.  If 'voxel' or 'rasmm' we insist that the
+        voxel sizes and ordering are set to non-default values.  If 'rasmm' we
+        also check if the affine is set and matches the voxel sizes
 
     Returns
     -------
@@ -299,8 +296,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     >>> len(streams)
     2
 
-    If there are too many streamlines to fit in memory, you can pass an iterable
-    thing instead of a list
+    If there are too many streamlines to fit in memory, you can pass an
+    iterable thing instead of a list
 
     >>> file_obj = BytesIO()
     >>> def gen():
@@ -323,18 +320,18 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     z are defined with the "voxel_order" field.  For example, if the original
     image had RAS voxel ordering then "voxel_order" would be "RAS".  RAS here
     refers to the spatial direction of the voxel axes: "R" means that moving
-    along first voxel axis moves from left to right in space, "A" -> second axis
-    goes from posterior to anterior, "S" -> inferior to superior.  If
+    along first voxel axis moves from left to right in space, "A" -> second
+    axis goes from posterior to anterior, "S" -> inferior to superior.  If
     "voxel_order" is empty we assume "LPS".
 
-    This information comes from some helpful replies on the trackviz forum about
-    `interpreting point coordiantes
+    This information comes from some helpful replies on the trackviz forum
+    about `interpreting point coordiantes
     <http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates>`_
     '''
     stream_iter = iter(streamlines)
     try:
         streams0 = next(stream_iter)
-    except StopIteration: # empty sequence or iterable
+    except StopIteration:  # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
         with BinOpener(fileobj, 'wb') as fileobj:
@@ -349,7 +346,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     # value with meaning - keep reading until you run out of data.
     try:
         n_streams = len(streamlines)
-    except TypeError: # iterable; we don't know the number of streams
+    except TypeError:  # iterable; we don't know the number of streams
         n_streams = 0
     hdr['n_count'] = n_streams
     # Get number of scalars and properties
@@ -370,7 +367,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     _check_hdr_points_space(hdr, points_space)
     # prepare transforms for later use
     if points_space == 'voxel':
-        zooms = hdr['voxel_size'][None,:].astype('f4')
+        zooms = hdr['voxel_size'][None, :].astype('f4')
     elif points_space == 'rasmm':
         zooms = hdr['voxel_size']
         affine = hdr['vox_to_ras']
@@ -402,8 +399,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
                 raise DataError('Expecting 0 scalars per point')
         else:
             if scalars.shape != (n_pts, n_s):
-                raise DataError('Scalars should be shape (%s, %s)'
-                                 % (n_pts, n_s))
+                raise DataError('Scalars should be shape (%s, %s)' %
+                                (n_pts, n_s))
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
             pts = np.c_[pts, scalars]
@@ -428,13 +425,13 @@ def _check_hdr_points_space(hdr, points_space):
     hdr : ndarray
         trackvis header as structured ndarray
     points_space : {None, 'voxmm', 'voxel', 'rasmm'
-        nature of transform that we will (elsewhere) apply to streamlines paired
-        with `hdr`.  None or 'voxmm' means pass through with no futher checks.
-        'voxel' checks for all ``hdr['voxel_sizes'] being <= zero (error) or any
-        being zero (warning).  'rasmm' checks for presence of non-zeros affine
-        in ``hdr['vox_to_ras']``, and that the affine therein corresponds to
-        ``hdr['voxel_order']`` and ''hdr['voxe_sizes']`` - and raises an error
-        otherwise.
+        nature of transform that we will (elsewhere) apply to streamlines
+        paired with `hdr`.  None or 'voxmm' means pass through with no futher
+        checks.  'voxel' checks for all ``hdr['voxel_sizes'] being <= zero
+        (error) or any being zero (warning).  'rasmm' checks for presence of
+        non-zeros affine in ``hdr['vox_to_ras']``, and that the affine therein
+        corresponds to ``hdr['voxel_order']`` and ''hdr['voxe_sizes']`` - and
+        raises an error otherwise.
 
     Returns
     -------
@@ -463,18 +460,18 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError('Need "vox_to_ras" field to get '
                               'affine with which to convert points; '
                               'this is present for headers >= version 2')
-        if np.all(affine == 0) or affine[3,3] == 0:
+        if np.all(affine == 0) or affine[3, 3] == 0:
             raise HeaderError('Need non-zero affine to convert between '
                               'rasmm points and voxmm')
         zooms = hdr['voxel_size']
-        aff_zooms = np.sqrt(np.sum(affine[:3,:3]**2,axis=0))
+        aff_zooms = np.sqrt(np.sum(affine[:3, :3]**2, axis=0))
         if not np.allclose(aff_zooms, zooms):
             raise HeaderError('Affine zooms %s differ from voxel_size '
                               'field value %s' % (aff_zooms, zooms))
         aff_order = ''.join(aff2axcodes(affine))
         voxel_order = asstr(np.asscalar(hdr['voxel_order']))
         if voxel_order == '':
-            voxel_order = 'LPS' # trackvis default
+            voxel_order = 'LPS'  # trackvis default
         if not voxel_order == aff_order:
             raise HeaderError('Affine implies voxel_order %s but '
                               'header voxel_order is %s' %
@@ -482,7 +479,6 @@ def _check_hdr_points_space(hdr, points_space):
     else:
         raise ValueError('Painfully confusing "points_space" value of "%s"'
                          % points_space)
-
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -498,7 +494,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
         if mapping is None:
             version = 2
         else:
-            version =  mapping.get('version', 2)
+            version = mapping.get('version', 2)
         hdr = empty_header(endianness, version)
     if mapping is None:
         return hdr
@@ -599,8 +595,8 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
 
     Notes
     -----
-    Our initial idea was to try and work round the deficiencies of the version 1
-    format by using the DICOM orientation fields to store the affine.  This
+    Our initial idea was to try and work round the deficiencies of the version
+    1 format by using the DICOM orientation fields to store the affine.  This
     proved difficult in practice because trackvis (the application) doesn't
     allow negative voxel sizes (needed for recording axis flips) and sets the
     origin field to 0. In future, we'll raise an error rather than try and
@@ -614,24 +610,24 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
         atleast_v2 = False
     if trk_hdr['version'] == 2:
         aff = trk_hdr['vox_to_ras']
-        if aff[3,3] != 0:
+        if aff[3, 3] != 0:
             return aff
         if atleast_v2:
             raise HeaderError('Requiring version 2 affine and this affine is '
                               'not valid')
-    # Now we are in the dark world of the DICOM fields.  We might have made this
-    # one ourselves, in which case the origin might be set, and it might have
-    # negative voxel sizes
+    # Now we are in the dark world of the DICOM fields.  We might have made
+    # this one ourselves, in which case the origin might be set, and it might
+    # have negative voxel sizes
     aff = np.eye(4)
     # The IOP field has only two of the three columns we need
-    iop = trk_hdr['image_orientation_patient'].reshape(2,3).T
-    # R might be a rotation matrix (and so completed by the cross product of the
-    # first two columns), or it might be an orthogonal matrix with negative
+    iop = trk_hdr['image_orientation_patient'].reshape(2, 3).T
+    # R might be a rotation matrix (and so completed by the cross product of
+    # the first two columns), or it might be an orthogonal matrix with negative
     # determinant. We try pure rotation first
     R = np.c_[iop, np.cross(*iop.T)]
     vox = trk_hdr['voxel_size']
-    aff[:3,:3] = R * vox
-    aff[:3,3] = trk_hdr['origin']
+    aff[:3, :3] = R * vox
+    aff[:3, 3] = trk_hdr['origin']
     aff = np.dot(DPCS_TO_TAL, aff)
     # Next we check against the 'voxel_order' field if present and not empty.
     try:
@@ -644,8 +640,9 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     # been a negative determinant affine saved with positive voxel sizes
     exp_order = ''.join(aff2axcodes(aff))
     if voxel_order != exp_order:
-        # If first pass doesn't match, try flipping the (estimated) third column
-        aff[:,2] *= -1
+        # If first pass doesn't match, try flipping the (estimated) third
+        # column
+        aff[:, 2] *= -1
         exp_order = ''.join(aff2axcodes(aff))
         if voxel_order != exp_order:
             raise HeaderError('Estimate of header affine does not match '
@@ -685,8 +682,8 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
     Notes
     -----
     version 2 of the trackvis header has a dedicated field for the nifti RAS
-    affine. In theory trackvis 1 has enough information to store an affine, with
-    the fields 'origin', 'voxel_size' and 'image_orientation_patient'.
+    affine. In theory trackvis 1 has enough information to store an affine,
+    with the fields 'origin', 'voxel_size' and 'image_orientation_patient'.
     Unfortunately, to be able to store any affine, we'd need to be able to set
     negative voxel sizes, to encode axis flips. This is because
     'image_orientation_patient' is only two columns of the 3x3 rotation matrix,
@@ -709,7 +706,7 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
         set_order = False
     try:
         version = trk_hdr['version']
-    except (KeyError, ValueError): # dict or structured array
+    except (KeyError, ValueError):  # dict or structured array
         version = 2
     if version == 2:
         trk_hdr['vox_to_ras'] = affine
@@ -723,13 +720,13 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
     RZS = affine[:3, :3]
     zooms = np.sqrt(np.sum(RZS * RZS, axis=0))
     RS = RZS / zooms
-    # If you said we could, adjust zooms to make RS correspond (below) to a true
-    # rotation matrix.  We need to set the sign of one of the zooms to deal with
-    # this.  Trackvis (the application) doesn't like negative zooms at all, so
-    # you might want to disallow this with the pos_vox option.
+    # If you said we could, adjust zooms to make RS correspond (below) to a
+    # true rotation matrix.  We need to set the sign of one of the zooms to
+    # deal with this.  Trackvis (the application) doesn't like negative zooms
+    # at all, so you might want to disallow this with the pos_vox option.
     if not pos_vox and npl.det(RS) < 0:
         zooms[0] *= -1
-        RS[:,0] *= -1
+        RS[:, 0] *= -1
     # retrieve rotation matrix from RS with polar decomposition.
     # Discard shears because we cannot store them.
     P, S, Qs = npl.svd(RS)
@@ -739,7 +736,7 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
     # set into header
     trk_hdr['origin'] = trans
     trk_hdr['voxel_size'] = zooms
-    trk_hdr['image_orientation_patient'] = R[:,0:2].T.ravel()
+    trk_hdr['image_orientation_patient'] = R[:, 0:2].T.ravel()
 
 
 class TrackvisFileError(Exception):
@@ -765,11 +762,12 @@ class TrackvisFile(object):
        filename
     points_space : {None, 'voxel', 'rasmm'}, optional
         Space in which streamline points are expressed in memory.  Default
-        (None) means streamlines contain points in trackvis *voxmm* space (voxel
-        positions * voxel sizes).  'voxel' means points are in voxel space (and
-        need to be multiplied by voxel size for saving in file).  'rasmm' mean
-        the points are expressed in mm space according to the affine.  See
-        ``read`` and ``write`` function docstrings for more detail.
+        (None) means streamlines contain points in trackvis *voxmm* space
+        (voxel positions * voxel sizes).  'voxel' means points are in voxel
+        space (and need to be multiplied by voxel size for saving in file).
+        'rasmm' mean the points are expressed in mm space according to the
+        affine.  See ``read`` and ``write`` function docstrings for more
+        detail.
     affine : None or (4,4) ndarray, optional
         Affine expressing relationship of voxels in an image to mm in RAS mm
         space. If 'points_space' is not None, you can use this to give the
@@ -781,8 +779,8 @@ class TrackvisFile(object):
                  endianness=None,
                  filename=None,
                  points_space=None,
-                 affine = None,
-                ):
+                 affine=None,
+                 ):
         try:
             n_streams = len(streamlines)
         except TypeError:
@@ -832,8 +830,8 @@ class TrackvisFile(object):
         nibabel we will raise an error for trackvis headers < version 2.
         """
         if atleast_v2 is None:
-            warnings.warn('Defaulting to `atleast_v2` of False.  Future versions '
-                          'will default to True',
+            warnings.warn('Defaulting to `atleast_v2` of False.  Future '
+                          'versions will default to True',
                           FutureWarning,
                           stacklevel=2)
             atleast_v2 = False
@@ -844,8 +842,8 @@ class TrackvisFile(object):
 
         Affine is mapping from voxel space to Nifti RAS) output coordinate
         system convention; x: Left -> Right, y: Posterior -> Anterior, z:
-        Inferior -> Superior.  Sets affine if possible, and voxel sizes, and voxel
-        axis ordering.
+        Inferior -> Superior.  Sets affine if possible, and voxel sizes, and
+        voxel axis ordering.
 
         Parameters
         ----------
@@ -853,14 +851,14 @@ class TrackvisFile(object):
             Affine voxel to mm transformation
         pos_vos : None or bool, optional
             If None, currently defaults to False - this will change in future
-            versions of nibabel.  If False, allow negative voxel sizes in header to
-            record axis flips.  Negative voxels cause problems for trackvis (the
-            application).  If True, enforce positive voxel sizes.
+            versions of nibabel.  If False, allow negative voxel sizes in
+            header to record axis flips.  Negative voxels cause problems for
+            trackvis (the application).  If True, enforce positive voxel sizes.
         set_order : None or bool, optional
             If None, currently defaults to False - this will change in future
             versions of nibabel.  If False, do not set ``voxel_order`` field in
-            `trk_hdr`.  If True, calculcate ``voxel_order`` from `affine` and set
-            into `trk_hdr`.
+            `trk_hdr`.  If True, calculcate ``voxel_order`` from `affine` and
+            set into `trk_hdr`.
 
         Returns
         -------

@@ -12,7 +12,8 @@
  wrapstruct
 ============
 
-The :class:`WrapStruct` class is a wrapper around a numpy structured array type.
+The :class:`WrapStruct` class is a wrapper around a numpy structured array
+type.
 
 It implements:
 
@@ -159,18 +160,15 @@ class WrapStruct(object):
         # check size
         if len(binaryblock) != self.template_dtype.itemsize:
             raise WrapStructError('Binary block is wrong size')
-        wstr = np.ndarray(shape=(),
-                         dtype=self.template_dtype,
-                         buffer=binaryblock)
+        wstr = np.ndarray(shape=(), dtype=self.template_dtype,
+                          buffer=binaryblock)
         if endianness is None:
             endianness = self.__class__.guessed_endian(wstr)
         else:
             endianness = endian_codes[endianness]
         if endianness != native_code:
             dt = self.template_dtype.newbyteorder(endianness)
-            wstr = np.ndarray(shape=(),
-                             dtype=dt,
-                             buffer=binaryblock)
+            wstr = np.ndarray(shape=(), dtype=dt, buffer=binaryblock)
         self._structarr = wstr.copy()
         if check:
             self.check_fix()
@@ -274,9 +272,7 @@ class WrapStruct(object):
         >>> wstr2['integer']
         array(3, dtype=int16)
         '''
-        return self.__class__(
-                self.binaryblock,
-                self.endianness, check=False)
+        return self.__class__(self.binaryblock, self.endianness, check=False)
 
     def __eq__(self, other):
         ''' equality between two structures defined by binaryblock
@@ -376,8 +372,8 @@ class WrapStruct(object):
         Parameters
         ----------
         wstr : mapping-like
-            Something implementing a mapping.  We will guess the endianness from
-            looking at the field values
+            Something implementing a mapping.  We will guess the endianness
+            from looking at the field values
 
         Returns
         -------
@@ -388,7 +384,7 @@ class WrapStruct(object):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        ''' Return structured array for default structure, with given endianness
+        ''' Return structured array for default structure with given endianness
         '''
         dt = klass.template_dtype
         if endianness is not None:
@@ -489,7 +485,7 @@ class WrapStruct(object):
 class LabeledWrapStruct(WrapStruct):
     """ A WrapStruct with some fields having value labels for printing etc
     """
-    _field_recoders = {} # for recoding values for str
+    _field_recoders = {}  # for recoding values for str
 
     def get_value_label(self, fieldname):
         ''' Returns label for coded field
@@ -536,14 +532,12 @@ class LabeledWrapStruct(WrapStruct):
 
     def __str__(self):
         ''' Return string representation for printing '''
-        summary = "%s object, endian='%s'" % (self.__class__,
-                                              self.endianness)
+        summary = "%s object, endian='%s'" % (self.__class__, self.endianness)
+
         def _getter(obj, key):
             try:
                 return obj.get_value_label(key)
             except ValueError:
                 return obj[key]
 
-        return '\n'.join(
-            [summary,
-             pretty_mapping(self, _getter)])
+        return '\n'.join([summary, pretty_mapping(self, _getter)])

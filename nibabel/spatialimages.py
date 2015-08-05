@@ -329,8 +329,8 @@ class SpatialImage(object):
         ''' Initialize image
 
         The image is a combination of (array, affine matrix, header), with
-        optional metadata in `extra`, and filename / file-like objects contained
-        in the `file_map` mapping.
+        optional metadata in `extra`, and filename / file-like objects
+        contained in the `file_map` mapping.
 
         Parameters
         ----------
@@ -359,7 +359,7 @@ class SpatialImage(object):
             # Copy affine to isolate from environment.  Specify float type to
             # avoid surprising integer rounding when setting values into affine
             affine = np.array(affine, dtype=np.float64, copy=True)
-            if not affine.shape == (4,4):
+            if not affine.shape == (4, 4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
         if extra is None:
@@ -419,8 +419,8 @@ class SpatialImage(object):
         # maybe it happened
         if hdr.get_data_shape() != shape:
             hdr.set_data_shape(shape)
-        # If the affine is not None, and it is different from the main affine in
-        # the header, update the heaader
+        # If the affine is not None, and it is different from the main affine
+        # in the header, update the heaader
         if self._affine is None:
             return
         if np.allclose(self._affine, hdr.get_best_affine()):
@@ -440,13 +440,12 @@ class SpatialImage(object):
     def __str__(self):
         shape = self.shape
         affine = self.affine
-        return '\n'.join((
-                str(self.__class__),
-                'data shape %s' % (shape,),
-                'affine: ',
-                '%s' % affine,
-                'metadata:',
-                '%s' % self._header))
+        return '\n'.join((str(self.__class__),
+                          'data shape %s' % (shape,),
+                          'affine: ',
+                          '%s' % affine,
+                          'metadata:',
+                          '%s' % self._header))
 
     def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scalng applied
@@ -744,9 +743,9 @@ class SpatialImage(object):
             image type.
         """
         try:
-            filenames = types_filenames(filespec,
-                                        klass.files_types,
-                                        trailing_suffixes=klass._compressed_exts)
+            filenames = types_filenames(
+                filespec, klass.files_types,
+                trailing_suffixes=klass._compressed_exts)
         except TypesFilenamesError:
             raise ImageFileError(
                 'Filespec "{0}" does not look right for class {1}'.format(

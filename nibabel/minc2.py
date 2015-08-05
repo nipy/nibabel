@@ -73,7 +73,7 @@ class Minc2File(Minc1File):
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         try:
             dimorder = var.attrs['dimorder'].decode()
-        except KeyError: # No specified dimensions
+        except KeyError:  # No specified dimensions
             return []
         return dimorder.split(',')
 
@@ -124,7 +124,7 @@ class Minc2File(Minc1File):
         """
         if sliceobj == ():
             raw_data = np.asanyarray(self._image)
-        else: # Try slicing into the HDF array (maybe it's possible)
+        else:  # Try slicing into the HDF array (maybe it's possible)
             try:
                 raw_data = self._image[sliceobj]
             except (ValueError, TypeError):

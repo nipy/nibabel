@@ -33,22 +33,22 @@ def io_orientation(affine, tol=None):
     ----------
     affine : (q+1, p+1) ndarray-like
        Transformation affine from ``p`` inputs to ``q`` outputs.  Usually this
-       will be a shape (4,4) matrix, transforming 3 inputs to 3 outputs, but the
-       code also handles the more general case
+       will be a shape (4,4) matrix, transforming 3 inputs to 3 outputs, but
+       the code also handles the more general case
     tol : {None, float}, optional
        threshold below which SVD values of the affine are considered zero. If
        `tol` is None, and ``S`` is an array with singular values for `affine`,
-       and ``eps`` is the epsilon value for datatype of ``S``, then `tol` set to
-       ``S.max() * max((q, p)) * eps``
+       and ``eps`` is the epsilon value for datatype of ``S``, then `tol` set
+       to ``S.max() * max((q, p)) * eps``
 
     Returns
     -------
     orientations : (p, 2) ndarray
        one row per input axis, where the first value in each row is the closest
-       corresponding output axis. The second value in each row is 1 if the input
-       axis is in the same direction as the corresponding output axis and -1 if
-       it is in the opposite direction.  If a row is [np.nan, np.nan], which can
-       happen when p > q, then this row should be considered dropped.
+       corresponding output axis. The second value in each row is 1 if the
+       input axis is in the same direction as the corresponding output axis and
+       -1 if it is in the opposite direction.  If a row is [np.nan, np.nan],
+       which can happen when p > q, then this row should be considered dropped.
     '''
     affine = np.asarray(affine)
     q, p = affine.shape[0]-1, affine.shape[1]-1
@@ -112,7 +112,7 @@ def ornt_transform(start_ornt, end_ornt):
     if start_ornt.shape != end_ornt.shape:
         raise ValueError("The orientations must have the same shape")
     if start_ornt.shape[1] != 2:
-        raise ValueError("Invalid shape for an orientation: %s" % 
+        raise ValueError("Invalid shape for an orientation: %s" %
                          (start_ornt.shape,))
     result = np.empty_like(start_ornt)
     for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
@@ -125,7 +125,7 @@ def ornt_transform(start_ornt, end_ornt):
                 result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
-            raise ValueError("Unable to find out axis %d in start_ornt" % 
+            raise ValueError("Unable to find out axis %d in start_ornt" %
                              end_out_idx)
     return result
 
@@ -278,12 +278,13 @@ def ornt2axcodes(ornt, labels=None):
     ornt : (N,2) array-like
         orientation array - see io_orientation docstring
     labels : optional, None or sequence of (2,) sequences
-        (2,) sequences are labels for (beginning, end) of output axis.  That is,
-        if the first row in `ornt` is ``[1, 1]``, and the second (2,) sequence
-        in `labels` is ('back', 'front') then the first returned axis code will
-        be ``'front'``.  If the first row in `ornt` had been ``[1, -1]`` then
-        the first returned value would have been ``'back'``.  If None,
-        equivalent to ``(('L','R'),('P','A'),('I','S'))`` - that is - RAS axes.
+        (2,) sequences are labels for (beginning, end) of output axis.  That
+        is, if the first row in `ornt` is ``[1, 1]``, and the second (2,)
+        sequence in `labels` is ('back', 'front') then the first returned axis
+        code will be ``'front'``.  If the first row in `ornt` had been
+        ``[1, -1]`` then the first returned value would have been ``'back'``.
+        If None, equivalent to ``(('L','R'),('P','A'),('I','S'))`` - that is -
+        RAS axes.
 
     Returns
     -------
@@ -324,10 +325,10 @@ def axcodes2ornt(axcodes, labels=None):
     axcodes : (N,) tuple
         axis codes - see ornt2axcodes docstring
     labels : optional, None or sequence of (2,) sequences
-        (2,) sequences are labels for (beginning, end) of output axis.  That 
-        is, if the first element in `axcodes` is ``front``, and the second 
-        (2,) sequence in `labels` is ('back', 'front') then the first 
-        row of `ornt` will be ``[1, 1]``. If None, equivalent to 
+        (2,) sequences are labels for (beginning, end) of output axis.  That
+        is, if the first element in `axcodes` is ``front``, and the second
+        (2,) sequence in `labels` is ('back', 'front') then the first
+        row of `ornt` will be ``[1, 1]``. If None, equivalent to
         ``(('L','R'),('P','A'),('I','S'))`` - that is - RAS axes.
 
     Returns

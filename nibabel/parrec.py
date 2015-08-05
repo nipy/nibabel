@@ -248,6 +248,7 @@ class PARRECError(Exception):
 # Value after colon may be absent
 GEN_RE = re.compile(r".\s+(.*?)\s*:\s*(.*)")
 
+
 def _split_header(fobj):
     """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
@@ -498,7 +499,7 @@ def _data_from_rec(rec_fileobj, in_shape, dtype, slice_indices, out_shape,
     rec_data = rec_data.reshape(out_shape, order='F')
     if scalings is not None:
         # Don't do in-place b/c this goes int16 -> float64
-        rec_data = rec_data * scalings[0] 
+        rec_data = rec_data * scalings[0]
         rec_data += scalings[1]
     return rec_data
 
@@ -563,7 +564,7 @@ class PARRECArrayProxy(object):
         self._shape = header.get_data_shape()
         self._dtype = header.get_data_dtype()
         self._slice_indices = header.get_sorted_slice_indices()
-        self._mmap=mmap
+        self._mmap = mmap
         self._slice_scaling = header.get_data_scaling(scaling)
         self._rec_shape = header.get_rec_shape()
 
@@ -603,7 +604,8 @@ class PARRECArrayProxy(object):
         # Slices all sequential from zero, can use fileslice
         # This gives more efficient volume by volume loading, for example
         with BinOpener(self.file_like) as fileobj:
-            raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0, 'F')
+            raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0,
+                                 'F')
         # Broadcast scaling to shape of original data
         slopes, inters = self._slice_scaling
         fake_data = strided_scalar(self._shape)

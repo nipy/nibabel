@@ -14,7 +14,7 @@ import gzip
 import bz2
 
 # The largest memory chunk that gzip can use for reads
-GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024 # 100Mb
+GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
 
 
 def _gzip_open(fileish, *args, **kwargs):
@@ -28,7 +28,8 @@ def _gzip_open(fileish, *args, **kwargs):
 class Opener(object):
     """ Class to accept, maybe open, and context-manage file-likes / filenames
 
-    Provides context manager to close files that the constructor opened for you.
+    Provides context manager to close files that the constructor opened for
+    you.
 
     Parameters
     ----------
