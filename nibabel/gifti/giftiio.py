@@ -15,6 +15,7 @@ import codecs
 
 from .parse_gifti_fast import parse_gifti_file
 
+
 def read(filename):
     """ Load a Gifti image from a file
 
@@ -39,7 +40,7 @@ def write(image, filename):
     Parameters
     ----------
     image : GiftiImage
-        A GiftiImage instance to store 
+        A GiftiImage instance to store
     filename : string
         Filename to store the Gifti file to
 

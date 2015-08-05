@@ -43,9 +43,9 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dec = base64.b64decode(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        newarr = np.fromstring(dec, dtype = dt)
+        newarr = np.fromstring(dec, dtype=dt)
         if len(newarr.shape) != len(sh):
-            newarr = newarr.reshape(sh, order = ord)
+            newarr = newarr.reshape(sh, order=ord)
     elif enclabel == 'B64GZ':
         # GIFTI_ENCODING_B64GZ
         # convert to bytes array for python 3.2
@@ -54,9 +54,9 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        newarr = np.fromstring(zdec, dtype = dt)
+        newarr = np.fromstring(zdec, dtype=dt)
         if len(newarr.shape) != len(sh):
-            newarr = newarr.reshape(sh, order = ord)
+            newarr = newarr.reshape(sh, order=ord)
     elif enclabel == 'External':
         # GIFTI_ENCODING_EXTBIN
         raise NotImplementedError("In what format are the external files?")
@@ -126,12 +126,12 @@ class Outputter(object):
             self.nvpair = GiftiNVPairs()
             self.fsm_state.append('MD')
         elif name == 'Name':
-            if self.nvpair == None:
+            if self.nvpair is None:
                 raise ExpatError
             else:
                 self.write_to = 'Name'
         elif name == 'Value':
-            if self.nvpair == None:
+            if self.nvpair is None:
                 raise ExpatError
             else:
                 self.write_to = 'Value'
@@ -160,7 +160,8 @@ class Outputter(object):
             if "DataType" in attrs:
                 self.da.datatype = data_type_codes.code[attrs["DataType"]]
             if "ArrayIndexingOrder" in attrs:
-                self.da.ind_ord = array_index_order_codes.code[attrs["ArrayIndexingOrder"]]
+                self.da.ind_ord = array_index_order_codes.code[
+                    attrs["ArrayIndexingOrder"]]
             if "Dimensionality" in attrs:
                 self.da.num_dim = int(attrs["Dimensionality"])
             for i in range(self.da.num_dim):
@@ -184,17 +185,17 @@ class Outputter(object):
             self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
         elif name == 'DataSpace':
-            if self.coordsys == None:
+            if self.coordsys is None:
                 raise ExpatError
             else:
                 self.write_to = 'DataSpace'
         elif name == 'TransformedSpace':
-            if self.coordsys == None:
+            if self.coordsys is None:
                 raise ExpatError
             else:
                 self.write_to = 'TransformedSpace'
         elif name == 'MatrixData':
-            if self.coordsys == None:
+            if self.coordsys is None:
                 raise ExpatError
             else:
                 self.write_to = 'MatrixData'
@@ -221,9 +222,9 @@ class Outputter(object):
                 self.meta_da = None
         elif name == 'MD':
             self.fsm_state.pop()
-            if not self.meta_global is None and self.meta_da == None:
+            if self.meta_global is not None and self.meta_da is None:
                 self.meta_global.data.append(self.nvpair)
-            elif not self.meta_da is None and self.meta_global == None:
+            elif self.meta_da is not None and self.meta_global is None:
                 self.meta_da.data.append(self.nvpair)
             # remove reference
             self.nvpair = None
@@ -260,10 +261,10 @@ class Outputter(object):
         """ Collect character data chunks pending collation
 
         The parser breaks the data up into chunks of size depending on the
-        buffer_size of the parser.  A large bit of character data, with standard
-        parser buffer_size (such as 8K) can easily span many calls to this
-        function.  We thus collect the chunks and process them when we hit start
-        or end tags.
+        buffer_size of the parser.  A large bit of character data, with
+        standard parser buffer_size (such as 8K) can easily span many calls to
+        this function.  We thus collect the chunks and process them when we
+        hit start or end tags.
         """
         if self._char_blocks is None:
             self._char_blocks = []
@@ -300,8 +301,8 @@ class Outputter(object):
             c.close()
         elif self.write_to == 'Data':
             da_tmp = self.img.darrays[-1]
-            da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian, \
-                                          da_tmp.ind_ord, da_tmp.datatype, \
+            da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian,
+                                          da_tmp.ind_ord, da_tmp.datatype,
                                           da_tmp.dims, data)
             # update the endianness according to the
             # current machine setting
@@ -315,7 +316,7 @@ class Outputter(object):
         return not self._char_blocks is None
 
 
-def parse_gifti_file(fname, buffer_size = None):
+def parse_gifti_file(fname, buffer_size=None):
     """ Parse gifti file named `fname`, return image
 
     Parameters
@@ -332,10 +333,10 @@ def parse_gifti_file(fname, buffer_size = None):
     img : gifti image
     """
     if buffer_size is None:
-        buffer_sz_val =  35000000
+        buffer_sz_val = 35000000
     else:
         buffer_sz_val = buffer_size
-    with open(fname,'rb') as datasource:
+    with open(fname, 'rb') as datasource:
         parser = ParserCreate()
         parser.buffer_text = True
         try:

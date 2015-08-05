@@ -67,14 +67,14 @@ class Unpacker(object):
         # try and get a struct corresponding to the format string from
         # the cache
         pkst = self._cache.get(fmt)
-        if pkst is None: # struct not in cache
+        if pkst is None:  # struct not in cache
             # if we've not got a default endian, or the format has an
             # explicit endianness, then we make a new struct directly
             # from the format string
             if self.endian is None or fmt[0] in _ENDIAN_CODES:
                 pkst = Struct(fmt)
-            else: # we're going to modify the endianness with our
-                # default. 
+            else:  # we're going to modify the endianness with our
+                # default.
                 endian_fmt = self.endian + fmt
                 pkst = Struct(endian_fmt)
                 # add an entry in the cache for the modified format

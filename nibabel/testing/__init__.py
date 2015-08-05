@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
 from os.path import dirname, abspath, join as pjoin
-from warnings import catch_warnings
 
 import numpy as np
 from warnings import catch_warnings, simplefilter
