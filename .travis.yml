@@ -4,6 +4,19 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 language: python
+
+# Run jobs on container-based infrastructure, can be overridden per job
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev
+
 env:
     global:
         - DEPENDS="numpy scipy matplotlib h5py"
@@ -45,9 +58,6 @@ before_install:
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
-      fi
-    - if [[ $DEPENDS == *h5py* ]]; then
-      sudo apt-get install libhdf5-serial-dev;
       fi
 # command to install dependencies
 install:
