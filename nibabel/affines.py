@@ -124,7 +124,7 @@ def to_matvec(transform):
 def from_matvec(matrix, vector=None):
     """ Combine a matrix and vector into an homogeneous affine
 
-    Combine a rotation / scaling / shearing matrix and translation vector intO
+    Combine a rotation / scaling / shearing matrix and translation vector into
     a transform in homogeneous coordinates.
 
     Parameters
