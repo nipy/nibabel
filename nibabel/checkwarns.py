@@ -27,6 +27,7 @@ class ErrorWarnings(warnings.catch_warnings):
     I consider myself warned
     """
     filter = 'error'
+
     def __init__(self, record=True, module=None):
         super(ErrorWarnings, self).__init__(record=record, module=module)
 

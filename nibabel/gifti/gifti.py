@@ -17,14 +17,15 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 
 # {en,de}codestring in deprecated in Python3, but
-# {en,de}codebytes not available in Python2. 
+# {en,de}codebytes not available in Python2.
 # Therefore set the proper functions depending on the Python version.
 import base64
+
 
 class GiftiMetaData(object):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
-    def __init__(self, nvpair = None):
+    def __init__(self, nvpair=None):
         self.data = []
         if not nvpair is None:
             self.data.append(nvpair)
@@ -32,7 +33,7 @@ class GiftiMetaData(object):
     @classmethod
     def from_dict(klass, data_dict):
         meda = klass()
-        for k,v in data_dict.items():
+        for k, v in data_dict.items():
             nv = GiftiNVPairs(k, v)
             meda.data.append(nv)
         return meda
@@ -54,7 +55,7 @@ class GiftiMetaData(object):
 \t<Value><![CDATA[%s]]></Value>
 </MD>\n""" % (ele.name, ele.value)
             res = res + nvpair
-        res = res + "</MetaData>\n" 
+        res = res + "</MetaData>\n"
         return res
 
     def print_summary(self):
@@ -66,9 +67,10 @@ class GiftiNVPairs(object):
     name = str
     value = str
 
-    def __init__(self, name = '', value = ''):
+    def __init__(self, name='', value=''):
         self.name = name
         self.value = value
+
 
 class GiftiLabelTable(object):
 
@@ -98,7 +100,7 @@ class GiftiLabelTable(object):
             lab = """\t<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
                 (str(ele.key), col, ele.label)
             res = res + lab
-        res = res + "</LabelTable>\n" 
+        res = res + "</LabelTable>\n"
         return res
 
     def print_summary(self):
@@ -117,8 +119,8 @@ class GiftiLabel(object):
     blue = float
     alpha = float
 
-    def __init__(self, key = 0, label = '', red = None,\
-                  green = None, blue = None, alpha = None):
+    def __init__(self, key=0, label='', red=None, green=None, blue=None,
+                 alpha=None):
         self.key = key
         self.label = label
         self.red = red
@@ -143,9 +145,9 @@ def _arr2txt(arr, elem_fmt):
 class GiftiCoordSystem(object):
     dataspace = int
     xformspace = int
-    xform = np.ndarray # 4x4 numpy array
+    xform = np.ndarray  # 4x4 numpy array
 
-    def __init__(self, dataspace = 0, xformspace = 0, xform = None):
+    def __init__(self, dataspace=0, xformspace=0, xform=None):
         self.dataspace = dataspace
         self.xformspace = xformspace
         if xform is None:
@@ -165,7 +167,7 @@ class GiftiCoordSystem(object):
         res = res + "<MatrixData>\n"
         res += _arr2txt(self.xform, '%10.6f')
         res = res + "</MatrixData>\n"
-        res = res + "</CoordinateSystemTransformMatrix>\n" 
+        res = res + "</CoordinateSystemTransformMatrix>\n"
         return res
 
     def print_summary(self):
@@ -190,7 +192,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
         raise NotImplementedError("In what format are the external files?")
     else:
         da = ''
-    return "<Data>" + da +"</Data>\n"
+    return "<Data>" + da + "</Data>\n"
 
 
 class GiftiDataArray(object):
@@ -221,12 +223,12 @@ class GiftiDataArray(object):
     def from_array(klass,
                    darray,
                    intent,
-                   datatype = None,
-                   encoding = "GIFTI_ENCODING_B64GZ",
-                   endian = sys.byteorder,
-                   coordsys = None,
-                   ordering = "C",
-                   meta = None):
+                   datatype=None,
+                   encoding="GIFTI_ENCODING_B64GZ",
+                   endian=sys.byteorder,
+                   coordsys=None,
+                   ordering="C",
+                   meta=None):
         """ Creates a new Gifti data array
 
         Parameters
@@ -261,7 +263,7 @@ class GiftiDataArray(object):
         cda = klass(darray)
         cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
-        if datatype == None:
+        if datatype is None:
             cda.datatype = data_type_codes.code[darray.dtype]
         else:
             cda.datatype = data_type_codes.code[datatype]
@@ -306,13 +308,13 @@ class GiftiDataArray(object):
         di = ""
         for i, n in enumerate(self.dims):
             di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
-        return out % (intent_codes.niistring[self.intent], \
-                      data_type_codes.niistring[self.datatype], \
-                      array_index_order_codes.label[self.ind_ord], \
-                      str(self.num_dim), \
-                      str(di), \
-                      gifti_encoding_codes.specs[self.encoding], \
-                      gifti_endian_codes.specs[self.endian], \
+        return out % (intent_codes.niistring[self.intent],
+                      data_type_codes.niistring[self.datatype],
+                      array_index_order_codes.label[self.ind_ord],
+                      str(self.num_dim),
+                      str(di),
+                      gifti_encoding_codes.specs[self.encoding],
+                      gifti_endian_codes.specs[self.endian],
                       self.ext_fname,
                       self.ext_offset,
                       )
@@ -331,7 +333,7 @@ class GiftiDataArray(object):
         print('Endian: ', gifti_endian_codes.specs[self.endian])
         print('ExternalFileName: ', self.ext_fname)
         print('ExternalFileOffset: ', self.ext_offset)
-        if not self.coordsys == None:
+        if not self.coordsys is None:
             print('----')
             print('Coordinate System:')
             print(self.coordsys.print_summary())
@@ -347,8 +349,8 @@ class GiftiImage(object):
     version = str
     filename = str
 
-    def __init__(self, meta = None, labeltable = None, darrays = None,
-                 version = "1.0"):
+    def __init__(self, meta=None, labeltable=None, darrays=None,
+                 version="1.0"):
         if darrays is None:
             darrays = []
         self.darrays = darrays
@@ -370,7 +372,6 @@ class GiftiImage(object):
 #    """ Returns a GiftiImage from a Numpy array with a given intent code and
 #    encoding """
 
-
 #    @classmethod
 #    def from_vertices_and_triangles(cls):
 #        pass
@@ -379,7 +380,6 @@ class GiftiImage(object):
 #                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
 #    """ Returns a GiftiImage from two numpy arrays representing the vertices
 #    and the triangles. Additionally defining the coordinate system and encoding """
-
 
     def get_labeltable(self):
         return self.labeltable
@@ -452,17 +452,16 @@ class GiftiImage(object):
 
         return [x for x in self.darrays if x.intent == it]
 
-
     def print_summary(self):
         print('----start----')
         print('Source filename: ', self.filename)
         print('Number of data arrays: ', self.numDA)
         print('Version: ', self.version)
-        if not self.meta == None:
+        if self.meta is not None:
             print('----')
             print('Metadata:')
             print(self.meta.print_summary())
-        if not self.labeltable == None:
+        if self.labeltable is not None:
             print('----')
             print('Labeltable:')
             print(self.labeltable.print_summary())
@@ -476,7 +475,8 @@ class GiftiImage(object):
         """ Return XML corresponding to image content """
         res = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-<GIFTI Version="%s"  NumberOfDataArrays="%s">\n""" % (self.version, str(self.numDA))
+<GIFTI Version="%s"  NumberOfDataArrays="%s">\n""" % (self.version,
+                                                      str(self.numDA))
         if not self.meta is None:
             res += self.meta.to_xml()
         if not self.labeltable is None:
@@ -485,4 +485,3 @@ class GiftiImage(object):
             res += dar.to_xml()
         res += "</GIFTI>"
         return res
-

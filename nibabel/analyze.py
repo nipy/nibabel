@@ -46,13 +46,13 @@ diagonal affines), and cannot do integer scaling.
 The inability to store affines means that we have to guess what orientation the
 image has.  Most Analyze images are stored on disk in (fastest-changing to
 slowest-changing) R->L, P->A and I->S order.  That is, the first voxel is the
-rightmost, most posterior and most inferior voxel location in the image, and the
-next voxel is one voxel towards the left of the image.
+rightmost, most posterior and most inferior voxel location in the image, and
+the next voxel is one voxel towards the left of the image.
 
 Most people refer to this disk storage format as 'radiological', on the basis
 that, if you load up the data as an array ``img_arr`` where the first axis is
-the fastest changing, then take a slice in the I->S axis - ``img_arr[:,:,10]`` -
-then the right part of the brain will be on the left of your displayed slice.
+the fastest changing, then take a slice in the I->S axis - ``img_arr[:,:,10]``
+- then the right part of the brain will be on the left of your displayed slice.
 Radiologists like looking at images where the left of the brain is on the right
 side of the image.
 
@@ -60,9 +60,9 @@ Conversely, if the image has the voxels stored with the left voxels first -
 L->R, P->A, I->S, then this would be 'neurological' format.  Neurologists like
 looking at images where the left side of the brain is on the left of the image.
 
-When we are guessing at an affine for Analyze, this translates to the problem of
-whether the affine should consider proceeding within the data down an X line as
-being from left to right, or right to left.
+When we are guessing at an affine for Analyze, this translates to the problem
+of whether the affine should consider proceeding within the data down an X line
+as being from left to right, or right to left.
 
 By default we assume that the image is stored in R->L format.  We encode this
 choice in the ``default_x_flip`` flag that can be True or False.  True means
@@ -153,18 +153,18 @@ data_history_dtd = [
 header_dtype = np.dtype(header_key_dtd + image_dimension_dtd +
                         data_history_dtd)
 
-_dtdefs = ( # code, conversion function, equivalent dtype, aliases
+_dtdefs = (  # code, conversion function, equivalent dtype, aliases
     (0, 'none', np.void),
-    (1, 'binary', np.void), # 1 bit per voxel, needs thought
+    (1, 'binary', np.void),  # 1 bit per voxel, needs thought
     (2, 'uint8', np.uint8),
     (4, 'int16', np.int16),
     (8, 'int32', np.int32),
     (16, 'float32', np.float32),
-    (32, 'complex64', np.complex64), # numpy complex format?
+    (32, 'complex64', np.complex64),  # numpy complex format?
     (64, 'float64', np.float64),
-    (128, 'RGB', np.dtype([('R','u1'),
-                  ('G', 'u1'),
-                  ('B', 'u1')])),
+    (128, 'RGB', np.dtype([('R', 'u1'),
+                           ('G', 'u1'),
+                           ('B', 'u1')])),
     (255, 'all', np.void))
 
 # Make full code alias bank, including dtype column
@@ -343,7 +343,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         hdr_data['dim'] = 1
         hdr_data['dim'][0] = 0
         hdr_data['pixdim'] = 1
-        hdr_data['datatype'] = 16 # float32
+        hdr_data['datatype'] = 16  # float32
         hdr_data['bitpix'] = 32
         return hdr_data
 
@@ -858,7 +858,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         rep.problem_level = 10
         rep.problem_msg = 'bitpix does not match datatype'
         if fix:
-            hdr['bitpix'] = bitpix # inplace modification
+            hdr['bitpix'] = bitpix  # inplace modification
             rep.fix_msg = 'setting bitpix to match datatype'
         return hdr, rep
 
@@ -897,7 +897,7 @@ class AnalyzeImage(SpatialImage):
     """ Class for basic Analyze format image
     """
     header_class = AnalyzeHeader
-    files_types = (('image','.img'), ('header','.hdr'))
+    files_types = (('image', '.img'), ('header', '.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
     ImageArrayProxy = ArrayProxy
@@ -931,10 +931,10 @@ class AnalyzeImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
@@ -971,10 +971,10 @@ class AnalyzeImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
@@ -1030,7 +1030,8 @@ class AnalyzeImage(SpatialImage):
             arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
-        # analyze images but most often this is because it's a single nifti file
+        # analyze images but most often this is because it's a single nifti
+        # file
         hdr_img_same = hdr_fh.same_file_as(img_fh)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
         if hdr_img_same:

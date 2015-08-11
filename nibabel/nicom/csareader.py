@@ -8,14 +8,14 @@ from .utils import find_private_section
 
 # DICOM VR code to Python type
 _CONVERTERS = {
-    'FL': float, # float
-    'FD': float, # double
-    'DS': float, # decimal string
-    'SS': int, # signed short
-    'US': int, # unsigned short
-    'SL': int, # signed long
-    'UL': int, # unsigned long
-    'IS': int, # integer string
+    'FL': float,  # float
+    'FD': float,  # double
+    'DS': float,  # decimal string
+    'SS': int,    # signed short
+    'US': int,    # unsigned short
+    'SL': int,    # signed long
+    'UL': int,    # unsigned long
+    'IS': int,    # integer string
     }
 
 MAX_CSA_ITEMS = 199
@@ -57,7 +57,7 @@ def get_csa_header(dcm_data, csa_type='image'):
         element_offset = 0x20
     else:
         raise ValueError('Invalid CSA header type "%s"' % csa_type)
-    if not (0x29, 0x10) in dcm_data: # Cannot be Siemens CSA
+    if not (0x29, 0x10) in dcm_data:  # Cannot be Siemens CSA
         return None
     section_start = find_private_section(dcm_data, 0x29, 'SIEMENS CSA HEADER')
     if section_start is None:
@@ -87,11 +87,11 @@ def read(csa_str):
     csa_dict = {'tags': {}}
     hdr_id = csa_str[:4]
     up_str = Unpacker(csa_str, endian='<')
-    if hdr_id == b'SV10': # CSA2
+    if hdr_id == b'SV10':  # CSA2
         hdr_type = 2
-        up_str.ptr = 4 # omit the SV10
+        up_str.ptr = 4  # omit the SV10
         csa_dict['unused0'] = up_str.read(4)
-    else: # CSA1
+    else:  # CSA1
         hdr_type = 1
     csa_dict['type'] = hdr_type
     csa_dict['n_tags'], csa_dict['check'] = up_str.unpack('2I')
@@ -104,8 +104,8 @@ def read(csa_str):
         vr = nt_str(vr)
         name = nt_str(name)
         tag = {'n_items': n_items,
-               'vm': vm, # value multiplicity
-               'vr': vr, # value representation
+               'vm': vm,  # value multiplicity
+               'vr': vr,  # value representation
                'syngodt': syngodt,
                'last3': last3,
                'tag_no': tag_no}
@@ -123,7 +123,7 @@ def read(csa_str):
                 MAX_CSA_ITEMS, n_items))
         items = []
         for item_no in range(n_items):
-            x0,x1,x2,x3 = up_str.unpack('4i')
+            x0, x1, x2, x3 = up_str.unpack('4i')
             ptr = up_str.ptr
             if hdr_type == 1:  # CSA1 - odd length calculation
                 item_len = x0 - tag0_n_items
@@ -131,7 +131,7 @@ def read(csa_str):
                     if item_no < vm:
                         items.append('')
                     break
-            else: # CSA2
+            else:  # CSA2
                 item_len = x1
                 if (ptr + item_len) > csa_len:
                     raise CSAReadError('Item is too long, '
@@ -215,13 +215,13 @@ def get_slice_normal(csa_dict):
 
 
 def get_b_matrix(csa_dict):
-    vals =  get_vector(csa_dict, 'B_matrix', 6)
+    vals = get_vector(csa_dict, 'B_matrix', 6)
     if vals is None:
         return
     # the 6 vector is the upper triangle of the symmetric B matrix
     inds = np.array([0, 1, 2, 1, 3, 4, 2, 4, 5])
     B = np.array(vals)[inds]
-    return B.reshape(3,3)
+    return B.reshape(3, 3)
 
 
 def get_b_value(csa_dict):

@@ -20,7 +20,6 @@ from .nifti2 import Nifti2Image, Nifti2Pair
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .freesurfer import MGHImage
-from .fileholders import FileHolderError
 from .spatialimages import ImageFileError
 from .imageclasses import class_map, ext_map
 from .arrayproxy import is_proxy
@@ -77,8 +76,8 @@ def guessed_image_type(filename):
             binaryblock = fobj.read(348)
         ft = which_analyze_type(binaryblock)
         klass = Nifti2Image if ft == 'nifti2' else Nifti1Image
-    else: # might be nifti 1 or 2 pair or analyze of some sort
-        files_types = (('image','.img'), ('header','.hdr'))
+    else:  # might be nifti 1 or 2 pair or analyze of some sort
+        files_types = (('image', '.img'), ('header', '.hdr'))
         filenames = types_filenames(filename, files_types)
         with BinOpener(filenames['header']) as fobj:
             binaryblock = fobj.read(348)
@@ -221,8 +220,8 @@ def which_analyze_type(binaryblock):
     Parameters
     ----------
     binaryblock : bytes
-        The `binaryblock` is 348 bytes that might be NIfTI1, NIfTI2, Analyze, or
-        None of the the above.
+        The `binaryblock` is 348 bytes that might be NIfTI1, NIfTI2, Analyze,
+        or None of the the above.
 
     Returns
     -------

@@ -32,14 +32,18 @@ dicom, have_dicom, _ = optional_package('dicom')
 
 logger = logging.getLogger('nibabel.dft')
 
+
 class DFTError(Exception):
     "base class for DFT exceptions"
+
 
 class CachingError(DFTError):
     "error while caching"
 
+
 class VolumeError(DFTError):
     "unsupported volume parameter"
+
 
 class InstanceStackError(DFTError):
 
@@ -55,8 +59,8 @@ class InstanceStackError(DFTError):
         fmt = 'expecting instance number %d, got %d'
         return fmt % (self.i+1, self.si.instance_number)
 
-class _Study(object):
 
+class _Study(object):
     def __init__(self, d):
         self.uid = d['uid']
         self.date = d['date']
@@ -75,7 +79,7 @@ class _Study(object):
             val = []
             with _db_nochange() as c:
                 c.execute("SELECT * FROM series WHERE study = ?", (self.uid, ))
-                cols = [ el[0] for el in c.description ]
+                cols = [el[0] for el in c.description]
                 for row in c:
                     d = dict(zip(cols, row))
                     val.append(_Series(d))
@@ -87,8 +91,8 @@ class _Study(object):
             return self.uid
         return self.patient_name
 
-class _Series(object):
 
+class _Series(object):
     def __init__(self, d):
         self.uid = d['uid']
         self.study = d['study']
@@ -106,12 +110,12 @@ class _Series(object):
         if name == 'storage_instances' and val is None:
             val = []
             with _db_nochange() as c:
-                query = """SELECT * 
-                             FROM storage_instance 
-                            WHERE series = ? 
+                query = """SELECT *
+                             FROM storage_instance
+                            WHERE series = ?
                             ORDER BY instance_number"""
                 c.execute(query, (self.uid, ))
-                cols = [ el[0] for el in c.description ]
+                cols = [el[0] for el in c.description]
                 for row in c:
                     d = dict(zip(cols, row))
                     val.append(_StorageInstance(d))
@@ -134,7 +138,8 @@ class _Series(object):
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = PIL.Image.fromstring('L', (self.rows, self.columns), data.tostring())
+        im = PIL.Image.fromstring('L', (self.rows, self.columns),
+                                  data.tostring())
         s = BytesIO()
         im.save(s, 'PNG')
         return s.getvalue()
@@ -150,10 +155,8 @@ class _Series(object):
             raise VolumeError('unsupported bits allocated')
         if self.bits_stored != 12:
             raise VolumeError('unsupported bits stored')
-        data = numpy.ndarray((len(self.storage_instances), 
-                              self.rows, 
-                              self.columns), 
-                              dtype=numpy.int16)
+        data = numpy.ndarray((len(self.storage_instances), self.rows,
+                              self.columns), dtype=numpy.int16)
         for (i, si) in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
@@ -184,9 +187,9 @@ class _Series(object):
         cosk = pos_n - pos_1
         cosk = cosk / numpy.linalg.norm(cosk)
 
-        m = ((pdi * cosi[0], pdj * cosj[0], pdk * cosk[0], pos_1[0]), 
-             (pdi * cosi[1], pdj * cosj[1], pdk * cosk[1], pos_1[1]), 
-             (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]), 
+        m = ((pdi * cosi[0], pdj * cosj[0], pdk * cosk[0], pos_1[0]),
+             (pdi * cosi[1], pdj * cosj[1], pdk * cosk[1], pos_1[1]),
+             (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
              (            0,             0,             0,        1))
 
         m = numpy.array(m)
@@ -196,7 +199,8 @@ class _Series(object):
         hdr.set_qform(m, 1)
         hdr.set_xyzt_units(2, 8)
         hdr.set_data_dtype(numpy.int16)
-        hdr.set_data_shape((self.columns, self.rows, len(self.storage_instances)))
+        hdr.set_data_shape((self.columns, self.rows,
+                            len(self.storage_instances)))
 
         s = BytesIO()
         hdr.write_to(s)
@@ -206,8 +210,8 @@ class _Series(object):
     def nifti_size(self):
         return 352 + 2 * len(self.storage_instances) * self.columns * self.rows
 
-class _StorageInstance(object):
 
+class _StorageInstance(object):
     def __init__(self, d):
         self.uid = d['uid']
         self.instance_number = d['instance_number']
@@ -219,22 +223,21 @@ class _StorageInstance(object):
         val = object.__getattribute__(self, name)
         if name == 'files' and val is None:
             with _db_nochange() as c:
-                query = """SELECT directory, name 
-                             FROM file 
-                            WHERE storage_instance = ? 
+                query = """SELECT directory, name
+                             FROM file
+                            WHERE storage_instance = ?
                             ORDER BY directory, name"""
                 c.execute(query, (self.uid, ))
-                val = [ '%s/%s' % tuple(row) for row in c ]
+                val = ['%s/%s' % tuple(row) for row in c]
             self.files = val
         return val
 
     def dicom(self):
         return dicom.read_file(self.files[0])
 
+
 class _db_nochange:
-
     """context guard for read-only database access"""
-
     def __enter__(self):
         self.c = DB.cursor()
         return self.c
@@ -245,10 +248,9 @@ class _db_nochange:
         DB.rollback()
         return
 
+
 class _db_change:
-
     """context guard for database access requiring a commit"""
-
     def __enter__(self):
         self.c = DB.cursor()
         return self.c
@@ -260,6 +262,7 @@ class _db_change:
         else:
             DB.rollback()
         return
+
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
@@ -274,6 +277,7 @@ def _get_subdirs(base_dir, files_dict=None, followlinks=False):
             files_dict[abs_dir] = filenames
     return dirs
 
+
 def update_cache(base_dir, followlinks=False):
     mtimes = {}
     files_by_dir = {}
@@ -285,17 +289,18 @@ def update_cache(base_dir, followlinks=False):
         c.execute("SELECT path, mtime FROM directory")
         db_mtimes = dict(c)
         c.execute("SELECT uid FROM study")
-        studies = [ row[0] for row in c ]
+        studies = [row[0] for row in c]
         c.execute("SELECT uid FROM series")
-        series = [ row[0] for row in c ]
+        series = [row[0] for row in c]
         c.execute("SELECT uid FROM storage_instance")
-        storage_instances = [ row[0] for row in c ]
+        storage_instances = [row[0] for row in c]
     with _db_change() as c:
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
             logger.debug('updating %s' % dir)
-            _update_dir(c, dir, files_by_dir[dir], studies, series, storage_instances)
+            _update_dir(c, dir, files_by_dir[dir], studies, series,
+                        storage_instances)
             if dir in db_mtimes:
                 query = "UPDATE directory SET mtime = ? WHERE path = ?"
                 c.execute(query, (mtimes[dir], dir))
@@ -304,6 +309,7 @@ def update_cache(base_dir, followlinks=False):
                 c.execute(query, (dir, mtimes[dir]))
     return
 
+
 def get_studies(base_dir=None, followlinks=False):
     if base_dir is not None:
         update_cache(base_dir, followlinks)
@@ -311,17 +317,17 @@ def get_studies(base_dir=None, followlinks=False):
         with _db_nochange() as c:
             c.execute("SELECT * FROM study")
             studies = []
-            cols = [ el[0] for el in c.description ]
+            cols = [el[0] for el in c.description]
             for row in c:
                 d = dict(zip(cols, row))
                 studies.append(_Study(d))
         return studies
-    query = """SELECT study 
-                 FROM series 
-                WHERE uid IN (SELECT series 
-                                FROM storage_instance 
-                               WHERE uid IN (SELECT storage_instance 
-                                               FROM file 
+    query = """SELECT study
+                 FROM series
+                WHERE uid IN (SELECT series
+                                FROM storage_instance
+                               WHERE uid IN (SELECT storage_instance
+                                               FROM file
                                               WHERE directory = ?))"""
     with _db_nochange() as c:
         study_uids = {}
@@ -332,10 +338,11 @@ def get_studies(base_dir=None, followlinks=False):
         studies = []
         for uid in study_uids:
             c.execute("SELECT * FROM study WHERE uid = ?", (uid, ))
-            cols = [ el[0] for el in c.description ]
+            cols = [el[0] for el in c.description]
             d = dict(zip(cols, c.fetchone()))
             studies.append(_Study(d))
     return studies
+
 
 def _update_dir(c, dir, files, studies, series, storage_instances):
     logger.debug('Updating directory %s' % dir)
@@ -344,7 +351,7 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
     for fname in db_mtimes:
         if fname not in files:
             logger.debug('    remove %s' % fname)
-            c.execute("DELETE FROM file WHERE directory = ? AND name = ?", 
+            c.execute("DELETE FROM file WHERE directory = ? AND name = ?",
                       (dir, fname))
     for fname in files:
         mtime = os.lstat('%s/%s' % (dir, fname)).st_mtime
@@ -352,20 +359,22 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
             logger.debug('    okay %s' % fname)
         else:
             logger.debug('    update %s' % fname)
-            si_uid = _update_file(c, dir, fname, studies, series, storage_instances)
+            si_uid = _update_file(c, dir, fname, studies, series,
+                                  storage_instances)
             if fname not in db_mtimes:
-                query = """INSERT INTO file (directory, 
-                                             name, 
-                                             mtime, 
-                                             storage_instance) 
+                query = """INSERT INTO file (directory,
+                                             name,
+                                             mtime,
+                                             storage_instance)
                            VALUES (?, ?, ?, ?)"""
                 c.execute(query, (dir, fname, mtime, si_uid))
             else:
-                query = """UPDATE file 
-                              SET mtime = ?, storage_instance = ? 
+                query = """UPDATE file
+                              SET mtime = ?, storage_instance = ?
                             WHERE directory = ? AND name = ?"""
                 c.execute(query, (mtime, si_uid, dir, fname))
     return
+
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
@@ -380,55 +389,57 @@ def _update_file(c, path, fname, studies, series, storage_instances):
     try:
         logger.debug('        storage instance %s' % str(do.SOPInstanceUID))
         if str(do.StudyInstanceUID) not in studies:
-            query = """INSERT INTO study (uid, 
-                                          date, 
-                                          time, 
-                                          comments, 
-                                          patient_name, 
-                                          patient_id, 
-                                          patient_birth_date, 
+            query = """INSERT INTO study (uid,
+                                          date,
+                                          time,
+                                          comments,
+                                          patient_name,
+                                          patient_id,
+                                          patient_birth_date,
                                           patient_sex)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-            params = (str(do.StudyInstanceUID), 
-                      do.StudyDate, 
-                      do.StudyTime, 
-                      study_comments, 
+            params = (str(do.StudyInstanceUID),
+                      do.StudyDate,
+                      do.StudyTime,
+                      study_comments,
                       str(do.PatientName),
-                      do.PatientID, 
+                      do.PatientID,
                       do.PatientBirthDate,
                       do.PatientSex)
             c.execute(query, params)
             studies.append(str(do.StudyInstanceUID))
         if str(do.SeriesInstanceUID) not in series:
-            query = """INSERT INTO series (uid, 
-                                           study, 
-                                           number, 
-                                           description, 
-                                           rows, 
-                                           columns, 
-                                           bits_allocated, 
-                                           bits_stored) 
+            query = """INSERT INTO series (uid,
+                                           study,
+                                           number,
+                                           description,
+                                           rows,
+                                           columns,
+                                           bits_allocated,
+                                           bits_stored)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-            params = (str(do.SeriesInstanceUID), 
-                      str(do.StudyInstanceUID), 
-                      do.SeriesNumber, 
-                      do.SeriesDescription, 
-                      do.Rows, 
-                      do.Columns, 
-                      do.BitsAllocated, 
+            params = (str(do.SeriesInstanceUID),
+                      str(do.StudyInstanceUID),
+                      do.SeriesNumber,
+                      do.SeriesDescription,
+                      do.Rows,
+                      do.Columns,
+                      do.BitsAllocated,
                       do.BitsStored)
             c.execute(query, params)
             series.append(str(do.SeriesInstanceUID))
         if str(do.SOPInstanceUID) not in storage_instances:
-            query = """INSERT INTO storage_instance (uid, instance_number, series) 
+            query = """INSERT INTO storage_instance (uid, instance_number, series)
                        VALUES (?, ?, ?)"""
-            params = (str(do.SOPInstanceUID), do.InstanceNumber, str(do.SeriesInstanceUID))
+            params = (str(do.SOPInstanceUID), do.InstanceNumber,
+                      str(do.SeriesInstanceUID))
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError as data:
         logger.debug('        %s' % str(data))
         return None
     return str(do.SOPInstanceUID)
+
 
 def clear_cache():
     with _db_change() as c:

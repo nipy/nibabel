@@ -74,7 +74,6 @@ class InTemporaryDirectory(TemporaryDirectory):
         return super(InTemporaryDirectory, self).__exit__(exc, value, tb)
 
 
-
 class InGivenDirectory(object):
     """ Change directory to given directory for duration of ``with`` block
 

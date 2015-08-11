@@ -59,7 +59,7 @@ def B2q(B, tol=None):
         raise ValueError('B not positive semi-definite')
     inds = np.argsort(w)[::-1]
     max_ind = inds[0]
-    vector = v[:,max_ind]
+    vector = v[:, max_ind]
     # because the factor is a sqrt, the sign of the vector is arbitrary.
     # We arbitrarily set it to have a positive x value.
     if vector[0] < 0:
@@ -102,23 +102,23 @@ def nearest_pos_semi_def(B):
     if cardneg == 0:
         return B
     if cardneg == 3:
-        return np.zeros((3,3))
+        return np.zeros((3, 3))
     lam1a, lam2a, lam3a = vals
     scalers = np.zeros((3,))
     if cardneg == 2:
-        b112 = np.max([0,lam1a+(lam2a+lam3a)/3.])
+        b112 = np.max([0, lam1a+(lam2a+lam3a)/3.])
         scalers[0] = b112
     elif cardneg == 1:
-        lam1b=lam1a+0.25*lam3a
-        lam2b=lam2a+0.25*lam3a
+        lam1b = lam1a+0.25*lam3a
+        lam2b = lam2a+0.25*lam3a
         if lam1b >= 0 and lam2b >= 0:
             scalers[:2] = lam1b, lam2b
-        else: # one of the lam1b, lam2b is < 0
+        else:  # one of the lam1b, lam2b is < 0
             if lam2b < 0:
-                b111=np.max([0,lam1a+(lam2a+lam3a)/3.])
+                b111 = np.max([0, lam1a+(lam2a+lam3a)/3.])
                 scalers[0] = b111
             if lam1b < 0:
-                b221=np.max([0,lam2a+(lam1a+lam3a)/3.])
+                b221 = np.max([0, lam2a+(lam1a+lam3a)/3.])
                 scalers[1] = b221
     # resort the scalers to match the original vecs
     scalers = scalers[np.argsort(inds)]

@@ -1,6 +1,7 @@
 """ This file contains defines parameters for nibabel that we use to fill
 settings in setup.py, the nibabel top-level docstring, and for building the
-docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
+docs.  In setup.py in particular, we exec this file, so it cannot import
+nibabel
 """
 
 # nibabel version information.  An empty _version_extra corresponds to a
@@ -26,7 +27,7 @@ CLASSIFIERS = ["Development Status :: 4 - Beta",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
 
-description  = 'Access a multitude of neuroimaging data formats'
+description = 'Access a multitude of neuroimaging data formats'
 
 # Note: this long_description is the canonical place to edit this text.
 # It also appears in README.rst, but it should get there by running
@@ -103,8 +104,8 @@ nibabel distribution.
 """
 
 # versions for dependencies
-NUMPY_MIN_VERSION='1.5'
-PYDICOM_MIN_VERSION='0.9.7'
+NUMPY_MIN_VERSION = '1.5'
+PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
 NAME                = 'nibabel'

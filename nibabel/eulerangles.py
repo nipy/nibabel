@@ -170,24 +170,21 @@ def euler2mat(z=0, y=0, x=0):
     if z:
         cosz = math.cos(z)
         sinz = math.sin(z)
-        Ms.append(np.array(
-                [[cosz, -sinz, 0],
-                 [sinz, cosz, 0],
-                 [0, 0, 1]]))
+        Ms.append(np.array([[cosz, -sinz, 0],
+                            [sinz, cosz, 0],
+                            [0, 0, 1]]))
     if y:
         cosy = math.cos(y)
         siny = math.sin(y)
-        Ms.append(np.array(
-                [[cosy, 0, siny],
-                 [0, 1, 0],
-                 [-siny, 0, cosy]]))
+        Ms.append(np.array([[cosy, 0, siny],
+                            [0, 1, 0],
+                            [-siny, 0, cosy]]))
     if x:
         cosx = math.cos(x)
         sinx = math.sin(x)
-        Ms.append(np.array(
-                [[1, 0, 0],
-                 [0, cosx, -sinx],
-                 [0, sinx, cosx]]))
+        Ms.append(np.array([[1, 0, 0],
+                            [0, cosx, -sinx],
+                            [0, sinx, cosx]]))
     if Ms:
         return reduce(np.dot, Ms[::-1])
     return np.eye(3)
@@ -254,14 +251,14 @@ def mat2euler(M, cy_thresh=None):
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
     # cy: sqrt((cos(y)*cos(z))**2 + (cos(x)*cos(y))**2)
     cy = math.sqrt(r33*r33 + r23*r23)
-    if cy > cy_thresh: # cos(y) not close to zero, standard form
-        z = math.atan2(-r12,  r11) # atan2(cos(y)*sin(z), cos(y)*cos(z))
-        y = math.atan2(r13,  cy) # atan2(sin(y), cy)
-        x = math.atan2(-r23, r33) # atan2(cos(y)*sin(x), cos(x)*cos(y))
-    else: # cos(y) (close to) zero, so x -> 0.0 (see above)
+    if cy > cy_thresh:  # cos(y) not close to zero, standard form
+        z = math.atan2(-r12,  r11)  # atan2(cos(y)*sin(z), cos(y)*cos(z))
+        y = math.atan2(r13,  cy)  # atan2(sin(y), cy)
+        x = math.atan2(-r23, r33)  # atan2(cos(y)*sin(x), cos(x)*cos(y))
+    else:  # cos(y) (close to) zero, so x -> 0.0 (see above)
         # so r21 -> sin(z), r22 -> cos(z) and
         z = math.atan2(r21,  r22)
-        y = math.atan2(r13,  cy) # atan2(sin(y), cy)
+        y = math.atan2(r13,  cy)  # atan2(sin(y), cy)
         x = 0.0
     return z, y, x
 
@@ -307,11 +304,10 @@ def euler2quat(z=0, y=0, x=0):
     sy = math.sin(y)
     cx = math.cos(x)
     sx = math.sin(x)
-    return np.array([
-             cx*cy*cz - sx*sy*sz,
-             cx*sy*sz + cy*cz*sx,
-             cx*cz*sy - sx*cy*sz,
-             cx*cy*sz + sx*cz*sy])
+    return np.array([cx*cy*cz - sx*sy*sz,
+                     cx*sy*sz + cy*cz*sx,
+                     cx*cz*sy - sx*cy*sz,
+                     cx*cy*sz + sx*cz*sy])
 
 
 def quat2euler(q):

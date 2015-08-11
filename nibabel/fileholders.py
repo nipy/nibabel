@@ -63,7 +63,7 @@ class FileHolder(object):
            ``self.pos``
         '''
         if self.fileobj is not None:
-            obj = BinOpener(self.fileobj) # for context manager
+            obj = BinOpener(self.fileobj)  # for context manager
             obj.seek(self.pos)
         elif self.filename is not None:
             obj = BinOpener(self.filename, *args, **kwargs)
@@ -109,4 +109,3 @@ def copy_file_map(file_map):
     for key, fh in file_map.items():
         fm_copy[key] = copy(fh)
     return fm_copy
-    

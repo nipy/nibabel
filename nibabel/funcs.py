@@ -209,8 +209,8 @@ def as_closest_canonical(img, enforce_diag=False):
     aff = img.affine
     ornt = io_orientation(aff)
     if np.all(ornt == [[0, 1],
-                       [1,1],
-                       [2,1]]): # canonical already
+                       [1, 1],
+                       [2, 1]]):  # canonical already
         # however, the affine may not be diagonal
         if enforce_diag and not _aff_is_diag(aff):
             raise OrientationError('Transformed affine is not diagonal')

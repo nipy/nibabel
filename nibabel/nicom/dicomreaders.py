@@ -87,12 +87,12 @@ def read_mosaic_dir(dicom_path,
         raise IOError('Found no files with "%s"' % full_globber)
     for fname in filenames:
         dcm_w = wrapper_from_file(fname, **dicom_kwargs)
-        # Because the routine sorts by filename, it only makes sense to use this
-        # order for mosaic images.  Slice by slice dicoms need more sensible
-        # sorting
+        # Because the routine sorts by filename, it only makes sense to use
+        # this order for mosaic images.  Slice by slice dicoms need more
+        # sensible sorting
         if not dcm_w.is_mosaic:
             raise DicomReadError('data does not appear to be in mosaic format')
-        arrays.append(dcm_w.get_data()[...,None])
+        arrays.append(dcm_w.get_data()[..., None])
         q = dcm_w.q_vector
         if q is None:  # probably not diffusion
             if check_is_dwi:
@@ -139,7 +139,7 @@ def slices_to_series(wrappers):
             if dw.is_same_series(vol_list[0]):
                 vol_list.append(dw)
                 break
-        else: # no match in current volume lists
+        else:  # no match in current volume lists
             volume_lists.append([dw])
     print('We appear to have %d Series' % len(volume_lists))
     # second pass
@@ -148,7 +148,7 @@ def slices_to_series(wrappers):
         if len(vol_list) > 1:
             vol_list.sort(_slice_sorter)
             zs = [s.slice_indicator for s in vol_list]
-            if len(set(zs)) < len(zs): # not unique zs
+            if len(set(zs)) < len(zs):  # not unique zs
                 # third pass
                 out_vol_lists += _third_pass(vol_list)
                 continue

@@ -9,9 +9,7 @@
 ''' Read / write access to SPM2 version of analyze image format '''
 import numpy as np
 
-from .spatialimages import HeaderDataError
-from .batteryrunners import Report
-from . import spm99analyze as spm99 # module import
+from . import spm99analyze as spm99  # module import
 
 image_dimension_dtd = spm99.image_dimension_dtd[:]
 image_dimension_dtd[
@@ -62,7 +60,8 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
 
         Examples
         --------
-        >>> fields = {'scl_slope':1,'scl_inter':0,'glmax':0,'glmin':0,'cal_max':0, 'cal_min':0}
+        >>> fields = {'scl_slope': 1, 'scl_inter': 0, 'glmax': 0, 'glmin': 0,
+        ...           'cal_max': 0, 'cal_min': 0}
         >>> hdr = Spm2AnalyzeHeader()
         >>> for key, value in fields.items():
         ...     hdr[key] = value

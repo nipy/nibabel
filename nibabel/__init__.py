@@ -73,9 +73,11 @@ try:
     bench = Tester().bench
     del Tester
 except ImportError:
-    def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')
+    def test(*args, **kwargs):
+        raise RuntimeError('Need numpy >= 1.2 for tests')
 
 from .pkg_info import get_pkg_info as _get_pkg_info
+
 
 def get_info():
     return _get_pkg_info(os.path.dirname(__file__))
