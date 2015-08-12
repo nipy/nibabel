@@ -164,8 +164,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                 ((2, inf), HDE, HDE, (2, inf)),
                 ((2, minf), HDE, HDE, (2, minf)),
                 # Good slope and inter - you guessed it
-                ((2, 0), None, (None, None), (2, 0)),
-                ((2, 1), None, (None, None), (2, 1))):
+                ((2, 0), None, (2, 0), (2, 0)),
+                ((2, 1), None, (2, 1), (2, 1))):
             hdr = self.header_class()
             if not exp_err is None:
                 assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
