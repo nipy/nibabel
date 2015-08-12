@@ -12,11 +12,13 @@ Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 import ast, re
 from ..externals import OrderedDict
 
-ATTR_CONTENT_RE = re.compile(\
-    '### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
+
+ASCCONV_RE = re.compile(
+    r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
     flags=re.M | re.S)
 
-def parse_ascconv(csa_key, ascconv_str, ascconv_attrs=None):
+
+def parse_ascconv(csa_key, ascconv_str):
     '''Parse the 'ASCCONV' format from `input_str`.
 
     Parameters
@@ -39,7 +41,7 @@ def parse_ascconv(csa_key, ascconv_str, ascconv_attrs=None):
     SyntaxError
         A line of the ASCCONV section could not be parsed.
     '''
-    attrs, content = ATTR_CONTENT_RE.match(ascconv_str).groups()
+    attrs, content = ASCCONV_RE.match(ascconv_str).groups()
     attrs = OrderedDict((tuple(x.split('=')) for x in attrs.split()))
     if csa_key == 'MrPhoenixProtocol':
         str_delim = '""'

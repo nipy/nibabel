@@ -45,6 +45,17 @@ class PrivateTranslator(object):
         raise NotImplementedError()
 
 
+SPLIT_RE = re.compile(
+    r'(.*?)(### ASCCONV BEGIN.*? ###\n.*?\n### ASCCONV END ###)',
+    flags=re.M | re.S)
+
+
+def split_ascconv(in_str):
+    """ Split input string into xprotocol and ASCCONV
+    """
+    return SPLIT_RE.match(in_str).groups()
+
+
 class CsaTranslator(PrivateTranslator):
     '''Translator for Siemens CSA sub headers.'''
 
@@ -69,7 +80,7 @@ class CsaSeriesTranslator(CsaTranslator):
             xproto_dict = outer_xprotos[0]
             for param in xproto_dict['blocks'][0]['value']:
                 if param['name'] == 'Protocol0':
-                    inner_str, ascconv_str = xpp.split_ascconv(param['value'])
+                    inner_str, ascconv_str = split_ascconv(param['value'])
                     param['value'] = xpp.parse(xpp.strip_twin_quote(inner_str))
                     break
             else:

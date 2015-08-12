@@ -37,3 +37,4 @@ def test_ascconv_w_attrs():
     assert_equal(attrs['converter'],
                  '%MEASCONST%/ConverterList/Prot_Converter.txt')
     assert_equal(ascconv_dict['test'], 'hello')
+
