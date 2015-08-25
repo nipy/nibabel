@@ -152,7 +152,7 @@ class ImageOpener(Opener):
     """ Opener-type class passed to image classes to collect compressed extensions
     """    
     @classmethod
-    def register_extension(opener_klass, ext, func):
+    def register_ext_from_image(opener_klass, ext, func):
         """Decorator"""
         def decorate(klass):
             assert ext not in opener_klass.compress_ext_map, \
