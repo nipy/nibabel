@@ -147,6 +147,10 @@ class Opener(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_if_mine()
 
+
+class ImageOpener(Opener):
+    """ Opener-type class passed to image classes to collect compressed extensions
+    """    
     @classmethod
     def register_extension(opener_klass, ext, func):
         """Decorator"""

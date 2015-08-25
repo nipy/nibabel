@@ -17,7 +17,7 @@ from ..py3k import asstr, asbytes
 
 from ..tmpdirs import InTemporaryDirectory
 
-from ..openers import Opener
+from ..openers import Opener, ImageOpener
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
@@ -84,7 +84,7 @@ def test_Opener_various():
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
 
-def test_OpenerAgain():
+def test_ImageOpener():
     # Test that ImageOpener does add '.mgz' as gzipped file type
     with InTemporaryDirectory():
         with ImageOpener('test.gz', 'w') as fobj:

@@ -25,7 +25,7 @@ def main():
     (opts, files) = parser.parse_args()
 
     for fname in files:
-        with nib.openers.Opener(fname) as fobj:
+        with nib.openers.ImageOpener(fname) as fobj:
             hdr = fobj.read(nib.nifti1.header_dtype.itemsize)
         result = nib.Nifti1Header.diagnose_binaryblock(hdr)
         if len(result):

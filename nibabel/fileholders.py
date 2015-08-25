@@ -10,7 +10,7 @@
 
 from copy import copy
 
-from .openers import Opener
+from .openers import ImageOpener
 
 
 class FileHolderError(Exception):
@@ -63,10 +63,10 @@ class FileHolder(object):
            ``self.pos``
         '''
         if self.fileobj is not None:
-            obj = Opener(self.fileobj)  # for context manager
+            obj = ImageOpener(self.fileobj)  # for context manager
             obj.seek(self.pos)
         elif self.filename is not None:
-            obj = Opener(self.filename, *args, **kwargs)
+            obj = ImageOpener(self.filename, *args, **kwargs)
             if self.pos != 0:
                 obj.seek(self.pos)
         else:

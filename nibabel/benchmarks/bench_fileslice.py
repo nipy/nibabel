@@ -19,7 +19,7 @@ from timeit import timeit
 import numpy as np
 
 from io import BytesIO
-from ..openers import Opener
+from ..openers import ImageOpener
 from ..fileslice import fileslice
 from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
@@ -47,10 +47,10 @@ def run_slices(file_like, repeat=3, offset=0, order='F'):
     n_dim = len(SHAPE)
     n_slicers = len(_slices_for_len(1))
     times_arr = np.zeros((n_dim, n_slicers))
-    with Opener(file_like, 'wb') as fobj:
+    with ImageOpener(file_like, 'wb') as fobj:
         fobj.write(b'\0' * offset)
         fobj.write(arr.tostring(order=order))
-    with Opener(file_like, 'rb') as fobj:
+    with ImageOpener(file_like, 'rb') as fobj:
         for i, L in enumerate(SHAPE):
             for j, slicer in enumerate(_slices_for_len(L)):
                 sliceobj = [slice(None)] * n_dim
