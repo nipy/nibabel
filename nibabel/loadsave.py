@@ -12,7 +12,7 @@
 import numpy as np
 
 from .filename_parser import types_filenames, splitext_addext
-from .volumeutils import BinOpener, Opener
+from .openers import Opener
 from .analyze import AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .nifti1 import Nifti1Image, Nifti1Pair, header_dtype as ni1_hdr_dtype
@@ -72,14 +72,14 @@ def guessed_image_type(filename):
             signature = fobj.read(4)
             klass = Minc2Image if signature == b'\211HDF' else Minc1Image
     elif lext == '.nii':
-        with BinOpener(filename) as fobj:
+        with Opener(filename) as fobj:
             binaryblock = fobj.read(348)
         ft = which_analyze_type(binaryblock)
         klass = Nifti2Image if ft == 'nifti2' else Nifti1Image
     else:  # might be nifti 1 or 2 pair or analyze of some sort
         files_types = (('image', '.img'), ('header', '.hdr'))
         filenames = types_filenames(filename, files_types)
-        with BinOpener(filenames['header']) as fobj:
+        with Opener(filenames['header']) as fobj:
             binaryblock = fobj.read(348)
         ft = which_analyze_type(binaryblock)
         if ft == 'nifti2':
@@ -208,7 +208,7 @@ def read_img_data(img, prefer='scaled'):
             hdr.set_data_offset(dao.offset)
         if default_scaling and (dao.slope, dao.inter) != (1, 0):
             hdr.set_slope_inter(dao.slope, dao.inter)
-    with BinOpener(img_file_like) as fileobj:
+    with Opener(img_file_like) as fileobj:
         if prefer == 'scaled':
             return hdr.data_from_fileobj(fileobj)
         return hdr.raw_data_from_fileobj(fileobj)

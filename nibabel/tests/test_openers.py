@@ -57,7 +57,6 @@ def test_Opener():
         # mode is gently ignored
         fobj = Opener(obj, mode='r')
 
-
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b"Oh what a giveaway"
@@ -85,6 +84,13 @@ def test_Opener_various():
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
 
+def test_OpenerAgain():
+    # Test that ImageOpener does add '.mgz' as gzipped file type
+    with InTemporaryDirectory():
+        with ImageOpener('test.gz', 'w') as fobj:
+            assert_true(hasattr(fobj.fobj, 'compress'))
+        with ImageOpener('test.mgz', 'w') as fobj:
+            assert_true(hasattr(fobj.fobj, 'compress'))
 
 def test_file_like_wrapper():
     # Test wrapper using BytesIO (full API)

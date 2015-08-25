@@ -10,7 +10,7 @@ import numpy.linalg as npl
 
 from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
-from .volumeutils import BinOpener
+from .openers import Opener
 from .orientations import aff2axcodes
 from .affines import apply_affine
 
@@ -143,7 +143,7 @@ def read(fileobj, as_generator=False, points_space=None):
     coordinate along the first image axis, multiplied by the voxel size for
     that axis.
     '''
-    fileobj = BinOpener(fileobj)
+    fileobj = Opener(fileobj)
     hdr_str = fileobj.read(header_2_dtype.itemsize)
     # try defaulting to version 2 format
     hdr = np.ndarray(shape=(),
@@ -334,7 +334,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     except StopIteration:  # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
-        with BinOpener(fileobj, 'wb') as fileobj:
+        with Opener(fileobj, 'wb') as fileobj:
             fileobj.write(hdr.tostring())
         return
     if endianness is None:
@@ -375,7 +375,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
         mm2vx = npl.inv(affine)
         mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
     # write header
-    fileobj = BinOpener(fileobj, mode='wb')
+    fileobj = Opener(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
     # track preliminaries
     f4dt = np.dtype(endianness + 'f4')

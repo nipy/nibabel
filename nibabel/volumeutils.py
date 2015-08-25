@@ -1584,16 +1584,16 @@ def fname_ext_ul_case(fname):
 def allopen(fileish, *args, **kwargs):
     """ Compatibility wrapper for old ``allopen`` function
 
-    Wraps creation of ``BinOpener`` instance, while picking up module global
+    Wraps creation of ``Opener`` instance, while picking up module global
     ``default_compresslevel``.
 
-    Please see docstring for ``BinOpener`` and ``Opener`` for details.
+    Please see docstring for ``Opener`` for details.
     """
-    warnings.warn("Please use BinOpener class instead of this function",
+    warnings.warn("Please use Opener class instead of this function",
                   DeprecationWarning,
                   stacklevel=2)
 
-    class MyOpener(BinOpener):
+    class MyOpener(Opener):
         default_compresslevel = default_compresslevel
 
     return MyOpener(fileish, *args, **kwargs)
