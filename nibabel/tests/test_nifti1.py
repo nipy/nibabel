@@ -261,12 +261,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_data_shape((too_big-1, 1, 1))
         assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
         # The freesurfer case
+        full_shape = (too_big, 1, 1, 1, 1, 1, 1)
+        for dim in range(3, 8):
+            # First element in 'dim' field is number of dimensions
+            expected_dim = np.array([dim, -1, 1, 1, 1, 1, 1, 1])
+            with suppress_warnings():
+                hdr.set_data_shape(full_shape[:dim])
+            assert_equal(hdr.get_data_shape(), full_shape[:dim])
+            assert_array_equal(hdr['dim'], expected_dim)
+            assert_equal(hdr['glmin'], too_big)
+        # Allow the fourth dimension to vary
         with suppress_warnings():
-            hdr.set_data_shape((too_big, 1, 1))
-        assert_equal(hdr.get_data_shape(), (too_big, 1, 1))
-        assert_array_equal(hdr['dim'][:4], [3, -1, 1, 1])
-        assert_equal(hdr['glmin'], too_big)
-        # This only works for the case of a 3D with -1, 1, 1
+            hdr.set_data_shape((too_big, 1, 1, 4))
+        assert_equal(hdr.get_data_shape(), (too_big, 1, 1, 4))
+        assert_array_equal(hdr['dim'][:5], np.array([4, -1, 1, 1, 4]))
+        # This only works when the first 3 dimensions are -1, 1, 1
         assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,))
         assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1,2))
@@ -274,6 +283,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big))
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, too_big))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, too_big))
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
         with suppress_warnings():
@@ -295,9 +305,22 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     def test_freesurfer_ico7_hack(self):
         HC = self.header_class
         hdr = HC()
+        full_shape = (163842, 1, 1, 1, 1, 1, 1)
         # Test that using ico7 shape automatically uses factored dimensions
-        hdr.set_data_shape((163842, 1, 1))
-        assert_array_equal(hdr._structarr['dim'][1:4], np.array([27307, 1, 6]))
+        for dim in range(3, 8):
+            expected_dim = np.array([dim, 27307, 1, 6, 1, 1, 1, 1])
+            hdr.set_data_shape(full_shape[:dim])
+            assert_equal(hdr.get_data_shape(), full_shape[:dim])
+            assert_array_equal(hdr._structarr['dim'], expected_dim)
+        # Only works on dimensions >= 3
+        assert_raises(HeaderDataError, hdr.set_data_shape, full_shape[:1])
+        assert_raises(HeaderDataError, hdr.set_data_shape, full_shape[:2])
+        # Bad shapes
+        assert_raises(HeaderDataError, hdr.set_data_shape, (163842, 2, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (163842, 1, 2))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 163842, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 163842))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, 163842))
         # Test consistency of data in .mgh and mri_convert produced .nii
         nitest_path = os.path.join(get_nibabel_data(), 'nitest-freesurfer')
         mgh = mghload(os.path.join(nitest_path, 'fsaverage', 'surf',
