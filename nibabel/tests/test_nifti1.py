@@ -349,8 +349,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_array_equal(hdr.get_sform(), empty_sform)
         assert_equal(hdr.get_qform(coded=True), (None, 0))
         assert_equal(hdr.get_sform(coded=True), (None, 0))
-        # Affine with no shears
+        # Affines with no shears
         nice_aff = np.diag([2, 3, 4, 1])
+        another_aff = np.diag([3, 4, 5, 1])
         # Affine with shears
         nasty_aff = from_matvec(np.arange(9).reshape((3, 3)), [9, 10, 11])
         fixed_aff = unshear_44(nasty_aff)
@@ -361,10 +362,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             assert_array_equal(aff, nice_aff)
             assert_equal(code, 2)
             assert_array_equal(out_meth(), nice_aff)  # non coded
-            # Affine can also be passed if code == 0, affine will be suitably set
-            in_meth(nice_aff, 0)
-            assert_equal(out_meth(coded=True), (None, 0))
-            assert_array_almost_equal(out_meth(), nice_aff)
+            # Affine may be passed if code == 0, and will get set into header,
+            # but the returned affine with 'coded=True' will be None.
+            in_meth(another_aff, 0)
+            assert_equal(out_meth(coded=True), (None, 0))  # coded -> None
+            assert_array_almost_equal(out_meth(), another_aff)  # else -> input
             # Default qform code when previous == 0 is 2
             in_meth(nice_aff)
             aff, code = out_meth(coded=True)
