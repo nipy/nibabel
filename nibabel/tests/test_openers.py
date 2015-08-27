@@ -10,16 +10,14 @@
 import os
 from gzip import GzipFile
 from bz2 import BZ2File
-
 from io import BytesIO, UnsupportedOperation
-from ..externals.six import PY3
+
+from ..checkwarns import ErrorWarnings
 from ..py3k import asstr, asbytes
-
-from ..tmpdirs import InTemporaryDirectory
-
 from ..openers import Opener, ImageOpener
+from ..tmpdirs import InTemporaryDirectory
+from ..volumeutils import BinOpener
 
-from nose.case import Test
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
@@ -85,6 +83,10 @@ def test_Opener_various():
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
 
+def test_BinOpener():
+    with ErrorWarnings():
+        assert_raises(DeprecationWarning,
+                      BinOpener, 'test.txt', 'r')
 
 class TestImageOpener:
     def setUp(self):
