@@ -13,7 +13,7 @@ from ..nifti1 import Nifti1Image, Nifti1Extension
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full, PARRECImage, PARRECArrayProxy, exts2pars)
-from ..openers import Opener
+from ..openers import ImageOpener
 from ..fileholders import FileHolder
 from ..volumeutils import array_from_file
 
@@ -32,7 +32,7 @@ from . import test_spatialimages as tsi
 DATA_PATH = pjoin(dirname(__file__), 'data')
 EG_PAR = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')
 EG_REC = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.REC')
-with Opener(EG_PAR, 'rt') as _fobj:
+with ImageOpener(EG_PAR, 'rt') as _fobj:
     HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
 # Fake truncated
 TRUNC_PAR = pjoin(DATA_PATH, 'phantom_truncated.PAR')

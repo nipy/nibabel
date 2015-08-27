@@ -146,3 +146,42 @@ class Opener(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_if_mine()
+
+
+class ImageOpener(Opener):
+    """ Opener-type class passed to image classes to collect compressed extensions
+
+    This class allows itself to have image extensions added to its class
+    attributes, via the `register_ex_from_images`.  The class can therefore
+    change state when image classes are defined.
+    """
+
+    @classmethod
+    def register_ext_from_image(opener_klass, ext, func_def):
+        """Decorator for adding extension / opener_function associations.
+
+        Should be used to decorate classes.
+
+        Parameters
+        ----------
+        opener_klass : decorated class
+        ext : file extension to associate `func_def` with.
+          should start with '.'
+        func_def : opener function/parameter tuple
+          Should be a `(function, (args,))` tuple, where `function` accepts
+          a filename as the first parameter, and `args` defines the
+          other arguments that `function` accepts. These arguments must
+          be any (unordered) subset of `mode`, `compresslevel`,
+          and `buffering`.
+
+        Returns
+        -------
+        opener_klass, with a side-effect of updating the ImageOpener class
+        with the desired extension / opener association.
+        """
+        def decorate(klass):
+            assert ext not in opener_klass.compress_ext_map, \
+                "Cannot redefine extension-function mappings."
+            opener_klass.compress_ext_map[ext] = func_def
+            return klass
+        return decorate

@@ -23,12 +23,11 @@ import bz2
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
-
+from ..openers import ImageOpener
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
-                           allopen, # for backwards compatibility
-                           BinOpener,
+                           allopen,  # for backwards compatibility
                            fname_ext_ul_case,
                            calculate_scale,
                            can_cast,
@@ -928,7 +927,7 @@ def test_seek_tell():
             st = functools.partial(seek_tell, write0=write0)
             bio.seek(0)
             # First write the file
-            with BinOpener(in_file, 'wb') as fobj:
+            with ImageOpener(in_file, 'wb') as fobj:
                 assert_equal(fobj.tell(), 0)
                 # already at position - OK
                 st(fobj, 0)
@@ -949,7 +948,7 @@ def test_seek_tell():
                 fobj.write(b'\x02' * tail)
             bio.seek(0)
             # Now read back the file testing seek_tell in reading mode
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.tell(), 0)
                 st(fobj, 0)
                 assert_equal(fobj.tell(), 0)
@@ -961,22 +960,22 @@ def test_seek_tell():
                 st(fobj, 0)
             bio.seek(0)
             # Check we have the expected written output
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.read(),
                              b'\x01' * start + b'\x00' * diff + b'\x02' * tail)
         for in_file in ('test2.gz', 'test2.bz2'):
             # Check failure of write seek backwards
-            with BinOpener(in_file, 'wb') as fobj:
+            with ImageOpener(in_file, 'wb') as fobj:
                 fobj.write(b'g' * 10)
                 assert_equal(fobj.tell(), 10)
                 seek_tell(fobj, 10)
                 assert_equal(fobj.tell(), 10)
                 assert_raises(IOError, seek_tell, fobj, 5)
             # Make sure read seeks don't affect file
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 seek_tell(fobj, 10)
                 seek_tell(fobj, 0)
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.read(), b'g' * 10)
 
 
@@ -1002,15 +1001,6 @@ def test_seek_tell_logic():
     assert_raises(IOError, bio.seek, 20)
     seek_tell(bio, 20, write0=True)
     assert_equal(bio.getvalue(), ZEROB * 20)
-
-
-def test_BinOpener():
-    # Test that BinOpener does add '.mgz' as gzipped file type
-    with InTemporaryDirectory():
-        with BinOpener('test.gz', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
-        with BinOpener('test.mgz', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
 
 
 def test_fname_ext_ul_case():

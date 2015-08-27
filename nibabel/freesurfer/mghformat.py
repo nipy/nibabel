@@ -18,6 +18,7 @@ from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder,  copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
+from ..openers import ImageOpener
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -453,6 +454,7 @@ class MGHHeader(object):
         fileobj.write(ftr_nd.tostring())
 
 
+@ImageOpener.register_ext_from_image('.mgz', ImageOpener.gz_def)
 class MGHImage(SpatialImage):
     """ Class for MGH format image
     """

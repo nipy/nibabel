@@ -99,10 +99,11 @@ from locale import getpreferredencoding
 from .keywordonly import kw_only_meth
 from .spatialimages import SpatialImage, Header
 from .eulerangles import euler2mat
-from .volumeutils import Recoder, array_from_file, BinOpener
+from .volumeutils import Recoder, array_from_file
 from .affines import from_matvec, dot_reduce, apply_affine
 from .nifti1 import unit_codes
 from .fileslice import fileslice, strided_scalar
+from .openers import ImageOpener
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
@@ -581,13 +582,13 @@ class PARRECArrayProxy(object):
         return True
 
     def get_unscaled(self):
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             return _data_from_rec(fileobj, self._rec_shape, self._dtype,
                                   self._slice_indices, self._shape,
                                   mmap=self._mmap)
 
     def __array__(self):
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             return _data_from_rec(fileobj,
                                   self._rec_shape,
                                   self._dtype,
@@ -603,7 +604,7 @@ class PARRECArrayProxy(object):
             return np.asanyarray(self)[slicer]
         # Slices all sequential from zero, can use fileslice
         # This gives more efficient volume by volume loading, for example
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0,
                                  'F')
         # Broadcast scaling to shape of original data
