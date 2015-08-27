@@ -1537,8 +1537,7 @@ def rec2dict(rec):
 
 
 class BinOpener(Opener):
-    """ Deprecated class that used to handle .mgz 
-    through specialized logic."""
+    """ Deprecated class that used to handle .mgz through specialized logic."""
     __doc__ = Opener.__doc__
 
     def __init__(self, *args, **kwargs):
