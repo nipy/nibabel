@@ -5,17 +5,17 @@ from __future__ import division, print_function
 import os
 from os.path import dirname, pathsep
 
-from ..testers import back_tick, run_mod_cmd
+from ..testers import back_tick, run_mod_cmd, PYTHON
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_raises
 
 
 def test_back_tick():
-    cmd = 'python -c "print(\'Hello\')"'
+    cmd = '{0} -c "print(\'Hello\')"'.format(PYTHON)
     assert_equal(back_tick(cmd), "Hello")
     assert_equal(back_tick(cmd, ret_err=True), ("Hello", ""))
     assert_equal(back_tick(cmd, True, False), (b"Hello", b""))
-    cmd = 'python -c "raise ValueError()"'
+    cmd = '{0} -c "raise ValueError()"'.format(PYTHON)
     assert_raises(RuntimeError, back_tick, cmd)
 
 
