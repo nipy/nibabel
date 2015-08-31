@@ -10,7 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 from distutils.version import LooseVersion
 
-from ..externals.six import StringIO
+from ..externals.six import BytesIO
 from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
@@ -306,25 +306,25 @@ class Outputter(object):
             pair[1] = data
         elif self.write_to == 'Vertices':
             # conversion to numpy array
-            c = StringIO(data.strip().decode('utf-8'))
+            c = BytesIO(data.strip().encode())
             vertices = self.struct_state[-1]
             vertices.vertices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
-            c = StringIO(data.strip().decode('utf-8'))
+            c = BytesIO(data.strip().encode())
             parent = self.struct_state[-1]
             parent.voxelIndicesIJK.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
-            c = StringIO(data.strip())
+            c = BytesIO(data.strip().encode())
             index = self.struct_state[-1]
             index.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
-            c = StringIO(data.strip())
+            c = BytesIO(data.strip().encode())
             transform = self.struct_state[-1]
             transform.matrix = np.genfromtxt(c, dtype=np.float)
             c.close()

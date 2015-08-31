@@ -18,6 +18,7 @@ Stuff about the CIFTI file format here:
 
 '''
 from __future__ import division, print_function, absolute_import
+from ..externals.six import string_types
 
 import numpy as np
 
@@ -81,7 +82,7 @@ class CiftiMetaData(object):
     def _add_remove_metadata(self, metadata, func):
         pairs = []
         if isinstance(metadata, (list, tuple)):
-            if isinstance(metadata[0], basestring):
+            if isinstance(metadata[0], string_types):
                 if len(metadata) != 2:
                     raise ValueError('nvpair must be a 2-list or 2-tuple')
                 pairs = [tuple((metadata[0], metadata[1]))]
@@ -806,7 +807,7 @@ class CiftiImage(object):
         from ..nifti1 import Nifti1Extension
         data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
         header = self.extra
-        extension = Nifti1Extension(32, self.header.to_xml())
+        extension = Nifti1Extension(32, self.header.to_xml().encode())
         header.extensions.append(extension)
         img = Nifti2Image(data, None, header)
         img.to_filename(filename)
