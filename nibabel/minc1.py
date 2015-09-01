@@ -14,6 +14,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
+from .filename_parser import splitext_addext
 from .spatialimages import Header, SpatialImage
 from .fileslice import canonical_slicers
 
@@ -270,6 +271,9 @@ class MincHeader(Header):
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
 
+    # Number of bytes needed to distinguish Minc1 and Minc2 headers
+    sniff_size = 4
+
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """ See Header class for an implementation we can't use """
         raise NotImplementedError
@@ -279,6 +283,12 @@ class MincHeader(Header):
         raise NotImplementedError
 
 
+class Minc1Header(MincHeader):
+    @classmethod
+    def is_header(klass, binaryblock):
+        return binaryblock[:4] != b'\211HDF'
+
+
 class Minc1Image(SpatialImage):
     ''' Class for MINC1 format images
 
@@ -286,9 +296,12 @@ class Minc1Image(SpatialImage):
     MINC header type - and reads the relevant information from the MINC file on
     load.
     '''
-    header_class = MincHeader
+    header_class = Minc1Header
     files_types = (('image', '.mnc'),)
     _compressed_exts = ('.gz', '.bz2')
+
+    makeable = True
+    rw = False
 
     ImageArrayProxy = MincImageArrayProxy
 

@@ -159,6 +159,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(message, 'data code -1 not recognized; '
                            'not attempting fix')
+
         assert_raises(*raiser)
         # datatype not supported
         hdr['datatype'] = 255 # severity 40

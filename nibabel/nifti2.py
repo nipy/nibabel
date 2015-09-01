@@ -141,6 +141,9 @@ class Nifti2Header(Nifti1Header):
     # Size of header in sizeof_hdr field
     sizeof_hdr = 540
 
+    # sniff size to determine type
+    sniff_size = 540
+
     # Quaternion threshold near 0, based on float64 preicision
     quaternion_threshold = -np.finfo(np.float64).eps * 3
 
@@ -220,6 +223,16 @@ class Nifti2Header(Nifti1Header):
             hdr['eol_check'] = (13, 10, 26, 10)
             rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
         return hdr, rep
+
+    @classmethod
+    def is_header(klass, binaryblock):
+        if len(binaryblock) < klass.sniff_size:
+            raise ValueError('Must pass a binary block >= %d bytes' % klass.sniff_size)
+
+        hdr = np.ndarray(shape=(), dtype=header_dtype,
+                         buffer=binaryblock[:klass.sniff_size])
+        bs_hdr = hdr.byteswap()
+        return 540 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr'])
 
 
 class Nifti2PairHeader(Nifti2Header):

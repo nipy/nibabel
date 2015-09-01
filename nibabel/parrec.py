@@ -1022,6 +1022,9 @@ class PARRECImage(SpatialImage):
     header_class = PARRECHeader
     files_types = (('image', '.rec'), ('header', '.par'))
 
+    makeable = False
+    rw = False
+
     ImageArrayProxy = PARRECArrayProxy
 
     @classmethod

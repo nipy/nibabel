@@ -11,17 +11,10 @@
 
 import numpy as np
 
-from .filename_parser import types_filenames, splitext_addext
+from .filename_parser import splitext_addext
 from .openers import ImageOpener
-from .analyze import AnalyzeImage
-from .spm2analyze import Spm2AnalyzeImage
-from .nifti1 import Nifti1Image, Nifti1Pair, header_dtype as ni1_hdr_dtype
-from .nifti2 import Nifti2Image, Nifti2Pair
-from .minc1 import Minc1Image
-from .minc2 import Minc2Image
-from .freesurfer import MGHImage
 from .spatialimages import ImageFileError
-from .imageclasses import class_map, ext_map
+from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 
 
@@ -40,55 +33,15 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
-    return guessed_image_type(filename).from_filename(filename, **kwargs)
 
+    sniff = None
+    for image_klass in all_image_classes:
+        is_valid, sniff = image_klass.is_image(filename, sniff)
+        if is_valid:
+            return image_klass.from_filename(filename, **kwargs)
 
-def guessed_image_type(filename):
-    """ Guess image type from file `filename`
-
-    Parameters
-    ----------
-    filename : str
-        File name containing an image
-
-    Returns
-    -------
-    image_class : class
-        Class corresponding to guessed image type
-    """
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
-    lext = ext.lower()
-    try:
-        img_type = ext_map[lext]
-    except KeyError:
-        raise ImageFileError('Cannot work out file type of "%s"' %
-                             filename)
-    if lext in ('.mgh', '.mgz', '.par'):
-        klass = class_map[img_type]['class']
-    elif lext == '.mnc':
-        # Look for HDF5 signature for MINC2
-        # https://www.hdfgroup.org/HDF5/doc/H5.format.html
-        with ImageOpener(filename) as fobj:
-            signature = fobj.read(4)
-            klass = Minc2Image if signature == b'\211HDF' else Minc1Image
-    elif lext == '.nii':
-        with ImageOpener(filename) as fobj:
-            binaryblock = fobj.read(348)
-        ft = which_analyze_type(binaryblock)
-        klass = Nifti2Image if ft == 'nifti2' else Nifti1Image
-    else:  # might be nifti 1 or 2 pair or analyze of some sort
-        files_types = (('image', '.img'), ('header', '.hdr'))
-        filenames = types_filenames(filename, files_types)
-        with ImageOpener(filenames['header']) as fobj:
-            binaryblock = fobj.read(348)
-        ft = which_analyze_type(binaryblock)
-        if ft == 'nifti2':
-            klass = Nifti2Pair
-        elif ft == 'nifti1':
-            klass = Nifti1Pair
-        else:
-            klass = Spm2AnalyzeImage
-    return klass
+    raise ImageFileError('Cannot work out file type of "%s"' %
+                         filename)
 
 
 def save(img, filename):
@@ -105,25 +58,38 @@ def save(img, filename):
     -------
     None
     '''
+
+    # Save the type as expected
     try:
         img.to_filename(filename)
     except ImageFileError:
         pass
     else:
         return
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+
+    # Be nice to users by making common implicit conversions
+    froot, ext, trailing = splitext_addext(filename, img._compressed_exts)
+    lext = ext.lower()
+
     # Special-case Nifti singles and Pairs
-    if type(img) == Nifti1Image and ext in ('.img', '.hdr'):
+    from .nifti1 import Nifti1Image, Nifti1Pair  # Inline imports, as this module
+    from .nifti2 import Nifti2Image, Nifti2Pair  # really shouldn't reference any image type
+    if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
         klass = Nifti1Pair
-    elif type(img) == Nifti2Image and ext in ('.img', '.hdr'):
+    elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
         klass = Nifti2Pair
-    elif type(img) == Nifti1Pair and ext == '.nii':
+    elif type(img) == Nifti1Pair and lext == '.nii':
         klass = Nifti1Image
-    elif type(img) == Nifti2Pair and ext == '.nii':
+    elif type(img) == Nifti2Pair and lext == '.nii':
         klass = Nifti2Image
-    else:
-        img_type = ext_map[ext]
-        klass = class_map[img_type]['class']
+    else:  # arbitrary conversion
+        valid_klasses = [klass for klass in all_image_classes
+                         if klass.is_valid_extension(ext)]
+        try:
+            klass = valid_klasses[0]
+        except IndexError:  # if list is empty
+            raise ImageFileError('Cannot work out file type of "%s"' %
+                                 filename)
     converted = klass.from_image(img)
     converted.to_filename(filename)
 
@@ -212,43 +178,3 @@ def read_img_data(img, prefer='scaled'):
         if prefer == 'scaled':
             return hdr.data_from_fileobj(fileobj)
         return hdr.raw_data_from_fileobj(fileobj)
-
-
-def which_analyze_type(binaryblock):
-    """ Is `binaryblock` from NIfTI1, NIfTI2 or Analyze header?
-
-    Parameters
-    ----------
-    binaryblock : bytes
-        The `binaryblock` is 348 bytes that might be NIfTI1, NIfTI2, Analyze,
-        or None of the the above.
-
-    Returns
-    -------
-    hdr_type : str
-        * a nifti1 header (pair or single) -> return 'nifti1'
-        * a nifti2 header (pair or single) -> return 'nifti2'
-        * an Analyze header -> return 'analyze'
-        * None of the above -> return None
-
-    Notes
-    -----
-    Algorithm:
-
-    * read in the first 4 bytes from the file as 32-bit int ``sizeof_hdr``
-    * if ``sizeof_hdr`` is 540 or byteswapped 540 -> assume nifti2
-    * Check for 'ni1', 'n+1' magic -> assume nifti1
-    * if ``sizeof_hdr`` is 348 or byteswapped 348 assume Analyze
-    * Return None
-    """
-    hdr = np.ndarray(shape=(), dtype=ni1_hdr_dtype, buffer=binaryblock)
-    bs_hdr = hdr.byteswap()
-    sizeof_hdr = hdr['sizeof_hdr']
-    bs_sizeof_hdr = bs_hdr['sizeof_hdr']
-    if 540 in (sizeof_hdr, bs_sizeof_hdr):
-        return 'nifti2'
-    if hdr['magic'] in (b'ni1', b'n+1'):
-        return 'nifti1'
-    if 348 in (sizeof_hdr, bs_sizeof_hdr):
-        return 'analyze'
-    return None

@@ -900,6 +900,9 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image', '.img'), ('header', '.hdr'))
     _compressed_exts = ('.gz', '.bz2')
 
+    makeable = True
+    rw = True
+
     ImageArrayProxy = ArrayProxy
 
     def __init__(self, dataobj, affine, header=None,

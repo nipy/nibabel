@@ -454,13 +454,18 @@ class MGHHeader(object):
         fileobj.write(ftr_nd.tostring())
 
 
+@valid_exts('.mgh', '.mgz')
 @ImageOpener.register_ext_from_image('.mgz', ImageOpener.gz_def)
 class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
-    files_types = (('image', '.mgh'),)
+    files_types = (('image', '.mgh'),
+                   ('image', '.mgz'))
     _compressed_exts = (('.gz',))
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 

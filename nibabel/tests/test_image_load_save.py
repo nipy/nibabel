@@ -26,14 +26,14 @@ from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
                 Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, class_map)
+                AnalyzeImage, MGHImage, all_image_classes)
 
 from ..tmpdirs import InTemporaryDirectory
 
 from ..volumeutils import native_code, swapped_code
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_false, assert_raises
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
@@ -53,20 +53,81 @@ def test_conversion():
     affine = np.diag([1, 2, 3, 1])
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-        for r_class_def in class_map.values():
-            r_class = r_class_def['class']
-            if not r_class_def['makeable']:
+        for r_class in all_image_classes:
+            if not r_class.makeable:
                 continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
-            for w_class_def in class_map.values():
-                if not w_class_def['makeable']:
+            for w_class in all_image_classes:
+                if not w_class.makeable:
                     continue
-                w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
                 assert_array_equal(img2.affine, affine)
 
+def test_sniff_and_guessed_image_type():
+    # Randomize the class order
+
+    def test_image_class(img_path, expected_img_klass):
+
+        def check_img(img_path, expected_img_klass, mode, sniff=None, expect_match=True, msg=''):
+            if mode == 'no_sniff':
+                is_img, _ = expected_img_klass.is_image(img_path)
+            else:
+                is_img, sniff = expected_img_klass.is_image(img_path, sniff)
+
+            msg = '%s (%s) image is%s a %s image.' % (
+                img_path,
+                msg,
+                '' if is_img else ' not',
+                klass.__name__)
+            from ..spatialimages import ImageFileError
+            try:
+                klass.from_filename(img_path)
+                # assert_true(is_img, msg)
+                print("Passed: " + msg)
+            except ImageFileError:
+                print("Failed (image load): " + msg)
+            except Exception as e:
+                print("Failed (%s): %s" % (str(e), msg))
+                # if is_img:
+                #     raise
+                # assert_false(is_img, msg)  # , issubclass(expected_img_klass, klass) and expect_match, msg)
+            return sniff
+
+        for mode in ['vanilla', 'no-sniff']:
+            if mode == 'random':
+                img_klasses = all_image_classes.copy()
+                np.random.shuffle(img_klasses)
+            else:
+                img_klasses = all_image_classes
+
+            if mode == 'no_sniff':
+                all_sniffs = [None]
+                bad_sniff = None
+            else:
+                sizeof_hdr = getattr(expected_img_klass.header_class, 'sizeof_hdr', 0)
+                all_sniffs = [None, '', 'a' * (sizeof_hdr - 1)]
+                bad_sniff = 'a' * sizeof_hdr
+
+            # Test that passing in different sniffs is OK
+            if bad_sniff is not None:
+                for klass in img_klasses:
+                    check_img(img_path, expected_img_klass, mode=mode,
+                              sniff=bad_sniff, expect_match=False,
+                              msg='%s / %s / %s' % (expected_img_klass.__name__, mode, 'bad_sniff'))
+
+            for si, sniff in enumerate(all_sniffs):
+                for klass in img_klasses:
+                        sniff = check_img(img_path, expected_img_klass, mode=mode,
+                                          sniff=sniff, expect_match=True,
+                                          msg='%s / %s / %d' % (expected_img_klass.__name__, mode, si))
+
+
+
+    # Test whether we can guess the image type from example files
+    test_image_class(pjoin(DATA_PATH, 'analyze.hdr'),
+                     Spm2AnalyzeImage)
 
 def test_save_load_endian():
     shape = (2, 4, 6)
@@ -265,62 +326,3 @@ def test_filename_save():
             del rt_img
         finally:
             shutil.rmtree(pth)
-
-
-def test_analyze_detection():
-    # Test detection of Analyze, Nifti1 and Nifti2
-    # Algorithm is as described in loadsave:which_analyze_type
-    def wat(hdr):
-        return nils.which_analyze_type(hdr.binaryblock)
-    n1_hdr = Nifti1Header(b'\0' * 348, check=False)
-    assert_equal(wat(n1_hdr), None)
-    n1_hdr['sizeof_hdr'] = 540
-    assert_equal(wat(n1_hdr), 'nifti2')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti2')
-    n1_hdr['sizeof_hdr'] = 348
-    assert_equal(wat(n1_hdr), 'analyze')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'analyze')
-    n1_hdr['magic'] = b'n+1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
-    n1_hdr['magic'] = b'ni1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
-    # Doesn't matter what magic is if it's not a nifti1 magic
-    n1_hdr['magic'] = b'ni2'
-    assert_equal(wat(n1_hdr), 'analyze')
-    n1_hdr['sizeof_hdr'] = 0
-    n1_hdr['magic'] = b''
-    assert_equal(wat(n1_hdr), None)
-    n1_hdr['magic'] = 'n+1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-    n1_hdr['magic'] = 'ni1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-
-
-def test_guessed_image_type():
-    # Test whether we can guess the image type from example files
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example4d.nii.gz')),
-        Nifti1Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti1.hdr')),
-        Nifti1Pair)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example_nifti2.nii.gz')),
-        Nifti2Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti2.hdr')),
-        Nifti2Pair)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'tiny.mnc')),
-        Minc1Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'small.mnc')),
-        Minc2Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'test.mgz')),
-        MGHImage)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'analyze.hdr')),
-        Spm2AnalyzeImage)
