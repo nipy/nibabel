@@ -83,11 +83,11 @@ def save(img, filename):
     elif type(img) == Nifti2Pair and lext == '.nii':
         klass = Nifti2Image
     else:  # arbitrary conversion
-        valid_klasses = filter(lambda klass: klass.is_valid_extension(ext),
-                               all_image_classes)
+        valid_klasses = [klass for klass in all_image_classes
+                         if klass.is_valid_extension(ext)]
         try:
-            klass = next(iter(valid_klasses))
-        except StopIteration:  # if iterator is empty
+            klass = valid_klasses[0]
+        except IndexError:  # if list is empty
             raise ImageFileError('Cannot work out file type of "%s"' %
                                  filename)
     converted = klass.from_image(img)

@@ -145,7 +145,8 @@ import numpy as np
 from .filename_parser import types_filenames, TypesFilenamesError, \
     splitext_addext
 from .fileholders import FileHolder
-from .volumeutils import shape_zoom_affine, BinOpener
+from .openers import ImageOpener
+from .volumeutils import shape_zoom_affine
 
 
 class HeaderDataError(Exception):
@@ -907,7 +908,7 @@ class SpatialImage(object):
             if not sniff or len(sniff) < klass.header_class.sniff_size:
                 # 1024 == large size, for efficiency (could iterate over imageclasses).
                 sniff_size = np.max([1024, klass.header_class.sniff_size])
-                with BinOpener(metadata_filename, 'rb') as fobj:
+                with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sniff_size)
             return klass.header_class.is_header(sniff[:klass.header_class.sniff_size]), sniff
         except Exception as e:
