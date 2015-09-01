@@ -887,8 +887,7 @@ class SpatialImage(object):
 
         if not klass.is_valid_extension(ext):
             return False, sniff
-        elif (getattr(klass.header_class, 'sniff_size', None) is None or
-              getattr(klass.header_class, 'is_header', None) is None):
+        elif not hasattr(klass.header_class, 'is_header'):
             return True, sniff
 
         # Determine the metadata location, then sniff it
@@ -905,17 +904,22 @@ class SpatialImage(object):
                         break
 
         try:
-            if not sniff or len(sniff) < klass.header_class.sniff_size:
+            klass_sniff_size = getattr(klass.header_class, 'sniff_size', 0)
+
+            if not sniff or len(sniff) < klass_sniff_size:
                 # 1024 == large size, for efficiency (could iterate over imageclasses).
-                sniff_size = np.max([1024, klass.header_class.sniff_size])
+                sniff_size = np.max([1024, klass_sniff_size])
                 with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sniff_size)
-            return klass.header_class.is_header(sniff[:klass.header_class.sniff_size]), sniff
+
+            is_header = klass.header_class.is_header(sniff[:klass_sniff_size])
         except Exception as e:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)
             #   other unexpected errors.
-            return False, sniff
+            is_header = False
+
+        return is_header, sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
