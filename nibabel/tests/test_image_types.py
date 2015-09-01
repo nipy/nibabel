@@ -117,9 +117,9 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
             if expect_success:
                 new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__, msg)
-                expected_sniff_size = getattr(img_klass.header_class, 'sniff_size', 0)
-                current_sniff_size = len(new_sniff) if new_sniff is not None else 0
-                assert_true(current_sniff_size >= expected_sniff_size, new_msg)
+                expected_sizeof_hdr = getattr(img_klass.header_class, 'sizeof_hdr', 0)
+                current_sizeof_hdr = len(new_sniff) if new_sniff is not None else 0
+                assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
 
             # Build a message to the user.
             new_msg = '%s (%s) image is%s a %s image.' % (
@@ -140,20 +140,20 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             else:
                 return sniff
 
-        sniff_size = getattr(expected_img_klass.header_class, 'sniff_size', 0)
+        sizeof_hdr = getattr(expected_img_klass.header_class, 'sizeof_hdr', 0)
 
         for sniff_mode, sniff in dict(
                 vanilla=None,  # use the sniff of the previous item
                 no_sniff=None,  # Don't pass a sniff
                 none=None,  # pass None as the sniff, should query in fn
                 empty='',  # pass an empty sniff, should query in fn
-                irrelevant='a' * (sniff_size - 1),  # A too-small sniff, query
-                bad_sniff='a' * sniff_size).items():  # Bad sniff, should fail.
+                irrelevant='a' * (sizeof_hdr - 1),  # A too-small sniff, query
+                bad_sniff='a' * sizeof_hdr).items():  # Bad sniff, should fail.
 
             for klass in img_klasses:
                 if klass == expected_img_klass:
                     expect_success = (sniff_mode not in ['bad_sniff'] or
-                                      sniff_size == 0 or
+                                      sizeof_hdr == 0 or
                                       klass == Minc1Image)  # special case...
                 elif (issubclass(klass, expected_img_klass) or
                       issubclass(expected_img_klass, klass)):

@@ -270,7 +270,7 @@ class MincHeader(Header):
     """
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
-    sniff_size = 4
+    sizeof_hdr = 4
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """ See Header class for an implementation we can't use """

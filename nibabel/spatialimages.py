@@ -904,15 +904,15 @@ class SpatialImage(object):
                         break
 
         try:
-            klass_sniff_size = getattr(klass.header_class, 'sniff_size', 0)
+            klass_sizeof_hdr = getattr(klass.header_class, 'sizeof_hdr', 0)
 
-            if not sniff or len(sniff) < klass_sniff_size:
+            if not sniff or len(sniff) < klass_sizeof_hdr:
                 # 1024 == large size, for efficiency (could iterate over imageclasses).
-                sniff_size = np.max([1024, klass_sniff_size])
+                sizeof_hdr = np.max([1024, klass_sizeof_hdr])
                 with ImageOpener(metadata_filename, 'rb') as fobj:
-                    sniff = fobj.read(sniff_size)
+                    sniff = fobj.read(sizeof_hdr)
 
-            is_header = klass.header_class.is_header(sniff[:klass_sniff_size])
+            is_header = klass.header_class.is_header(sniff[:klass_sizeof_hdr])
         except Exception as e:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)

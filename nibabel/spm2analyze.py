@@ -35,9 +35,6 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     # Copies of module level definitions
     template_dtype = header_dtype
 
-    # binary read size to determine type
-    sniff_size = 348
-
     def get_slope_inter(self):
         ''' Get data scaling (slope) and intercept from header data
 
@@ -118,11 +115,11 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
 
     @classmethod
     def is_header(klass, binaryblock):
-        if len(binaryblock) < klass.sniff_size:
-            raise ValueError('Must pass a binary block >= %d bytes' % klass.sniff_size)
+        if len(binaryblock) < klass.sizeof_hdr:
+            raise ValueError('Must pass a binary block >= %d bytes' % klass.sizeof_hdr)
 
         hdr = np.ndarray(shape=(), dtype=header_dtype,
-                         buffer=binaryblock[:klass.sniff_size])
+                         buffer=binaryblock[:klass.sizeof_hdr])
         bs_hdr = hdr.byteswap()
         return (binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and
                 348 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr']))
