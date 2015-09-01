@@ -14,13 +14,73 @@ from os.path import dirname, basename, join as pjoin
 
 import numpy as np
 
-from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
-                Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, all_image_classes)
+from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
+                Nifti2Image, Nifti2Header, Nifti2Pair,
+                AnalyzeImage, AnalyzeHeader,
+                Minc1Image, Minc2Image,
+                Spm2AnalyzeImage, Spm99AnalyzeImage,
+                MGHImage, all_image_classes)
 
 from nose.tools import assert_true, assert_equal, assert_false, assert_raises
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
+
+
+
+def test_analyze_detection():
+    # Test detection of Analyze, Nifti1 and Nifti2
+    # Algorithm is as described in loadsave:which_analyze_type
+    def wat(hdr):
+        all_analyze_header_klasses = [Nifti1Header, Nifti2Header,
+                                      AnalyzeHeader]
+        for klass in all_analyze_header_klasses:
+            try:
+                if klass.is_header(hdr.binaryblock):
+                   return klass
+                else:
+                    print('checked completed, but failed.')
+            except ValueError as ve:
+                print(ve)
+                continue
+        return None
+        # return nils.which_analyze_type(hdr.binaryblock)
+
+    n1_hdr = Nifti1Header(b'\0' * 348, check=False)
+    n2_hdr = Nifti2Header(b'\0' * 540, check=False)
+    assert_equal(wat(n1_hdr), None)
+
+    n1_hdr['sizeof_hdr'] = 540
+    n2_hdr['sizeof_hdr'] = 540
+    assert_equal(wat(n1_hdr), None)
+    assert_equal(wat(n1_hdr.as_byteswapped()), None)
+    assert_equal(wat(n2_hdr), Nifti2Header)
+    assert_equal(wat(n2_hdr.as_byteswapped()), Nifti2Header)
+
+    n1_hdr['sizeof_hdr'] = 348
+    assert_equal(wat(n1_hdr), AnalyzeHeader)
+    assert_equal(wat(n1_hdr.as_byteswapped()), AnalyzeHeader)
+
+    n1_hdr['magic'] = b'n+1'
+    assert_equal(wat(n1_hdr), Nifti1Header)
+    assert_equal(wat(n1_hdr.as_byteswapped()), Nifti1Header)
+
+    n1_hdr['magic'] = b'ni1'
+    assert_equal(wat(n1_hdr), Nifti1Header)
+    assert_equal(wat(n1_hdr.as_byteswapped()), Nifti1Header)
+
+    # Doesn't matter what magic is if it's not a nifti1 magic
+    n1_hdr['magic'] = b'ni2'
+    assert_equal(wat(n1_hdr), AnalyzeHeader)
+
+    n1_hdr['sizeof_hdr'] = 0
+    n1_hdr['magic'] = b''
+    assert_equal(wat(n1_hdr), None)
+
+    n1_hdr['magic'] = 'n+1'
+    assert_equal(wat(n1_hdr), Nifti1Header)
+
+    n1_hdr['magic'] = 'ni1'
+    assert_equal(wat(n1_hdr), Nifti1Header)
 
 
 def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):

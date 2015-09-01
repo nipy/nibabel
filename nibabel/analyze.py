@@ -190,6 +190,7 @@ class AnalyzeHeader(LabeledWrapStruct):
     has_data_intercept = False
 
     sizeof_hdr = 348
+    sniff_size = 348
 
     def __init__(self,
                  binaryblock=None,
@@ -891,6 +892,16 @@ class AnalyzeHeader(LabeledWrapStruct):
             pixdims[1:4] = spat_dims
             rep.fix_msg = ' and '.join(fmsgs)
         return hdr, rep
+
+    @classmethod
+    def is_header(klass, binaryblock):
+        if len(binaryblock) < klass.sniff_size:
+            raise ValueError('Must pass a binary block >= %d bytes' % klass.sniff_size)
+
+        hdr = np.ndarray(shape=(), dtype=header_dtype,
+                         buffer=binaryblock[:klass.sniff_size])
+        bs_hdr = hdr.byteswap()
+        return 348 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr'])
 
 
 class AnalyzeImage(SpatialImage):
