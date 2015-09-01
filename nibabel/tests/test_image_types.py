@@ -93,10 +93,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
     For each, we expect:
        * When the file matches the expected class, things should
             either work, or fail if we're doing bad stuff.
-       * When the file is a mismatch, it should either
-         * Fail to be loaded if the image type is unrelated to the expected class
-         * Load or fail in a consistent manner, if there is a relationship between
-            the image class and expected image class.
+       * When the file is a mismatch, the functions should not throw.
     """
 
     def test_image_class(img_path, expected_img_klass):
@@ -116,24 +113,19 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 is_img, new_sniff = img_klass.is_image(img_path, sniff)
 
             if expect_success:
+                # Check that the sniff returned is appropriate.
                 new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__, msg)
                 expected_sizeof_hdr = getattr(img_klass.header_class, 'sizeof_hdr', 0)
                 current_sizeof_hdr = len(new_sniff) if new_sniff is not None else 0
                 assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
 
-            # Build a message to the user.
-            new_msg = '%s (%s) image is%s a %s image.' % (
-                basename(img_path),
-                msg,
-                '' if is_img else ' not',
-                img_klass.__name__)
-
-            if expect_success is None:
-                assert_true(True, new_msg)  # No expectation, pass if no Exception
-            # elif is_img != expect_success:
-                # print('Failed! %s' % new_msg)
-            else:
-                assert_equal(is_img, expect_success, new_msg)
+                # Check that the image type was recognized.
+                new_msg = '%s (%s) image is%s a %s image.' % (
+                    basename(img_path),
+                    msg,
+                    '' if is_img else ' not',
+                    img_klass.__name__)
+                assert_true(is_img, new_msg)
 
             if sniff_mode == 'vanilla':
                 return new_sniff
@@ -152,23 +144,20 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
             for klass in img_klasses:
                 if klass == expected_img_klass:
-                    expect_success = (sniff_mode not in ['bad_sniff'] or
+                    # Class will load unless you pass a bad sniff,
+                    #   the header actually uses the sniff, and the
+                    #   sniff check is actually something meaningful
+                    #   (we're looking at you, Minc1Header...)
+                    expect_success = (sniff_mode != 'bad_sniff' or
                                       sizeof_hdr == 0 or
                                       klass == Minc1Image)  # special case...
-                elif (issubclass(klass, expected_img_klass) or
-                      issubclass(expected_img_klass, klass)):
-                    expect_success = None  # Images are related; can't be sure.
                 else:
-                    # Usually, if the two images are unrelated, they
-                    # won't be able to be loaded. But here's a
-                    # list of manually confirmed special cases
-                    expect_success = ((expected_img_klass == Nifti1Pair and klass == Spm99AnalyzeImage) or
-                                      (expected_img_klass == Nifti2Pair and klass == Spm99AnalyzeImage))
+                    expect_success = False  # Not sure the relationships
 
-                msg = '%s / %s / %s' % (expected_img_klass.__name__, sniff_mode, str(expect_success))
-                print(msg)
                 # Reuse the sniff... but it will only change for some
                 # sniff_mode values.
+                msg = '%s/ %s/ %s' % (expected_img_klass.__name__, sniff_mode,
+                                      str(expect_success))
                 sniff = check_img(img_path, klass, sniff_mode=sniff_mode,
                                   sniff=sniff, expect_success=expect_success,
                                   msg=msg)
@@ -182,7 +171,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                                       ('small.mnc', Minc2Image),
                                       ('test.mgz', MGHImage),
                                       ('analyze.hdr', Spm2AnalyzeImage)]:
-        print('Testing: %s %s' % (img_filename, image_klass.__name__))
+        # print('Testing: %s %s' % (img_filename, image_klass.__name__))
         test_image_class(pjoin(DATA_PATH, img_filename), image_klass)
 
 
