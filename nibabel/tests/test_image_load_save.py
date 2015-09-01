@@ -33,7 +33,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_false, assert_raises
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
@@ -65,6 +65,69 @@ def test_conversion():
                 assert_array_equal(img2.get_data(), data)
                 assert_array_equal(img2.affine, affine)
 
+def test_sniff_and_guessed_image_type():
+    # Randomize the class order
+
+    def test_image_class(img_path, expected_img_klass):
+
+        def check_img(img_path, expected_img_klass, mode, sniff=None, expect_match=True, msg=''):
+            if mode == 'no_sniff':
+                is_img, _ = expected_img_klass.is_image(img_path)
+            else:
+                is_img, sniff = expected_img_klass.is_image(img_path, sniff)
+
+            msg = '%s (%s) image is%s a %s image.' % (
+                img_path,
+                msg,
+                '' if is_img else ' not',
+                klass.__name__)
+            from ..spatialimages import ImageFileError
+            try:
+                klass.from_filename(img_path)
+                # assert_true(is_img, msg)
+                print("Passed: " + msg)
+            except ImageFileError:
+                print("Failed (image load): " + msg)
+            except Exception as e:
+                print("Failed (%s): %s" % (str(e), msg))
+                # if is_img:
+                #     raise
+                # assert_false(is_img, msg)  # , issubclass(expected_img_klass, klass) and expect_match, msg)
+            return sniff
+
+        for mode in ['vanilla', 'no-sniff']:
+            if mode == 'random':
+                img_klasses = all_image_classes.copy()
+                np.random.shuffle(img_klasses)
+            else:
+                img_klasses = all_image_classes
+
+            if mode == 'no_sniff':
+                all_sniffs = [None]
+                bad_sniff = None
+            else:
+                sizeof_hdr = getattr(expected_img_klass.header_class, 'sizeof_hdr', 0)
+                all_sniffs = [None, '', 'a' * (sizeof_hdr - 1)]
+                bad_sniff = 'a' * sizeof_hdr
+
+            # Test that passing in different sniffs is OK
+            if bad_sniff is not None:
+                for klass in img_klasses:
+                    check_img(img_path, expected_img_klass, mode=mode,
+                              sniff=bad_sniff, expect_match=False,
+                              msg='%s / %s / %s' % (expected_img_klass.__name__, mode, 'bad_sniff'))
+
+            for si, sniff in enumerate(all_sniffs):
+                for klass in img_klasses:
+                        sniff = check_img(img_path, expected_img_klass, mode=mode,
+                                          sniff=sniff, expect_match=True,
+                                          msg='%s / %s / %d' % (expected_img_klass.__name__, mode, si))
+
+
+
+    # Test whether we can guess the image type from example files
+    test_image_class(pjoin(DATA_PATH, 'analyze.hdr'),
+                     Spm2AnalyzeImage)
 
 def test_save_load_endian():
     shape = (2, 4, 6)

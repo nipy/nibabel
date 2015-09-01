@@ -17,7 +17,6 @@ from .externals.netcdf import netcdf_file
 from .filename_parser import splitext_addext
 from .spatialimages import Header, SpatialImage
 from .fileslice import canonical_slicers
-from .volumeutils import BinOpener
 
 from .deprecated import FutureWarningMixin
 
