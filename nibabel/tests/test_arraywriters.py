@@ -11,24 +11,19 @@ import itertools
 import numpy as np
 
 from ..externals.six import BytesIO
-
 from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)
-
 from ..casting import int_abs, type_info, shared_range, on_powerpc
-
 from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
-
 from nose.tools import (assert_true, assert_false,
                         assert_equal, assert_not_equal,
                         assert_raises)
-
-from ..testing import assert_allclose_safely, suppress_warnings
-from ..checkwarns import ErrorWarnings
+from ..testing import (assert_allclose_safely, suppress_warnings,
+                       error_warnings)
 
 
 FLOAT_TYPES = np.sctypes['float']
@@ -524,7 +519,7 @@ def test_nan2zero():
         data_back = round_trip(aw)
         assert_array_equal(np.isnan(data_back), [True, False])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
-        with ErrorWarnings():
+        with error_warnings():
             assert_raises(DeprecationWarning,
                           aw.to_fileobj, BytesIO(), 'F', True)
             assert_raises(DeprecationWarning,
@@ -545,7 +540,7 @@ def test_nan2zero():
         astype_res = np.array(np.nan).astype(np.int32)
         assert_array_equal(data_back, [astype_res, 99])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
-        with ErrorWarnings():
+        with error_warnings():
             assert_raises(DeprecationWarning,
                           aw.to_fileobj, BytesIO(), 'F', False)
             assert_raises(DeprecationWarning,
