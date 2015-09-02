@@ -145,12 +145,9 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             for klass in img_klasses:
                 if klass == expected_img_klass:
                     # Class will load unless you pass a bad sniff,
-                    #   the header actually uses the sniff, and the
-                    #   sniff check is actually something meaningful
-                    #   (we're looking at you, Minc1Header...)
+                    #   or the header ignores the sniff
                     expect_success = (sniff_mode != 'bad_sniff' or
-                                      sizeof_hdr == 0 or
-                                      klass == Minc1Image)  # special case...
+                                      sizeof_hdr == 0)
                 else:
                     expect_success = False  # Not sure the relationships
 
