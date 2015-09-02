@@ -83,6 +83,9 @@ class clear_and_catch_warnings(warnings.catch_warnings):
         returned by the context manager. Otherwise None is returned by the
         context manager. The objects appended to the list are arguments whose
         attributes mirror the arguments to ``showwarning()``.
+
+        NOTE: nibabel difference from numpy: default is True
+
     modules : sequence, optional
         Sequence of modules for which to reset warnings registry on entry and
         restore on exit
@@ -96,7 +99,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     """
     class_modules = ()
 
-    def __init__(self, record=False, modules=()):
+    def __init__(self, record=True, modules=()):
         self.modules = set(modules).union(self.class_modules)
         self._warnreg_copies = {}
         super(clear_and_catch_warnings, self).__init__(record=record)
