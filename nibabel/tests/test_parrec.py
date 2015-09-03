@@ -23,7 +23,7 @@ from numpy.testing import (assert_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal)
 
-from ..testing import catch_warn_reset, suppress_warnings
+from ..testing import clear_and_catch_warnings, suppress_warnings
 
 from .test_arrayproxy import check_mmap
 from . import test_spatialimages as tsi
@@ -237,7 +237,7 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+    with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
         simplefilter('always')
         hdr.get_voxel_size()
     assert_equal(wlist[0].category, DeprecationWarning)
@@ -255,7 +255,7 @@ def test_get_sorted_slice_indices():
                         17, 16, 15, 14, 13, 12, 11, 10, 9,
                         26, 25, 24, 23, 22, 21, 20, 19, 18])
     # Omit last slice, only two volumes
-    with catch_warn_reset(modules=[parrec], record=True):
+    with clear_and_catch_warnings(modules=[parrec], record=True):
         hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
@@ -300,7 +300,7 @@ def test_truncated_load():
     with open(TRUNC_PAR, 'rt') as fobj:
         gen_info, slice_info = parse_PAR_header(fobj)
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
-    with catch_warn_reset(record=True) as wlist:
+    with clear_and_catch_warnings(record=True) as wlist:
         hdr = PARRECHeader(gen_info, slice_info, True)
         assert_equal(len(wlist), 1)
 
@@ -373,7 +373,7 @@ def test_truncations():
     # Drop one line, raises error
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
     # When we are permissive, we raise a warning, and drop a volume
-    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+    with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
         hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
         assert_equal(len(wlist), 1)
     assert_equal(hdr.get_data_shape(), (80, 80, 10))

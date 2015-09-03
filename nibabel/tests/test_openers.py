@@ -12,7 +12,6 @@ from gzip import GzipFile
 from bz2 import BZ2File
 from io import BytesIO, UnsupportedOperation
 
-from ..checkwarns import ErrorWarnings
 from ..py3k import asstr, asbytes
 from ..openers import Opener, ImageOpener
 from ..tmpdirs import InTemporaryDirectory
@@ -20,6 +19,8 @@ from ..volumeutils import BinOpener
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
+from ..testing import error_warnings
+
 
 class Lunk(object):
     # bare file-like for testing
@@ -84,7 +85,7 @@ def test_Opener_various():
                     assert_not_equal(fobj.fileno(), 0)
 
 def test_BinOpener():
-    with ErrorWarnings():
+    with error_warnings():
         assert_raises(DeprecationWarning,
                       BinOpener, 'test.txt', 'r')
 
