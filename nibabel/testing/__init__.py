@@ -9,6 +9,7 @@
 ''' Utilities for testing '''
 from __future__ import division, print_function
 
+import sys
 import warnings
 from os.path import dirname, abspath, join as pjoin
 
@@ -54,6 +55,16 @@ def assert_allclose_safely(a, b, match_nans=True):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b))
+
+
+def get_fresh_mod(mod_name=__name__):
+    # Get this module, with warning registry empty
+    my_mod = sys.modules[mod_name]
+    try:
+        my_mod.__warningregistry__.clear()
+    except AttributeError:
+        pass
+    return my_mod
 
 
 class clear_and_catch_warnings(warnings.catch_warnings):
