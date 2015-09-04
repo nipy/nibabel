@@ -222,15 +222,15 @@ class Nifti2Header(Nifti1Header):
         return hdr, rep
 
     @classmethod
-    def is_header(klass, binaryblock):
+    def may_contain_header(klass, binaryblock):
         if len(binaryblock) < klass.sizeof_hdr:
             raise ValueError('Must pass a binary block >= %d bytes' %
                              klass.sizeof_hdr)
 
-        hdr = np.ndarray(shape=(), dtype=header_dtype,
-                         buffer=binaryblock[:klass.sizeof_hdr])
-        bs_hdr = hdr.byteswap()
-        return 540 in (hdr['sizeof_hdr'], bs_hdr['sizeof_hdr'])
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return 540 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
 
 
 class Nifti2PairHeader(Nifti2Header):

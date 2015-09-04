@@ -877,13 +877,13 @@ class SpatialImage(object):
         return np.any([ft[1] == ext.lower() for ft in klass.files_types])
 
     @classmethod
-    def is_image(klass, filename, sniff=None):
+    def path_maybe_image(klass, filename, sniff=None):
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_exts)
 
         if not klass.is_valid_extension(ext):
             return False, sniff
-        elif not hasattr(klass.header_class, 'is_header'):
+        elif not hasattr(klass.header_class, 'may_contain_header'):
             return True, sniff
 
         # Determine the metadata location, then sniff it
@@ -909,14 +909,14 @@ class SpatialImage(object):
                 with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sizeof_hdr)
 
-            is_header = klass.header_class.is_header(sniff)
+            may_contain_header = klass.header_class.may_contain_header(sniff)
         except Exception:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)
             #   other unexpected errors.
-            is_header = False
+            may_contain_header = False
 
-        return is_header, sniff
+        return may_contain_header, sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images

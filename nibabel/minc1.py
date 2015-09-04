@@ -282,7 +282,7 @@ class MincHeader(Header):
 
 class Minc1Header(MincHeader):
     @classmethod
-    def is_header(klass, binaryblock):
+    def may_contain_header(klass, binaryblock):
         if len(binaryblock) < klass.sizeof_hdr:
             raise ValueError('Must pass a binary block >= %d bytes' %
                              klass.sizeof_hdr)

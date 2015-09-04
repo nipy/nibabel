@@ -36,7 +36,7 @@ def load(filename, **kwargs):
 
     sniff = None
     for image_klass in all_image_classes:
-        is_valid, sniff = image_klass.is_image(filename, sniff)
+        is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
         if is_valid:
             return image_klass.from_filename(filename, **kwargs)
 

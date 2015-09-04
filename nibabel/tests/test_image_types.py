@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for is_image / is_header functions '''
+''' Tests for is_image / may_contain_header functions '''
 from __future__ import division, print_function, absolute_import
 
 import copy
@@ -21,7 +21,7 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
                 MGHImage, all_image_classes)
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_raises
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 
@@ -34,7 +34,7 @@ def test_analyze_detection():
                                       AnalyzeHeader]
         for klass in all_analyze_header_klasses:
             try:
-                if klass.is_header(hdr.binaryblock):
+                if klass.may_contain_header(hdr.binaryblock):
                     return klass
                 else:
                     print('checked completed, but failed.')
@@ -106,16 +106,16 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             """Embedded function to do the actual checks expected."""
 
             if sniff_mode == 'empty' and \
-                    hasattr(img_klass.header_class, 'is_header'):
-                assert_raises(ValueError, img_klass.header_class.is_header,
-                              sniff)
+                    hasattr(img_klass.header_class, 'may_contain_header'):
+                assert_raises(ValueError,
+                              img_klass.header_class.may_contain_header, sniff)
 
             if sniff_mode == 'no_sniff':
                 # Don't pass any sniff--not even "None"
-                is_img, new_sniff = img_klass.is_image(img_path)
+                is_img, new_sniff = img_klass.path_maybe_image(img_path)
             else:
                 # Pass a sniff, but don't reuse across images.
-                is_img, new_sniff = img_klass.is_image(img_path, sniff)
+                is_img, new_sniff = img_klass.path_maybe_image(img_path, sniff)
 
             if expect_success:
                 # Check that the sniff returned is appropriate.

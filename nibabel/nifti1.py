@@ -1612,14 +1612,14 @@ class Nifti1Header(SpmAnalyzeHeader):
         return hdr, rep
 
     @classmethod
-    def is_header(klass, binaryblock):
+    def may_contain_header(klass, binaryblock):
         if len(binaryblock) < klass.sizeof_hdr:
             raise ValueError('Must pass a binary block >= %d bytes' %
                              klass.sizeof_hdr)
 
-        hdr = np.ndarray(shape=(), dtype=header_dtype,
-                         buffer=binaryblock[:klass.sizeof_hdr])
-        return hdr['magic'] in (b'ni1', b'n+1')
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        return hdr_struct['magic'] in (b'ni1', b'n+1')
 
 
 class Nifti1PairHeader(Nifti1Header):
