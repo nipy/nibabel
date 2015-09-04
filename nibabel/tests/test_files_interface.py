@@ -83,7 +83,7 @@ def test_files_interface():
 
 def test_round_trip():
     # write an image to files
-    data = np.arange(24, dtype='i4').reshape((2,3,4))
+    data = np.arange(24, dtype='i4').reshape((2, 3, 4))
     aff = np.eye(4)
     klasses = filter(lambda klass: klass.rw, all_image_classes)
     for klass in klasses:

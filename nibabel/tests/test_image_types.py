@@ -21,10 +21,9 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
                 MGHImage, all_image_classes)
 
-from nose.tools import assert_true, assert_equal, assert_false, assert_raises
+from nose.tools import assert_true, assert_equal
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
-
 
 
 def test_analyze_detection():
@@ -36,7 +35,7 @@ def test_analyze_detection():
         for klass in all_analyze_header_klasses:
             try:
                 if klass.is_header(hdr.binaryblock):
-                   return klass
+                    return klass
                 else:
                     print('checked completed, but failed.')
             except ValueError as ve:
@@ -97,12 +96,13 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
     """
 
     def test_image_class(img_path, expected_img_klass):
-        """ Embedded function to compare an image of one image class to all others.
+        """ Compare an image of one image class to all others.
 
-        The function should make sure that it loads the image with the expected class,
-        but failing when given a bad sniff (when the sniff is used)."""
+        The function should make sure that it loads the image with the expected
+        class, but failing when given a bad sniff (when the sniff is used)."""
 
-        def check_img(img_path, img_klass, sniff_mode, sniff, expect_success, msg):
+        def check_img(img_path, img_klass, sniff_mode, sniff, expect_success,
+                      msg):
             """Embedded function to do the actual checks expected."""
 
             if sniff_mode == 'no_sniff':
@@ -114,9 +114,11 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
             if expect_success:
                 # Check that the sniff returned is appropriate.
-                new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__, msg)
-                expected_sizeof_hdr = getattr(img_klass.header_class, 'sizeof_hdr', 0)
-                current_sizeof_hdr = len(new_sniff) if new_sniff is not None else 0
+                new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__,
+                                                            msg)
+                expected_sizeof_hdr = getattr(img_klass.header_class,
+                                              'sizeof_hdr', 0)
+                current_sizeof_hdr = 0 if new_sniff is None else len(new_sniff)
                 assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
 
                 # Check that the image type was recognized.

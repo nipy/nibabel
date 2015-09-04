@@ -83,6 +83,7 @@ class_map = ClassMapDict(
          'makeable': False,
          'rw': False})
 
+
 class ExtMapRecoder(Recoder):
     def __getitem__(self, *args, **kwargs):
         warnings.warn("ext_map is deprecated.", DeprecationWarning)

@@ -878,12 +878,13 @@ class SpatialImage(object):
 
     @classmethod
     def is_valid_filename(klass, filename):
-        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
+        _, ext, _ = splitext_addext(filename, klass._compressed_exts)
         return klass.is_valid_extension(ext)
 
     @classmethod
     def is_image(klass, filename, sniff=None):
-        froot, ext, trailing = splitext_addext(filename, klass._compressed_exts)
+        froot, ext, trailing = splitext_addext(filename,
+                                               klass._compressed_exts)
 
         if not klass.is_valid_extension(ext):
             return False, sniff
@@ -898,7 +899,8 @@ class SpatialImage(object):
             # Search for an acceptable existing header;
             #   could be compressed or not...
             for ext in header_exts:
-                for tr_ext in np.unique([trailing, ''] + list(klass._compressed_exts)):
+                for tr_ext in np.unique([trailing, ''] +
+                                        list(klass._compressed_exts)):
                     metadata_filename = froot + ext + tr_ext
                     if os.path.exists(metadata_filename):
                         break
@@ -907,13 +909,13 @@ class SpatialImage(object):
             klass_sizeof_hdr = getattr(klass.header_class, 'sizeof_hdr', 0)
 
             if not sniff or len(sniff) < klass_sizeof_hdr:
-                # 1024 == large size, for efficiency (could iterate over imageclasses).
+                # 1024 bytes is currently larger than all headers
                 sizeof_hdr = np.max([1024, klass_sizeof_hdr])
                 with ImageOpener(metadata_filename, 'rb') as fobj:
                     sniff = fobj.read(sizeof_hdr)
 
             is_header = klass.header_class.is_header(sniff)
-        except Exception as e:
+        except Exception:
             # Can happen if: file doesn't exist,
             #   filesize < necessary sniff size (this happens!)
             #   other unexpected errors.

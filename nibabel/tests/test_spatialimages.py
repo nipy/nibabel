@@ -371,9 +371,11 @@ class MmapImageMixin(object):
                     back_img = func(param1, **kwargs)
                     back_data = back_img.get_data()
                     if expected_mode is None:
-                        assert_false(isinstance(back_data, np.memmap), 'Should not be a %s' % img_klass.__name__)
+                        assert_false(isinstance(back_data, np.memmap),
+                                     'Should not be a %s' % img_klass.__name__)
                     else:
-                        assert_true(isinstance(back_data, np.memmap), 'Not a %s' % img_klass.__name__)
+                        assert_true(isinstance(back_data, np.memmap),
+                                    'Not a %s' % img_klass.__name__)
                         if self.check_mmap_mode:
                             assert_equal(back_data.mode, expected_mode)
                     del back_img, back_data
