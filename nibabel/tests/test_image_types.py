@@ -26,75 +26,16 @@ from nose.tools import assert_true, assert_raises
 DATA_PATH = pjoin(dirname(__file__), 'data')
 
 
-def test_analyze_detection():
-    # Test detection of Analyze, Nifti1 and Nifti2
-    # Algorithm is as described in loadsave:which_analyze_type
-    def wat(hdr):
-        all_analyze_header_klasses = [Nifti1Header, Nifti2Header,
-                                      AnalyzeHeader]
-        for klass in all_analyze_header_klasses:
-            try:
-                if klass.may_contain_header(hdr.binaryblock):
-                    return klass
-                else:
-                    print('checked completed, but failed.')
-            except ValueError as ve:
-                print(ve)
-                continue
-        return None
-        # return nils.which_analyze_type(hdr.binaryblock)
-
-    n1_hdr = Nifti1Header(b'\0' * 348, check=False)
-    n2_hdr = Nifti2Header(b'\0' * 540, check=False)
-    assert_equal(wat(n1_hdr), None)
-
-    n1_hdr['sizeof_hdr'] = 540
-    n2_hdr['sizeof_hdr'] = 540
-    assert_equal(wat(n1_hdr), None)
-    assert_equal(wat(n1_hdr.as_byteswapped()), None)
-    assert_equal(wat(n2_hdr), Nifti2Header)
-    assert_equal(wat(n2_hdr.as_byteswapped()), Nifti2Header)
-
-    n1_hdr['sizeof_hdr'] = 348
-    assert_equal(wat(n1_hdr), AnalyzeHeader)
-    assert_equal(wat(n1_hdr.as_byteswapped()), AnalyzeHeader)
-
-    n1_hdr['magic'] = b'n+1'
-    assert_equal(wat(n1_hdr), Nifti1Header)
-    assert_equal(wat(n1_hdr.as_byteswapped()), Nifti1Header)
-
-    n1_hdr['magic'] = b'ni1'
-    assert_equal(wat(n1_hdr), Nifti1Header)
-    assert_equal(wat(n1_hdr.as_byteswapped()), Nifti1Header)
-
-    # Doesn't matter what magic is if it's not a nifti1 magic
-    n1_hdr['magic'] = b'ni2'
-    assert_equal(wat(n1_hdr), AnalyzeHeader)
-
-    n1_hdr['sizeof_hdr'] = 0
-    n1_hdr['magic'] = b''
-    assert_equal(wat(n1_hdr), None)
-
-    n1_hdr['magic'] = 'n+1'
-    assert_equal(wat(n1_hdr), Nifti1Header)
-
-    n1_hdr['magic'] = 'ni1'
-    assert_equal(wat(n1_hdr), Nifti1Header)
-
-
 def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
-    """
-    Loop over all test cases:
-      * whether a sniff is provided or not
-      * randomizing the order of image classes
-      * over all known image types
+    # Loop over all test cases:
+    #   * whether a sniff is provided or not
+    #   * randomizing the order of image classes
+    #   * over all known image types
 
-    For each, we expect:
-       * When the file matches the expected class, things should
-            either work, or fail if we're doing bad stuff.
-       * When the file is a mismatch, the functions should not throw.
-    """
-
+    # For each, we expect:
+    #    * When the file matches the expected class, things should
+    #         either work, or fail if we're doing bad stuff.
+    #    * When the file is a mismatch, the functions should not throw.
     def test_image_class(img_path, expected_img_klass):
         """ Compare an image of one image class to all others.
 
