@@ -21,7 +21,7 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
                 MGHImage, all_image_classes)
 
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 
@@ -105,6 +105,11 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                       msg):
             """Embedded function to do the actual checks expected."""
 
+            if sniff_mode == 'empty' and \
+                    hasattr(img_klass.header_class, 'is_header'):
+                assert_raises(ValueError, img_klass.header_class.is_header,
+                              sniff)
+
             if sniff_mode == 'no_sniff':
                 # Don't pass any sniff--not even "None"
                 is_img, new_sniff = img_klass.is_image(img_path)
@@ -140,9 +145,9 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 vanilla=None,  # use the sniff of the previous item
                 no_sniff=None,  # Don't pass a sniff
                 none=None,  # pass None as the sniff, should query in fn
-                empty='',  # pass an empty sniff, should query in fn
-                irrelevant='a' * (sizeof_hdr - 1),  # A too-small sniff, query
-                bad_sniff='a' * sizeof_hdr).items():  # Bad sniff, should fail.
+                empty=b'',  # pass an empty sniff, should query in fn
+                irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
+                bad_sniff=b'a' * sizeof_hdr).items():  # Bad sniff, should fail
 
             for klass in img_klasses:
                 if klass == expected_img_klass:

@@ -877,11 +877,6 @@ class SpatialImage(object):
         return np.any([ft[1] == ext.lower() for ft in klass.files_types])
 
     @classmethod
-    def is_valid_filename(klass, filename):
-        _, ext, _ = splitext_addext(filename, klass._compressed_exts)
-        return klass.is_valid_extension(ext)
-
-    @classmethod
     def is_image(klass, filename, sniff=None):
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_exts)
