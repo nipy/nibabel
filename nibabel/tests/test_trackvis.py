@@ -591,3 +591,39 @@ def test_tvfile_io():
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
     assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))
+
+
+def test_read_truncated():
+    # Test behavior when last track contains fewer points than specified
+    out_f = BytesIO()
+    xyz0 = np.tile(np.arange(5).reshape(5, 1), (1, 3))
+    xyz1 = np.tile(np.arange(5).reshape(5, 1) + 10, (1, 3))
+    streams = [(xyz0, None, None), (xyz1, None, None)]
+    tv.write(out_f, streams, {})
+    # Truncate the last stream by one point
+    value = out_f.getvalue()[:-(3 * 4)]
+    new_f = BytesIO(value)
+    # By default, raises a DataError
+    assert_raises(tv.DataError, tv.read, new_f)
+    # This corresponds to strict mode
+    new_f.seek(0)
+    assert_raises(tv.DataError, tv.read, new_f, strict=True)
+    # lenient error mode lets this error pass, with truncated track
+    short_streams = [(xyz0, None, None), (xyz1[:-1], None, None)]
+    new_f.seek(0)
+    streams2, hdr = tv.read(new_f, strict=False)
+    assert_true(streamlist_equal(streams2, short_streams))
+    # Check that lenient works when number of tracks is 0, where 0 signals to
+    # the reader to read until the end of the file.
+    again_hdr = hdr.copy()
+    assert_equal(again_hdr['n_count'], 2)
+    again_hdr['n_count'] = 0
+    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_f = BytesIO(again_bytes)
+    streams2, _ = tv.read(again_f, strict=False)
+    assert_true(streamlist_equal(streams2, short_streams))
+    # Set count to one above actual number of tracks, always raise error
+    again_hdr['n_count'] = 3
+    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_f = BytesIO(again_bytes)
+    assert_raises(tv.DataError, tv.read, again_f, strict=False)
