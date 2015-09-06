@@ -820,7 +820,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         quat = self.get_qform_quaternion()
         R = quat2mat(quat)
         vox = hdr['pixdim'][1:4].copy()
-        if np.any(vox) < 0:
+        if np.any(vox < 0):
             raise HeaderDataError('pixdims[1,2,3] should be positive')
         qfac = hdr['pixdim'][0]
         if qfac not in (-1, 1):
