@@ -325,6 +325,7 @@ class SpatialImage(object):
     ''' Template class for images '''
     header_class = Header
     files_types = (('image', None),)
+    alternate_exts = ()  # Modified by @ImageOpener.register_ext_from_image
     _compressed_exts = ()
 
     makeable = True  # Used in test code
@@ -874,7 +875,8 @@ class SpatialImage(object):
 
     @classmethod
     def is_valid_extension(klass, ext):
-        return np.any([ft[1] == ext.lower() for ft in klass.files_types])
+        valid = tuple(ft[1] for ft in klass.files_types) + klass.alternate_exts
+        return ext.lower() in valid
 
     @classmethod
     def path_maybe_image(klass, filename, sniff=None):
