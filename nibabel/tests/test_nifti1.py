@@ -448,6 +448,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_true, ehdr['qform_code'] == xfas['scanner']
         ehdr.set_qform(A, xfas['aligned'])
         assert_true, ehdr['qform_code'] == xfas['aligned']
+        # Test pixdims[1,2,3] are checked for negatives
+        for dims in ((-1, 1, 1), (1, -1, 1), (1, 1, -1)):
+            ehdr['pixdim'][1:4] = dims
+            assert_raises(HeaderDataError, ehdr.get_qform)
 
     def test_sform(self):
         # Test roundtrip case
