@@ -12,9 +12,9 @@ Format described here:
 
     http://www.nitrc.org/forum/message.php?msg_id=3738
 
-Stuff about the CIFTI file format here:
+Stuff about the CIFTI2 file format here:
 
-    http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+    http://www.nitrc.org/plugins/mwiki/index.php/cifti2:ConnectivityMatrixFileFormats
 
 '''
 from __future__ import division, print_function, absolute_import
@@ -92,7 +92,7 @@ def _value_or_make_klass(val, klass):
         return _value_if_klass(val, klass)
 
 
-class CiftiMetaData(xml.XmlSerializable):
+class Cifti2MetaData(xml.XmlSerializable):
     """ A list of key-value pairs stored in the list self.data """
 
     def __init__(self, nvpair=None):
@@ -163,7 +163,7 @@ class CiftiMetaData(xml.XmlSerializable):
         return metadata
 
 
-class CiftiLabelTable(xml.XmlSerializable):
+class Cifti2LabelTable(xml.XmlSerializable):
 
     def __init__(self):
         self.labels = []
@@ -189,7 +189,7 @@ class CiftiLabelTable(xml.XmlSerializable):
         print(self.get_labels_as_dict())
 
 
-class CiftiLabel(xml.XmlSerializable):
+class Cifti2Label(xml.XmlSerializable):
 
     def __init__(self, key=0, label='', red=None,
                  green=None, blue=None, alpha=None):
@@ -220,14 +220,14 @@ class CiftiLabel(xml.XmlSerializable):
         return lab
 
 
-class CiftiNamedMap(xml.XmlSerializable):
+class Cifti2NamedMap(xml.XmlSerializable):
     """Class for Named Map"""
     map_name = str
 
     def __init__(self, map_name=None, metadata=None, label_table=None):
         self.map_name = map_name
-        self.metadata = metadata  # _value_or_make_klass(metadata, CiftiMetaData)
-        self.label_table = label_table  # _value_or_make_klass(label_table, CiftiLabelTable)
+        self.metadata = metadata  # _value_or_make_klass(metadata, Cifti2MetaData)
+        self.label_table = label_table  # _value_or_make_klass(label_table, Cifti2LabelTable)
 
     @property
     def metadata(self):
@@ -239,13 +239,13 @@ class CiftiNamedMap(xml.XmlSerializable):
 
         Parameters
         ----------
-        meta : CiftiMetaData
+        meta : Cifti2MetaData
 
         Returns
         -------
         None
         """
-        self._metadata = _value_if_klass(metadata, CiftiMetaData)
+        self._metadata = _value_if_klass(metadata, Cifti2MetaData)
 
     @property
     def label_table(self):
@@ -257,13 +257,13 @@ class CiftiNamedMap(xml.XmlSerializable):
 
         Parameters
         ----------
-        label_table : CiftiLabelTable
+        label_table : Cifti2LabelTable
 
         Returns
         -------
         None
         """
-        self._label_table = _value_if_klass(label_table, CiftiLabelTable)
+        self._label_table = _value_if_klass(label_table, Cifti2LabelTable)
 
     def _to_xml_element(self):
         named_map = xml.Element('NamedMap')
@@ -276,7 +276,7 @@ class CiftiNamedMap(xml.XmlSerializable):
         return named_map
 
 
-class CiftiSurface(xml.XmlSerializable):
+class Cifti2Surface(xml.XmlSerializable):
     """Class for Surface """
     # brainStructure = str
     # surfaceNumberOfVertices = int
@@ -293,7 +293,7 @@ class CiftiSurface(xml.XmlSerializable):
         return surf
 
 
-class CiftiVoxelIndicesIJK(xml.XmlSerializable):
+class Cifti2VoxelIndicesIJK(xml.XmlSerializable):
     # indices = np.array
 
     def __init__(self, indices=None):
@@ -309,7 +309,7 @@ class CiftiVoxelIndicesIJK(xml.XmlSerializable):
         return vox_ind
 
 
-class CiftiVertices(xml.XmlSerializable):
+class Cifti2Vertices(xml.XmlSerializable):
 
     # brain_structure = str
     # vertices = np.array
@@ -328,7 +328,7 @@ class CiftiVertices(xml.XmlSerializable):
         return vertices
 
 
-class CiftiParcel(object):
+class Cifti2Parcel(object):
     """Class for Parcel"""
     # name = str
 
@@ -343,21 +343,21 @@ class CiftiParcel(object):
 
     @voxel_indices_ijk.setter
     def voxel_indices_ijk(self, value):
-        self._voxel_indices_ijk = _value_if_klass(value, CiftiVoxelIndicesIJK)
+        self._voxel_indices_ijk = _value_if_klass(value, Cifti2VoxelIndicesIJK)
 
     def add_cifti_vertices(self, vertices):
-        """ Adds a vertices to the CiftiParcel
+        """ Adds a vertices to the Cifti2Parcel
 
         Parameters
         ----------
-        vertices : CiftiVertices
+        vertices : Cifti2Vertices
         """
-        if not isinstance(vertices, CiftiVertices):
-            raise TypeError("Not a valid CiftiVertices instance")
+        if not isinstance(vertices, Cifti2Vertices):
+            raise TypeError("Not a valid Cifti2Vertices instance")
         self.vertices.append(vertices)
 
-    def remove_cifti_vertices(self, ith):
-        """ Removes the ith vertices element from the CiftiParcel """
+    def remove_cifti2_vertices(self, ith):
+        """ Removes the ith vertices element from the Cifti2Parcel """
         self.vertices.pop(ith)
 
     def _to_xml_element(self):
@@ -371,7 +371,7 @@ class CiftiParcel(object):
         return parcel
 
 
-class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
+class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
 
     # meterExponent = int
     # matrix = np.array
@@ -391,7 +391,7 @@ class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
         return trans
 
 
-class CiftiVolume(object):
+class Cifti2Volume(object):
 
     # volumeDimensions = np.array
     # transformationMatrixVoxelIndicesIJKtoXYZ = np.array
@@ -409,7 +409,7 @@ class CiftiVolume(object):
         return volume
 
 
-class CiftiVertexIndices(object):
+class Cifti2VertexIndices(object):
     # indices = np.array
 
     def __init__(self, indices=None):
@@ -422,7 +422,7 @@ class CiftiVertexIndices(object):
         return vert_indices
 
 
-class CiftiBrainModel(object):
+class Cifti2BrainModel(object):
 
     # index_offset = int
     # index_count = int
@@ -450,7 +450,7 @@ class CiftiBrainModel(object):
 
     @voxel_indices_ijk.setter
     def voxel_indices_ijk(self, value):
-        self._voxel_indices_ijk = _value_if_klass(value, CiftiVoxelIndicesIJK)
+        self._voxel_indices_ijk = _value_if_klass(value, Cifti2VoxelIndicesIJK)
 
     @property
     def vertex_indices(self):
@@ -458,7 +458,7 @@ class CiftiBrainModel(object):
 
     @vertex_indices.setter
     def vertex_indices(self, value):
-        self._vertex_indices = _value_if_klass(value, CiftiVertexIndices)
+        self._vertex_indices = _value_if_klass(value, Cifti2VertexIndices)
 
     def _to_xml_element(self):
         brain_model = xml.Element('BrainModel')
@@ -476,7 +476,7 @@ class CiftiBrainModel(object):
         return brain_model
 
 
-class CiftiMatrixIndicesMap(object):
+class Cifti2MatrixIndicesMap(object):
     """Class for Matrix Indices Map
 
     Provides a mapping between matrix indices and their interpretation.
@@ -512,81 +512,81 @@ class CiftiMatrixIndicesMap(object):
         self.named_maps = named_maps if named_maps is not None else []
         self.parcels = parcels if parcels is not None else []
         self.surfaces = surfaces if surfaces is not None else []
-        self.volume = volume  # _value_or_make_klass(volume, CiftiVolume)
+        self.volume = volume  # _value_or_make_klass(volume, Cifti2Volume)
 
     def add_cifti_brain_model(self, brain_model):
-        """ Adds a brain model to the CiftiMatrixIndicesMap
+        """ Adds a brain model to the Cifti2MatrixIndicesMap
 
         Parameters
         ----------
-        brain_model : CiftiBrainModel
+        brain_model : Cifti2BrainModel
         """
-        if not isinstance(brain_model, CiftiBrainModel):
-            raise TypeError("Not a valid CiftiBrainModel instance")
+        if not isinstance(brain_model, Cifti2BrainModel):
+            raise TypeError("Not a valid Cifti2BrainModel instance")
         self.brain_models.append(brain_model)
 
     def remove_cifti_brain_model(self, ith):
-        """ Removes the ith brain model element from the CiftiMatrixIndicesMap """
+        """ Removes the ith brain model element from the Cifti2MatrixIndicesMap """
         self.brain_models.pop(ith)
 
     def add_cifti_named_map(self, named_map):
-        """ Adds a named map to the CiftiMatrixIndicesMap
+        """ Adds a named map to the Cifti2MatrixIndicesMap
 
         Parameters
         ----------
-        named_map : CiftiMatrixIndicesMap
+        named_map : Cifti2MatrixIndicesMap
         """
-        if isinstance(named_map, CiftiMatrixIndicesMap):
-            raise TypeError("Not a valid CiftiMatrixIndicesMap instance")
+        if isinstance(named_map, Cifti2MatrixIndicesMap):
+            raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
         self.named_maps.append(named_map)
 
     def remove_cifti_named_map(self, ith):
-        """ Removes the ith named_map element from the CiftiMatrixIndicesMap """
+        """ Removes the ith named_map element from the Cifti2MatrixIndicesMap """
         self.named_maps.pop(ith)
 
     def add_cifti_parcel(self, parcel):
-        """ Adds a parcel to the CiftiMatrixIndicesMap
+        """ Adds a parcel to the Cifti2MatrixIndicesMap
 
         Parameters
         ----------
-        parcel : CiftiParcel
+        parcel : Cifti2Parcel
         """
-        if not isinstance(parcel, CiftiParcel):
-            raise TypeError("Not a valid CiftiParcel instance")
+        if not isinstance(parcel, Cifti2Parcel):
+            raise TypeError("Not a valid Cifti2Parcel instance")
         self.parcels.append(parcel)
 
-    def remove_cifti_parcel(self, ith):
-        """ Removes the ith parcel element from the CiftiMatrixIndicesMap """
+    def remove_cifti2_parcel(self, ith):
+        """ Removes the ith parcel element from the Cifti2MatrixIndicesMap """
         self.parcels.pop(ith)
 
     def add_cifti_surface(self, surface):
-        """ Adds a surface to the CiftiMatrixIndicesMap
+        """ Adds a surface to the Cifti2MatrixIndicesMap
 
         Parameters
         ----------
-        surface : CiftiSurface
+        surface : Cifti2Surface
         """
-        if not isinstance(surface, CiftiSurface):
-            raise TypeError("Not a valid CiftiSurface instance")
+        if not isinstance(surface, Cifti2Surface):
+            raise TypeError("Not a valid Cifti2Surface instance")
         self.surfaces.append(surface)
 
-    def remove_cifti_surface(self, ith):
-        """ Removes the ith surface element from the CiftiMatrixIndicesMap """
+    def remove_cifti2_surface(self, ith):
+        """ Removes the ith surface element from the Cifti2MatrixIndicesMap """
         self.surfaces.pop(ith)
 
-    def set_cifti_volume(self, volume):
-        """ Adds a volume to the CiftiMatrixIndicesMap
+    def set_cifti2_volume(self, volume):
+        """ Adds a volume to the Cifti2MatrixIndicesMap
 
         Parameters
         ----------
-        volume : CiftiVolume
+        volume : Cifti2Volume
         """
-        if not isinstance(volume, CiftiVolume):
-            raise TypeError("Not a valid CiftiVolume instance")
+        if not isinstance(volume, Cifti2Volume):
+            raise TypeError("Not a valid Cifti2Volume instance")
         self.volume = volume
 
-    def remove_cifti_volume(self):
-        """ Removes the volume element from the CiftiMatrixIndicesMap """
+    def remove_cifti2_volume(self):
+        """ Removes the volume element from the Cifti2MatrixIndicesMap """
         self.volume = None
 
     def _to_xml_element(self):
@@ -618,7 +618,7 @@ class CiftiMatrixIndicesMap(object):
         return mat_ind_map
 
 
-class CiftiMatrix(xml.XmlSerializable):
+class Cifti2Matrix(xml.XmlSerializable):
     def __init__(self, meta=None, mims=None):
         self.mims = mims if mims is not None else []
         self.metadata = meta
@@ -629,34 +629,34 @@ class CiftiMatrix(xml.XmlSerializable):
 
     @metadata.setter
     def metadata(self, meta):
-        """ Set the metadata for this CiftiHeader
+        """ Set the metadata for this Cifti2Header
 
         Parameters
         ----------
-        meta : CiftiMetaData
+        meta : Cifti2MetaData
 
         Returns
         -------
         None
         """
-        if meta is not None and not isinstance(meta, CiftiMetaData):
-            raise TypeError("Not a valid CiftiMetaData instance")
+        if meta is not None and not isinstance(meta, Cifti2MetaData):
+            raise TypeError("Not a valid Cifti2MetaData instance")
         self._meta = meta
 
     def add_cifti_matrix_indices_map(self, mim):
-        """ Adds a matrix indices map to the CiftiMatrix
+        """ Adds a matrix indices map to the Cifti2Matrix
 
         Parameters
         ----------
-        mim : CiftiMatrixIndicesMap
+        mim : Cifti2MatrixIndicesMap
         """
-        if isinstance(mim, CiftiMatrixIndicesMap):
+        if isinstance(mim, Cifti2MatrixIndicesMap):
             self.mims.append(mim)
         else:
-            raise TypeError("Not a valid CiftiMatrixIndicesMap instance")
+            raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
 
-    def remove_cifti_matrix_indices_map(self, ith):
-        """ Removes the ith matrix indices map element from the CiftiMatrix """
+    def remove_cifti2_matrix_indices_map(self, ith):
+        """ Removes the ith matrix indices map element from the Cifti2Matrix """
         self.mims.pop(ith)
 
     def _to_xml_element(self):
@@ -669,14 +669,16 @@ class CiftiMatrix(xml.XmlSerializable):
         return mat
 
 
-class CiftiHeader(FileBasedHeader, xml.XmlSerializable):
+class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     ''' Class for Cifti2 header extension '''
 
     # version = str
 
     def __init__(self, matrix=None, version="2.0"):
+        FileBasedHeader.__init__(self)
+        xml.XmlSerializable.__init__(self)
         if matrix is None:
-            self.matrix = CiftiMatrix()
+            self.matrix = Cifti2Matrix()
         else:
             self.matrix = matrix
         self.version = version
@@ -695,26 +697,26 @@ class CiftiHeader(FileBasedHeader, xml.XmlSerializable):
             return klass()
         if type(header) == klass:
             return header.copy()
-        raise ValueError('header is not a CiftiHeader')
+        raise ValueError('header is not a Cifti2Header')
 
     @classmethod
     def may_contain_header(klass, binaryblock):
-        from .parse_cifti_fast import _CiftiAsNiftiHeader
-        return _CiftiAsNiftiHeader.may_contain_header(binaryblock)
+        from .parse_cifti2_fast import _Cifti2AsNiftiHeader
+        return _Cifti2AsNiftiHeader.may_contain_header(binaryblock)
 
 
-class CiftiImage(FileBasedImage):
+class Cifti2Image(FileBasedImage):
     # It is a Nifti2Image, but because Nifti2Image object
     # contains both the *format* and the assumption that it's
     # a spatial image, we can't inherit directly.
-    header_class = CiftiHeader
+    header_class = Cifti2Header
     valid_exts = Nifti2Image.valid_exts
     files_types = Nifti2Image.files_types
     makeable = False
     rw = True
 
     def __init__(self, data=None, header=None, nifti_header=None):
-        self._header = header or CiftiHeader()
+        self._header = header or Cifti2Header()
         self.data = data
         self.extra = nifti_header
 
@@ -723,34 +725,34 @@ class CiftiImage(FileBasedImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        """ Load a Gifti image from a file_map
+        """ Load a Cifti2 image from a file_map
 
         Parameters
         file_map : string
 
         Returns
         -------
-        img : GiftiImage
-            Returns a GiftiImage
+        img : Cifti2Image
+            Returns a Cifti2Image
          """
-        from .parse_cifti_fast import _CiftiAsNiftiImage, CiftiExtension
-        nifti_img = _CiftiAsNiftiImage.from_file_map(file_map)
+        from .parse_cifti2_fast import _Cifti2AsNiftiImage, Cifti2Extension
+        nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map)
 
-        # Get cifti header
+        # Get cifti2 header
         cifti_header = reduce(lambda accum, item:
                               item.get_content()
-                              if isinstance(item, CiftiExtension)
+                              if isinstance(item, Cifti2Extension)
                               else accum,
                               nifti_img.get_header().extensions or [],
                               None)
         if cifti_header is None:
-            raise ValueError(('Nifti2 header does not contain a CIFTI '
-                              'extension'))
+            raise ValueError('Nifti2 header does not contain a CIFTI2 '
+                             'extension')
 
         # Construct cifti image
-        cifti_img = CiftiImage(data=np.squeeze(nifti_img.get_data()),
-                               header=cifti_header,
-                               nifti_header=nifti_img.get_header())
+        cifti_img = Cifti2Image(data=np.squeeze(nifti_img.get_data()),
+                                header=cifti_header,
+                                nifti_header=nifti_img.get_header())
         cifti_img.file_map = nifti_img.file_map
         return cifti_img
 
@@ -765,24 +767,24 @@ class CiftiImage(FileBasedImage):
         -------
         None
         """
-        from .parse_cifti_fast import CiftiExtension
+        from .parse_cifti2_fast import Cifti2Extension
         header = self.extra
-        extension = CiftiExtension(content=self.header.to_xml().encode())
+        extension = Cifti2Extension(content=self.header.to_xml().encode())
         header.extensions.append(extension)
         data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
         img = Nifti2Image(data, None, header)
         img.to_file_map(file_map or self.file_map)
 
 
-class CiftiDenseDataSeriesHeader(CiftiHeader):
+class Cifti2DenseDataSeriesHeader(Cifti2Header):
 
     @classmethod
     def may_contain_header(klass, binaryblock):
-        from .parse_cifti_fast import _CiftiDenseDataSeriesNiftiHeader
-        return _CiftiDenseDataSeriesNiftiHeader.may_contain_header(binaryblock)
+        from .parse_cifti2_fast import _Cifti2DenseDataSeriesNiftiHeader
+        return _Cifti2DenseDataSeriesNiftiHeader.may_contain_header(binaryblock)
 
 
-class CiftiDenseDataSeries(CiftiImage):
+class Cifti2DenseDataSeries(Cifti2Image):
     """Class to handle Dense Data Series
     Dense Data Series
     -----------------
@@ -800,7 +802,7 @@ class CiftiDenseDataSeries(CiftiImage):
     series of sampling depths along the surface normal from the white to pial
     surface.  It retains the 't' in dtseries from CIFTI-1 naming conventions.
     """
-    header_class = CiftiDenseDataSeriesHeader
+    header_class = Cifti2DenseDataSeriesHeader
     valid_exts = ('.dtseries.nii',)
     files_types = (('image', '.dtseries.nii'),)
 
@@ -815,7 +817,7 @@ def load(filename):
 
     Returns
     -------
-    img : CiftiImage
+    img : Cifti2Image
         cifti image instance
 
     Raises
@@ -823,8 +825,8 @@ def load(filename):
     ImageFileError: if `filename` doesn't look like cifti
     IOError : if `filename` does not exist
     """
-    from .parse_cifti_fast import _CiftiAsNiftiImage
-    return _CiftiAsNiftiImage.from_filename(filename)
+    from .parse_cifti2_fast import _Cifti2AsNiftiImage
+    return _Cifti2AsNiftiImage.from_filename(filename)
 
 
 def save(img, filename):
@@ -835,4 +837,4 @@ def save(img, filename):
     filename : str
         filename to which to save image
     """
-    CiftiImage.instance_to_filename(img, filename)
+    Cifti2Image.instance_to_filename(img, filename)

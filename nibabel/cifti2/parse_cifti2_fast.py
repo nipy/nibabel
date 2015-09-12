@@ -12,13 +12,13 @@ from distutils.version import LooseVersion
 
 import numpy as np
 
-from .cifti import (CiftiHeader, CiftiMetaData, CiftiLabel,
-                    CiftiLabelTable, CiftiVertexIndices,
-                    CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
-                    CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
-                    CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,
-                    CiftiVertices, CiftiVolume, CIFTI_BrainStructures,
-                    CIFTI_MODEL_TYPES)  # CiftiDenseDataSeries
+from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
+                     Cifti2LabelTable, Cifti2VertexIndices,
+                     Cifti2VoxelIndicesIJK, Cifti2BrainModel, Cifti2Matrix,
+                     Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
+                     Cifti2Surface, Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
+                     Cifti2Vertices, Cifti2Volume, CIFTI_BrainStructures,
+                     CIFTI_MODEL_TYPES)
 from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import BytesIO
@@ -26,27 +26,25 @@ from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
 from ..nifti2 import Nifti2Header, Nifti2Image
 
 
-class CiftiExtension(Nifti1Extension):
+class Cifti2Extension(Nifti1Extension):
     code = 32
 
     def __init__(self, code=None, content=None):
         Nifti1Extension.__init__(self, code=code or self.code, content=content)
 
     def _unmangle(self, value):
-        from .parse_cifti_fast import CiftiParser
-
-        parser = CiftiParser()
+        parser = Cifti2Parser()
         parser.parse(string=value)
         self._content = parser.header
         return self._content
 
     def _mangle(self, value):
-        if not isinstance(value, CiftiHeader):
-            raise ValueError('Can only mangle a CiftiHeader.')
+        if not isinstance(value, Cifti2Header):
+            raise ValueError('Can only mangle a Cifti2Header.')
         return value.to_xml()
 
 extension_codes.add_codes((
-    (CiftiExtension.code, "cifti", CiftiExtension),))
+    (Cifti2Extension.code, 'cifti', Cifti2Extension),))
 
 intent_codes.add_codes((
     # The codes below appear on the CIFTI-2 standard
@@ -76,7 +74,7 @@ intent_codes.add_codes((
      'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR')))
 
 
-class _CiftiAsNiftiHeader(Nifti2Header):
+class _Cifti2AsNiftiHeader(Nifti2Header):
     ''' Class for Cifti2 header extension '''
 
     @classmethod
@@ -88,8 +86,8 @@ class _CiftiAsNiftiHeader(Nifti2Header):
         return intent_code >= 3000 and intent_code < 3100  # and intent_code != 3002
 
 
-class _CiftiAsNiftiImage(Nifti2Image):
-    header_class = _CiftiAsNiftiHeader
+class _Cifti2AsNiftiImage(Nifti2Image):
+    header_class = _Cifti2AsNiftiHeader
     files_types = (('image', '.nii'),)
     valid_exts = ('.nii',)
     makeable = False
@@ -97,30 +95,30 @@ class _CiftiAsNiftiImage(Nifti2Image):
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
-        """Convert NIFTI-2 file to CIFTI"""
-        super(_CiftiAsNiftiImage, self).__init__(dataobj=dataobj,
-                                                 affine=affine,
-                                                 header=header,
-                                                 extra=extra,
-                                                 file_map=file_map)
+        """Convert NIFTI-2 file to CIFTI2"""
+        super(_Cifti2AsNiftiImage, self).__init__(dataobj=dataobj,
+                                                  affine=affine,
+                                                  header=header,
+                                                  extra=extra,
+                                                  file_map=file_map)
 
         # Get cifti header from extension
         self.cifti_img = reduce(lambda accum, newval: newval
-                                if isinstance(newval, CiftiExtension)
+                                if isinstance(newval, Cifti2Extension)
                                 else accum,
                                 self.get_header().extensions, None)
         if self.cifti_img is None:
-            raise ValueError('Nifti2 header does not contain a CIFTI '
+            raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
         self.cifti_img.data = self.get_data()
 
 
-class CiftiParser(xml.XmlParser):
+class Cifti2Parser(xml.XmlParser):
 
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
-        super(CiftiParser, self).__init__(encoding=encoding,
-                                          buffer_size=buffer_size,
-                                          verbose=verbose)        # finite state machine stack
+        super(Cifti2Parser, self).__init__(encoding=encoding,
+                                           buffer_size=buffer_size,
+                                           verbose=verbose)        # finite state machine stack
         self.fsm_state = []
         self.struct_state = []
 
@@ -137,8 +135,8 @@ class CiftiParser(xml.XmlParser):
             print('Start element:\n\t', repr(name), attrs)
 
         if name == 'CIFTI':
-            # create gifti image
-            self.header = CiftiHeader()
+            # create cifti2 image
+            self.header = Cifti2Header()
             self.header.version = attrs['Version']
             if LooseVersion(self.header.version) < LooseVersion('2'):
                 raise ValueError('Only CIFTI-2 files are supported')
@@ -147,17 +145,17 @@ class CiftiParser(xml.XmlParser):
 
         elif name == 'Matrix':
             self.fsm_state.append('Matrix')
-            matrix = CiftiMatrix()
+            matrix = Cifti2Matrix()
             parent = self.struct_state[-1]
-            assert isinstance(parent, CiftiHeader)
+            assert isinstance(parent, Cifti2Header)
             parent.matrix = matrix
             self.struct_state.append(matrix)
 
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
-            meta = CiftiMetaData()
+            meta = Cifti2MetaData()
             parent = self.struct_state[-1]
-            assert isinstance(parent, (CiftiMatrix, CiftiNamedMap))
+            assert isinstance(parent, (Cifti2Matrix, Cifti2NamedMap))
             self.struct_state.append(meta)
 
         elif name == 'MD':
@@ -173,7 +171,7 @@ class CiftiParser(xml.XmlParser):
 
         elif name == 'MatrixIndicesMap':
             self.fsm_state.append('MatrixIndicesMap')
-            mim = CiftiMatrixIndicesMap(
+            mim = Cifti2MatrixIndicesMap(
                 applies_to_matrix_dimension=int(attrs["AppliesToMatrixDimension"]),
                 indices_map_to_data_type=attrs["IndicesMapToDataType"])
             for key, dtype in [("NumberOfSeriesPoints", int),
@@ -185,15 +183,15 @@ class CiftiParser(xml.XmlParser):
                     attr = inflection.underscore(key)
                     setattr(mim, attr, dtype(attrs[key]))
             matrix = self.struct_state[-1]
-            assert isinstance(matrix, CiftiMatrix)
+            assert isinstance(matrix, Cifti2Matrix)
             matrix.add_cifti_matrix_indices_map(mim)
             self.struct_state.append(mim)
 
         elif name == 'NamedMap':
             self.fsm_state.append('NamedMap')
-            named_map = CiftiNamedMap()
+            named_map = Cifti2NamedMap()
             mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
+            assert isinstance(mim, Cifti2MatrixIndicesMap)
             self.struct_state.append(named_map)
             mim.add_cifti_named_map(named_map)
 
@@ -201,15 +199,15 @@ class CiftiParser(xml.XmlParser):
             named_map = self.struct_state[-1]
             mim = self.struct_state[-2]
             assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_LABELS"
-            lata = CiftiLabelTable()
-            assert isinstance(named_map, CiftiNamedMap)
+            lata = Cifti2LabelTable()
+            assert isinstance(named_map, Cifti2NamedMap)
             self.fsm_state.append('LabelTable')
             self.struct_state.append(lata)
 
         elif name == 'Label':
             lata = self.struct_state[-1]
-            assert isinstance(lata, CiftiLabelTable)
-            label = CiftiLabel()
+            assert isinstance(lata, Cifti2LabelTable)
+            label = Cifti2Label()
             if "Key" in attrs:
                 label.key = int(attrs["Key"])
             if "Red" in attrs:
@@ -226,32 +224,32 @@ class CiftiParser(xml.XmlParser):
 
         elif name == "MapName":
             named_map = self.struct_state[-1]
-            assert isinstance(named_map, CiftiNamedMap)
+            assert isinstance(named_map, Cifti2NamedMap)
             self.fsm_state.append('MapName')
             self.write_to = 'MapName'
 
         elif name == "Surface":
-            surface = CiftiSurface()
+            surface = Cifti2Surface()
             mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
+            assert isinstance(mim, Cifti2MatrixIndicesMap)
             assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_PARCELS"
             surface.brain_structure = attrs["BrainStructure"]
             surface.surface_number_of_vertices = int(attrs["SurfaceNumberOfVertices"])
             mim.add_cifti_surface(surface)
 
         elif name == "Parcel":
-            parcel = CiftiParcel()
+            parcel = Cifti2Parcel()
             mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
+            assert isinstance(mim, Cifti2MatrixIndicesMap)
             parcel.name = attrs["Name"]
             mim.add_cifti_parcel(parcel)
             self.fsm_state.append('Parcel')
             self.struct_state.append(parcel)
 
         elif name == "Vertices":
-            vertices = CiftiVertices()
+            vertices = Cifti2Vertices()
             parcel = self.struct_state[-1]
-            assert isinstance(parcel, CiftiParcel)
+            assert isinstance(parcel, Cifti2Parcel)
             vertices.brain_structure = attrs["BrainStructure"]
             assert vertices.brain_structure in CIFTI_BrainStructures
             parcel.add_cifti_vertices(vertices)
@@ -261,24 +259,24 @@ class CiftiParser(xml.XmlParser):
 
         elif name == "VoxelIndicesIJK":
             parent = self.struct_state[-1]
-            assert isinstance(parent, (CiftiParcel, CiftiBrainModel))
-            parent.voxel_indices_ijk = CiftiVoxelIndicesIJK()
+            assert isinstance(parent, (Cifti2Parcel, Cifti2BrainModel))
+            parent.voxel_indices_ijk = Cifti2VoxelIndicesIJK()
             self.write_to = 'VoxelIndices'
 
         elif name == "Volume":
             mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
+            assert isinstance(mim, Cifti2MatrixIndicesMap)
             dimensions = tuple([int(val) for val in
                                 attrs["VolumeDimensions"].split(',')])
-            volume = CiftiVolume(volume_dimensions=dimensions)
+            volume = Cifti2Volume(volume_dimensions=dimensions)
             mim.volume = volume
             self.fsm_state.append('Volume')
             self.struct_state.append(volume)
 
         elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
             volume = self.struct_state[-1]
-            assert isinstance(volume, CiftiVolume)
-            transform = CiftiTransformationMatrixVoxelIndicesIJKtoXYZ()
+            assert isinstance(volume, Cifti2Volume)
+            transform = Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ()
             transform.meter_exponent = int(attrs["MeterExponent"])
             volume.transformation_matrix_voxel_indices_ijk_to_xyz = transform
             self.fsm_state.append('TransformMatrix')
@@ -286,9 +284,9 @@ class CiftiParser(xml.XmlParser):
             self.write_to = 'TransformMatrix'
 
         elif name == "BrainModel":
-            model = CiftiBrainModel()
+            model = Cifti2BrainModel()
             mim = self.struct_state[-1]
-            assert isinstance(mim, CiftiMatrixIndicesMap)
+            assert isinstance(mim, Cifti2MatrixIndicesMap)
             assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_BRAIN_MODELS"
             for key, dtype in [("IndexOffset", int),
                                ("IndexCount", int),
@@ -305,9 +303,9 @@ class CiftiParser(xml.XmlParser):
             self.struct_state.append(model)
 
         elif name == "VertexIndices":
-            index = CiftiVertexIndices()
+            index = Cifti2VertexIndices()
             model = self.struct_state[-1]
-            assert isinstance(model, CiftiBrainModel)
+            assert isinstance(model, Cifti2BrainModel)
             self.fsm_state.append('VertexIndices')
             model.vertex_indices = index
             self.struct_state.append(index)
@@ -459,10 +457,10 @@ class CiftiParser(xml.XmlParser):
         return self._char_blocks is not None
 
 
-class _CiftiDenseDataSeriesNiftiHeader(_CiftiAsNiftiHeader):
+class _Cifti2DenseDataSeriesNiftiHeader(_Cifti2AsNiftiHeader):
     @classmethod
     def may_contain_header(klass, binaryblock):
-        if not _CiftiAsNiftiHeader.may_contain_header(binaryblock):
+        if not _Cifti2AsNiftiHeader.may_contain_header(binaryblock):
             return False
         hdr = Nifti2Header(binaryblock=binaryblock[:Nifti2Header.sizeof_hdr])
         intent_code = hdr.get_intent('code')[0]
