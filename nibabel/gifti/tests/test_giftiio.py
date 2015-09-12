@@ -112,8 +112,7 @@ def test_read_ordering():
 def test_metadata():
     for i, dat in enumerate(datafiles):
         img = gi.read(dat)
-        me = img.get_metadata()
-        medat = me.get_metadata()
+        me = img.meta
         assert_equal(numda[i], img.numDA)
         assert_equal(img.version,'1.0')
 
@@ -217,11 +216,11 @@ def test_newmetadata():
     img = gi.GiftiImage()
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
-    img.set_metadata(newmeta)
+    img.meta = newmeta
     myme = img.meta.get_metadata()
     assert_true('mykey' in myme)
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
-    img.set_metadata(newmeta)
+    img.meta = newmeta
     myme = img.meta.get_metadata()
     assert_true('mykey1' in myme)
     assert_false('mykey' in myme)

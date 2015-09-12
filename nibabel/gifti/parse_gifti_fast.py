@@ -108,9 +108,6 @@ class Outputter(object):
             self.img = GiftiImage()
             if 'Version' in attrs:
                 self.img.version = attrs['Version']
-            if 'NumberOfDataArrays' in attrs:
-                self.img.numDA = int(attrs['NumberOfDataArrays'])
-                self.count_da = False
 
             self.fsm_state.append('GIFTI')
         elif name == 'MetaData':
@@ -234,8 +231,6 @@ class Outputter(object):
             self.img.labeltable = self.lata
             self.lata = None
         elif name == 'DataArray':
-            if self.count_da:
-                self.img.numDA += 1
             self.fsm_state.pop()
         elif name == 'CoordinateSystemTransformMatrix':
             self.fsm_state.pop()
