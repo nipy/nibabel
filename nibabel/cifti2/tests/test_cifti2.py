@@ -5,7 +5,7 @@ import numpy as np
 
 from ...nifti1 import data_type_codes, intent_codes
 
-from ... import cifti as ci
+from ... import cifti2 as ci
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -13,8 +13,8 @@ from numpy.testing import (assert_array_almost_equal,
 from nose.tools import assert_true, assert_equal, assert_raises
 
 
-def test_cifti_metadata():
-    md = ci.CiftiMetaData()
+def test_cifti2_metadata():
+    md = ci.Cifti2MetaData()
     assert_equal(md.data, [])
     assert_raises(ValueError, md.add_metadata, ['a'])
 

@@ -15,7 +15,7 @@ from distutils.version import LooseVersion
 import numpy as np
 
 import nibabel as nib
-from nibabel import cifti as ci
+from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
