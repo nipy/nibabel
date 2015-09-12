@@ -5,7 +5,7 @@ import numpy as np
 
 from ...nifti1 import data_type_codes, intent_codes
 
-from ..gifti import GiftiImage, GiftiDataArray
+from ..gifti import GiftiImage, GiftiDataArray, GiftiLabelTable
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -36,3 +36,14 @@ def test_dataarray():
         bs_arr = arr.byteswap().newbyteorder()
         da = GiftiDataArray.from_array(bs_arr, 'triangle')
         assert_equal(da.datatype, data_type_codes[arr.dtype])
+
+
+def test_labeltable():
+    img = GiftiImage()
+    assert_equal(len(img.labeltable.labels), 0)
+
+    new_table = GiftiLabelTable()
+    new_table.labels += ['test', 'me']
+    img.labeltable = new_table
+    assert_equal(len(img.labeltable.labels), 2)
+

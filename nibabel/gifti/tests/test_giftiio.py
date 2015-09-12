@@ -109,7 +109,7 @@ def test_read_ordering():
     assert_equal(img.darrays[0].data.shape, (3,3))
 
 
-def test_metadata():
+def test_load_metadata():
     for i, dat in enumerate(datafiles):
         img = gi.read(dat)
         me = img.meta
@@ -117,8 +117,9 @@ def test_metadata():
         assert_equal(img.version,'1.0')
 
 
-def test_dataarray1():
+def test_load_dataarray1():
     img1 = gi.read(DATA_FILE1)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img1, 'test.gii')
@@ -135,8 +136,9 @@ def test_dataarray1():
         assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
 
 
-def test_dataarray2():
+def test_load_dataarray2():
     img2 = gi.read(DATA_FILE2)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img2, 'test.gii')
@@ -145,8 +147,9 @@ def test_dataarray2():
         assert_array_almost_equal(img.darrays[0].data[:10], DATA_FILE2_darr1)
 
 
-def test_dataarray3():
+def test_load_dataarray3():
     img3 = gi.read(DATA_FILE3)
+
     with InTemporaryDirectory():
         gi.write(img3, 'test.gii')
         bimg = gi.read('test.gii')
@@ -154,8 +157,9 @@ def test_dataarray3():
         assert_array_almost_equal(img.darrays[0].data[30:50], DATA_FILE3_darr1)
 
 
-def test_dataarray4():
+def test_load_dataarray4():
     img4 = gi.read(DATA_FILE4)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img4, 'test.gii')
@@ -166,6 +170,7 @@ def test_dataarray4():
 
 def test_dataarray5():
     img5 = gi.read(DATA_FILE5)
+
     for da in img5.darrays:
         assert_equal(gifti_endian_codes.byteorder[da.endian], 'little')
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
@@ -212,7 +217,7 @@ def test_readwritedata():
                                   img2.darrays[0].data)
 
 
-def test_newmetadata():
+def test_write_newmetadata():
     img = gi.GiftiImage()
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
@@ -226,7 +231,7 @@ def test_newmetadata():
     assert_false('mykey' in myme)
 
 
-def test_getbyintent():
+def test_load_getbyintent():
     img = gi.read(DATA_FILE1)
 
     da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
@@ -247,8 +252,9 @@ def test_getbyintent():
     assert_equal(da, [])
 
 
-def test_labeltable():
+def test_load_labeltable():
     img6 = gi.read(DATA_FILE6)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img6, 'test.gii')
