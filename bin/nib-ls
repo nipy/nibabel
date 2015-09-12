@@ -198,7 +198,7 @@ def proc_file(f, opts):
             try:
                 row += [str(h[f])]
             except (KeyError, ValueError):
-                row += [ '' ]
+                row += [ 'error' ]
 
     try:
         if (hasattr(h, 'get_qform') and hasattr(h, 'get_sform')
