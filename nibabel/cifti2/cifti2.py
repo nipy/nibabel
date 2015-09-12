@@ -24,7 +24,7 @@ import numpy as np
 from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import string_types
-from ..filebasedimages import FileBasedImage, FileBasedHeader
+from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
 
