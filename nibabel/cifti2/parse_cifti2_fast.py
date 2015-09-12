@@ -413,43 +413,43 @@ class Cifti2Parser(xml.XmlParser):
         self._char_blocks = None
         # Process data
         if self.write_to == 'Name':
-            data = data.strip()
+            data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[0] = data
         elif self.write_to == 'Value':
-            data = data.strip()
+            data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[1] = data
         elif self.write_to == 'Vertices':
             # conversion to numpy array
-            c = BytesIO(data.strip().encode())
+            c = BytesIO(data.strip().encode('utf-8'))
             vertices = self.struct_state[-1]
             vertices.vertices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
-            c = BytesIO(data.strip().encode())
+            c = BytesIO(data.strip().encode('utf-8'))
             parent = self.struct_state[-1]
             parent.voxel_indices_ijk.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
-            c = BytesIO(data.strip().encode())
+            c = BytesIO(data.strip().encode('utf-8'))
             index = self.struct_state[-1]
             index.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
-            c = BytesIO(data.strip().encode())
+            c = BytesIO(data.strip().encode('utf-8'))
             transform = self.struct_state[-1]
             transform.matrix = np.genfromtxt(c, dtype=np.float)
             c.close()
         elif self.write_to == 'Label':
             label = self.struct_state[-1]
-            label.label = data.strip()
+            label.label = data.strip().encode('utf-8')
         elif self.write_to == 'MapName':
             named_map = self.struct_state[-1]
-            named_map.map_name = data.strip()
+            named_map.map_name = data.strip()  # .decode('utf-8')
 
     @property
     def pending_data(self):

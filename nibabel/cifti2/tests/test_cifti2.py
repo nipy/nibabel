@@ -34,10 +34,9 @@ def test_cifti2_metadata():
     assert_equal(len(md.data), 1)
 
     assert_raises(ValueError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
-
-    assert_equal(md.to_xml(),
+    assert_equal(md.to_xml().decode('utf-8'),
                  '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>')
 
     md.remove_metadata(['b', 'bval'])
     assert_equal(len(md.data), 0)
-    assert_equal(md.to_xml(), '<MetaData />')
+    assert_equal(md.to_xml().decode('utf-8'), '<MetaData />')

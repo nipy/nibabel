@@ -51,7 +51,7 @@ class XmlParser(object):
                      'EndElementHandler',
                      'CharacterDataHandler']
 
-    def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
+    def __init__(self, encoding='utf-8', buffer_size=35000000, verbose=0):
         """
         Parameters
         ----------
