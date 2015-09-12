@@ -136,15 +136,11 @@ try:
     basestring
 except NameError:  # python 3
     basestring = str
-
 import warnings
 
 import numpy as np
 
-from .filename_parser import (types_filenames, TypesFilenamesError,
-                              splitext_addext)
-from .fileholders import FileHolder
-from .openers import ImageOpener
+from .filebasedimages import FileBasedHeader, FileBasedImage, ImageFileError
 from .volumeutils import shape_zoom_affine
 
 
@@ -158,7 +154,7 @@ class HeaderTypeError(Exception):
     pass
 
 
-class Header(object):
+class Header(FileBasedHeader):
     ''' Template class to implement header protocol '''
     default_x_flip = True
     data_layout = 'F'
@@ -316,11 +312,7 @@ class ImageDataError(Exception):
     pass
 
 
-class ImageFileError(Exception):
-    pass
-
-
-class SpatialImage(object):
+class SpatialImage(FileBasedImage):
     ''' Template class for images '''
     header_class = Header
     _meta_sniff_len = 0
@@ -358,6 +350,8 @@ class SpatialImage(object):
         file_map : mapping, optional
            mapping giving file information for this image format
         '''
+        super(SpatialImage, self).__init__(header=header, extra=extra,
+                                           file_map=file_map)
         self._dataobj = dataobj
         if not affine is None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
@@ -369,19 +363,13 @@ class SpatialImage(object):
             if not affine.shape == (4, 4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
-        if extra is None:
-            extra = {}
-        self.extra = extra
-        self._header = self.header_class.from_header(header)
+
         # if header not specified, get data type from input array
         if header is None:
             if hasattr(dataobj, 'dtype'):
                 self._header.set_data_dtype(dataobj.dtype)
         # make header correspond with image and affine
         self.update_header()
-        if file_map is None:
-            file_map = self.__class__.make_file_map()
-        self.file_map = file_map
         self._load_cache = None
         self._data_cache = None
 
@@ -400,10 +388,6 @@ class SpatialImage(object):
     @property
     def affine(self):
         return self._affine
-
-    @property
-    def header(self):
-        return self._header
 
     def update_header(self):
         ''' Harmonize header with image data and affine
@@ -652,329 +636,3 @@ class SpatialImage(object):
         deprecate this method in future versions of nibabel.
         """
         return self.affine
-
-    def get_header(self):
-        """ Get header from image
-
-        Please use the `header` property instead of `get_header`; we will
-        deprecate this method in future versions of nibabel.
-        """
-        return self.header
-
-    def get_filename(self):
-        ''' Fetch the image filename
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        fname : None or str
-           Returns None if there is no filename, or a filename string.
-           If an image may have several filenames assoctiated with it
-           (e.g Analyze ``.img, .hdr`` pair) then we return the more
-           characteristic filename (the ``.img`` filename in the case of
-           Analyze')
-        '''
-        # which filename is returned depends on the ordering of the
-        # 'files_types' class attribute - we return the name
-        # corresponding to the first in that tuple
-        characteristic_type = self.files_types[0][0]
-        return self.file_map[characteristic_type].filename
-
-    def set_filename(self, filename):
-        ''' Sets the files in the object from a given filename
-
-        The different image formats may check whether the filename has
-        an extension characteristic of the format, and raise an error if
-        not.
-
-        Parameters
-        ----------
-        filename : str
-           If the image format only has one file associated with it,
-           this will be the only filename set into the image
-           ``.file_map`` attribute. Otherwise, the image instance will
-           try and guess the other filenames from this given filename.
-        '''
-        self.file_map = self.__class__.filespec_to_file_map(filename)
-
-    @classmethod
-    def from_filename(klass, filename):
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map)
-
-    @classmethod
-    def from_filespec(klass, filespec):
-        warnings.warn('``from_filespec`` class method is deprecated\n'
-                      'Please use the ``from_filename`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        klass.from_filename(filespec)
-
-    @classmethod
-    def from_file_map(klass, file_map):
-        raise NotImplementedError
-
-    @classmethod
-    def from_files(klass, file_map):
-        warnings.warn('``from_files`` class method is deprecated\n'
-                      'Please use the ``from_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        return klass.from_file_map(file_map)
-
-    @classmethod
-    def filespec_to_file_map(klass, filespec):
-        """ Make `file_map` for this class from filename `filespec`
-
-        Class method
-
-        Parameters
-        ----------
-        filespec : str
-            Filename that might be for this image file type.
-
-        Returns
-        -------
-        file_map : dict
-            `file_map` dict with (key, value) pairs of (``file_type``,
-            FileHolder instance), where ``file_type`` is a string giving the
-            type of the contained file.
-
-        Raises
-        ------
-        ImageFileError
-            if `filespec` is not recognizable as being a filename for this
-            image type.
-        """
-        try:
-            filenames = types_filenames(
-                filespec, klass.files_types,
-                trailing_suffixes=klass._compressed_suffixes)
-        except TypesFilenamesError:
-            raise ImageFileError(
-                'Filespec "{0}" does not look right for class {1}'.format(
-                    filespec, klass))
-        file_map = {}
-        for key, fname in filenames.items():
-            file_map[key] = FileHolder(filename=fname)
-        return file_map
-
-    @classmethod
-    def filespec_to_files(klass, filespec):
-        warnings.warn('``filespec_to_files`` class method is deprecated\n'
-                      'Please use the ``filespec_to_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        return klass.filespec_to_file_map(filespec)
-
-    def to_filename(self, filename):
-        ''' Write image to files implied by filename string
-
-        Parameters
-        ----------
-        filename : str
-           filename to which to save image.  We will parse `filename`
-           with ``filespec_to_file_map`` to work out names for image,
-           header etc.
-
-        Returns
-        -------
-        None
-        '''
-        self.file_map = self.filespec_to_file_map(filename)
-        self.to_file_map()
-
-    def to_filespec(self, filename):
-        warnings.warn('``to_filespec`` is deprecated, please '
-                      'use ``to_filename`` instead',
-                      DeprecationWarning, stacklevel=2)
-        self.to_filename(filename)
-
-    def to_file_map(self, file_map=None):
-        raise NotImplementedError
-
-    def to_files(self, file_map=None):
-        warnings.warn('``to_files`` method is deprecated\n'
-                      'Please use the ``to_file_map`` method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        self.to_file_map(file_map)
-
-    @classmethod
-    def make_file_map(klass, mapping=None):
-        ''' Class method to make files holder for this image type
-
-        Parameters
-        ----------
-        mapping : None or mapping, optional
-           mapping with keys corresponding to image file types (such as
-           'image', 'header' etc, depending on image class) and values
-           that are filenames or file-like.  Default is None
-
-        Returns
-        -------
-        file_map : dict
-           dict with string keys given by first entry in tuples in
-           sequence klass.files_types, and values of type FileHolder,
-           where FileHolder objects have default values, other than
-           those given by `mapping`
-        '''
-        if mapping is None:
-            mapping = {}
-        file_map = {}
-        for key, ext in klass.files_types:
-            file_map[key] = FileHolder()
-            mapval = mapping.get(key, None)
-            if isinstance(mapval, basestring):
-                file_map[key].filename = mapval
-            elif hasattr(mapval, 'tell'):
-                file_map[key].fileobj = mapval
-        return file_map
-
-    load = from_filename
-
-    @classmethod
-    def instance_to_filename(klass, img, filename):
-        ''' Save `img` in our own format, to name implied by `filename`
-
-        This is a class method
-
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` - specifically
-           ``dataobj``, ``affine``, ``header`` and ``extra``.
-        filename : str
-           Filename, implying name to which to save image.
-        '''
-        img = klass.from_image(img)
-        img.to_filename(filename)
-
-    @classmethod
-    def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
-
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``dataobj``, ``affine``, ``header`` and ``extra``.
-
-        Returns
-        -------
-        cimg : ``spatialimage`` instance
-           Image, of our own class
-        '''
-        return klass(img.dataobj,
-                     img.affine,
-                     klass.header_class.from_header(img.header),
-                     extra=img.extra.copy())
-
-    @classmethod
-    def _sniff_meta_for(klass, filename, sniff_nbytes, sniff=None):
-        """ Sniff metadata for image represented by `filename`
-
-        Parameters
-        ----------
-        filename : str
-            Filename for an image, or an image header (metadata) file.
-            If `filename` points to an image data file, and the image type has
-            a separate "header" file, we work out the name of the header file,
-            and read from that instead of `filename`.
-        sniff_nbytes : int
-            Number of bytes to read from the image or metadata file
-        sniff : (bytes, fname), optional
-            The result of a previous call to `_sniff_meta_for`.  If fname
-            matches the computed header file name, `sniff` is returned without
-            rereading the file.
-
-        Returns
-        -------
-        sniff : None or (bytes, fname)
-            None if we could not read the image or metadata file.  `sniff[0]`
-            is either length `sniff_nbytes` or the length of the image /
-            metadata file, whichever is the shorter. `fname` is the name of
-            the sniffed file.
-        """
-        froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_suffixes)
-        # Determine the metadata location
-        t_fnames = types_filenames(
-            filename,
-            klass.files_types,
-            trailing_suffixes=klass._compressed_suffixes)
-        meta_fname = t_fnames.get('header', filename)
-
-        # Do not re-sniff if it would be from the same file
-        if sniff is not None and sniff[1] == meta_fname:
-            return sniff
-
-        # Attempt to sniff from metadata location
-        try:
-            with ImageOpener(meta_fname, 'rb') as fobj:
-                binaryblock = fobj.read(sniff_nbytes)
-        except IOError:
-            return None
-        return (binaryblock, meta_fname)
-
-    @classmethod
-    def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
-        """ Return True if `filename` may be image matching this class
-
-        Parameters
-        ----------
-        filename : str
-            Filename for an image, or an image header (metadata) file.
-            If `filename` points to an image data file, and the image type has
-            a separate "header" file, we work out the name of the header file,
-            and read from that instead of `filename`.
-        sniff : None or (bytes, filename), optional
-            Bytes content read from a previous call to this method, on another
-            class, with metadata filename.  This allows us to read metadata
-            bytes once from the image or header, and pass this read set of
-            bytes to other image classes, therefore saving a repeat read of the
-            metadata.  `filename` is used to validate that metadata would be
-            read from the same file, re-reading if not.  None forces this
-            method to read the metadata.
-        sniff_max : int, optional
-            The maximum number of bytes to read from the metadata.  If the
-            metadata file is long enough, we read this many bytes from the
-            file, otherwise we read to the end of the file.  Longer values
-            sniff more of the metadata / image file, making it more likely that
-            the returned sniff will be useful for later calls to
-            ``path_maybe_image`` for other image classes.
-
-        Returns
-        -------
-        maybe_image : bool
-            True if `filename` may be valid for an image of this class.
-        sniff : None or (bytes, filename)
-            Read bytes content from found metadata.  May be None if the file
-            does not appear to have useful metadata.
-        """
-        froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_suffixes)
-        if ext.lower() not in klass.valid_exts:
-            return False, sniff
-        if not hasattr(klass.header_class, 'may_contain_header'):
-            return True, sniff
-
-        # Force re-sniff on too-short sniff
-        if sniff is not None and len(sniff[0]) < klass._meta_sniff_len:
-            sniff = None
-        sniff = klass._sniff_meta_for(filename,
-                                      max(klass._meta_sniff_len, sniff_max),
-                                      sniff)
-        if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
-            return False, sniff
-        return klass.header_class.may_contain_header(sniff[0]), sniff
-
-    def __getitem__(self):
-        ''' No slicing or dictionary interface for images
-        '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
