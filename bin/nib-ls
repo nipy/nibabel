@@ -186,7 +186,7 @@ def proc_file(f, opts):
 
     if opts.header_fields:
         # signals "all fields"
-        if opts.header_fields == '*':
+        if opts.header_fields == 'all':
             # TODO: might vary across file types, thus prior sensing would be needed
             header_fields = h.keys()
         else:
