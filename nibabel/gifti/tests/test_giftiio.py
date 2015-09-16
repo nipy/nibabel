@@ -10,6 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
 import sys
+import warnings
 
 import numpy as np
 
@@ -23,6 +24,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
+from ...testing import clear_and_catch_warnings
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -227,11 +229,21 @@ def test_newmetadata():
 
 def test_getbyintent():
     img = gi.read(DATA_FILE1)
-    da = img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
+
+    da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
     assert_equal(len(da), 1)
-    da = img.getArraysFromIntent("NIFTI_INTENT_TRIANGLE")
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        da = img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
+        assert_equal(len(da), 1)
+        assert_equal(len(w), 1)
+        assert_equal(w[0].category, DeprecationWarning)
+
+    da = img.get_arrays_from_intent("NIFTI_INTENT_TRIANGLE")
     assert_equal(len(da), 1)
-    da = img.getArraysFromIntent("NIFTI_INTENT_CORREL")
+
+    da = img.get_arrays_from_intent("NIFTI_INTENT_CORREL")
     assert_equal(len(da), 0)
     assert_equal(da, [])
 
