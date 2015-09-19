@@ -115,12 +115,9 @@ class TestImageOpener:
 
         # Add the association
         n_associations = len(ImageOpener.compress_ext_map)
-        dec = ImageOpener.register_ext_from_image('.foo',
-                                                  (file_opener, ('mode',)))
-        dec(self.__class__)
+        ImageOpener.compress_ext_map['.foo'] = (file_opener, ('mode',))
         assert_equal(n_associations + 1, len(ImageOpener.compress_ext_map))
         assert_true('.foo' in ImageOpener.compress_ext_map)
-        assert_true('.foo' in self.valid_exts)
 
         with InTemporaryDirectory():
             with ImageOpener('test.foo', 'w'):
