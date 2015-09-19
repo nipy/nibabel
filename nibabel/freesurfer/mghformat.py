@@ -455,14 +455,12 @@ class MGHHeader(object):
 
 
 # Register .mgz extension as compressed
-ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def
-
-
+@ImageOpener.register_ext_from_image('.mgz', ImageOpener.gz_def)
 class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
-    valid_exts = ('.mgh', '.mgz')
+    valid_exts = ('.mgh',)
     files_types = (('image', '.mgh'),)
     _compressed_suffixes = ()
 

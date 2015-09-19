@@ -93,7 +93,8 @@ def test_BinOpener():
 
 
 class TestImageOpener:
-    alternate_exts = ()
+    valid_exts = ()
+
     def setUp(self):
         self.compress_ext_map = ImageOpener.compress_ext_map.copy()
 
@@ -119,7 +120,7 @@ class TestImageOpener:
         dec(self.__class__)
         assert_equal(n_associations + 1, len(ImageOpener.compress_ext_map))
         assert_true('.foo' in ImageOpener.compress_ext_map)
-        assert_true('.foo' in self.alternate_exts)
+        assert_true('.foo' in self.valid_exts)
 
         with InTemporaryDirectory():
             with ImageOpener('test.foo', 'w'):
