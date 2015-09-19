@@ -155,6 +155,7 @@ class ImageOpener(Opener):
     attributes, via the `register_ex_from_images`.  The class can therefore
     change state when image classes are defined.
     """
+    compress_ext_map = Opener.compress_ext_map.copy()
 
     @classmethod
     def register_ext_from_image(opener_klass, ext, func_def):
