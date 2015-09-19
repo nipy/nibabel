@@ -875,6 +875,25 @@ class SpatialImage(object):
 
     @classmethod
     def _sniff_meta_for(klass, filename, sniff_nbytes):
+        """ Sniff metadata for image represented by `filename`
+
+        Parameters
+        ----------
+        filename : str
+            Filename for an image, or an image header (metadata) file.
+            If `filename` points to an image data file, and the image type has
+            a separate "header" file, we work out the name of the header file,
+            and read from that instead of `filename`.
+        sniff_nbytes : int
+            Number of bytes to read from the image or metadata file
+
+        Returns
+        -------
+        meta_bytes : None or bytes
+            None if we could not read the image or metadata file.  `meta_bytes`
+            is either length `sniff_nbytes` or the length of the image /
+            metadata file, whichever is the shorter.
+        """
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_suffixes)
         # Determine the metadata location, then sniff it
@@ -892,6 +911,37 @@ class SpatialImage(object):
 
     @classmethod
     def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
+        """ Return True if `filename` may be image matching this class
+
+        Parameters
+        ----------
+        filename : str
+            Filename for an image, or an image header (metadata) file.
+            If `filename` points to an image data file, and the image type has
+            a separate "header" file, we work out the name of the header file,
+            and read from that instead of `filename`.
+        sniff : None or bytes, optional
+            Bytes content read from a previous call to this method, on another
+            class.  This allows us to read metadata bytes once from the image /
+            or header, and pass this read set of bytes to other image classes,
+            therefore saving a repeat read of the metadata.  None forces this
+            method to read the metadata.
+        sniff_max : int, optional
+            The maximum number of bytes to read from the metadata.  If the
+            metadata file is long enough, we read this many bytes from the
+            file, otherwise we read to the end of the file.  Longer values
+            sniff more of the metadata / image file, making it more likely that
+            the returned sniff will be useful for later calls to
+            ``path_maybe_image`` for other image classes.
+
+        Returns
+        -------
+        maybe_image : bool
+            True if `filename` may be valid for an image of this class.
+        sniff : None or bytes
+            Read bytes content from found metadata.  May be None if the file
+            does not appear to have useful metadata.
+        """
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_suffixes)
         if ext.lower() not in klass.valid_exts:
