@@ -732,6 +732,7 @@ class EcatImage(SpatialImage):
     """
     _header = EcatHeader
     header_class = _header
+    valid_exts = ('.v',)
     _subheader = EcatSubHeader
     files_types = (('image', '.v'), ('header', '.v'))
 

@@ -1632,6 +1632,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
     rw = True
 
     def __init__(self, dataobj, affine, header=None,
@@ -1856,6 +1857,7 @@ class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header
+    valid_exts = ('.nii',)
     files_types = (('image', '.nii'),)
 
     @staticmethod

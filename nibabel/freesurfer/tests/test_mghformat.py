@@ -145,7 +145,7 @@ def test_filename_exts():
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
     # Check if these extensions allow round trip
-    for ext in ('.mgh', '.mgz', '.mgh.gz'):
+    for ext in ('.mgh', '.mgz'):
         with InTemporaryDirectory():
             fname = 'tmpname' + ext
             save(img, fname)

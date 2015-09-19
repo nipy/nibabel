@@ -243,12 +243,14 @@ class Nifti2Pair(Nifti1Pair):
     """ Class for NIfTI2 format image, header pair
     """
     header_class = Nifti2PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 class Nifti2Image(Nifti1Image):
     """ Class for single file NIfTI2 format image
     """
     header_class = Nifti2Header
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 def load(filename):

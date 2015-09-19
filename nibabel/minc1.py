@@ -298,6 +298,8 @@ class Minc1Image(SpatialImage):
     load.
     '''
     header_class = Minc1Header
+    _meta_sniff_len = 4
+    valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
     _compressed_exts = ('.gz', '.bz2')
 

@@ -324,8 +324,9 @@ class ImageFileError(Exception):
 class SpatialImage(object):
     ''' Template class for images '''
     header_class = Header
+    _meta_sniff_len = 0
     files_types = (('image', None),)
-    alternate_exts = ()  # Modified by @ImageOpener.register_ext_from_image
+    valid_exts = ()
     _compressed_exts = ()
 
     makeable = True  # Used in test code
@@ -874,51 +875,37 @@ class SpatialImage(object):
                      extra=img.extra.copy())
 
     @classmethod
-    def is_valid_extension(klass, ext):
-        valid = tuple(ft[1] for ft in klass.files_types) + klass.alternate_exts
-        return ext.lower() in valid
-
-    @classmethod
-    def path_maybe_image(klass, filename, sniff=None):
+    def _sniff_meta_for(klass, filename, sniff_nbytes):
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_exts)
-
-        if not klass.is_valid_extension(ext):
-            return False, sniff
-        elif not hasattr(klass.header_class, 'may_contain_header'):
-            return True, sniff
-
         # Determine the metadata location, then sniff it
-        header_exts = [ft[1] for ft in klass.files_types if ft[0] == 'header']
-        if len(header_exts) == 0:
-            metadata_filename = filename
-        else:
-            # Search for an acceptable existing header;
-            #   could be compressed or not...
-            for ext in header_exts:
-                for tr_ext in np.unique([trailing, ''] +
-                                        list(klass._compressed_exts)):
-                    metadata_filename = froot + ext + tr_ext
-                    if os.path.exists(metadata_filename):
-                        break
-
+        t_fnames = types_filenames(filename,
+                                   klass.files_types,
+                                   trailing_suffixes=klass._compressed_exts)
+        meta_fname = t_fnames.get('header', filename)
         try:
-            klass_sizeof_hdr = getattr(klass.header_class, 'sizeof_hdr', 0)
+            with ImageOpener(meta_fname, 'rb') as fobj:
+                sniff = fobj.read(sniff_nbytes)
+        except IOError:
+            return None
+        return sniff
 
-            if not sniff or len(sniff) < klass_sizeof_hdr:
-                # 1024 bytes is currently larger than all headers
-                sizeof_hdr = np.max([1024, klass_sizeof_hdr])
-                with ImageOpener(metadata_filename, 'rb') as fobj:
-                    sniff = fobj.read(sizeof_hdr)
-
-            may_contain_header = klass.header_class.may_contain_header(sniff)
-        except Exception:
-            # Can happen if: file doesn't exist,
-            #   filesize < necessary sniff size (this happens!)
-            #   other unexpected errors.
-            may_contain_header = False
-
-        return may_contain_header, sniff
+    @classmethod
+    def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
+        froot, ext, trailing = splitext_addext(filename,
+                                               klass._compressed_exts)
+        if ext.lower() not in klass.valid_exts:
+            return False, sniff
+        if not hasattr(klass.header_class, 'may_contain_header'):
+            return True, sniff
+        if sniff is None or len(sniff) < klass._meta_sniff_len:
+            sniff_nbytes = max(klass._meta_sniff_len, sniff_max)
+            sniff = klass._sniff_meta_for(filename, sniff_nbytes)
+        if sniff is None:  # Can't sniff, won't sniff
+            return False, None
+        if len(sniff) < klass._meta_sniff_len:
+            return False, sniff
+        return klass.header_class.may_contain_header(sniff), sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images

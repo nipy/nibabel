@@ -110,7 +110,7 @@ def save(img, filename):
         klass = Nifti2Image
     else:  # arbitrary conversion
         valid_klasses = [klass for klass in all_image_classes
-                         if klass.is_valid_extension(ext)]
+                         if ext in klass.valid_exts]
         if not valid_klasses:  # if list is empty
             raise ImageFileError('Cannot work out file type of "%s"' %
                                  filename)

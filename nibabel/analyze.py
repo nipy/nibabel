@@ -908,7 +908,9 @@ class AnalyzeImage(SpatialImage):
     """ Class for basic Analyze format image
     """
     header_class = AnalyzeHeader
+    _meta_sniff_len = header_class.sizeof_hdr
     files_types = (('image', '.img'), ('header', '.hdr'))
+    valid_exts = ('.img', '.hdr')
     _compressed_exts = ('.gz', '.bz2')
 
     makeable = True
