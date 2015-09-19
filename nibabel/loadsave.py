@@ -93,7 +93,7 @@ def save(img, filename):
         return
 
     # Be nice to users by making common implicit conversions
-    froot, ext, trailing = splitext_addext(filename, img._compressed_exts)
+    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
     lext = ext.lower()
 
     # Special-case Nifti singles and Pairs

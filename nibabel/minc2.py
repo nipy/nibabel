@@ -152,7 +152,7 @@ class Minc2Image(Minc1Image):
     the MINC file on load.
     '''
     # MINC2 does not do compressed whole files
-    _compressed_exts = ()
+    _compressed_suffixes = ()
     header_class = Minc2Header
 
     @classmethod

@@ -301,7 +301,7 @@ class Minc1Image(SpatialImage):
     _meta_sniff_len = 4
     valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
-    _compressed_exts = ('.gz', '.bz2')
+    _compressed_suffixes = ('.gz', '.bz2')
 
     makeable = True
     rw = False

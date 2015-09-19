@@ -464,7 +464,7 @@ class MGHImage(SpatialImage):
     header_class = MGHHeader
     valid_exts = ('.mgh', '.mgz')
     files_types = (('image', '.mgh'),)
-    _compressed_exts = ()
+    _compressed_suffixes = ()
 
     makeable = True
     rw = True

@@ -137,13 +137,12 @@ try:
 except NameError:  # python 3
     basestring = str
 
-import os.path
 import warnings
 
 import numpy as np
 
-from .filename_parser import types_filenames, TypesFilenamesError, \
-    splitext_addext
+from .filename_parser import (types_filenames, TypesFilenamesError,
+                              splitext_addext)
 from .fileholders import FileHolder
 from .openers import ImageOpener
 from .volumeutils import shape_zoom_affine
@@ -327,7 +326,7 @@ class SpatialImage(object):
     _meta_sniff_len = 0
     files_types = (('image', None),)
     valid_exts = ()
-    _compressed_exts = ()
+    _compressed_suffixes = ()
 
     makeable = True  # Used in test code
     rw = True  # Used in test code
@@ -753,7 +752,7 @@ class SpatialImage(object):
         try:
             filenames = types_filenames(
                 filespec, klass.files_types,
-                trailing_suffixes=klass._compressed_exts)
+                trailing_suffixes=klass._compressed_suffixes)
         except TypesFilenamesError:
             raise ImageFileError(
                 'Filespec "{0}" does not look right for class {1}'.format(
@@ -877,11 +876,12 @@ class SpatialImage(object):
     @classmethod
     def _sniff_meta_for(klass, filename, sniff_nbytes):
         froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_exts)
+                                               klass._compressed_suffixes)
         # Determine the metadata location, then sniff it
-        t_fnames = types_filenames(filename,
-                                   klass.files_types,
-                                   trailing_suffixes=klass._compressed_exts)
+        t_fnames = types_filenames(
+            filename,
+            klass.files_types,
+            trailing_suffixes=klass._compressed_suffixes)
         meta_fname = t_fnames.get('header', filename)
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
@@ -893,7 +893,7 @@ class SpatialImage(object):
     @classmethod
     def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
         froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_exts)
+                                               klass._compressed_suffixes)
         if ext.lower() not in klass.valid_exts:
             return False, sniff
         if not hasattr(klass.header_class, 'may_contain_header'):
