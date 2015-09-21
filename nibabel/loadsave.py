@@ -58,7 +58,8 @@ def guessed_image_type(filename):
     image_class : class
         Class corresponding to guessed image type
     """
-    warnings.warn('guessed_image_type is deprecated', DeprecationWarning)
+    warnings.warn('guessed_image_type is deprecated', DeprecationWarning,
+                  stacklevel=2)
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
@@ -233,7 +234,8 @@ def which_analyze_type(binaryblock):
     * if ``sizeof_hdr`` is 348 or byteswapped 348 assume Analyze
     * Return None
     """
-    warnings.warn('which_analyze_type is deprecated', DeprecationWarning)
+    warnings.warn('which_analyze_type is deprecated', DeprecationWarning,
+                  stacklevel=2)
     from .nifti1 import header_dtype
     hdr_struct = np.ndarray(shape=(), dtype=header_dtype, buffer=binaryblock)
     bs_hdr_struct = hdr_struct.byteswap()
