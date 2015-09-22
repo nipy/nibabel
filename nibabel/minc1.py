@@ -269,7 +269,6 @@ class MincHeader(Header):
     """
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
-    sizeof_hdr = 4
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """ See Header class for an implementation we can't use """
@@ -283,11 +282,10 @@ class MincHeader(Header):
 class Minc1Header(MincHeader):
     @classmethod
     def may_contain_header(klass, binaryblock):
-        if len(binaryblock) < klass.sizeof_hdr:
-            raise ValueError('Must pass a binary block >= %d bytes' %
-                             klass.sizeof_hdr)
+        if len(binaryblock) < 4:
+            raise ValueError('Must pass a binary block >= 4 bytes')
 
-        return binaryblock[:klass.sizeof_hdr] == b'CDF\x01'
+        return binaryblock[:4] == b'CDF\x01'
 
 
 class Minc1Image(SpatialImage):
