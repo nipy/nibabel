@@ -24,6 +24,19 @@ class DataError(Exception):
     pass
 
 
+class Streamline(object):
+    def __init__(self, points, scalars=None, properties=None):
+        self.points = points
+        self.scalars = scalars
+        self.properties = properties
+
+    def __iter__(self):
+        return iter(self.points)
+
+    def __len__(self):
+        return len(self.points)
+
+
 class Streamlines(object):
     ''' Class containing information about streamlines.
 
@@ -92,7 +105,8 @@ class Streamlines(object):
             self.header.nb_properties_per_streamline = len(self.properties[0])
 
     def __iter__(self):
-        return zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+        for data in zip_longest(self.points, self.scalars, self.properties, fillvalue=[]):
+            yield Streamline(*data)
 
     def __getitem__(self, idx):
         pts = self.points[idx]
@@ -107,7 +121,7 @@ class Streamlines(object):
         if type(idx) is slice:
             return list(zip_longest(pts, scalars, properties, fillvalue=[]))
 
-        return pts, scalars, properties
+        return Streamline(pts, scalars, properties)
 
     def __len__(self):
         return len(self.points)
