@@ -444,13 +444,17 @@ class GiftiImage(object):
                 self.darrays.remove(dele)
                 self.numDA -= 1
 
-    def getArraysFromIntent(self, intent):
+    def get_arrays_from_intent(self, intent):
         """ Returns a a list of GiftiDataArray elements matching
         the given intent """
 
         it = intent_codes.code[intent]
 
         return [x for x in self.darrays if x.intent == it]
+
+    @np.deprecate_with_doc("Use get_arrays_from_intent instead.")
+    def getArraysFromIntent(self, intent):
+        return self.get_arrays_from_intent(intent)
 
     def print_summary(self):
         print('----start----')
