@@ -54,6 +54,9 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             if sniff_mode == 'no_sniff':
                 # Don't pass any sniff--not even "None"
                 is_img, new_sniff = img_klass.path_maybe_image(img_path)
+            elif sniff_mode in ('empty', 'irrelevant', 'bad_sniff'):
+                # Add img_path to binaryblock sniff parameters
+                is_img, new_sniff = img_klass.path_maybe_image(img_path, (sniff, img_path))
             else:
                 # Pass a sniff, but don't reuse across images.
                 is_img, new_sniff = img_klass.path_maybe_image(img_path, sniff)
@@ -64,7 +67,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                                                             msg)
                 expected_sizeof_hdr = getattr(img_klass.header_class,
                                               'sizeof_hdr', 0)
-                current_sizeof_hdr = 0 if new_sniff is None else len(new_sniff)
+                current_sizeof_hdr = 0 if new_sniff is None else len(new_sniff[0])
                 assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
 
                 # Check that the image type was recognized.
@@ -88,7 +91,8 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 none=None,  # pass None as the sniff, should query in fn
                 empty=b'',  # pass an empty sniff, should query in fn
                 irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
-                bad_sniff=b'a' * sizeof_hdr).items():  # Bad sniff, should fail
+                bad_sniff=b'a' * sizeof_hdr,  # Bad sniff, should fail
+                ).items():
 
             for klass in img_klasses:
                 if klass == expected_img_klass:

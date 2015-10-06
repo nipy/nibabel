@@ -874,7 +874,7 @@ class SpatialImage(object):
                      extra=img.extra.copy())
 
     @classmethod
-    def _sniff_meta_for(klass, filename, sniff_nbytes):
+    def _sniff_meta_for(klass, filename, sniff_nbytes, sniff=None):
         """ Sniff metadata for image represented by `filename`
 
         Parameters
@@ -886,28 +886,39 @@ class SpatialImage(object):
             and read from that instead of `filename`.
         sniff_nbytes : int
             Number of bytes to read from the image or metadata file
+        sniff : (bytes, fname), optional
+            The result of a previous call to `_sniff_meta_for`.  If fname
+            matches the computed header file name, `sniff` is returned without
+            rereading the file.
 
         Returns
         -------
-        meta_bytes : None or bytes
-            None if we could not read the image or metadata file.  `meta_bytes`
+        sniff : None or (bytes, fname)
+            None if we could not read the image or metadata file.  `sniff[0]`
             is either length `sniff_nbytes` or the length of the image /
-            metadata file, whichever is the shorter.
+            metadata file, whichever is the shorter. `fname` is the name of
+            the sniffed file.
         """
         froot, ext, trailing = splitext_addext(filename,
                                                klass._compressed_suffixes)
-        # Determine the metadata location, then sniff it
+        # Determine the metadata location
         t_fnames = types_filenames(
             filename,
             klass.files_types,
             trailing_suffixes=klass._compressed_suffixes)
         meta_fname = t_fnames.get('header', filename)
+
+        # Do not re-sniff if it would be from the same file
+        if sniff is not None and sniff[1] == meta_fname:
+            return sniff
+
+        # Attempt to sniff from metadata location
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
-                sniff = fobj.read(sniff_nbytes)
+                binaryblock = fobj.read(sniff_nbytes)
         except IOError:
             return None
-        return sniff
+        return (binaryblock, meta_fname)
 
     @classmethod
     def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
@@ -920,11 +931,13 @@ class SpatialImage(object):
             If `filename` points to an image data file, and the image type has
             a separate "header" file, we work out the name of the header file,
             and read from that instead of `filename`.
-        sniff : None or bytes, optional
+        sniff : None or (bytes, filename), optional
             Bytes content read from a previous call to this method, on another
-            class.  This allows us to read metadata bytes once from the image /
-            or header, and pass this read set of bytes to other image classes,
-            therefore saving a repeat read of the metadata.  None forces this
+            class, with metadata filename.  This allows us to read metadata
+            bytes once from the image or header, and pass this read set of
+            bytes to other image classes, therefore saving a repeat read of the
+            metadata.  `filename` is used to validate that metadata would be
+            read from the same file, re-reading if not.  None forces this
             method to read the metadata.
         sniff_max : int, optional
             The maximum number of bytes to read from the metadata.  If the
@@ -938,7 +951,7 @@ class SpatialImage(object):
         -------
         maybe_image : bool
             True if `filename` may be valid for an image of this class.
-        sniff : None or bytes
+        sniff : None or (bytes, filename)
             Read bytes content from found metadata.  May be None if the file
             does not appear to have useful metadata.
         """
@@ -948,14 +961,16 @@ class SpatialImage(object):
             return False, sniff
         if not hasattr(klass.header_class, 'may_contain_header'):
             return True, sniff
-        if sniff is None or len(sniff) < klass._meta_sniff_len:
-            sniff_nbytes = max(klass._meta_sniff_len, sniff_max)
-            sniff = klass._sniff_meta_for(filename, sniff_nbytes)
-        if sniff is None:  # Can't sniff, won't sniff
-            return False, None
-        if len(sniff) < klass._meta_sniff_len:
+
+        # Force re-sniff on too-short sniff
+        if sniff is not None and len(sniff[0]) < klass._meta_sniff_len:
+            sniff = None
+        sniff = klass._sniff_meta_for(filename,
+                                      max(klass._meta_sniff_len, sniff_max),
+                                      sniff)
+        if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
-        return klass.header_class.may_contain_header(sniff), sniff
+        return klass.header_class.may_contain_header(sniff[0]), sniff
 
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
