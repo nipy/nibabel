@@ -21,7 +21,7 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
                 MGHImage, all_image_classes)
 
-from nose.tools import assert_true, assert_raises
+from nose.tools import assert_true
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 
@@ -46,17 +46,13 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                       msg):
             """Embedded function to do the actual checks expected."""
 
-            if sniff_mode == 'empty' and \
-                    hasattr(img_klass.header_class, 'may_contain_header'):
-                assert_raises(ValueError,
-                              img_klass.header_class.may_contain_header, sniff)
-
             if sniff_mode == 'no_sniff':
                 # Don't pass any sniff--not even "None"
                 is_img, new_sniff = img_klass.path_maybe_image(img_path)
             elif sniff_mode in ('empty', 'irrelevant', 'bad_sniff'):
                 # Add img_path to binaryblock sniff parameters
-                is_img, new_sniff = img_klass.path_maybe_image(img_path, (sniff, img_path))
+                is_img, new_sniff = img_klass.path_maybe_image(
+                    img_path, (sniff, img_path))
             else:
                 # Pass a sniff, but don't reuse across images.
                 is_img, new_sniff = img_klass.path_maybe_image(img_path, sniff)
@@ -67,7 +63,8 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                                                             msg)
                 expected_sizeof_hdr = getattr(img_klass.header_class,
                                               'sizeof_hdr', 0)
-                current_sizeof_hdr = 0 if new_sniff is None else len(new_sniff[0])
+                current_sizeof_hdr = 0 if new_sniff is None else \
+                    len(new_sniff[0])
                 assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
 
                 # Check that the image type was recognized.

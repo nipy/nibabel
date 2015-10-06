@@ -137,9 +137,6 @@ class Minc2File(Minc1File):
 class Minc2Header(MincHeader):
     @classmethod
     def may_contain_header(klass, binaryblock):
-        if len(binaryblock) < 4:
-            raise ValueError('Must pass a binary block >= 4 bytes')
-
         return binaryblock[:4] == b'\211HDF'
 
 

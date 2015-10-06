@@ -895,8 +895,7 @@ class AnalyzeHeader(LabeledWrapStruct):
     @classmethod
     def may_contain_header(klass, binaryblock):
         if len(binaryblock) < klass.sizeof_hdr:
-            raise ValueError('Must pass a binary block >= %d bytes' %
-                             klass.sizeof_hdr)
+            return False
 
         hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
                                 buffer=binaryblock[:klass.sizeof_hdr])
