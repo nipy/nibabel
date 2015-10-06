@@ -155,12 +155,15 @@ class ImageOpener(Opener):
     attributes, via the `register_ex_from_images`.  The class can therefore
     change state when image classes are defined.
     """
+    compress_ext_map = Opener.compress_ext_map.copy()
 
     @classmethod
     def register_ext_from_image(opener_klass, ext, func_def):
         """Decorator for adding extension / opener_function associations.
 
-        Should be used to decorate classes.
+        Should be used to decorate classes. Updates ImageOpener class with
+        desired extension / opener association. Updates decorated class by
+        adding ```ext``` to ```klass.alternate_exts```.
 
         Parameters
         ----------
@@ -176,12 +179,12 @@ class ImageOpener(Opener):
 
         Returns
         -------
-        opener_klass, with a side-effect of updating the ImageOpener class
-        with the desired extension / opener association.
+        opener_klass
         """
         def decorate(klass):
             assert ext not in opener_klass.compress_ext_map, \
                 "Cannot redefine extension-function mappings."
             opener_klass.compress_ext_map[ext] = func_def
+            klass.valid_exts += (ext,)
             return klass
         return decorate

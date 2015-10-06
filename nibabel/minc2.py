@@ -30,7 +30,7 @@ import numpy as np
 from .optpkg import optional_package
 h5py, have_h5py, setup_module = optional_package('h5py')
 
-from .minc1 import Minc1File, Minc1Image, MincError
+from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 
 
 class Hdf5Bunch(object):
@@ -134,6 +134,12 @@ class Minc2File(Minc1File):
         return self._normalize(raw_data, sliceobj)
 
 
+class Minc2Header(MincHeader):
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        return binaryblock[:4] == b'\211HDF'
+
+
 class Minc2Image(Minc1Image):
     ''' Class for MINC2 images
 
@@ -142,7 +148,8 @@ class Minc2Image(Minc1Image):
     the MINC file on load.
     '''
     # MINC2 does not do compressed whole files
-    _compressed_exts = ()
+    _compressed_suffixes = ()
+    header_class = Minc2Header
 
     @classmethod
     def from_file_map(klass, file_map):

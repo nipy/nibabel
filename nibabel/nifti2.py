@@ -221,6 +221,16 @@ class Nifti2Header(Nifti1Header):
             rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return 540 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
+
 
 class Nifti2PairHeader(Nifti2Header):
     ''' Class for NIfTI2 pair header '''
@@ -232,12 +242,14 @@ class Nifti2Pair(Nifti1Pair):
     """ Class for NIfTI2 format image, header pair
     """
     header_class = Nifti2PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 class Nifti2Image(Nifti1Image):
     """ Class for single file NIfTI2 format image
     """
     header_class = Nifti2Header
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 def load(filename):

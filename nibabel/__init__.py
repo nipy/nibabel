@@ -61,7 +61,7 @@ from .funcs import (squeeze_image, concat_images, four_to_three,
 from .orientations import (io_orientation, orientation_affine,
                            flip_axis, OrientationError,
                            apply_orientation, aff2axcodes)
-from .imageclasses import class_map, ext_map
+from .imageclasses import class_map, ext_map, all_image_classes
 from . import trackvis
 from . import mriutils
 

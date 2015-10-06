@@ -57,6 +57,7 @@ def test_Opener():
         # mode is gently ignored
         fobj = Opener(obj, mode='r')
 
+
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b"Oh what a giveaway"
@@ -84,12 +85,16 @@ def test_Opener_various():
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
 
+
 def test_BinOpener():
     with error_warnings():
         assert_raises(DeprecationWarning,
                       BinOpener, 'test.txt', 'r')
 
+
 class TestImageOpener:
+    valid_exts = ()
+
     def setUp(self):
         self.compress_ext_map = ImageOpener.compress_ext_map.copy()
 
@@ -115,11 +120,15 @@ class TestImageOpener:
         dec(self.__class__)
         assert_equal(n_associations + 1, len(ImageOpener.compress_ext_map))
         assert_true('.foo' in ImageOpener.compress_ext_map)
+        assert_true('.foo' in self.valid_exts)
 
         with InTemporaryDirectory():
             with ImageOpener('test.foo', 'w'):
                 pass
             assert_true(os.path.exists('test.foo'))
+
+        # Check this doesn't add anything to parent
+        assert_false('.foo' in Opener.compress_ext_map)
 
 
 def test_file_like_wrapper():

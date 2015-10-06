@@ -279,6 +279,12 @@ class MincHeader(Header):
         raise NotImplementedError
 
 
+class Minc1Header(MincHeader):
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        return binaryblock[:4] == b'CDF\x01'
+
+
 class Minc1Image(SpatialImage):
     ''' Class for MINC1 format images
 
@@ -286,9 +292,14 @@ class Minc1Image(SpatialImage):
     MINC header type - and reads the relevant information from the MINC file on
     load.
     '''
-    header_class = MincHeader
+    header_class = Minc1Header
+    _meta_sniff_len = 4
+    valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
-    _compressed_exts = ('.gz', '.bz2')
+    _compressed_suffixes = ('.gz', '.bz2')
+
+    makeable = True
+    rw = False
 
     ImageArrayProxy = MincImageArrayProxy
 

@@ -113,12 +113,22 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
             return slope, inter
         return None, None
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return (binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and
+                348 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr']))
+
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     """ Class for SPM2 variant of basic Analyze image
     """
     header_class = Spm2AnalyzeHeader
-
 
 load = Spm2AnalyzeImage.load
 save = Spm2AnalyzeImage.instance_to_filename

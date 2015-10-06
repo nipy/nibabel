@@ -1611,6 +1611,15 @@ class Nifti1Header(SpmAnalyzeHeader):
             rep.fix_msg = 'setting to 0'
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        return hdr_struct['magic'] in (b'ni1', b'n+1')
+
 
 class Nifti1PairHeader(Nifti1Header):
     ''' Class for NIfTI1 pair header '''
@@ -1622,6 +1631,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
+    rw = True
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -1845,6 +1856,7 @@ class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header
+    valid_exts = ('.nii',)
     files_types = (('image', '.nii'),)
 
     @staticmethod
