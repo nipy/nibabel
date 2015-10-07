@@ -52,7 +52,7 @@ class GiftiMetaData(object):
 
     def to_xml(self):
         if len(self.data) == 0:
-            return "<MetaData/>\n"
+            return b"<MetaData/>\n"
         res = "<MetaData>\n"
         for ele in self.data:
             nvpair = """<MD>
@@ -61,7 +61,7 @@ class GiftiMetaData(object):
 </MD>\n""" % (ele.name, ele.value)
             res = res + nvpair
         res = res + "</MetaData>\n"
-        return res
+        return res.encode('utf-8')
 
     def print_summary(self):
         print(self.metadata)
@@ -90,7 +90,7 @@ class GiftiLabelTable(object):
 
     def to_xml(self):
         if len(self.labels) == 0:
-            return "<LabelTable/>\n"
+            return b"<LabelTable/>\n"
         res = "<LabelTable>\n"
         for ele in self.labels:
             col = ''
@@ -106,7 +106,7 @@ class GiftiLabelTable(object):
                 (str(ele.key), col, ele.label)
             res = res + lab
         res = res + "</LabelTable>\n"
-        return res
+        return res.encode('utf-8')
 
     def print_summary(self):
         print(self.get_labels_as_dict())
@@ -181,7 +181,7 @@ class GiftiCoordSystem(object):
 
     def to_xml(self):
         if self.xform is None:
-            return "<CoordinateSystemTransformMatrix/>\n"
+            return b"<CoordinateSystemTransformMatrix/>\n"
         res = ("""<CoordinateSystemTransformMatrix>
 \t<DataSpace><![CDATA[%s]]></DataSpace>
 \t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n"""
@@ -191,7 +191,7 @@ class GiftiCoordSystem(object):
         res += _arr2txt(self.xform, '%10.6f')
         res = res + "</MatrixData>\n"
         res = res + "</CoordinateSystemTransformMatrix>\n"
-        return res
+        return res.encode('utf-8')
 
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
@@ -200,7 +200,8 @@ class GiftiCoordSystem(object):
 
 
 def data_tag(dataarray, encoding, datatype, ordering):
-    """ Creates the data tag depending on the required encoding """
+    """ Creates the data tag depending on the required encoding,
+    returns as bytes"""
     import zlib
     ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
@@ -215,7 +216,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
         raise NotImplementedError("In what format are the external files?")
     else:
         da = ''
-    return "<Data>" + da + "</Data>\n"
+    return ("<Data>" + da + "</Data>\n").encode('utf-8')
 
 
 class GiftiDataArray(object):
@@ -303,21 +304,21 @@ class GiftiDataArray(object):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
         result = ""
-        result += self.to_xml_open()
+        result += self.to_xml_open().decode('utf-8')
         # write metadata
         if not self.meta is None:
-            result += self.meta.to_xml()
+            result += self.meta.to_xml().decode('utf-8')
         # write coord sys
         if not self.coordsys is None:
-            result += self.coordsys.to_xml()
+            result += self.coordsys.to_xml().decode('utf-8')
         # write data array depending on the encoding
         dt_kind = data_type_codes.dtype[self.datatype].kind
         result += data_tag(self.data,
                            gifti_encoding_codes.specs[self.encoding],
                            KIND2FMT[dt_kind],
-                           self.ind_ord)
-        result = result + self.to_xml_close()
-        return result
+                           self.ind_ord).decode('utf-8')
+        result = result + self.to_xml_close().decode('utf-8')
+        return result.encode('utf-8')
 
     def to_xml_open(self):
         out = """<DataArray Intent="%s"
@@ -331,7 +332,7 @@ class GiftiDataArray(object):
         di = ""
         for i, n in enumerate(self.dims):
             di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
-        return out % (intent_codes.niistring[self.intent],
+        return (out % (intent_codes.niistring[self.intent],
                       data_type_codes.niistring[self.datatype],
                       array_index_order_codes.label[self.ind_ord],
                       str(self.num_dim),
@@ -340,10 +341,10 @@ class GiftiDataArray(object):
                       gifti_endian_codes.specs[self.endian],
                       self.ext_fname,
                       self.ext_offset,
-                      )
+                      )).encode('utf-8')
 
     def to_xml_close(self):
-        return "</DataArray>\n"
+        return b"</DataArray>\n"
 
     def print_summary(self):
         print('Intent: ', intent_codes.niistring[self.intent])
@@ -504,10 +505,10 @@ class GiftiImage(object):
 <GIFTI Version="%s"  NumberOfDataArrays="%s">\n""" % (self.version,
                                                       str(self.numDA))
         if not self.meta is None:
-            res += self.meta.to_xml()
+            res += self.meta.to_xml().decode('utf-8')
         if not self.labeltable is None:
-            res += self.labeltable.to_xml()
+            res += self.labeltable.to_xml().decode('utf-8')
         for dar in self.darrays:
-            res += dar.to_xml()
+            res += dar.to_xml().decode('utf-8')
         res += "</GIFTI>"
-        return res
+        return res.encode('utf-8')
