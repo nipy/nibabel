@@ -24,7 +24,11 @@ from .filename_parser import (types_filenames, TypesFilenamesError,
 from .openers import ImageOpener
 
 
-class BaseHeader(object):
+class ImageFileError(Exception):
+    pass
+
+
+class FileBasedHeader(object):
     ''' Template class to implement header protocol '''
 
     @classmethod
@@ -62,7 +66,7 @@ class BaseHeader(object):
         raise NotImplementedError
 
 
-class BaseImage(object):
+class FileBasedImage(object):
     '''
     It also has a ``header`` - some standard set of meta-data that is specific to
     the image format, and ``extra`` - a dictionary container for any other
@@ -84,52 +88,8 @@ class BaseImage(object):
     You cannot slice an image, and trying to slice an image generates an
     informative TypeError.
     '''
-    header_class = None
-
-    def __init__(self, header=None, extra=None):
-        ''' Initialize image
-
-        The image is a combination of (header), with
-        optional metadata in `extra`.
-
-        Parameters
-        ----------
-        header : None or mapping or header instance, optional
-           metadata for this image format
-        extra : None or mapping, optional
-           metadata to associate with image that cannot be stored in the
-           metadata of this image type
-        '''
-        if header or self.header_class:
-            self._header = self.header_class.from_header(header)
-        else:
-            self._header = None
-        if extra is None:
-            extra = {}
-        self.extra = extra
-
-    @property
-    def header(self):
-        return self._header
 
 
-    def __getitem__(self):
-        ''' No slicing or dictionary interface for images
-        '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
-
-
-class ImageFileError(Exception):
-    pass
-
-
-class FileBasedHeader(BaseHeader):
-    '''Abstract class'''
-
-
-class FileBasedImage(BaseImage):
     '''
     This abstract image class defines an interface for loading/saving images
     from disk. It doesn't define any image properties.
@@ -260,10 +220,29 @@ class FileBasedImage(BaseImage):
         file_map : mapping, optional
            mapping giving file information for this image format
         '''
-        super(FileBasedImage, self).__init__(header=header, extra=extra)
+
+        if header or self.header_class:
+            self._header = self.header_class.from_header(header)
+        else:
+            self._header = None
+        if extra is None:
+            extra = {}
+        self.extra = extra
+
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
+
+    @property
+    def header(self):
+        return self._header
+
+    def __getitem__(self):
+        ''' No slicing or dictionary interface for images
+        '''
+        raise TypeError("Cannot slice image objects; consider slicing image "
+                        "array data with `img.dataobj[slice]` or "
+                        "`img.get_data()[slice]`")
 
     def get_header(self):
         """ Get header from image
