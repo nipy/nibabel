@@ -117,6 +117,21 @@ def test_load_metadata():
         assert_equal(img.version,'1.0')
 
 
+def test_metadata_deprecations():
+    img = gi.read(datafiles[0])
+    me = img.meta
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(me, img.get_meta())
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        img.set_metadata(me)
+    assert_equal(me, img.meta)
+
+
 def test_load_dataarray1():
     img1 = gi.read(DATA_FILE1)
 
@@ -270,3 +285,18 @@ def test_load_labeltable():
         assert_equal(img.labeltable.labels[1].green, 0.392157)
         assert_equal(img.labeltable.labels[1].blue, 0.156863)
         assert_equal(img.labeltable.labels[1].alpha, 1)
+
+
+def test_labeltable_deprecations():
+    img = gi.read(DATA_FILE6)
+    lt = img.labeltable
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(lt, img.get_labeltable())
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        img.set_labeltable(lt)
+    assert_equal(lt, img.labeltable)

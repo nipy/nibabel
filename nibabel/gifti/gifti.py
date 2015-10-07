@@ -380,6 +380,14 @@ class GiftiImage(object):
             raise ValueError("Not a valid GiftiLabelTable instance")
         self._labeltable = labeltable
 
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def set_labeltable(self, labeltable):
+        self.labeltable = labeltable
+
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def get_labeltable(self):
+        return self.labeltable
+
     @property
     def meta(self):
         return self._meta
@@ -400,6 +408,14 @@ class GiftiImage(object):
             raise ValueError("Not a valid GiftiMetaData instance")
         self._meta = meta
  
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def set_metadata(self, meta):
+        self.meta = meta
+
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def get_meta(self):
+        return self.meta
+
     def add_gifti_data_array(self, dataarr):
         """ Adds a data array to the GiftiImage
 
