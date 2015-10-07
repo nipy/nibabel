@@ -154,7 +154,7 @@ class HeaderTypeError(Exception):
     pass
 
 
-class Header(FileBasedHeader):
+class SpatialHeader(FileBasedHeader):
     ''' Template class to implement header protocol '''
     default_x_flip = True
     data_layout = 'F'
@@ -308,20 +308,21 @@ def supported_np_types(obj):
     return set(supported)
 
 
+class Header(SpatialHeader):
+    '''Alias for SpatialHeader; kept for backwards compatibility.'''
+    def __init__(self, *args, **kwargs):
+        warnings.warn('Header is deprecated, use SpatialHeader',
+                      DeprecationWarning, stacklevel=2)
+        super(Header, self).__init__(*args, **kwargs)
+
+
 class ImageDataError(Exception):
     pass
 
 
 class SpatialImage(FileBasedImage):
-    ''' Template class for images '''
-    header_class = Header
-    _meta_sniff_len = 0
-    files_types = (('image', None),)
-    valid_exts = ()
-    _compressed_suffixes = ()
-
-    makeable = True  # Used in test code
-    rw = True  # Used in test code
+    ''' Template class for volumetric (3D/4D) images '''
+    header_class = SpatialHeader
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
