@@ -9,6 +9,7 @@
 from __future__ import division, print_function, absolute_import
 
 import sys
+import xml.etree.ElementTree as xml
 
 import numpy as np
 
@@ -51,17 +52,14 @@ class GiftiMetaData(object):
         return self.data_as_dict
 
     def to_xml(self):
-        if len(self.data) == 0:
-            return b"<MetaData/>\n"
-        res = "<MetaData>\n"
+        metadata = xml.Element('MetaData')
         for ele in self.data:
-            nvpair = """<MD>
-\t<Name><![CDATA[%s]]></Name>
-\t<Value><![CDATA[%s]]></Value>
-</MD>\n""" % (ele.name, ele.value)
-            res = res + nvpair
-        res = res + "</MetaData>\n"
-        return res.encode('utf-8')
+            md = xml.SubElement(metadata, 'MD')
+            name = xml.SubElement(md, 'Name')
+            value = xml.SubElement(md, 'Value')
+            name.text = ele.name
+            value.text = ele.value
+        return xml.tostring(metadata, 'utf-8')
 
     def print_summary(self):
         print(self.metadata)
@@ -89,24 +87,15 @@ class GiftiLabelTable(object):
         return self.labels_as_dict
 
     def to_xml(self):
-        if len(self.labels) == 0:
-            return b"<LabelTable/>\n"
-        res = "<LabelTable>\n"
+        labeltable = xml.Element('LabelTable')
         for ele in self.labels:
-            col = ''
-            if not ele.red is None:
-                col += ' Red="%s"' % str(ele.red)
-            if not ele.green is None:
-                col += ' Green="%s"' % str(ele.green)
-            if not ele.blue is None:
-                col += ' Blue="%s"' % str(ele.blue)
-            if not ele.alpha is None:
-                col += ' Alpha="%s"' % str(ele.alpha)
-            lab = """\t<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
-                (str(ele.key), col, ele.label)
-            res = res + lab
-        res = res + "</LabelTable>\n"
-        return res.encode('utf-8')
+            label = xml.SubElement(labeltable, 'Label')
+            label.attrib['Key'] = str(ele.key)
+            label.text = ele.label
+            for attr in ['Red', 'Green', 'Blue', 'Alpha']:
+                if getattr(ele, attr.lower(), None) is not None:
+                    label.attrib[attr] = str(getattr(ele, attr.lower()))
+        return xml.tostring(labeltable, 'utf-8')
 
     def print_summary(self):
         print(self.get_labels_as_dict())
@@ -180,18 +169,15 @@ class GiftiCoordSystem(object):
             self.xform = xform
 
     def to_xml(self):
-        if self.xform is None:
-            return b"<CoordinateSystemTransformMatrix/>\n"
-        res = ("""<CoordinateSystemTransformMatrix>
-\t<DataSpace><![CDATA[%s]]></DataSpace>
-\t<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n"""
-               % (xform_codes.niistring[self.dataspace],
-                  xform_codes.niistring[self.xformspace]))
-        res = res + "<MatrixData>\n"
-        res += _arr2txt(self.xform, '%10.6f')
-        res = res + "</MatrixData>\n"
-        res = res + "</CoordinateSystemTransformMatrix>\n"
-        return res.encode('utf-8')
+        coord_xform = xml.Element('CoordinateSystemTransformMatrix')
+        if self.xform is not None:
+            dataspace = xml.SubElement(coord_xform, 'DataSpace')
+            dataspace.text = xform_codes.niistring[self.dataspace]
+            xformed_space = xml.SubElement(coord_xform, 'TransformedSpace')
+            xformed_space.text = xform_codes.niistring[self.xformspace]
+            matrix_data = xml.SubElement(coord_xform, 'MatrixData')
+            matrix_data.text = _arr2txt(self.xform, '%10.6f')
+        return xml.tostring(coord_xform, 'utf-8')
 
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
@@ -216,7 +202,10 @@ def data_tag(dataarray, encoding, datatype, ordering):
         raise NotImplementedError("In what format are the external files?")
     else:
         da = ''
-    return ("<Data>" + da + "</Data>\n").encode('utf-8')
+
+    data = xml.Element('Data')
+    data.text = da
+    return xml.tostring(data, 'utf-8')
 
 
 class GiftiDataArray(object):
@@ -303,48 +292,32 @@ class GiftiDataArray(object):
     def to_xml(self):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
-        result = ""
-        result += self.to_xml_open().decode('utf-8')
-        # write metadata
-        if not self.meta is None:
-            result += self.meta.to_xml().decode('utf-8')
-        # write coord sys
-        if not self.coordsys is None:
-            result += self.coordsys.to_xml().decode('utf-8')
+
+        data_array = xml.Element('DataArray', attrib={
+            'Intent': intent_codes.niistring[self.intent],
+            'DataType': data_type_codes.niistring[self.datatype],
+            'ArrayIndexingOrder': array_index_order_codes.label[self.ind_ord],
+            'Dimensionality': str(self.num_dim),
+            'Encoding': gifti_encoding_codes.specs[self.encoding],
+            'Endian': gifti_endian_codes.specs[self.endian],
+            'ExternalFileName': self.ext_fname,
+            'ExternalFileOffset': self.ext_offset})
+        for di, dn in enumerate(self.dims):
+            data_array.attrib['Dim%d' % di] = str(dn)
+
+        if self.meta is not None:
+            data_array.append(xml.fromstring(self.meta.to_xml()))
+        if self.coordsys is not None:
+            data_array.append(xml.fromstring(self.coordsys.to_xml()))
         # write data array depending on the encoding
         dt_kind = data_type_codes.dtype[self.datatype].kind
-        result += data_tag(self.data,
-                           gifti_encoding_codes.specs[self.encoding],
-                           KIND2FMT[dt_kind],
-                           self.ind_ord).decode('utf-8')
-        result = result + self.to_xml_close().decode('utf-8')
-        return result.encode('utf-8')
+        data_array.append(xml.fromstring(
+            data_tag(self.data,
+                     gifti_encoding_codes.specs[self.encoding],
+                     KIND2FMT[dt_kind],
+                     self.ind_ord)))
 
-    def to_xml_open(self):
-        out = """<DataArray Intent="%s"
-\tDataType="%s"
-\tArrayIndexingOrder="%s"
-\tDimensionality="%s"
-%s\tEncoding="%s"
-\tEndian="%s"
-\tExternalFileName="%s"
-\tExternalFileOffset="%s">\n"""
-        di = ""
-        for i, n in enumerate(self.dims):
-            di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
-        return (out % (intent_codes.niistring[self.intent],
-                      data_type_codes.niistring[self.datatype],
-                      array_index_order_codes.label[self.ind_ord],
-                      str(self.num_dim),
-                      str(di),
-                      gifti_encoding_codes.specs[self.encoding],
-                      gifti_endian_codes.specs[self.endian],
-                      self.ext_fname,
-                      self.ext_offset,
-                      )).encode('utf-8')
-
-    def to_xml_close(self):
-        return b"</DataArray>\n"
+        return xml.tostring(data_array, 'utf-8')
 
     def print_summary(self):
         print('Intent: ', intent_codes.niistring[self.intent])
@@ -498,17 +471,19 @@ class GiftiImage(object):
             print(da.print_summary())
         print('----end----')
 
+
     def to_xml(self):
         """ Return XML corresponding to image content """
-        res = """<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-<GIFTI Version="%s"  NumberOfDataArrays="%s">\n""" % (self.version,
-                                                      str(self.numDA))
-        if not self.meta is None:
-            res += self.meta.to_xml().decode('utf-8')
-        if not self.labeltable is None:
-            res += self.labeltable.to_xml().decode('utf-8')
+        GIFTI = xml.Element('GIFTI', attrib={
+            'Version': self.version,
+            'NumberOfDataArrays': str(self.numDA)})
+        if self.meta is not None:
+            GIFTI.append(xml.fromstring(self.meta.to_xml()))
+        if self.labeltable is not None:
+            GIFTI.append(xml.fromstring(self.labeltable.to_xml()))
         for dar in self.darrays:
-            res += dar.to_xml().decode('utf-8')
-        res += "</GIFTI>"
-        return res.encode('utf-8')
+            GIFTI.append(xml.fromstring(dar.to_xml()))
+
+        return b"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
+""" + xml.tostring(GIFTI, 'utf-8')
