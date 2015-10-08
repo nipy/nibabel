@@ -23,7 +23,19 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 import base64
 
 
-class GiftiMetaData(object):
+class XmlSerializable(object):
+    """ Basic interface for serializing an object to xml"""
+    def _to_xml_element(self):
+        """ Output should be a xml.etree.ElementTree.Element"""
+        raise NotImplementedError()
+
+    def to_xml(self, enc='utf-8'):
+        """ Output should be an xml string with the given encoding.
+        (default: utf-8)"""
+        return xml.tostring(self._to_xml_element(), enc)
+
+
+class GiftiMetaData(XmlSerializable):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
     def __init__(self, nvpair=None):
@@ -51,7 +63,7 @@ class GiftiMetaData(object):
             self.data_as_dict[ele.name] = ele.value
         return self.data_as_dict
 
-    def to_xml(self):
+    def _to_xml_element(self):
         metadata = xml.Element('MetaData')
         for ele in self.data:
             md = xml.SubElement(metadata, 'MD')
@@ -59,7 +71,7 @@ class GiftiMetaData(object):
             value = xml.SubElement(md, 'Value')
             name.text = ele.name
             value.text = ele.value
-        return xml.tostring(metadata, 'utf-8')
+        return metadata
 
     def print_summary(self):
         print(self.metadata)
@@ -75,7 +87,7 @@ class GiftiNVPairs(object):
         self.value = value
 
 
-class GiftiLabelTable(object):
+class GiftiLabelTable(XmlSerializable):
 
     def __init__(self):
         self.labels = []
@@ -86,7 +98,7 @@ class GiftiLabelTable(object):
             self.labels_as_dict[ele.key] = ele.label
         return self.labels_as_dict
 
-    def to_xml(self):
+    def _to_xml_element(self):
         labeltable = xml.Element('LabelTable')
         for ele in self.labels:
             label = xml.SubElement(labeltable, 'Label')
@@ -95,13 +107,13 @@ class GiftiLabelTable(object):
             for attr in ['Red', 'Green', 'Blue', 'Alpha']:
                 if getattr(ele, attr.lower(), None) is not None:
                     label.attrib[attr] = str(getattr(ele, attr.lower()))
-        return xml.tostring(labeltable, 'utf-8')
+        return labeltable
 
     def print_summary(self):
         print(self.get_labels_as_dict())
 
 
-class GiftiLabel(object):
+class GiftiLabel(XmlSerializable):
     key = int
     label = str
     # rgba
@@ -154,7 +166,7 @@ def _arr2txt(arr, elem_fmt):
     return '\n'.join(fmt % tuple(row) for row in arr)
 
 
-class GiftiCoordSystem(object):
+class GiftiCoordSystem(XmlSerializable):
     dataspace = int
     xformspace = int
     xform = np.ndarray  # 4x4 numpy array
@@ -168,7 +180,7 @@ class GiftiCoordSystem(object):
         else:
             self.xform = xform
 
-    def to_xml(self):
+    def _to_xml_element(self):
         coord_xform = xml.Element('CoordinateSystemTransformMatrix')
         if self.xform is not None:
             dataspace = xml.SubElement(coord_xform, 'DataSpace')
@@ -177,7 +189,7 @@ class GiftiCoordSystem(object):
             xformed_space.text = xform_codes.niistring[self.xformspace]
             matrix_data = xml.SubElement(coord_xform, 'MatrixData')
             matrix_data.text = _arr2txt(self.xform, '%10.6f')
-        return xml.tostring(coord_xform, 'utf-8')
+        return coord_xform
 
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
@@ -185,7 +197,7 @@ class GiftiCoordSystem(object):
         print('Affine Transformation Matrix: \n', self.xform)
 
 
-def data_tag(dataarray, encoding, datatype, ordering):
+def _data_tag_element(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding,
     returns as bytes"""
     import zlib
@@ -205,10 +217,15 @@ def data_tag(dataarray, encoding, datatype, ordering):
 
     data = xml.Element('Data')
     data.text = da
+    return data
+
+
+def data_tag(dataarray, encoding, datatype, ordering):
+    data = _data_tag_element(dataarray, encoding, datatype, ordering)
     return xml.tostring(data, 'utf-8')
 
 
-class GiftiDataArray(object):
+class GiftiDataArray(XmlSerializable):
 
     # These are for documentation only; we don't use these class variables
     intent = int
@@ -289,7 +306,7 @@ class GiftiDataArray(object):
         cda.meta = GiftiMetaData.from_dict(meta)
         return cda
 
-    def to_xml(self):
+    def _to_xml_element(self):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
 
@@ -306,18 +323,18 @@ class GiftiDataArray(object):
             data_array.attrib['Dim%d' % di] = str(dn)
 
         if self.meta is not None:
-            data_array.append(xml.fromstring(self.meta.to_xml()))
+            data_array.append(self.meta._to_xml_element())
         if self.coordsys is not None:
-            data_array.append(xml.fromstring(self.coordsys.to_xml()))
+            data_array.append(self.coordsys._to_xml_element())
         # write data array depending on the encoding
         dt_kind = data_type_codes.dtype[self.datatype].kind
-        data_array.append(xml.fromstring(
-            data_tag(self.data,
-                     gifti_encoding_codes.specs[self.encoding],
-                     KIND2FMT[dt_kind],
-                     self.ind_ord)))
+        data_array.append(
+            _data_tag_element(self.data,
+                              gifti_encoding_codes.specs[self.encoding],
+                              KIND2FMT[dt_kind],
+                              self.ind_ord))
 
-        return xml.tostring(data_array, 'utf-8')
+        return data_array
 
     def print_summary(self):
         print('Intent: ', intent_codes.niistring[self.intent])
@@ -345,7 +362,8 @@ class GiftiDataArray(object):
         return self.meta.metadata
 
 
-class GiftiImage(object):
+class GiftiImage(XmlSerializable):
+
     def __init__(self, meta=None, labeltable=None, darrays=None,
                  version="1.0"):
         if darrays is None:
@@ -472,18 +490,20 @@ class GiftiImage(object):
         print('----end----')
 
 
-    def to_xml(self):
-        """ Return XML corresponding to image content """
+    def _to_xml_element(self):
         GIFTI = xml.Element('GIFTI', attrib={
             'Version': self.version,
             'NumberOfDataArrays': str(self.numDA)})
         if self.meta is not None:
-            GIFTI.append(xml.fromstring(self.meta.to_xml()))
+            GIFTI.append(self.meta._to_xml_element())
         if self.labeltable is not None:
-            GIFTI.append(xml.fromstring(self.labeltable.to_xml()))
+            GIFTI.append(self.labeltable._to_xml_element())
         for dar in self.darrays:
-            GIFTI.append(xml.fromstring(dar.to_xml()))
+            GIFTI.append(dar._to_xml_element())
+        return GIFTI
 
+    def to_xml(self, enc='utf-8'):
+        """ Return XML corresponding to image content """
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-""" + xml.tostring(GIFTI, 'utf-8')
+""" + XmlSerializable.to_xml(self, enc)
