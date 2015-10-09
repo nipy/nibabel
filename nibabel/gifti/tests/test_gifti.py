@@ -64,3 +64,31 @@ def test_metadata():
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(len(GiftiMetaData().get_metadata()), 0)
+
+
+def test_gifti_label_rgba():
+    rgba = np.random.rand(4)
+    kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
+
+    gl = GiftiLabel(**kwargs)
+    assert_equal(kwargs['red'], gl.rgba[0])
+    assert_equal(kwargs['green'], gl.rgba[1])
+    assert_equal(kwargs['blue'], gl.rgba[2])
+    assert_equal(kwargs['alpha'], gl.rgba[3])
+
+    gl = GiftiLabel()
+    gl.rgba = rgba
+    assert_equal(kwargs['red'], gl.rgba[0])
+    assert_equal(kwargs['green'], gl.rgba[1])
+    assert_equal(kwargs['blue'], gl.rgba[2])
+    assert_equal(kwargs['alpha'], gl.rgba[3])
+
+    with assert_raises(ValueError):
+        gl.rgba = rgba[:2]
+    with assert_raises(ValueError):
+        gl.rgba = rgba.tolist() + rgba.tolist()
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(kwargs['red'], gl.get_rgba()[0])

@@ -133,9 +133,30 @@ class GiftiLabel(object):
         self.blue = blue
         self.alpha = alpha
 
+    @np.deprecate_with_doc("Use the rgba property instead.")
     def get_rgba(self):
+        return self.rgba
+
+    @property
+    def rgba(self):
         """ Returns RGBA as tuple """
         return (self.red, self.green, self.blue, self.alpha)
+
+    @rgba.setter
+    def rgba(self, rgba):
+        """ Set RGBA via tuple
+
+        Parameters
+        ----------
+        rgba : tuple (red, green, blue, alpha)
+
+        """
+        if len(rgba) != 4:
+            raise ValueError('rgba must be length 4.')
+        self.red = rgba[0]
+        self.green = rgba[1]
+        self.blue = rgba[2]
+        self.alpha = rgba[3]
 
 
 def _arr2txt(arr, elem_fmt):
