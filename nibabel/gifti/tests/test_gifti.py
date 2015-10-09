@@ -1,16 +1,18 @@
 """ Testing gifti objects
 """
+import warnings
 
 import numpy as np
 
+from .. import giftiio as gi
+from ..gifti import (GiftiImage, GiftiDataArray, GiftiLabel, GiftiLabelTable,
+                     GiftiMetaData)
 from ...nifti1 import data_type_codes, intent_codes
-
-from ..gifti import GiftiImage, GiftiDataArray, GiftiLabelTable
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
-
 from nose.tools import assert_true, assert_equal, assert_raises
+from ...testing import clear_and_catch_warnings
 
 
 def test_gifti_image():
@@ -47,3 +49,18 @@ def test_labeltable():
     img.labeltable = new_table
     assert_equal(len(img.labeltable.labels), 2)
 
+    # Try to set to non-table
+    with assert_raises(ValueError):
+        img.labeltable = 'not-a-table'
+
+
+def test_metadata():
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(len(GiftiDataArray().get_metadata()), 0)
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(len(GiftiMetaData().get_metadata()), 0)

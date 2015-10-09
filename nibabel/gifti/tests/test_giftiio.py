@@ -142,7 +142,7 @@ def test_load_dataarray1():
     for img in (img1, bimg):
         assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
         assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
-        me=img.darrays[0].meta.get_metadata()
+        me=img.darrays[0].meta.metadata
         assert_true('AnatomicalStructurePrimary' in me)
         assert_true('AnatomicalStructureSecondary' in me)
         assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
@@ -237,11 +237,11 @@ def test_write_newmetadata():
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
     img.meta = newmeta
-    myme = img.meta.get_metadata()
+    myme = img.meta.metadata
     assert_true('mykey' in myme)
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
     img.meta = newmeta
-    myme = img.meta.get_metadata()
+    myme = img.meta.metadata
     assert_true('mykey1' in myme)
     assert_false('mykey' in myme)
 

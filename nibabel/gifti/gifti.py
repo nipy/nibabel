@@ -38,7 +38,12 @@ class GiftiMetaData(object):
             meda.data.append(nv)
         return meda
 
+    @np.deprecate_with_doc("Use the metadata property instead.")
     def get_metadata(self):
+        return self.metadata
+
+    @property
+    def metadata(self):
         """ Returns metadata as dictionary """
         self.data_as_dict = {}
         for ele in self.data:
@@ -59,7 +64,7 @@ class GiftiMetaData(object):
         return res
 
     def print_summary(self):
-        print(self.get_metadata())
+        print(self.metadata)
 
 
 class GiftiNVPairs(object):
@@ -338,9 +343,14 @@ class GiftiDataArray(object):
             print('Coordinate System:')
             print(self.coordsys.print_summary())
 
+    @np.deprecate_with_doc("Use the metadata property instead.")
     def get_metadata(self):
+        return self.meta.metadata
+
+    @property
+    def metadata(self):
         """ Returns metadata as dictionary """
-        return self.meta.get_metadata()
+        return self.meta.metadata
 
 
 class GiftiImage(object):
