@@ -453,7 +453,7 @@ class GiftiImage(object):
         if isinstance(dataarr, GiftiDataArray):
             self.darrays.append(dataarr)
         else:
-            print("dataarr paramater must be of tzpe GiftiDataArray")
+            raise ValueError("dataarr paramater must be of type GiftiDataArray")
 
     def remove_gifti_data_array(self, ith):
         """ Removes the ith data array element from the GiftiImage """
