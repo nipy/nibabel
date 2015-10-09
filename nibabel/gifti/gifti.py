@@ -208,11 +208,6 @@ def _data_tag_element(dataarray, encoding, datatype, ordering):
     return data
 
 
-def data_tag(dataarray, encoding, datatype, ordering):
-    data = _data_tag_element(dataarray, encoding, datatype, ordering)
-    return xml.tostring(data, 'utf-8')
-
-
 class GiftiDataArray(xml.XmlSerializable):
 
     # These are for documentation only; we don't use these class variables
