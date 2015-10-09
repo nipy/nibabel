@@ -9,10 +9,10 @@
 from __future__ import division, print_function, absolute_import
 
 import sys
-import xml.etree.ElementTree as xml
 
 import numpy as np
 
+from .. import xmlutils as xml
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
@@ -23,19 +23,7 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 import base64
 
 
-class XmlSerializable(object):
-    """ Basic interface for serializing an object to xml"""
-    def _to_xml_element(self):
-        """ Output should be a xml.etree.ElementTree.Element"""
-        raise NotImplementedError()
-
-    def to_xml(self, enc='utf-8'):
-        """ Output should be an xml string with the given encoding.
-        (default: utf-8)"""
-        return xml.tostring(self._to_xml_element(), enc)
-
-
-class GiftiMetaData(XmlSerializable):
+class GiftiMetaData(xml.XmlSerializable):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
     def __init__(self, nvpair=None):
@@ -87,7 +75,7 @@ class GiftiNVPairs(object):
         self.value = value
 
 
-class GiftiLabelTable(XmlSerializable):
+class GiftiLabelTable(xml.XmlSerializable):
 
     def __init__(self):
         self.labels = []
@@ -113,7 +101,7 @@ class GiftiLabelTable(XmlSerializable):
         print(self.get_labels_as_dict())
 
 
-class GiftiLabel(XmlSerializable):
+class GiftiLabel(xml.XmlSerializable):
     key = int
     label = str
     # rgba
@@ -166,7 +154,7 @@ def _arr2txt(arr, elem_fmt):
     return '\n'.join(fmt % tuple(row) for row in arr)
 
 
-class GiftiCoordSystem(XmlSerializable):
+class GiftiCoordSystem(xml.XmlSerializable):
     dataspace = int
     xformspace = int
     xform = np.ndarray  # 4x4 numpy array
@@ -199,7 +187,7 @@ class GiftiCoordSystem(XmlSerializable):
 
 def _data_tag_element(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding,
-    returns as bytes"""
+    returns as XML element"""
     import zlib
     ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
@@ -225,7 +213,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
     return xml.tostring(data, 'utf-8')
 
 
-class GiftiDataArray(XmlSerializable):
+class GiftiDataArray(xml.XmlSerializable):
 
     # These are for documentation only; we don't use these class variables
     intent = int
@@ -362,7 +350,7 @@ class GiftiDataArray(XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(XmlSerializable):
+class GiftiImage(xml.XmlSerializable):
 
     def __init__(self, meta=None, labeltable=None, darrays=None,
                  version="1.0"):
@@ -506,4 +494,4 @@ class GiftiImage(XmlSerializable):
         """ Return XML corresponding to image content """
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-""" + XmlSerializable.to_xml(self, enc)
+""" + xml.XmlSerializable.to_xml(self, enc)
