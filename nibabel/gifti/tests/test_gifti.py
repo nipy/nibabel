@@ -26,6 +26,35 @@ def test_gifti_image():
     gi = GiftiImage()
     assert_equal(gi.darrays, [])
 
+    # Test darrays / numDA
+    gi = GiftiImage()
+    assert_equal(gi.numDA, 0)
+
+    da = GiftiDataArray(data='data')
+    gi.add_gifti_data_array(da)
+    assert_equal(gi.numDA, 1)
+    assert_equal(gi.darrays[0].data, 'data')
+
+    gi.remove_gifti_data_array(0)
+    assert_equal(gi.numDA, 0)
+
+    # Remove from empty
+    gi = GiftiImage()
+    gi.remove_gifti_data_array_by_intent(0)
+    assert_equal(gi.numDA, 0)
+
+    # Remove one
+    gi = GiftiImage()
+    da = GiftiDataArray(data='data')
+    gi.add_gifti_data_array(da)
+
+    gi.remove_gifti_data_array_by_intent(0)
+    assert_equal(gi.numDA, 1)
+
+    gi.darrays[0].intent = 0
+    gi.remove_gifti_data_array_by_intent(0)
+    assert_equal(gi.numDA, 0)
+
 
 def test_dataarray():
     for dt_code in data_type_codes.value_set():
