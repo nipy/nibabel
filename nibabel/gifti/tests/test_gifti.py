@@ -79,8 +79,9 @@ def test_labeltable():
     assert_equal(len(img.labeltable.labels), 2)
 
     # Try to set to non-table
-    with assert_raises(ValueError):
-        img.labeltable = 'not-a-table'
+    def assign_labeltable(val):
+        img.labeltable = val
+    assert_raises(ValueError, assign_labeltable, 'not-a-table')
 
 
 def test_metadata():
@@ -112,10 +113,10 @@ def test_gifti_label_rgba():
     assert_equal(kwargs['blue'], gl.rgba[2])
     assert_equal(kwargs['alpha'], gl.rgba[3])
 
-    with assert_raises(ValueError):
-        gl.rgba = rgba[:2]
-    with assert_raises(ValueError):
-        gl.rgba = rgba.tolist() + rgba.tolist()
+    def assign_rgba(val):
+        gl.rgba = val
+    assert_raises(ValueError, assign_rgba, rgba[:2])
+    assert_raises(ValueError, assign_rgba, rgba.tolist() + rgba.tolist())
 
     # Test deprecation
     with clear_and_catch_warnings() as w:
