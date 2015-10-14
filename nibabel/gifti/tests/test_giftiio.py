@@ -300,3 +300,23 @@ def test_labeltable_deprecations():
         warnings.filterwarnings('once', category=DeprecationWarning)
         img.set_labeltable(lt)
     assert_equal(lt, img.labeltable)
+
+
+def test_parse_dataarrays():
+    fn = 'bad_daa.gii'
+    img = gi.GiftiImage()
+
+    with InTemporaryDirectory():
+        gi.write(img, fn)
+        with open(fn, 'r') as fp:
+            txt = fp.read()
+        # Make a bad gifti.
+        txt = txt.replace('NumberOfDataArrays="0"', 'NumberOfDataArrays ="1"')
+        with open(fn, 'w') as fp:
+            fp.write(txt)
+
+        with clear_and_catch_warnings() as w:
+            warnings.filterwarnings('once', category=UserWarning)
+            gi.read(fn)
+            assert_equal(len(w), 1)
+            assert_equal(img.numDA, 0)
