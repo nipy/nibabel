@@ -153,11 +153,7 @@ class GiftiLabel(object):
         """
         if len(rgba) != 4:
             raise ValueError('rgba must be length 4.')
-        self.red = rgba[0]
-        self.green = rgba[1]
-        self.blue = rgba[2]
-        self.alpha = rgba[3]
-
+        self.red, self.green, self.blue, self.alpha = rgba
 
 def _arr2txt(arr, elem_fmt):
     arr = np.asarray(arr)
@@ -438,7 +434,7 @@ class GiftiImage(object):
         if not isinstance(meta, GiftiMetaData):
             raise ValueError("Not a valid GiftiMetaData instance")
         self._meta = meta
- 
+
     @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
     def set_metadata(self, meta):
         self.meta = meta

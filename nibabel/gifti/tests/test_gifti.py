@@ -4,14 +4,13 @@ import warnings
 
 import numpy as np
 
-from .. import giftiio as gi
 from ..gifti import (GiftiImage, GiftiDataArray, GiftiLabel, GiftiLabelTable,
                      GiftiMetaData)
 from ...nifti1 import data_type_codes, intent_codes
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 from ...testing import clear_and_catch_warnings
 
 
@@ -100,25 +99,31 @@ def test_gifti_label_rgba():
     rgba = np.random.rand(4)
     kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
 
-    gl = GiftiLabel(**kwargs)
-    assert_equal(kwargs['red'], gl.rgba[0])
-    assert_equal(kwargs['green'], gl.rgba[1])
-    assert_equal(kwargs['blue'], gl.rgba[2])
-    assert_equal(kwargs['alpha'], gl.rgba[3])
+    gl1 = GiftiLabel(**kwargs)
+    assert_array_equal(rgba, gl1.rgba)
 
-    gl = GiftiLabel()
-    gl.rgba = rgba
-    assert_equal(kwargs['red'], gl.rgba[0])
-    assert_equal(kwargs['green'], gl.rgba[1])
-    assert_equal(kwargs['blue'], gl.rgba[2])
-    assert_equal(kwargs['alpha'], gl.rgba[3])
+    gl1.red = 2 * gl1.red
+    assert_false(np.allclose(rgba, gl1.rgba))  # don't just store the list!
 
-    def assign_rgba(val):
+    gl2 = GiftiLabel()
+    gl2.rgba = rgba
+    assert_array_equal(rgba, gl2.rgba)
+
+    gl2.blue = 2 * gl2.blue
+    assert_false(np.allclose(rgba, gl2.rgba))  # don't just store the list!
+
+    def assign_rgba(gl, val):
         gl.rgba = val
-    assert_raises(ValueError, assign_rgba, rgba[:2])
-    assert_raises(ValueError, assign_rgba, rgba.tolist() + rgba.tolist())
+    gl3 = GiftiLabel(**kwargs)
+    assert_raises(ValueError, assign_rgba, gl3, rgba[:2])
+    assert_raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
 
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
-        assert_equal(kwargs['red'], gl.get_rgba()[0])
+        assert_equal(kwargs['red'], gl3.get_rgba()[0])
+
+    # Test default value
+    gl4 = GiftiLabel()
+    assert_equal(len(gl4.rgba), 4)
+    assert_true(np.all([elem is None for elem in gl4.rgba]))

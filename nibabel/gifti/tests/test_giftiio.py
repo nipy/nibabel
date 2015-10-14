@@ -41,8 +41,8 @@ DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 
 datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
-numda = [2, 1, 1, 1, 2, 1]
- 
+numDA = [2, 1, 1, 1, 2, 1]
+
 DATA_FILE1_darr1 = np.array(
        [[-16.07201 , -66.187515,  21.266994],
        [-16.705893, -66.054337,  21.232786],
@@ -113,7 +113,7 @@ def test_load_metadata():
     for i, dat in enumerate(datafiles):
         img = gi.read(dat)
         me = img.meta
-        assert_equal(numda[i], img.numDA)
+        assert_equal(numDA[i], img.numDA)
         assert_equal(img.version,'1.0')
 
 
