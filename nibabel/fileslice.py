@@ -767,9 +767,15 @@ def strided_scalar(shape, scalar=0.):
     strided_arr : array
         Array of shape `shape` for which all values == `scalar`, built by
         setting all strides of `strided_arr` to 0, so the scalar is broadcast
-        out to the full array `shape`.
+        out to the full array `shape`. `strided_arr` is flagged as not
+        `writeable`.
+
+        The array is set read-only to avoid a numpy error when broadcasting -
+        see https://github.com/numpy/numpy/issues/6491
     """
     shape = tuple(shape)
     scalar = np.array(scalar)
     strides = [0] * len(shape)
-    return np.lib.stride_tricks.as_strided(scalar, shape, strides)
+    strided_scalar = np.lib.stride_tricks.as_strided(scalar, shape, strides)
+    strided_scalar.flags.writeable = False
+    return strided_scalar
