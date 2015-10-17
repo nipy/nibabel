@@ -97,13 +97,15 @@ def test_labeltable():
 def test_metadata():
     # Test deprecation
     with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         assert_equal(len(GiftiDataArray().get_metadata()), 0)
+        assert_equal(len(w), 1)
 
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(len(GiftiMetaData().get_metadata()), 0)
+        assert_equal(len(w), 1)
 
 
 def test_gifti_label_rgba():
@@ -133,6 +135,7 @@ def test_gifti_label_rgba():
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(kwargs['red'], gl3.get_rgba()[0])
+        assert_equal(len(w), 1)
 
     # Test default value
     gl4 = GiftiLabel()
