@@ -185,6 +185,17 @@ class GiftiCoordSystem(xml.XmlSerializable):
         print('Affine Transformation Matrix: \n', self.xform)
 
 
+@np.deprecate_with_doc("This is an internal API that will be discontinued.")
+def data_tag(dataarray, encoding, datatype, ordering):
+    class DataTag(xml.XmlSerializable):
+        def __init__(self, *args):
+            self.args = args
+        def _to_xml_element(self):
+            return _data_tag_element(*self.args)
+
+    return DataTag(dataarray, encoding, datatype, ordering).to_xml()
+
+
 def _data_tag_element(dataarray, encoding, datatype, ordering):
     """ Creates the data tag depending on the required encoding,
     returns as XML element"""
