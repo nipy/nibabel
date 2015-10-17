@@ -155,6 +155,7 @@ class GiftiLabel(object):
             raise ValueError('rgba must be length 4.')
         self.red, self.green, self.blue, self.alpha = rgba
 
+
 def _arr2txt(arr, elem_fmt):
     arr = np.asarray(arr)
     assert arr.dtype.names is None
@@ -404,7 +405,7 @@ class GiftiImage(object):
 
         """
         if not isinstance(labeltable, GiftiLabelTable):
-            raise ValueError("Not a valid GiftiLabelTable instance")
+            raise TypeError("Not a valid GiftiLabelTable instance")
         self._labeltable = labeltable
 
     @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
@@ -432,7 +433,7 @@ class GiftiImage(object):
         None
         """
         if not isinstance(meta, GiftiMetaData):
-            raise ValueError("Not a valid GiftiMetaData instance")
+            raise TypeError("Not a valid GiftiMetaData instance")
         self._meta = meta
 
     @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
@@ -450,10 +451,9 @@ class GiftiImage(object):
         ----------
         dataarr : GiftiDataArray
         """
-        if isinstance(dataarr, GiftiDataArray):
-            self.darrays.append(dataarr)
-        else:
-            raise ValueError("dataarr paramater must be of type GiftiDataArray")
+        if not isinstance(dataarr, GiftiDataArray):
+            raise TypeError("dataarr paramater must be of type GiftiDataArray")
+        self.darrays.append(dataarr)
 
     def remove_gifti_data_array(self, ith):
         """ Removes the ith data array element from the GiftiImage """
