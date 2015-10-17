@@ -233,7 +233,6 @@ class GiftiDataArray(xml.XmlSerializable):
     intent = int
     datatype = int
     ind_ord = int
-    num_dim = int
     dims = list
     encoding = int
     endian = int
@@ -266,6 +265,9 @@ class GiftiDataArray(xml.XmlSerializable):
         self.encoding = encoding
         self.endian = endian
 
+    @property
+    def num_dim(self):
+        return len(self.dims)
 
     @classmethod
     def from_array(klass,
@@ -309,7 +311,6 @@ class GiftiDataArray(xml.XmlSerializable):
         if meta is None:
             meta = {}
         cda = klass(darray)
-        cda.num_dim = len(darray.shape)
         cda.dims = list(darray.shape)
         if datatype is None:
             cda.datatype = data_type_codes.code[darray.dtype]

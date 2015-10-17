@@ -167,14 +167,14 @@ class GiftiImageParser(XmlParser):
             if "ArrayIndexingOrder" in attrs:
                 self.da.ind_ord = array_index_order_codes.code[
                     attrs["ArrayIndexingOrder"]]
-            if "Dimensionality" in attrs:
-                self.da.num_dim = int(attrs["Dimensionality"])
-            for i in range(self.da.num_dim):
+            num_dim = int(attrs.get("Dimensionality", 0))
+            for i in range(num_dim):
                 di = "Dim%s" % str(i)
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
             # dimensionality has to correspond to the number of DimX given
-            assert len(self.da.dims) == self.da.num_dim
+            # TODO (bcipolli): don't assert; raise parse warning, and recover.
+            assert len(self.da.dims) == num_dim
             if "Encoding" in attrs:
                 self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
             if "Endian" in attrs:
