@@ -452,7 +452,7 @@ class GiftiImage(object):
         dataarr : GiftiDataArray
         """
         if not isinstance(dataarr, GiftiDataArray):
-            raise TypeError("dataarr paramater must be of type GiftiDataArray")
+            raise TypeError("Not a valid GiftiDataArray instance")
         self.darrays.append(dataarr)
 
     def remove_gifti_data_array(self, ith):

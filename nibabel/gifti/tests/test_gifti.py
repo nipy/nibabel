@@ -80,11 +80,6 @@ def test_labeltable():
     img.labeltable = new_table
     assert_equal(len(img.labeltable.labels), 2)
 
-    # Try to set to non-table
-    def assign_labeltable(val):
-        img.labeltable = val
-    assert_raises(TypeError, assign_labeltable, 'not-a-table')
-
 
 def test_metadata():
     # Test deprecation
@@ -156,4 +151,15 @@ def test_gifti_image():
     assert_true(img.meta is not None)
     assert_true(img.labeltable is not None)
 
+    # Try to set a non-data-array
     assert_raises(TypeError, img.add_gifti_data_array, 'not-a-data-array')
+
+    # Try to set to non-table
+    def assign_labeltable(val):
+        img.labeltable = val
+    assert_raises(TypeError, assign_labeltable, 'not-a-table')
+
+    # Try to set to non-table
+    def assign_metadata(val):
+        img.meta = val
+    assert_raises(TypeError, assign_metadata, 'not-a-meta')
