@@ -330,6 +330,34 @@ class GiftiDataArray(xml.XmlSerializable):
 
         return data_array
 
+    @np.deprecate_with_doc("Use the to_xml() function instead.")
+    def to_xml_open(self):
+        out = """<DataArray Intent="%s"
+\tDataType="%s"
+\tArrayIndexingOrder="%s"
+\tDimensionality="%s"
+%s\tEncoding="%s"
+\tEndian="%s"
+\tExternalFileName="%s"
+\tExternalFileOffset="%s">\n"""
+        di = ""
+        for i, n in enumerate(self.dims):
+            di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
+        return out % (intent_codes.niistring[self.intent],
+                      data_type_codes.niistring[self.datatype],
+                      array_index_order_codes.label[self.ind_ord],
+                      str(self.num_dim),
+                      str(di),
+                      gifti_encoding_codes.specs[self.encoding],
+                      gifti_endian_codes.specs[self.endian],
+                      self.ext_fname,
+                      self.ext_offset,
+                      )
+
+    @np.deprecate_with_doc("Use the to_xml() function instead.")
+    def to_xml_close(self):
+        return "</DataArray>\n"
+
     def print_summary(self):
         print('Intent: ', intent_codes.niistring[self.intent])
         print('DataType: ', data_type_codes.niistring[self.datatype])

@@ -4,6 +4,7 @@ import warnings
 
 import numpy as np
 
+from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData, giftiio)
 from nibabel.gifti.gifti import data_tag
@@ -69,6 +70,17 @@ def test_dataarray():
         bs_arr = arr.byteswap().newbyteorder()
         da = GiftiDataArray.from_array(bs_arr, 'triangle')
         assert_equal(da.datatype, data_type_codes[arr.dtype])
+
+    # Smoke test on deprecated functions
+    da = GiftiDataArray.from_array(np.ones((1,)), 'triangle')
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        assert_true(isinstance(da.to_xml_open(), string_types))
+        assert_equal(len(w), 1)
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_true(isinstance(da.to_xml_close(), string_types))
+        assert_equal(len(w), 1)
 
 
 def test_labeltable():
