@@ -41,8 +41,8 @@ DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 
 datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
-numda = [2, 1, 1, 1, 2, 1]
- 
+numDA = [2, 1, 1, 1, 2, 1]
+
 DATA_FILE1_darr1 = np.array(
        [[-16.07201 , -66.187515,  21.266994],
        [-16.705893, -66.054337,  21.232786],
@@ -109,17 +109,32 @@ def test_read_ordering():
     assert_equal(img.darrays[0].data.shape, (3,3))
 
 
-def test_metadata():
+def test_load_metadata():
     for i, dat in enumerate(datafiles):
         img = gi.read(dat)
-        me = img.get_metadata()
-        medat = me.get_metadata()
-        assert_equal(numda[i], img.numDA)
+        me = img.meta
+        assert_equal(numDA[i], img.numDA)
         assert_equal(img.version,'1.0')
 
 
-def test_dataarray1():
+def test_metadata_deprecations():
+    img = gi.read(datafiles[0])
+    me = img.meta
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(me, img.get_meta())
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        img.set_metadata(me)
+    assert_equal(me, img.meta)
+
+
+def test_load_dataarray1():
     img1 = gi.read(DATA_FILE1)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img1, 'test.gii')
@@ -127,7 +142,7 @@ def test_dataarray1():
     for img in (img1, bimg):
         assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
         assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
-        me=img.darrays[0].meta.get_metadata()
+        me=img.darrays[0].meta.metadata
         assert_true('AnatomicalStructurePrimary' in me)
         assert_true('AnatomicalStructureSecondary' in me)
         assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
@@ -136,8 +151,9 @@ def test_dataarray1():
         assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
 
 
-def test_dataarray2():
+def test_load_dataarray2():
     img2 = gi.read(DATA_FILE2)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img2, 'test.gii')
@@ -146,8 +162,9 @@ def test_dataarray2():
         assert_array_almost_equal(img.darrays[0].data[:10], DATA_FILE2_darr1)
 
 
-def test_dataarray3():
+def test_load_dataarray3():
     img3 = gi.read(DATA_FILE3)
+
     with InTemporaryDirectory():
         gi.write(img3, 'test.gii')
         bimg = gi.read('test.gii')
@@ -155,8 +172,9 @@ def test_dataarray3():
         assert_array_almost_equal(img.darrays[0].data[30:50], DATA_FILE3_darr1)
 
 
-def test_dataarray4():
+def test_load_dataarray4():
     img4 = gi.read(DATA_FILE4)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img4, 'test.gii')
@@ -167,6 +185,7 @@ def test_dataarray4():
 
 def test_dataarray5():
     img5 = gi.read(DATA_FILE5)
+
     for da in img5.darrays:
         assert_equal(gifti_endian_codes.byteorder[da.endian], 'little')
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
@@ -213,21 +232,21 @@ def test_readwritedata():
                                   img2.darrays[0].data)
 
 
-def test_newmetadata():
+def test_write_newmetadata():
     img = gi.GiftiImage()
     attr = gi.GiftiNVPairs(name = 'mykey', value = 'val1')
     newmeta = gi.GiftiMetaData(attr)
-    img.set_metadata(newmeta)
-    myme = img.meta.get_metadata()
+    img.meta = newmeta
+    myme = img.meta.metadata
     assert_true('mykey' in myme)
     newmeta = gi.GiftiMetaData.from_dict( {'mykey1' : 'val2'} )
-    img.set_metadata(newmeta)
-    myme = img.meta.get_metadata()
+    img.meta = newmeta
+    myme = img.meta.metadata
     assert_true('mykey1' in myme)
     assert_false('mykey' in myme)
 
 
-def test_getbyintent():
+def test_load_getbyintent():
     img = gi.read(DATA_FILE1)
 
     da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
@@ -248,8 +267,9 @@ def test_getbyintent():
     assert_equal(da, [])
 
 
-def test_labeltable():
+def test_load_labeltable():
     img6 = gi.read(DATA_FILE6)
+
     # Round trip
     with InTemporaryDirectory():
         gi.write(img6, 'test.gii')
@@ -265,3 +285,38 @@ def test_labeltable():
         assert_equal(img.labeltable.labels[1].green, 0.392157)
         assert_equal(img.labeltable.labels[1].blue, 0.156863)
         assert_equal(img.labeltable.labels[1].alpha, 1)
+
+
+def test_labeltable_deprecations():
+    img = gi.read(DATA_FILE6)
+    lt = img.labeltable
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_equal(lt, img.get_labeltable())
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        img.set_labeltable(lt)
+    assert_equal(lt, img.labeltable)
+
+
+def test_parse_dataarrays():
+    fn = 'bad_daa.gii'
+    img = gi.GiftiImage()
+
+    with InTemporaryDirectory():
+        gi.write(img, fn)
+        with open(fn, 'r') as fp:
+            txt = fp.read()
+        # Make a bad gifti.
+        txt = txt.replace('NumberOfDataArrays="0"', 'NumberOfDataArrays ="1"')
+        with open(fn, 'w') as fp:
+            fp.write(txt)
+
+        with clear_and_catch_warnings() as w:
+            warnings.filterwarnings('once', category=UserWarning)
+            gi.read(fn)
+            assert_equal(len(w), 1)
+            assert_equal(img.numDA, 0)

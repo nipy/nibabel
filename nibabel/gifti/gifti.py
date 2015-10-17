@@ -38,7 +38,12 @@ class GiftiMetaData(object):
             meda.data.append(nv)
         return meda
 
+    @np.deprecate_with_doc("Use the metadata property instead.")
     def get_metadata(self):
+        return self.metadata
+
+    @property
+    def metadata(self):
         """ Returns metadata as dictionary """
         self.data_as_dict = {}
         for ele in self.data:
@@ -59,7 +64,7 @@ class GiftiMetaData(object):
         return res
 
     def print_summary(self):
-        print(self.get_metadata())
+        print(self.metadata)
 
 
 class GiftiNVPairs(object):
@@ -128,10 +133,27 @@ class GiftiLabel(object):
         self.blue = blue
         self.alpha = alpha
 
+    @np.deprecate_with_doc("Use the rgba property instead.")
     def get_rgba(self):
+        return self.rgba
+
+    @property
+    def rgba(self):
         """ Returns RGBA as tuple """
         return (self.red, self.green, self.blue, self.alpha)
 
+    @rgba.setter
+    def rgba(self, rgba):
+        """ Set RGBA via tuple
+
+        Parameters
+        ----------
+        rgba : tuple (red, green, blue, alpha)
+
+        """
+        if len(rgba) != 4:
+            raise ValueError('rgba must be length 4.')
+        self.red, self.green, self.blue, self.alpha = rgba
 
 def _arr2txt(arr, elem_fmt):
     arr = np.asarray(arr)
@@ -338,53 +360,42 @@ class GiftiDataArray(object):
             print('Coordinate System:')
             print(self.coordsys.print_summary())
 
+    @np.deprecate_with_doc("Use the metadata property instead.")
     def get_metadata(self):
+        return self.meta.metadata
+
+    @property
+    def metadata(self):
         """ Returns metadata as dictionary """
-        return self.meta.get_metadata()
+        return self.meta.metadata
 
 
 class GiftiImage(object):
-
-    numDA = int
-    version = str
-    filename = str
-
     def __init__(self, meta=None, labeltable=None, darrays=None,
                  version="1.0"):
         if darrays is None:
             darrays = []
-        self.darrays = darrays
         if meta is None:
-            self.meta = GiftiMetaData()
-        else:
-            self.meta = meta
+            meta = GiftiMetaData()
         if labeltable is None:
-            self.labeltable = GiftiLabelTable()
-        else:
-            self.labeltable = labeltable
-        self.numDA = len(self.darrays)
+            labeltable = GiftiLabelTable()
+
+        self._labeltable = labeltable
+        self._meta = meta
+
+        self.darrays = darrays
         self.version = version
 
-#    @classmethod
-#    def from_array(cls):
-#        pass
-#def GiftiImage_fromarray(data, intent = GiftiIntentCode.NIFTI_INTENT_NONE, encoding=GiftiEncoding.GIFTI_ENCODING_B64GZ, endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#    """ Returns a GiftiImage from a Numpy array with a given intent code and
-#    encoding """
+    @property
+    def numDA(self):
+        return len(self.darrays)
 
-#    @classmethod
-#    def from_vertices_and_triangles(cls):
-#        pass
-#    def from_vertices_and_triangles(cls, vertices, triangles, coordsys = None, \
-#                                    encoding = GiftiEncoding.GIFTI_ENCODING_B64GZ,\
-#                                    endian = GiftiEndian.GIFTI_ENDIAN_LITTLE):
-#    """ Returns a GiftiImage from two numpy arrays representing the vertices
-#    and the triangles. Additionally defining the coordinate system and encoding """
+    @property
+    def labeltable(self):
+        return self._labeltable
 
-    def get_labeltable(self):
-        return self.labeltable
-
-    def set_labeltable(self, labeltable):
+    @labeltable.setter
+    def labeltable(self, labeltable):
         """ Set the labeltable for this GiftiImage
 
         Parameters
@@ -392,15 +403,24 @@ class GiftiImage(object):
         labeltable : GiftiLabelTable
 
         """
-        if isinstance(labeltable, GiftiLabelTable):
-            self.labeltable = labeltable
-        else:
-            print("Not a valid GiftiLabelTable instance")
+        if not isinstance(labeltable, GiftiLabelTable):
+            raise ValueError("Not a valid GiftiLabelTable instance")
+        self._labeltable = labeltable
 
-    def get_metadata(self):
-        return self.meta
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def set_labeltable(self, labeltable):
+        self.labeltable = labeltable
 
-    def set_metadata(self, meta):
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def get_labeltable(self):
+        return self.labeltable
+
+    @property
+    def meta(self):
+        return self._meta
+
+    @meta.setter
+    def meta(self, meta):
         """ Set the metadata for this GiftiImage
 
         Parameters
@@ -411,12 +431,17 @@ class GiftiImage(object):
         -------
         None
         """
-        if isinstance(meta, GiftiMetaData):
-            self.meta = meta
-            print("New Metadata set. Be aware of changing "
-                  "coordinate transformation!")
-        else:
-            print("Not a valid GiftiMetaData instance")
+        if not isinstance(meta, GiftiMetaData):
+            raise ValueError("Not a valid GiftiMetaData instance")
+        self._meta = meta
+
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def set_metadata(self, meta):
+        self.meta = meta
+
+    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    def get_meta(self):
+        return self.meta
 
     def add_gifti_data_array(self, dataarr):
         """ Adds a data array to the GiftiImage
@@ -427,14 +452,12 @@ class GiftiImage(object):
         """
         if isinstance(dataarr, GiftiDataArray):
             self.darrays.append(dataarr)
-            self.numDA += 1
         else:
             print("dataarr paramater must be of tzpe GiftiDataArray")
 
     def remove_gifti_data_array(self, ith):
         """ Removes the ith data array element from the GiftiImage """
         self.darrays.pop(ith)
-        self.numDA -= 1
 
     def remove_gifti_data_array_by_intent(self, intent):
         """ Removes all the data arrays with the given intent type """
@@ -442,7 +465,6 @@ class GiftiImage(object):
         for dele in self.darrays:
             if dele.intent == intent2remove:
                 self.darrays.remove(dele)
-                self.numDA -= 1
 
     def get_arrays_from_intent(self, intent):
         """ Returns a a list of GiftiDataArray elements matching

@@ -10,6 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 import base64
 import sys
+import warnings
 import zlib
 from ..externals.six import StringIO
 from xml.parsers.expat import ParserCreate, ExpatError
@@ -109,8 +110,7 @@ class Outputter(object):
             if 'Version' in attrs:
                 self.img.version = attrs['Version']
             if 'NumberOfDataArrays' in attrs:
-                self.img.numDA = int(attrs['NumberOfDataArrays'])
-                self.count_da = False
+                self.expected_numDA = int(attrs['NumberOfDataArrays'])
 
             self.fsm_state.append('GIFTI')
         elif name == 'MetaData':
@@ -207,6 +207,10 @@ class Outputter(object):
         if DEBUG_PRINT:
             print('End element:\n\t', repr(name))
         if name == 'GIFTI':
+            if hasattr(self, 'expected_numDA') and self.expected_numDA != self.img.numDA:
+                warnings.warn("Actual # of data arrays does not match "
+                              "# expected: %d != %d." % (self.expected_numDA,
+                                                         self.img.numDA))
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
@@ -234,8 +238,6 @@ class Outputter(object):
             self.img.labeltable = self.lata
             self.lata = None
         elif name == 'DataArray':
-            if self.count_da:
-                self.img.numDA += 1
             self.fsm_state.pop()
         elif name == 'CoordinateSystemTransformMatrix':
             self.fsm_state.pop()
