@@ -4,14 +4,17 @@ import warnings
 
 import numpy as np
 
+from nibabel.gifti import giftiio
+
+from .test_giftiio import (DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
+                           DATA_FILE5, DATA_FILE6)
 from ..gifti import (GiftiImage, GiftiDataArray, GiftiLabel, GiftiLabelTable,
                      GiftiMetaData)
 from ...nifti1 import data_type_codes, intent_codes
-
+from ...testing import clear_and_catch_warnings
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
-from ...testing import clear_and_catch_warnings
 
 
 def test_gifti_image():
@@ -77,11 +80,6 @@ def test_labeltable():
     img.labeltable = new_table
     assert_equal(len(img.labeltable.labels), 2)
 
-    # Try to set to non-table
-    def assign_labeltable(val):
-        img.labeltable = val
-    assert_raises(ValueError, assign_labeltable, 'not-a-table')
-
 
 def test_metadata():
     # Test deprecation
@@ -127,3 +125,41 @@ def test_gifti_label_rgba():
     gl4 = GiftiLabel()
     assert_equal(len(gl4.rgba), 4)
     assert_true(np.all([elem is None for elem in gl4.rgba]))
+
+
+def test_print_summary():
+    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
+                            DATA_FILE5, DATA_FILE6]:
+        gimg = giftiio.read(fil)
+        gimg.print_summary()
+
+
+def test_gifti_coord():
+    from ..gifti import GiftiCoordSystem
+    gcs = GiftiCoordSystem()
+    assert_true(gcs.xform is not None)
+
+    # Smoke test
+    gcs.xform = None
+    gcs.print_summary()
+    gcs.to_xml()
+
+
+def test_gifti_image():
+    img = GiftiImage()
+    assert_true(img.darrays is not None)
+    assert_true(img.meta is not None)
+    assert_true(img.labeltable is not None)
+
+    # Try to set a non-data-array
+    assert_raises(TypeError, img.add_gifti_data_array, 'not-a-data-array')
+
+    # Try to set to non-table
+    def assign_labeltable(val):
+        img.labeltable = val
+    assert_raises(TypeError, assign_labeltable, 'not-a-table')
+
+    # Try to set to non-table
+    def assign_metadata(val):
+        img.meta = val
+    assert_raises(TypeError, assign_metadata, 'not-a-meta')
