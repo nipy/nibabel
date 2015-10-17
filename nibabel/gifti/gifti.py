@@ -68,10 +68,10 @@ class GiftiMetaData(xml.XmlSerializable):
 
 
 class GiftiNVPairs(object):
-
+    """
     name = str
     value = str
-
+    """
     def __init__(self, name='', value=''):
         self.name = name
         self.value = value
@@ -104,6 +104,7 @@ class GiftiLabelTable(xml.XmlSerializable):
 
 
 class GiftiLabel(xml.XmlSerializable):
+    """
     key = int
     label = str
     # rgba
@@ -114,6 +115,7 @@ class GiftiLabel(xml.XmlSerializable):
     green = float
     blue = float
     alpha = float
+    """
 
     def __init__(self, key=0, label='', red=None, green=None, blue=None,
                  alpha=None):
@@ -157,9 +159,11 @@ def _arr2txt(arr, elem_fmt):
 
 
 class GiftiCoordSystem(xml.XmlSerializable):
+    """
     dataspace = int
     xformspace = int
     xform = np.ndarray  # 4x4 numpy array
+    """
 
     def __init__(self, dataspace=0, xformspace=0, xform=None):
         self.dataspace = dataspace
@@ -224,7 +228,7 @@ def _data_tag_element(dataarray, encoding, datatype, ordering):
 
 
 class GiftiDataArray(xml.XmlSerializable):
-
+    """
     # These are for documentation only; we don't use these class variables
     intent = int
     datatype = int
@@ -238,14 +242,30 @@ class GiftiDataArray(xml.XmlSerializable):
     data = np.ndarray
     coordsys = GiftiCoordSystem
     meta = GiftiMetaData
+    """
 
-    def __init__(self, data=None):
+    def __init__(self, data=None,
+                  encoding="GIFTI_ENCODING_B64GZ",
+                  endian=sys.byteorder,
+                  coordsys=None,
+                  ordering="C",
+                  meta=None):
+        """
+        Returns a shell object that cannot be saved.
+        """
         self.data = data
         self.dims = []
-        self.meta = GiftiMetaData()
-        self.coordsys = GiftiCoordSystem()
+        self.meta = meta or GiftiMetaData()
+        self.coordsys = coordsys or GiftiCoordSystem()
         self.ext_fname = ''
         self.ext_offset = ''
+        self.intent = 0  # required attribute, NIFTI_INTENT_NONE
+        self.datatype = 0  # required attribute, void/none
+        # python/numpy default: column major order
+        self.ind_ord = array_index_order_codes.code[ordering]
+        self.encoding = encoding
+        self.endian = endian
+
 
     @classmethod
     def from_array(klass,
