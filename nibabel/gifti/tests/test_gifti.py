@@ -4,17 +4,18 @@ import warnings
 
 import numpy as np
 
-from nibabel.gifti import giftiio
+from nibabel.externals.six import string_types
+from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
+                           GiftiLabelTable, GiftiMetaData, giftiio)
+from nibabel.gifti.gifti import data_tag
+from nibabel.nifti1 import data_type_codes, intent_codes
 
-from .test_giftiio import (DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                           DATA_FILE5, DATA_FILE6)
-from ..gifti import (GiftiImage, GiftiDataArray, GiftiLabel, GiftiLabelTable,
-                     GiftiMetaData)
-from ...nifti1 import data_type_codes, intent_codes
-from ...testing import clear_and_catch_warnings
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
+from nibabel.testing import clear_and_catch_warnings
+from .test_giftiio import (DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
+                           DATA_FILE5, DATA_FILE6)
 
 
 def test_gifti_image():
@@ -69,6 +70,17 @@ def test_dataarray():
         bs_arr = arr.byteswap().newbyteorder()
         da = GiftiDataArray.from_array(bs_arr, 'triangle')
         assert_equal(da.datatype, data_type_codes[arr.dtype])
+
+    # Smoke test on deprecated functions
+    da = GiftiDataArray.from_array(np.ones((1,)), 'triangle')
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        assert_true(isinstance(da.to_xml_open(), string_types))
+        assert_equal(len(w), 1)
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        assert_true(isinstance(da.to_xml_close(), string_types))
+        assert_equal(len(w), 1)
 
 
 def test_labeltable():
@@ -163,3 +175,11 @@ def test_gifti_image():
     def assign_metadata(val):
         img.meta = val
     assert_raises(TypeError, assign_metadata, 'not-a-meta')
+
+
+def test_data_tag_deprecated():
+    img = GiftiImage()
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
+        data_tag(np.array([]), 'ASCII', '%i', 1)
+        assert_equal(len(w), 1)
