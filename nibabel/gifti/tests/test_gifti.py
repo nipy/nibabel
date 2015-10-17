@@ -34,10 +34,11 @@ def test_gifti_image():
     gi = GiftiImage()
     assert_equal(gi.numDA, 0)
 
-    da = GiftiDataArray(data='data')
+    data = np.random.random((5,))
+    da = GiftiDataArray.from_array(data)
     gi.add_gifti_data_array(da)
     assert_equal(gi.numDA, 1)
-    assert_equal(gi.darrays[0].data, 'data')
+    assert_array_equal(gi.darrays[0].data, data)
 
     gi.remove_gifti_data_array(0)
     assert_equal(gi.numDA, 0)
@@ -49,14 +50,13 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray(data='data')
+    da = GiftiDataArray.from_array(np.zeros((5,)), intent=0)
     gi.add_gifti_data_array(da)
 
-    gi.remove_gifti_data_array_by_intent(0)
-    assert_equal(gi.numDA, 1)
+    gi.remove_gifti_data_array_by_intent(3)
+    assert_equal(gi.numDA, 1, "data array should exist on 'missed' remove")
 
-    gi.darrays[0].intent = 0
-    gi.remove_gifti_data_array_by_intent(0)
+    gi.remove_gifti_data_array_by_intent(da.intent)
     assert_equal(gi.numDA, 0)
 
 

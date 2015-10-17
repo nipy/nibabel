@@ -250,7 +250,7 @@ class GiftiDataArray(xml.XmlSerializable):
     @classmethod
     def from_array(klass,
                    darray,
-                   intent,
+                   intent="NIFTI_INTENT_NONE",
                    datatype=None,
                    encoding="GIFTI_ENCODING_B64GZ",
                    endian=sys.byteorder,
