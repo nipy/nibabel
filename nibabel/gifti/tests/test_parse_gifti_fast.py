@@ -14,13 +14,11 @@ import warnings
 
 import numpy as np
 
-from ... import gifti as gi
-from ...loadsave import load, save
-
-from ..util import gifti_endian_codes
-from ...nifti1 import xform_codes
-
-from ...tmpdirs import InTemporaryDirectory
+import nibabel.gifti as gi
+from nibabel.gifti.util import gifti_endian_codes
+from nibabel.loadsave import load, save
+from nibabel.nifti1 import xform_codes
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 

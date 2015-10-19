@@ -191,6 +191,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
     class DataTag(xml.XmlSerializable):
         def __init__(self, *args):
             self.args = args
+
         def _to_xml_element(self):
             return _data_tag_element(*self.args)
 
@@ -518,7 +519,6 @@ class GiftiImage(FileBasedImage, xml.XmlSerializable):
             print(da.print_summary())
         print('----end----')
 
-
     def _to_xml_element(self):
         GIFTI = xml.Element('GIFTI', attrib={
             'Version': self.version,
@@ -550,7 +550,8 @@ class GiftiImage(FileBasedImage, xml.XmlSerializable):
             Returns a GiftiImage
          """
         from .parse_gifti_fast import parse_gifti_file
-        return parse_gifti_file(fptr=file_map['image'].get_prepare_fileobj('rb'))
+        return parse_gifti_file(
+            fptr=file_map['image'].get_prepare_fileobj('rb'))
 
     def to_file_map(self, file_map=None):
         """ Save the current image to the specified file_map
@@ -565,8 +566,8 @@ class GiftiImage(FileBasedImage, xml.XmlSerializable):
 
         Notes
         -----
-        We write all files with utf-8 encoding, and specify this at the top of the
-        XML file with the ``encoding`` attribute.
+        We write all files with utf-8 encoding, and specify this at the top of
+        the XML file with the ``encoding`` attribute.
 
         The Gifti spec suggests using the following suffixes to your
         filename when saving each specific type of data:
