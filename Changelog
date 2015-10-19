@@ -24,6 +24,15 @@ and Stephan Gerhard (SG).
 
 References like "pr/298" refer to github pull request numbers.
 
+* Upcoming
+
+  * tripwire.TripWire object now raises subclass of AttributeError when trying
+    to get an attribute, rather than a direct subclass of Exception.  This
+    prevents Python 3.5 triggering the tripwire when doing inspection prior to
+    running doctests.
+  * Minor API change for tripwire.TripWire object; code that checked for
+    AttributeError will now also catch TripWireError.
+
 * 2.0.1 (Saturday 27 June 2015)
 
   Contributions from Ben Cipollini, Chris Markiewicz, Alexandre Gramfort,
