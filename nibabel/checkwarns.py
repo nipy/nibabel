@@ -12,38 +12,23 @@ from __future__ import division, print_function
 
 import warnings
 
-
-class ErrorWarnings(warnings.catch_warnings):
-    """ Context manager to check for warnings as errors.  Usually used with
-    ``assert_raises`` in the with block
-
-    Examples
-    --------
-    >>> with ErrorWarnings():
-    ...     try:
-    ...         warnings.warn('Message', UserWarning)
-    ...     except UserWarning:
-    ...         print('I consider myself warned')
-    I consider myself warned
-    """
-    filter = 'error'
-    def __init__(self, record=True, module=None):
-        super(ErrorWarnings, self).__init__(record=record, module=module)
-
-    def __enter__(self):
-        mgr = super(ErrorWarnings, self).__enter__()
-        warnings.simplefilter(self.filter)
-        return mgr
+from .testing import (error_warnings, suppress_warnings)
 
 
-class IgnoreWarnings(ErrorWarnings):
-    """ Context manager to ignore warnings
+warnings.warn('The checkwarns module is deprecated and will be removed in nibabel v3.0', FutureWarning)
 
-    Examples
-    --------
-    >>> with IgnoreWarnings():
-    ...     warnings.warn('Message', UserWarning)
 
-    (and you get no warning)
-    """
-    filter = 'ignore'
+class ErrorWarnings(error_warnings):
+    def __init__(self, *args, **kwargs):
+        warnings.warn('ErrorWarnings is deprecated and will be removed in '
+                      'nibabel v3.0; use nibabel.testing.error_warnings.',
+                      FutureWarning)
+        super(ErrorWarnings, self).__init__(*args, **kwargs)
+
+
+class IgnoreWarnings(suppress_warnings):
+    def __init__(self, *args, **kwargs):
+        warnings.warn('IgnoreWarnings is deprecated and will be removed in '
+                      'nibabel v3.0; use nibabel.testing.suppress_warnings.',
+                      FutureWarning)
+        super(IgnoreWarnings, self).__init__(*args, **kwargs)

@@ -31,9 +31,9 @@ def find_private_section(dcm_data, group_no, creator):
         Element number at which named section starts
     """
     is_regex = hasattr(creator, 'search')
-    if not is_regex: # assume string / bytes
+    if not is_regex:  # assume string / bytes
         creator = asstr(creator)
-    for element in dcm_data: # Assumed ordered by tag (groupno, elno)
+    for element in dcm_data:  # Assumed ordered by tag (groupno, elno)
         grpno, elno = element.tag.group, element.tag.elem
         if grpno > group_no:
             break
@@ -45,9 +45,9 @@ def find_private_section(dcm_data, group_no, creator):
             continue
         name = asstr(element.value)
         if is_regex:
-            if creator.search(name) != None:
+            if creator.search(name) is not None:
                 return elno * 0x100
-        else: # string - needs exact match
+        else:  # string - needs exact match
             if creator == name:
                 return elno * 0x100
     return None

@@ -639,8 +639,14 @@ def test_strided_scalar():
         assert_equal(observed.shape, shape)
         assert_equal(observed.dtype, expected.dtype)
         assert_array_equal(observed.strides, 0)
-        observed[..., 0] = 99
-        assert_array_equal(observed, expected * 0 + 99)
+        # Strided scalars are set as not writeable
+        # This addresses a numpy 1.10 breakage of broadcasting a strided
+        # array without resizing (see GitHub PR #358)
+        assert_false(observed.flags.writeable)
+        def setval(x):
+            x[..., 0] = 99
+        # RuntimeError for numpy < 1.10
+        assert_raises((RuntimeError, ValueError), setval, observed)
     # Default scalar value is 0
     assert_array_equal(strided_scalar((2, 3, 4)), np.zeros((2, 3, 4)))
 

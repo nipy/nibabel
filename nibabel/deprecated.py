@@ -3,6 +3,7 @@
 
 import warnings
 
+
 class ModuleProxy(object):
     """ Proxy for module that may not yet have been imported
 
@@ -19,8 +20,9 @@ class ModuleProxy(object):
         minc = ModuleProxy('nibabel.minc')
         minc_image = minc.Minc1Image(arr, np.eye(4))
 
-    So, the ``minc`` object is a proxy that will import the required module when
-    you do attribute access and return the attributes of the imported module.
+    So, the ``minc`` object is a proxy that will import the required module
+    when you do attribute access and return the attributes of the imported
+    module.
     """
     def __init__(self, module_name):
         self._module_name = module_name
@@ -54,6 +56,7 @@ class FutureWarningMixin(object):
     FutureWarning("Please, don't use this class",)
     """
     warn_message = 'This class will be removed in future versions'
+
     def __init__(self, *args, **kwargs):
         warnings.warn(self.warn_message,
                       FutureWarning,

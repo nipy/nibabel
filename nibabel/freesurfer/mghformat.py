@@ -18,6 +18,7 @@ from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder,  copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
+from ..openers import ImageOpener
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -105,7 +106,7 @@ class MGHHeader(object):
         hdr = np.ndarray(shape=(),
                          dtype=self.template_dtype,
                          buffer=binaryblock)
-        #if goodRASFlag, discard delta, Mdc and c_ras stuff
+        # if goodRASFlag, discard delta, Mdc and c_ras stuff
         if int(hdr['goodRASFlag']) < 0:
             hdr = self._set_affine_default(hdr)
         self._header_data = hdr.copy()
@@ -179,15 +180,14 @@ class MGHHeader(object):
         # dimensions from the header, skip over and then read the footer
         # information
         hdr_str = fileobj.read(klass._hdrdtype.itemsize)
-        hdr_str_to_np = np.ndarray(shape=(),
-                         dtype=klass._hdrdtype,
-                         buffer=hdr_str)
+        hdr_str_to_np = np.ndarray(shape=(), dtype=klass._hdrdtype,
+                                   buffer=hdr_str)
         if not np.all(hdr_str_to_np['dims']):
             raise MGHError('Dimensions of the data should be non-zero')
         tp = int(hdr_str_to_np['type'])
-        fileobj.seek(DATA_OFFSET + \
-                int(klass._data_type_codes.bytespervox[tp]) * \
-                np.prod(hdr_str_to_np['dims']))
+        fileobj.seek(DATA_OFFSET +
+                     int(klass._data_type_codes.bytespervox[tp]) *
+                     np.prod(hdr_str_to_np['dims']))
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
         return klass(hdr_str + ftr_str, check)
 
@@ -344,7 +344,7 @@ class MGHHeader(object):
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
         '''
-        return int(self._data_type_codes.bytespervox[ \
+        return int(self._data_type_codes.bytespervox[
             int(self._header_data['type'])])
 
     def get_data_size(self):
@@ -454,12 +454,18 @@ class MGHHeader(object):
         fileobj.write(ftr_nd.tostring())
 
 
+# Register .mgz extension as compressed
+@ImageOpener.register_ext_from_image('.mgz', ImageOpener.gz_def)
 class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
+    valid_exts = ('.mgh',)
     files_types = (('image', '.mgh'),)
-    _compressed_exts = (('.gz',))
+    _compressed_suffixes = ()
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 
@@ -483,10 +489,10 @@ class MGHImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
         '''
         if not mmap in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -513,10 +519,10 @@ class MGHImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------

@@ -69,8 +69,8 @@ class ArrayWriter(object):
               ``astype``, and the behavior is undefined.  Ignored for floating
               point output.
             * check_scaling : bool, optional
-              If True, check if scaling needed and raise error if so. Default is
-              True
+              If True, check if scaling needed and raise error if so. Default
+              is True
 
         Examples
         --------
@@ -118,8 +118,8 @@ class ArrayWriter(object):
         data = self._array
         arr_dtype = data.dtype
         out_dtype = self._out_dtype
-        # There's a bug in np.can_cast (at least up to and including 1.6.1) such
-        # that any structured output type passes.  Check for this first.
+        # There's a bug in np.can_cast (at least up to and including 1.6.1)
+        # such that any structured output type passes.  Check for this first.
         if 'V' in (arr_dtype.kind, out_dtype.kind):
             if arr_dtype == out_dtype:
                 return False
@@ -137,7 +137,7 @@ class ArrayWriter(object):
         # Now we need to look at the data for special cases
         if data.size == 0:
             return False
-        mn, mx = self.finite_range() # this is cached
+        mn, mx = self.finite_range()  # this is cached
         if (mn, mx) == (0, 0):
             # Data all zero
             return False
@@ -195,8 +195,7 @@ class ArrayWriter(object):
                               'must be same as class value set in __init__')
         warnings.warn('Please remove `nan2zero` from call to ' '`to_fileobj` '
                       'and use in instance __init__ instead',
-                        DeprecationWarning,
-                        stacklevel=3)
+                      DeprecationWarning, stacklevel=3)
 
     def _needs_nan2zero(self):
         """ True if nan2zero check needed for writing array """
@@ -230,8 +229,9 @@ class ArrayWriter(object):
 class SlopeArrayWriter(ArrayWriter):
     """ ArrayWriter that can use scalefactor for writing arrays
 
-    The scalefactor allows the array writer to write floats to int output types,
-    and rescale larger ints to smaller.  It can therefore lose precision.
+    The scalefactor allows the array writer to write floats to int output
+    types, and rescale larger ints to smaller.  It can therefore lose
+    precision.
 
     It extends the ArrayWriter class with attribute:
 
@@ -323,7 +323,7 @@ class SlopeArrayWriter(ArrayWriter):
         """
         if not super(SlopeArrayWriter, self).scaling_needed():
             return False
-        mn, mx = self.finite_range() # this is cached
+        mn, mx = self.finite_range()  # this is cached
         # No finite data - no scaling needed
         return (mn, mx) != (np.inf, -np.inf)
 
@@ -335,6 +335,7 @@ class SlopeArrayWriter(ArrayWriter):
 
     def _get_slope(self):
         return self._slope
+
     def _set_slope(self, val):
         self._slope = np.squeeze(self.scaler_dtype.type(val))
     slope = property(_get_slope, _set_slope, None, 'get/set slope')
@@ -355,7 +356,7 @@ class SlopeArrayWriter(ArrayWriter):
         """ Finite range for thresholding on write """
         if self._out_dtype.kind in 'iu' and self._array.dtype.kind == 'f':
             mn, mx = self.finite_range()
-            if (mn, mx) == (np.inf, -np.inf): # no finite data
+            if (mn, mx) == (np.inf, -np.inf):  # no finite data
                 mn, mx = 0, 0
             return mn, mx
         return None, None
@@ -392,8 +393,8 @@ class SlopeArrayWriter(ArrayWriter):
             # Float to (u)int scaling
             # Need to take nan2zero value into account for scaling
             if self._nan2zero and self.has_nan:
-                if mn > 0: mn = 0
-                elif mx < 0: mx = 0
+                mn = min(mn, 0)
+                mx = max(mx, 0)
             self._range_scale(mn, mx)
             return
         # (u)int to (u)int
@@ -401,8 +402,7 @@ class SlopeArrayWriter(ArrayWriter):
         out_max, out_min = info.max, info.min
         # If left as int64, uint64, comparisons will default to floats, and
         # these are inexact for > 2**53 - so convert to int
-        if (as_int(mx) <= as_int(out_max) and
-            as_int(mn) >= as_int(out_min)):
+        if (as_int(mx) <= as_int(out_max) and as_int(mn) >= as_int(out_min)):
             # already in range
             return
         # (u)int to (u)int scaling
@@ -420,7 +420,7 @@ class SlopeArrayWriter(ArrayWriter):
             # that deals with max neg ints. abs problem only arises when all
             # the data is set to max neg integer value
             o_min, o_max = shared_range(self.scaler_dtype, out_dt)
-            if mx <= 0 and int_abs(mn) <= as_int(o_max): # sign flip enough?
+            if mx <= 0 and int_abs(mn) <= as_int(o_max):  # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -435,17 +435,17 @@ class SlopeArrayWriter(ArrayWriter):
         if out_dtype.kind == 'f':
             # But we want maximum precision for the calculations. Casting will
             # not lose precision because min/max are of fp type.
-            out_min, out_max = np.array((out_min, out_max), dtype = big_float)
-        else: # (u)int
+            out_min, out_max = np.array((out_min, out_max), dtype=big_float)
+        else:  # (u)int
             out_min, out_max = [int_to_float(v, big_float)
                                 for v in (out_min, out_max)]
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError('Cannot scale negative and positive '
                                   'numbers to uint without intercept')
-            if in_max <= 0: # All input numbers <= 0
+            if in_max <= 0:  # All input numbers <= 0
                 self.slope = in_min / out_max
-            else: # All input numbers > 0
+            else:  # All input numbers > 0
                 self.slope = in_max / out_max
             return
         # Scaling to int. We need the bigger slope of (in_min/out_min) and
@@ -530,6 +530,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def _get_inter(self):
         return self._inter
+
     def _set_inter(self, val):
         self._inter = np.squeeze(self.scaler_dtype.type(val))
     inter = property(_get_inter, _set_inter, None, 'get/set inter')
@@ -571,13 +572,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
                         for v in shared_range(self.scaler_dtype, out_dtype)]
         type_range = o_max - o_min
         mn2mx = mx - mn
-        if mn2mx <= type_range: # might offset be enough?
+        if mn2mx <= type_range:  # might offset be enough?
             if o_min == 0:  # uint output - take min to 0
                 # decrease offset with floor_exact, meaning mn >= t_min after
                 # subtraction.  But we may have pushed the data over t_max,
                 # which we check below
                 inter = floor_exact(mn - o_min, self.scaler_dtype)
-            else: # int output - take midpoint to 0
+            else:  # int output - take midpoint to 0
                 # ceil below increases inter, pushing scale up to 0.5 towards
                 # -inf, because ints have abs min == abs max + 1
                 midpoint = mn + as_int(np.ceil(mn2mx / 2.0))
@@ -596,7 +597,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     def _range_scale(self, in_min, in_max):
         """ Calculate scaling, intercept based on data range and output type
         """
-        if in_max == in_min: # Only one number in array
+        if in_max == in_min:  # Only one number in array
             self.slope = 1.
             self.inter = in_min
             return
@@ -604,12 +605,12 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         in_dtype = self._array.dtype
         out_dtype = self._out_dtype
         working_dtype = self.scaler_dtype
-        if in_dtype.kind == 'f': # Already floats
+        if in_dtype.kind == 'f':  # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
             # no casting
             in_min, in_max = np.array([in_min, in_max], dtype=big_float)
             in_range = np.diff([in_min, in_max])
-        else: # max possible (u)int range is 2**64-1 (int64, uint64)
+        else:  # max possible (u)int range is 2**64-1 (int64, uint64)
             # int_to_float covers this range.  On windows longdouble is the
             # same as double so in_range will be 2**64 - thus overestimating
             # slope slightly.  Casting to int needed to allow in_max-in_min to
@@ -629,7 +630,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             # to be able to represent the scaled zero correctly in order not to
             # raise an error when writing
             out_min, out_max = shared_range(working_dtype, out_dtype)
-            out_min, out_max = np.array((out_min, out_max), dtype = big_float)
+            out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         # We want maximum precision for the calculations. Casting will not lose
         # precision because min/max are of fp type.
         assert [v.dtype.kind for v in (out_min, out_max)] == ['f', 'f']
@@ -782,7 +783,7 @@ def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
     True
     """
     data = np.asarray(data)
-    if has_intercept == True and has_slope == False:
+    if has_intercept and not has_slope:
         raise ValueError('Cannot handle intercept without slope')
     if has_intercept:
         return SlopeInterArrayWriter(data, out_type, **kwargs)

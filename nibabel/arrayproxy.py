@@ -27,9 +27,10 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
 
-from .volumeutils import BinOpener, array_from_file, apply_read_scaling
+from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
+from .openers import ImageOpener
 
 
 class ArrayProxy(object):
@@ -130,7 +131,7 @@ class ArrayProxy(object):
 
         This is an optional part of the proxy API
         '''
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
@@ -145,7 +146,7 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def __getitem__(self, slicer):
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             raw_data = fileslice(fileobj,
                                  slicer,
                                  self._shape,

@@ -141,7 +141,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # magic
         hdr = HC()
         with suppress_warnings():
-            hdr['sizeof_hdr'] = 350 # severity 30
+            hdr['sizeof_hdr'] = 350  # severity 30
             fhdr, message, raiser = self.log_chk(hdr, 30)
         assert_equal(fhdr['sizeof_hdr'], self.sizeof_hdr)
         assert_equal(message,
@@ -159,6 +159,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_equal(message, 'data code -1 not recognized; '
                            'not attempting fix')
+
         assert_raises(*raiser)
         # datatype not supported
         hdr['datatype'] = 255 # severity 40

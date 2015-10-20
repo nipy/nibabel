@@ -54,3 +54,4 @@ def test_read_zt_byte_strings():
         fread.seek(0)
         assert_equal(read_zt_byte_strings(fread, 2, 4),
                      [b'test.fmr', b'test.prt'])
+        fread.close()

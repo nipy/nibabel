@@ -25,8 +25,8 @@ class DataError(Exception):
 class BomberError(DataError, AttributeError):
     """ Error when trying to access Bomber instance
 
-    Should be instance of AttributeError to allow Python 3 inspect to do various
-    ``hasattr`` checks without raising an error
+    Should be instance of AttributeError to allow Python 3 inspect to do
+    various ``hasattr`` checks without raising an error
     """
     pass
 
@@ -140,7 +140,7 @@ class VersionedDatasource(Datasource):
 
 def _cfg_value(fname, section='DATA', value='path'):
     """ Utility function to fetch value from config file """
-    configp =  configparser.ConfigParser()
+    configp = configparser.ConfigParser()
     readfiles = configp.read(fname)
     if not readfiles:
         return ''
@@ -248,8 +248,8 @@ def make_datasource(pkg_def, **kwargs):
 
     `data_path` is the only allowed keyword argument.
 
-    `pkg_def` is a dictionary with at least one key - 'relpath'.  'relpath' is a
-    relative path with unix forward slash separators.
+    `pkg_def` is a dictionary with at least one key - 'relpath'.  'relpath' is
+    a relative path with unix forward slash separators.
 
     The relative path to the data is found with::
 
@@ -264,12 +264,12 @@ def make_datasource(pkg_def, **kwargs):
     Parameters
     ----------
     pkg_def : dict
-       dict containing at least the key 'relpath'. 'relpath' is the data path of
-       the package relative to `data_path`.  It is in unix path format (using
-       forward slashes as directory separators).  `pkg_def` can also contain
-       optional keys 'name' (the name of the package), and / or a key 'install
-       hint' that we use in the returned error message from trying to use the
-       resulting datasource
+       dict containing at least the key 'relpath'. 'relpath' is the data path
+       of the package relative to `data_path`.  It is in unix path format
+       (using forward slashes as directory separators).  `pkg_def` can also
+       contain optional keys 'name' (the name of the package), and / or a key
+       'install hint' that we use in the returned error message from trying to
+       use the resulting datasource
     data_path : sequence of strings or None, optional
        sequence of paths in which to search for data.  If None (the
        default), then use ``get_data_path()``
@@ -363,4 +363,3 @@ def datasource_or_bomber(pkg_def, **options):
                 req_version=version,
                 pkg_hint=pkg_hint))
     return Bomber(sys_relpath, DataError(msg))
-

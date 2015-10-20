@@ -21,56 +21,56 @@ from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
 from .quaternions import fillpositive, quat2mat, mat2quat
-from . import analyze # module import
+from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
 header_dtd = [
-    ('sizeof_hdr', 'i4'), # 0; must be 348
-    ('data_type', 'S10'), # 4; unused
-    ('db_name', 'S18'),   # 14; unused
-    ('extents', 'i4'),    # 32; unused
-    ('session_error', 'i2'), # 36; unused
-    ('regular', 'S1'),    # 38; unused
-    ('dim_info', 'u1'),   # 39; MRI slice ordering code
-    ('dim', 'i2', (8,)),     # 40; data array dimensions
-    ('intent_p1', 'f4'),  # 56; first intent parameter
-    ('intent_p2', 'f4'),  # 60; second intent parameter
-    ('intent_p3', 'f4'),  # 64; third intent parameter
-    ('intent_code', 'i2'),# 68; NIFTI intent code
-    ('datatype', 'i2'),   # 70; it's the datatype
-    ('bitpix', 'i2'),     # 72; number of bits per voxel
-    ('slice_start', 'i2'),# 74; first slice index
-    ('pixdim', 'f4', (8,)),  # 76; grid spacings (units below)
-    ('vox_offset', 'f4'), # 108; offset to data in image file
-    ('scl_slope', 'f4'),  # 112; data scaling slope
-    ('scl_inter', 'f4'),  # 116; data scaling intercept
-    ('slice_end', 'i2'),  # 120; last slice index
-    ('slice_code', 'u1'), # 122; slice timing order
-    ('xyzt_units', 'u1'), # 123; units of pixdim[1..4]
-    ('cal_max', 'f4'),    # 124; max display intensity
-    ('cal_min', 'f4'),    # 128; min display intensity
-    ('slice_duration', 'f4'), # 132; time for 1 slice
-    ('toffset', 'f4'),   # 136; time axis shift
-    ('glmax', 'i4'),     # 140; unused
-    ('glmin', 'i4'),     # 144; unused
-    ('descrip', 'S80'),  # 148; any text
-    ('aux_file', 'S24'), # 228; auxiliary filename
-    ('qform_code', 'i2'), # 252; xform code
-    ('sform_code', 'i2'), # 254; xform code
-    ('quatern_b', 'f4'), # 256; quaternion b param
-    ('quatern_c', 'f4'), # 260; quaternion c param
-    ('quatern_d', 'f4'), # 264; quaternion d param
-    ('qoffset_x', 'f4'), # 268; quaternion x shift
-    ('qoffset_y', 'f4'), # 272; quaternion y shift
-    ('qoffset_z', 'f4'), # 276; quaternion z shift
-    ('srow_x', 'f4', (4,)), # 280; 1st row affine transform
-    ('srow_y', 'f4', (4,)), # 296; 2nd row affine transform
-    ('srow_z', 'f4', (4,)), # 312; 3rd row affine transform
-    ('intent_name', 'S16'), # 328; name or meaning of data
-    ('magic', 'S4')      # 344; must be 'ni1\0' or 'n+1\0'
+    ('sizeof_hdr', 'i4'),      # 0; must be 348
+    ('data_type', 'S10'),      # 4; unused
+    ('db_name', 'S18'),        # 14; unused
+    ('extents', 'i4'),         # 32; unused
+    ('session_error', 'i2'),   # 36; unused
+    ('regular', 'S1'),         # 38; unused
+    ('dim_info', 'u1'),        # 39; MRI slice ordering code
+    ('dim', 'i2', (8,)),       # 40; data array dimensions
+    ('intent_p1', 'f4'),       # 56; first intent parameter
+    ('intent_p2', 'f4'),       # 60; second intent parameter
+    ('intent_p3', 'f4'),       # 64; third intent parameter
+    ('intent_code', 'i2'),     # 68; NIFTI intent code
+    ('datatype', 'i2'),        # 70; it's the datatype
+    ('bitpix', 'i2'),          # 72; number of bits per voxel
+    ('slice_start', 'i2'),     # 74; first slice index
+    ('pixdim', 'f4', (8,)),    # 76; grid spacings (units below)
+    ('vox_offset', 'f4'),      # 108; offset to data in image file
+    ('scl_slope', 'f4'),       # 112; data scaling slope
+    ('scl_inter', 'f4'),       # 116; data scaling intercept
+    ('slice_end', 'i2'),       # 120; last slice index
+    ('slice_code', 'u1'),      # 122; slice timing order
+    ('xyzt_units', 'u1'),      # 123; units of pixdim[1..4]
+    ('cal_max', 'f4'),         # 124; max display intensity
+    ('cal_min', 'f4'),         # 128; min display intensity
+    ('slice_duration', 'f4'),  # 132; time for 1 slice
+    ('toffset', 'f4'),         # 136; time axis shift
+    ('glmax', 'i4'),           # 140; unused
+    ('glmin', 'i4'),           # 144; unused
+    ('descrip', 'S80'),        # 148; any text
+    ('aux_file', 'S24'),       # 228; auxiliary filename
+    ('qform_code', 'i2'),      # 252; xform code
+    ('sform_code', 'i2'),      # 254; xform code
+    ('quatern_b', 'f4'),       # 256; quaternion b param
+    ('quatern_c', 'f4'),       # 260; quaternion c param
+    ('quatern_d', 'f4'),       # 264; quaternion d param
+    ('qoffset_x', 'f4'),       # 268; quaternion x shift
+    ('qoffset_y', 'f4'),       # 272; quaternion y shift
+    ('qoffset_z', 'f4'),       # 276; quaternion z shift
+    ('srow_x', 'f4', (4,)),    # 280; 1st row affine transform
+    ('srow_y', 'f4', (4,)),    # 296; 2nd row affine transform
+    ('srow_z', 'f4', (4,)),    # 312; 3rd row affine transform
+    ('intent_name', 'S16'),    # 328; name or meaning of data
+    ('magic', 'S4')            # 344; must be 'ni1\0' or 'n+1\0'
     ]
 
 # Full header numpy dtype
@@ -85,7 +85,7 @@ else:
     _float128t = np.void
     _complex256t = np.void
 
-_dtdefs = ( # code, label, dtype definition, niistring
+_dtdefs = (  # code, label, dtype definition, niistring
     (0, 'none', np.void, ""),
     (1, 'binary', np.void, ""),
     (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8"),
@@ -94,38 +94,37 @@ _dtdefs = ( # code, label, dtype definition, niistring
     (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32"),
     (32, 'complex64', np.complex64, "NIFTI_TYPE_COMPLEX64"),
     (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64"),
-    (128, 'RGB', np.dtype([('R','u1'),
-                  ('G', 'u1'),
-                  ('B', 'u1')]), "NIFTI_TYPE_RGB24"),
+    (128, 'RGB', np.dtype([('R', 'u1'),
+                           ('G', 'u1'),
+                           ('B', 'u1')]), "NIFTI_TYPE_RGB24"),
     (255, 'all', np.void, ''),
     (256, 'int8', np.int8, "NIFTI_TYPE_INT8"),
     (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16"),
     (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32"),
-    (1024,'int64', np.int64, "NIFTI_TYPE_INT64"),
+    (1024, 'int64', np.int64, "NIFTI_TYPE_INT64"),
     (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64"),
     (1536, 'float128', _float128t, "NIFTI_TYPE_FLOAT128"),
     (1792, 'complex128', np.complex128, "NIFTI_TYPE_COMPLEX128"),
     (2048, 'complex256', _complex256t, "NIFTI_TYPE_COMPLEX256"),
-    (2304, 'RGBA', np.dtype([('R','u1'),
-                    ('G', 'u1'),
-                    ('B', 'u1'),
-                    ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
+    (2304, 'RGBA', np.dtype([('R', 'u1'),
+                             ('G', 'u1'),
+                             ('B', 'u1'),
+                             ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
     )
 
 # Make full code alias bank, including dtype column
 data_type_codes = make_dt_codes(_dtdefs)
 
 # Transform (qform, sform) codes
-xform_codes = Recoder(( # code, label, niistring
-                       (0, 'unknown', "NIFTI_XFORM_UNKNOWN"),
-                       (1, 'scanner', "NIFTI_XFORM_SCANNER_ANAT"),
-                       (2, 'aligned', "NIFTI_XFORM_ALIGNED_ANAT"),
-                       (3, 'talairach', "NIFTI_XFORM_TALAIRACH"),
-                       (4, 'mni', "NIFTI_XFORM_MNI_152")),
-                      fields=('code', 'label', 'niistring'))
+xform_codes = Recoder((  # code, label, niistring
+    (0, 'unknown', "NIFTI_XFORM_UNKNOWN"),
+    (1, 'scanner', "NIFTI_XFORM_SCANNER_ANAT"),
+    (2, 'aligned', "NIFTI_XFORM_ALIGNED_ANAT"),
+    (3, 'talairach', "NIFTI_XFORM_TALAIRACH"),
+    (4, 'mni', "NIFTI_XFORM_MNI_152")), fields=('code', 'label', 'niistring'))
 
 # unit codes
-unit_codes = Recoder(( # code, label
+unit_codes = Recoder((  # code, label
     (0, 'unknown'),
     (1, 'meter'),
     (2, 'mm'),
@@ -137,23 +136,21 @@ unit_codes = Recoder(( # code, label
     (40, 'ppm'),
     (48, 'rads')), fields=('code', 'label'))
 
-slice_order_codes = Recoder(( # code, label
+slice_order_codes = Recoder((  # code, label
     (0, 'unknown'),
     (1, 'sequential increasing', 'seq inc'),
     (2, 'sequential decreasing', 'seq dec'),
     (3, 'alternating increasing', 'alt inc'),
     (4, 'alternating decreasing', 'alt dec'),
     (5, 'alternating increasing 2', 'alt inc 2'),
-    (6, 'alternating decreasing 2', 'alt dec 2')),
-                            fields=('code', 'label'))
+    (6, 'alternating decreasing 2', 'alt dec 2')), fields=('code', 'label'))
 
 intent_codes = Recoder((
     # code, label, parameters description tuple
     (0, 'none', (), "NIFTI_INTENT_NONE"),
-    (2, 'correlation',('p1 = DOF',), "NIFTI_INTENT_CORREL"),
+    (2, 'correlation', ('p1 = DOF',), "NIFTI_INTENT_CORREL"),
     (3, 't test', ('p1 = DOF',), "NIFTI_INTENT_TTEST"),
-    (4, 'f test',
-     ('p1 = numerator DOF', 'p2 = denominator DOF'),
+    (4, 'f test', ('p1 = numerator DOF', 'p2 = denominator DOF'),
      "NIFTI_INTENT_FTEST"),
     (5, 'z score', (), "NIFTI_INTENT_ZSCORE"),
     (6, 'chi2', ('p1 = DOF',), "NIFTI_INTENT_CHISQ"),
@@ -166,7 +163,7 @@ intent_codes = Recoder((
      ('p1 = number of trials', 'p2 = probability per trial'),
      "NIFTI_INTENT_BINOM"),
     # 2 parameter gamma
-    # Density(x) proportional to # x^(p1-1) * exp(-p2*x)
+    # Density(x) proportional to  # x^(p1-1) * exp(-p2*x)
     (9, 'gamma',
      ('p1 = shape, p2 = scale', 2),
      "NIFTI_INTENT_GAMMA"),
@@ -182,7 +179,7 @@ intent_codes = Recoder((
       'p3 = numerator noncentrality parameter',),
      "NIFTI_INTENT_FTEST_NONC"),
     (13, 'non central chi2',
-     ('p1 = DOF', 'p2 = noncentrality parameter',), 
+     ('p1 = DOF', 'p2 = noncentrality parameter',),
      "NIFTI_INTENT_CHISQ_NONC"),
     (14, 'logistic',
      ('p1 = location', 'p2 = scale',),
@@ -228,7 +225,7 @@ intent_codes = Recoder((
     (2001, 'time series',
      (),
      "NIFTI_INTENT_TIME_SERIES",
-     "NIFTI_INTENT_TIMESERIES"), # this mis-spell occurs in the wild
+     "NIFTI_INTENT_TIMESERIES"),  # this mis-spell occurs in the wild
     (2002, 'node index', (), "NIFTI_INTENT_NODE_INDEX"),
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
@@ -441,8 +438,7 @@ class Nifti1Extensions(list):
         return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
-        s = "Nifti1Extensions(%s)" \
-                % ', '.join([str(e) for e in self])
+        s = "Nifti1Extensions(%s)" % ', '.join(str(e) for e in self)
         return s
 
     def __cmp__(self, other):
@@ -598,7 +594,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         '''
         return self.__class__(
             self.binaryblock,
-            self.endianness, 
+            self.endianness,
             False,
             self.extensions)
 
@@ -617,10 +613,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         # If this is a detached header file read to end
         if not klass.is_single:
             extsize = -1
-        else: # otherwise read until the beginning of the data
+        else:  # otherwise read until the beginning of the data
             extsize = hdr._structarr['vox_offset'] - fileobj.tell()
         byteswap = endian_codes['native'] != hdr.endianness
-        hdr.extensions = klass.exts_klass.from_fileobj(fileobj, extsize, byteswap)
+        hdr.extensions = klass.exts_klass.from_fileobj(fileobj, extsize,
+                                                       byteswap)
         return hdr
 
     def write_to(self, fileobj):
@@ -629,7 +626,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             vox_offset = self._structarr['vox_offset']
             min_vox_offset = (self.single_vox_offset +
                               self.extensions.get_sizeondisk())
-            if vox_offset == 0: # vox offset unset; set as necessary
+            if vox_offset == 0:  # vox offset unset; set as necessary
                 self._structarr['vox_offset'] = min_vox_offset
             elif vox_offset < min_vox_offset:
                 raise HeaderDataError(
@@ -670,7 +667,8 @@ class Nifti1Header(SpmAnalyzeHeader):
     def from_header(klass, header=None, check=True):
         ''' Class method to create header from another header
 
-        Extend Analyze header copy by copying extensions from other Nifti types.
+        Extend Analyze header copy by copying extensions from other Nifti
+        types.
 
         Parameters
         ----------
@@ -709,27 +707,23 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Notes
         -----
-        Allows for freesurfer hack for large vectors described in
-        https://github.com/nipy/nibabel/issues/100 and
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        Applies freesurfer hack for large vectors described in `issue 100`_ and
+        `save_nifti.m <save77_>`_.
 
         Allows for freesurfer hack for 7th order icosahedron surface described
-        in
-        https://github.com/nipy/nibabel/issues/309
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
+        in `issue 309`_, load_nifti.m_, and `save_nifti.m <save50_>`_.
         '''
         shape = super(Nifti1Header, self).get_data_shape()
-        # Apply freesurfer hack for vector
-        if shape == (-1, 1, 1):
+        # Apply freesurfer hack for large vectors
+        if shape[:3] == (-1, 1, 1):
             vec_len = int(self._structarr['glmin'])
             if vec_len == 0:
                 raise HeaderDataError('-1 in dim[1] but 0 in glmin; '
                                       'inconsistent freesurfer type header?')
-            return (vec_len, 1, 1)
+            return (vec_len, 1, 1) + shape[3:]
         # Apply freesurfer hack for ico7 surface
-        elif shape == (27307, 1, 6):
-            return (163842, 1, 1)
+        elif shape[:3] == (27307, 1, 6):
+            return (163842, 1, 1) + shape[3:]
         else:  # Normal case
             return shape
 
@@ -739,6 +733,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
 
+        Nifti1 images can have up to seven dimensions. For FreeSurfer-variant
+        Nifti surface files, the first dimension is assumed to correspond to
+        vertices/nodes on a surface, and dimensions two and three are
+        constrained to have depth of 1. Dimensions 4-7 are constrained only by
+        type bounds.
+
         Parameters
         ----------
         shape : sequence
@@ -746,24 +746,43 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Notes
         -----
-        Applies freesurfer hack for large vectors described in
-        https://github.com/nipy/nibabel/issues/100 and
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        Applies freesurfer hack for large vectors described in `issue 100`_ and
+        `save_nifti.m <save77_>`_.
 
         Allows for freesurfer hack for 7th order icosahedron surface described
-        in
-        https://github.com/nipy/nibabel/issues/309
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
+        in `issue 309`_, load_nifti.m_, and `save_nifti.m <save50_>`_.
+
+        The Nifti1 `standard header`_ allows for the following "point set"
+        definition of a surface, not currently implemented in nibabel.
+
+        ::
+
+          To signify that the vector value at each voxel is really a
+          spatial coordinate (e.g., the vertices or nodes of a surface mesh):
+            - dataset must have a 5th dimension
+            - intent_code must be NIFTI_INTENT_POINTSET
+            - dim[0] = 5
+            - dim[1] = number of points
+            - dim[2] = dim[3] = dim[4] = 1
+            - dim[5] must be the dimensionality of space (e.g., 3 => 3D space).
+            - intent_name may describe the object these points come from
+              (e.g., "pial", "gray/white" , "EEG", "MEG").
+
+        .. _issue 100: https://github.com/nipy/nibabel/issues/100
+        .. _issue 309: https://github.com/nipy/nibabel/issues/309
+        .. _save77: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#77
+        .. _save50: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#50
+        .. _load_nifti.m: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?spec=svn8776&r=8776#86
+        .. _standard header: http://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
         '''
         hdr = self._structarr
         shape = tuple(shape)
 
         # Apply freesurfer hack for ico7 surface
-        if shape == (163842, 1, 1):
-            shape = (27307, 1, 6)
-        # Apply freesurfer hack for vector
-        elif (len(shape) == 3 and shape[1:] == (1, 1) and
+        if shape[:3] == (163842, 1, 1):
+            shape = (27307, 1, 6) + shape[3:]
+        # Apply freesurfer hack for large vectors
+        elif (len(shape) >= 3 and shape[1:3] == (1, 1) and
                 shape[0] > np.iinfo(hdr['dim'].dtype.base).max):
             try:
                 hdr['glmin'] = shape[0]
@@ -772,11 +791,11 @@ class Nifti1Header(SpmAnalyzeHeader):
             else:
                 overflow = hdr['glmin'] != shape[0]
             if overflow:
-                raise HeaderDataError('shape[0] %s does not fit in glmax datatype' %
-                                      shape[0])
+                raise HeaderDataError('shape[0] %s does not fit in glmax '
+                                      'datatype' % shape[0])
             warnings.warn('Using large vector Freesurfer hack; header will '
                           'not be compatible with SPM or FSL', stacklevel=2)
-            shape = (-1, 1, 1)
+            shape = (-1, 1, 1) + shape[3:]
         super(Nifti1Header, self).set_data_shape(shape)
 
     def get_qform_quaternion(self):
@@ -796,8 +815,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         ----------
         coded : bool, optional
             If True, return {affine or None}, and qform code.  If False, just
-            return affine.  {affine or None} means, return None if qform code ==
-            0, and affine otherwise.
+            return affine.  {affine or None} means, return None if qform code
+            == 0, and affine otherwise.
 
         Returns
         -------
@@ -815,7 +834,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         quat = self.get_qform_quaternion()
         R = quat2mat(quat)
         vox = hdr['pixdim'][1:4].copy()
-        if np.any(vox) < 0:
+        if np.any(vox < 0):
             raise HeaderDataError('pixdims[1,2,3] should be positive')
         qfac = hdr['pixdim'][0]
         if qfac not in (-1, 1):
@@ -864,7 +883,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> hdr = Nifti1Header()
-        >>> int(hdr['qform_code']) # gives 0 - unknown
+        >>> int(hdr['qform_code'])  # gives 0 - unknown
         0
         >>> affine = np.diag([1,2,3,1])
         >>> np.all(hdr.get_qform() == affine)
@@ -872,7 +891,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_qform(affine)
         >>> np.all(hdr.get_qform() == affine)
         True
-        >>> int(hdr['qform_code']) # gives 2 - aligned
+        >>> int(hdr['qform_code'])  # gives 2 - aligned
         2
         >>> hdr.set_qform(affine, code='talairach')
         >>> int(hdr['qform_code'])
@@ -893,10 +912,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             if affine is None:
                 code = 0
             elif old_code == 0:
-                code = 2 # aligned
+                code = 2  # aligned
             else:
                 code = old_code
-        else: # code set
+        else:  # code set
             code = self._field_recoders['qform_code'][code]
         hdr['qform_code'] = code
         if affine is None:
@@ -939,8 +958,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         ----------
         coded : bool, optional
             If True, return {affine or None}, and sform code.  If False, just
-            return affine.  {affine or None} means, return None if sform code ==
-            0, and affine otherwise.
+            return affine.  {affine or None} means, return None if sform code
+            == 0, and affine otherwise.
 
         Returns
         -------
@@ -983,7 +1002,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> hdr = Nifti1Header()
-        >>> int(hdr['sform_code']) # gives 0 - unknown
+        >>> int(hdr['sform_code'])  # gives 0 - unknown
         0
         >>> affine = np.diag([1,2,3,1])
         >>> np.all(hdr.get_sform() == affine)
@@ -991,7 +1010,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_sform(affine)
         >>> np.all(hdr.get_sform() == affine)
         True
-        >>> int(hdr['sform_code']) # gives 2 - aligned
+        >>> int(hdr['sform_code'])  # gives 2 - aligned
         2
         >>> hdr.set_sform(affine, code='talairach')
         >>> int(hdr['sform_code'])
@@ -1012,10 +1031,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             if affine is None:
                 code = 0
             elif old_code == 0:
-                code = 2 # aligned
+                code = 2  # aligned
             else:
                 code = old_code
-        else: # code set
+        else:  # code set
             code = self._field_recoders['sform_code'][code]
         hdr['sform_code'] = code
         if affine is None:
@@ -1031,10 +1050,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         Returns
         -------
         slope : None or float
-           scaling (slope).  None if there is no valid scaling from these fields
+           scaling (slope).  None if there is no valid scaling from these
+           fields
         inter : None or float
-           offset (intercept). None if there is no valid scaling or if offset is
-           not finite.
+           offset (intercept). None if there is no valid scaling or if offset
+           is not finite.
 
         Examples
         --------
@@ -1134,8 +1154,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         phase = (info >> 2) & 3
         slice = (info >> 4) & 3
         return (freq-1 if freq else None,
-            phase-1 if phase else None,
-            slice-1 if slice else None)
+                phase-1 if phase else None,
+                slice-1 if slice else None)
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
@@ -1175,11 +1195,11 @@ class Nifti1Header(SpmAnalyzeHeader):
             if inp not in (None, 0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
-        if not freq is None:
+        if freq is not None:
             info = info | ((freq+1) & 3)
-        if not phase is None:
+        if phase is not None:
             info = info | (((phase+1) & 3) << 2)
-        if not slice is None:
+        if slice is not None:
             info = info | (((slice+1) & 3) << 4)
         self._structarr['dim_info'] = info
 
@@ -1251,7 +1271,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> hdr = Nifti1Header()
-        >>> hdr.set_intent(0) # unknown code
+        >>> hdr.set_intent(0)  # unknown code
         >>> hdr.set_intent('z score')
         >>> hdr.get_intent()
         ('z score', (), '')
@@ -1328,7 +1348,6 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_n_slices(self):
         ''' Return the number of slices
         '''
-        hdr = self._structarr
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
             raise HeaderDataError('Slice dimension not set in header '
@@ -1473,7 +1492,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                                  list(range(1, n_slices, 2)))
         elif slabel == 'alternating decreasing':
             sp_ind_time_order = (list(range(n_slices - 1, -1, -2)) +
-                                 list(range(n_slices -2 , -1, -2)))
+                                 list(range(n_slices - 2, -1, -2)))
         elif slabel == 'alternating increasing 2':
             sp_ind_time_order = (list(range(1, n_slices, 2)) +
                                  list(range(0, n_slices, 2)))
@@ -1549,7 +1568,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if magic in (hdr.pair_magic, hdr.single_magic):
             return hdr, rep
         rep.problem_msg = ('magic string "%s" is not valid' %
-                            asstr(magic))
+                           asstr(magic))
         rep.problem_level = 45
         if fix:
             rep.fix_msg = 'leaving as is, but future errors are likely'
@@ -1606,6 +1625,15 @@ class Nifti1Header(SpmAnalyzeHeader):
             rep.fix_msg = 'setting to 0'
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        return hdr_struct['magic'] in (b'ni1', b'n+1')
+
 
 class Nifti1PairHeader(Nifti1Header):
     ''' Class for NIfTI1 pair header '''
@@ -1617,6 +1645,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
+    rw = True
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -1753,8 +1783,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
         ----------
         coded : bool, optional
             If True, return {affine or None}, and sform code.  If False, just
-            return affine.  {affine or None} means, return None if sform code ==
-            0, and affine otherwise.
+            return affine.  {affine or None} means, return None if sform code
+            == 0, and affine otherwise.
 
         Returns
         -------
@@ -1840,14 +1870,15 @@ class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header
+    valid_exts = ('.nii',)
     files_types = (('image', '.nii'),)
 
     @staticmethod
     def _get_fileholders(file_map):
         """ Return fileholder for header and image
 
-        For single-file niftis, the fileholder for the header and the image will
-        be the same
+        For single-file niftis, the fileholder for the header and the image
+        will be the same
         """
         return file_map['image'], file_map['image']
 

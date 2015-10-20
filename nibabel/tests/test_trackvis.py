@@ -9,11 +9,10 @@ from ..externals.six import BytesIO
 from .. import trackvis as tv
 from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code
-from ..checkwarns import ErrorWarnings, IgnoreWarnings
 
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
-
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+from ..testing import error_warnings, suppress_warnings
 
 
 def test_write():
@@ -213,7 +212,7 @@ def test_points_processing():
             assert_raises(tv.HeaderError, tv.read, out_f, False, 'voxel')
         # There's a warning for any voxel sizes == 0
         hdr = {'voxel_size': [2, 3, 0]}
-        with ErrorWarnings():
+        with error_warnings():
             assert_raises(UserWarning, _rt, vx_streams, hdr, 'voxel')
         # This should be OK
         hdr = {'voxel_size': [2, 3, 4]}
@@ -300,7 +299,7 @@ def test__check_hdr_points_space():
                   tv._check_hdr_points_space, hdr, 'voxel')
     # Warning here only
     hdr['voxel_size'] = [2, 3, 0]
-    with ErrorWarnings():
+    with error_warnings():
         assert_raises(UserWarning,
                       tv._check_hdr_points_space, hdr, 'voxel')
     # This is OK
@@ -367,7 +366,7 @@ def test_get_affine():
     hdr = tv.empty_header()
     # Using version 1 affine is not a good idea because is fragile and not
     # very useful. The default atleast_v2=None mode raises a FutureWarning
-    with ErrorWarnings():
+    with error_warnings():
         assert_raises(FutureWarning, tv.aff_from_hdr, hdr)
     # testing the old behavior
     old_afh = partial(tv.aff_from_hdr, atleast_v2=False)
@@ -417,7 +416,7 @@ def test_get_affine():
         # Check it came back the way we wanted
         assert_array_equal(old_afh(hdr), in_aff)
     # Check that the default case matches atleast_v2=False case
-    with IgnoreWarnings():
+    with suppress_warnings():
         assert_array_equal(tv.aff_from_hdr(hdr), flipped_aff)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
@@ -451,13 +450,13 @@ def test_aff_to_hdr():
     assert_array_almost_equal(hdr['voxel_size'], [-1,2,3])
     assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), aff2)
     # Test that default mode raises DeprecationWarning
-    with ErrorWarnings():
+    with error_warnings():
         assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr)
         assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, None)
         assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, False, None)
         assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, False)
     # And has same effect as above
-    with IgnoreWarnings():
+    with suppress_warnings():
         tv.aff_to_hdr(affine, hdr)
     assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), affine)
     # Check pos_vox and order flags
@@ -508,7 +507,7 @@ def test_tv_class():
     affine = np.diag([1,2,3,1])
     affine[:3,3] = [10,11,12]
     # affine methods will raise same warnings and errors as function
-    with ErrorWarnings():
+    with error_warnings():
         assert_raises(FutureWarning, tvf.set_affine, affine)
         assert_raises(FutureWarning, tvf.set_affine, affine, None, None)
         assert_raises(FutureWarning, tvf.set_affine, affine, False, None)
@@ -592,3 +591,39 @@ def test_tvfile_io():
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
     assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))
+
+
+def test_read_truncated():
+    # Test behavior when last track contains fewer points than specified
+    out_f = BytesIO()
+    xyz0 = np.tile(np.arange(5).reshape(5, 1), (1, 3))
+    xyz1 = np.tile(np.arange(5).reshape(5, 1) + 10, (1, 3))
+    streams = [(xyz0, None, None), (xyz1, None, None)]
+    tv.write(out_f, streams, {})
+    # Truncate the last stream by one point
+    value = out_f.getvalue()[:-(3 * 4)]
+    new_f = BytesIO(value)
+    # By default, raises a DataError
+    assert_raises(tv.DataError, tv.read, new_f)
+    # This corresponds to strict mode
+    new_f.seek(0)
+    assert_raises(tv.DataError, tv.read, new_f, strict=True)
+    # lenient error mode lets this error pass, with truncated track
+    short_streams = [(xyz0, None, None), (xyz1[:-1], None, None)]
+    new_f.seek(0)
+    streams2, hdr = tv.read(new_f, strict=False)
+    assert_true(streamlist_equal(streams2, short_streams))
+    # Check that lenient works when number of tracks is 0, where 0 signals to
+    # the reader to read until the end of the file.
+    again_hdr = hdr.copy()
+    assert_equal(again_hdr['n_count'], 2)
+    again_hdr['n_count'] = 0
+    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_f = BytesIO(again_bytes)
+    streams2, _ = tv.read(again_f, strict=False)
+    assert_true(streamlist_equal(streams2, short_streams))
+    # Set count to one above actual number of tracks, always raise error
+    again_hdr['n_count'] = 3
+    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_f = BytesIO(again_bytes)
+    assert_raises(tv.DataError, tv.read, again_f, strict=False)

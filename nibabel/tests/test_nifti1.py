@@ -45,12 +45,12 @@ image_file = os.path.join(data_path, 'example4d.nii.gz')
 
 
 # Example transformation matrix
-R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]] # rotation matrix
-Z = [2.0, 3.0, 4.0] # zooms
-T = [20, 30, 40] # translations
+R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]]  # rotation matrix
+Z = [2.0, 3.0, 4.0]  # zooms
+T = [20, 30, 40]  # translations
 A = np.eye(4)
-A[:3,:3] = np.array(R) * Z # broadcasting does the job
-A[:3,3] = T
+A[:3, :3] = np.array(R) * Z  # broadcasting does the job
+A[:3, 3] = T
 
 
 class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
@@ -91,7 +91,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_data_shape(data.shape)
         hdr.set_data_dtype(np.float32)
         S = BytesIO()
-        # Writing to float datatype with scaling gives slope, inter as identities
+        # Writing to float dtype with scaling gives slope, intercept as (1, 0)
         hdr.data_to_fileobj(data, S, rescale=True)
         assert_array_equal(hdr.get_slope_inter(), (1, 0))
         rdata = hdr.data_from_fileobj(S)
@@ -115,13 +115,13 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # Test that upcasting works for huge scalefactors
         # See tests for apply_read_scaling in test_utils
         hdr = self.header_class()
-        hdr.set_data_shape((2,1,1))
+        hdr.set_data_shape((2, 1, 1))
         hdr.set_data_dtype(np.int16)
         sio = BytesIO()
         dtt = np.float32
         # This will generate a huge scalefactor
         finf = type_info(dtt)
-        data = np.array([finf['min'], finf['max']], dtype=dtt)[:,None, None]
+        data = np.array([finf['min'], finf['max']], dtype=dtt)[:, None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
@@ -132,40 +132,40 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         HDE = HeaderDataError
         assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
         for in_tup, exp_err, out_tup, raw_values in (
-            # Null scalings
-            ((None, None), None, (None, None), (nan, nan)),
-            ((nan, None), None, (None, None), (nan, nan)),
-            ((None, nan), None, (None, None), (nan, nan)),
-            ((nan, nan), None, (None, None), (nan, nan)),
-            # Can only be one null
-            ((None, 0), HDE, (None, None), (nan, 0)),
-            ((nan, 0), HDE, (None, None), (nan, 0)),
-            ((1, None), HDE, (None, None), (1, nan)),
-            ((1, nan), HDE, (None, None), (1, nan)),
-            # Bad slope plus anything generates an error
-            ((0, 0), HDE, (None, None), (0, 0)),
-            ((0, None), HDE, (None, None), (0, nan)),
-            ((0, nan), HDE, (None, None), (0, nan)),
-            ((0, inf), HDE, (None, None), (0, inf)),
-            ((0, minf), HDE, (None, None), (0, minf)),
-            ((inf, 0), HDE, (None, None), (inf, 0)),
-            ((inf, None), HDE, (None, None), (inf, nan)),
-            ((inf, nan), HDE, (None, None), (inf, nan)),
-            ((inf, inf), HDE, (None, None), (inf, inf)),
-            ((inf, minf), HDE, (None, None), (inf, minf)),
-            ((minf, 0), HDE, (None, None), (minf, 0)),
-            ((minf, None), HDE, (None, None), (minf, nan)),
-            ((minf, nan), HDE, (None, None), (minf, nan)),
-            ((minf, inf), HDE, (None, None), (minf, inf)),
-            ((minf, minf), HDE, (None, None), (minf, minf)),
-            # Good slope and bad intercept generates error for get_slope_inter
-            ((2, None), HDE, HDE, (2, nan)),
-            ((2, nan), HDE, HDE, (2, nan)),
-            ((2, inf), HDE, HDE, (2, inf)),
-            ((2, minf), HDE, HDE, (2, minf))):
-            # Good slope and inter - you guessed it
-            ((2, 0), None, (None, None), (2, 0)),
-            ((2, 1), None, (None, None), (2, 1)),
+                # Null scalings
+                ((None, None), None, (None, None), (nan, nan)),
+                ((nan, None), None, (None, None), (nan, nan)),
+                ((None, nan), None, (None, None), (nan, nan)),
+                ((nan, nan), None, (None, None), (nan, nan)),
+                # Can only be one null
+                ((None, 0), HDE, (None, None), (nan, 0)),
+                ((nan, 0), HDE, (None, None), (nan, 0)),
+                ((1, None), HDE, (None, None), (1, nan)),
+                ((1, nan), HDE, (None, None), (1, nan)),
+                # Bad slope plus anything generates an error
+                ((0, 0), HDE, (None, None), (0, 0)),
+                ((0, None), HDE, (None, None), (0, nan)),
+                ((0, nan), HDE, (None, None), (0, nan)),
+                ((0, inf), HDE, (None, None), (0, inf)),
+                ((0, minf), HDE, (None, None), (0, minf)),
+                ((inf, 0), HDE, (None, None), (inf, 0)),
+                ((inf, None), HDE, (None, None), (inf, nan)),
+                ((inf, nan), HDE, (None, None), (inf, nan)),
+                ((inf, inf), HDE, (None, None), (inf, inf)),
+                ((inf, minf), HDE, (None, None), (inf, minf)),
+                ((minf, 0), HDE, (None, None), (minf, 0)),
+                ((minf, None), HDE, (None, None), (minf, nan)),
+                ((minf, nan), HDE, (None, None), (minf, nan)),
+                ((minf, inf), HDE, (None, None), (minf, inf)),
+                ((minf, minf), HDE, (None, None), (minf, minf)),
+                # Good slope and bad inter generates error for get_slope_inter
+                ((2, None), HDE, HDE, (2, nan)),
+                ((2, nan), HDE, HDE, (2, nan)),
+                ((2, inf), HDE, HDE, (2, inf)),
+                ((2, minf), HDE, HDE, (2, minf)),
+                # Good slope and inter - you guessed it
+                ((2, 0), None, (2, 0), (2, 0)),
+                ((2, 1), None, (2, 1), (2, 1))):
             hdr = self.header_class()
             if not exp_err is None:
                 assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
@@ -180,7 +180,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                     # Check set survives through checking
                     hdr = self.header_class.from_header(hdr, check=True)
                     assert_equal(hdr.get_slope_inter(), out_tup)
-            assert_array_equal([hdr['scl_slope'], hdr['scl_inter']], raw_values)
+            assert_array_equal([hdr['scl_slope'], hdr['scl_inter']],
+                               raw_values)
 
     def test_nifti_qsform_checks(self):
         # qfac, qform, sform checks
@@ -261,27 +262,37 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_data_shape((too_big-1, 1, 1))
         assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
         # The freesurfer case
+        full_shape = (too_big, 1, 1, 1, 1, 1, 1)
+        for dim in range(3, 8):
+            # First element in 'dim' field is number of dimensions
+            expected_dim = np.array([dim, -1, 1, 1, 1, 1, 1, 1])
+            with suppress_warnings():
+                hdr.set_data_shape(full_shape[:dim])
+            assert_equal(hdr.get_data_shape(), full_shape[:dim])
+            assert_array_equal(hdr['dim'], expected_dim)
+            assert_equal(hdr['glmin'], too_big)
+        # Allow the fourth dimension to vary
         with suppress_warnings():
-            hdr.set_data_shape((too_big, 1, 1))
-        assert_equal(hdr.get_data_shape(), (too_big, 1, 1))
-        assert_array_equal(hdr['dim'][:4], [3, -1, 1, 1])
-        assert_equal(hdr['glmin'], too_big)
-        # This only works for the case of a 3D with -1, 1, 1
+            hdr.set_data_shape((too_big, 1, 1, 4))
+        assert_equal(hdr.get_data_shape(), (too_big, 1, 1, 4))
+        assert_array_equal(hdr['dim'][:5], np.array([4, -1, 1, 1, 4]))
+        # This only works when the first 3 dimensions are -1, 1, 1
         assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,))
-        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1))
-        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,1,2))
-        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big,2,1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big, 1, 2))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (too_big, 2, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big))
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, too_big, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, too_big))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, too_big))
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
         with suppress_warnings():
             hdr.set_data_shape((far_too_big-1, 1, 1))
         assert_equal(hdr.get_data_shape(), (far_too_big-1, 1, 1))
-        assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big,1,1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big, 1, 1))
         # glmin of zero raises error (implausible vector length)
-        hdr.set_data_shape((-1,1,1))
+        hdr.set_data_shape((-1, 1, 1))
         hdr['glmin'] = 0
         assert_raises(HeaderDataError, hdr.get_data_shape)
         # Lists or tuples or arrays will work for setting shape
@@ -295,9 +306,22 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     def test_freesurfer_ico7_hack(self):
         HC = self.header_class
         hdr = HC()
+        full_shape = (163842, 1, 1, 1, 1, 1, 1)
         # Test that using ico7 shape automatically uses factored dimensions
-        hdr.set_data_shape((163842, 1, 1))
-        assert_array_equal(hdr._structarr['dim'][1:4], np.array([27307, 1, 6]))
+        for dim in range(3, 8):
+            expected_dim = np.array([dim, 27307, 1, 6, 1, 1, 1, 1])
+            hdr.set_data_shape(full_shape[:dim])
+            assert_equal(hdr.get_data_shape(), full_shape[:dim])
+            assert_array_equal(hdr._structarr['dim'], expected_dim)
+        # Only works on dimensions >= 3
+        assert_raises(HeaderDataError, hdr.set_data_shape, full_shape[:1])
+        assert_raises(HeaderDataError, hdr.set_data_shape, full_shape[:2])
+        # Bad shapes
+        assert_raises(HeaderDataError, hdr.set_data_shape, (163842, 2, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (163842, 1, 2))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 163842, 1))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 163842))
+        assert_raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, 163842))
         # Test consistency of data in .mgh and mri_convert produced .nii
         nitest_path = os.path.join(get_nibabel_data(), 'nitest-freesurfer')
         mgh = mghload(os.path.join(nitest_path, 'fsaverage', 'surf',
@@ -320,15 +344,16 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         HC = self.header_class
         hdr = HC()
         assert_array_equal(hdr.get_qform(), np.eye(4))
-        empty_sform = np.zeros((4,4))
-        empty_sform[-1,-1] = 1
+        empty_sform = np.zeros((4, 4))
+        empty_sform[-1, -1] = 1
         assert_array_equal(hdr.get_sform(), empty_sform)
         assert_equal(hdr.get_qform(coded=True), (None, 0))
         assert_equal(hdr.get_sform(coded=True), (None, 0))
-        # Affine with no shears
+        # Affines with no shears
         nice_aff = np.diag([2, 3, 4, 1])
+        another_aff = np.diag([3, 4, 5, 1])
         # Affine with shears
-        nasty_aff = from_matvec(np.arange(9).reshape((3,3)), [9, 10, 11])
+        nasty_aff = from_matvec(np.arange(9).reshape((3, 3)), [9, 10, 11])
         fixed_aff = unshear_44(nasty_aff)
         for in_meth, out_meth in ((hdr.set_qform, hdr.get_qform),
                                   (hdr.set_sform, hdr.get_sform)):
@@ -336,11 +361,12 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             aff, code = out_meth(coded=True)
             assert_array_equal(aff, nice_aff)
             assert_equal(code, 2)
-            assert_array_equal(out_meth(), nice_aff) # non coded
-            # Affine can also be passed if code == 0, affine will be suitably set
-            in_meth(nice_aff, 0)
-            assert_equal(out_meth(coded=True), (None, 0))
-            assert_array_almost_equal(out_meth(), nice_aff)
+            assert_array_equal(out_meth(), nice_aff)  # non coded
+            # Affine may be passed if code == 0, and will get set into header,
+            # but the returned affine with 'coded=True' will be None.
+            in_meth(another_aff, 0)
+            assert_equal(out_meth(coded=True), (None, 0))  # coded -> None
+            assert_array_almost_equal(out_meth(), another_aff)  # else -> input
             # Default qform code when previous == 0 is 2
             in_meth(nice_aff)
             aff, code = out_meth(coded=True)
@@ -351,10 +377,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             aff, code = out_meth(coded=True)
             assert_equal(code, 1)
             # Can set code without modifying affine, by passing affine=None
-            assert_array_equal(aff, nice_aff) # affine same as before
+            assert_array_equal(aff, nice_aff)  # affine same as before
             in_meth(None, 3)
             aff, code = out_meth(coded=True)
-            assert_array_equal(aff, nice_aff) # affine same as before
+            assert_array_equal(aff, nice_aff)  # affine same as before
             assert_equal(code, 3)
             # affine is None on its own, or with code==0, resets code to 0
             in_meth(None, 0)
@@ -422,6 +448,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_true, ehdr['qform_code'] == xfas['scanner']
         ehdr.set_qform(A, xfas['aligned'])
         assert_true, ehdr['qform_code'] == xfas['aligned']
+        # Test pixdims[1,2,3] are checked for negatives
+        for dims in ((-1, 1, 1), (1, -1, 1), (1, 1, -1)):
+            ehdr['pixdim'][1:4] = dims
+            assert_raises(HeaderDataError, ehdr.get_qform)
 
     def test_sform(self):
         # Test roundtrip case
@@ -439,13 +469,13 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     def test_dim_info(self):
         ehdr = self.header_class()
         assert_true(ehdr.get_dim_info() == (None, None, None))
-        for info in ((0,2,1),
-                    (None, None, None),
-                    (0,2,None),
-                    (0,None,None),
-                    (None,2,1),
-                    (None, None,1),
-                    ):
+        for info in ((0, 2, 1),
+                     (None, None, None),
+                     (0, 2, None),
+                     (0, None, None),
+                     (None, 2, 1),
+                     (None, None, 1),
+                     ):
             ehdr.set_dim_info(*info)
             assert_true(ehdr.get_dim_info() == info)
 
@@ -467,27 +497,26 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         #The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
         assert_equal(_print_me(hdr.get_slice_times()),
-                        ['0.0', '0.1', '0.2', '0.3', '0.4',
-                            '0.5', '0.6'])
+                     ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
         hdr['slice_start'] = 1
         hdr['slice_end'] = 5
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
+                     [None, '0.0', '0.1', '0.2', '0.3', '0.4', None])
         hdr['slice_code'] = slice_order_codes['sequential decreasing']
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
+                     [None, '0.4', '0.3', '0.2', '0.1', '0.0', None])
         hdr['slice_code'] = slice_order_codes['alternating increasing']
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
+                     [None, '0.0', '0.3', '0.1', '0.4', '0.2', None])
         hdr['slice_code'] = slice_order_codes['alternating decreasing']
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
+                     [None, '0.2', '0.4', '0.1', '0.3', '0.0', None])
         hdr['slice_code'] = slice_order_codes['alternating increasing 2']
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
+                     [None, '0.2', '0.0', '0.3', '0.1', '0.4', None])
         hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
         assert_equal(_print_me(hdr.get_slice_times()),
-            [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
+                     [None, '0.4', '0.1', '0.3', '0.0', '0.2', None])
         # test set
         hdr = self.header_class()
         hdr.set_dim_info(slice=2)
@@ -495,25 +524,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         times = [None, 0.2, 0.4, 0.1, 0.3, 0.0, None]
         assert_raises(HeaderDataError, hdr.set_slice_times, times)
         hdr.set_data_shape([1, 1, 7])
-        assert_raises(HeaderDataError,
-                            hdr.set_slice_times,
-                            times[:-1]) # wrong length
-        assert_raises(HeaderDataError,
-                            hdr.set_slice_times,
-                            (None,) * len(times)) # all None
+        assert_raises(HeaderDataError, hdr.set_slice_times,
+                      times[:-1])  # wrong length
+        assert_raises(HeaderDataError, hdr.set_slice_times,
+                      (None,) * len(times))  # all None
         n_mid_times = times[:]
         n_mid_times[3] = None
-        assert_raises(HeaderDataError,
-                            hdr.set_slice_times,
-                            n_mid_times) # None in middle
+        assert_raises(HeaderDataError, hdr.set_slice_times,
+                      n_mid_times)  # None in middle
         funny_times = times[:]
         funny_times[3] = 0.05
-        assert_raises(HeaderDataError,
-                            hdr.set_slice_times,
-                            funny_times) # can't get single slice duration
+        assert_raises(HeaderDataError, hdr.set_slice_times,
+                      funny_times)  # can't get single slice duration
         hdr.set_slice_times(times)
         assert_equal(hdr.get_value_label('slice_code'),
-                        'alternating decreasing')
+                     'alternating decreasing')
         assert_equal(hdr['slice_start'], 1)
         assert_equal(hdr['slice_end'], 5)
         assert_array_almost_equal(hdr['slice_duration'], 0.1)
@@ -524,25 +549,18 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(ehdr.get_intent(),
                     ('t test', (10.0,), 'some score'))
         # invalid intent name
-        assert_raises(KeyError,
-                    ehdr.set_intent, 'no intention')
+        assert_raises(KeyError, ehdr.set_intent, 'no intention')
         # too many parameters
-        assert_raises(HeaderDataError,
-                    ehdr.set_intent,
-                    't test', (10,10))
+        assert_raises(HeaderDataError, ehdr.set_intent, 't test', (10, 10))
         # too few parameters
-        assert_raises(HeaderDataError,
-                    ehdr.set_intent,
-                    'f test', (10,))
+        assert_raises(HeaderDataError, ehdr.set_intent, 'f test', (10,))
         # check unset parameters are set to 0, and name to ''
         ehdr.set_intent('t test')
-        assert_equal((ehdr['intent_p1'],
-                    ehdr['intent_p2'],
-                    ehdr['intent_p3']), (0,0,0))
+        assert_equal((ehdr['intent_p1'], ehdr['intent_p2'], ehdr['intent_p3']),
+                     (0, 0, 0))
         assert_equal(ehdr['intent_name'], b'')
         ehdr.set_intent('t test', (10,))
-        assert_equal((ehdr['intent_p2'],
-                    ehdr['intent_p3']), (0,0))
+        assert_equal((ehdr['intent_p2'], ehdr['intent_p3']), (0, 0))
 
     def test_set_slice_times(self):
         hdr = self.header_class()
@@ -610,9 +628,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_intent('t test', (10,), name='some score')
         assert_equal(hdr.get_value_label('intent_code'), 't test')
         assert_equal(hdr.get_value_label('slice_code'), 'unknown')
-        hdr['slice_code'] = 4 # alternating decreasing
+        hdr['slice_code'] = 4  # alternating decreasing
         assert_equal(hdr.get_value_label('slice_code'),
-                        'alternating decreasing')
+                     'alternating decreasing')
 
 
 def unshear_44(affine):
@@ -621,7 +639,7 @@ def unshear_44(affine):
     R = RZS / zooms
     P, S, Qs = np.linalg.svd(R)
     PR = np.dot(P, Qs)
-    return from_matvec(PR * zooms, affine[:3,3])
+    return from_matvec(PR * zooms, affine[:3, 3])
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
@@ -700,20 +718,20 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Qform load save cycle
         img_klass = self.image_class
         # None affine
-        img = img_klass(np.zeros((2,3,4)), None)
+        img = img_klass(np.zeros((2, 3, 4)), None)
         hdr_back = self._qform_rt(img).header
         assert_equal(hdr_back['qform_code'], 3)
         assert_equal(hdr_back['sform_code'], 4)
         # Try non-None affine
-        img = img_klass(np.zeros((2,3,4)), np.eye(4))
+        img = img_klass(np.zeros((2, 3, 4)), np.eye(4))
         hdr_back = self._qform_rt(img).header
         assert_equal(hdr_back['qform_code'], 3)
         assert_equal(hdr_back['sform_code'], 4)
         # Modify affine in-place - does it hold?
-        img.affine[0,0] = 9
+        img.affine[0, 0] = 9
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
-        exp_aff = np.diag([9,1,1,1])
+        exp_aff = np.diag([9, 1, 1, 1])
         assert_array_equal(img_back.affine, exp_aff)
         hdr_back = img.header
         assert_array_equal(hdr_back.get_sform(), exp_aff)
@@ -721,10 +739,10 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
     def test_header_update_affine(self):
         # Test that updating occurs only if affine is not allclose
-        img = self.image_class(np.zeros((2,3,4)), np.eye(4))
+        img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
         hdr = img.header
         aff = img.affine
-        aff[:] = np.diag([1.1, 1.1, 1.1, 1]) # inexact floats
+        aff[:] = np.diag([1.1, 1.1, 1.1, 1])  # inexact floats
         hdr.set_qform(aff, 2)
         hdr.set_sform(aff, 2)
         img.update_header()
@@ -732,7 +750,8 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_equal(hdr['qform_code'], 2)
 
     def test_set_qform(self):
-        img = self.image_class(np.zeros((2,3,4)), np.diag([2.2, 3.3, 4.3, 1]))
+        img = self.image_class(np.zeros((2, 3, 4)),
+                               np.diag([2.2, 3.3, 4.3, 1]))
         hdr = img.header
         new_affine = np.diag([1.1, 1.1, 1.1, 1])
         # Affine is same as sform (best affine)
@@ -779,7 +798,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_raises(TypeError, img.get_qform, strange=True)
         # updating None affine, None header does not work, because None header
         # results in setting the sform to default
-        img = self.image_class(np.zeros((2,3,4)), None)
+        img = self.image_class(np.zeros((2, 3, 4)), None)
         new_affine = np.eye(4)
         img.set_qform(new_affine, 2)
         assert_array_almost_equal(img.affine, img.header.get_best_affine())
@@ -789,7 +808,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
     def test_set_sform(self):
         orig_aff = np.diag([2.2, 3.3, 4.3, 1])
-        img = self.image_class(np.zeros((2,3,4)), orig_aff)
+        img = self.image_class(np.zeros((2, 3, 4)), orig_aff)
         hdr = img.header
         new_affine = np.diag([1.1, 1.1, 1.1, 1])
         qform_affine = np.diag([1.2, 1.2, 1.2, 1])
@@ -841,14 +860,14 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Unexpected keyword raises error
         assert_raises(TypeError, img.get_sform, strange=True)
         # updating None affine should also work
-        img = self.image_class(np.zeros((2,3,4)), None)
+        img = self.image_class(np.zeros((2, 3, 4)), None)
         new_affine = np.eye(4)
         img.set_sform(new_affine, 2)
         assert_array_almost_equal(img.affine, new_affine)
 
     def test_hdr_diff(self):
         # Check an offset beyond data does not raise an error
-        img = self.image_class(np.zeros((2,3,4)), np.eye(4))
+        img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
         ext = dict(img.files_types)['image']
         hdr_len = len(img.header.binaryblock)
         img.header['vox_offset'] = hdr_len + 400
@@ -876,7 +895,8 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                 assert_true(isinstance(img3, img.__class__))
                 assert_array_equal(img3.get_data(), data)
                 assert_equal(img3.header, img.header)
-                assert_true(isinstance(img3.get_data(), np.memmap if ext == '' else np.ndarray))
+                assert_true(isinstance(img3.get_data(),
+                                       np.memmap if ext == '' else np.ndarray))
                 # del to avoid windows errors of form 'The process cannot
                 # access the file because it is being used'
                 del img3
@@ -885,7 +905,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Make sure load preserves separate qform, pixdims, sform
         IC = self.image_class
         HC = IC.header_class
-        arr = np.arange(24).reshape((2,3,4))
+        arr = np.arange(24).reshape((2, 3, 4))
         qaff = np.diag([2, 3, 4, 1])
         saff = np.diag([5, 6, 7, 1])
         hdr = HC()
@@ -898,7 +918,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Check qform, sform, pixdims are the same
         assert_array_equal(img_hdr.get_qform(), qaff)
         assert_array_equal(img_hdr.get_sform(), saff)
-        assert_array_equal(img_hdr.get_zooms(), [2,3,4])
+        assert_array_equal(img_hdr.get_zooms(), [2, 3, 4])
         # Save to stringio
         re_simg = bytesio_round_trip(simg)
         assert_array_equal(re_simg.get_data(), arr)
@@ -906,14 +926,14 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         rimg_hdr = re_simg.header
         assert_array_equal(rimg_hdr.get_qform(), qaff)
         assert_array_equal(rimg_hdr.get_sform(), saff)
-        assert_array_equal(rimg_hdr.get_zooms(), [2,3,4])
+        assert_array_equal(rimg_hdr.get_zooms(), [2, 3, 4])
 
     def test_affines_init(self):
         # Test we are doing vaguely spec-related qform things.  The 'spec' here
         # is some thoughts by Mark Jenkinson:
         # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
         IC = self.image_class
-        arr = np.arange(24).reshape((2,3,4))
+        arr = np.arange(24).reshape((2, 3, 4))
         aff = np.diag([2, 3, 4, 1])
         # Default is sform set, qform not set
         img = IC(arr, aff)
@@ -937,16 +957,16 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # But if no affine passed, codes and matrices stay the same
         img = IC(arr, None, hdr)
         new_hdr = img.header
-        assert_equal(new_hdr['qform_code'], 1) # scanner
+        assert_equal(new_hdr['qform_code'], 1)  # scanner
         assert_array_equal(new_hdr.get_qform(), qaff)
-        assert_equal(new_hdr['sform_code'], 3) # Still talairach
+        assert_equal(new_hdr['sform_code'], 3)  # Still talairach
         assert_array_equal(new_hdr.get_sform(), saff)
         # Pixdims as in the original header
         assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
 
     def test_read_no_extensions(self):
         IC = self.image_class
-        arr = np.arange(24).reshape((2,3,4))
+        arr = np.arange(24).reshape((2, 3, 4))
         img = IC(arr, np.eye(4))
         assert_equal(len(img.header.extensions), 0)
         img_rt = bytesio_round_trip(img)
@@ -967,11 +987,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     def test_write_scaling(self):
         # Check we can set slope, inter on write
         for slope, inter, e_slope, e_inter in (
-            (1, 0, 1, 0),
-            (2, 0, 2, 0),
-            (2, 1, 2, 1),
-            (0, 0, 1, 0),
-            (np.inf, 0, 1, 0)):
+                (1, 0, 1, 0),
+                (2, 0, 2, 0),
+                (2, 1, 2, 1),
+                (0, 0, 1, 0),
+                (np.inf, 0, 1, 0)):
             with np.errstate(invalid='ignore'):
                 self._check_write_scaling(slope, inter, e_slope, e_inter)
 
@@ -983,7 +1003,7 @@ class TestNifti1Image(TestNifti1Pair):
     def test_offset_errors(self):
         # Test that explicit offset too low raises error
         IC = self.image_class
-        arr = np.arange(24).reshape((2,3,4))
+        arr = np.arange(24).reshape((2, 3, 4))
         img = IC(arr, np.eye(4))
         assert_equal(img.header.get_data_offset(), 0)
         # Saving with zero offset is OK
@@ -1014,7 +1034,7 @@ def test_ext_eq():
 
 def test_extension_codes():
     for k in extension_codes.keys():
-        ext = Nifti1Extension(k, 'somevalue')
+        Nifti1Extension(k, 'somevalue')
 
 
 def test_extension_list():
@@ -1120,10 +1140,9 @@ class TestNifti1General(object):
         lnim = bytesio_round_trip(nim)
         hdr = lnim.header
         lexts_container = hdr.extensions
-        assert_equal(exts_container,
-                    lexts_container)
+        assert_equal(exts_container, lexts_container)
         # build int16 image
-        data = np.ones((2,3,4,5), dtype='int16')
+        data = np.ones((2, 3, 4, 5), dtype='int16')
         img = self.single_class(data, np.eye(4))
         hdr = img.header
         assert_equal(hdr.get_data_dtype(), np.int16)
@@ -1150,9 +1169,9 @@ class TestNifti1General(object):
         assert_equal((lnim.dataobj.slope, lnim.dataobj.inter), (2, 8))
 
     def test_load(self):
-        # test module level load.  We try to load a nii and an .img and a .hdr and
-        # expect to get a nifti back of single or pair type
-        arr = np.arange(24).reshape((2,3,4))
+        # test module level load.  We try to load a nii and an .img and a .hdr
+        # and expect to get a nifti back of single or pair type
+        arr = np.arange(24).reshape((2, 3, 4))
         aff = np.diag([2, 3, 4, 1])
         simg = self.single_class(arr, aff)
         pimg = self.pair_class(arr, aff)
@@ -1194,7 +1213,8 @@ class TestNifti1General(object):
                 arr_back_sc = img_back.get_data()
                 slope, inter = img_back.header.get_slope_inter()
                 # Get estimate for error
-                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope,
+                                           inter)
                 # Simulate allclose test with large atol
                 diff = np.abs(arr_t - arr_back_sc)
                 rdiff = diff / np.abs(arr_t)
@@ -1217,7 +1237,8 @@ class TestNifti1General(object):
                 slope, inter = img_back.header.get_slope_inter()
                 bias = np.mean(arr_t - arr_back_sc)
                 # Get estimate for error
-                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope, inter)
+                max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope,
+                                           inter)
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
