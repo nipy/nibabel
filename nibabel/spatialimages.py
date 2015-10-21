@@ -636,6 +636,26 @@ class SpatialImage(FileBasedImage):
         """
         return self.affine
 
+    @classmethod
+    def from_image(klass, img):
+        ''' Class method to create new instance of own class from `img`
+
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``spatialimage`` -
+           specifically ``dataobj``, ``affine``, ``header`` and ``extra``.
+
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        '''
+        return klass(img.dataobj,
+                     img.affine,
+                     klass.header_class.from_header(img.header),
+                     extra=img.extra.copy())
+
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
         '''

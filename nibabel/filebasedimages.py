@@ -417,6 +417,22 @@ class FileBasedImage(object):
         img.to_filename(filename)
 
     @classmethod
+    def from_image(klass, img):
+        ''' Class method to create new instance of own class from `img`
+
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``FileBasedImage``.
+
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        '''
+        raise NotImplementedError()
+
+    @classmethod
     def is_valid_extension(klass, ext):
         valid = tuple(ft[1] for ft in klass.files_types) + klass.alternate_exts
         return ext.lower() in valid
