@@ -8,16 +8,12 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
-
 import os.path
 import warnings
 
 import numpy as np
 
+from .externals.six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
@@ -400,7 +396,7 @@ class FileBasedImage(object):
         for key, ext in klass.files_types:
             file_map[key] = FileHolder()
             mapval = mapping.get(key, None)
-            if isinstance(mapval, basestring):
+            if isinstance(mapval, string_types):
                 file_map[key].filename = mapval
             elif hasattr(mapval, 'tell'):
                 file_map[key].fileobj = mapval
