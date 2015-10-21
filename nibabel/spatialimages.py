@@ -635,3 +635,10 @@ class SpatialImage(FileBasedImage):
         deprecate this method in future versions of nibabel.
         """
         return self.affine
+
+    def __getitem__(self):
+        ''' No slicing or dictionary interface for images
+        '''
+        raise TypeError("Cannot slice image objects; consider slicing image "
+                        "array data with `img.dataobj[slice]` or "
+                        "`img.get_data()[slice]`")

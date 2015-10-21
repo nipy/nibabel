@@ -76,9 +76,7 @@ class FileBasedImage(object):
     properties:
 
        * shape
-       * affine
        * header
-       * dataobj
 
     methods:
        * .get_header() (deprecated, use header property instead)
@@ -213,9 +211,7 @@ class FileBasedImage(object):
     def __getitem__(self):
         ''' No slicing or dictionary interface for images
         '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
+        raise TypeError("Cannot slice image objects.")
 
     def get_header(self):
         """ Get header from image
@@ -412,34 +408,13 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` - specifically
-           ``dataobj``, ``affine``, ``header`` and ``extra``.
+        img : ``any FileBasedImage`` instance
+
         filename : str
            Filename, implying name to which to save image.
         '''
         img = klass.from_image(img)
         img.to_filename(filename)
-
-    @classmethod
-    def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
-
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``dataobj``, ``affine``, ``header`` and ``extra``.
-
-        Returns
-        -------
-        cimg : ``spatialimage`` instance
-           Image, of our own class
-        '''
-        return klass(img.dataobj,
-                     img.affine,
-                     klass.header_class.from_header(img.header),
-                     extra=img.extra.copy())
 
     @classmethod
     def is_valid_extension(klass, ext):
