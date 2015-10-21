@@ -929,7 +929,7 @@ class EcatImage(SpatialImage):
         # It appears to be necessary to load the data before saving even if the
         # data itself is not used.
         self.get_data()
-        hdr = self.get_header()
+        hdr = self.header
         mlist = self._mlist
         subheaders = self.get_subheaders()
         dir_pos = 512
@@ -944,7 +944,7 @@ class EcatImage(SpatialImage):
         hdr.write_to(hdrf)
 
         # Write every frames
-        for index in range(0, self.get_header()['num_frames']):
+        for index in range(0, self.header['num_frames']):
             # Move to subheader offset
             frame_offset = subheaders._get_frame_offset(index) - 512
             imgf.seek(frame_offset)

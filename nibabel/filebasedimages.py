@@ -98,6 +98,7 @@ class FileBasedImage(object):
 
 
     methods:
+       * .get_header() (deprecated, use header property instead)
        * .to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
        * to_file_map() - save image to files with which the image is already
@@ -250,6 +251,10 @@ class FileBasedImage(object):
         Please use the `header` property instead of `get_header`; we will
         deprecate this method in future versions of nibabel.
         """
+        warnings.warn('``get_header`` is deprecated.\n'
+                      'Please use the ``img.header`` property '
+                      'instead',
+                      DeprecationWarning, stacklevel=2)
         return self.header
 
     def get_filename(self):

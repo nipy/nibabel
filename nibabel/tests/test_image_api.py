@@ -43,7 +43,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
-
+from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
@@ -134,9 +134,12 @@ class GenericImageAPI(ValidateAPI):
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
-        img = imaker()
-        hdr = img.get_header()
-        assert_true(hdr is img.get_header())
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            hdr = img.get_header()
+            assert_equal(len(w), 1)
+            assert_true(hdr is img.header)
 
     def validate_shape(self, imaker, params):
         # Validate shape
