@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Simple interfaces for images'''
+''' Common interface for any image format--volume or surface, binary or xml.'''
 
 try:
     basestring
@@ -68,11 +68,10 @@ class FileBasedHeader(object):
 
 class FileBasedImage(object):
     '''
-    It also has a ``header`` - some standard set of meta-data that is specific to
-    the image format, and ``extra`` - a dictionary container for any other
-    metadata.
+    This abstract image class defines an interface for loading/saving images
+    from disk. It doesn't define any image properties.
 
-    It has
+    It has:
 
     attributes:
 
@@ -84,18 +83,6 @@ class FileBasedImage(object):
        * affine
        * header
        * dataobj
-
-    You cannot slice an image, and trying to slice an image generates an
-    informative TypeError.
-    '''
-
-
-    '''
-    This abstract image class defines an interface for loading/saving images
-    from disk. It doesn't define any image properties.
-
-    It has
-
 
     methods:
        * .get_header() (deprecated, use header property instead)
@@ -110,6 +97,13 @@ class FileBasedImage(object):
        * from_file_map(fmap) - make instance from file map
        * instance_to_filename(img, fname) - save ``img`` instance to
          filename ``fname``.
+
+    It also has a ``header`` - some standard set of meta-data that is specific to
+    the image format, and ``extra`` - a dictionary container for any other
+    metadata.
+
+    You cannot slice an image, and trying to slice an image generates an
+    informative TypeError.
 
 
     There are several ways of writing data.
@@ -177,24 +171,6 @@ class FileBasedImage(object):
     carry the position at which a write (with ``to_files``) should place the
     data.  The ``file_map`` contents should therefore be such, that this will
     work:
-
-       >>> # write an image to files
-       >>> from io import BytesIO
-       >>> file_map = nib.AnalyzeImage.make_file_map()
-       >>> file_map['image'].fileobj = BytesIO()
-       >>> file_map['header'].fileobj = BytesIO()
-       >>> img = nib.AnalyzeImage(data, np.eye(4))
-       >>> img.file_map = file_map
-       >>> img.to_file_map()
-       >>> # read it back again from the written files
-       >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
-       >>> np.all(img2.get_data() == data)
-       True
-       >>> # write, read it again
-       >>> img2.to_file_map()
-       >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
-       >>> np.all(img3.get_data() == data)
-       True
     '''
     files_types = (('image', None),)
     alternate_exts = ()  # Modified by @ImageOpener.register_ext_from_image

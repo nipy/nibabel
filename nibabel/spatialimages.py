@@ -112,23 +112,24 @@ carry the position at which a write (with ``to_files``) should place the
 data.  The ``file_map`` contents should therefore be such, that this will
 work:
 
-   >>> # write an image to files
-   >>> from io import BytesIO
-   >>> file_map = nib.AnalyzeImage.make_file_map()
-   >>> file_map['image'].fileobj = BytesIO()
-   >>> file_map['header'].fileobj = BytesIO()
-   >>> img = nib.AnalyzeImage(data, np.eye(4))
-   >>> img.file_map = file_map
-   >>> img.to_file_map()
-   >>> # read it back again from the written files
-   >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
-   >>> np.all(img2.get_data() == data)
-   True
-   >>> # write, read it again
-   >>> img2.to_file_map()
-   >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
-   >>> np.all(img3.get_data() == data)
-   True
+    >>> # write an image to files
+    >>> from io import BytesIO
+    >>> import nibabel as nib
+    >>> file_map = nib.AnalyzeImage.make_file_map()
+    >>> file_map['image'].fileobj = BytesIO()
+    >>> file_map['header'].fileobj = BytesIO()
+    >>> img = nib.AnalyzeImage(data, np.eye(4))
+    >>> img.file_map = file_map
+    >>> img.to_file_map()
+    >>> # read it back again from the written files
+    >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
+    >>> np.all(img2.get_data() == data)
+    True
+    >>> # write, read it again
+    >>> img2.to_file_map()
+    >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
+    >>> np.all(img3.get_data() == data)
+    True
 
 '''
 
@@ -140,7 +141,8 @@ import warnings
 
 import numpy as np
 
-from .filebasedimages import FileBasedHeader, FileBasedImage, ImageFileError
+from .filebasedimages import FileBasedHeader, FileBasedImage
+from .filebasedimages import ImageFileError  # needed for back-compat.
 from .volumeutils import shape_zoom_affine
 
 
