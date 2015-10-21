@@ -93,8 +93,6 @@ def test_BinOpener():
 
 
 class TestImageOpener:
-    valid_exts = ()
-
     def setUp(self):
         self.compress_ext_map = ImageOpener.compress_ext_map.copy()
 
