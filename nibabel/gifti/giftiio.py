@@ -10,12 +10,15 @@
 # Stephan Gerhard, Oktober 2010
 ##############
 
-import os
-import codecs
+import warnings
 
-from .parse_gifti_fast import parse_gifti_file
+import numpy as np
 
 
+warnings.warn('Please use nibabel.load/save.', DeprecationWarning)
+
+
+@np.deprecate_with_doc("Use nibabel.load() instead.")
 def read(filename):
     """ Load a Gifti image from a file
 
@@ -29,11 +32,11 @@ def read(filename):
     img : GiftiImage
         Returns a GiftiImage
      """
-    if not os.path.isfile(filename):
-        raise IOError("No such file or directory: '%s'" % filename)
-    return parse_gifti_file(filename)
+    from ..loadsave import load
+    return load(filename)
 
 
+@np.deprecate_with_doc("Use nibabel.save() instead.")
 def write(image, filename):
     """ Save the current image to a new file
 
@@ -79,6 +82,6 @@ def write(image, filename):
 
     The Gifti file is stored in endian convention of the current machine.
     """
-    # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
-    with open(filename, 'wb') as f:
-        f.write(image.to_xml())
+    from ..loadsave import save
+    return save(image, filename)
+
