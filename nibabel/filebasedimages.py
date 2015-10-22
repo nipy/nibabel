@@ -166,10 +166,11 @@ class FileBasedImage(object):
     data.  The ``file_map`` contents should therefore be such, that this will
     work:
     '''
-    files_types = (('image', None),)
-    alternate_exts = ()  # Modified by @ImageOpener.register_ext_from_image
-    _compressed_suffixes = ()
     header_class = FileBasedHeader
+    _meta_sniff_len = 0
+    files_types = (('image', None),)
+    valid_exts = ()
+    _compressed_suffixes = ()
 
     makeable = True  # Used in test code
     rw = True  # Used in test code
@@ -431,11 +432,6 @@ class FileBasedImage(object):
            Image, of our own class
         '''
         raise NotImplementedError()
-
-    @classmethod
-    def is_valid_extension(klass, ext):
-        valid = tuple(ft[1] for ft in klass.files_types) + klass.alternate_exts
-        return ext.lower() in valid
 
     @classmethod
     def _sniff_meta_for(klass, filename, sniff_nbytes, sniff=None):
