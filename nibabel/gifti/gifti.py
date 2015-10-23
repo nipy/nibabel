@@ -13,7 +13,6 @@ import sys
 import numpy as np
 
 from .. import xmlbasedimages as xml
-from ..filebasedimages import FileBasedImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
@@ -386,14 +385,14 @@ class GiftiDataArray(xml.XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(FileBasedImage, xml.XmlSerializable):
+class GiftiImage(xml.XmlBasedImage):
     valid_exts = ('.gii',)
     files_types = (('image', '.gii'),)
 
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
                  labeltable=None, darrays=None, version="1.0"):
-        FileBasedImage.__init__(self, header=header, extra=extra,
-                                file_map=file_map)
+        super(GiftiImage, self).__init__(header=header, extra=extra,
+                                         file_map=file_map)
 
         if darrays is None:
             darrays = []

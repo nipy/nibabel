@@ -11,6 +11,8 @@ Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
 """
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+from .filebasedimages import FileBasedHeader, FileBasedImage
+
 
 class XmlSerializable(object):
     """ Basic interface for serializing an object to xml"""
@@ -23,3 +25,11 @@ class XmlSerializable(object):
         """ Output should be an xml string with the given encoding.
         (default: utf-8)"""
         return tostring(self._to_xml_element(), enc)
+
+
+class XmlBasedHeader(FileBasedHeader, XmlSerializable):
+    pass
+
+
+class XmlBasedImage(FileBasedImage, XmlSerializable):
+    pass
