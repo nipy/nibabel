@@ -420,6 +420,9 @@ class GiftiImage(xml.XmlBasedImage):
                  labeltable=None, darrays=None, version="1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
+        # placed here temporarily for git diff purposes
+        from .parse_gifti_fast import GiftiImageParser
+        GiftiImage.parser = GiftiImageParser
 
         if darrays is None:
             darrays = []
@@ -561,19 +564,3 @@ class GiftiImage(xml.XmlBasedImage):
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """ + xml.XmlSerializable.to_xml(self, enc)
-
-    @classmethod
-    def from_file_map(klass, file_map):
-        """ Load a Gifti image from a file_map
-
-        Parameters
-        file_map : string
-
-        Returns
-        -------
-        img : GiftiImage
-            Returns a GiftiImage
-         """
-        from .parse_gifti_fast import parse_gifti_file
-        return parse_gifti_file(
-            fptr=file_map['image'].get_prepare_fileobj('rb'))

@@ -13,7 +13,6 @@ import sys
 import warnings
 import zlib
 from ..externals.six import StringIO
-from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
@@ -23,7 +22,7 @@ from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel,
                     GiftiCoordSystem)
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
-
+from ..xmlbasedimages import XmlImageParser
 
 DEBUG_PRINT = False
 
@@ -71,14 +70,11 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     return newarr
 
 
-class Outputter(object):
+class GiftiImageParser(XmlImageParser):
 
     def __init__(self):
-        self.initialize()
+        super(GiftiImageParser, self).__init__()
 
-    def initialize(self):
-        """ Initialize outputter
-        """
         # finite state machine stack
         self.fsm_state = []
 
@@ -95,7 +91,6 @@ class Outputter(object):
 
         # where to write CDATA:
         self.write_to = None
-        self.img = None
 
         # Collecting char buffer fragments
         self._char_blocks = None
@@ -316,57 +311,3 @@ class Outputter(object):
     def pending_data(self):
         " True if there is character data pending for processing "
         return not self._char_blocks is None
-
-
-def parse_gifti_file(fname=None, fptr=None, buffer_size=None):
-    """ Parse gifti file named `fname`, return image
-
-    Parameters
-    ----------
-    fname : str
-        filename of gifti file
-    buffer_size: None or int, optional
-        size of read buffer. None gives default of 35000000 unless on python <
-        2.6, in which case it is read only in the parser.  In that case values
-        other than None cause a ValueError on execution
-
-    Returns
-    -------
-    img : gifti image
-    """
-    assert (fname is not None) + (fptr is not None) == 1, "Specify only fname or fptr, not both"
-
-    if fptr is None:
-        with open(fname, 'rb') as datasource:
-            return parse_gifti_file(fptr=datasource, buffer_size=buffer_size)
-    else:
-        datasource = fptr
-
-    if buffer_size is None:
-        buffer_sz_val = 35000000
-    else:
-        buffer_sz_val = buffer_size
-
-    parser = ParserCreate()
-    parser.buffer_text = True
-    try:
-        parser.buffer_size = buffer_sz_val
-    except AttributeError:
-        if not buffer_size is None:
-            raise ValueError('Cannot set buffer size for parser')
-    HANDLER_NAMES = ['StartElementHandler',
-                     'EndElementHandler',
-                     'CharacterDataHandler']
-    out = Outputter()
-    for name in HANDLER_NAMES:
-        setattr(parser, name, getattr(out, name))
-    try:
-        parser.ParseFile(datasource)
-    except ExpatError:
-        print('An expat error occured while parsing the  Gifti file.')
-
-    # Reality check for pending data
-    assert out.pending_data is False
-    # update filename
-    out.img.filename = fname
-    return out.img
