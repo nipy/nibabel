@@ -14,7 +14,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 
-from .spatialimages import Header, SpatialImage
+from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
 from .deprecated import FutureWarningMixin
@@ -264,7 +264,7 @@ class MincImageArrayProxy(object):
         return self.minc_file.get_scaled_data(sliceobj)
 
 
-class MincHeader(Header):
+class MincHeader(SpatialHeader):
     """ Class to contain header for MINC formats
     """
     # We don't use the data layout - this just in case we do later
