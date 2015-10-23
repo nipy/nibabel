@@ -12,7 +12,7 @@ import sys
 
 import numpy as np
 
-from .. import xmlutils as xml
+from .. import xmlbasedimages as xml
 from ..filebasedimages import FileBasedImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
