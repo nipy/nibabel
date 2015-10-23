@@ -10,7 +10,7 @@
 Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
 """
 from xml.etree.ElementTree import Element, SubElement, tostring
-from xml.parsers.expat import ParserCreate, ExpatError
+from xml.parsers.expat import ParserCreate
 
 from .filebasedimages import FileBasedHeader, FileBasedImage
 
@@ -43,6 +43,9 @@ class XmlImageParser(object):
         self.encoding = encoding
         self.img = None
 
+    def _create_parser(self):
+        return ParserCreate()  # from xml package
+
     def parse(self, string=None, fname=None, fptr=None):
         """
         Parameters
@@ -68,7 +71,7 @@ class XmlImageParser(object):
         elif fname is not None:
             fptr = open(fname, 'r')
 
-        parser = ParserCreate()  # from xml package
+        parser = self._create_parser()
         for name in self.HANDLER_NAMES:
             setattr(parser, name, getattr(self, name))
         parser.ParseFile(fptr)
