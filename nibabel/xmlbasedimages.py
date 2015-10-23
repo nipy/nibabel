@@ -116,5 +116,7 @@ class XmlBasedImage(FileBasedImage, XmlSerializable):
         img : GiftiImage
             Returns a GiftiImage
          """
-        return parser.parse(
+        img = klass.parser().parse(
             fptr=file_map['image'].get_prepare_fileobj('rb'))
+        img.set_filename(file_map['image'].filename)
+        return img

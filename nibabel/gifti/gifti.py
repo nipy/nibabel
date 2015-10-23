@@ -530,7 +530,7 @@ class GiftiImage(xml.XmlBasedImage):
 
     def print_summary(self):
         print('----start----')
-        print('Source filename: ', self.filename)
+        print('Source filename: ', self.get_filename())
         print('Number of data arrays: ', self.numDA)
         print('Version: ', self.version)
         if self.meta is not None:
