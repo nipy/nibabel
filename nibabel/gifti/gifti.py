@@ -386,6 +386,33 @@ class GiftiDataArray(xml.XmlSerializable):
 
 
 class GiftiImage(xml.XmlBasedImage):
+    """
+    The Gifti spec suggests using the following suffixes to your
+    filename when saving each specific type of data:
+
+    .gii
+        Generic GIFTI File
+    .coord.gii
+        Coordinates
+    .func.gii
+        Functional
+    .label.gii
+        Labels
+    .rgba.gii
+        RGB or RGBA
+    .shape.gii
+        Shape
+    .surf.gii
+        Surface
+    .tensor.gii
+        Tensors
+    .time.gii
+        Time Series
+    .topo.gii
+        Topology
+
+    The Gifti file is stored in endian convention of the current machine.
+    """
     valid_exts = ('.gii',)
     files_types = (('image', '.gii'),)
 
@@ -550,51 +577,3 @@ class GiftiImage(xml.XmlBasedImage):
         from .parse_gifti_fast import parse_gifti_file
         return parse_gifti_file(
             fptr=file_map['image'].get_prepare_fileobj('rb'))
-
-    def to_file_map(self, file_map=None):
-        """ Save the current image to the specified file_map
-
-        Parameters
-        ----------
-        file_map : string
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        We write all files with utf-8 encoding, and specify this at the top of
-        the XML file with the ``encoding`` attribute.
-
-        The Gifti spec suggests using the following suffixes to your
-        filename when saving each specific type of data:
-
-        .gii
-            Generic GIFTI File
-        .coord.gii
-            Coordinates
-        .func.gii
-            Functional
-        .label.gii
-            Labels
-        .rgba.gii
-            RGB or RGBA
-        .shape.gii
-            Shape
-        .surf.gii
-            Surface
-        .tensor.gii
-            Tensors
-        .time.gii
-            Time Series
-        .topo.gii
-            Topology
-
-        The Gifti file is stored in endian convention of the current machine.
-        """
-        # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
-        if file_map is None:
-            file_map = self.file_map
-        f = file_map['image'].get_prepare_fileobj('wb')
-        f.write(self.to_xml())

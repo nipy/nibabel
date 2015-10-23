@@ -32,4 +32,19 @@ class XmlBasedHeader(FileBasedHeader, XmlSerializable):
 
 
 class XmlBasedImage(FileBasedImage, XmlSerializable):
-    pass
+
+    def to_file_map(self, file_map=None):
+        """ Save the current image to the specified file_map
+
+        Parameters
+        ----------
+        file_map : string
+
+        Returns
+        -------
+        None
+        """
+        if file_map is None:
+            file_map = self.file_map
+        f = file_map['image'].get_prepare_fileobj('wb')
+        f.write(self.to_xml())
