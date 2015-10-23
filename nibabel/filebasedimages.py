@@ -8,10 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
-import os.path
 import warnings
-
-import numpy as np
 
 from .externals.six import string_types
 from .fileholders import FileHolder
@@ -92,8 +89,8 @@ class FileBasedImage(object):
        * instance_to_filename(img, fname) - save ``img`` instance to
          filename ``fname``.
 
-    It also has a ``header`` - some standard set of meta-data that is specific to
-    the image format, and ``extra`` - a dictionary container for any other
+    It also has a ``header`` - some standard set of meta-data that is specific
+    to the image format, and ``extra`` - a dictionary container for any other
     metadata.
 
     You cannot slice an image, and trying to slice an image generates an
@@ -115,9 +112,9 @@ class FileBasedImage(object):
 
        img.from_filename(fname)
 
-    The image stores its associated files in its ``file_map`` attribute.  In order
-    to just save an image, for which you know there is an associated filename, or
-    other storage, you can do::
+    The image stores its associated files in its ``file_map`` attribute.  In
+    order to just save an image, for which you know there is an associated
+    filename, or other storage, you can do::
 
        img.to_file_map()
 
@@ -148,6 +145,7 @@ class FileBasedImage(object):
     example, the Analyze data format needs an ``image`` and a ``header``
     file type for storage:
 
+       >>> import numpy as np
        >>> import nibabel as nib
        >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
        >>> img = nib.AnalyzeImage(data, np.eye(4))
