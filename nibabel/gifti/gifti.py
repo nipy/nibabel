@@ -389,7 +389,6 @@ class GiftiDataArray(xml.XmlSerializable):
 class GiftiImage(FileBasedImage, xml.XmlSerializable):
     valid_exts = ('.gii',)
     files_types = (('image', '.gii'),)
-    valid_exts = ('.gii',)
 
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
                  labeltable=None, darrays=None, version="1.0"):

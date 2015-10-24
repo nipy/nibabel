@@ -10,12 +10,7 @@
 # Stephan Gerhard, Oktober 2010
 ##############
 
-import warnings
-
 import numpy as np
-
-
-warnings.warn('Please use nibabel.load/save.', DeprecationWarning)
 
 
 @np.deprecate_with_doc("Use nibabel.load() instead.")
@@ -84,4 +79,3 @@ def write(image, filename):
     """
     from ..loadsave import save
     return save(image, filename)
-
