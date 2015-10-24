@@ -4,9 +4,10 @@ import warnings
 
 import numpy as np
 
+import nibabel as nib
 from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
-                           GiftiLabelTable, GiftiMetaData, giftiio)
+                           GiftiLabelTable, GiftiMetaData)
 from nibabel.gifti.gifti import data_tag
 from nibabel.nifti1 import data_type_codes, intent_codes
 
@@ -14,8 +15,8 @@ from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 from nibabel.testing import clear_and_catch_warnings
-from .test_giftiio import (DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                           DATA_FILE5, DATA_FILE6)
+from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
+                                    DATA_FILE4, DATA_FILE5, DATA_FILE6)
 
 
 def test_gifti_image():
@@ -142,7 +143,7 @@ def test_gifti_label_rgba():
 def test_print_summary():
     for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
                             DATA_FILE5, DATA_FILE6]:
-        gimg = giftiio.read(fil)
+        gimg = nib.load(fil)
         gimg.print_summary()
 
 

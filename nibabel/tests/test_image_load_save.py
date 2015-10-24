@@ -27,6 +27,7 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
+from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal
@@ -45,17 +46,19 @@ def round_trip(img):
     return img2
 
 
-def test_conversion():
+def test_conversion_spatialimages():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-        for r_class in all_image_classes:
+        for r_class in klasses:
             if not r_class.makeable:
                 continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
-            for w_class in all_image_classes:
+            for w_class in klasses:
                 if not w_class.makeable:
                     continue
                 img2 = w_class.from_image(img)

@@ -13,6 +13,7 @@ import sys
 import numpy as np
 
 from .. import xmlutils as xml
+from ..filebasedimages import FileBasedImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
@@ -190,6 +191,7 @@ def data_tag(dataarray, encoding, datatype, ordering):
     class DataTag(xml.XmlSerializable):
         def __init__(self, *args):
             self.args = args
+
         def _to_xml_element(self):
             return _data_tag_element(*self.args)
 
@@ -384,10 +386,15 @@ class GiftiDataArray(xml.XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(xml.XmlSerializable):
+class GiftiImage(FileBasedImage, xml.XmlSerializable):
+    valid_exts = ('.gii',)
+    files_types = (('image', '.gii'),)
 
-    def __init__(self, meta=None, labeltable=None, darrays=None,
-                 version="1.0"):
+    def __init__(self, header=None, extra=None, file_map=None, meta=None,
+                 labeltable=None, darrays=None, version="1.0"):
+        FileBasedImage.__init__(self, header=header, extra=extra,
+                                file_map=file_map)
+
         if darrays is None:
             darrays = []
         if meta is None:
@@ -511,7 +518,6 @@ class GiftiImage(xml.XmlSerializable):
             print(da.print_summary())
         print('----end----')
 
-
     def _to_xml_element(self):
         GIFTI = xml.Element('GIFTI', attrib={
             'Version': self.version,
@@ -529,3 +535,67 @@ class GiftiImage(xml.XmlSerializable):
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """ + xml.XmlSerializable.to_xml(self, enc)
+
+    @classmethod
+    def from_file_map(klass, file_map):
+        """ Load a Gifti image from a file_map
+
+        Parameters
+        file_map : string
+
+        Returns
+        -------
+        img : GiftiImage
+            Returns a GiftiImage
+         """
+        from .parse_gifti_fast import parse_gifti_file
+        return parse_gifti_file(
+            fptr=file_map['image'].get_prepare_fileobj('rb'))
+
+    def to_file_map(self, file_map=None):
+        """ Save the current image to the specified file_map
+
+        Parameters
+        ----------
+        file_map : string
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        We write all files with utf-8 encoding, and specify this at the top of
+        the XML file with the ``encoding`` attribute.
+
+        The Gifti spec suggests using the following suffixes to your
+        filename when saving each specific type of data:
+
+        .gii
+            Generic GIFTI File
+        .coord.gii
+            Coordinates
+        .func.gii
+            Functional
+        .label.gii
+            Labels
+        .rgba.gii
+            RGB or RGBA
+        .shape.gii
+            Shape
+        .surf.gii
+            Surface
+        .tensor.gii
+            Tensors
+        .time.gii
+            Time Series
+        .topo.gii
+            Topology
+
+        The Gifti file is stored in endian convention of the current machine.
+        """
+        # Our giftis are always utf-8 encoded - see GiftiImage.to_xml
+        if file_map is None:
+            file_map = self.file_map
+        f = file_map['image'].get_prepare_fileobj('wb')
+        f.write(self.to_xml())
