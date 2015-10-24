@@ -29,24 +29,32 @@ class XmlSerializable(object):
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
+    """ Basic wrapper around FileBasedHeader and XmlSerializable."""
     pass
 
 
 class XmlImageParser(object):
-    """ Parse XML image"""
+    """ Base class for defining how to parse xml-based images."""
 
     HANDLER_NAMES = ['StartElementHandler',
                      'EndElementHandler',
                      'CharacterDataHandler']
 
-    def __init__(self, encoding=None):
+    def __init__(self, encoding=None, buffer_size=35000000):
         self.encoding = encoding
+        self.buffer_size = buffer_size
         self.img = None
 
     def _create_parser(self):
-        return ParserCreate()  # from xml package
+        """Internal function that allows subclasses to mess
+        with the underlying parser, if desired."""
 
-    def parse(self, string=None, fname=None, fptr=None):
+        parser = ParserCreate(encoding=self.encoding)  # from xml package
+        parser.buffer_text = True
+        parser.buffer_size = self.buffer_size
+        return parser
+
+    def parse(self, string=None, fname=None, fptr=None, buffer_size=None):
         """
         Parameters
         ----------
@@ -58,6 +66,11 @@ class XmlImageParser(object):
 
         fptr : file pointer
             open file pointer to an xml document
+
+        buffer_size: None or int, optional
+            size of read buffer. None gives default of 35000000 unless on python <
+            2.6, in which case it is read only in the parser.  In that case values
+            other than None cause a ValueError on execution
 
         Returns
         -------
@@ -75,6 +88,10 @@ class XmlImageParser(object):
         for name in self.HANDLER_NAMES:
             setattr(parser, name, getattr(self, name))
         parser.ParseFile(fptr)
+
+        if fname is not None:
+            fptr.close()
+            self.img.set_filename(fname)
 
         return self.img
 
@@ -108,7 +125,7 @@ class XmlBasedImage(FileBasedImage, XmlSerializable):
         f.write(self.to_xml())
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map, buffer_size=35000000):
         """ Load a Gifti image from a file_map
 
         Parameters
@@ -119,7 +136,11 @@ class XmlBasedImage(FileBasedImage, XmlSerializable):
         img : GiftiImage
             Returns a GiftiImage
          """
-        img = klass.parser().parse(
+        img = klass.parser(buffer_size=buffer_size).parse(
             fptr=file_map['image'].get_prepare_fileobj('rb'))
-        img.set_filename(file_map['image'].filename)
         return img
+
+    @classmethod
+    def from_filename(klass, filename, buffer_size=35000000):
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, buffer_size=buffer_size)

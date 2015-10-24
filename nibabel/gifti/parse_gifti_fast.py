@@ -72,8 +72,9 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
 
 class GiftiImageParser(XmlImageParser):
 
-    def __init__(self):
-        super(GiftiImageParser, self).__init__()
+    def __init__(self, encoding=None, buffer_size=35000000):
+        super(GiftiImageParser, self).__init__(encoding=encoding,
+                                               buffer_size=buffer_size)
 
         # finite state machine stack
         self.fsm_state = []
@@ -94,7 +95,6 @@ class GiftiImageParser(XmlImageParser):
 
         # Collecting char buffer fragments
         self._char_blocks = None
-        self.buffer_size = None
 
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
@@ -312,33 +312,6 @@ class GiftiImageParser(XmlImageParser):
     def pending_data(self):
         " True if there is character data pending for processing "
         return not self._char_blocks is None
-
-    def _create_parser(self):
-        parser = super(GiftiImageParser, self)._create_parser()
-        if self.buffer_size is not None:
-            parser.buffer_text = True
-            parser.buffer_size = self.buffer_size
-        return parser
-
-    def parse(self, string=None, fname=None, fptr=None, buffer_size=None):
-        """ Parse gifti file named `fname`, return image
-
-        Parameters
-        ----------
-        fname : str
-            filename of gifti file
-        buffer_size: None or int, optional
-            size of read buffer. None gives default of 35000000 unless on python <
-            2.6, in which case it is read only in the parser.  In that case values
-            other than None cause a ValueError on execution
-
-        Returns
-        -------
-        img : gifti image
-        """
-        self.buffer_size = buffer_size
-        return super(GiftiImageParser, self).parse(string=string, fname=fname,
-                                                   fptr=fptr)
 
 
 class Outputter(GiftiImageParser):
