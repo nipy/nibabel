@@ -26,6 +26,7 @@ python:
     - 3.2
     - 3.3
     - 3.4
+    - 3.5
 matrix:
   include:
     - python: 2.7
@@ -44,11 +45,13 @@ matrix:
       env:
         - DOC_DOC_TEST=1
 before_install:
+    - source tools/travis_tools.sh
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install nose # always
-    - pip install --no-index -f http://travis-wheels.scikit-image.org $DEPENDS
+    - pip install -U pip  # upgrade to latest pip to find 3.5 wheels
+    - retry pip install nose # always
+    - wheelhouse_pip_install $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
         if [ "$PYDICOM" == "1" ]; then
