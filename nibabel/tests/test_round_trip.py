@@ -17,6 +17,7 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 
 DEBUG = True
 
+
 def round_trip(arr, out_dtype):
     img = Nifti1Image(arr, np.eye(4))
     img.file_map['image'].fileobj = BytesIO()
@@ -89,6 +90,7 @@ def test_big_bad_ulp():
 
 BIG_FLOAT = np.float64
 
+
 def test_round_trip():
     scaling_type = np.float32
     rng = np.random.RandomState(20111121)
@@ -137,7 +139,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         return
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
-    if slope == 1: # integers output, offset only scaling
+    if slope == 1:  # integers output, offset only scaling
         if set((in_type, out_type)) == set((np.int64, np.uint64)):
             # Scaling to or from 64 bit ints can go outside range of continuous
             # integers for float64 and thus lose precision; take this into
@@ -167,28 +169,32 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         rel_thresh = ulp(scaling_type(1))
     test_vals = (abs_err <= exp_abs_err) | (rel_err <= rel_thresh)
     this_test = np.all(test_vals)
-    if DEBUG:
+    if not this_test and DEBUG:
         abs_fails = (abs_err > exp_abs_err)
         rel_fails = (rel_err > rel_thresh)
         all_fails = abs_fails & rel_fails
-        if np.any(rel_fails):
-            abs_mx_e = abs_err[rel_fails].max()
-            exp_abs_mx_e = exp_abs_err[rel_fails].max()
-        else:
-            abs_mx_e = None
-            exp_abs_mx_e = None
+
         if np.any(abs_fails):
-            rel_mx_e = rel_err[abs_fails].max()
-        else:
-            rel_mx_e = None
-        print (test_id,
-               np.dtype(in_type).str,
-               np.dtype(out_type).str,
-               exp_abs_mx_e,
-               abs_mx_e,
-               rel_thresh,
-               rel_mx_e,
-               slope, inter)
+            abs_max_diff = -(abs_err - exp_abs_err)[abs_fails].max()
+            abs_mx_e = abs_err[abs_fails].max()
+            exp_abs_mx_e = exp_abs_err[abs_fails].max()
+        if np.any(rel_fails):
+            rel_max_diff = -(rel_err - rel_thresh)[rel_fails].max()
+            rel_mx_e = rel_err[rel_fails].max()
+
+        print("Test ID: %s; in_type=%s, out_type=%s""" % (
+            test_id, np.dtype(in_type).str, np.dtype(out_type).str))
+        print("\tslope=%.5e, inter=%.5e" % (slope, inter))
+
+        if np.any(abs_fails):
+            print("\tABS FAIL: exp_abs_mx_e=%.5e < abs_mx_e=%.5e; max_diff=%.5e" % (
+                exp_abs_mx_e, abs_mx_e, abs_max_diff))
+        if np.any(rel_fails) is not None:
+            print("\tREL FAIL: rel_thresh  =%.5e < rel_mx_e=%.5e; max_diff=%.5e" % (
+                rel_thresh, rel_mx_e, rel_max_diff))
+        print("")
+
         # To help debugging failures with --pdb-failure
         fail_i = np.nonzero(all_fails)
-    assert_true(this_test)
+    assert_true(this_test, "types == %s, %s; see stdout for details" % (
+        in_type, out_type))
