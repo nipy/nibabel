@@ -34,8 +34,8 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         c = StringIO(data)
         da = np.loadtxt(c)
         da = da.astype(data_type_codes.type[datatype])
-        # independent of the endianness
-        return da
+        return da  # independent of the endianness
+
     elif enclabel == 'B64BIN':
         # GIFTI_ENCODING_B64BIN
         dec = base64.b64decode(data.encode('ascii'))
@@ -44,6 +44,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         newarr = np.fromstring(dec, dtype=dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order=ord)
+
     elif enclabel == 'B64GZ':
         # GIFTI_ENCODING_B64GZ
         # convert to bytes array for python 3.2
@@ -55,24 +56,28 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         newarr = np.fromstring(zdec, dtype=dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order=ord)
+
     elif enclabel == 'External':
         # GIFTI_ENCODING_EXTBIN
         raise NotImplementedError("In what format are the external files?")
+
     else:
         return 0
+
     # check if we need to byteswap
     required_byteorder = gifti_endian_codes.byteorder[endian]
     if (required_byteorder in ('big', 'little') and
-        required_byteorder != sys.byteorder):
+            required_byteorder != sys.byteorder):
         newarr = newarr.byteswap()
     return newarr
 
 
 class GiftiImageParser(XmlImageParser):
 
-    def __init__(self, encoding=None, buffer_size=35000000):
+    def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
         super(GiftiImageParser, self).__init__(encoding=encoding,
-                                               buffer_size=buffer_size)
+                                               buffer_size=buffer_size,
+                                               verbose=verbose)
 
         # finite state machine stack
         self.fsm_state = []
@@ -98,6 +103,7 @@ class GiftiImageParser(XmlImageParser):
         self.flush_chardata()
         if self.verbose > 0:
             print('Start element:\n\t', repr(name), attrs)
+
         if name == 'GIFTI':
             # create gifti image
             self.img = GiftiImage()
@@ -105,33 +111,35 @@ class GiftiImageParser(XmlImageParser):
                 self.img.version = attrs['Version']
             if 'NumberOfDataArrays' in attrs:
                 self.expected_numDA = int(attrs['NumberOfDataArrays'])
-
             self.fsm_state.append('GIFTI')
+
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
-
             # if this metadata tag is first, create self.img.meta
             if len(self.fsm_state) == 2:
                 self.meta_global = GiftiMetaData()
             else:
                 # otherwise, create darray.meta
                 self.meta_da = GiftiMetaData()
+
         elif name == 'MD':
             self.nvpair = GiftiNVPairs()
             self.fsm_state.append('MD')
+
         elif name == 'Name':
             if self.nvpair is None:
                 raise ExpatError
-            else:
-                self.write_to = 'Name'
+            self.write_to = 'Name'
+
         elif name == 'Value':
             if self.nvpair is None:
                 raise ExpatError
-            else:
-                self.write_to = 'Value'
+            self.write_to = 'Value'
+
         elif name == 'LabelTable':
             self.lata = GiftiLabelTable()
             self.fsm_state.append('LabelTable')
+
         elif name == 'Label':
             self.label = GiftiLabel()
             if "Index" in attrs:
@@ -147,6 +155,7 @@ class GiftiImageParser(XmlImageParser):
             if "Alpha" in attrs:
                 self.label.alpha = float(attrs["Alpha"])
             self.write_to = 'Label'
+
         elif name == 'DataArray':
             self.da = GiftiDataArray()
             if "Intent" in attrs:
@@ -174,25 +183,27 @@ class GiftiImageParser(XmlImageParser):
                 self.da.ext_offset = attrs["ExternalFileOffset"]
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
+
         elif name == 'CoordinateSystemTransformMatrix':
             self.coordsys = GiftiCoordSystem()
             self.img.darrays[-1].coordsys = self.coordsys
             self.fsm_state.append('CoordinateSystemTransformMatrix')
+
         elif name == 'DataSpace':
             if self.coordsys is None:
                 raise ExpatError
-            else:
-                self.write_to = 'DataSpace'
+            self.write_to = 'DataSpace'
+
         elif name == 'TransformedSpace':
             if self.coordsys is None:
                 raise ExpatError
-            else:
-                self.write_to = 'TransformedSpace'
+            self.write_to = 'TransformedSpace'
+
         elif name == 'MatrixData':
             if self.coordsys is None:
                 raise ExpatError
-            else:
-                self.write_to = 'MatrixData'
+            self.write_to = 'MatrixData'
+
         elif name == 'Data':
             self.write_to = 'Data'
 
@@ -200,6 +211,7 @@ class GiftiImageParser(XmlImageParser):
         self.flush_chardata()
         if self.verbose > 0:
             print('End element:\n\t', repr(name))
+
         if name == 'GIFTI':
             if hasattr(self, 'expected_numDA') and self.expected_numDA != self.img.numDA:
                 warnings.warn("Actual # of data arrays does not match "
@@ -208,6 +220,7 @@ class GiftiImageParser(XmlImageParser):
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
+
         elif name == 'MetaData':
             self.fsm_state.pop()
             if len(self.fsm_state) == 1:
@@ -218,6 +231,7 @@ class GiftiImageParser(XmlImageParser):
             else:
                 self.img.darrays[-1].meta = self.meta_da
                 self.meta_da = None
+
         elif name == 'MD':
             self.fsm_state.pop()
             if self.meta_global is not None and self.meta_da is None:
@@ -226,28 +240,24 @@ class GiftiImageParser(XmlImageParser):
                 self.meta_da.data.append(self.nvpair)
             # remove reference
             self.nvpair = None
+
         elif name == 'LabelTable':
             self.fsm_state.pop()
             # add labeltable
             self.img.labeltable = self.lata
             self.lata = None
+
         elif name == 'DataArray':
             self.fsm_state.pop()
+
         elif name == 'CoordinateSystemTransformMatrix':
             self.fsm_state.pop()
             self.coordsys = None
-        elif name == 'DataSpace':
+
+        elif name in ['DataSpace', 'TransformedSpace', 'MatrixData',
+                      'Name', 'Value', 'Data']:
             self.write_to = None
-        elif name == 'TransformedSpace':
-            self.write_to = None
-        elif name == 'MatrixData':
-            self.write_to = None
-        elif name == 'Name':
-            self.write_to = None
-        elif name == 'Value':
-            self.write_to = None
-        elif name == 'Data':
-            self.write_to = None
+
         elif name == 'Label':
             self.lata.labels.append(self.label)
             self.label = None
@@ -277,24 +287,30 @@ class GiftiImageParser(XmlImageParser):
         data = ''.join(self._char_blocks)
         # Reset the char collector
         self._char_blocks = None
+
         # Process data
         if self.write_to == 'Name':
             data = data.strip()
             self.nvpair.name = data
+
         elif self.write_to == 'Value':
             data = data.strip()
             self.nvpair.value = data
+
         elif self.write_to == 'DataSpace':
             data = data.strip()
             self.coordsys.dataspace = xform_codes.code[data]
+
         elif self.write_to == 'TransformedSpace':
             data = data.strip()
             self.coordsys.xformspace = xform_codes.code[data]
+
         elif self.write_to == 'MatrixData':
             # conversion to numpy array
             c = StringIO(data)
             self.coordsys.xform = np.loadtxt(c)
             c.close()
+
         elif self.write_to == 'Data':
             da_tmp = self.img.darrays[-1]
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian,
@@ -303,13 +319,14 @@ class GiftiImageParser(XmlImageParser):
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]
+
         elif self.write_to == 'Label':
             self.label.label = data.strip()
 
     @property
     def pending_data(self):
         " True if there is character data pending for processing "
-        return not self._char_blocks is None
+        return self._char_blocks is not None
 
 
 class Outputter(GiftiImageParser):
