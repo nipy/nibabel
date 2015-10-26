@@ -34,14 +34,33 @@ class XmlBasedHeader(FileBasedHeader, XmlSerializable):
 
 
 class XmlImageParser(object):
-    """ Base class for defining how to parse xml-based images."""
+    """ Base class for defining how to parse xml-based images.
+
+    Image-specific parsers should define:
+        StartElementHandler
+        EndElementHandler
+        CharacterDataHandler
+    """
 
     HANDLER_NAMES = ['StartElementHandler',
                      'EndElementHandler',
                      'CharacterDataHandler']
 
     def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
-        self.encoding = encoding
+        """
+        Parameters
+        ----------
+        encoding : str
+            string containing xml document
+
+        buffer_size: None or int, optional
+            size of read buffer. None uses default buffer_size
+            from xml.parsers.expat.
+
+        verbose : int, optional
+            amount of output during parsing (0=silent, by default).
+        """
+        self.encoding=encoding
         self.buffer_size = buffer_size
         self.verbose = verbose
         self.img = None
@@ -55,7 +74,7 @@ class XmlImageParser(object):
         parser.buffer_size = self.buffer_size
         return parser
 
-    def parse(self, string=None, fname=None, fptr=None, buffer_size=None):
+    def parse(self, string=None, fname=None, fptr=None):
         """
         Parameters
         ----------
@@ -67,11 +86,6 @@ class XmlImageParser(object):
 
         fptr : file pointer
             open file pointer to an xml document
-
-        buffer_size: None or int, optional
-            size of read buffer. None gives default of 35000000 unless on python <
-            2.6, in which case it is read only in the parser.  In that case values
-            other than None cause a ValueError on execution
 
         Returns
         -------
@@ -107,7 +121,16 @@ class XmlImageParser(object):
 
 
 class XmlBasedImage(FileBasedImage, XmlSerializable):
+    """Basic convenience wrapper around FileBasedImage and XmlSerializable.
+
+        Properties
+        ----------
+        parser : XmlImageParser
+            class name of the XML parser associated with this image type.
+    """
+
     parser = XmlImageParser
+    header = XmlBasedHeader
 
     def to_file_map(self, file_map=None):
         """ Save the current image to the specified file_map

@@ -28,7 +28,7 @@ class GiftiMetaData(xml.XmlSerializable):
     the list self.data """
     def __init__(self, nvpair=None):
         self.data = []
-        if not nvpair is None:
+        if nvpair is not None:
             self.data.append(nvpair)
 
     @classmethod
@@ -295,7 +295,7 @@ class GiftiDataArray(xml.XmlSerializable):
         cda.intent = intent_codes.code[intent]
         cda.encoding = gifti_encoding_codes.code[encoding]
         cda.endian = gifti_endian_codes.code[endian]
-        if not coordsys is None:
+        if coordsys is not None:
             cda.coordsys = coordsys
         cda.ind_ord = array_index_order_codes.code[ordering]
         cda.meta = GiftiMetaData.from_dict(meta)
@@ -370,7 +370,7 @@ class GiftiDataArray(xml.XmlSerializable):
         print('Endian: ', gifti_endian_codes.specs[self.endian])
         print('ExternalFileName: ', self.ext_fname)
         print('ExternalFileOffset: ', self.ext_offset)
-        if not self.coordsys is None:
+        if self.coordsys is not None:
             print('----')
             print('Coordinate System:')
             print(self.coordsys.print_summary())

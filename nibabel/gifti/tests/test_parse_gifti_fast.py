@@ -317,8 +317,8 @@ def test_parse_dataarrays():
             assert_equal(len(w), 1)
             assert_equal(img.numDA, 0)
 
-def test_parse_deprecated():
 
+def test_parse_deprecated():
 
     # Test deprecation
     with clear_and_catch_warnings() as w:

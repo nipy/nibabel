@@ -338,4 +338,4 @@ class Outputter(GiftiImageParser):
 
 @np.deprecate_with_doc("Use GiftiImageParser.parse() instead.")
 def parse_gifti_file(fname=None, fptr=None, buffer_size=None):
-    GiftiImageParser().parse(fname=fname, fptr=fptr, buffer_size=buffer_size)
+    GiftiImageParser(buffer_size=buffer_size).parse(fname=fname, fptr=fptr)
