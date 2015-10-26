@@ -330,3 +330,9 @@ def test_parse_deprecated():
         warnings.filterwarnings('always', category=DeprecationWarning)
         assert_raises(ValueError, parse_gifti_file)
         assert_equal(len(w), 1)
+
+
+def test_parse_with_buffersize():
+    for buff_sz in [None, 1, 2**12]:
+        img2 = load(DATA_FILE2, buffer_size=buff_sz)
+        assert_equal(img2.darrays[0].data.shape, (143479, 1))

@@ -71,7 +71,8 @@ class XmlImageParser(object):
 
         parser = ParserCreate(encoding=self.encoding)  # from xml package
         parser.buffer_text = True
-        parser.buffer_size = self.buffer_size
+        if self.buffer_size is not None:
+            parser.buffer_size = self.buffer_size
         return parser
 
     def parse(self, string=None, fname=None, fptr=None):
