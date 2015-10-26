@@ -24,8 +24,6 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from ..xmlbasedimages import XmlImageParser
 
-DEBUG_PRINT = False
-
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
@@ -98,7 +96,7 @@ class GiftiImageParser(XmlImageParser):
 
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
-        if DEBUG_PRINT:
+        if self.verbose > 0:
             print('Start element:\n\t', repr(name), attrs)
         if name == 'GIFTI':
             # create gifti image
@@ -200,7 +198,7 @@ class GiftiImageParser(XmlImageParser):
 
     def EndElementHandler(self, name):
         self.flush_chardata()
-        if DEBUG_PRINT:
+        if self.verbose > 0:
             print('End element:\n\t', repr(name))
         if name == 'GIFTI':
             if hasattr(self, 'expected_numDA') and self.expected_numDA != self.img.numDA:
