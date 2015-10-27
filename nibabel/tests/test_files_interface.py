@@ -89,7 +89,7 @@ def test_round_trip_spatialimages():
     data = np.arange(24, dtype='i4').reshape((2, 3, 4))
     aff = np.eye(4)
     klasses = [klass for klass in all_image_classes
-               if klass.rw and issubclass(klass, SpatialImage)]
+               if klass.rw and klass.makeable and issubclass(klass, SpatialImage)]
     for klass in klasses:
         file_map = klass.make_file_map()
         for key in file_map:
