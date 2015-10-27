@@ -97,7 +97,7 @@ from io import StringIO
 from locale import getpreferredencoding
 
 from .keywordonly import kw_only_meth
-from .spatialimages import SpatialImage, Header
+from .spatialimages import SpatialHeader, SpatialImage
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file
 from .affines import from_matvec, dot_reduce, apply_affine
@@ -615,7 +615,7 @@ class PARRECArrayProxy(object):
         return raw_data * slopes[slicer] + inters[slicer]
 
 
-class PARRECHeader(Header):
+class PARRECHeader(SpatialHeader):
     """PAR/REC header"""
     def __init__(self, info, image_defs, permit_truncated=False):
         """
@@ -645,10 +645,9 @@ class PARRECHeader(Header):
                               % bitpix)
         # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
-        Header.__init__(self,
-                        data_dtype=dt,
-                        shape=self._calc_data_shape(),
-                        zooms=self._calc_zooms())
+        super(PARRECHeader, self).__init__(data_dtype=dt,
+                                           shape=self._calc_data_shape(),
+                                           zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):

@@ -14,7 +14,7 @@ import warnings
 
 from .filename_parser import splitext_addext
 from .openers import ImageOpener
-from .spatialimages import ImageFileError
+from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 

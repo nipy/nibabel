@@ -15,17 +15,20 @@ import numpy as np
 from .. import Nifti1Image, Nifti1Pair, MGHImage, all_image_classes
 from ..externals.six import BytesIO
 from ..fileholders import FileHolderError
+from ..spatialimages import SpatialImage
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
-def test_files_images():
+def test_files_spatialimages():
     # test files creation in image classes
     arr = np.zeros((2,3,4))
     aff = np.eye(4)
-    for klass in all_image_classes:
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
+    for klass in klasses:
         file_map = klass.make_file_map()
         for key, value in file_map.items():
             assert_equal(value.filename, None)
@@ -81,11 +84,12 @@ def test_files_interface():
     assert_array_equal(img2.get_data(), img.get_data())
 
 
-def test_round_trip():
+def test_round_trip_spatialimages():
     # write an image to files
     data = np.arange(24, dtype='i4').reshape((2, 3, 4))
     aff = np.eye(4)
-    klasses = filter(lambda klass: klass.rw, all_image_classes)
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
     for klass in klasses:
         file_map = klass.make_file_map()
         for key in file_map:

@@ -32,7 +32,7 @@ and we have made a temporary directory for the files we are going to write:
 and we've got the path to the nifti example data:
 
   >>> from nibabel.testing import data_path as example_data_path
-  
+
 Loading and saving NIfTI files
 ==============================
 
@@ -77,7 +77,7 @@ The relevant header information is extracted from the NumPy array. If you
 query the header information about the dimensionality of the image, it returns
 the desired values:
 
-  >>> print nim.get_header()['dim']
+  >>> print nim.header['dim']
   [  4  32  32  16 100   1   1   1]
 
 First value shows the number of dimensions in the datset: 4 (good, that's what
@@ -110,8 +110,8 @@ preserving as much header information as possible
 
   >>> nim2 = nib.Nifti1Image(nim.get_data()[..., :10],
   ...                       nim.get_affine(),
-  ...                       nim.get_header())
-  >>> print nim2.get_header()['dim']
+  ...                       nim.header)
+  >>> print nim2.header['dim']
   [ 4 32 32 16 10  1  1  1]
   >>> # a filename in our temporary directory
   >>> fname = pjoin(tmpdir, 'part.hdr.gz')
@@ -136,7 +136,7 @@ will first create a NIfTI image with just a single voxel and 50 timepoints
   >>> nim = nib.Nifti1Image(
   ...           (np.linspace(0,100) + np.random.randn(50)).reshape(1,1,1,50),
   ...           np.eye(4))
-  >>> print nim.get_header()['dim']
+  >>> print nim.header['dim']
   [ 4  1  1  1 50  1  1  1]
 
 Depending on the datatype of the input image the detrending process might
@@ -154,4 +154,4 @@ source image.
 
   >>> nim_detrended = nib.Nifti1Image(data_detrended,
   ...                                nim.get_affine(),
-  ...                                nim.get_header())
+  ...                                nim.header)

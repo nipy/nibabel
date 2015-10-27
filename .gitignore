@@ -62,6 +62,7 @@ dist/
 .tox/
 .coverage
 .ropeproject/
+htmlcov/
 
 # Logs and databases #
 ######################
