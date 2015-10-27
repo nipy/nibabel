@@ -9,6 +9,8 @@
 """
 Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
 """
+
+from io import BytesIO
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.parsers.expat import ParserCreate
 
@@ -92,11 +94,11 @@ class XmlImageParser(object):
         -------
         img : XmlBasedImage
         """
-        if int(fname is not None) + int(fptr is not None) + int(fname is not None) != 1:
+        if int(string is not None) + int(fptr is not None) + int(fname is not None) != 1:
             raise ValueError('Exactly one of fptr, fname, string must be specified.')
 
         if string is not None:
-            fptr = StringIO(string)
+            fptr = BytesIO(string)
         elif fname is not None:
             fptr = open(fname, 'r')
 
