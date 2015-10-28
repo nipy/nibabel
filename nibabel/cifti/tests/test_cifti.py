@@ -19,15 +19,19 @@ def test_cifti_metadata():
     assert_raises(ValueError, md.add_metadata, ['a'])
 
     md.add_metadata([('a', 'aval'), ('b', 'bval')])
-    assert_true(len(md.data) == 2)
+    assert_equal(len(md.data), 2)
+
     md.add_metadata([['a', 'aval'], ['b', 'bval']])
-    assert_true(len(md.data) == 2)
+    assert_equal(len(md.data), 2)
+
     md.add_metadata({'a': 'aval', 'b': 'bval'})
-    assert_true(len(md.data) == 2)
+    assert_equal(len(md.data), 2)
+
     md.add_metadata({'a': 'aval', 'd': 'dval'})
-    assert_true(len(md.data) == 3)
+    assert_equal(len(md.data), 3)
+
     md.remove_metadata({'a': 'aval', 'd': 'dval'})
-    assert_true(len(md.data) == 1)
+    assert_equal(len(md.data), 1)
 
     assert_raises(ValueError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
 
@@ -35,5 +39,5 @@ def test_cifti_metadata():
                  '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>')
 
     md.remove_metadata(['b', 'bval'])
-    assert_true(len(md.data) == 0)
+    assert_equal(len(md.data), 0)
     assert_equal(md.to_xml(), '<MetaData />')
