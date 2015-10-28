@@ -174,24 +174,27 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         rel_fails = (rel_err > rel_thresh)
         all_fails = abs_fails & rel_fails
 
-        if np.any(abs_fails):
-            abs_max_diff = -(abs_err - exp_abs_err)[abs_fails].max()
-            abs_mx_e = abs_err[abs_fails].max()
-            exp_abs_mx_e = exp_abs_err[abs_fails].max()
-        if np.any(rel_fails):
-            rel_max_diff = -(rel_err - rel_thresh)[rel_fails].max()
-            rel_mx_e = rel_err[rel_fails].max()
-
         print("Test ID: %s; in_type=%s, out_type=%s""" % (
             test_id, np.dtype(in_type).str, np.dtype(out_type).str))
         print("\tslope=%.5e, inter=%.5e" % (slope, inter))
 
         if np.any(abs_fails):
-            print("\tABS FAIL: exp_abs_mx_e=%.5e < abs_mx_e=%.5e; max_diff=%.5e" % (
-                exp_abs_mx_e, abs_mx_e, abs_max_diff))
-        if np.any(rel_fails) is not None:
-            print("\tREL FAIL: rel_thresh  =%.5e < rel_mx_e=%.5e; max_diff=%.5e" % (
-                rel_thresh, rel_mx_e, rel_max_diff))
+            abs_max_diff = (abs_err - exp_abs_err)[abs_fails].max()
+            abs_mx_e = abs_err[abs_fails].max()
+            exp_abs_mx_e = exp_abs_err[abs_fails].max()
+            print("\tABS FAIL: exp_abs_mx_e=%.5e < abs_mx_e=%.5e; "
+                  "max_diff=%.5e; num=%d/%d" % (exp_abs_mx_e, abs_mx_e,
+                                                abs_max_diff,
+                                                np.sum(abs_fails),
+                                                np.product(abs_fails.shape)))
+        if np.any(rel_fails):
+            rel_max_diff = (rel_err - rel_thresh)[rel_fails].max()
+            rel_mx_e = rel_err[rel_fails].max()
+            print("\tREL FAIL: rel_thresh  =%.5e < rel_mx_e=%.5e; "
+                  "max_diff=%.5e; num=%d/%d" % (rel_thresh, rel_mx_e,
+                                                rel_max_diff,
+                                                np.sum(rel_fails),
+                                                np.product(rel_fails.shape)))
         print("")
 
         # To help debugging failures with --pdb-failure
