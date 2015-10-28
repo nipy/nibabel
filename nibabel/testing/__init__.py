@@ -12,8 +12,10 @@ from __future__ import division, print_function
 import sys
 import warnings
 from os.path import dirname, abspath, join as pjoin
+from nibabel.externals.six.moves import zip_longest
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 # Allow failed import of nose if not now running tests
 try:
@@ -68,6 +70,7 @@ def assert_streamlines_equal(s1, s2):
     assert_arrays_equal(s1.points, s2.points)
     assert_arrays_equal(s1.scalars, s2.scalars)
     assert_arrays_equal(s1.properties, s2.properties)
+
 
 def get_fresh_mod(mod_name=__name__):
     # Get this module, with warning registry empty
