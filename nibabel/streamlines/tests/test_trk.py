@@ -4,7 +4,7 @@ import numpy as np
 
 from nibabel.externals.six import BytesIO
 
-from nibabel.testing import suppress_warnings, catch_warn_reset
+from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal, assert_streamlines_equal
 from nose.tools import assert_equal, assert_raises, assert_true
 
@@ -103,7 +103,7 @@ class TestTRK(unittest.TestCase):
         check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
 
         streamlines = TrkFile.load(BytesIO(new_trk_file), lazy_load=True)
-        with catch_warn_reset(record=True, modules=[base_format]) as w:
+        with clear_and_catch_warnings(record=True, modules=[base_format]) as w:
             check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, UsageWarning))
@@ -111,7 +111,7 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK file where `voxel_order` was not provided.
         voxel_order = np.zeros(1, dtype="|S3").tostring()
         new_trk_file = trk_file[:948] + voxel_order + trk_file[948+3:]
-        with catch_warn_reset(record=True, modules=[trk]) as w:
+        with clear_and_catch_warnings(record=True, modules=[trk]) as w:
             TrkFile.load(BytesIO(new_trk_file), ref=None)
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, HeaderWarning))

@@ -14,8 +14,10 @@ import os
 import sys
 import warnings
 from os.path import dirname, abspath, join as pjoin
+from nibabel.externals.six.moves import zip_longest
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
@@ -71,6 +73,7 @@ def assert_re_in(regex, c, flags=0):
         if re.match(regex, e, flags=flags):
             return
     raise AssertionError("Not a single entry matched %r in %r" % (regex, c))
+
 
 
 def get_fresh_mod(mod_name=__name__):

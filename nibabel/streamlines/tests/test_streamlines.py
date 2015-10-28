@@ -8,7 +8,7 @@ from os.path import join as pjoin
 import nibabel as nib
 from nibabel.externals.six import BytesIO
 
-from nibabel.testing import catch_warn_reset
+from nibabel.testing import clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
@@ -207,7 +207,7 @@ class TestLoadSave(unittest.TestCase):
         streamlines = Streamlines(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
         for ext, cls in nib.streamlines.FORMATS.items():
             with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
-                with catch_warn_reset(record=True, modules=[trk]) as w:
+                with clear_and_catch_warnings(record=True, modules=[trk]) as w:
                     nib.streamlines.save(streamlines, f.name)
 
                     # If streamlines format does not support saving scalars or

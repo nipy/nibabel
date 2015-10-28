@@ -4,7 +4,7 @@ import numpy as np
 import warnings
 
 from nibabel.testing import assert_arrays_equal
-from nibabel.testing import suppress_warnings, catch_warn_reset
+from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.externals.six.moves import zip
@@ -267,7 +267,7 @@ class TestLazyStreamlines(unittest.TestCase):
         scalars = lambda: (x for x in self.colors)
         properties = lambda: (x for x in self.mean_curvature_torsion)
 
-        with catch_warn_reset(record=True, modules=[base_format]) as w:
+        with clear_and_catch_warnings(record=True, modules=[base_format]) as w:
             warnings.simplefilter("always")  # Always trigger warnings.
 
             # Calling `len` will create new generators each time.
@@ -286,7 +286,7 @@ class TestLazyStreamlines(unittest.TestCase):
             assert_equal(len(streamlines), self.nb_streamlines)
             assert_equal(len(w), 2)
 
-        with catch_warn_reset(record=True, modules=[base_format]) as w:
+        with clear_and_catch_warnings(record=True, modules=[base_format]) as w:
             # Once we iterated through the streamlines, we know the length.
             streamlines = LazyStreamlines(points, scalars, properties)
             assert_true(streamlines.header.nb_streamlines is None)
@@ -298,7 +298,7 @@ class TestLazyStreamlines(unittest.TestCase):
             assert_equal(len(streamlines), len(self.points))
             assert_equal(len(w), 0)
 
-        with catch_warn_reset(record=True, modules=[base_format]) as w:
+        with clear_and_catch_warnings(record=True, modules=[base_format]) as w:
             # It first checks if number of streamlines is in the header.
             streamlines = LazyStreamlines(points, scalars, properties)
             streamlines.header.nb_streamlines = 1234
