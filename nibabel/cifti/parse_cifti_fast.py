@@ -22,6 +22,7 @@ from .cifti import (CiftiImage, CiftiHeader, CiftiMetaData, CiftiLabel,
                     CIFTI_MODEL_TYPES,
                     CiftiDenseDataSeries)
 from .. import xmlutils as xml
+from ..externals import inflection
 from ..externals.six import BytesIO
 from ..nifti1 import Nifti1Extension, extension_codes
 from ..nifti2 import Nifti2Header, Nifti2Image
@@ -147,16 +148,16 @@ class CiftiParser(xml.XmlParser):
 
         elif name == 'MatrixIndicesMap':
             self.fsm_state.append('MatrixIndicesMap')
-            mim = CiftiMatrixIndicesMap(appliesToMatrixDimension=int(attrs["AppliesToMatrixDimension"]),
-                                        indicesMapToDataType=attrs["IndicesMapToDataType"])
+            mim = CiftiMatrixIndicesMap(applies_to_matrix_dimension=int(attrs["AppliesToMatrixDimension"]),
+                                        indices_map_to_data_type=attrs["IndicesMapToDataType"])
             for key, dtype in [("NumberOfSeriesPoints", int),
                                ("SeriesExponent", int),
                                ("SeriesStart", float),
                                ("SeriesStep", float),
                                ("SeriesUnit", str)]:
                 if key in attrs:
-                    var = key[0].lower() + key[1:]
-                    setattr(mim, var, dtype(attrs[key]))
+                    attr = inflection.underscore(key)
+                    setattr(mim, attr, dtype(attrs[key]))
             matrix = self.struct_state[-1]
             assert isinstance(matrix, CiftiMatrix)
             matrix.add_cifti_matrix_indices_map(mim)
@@ -173,7 +174,7 @@ class CiftiParser(xml.XmlParser):
         elif name == 'LabelTable':
             named_map = self.struct_state[-1]
             mim = self.struct_state[-2]
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_LABELS"
+            assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_LABELS"
             lata = CiftiLabelTable()
             assert isinstance(named_map, CiftiNamedMap)
             self.fsm_state.append('LabelTable')
@@ -207,9 +208,9 @@ class CiftiParser(xml.XmlParser):
             surface = CiftiSurface()
             mim = self.struct_state[-1]
             assert isinstance(mim, CiftiMatrixIndicesMap)
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_PARCELS"
-            surface.brainStructure = attrs["BrainStructure"]
-            surface.surfaceNumberOfVertices = int(attrs["SurfaceNumberOfVertices"])
+            assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_PARCELS"
+            surface.brain_structure = attrs["BrainStructure"]
+            surface.surface_number_of_vertices = int(attrs["SurfaceNumberOfVertices"])
             mim.add_cifti_surface(surface)
 
         elif name == "Parcel":
@@ -225,8 +226,8 @@ class CiftiParser(xml.XmlParser):
             vertices = CiftiVertices()
             parcel = self.struct_state[-1]
             assert isinstance(parcel, CiftiParcel)
-            vertices.brainStructure = attrs["BrainStructure"]
-            assert vertices.brainStructure in CIFTI_BrainStructures
+            vertices.brain_structure = attrs["BrainStructure"]
+            assert vertices.brain_structure in CIFTI_BrainStructures
             parcel.add_cifti_vertices(vertices)
             self.fsm_state.append('Vertices')
             self.struct_state.append(vertices)
@@ -235,7 +236,7 @@ class CiftiParser(xml.XmlParser):
         elif name == "VoxelIndicesIJK":
             parent = self.struct_state[-1]
             assert isinstance(parent, (CiftiParcel, CiftiBrainModel))
-            parent.voxelIndicesIJK = CiftiVoxelIndicesIJK()
+            parent.voxel_indices_ijk = CiftiVoxelIndicesIJK()
             self.write_to = 'VoxelIndices'
 
         elif name == "Volume":
@@ -252,8 +253,8 @@ class CiftiParser(xml.XmlParser):
             volume = self.struct_state[-1]
             assert isinstance(volume, CiftiVolume)
             transform = CiftiTransformationMatrixVoxelIndicesIJKtoXYZ()
-            transform.meterExponent = int(attrs["MeterExponent"])
-            volume.transformationMatrixVoxelIndicesIJKtoXYZ = transform
+            transform.meter_exponent = int(attrs["MeterExponent"])
+            volume.transformation_matrix_voxel_indices_ijk_to_xyz = transform
             self.fsm_state.append('TransformMatrix')
             self.struct_state.append(transform)
             self.write_to = 'TransformMatrix'
@@ -262,17 +263,17 @@ class CiftiParser(xml.XmlParser):
             model = CiftiBrainModel()
             mim = self.struct_state[-1]
             assert isinstance(mim, CiftiMatrixIndicesMap)
-            assert mim.indicesMapToDataType == "CIFTI_INDEX_TYPE_BRAIN_MODELS"
+            assert mim.indices_map_to_data_type == "CIFTI_INDEX_TYPE_BRAIN_MODELS"
             for key, dtype in [("IndexOffset", int),
                                ("IndexCount", int),
                                ("ModelType", str),
                                ("BrainStructure", str),
                                ("SurfaceNumberOfVertices", int)]:
                 if key in attrs:
-                    var = key[0].lower() + key[1:]
-                    setattr(model, var, dtype(attrs[key]))
-            assert model.brainStructure in CIFTI_BrainStructures
-            assert model.modelType in CIFTI_MODEL_TYPES
+                    attr = inflection.underscore(key)
+                    setattr(model, attr, dtype(attrs[key]))
+            assert model.brain_structure in CIFTI_BrainStructures
+            assert model.model_type in CIFTI_MODEL_TYPES
             mim.add_cifti_brain_model(model)
             self.fsm_state.append('BrainModel')
             self.struct_state.append(model)
@@ -282,7 +283,7 @@ class CiftiParser(xml.XmlParser):
             model = self.struct_state[-1]
             assert isinstance(model, CiftiBrainModel)
             self.fsm_state.append('VertexIndices')
-            model.vertexIndices = index
+            model.vertex_indices = index
             self.struct_state.append(index)
             self.write_to = "VertexIndices"
 
@@ -304,7 +305,7 @@ class CiftiParser(xml.XmlParser):
             self.fsm_state.pop()
             meta = self.struct_state.pop()
             parent = self.struct_state[-1]
-            parent.set_metadata(meta)
+            parent.metadata = meta
 
         elif name == 'MD':
             self.fsm_state.pop()
@@ -405,7 +406,7 @@ class CiftiParser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode())
             parent = self.struct_state[-1]
-            parent.voxelIndicesIJK.indices = np.genfromtxt(c, dtype=np.int)
+            parent.voxel_indices_ijk.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
