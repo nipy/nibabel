@@ -174,14 +174,14 @@ class SourceGenerator(NodeVisitor):
                 paren_or_comma()
                 self.write(keyword.arg + '=')
                 self.visit(keyword.value)
-            if node.starargs is not None:
-                paren_or_comma()
-                self.write('*')
-                self.visit(node.starargs)
-            if node.kwargs is not None:
-                paren_or_comma()
-                self.write('**')
-                self.visit(node.kwargs)
+        if hasattr(node, 'starargs') and node.starargs is not None:
+            paren_or_comma()
+            self.write('*')
+            self.visit(node.starargs)
+        if hasattr(node, 'kwargs') and node.kwargs is not None:
+            paren_or_comma()
+            self.write('**')
+            self.visit(node.kwargs)
         self.write(have_args and '):' or ':')
         self.body(node.body)
 
