@@ -34,6 +34,12 @@ References like "pr/298" refer to github pull request numbers.
     are raising a DataError if the track is truncated when ``strict=True``
     (the default), rather than a TypeError when trying to create the points
     array.
+  * tripwire.TripWire object now raises subclass of AttributeError when trying
+    to get an attribute, rather than a direct subclass of Exception.  This
+    prevents Python 3.5 triggering the tripwire when doing inspection prior to
+    running doctests.
+  * Minor API change for tripwire.TripWire object; code that checked for
+    AttributeError will now also catch TripWireError.
 
 * 2.0.1 (Saturday 27 June 2015)
 

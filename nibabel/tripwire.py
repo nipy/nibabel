@@ -2,8 +2,12 @@
 """
 
 
-class TripWireError(Exception):
+class TripWireError(AttributeError):
     """ Exception if trying to use TripWire object """
+    # Has to be subclass of AttributeError, to work round Python 3.5 inspection
+    # for doctests.  Python 3.5 looks for a ``__wrapped__`` attribute during
+    # initialization of doctests, and only allows AttributeError as signal this
+    # is not present.
 
 
 def is_tripwire(obj):
@@ -32,14 +36,11 @@ class TripWire(object):
 
     Examples
     --------
-    >>> try:
-    ...     import silly_module_name
-    ... except ImportError:
-    ...    silly_module_name = TripWire('We do not have silly_module_name')
-    >>> silly_module_name.do_silly_thing('with silly string') #doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> a_module = TripWire('We do not have a_module')
+    >>> a_module.do_silly_thing('with silly string') #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
         ...
-    TripWireError: We do not have silly_module_name
+    TripWireError: We do not have a_module
     """
     def __init__(self, msg):
         self._msg = msg
