@@ -11,7 +11,7 @@ from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image,
                 Nifti2Pair, Nifti2Image)
 from ..loadsave import load, read_img_data
-from ..spatialimages import ImageFileError
+from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
 from ..optpkg import optional_package

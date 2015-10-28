@@ -112,37 +112,33 @@ carry the position at which a write (with ``to_files``) should place the
 data.  The ``file_map`` contents should therefore be such, that this will
 work:
 
-   >>> # write an image to files
-   >>> from io import BytesIO
-   >>> file_map = nib.AnalyzeImage.make_file_map()
-   >>> file_map['image'].fileobj = BytesIO()
-   >>> file_map['header'].fileobj = BytesIO()
-   >>> img = nib.AnalyzeImage(data, np.eye(4))
-   >>> img.file_map = file_map
-   >>> img.to_file_map()
-   >>> # read it back again from the written files
-   >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
-   >>> np.all(img2.get_data() == data)
-   True
-   >>> # write, read it again
-   >>> img2.to_file_map()
-   >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
-   >>> np.all(img3.get_data() == data)
-   True
+    >>> # write an image to files
+    >>> from io import BytesIO
+    >>> import nibabel as nib
+    >>> file_map = nib.AnalyzeImage.make_file_map()
+    >>> file_map['image'].fileobj = BytesIO()
+    >>> file_map['header'].fileobj = BytesIO()
+    >>> img = nib.AnalyzeImage(data, np.eye(4))
+    >>> img.file_map = file_map
+    >>> img.to_file_map()
+    >>> # read it back again from the written files
+    >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
+    >>> np.all(img2.get_data() == data)
+    True
+    >>> # write, read it again
+    >>> img2.to_file_map()
+    >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
+    >>> np.all(img3.get_data() == data)
+    True
 
 '''
-
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
 
 import warnings
 
 import numpy as np
 
-from .filename_parser import types_filenames, TypesFilenamesError
-from .fileholders import FileHolder
+from .filebasedimages import FileBasedHeader, FileBasedImage
+from .filebasedimages import ImageFileError  # needed for back-compat.
 from .volumeutils import shape_zoom_affine
 
 
@@ -156,7 +152,7 @@ class HeaderTypeError(Exception):
     pass
 
 
-class Header(object):
+class SpatialHeader(FileBasedHeader):
     ''' Template class to implement header protocol '''
     default_x_flip = True
     data_layout = 'F'
@@ -310,20 +306,22 @@ def supported_np_types(obj):
     return set(supported)
 
 
+class Header(SpatialHeader):
+    '''Alias for SpatialHeader; kept for backwards compatibility.'''
+    def __init__(self, *args, **kwargs):
+        warnings.warn('Header is deprecated, use SpatialHeader',
+                      DeprecationWarning, stacklevel=2)
+        super(Header, self).__init__(*args, **kwargs)
+
+
 class ImageDataError(Exception):
     pass
 
 
-class ImageFileError(Exception):
-    pass
+class SpatialImage(FileBasedImage):
+    ''' Template class for volumetric (3D/4D) images '''
+    header_class = SpatialHeader
 
-
-class SpatialImage(object):
-    header_class = Header
-    files_types = (('image', None),)
-    _compressed_exts = ()
-
-    ''' Template class for images '''
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
         ''' Initialize image
@@ -351,6 +349,8 @@ class SpatialImage(object):
         file_map : mapping, optional
            mapping giving file information for this image format
         '''
+        super(SpatialImage, self).__init__(header=header, extra=extra,
+                                           file_map=file_map)
         self._dataobj = dataobj
         if not affine is None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
@@ -362,19 +362,13 @@ class SpatialImage(object):
             if not affine.shape == (4, 4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
-        if extra is None:
-            extra = {}
-        self.extra = extra
-        self._header = self.header_class.from_header(header)
+
         # if header not specified, get data type from input array
         if header is None:
             if hasattr(dataobj, 'dtype'):
                 self._header.set_data_dtype(dataobj.dtype)
         # make header correspond with image and affine
         self.update_header()
-        if file_map is None:
-            file_map = self.__class__.make_file_map()
-        self.file_map = file_map
         self._load_cache = None
         self._data_cache = None
 
@@ -393,10 +387,6 @@ class SpatialImage(object):
     @property
     def affine(self):
         return self._affine
-
-    @property
-    def header(self):
-        return self._header
 
     def update_header(self):
         ''' Harmonize header with image data and affine
@@ -645,206 +635,6 @@ class SpatialImage(object):
         deprecate this method in future versions of nibabel.
         """
         return self.affine
-
-    def get_header(self):
-        """ Get header from image
-
-        Please use the `header` property instead of `get_header`; we will
-        deprecate this method in future versions of nibabel.
-        """
-        return self.header
-
-    def get_filename(self):
-        ''' Fetch the image filename
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        fname : None or str
-           Returns None if there is no filename, or a filename string.
-           If an image may have several filenames assoctiated with it
-           (e.g Analyze ``.img, .hdr`` pair) then we return the more
-           characteristic filename (the ``.img`` filename in the case of
-           Analyze')
-        '''
-        # which filename is returned depends on the ordering of the
-        # 'files_types' class attribute - we return the name
-        # corresponding to the first in that tuple
-        characteristic_type = self.files_types[0][0]
-        return self.file_map[characteristic_type].filename
-
-    def set_filename(self, filename):
-        ''' Sets the files in the object from a given filename
-
-        The different image formats may check whether the filename has
-        an extension characteristic of the format, and raise an error if
-        not.
-
-        Parameters
-        ----------
-        filename : str
-           If the image format only has one file associated with it,
-           this will be the only filename set into the image
-           ``.file_map`` attribute. Otherwise, the image instance will
-           try and guess the other filenames from this given filename.
-        '''
-        self.file_map = self.__class__.filespec_to_file_map(filename)
-
-    @classmethod
-    def from_filename(klass, filename):
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map)
-
-    @classmethod
-    def from_filespec(klass, filespec):
-        warnings.warn('``from_filespec`` class method is deprecated\n'
-                      'Please use the ``from_filename`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        klass.from_filename(filespec)
-
-    @classmethod
-    def from_file_map(klass, file_map):
-        raise NotImplementedError
-
-    @classmethod
-    def from_files(klass, file_map):
-        warnings.warn('``from_files`` class method is deprecated\n'
-                      'Please use the ``from_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        return klass.from_file_map(file_map)
-
-    @classmethod
-    def filespec_to_file_map(klass, filespec):
-        """ Make `file_map` for this class from filename `filespec`
-
-        Class method
-
-        Parameters
-        ----------
-        filespec : str
-            Filename that might be for this image file type.
-
-        Returns
-        -------
-        file_map : dict
-            `file_map` dict with (key, value) pairs of (``file_type``,
-            FileHolder instance), where ``file_type`` is a string giving the
-            type of the contained file.
-
-        Raises
-        ------
-        ImageFileError
-            if `filespec` is not recognizable as being a filename for this
-            image type.
-        """
-        try:
-            filenames = types_filenames(
-                filespec, klass.files_types,
-                trailing_suffixes=klass._compressed_exts)
-        except TypesFilenamesError:
-            raise ImageFileError(
-                'Filespec "{0}" does not look right for class {1}'.format(
-                    filespec, klass))
-        file_map = {}
-        for key, fname in filenames.items():
-            file_map[key] = FileHolder(filename=fname)
-        return file_map
-
-    @classmethod
-    def filespec_to_files(klass, filespec):
-        warnings.warn('``filespec_to_files`` class method is deprecated\n'
-                      'Please use the ``filespec_to_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        return klass.filespec_to_file_map(filespec)
-
-    def to_filename(self, filename):
-        ''' Write image to files implied by filename string
-
-        Parameters
-        ----------
-        filename : str
-           filename to which to save image.  We will parse `filename`
-           with ``filespec_to_file_map`` to work out names for image,
-           header etc.
-
-        Returns
-        -------
-        None
-        '''
-        self.file_map = self.filespec_to_file_map(filename)
-        self.to_file_map()
-
-    def to_filespec(self, filename):
-        warnings.warn('``to_filespec`` is deprecated, please '
-                      'use ``to_filename`` instead',
-                      DeprecationWarning, stacklevel=2)
-        self.to_filename(filename)
-
-    def to_file_map(self, file_map=None):
-        raise NotImplementedError
-
-    def to_files(self, file_map=None):
-        warnings.warn('``to_files`` method is deprecated\n'
-                      'Please use the ``to_file_map`` method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        self.to_file_map(file_map)
-
-    @classmethod
-    def make_file_map(klass, mapping=None):
-        ''' Class method to make files holder for this image type
-
-        Parameters
-        ----------
-        mapping : None or mapping, optional
-           mapping with keys corresponding to image file types (such as
-           'image', 'header' etc, depending on image class) and values
-           that are filenames or file-like.  Default is None
-
-        Returns
-        -------
-        file_map : dict
-           dict with string keys given by first entry in tuples in
-           sequence klass.files_types, and values of type FileHolder,
-           where FileHolder objects have default values, other than
-           those given by `mapping`
-        '''
-        if mapping is None:
-            mapping = {}
-        file_map = {}
-        for key, ext in klass.files_types:
-            file_map[key] = FileHolder()
-            mapval = mapping.get(key, None)
-            if isinstance(mapval, basestring):
-                file_map[key].filename = mapval
-            elif hasattr(mapval, 'tell'):
-                file_map[key].fileobj = mapval
-        return file_map
-
-    load = from_filename
-
-    @classmethod
-    def instance_to_filename(klass, img, filename):
-        ''' Save `img` in our own format, to name implied by `filename`
-
-        This is a class method
-
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` - specifically
-           ``dataobj``, ``affine``, ``header`` and ``extra``.
-        filename : str
-           Filename, implying name to which to save image.
-        '''
-        img = klass.from_image(img)
-        img.to_filename(filename)
 
     @classmethod
     def from_image(klass, img):

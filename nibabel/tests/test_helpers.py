@@ -4,7 +4,7 @@ from io import BytesIO
 
 import numpy as np
 
-from ..openers import Opener
+from ..openers import ImageOpener
 from ..tmpdirs import InTemporaryDirectory
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy.io')
@@ -49,7 +49,7 @@ def bz2_mio_error():
     import scipy.io
 
     with InTemporaryDirectory():
-        with Opener('test.mat.bz2', 'wb') as fobj:
+        with ImageOpener('test.mat.bz2', 'wb') as fobj:
             try:
                 scipy.io.savemat(fobj, {'a': 1}, format='4')
             except ValueError:

@@ -7,26 +7,23 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
-from os.path import dirname, abspath, join as pjoin
-from warnings import catch_warnings
-from nibabel.externals.six.moves import zip, zip_longest
-from numpy.testing import assert_array_equal
+from __future__ import division, print_function
 
+import sys
+import warnings
+from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
-from warnings import catch_warnings, simplefilter
-
-# set path to example data
-data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 # Allow failed import of nose if not now running tests
 try:
-    import nose.tools as nt
-except ImportError:
-    pass
-else:
     from nose.tools import (assert_equal, assert_not_equal,
                             assert_true, assert_false, assert_raises)
+except ImportError:
+    pass
+
+# set path to example data
+data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 
 def assert_dt_equal(a, b):
@@ -72,18 +69,56 @@ def assert_streamlines_equal(s1, s2):
     assert_arrays_equal(s1.scalars, s2.scalars)
     assert_arrays_equal(s1.properties, s2.properties)
 
+def get_fresh_mod(mod_name=__name__):
+    # Get this module, with warning registry empty
+    my_mod = sys.modules[mod_name]
+    try:
+        my_mod.__warningregistry__.clear()
+    except AttributeError:
+        pass
+    return my_mod
 
-class suppress_warnings(catch_warnings):
-    """ Version of ``catch_warnings`` class that suppresses warnings
-    """
-    def __enter__(self):
-        res = super(suppress_warnings, self).__enter__()
-        simplefilter('ignore')
-        return res
 
+class clear_and_catch_warnings(warnings.catch_warnings):
+    """ Context manager that resets warning registry for catching warnings
 
-class catch_warn_reset(catch_warnings):
-    """ Version of ``catch_warnings`` class that resets warning registry
+    Warnings can be slippery, because, whenever a warning is triggered, Python
+    adds a ``__warningregistry__`` member to the *calling* module.  This makes
+    it impossible to retrigger the warning in this module, whatever you put in
+    the warnings filters.  This context manager accepts a sequence of `modules`
+    as a keyword argument to its constructor and:
+
+    * stores and removes any ``__warningregistry__`` entries in given `modules`
+      on entry;
+    * resets ``__warningregistry__`` to its previous state on exit.
+
+    This makes it possible to trigger any warning afresh inside the context
+    manager without disturbing the state of warnings outside.
+
+    For compatibility with Python 3.0, please consider all arguments to be
+    keyword-only.
+
+    Parameters
+    ----------
+    record : bool, optional
+        Specifies whether warnings should be captured by a custom
+        implementation of ``warnings.showwarning()`` and be appended to a list
+        returned by the context manager. Otherwise None is returned by the
+        context manager. The objects appended to the list are arguments whose
+        attributes mirror the arguments to ``showwarning()``.
+
+        NOTE: nibabel difference from numpy: default is True
+
+    modules : sequence, optional
+        Sequence of modules for which to reset warnings registry on entry and
+        restore on exit
+
+    Examples
+    --------
+    >>> import warnings
+    >>> with clear_and_catch_warnings(modules=[np.core.fromnumeric]):
+    ...     warnings.simplefilter('always')
+    ...     # do something that raises a warning in np.core.fromnumeric
     """
     def __init__(self, *args, **kwargs):
         self.modules = kwargs.pop('modules', [])

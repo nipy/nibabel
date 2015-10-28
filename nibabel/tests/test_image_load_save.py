@@ -8,16 +8,13 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
 from __future__ import division, print_function, absolute_import
-from os.path import join as pjoin, dirname
-import shutil
-from tempfile import mkdtemp
 from ..externals.six import BytesIO
 
-import numpy as np
+import shutil
+from os.path import dirname, join as pjoin
+from tempfile import mkdtemp
 
-# If we don't have scipy, then we cannot write SPM format files
-from ..optpkg import optional_package
-_, have_scipy, _ = optional_package('scipy')
+import numpy as np
 
 from .. import analyze as ana
 from .. import spm99analyze as spm99
@@ -26,15 +23,16 @@ from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
                 Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, class_map)
-
+                AnalyzeImage, MGHImage, all_image_classes)
 from ..tmpdirs import InTemporaryDirectory
-
 from ..volumeutils import native_code, swapped_code
+from ..optpkg import optional_package
+from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal
 
+_, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')
 MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
 
@@ -48,21 +46,21 @@ def round_trip(img):
     return img2
 
 
-def test_conversion():
+def test_conversion_spatialimages():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-        for r_class_def in class_map.values():
-            r_class = r_class_def['class']
-            if not r_class_def['makeable']:
+        for r_class in klasses:
+            if not r_class.makeable:
                 continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
-            for w_class_def in class_map.values():
-                if not w_class_def['makeable']:
+            for w_class in klasses:
+                if not w_class.makeable:
                     continue
-                w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
                 assert_array_equal(img2.affine, affine)

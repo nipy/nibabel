@@ -97,12 +97,13 @@ from io import StringIO
 from locale import getpreferredencoding
 
 from .keywordonly import kw_only_meth
-from .spatialimages import SpatialImage, Header
+from .spatialimages import SpatialHeader, SpatialImage
 from .eulerangles import euler2mat
-from .volumeutils import Recoder, array_from_file, BinOpener
+from .volumeutils import Recoder, array_from_file
 from .affines import from_matvec, dot_reduce, apply_affine
 from .nifti1 import unit_codes
 from .fileslice import fileslice, strided_scalar
+from .openers import ImageOpener
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
@@ -581,13 +582,13 @@ class PARRECArrayProxy(object):
         return True
 
     def get_unscaled(self):
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             return _data_from_rec(fileobj, self._rec_shape, self._dtype,
                                   self._slice_indices, self._shape,
                                   mmap=self._mmap)
 
     def __array__(self):
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             return _data_from_rec(fileobj,
                                   self._rec_shape,
                                   self._dtype,
@@ -603,7 +604,7 @@ class PARRECArrayProxy(object):
             return np.asanyarray(self)[slicer]
         # Slices all sequential from zero, can use fileslice
         # This gives more efficient volume by volume loading, for example
-        with BinOpener(self.file_like) as fileobj:
+        with ImageOpener(self.file_like) as fileobj:
             raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0,
                                  'F')
         # Broadcast scaling to shape of original data
@@ -614,7 +615,7 @@ class PARRECArrayProxy(object):
         return raw_data * slopes[slicer] + inters[slicer]
 
 
-class PARRECHeader(Header):
+class PARRECHeader(SpatialHeader):
     """PAR/REC header"""
     def __init__(self, info, image_defs, permit_truncated=False):
         """
@@ -644,10 +645,9 @@ class PARRECHeader(Header):
                               % bitpix)
         # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
-        Header.__init__(self,
-                        data_dtype=dt,
-                        shape=self._calc_data_shape(),
-                        zooms=self._calc_zooms())
+        super(PARRECHeader, self).__init__(data_dtype=dt,
+                                           shape=self._calc_data_shape(),
+                                           zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -1019,7 +1019,11 @@ class PARRECHeader(Header):
 class PARRECImage(SpatialImage):
     """PAR/REC image"""
     header_class = PARRECHeader
+    valid_exts = ('.rec', '.par')
     files_types = (('image', '.rec'), ('header', '.par'))
+
+    makeable = False
+    rw = False
 
     ImageArrayProxy = PARRECArrayProxy
 

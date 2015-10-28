@@ -9,21 +9,22 @@
 """ Testing spatialimages
 
 """
-from ..externals.six import BytesIO
+
+import warnings
+
 import numpy as np
 
-from ..spatialimages import (Header, SpatialImage, HeaderDataError,
-                             ImageDataError)
+from ..externals.six import BytesIO
+from ..spatialimages import (SpatialHeader, SpatialImage, HeaderDataError,
+                             Header, ImageDataError)
 
 from unittest import TestCase
-
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
-
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
-from ..testing import suppress_warnings
+from ..testing import clear_and_catch_warnings, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 
@@ -110,7 +111,7 @@ def test_shape_zooms():
     assert_equal(hdr.get_data_shape(), (1,2,3))
     assert_equal(hdr.get_zooms(), (1.0,1.0,1.0))
     hdr.set_zooms((4, 3, 2))
-    assert_equal(hdr.get_zooms(), (4.0,3.0,2.0))    
+    assert_equal(hdr.get_zooms(), (4.0,3.0,2.0))
     hdr.set_data_shape((1, 2))
     assert_equal(hdr.get_data_shape(), (1,2))
     assert_equal(hdr.get_zooms(), (4.0,3.0))
@@ -159,9 +160,9 @@ def test_affine():
 
 
 def test_read_data():
-    class CHeader(Header):
-        data_layout='C'
-    for klass, order in ((Header, 'F'), (CHeader, 'C')):
+    class CHeader(SpatialHeader):
+        data_layout = 'C'
+    for klass, order in ((SpatialHeader, 'F'), (CHeader, 'C')):
         hdr = klass(np.int32, shape=(1,2,3), zooms=(3.0, 2.0, 1.0))
         fobj = BytesIO()
         data = np.arange(6).reshape((1,2,3))
@@ -187,6 +188,7 @@ def test_read_data():
 class DataLike(object):
     # Minimal class implementing 'data' API
     shape = (3,)
+
     def __array__(self):
         return np.arange(3)
 
@@ -371,9 +373,11 @@ class MmapImageMixin(object):
                     back_img = func(param1, **kwargs)
                     back_data = back_img.get_data()
                     if expected_mode is None:
-                        assert_false(isinstance(back_data, np.memmap))
+                        assert_false(isinstance(back_data, np.memmap),
+                                     'Should not be a %s' % img_klass.__name__)
                     else:
-                        assert_true(isinstance(back_data, np.memmap))
+                        assert_true(isinstance(back_data, np.memmap),
+                                    'Not a %s' % img_klass.__name__)
                         if self.check_mmap_mode:
                             assert_equal(back_data.mode, expected_mode)
                     del back_img, back_data
@@ -382,3 +386,15 @@ class MmapImageMixin(object):
                 # Check invalid values raise error
                 assert_raises(ValueError, func, param1, mmap='rw')
                 assert_raises(ValueError, func, param1, mmap='r+')
+
+
+def test_header_deprecated():
+    with clear_and_catch_warnings() as w:
+        warnings.simplefilter('always', DeprecationWarning)
+
+        class MyHeader(Header):
+            pass
+        assert_equal(len(w), 0)
+
+        MyHeader()
+        assert_equal(len(w), 1)

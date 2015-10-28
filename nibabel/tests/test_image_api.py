@@ -24,6 +24,7 @@ from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
+from ..externals.six import string_types
 
 import numpy as np
 
@@ -42,7 +43,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
-
+from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
@@ -133,9 +134,12 @@ class GenericImageAPI(ValidateAPI):
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
-        img = imaker()
-        hdr = img.get_header()
-        assert_true(hdr is img.get_header())
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            hdr = img.get_header()
+            assert_equal(len(w), 1)
+            assert_true(hdr is img.header)
 
     def validate_shape(self, imaker, params):
         # Validate shape
@@ -283,10 +287,20 @@ class LoadImageAPI(GenericImageAPI):
     # Sequence of dictionaries, where dictionaries have keys
     # 'fname" in addition to keys for ``params`` (see obj_params docstring)
     example_images = ()
+    # Class of images to be tested
+    klass = None
 
     def obj_params(self):
         for img_params in self.example_images:
             yield lambda : self.loader(img_params['fname']), img_params
+
+    def validate_path_maybe_image(self, imaker, params):
+        for img_params in self.example_images:
+            test, sniff = self.klass.path_maybe_image(img_params['fname'])
+            assert_true(isinstance(test, bool))
+            if sniff is not None:
+                assert isinstance(sniff[0], bytes)
+                assert isinstance(sniff[1], string_types)
 
 
 class MakeImageAPI(LoadImageAPI):
@@ -346,48 +360,48 @@ class ImageHeaderAPI(MakeImageAPI):
 class TestAnalyzeAPI(ImageHeaderAPI):
     """ General image validation API instantiated for Analyze images
     """
-    image_maker = AnalyzeImage
+    klass = image_maker = AnalyzeImage
     has_scaling = False
     can_save = True
     standard_extension = '.img'
 
 
 class TestSpatialImageAPI(TestAnalyzeAPI):
-    image_maker = SpatialImage
+    klass = image_maker = SpatialImage
     can_save = False
 
 
 class TestSpm99AnalyzeAPI(TestAnalyzeAPI):
     # SPM-type analyze need scipy for mat file IO
-    image_maker = Spm99AnalyzeImage
+    klass = image_maker = Spm99AnalyzeImage
     has_scaling = True
     can_save = have_scipy
 
 
 class TestSpm2AnalyzeAPI(TestSpm99AnalyzeAPI):
-    image_maker = Spm2AnalyzeImage
+    klass = image_maker = Spm2AnalyzeImage
 
 
 class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
-    image_maker = Nifti1Pair
+    klass = image_maker = Nifti1Pair
     can_save = True
 
 
 class TestNifti1API(TestNifti1PairAPI):
-    image_maker = Nifti1Image
+    klass = image_maker = Nifti1Image
     standard_extension = '.nii'
 
 
 class TestNifti2PairAPI(TestNifti1PairAPI):
-    image_maker = Nifti2Pair
+    klass = image_maker = Nifti2Pair
 
 
 class TestNifti2API(TestNifti1API):
-    image_maker = Nifti2Image
+    klass = image_maker = Nifti2Image
 
 
 class TestMinc1API(ImageHeaderAPI):
-    image_maker = Minc1Image
+    klass = image_maker = Minc1Image
     loader = minc1.load
     example_images = MINC1_EXAMPLE_IMAGES
 
@@ -397,7 +411,7 @@ class TestMinc2API(TestMinc1API):
         if not have_h5py:
             raise SkipTest('Need h5py for these tests')
 
-    image_maker = Minc2Image
+    klass = image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES
 
@@ -406,6 +420,7 @@ class TestPARRECAPI(LoadImageAPI):
     def loader(self, fname):
         return parrec.load(fname)
 
+    klass = parrec.PARRECImage
     example_images = PARREC_EXAMPLE_IMAGES
 
 
@@ -418,7 +433,7 @@ class TestPARRECAPI(LoadImageAPI):
 
 
 class TestMGHAPI(ImageHeaderAPI):
-    image_maker = MGHImage
+    klass = image_maker = MGHImage
     example_shapes = ((2, 3, 4), (2, 3, 4, 5)) # MGH can only do >= 3D
     has_scaling = True
     can_save = True

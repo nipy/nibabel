@@ -10,7 +10,7 @@ import numpy.linalg as npl
 
 from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
-from .volumeutils import BinOpener
+from .openers import ImageOpener
 from .orientations import aff2axcodes
 from .affines import apply_affine
 
@@ -95,8 +95,8 @@ class DataError(Exception):
     """
 
 
-def read(fileobj, as_generator=False, points_space=None):
-    ''' Read trackvis file, return streamlines, header
+def read(fileobj, as_generator=False, points_space=None, strict=True):
+    ''' Read trackvis file from `fileobj`, return `streamlines`, `header`
 
     Parameters
     ----------
@@ -116,6 +116,9 @@ def read(fileobj, as_generator=False, points_space=None):
         voxel size.  If 'rasmm' we'll convert the points to RAS mm space (real
         space). For 'rasmm' we check if the affine is set and matches the voxel
         sizes and voxel order.
+    strict : {True, False}, optional
+        If True, raise error on read for badly-formed file.  If False, let pass
+        files with last track having too few points.
 
     Returns
     -------
@@ -143,7 +146,7 @@ def read(fileobj, as_generator=False, points_space=None):
     coordinate along the first image axis, multiplied by the voxel size for
     that axis.
     '''
-    fileobj = BinOpener(fileobj)
+    fileobj = ImageOpener(fileobj)
     hdr_str = fileobj.read(header_2_dtype.itemsize)
     # try defaulting to version 2 format
     hdr = np.ndarray(shape=(),
@@ -192,22 +195,35 @@ def read(fileobj, as_generator=False, points_space=None):
         raise HeaderError('Unexpected negative n_count')
 
     def track_gen():
-        n_streams = 0
         # For case where there are no scalars or no properties
         scalars = None
         ps = None
-        while True:
+        n_streams = 0
+        # stream_count == 0 signals read to end of file
+        n_streams_required = stream_count if stream_count != 0 else np.inf
+        end_of_file = False
+        while not end_of_file and n_streams < n_streams_required:
             n_str = fileobj.read(4)
             if len(n_str) < 4:
-                if stream_count:
-                    raise HeaderError(
-                        'Expecting %s points, found only %s' % (
-                            stream_count, n_streams))
                 break
             n_pts = struct.unpack(i_fmt, n_str)[0]
-            pts_str = fileobj.read(n_pts * pt_size)
+            # Check if we got as many bytes as we expect for these points
+            exp_len = n_pts * pt_size
+            pts_str = fileobj.read(exp_len)
+            if len(pts_str) != exp_len:
+                # Short of bytes, should we raise an error or continue?
+                actual_n_pts = int(len(pts_str) / pt_size)
+                if actual_n_pts != n_pts:
+                    if strict == True:
+                        raise DataError('Expecting {0} points for stream {1}, '
+                                        'found {2}'.format(
+                                            n_pts, n_streams, actual_n_pts))
+                    n_pts = actual_n_pts
+                    end_of_file = True
+            # Cast bytes to points array
             pts = np.ndarray(shape=(n_pts, pt_cols), dtype=f4dt,
                              buffer=pts_str)
+            # Add properties
             if n_p:
                 ps_str = fileobj.read(ps_size)
                 ps = np.ndarray(shape=(n_p,), dtype=f4dt, buffer=ps_str)
@@ -220,11 +236,14 @@ def read(fileobj, as_generator=False, points_space=None):
                 scalars = pts[:, 3:]
             yield (xyz, scalars, ps)
             n_streams += 1
-            # deliberately misses case where stream_count is 0
-            if n_streams == stream_count:
-                fileobj.close_if_mine()
-                raise StopIteration
+        # Always close file if we opened it
         fileobj.close_if_mine()
+        # Raise error if we didn't get as many streams as claimed
+        if n_streams_required != np.inf and n_streams < n_streams_required:
+            raise DataError(
+                'Expecting {0} streamlines, found only {1}'.format(
+                    stream_count, n_streams))
+
     streamlines = track_gen()
     if not as_generator:
         streamlines = list(streamlines)
@@ -334,7 +353,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     except StopIteration:  # empty sequence or iterable
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
-        with BinOpener(fileobj, 'wb') as fileobj:
+        with ImageOpener(fileobj, 'wb') as fileobj:
             fileobj.write(hdr.tostring())
         return
     if endianness is None:
@@ -375,7 +394,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
         mm2vx = npl.inv(affine)
         mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
     # write header
-    fileobj = BinOpener(fileobj, mode='wb')
+    fileobj = ImageOpener(fileobj, mode='wb')
     fileobj.write(hdr.tostring())
     # track preliminaries
     f4dt = np.dtype(endianness + 'f4')

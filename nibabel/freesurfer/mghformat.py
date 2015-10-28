@@ -18,6 +18,7 @@ from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder,  copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
+from ..openers import ImageOpener
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -457,8 +458,14 @@ class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
+    valid_exts = ('.mgh', '.mgz')
+    # Register that .mgz extension signals gzip compression
+    ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def
     files_types = (('image', '.mgh'),)
-    _compressed_exts = (('.gz',))
+    _compressed_suffixes = ()
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 

@@ -146,3 +146,25 @@ class Opener(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_if_mine()
+
+
+class ImageOpener(Opener):
+    """ Opener-type class to collect extra compressed extensions
+
+    A trivial sub-class of opener to which image classes can add extra
+    extensions with custom openers, such as compressed openers.
+
+    To add an extension, add a line to the class definition (not __init__):
+
+        ImageOpener.compress_ext_map[ext] = func_def
+
+    ``ext`` is a file extension beginning with '.' and should be included in
+    the image class's ``valid_exts`` tuple.
+
+    ``func_def`` is a `(function, (args,))` tuple, where `function accepts a
+    filename as the first parameter, and `args` defines the other arguments
+    that `function` accepts. These arguments must be any (unordered) subset of
+    `mode`, `compresslevel`, and `buffering`.
+    """
+    # Add new extensions to this dictionary
+    compress_ext_map = Opener.compress_ext_map.copy()

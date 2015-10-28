@@ -17,6 +17,8 @@ from .spatialimages import HeaderDataError, HeaderTypeError
 from .batteryrunners import Report
 from . import analyze  # module import
 from .keywordonly import kw_only_meth
+from .optpkg import optional_package
+have_scipy = optional_package('scipy')[1]
 
 ''' Support subtle variations of SPM version of Analyze '''
 header_key_dtd = analyze.header_key_dtd
@@ -237,6 +239,9 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     files_types = (('image', '.img'),
                    ('header', '.hdr'),
                    ('mat', '.mat'))
+    has_affine = True
+    makeable = True
+    rw = have_scipy
 
     @classmethod
     @kw_only_meth(1)

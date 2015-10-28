@@ -892,13 +892,28 @@ class AnalyzeHeader(LabeledWrapStruct):
             rep.fix_msg = ' and '.join(fmsgs)
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return 348 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
+
 
 class AnalyzeImage(SpatialImage):
     """ Class for basic Analyze format image
     """
     header_class = AnalyzeHeader
+    _meta_sniff_len = header_class.sizeof_hdr
     files_types = (('image', '.img'), ('header', '.hdr'))
-    _compressed_exts = ('.gz', '.bz2')
+    valid_exts = ('.img', '.hdr')
+    _compressed_suffixes = ('.gz', '.bz2')
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 

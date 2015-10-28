@@ -19,4 +19,4 @@
 
 from .giftiio import read, write
 from .gifti import (GiftiMetaData, GiftiNVPairs, GiftiLabelTable, GiftiLabel,
-                    GiftiCoordSystem, data_tag, GiftiDataArray, GiftiImage)
+                    GiftiCoordSystem, GiftiDataArray, GiftiImage)

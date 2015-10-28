@@ -1537,10 +1537,15 @@ def rec2dict(rec):
 
 
 class BinOpener(Opener):
-    # Adds .mgz as gzipped file name type
+    """ Deprecated class that used to handle .mgz through specialized logic."""
     __doc__ = Opener.__doc__
-    compress_ext_map = Opener.compress_ext_map.copy()
-    compress_ext_map['.mgz'] = Opener.gz_def
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("Please use %s class instead of %s" % (
+                          Opener.__class__.__name__,
+                          self.__class__.__name__),
+                      DeprecationWarning, stacklevel=2)
+        return super(BinOpener, self).__init__(*args, **kwargs)
 
 
 def fname_ext_ul_case(fname):
@@ -1578,16 +1583,16 @@ def fname_ext_ul_case(fname):
 def allopen(fileish, *args, **kwargs):
     """ Compatibility wrapper for old ``allopen`` function
 
-    Wraps creation of ``BinOpener`` instance, while picking up module global
+    Wraps creation of ``Opener`` instance, while picking up module global
     ``default_compresslevel``.
 
-    Please see docstring for ``BinOpener`` and ``Opener`` for details.
+    Please see docstring for ``Opener`` for details.
     """
-    warnings.warn("Please use BinOpener class instead of this function",
+    warnings.warn("Please use Opener class instead of this function",
                   DeprecationWarning,
                   stacklevel=2)
 
-    class MyOpener(BinOpener):
+    class MyOpener(Opener):
         default_compresslevel = default_compresslevel
 
     return MyOpener(fileish, *args, **kwargs)
