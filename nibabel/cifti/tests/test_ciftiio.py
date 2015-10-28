@@ -75,6 +75,6 @@ def test_readwritedata():
             img = nib.load(name)
             nib.save(img, 'test.nii')
             img2 = nib.load('test.nii')
-            assert_equal(img.header.matrix.numMIM, img2.header.matrix.numMIM)
+            assert_equal(len(img.header.matrix.mims), len(img2.header.matrix.mims))
             assert_array_almost_equal(img.data,
                                       img2.data)

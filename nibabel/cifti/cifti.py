@@ -21,6 +21,8 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
+from .. import xmlbasedimages as xml
+from ..externals import inflection
 from ..externals.six import string_types
 from ..filebasedimages import FileBasedImage, FileBasedHeader
 from ..nifti1 import Nifti1Extension
@@ -75,7 +77,23 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                          'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
 
-class CiftiMetaData(object):
+def _value_if_klass(val, klass, none_ok=True):
+    if none_ok and val is None:
+        return val
+    elif isinstance(val, klass):
+        return val
+    else:
+        raise ValueError('Not a valid %s instance.' % klass.__name__)
+
+
+def _value_or_make_klass(val, klass):
+    if val is None:
+        return klass()
+    else:
+        return _value_if_klass(val, klass)
+
+
+class CiftiMetaData(xml.XmlSerializable):
     """ A list of key-value pairs stored in the list self.data """
 
     def __init__(self, nvpair=None):
@@ -84,19 +102,20 @@ class CiftiMetaData(object):
 
     def _add_remove_metadata(self, metadata, func):
         pairs = []
-        if isinstance(metadata, (list, tuple)):
-            if isinstance(metadata[0], string_types):
-                if len(metadata) != 2:
-                    raise ValueError('nvpair must be a 2-list or 2-tuple')
-                pairs = [tuple((metadata[0], metadata[1]))]
-            else:
+        if isinstance(metadata, dict):
+            pairs = metadata.items()
+        elif isinstance(metadata, (list, tuple)):
+            if not isinstance(metadata[0], string_types):
                 for item in metadata:
                     self._add_remove_metadata(item, func)
                 return
-        elif isinstance(metadata, dict):
-            pairs = metadata.items()
+            elif len(metadata) == 2:
+                pairs = [tuple((metadata[0], metadata[1]))]
+            else:
+                raise ValueError('nvpair must be a 2-list or 2-tuple')
         else:
             raise ValueError('nvpair input must be a list, tuple or dict')
+
         for pair in pairs:
             if func == 'add':
                 if pair not in self.data:
@@ -132,23 +151,20 @@ class CiftiMetaData(object):
             return
         self._add_remove_metadata(metadata, 'remove')
 
-    def to_xml(self, prefix='', indent='    '):
-        if len(self.data) == 0:
-            return ''
-        res = "%s<MetaData>\n" % prefix
-        preindent = prefix + indent
-        for name, value in self.data:
-            nvpair = """%s<MD>
-%s<Name>%s</Name>
-%s<Value>%s</Value>
-%s</MD>\n""" % (preindent, preindent + indent, name, preindent + indent,
-                value, preindent)
-            res += nvpair
-        res += "%s</MetaData>\n" % prefix
-        return res
+    def _to_xml_element(self):
+        metadata = xml.Element('MetaData')
+
+        for name_text, value_text in self.data:
+            md = xml.SubElement(metadata, 'MD')
+            name = xml.SubElement(md, 'Name')
+            name.text = str(name_text)
+            value = xml.SubElement(md, 'Value')
+            assert(value_text is not None)
+            value.text = str(value_text)
+        return metadata
 
 
-class CiftiLabelTable(object):
+class CiftiLabelTable(xml.XmlSerializable):
 
     def __init__(self):
         self.labels = []
@@ -163,34 +179,21 @@ class CiftiLabelTable(object):
             self.labels_as_dict[ele.key] = ele.label
         return self.labels_as_dict
 
-    def to_xml(self, prefix='', indent='    '):
-        if len(self.labels) == 0:
-            return ''
-        res = "%s<LabelTable>\n" % prefix
+    def _to_xml_element(self):
+        assert len(self.labels) > 0
+        labeltable = xml.Element('LabelTable')
         for ele in self.labels:
-            col = ''
-            if not ele.red is None:
-                col += ' Red="%s"' % str(ele.red)
-            if not ele.green is None:
-                col += ' Green="%s"' % str(ele.green)
-            if not ele.blue is None:
-                col += ' Blue="%s"' % str(ele.blue)
-            if not ele.alpha is None:
-                col += ' Alpha="%s"' % str(ele.alpha)
-            lab = """%s<Label Key="%s"%s><![CDATA[%s]]></Label>\n""" % \
-                (prefix + indent, str(ele.key), col, ele.label)
-            res += lab
-        res += "%s</LabelTable>\n" % prefix
-        return res
+            labeltable.append(ele._to_xml_element())
+        return labeltable
 
     def print_summary(self):
         print(self.get_labels_as_dict())
 
 
-class CiftiLabel(object):
+class CiftiLabel(xml.XmlSerializable):
 
-    def __init__(self, key = 0, label = '', red = None,\
-                  green = None, blue = None, alpha = None):
+    def __init__(self, key=0, label='', red=None,
+                 green=None, blue=None, alpha=None):
         self.key = key
         self.label = label
         self.red = red
@@ -203,28 +206,36 @@ class CiftiLabel(object):
         """ Returns RGBA as tuple """
         return (self.red, self.green, self.blue, self.alpha)
 
+    def _to_xml_element(self):
+        lab = xml.SubElement(labeltable, 'Label')
+        lab.attrib['Key'] = str(ele.key)
+        lab.text = str(ele.label)
+        if ele.red is not None:
+            lab.attrib['Red'] = str(ele.red)
+        if ele.green is not None:
+            lab.attrib['Green'] = str(ele.green)
+        if ele.blue is not None:
+            lab.attrib['Blue'] = str(ele.blue)
+        if ele.alpha is not None:
+            lab.attrib['Alpha'] = str(ele.alpha)
+        return lab
 
-class CiftiNamedMap(object):
+
+class CiftiNamedMap(xml.XmlSerializable):
     """Class for Named Map"""
     map_name = str
 
-    def __init__(self, map_name=None, meta=None, label_table=None):
+    def __init__(self, map_name=None, metadata=None, label_table=None):
         self.map_name = map_name
-        if meta is None:
-            self.meta = CiftiMetaData()
-        else:
-            assert isinstance(meta, CiftiMetaData)
-            self.meta = meta
-        if label_table is None:
-            self.label_table = CiftiLabelTable()
-        else:
-            assert isinstance(meta, CiftiLabelTable)
-            self.label_table = label_table
+        self.metadata = metadata  # _value_or_make_klass(metadata, CiftiMetaData)
+        self.label_table = label_table  # _value_or_make_klass(label_table, CiftiLabelTable)
 
-    def get_metadata(self):
-        return self.meta
+    @property
+    def metadata(self):
+        return self._metadata
 
-    def set_metadata(self, meta):
+    @metadata.setter
+    def metadata(self, metadata):
         """ Set the metadata for this NamedMap
 
         Parameters
@@ -235,15 +246,14 @@ class CiftiNamedMap(object):
         -------
         None
         """
-        if isinstance(meta, CiftiMetaData):
-            self.meta = meta
-        else:
-            raise TypeError("Not a valid CiftiMetaData instance")
+        self._metadata = _value_if_klass(metadata, CiftiMetaData)
 
-    def get_label_table(self):
-        return self.label_table
+    @property
+    def label_table(self):
+        return self._label_table
 
-    def set_label_table(self, label_table):
+    @label_table.setter
+    def label_table(self, label_table):
         """ Set the label_table for this NamedMap
 
         Parameters
@@ -254,96 +264,87 @@ class CiftiNamedMap(object):
         -------
         None
         """
-        if isinstance(label_table, CiftiLabelTable):
-            self.label_table = label_table
-        else:
-            raise TypeError("Not a valid CiftiLabelTable instance")
+        self._label_table = _value_if_klass(label_table, CiftiLabelTable)
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.map_name is None:
-            return ''
-        res = "%s<NamedMap>\n" % prefix
-        res += self.meta.to_xml(prefix=prefix + indent, indent=indent)
-        res += self.label_table.to_xml(prefix=prefix + indent, indent=indent)
-        res += "%s<MapName>%s</MapName>\n" % (prefix + indent, self.map_name)
-        res += "%s</NamedMap>\n" % prefix
-        return res
+    def _to_xml_element(self):
+        named_map = xml.Element('NamedMap')
+        if self.metadata:
+            named_map.append(self.metadata._to_xml_element())
+        if self.label_table:
+            named_map.append(self.label_table._to_xml_element())
+        map_name = xml.SubElement(named_map, 'MapName')
+        map_name.text = self.map_name
+        return named_map
 
 
-class CiftiSurface(object):
+class CiftiSurface(xml.XmlSerializable):
     """Class for Surface """
-    brainStructure = str
-    surfaceNumberOfVertices = int
+    # brainStructure = str
+    # surfaceNumberOfVertices = int
 
-    def __init__(self, brainStructure=None, surfaceNumberOfVertices=None):
-        self.brainStructure = brainStructure
-        self.surfaceNumberOfVertices = surfaceNumberOfVertices
+    def __init__(self, brain_structure=None, surface_number_of_vertices=None):
+        self.brain_structure = brain_structure
+        self.surface_number_of_vertices = surface_number_of_vertices
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.brainStructure is None:
-            return ''
-        res = ('%s<Surface BrainStructure="%s" SurfaceNumberOfVertices="%s" '
-               '/>\n') % (prefix, self.brainStructure,
-                          self.surfaceNumberOfVertices)
-        return res
+    def _to_xml_element(self):
+        assert self.brain_structure is not None
+        surf = xml.Element('Surface')
+        surf.attrib['BrainStructure'] = str(self.brain_structure)
+        surf.attrib['SurfaceNumberOfVertices'] = str(self.surface_number_of_vertices)
+        return surf
 
-class CiftiVoxelIndicesIJK(object):
-    indices = np.array
+
+class CiftiVoxelIndicesIJK(xml.XmlSerializable):
+    # indices = np.array
 
     def __init__(self, indices=None):
         self.indices = indices
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.indices is None:
-            return ''
-        res = '%s<VoxelIndicesIJK>' % prefix
-        for row in self.indices:
-            res += ' '.join(row.astype(str).tolist()) + '\n'
-        res += '</VoxelIndicesIJK>\n'
-        return res
+    def _to_xml_element(self):
+        assert self.indices is not None
+        vox_ind = xml.Element('VoxelIndicesIJK')
+        if self.indices is not None:
+            vox_ind.text = ''
+            for row in self.indices:
+                vox_ind.text += ' '.join(row.astype(str).tolist()) + '\n'
+        return vox_ind
 
 
-class CiftiVertices(object):
+class CiftiVertices(xml.XmlSerializable):
 
-    brainStructure = str
-    vertices = np.array
+    # brain_structure = str
+    # vertices = np.array
 
     def __init__(self, brain_structure=None, vertices=None):
         self.vertices = vertices
-        self.brainStructure = brain_structure
+        self.brain_structure = brain_structure
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.vertices is None:
-            return ''
-        res = '%s<Vertices BrainStructure="%s">' % (prefix, self.brainStructure)
-        res += ' '.join(self.vertices.astype(str).tolist())
-        res += '</Vertices>\n'
-        return res
+    def _to_xml_element(self):
+        assert self.vertices is not None
+        vertices = xml.Element('Vertices')
+        vertices.attrib['BrainStructure'] = str(self.brain_structure)
+
+        if self.vertices is not None:
+            vertices.text = ' '.join(self.vertices.astype(str).tolist())
+        return vertices
 
 
 class CiftiParcel(object):
     """Class for Parcel"""
-    name = str
-    numVA = int
+    # name = str
 
     def __init__(self, name=None, voxel_indices_ijk=None, vertices=None):
         self.name = name
-        self._voxelIndicesIJK = CiftiVoxelIndicesIJK()
-        if voxel_indices_ijk is not None:
-            self.voxelIndicesIJK = voxel_indices_ijk
-        if vertices is None:
-            vertices = []
-        self.vertices = vertices
-        self.numVA = len(vertices)
+        self.voxel_indices_ijk = voxel_indices_ijk
+        self.vertices = vertices if vertices is not None else []
 
     @property
-    def voxelIndicesIJK(self):
-        return self._voxelIndicesIJK
+    def voxel_indices_ijk(self):
+        return self._voxel_indices_ijk
 
-    @voxelIndicesIJK.setter
-    def voxelIndicesIJK(self, value):
-        assert isinstance(value, CiftiVoxelIndicesIJK)
-        self._voxelIndicesIJK = value
+    @voxel_indices_ijk.setter
+    def voxel_indices_ijk(self, value):
+        self._voxel_indices_ijk = _value_if_klass(value, CiftiVoxelIndicesIJK)
 
     def add_cifti_vertices(self, vertices):
         """ Adds a vertices to the CiftiParcel
@@ -352,147 +353,129 @@ class CiftiParcel(object):
         ----------
         vertices : CiftiVertices
         """
-        if isinstance(vertices, CiftiVertices):
-            self.vertices.append(vertices)
-            self.numVA += 1
-        else:
+        if not isinstance(vertices, CiftiVertices):
             raise TypeError("Not a valid CiftiVertices instance")
+        self.vertices.append(vertices)
 
     def remove_cifti_vertices(self, ith):
         """ Removes the ith vertices element from the CiftiParcel """
         self.vertices.pop(ith)
-        self.numVA -= 1
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.name is None:
-            return ''
-        res = '%s<Parcel Name="%s">\n' % (prefix, self.name)
-        res += self.voxelIndicesIJK.to_xml(prefix=prefix + indent, indent=indent)
-        for vertices in self.vertices:
-            res += vertices.to_xml(prefix=prefix + indent, indent=indent)
-        res += "%s</Parcel>\n" % prefix
-        return res
+    def _to_xml_element(self):
+        assert self.name is not None
+        parcel = xml.Element('Parcel')
+        parcel.attrib['Name'] = str(self.name)
+        if self.voxel_indices_ijk:
+            parcel.append(self.voxel_indices_ijk._to_xml_element())
+        for vertex in self.vertices:
+            parcel.append(vertex._to_xml_element())
+        return parcel
 
 
 class CiftiTransformationMatrixVoxelIndicesIJKtoXYZ(object):
 
-    meterExponent = int
-    matrix = np.array
+    # meterExponent = int
+    # matrix = np.array
 
     def __init__(self, meter_exponent=None, matrix=None):
-        self.meterExponent = meter_exponent
+        self.meter_exponent = meter_exponent
         self.matrix = matrix
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.matrix is None:
-            return ''
-        res = ('%s<TransformationMatrixVoxelIndices'
-               'IJKtoXYZ MeterExponent="%d">') % (prefix, self.meterExponent)
-        for row in self.matrix:
-            res += '\n' + ' '.join(['%.10f' % val for val in row])
-        res += "</TransformationMatrixVoxelIndicesIJKtoXYZ>\n"
-        return res
+    def _to_xml_element(self):
+        assert self.matrix is not None
+        trans = xml.Element('TransformationMatrixVoxelIndicesIJKtoXYZ')
+        trans.attrib['MeterExponent'] = str(self.meter_exponent)
+        if self.matrix is not None:
+            trans.text = ''
+            for row in self.matrix:
+                trans.text += ' '.join(['%.10f' % val for val in row]) + "\n"
+        return trans
 
 
 class CiftiVolume(object):
 
-    volumeDimensions = np.array
-    transformationMatrixVoxelIndicesIJKtoXYZ = np.array
+    # volumeDimensions = np.array
+    # transformationMatrixVoxelIndicesIJKtoXYZ = np.array
 
     def __init__(self, volume_dimensions=None, transform_matrix=None):
-        self.volumeDimensions = volume_dimensions
-        self.transformationMatrixVoxelIndicesIJKtoXYZ = transform_matrix
+        self.volume_dimensions = volume_dimensions
+        self.transformation_matrix_voxel_indices_ijk_to_xyz = transform_matrix
 
-    def to_xml(self, prefix='', indent='    '):
-        if not self.volumeDimensions:
-            return ''
-        res = '%s<Volume VolumeDimensions="%s">\n' % (prefix,
-              ','.join([str(val) for val in self.volumeDimensions]))
-        res += self.transformationMatrixVoxelIndicesIJKtoXYZ.to_xml(prefix=prefix + '\t')
-        res += "%s</Volume>\n" % prefix
-        return res
+    def _to_xml_element(self):
+        assert self.volume_dimensions is not None
+        volume = xml.Element('Volume')
+        volume.attrib['VolumeDimensions'] = ','.join(
+            [str(val) for val in self.volume_dimensions])
+        volume.append(self.transformation_matrix_voxel_indices_ijk_to_xyz._to_xml_element())
+        return volume
 
 
 class CiftiVertexIndices(object):
-    indices = np.array
+    # indices = np.array
 
     def __init__(self, indices=None):
         self.indices = indices
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.indices is None:
-            return ''
-        indices = ' '.join(self.indices.astype(str).tolist())
-        res = '%s<VertexIndices>%s</VertexIndices>\n' % (prefix, indices)
-        return res
+    def _to_xml_element(self):
+        assert self.indices is not None
+        vert_indices = xml.Element('VertexIndices')
+        vert_indices.text = ' '.join(self.indices.astype(str).tolist())
+        return vert_indices
 
 
 class CiftiBrainModel(object):
 
-    indexOffset = int
-    indexCount = int
-    modelType = str
-    brainStructure = str
-    surfaceNumberOfVertices = int
-    _voxelIndicesIJK = np.array
-    _vertexIndices = np.array
+    # index_offset = int
+    # index_count = int
+    # model_type = str
+    # brain_structure = str
+    # surface_number_of_vertices = int
+    # voxel_indices_ijk = np.array
+    # vertex_indices = np.array
 
     def __init__(self, index_offset=None, index_count=None, model_type=None,
                  brain_structure=None, n_surface_vertices=None,
                  voxel_indices_ijk=None, vertex_indices=None):
-        self.indexOffset = index_offset
-        self.indexCount = index_count
-        self.modelType = model_type
-        self.brainStructure = brain_structure
-        self.surfaceNumberOfVertices = n_surface_vertices
+        self.index_offset = index_offset
+        self.index_count = index_count
+        self.model_type = model_type
+        self.brain_structure = brain_structure
+        self.surface_number_of_vertices = n_surface_vertices
 
-        if voxel_indices_ijk is not None:
-            self.voxelIndicesIJK = voxel_indices_ijk
-        else:
-            self.voxelIndicesIJK = CiftiVoxelIndicesIJK()
-        if vertex_indices is not None:
-            self.vertexIndices = vertex_indices
-        else:
-            self.vertexIndices = CiftiVertexIndices()
+        self.voxel_indices_ijk = voxel_indices_ijk
+        self.vertex_indices = vertex_indices
 
     @property
-    def voxelIndicesIJK(self):
-        return self._voxelIndicesIJK
+    def voxel_indices_ijk(self):
+        return self._voxel_indices_ijk
 
-    @voxelIndicesIJK.setter
-    def voxelIndicesIJK(self, value):
-        assert isinstance(value, CiftiVoxelIndicesIJK)
-        self._voxelIndicesIJK = value
+    @voxel_indices_ijk.setter
+    def voxel_indices_ijk(self, value):
+        self._voxel_indices_ijk = _value_if_klass(value, CiftiVoxelIndicesIJK)
 
     @property
-    def vertexIndices(self):
-        return self._vertexIndices
+    def vertex_indices(self):
+        return self._vertex_indices
 
-    @vertexIndices.setter
-    def vertexIndices(self, value):
-        assert isinstance(value, CiftiVertexIndices)
-        self._vertexIndices = value
+    @vertex_indices.setter
+    def vertex_indices(self, value):
+        self._vertex_indices = _value_if_klass(value, CiftiVertexIndices)
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.indexOffset is None:
-            return ''
+    def _to_xml_element(self):
+        brain_model = xml.Element('BrainModel')
+
         attrs = []
         for key in ['IndexOffset', 'IndexCount', 'ModelType', 'BrainStructure',
                     'SurfaceNumberOfVertices']:
-            attr = key[0].lower() + key[1:]
+            attr = inflection.underscore(key)
             value = getattr(self, attr)
             if value is not None:
-                attrs += ['%s="%s"' % (key, value)]
-        attrs = ' '.join(attrs)
-        res = '%s<BrainModel %s>\n' % (prefix, attrs)
-        if self.voxelIndicesIJK:
-            res += self.voxelIndicesIJK.to_xml(prefix=prefix + indent,
-                                               indent=indent)
-        if self.vertexIndices:
-            res += self.vertexIndices.to_xml(prefix=prefix + indent,
-                                             indent=indent)
-        res += "%s</BrainModel>\n" % prefix
-        return res
+                brain_model.attrib[key] = str(value)
+        if self.voxel_indices_ijk:
+            brain_model.append(self.voxel_indices_ijk._to_xml_element())
+        if self.vertex_indices:
+            brain_model.append(self.vertex_indices._to_xml_element())
+        return brain_model
 
 
 class CiftiMatrixIndicesMap(object):
@@ -500,56 +483,38 @@ class CiftiMatrixIndicesMap(object):
 
     Provides a mapping between matrix indices and their interpretation.
     """
-    numBrainModels = int
-    numNamedMaps = int
-    numParcels = int
-    numSurfaces = int
-    appliesToMatrixDimension = int
-    indicesMapToDataType = str
-    numberOfSeriesPoints = int
-    seriesExponent = int
-    seriesStart = float
-    seriesStep = float
-    seriesUnit = str
+    # applies_to_matrix_dimension = int
+    # indices_map_to_data_type = str
+    # number_of_series_points = int
+    # series_exponent = int
+    # series_start = float
+    # series_step = float
+    # series_unit = str
 
-    def __init__(self, appliesToMatrixDimension,
-                 indicesMapToDataType,
-                 numberOfSeriesPoints=None,
-                 seriesExponent=None,
-                 seriesStart=None,
-                 seriesStep=None,
-                 seriesUnit=None,
-                 brainModels=None,
-                 namedMaps=None,
+    def __init__(self, applies_to_matrix_dimension,
+                 indices_map_to_data_type,
+                 number_of_series_points=None,
+                 series_exponent=None,
+                 series_start=None,
+                 series_step=None,
+                 series_unit=None,
+                 brain_models=None,
+                 named_maps=None,
                  parcels=None,
                  surfaces=None,
                  volume=None):
-        self.appliesToMatrixDimension = appliesToMatrixDimension
-        self.indicesMapToDataType = indicesMapToDataType
-        self.numberOfSeriesPoints = numberOfSeriesPoints
-        self.seriesExponent = seriesExponent
-        self.seriesStart = seriesStart
-        self.seriesStep = seriesStep
-        self.seriesUnit = seriesUnit
-        if brainModels is None:
-            brainModels = []
-        self.brainModels = brainModels
-        self.numBrainModels = len(self.brainModels)
-        if namedMaps is None:
-            namedMaps = []
-        self.namedMaps = namedMaps
-        self.numNamedMaps = len(self.namedMaps)
-        if parcels is None:
-            parcels = []
-        self.parcels = parcels
-        self.numParcels = len(self.parcels)
-        if surfaces is None:
-            surfaces = []
-        self.surfaces = surfaces
-        self.numSurfaces = len(self.surfaces)
-        self.volume = CiftiVolume()
-        if not volume and isinstance(volume, CiftiVolume):
-            self.volume = volume
+        self.applies_to_matrix_dimension = applies_to_matrix_dimension
+        self.indices_map_to_data_type = indices_map_to_data_type
+        self.number_of_series_points = number_of_series_points
+        self.series_exponent = series_exponent
+        self.series_start = series_start
+        self.series_step = series_step
+        self.series_unit = series_unit
+        self.brain_models = brain_models if brain_models is not None else []
+        self.named_maps = named_maps if named_maps is not None else []
+        self.parcels = parcels if parcels is not None else []
+        self.surfaces = surfaces if surfaces is not None else []
+        self.volume = volume  # _value_or_make_klass(volume, CiftiVolume)
 
     def add_cifti_brain_model(self, brain_model):
         """ Adds a brain model to the CiftiMatrixIndicesMap
@@ -558,34 +523,28 @@ class CiftiMatrixIndicesMap(object):
         ----------
         brain_model : CiftiBrainModel
         """
-        if isinstance(brain_model, CiftiBrainModel):
-            self.brainModels.append(brain_model)
-            self.numBrainModels += 1
-        else:
+        if not isinstance(brain_model, CiftiBrainModel):
             raise TypeError("Not a valid CiftiBrainModel instance")
+        self.brain_models.append(brain_model)
 
     def remove_cifti_brain_model(self, ith):
         """ Removes the ith brain model element from the CiftiMatrixIndicesMap """
-        self.brainModels.pop(ith)
-        self.numBrainModels -= 1
+        self.brain_models.pop(ith)
 
     def add_cifti_named_map(self, named_map):
         """ Adds a named map to the CiftiMatrixIndicesMap
 
         Parameters
         ----------
-        named_map : CiftiNamedMap
+        named_map : CiftiMatrixIndicesMap
         """
-        if isinstance(named_map, CiftiNamedMap):
-            self.namedMaps.append(named_map)
-            self.numNamedMaps += 1
-        else:
-            raise TypeError("Not a valid CiftiNamedMap instance")
+        if isinstance(named_map, CiftiMatrixIndicesMap):
+            raise TypeError("Not a valid CiftiMatrixIndicesMap instance")
+        self.named_maps.append(named_map)
 
     def remove_cifti_named_map(self, ith):
         """ Removes the ith named_map element from the CiftiMatrixIndicesMap """
-        self.namedMaps.pop(ith)
-        self.numNamedMaps -= 1
+        self.named_maps.pop(ith)
 
     def add_cifti_parcel(self, parcel):
         """ Adds a parcel to the CiftiMatrixIndicesMap
@@ -594,16 +553,13 @@ class CiftiMatrixIndicesMap(object):
         ----------
         parcel : CiftiParcel
         """
-        if isinstance(parcel, CiftiParcel):
-            self.parcels.append(parcel)
-            self.numParcels += 1
-        else:
+        if not isinstance(parcel, CiftiParcel):
             raise TypeError("Not a valid CiftiParcel instance")
+        self.parcels.append(parcel)
 
     def remove_cifti_parcel(self, ith):
         """ Removes the ith parcel element from the CiftiMatrixIndicesMap """
         self.parcels.pop(ith)
-        self.numParcels -= 1
 
     def add_cifti_surface(self, surface):
         """ Adds a surface to the CiftiMatrixIndicesMap
@@ -612,16 +568,13 @@ class CiftiMatrixIndicesMap(object):
         ----------
         surface : CiftiSurface
         """
-        if isinstance(surface, CiftiSurface):
-            self.surfaces.append(surface)
-            self.numSurfaces += 1
-        else:
+        if not isinstance(surface, CiftiSurface):
             raise TypeError("Not a valid CiftiSurface instance")
+        self.surfaces.append(surface)
 
     def remove_cifti_surface(self, ith):
         """ Removes the ith surface element from the CiftiMatrixIndicesMap """
         self.surfaces.pop(ith)
-        self.numSurfaces -= 1
 
     def set_cifti_volume(self, volume):
         """ Adds a volume to the CiftiMatrixIndicesMap
@@ -630,60 +583,54 @@ class CiftiMatrixIndicesMap(object):
         ----------
         volume : CiftiVolume
         """
-        if isinstance(volume, CiftiVolume):
-            self.volume = volume
-        else:
+        if not isinstance(volume, CiftiVolume):
             raise TypeError("Not a valid CiftiVolume instance")
+        self.volume = volume
 
     def remove_cifti_volume(self):
         """ Removes the volume element from the CiftiMatrixIndicesMap """
         self.volume = None
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.appliesToMatrixDimension is None:
-            return ''
+    def _to_xml_element(self):
+        assert self.applies_to_matrix_dimension is not None
         attrs = []
+        mat_ind_map = xml.Element('MatrixIndicesMap')
         for key in ['AppliesToMatrixDimension', 'IndicesMapToDataType',
                     'NumberOfSeriesPoints', 'SeriesExponent', 'SeriesStart',
                     'SeriesStep', 'SeriesUnit']:
-            attr = key[0].lower() + key[1:]
+            attr = inflection.underscore(key)
             value = getattr(self, attr)
             if value is not None:
-                attrs += ['%s="%s"' % (key, value)]
-        attrs = ' '.join(attrs)
-        res = '%s<MatrixIndicesMap %s>\n' % (prefix, attrs)
-        for named_map in self.namedMaps:
-            res += named_map.to_xml(prefix=prefix + indent, indent=indent)
+                mat_ind_map.attrib[key] = str(value)
+        for named_map in self.named_maps:
+            assert named_map._to_xml_element() is not None
+            mat_ind_map.append(named_map._to_xml_element())
         for surface in self.surfaces:
-            res += surface.to_xml(prefix=prefix + indent, indent=indent)
+            assert surface._to_xml_element() is not None
+            mat_ind_map.append(surface._to_xml_element())
         for parcel in self.parcels:
-            res += parcel.to_xml(prefix=prefix + indent, indent=indent)
+            assert parcel._to_xml_element() is not None
+            mat_ind_map.append(parcel._to_xml_element())
         if self.volume:
-            res += self.volume.to_xml(prefix=prefix + indent, indent=indent)
-        for model in self.brainModels:
-            res += model.to_xml(prefix=prefix + indent, indent=indent)
-        res += "%s</MatrixIndicesMap>\n" % prefix
-        return res
+            assert self.volume._to_xml_element() is not None
+            mat_ind_map.append(self.volume._to_xml_element())
+        for model in self.brain_models:
+            assert model._to_xml_element() is not None
+            mat_ind_map.append(model._to_xml_element())
+        return mat_ind_map
 
 
-class CiftiMatrix(object):
-
-    numMIM = int
-
+class CiftiMatrix(xml.XmlSerializable):
     def __init__(self, meta=None, mims=None):
-        if mims is None:
-            mims = []
-        self.mims = mims
-        if meta is None:
-            self.meta = CiftiMetaData()
-        else:
-            self.meta = meta
-        self.numMIM = len(self.mims)
+        self.mims = mims if mims is not None else []
+        self.metadata = meta
 
-    def get_metadata(self):
-        return self.meta
+    @property
+    def metadata(self):
+        return self._meta
 
-    def set_metadata(self, meta):
+    @metadata.setter
+    def metadata(self, meta):
         """ Set the metadata for this CiftiHeader
 
         Parameters
@@ -694,10 +641,9 @@ class CiftiMatrix(object):
         -------
         None
         """
-        if isinstance(meta, CiftiMetaData):
-            self.meta = meta
-        else:
+        if meta is not None and not isinstance(meta, CiftiMetaData):
             raise TypeError("Not a valid CiftiMetaData instance")
+        self._meta = meta
 
     def add_cifti_matrix_indices_map(self, mim):
         """ Adds a matrix indices map to the CiftiMatrix
@@ -708,31 +654,27 @@ class CiftiMatrix(object):
         """
         if isinstance(mim, CiftiMatrixIndicesMap):
             self.mims.append(mim)
-            self.numMIM += 1
         else:
             raise TypeError("Not a valid CiftiMatrixIndicesMap instance")
 
     def remove_cifti_matrix_indices_map(self, ith):
         """ Removes the ith matrix indices map element from the CiftiMatrix """
         self.mims.pop(ith)
-        self.numMIM -= 1
 
-    def to_xml(self, prefix='', indent='    '):
-        if self.numMIM == 0:
-            return ''
-        res = '%s<Matrix>\n' % prefix
-        if self.meta:
-            res += self.meta.to_xml(prefix=prefix + indent, indent=indent)
+    def _to_xml_element(self):
+        assert len(self.mims) != 0 or self.metadata is not None
+        mat = xml.Element('Matrix')
+        if self.metadata:
+            mat.append(self.metadata._to_xml_element())
         for mim in self.mims:
-            res += mim.to_xml(prefix=prefix + indent, indent=indent)
-        res += "%s</Matrix>\n" % prefix
-        return res
+            mat.append(mim._to_xml_element())
+        return mat
 
 
-class CiftiHeader(FileBasedHeader):
+class CiftiHeader(FileBasedHeader, xml.XmlSerializable):
     ''' Class for Cifti2 header extension '''
 
-    version = str
+    # version = str
 
     def __init__(self, matrix=None, version="2.0"):
         if matrix is None:
@@ -741,11 +683,13 @@ class CiftiHeader(FileBasedHeader):
             self.matrix = matrix
         self.version = version
 
-    def to_xml(self, prefix='', indent='    '):
-        res = '%s<CIFTI Version="%s">\n' % (prefix, self.version)
-        res += self.matrix.to_xml(prefix=prefix + indent, indent=indent)
-        res += "%s</CIFTI>\n" % prefix
-        return res
+    def _to_xml_element(self):
+        cifti = xml.Element('CIFTI')
+        cifti.attrib['Version'] = str(self.version)
+        mat_xml = self.matrix._to_xml_element()
+        if mat_xml is not None:
+            cifti.append(mat_xml)
+        return cifti
 
     @classmethod
     def from_header(klass, header=None):
