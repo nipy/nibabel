@@ -22,7 +22,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
 
 def isiterable(streamlines):
     try:
-        for point, scalar, prop in streamlines:
+        for _ in streamlines:
             pass
     except:
         return False

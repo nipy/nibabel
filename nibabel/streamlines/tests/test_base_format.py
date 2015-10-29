@@ -48,7 +48,7 @@ class TestStreamlines(unittest.TestCase):
         assert_arrays_equal(streamlines.properties, [])
 
         # Check if we can iterate through the streamlines.
-        for points, scalars, props in streamlines:
+        for streamline in streamlines:
             pass
 
         # Only points
@@ -59,7 +59,7 @@ class TestStreamlines(unittest.TestCase):
         assert_arrays_equal(streamlines.properties, [])
 
         # Check if we can iterate through the streamlines.
-        for points, scalars, props in streamlines:
+        for streamline in streamlines:
             pass
 
         # Points, scalars and properties
@@ -70,8 +70,10 @@ class TestStreamlines(unittest.TestCase):
         assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
 
         # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
+        for streamline in streamlines:
             pass
+
+        #streamlines = Streamlines(self.points, scalars)
 
     def test_streamlines_getter(self):
         # Streamlines with only points
@@ -80,27 +82,24 @@ class TestStreamlines(unittest.TestCase):
         selected_streamlines = streamlines[::2]
         assert_equal(len(selected_streamlines), (len(self.points)+1)//2)
 
-        points, scalars, properties = zip(*selected_streamlines)
-        assert_arrays_equal(points, self.points[::2])
-        assert_equal(sum(map(len, scalars)), 0)
-        assert_equal(sum(map(len, properties)), 0)
+        assert_arrays_equal(selected_streamlines.points, self.points[::2])
+        assert_equal(sum(map(len, selected_streamlines.scalars)), 0)
+        assert_equal(sum(map(len, selected_streamlines.properties)), 0)
 
         # Streamlines with points, scalars and properties
         streamlines = Streamlines(self.points, self.colors, self.mean_curvature_torsion)
 
         # Retrieve streamlines by their index
-        for i, (points, scalars, props) in enumerate(streamlines):
-            points_i, scalars_i, props_i = streamlines[i]
-            assert_array_equal(points_i, points)
-            assert_array_equal(scalars_i, scalars)
-            assert_array_equal(props_i, props)
+        for i, streamline in enumerate(streamlines):
+            assert_array_equal(streamline.points, streamlines[i].points)
+            assert_array_equal(streamline.scalars, streamlines[i].scalars)
+            assert_array_equal(streamline.properties, streamlines[i].properties)
 
         # Use slicing
         r_streamlines = streamlines[::-1]
-        r_points, r_scalars, r_props = zip(*r_streamlines)
-        assert_arrays_equal(r_points, self.points[::-1])
-        assert_arrays_equal(r_scalars, self.colors[::-1])
-        assert_arrays_equal(r_props, self.mean_curvature_torsion[::-1])
+        assert_arrays_equal(r_streamlines.points, self.points[::-1])
+        assert_arrays_equal(r_streamlines.scalars, self.colors[::-1])
+        assert_arrays_equal(r_streamlines.properties, self.mean_curvature_torsion[::-1])
 
     def test_streamlines_creation_from_coroutines(self):
         # Points, scalars and properties
@@ -199,7 +198,7 @@ class TestLazyStreamlines(unittest.TestCase):
         assert_arrays_equal(streamlines.properties, [])
 
         # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
+        for streamline in streamlines:
             pass
 
         # Points, scalars and properties
@@ -230,7 +229,7 @@ class TestLazyStreamlines(unittest.TestCase):
         assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
 
         # Check if we can iterate through the streamlines.
-        for point, scalar, prop in streamlines:
+        for streamline in streamlines:
             pass
 
     def test_lazy_streamlines_indexing(self):
@@ -290,7 +289,7 @@ class TestLazyStreamlines(unittest.TestCase):
             # Once we iterated through the streamlines, we know the length.
             streamlines = LazyStreamlines(points, scalars, properties)
             assert_true(streamlines.header.nb_streamlines is None)
-            for s in streamlines:
+            for streamline in streamlines:
                 pass
 
             assert_equal(streamlines.header.nb_streamlines, len(self.points))

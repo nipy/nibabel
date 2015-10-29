@@ -24,6 +24,128 @@ class DataError(Exception):
     pass
 
 
+class CompactList(object):
+    def __init__(self, preallocate=(0,), dtype=np.float32):
+        self.dtype = dtype
+        self.data = np.empty(preallocate, dtype=dtype)
+        self.offsets = []
+        self.lengths = []
+
+    @classmethod
+    def from_list(cls, elements):
+        """ Fast way to create a `Streamlines` object from some streamlines.
+        Parameters
+        ----------
+        elements : list
+            List of 2D ndarrays of same shape except on the first dimension.
+        """
+        if len(elements) == 0:
+            return cls()
+
+        first_element = np.asarray(elements[0])
+        s = cls(preallocate=(0,) + first_element.shape[1:], dtype=first_element.dtype)
+        s.extend(elements)
+        return s
+
+    def append(self, element):
+        """
+        Parameters
+        ----------
+        element : 2D ndarrays of `element.shape[1:] == self.shape`
+            Element to add.
+        Note
+        ----
+        If you need to add multiple elements you should consider
+        `CompactList.from_list` or `CompactList.extend`.
+        """
+        self.offsets.append(len(self.data))
+        self.lengths.append(len(element))
+        self.data = np.append(self.data, element, axis=0)
+
+    def extend(self, elements):
+        if isinstance(elements, CompactList):
+            self.data = np.concatenate([self.data, elements.data], axis=0)
+            offset = self.offsets[-1] + self.lengths[-1] if len(self) > 0 else 0
+            self.lengths.extend(elements.lengths)
+            self.offsets.extend(np.cumsum([offset] + elements.lengths).tolist()[:-1])
+        else:
+            self.data = np.concatenate([self.data] + list(elements), axis=0)
+            offset = self.offsets[-1] + self.lengths[-1] if len(self) > 0 else 0
+            lengths = map(len, elements)
+            self.lengths.extend(lengths)
+            self.offsets.extend(np.cumsum([offset] + lengths).tolist()[:-1])
+
+    def __getitem__(self, idx):
+        """ Gets element(s) through indexing.
+        Parameters
+        ----------
+        idx : int, slice or list
+            Index of the element(s) to get.
+        Returns
+        -------
+        `ndarray` object(s)
+            When `idx` is a int, returns a single 2D array.
+            When `idx` is either a slice or a list, returns a list of 2D arrays.
+        """
+        if isinstance(idx, int) or isinstance(idx, np.integer):
+            return self.data[self.offsets[idx]:self.offsets[idx]+self.lengths[idx]]
+
+        elif type(idx) is slice:
+            compact_list = CompactList()
+            compact_list.data = self.data
+            compact_list.offsets = self.offsets[idx]
+            compact_list.lengths = self.lengths[idx]
+            return compact_list
+
+        elif type(idx) is list:
+            compact_list = CompactList()
+            compact_list.data = self.data
+            compact_list.offsets = [self.offsets[i] for i in idx]
+            compact_list.lengths = [self.lengths[i] for i in idx]
+            return compact_list
+
+        raise TypeError("Index must be a int or a slice! Not " + str(type(idx)))
+
+    def copy(self):
+        # We could not only deepcopy the object because when slicing a CompactList it returns
+        # a view with modified `lengths` and `offsets` but `data` still points to the original data.
+        compact_list = CompactList()
+        total_lengths = np.sum(self.lengths)
+        compact_list.data = np.empty((total_lengths,) + self.data.shape[1:], dtype=self.dtype)
+
+        cur_offset = 0
+        for offset, lengths in zip(self.offsets, self.lengths):
+            compact_list.offsets.append(cur_offset)
+            compact_list.lengths.append(lengths)
+            compact_list.data[cur_offset:cur_offset+lengths] = self.data[offset:offset+lengths]
+            cur_offset += lengths
+
+        return compact_list
+
+    def __iter__(self):
+        if len(self.lengths) != len(self.offsets):
+            raise ValueError("CompactList object corrupted: len(self.lengths) != len(self.offsets)")
+
+        for offset, lengths in zip(self.offsets, self.lengths):
+            yield self.data[offset: offset+lengths]
+
+    def __len__(self):
+        return len(self.offsets)
+
+
+class Streamline(object):
+    def __init__(self, points, scalars=None, properties=None):
+        self.points = points
+        self.scalars = scalars
+        self.properties = properties
+
+    def __iter__(self):
+        return iter(self.points)
+
+    def __len__(self):
+        return len(self.points)
+
+
 class Streamlines(object):
     ''' Class containing information about streamlines.
 
@@ -64,7 +186,18 @@ class Streamlines(object):
 
     @points.setter
     def points(self, value):
-        self._points = value if value else []
+        if value is None or len(value) == 0:
+            self._points = CompactList(preallocate=(0, 3))
+
+        elif isinstance(value, CompactList):
+            self._points = value
+
+        elif isinstance(value, list) or isinstance(value, tuple):
+            self._points = CompactList.from_list(value)
+
+        else:
+            raise DataError("Unsupported data type: {0}".format(type(value)))
+
         self.header.nb_streamlines = len(self.points)
 
     @property
@@ -73,9 +206,19 @@ class Streamlines(object):
 
     @scalars.setter
     def scalars(self, value):
-        self._scalars = value if value else []
-        self.header.nb_scalars_per_point = 0
+        if value is None or len(value) == 0:
+            self._scalars = CompactList()
 
+        elif isinstance(value, CompactList):
+            self._scalars = value
+
+        elif isinstance(value, list) or isinstance(value, tuple):
+            self._scalars = CompactList.from_list(value)
+
+        else:
+            raise DataError("Unsupported data type: {0}".format(type(value)))
+
+        self.header.nb_scalars_per_point = 0
         if len(self.scalars) > 0 and len(self.scalars[0]) > 0:
             self.header.nb_scalars_per_point = len(self.scalars[0][0])
 
@@ -85,14 +228,18 @@ class Streamlines(object):
 
     @properties.setter
     def properties(self, value):
-        self._properties = value if value else []
+        if value is None:
+            value = []
+
+        self._properties = np.asarray(value, dtype=np.float32)
         self.header.nb_properties_per_streamline = 0
 
         if len(self.properties) > 0:
             self.header.nb_properties_per_streamline = len(self.properties[0])
 
     def __iter__(self):
-        return zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+        for data in zip_longest(self.points, self.scalars, self.properties, fillvalue=[]):
+            yield Streamline(*data)
 
     def __getitem__(self, idx):
         pts = self.points[idx]
@@ -105,16 +252,16 @@ class Streamlines(object):
             properties = self.properties[idx]
 
         if type(idx) is slice:
-            return list(zip_longest(pts, scalars, properties, fillvalue=[]))
+            return Streamlines(pts, scalars, properties)
 
-        return pts, scalars, properties
+        return Streamline(pts, scalars, properties)
 
     def __len__(self):
         return len(self.points)
 
     def copy(self):
         """ Returns a copy of this `Streamlines` object. """
-        streamlines = Streamlines(self.points, self.scalars, self.properties)
+        streamlines = Streamlines(self.points.copy(), self.scalars.copy(), self.properties.copy())
         streamlines._header = self.header.copy()
         return streamlines
 
@@ -280,7 +427,7 @@ class LazyStreamlines(Streamlines):
     def __iter__(self):
         i = 0
         for i, s in enumerate(self._data(), start=1):
-            yield s
+            yield Streamline(*s)
 
         # To be safe, update information about number of streamlines.
         self.header.nb_streamlines = i

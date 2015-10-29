@@ -40,13 +40,21 @@ def bench_load_trk():
     repeat = 20
 
     trk_file = BytesIO()
-    trk = list(zip(points, [None]*NB_STREAMLINES, [None]*NB_STREAMLINES))
-    tv.write(trk_file, trk)
+    #trk = list(zip(points, [None]*NB_STREAMLINES, [None]*NB_STREAMLINES))
+    #tv.write(trk_file, trk)
+    streamlines = Streamlines(points)
+    TrkFile.save(streamlines, trk_file)
 
-    mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, lazy_load=False)', repeat)
-    print("\nNew: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_new))
+    from pycallgraph import PyCallGraph
+    from pycallgraph.output import GraphvizOutput
 
-    mtime_old = measure('trk_file.seek(0, os.SEEK_SET); tv.read(trk_file)', repeat)
+    with PyCallGraph(output=GraphvizOutput()):
+        #nib.streamlines.load(trk_file, ref=None, lazy_load=False)
+
+        mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, ref=None, lazy_load=False)', repeat)
+        print("\nNew: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_new))
+
+    mtime_old = measure('trk_file.seek(0, os.SEEK_SET); tv.read(trk_file, points_space="voxel")', repeat)
     print("Old: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_old))
     print("Speedup of %2f" % (mtime_old/mtime_new))
 
@@ -54,13 +62,15 @@ def bench_load_trk():
     scalars = [np.random.rand(NB_POINTS, 10).astype('float32') for i in range(NB_STREAMLINES)]
 
     trk_file = BytesIO()
-    trk = list(zip(points, scalars, [None]*NB_STREAMLINES))
-    tv.write(trk_file, trk)
+    #trk = list(zip(points, scalars, [None]*NB_STREAMLINES))
+    #tv.write(trk_file, trk)
+    streamlines = Streamlines(points, scalars)
+    TrkFile.save(streamlines, trk_file)
 
-    mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, lazy_load=False)', repeat)
+    mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, ref=None, lazy_load=False)', repeat)
     print("New: Loaded %d streamlines with scalars in %6.2f" % (NB_STREAMLINES, mtime_new))
 
-    mtime_old = measure('trk_file.seek(0, os.SEEK_SET); tv.read(trk_file)', repeat)
+    mtime_old = measure('trk_file.seek(0, os.SEEK_SET); tv.read(trk_file, points_space="voxel")', repeat)
     print("Old: Loaded %d streamlines with scalars in %6.2f" % (NB_STREAMLINES, mtime_old))
     print("Speedup of %2f" % (mtime_old/mtime_new))
 
@@ -91,8 +101,7 @@ def bench_save_trk():
     for pts, A in zip(points, streams):
         assert_array_equal(pts, A[0])
 
-    trk = nib.streamlines.load(trk_file_new, lazy_load=False)
-
+    trk = nib.streamlines.load(trk_file_new, ref=None, lazy_load=False)
     assert_arrays_equal(points, trk.points)
 
     # Points and scalars
@@ -117,7 +126,7 @@ def bench_save_trk():
         assert_array_equal(pts, A[0])
         assert_array_equal(scal, A[1])
 
-    trk = nib.streamlines.load(trk_file_new, lazy_load=False)
+    trk = nib.streamlines.load(trk_file_new, ref=None, lazy_load=False)
 
     assert_arrays_equal(points, trk.points)
     assert_arrays_equal(scalars, trk.scalars)
