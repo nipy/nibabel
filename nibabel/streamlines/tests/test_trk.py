@@ -20,7 +20,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
 def isiterable(streamlines):
     try:
-        for point, scalar, prop in streamlines:
+        for streamline in streamlines:
             pass
     except:
         return False
@@ -201,29 +201,33 @@ class TestTRK(unittest.TestCase):
         streamlines = Streamlines(self.points, scalars)
         assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
-        # Inconsistent number of scalars between points
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1, 0), (0, 1)],
-                   [(0, 0, 1)]*5]
+        # # Unit test moved to test_base_format.py
+        # # Inconsistent number of scalars between points
+        # scalars = [[(1, 0, 0)]*1,
+        #            [(0, 1, 0), (0, 1)],
+        #            [(0, 0, 1)]*5]
 
-        streamlines = Streamlines(self.points, scalars)
-        assert_raises(ValueError, TrkFile.save, streamlines, BytesIO())
+        #streamlines = Streamlines(self.points, scalars)
+        #assert_raises(ValueError, TrkFile.save, streamlines, BytesIO())
 
-        # Inconsistent number of scalars between streamlines
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1)]*2,
-                   [(0, 0, 1)]*5]
+        # # Unit test moved to test_base_format.py
+        # # Inconsistent number of scalars between streamlines
+        # scalars = [[(1, 0, 0)]*1,
+        #            [(0, 1)]*2,
+        #            [(0, 0, 1)]*5]
 
-        streamlines = Streamlines(self.points, scalars)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        # streamlines = Streamlines(self.points, scalars)
+        # assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
-        # Inconsistent number of properties
-        properties = [np.array([1.11, 1.22], dtype="f4"),
-                      np.array([2.11], dtype="f4"),
-                      np.array([3.11, 3.22], dtype="f4")]
-        streamlines = Streamlines(self.points, properties=properties)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        # # Unit test moved to test_base_format.py
+        # # Inconsistent number of properties
+        # properties = [np.array([1.11, 1.22], dtype="f4"),
+        #               np.array([2.11], dtype="f4"),
+        #               np.array([3.11, 3.22], dtype="f4")]
+        # streamlines = Streamlines(self.points, properties=properties)
+        # assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
+        # # Unit test moved to test_base_format.py
         # No properties for every streamlines
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([2.11, 2.22], dtype="f4")]

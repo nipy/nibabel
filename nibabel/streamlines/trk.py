@@ -12,6 +12,7 @@ import numpy as np
 from nibabel.openers import Opener
 from nibabel.volumeutils import (native_code, swapped_code)
 
+from nibabel.streamlines.base_format import CompactList
 from nibabel.streamlines.base_format import StreamlinesFile
 from nibabel.streamlines.base_format import DataError, HeaderError, HeaderWarning
 from nibabel.streamlines.base_format import Streamlines, LazyStreamlines
@@ -139,11 +140,23 @@ class TrkReader(object):
             # Keep the file position where the data begin.
             self.offset_data = f.tell()
 
+            if f.name is not None and self.header[Field.NB_STREAMLINES] > 0:
+                filesize = os.path.getsize(f.name) - self.offset_data
+                # Remove properties
+                filesize -= self.header[Field.NB_STREAMLINES] * self.header[Field.NB_PROPERTIES_PER_STREAMLINE] * 4.
+                # Remove the points count at the beginning of each streamline.
+                filesize -= self.header[Field.NB_STREAMLINES] * 4.
+                # Get nb points.
+                nb_points = filesize / ((3 + self.header[Field.NB_SCALARS_PER_POINT]) * 4.)
+                self.header[Field.NB_POINTS] = int(nb_points)
+
     def __iter__(self):
         i4_dtype = np.dtype(self.endianness + "i4")
         f4_dtype = np.dtype(self.endianness + "f4")
 
+        #from io import BufferedReader
         with Opener(self.fileobj) as f:
+            #f = BufferedReader(f.fobj)
             start_position = f.tell()
 
             nb_pts_and_scalars = int(3 + self.header[Field.NB_SCALARS_PER_POINT])
@@ -257,13 +270,13 @@ class TrkWriter(object):
         i4_dtype = np.dtype("i4")
         f4_dtype = np.dtype("f4")
 
-        for points, scalars, properties in streamlines:
-            if len(scalars) > 0 and len(scalars) != len(points):
+        for s in streamlines:
+            if len(s.scalars) > 0 and len(s.scalars) != len(s.points):
                 raise DataError("Missing scalars for some points!")
 
-            points = np.array(points, dtype=f4_dtype)
-            scalars = np.array(scalars, dtype=f4_dtype).reshape((len(points), -1))
-            properties = np.array(properties, dtype=f4_dtype)
+            points = np.asarray(s.points, dtype=f4_dtype)
+            scalars = np.asarray(s.scalars, dtype=f4_dtype).reshape((len(points), -1))
+            properties = np.asarray(s.properties, dtype=f4_dtype)
 
             # TRK's streamlines need to be in 'voxelmm' space
             points = points * self.header[Field.VOXEL_SIZES]
@@ -413,6 +426,45 @@ class TrkFile(StreamlinesFile):
                 streamlines.scalars = lambda: []
             if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
                 streamlines.properties = lambda: []
+        elif Field.NB_POINTS in trk_reader.header:
+            # 'count' field is provided, we can avoid creating list of numpy
+            # arrays (more memory efficient).
+
+            nb_streamlines = trk_reader.header[Field.NB_STREAMLINES]
+            nb_points = trk_reader.header[Field.NB_POINTS]
+
+            points = CompactList(preallocate=(nb_points, 3))
+            scalars = CompactList(preallocate=(nb_points, trk_reader.header[Field.NB_SCALARS_PER_POINT]))
+            properties = np.empty((nb_streamlines, trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]),
+                                  dtype=np.float32)
+
+            offset = 0
+            offsets = []
+            lengths = []
+            for i, (pts, scals, props) in enumerate(data()):
+                offsets.append(offset)
+                lengths.append(len(pts))
+                try:
+                    points.data[offset:offset+len(pts)] = pts
+                except:
+                    from ipdb import set_trace as dbg
+                    dbg()
+                scalars.data[offset:offset+len(scals)] = scals
+                properties[i] = props
+                offset += len(pts)
+
+            points.offsets = offsets
+            scalars.offsets = offsets
+            points.lengths = lengths
+            scalars.lengths = lengths
+            streamlines = Streamlines(points, scalars, properties)
+
+            # Overwrite scalars and properties if there is none
+            if trk_reader.header[Field.NB_SCALARS_PER_POINT] == 0:
+                streamlines.scalars = []
+            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
+                streamlines.properties = []
+
         else:
             streamlines = Streamlines(*zip(*data()))
 
