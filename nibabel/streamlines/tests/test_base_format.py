@@ -289,7 +289,20 @@ class TestTractogram(unittest.TestCase):
         for streamline in streamlines:
             pass
 
-        #streamlines = Tractogram(self.points, scalars)
+        # Inconsistent number of scalars between points
+        scalars = [[(1, 0, 0)]*1,
+                   [(0, 1, 0), (0, 1)],
+                   [(0, 0, 1)]*5]
+
+        assert_raises(ValueError, Tractogram, self.points, scalars)
+
+        # Unit test moved to test_base_format.py
+        # Inconsistent number of scalars between streamlines
+        scalars = [[(1, 0, 0)]*1,
+                   [(0, 1)]*2,
+                   [(0, 0, 1)]*5]
+
+        assert_raises(ValueError, Tractogram, self.points, scalars)
 
     def test_streamlines_getter(self):
         # Tractogram with only points
@@ -354,6 +367,7 @@ class TestTractogram(unittest.TestCase):
 
         # Test that we can run __repr__ without error.
         repr(streamlines.header)
+
 
 
 class TestLazyTractogram(unittest.TestCase):

@@ -276,6 +276,9 @@ class Tractogram(object):
         scals = np.asarray(first_element[1])
         props = np.asarray(first_element[2])
 
+        scals_shape = scals.shape
+        props_shape = props.shape
+
         points._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
         scalars._data = np.empty((BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
         properties = np.empty((BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
@@ -285,6 +288,14 @@ class Tractogram(object):
             pts = np.asarray(pts)
             scals = np.asarray(scals)
             props = np.asarray(props)
+
+            if scals.shape[1] != scals_shape[1]:
+                raise ValueError("Number of scalars differs from one"
+                                 " point or streamline to another")
+
+            if props.shape != props_shape:
+                raise ValueError("Number of properties differs from one"
+                                 " streamline to another")
 
             end = offset + len(pts)
             if end >= len(points._data):
