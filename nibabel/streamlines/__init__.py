@@ -1,5 +1,5 @@
 from .header import Field
-from .base_format import Streamlines, LazyStreamlines
+from .base_format import Tractogram, LazyTractogram
 
 from nibabel.streamlines.trk import TrkFile
 #from nibabel.streamlines.tck import TckFile

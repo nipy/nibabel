@@ -45,14 +45,14 @@ def bench_load_trk():
     streamlines = Streamlines(points)
     TrkFile.save(streamlines, trk_file)
 
-    from pycallgraph import PyCallGraph
-    from pycallgraph.output import GraphvizOutput
+    # from pycallgraph import PyCallGraph
+    # from pycallgraph.output import GraphvizOutput
 
-    with PyCallGraph(output=GraphvizOutput()):
-        #nib.streamlines.load(trk_file, ref=None, lazy_load=False)
+    # with PyCallGraph(output=GraphvizOutput()):
+    #     #nib.streamlines.load(trk_file, ref=None, lazy_load=False)
 
-        mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, ref=None, lazy_load=False)', repeat)
-        print("\nNew: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_new))
+    mtime_new = measure('trk_file.seek(0, os.SEEK_SET); nib.streamlines.load(trk_file, ref=None, lazy_load=False)', repeat)
+    print("\nNew: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_new))
 
     mtime_old = measure('trk_file.seek(0, os.SEEK_SET); tv.read(trk_file, points_space="voxel")', repeat)
     print("Old: Loaded %d streamlines in %6.2f" % (NB_STREAMLINES, mtime_old))

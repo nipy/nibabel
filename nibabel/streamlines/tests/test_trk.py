@@ -9,7 +9,7 @@ from nibabel.testing import assert_arrays_equal, assert_streamlines_equal
 from nose.tools import assert_equal, assert_raises, assert_true
 
 from .. import base_format
-from ..base_format import Streamlines, LazyStreamlines
+from ..base_format import Tractogram, LazyTractogram
 from ..base_format import DataError, HeaderError, HeaderWarning, UsageWarning
 
 from .. import trk
@@ -128,7 +128,7 @@ class TestTRK(unittest.TestCase):
         assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
 
     def test_write_simple_file(self):
-        streamlines = Streamlines(self.points)
+        streamlines = Tractogram(self.points)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
@@ -146,7 +146,7 @@ class TestTRK(unittest.TestCase):
 
     def test_write_complex_file(self):
         # With scalars
-        streamlines = Streamlines(self.points, scalars=self.colors)
+        streamlines = Tractogram(self.points, scalars=self.colors)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
@@ -158,7 +158,7 @@ class TestTRK(unittest.TestCase):
                           self.points, self.colors, [])
 
         # With properties
-        streamlines = Streamlines(self.points, properties=self.mean_curvature_torsion)
+        streamlines = Tractogram(self.points, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
@@ -169,7 +169,7 @@ class TestTRK(unittest.TestCase):
                           self.points, [], self.mean_curvature_torsion)
 
         # With scalars and properties
-        streamlines = Streamlines(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
+        streamlines = Tractogram(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
         TrkFile.save(streamlines, trk_file)
@@ -191,14 +191,14 @@ class TestTRK(unittest.TestCase):
                    [(0, 1, 0)],
                    [(0, 0, 1)]]
 
-        streamlines = Streamlines(self.points, scalars)
+        streamlines = Tractogram(self.points, scalars)
         assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
         # No scalars for every streamlines
         scalars = [[(1, 0, 0)]*1,
                    [(0, 1, 0)]*2]
 
-        streamlines = Streamlines(self.points, scalars)
+        streamlines = Tractogram(self.points, scalars)
         assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
         # # Unit test moved to test_base_format.py
@@ -207,7 +207,7 @@ class TestTRK(unittest.TestCase):
         #            [(0, 1, 0), (0, 1)],
         #            [(0, 0, 1)]*5]
 
-        #streamlines = Streamlines(self.points, scalars)
+        #streamlines = Tractogram(self.points, scalars)
         #assert_raises(ValueError, TrkFile.save, streamlines, BytesIO())
 
         # # Unit test moved to test_base_format.py
@@ -216,7 +216,7 @@ class TestTRK(unittest.TestCase):
         #            [(0, 1)]*2,
         #            [(0, 0, 1)]*5]
 
-        # streamlines = Streamlines(self.points, scalars)
+        # streamlines = Tractogram(self.points, scalars)
         # assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
         # # Unit test moved to test_base_format.py
@@ -224,14 +224,14 @@ class TestTRK(unittest.TestCase):
         # properties = [np.array([1.11, 1.22], dtype="f4"),
         #               np.array([2.11], dtype="f4"),
         #               np.array([3.11, 3.22], dtype="f4")]
-        # streamlines = Streamlines(self.points, properties=properties)
+        # streamlines = Tractogram(self.points, properties=properties)
         # assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
         # # Unit test moved to test_base_format.py
         # No properties for every streamlines
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([2.11, 2.22], dtype="f4")]
-        streamlines = Streamlines(self.points, properties=properties)
+        streamlines = Tractogram(self.points, properties=properties)
         assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
 
     def test_write_file_lazy_streamlines(self):
@@ -239,7 +239,7 @@ class TestTRK(unittest.TestCase):
         scalars = lambda: (scalar for scalar in self.colors)
         properties = lambda: (prop for prop in self.mean_curvature_torsion)
 
-        streamlines = LazyStreamlines(points, scalars, properties)
+        streamlines = LazyTractogram(points, scalars, properties)
         # No need to manually set `nb_streamlines` in the header since we count
         # them as writing.
         #streamlines.header.nb_streamlines = self.nb_streamlines

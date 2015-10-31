@@ -63,7 +63,7 @@ from .orientations import (io_orientation, orientation_affine,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
 from . import trackvis
-from .streamlines import Streamlines
+from .streamlines import Tractogram
 from . import mriutils
 
 # be friendly on systems with ancient numpy -- no tests, but at least
