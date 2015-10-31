@@ -12,7 +12,7 @@ from nibabel.testing import clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
-from ..base_format import Streamlines, LazyStreamlines
+from ..base_format import Tractogram, LazyTractogram
 from ..base_format import HeaderError, UsageWarning
 from ..header import Field
 from .. import trk
@@ -147,7 +147,7 @@ class TestLoadSave(unittest.TestCase):
             streamlines = nib.streamlines.load(empty_filename,
                                                ref=self.to_world_space,
                                                lazy_load=False)
-            assert_true(type(streamlines), Streamlines)
+            assert_true(type(streamlines), Tractogram)
             check_streamlines(streamlines, 0, [], [], [])
 
     def test_load_simple_file(self):
@@ -155,7 +155,7 @@ class TestLoadSave(unittest.TestCase):
             streamlines = nib.streamlines.load(simple_filename,
                                                ref=self.to_world_space,
                                                lazy_load=False)
-            assert_true(type(streamlines), Streamlines)
+            assert_true(type(streamlines), Tractogram)
             check_streamlines(streamlines, self.nb_streamlines,
                               self.points, [], [])
 
@@ -163,7 +163,7 @@ class TestLoadSave(unittest.TestCase):
             streamlines = nib.streamlines.load(simple_filename,
                                                ref=self.to_world_space,
                                                lazy_load=True)
-            assert_true(type(streamlines), LazyStreamlines)
+            assert_true(type(streamlines), LazyTractogram)
             check_streamlines(streamlines, self.nb_streamlines,
                               self.points, [], [])
 
@@ -182,7 +182,7 @@ class TestLoadSave(unittest.TestCase):
             streamlines = nib.streamlines.load(complex_filename,
                                                ref=self.to_world_space,
                                                lazy_load=False)
-            assert_true(type(streamlines), Streamlines)
+            assert_true(type(streamlines), Tractogram)
             check_streamlines(streamlines, self.nb_streamlines,
                               self.points, scalars, properties)
 
@@ -190,12 +190,12 @@ class TestLoadSave(unittest.TestCase):
             streamlines = nib.streamlines.load(complex_filename,
                                                ref=self.to_world_space,
                                                lazy_load=True)
-            assert_true(type(streamlines), LazyStreamlines)
+            assert_true(type(streamlines), LazyTractogram)
             check_streamlines(streamlines, self.nb_streamlines,
                               self.points, scalars, properties)
 
     def test_save_simple_file(self):
-        streamlines = Streamlines(self.points)
+        streamlines = Tractogram(self.points)
         for ext in nib.streamlines.FORMATS.keys():
             with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
                 nib.streamlines.save(streamlines, f.name)
@@ -204,7 +204,7 @@ class TestLoadSave(unittest.TestCase):
                                   self.points, [], [])
 
     def test_save_complex_file(self):
-        streamlines = Streamlines(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
+        streamlines = Tractogram(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
         for ext, cls in nib.streamlines.FORMATS.items():
             with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
                 with clear_and_catch_warnings(record=True, modules=[trk]) as w:

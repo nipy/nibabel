@@ -3,11 +3,11 @@ import numpy as np
 from nose.tools import assert_equal, assert_true
 from numpy.testing import assert_array_equal
 
-from nibabel.streamlines.header import StreamlinesHeader
+from nibabel.streamlines.header import TractogramHeader
 
 
 def test_streamlines_header():
-    header = StreamlinesHeader()
+    header = TractogramHeader()
     assert_true(header.nb_streamlines is None)
     assert_true(header.nb_scalars_per_point is None)
     assert_true(header.nb_properties_per_streamline is None)

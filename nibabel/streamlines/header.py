@@ -24,7 +24,7 @@ class Field:
     ENDIAN = "endian"
 
 
-class StreamlinesHeader(object):
+class TractogramHeader(object):
     def __init__(self):
         self._nb_streamlines = None
         self._nb_scalars_per_point = None
@@ -90,7 +90,7 @@ class StreamlinesHeader(object):
         self._extra = OrderedDict(value)
 
     def copy(self):
-        header = StreamlinesHeader()
+        header = TractogramHeader()
         header._nb_streamlines = self.nb_streamlines
         header.nb_scalars_per_point = self.nb_scalars_per_point
         header.nb_properties_per_streamline = self.nb_properties_per_streamline

@@ -1,10 +1,11 @@
+import itertools
 import numpy as np
 from warnings import warn
 
 from nibabel.externals.six.moves import zip_longest
 from nibabel.affines import apply_affine
 
-from .header import StreamlinesHeader
+from .header import TractogramHeader
 from .utils import pop
 
 
@@ -25,119 +26,198 @@ class DataError(Exception):
 
 
 class CompactList(object):
-    def __init__(self, preallocate=(0,), dtype=np.float32):
-        self.dtype = dtype
-        self.data = np.empty(preallocate, dtype=dtype)
-        self.offsets = []
-        self.lengths = []
-
-    @classmethod
-    def from_list(cls, elements):
-        """ Fast way to create a `Streamlines` object from some streamlines.
+    """ Class for compacting list of ndarrays with matching shape except for
+    the first dimension.
+    """
+    def __init__(self, iterable=None):
+        """
         Parameters
         ----------
-        elements : list
-            List of 2D ndarrays of same shape except on the first dimension.
+        iterable : iterable (optional)
+            If specified, create a ``CompactList`` object initialized from
+            iterable's items. Otherwise, create an empty ``CompactList``.
         """
-        if len(elements) == 0:
-            return cls()
+        # Create new empty `CompactList` object.
+        self._data = None
+        self._offsets = []
+        self._lengths = []
 
-        first_element = np.asarray(elements[0])
-        s = cls(preallocate=(0,) + first_element.shape[1:], dtype=first_element.dtype)
-        s.extend(elements)
-        return s
+        if iterable is not None:
+            # Initialize the `CompactList` object from iterable's item.
+            BUFFER_SIZE = 1000
+
+            offset = 0
+            for i, e in enumerate(iterable):
+                e = np.asarray(e)
+                if i == 0:
+                    self._data = np.empty((BUFFER_SIZE,) + e.shape[1:], dtype=e.dtype)
+
+                end = offset + len(e)
+                if end >= len(self._data):
+                    # Resize is needed (at least `len(e)` items will be added).
+                    self._data.resize((len(self._data) + len(e)+BUFFER_SIZE,) + self.shape)
+
+                self._offsets.append(offset)
+                self._lengths.append(len(e))
+                self._data[offset:offset+len(e)] = e
+                offset += len(e)
+
+            # Clear unused memory.
+            if self._data is not None:
+                self._data.resize((offset,) + self.shape)
+
+    @property
+    def shape(self):
+        """ Returns the matching shape of the elements in this compact list. """
+        if self._data is None:
+            return None
+
+        return self._data.shape[1:]
 
     def append(self, element):
-        """
+        """ Appends `element` to this compact list.
+
         Parameters
         ----------
-        element : 2D ndarrays of `element.shape[1:] == self.shape`
-            Element to add.
-        Note
-        ----
+        element : ndarray
+            Element to append. The shape must match already inserted elements
+            shape except for the first dimension.
+
+        Notes
+        -----
         If you need to add multiple elements you should consider
-        `CompactList.from_list` or `CompactList.extend`.
+        `CompactList.extend`.
         """
-        self.offsets.append(len(self.data))
-        self.lengths.append(len(element))
-        self.data = np.append(self.data, element, axis=0)
+        if self._data is None:
+            self._data = np.asarray(element).copy()
+            self._offsets.append(0)
+            self._lengths.append(len(element))
+            return
+
+        if element.shape[1:] != self.shape:
+            raise ValueError("All dimensions, except the first one, must match exactly")
+
+        self._offsets.append(len(self._data))
+        self._lengths.append(len(element))
+        self._data = np.append(self._data, element, axis=0)
 
     def extend(self, elements):
-        if isinstance(elements, CompactList):
-            self.data = np.concatenate([self.data, elements.data], axis=0)
-            offset = self.offsets[-1] + self.lengths[-1] if len(self) > 0 else 0
-            self.lengths.extend(elements.lengths)
-            self.offsets.extend(np.cumsum([offset] + elements.lengths).tolist()[:-1])
-        else:
-            self.data = np.concatenate([self.data] + list(elements), axis=0)
-            offset = self.offsets[-1] + self.lengths[-1] if len(self) > 0 else 0
-            lengths = map(len, elements)
-            self.lengths.extend(lengths)
-            self.offsets.extend(np.cumsum([offset] + lengths).tolist()[:-1])
+        """ Appends all `elements` to this compact list.
 
-    def __getitem__(self, idx):
-        """ Gets element(s) through indexing.
         Parameters
         ----------
-        idx : int, slice or list
-            Index of the element(s) to get.
-        Returns
-        -------
-        `ndarray` object(s)
-            When `idx` is a int, returns a single 2D array.
-            When `idx` is either a slice or a list, returns a list of 2D arrays.
+        element : list of ndarrays, ``CompactList`` object
+            Elements to append. The shape must match already inserted elements
+            shape except for the first dimension.
         """
-        if isinstance(idx, int) or isinstance(idx, np.integer):
-            return self.data[self.offsets[idx]:self.offsets[idx]+self.lengths[idx]]
-
-        elif type(idx) is slice:
-            compact_list = CompactList()
-            compact_list.data = self.data
-            compact_list.offsets = self.offsets[idx]
-            compact_list.lengths = self.lengths[idx]
-            return compact_list
-
-        elif type(idx) is list:
-            compact_list = CompactList()
-            compact_list.data = self.data
-            compact_list.offsets = [self.offsets[i] for i in idx]
-            compact_list.lengths = [self.lengths[i] for i in idx]
-            return compact_list
-
-        raise TypeError("Index must be a int or a slice! Not " + str(type(idx)))
+        if isinstance(elements, CompactList):
+            self._data = np.concatenate([self._data, elements._data], axis=0)
+            offset = self._offsets[-1] + self._lengths[-1] if len(self) > 0 else 0
+            self._lengths.extend(elements._lengths)
+            self._offsets.extend(np.cumsum([offset] + elements._lengths).tolist()[:-1])
+        else:
+            self._data = np.concatenate([self._data] + list(elements), axis=0)
+            offset = self._offsets[-1] + self._lengths[-1] if len(self) > 0 else 0
+            lengths = map(len, elements)
+            self._lengths.extend(lengths)
+            self._offsets.extend(np.cumsum([offset] + lengths).tolist()[:-1])
 
     def copy(self):
-        # We could not only deepcopy the object because when slicing a CompactList it returns
-        # a view with modified `lengths` and `offsets` but `data` still points to the original data.
+        """ Creates a copy of this ``CompactList`` object. """
+        # We cannot just deepcopy this object since we don't know if it has been created
+        # using slicing. If it is the case, `self.data` probably contains more data than necessary
+        # so we copy only elements according to `self._offsets`.
         compact_list = CompactList()
-        total_lengths = np.sum(self.lengths)
-        compact_list.data = np.empty((total_lengths,) + self.data.shape[1:], dtype=self.dtype)
+        total_lengths = np.sum(self._lengths)
+        compact_list._data = np.empty((total_lengths,) + self._data.shape[1:], dtype=self._data.dtype)
 
         cur_offset = 0
-        for offset, lengths in zip(self.offsets, self.lengths):
-            compact_list.offsets.append(cur_offset)
-            compact_list.lengths.append(lengths)
-            compact_list.data[cur_offset:cur_offset+lengths] = self.data[offset:offset+lengths]
+        for offset, lengths in zip(self._offsets, self._lengths):
+            compact_list._offsets.append(cur_offset)
+            compact_list._lengths.append(lengths)
+            compact_list._data[cur_offset:cur_offset+lengths] = self._data[offset:offset+lengths]
             cur_offset += lengths
 
         return compact_list
 
-    def __iter__(self):
-        if len(self.lengths) != len(self.offsets):
-            raise ValueError("CompactList object corrupted: len(self.lengths) != len(self.offsets)")
+    def __getitem__(self, idx):
+        """ Gets element(s) through indexing.
 
-        for offset, lengths in zip(self.offsets, self.lengths):
-            yield self.data[offset: offset+lengths]
+        Parameters
+        ----------
+        idx : int, slice or list
+            Index of the element(s) to get.
+
+        Returns
+        -------
+        ndarray object(s)
+            When `idx` is a int, returns a single ndarray.
+            When `idx` is either a slice or a list, returns a list of ndarrays.
+        """
+        if isinstance(idx, int) or isinstance(idx, np.integer):
+            return self._data[self._offsets[idx]:self._offsets[idx]+self._lengths[idx]]
+
+        elif type(idx) is slice:
+            # TODO: Should we have a CompactListView class that would be
+            #       returned when slicing?
+            compact_list = CompactList()
+            compact_list._data = self._data
+            compact_list._offsets = self._offsets[idx]
+            compact_list._lengths = self._lengths[idx]
+            return compact_list
+
+        elif type(idx) is list:
+            # TODO: Should we have a CompactListView class that would be
+            #       returned when doing advance indexing?
+            compact_list = CompactList()
+            compact_list._data = self._data
+            compact_list._offsets = [self._offsets[i] for i in idx]
+            compact_list._lengths = [self._lengths[i] for i in idx]
+            return compact_list
+
+        raise TypeError("Index must be a int or a slice! Not " + str(type(idx)))
+
+    def __iter__(self):
+        if len(self._lengths) != len(self._offsets):
+            raise ValueError("CompactList object corrupted: len(self._lengths) != len(self._offsets)")
+
+        for offset, lengths in zip(self._offsets, self._lengths):
+            yield self._data[offset: offset+lengths]
 
     def __len__(self):
-        return len(self.offsets)
+        return len(self._offsets)
 
+    def __repr__(self):
+        return repr(list(self))
 
-class Streamline(object):
+class TractogramItem(object):
+    ''' Class containing information about one streamline.
+
+    ``TractogramItem`` objects have three main properties: `points`, `scalars`
+    and ``properties``.
+
+    Parameters
+    ----------
+    points : ndarray of shape (N, 3)
+        Points of this streamline represented as an ndarray of shape (N, 3)
+        where N is the number of points.
+
+    scalars : ndarray of shape (N, M)
+        Scalars associated with each point of this streamline and represented
+        as an ndarray of shape (N, M) where N is the number of points and
+        M is the number of scalars (excluding the three coordinates).
+
+    properties : ndarray of shape (P,)
+        Properties associated with this streamline and represented as an
+        ndarray of shape (P,) where P is the number of properties.
+    '''
     def __init__(self, points, scalars=None, properties=None):
-        self.points = points
-        self.scalars = scalars
-        self.properties = properties
+        #if scalars is not None and len(points) != len(scalars):
+        #    raise ValueError("First dimension of points and scalars must match.")
+
+        self.points = np.asarray(points)
+        self.scalars = np.asarray([] if scalars is None else scalars)
+        self.properties = np.asarray([] if properties is None else properties)
 
     def __iter__(self):
         return iter(self.points)
@@ -146,11 +226,11 @@ class Streamline(object):
         return len(self.points)
 
 
-class Streamlines(object):
+class Tractogram(object):
     ''' Class containing information about streamlines.
 
-    Streamlines objects have three main properties: ``points``, ``scalars``
-    and ``properties``. Streamlines objects can be iterate over producing
+    Tractogram objects have three main properties: ``points``, ``scalars``
+    and ``properties``. Tractogram objects can be iterate over producing
     tuple of ``points``, ``scalars`` and ``properties`` for each streamline.
 
     Parameters
@@ -171,10 +251,70 @@ class Streamlines(object):
         associated to each streamline.
     '''
     def __init__(self, points=None, scalars=None, properties=None):
-        self._header = StreamlinesHeader()
+        self._header = TractogramHeader()
         self.points = points
         self.scalars = scalars
         self.properties = properties
+
+    @classmethod
+    def create_from_generator(cls, gen):
+        BUFFER_SIZE = 1000
+
+        points = CompactList()
+        scalars = CompactList()
+        properties = np.array([])
+
+        gen = iter(gen)
+        try:
+            first_element = next(gen)
+            gen = itertools.chain([first_element], gen)
+        except StopIteration:
+            return cls(points, scalars, properties)
+
+        # Allocated some buffer memory.
+        pts = np.asarray(first_element[0])
+        scals = np.asarray(first_element[1])
+        props = np.asarray(first_element[2])
+
+        points._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
+        scalars._data = np.empty((BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
+        properties = np.empty((BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
+
+        offset = 0
+        for i, (pts, scals, props) in enumerate(gen):
+            pts = np.asarray(pts)
+            scals = np.asarray(scals)
+            props = np.asarray(props)
+
+            end = offset + len(pts)
+            if end >= len(points._data):
+                # Resize is needed (at least `len(pts)` items will be added).
+                points._data.resize((len(points._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
+                scalars._data.resize((len(scalars._data) + len(scalars)+BUFFER_SIZE, scals.shape[1]))
+
+            points._offsets.append(offset)
+            points._lengths.append(len(pts))
+            points._data[offset:offset+len(pts)] = pts
+            scalars._data[offset:offset+len(scals)] = scals
+
+            offset += len(pts)
+
+            if i >= len(properties):
+                properties.resize((len(properties) + BUFFER_SIZE, props.shape[0]))
+
+            properties[i] = props
+
+        # Share offsets and lengths between points and scalars.
+        scalars._offsets = points._offsets
+        scalars._lengths = points._lengths
+
+        # Clear unused memory.
+        points._data.resize((offset, pts.shape[1]))
+        scalars._data.resize((offset, scals.shape[1]))
+        properties.resize((i+1, props.shape[0]))
+
+        return cls(points, scalars, properties)
+
 
     @property
     def header(self):
@@ -186,17 +326,9 @@ class Streamlines(object):
 
     @points.setter
     def points(self, value):
-        if value is None or len(value) == 0:
-            self._points = CompactList(preallocate=(0, 3))
-
-        elif isinstance(value, CompactList):
-            self._points = value
-
-        elif isinstance(value, list) or isinstance(value, tuple):
-            self._points = CompactList.from_list(value)
-
-        else:
-            raise DataError("Unsupported data type: {0}".format(type(value)))
+        self._points = value
+        if not isinstance(value, CompactList):
+            self._points = CompactList(value)
 
         self.header.nb_streamlines = len(self.points)
 
@@ -206,17 +338,9 @@ class Streamlines(object):
 
     @scalars.setter
     def scalars(self, value):
-        if value is None or len(value) == 0:
-            self._scalars = CompactList()
-
-        elif isinstance(value, CompactList):
-            self._scalars = value
-
-        elif isinstance(value, list) or isinstance(value, tuple):
-            self._scalars = CompactList.from_list(value)
-
-        else:
-            raise DataError("Unsupported data type: {0}".format(type(value)))
+        self._scalars = value
+        if not isinstance(value, CompactList):
+            self._scalars = CompactList(value)
 
         self.header.nb_scalars_per_point = 0
         if len(self.scalars) > 0 and len(self.scalars[0]) > 0:
@@ -228,18 +352,17 @@ class Streamlines(object):
 
     @properties.setter
     def properties(self, value):
+        self._properties = np.asarray(value)
         if value is None:
-            value = []
+            self._properties = np.empty((len(self), 0), dtype=np.float32)
 
-        self._properties = np.asarray(value, dtype=np.float32)
         self.header.nb_properties_per_streamline = 0
-
         if len(self.properties) > 0:
             self.header.nb_properties_per_streamline = len(self.properties[0])
 
     def __iter__(self):
-        for data in zip_longest(self.points, self.scalars, self.properties, fillvalue=[]):
-            yield Streamline(*data)
+        for data in zip_longest(self.points, self.scalars, self.properties, fillvalue=None):
+            yield TractogramItem(*data)
 
     def __getitem__(self, idx):
         pts = self.points[idx]
@@ -252,70 +375,43 @@ class Streamlines(object):
             properties = self.properties[idx]
 
         if type(idx) is slice:
-            return Streamlines(pts, scalars, properties)
+            return Tractogram(pts, scalars, properties)
 
-        return Streamline(pts, scalars, properties)
+        return TractogramItem(pts, scalars, properties)
 
     def __len__(self):
         return len(self.points)
 
     def copy(self):
-        """ Returns a copy of this `Streamlines` object. """
-        streamlines = Streamlines(self.points.copy(), self.scalars.copy(), self.properties.copy())
+        """ Returns a copy of this `Tractogram` object. """
+        streamlines = Tractogram(self.points.copy(), self.scalars.copy(), self.properties.copy())
         streamlines._header = self.header.copy()
         return streamlines
 
-    def transform(self, affine, lazy=False):
+    def apply_affine(self, affine):
         """ Applies an affine transformation on the points of each streamline.
+
+        This is performed in-place.
 
         Parameters
         ----------
         affine : 2D array (4,4)
             Transformation that will be applied on each streamline.
-        lazy : bool (optional)
-            If true output will be a generator of arrays instead of a list.
-
-        Returns
-        -------
-        streamlines
-            If `lazy` is true, a `LazyStreamlines` object is returned,
-            otherwise a `Streamlines` object is returned. In both case,
-            streamlines are in a space defined by `affine`.
         """
-        points = lambda: (apply_affine(affine, pts) for pts in self.points)
-        if not lazy:
-            points = list(points())
+        if len(self.points) == 0:
+            return
 
-        streamlines = self.copy()
-        streamlines.points = points
-        streamlines.header.to_world_space = np.dot(streamlines.header.to_world_space,
-                                                   np.linalg.inv(affine))
-
-        return streamlines
-
-    def to_world_space(self, lazy=False):
-        """ Sends the streamlines back into world space.
-
-        Parameters
-        ----------
-        lazy : bool (optional)
-            If true output will be a generator of arrays instead of a list.
-
-        Returns
-        -------
-        streamlines
-            If `lazy` is true, a `LazyStreamlines` object is returned,
-            otherwise a `Streamlines` object is returned. In both case,
-            streamlines are in world space.
-        """
-        return self.transform(self.header.to_world_space, lazy)
+        BUFFER_SIZE = 10000
+        for i in range(0, len(self.points._data), BUFFER_SIZE):
+            pts = self.points._data[i:i+BUFFER_SIZE]
+            self.points._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
 
 
-class LazyStreamlines(Streamlines):
+class LazyTractogram(Tractogram):
     ''' Class containing information about streamlines.
 
-    Streamlines objects have four main properties: ``header``, ``points``,
-    ``scalars`` and ``properties``. Streamlines objects are iterable and
+    Tractogram objects have four main properties: ``header``, ``points``,
+    ``scalars`` and ``properties``. Tractogram objects are iterable and
     produce tuple of ``points``, ``scalars`` and ``properties`` for each
     streamline.
 
@@ -347,7 +443,7 @@ class LazyStreamlines(Streamlines):
     values as ``points``.
     '''
     def __init__(self, points_func=lambda:[], scalars_func=lambda: [], properties_func=lambda: [], getitem_func=None):
-        super(LazyStreamlines, self).__init__(points_func, scalars_func, properties_func)
+        super(LazyTractogram, self).__init__(points_func, scalars_func, properties_func)
         self._data = lambda: zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
         self._getitem = getitem_func
 
@@ -420,14 +516,14 @@ class LazyStreamlines(Streamlines):
 
     def __getitem__(self, idx):
         if self._getitem is None:
-            raise AttributeError('`LazyStreamlines` does not support indexing.')
+            raise AttributeError('`LazyTractogram` does not support indexing.')
 
         return self._getitem(idx)
 
     def __iter__(self):
         i = 0
         for i, s in enumerate(self._data(), start=1):
-            yield Streamline(*s)
+            yield TractogramItem(*s)
 
         # To be safe, update information about number of streamlines.
         self.header.nb_streamlines = i
@@ -440,14 +536,14 @@ class LazyStreamlines(Streamlines):
                  " streamlines, you might want to set it beforehand via"
                  " `self.header.nb_streamlines`."
                  " Note this will consume any generators used to create this"
-                 " `LazyStreamlines` object.", UsageWarning)
+                 " `LazyTractogram` object.", UsageWarning)
             return sum(1 for _ in self)
 
         return self.header.nb_streamlines
 
     def copy(self):
-        """ Returns a copy of this `LazyStreamlines` object. """
-        streamlines = LazyStreamlines(self._points, self._scalars, self._properties)
+        """ Returns a copy of this `LazyTractogram` object. """
+        streamlines = LazyTractogram(self._points, self._scalars, self._properties)
         streamlines._header = self.header.copy()
         return streamlines
 
@@ -461,23 +557,23 @@ class LazyStreamlines(Streamlines):
 
         Returns
         -------
-        streamlines : `LazyStreamlines` object
-            Streamlines living in a space defined by `affine`.
+        streamlines : `LazyTractogram` object
+            Tractogram living in a space defined by `affine`.
         """
-        return super(LazyStreamlines, self).transform(affine, lazy=True)
+        return super(LazyTractogram, self).transform(affine, lazy=True)
 
     def to_world_space(self):
         """ Sends the streamlines back into world space.
 
         Returns
         -------
-        streamlines : `LazyStreamlines` object
-            Streamlines living in world space.
+        streamlines : `LazyTractogram` object
+            Tractogram living in world space.
         """
-        return super(LazyStreamlines, self).to_world_space(lazy=True)
+        return super(LazyTractogram, self).to_world_space(lazy=True)
 
 
-class StreamlinesFile:
+class TractogramFile:
     ''' Convenience class to encapsulate streamlines file format. '''
 
     @classmethod
@@ -533,9 +629,9 @@ class StreamlinesFile:
 
         Returns
         -------
-        streamlines : Streamlines object
+        streamlines : Tractogram object
             Returns an object containing streamlines' data and header
-            information. See 'nibabel.Streamlines'.
+            information. See 'nibabel.Tractogram'.
         '''
         raise NotImplementedError()
 
@@ -545,9 +641,9 @@ class StreamlinesFile:
 
         Parameters
         ----------
-        streamlines : Streamlines object
+        streamlines : Tractogram object
             Object containing streamlines' data and header information.
-            See 'nibabel.Streamlines'.
+            See 'nibabel.Tractogram'.
 
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
@@ -577,7 +673,7 @@ class StreamlinesFile:
         raise NotImplementedError()
 
 
-# class DynamicStreamlineFile(StreamlinesFile):
+# class DynamicTractogramFile(TractogramFile):
 #     ''' Convenience class to encapsulate streamlines file format
 #     that supports appending streamlines to an existing file.
 #     '''
