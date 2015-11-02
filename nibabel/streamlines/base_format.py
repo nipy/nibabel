@@ -499,28 +499,39 @@ class LazyTractogram(Tractogram):
         return super(LazyTractogram, self).transform(affine, lazy=True)
 
 
+class abstractclassmethod(classmethod):
+    __isabstractmethod__ = True
+
+    def __init__(self, callable):
+        callable.__isabstractmethod__ = True
+        super(abstractclassmethod, self).__init__(callable)
+
+
 class TractogramFile(object):
-    ''' Convenience class to encapsulate streamlines file format. '''
+    ''' Convenience class to encapsulate tractogram file format. '''
     __metaclass__ = ABCMeta
 
-    def __init__(self, tractogram):
-        self.tractogram = tractogram
+    def __init__(self, tractogram, header=None):
+        self._tractogram = tractogram
+        self._header = TractogramHeader() if header is None else header
+
+    @property
+    def tractogram(self):
+        return self._tractogram
 
     @property
     def streamlines(self):
         return self.tractogram.streamlines
 
     @property
-    def scalars(self):
-        return self.tractogram.scalars
-
-    @property
-    def properties(self):
-        return self.tractogram.properties
-
-    @property
     def header(self):
-        return self.tractogram.header
+        return self._header
+
+    def get_tractogram(self):
+        return self.tractogram
+
+    def get_header(self):
+        return self.header
 
     @classmethod
     def get_magic_number(cls):
@@ -528,26 +539,14 @@ class TractogramFile(object):
         raise NotImplementedError()
 
     @classmethod
-    def can_save_scalars(cls):
-        ''' Tells if the streamlines format supports saving scalars. '''
-        raise NotImplementedError()
-
-    @classmethod
-    def can_save_properties(cls):
-        ''' Tells if the streamlines format supports saving properties. '''
-        raise NotImplementedError()
-
-    @classmethod
     def is_correct_format(cls, fileobj):
         ''' Checks if the file has the right streamlines file format.
-
         Parameters
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             pointing to a streamlines file (and ready to read from the
             beginning of the header).
-
         Returns
         -------
         is_correct_format : boolean
@@ -555,65 +554,33 @@ class TractogramFile(object):
         '''
         raise NotImplementedError()
 
-    @staticmethod
-    def load(fileobj, ref, lazy_load=True):
+    @abstractclassmethod
+    def load(cls, fileobj, lazy_load=True):
         ''' Loads streamlines from a file-like object.
-
         Parameters
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             pointing to a streamlines file (and ready to read from the
             beginning of the header).
-
-        ref : filename | `Nifti1Image` object | 2D array (4,4)
-            Reference space where streamlines live in `fileobj`.
-
-        lazy_load : boolean
+        lazy_load : boolean (optional)
             Load streamlines in a lazy manner i.e. they will not be kept
             in memory. For postprocessing speed, turn off this option.
-
         Returns
         -------
-        streamlines : Tractogram object
-            Returns an object containing streamlines' data and header
-            information. See 'nibabel.Tractogram'.
+        tractogram_file : ``TractogramFile`` object
+            Returns an object containing tractogram data and header
+            information.
         '''
         raise NotImplementedError()
 
-    @staticmethod
-    def save(streamlines, fileobj, ref=None):
+    @abstractmethod
+    def save(self, fileobj):
         ''' Saves streamlines to a file-like object.
-
         Parameters
         ----------
-        streamlines : Tractogram object
-            Object containing streamlines' data and header information.
-            See 'nibabel.Tractogram'.
-
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             opened and ready to write.
-
-        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
-            Reference space where streamlines will live in `fileobj`.
-        '''
-        raise NotImplementedError()
-
-    @staticmethod
-    def pretty_print(streamlines):
-        ''' Gets a formatted string of the header of a streamlines file format.
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to a streamlines file (and ready to read from the
-            beginning of the header).
-
-        Returns
-        -------
-        info : string
-            Header information relevant to the streamlines file format.
         '''
         raise NotImplementedError()
