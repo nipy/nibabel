@@ -251,9 +251,24 @@ class TestTractogram(unittest.TestCase):
                                        np.array([2.11, 2.22], dtype="f4"),
                                        np.array([3.11, 3.22], dtype="f4")]
 
+        self.mean_curvature = np.array([1.11, 2.11, 3.11], dtype="f4")
+        self.mean_color = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]], dtype="f4")
+
+
         self.nb_tractogram = len(self.streamlines)
         self.nb_scalars_per_point = self.colors[0].shape[1]
         self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
+
+    def test_tractogram_creation_with_dix(self):
+
+        tractogram = Tractogram(
+            streamlines=self.streamlines,
+            data_per_streamline={'mean_curvature': self.mean_curvature,
+                                 'mean_color': self.mean_color},
+            data_per_point={'colors': self.colors})
+
+        tractogram[:2]
+
 
     def test_tractogram_creation_from_arrays(self):
         # Empty
