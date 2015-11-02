@@ -1,4 +1,4 @@
-from .header import Field
+from .header import TractogramHeader
 from .base_format import Tractogram, LazyTractogram
 
 from nibabel.streamlines.trk import TrkFile
@@ -36,14 +36,14 @@ def detect_format(fileobj):
     ----------
     fileobj : string or file-like object
         If string, a filename; otherwise an open file-like object pointing
-        to a streamlines file (and ready to read from the beginning of the
+        to a tractogram file (and ready to read from the beginning of the
         header)
 
     Returns
     -------
-    streamlines_file : StreamlinesFile object
-        Object that can be used to manage a streamlines file.
-        See 'nibabel.streamlines.StreamlinesFile'.
+    tractogram_file : ``TractogramFile`` class
+        Returns an instance of a `TractogramFile` class containing data and
+        metadata of the tractogram contained from `fileobj`.
     '''
     for format in FORMATS.values():
         try:
@@ -62,76 +62,68 @@ def detect_format(fileobj):
     return None
 
 
-def load(fileobj, ref, lazy_load=False):
+def load(fileobj, lazy_load=False, ref=None):
     ''' Loads streamlines from a file-like object in voxel space.
 
     Parameters
     ----------
     fileobj : string or file-like object
-       If string, a filename; otherwise an open file-like object
-       pointing to a streamlines file (and ready to read from the beginning
-       of the streamlines file's header).
-
-    ref : filename | `Nifti1Image` object | 2D array (4,4)
-        Reference space where streamlines will live in `fileobj`.
+        If string, a filename; otherwise an open file-like object
+        pointing to a streamlines file (and ready to read from the beginning
+        of the streamlines file's header).
 
     lazy_load : boolean (optional)
         Load streamlines in a lazy manner i.e. they will not be kept
         in memory.
 
-    Returns
-    -------
-    obj : instance of `Streamlines`
-       Returns an instance of a `Streamlines` class containing data and metadata
-       of streamlines loaded from `fileobj`.
-    '''
-    streamlines_file = detect_format(fileobj)
-
-    if streamlines_file is None:
-        raise TypeError("Unknown format for 'fileobj': {0}!".format(fileobj))
-
-    return streamlines_file.load(fileobj, ref, lazy_load=lazy_load)
-
-
-def save(streamlines, filename, ref=None):
-    ''' Saves a `Streamlines` object to a file
-
-    Parameters
-    ----------
-    streamlines : `Streamlines` object
-       Streamlines to be saved.
-
-    filename : str
-       Name of the file where the streamlines will be saved. The format will
-       be guessed from `filename`.
-
     ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
         Reference space where streamlines will live in `fileobj`.
+
+    Returns
+    -------
+    tractogram_file : ``TractogramFile``
+        Returns an instance of a `TractogramFile` class containing data and
+        metadata of the tractogram loaded from `fileobj`.
     '''
-    streamlines_file = detect_format(filename)
+    tractogram_file = detect_format(fileobj)
 
-    if streamlines_file is None:
-        raise TypeError("Unknown streamlines file format: '{0}'!".format(filename))
+    if tractogram_file is None:
+        raise TypeError("Unknown format for 'fileobj': {}".format(fileobj))
 
-    streamlines_file.save(streamlines, filename, ref)
+    return tractogram_file.load(fileobj, lazy_load=lazy_load, ref=ref)
 
 
-def convert(in_fileobj, out_filename, ref):
-    ''' Converts a streamlines file to another format.
+def save(tractogram_file, filename):
+    ''' Saves a tractogram to a file.
 
     Parameters
     ----------
-    in_fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object pointing
-        to a streamlines file (and ready to read from the beginning of the
-        header).
+    tractogram_file : ``TractogramFile`` object
+        Tractogram to be saved on disk.
 
-    out_filename : str
-       Name of the file where the streamlines will be saved. The format will
-       be guessed from `out_filename`.
-
-    ref : filename | `Nifti1Image` object | 2D array (4,4)
-        Reference space where streamlines live in `fileobj`.
+    filename : str
+        Name of the file where the tractogram will be saved. The format will
+        be guessed from `filename`.
     '''
-    streamlines = load(in_fileobj, ref, lazy_load=True)
-    save(streamlines, out_filename)
+    tractogram_file.save(filename)
+
+
+def save_tractogram(tractogram, filename, **kwargs):
+    ''' Saves a tractogram to a file.
+
+    Parameters
+    ----------
+    tractogram : ``Tractogram`` object
+        Tractogram to be saved.
+
+    filename : str
+        Name of the file where the tractogram will be saved. The format will
+        be guessed from `filename`.
+    '''
+    tractogram_file_class = detect_format(filename)
+
+    if tractogram_file_class is None:
+        raise TypeError("Unknown tractogram file format: '{}'".format(filename))
+
+    tractogram_file = tractogram_file_class(tractogram, **kwargs)
+    tractogram_file.save(filename)

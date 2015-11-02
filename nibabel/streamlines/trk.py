@@ -8,11 +8,11 @@ import os
 import warnings
 
 import numpy as np
+import nibabel as nib
 
 from nibabel.openers import Opener
 from nibabel.volumeutils import (native_code, swapped_code)
 
-from nibabel.streamlines.base_format import CompactList
 from nibabel.streamlines.base_format import TractogramFile
 from nibabel.streamlines.base_format import DataError, HeaderError, HeaderWarning
 from nibabel.streamlines.base_format import Tractogram, LazyTractogram
@@ -319,6 +319,27 @@ class TrkFile(TractogramFile):
     MAGIC_NUMBER = b"TRACK"
     HEADER_SIZE = 1000
 
+    def __init__(self, tractogram, ref, header=None):
+        """
+        Parameters
+        ----------
+        tractogram : ``Tractogram`` object
+            Tractogram that will be contained in this ``TrkFile``.
+
+        ref : filename | `Nifti1Image` object | 2D array (4,4)
+            Reference space where streamlines live in.
+
+        header : ``TractogramHeader`` file
+            Metadata associated to this tractogram file.
+
+        Notes
+        -----
+        Streamlines of the tractogram are assumed to be in *RAS+* and *mm* space
+        where coordinate (0,0,0) refers to the center of the voxel.
+        """
+        super(TrkFile, self).__init__(tractogram, header)
+        self._affine = get_affine_from_reference(ref)
+
     @classmethod
     def get_magic_number(cls):
         ''' Return TRK's magic number. '''
@@ -357,8 +378,8 @@ class TrkFile(TractogramFile):
 
         return False
 
-    @staticmethod
-    def load(fileobj, ref=None, lazy_load=False):
+    @classmethod
+    def load(cls, fileobj, lazy_load=False, ref=None):
         ''' Loads streamlines from a file-like object.
 
         Parameters
@@ -368,29 +389,43 @@ class TrkFile(TractogramFile):
             pointing to TRK file (and ready to read from the beginning
             of the TRK header).
 
-        ref : filename | `Nifti1Image` object | 2D array (4,4) | None
-            Reference space where streamlines live in `fileobj`.
-
         lazy_load : boolean (optional)
             Load streamlines in a lazy manner i.e. they will not be kept
             in memory.
 
+        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
+            Reference space where streamlines live in `fileobj`.
+
         Returns
         -------
-        tractogram : Tractogram object
-            Returns an object containing tractogram' data and header
-            information. See `nibabel.Tractogram`.
+        trk_file : ``TrkFile`` object
+            Returns an object containing tractogram data and header
+            information.
 
         Notes
         -----
-        Tractogram are assumed to be in voxel space where coordinate (0,0,0)
-        refers to the center of the voxel.
+        Streamlines of the returned tractogram are assumed to be in RASmm
+        space where coordinate (0,0,0) refers to the center of the voxel.
         '''
         trk_reader = TrkReader(fileobj)
 
         # TRK's streamlines are in 'voxelmm' space, we send them to rasmm.
-        affine = trk_reader.header[Field.to_world_space]
+        # First send them to voxel space.
+        affine = np.eye(4)
         affine[range(3), range(3)] /= trk_reader.header[Field.VOXEL_SIZES]
+
+        # If voxel order implied from the affine does not match the voxel
+        # order save in the TRK header, change the orientation.
+        header_ornt = trk_reader.header[Field.VOXEL_ORDER]
+        affine_ornt = "".join(nib.orientations.aff2axcodes(trk_reader.header[Field.to_world_space]))
+        header_ornt = nib.orientations.axcodes2ornt(header_ornt)
+        affine_ornt = nib.orientations.axcodes2ornt(affine_ornt)
+        ornt = nib.orientations.ornt_transform(header_ornt, affine_ornt)
+        M = nib.orientations.inv_ornt_aff(ornt, trk_reader.header[Field.DIMENSIONS])
+        affine = np.dot(M, affine)
+
+        # Applied the affine going from voxel space to rasmm.
+        affine = np.dot(trk_reader.header[Field.to_world_space], affine)
 
         # TrackVis considers coordinate (0,0,0) to be the corner of the
         # voxel whereas streamlines returned assume (0,0,0) to be the
@@ -494,36 +529,29 @@ class TrkFile(TractogramFile):
         #if tractogram.header.nb_properties_per_streamline != trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
         #    raise HeaderError("'nb_properties_per_streamline' does not match.")
 
-        return tractogram
+        return cls(tractogram, ref=affine, header=trk_reader.header)
 
-    @staticmethod
-    def save(tractogram, fileobj, ref=None):
-        ''' Saves tractogram to a file-like object.
+    def save(self, fileobj):
+        ''' Saves tractogram to a file-like object using TRK format.
 
         Parameters
         ----------
-        tractogram : Tractogram object
-            Object containing tractogram' data and header information.
-            See 'nibabel.Tractogram'.
-
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header data).
-
-        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
-            Reference space where streamlines will live in `fileobj`.
-
-        Notes
-        -----
-        Tractogram are assumed to be in voxel space where coordinate (0,0,0)
-        refers to the center of the voxel.
         '''
-        if ref is not None:
-            tractogram.header.to_world_space = get_affine_from_reference(ref)
+        # Update header using the tractogram.
+        self.header.nb_scalars_per_point = 0
+        if self.tractogram.scalars.shape is not None:
+            self.header.nb_scalars_per_point = len(self.tractogram.scalars[0])
 
-        trk_writer = TrkWriter(fileobj, tractogram.header)
-        trk_writer.write(tractogram)
+        self.header.nb_properties_per_streamline = 0
+        if self.tractogram.properties.shape is not None:
+            self.header.nb_properties_per_streamline = len(self.tractogram.properties[0])
+
+        trk_writer = TrkWriter(fileobj, self.header)
+        trk_writer.write(self.tractogram)
 
     @staticmethod
     def pretty_print(fileobj):
