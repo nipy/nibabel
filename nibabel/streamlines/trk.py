@@ -154,30 +154,12 @@ class TrkReader(object):
         i4_dtype = np.dtype(self.endianness + "i4")
         f4_dtype = np.dtype(self.endianness + "f4")
 
-        #from io import BufferedReader
         with Opener(self.fileobj) as f:
-            #f = BufferedReader(f.fobj)
             start_position = f.tell()
 
             nb_pts_and_scalars = int(3 + self.header[Field.NB_SCALARS_PER_POINT])
             pts_and_scalars_size = int(nb_pts_and_scalars * f4_dtype.itemsize)
-
-            #slice_pts_and_scalars = lambda data: (data, [[]])
-            #if self.header[Field.NB_SCALARS_PER_POINT] > 0:
-            # This is faster than `np.split`
-            slice_pts_and_scalars = lambda data: (data[:, :3], data[:, 3:])
-
-            # Using np.fromfile would be faster, but does not support StringIO
-            read_pts_and_scalars = lambda nb_pts: slice_pts_and_scalars(np.ndarray(shape=(nb_pts, nb_pts_and_scalars),
-                                                                                   dtype=f4_dtype,
-                                                                                   buffer=f.read(nb_pts * pts_and_scalars_size)))
-
             properties_size = int(self.header[Field.NB_PROPERTIES_PER_STREAMLINE] * f4_dtype.itemsize)
-            read_properties = lambda: []
-            if self.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
-                read_properties = lambda: np.fromstring(f.read(properties_size),
-                                                        dtype=f4_dtype,
-                                                        count=self.header[Field.NB_PROPERTIES_PER_STREAMLINE])
 
             # Set the file position at the beginning of the data.
             f.seek(self.offset_data, os.SEEK_SET)
@@ -188,6 +170,7 @@ class TrkReader(object):
                 nb_streamlines = np.inf
 
             i = 0
+            nb_pts_dtype = i4_dtype.str[:-1]
             while i < nb_streamlines:
                 nb_pts_str = f.read(i4_dtype.itemsize)
 
@@ -196,13 +179,22 @@ class TrkReader(object):
                     break
 
                 # Read number of points of the next streamline.
-                nb_pts = struct.unpack(i4_dtype.str[:-1], nb_pts_str)[0]
+                nb_pts = struct.unpack(nb_pts_dtype, nb_pts_str)[0]
 
                 # Read streamline's data
-                pts, scalars = read_pts_and_scalars(nb_pts)
-                properties = read_properties()
+                points_and_scalars = np.ndarray(shape=(nb_pts, nb_pts_and_scalars),
+                                                dtype=f4_dtype,
+                                                buffer=f.read(nb_pts * pts_and_scalars_size))
 
-                yield pts, scalars, properties
+                points = points_and_scalars[:, :3]
+                scalars = points_and_scalars[:, 3:]
+
+                # Read properties
+                properties = np.ndarray(shape=(self.header[Field.NB_PROPERTIES_PER_STREAMLINE],),
+                                        dtype=f4_dtype,
+                                        buffer=f.read(properties_size))
+
+                yield points, scalars, properties
                 i += 1
 
             # In case the 'count' field was not provided.

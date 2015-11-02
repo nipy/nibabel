@@ -330,13 +330,29 @@ class TestTractogram(unittest.TestCase):
         assert_arrays_equal(r_streamlines.scalars, self.colors[::-1])
         assert_arrays_equal(r_streamlines.properties, self.mean_curvature_torsion[::-1])
 
+    def test_streamlines_creation_from_generator(self):
+        # Create `Tractogram` from a generator yielding 3-tuples
+        gen = (x for x in zip(self.points, self.colors, self.mean_curvature_torsion))
+
+        streamlines = Tractogram.create_from_generator(gen)
+        with suppress_warnings():
+            assert_equal(len(streamlines), self.nb_streamlines)
+
+        assert_arrays_equal(streamlines.points, self.points)
+        assert_arrays_equal(streamlines.scalars, self.colors)
+        assert_arrays_equal(streamlines.properties, self.mean_curvature_torsion)
+
+        # Check if we can iterate through the streamlines.
+        for streamline in streamlines:
+            pass
+
     def test_streamlines_creation_from_coroutines(self):
         # Points, scalars and properties
         points = lambda: (x for x in self.points)
         scalars = lambda: (x for x in self.colors)
         properties = lambda: (x for x in self.mean_curvature_torsion)
 
-        # To create streamlines from coroutines use `LazyTractogram`.
+        # To create streamlines from multiple coroutines use `LazyTractogram`.
         assert_raises(TypeError, Tractogram, points, scalars, properties)
 
     def test_header(self):
