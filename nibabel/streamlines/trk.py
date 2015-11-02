@@ -250,17 +250,17 @@ class TrkWriter(object):
         self.beginning = self.file.tell()
         self.file.write(self.header[0].tostring())
 
-    def write(self, streamlines):
+    def write(self, tractogram):
         i4_dtype = np.dtype("i4")
         f4_dtype = np.dtype("f4")
 
-        for s in streamlines:
-            if len(s.scalars) > 0 and len(s.scalars) != len(s.points):
+        for t in tractogram:
+            if len(t.scalars) > 0 and len(t.scalars) != len(t.streamline):
                 raise DataError("Missing scalars for some points!")
 
-            points = np.asarray(s.points, dtype=f4_dtype)
-            scalars = np.asarray(s.scalars, dtype=f4_dtype).reshape((len(points), -1))
-            properties = np.asarray(s.properties, dtype=f4_dtype)
+            points = np.asarray(t.streamline, dtype=f4_dtype)
+            scalars = np.asarray(t.scalars, dtype=f4_dtype).reshape((len(points), -1))
+            properties = np.asarray(t.properties, dtype=f4_dtype)
 
             # TRK's streamlines need to be in 'voxelmm' space
             points = points * self.header[Field.VOXEL_SIZES]
@@ -377,8 +377,8 @@ class TrkFile(TractogramFile):
 
         Returns
         -------
-        streamlines : Tractogram object
-            Returns an object containing streamlines' data and header
+        tractogram : Tractogram object
+            Returns an object containing tractogram' data and header
             information. See `nibabel.Tractogram`.
 
         Notes
@@ -412,13 +412,13 @@ class TrkFile(TractogramFile):
                     yield pts, scals, props
 
             data = lambda: _apply_transform(trk_reader)
-            streamlines = LazyTractogram.create_from_data(data)
+            tractogram = LazyTractogram.create_from_data(data)
 
             # Overwrite scalars and properties if there is none
             if trk_reader.header[Field.NB_SCALARS_PER_POINT] == 0:
-                streamlines.scalars = lambda: []
+                tractogram.scalars = lambda: []
             if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
-                streamlines.properties = lambda: []
+                tractogram.properties = lambda: []
 
         # elif Field.NB_POINTS in trk_reader.header:
         #     # 'count' field is provided, we can avoid creating list of numpy
@@ -464,46 +464,46 @@ class TrkFile(TractogramFile):
         #         streamlines.properties = []
 
         else:
-            streamlines = Tractogram.create_from_generator(trk_reader)
-            #streamlines = Tractogram(*zip(*trk_reader))
-            streamlines.apply_affine(affine)
+            tractogram = Tractogram.create_from_generator(trk_reader)
+            #tractogram = Tractogram(*zip(*trk_reader))
+            tractogram.apply_affine(affine)
 
             # Overwrite scalars and properties if there is none
             if trk_reader.header[Field.NB_SCALARS_PER_POINT] == 0:
-                streamlines.scalars = []
+                tractogram.scalars = []
             if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
-                streamlines.properties = []
+                tractogram.properties = []
 
         # Set available common information about streamlines in the header
-        streamlines.header.to_world_space = affine
+        tractogram.header.to_world_space = affine
 
         # If 'count' field is 0, i.e. not provided, we don't set `nb_streamlines`
         if trk_reader.header[Field.NB_STREAMLINES] > 0:
-            streamlines.header.nb_streamlines = trk_reader.header[Field.NB_STREAMLINES]
+            tractogram.header.nb_streamlines = trk_reader.header[Field.NB_STREAMLINES]
 
         # Keep extra information about TRK format
-        streamlines.header.extra = trk_reader.header
+        tractogram.header.extra = trk_reader.header
 
         ## Perform some integrity checks
-        #if trk_reader.header[Field.VOXEL_ORDER] != streamlines.header.voxel_order:
+        #if trk_reader.header[Field.VOXEL_ORDER] != tractogram.header.voxel_order:
         #    raise HeaderError("'voxel_order' does not match the affine.")
-        #if streamlines.header.voxel_sizes != trk_reader.header[Field.VOXEL_SIZES]:
+        #if tractogram.header.voxel_sizes != trk_reader.header[Field.VOXEL_SIZES]:
         #    raise HeaderError("'voxel_sizes' does not match the affine.")
-        #if streamlines.header.nb_scalars_per_point != trk_reader.header[Field.NB_SCALARS_PER_POINT]:
+        #if tractogram.header.nb_scalars_per_point != trk_reader.header[Field.NB_SCALARS_PER_POINT]:
         #    raise HeaderError("'nb_scalars_per_point' does not match.")
-        #if streamlines.header.nb_properties_per_streamline != trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
+        #if tractogram.header.nb_properties_per_streamline != trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
         #    raise HeaderError("'nb_properties_per_streamline' does not match.")
 
-        return streamlines
+        return tractogram
 
     @staticmethod
-    def save(streamlines, fileobj, ref=None):
-        ''' Saves streamlines to a file-like object.
+    def save(tractogram, fileobj, ref=None):
+        ''' Saves tractogram to a file-like object.
 
         Parameters
         ----------
-        streamlines : Tractogram object
-            Object containing streamlines' data and header information.
+        tractogram : Tractogram object
+            Object containing tractogram' data and header information.
             See 'nibabel.Tractogram'.
 
         fileobj : string or file-like object
@@ -520,10 +520,10 @@ class TrkFile(TractogramFile):
         refers to the center of the voxel.
         '''
         if ref is not None:
-            streamlines.header.to_world_space = get_affine_from_reference(ref)
+            tractogram.header.to_world_space = get_affine_from_reference(ref)
 
-        trk_writer = TrkWriter(fileobj, streamlines.header)
-        trk_writer.write(streamlines)
+        trk_writer = TrkWriter(fileobj, tractogram.header)
+        trk_writer.write(tractogram)
 
     @staticmethod
     def pretty_print(fileobj):

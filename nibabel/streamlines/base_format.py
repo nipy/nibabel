@@ -2,6 +2,8 @@ import itertools
 import numpy as np
 from warnings import warn
 
+from abc import ABCMeta, abstractmethod, abstractproperty
+
 from nibabel.externals.six.moves import zip_longest
 from nibabel.affines import apply_affine
 
@@ -44,7 +46,7 @@ class CompactList(object):
 
         if iterable is not None:
             # Initialize the `CompactList` object from iterable's item.
-            BUFFER_SIZE = 1000
+            BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
 
             offset = 0
             for i, e in enumerate(iterable):
@@ -190,15 +192,16 @@ class CompactList(object):
     def __repr__(self):
         return repr(list(self))
 
+
 class TractogramItem(object):
     ''' Class containing information about one streamline.
 
-    ``TractogramItem`` objects have three main properties: `points`, `scalars`
+    ``TractogramItem`` objects have three main properties: `streamline`, `scalars`
     and ``properties``.
 
     Parameters
     ----------
-    points : ndarray of shape (N, 3)
+    streamline : ndarray of shape (N, 3)
         Points of this streamline represented as an ndarray of shape (N, 3)
         where N is the number of points.
 
@@ -211,56 +214,56 @@ class TractogramItem(object):
         Properties associated with this streamline and represented as an
         ndarray of shape (P,) where P is the number of properties.
     '''
-    def __init__(self, points, scalars=None, properties=None):
-        #if scalars is not None and len(points) != len(scalars):
-        #    raise ValueError("First dimension of points and scalars must match.")
+    def __init__(self, streamline, scalars=None, properties=None):
+        #if scalars is not None and len(streamline) != len(scalars):
+        #    raise ValueError("First dimension of streamline and scalars must match.")
 
-        self.points = np.asarray(points)
+        self.streamline = np.asarray(streamline)
         self.scalars = np.asarray([] if scalars is None else scalars)
         self.properties = np.asarray([] if properties is None else properties)
 
     def __iter__(self):
-        return iter(self.points)
+        return iter(self.streamline)
 
     def __len__(self):
-        return len(self.points)
+        return len(self.streamline)
 
 
 class Tractogram(object):
     ''' Class containing information about streamlines.
 
-    Tractogram objects have three main properties: ``points``, ``scalars``
+    Tractogram objects have three main properties: ``streamlines``, ``scalars``
     and ``properties``. Tractogram objects can be iterate over producing
-    tuple of ``points``, ``scalars`` and ``properties`` for each streamline.
+    tuple of ``streamlines``, ``scalars`` and ``properties`` for each streamline.
 
     Parameters
     ----------
-    points : list of ndarray of shape (N, 3)
-        Sequence of T streamlines. One streamline is an ndarray of shape (N, 3)
-        where N is the number of points in a streamline.
+    streamlines : list of ndarray of shape (Nt, 3)
+        Sequence of T streamlines. One streamline is an ndarray of shape (Nt, 3)
+        where Nt is the number of points of streamline t.
 
-    scalars : list of ndarray of shape (N, M)
-        Sequence of T ndarrays of shape (N, M) where T is the number of
-        streamlines defined by ``points``, N is the number of points
-        for a particular streamline and M is the number of scalars
+    scalars : list of ndarray of shape (Nt, M)
+        Sequence of T ndarrays of shape (Nt, M) where T is the number of
+        streamlines defined by ``streamlines``, Nt is the number of points
+        for a particular streamline t and M is the number of scalars
         associated to each point (excluding the three coordinates).
 
     properties : list of ndarray of shape (P,)
         Sequence of T ndarrays of shape (P,) where T is the number of
-        streamlines defined by ``points``, P is the number of properties
+        streamlines defined by ``streamlines``, P is the number of properties
         associated to each streamline.
     '''
-    def __init__(self, points=None, scalars=None, properties=None):
+    def __init__(self, streamlines=None, scalars=None, properties=None):
         self._header = TractogramHeader()
-        self.points = points
+        self.streamlines = streamlines
         self.scalars = scalars
         self.properties = properties
 
     @classmethod
     def create_from_generator(cls, gen):
-        BUFFER_SIZE = 1000000
+        BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
 
-        points = CompactList()
+        streamlines = CompactList()
         scalars = CompactList()
         properties = np.array([])
 
@@ -269,7 +272,7 @@ class Tractogram(object):
             first_element = next(gen)
             gen = itertools.chain([first_element], gen)
         except StopIteration:
-            return cls(points, scalars, properties)
+            return cls(streamlines, scalars, properties)
 
         # Allocated some buffer memory.
         pts = np.asarray(first_element[0])
@@ -279,7 +282,7 @@ class Tractogram(object):
         scals_shape = scals.shape
         props_shape = props.shape
 
-        points._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
+        streamlines._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
         scalars._data = np.empty((BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
         properties = np.empty((BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
 
@@ -298,14 +301,14 @@ class Tractogram(object):
                                  " streamline to another")
 
             end = offset + len(pts)
-            if end >= len(points._data):
+            if end >= len(streamlines._data):
                 # Resize is needed (at least `len(pts)` items will be added).
-                points._data.resize((len(points._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
+                streamlines._data.resize((len(streamlines._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
                 scalars._data.resize((len(scalars._data) + len(scals)+BUFFER_SIZE, scals.shape[1]))
 
-            points._offsets.append(offset)
-            points._lengths.append(len(pts))
-            points._data[offset:offset+len(pts)] = pts
+            streamlines._offsets.append(offset)
+            streamlines._lengths.append(len(pts))
+            streamlines._data[offset:offset+len(pts)] = pts
             scalars._data[offset:offset+len(scals)] = scals
 
             offset += len(pts)
@@ -316,7 +319,7 @@ class Tractogram(object):
             properties[i] = props
 
         # Clear unused memory.
-        points._data.resize((offset, pts.shape[1]))
+        streamlines._data.resize((offset, pts.shape[1]))
 
         if scals_shape[1] == 0:
             # Because resizing an empty ndarray creates memory!
@@ -324,9 +327,9 @@ class Tractogram(object):
         else:
             scalars._data.resize((offset, scals.shape[1]))
 
-        # Share offsets and lengths between points and scalars.
-        scalars._offsets = points._offsets
-        scalars._lengths = points._lengths
+        # Share offsets and lengths between streamlines and scalars.
+        scalars._offsets = streamlines._offsets
+        scalars._lengths = streamlines._lengths
 
         if props_shape[0] == 0:
             # Because resizing an empty ndarray creates memory!
@@ -334,7 +337,7 @@ class Tractogram(object):
         else:
             properties.resize((i+1, props.shape[0]))
 
-        return cls(points, scalars, properties)
+        return cls(streamlines, scalars, properties)
 
 
     @property
@@ -342,16 +345,16 @@ class Tractogram(object):
         return self._header
 
     @property
-    def points(self):
-        return self._points
+    def streamlines(self):
+        return self._streamlines
 
-    @points.setter
-    def points(self, value):
-        self._points = value
+    @streamlines.setter
+    def streamlines(self, value):
+        self._streamlines = value
         if not isinstance(value, CompactList):
-            self._points = CompactList(value)
+            self._streamlines = CompactList(value)
 
-        self.header.nb_streamlines = len(self.points)
+        self.header.nb_streamlines = len(self.streamlines)
 
     @property
     def scalars(self):
@@ -382,11 +385,11 @@ class Tractogram(object):
             self.header.nb_properties_per_streamline = len(self.properties[0])
 
     def __iter__(self):
-        for data in zip_longest(self.points, self.scalars, self.properties, fillvalue=None):
+        for data in zip_longest(self.streamlines, self.scalars, self.properties, fillvalue=None):
             yield TractogramItem(*data)
 
     def __getitem__(self, idx):
-        pts = self.points[idx]
+        pts = self.streamlines[idx]
         scalars = []
         if len(self.scalars) > 0:
             scalars = self.scalars[idx]
@@ -401,11 +404,11 @@ class Tractogram(object):
         return TractogramItem(pts, scalars, properties)
 
     def __len__(self):
-        return len(self.points)
+        return len(self.streamlines)
 
     def copy(self):
         """ Returns a copy of this `Tractogram` object. """
-        streamlines = Tractogram(self.points.copy(), self.scalars.copy(), self.properties.copy())
+        streamlines = Tractogram(self.streamlines.copy(), self.scalars.copy(), self.properties.copy())
         streamlines._header = self.header.copy()
         return streamlines
 
@@ -419,53 +422,53 @@ class Tractogram(object):
         affine : 2D array (4,4)
             Transformation that will be applied on each streamline.
         """
-        if len(self.points) == 0:
+        if len(self.streamlines) == 0:
             return
 
-        BUFFER_SIZE = 10000
-        for i in range(0, len(self.points._data), BUFFER_SIZE):
-            pts = self.points._data[i:i+BUFFER_SIZE]
-            self.points._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
+        BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
+        for i in range(0, len(self.streamlines._data), BUFFER_SIZE):
+            pts = self.streamlines._data[i:i+BUFFER_SIZE]
+            self.streamlines._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
 
 
 class LazyTractogram(Tractogram):
     ''' Class containing information about streamlines.
 
-    Tractogram objects have four main properties: ``header``, ``points``,
+    Tractogram objects have four main properties: ``header``, ``streamlines``,
     ``scalars`` and ``properties``. Tractogram objects are iterable and
-    produce tuple of ``points``, ``scalars`` and ``properties`` for each
+    produce tuple of ``streamlines``, ``scalars`` and ``properties`` for each
     streamline.
 
     Parameters
     ----------
-    points_func : coroutine ouputting (N,3) array-like (optional)
-        Function yielding streamlines' points. One streamline's points is
-        an array-like of shape (N,3) where N is the number of points in a
-        streamline.
+    streamlines_func : coroutine ouputting (Nt,3) array-like (optional)
+        Function yielding streamlines. One streamline is
+        an ndarray of shape (Nt,3) where Nt is the number of points of
+        streamline t.
 
-    scalars_func : coroutine ouputting (N,M) array-like (optional)
-        Function yielding streamlines' scalars. One streamline's scalars is
-        an array-like of shape (N,M) where N is the number of points for a
-        particular streamline and M is the number of scalars associated to
-        each point (excluding the three coordinates).
+    scalars_func : coroutine ouputting (Nt,M) array-like (optional)
+        Function yielding scalars for a particular streamline t. The scalars
+        are represented as an ndarray of shape (Nt,M) where Nt is the number
+        of points of that streamline t and M is the number of scalars
+        associated to each point (excluding the three coordinates).
 
     properties_func : coroutine ouputting (P,) array-like (optional)
-        Function yielding streamlines' properties. One streamline's properties
-        is an array-like of shape (P,) where P is the number of properties
-        associated to each streamline.
+        Function yielding properties for a particular streamline t. The
+        properties are represented as an ndarray of shape (P,) where P is
+        the number of properties associated to each streamline.
 
     getitem_func : function `idx -> 3-tuples` (optional)
-        Function returning streamlines (one or a list of 3-tuples) given
-        an index or a slice (i.e. the __getitem__ function to use).
+        Function returning a subset of the tractogram given an index or a
+        slice (i.e. the __getitem__ function to use).
 
     Notes
     -----
     If provided, ``scalars`` and ``properties`` must yield the same number of
-    values as ``points``.
+    values as ``streamlines``.
     '''
-    def __init__(self, points_func=lambda:[], scalars_func=lambda: [], properties_func=lambda: [], getitem_func=None):
-        super(LazyTractogram, self).__init__(points_func, scalars_func, properties_func)
-        self._data = lambda: zip_longest(self.points, self.scalars, self.properties, fillvalue=[])
+    def __init__(self, streamlines_func=lambda:[], scalars_func=lambda: [], properties_func=lambda: [], getitem_func=None):
+        super(LazyTractogram, self).__init__(streamlines_func, scalars_func, properties_func)
+        self._data = lambda: zip_longest(self.streamlines, self.scalars, self.properties, fillvalue=[])
         self._getitem = getitem_func
 
     @classmethod
@@ -475,12 +478,11 @@ class LazyTractogram(Tractogram):
         Parameters
         ----------
         data_func : coroutine ouputting tuple (optional)
-            Function yielding 3-tuples, (streamline's points, streamline's
-            scalars, streamline's properties). A streamline's points is an
-            array-like of shape (N,3), a streamline's scalars is an array-like
-            of shape (N,M) and streamline's properties is an array-like of
-            shape (P,) where N is the number of points for a particular
-            streamline, M is the number of scalars associated to each point
+            Function yielding 3-tuples, (streamlines, scalars, properties).
+            Streamlines are represented as an ndarray of shape (Nt,3), scalars
+            as an ndarray of shape (Nt,M) and properties as an ndarray of shape
+            (P,) where Nt is the number of points for a particular
+            streamline t, M is the number of scalars associated to each point
             (excluding the three coordinates) and P is the number of properties
             associated to each streamline.
         '''
@@ -489,21 +491,21 @@ class LazyTractogram(Tractogram):
 
         lazy_streamlines = cls()
         lazy_streamlines._data = data_func
-        lazy_streamlines.points = lambda: (x[0] for x in data_func())
+        lazy_streamlines.streamlines = lambda: (x[0] for x in data_func())
         lazy_streamlines.scalars = lambda: (x[1] for x in data_func())
         lazy_streamlines.properties = lambda: (x[2] for x in data_func())
         return lazy_streamlines
 
     @property
-    def points(self):
-        return self._points()
+    def streamlines(self):
+        return self._streamlines()
 
-    @points.setter
-    def points(self, value):
+    @streamlines.setter
+    def streamlines(self, value):
         if not callable(value):
-            raise TypeError("`points` must be a coroutine.")
+            raise TypeError("`streamlines` must be a coroutine.")
 
-        self._points = value
+        self._streamlines = value
 
     @property
     def scalars(self):
@@ -564,12 +566,12 @@ class LazyTractogram(Tractogram):
 
     def copy(self):
         """ Returns a copy of this `LazyTractogram` object. """
-        streamlines = LazyTractogram(self._points, self._scalars, self._properties)
+        streamlines = LazyTractogram(self._streamlines, self._scalars, self._properties)
         streamlines._header = self.header.copy()
         return streamlines
 
     def transform(self, affine):
-        """ Applies an affine transformation on the points of each streamline.
+        """ Applies an affine transformation on the streamlines.
 
         Parameters
         ----------
@@ -583,19 +585,29 @@ class LazyTractogram(Tractogram):
         """
         return super(LazyTractogram, self).transform(affine, lazy=True)
 
-    def to_world_space(self):
-        """ Sends the streamlines back into world space.
 
-        Returns
-        -------
-        streamlines : `LazyTractogram` object
-            Tractogram living in world space.
-        """
-        return super(LazyTractogram, self).to_world_space(lazy=True)
-
-
-class TractogramFile:
+class TractogramFile(object):
     ''' Convenience class to encapsulate streamlines file format. '''
+    __metaclass__ = ABCMeta
+
+    def __init__(self, tractogram):
+        self.tractogram = tractogram
+
+    @property
+    def streamlines(self):
+        return self.tractogram.streamlines
+
+    @property
+    def scalars(self):
+        return self.tractogram.scalars
+
+    @property
+    def properties(self):
+        return self.tractogram.properties
+
+    @property
+    def header(self):
+        return self.tractogram.header
 
     @classmethod
     def get_magic_number(cls):
@@ -692,15 +704,3 @@ class TractogramFile:
             Header information relevant to the streamlines file format.
         '''
         raise NotImplementedError()
-
-
-# class DynamicTractogramFile(TractogramFile):
-#     ''' Convenience class to encapsulate streamlines file format
-#     that supports appending streamlines to an existing file.
-#     '''
-
-#     def append(self, streamlines):
-#         raise NotImplementedError()
-
-#     def __iadd__(self, streamlines):
-#         return self.append(streamlines)
