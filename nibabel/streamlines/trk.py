@@ -346,16 +346,6 @@ class TrkFile(TractogramFile):
         return cls.MAGIC_NUMBER
 
     @classmethod
-    def can_save_scalars(cls):
-        ''' Tells if the streamlines format supports saving scalars. '''
-        return True
-
-    @classmethod
-    def can_save_properties(cls):
-        ''' Tells if the streamlines format supports saving properties. '''
-        return True
-
-    @classmethod
     def is_correct_format(cls, fileobj):
         ''' Check if the file is in TRK format.
 
