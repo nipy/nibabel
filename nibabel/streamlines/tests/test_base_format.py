@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import warnings
 
-from nibabel.testing import assert_arrays_equal
+from nibabel.testing import assert_arrays_equal, isiterable
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -209,36 +209,31 @@ class TestTractogramItem(unittest.TestCase):
     def test_creating_tractogram_item(self):
         rng = np.random.RandomState(42)
         streamline = rng.rand(rng.randint(10, 50), 3)
-        scalars = rng.rand(len(streamline), 5)
-        properties = rng.rand(42)
+        colors = rng.rand(len(streamline), 3)
+        mean_curvature = 1.11
+        mean_color = np.array([0, 1, 0], dtype="f4")
 
-        # Create a streamline with only points
-        t = TractogramItem(streamline)
-        assert_equal(len(t), len(streamline))
-        assert_array_equal(t.scalars, [])
-        assert_array_equal(t.properties, [])
+        data_for_streamline = {"mean_curvature": mean_curvature,
+                               "mean_color": mean_color}
 
-        # Create a streamline with points, scalars and properties.
-        t = TractogramItem(streamline, scalars, properties)
+        data_for_points = {"colors": colors}
+
+        # Create a tractogram item with a streamline, data.
+        t = TractogramItem(streamline, data_for_streamline, data_for_points)
         assert_equal(len(t), len(streamline))
         assert_array_equal(t.streamline, streamline)
         assert_array_equal(list(t), streamline)
-        assert_equal(len(t), len(scalars))
-        assert_array_equal(t.scalars, scalars)
-        assert_array_equal(t.properties, properties)
-
-        # # Create a streamline with different number of scalars.
-        # scalars = rng.rand(len(streamline)+3, 5)
-        # assert_raises(ValueError, TractogramItem, streamline, scalars)
+        assert_array_equal(t.data_for_streamline['mean_curvature'],
+                           mean_curvature)
+        assert_array_equal(t.data_for_streamline['mean_color'],
+                           mean_color)
+        assert_array_equal(t.data_for_points['colors'],
+                           colors)
 
 
 class TestTractogram(unittest.TestCase):
 
     def setUp(self):
-        self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
-        self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
-        self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
-
         self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                             np.arange(2*3, dtype="f4").reshape((2, 3)),
                             np.arange(5*3, dtype="f4").reshape((5, 3))]
@@ -247,77 +242,56 @@ class TestTractogram(unittest.TestCase):
                        np.array([(0, 1, 0)]*2, dtype="f4"),
                        np.array([(0, 0, 1)]*5, dtype="f4")]
 
-        self.mean_curvature_torsion = [np.array([1.11, 1.22], dtype="f4"),
-                                       np.array([2.11, 2.22], dtype="f4"),
-                                       np.array([3.11, 3.22], dtype="f4")]
-
         self.mean_curvature = np.array([1.11, 2.11, 3.11], dtype="f4")
-        self.mean_color = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]], dtype="f4")
-
+        self.mean_color = np.array([[0, 1, 0],
+                                    [0, 0, 1],
+                                    [1, 0, 0]], dtype="f4")
 
         self.nb_tractogram = len(self.streamlines)
-        self.nb_scalars_per_point = self.colors[0].shape[1]
-        self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
 
-    def test_tractogram_creation_with_dix(self):
+    def test_tractogram_creation(self):
+        # Create an empty tractogram.
+        tractogram = Tractogram()
+        assert_equal(len(tractogram), 0)
+        assert_arrays_equal(tractogram.streamlines, [])
+        assert_equal(tractogram.data_per_streamline, {})
+        assert_equal(tractogram.data_per_point, {})
+        assert_true(isiterable(tractogram))
 
+        # Create a tractogram with only streamlines
+        tractogram = Tractogram(streamlines=self.streamlines)
+        assert_equal(len(tractogram), len(self.streamlines))
+        assert_arrays_equal(tractogram.streamlines, self.streamlines)
+        assert_equal(tractogram.data_per_streamline, {})
+        assert_equal(tractogram.data_per_point, {})
+        assert_true(isiterable(tractogram))
+
+        # Create a tractogram with streamlines and other data.
         tractogram = Tractogram(
-            streamlines=self.streamlines,
+            self.streamlines,
             data_per_streamline={'mean_curvature': self.mean_curvature,
                                  'mean_color': self.mean_color},
             data_per_point={'colors': self.colors})
 
-        tractogram[:2]
-
-
-    def test_tractogram_creation_from_arrays(self):
-        # Empty
-        tractogram = Tractogram()
-        assert_equal(len(tractogram), 0)
-        assert_arrays_equal(tractogram.streamlines, [])
-        assert_arrays_equal(tractogram.scalars, [])
-        assert_arrays_equal(tractogram.properties, [])
-
-        # Check if we can iterate through the tractogram.
-        for streamline in tractogram:
-            pass
-
-        # Only streamlines
-        tractogram = Tractogram(streamlines=self.streamlines)
         assert_equal(len(tractogram), len(self.streamlines))
         assert_arrays_equal(tractogram.streamlines, self.streamlines)
-        assert_arrays_equal(tractogram.scalars, [])
-        assert_arrays_equal(tractogram.properties, [])
+        assert_arrays_equal(tractogram.data_per_streamline['mean_curvature'],
+                            self.mean_curvature)
+        assert_arrays_equal(tractogram.data_per_streamline['mean_color'],
+                            self.mean_color)
+        assert_arrays_equal(tractogram.data_per_point['colors'],
+                            self.colors)
 
-        # Check if we can iterate through the tractogram.
-        for streamline in tractogram:
-            pass
-
-        # Points, scalars and properties
-        tractogram = Tractogram(self.streamlines, self.colors, self.mean_curvature_torsion)
-        assert_equal(len(tractogram), len(self.streamlines))
-        assert_arrays_equal(tractogram.streamlines, self.streamlines)
-        assert_arrays_equal(tractogram.scalars, self.colors)
-        assert_arrays_equal(tractogram.properties, self.mean_curvature_torsion)
-
-        # Check if we can iterate through the tractogram.
-        for streamline in tractogram:
-            pass
+        assert_true(isiterable(tractogram))
 
         # Inconsistent number of scalars between streamlines
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1, 0), (0, 1)],
-                   [(0, 0, 1)]*5]
+        wrong_data = [[(1, 0, 0)]*1,
+                      [(0, 1, 0), (0, 1)],
+                      [(0, 0, 1)]*5]
 
-        assert_raises(ValueError, Tractogram, self.streamlines, scalars)
-
-        # Unit test moved to test_base_format.py
-        # Inconsistent number of scalars between tractogram
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1)]*2,
-                   [(0, 0, 1)]*5]
-
-        assert_raises(ValueError, Tractogram, self.streamlines, scalars)
+        data_per_point = {'wrong_data': wrong_data}
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_point=data_per_point)
 
     def test_tractogram_getter(self):
         # Tractogram with only streamlines
@@ -326,78 +300,71 @@ class TestTractogram(unittest.TestCase):
         selected_tractogram = tractogram[::2]
         assert_equal(len(selected_tractogram), (len(self.streamlines)+1)//2)
 
-        assert_arrays_equal(selected_tractogram.streamlines, self.streamlines[::2])
-        assert_equal(sum(map(len, selected_tractogram.scalars)), 0)
-        assert_equal(sum(map(len, selected_tractogram.properties)), 0)
+        assert_arrays_equal(selected_tractogram.streamlines,
+                            self.streamlines[::2])
+        assert_equal(tractogram.data_per_streamline, {})
+        assert_equal(tractogram.data_per_point, {})
 
-        # Tractogram with streamlines, scalars and properties
-        tractogram = Tractogram(self.streamlines, self.colors, self.mean_curvature_torsion)
+        # Create a tractogram with streamlines and other data.
+        tractogram = Tractogram(
+            self.streamlines,
+            data_per_streamline={'mean_curvature': self.mean_curvature,
+                                 'mean_color': self.mean_color},
+            data_per_point={'colors': self.colors})
 
         # Retrieve tractogram by their index
         for i, t in enumerate(tractogram):
             assert_array_equal(t.streamline, tractogram[i].streamline)
-            assert_array_equal(t.scalars, tractogram[i].scalars)
-            assert_array_equal(t.properties, tractogram[i].properties)
+            assert_array_equal(t.data_for_points['colors'],
+                               tractogram[i].data_for_points['colors'])
+
+            assert_array_equal(t.data_for_streamline['mean_curvature'],
+                               tractogram[i].data_for_streamline['mean_curvature'])
+
+            assert_array_equal(t.data_for_streamline['mean_color'],
+                               tractogram[i].data_for_streamline['mean_color'])
 
         # Use slicing
         r_tractogram = tractogram[::-1]
         assert_arrays_equal(r_tractogram.streamlines, self.streamlines[::-1])
-        assert_arrays_equal(r_tractogram.scalars, self.colors[::-1])
-        assert_arrays_equal(r_tractogram.properties, self.mean_curvature_torsion[::-1])
 
-    def test_tractogram_creation_from_generator(self):
-        # Create `Tractogram` from a generator yielding 3-tuples
-        gen = (x for x in zip(self.streamlines, self.colors, self.mean_curvature_torsion))
+        assert_arrays_equal(r_tractogram.data_per_streamline['mean_curvature'],
+                            self.mean_curvature[::-1])
+        assert_arrays_equal(r_tractogram.data_per_streamline['mean_color'],
+                            self.mean_color[::-1])
+        assert_arrays_equal(r_tractogram.data_per_point['colors'],
+                            self.colors[::-1])
 
-        tractogram = Tractogram.create_from_generator(gen)
-        with suppress_warnings():
-            assert_equal(len(tractogram), self.nb_tractogram)
+    def test_tractogram_add_new_data(self):
+        # Tractogram with only streamlines
+        tractogram = Tractogram(streamlines=self.streamlines)
 
-        assert_arrays_equal(tractogram.streamlines, self.streamlines)
-        assert_arrays_equal(tractogram.scalars, self.colors)
-        assert_arrays_equal(tractogram.properties, self.mean_curvature_torsion)
+        tractogram.data_per_streamline['mean_curvature'] = self.mean_curvature
+        tractogram.data_per_streamline['mean_color'] = self.mean_color
+        tractogram.data_per_point['colors'] = self.colors
 
-        # Check if we can iterate through the tractogram.
-        for streamline in tractogram:
-            pass
+        # Retrieve tractogram by their index
+        for i, t in enumerate(tractogram):
+            assert_array_equal(t.streamline, tractogram[i].streamline)
+            assert_array_equal(t.data_for_points['colors'],
+                               tractogram[i].data_for_points['colors'])
 
-    def test_tractogram_creation_from_coroutines(self):
-        # Points, scalars and properties
-        streamlines = lambda: (x for x in self.streamlines)
-        scalars = lambda: (x for x in self.colors)
-        properties = lambda: (x for x in self.mean_curvature_torsion)
+            assert_array_equal(t.data_for_streamline['mean_curvature'],
+                               tractogram[i].data_for_streamline['mean_curvature'])
 
-        # To create tractogram from multiple coroutines use `LazyTractogram`.
-        assert_raises(TypeError, Tractogram, streamlines, scalars, properties)
+            assert_array_equal(t.data_for_streamline['mean_color'],
+                               tractogram[i].data_for_streamline['mean_color'])
 
-    def test_header(self):
-        # Empty Tractogram, with default header
-        tractogram = Tractogram()
-        assert_equal(tractogram.header.nb_streamlines, 0)
-        assert_equal(tractogram.header.nb_scalars_per_point, 0)
-        assert_equal(tractogram.header.nb_properties_per_streamline, 0)
-        assert_array_equal(tractogram.header.voxel_sizes, (1, 1, 1))
-        assert_array_equal(tractogram.header.to_world_space, np.eye(4))
-        assert_equal(tractogram.header.extra, {})
+        # Use slicing
+        r_tractogram = tractogram[::-1]
+        assert_arrays_equal(r_tractogram.streamlines, self.streamlines[::-1])
 
-        tractogram = Tractogram(self.streamlines, self.colors, self.mean_curvature_torsion)
-
-        assert_equal(tractogram.header.nb_streamlines, len(self.streamlines))
-        assert_equal(tractogram.header.nb_scalars_per_point, self.colors[0].shape[1])
-        assert_equal(tractogram.header.nb_properties_per_streamline, self.mean_curvature_torsion[0].shape[0])
-
-        # Modifying voxel_sizes should be reflected in to_world_space
-        tractogram.header.voxel_sizes = (2, 3, 4)
-        assert_array_equal(tractogram.header.voxel_sizes, (2, 3, 4))
-        assert_array_equal(np.diag(tractogram.header.to_world_space), (2, 3, 4, 1))
-
-        # Modifying scaling of to_world_space should be reflected in voxel_sizes
-        tractogram.header.to_world_space = np.diag([4, 3, 2, 1])
-        assert_array_equal(tractogram.header.voxel_sizes, (4, 3, 2))
-        assert_array_equal(tractogram.header.to_world_space, np.diag([4, 3, 2, 1]))
-
-        # Test that we can run __repr__ without error.
-        repr(tractogram.header)
+        assert_arrays_equal(r_tractogram.data_per_streamline['mean_curvature'],
+                            self.mean_curvature[::-1])
+        assert_arrays_equal(r_tractogram.data_per_streamline['mean_color'],
+                            self.mean_color[::-1])
+        assert_arrays_equal(r_tractogram.data_per_point['colors'],
+                            self.colors[::-1])
 
 
 class TestLazyTractogram(unittest.TestCase):
@@ -553,27 +520,3 @@ class TestLazyTractogram(unittest.TestCase):
             # This should *not* produce a warning.
             assert_equal(len(tractogram), 1234)
             assert_equal(len(w), 0)
-
-    def test_lazy_tractogram_header(self):
-        # Empty `LazyTractogram`, with default header
-        tractogram = LazyTractogram()
-        assert_true(tractogram.header.nb_streamlines is None)
-        assert_equal(tractogram.header.nb_scalars_per_point, 0)
-        assert_equal(tractogram.header.nb_properties_per_streamline, 0)
-        assert_array_equal(tractogram.header.voxel_sizes, (1, 1, 1))
-        assert_array_equal(tractogram.header.to_world_space, np.eye(4))
-        assert_equal(tractogram.header.extra, {})
-
-        streamlines = lambda: (x for x in self.streamlines)
-        scalars = lambda: (x for x in self.colors)
-        properties = lambda: (x for x in self.mean_curvature_torsion)
-        tractogram = LazyTractogram(streamlines)
-        header = tractogram.header
-
-        assert_equal(header.nb_scalars_per_point, 0)
-        tractogram.scalars = scalars
-        assert_equal(header.nb_scalars_per_point, self.nb_scalars_per_point)
-
-        assert_equal(header.nb_properties_per_streamline, 0)
-        tractogram.properties = properties
-        assert_equal(header.nb_properties_per_streamline, self.nb_properties_per_streamline)

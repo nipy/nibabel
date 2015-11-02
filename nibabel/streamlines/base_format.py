@@ -209,9 +209,7 @@ class TractogramItem(object):
 
     data_for_points : dict
     """
-    def __init__(self, streamline,
-                 data_for_streamline, data_for_points):
-
+    def __init__(self, streamline, data_for_streamline, data_for_points):
         self.streamline = np.asarray(streamline)
         self.data_for_streamline = data_for_streamline
         self.data_for_points = data_for_points
@@ -251,14 +249,42 @@ class Tractogram(object):
                  data_per_point=None):
 
         self.streamlines = streamlines
-        if data_per_streamline is None:
-            self.data_per_streamline = {}
-        else:
+
+        self.data_per_streamline = {}
+        if data_per_streamline is not None:
             self.data_per_streamline = data_per_streamline
-        if data_per_point is None:
-            self.data_per_point = {}
-        else:
+
+        self.data_per_point = {}
+        if data_per_point is not None:
             self.data_per_point = data_per_point
+
+    @property
+    def streamlines(self):
+        return self._streamlines
+
+    @streamlines.setter
+    def streamlines(self, value):
+        self._streamlines = CompactList(value)
+
+    @property
+    def data_per_streamline(self):
+        return self._data_per_streamline
+
+    @data_per_streamline.setter
+    def data_per_streamline(self, value):
+        self._data_per_streamline = {}
+        for k, v in value.items():
+            self._data_per_streamline[k] = np.asarray(v)
+
+    @property
+    def data_per_point(self):
+        return self._data_per_point
+
+    @data_per_point.setter
+    def data_per_point(self, value):
+        self._data_per_point = {}
+        for k, v in value.items():
+            self._data_per_point[k] = CompactList(v)
 
     def __iter__(self):
         for i in range(len(self.streamlines)):
@@ -279,6 +305,9 @@ class Tractogram(object):
             return Tractogram(pts, new_data_per_streamline, new_data_per_point)
 
         return TractogramItem(pts, new_data_per_streamline, new_data_per_point)
+
+    def __len__(self):
+        return len(self.streamlines)
 
     def copy(self):
         """ Returns a copy of this `Tractogram` object. """
