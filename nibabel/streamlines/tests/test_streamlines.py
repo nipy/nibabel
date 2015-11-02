@@ -12,7 +12,7 @@ from nibabel.testing import clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal, isiterable
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
-from ..base_format import Tractogram, LazyTractogram
+from ..base_format import Tractogram, LazyTractogram, TractogramFile
 from ..base_format import HeaderError, UsageWarning
 from ..header import Field
 from .. import trk
@@ -134,28 +134,32 @@ class TestLoadSave(unittest.TestCase):
 
     def test_load_empty_file(self):
         for empty_filename in self.empty_filenames:
-            tractogram = nib.streamlines.load(empty_filename,
-                                               ref=self.to_world_space,
-                                               lazy_load=False)
-            assert_true(type(tractogram), Tractogram)
-            check_tractogram(tractogram, 0, [], [], [])
+            tractogram_file = nib.streamlines.load(empty_filename,
+                                                   lazy_load=False,
+                                                   ref=self.to_world_space)
+            assert_true(isinstance(tractogram_file, TractogramFile))
+            assert_true(type(tractogram_file.tractogram), Tractogram)
+            check_tractogram(tractogram_file.tractogram, 0, [], [], [])
 
     def test_load_simple_file(self):
         for simple_filename in self.simple_filenames:
-            tractogram = nib.streamlines.load(simple_filename,
-                                               ref=self.to_world_space,
-                                               lazy_load=False)
-            assert_true(type(tractogram), Tractogram)
-            check_tractogram(tractogram, self.nb_streamlines,
-                              self.streamlines, [], [])
+            tractogram_file = nib.streamlines.load(simple_filename,
+                                                   lazy_load=False,
+                                                   ref=self.to_world_space)
+            assert_true(isinstance(tractogram_file, TractogramFile))
+            assert_true(type(tractogram_file.tractogram), Tractogram)
+            check_tractogram(tractogram_file.tractogram, self.nb_streamlines,
+                             self.streamlines, [], [])
 
             # Test lazy_load
-            tractogram = nib.streamlines.load(simple_filename,
-                                               ref=self.to_world_space,
-                                               lazy_load=True)
-            assert_true(type(tractogram), LazyTractogram)
-            check_tractogram(tractogram, self.nb_streamlines,
-                              self.streamlines, [], [])
+            tractogram_file = nib.streamlines.load(simple_filename,
+                                                   lazy_load=True,
+                                                   ref=self.to_world_space)
+
+            assert_true(isinstance(tractogram_file, TractogramFile))
+            assert_true(type(tractogram_file.tractogram), LazyTractogram)
+            check_tractogram(tractogram_file.tractogram, self.nb_streamlines,
+                             self.streamlines, [], [])
 
     def test_load_complex_file(self):
         for complex_filename in self.complex_filenames:
@@ -169,20 +173,22 @@ class TestLoadSave(unittest.TestCase):
             if file_format.can_save_properties():
                 properties = self.mean_curvature_torsion
 
-            tractogram = nib.streamlines.load(complex_filename,
-                                               ref=self.to_world_space,
-                                               lazy_load=False)
-            assert_true(type(tractogram), Tractogram)
-            check_tractogram(tractogram, self.nb_streamlines,
-                              self.streamlines, scalars, properties)
+            tractogram_file = nib.streamlines.load(complex_filename,
+                                                   lazy_load=False,
+                                                   ref=self.to_world_space)
+            assert_true(isinstance(tractogram_file, TractogramFile))
+            assert_true(type(tractogram_file.tractogram), Tractogram)
+            check_tractogram(tractogram_file.tractogram, self.nb_streamlines,
+                             self.streamlines, scalars, properties)
 
             # Test lazy_load
-            tractogram = nib.streamlines.load(complex_filename,
-                                               ref=self.to_world_space,
-                                               lazy_load=True)
-            assert_true(type(tractogram), LazyTractogram)
-            check_tractogram(tractogram, self.nb_streamlines,
-                              self.streamlines, scalars, properties)
+            tractogram_file = nib.streamlines.load(complex_filename,
+                                                   lazy_load=True,
+                                                   ref=self.to_world_space)
+            assert_true(isinstance(tractogram_file, TractogramFile))
+            assert_true(type(tractogram_file.tractogram), LazyTractogram)
+            check_tractogram(tractogram_file.tractogram, self.nb_streamlines,
+                             self.streamlines, scalars, properties)
 
     def test_save_simple_file(self):
         tractogram = Tractogram(self.streamlines)
