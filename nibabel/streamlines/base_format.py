@@ -258,7 +258,7 @@ class Tractogram(object):
 
     @classmethod
     def create_from_generator(cls, gen):
-        BUFFER_SIZE = 1000
+        BUFFER_SIZE = 1000000
 
         points = CompactList()
         scalars = CompactList()
@@ -301,7 +301,7 @@ class Tractogram(object):
             if end >= len(points._data):
                 # Resize is needed (at least `len(pts)` items will be added).
                 points._data.resize((len(points._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
-                scalars._data.resize((len(scalars._data) + len(scalars)+BUFFER_SIZE, scals.shape[1]))
+                scalars._data.resize((len(scalars._data) + len(scals)+BUFFER_SIZE, scals.shape[1]))
 
             points._offsets.append(offset)
             points._lengths.append(len(pts))
@@ -315,14 +315,24 @@ class Tractogram(object):
 
             properties[i] = props
 
+        # Clear unused memory.
+        points._data.resize((offset, pts.shape[1]))
+
+        if scals_shape[1] == 0:
+            # Because resizing an empty ndarray creates memory!
+            scalars._data = np.empty((offset, scals.shape[1]))
+        else:
+            scalars._data.resize((offset, scals.shape[1]))
+
         # Share offsets and lengths between points and scalars.
         scalars._offsets = points._offsets
         scalars._lengths = points._lengths
 
-        # Clear unused memory.
-        points._data.resize((offset, pts.shape[1]))
-        scalars._data.resize((offset, scals.shape[1]))
-        properties.resize((i+1, props.shape[0]))
+        if props_shape[0] == 0:
+            # Because resizing an empty ndarray creates memory!
+            properties = np.empty((i+1, props.shape[0]))
+        else:
+            properties.resize((i+1, props.shape[0]))
 
         return cls(points, scalars, properties)
 
