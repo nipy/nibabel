@@ -5,7 +5,7 @@ import numpy as np
 from nibabel.externals.six import BytesIO
 
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
-from nibabel.testing import assert_arrays_equal, assert_streamlines_equal
+from nibabel.testing import assert_arrays_equal, assert_tractogram_equal, isiterable
 from nose.tools import assert_equal, assert_raises, assert_true
 
 from .. import base_format
@@ -18,43 +18,33 @@ from ..trk import TrkFile
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
 
-def isiterable(streamlines):
-    try:
-        for streamline in streamlines:
-            pass
-    except:
-        return False
-
-    return True
-
-
-def check_streamlines(streamlines, nb_streamlines, points, scalars, properties):
+def check_tractogram(tractogram, nb_streamlines, streamlines, scalars, properties):
     # Check data
-    assert_equal(len(streamlines), nb_streamlines)
-    assert_arrays_equal(streamlines.points, points)
-    assert_arrays_equal(streamlines.scalars, scalars)
-    assert_arrays_equal(streamlines.properties, properties)
-    assert_true(isiterable(streamlines))
+    assert_equal(len(tractogram), nb_streamlines)
+    assert_arrays_equal(tractogram.streamlines, streamlines)
+    assert_arrays_equal(tractogram.scalars, scalars)
+    assert_arrays_equal(tractogram.properties, properties)
+    assert_true(isiterable(tractogram))
 
-    assert_equal(streamlines.header.nb_streamlines, nb_streamlines)
+    assert_equal(tractogram.header.nb_streamlines, nb_streamlines)
     nb_scalars_per_point = 0 if len(scalars) == 0 else len(scalars[0][0])
     nb_properties_per_streamline = 0 if len(properties) == 0 else len(properties[0])
-    assert_equal(streamlines.header.nb_scalars_per_point, nb_scalars_per_point)
-    assert_equal(streamlines.header.nb_properties_per_streamline, nb_properties_per_streamline)
+    assert_equal(tractogram.header.nb_scalars_per_point, nb_scalars_per_point)
+    assert_equal(tractogram.header.nb_properties_per_streamline, nb_properties_per_streamline)
 
 
 class TestTRK(unittest.TestCase):
 
     def setUp(self):
         self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
-        # simple.trk contains only points
+        # simple.trk contains only streamlines
         self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
-        # complex.trk contains points, scalars and properties
+        # complex.trk contains streamlines, scalars and properties
         self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
 
-        self.points = [np.arange(1*3, dtype="f4").reshape((1, 3)),
-                       np.arange(2*3, dtype="f4").reshape((2, 3)),
-                       np.arange(5*3, dtype="f4").reshape((5, 3))]
+        self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
+                            np.arange(2*3, dtype="f4").reshape((2, 3)),
+                            np.arange(5*3, dtype="f4").reshape((5, 3))]
 
         self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
                        np.array([(0, 1, 0)]*2, dtype="f4"),
@@ -64,34 +54,34 @@ class TestTRK(unittest.TestCase):
                                        np.array([2.11, 2.22], dtype="f4"),
                                        np.array([3.11, 3.22], dtype="f4")]
 
-        self.nb_streamlines = len(self.points)
+        self.nb_streamlines = len(self.streamlines)
         self.nb_scalars_per_point = self.colors[0].shape[1]
         self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
 
     def test_load_empty_file(self):
         trk = TrkFile.load(self.empty_trk_filename, ref=None, lazy_load=False)
-        check_streamlines(trk, 0, [], [], [])
+        check_tractogram(trk, 0, [], [], [])
 
         trk = TrkFile.load(self.empty_trk_filename, ref=None, lazy_load=True)
         # Suppress warning about loading a TRK file in lazy mode with count=0.
         with suppress_warnings():
-            check_streamlines(trk, 0, [], [], [])
+            check_tractogram(trk, 0, [], [], [])
 
     def test_load_simple_file(self):
         trk = TrkFile.load(self.simple_trk_filename, ref=None, lazy_load=False)
-        check_streamlines(trk, self.nb_streamlines, self.points, [], [])
+        check_tractogram(trk, self.nb_streamlines, self.streamlines, [], [])
 
         trk = TrkFile.load(self.simple_trk_filename, ref=None, lazy_load=True)
-        check_streamlines(trk, self.nb_streamlines, self.points, [], [])
+        check_tractogram(trk, self.nb_streamlines, self.streamlines, [], [])
 
     def test_load_complex_file(self):
         trk = TrkFile.load(self.complex_trk_filename, ref=None, lazy_load=False)
-        check_streamlines(trk, self.nb_streamlines,
-                          self.points, self.colors, self.mean_curvature_torsion)
+        check_tractogram(trk, self.nb_streamlines,
+                          self.streamlines, self.colors, self.mean_curvature_torsion)
 
         trk = TrkFile.load(self.complex_trk_filename, ref=None, lazy_load=True)
-        check_streamlines(trk, self.nb_streamlines,
-                          self.points, self.colors, self.mean_curvature_torsion)
+        check_tractogram(trk, self.nb_streamlines,
+                          self.streamlines, self.colors, self.mean_curvature_torsion)
 
     def test_load_file_with_wrong_information(self):
         trk_file = open(self.simple_trk_filename, 'rb').read()
@@ -99,12 +89,12 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK file where `count` was not provided.
         count = np.array(0, dtype="int32").tostring()
         new_trk_file = trk_file[:1000-12] + count + trk_file[1000-8:]
-        streamlines = TrkFile.load(BytesIO(new_trk_file), lazy_load=False)
-        check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
+        tractogram = TrkFile.load(BytesIO(new_trk_file), lazy_load=False)
+        check_tractogram(tractogram, self.nb_streamlines, self.streamlines, [], [])
 
-        streamlines = TrkFile.load(BytesIO(new_trk_file), lazy_load=True)
+        tractogram = TrkFile.load(BytesIO(new_trk_file), lazy_load=True)
         with clear_and_catch_warnings(record=True, modules=[base_format]) as w:
-            check_streamlines(streamlines, self.nb_streamlines, self.points, [], [])
+            check_tractogram(tractogram, self.nb_streamlines, self.streamlines, [], [])
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, UsageWarning))
 
@@ -128,59 +118,59 @@ class TestTRK(unittest.TestCase):
         assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
 
     def test_write_simple_file(self):
-        streamlines = Tractogram(self.points)
+        tractogram = Tractogram(self.streamlines)
 
         trk_file = BytesIO()
-        TrkFile.save(streamlines, trk_file)
+        TrkFile.save(tractogram, trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_streamlines = TrkFile.load(trk_file)
-        check_streamlines(loaded_streamlines, self.nb_streamlines,
-                          self.points, [], [])
+        loaded_tractogram = TrkFile.load(trk_file)
+        check_tractogram(loaded_tractogram, self.nb_streamlines,
+                          self.streamlines, [], [])
 
-        loaded_streamlines_orig = TrkFile.load(self.simple_trk_filename)
-        assert_streamlines_equal(loaded_streamlines, loaded_streamlines_orig)
+        loaded_tractogram_orig = TrkFile.load(self.simple_trk_filename)
+        assert_tractogram_equal(loaded_tractogram, loaded_tractogram_orig)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(open(self.simple_trk_filename, 'rb').read(), trk_file.read())
 
     def test_write_complex_file(self):
         # With scalars
-        streamlines = Tractogram(self.points, scalars=self.colors)
+        tractogram = Tractogram(self.streamlines, scalars=self.colors)
 
         trk_file = BytesIO()
-        TrkFile.save(streamlines, trk_file)
+        TrkFile.save(tractogram, trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        loaded_tractogram = TrkFile.load(trk_file, ref=None, lazy_load=False)
 
-        check_streamlines(loaded_streamlines, self.nb_streamlines,
-                          self.points, self.colors, [])
+        check_tractogram(loaded_tractogram, self.nb_streamlines,
+                          self.streamlines, self.colors, [])
 
         # With properties
-        streamlines = Tractogram(self.points, properties=self.mean_curvature_torsion)
+        tractogram = Tractogram(self.streamlines, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
-        TrkFile.save(streamlines, trk_file)
+        TrkFile.save(tractogram, trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
-        check_streamlines(loaded_streamlines, self.nb_streamlines,
-                          self.points, [], self.mean_curvature_torsion)
+        loaded_tractogram = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        check_tractogram(loaded_tractogram, self.nb_streamlines,
+                          self.streamlines, [], self.mean_curvature_torsion)
 
         # With scalars and properties
-        streamlines = Tractogram(self.points, scalars=self.colors, properties=self.mean_curvature_torsion)
+        tractogram = Tractogram(self.streamlines, scalars=self.colors, properties=self.mean_curvature_torsion)
 
         trk_file = BytesIO()
-        TrkFile.save(streamlines, trk_file)
+        TrkFile.save(tractogram, trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_streamlines = TrkFile.load(trk_file, ref=None, lazy_load=False)
-        check_streamlines(loaded_streamlines, self.nb_streamlines,
-                          self.points, self.colors, self.mean_curvature_torsion)
+        loaded_tractogram = TrkFile.load(trk_file, ref=None, lazy_load=False)
+        check_tractogram(loaded_tractogram, self.nb_streamlines,
+                          self.streamlines, self.colors, self.mean_curvature_torsion)
 
-        loaded_streamlines_orig = TrkFile.load(self.complex_trk_filename)
-        assert_streamlines_equal(loaded_streamlines, loaded_streamlines_orig)
+        loaded_tractogram_orig = TrkFile.load(self.complex_trk_filename)
+        assert_tractogram_equal(loaded_tractogram, loaded_tractogram_orig)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(open(self.complex_trk_filename, 'rb').read(), trk_file.read())
@@ -191,15 +181,15 @@ class TestTRK(unittest.TestCase):
                    [(0, 1, 0)],
                    [(0, 0, 1)]]
 
-        streamlines = Tractogram(self.points, scalars)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        tractogram = Tractogram(self.streamlines, scalars)
+        assert_raises(DataError, TrkFile.save, tractogram, BytesIO())
 
         # No scalars for every streamlines
         scalars = [[(1, 0, 0)]*1,
                    [(0, 1, 0)]*2]
 
-        streamlines = Tractogram(self.points, scalars)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        tractogram = Tractogram(self.streamlines, scalars)
+        assert_raises(DataError, TrkFile.save, tractogram, BytesIO())
 
         # # Unit test moved to test_base_format.py
         # # Inconsistent number of scalars between points
@@ -207,8 +197,8 @@ class TestTRK(unittest.TestCase):
         #            [(0, 1, 0), (0, 1)],
         #            [(0, 0, 1)]*5]
 
-        # streamlines = Tractogram(self.points, scalars)
-        # assert_raises(ValueError, TrkFile.save, streamlines, BytesIO())
+        # tractogram = Tractogram(self.streamlines, scalars)
+        # assert_raises(ValueError, TrkFile.save, tractogram, BytesIO())
 
         # # Unit test moved to test_base_format.py
         # # Inconsistent number of scalars between streamlines
@@ -216,38 +206,38 @@ class TestTRK(unittest.TestCase):
         #            [(0, 1)]*2,
         #            [(0, 0, 1)]*5]
 
-        # streamlines = Tractogram(self.points, scalars)
-        # assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        # tractogram = Tractogram(self.streamlines, scalars)
+        # assert_raises(DataError, TrkFile.save, tractogram, BytesIO())
 
         # Unit test moved to test_base_format.py
         # Inconsistent number of properties
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([2.11], dtype="f4"),
                       np.array([3.11, 3.22], dtype="f4")]
-        streamlines = Tractogram(self.points, properties=properties)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        tractogram = Tractogram(self.streamlines, properties=properties)
+        assert_raises(DataError, TrkFile.save, tractogram, BytesIO())
 
         # Unit test moved to test_base_format.py
         # No properties for every streamlines
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([2.11, 2.22], dtype="f4")]
-        streamlines = Tractogram(self.points, properties=properties)
-        assert_raises(DataError, TrkFile.save, streamlines, BytesIO())
+        tractogram = Tractogram(self.streamlines, properties=properties)
+        assert_raises(DataError, TrkFile.save, tractogram, BytesIO())
 
-    def test_write_file_lazy_streamlines(self):
-        points = lambda: (point for point in self.points)
+    def test_write_file_lazy_tractogram(self):
+        streamlines = lambda: (point for point in self.streamlines)
         scalars = lambda: (scalar for scalar in self.colors)
         properties = lambda: (prop for prop in self.mean_curvature_torsion)
 
-        streamlines = LazyTractogram(points, scalars, properties)
+        tractogram = LazyTractogram(streamlines, scalars, properties)
         # No need to manually set `nb_streamlines` in the header since we count
         # them as writing.
-        #streamlines.header.nb_streamlines = self.nb_streamlines
+        #tractogram.header.nb_streamlines = self.nb_streamlines
 
         trk_file = BytesIO()
-        TrkFile.save(streamlines, trk_file)
+        TrkFile.save(tractogram, trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
         trk = TrkFile.load(trk_file, ref=None, lazy_load=False)
-        check_streamlines(trk, self.nb_streamlines,
-                          self.points, self.colors, self.mean_curvature_torsion)
+        check_tractogram(trk, self.nb_streamlines,
+                          self.streamlines, self.colors, self.mean_curvature_torsion)
