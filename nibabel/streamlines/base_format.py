@@ -322,7 +322,6 @@ class Tractogram(object):
 
     def copy(self):
         """ Returns a copy of this `Tractogram` object. """
-
         new_data_per_streamline = {}
         for key in self.data_per_streamline:
             new_data_per_streamline[key] = self.data_per_streamline[key].copy()
@@ -390,10 +389,12 @@ class LazyTractogram(Tractogram):
     If provided, ``scalars`` and ``properties`` must yield the same number of
     values as ``streamlines``.
     '''
-    def __init__(self, streamlines_func=lambda:[], scalars_func=lambda: [], properties_func=lambda: [], getitem_func=None):
-        super(LazyTractogram, self).__init__(streamlines_func, scalars_func, properties_func)
-        self._data = lambda: zip_longest(self.streamlines, self.scalars, self.properties, fillvalue=[])
-        self._getitem = getitem_func
+    def __init__(self, streamlines=lambda:[], data_per_streamline=None, data_per_point=None):
+        super(LazyTractogram, self).__init__(streamlines, data_per_streamline, data_per_point)
+        self.nb_streamlines = None
+        self._data = None
+        self._getitem = None
+        self._affine_to_apply = np.eye(4)
 
     @classmethod
     def create_from_data(cls, data_func):
@@ -422,6 +423,13 @@ class LazyTractogram(Tractogram):
 
     @property
     def streamlines(self):
+        if not np.all(self._affine_to_apply == np.eye(4)):
+            def _transform():
+                for s in self._streamlines():
+                    yield apply_affine(self._affine_to_apply, s)
+
+            return _transform()
+
         return self._streamlines()
 
     @streamlines.setter
@@ -432,34 +440,70 @@ class LazyTractogram(Tractogram):
         self._streamlines = value
 
     @property
-    def scalars(self):
-        return self._scalars()
+    def data_per_streamline(self):
+        return self._data_per_streamline
 
-    @scalars.setter
-    def scalars(self, value):
-        if not callable(value):
-            raise TypeError("`scalars` must be a coroutine.")
+    @data_per_streamline.setter
+    def data_per_streamline(self, value):
+        if value is None:
+            value = {}
 
-        self._scalars = value
-        self.header.nb_scalars_per_point = 0
-        scalars = pop(self.scalars)
-        if scalars is not None and len(scalars) > 0:
-            self.header.nb_scalars_per_point = len(scalars[0])
+        self._data_per_streamline = {}
+        for k, v in value.items():
+            if not callable(v):
+                raise TypeError("`data_per_streamline` must be a dict of coroutines.")
+
+            self._data_per_streamline[k] = v
 
     @property
-    def properties(self):
-        return self._properties()
+    def data_per_point(self):
+        return self._data_per_point
 
-    @properties.setter
-    def properties(self, value):
+    @data_per_point.setter
+    def data_per_point(self, value):
+        if value is None:
+            value = {}
+
+        self._data_per_point = {}
+        for k, v in value.items():
+            if not callable(v):
+                raise TypeError("`data_per_point` must be a dict of coroutines.")
+
+            self._data_per_point[k] = v
+
+    @property
+    def data(self):
+        if self._data is not None:
+            return self._data()
+
+        def _gen_data():
+            data_per_streamline_generators = {}
+            for k, v in self.data_per_streamline.items():
+                data_per_streamline_generators[k] = iter(v())
+
+            data_per_point_generators = {}
+            for k, v in self.data_per_point.items():
+                data_per_point_generators[k] = iter(v())
+
+            for s in self.streamlines:
+                data_for_streamline = {}
+                for k, v in data_per_streamline_generators.items():
+                    data_for_streamline[k] = next(v)
+
+                data_for_points = {}
+                for k, v in data_per_point_generators.items():
+                    data_for_points[k] = v()
+
+                yield TractogramItem(s, data_for_streamline, data_for_points)
+
+        return _gen_data()
+
+    @data.setter
+    def data(self, value):
         if not callable(value):
-            raise TypeError("`properties` must be a coroutine.")
+            raise TypeError("`data` must be a coroutine.")
 
-        self._properties = value
-        self.header.nb_properties_per_streamline = 0
-        properties = pop(self.properties)
-        if properties is not None:
-            self.header.nb_properties_per_streamline = len(properties)
+        self._data = value
 
     def __getitem__(self, idx):
         if self._getitem is None:
@@ -469,45 +513,43 @@ class LazyTractogram(Tractogram):
 
     def __iter__(self):
         i = 0
-        for i, s in enumerate(self._data(), start=1):
-            yield TractogramItem(*s)
+        for i, tractogram_item in enumerate(self.data, start=1):
+            yield tractogram_item
 
         # To be safe, update information about number of streamlines.
-        self.header.nb_streamlines = i
+        self.nb_streamlines = i
 
     def __len__(self):
         # If length is unknown, we obtain it by iterating through streamlines.
-        if self.header.nb_streamlines is None:
+        if self.nb_streamlines is None:
             warn("Number of streamlines will be determined manually by looping"
                  " through the streamlines. If you know the actual number of"
                  " streamlines, you might want to set it beforehand via"
                  " `self.header.nb_streamlines`."
                  " Note this will consume any generators used to create this"
                  " `LazyTractogram` object.", UsageWarning)
-            return sum(1 for _ in self)
+            return sum(1 for _ in self.streamlines)
 
-        return self.header.nb_streamlines
+        return self.nb_streamlines
 
     def copy(self):
         """ Returns a copy of this `LazyTractogram` object. """
-        streamlines = LazyTractogram(self._streamlines, self._scalars, self._properties)
-        streamlines._header = self.header.copy()
-        return streamlines
+        tractogram = LazyTractogram(self._streamlines,
+                                    self._data_per_streamline,
+                                    self._data_per_point)
+        tractogram.nb_streamlines = self.nb_streamlines
+        tractogram._data = self._data
+        return tractogram
 
-    def transform(self, affine):
+    def apply_affine(self, affine):
         """ Applies an affine transformation on the streamlines.
 
         Parameters
         ----------
         affine : 2D array (4,4)
             Transformation that will be applied on each streamline.
-
-        Returns
-        -------
-        streamlines : `LazyTractogram` object
-            Tractogram living in a space defined by `affine`.
         """
-        return super(LazyTractogram, self).transform(affine, lazy=True)
+        self._affine_to_apply = np.dot(affine, self._affine_to_apply)
 
 
 class abstractclassmethod(classmethod):
