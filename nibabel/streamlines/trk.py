@@ -59,7 +59,7 @@ header_2_dtd = [(Field.MAGIC_NUMBER, 'S6'),
                 ('scalar_name', 'S20', 10),
                 (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
                 ('property_name', 'S20', 10),
-                (Field.to_world_space, 'f4', (4, 4)),  # new field for version 2
+                (Field.VOXEL_TO_RASMM, 'f4', (4, 4)),  # new field for version 2
                 ('reserved', 'S444'),
                 (Field.VOXEL_ORDER, 'S4'),
                 ('pad2', 'S4'),
@@ -140,16 +140,6 @@ class TrkReader(object):
             # Keep the file position where the data begin.
             self.offset_data = f.tell()
 
-            # if f.name is not None and self.header[Field.NB_STREAMLINES] > 0:
-            #     filesize = os.path.getsize(f.name) - self.offset_data
-            #     # Remove properties
-            #     filesize -= self.header[Field.NB_STREAMLINES] * self.header[Field.NB_PROPERTIES_PER_STREAMLINE] * 4.
-            #     # Remove the points count at the beginning of each streamline.
-            #     filesize -= self.header[Field.NB_STREAMLINES] * 4.
-            #     # Get nb points.
-            #     nb_points = filesize / ((3 + self.header[Field.NB_SCALARS_PER_POINT]) * 4.)
-            #     self.header[Field.NB_POINTS] = int(nb_points)
-
     def __iter__(self):
         i4_dtype = np.dtype(self.endianness + "i4")
         f4_dtype = np.dtype(self.endianness + "f4")
@@ -214,11 +204,11 @@ class TrkWriter(object):
         header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
         header[Field.VOXEL_SIZES] = (1, 1, 1)
         header[Field.DIMENSIONS] = (1, 1, 1)
-        header[Field.to_world_space] = np.eye(4)
+        header[Field.VOXEL_TO_RASMM] = np.eye(4)
         header['version'] = 2
         header['hdr_size'] = TrkFile.HEADER_SIZE
 
-        return header
+        return header[0]
 
     def __init__(self, fileobj, header):
         self.header = self.create_empty_header()
@@ -235,7 +225,7 @@ class TrkWriter(object):
         self.header[Field.NB_SCALARS_PER_POINT] = header.nb_scalars_per_point
         self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = header.nb_properties_per_streamline
         self.header[Field.VOXEL_SIZES] = header.voxel_sizes
-        self.header[Field.to_world_space] = header.to_world_space
+        self.header[Field.VOXEL_TO_RASMM] = header.to_world_space
         self.header[Field.VOXEL_ORDER] = header.voxel_order
 
         # Keep counts for correcting incoherent fields or warn.
@@ -248,27 +238,34 @@ class TrkWriter(object):
         self.file = Opener(fileobj, mode="wb")
         # Keep track of the beginning of the header.
         self.beginning = self.file.tell()
-        self.file.write(self.header[0].tostring())
+        self.file.write(self.header.tostring())
 
     def write(self, tractogram):
         i4_dtype = np.dtype("i4")
         f4_dtype = np.dtype("f4")
 
+        # TRK's streamlines need to be in 'voxelmm' space and by definition
+        # tractogram streamlines are in RAS+ and mm space.
+        affine = np.linalg.inv(self.header[Field.VOXEL_TO_RASMM])
+        affine[range(3), range(3)] *= self.header[Field.VOXEL_SIZES]
+
+        # TrackVis considers coordinate (0,0,0) to be the corner of the
+        # voxel whereas streamlines passed in parameters assume (0,0,0)
+        # to be the center of the voxel. Thus, streamlines are shifted of
+        # half a voxel.
+        affine[:-1, -1] += np.array(self.header[Field.VOXEL_SIZES])/2.
+
+        tractogram.apply_affine(affine)
+
         for t in tractogram:
-            if len(t.scalars) > 0 and len(t.scalars) != len(t.streamline):
+            if any((len(d) != len(t.streamline) for d in t.data_for_points.values())):
                 raise DataError("Missing scalars for some points!")
 
             points = np.asarray(t.streamline, dtype=f4_dtype)
-            scalars = np.asarray(t.scalars, dtype=f4_dtype).reshape((len(points), -1))
-            properties = np.asarray(t.properties, dtype=f4_dtype)
-
-            # TRK's streamlines need to be in 'voxelmm' space
-            points = points * self.header[Field.VOXEL_SIZES]
-            # TrackVis considers coordinate (0,0,0) to be the corner of the
-            # voxel whereas streamlines passed in parameters assume (0,0,0)
-            # to be the center of the voxel. Thus, streamlines are shifted of
-            # half a voxel.
-            points += np.array(self.header[Field.VOXEL_SIZES])/2.
+            keys = sorted(t.data_for_points.keys())
+            scalars = np.asarray([t.data_for_points[k] for k in keys], dtype=f4_dtype).reshape((len(points), -1))
+            keys = sorted(t.data_for_streamline.keys())
+            properties = np.asarray([t.data_for_streamline[k] for k in keys], dtype=f4_dtype).flatten()
 
             data = struct.pack(i4_dtype.str[:-1], len(points))
             data += np.concatenate((points, scalars), axis=1).tostring()
@@ -298,7 +295,91 @@ class TrkWriter(object):
 
         # Overwrite header with updated one.
         self.file.seek(self.beginning, os.SEEK_SET)
-        self.file.write(self.header[0].tostring())
+        self.file.write(self.header.tostring())
+
+
+import itertools
+from nibabel.streamlines.base_format import CompactList
+
+def create_compactlist_from_generator(gen):
+    BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
+
+    streamlines = CompactList()
+    scalars = CompactList()
+    properties = np.array([])
+
+    gen = iter(gen)
+    try:
+        first_element = next(gen)
+        gen = itertools.chain([first_element], gen)
+    except StopIteration:
+        return streamlines, scalars, properties
+
+    # Allocated some buffer memory.
+    pts = np.asarray(first_element[0])
+    scals = np.asarray(first_element[1])
+    props = np.asarray(first_element[2])
+
+    scals_shape = scals.shape
+    props_shape = props.shape
+
+    streamlines._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
+    scalars._data = np.empty((BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
+    properties = np.empty((BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
+
+    offset = 0
+    for i, (pts, scals, props) in enumerate(gen):
+        pts = np.asarray(pts)
+        scals = np.asarray(scals)
+        props = np.asarray(props)
+
+        if scals.shape[1] != scals_shape[1]:
+            raise ValueError("Number of scalars differs from one"
+                             " point or streamline to another")
+
+        if props.shape != props_shape:
+            raise ValueError("Number of properties differs from one"
+                             " streamline to another")
+
+        end = offset + len(pts)
+        if end >= len(streamlines._data):
+            # Resize is needed (at least `len(pts)` items will be added).
+            streamlines._data.resize((len(streamlines._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
+            scalars._data.resize((len(scalars._data) + len(scals)+BUFFER_SIZE, scals.shape[1]))
+
+        streamlines._offsets.append(offset)
+        streamlines._lengths.append(len(pts))
+        streamlines._data[offset:offset+len(pts)] = pts
+        scalars._data[offset:offset+len(scals)] = scals
+
+        offset += len(pts)
+
+        if i >= len(properties):
+            properties.resize((len(properties) + BUFFER_SIZE, props.shape[0]))
+
+        properties[i] = props
+
+    # Clear unused memory.
+    streamlines._data.resize((offset, pts.shape[1]))
+
+    if scals_shape[1] == 0:
+        # Because resizing an empty ndarray creates memory!
+        scalars._data = np.empty((offset, scals.shape[1]))
+    else:
+        scalars._data.resize((offset, scals.shape[1]))
+
+    # Share offsets and lengths between streamlines and scalars.
+    scalars._offsets = streamlines._offsets
+    scalars._lengths = streamlines._lengths
+
+    if props_shape[0] == 0:
+        # Because resizing an empty ndarray creates memory!
+        properties = np.empty((i+1, props.shape[0]))
+    else:
+        properties.resize((i+1, props.shape[0]))
+
+    return streamlines, scalars, properties
+
 
 
 class TrkFile(TractogramFile):
@@ -319,18 +400,18 @@ class TrkFile(TractogramFile):
     MAGIC_NUMBER = b"TRACK"
     HEADER_SIZE = 1000
 
-    def __init__(self, tractogram, ref, header=None):
+    def __init__(self, tractogram, header=None, ref=np.eye(4)):
         """
         Parameters
         ----------
         tractogram : ``Tractogram`` object
             Tractogram that will be contained in this ``TrkFile``.
 
-        ref : filename | `Nifti1Image` object | 2D array (4,4)
-            Reference space where streamlines live in.
-
-        header : ``TractogramHeader`` file
+        header : ``TractogramHeader`` file (optional)
             Metadata associated to this tractogram file.
+
+        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
+            Reference space where streamlines live in.
 
         Notes
         -----
@@ -344,6 +425,16 @@ class TrkFile(TractogramFile):
     def get_magic_number(cls):
         ''' Return TRK's magic number. '''
         return cls.MAGIC_NUMBER
+
+    @classmethod
+    def support_data_per_point(cls):
+        ''' Tells if this tractogram format supports saving data per point. '''
+        return True
+
+    @classmethod
+    def support_data_per_streamline(cls):
+        ''' Tells if this tractogram format supports saving data per streamline. '''
+        return True
 
     @classmethod
     def is_correct_format(cls, fileobj):
@@ -369,7 +460,7 @@ class TrkFile(TractogramFile):
         return False
 
     @classmethod
-    def load(cls, fileobj, lazy_load=False, ref=None):
+    def load(cls, fileobj, lazy_load=False):
         ''' Loads streamlines from a file-like object.
 
         Parameters
@@ -382,9 +473,6 @@ class TrkFile(TractogramFile):
         lazy_load : boolean (optional)
             Load streamlines in a lazy manner i.e. they will not be kept
             in memory.
-
-        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
-            Reference space where streamlines live in `fileobj`.
 
         Returns
         -------
@@ -407,7 +495,7 @@ class TrkFile(TractogramFile):
         # If voxel order implied from the affine does not match the voxel
         # order save in the TRK header, change the orientation.
         header_ornt = trk_reader.header[Field.VOXEL_ORDER]
-        affine_ornt = "".join(nib.orientations.aff2axcodes(trk_reader.header[Field.to_world_space]))
+        affine_ornt = "".join(nib.orientations.aff2axcodes(trk_reader.header[Field.VOXEL_TO_RASMM]))
         header_ornt = nib.orientations.axcodes2ornt(header_ornt)
         affine_ornt = nib.orientations.axcodes2ornt(affine_ornt)
         ornt = nib.orientations.ornt_transform(header_ornt, affine_ornt)
@@ -415,7 +503,7 @@ class TrkFile(TractogramFile):
         affine = np.dot(M, affine)
 
         # Applied the affine going from voxel space to rasmm.
-        affine = np.dot(trk_reader.header[Field.to_world_space], affine)
+        affine = np.dot(trk_reader.header[Field.VOXEL_TO_RASMM], affine)
 
         # TrackVis considers coordinate (0,0,0) to be the corner of the
         # voxel whereas streamlines returned assume (0,0,0) to be the
@@ -424,6 +512,7 @@ class TrkFile(TractogramFile):
         affine[:-1, -1] -= np.array(trk_reader.header[Field.VOXEL_SIZES])/2.
 
         if lazy_load:
+            # TODO when LazyTractogram has been refactored.
             def _apply_transform(trk_reader):
                 for pts, scals, props in trk_reader:
                     # TRK's streamlines are in 'voxelmm' space, we send them to voxel space.
@@ -445,73 +534,32 @@ class TrkFile(TractogramFile):
             if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
                 tractogram.properties = lambda: []
 
-        # elif Field.NB_POINTS in trk_reader.header:
-        #     # 'count' field is provided, we can avoid creating list of numpy
-        #     # arrays (more memory efficient).
-
-        #     nb_streamlines = trk_reader.header[Field.NB_STREAMLINES]
-        #     nb_points = trk_reader.header[Field.NB_POINTS]
-
-        #     points = CompactList()
-        #     points._data = np.empty((nb_points, 3), dtype=np.float32)
-
-        #     scalars = CompactList()
-        #     scalars._data = np.empty((nb_points, trk_reader.header[Field.NB_SCALARS_PER_POINT]),
-        #                              dtype=np.float32)
-
-        #     properties = CompactList()
-        #     properties._data = np.empty((nb_streamlines, trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]),
-        #                                 dtype=np.float32)
-
-        #     offset = 0
-        #     offsets = []
-        #     lengths = []
-        #     for i, (pts, scals, props) in enumerate(trk_reader):
-        #         offsets.append(offset)
-        #         lengths.append(len(pts))
-        #         points._data[offset:offset+len(pts)] = pts
-        #         scalars._data[offset:offset+len(scals)] = scals
-        #         properties._data[i] = props
-        #         offset += len(pts)
-
-        #     points.offsets = offsets
-        #     scalars.offsets = offsets
-        #     points.lengths = lengths
-        #     scalars.lengths = lengths
-
-        #     streamlines = Tractogram(points, scalars, properties)
-        #     streamlines.apply_affine(affine)
-
-        #     # Overwrite scalars and properties if there is none
-        #     if trk_reader.header[Field.NB_SCALARS_PER_POINT] == 0:
-        #         streamlines.scalars = []
-        #     if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
-        #         streamlines.properties = []
-
         else:
-            tractogram = Tractogram.create_from_generator(trk_reader)
-            #tractogram = Tractogram(*zip(*trk_reader))
-            tractogram.apply_affine(affine)
+            streamlines, scalars, properties = create_compactlist_from_generator(trk_reader)
+            tractogram = Tractogram(streamlines)
 
-            # Overwrite scalars and properties if there is none
-            if trk_reader.header[Field.NB_SCALARS_PER_POINT] == 0:
-                tractogram.scalars = []
-            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] == 0:
-                tractogram.properties = []
+            if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
+                if len(trk_reader.header['scalar_name'][0]) > 0:
+                    for i in range(trk_reader.header[Field.NB_SCALARS_PER_POINT]):
+                        clist = CompactList()
+                        clist._data = scalars._data[:, i]
+                        clist._offsets = scalars._offsets
+                        clist._lengths = scalars._lengths
+                        tractogram.data_per_point[trk_reader.header['scalar_name'][i]] = clist
+                else:
+                    tractogram.data_per_point['scalars'] = scalars
 
-        # Set available common information about streamlines in the header
-        tractogram.header.to_world_space = affine
+            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
+                if len(trk_reader.header['property_name'][0]) > 0:
+                    for i in range(trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]):
+                        tractogram.data_per_streamline[trk_reader.header['property_name'][i]] = properties[:, i]
+                else:
+                    tractogram.data_per_streamline['properties'] = properties
 
-        # If 'count' field is 0, i.e. not provided, we don't set `nb_streamlines`
-        if trk_reader.header[Field.NB_STREAMLINES] > 0:
-            tractogram.header.nb_streamlines = trk_reader.header[Field.NB_STREAMLINES]
-
-        # Keep extra information about TRK format
-        tractogram.header.extra = trk_reader.header
+        # Bring tractogram to RAS+ and mm space
+        tractogram.apply_affine(affine)
 
         ## Perform some integrity checks
-        #if trk_reader.header[Field.VOXEL_ORDER] != tractogram.header.voxel_order:
-        #    raise HeaderError("'voxel_order' does not match the affine.")
         #if tractogram.header.voxel_sizes != trk_reader.header[Field.VOXEL_SIZES]:
         #    raise HeaderError("'voxel_sizes' does not match the affine.")
         #if tractogram.header.nb_scalars_per_point != trk_reader.header[Field.NB_SCALARS_PER_POINT]:
@@ -532,14 +580,8 @@ class TrkFile(TractogramFile):
             of the TRK header data).
         '''
         # Update header using the tractogram.
-        self.header.nb_scalars_per_point = 0
-        if self.tractogram.scalars.shape is not None:
-            self.header.nb_scalars_per_point = len(self.tractogram.scalars[0])
-
-        self.header.nb_properties_per_streamline = 0
-        if self.tractogram.properties.shape is not None:
-            self.header.nb_properties_per_streamline = len(self.tractogram.properties[0])
-
+        self.header.nb_scalars_per_point = sum(map(lambda e: len(e[0]), self.tractogram.data_per_point.values()))
+        self.header.nb_properties_per_streamline = sum(map(lambda e: len(e[0]), self.tractogram.data_per_streamline.values()))
         trk_writer = TrkWriter(fileobj, self.header)
         trk_writer.write(self.tractogram)
 
@@ -572,7 +614,7 @@ class TrkFile(TractogramFile):
         info += "scalar_name:\n {0}".format("\n".join(hdr['scalar_name']))
         info += "nb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
         info += "property_name:\n {0}".format("\n".join(hdr['property_name']))
-        info += "vox_to_world: {0}".format(hdr[Field.to_world_space])
+        info += "vox_to_world: {0}".format(hdr[Field.VOXEL_TO_RASMM])
         info += "voxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
         info += "image_orientation_patient: {0}".format(hdr['image_orientation_patient'])
         info += "pad1: {0}".format(hdr['pad1'])
