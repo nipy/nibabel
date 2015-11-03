@@ -19,7 +19,7 @@ class Field:
     DIMENSIONS = "dimensions"
     MAGIC_NUMBER = "magic_number"
     ORIGIN = "origin"
-    to_world_space = "to_world_space"
+    VOXEL_TO_RASMM = "voxel_to_rasmm"
     VOXEL_ORDER = "voxel_order"
     ENDIAN = "endian"
 
@@ -38,7 +38,7 @@ class TractogramHeader(object):
 
     @to_world_space.setter
     def to_world_space(self, value):
-        self._to_world_space = np.array(value, dtype=np.float32)
+        self._to_world_space = np.asarray(value, dtype=np.float32)
 
     @property
     def voxel_sizes(self):

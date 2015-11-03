@@ -90,7 +90,7 @@ def load(fileobj, lazy_load=False, ref=None):
     if tractogram_file is None:
         raise TypeError("Unknown format for 'fileobj': {}".format(fileobj))
 
-    return tractogram_file.load(fileobj, lazy_load=lazy_load, ref=ref)
+    return tractogram_file.load(fileobj, lazy_load=lazy_load)
 
 
 def save(tractogram_file, filename):

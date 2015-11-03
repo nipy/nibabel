@@ -74,14 +74,6 @@ def assert_arrays_equal(arrays1, arrays2):
         assert_array_equal(arr1, arr2)
 
 
-def assert_tractogram_equal(s1, s2):
-    assert_equal(s1.header, s2.header)
-    assert_equal(len(s1), len(s2))
-    assert_arrays_equal(s1.streamlines, s2.streamlines)
-    assert_arrays_equal(s1.scalars, s2.scalars)
-    assert_arrays_equal(s1.properties, s2.properties)
-
-
 def get_fresh_mod(mod_name=__name__):
     # Get this module, with warning registry empty
     my_mod = sys.modules[mod_name]

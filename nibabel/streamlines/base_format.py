@@ -38,13 +38,24 @@ class CompactList(object):
         iterable : iterable (optional)
             If specified, create a ``CompactList`` object initialized from
             iterable's items. Otherwise, create an empty ``CompactList``.
+
+        Notes
+        -----
+        If `iterable` is a ``CompactList`` object, a view is returned and no
+        memory is allocated. For an actual copy use the `.copy()` method.
         """
         # Create new empty `CompactList` object.
         self._data = None
         self._offsets = []
         self._lengths = []
 
-        if iterable is not None:
+        if isinstance(iterable, CompactList):
+            # Create a view.
+            self._data = iterable._data
+            self._offsets = iterable._offsets
+            self._lengths = iterable._lengths
+
+        elif iterable is not None:
             # Initialize the `CompactList` object from iterable's item.
             BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
 
@@ -249,14 +260,8 @@ class Tractogram(object):
                  data_per_point=None):
 
         self.streamlines = streamlines
-
-        self.data_per_streamline = {}
-        if data_per_streamline is not None:
-            self.data_per_streamline = data_per_streamline
-
-        self.data_per_point = {}
-        if data_per_point is not None:
-            self.data_per_point = data_per_point
+        self.data_per_streamline = data_per_streamline
+        self.data_per_point = data_per_point
 
     @property
     def streamlines(self):
@@ -272,6 +277,9 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
+        if value is None:
+            value = {}
+
         self._data_per_streamline = {}
         for k, v in value.items():
             self._data_per_streamline[k] = np.asarray(v)
@@ -282,6 +290,9 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
+        if value is None:
+            value = {}
+
         self._data_per_point = {}
         for k, v in value.items():
             self._data_per_point[k] = CompactList(v)
@@ -536,6 +547,16 @@ class TractogramFile(object):
     @classmethod
     def get_magic_number(cls):
         ''' Returns streamlines file's magic number. '''
+        raise NotImplementedError()
+
+    @classmethod
+    def support_data_per_point(cls):
+        ''' Tells if this tractogram format supports saving data per point. '''
+        raise NotImplementedError()
+
+    @classmethod
+    def support_data_per_streamline(cls):
+        ''' Tells if this tractogram format supports saving data per streamline. '''
         raise NotImplementedError()
 
     @classmethod

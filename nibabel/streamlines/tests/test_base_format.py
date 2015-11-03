@@ -293,6 +293,15 @@ class TestTractogram(unittest.TestCase):
         assert_raises(ValueError, Tractogram, self.streamlines,
                       data_per_point=data_per_point)
 
+        # Inconsistent number of scalars between streamlines
+        wrong_data = [[(1, 0, 0)]*1,
+                      [(0, 1)]*2,
+                      [(0, 0, 1)]*5]
+
+        data_per_point = {'wrong_data': wrong_data}
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_point=data_per_point)
+
     def test_tractogram_getter(self):
         # Tractogram with only streamlines
         tractogram = Tractogram(streamlines=self.streamlines)
