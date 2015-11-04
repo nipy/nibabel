@@ -336,6 +336,9 @@ class Outputter(GiftiImageParser):
     def __init__(self, *args, **kwargs):
         super(Outputter, self).__init__(*args, **kwargs)
 
+    def initialize(self, *args, **kwargs):
+        self.__init__(*args, **kwargs)
+
 
 @np.deprecate_with_doc("Use GiftiImageParser.parse() instead.")
 def parse_gifti_file(fname=None, fptr=None, buffer_size=None):
