@@ -12,7 +12,8 @@ import sys
 
 import numpy as np
 
-from .. import xmlbasedimages as xml
+from .. import xmlutils as xml
+from ..filebasedimages import FileBasedImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
@@ -385,7 +386,7 @@ class GiftiDataArray(xml.XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(xml.XmlBasedImage):
+class GiftiImage(xml.XmlSerializable, FileBasedImage):
     """
     The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
@@ -564,3 +565,42 @@ class GiftiImage(xml.XmlBasedImage):
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """ + xml.XmlSerializable.to_xml(self, enc)
+
+    def to_file_map(self, file_map=None):
+        """ Save the current image to the specified file_map
+
+        Parameters
+        ----------
+        file_map : string
+
+        Returns
+        -------
+        None
+        """
+        if file_map is None:
+            file_map = self.file_map
+        f = file_map['image'].get_prepare_fileobj('wb')
+        f.write(self.to_xml())
+
+    @classmethod
+    def from_file_map(klass, file_map, buffer_size=35000000):
+        """ Load a Gifti image from a file_map
+
+        Parameters
+        file_map : string
+
+        Returns
+        -------
+        img : GiftiImage
+            Returns a GiftiImage
+         """
+        parser = klass.parser(buffer_size=buffer_size)
+        parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
+        img = parser.img
+        return img
+
+    @classmethod
+    def from_filename(klass, filename, buffer_size=35000000):
+        file_map = klass.filespec_to_file_map(filename)
+        img = klass.from_file_map(file_map, buffer_size=buffer_size)
+        return img

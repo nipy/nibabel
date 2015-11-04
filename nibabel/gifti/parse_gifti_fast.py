@@ -22,7 +22,7 @@ from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel,
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
-from ..xmlbasedimages import XmlImageParser
+from ..xmlutils import XmlParser
 
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
@@ -72,12 +72,14 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     return newarr
 
 
-class GiftiImageParser(XmlImageParser):
+class GiftiImageParser(XmlParser):
 
     def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
         super(GiftiImageParser, self).__init__(encoding=encoding,
                                                buffer_size=buffer_size,
                                                verbose=verbose)
+        # output
+        self.img = None
 
         # finite state machine stack
         self.fsm_state = []
@@ -333,7 +335,6 @@ class Outputter(GiftiImageParser):
     @np.deprecate_with_doc("Use GiftiImageParser instead.")
     def __init__(self, *args, **kwargs):
         super(Outputter, self).__init__(*args, **kwargs)
-        self.img = None
 
 
 @np.deprecate_with_doc("Use GiftiImageParser.parse() instead.")

@@ -35,8 +35,8 @@ class XmlBasedHeader(FileBasedHeader, XmlSerializable):
     pass
 
 
-class XmlImageParser(object):
-    """ Base class for defining how to parse xml-based images.
+class XmlParser(object):
+    """ Base class for defining how to parse xml-based image snippets.
 
     Image-specific parsers should define:
         StartElementHandler
@@ -62,10 +62,9 @@ class XmlImageParser(object):
         verbose : int, optional
             amount of output during parsing (0=silent, by default).
         """
-        self.encoding=encoding
+        self.encoding = encoding
         self.buffer_size = buffer_size
         self.verbose = verbose
-        self.img = None
 
     def _create_parser(self):
         """Internal function that allows subclasses to mess
@@ -88,11 +87,7 @@ class XmlImageParser(object):
             file name of an xml document.
 
         fptr : file pointer
-            open file pointer to an xml document
-
-        Returns
-        -------
-        img : XmlBasedImage
+            open file pointer to an xml documents
         """
         if int(string is not None) + int(fptr is not None) + int(fname is not None) != 1:
             raise ValueError('Exactly one of fptr, fname, string must be specified.')
@@ -107,12 +102,6 @@ class XmlImageParser(object):
             setattr(parser, name, getattr(self, name))
         parser.ParseFile(fptr)
 
-        if fname is not None:
-            fptr.close()
-            self.img.set_filename(fname)
-
-        return self.img
-
     def StartElementHandler(self, name, attrs):
         raise NotImplementedError
 
@@ -121,53 +110,3 @@ class XmlImageParser(object):
 
     def CharacterDataHandler(self, data):
         raise NotImplementedError
-
-
-class XmlBasedImage(FileBasedImage, XmlSerializable):
-    """Basic convenience wrapper around FileBasedImage and XmlSerializable.
-
-        Properties
-        ----------
-        parser : XmlImageParser
-            class name of the XML parser associated with this image type.
-    """
-
-    parser = XmlImageParser
-    header = XmlBasedHeader
-
-    def to_file_map(self, file_map=None):
-        """ Save the current image to the specified file_map
-
-        Parameters
-        ----------
-        file_map : string
-
-        Returns
-        -------
-        None
-        """
-        if file_map is None:
-            file_map = self.file_map
-        f = file_map['image'].get_prepare_fileobj('wb')
-        f.write(self.to_xml())
-
-    @classmethod
-    def from_file_map(klass, file_map, buffer_size=35000000):
-        """ Load a Gifti image from a file_map
-
-        Parameters
-        file_map : string
-
-        Returns
-        -------
-        img : GiftiImage
-            Returns a GiftiImage
-         """
-        img = klass.parser(buffer_size=buffer_size).parse(
-            fptr=file_map['image'].get_prepare_fileobj('rb'))
-        return img
-
-    @classmethod
-    def from_filename(klass, filename, buffer_size=35000000):
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, buffer_size=buffer_size)
