@@ -15,8 +15,6 @@ from nose.tools import assert_true
 
 from numpy.testing import assert_array_equal, assert_almost_equal
 
-DEBUG = True
-
 
 def round_trip(arr, out_dtype):
     img = Nifti1Image(arr, np.eye(4))
@@ -127,11 +125,10 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     if arr_dash is None:
         # Scaling causes a header or writer error
         return
-    nzs = arr != 0 # avoid divide by zero error
+    nzs = arr != 0  # avoid divide by zero error
     if not np.any(nzs):
-        if DEBUG:
-            raise ValueError('Array all zero')
-        return
+        raise ValueError('Array all zero')
+
     arr = arr[nzs]
     arr_dash_L = arr_dash.astype(BIG_FLOAT)[nzs]
     top = arr - arr_dash_L
@@ -139,6 +136,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         return
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
+
     if slope == 1:  # integers output, offset only scaling
         if set((in_type, out_type)) == set((np.int64, np.uint64)):
             # Scaling to or from 64 bit ints can go outside range of continuous
@@ -148,9 +146,10 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             Ai = A - inter
             ulps = [big_bad_ulp(A), big_bad_ulp(Ai)]
             exp_abs_err = np.max(ulps, axis=0)
-        else: # floats can give full precision - no error!
+        else:  # floats can give full precision - no error!
             exp_abs_err = np.zeros_like(abs_err)
         rel_thresh = 0
+
     else:
         # Error from integer rounding
         inting_err = np.abs(scaling_type(slope) / 2)
@@ -167,14 +166,15 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         # This threshold needs to be 2 x larger on windows 32 bit and PPC for
         # some reason
         rel_thresh = ulp(scaling_type(1))
+
     test_vals = (abs_err <= exp_abs_err) | (rel_err <= rel_thresh)
     this_test = np.all(test_vals)
-    if not this_test and DEBUG:
+
+    if not this_test:
         abs_fails = (abs_err > exp_abs_err)
         rel_fails = (rel_err > rel_thresh)
-        all_fails = abs_fails & rel_fails
 
-        print("Test ID: %s; in_type=%s, out_type=%s""" % (
+        print("Test ID: %s; in_type=%s, out_type=%s" % (
             test_id, np.dtype(in_type).str, np.dtype(out_type).str))
         print("\tslope=%.5e, inter=%.5e" % (slope, inter))
 
@@ -185,19 +185,21 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             print("\tABS FAIL: exp_abs_mx_e=%.5e < abs_mx_e=%.5e; "
                   "max_diff=%.5e; num=%d/%d" % (exp_abs_mx_e, abs_mx_e,
                                                 abs_max_diff,
-                                                np.sum(abs_fails),
-                                                np.product(abs_fails.shape)))
+                                                abs_fails.sum(),
+                                                abs_fails.size))
         if np.any(rel_fails):
             rel_max_diff = (rel_err - rel_thresh)[rel_fails].max()
             rel_mx_e = rel_err[rel_fails].max()
             print("\tREL FAIL: rel_thresh  =%.5e < rel_mx_e=%.5e; "
                   "max_diff=%.5e; num=%d/%d" % (rel_thresh, rel_mx_e,
                                                 rel_max_diff,
-                                                np.sum(rel_fails),
-                                                np.product(rel_fails.shape)))
+                                                rel_fails.sum(),
+                                                rel_fails.size))
         print("")
 
         # To help debugging failures with --pdb-failure
+        all_fails = np.logical_or(abs_fails, rel_fails)
         fail_i = np.nonzero(all_fails)
+
     assert_true(this_test, "types == %s, %s; see stdout for details" % (
         in_type, out_type))
