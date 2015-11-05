@@ -147,9 +147,11 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             Ai = A - inter
             ulps = [big_bad_ulp(A), big_bad_ulp(Ai)]
             exp_abs_err = np.max(ulps, axis=0)
+            rel_thresh = ulp(scaling_type(inter))
+
         else:  # floats can give full precision - no error!
             exp_abs_err = np.zeros_like(abs_err)
-        rel_thresh = 0
+            rel_thresh = 0
 
     else:
         # Error from integer rounding
