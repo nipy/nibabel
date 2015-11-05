@@ -333,11 +333,13 @@ class GiftiImageParser(XmlParser):
 
 class Outputter(GiftiImageParser):
     @np.deprecate_with_doc("Use GiftiImageParser instead.")
-    def __init__(self, *args, **kwargs):
-        super(Outputter, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(Outputter, self).__init__()
 
-    def initialize(self, *args, **kwargs):
-        self.__init__(*args, **kwargs)
+    def initialize(self):
+        """ Initialize outputter
+        """
+        self.__init__()
 
 
 @np.deprecate_with_doc("Use GiftiImageParser.parse() instead.")
