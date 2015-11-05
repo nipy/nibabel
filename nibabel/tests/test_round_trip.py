@@ -188,6 +188,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
                                                 abs_max_diff,
                                                 abs_fails.sum(),
                                                 abs_fails.size))
+
         if np.any(rel_fails):
             rel_max_diff = (rel_err - rel_thresh)[rel_fails].max()
             rel_mx_e = rel_err[rel_fails].max()
@@ -196,10 +197,15 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
                                                 rel_max_diff,
                                                 rel_fails.sum(),
                                                 rel_fails.size))
+        # Print up to two entries of raw and round trip data.
+        all_fails = np.logical_and(abs_fails, rel_fails)
+        print("\ttop[fails][:2] = %s" % str(top[all_fails][:2]))
+        print("\tarr[fails][:2] = %s" % str(arr[all_fails][:2]))
+        print("\tarr_dash[fails][:2] = %s" % str(arr_dash[all_fails][:2]))
+        print("\tarr_dash_L[fails][:2] = %s" % str(arr_dash_L[all_fails][:2]))
         print("")
 
         # To help debugging failures with --pdb-failure
-        all_fails = np.logical_or(abs_fails, rel_fails)
         fail_i = np.nonzero(all_fails)
 
     assert_true(this_test, "types == %s, %s; see stdout for details" % (
