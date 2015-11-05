@@ -11,8 +11,7 @@ from ..spatialimages import HeaderDataError
 from ..arraywriters import ScalingError
 from ..casting import best_float, ulp, type_info
 
-from nose.tools import assert_true
-
+from nose.tools import assert_true, assert_false
 from numpy.testing import assert_array_equal, assert_almost_equal
 
 
@@ -32,10 +31,17 @@ def check_params(in_arr, in_type, out_type):
     if arr.dtype.kind == 'f':
         info = np.finfo(in_type)
         arr = np.clip(arr, info.min, info.max)
-    try:
-        arr_dash, slope, inter = round_trip(arr, out_type)
-    except (ScalingError, HeaderDataError):
-        return arr, None, None, None
+
+    arr_dash, slope, inter = round_trip(arr, out_type)
+
+    assert_false(arr_dash is None, "Scaling causes a header or writer error")
+
+    nzs = arr != 0  # avoid divide by zero error
+    assert_true(np.any(nzs), 'Array all zero')
+
+    arr = arr[nzs]
+    arr_dash = arr_dash[nzs]
+
     return arr, arr_dash, slope, inter
 
 
@@ -121,19 +127,14 @@ def test_round_trip():
 
 
 def check_arr(test_id, V_in, in_type, out_type, scaling_type):
-    arr, arr_dash, slope, inter = check_params(V_in, in_type, out_type)
-    if arr_dash is None:
-        # Scaling causes a header or writer error
+    try:
+        arr, arr_dash, slope, inter = check_params(V_in, in_type, out_type)
+    except (ScalingError, HeaderDataError):
+        # We assume this is reasonable; no more checks to do.
         return
-    nzs = arr != 0  # avoid divide by zero error
-    if not np.any(nzs):
-        raise ValueError('Array all zero')
-
-    arr = arr[nzs]
-    arr_dash_L = arr_dash.astype(BIG_FLOAT)[nzs]
+    arr_dash_L = arr_dash.astype(BIG_FLOAT)
     top = arr - arr_dash_L
-    if not np.any(top != 0):
-        return
+
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
 
