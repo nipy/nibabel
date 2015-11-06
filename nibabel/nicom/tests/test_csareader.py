@@ -31,7 +31,10 @@ def test_csa_header_read():
     assert_true(csa.is_mosaic(hdr))
     # Get a shallow copy of the data, lacking the CSA marker
     # Need to do it this way because del appears broken in pydicom 0.9.7
-    from dicom.dataset import Dataset
+    try:
+        from dicom.dataset import Dataset
+    except ImportError:
+        from pydicom.dataset import Dataset
     data2 = Dataset()
     for element in DATA:
         if (element.tag.group, element.tag.elem) != (0x29, 0x10):

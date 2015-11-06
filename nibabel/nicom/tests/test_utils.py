@@ -28,7 +28,10 @@ def test_find_private_section_real():
     assert_equal(find_private_section(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER'),
                  None)
     # Make fake datasets
-    from dicom.dataset import Dataset
+    try:
+        from dicom.dataset import Dataset
+    except ImportError:
+        from pydicom.dataset import Dataset
     ds = Dataset({})
     ds.add_new((0x11, 0x10), 'LO', b'some section')
     assert_equal(find_private_section(ds, 0x11, 'some section'), 0x1000)
