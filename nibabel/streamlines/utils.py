@@ -36,6 +36,7 @@ def pop(iterable):
 
 
 def save_compact_list(filename, compact_list):
+    """ Saves a `CompactList` object to a .npz file. """
     np.savez(filename,
              data=compact_list._data,
              offsets=compact_list._offsets,
@@ -43,6 +44,7 @@ def save_compact_list(filename, compact_list):
 
 
 def load_compact_list(filename):
+    """ Loads a `CompactList` object from a .npz file. """
     from .base_format import CompactList
     content = np.load(filename)
     compact_list = CompactList()
