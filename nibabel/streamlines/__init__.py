@@ -1,4 +1,5 @@
 from .header import TractogramHeader
+from .base_format import CompactList
 from .base_format import Tractogram, LazyTractogram
 
 from nibabel.streamlines.trk import TrkFile
