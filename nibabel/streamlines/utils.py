@@ -33,3 +33,20 @@ def pop(iterable):
     "Returns the next item from the iterable else None"
     value = list(itertools.islice(iterable, 1))
     return value[0] if len(value) > 0 else None
+
+
+def save_compact_list(filename, compact_list):
+    np.savez(filename,
+             data=compact_list._data,
+             offsets=compact_list._offsets,
+             lengths=compact_list._lengths)
+
+
+def load_compact_list(filename):
+    from .base_format import CompactList
+    content = np.load(filename)
+    compact_list = CompactList()
+    compact_list._data = content["data"]
+    compact_list._offsets = content["offsets"].tolist()
+    compact_list._lengths = content["lengths"].tolist()
+    return compact_list
