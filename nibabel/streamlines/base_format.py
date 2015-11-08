@@ -583,6 +583,9 @@ class TractogramFile(object):
     def get_tractogram(self):
         return self.tractogram
 
+    def get_streamlines(self):
+        return self.streamlines
+
     def get_header(self):
         return self.header
 
