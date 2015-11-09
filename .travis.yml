@@ -21,6 +21,7 @@ env:
     global:
         - DEPENDS="numpy scipy matplotlib h5py"
         - PYDICOM=1
+        - INSTALL_TYPE="setup"
 python:
     - 2.6
     - 3.2
@@ -48,6 +49,15 @@ matrix:
     - python: 2.7
       env:
         - DOC_DOC_TEST=1
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=sdist
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=wheel
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=requirements
 before_install:
     - source tools/travis_tools.sh
     - virtualenv --python=python venv
@@ -70,7 +80,21 @@ before_install:
       fi
 # command to install dependencies
 install:
-    - python setup.py install
+    - |
+      if [ "$INSTALL_TYPE" == "setup" ]; then
+          python setup.py install
+      elif [ "$INSTALL_TYPE" == "sdist" ]; then
+          python setup_egg.py egg_info  # check egg_info while we're here
+          python setup_egg.py sdist
+          wheelhouse_pip_install dist/*.tar.gz
+      elif [ "$INSTALL_TYPE" == "wheel" ]; then
+          pip install wheel
+          python setup_egg.py bdist_wheel
+          wheelhouse_pip_install dist/*.whl
+      elif [ "$INSTALL_TYPE" == "requirements" ]; then
+          wheelhouse_pip_install -r requirements.txt
+          python setup.py install
+      fi
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test
