@@ -3,9 +3,10 @@ from __future__ import division
 # Documentation available here:
 # http://www.trackvis.org/docs/?subsect=fileformat
 
-import struct
 import os
+import struct
 import warnings
+import itertools
 
 import numpy as np
 import nibabel as nib
@@ -13,12 +14,13 @@ import nibabel as nib
 from nibabel.openers import Opener
 from nibabel.volumeutils import (native_code, swapped_code)
 
-from nibabel.streamlines.base_format import TractogramFile
-from nibabel.streamlines.base_format import DataError, HeaderError, HeaderWarning
-from nibabel.streamlines.base_format import Tractogram, LazyTractogram
-from nibabel.streamlines.header import Field
+from .compact_list import CompactList
+from .tractogram_file import TractogramFile
+from .base_format import DataError, HeaderError, HeaderWarning
+from .tractogram import Tractogram, LazyTractogram
+from .header import Field
 
-from nibabel.streamlines.utils import get_affine_from_reference
+from .utils import get_affine_from_reference
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
@@ -297,9 +299,6 @@ class TrkWriter(object):
         self.file.seek(self.beginning, os.SEEK_SET)
         self.file.write(self.header.tostring())
 
-
-import itertools
-from nibabel.streamlines.base_format import CompactList
 
 def create_compactlist_from_generator(gen):
     BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
