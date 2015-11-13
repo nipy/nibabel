@@ -1242,3 +1242,13 @@ class TestNifti1General(object):
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
+
+
+def test_large_nifti():
+    img = Nifti1Image(np.zeros((91, 109, 91, 1200), dtype=np.float32),
+                      affine=np.eye(4))
+    with InTemporaryDirectory():
+        img.to_filename('test.nii.gz')
+        del img
+        # Expect to fail on Python 3.5
+        load('test.nii.gz').get_data()
