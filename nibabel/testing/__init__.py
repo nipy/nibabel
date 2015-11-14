@@ -9,12 +9,14 @@
 ''' Utilities for testing '''
 from __future__ import division, print_function
 
+import os
 import sys
 import warnings
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
 
+from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
 try:
     from nose.tools import (assert_equal, assert_not_equal,
@@ -164,3 +166,11 @@ class catch_warn_reset(clear_and_catch_warnings):
         warnings.warn('catch_warn_reset is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',
                       FutureWarning)
+
+
+def runif_extra_has(test_str):
+    """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
+    def decorator(func):
+        skip_set = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+        return skipif(test_str not in skip_set, "Skip slow tests.")(func)
+    return decorator
