@@ -21,11 +21,13 @@ env:
     global:
         - DEPENDS="numpy scipy matplotlib h5py"
         - PYDICOM=1
+        - INSTALL_TYPE="setup"
 python:
     - 2.6
     - 3.2
     - 3.3
     - 3.4
+    - 3.5
 matrix:
   include:
     - python: 2.7
@@ -39,20 +41,37 @@ matrix:
     - python: 2.7
       env:
         - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+    # pydicom 1.0 (currently unreleased)
+    - python: 2.7
+      env:
+        - PYDICOM="v1.0"
     # Documentation doctests
     - python: 2.7
       env:
         - DOC_DOC_TEST=1
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=sdist
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=wheel
+    - python: 2.7
+      env:
+        - INSTALL_TYPE=requirements
 before_install:
+    - source tools/travis_tools.sh
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install nose # always
-    - pip install --no-index -f http://travis-wheels.scikit-image.org $DEPENDS
+    - pip install -U pip  # upgrade to latest pip to find 3.5 wheels
+    - retry pip install nose # always
+    - wheelhouse_pip_install $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
         if [ "$PYDICOM" == "1" ]; then
             pip install pydicom;
+        elif [ "$PYDICOM" == "v1.0" ]; then
+            pip install git+https://github.com/darcymason/pydicom.git@43f278444d5cb2e4648135d3edcd430c363c6975;
         fi
       fi
     - if [ "${COVERAGE}" == "1" ]; then
@@ -61,7 +80,21 @@ before_install:
       fi
 # command to install dependencies
 install:
-    - python setup.py install
+    - |
+      if [ "$INSTALL_TYPE" == "setup" ]; then
+          python setup.py install
+      elif [ "$INSTALL_TYPE" == "sdist" ]; then
+          python setup_egg.py egg_info  # check egg_info while we're here
+          python setup_egg.py sdist
+          wheelhouse_pip_install dist/*.tar.gz
+      elif [ "$INSTALL_TYPE" == "wheel" ]; then
+          pip install wheel
+          python setup_egg.py bdist_wheel
+          wheelhouse_pip_install dist/*.whl
+      elif [ "$INSTALL_TYPE" == "requirements" ]; then
+          wheelhouse_pip_install -r requirements.txt
+          python setup.py install
+      fi
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test

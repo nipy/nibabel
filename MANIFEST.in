@@ -1,5 +1,5 @@
 include AUTHOR COPYING Makefile* MANIFEST.in setup* README.*
-include Changelog TODO
+include Changelog TODO requirements.txt
 recursive-include doc *
 recursive-include bin *
 recursive-include tools *

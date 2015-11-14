@@ -89,7 +89,4 @@ Sort compares two dicom images, call them ``dcm1`` and ``dcm2``.   Tests are:
 
 Next remove repeated values as found in the first step above.
 
-There's a function ``
-
-
 .. include:: ../links_names.txt

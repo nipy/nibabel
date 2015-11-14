@@ -6,8 +6,8 @@ Test arrays with a range of numerical values, integer and floating point.
 import numpy as np
 
 from ..externals.six import BytesIO
-from .. import Nifti1Image
-from ..spatialimages import HeaderDataError
+from .. import Nifti1Image, Nifti1Header
+from ..spatialimages import HeaderDataError, supported_np_types
 from ..arraywriters import ScalingError
 from ..casting import best_float, ulp, type_info
 
@@ -95,9 +95,9 @@ def test_round_trip():
     N = 10000
     sd_10s = range(-20, 51, 5)
     iuint_types = np.sctypes['int'] + np.sctypes['uint']
-    # Remove intp types, which cannot be set into nifti header datatype
-    iuint_types.remove(np.intp)
-    iuint_types.remove(np.uintp)
+    # Remove types which cannot be set into nifti header datatype
+    nifti_supported = supported_np_types(Nifti1Header())
+    iuint_types = [t for t in iuint_types if t in nifti_supported]
     f_types = [np.float32, np.float64]
     # Expanding standard deviations
     for i, sd_10 in enumerate(sd_10s):
