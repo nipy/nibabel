@@ -7,8 +7,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
+import os
 from os.path import dirname, abspath, join as pjoin
-from warnings import catch_warnings
 
 import numpy as np
 from warnings import catch_warnings, simplefilter
@@ -16,6 +16,7 @@ from warnings import catch_warnings, simplefilter
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
+from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
 try:
     import nose.tools as nt
@@ -89,3 +90,15 @@ class catch_warn_reset(catch_warnings):
                 mod.__warningregistry__.clear()
             if mod in self._warnreg_copies:
                 mod.__warningregistry__.update(self._warnreg_copies[mod])
+
+
+EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+
+
+EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+
+
+def runif_extra_has(test_str):
+    """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
+    return skipif(test_str not in EXTRA_SET,
+                  "Skip {0} tests.".format(test_str))
