@@ -17,11 +17,42 @@ import bz2
 GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
 
 
+class BufferedGzipFile(gzip.GzipFile):
+    """GzipFile capable to readinto buffer >= 2**32 bytes."""
+        # Speedup for #209; breaks in Python 3.5
+    def __init__(self, fileish, mode='rb', compresslevel=9, buffer_size=2**32-1):
+        super(BufferedGzipFile, self).__init__(fileish, mode=mode, compresslevel=compresslevel)
+        if hasattr(self, 'max_chunk_read'):
+            gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
+        self.buffer_size = buffer_size
+
+    def readinto(self, buf):
+        """Uses self.buffer_size to do a buffered read."""
+        n_bytes = len(buf)
+        try:
+            # This works around a known issue in Python 3.5.
+            # See https://bugs.python.org/issue25626
+            mv = memoryview(buf)
+            n_read = 0
+            max_read = 2 ** 32 - 1  # Max for unsigned 32-bit integer
+            while (n_read < n_bytes):
+                n_wanted = min(n_bytes - n_read, max_read)
+                n_got = super(BufferedGzipFile, self).readinto(
+                    mv[n_read:n_read + n_wanted])
+                n_read += n_got
+                if n_got != n_wanted:
+                    break
+        except NameError:  # Python 2.6 or old 2.7: memoryview does not exist.
+            raise
+            n_read = super(BufferedGzipFile, self).readinto(buf)
+        return n_read
+
+
 def _gzip_open(fileish, *args, **kwargs):
     # open gzip files with faster reads on large files using larger chunks
     # See https://github.com/nipy/nibabel/pull/210 for discussion
-    gzip_file = gzip.open(fileish, *args, **kwargs)
-    gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
+
+    gzip_file = BufferedGzipFile(fileish, *args, **kwargs)
     return gzip_file
 
 
