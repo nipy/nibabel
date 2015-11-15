@@ -1244,11 +1244,13 @@ class TestNifti1General(object):
                 assert_true(np.abs(bias) < bias_thresh)
 
 
-def test_large_nifti():
-    img = Nifti1Image(np.zeros((91, 109, 91, 1200), dtype=np.float32),
+def test_large_nifti1():
+    image_shape = (91, 109, 91, 1200)
+    img = Nifti1Image(np.zeros(image_shape, dtype=np.float32),
                       affine=np.eye(4))
     with InTemporaryDirectory():
         img.to_filename('test.nii.gz')
         del img
-        # Expect to fail on Python 3.5
-        load('test.nii.gz').get_data()
+        data = load('test.nii.gz').get_data()
+    assert_equal(np.asarray(image_shape), data.shape)
+    assert_true(np.all(data == 0.))
