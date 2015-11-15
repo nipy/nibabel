@@ -18,16 +18,22 @@ GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
 
 
 class BufferedGzipFile(gzip.GzipFile):
-    """GzipFile capable to readinto buffer >= 2**32 bytes."""
-        # Speedup for #209; breaks in Python 3.5
+    """GzipFile able to readinto buffer >= 2**32 bytes."""
     def __init__(self, fileish, mode='rb', compresslevel=9, buffer_size=2**32-1):
         super(BufferedGzipFile, self).__init__(fileish, mode=mode, compresslevel=compresslevel)
-        if hasattr(self, 'max_chunk_read'):
-            gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
         self.buffer_size = buffer_size
 
+        # Speedup for #209; attribute not present in in Python 3.5
+        # open gzip files with faster reads on large files using larger chunks
+        # See https://github.com/nipy/nibabel/pull/210 for discussion
+        if hasattr(self, 'max_chunk_read'):
+            gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
+
     def readinto(self, buf):
-        """Uses self.buffer_size to do a buffered read."""
+        """Uses self.buffer_size to do a buffered read.
+
+        This works around a known issue in Python 3.5.
+        See https://bugs.python.org/issue25626"""
         n_bytes = len(buf)
         try:
             # This works around a known issue in Python 3.5.
@@ -49,9 +55,6 @@ class BufferedGzipFile(gzip.GzipFile):
 
 
 def _gzip_open(fileish, *args, **kwargs):
-    # open gzip files with faster reads on large files using larger chunks
-    # See https://github.com/nipy/nibabel/pull/210 for discussion
-
     gzip_file = BufferedGzipFile(fileish, *args, **kwargs)
     return gzip_file
 
