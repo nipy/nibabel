@@ -1,4 +1,5 @@
 import numpy as np
+import collections
 from warnings import warn
 
 from nibabel.affines import apply_affine
@@ -160,7 +161,6 @@ class Tractogram(object):
             self.streamlines._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
 
 
-import collections
 class LazyTractogram(Tractogram):
     ''' Class containing information about streamlines.
 
