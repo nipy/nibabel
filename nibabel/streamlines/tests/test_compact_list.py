@@ -173,6 +173,14 @@ class TestCompactList(unittest.TestCase):
         assert_equal(clist._lengths[-len(new_data):], lengths)
         assert_array_equal(clist._data[-sum(lengths):], new_data._data)
 
+        # Test extending an empty CompactList
+        clist = CompactList()
+        clist.extend(new_data)
+        assert_equal(len(clist), len(new_data))
+        assert_array_equal(clist._offsets, new_data._offsets)
+        assert_array_equal(clist._lengths, new_data._lengths)
+        assert_array_equal(clist._data, new_data._data)
+
     def test_compactlist_getitem(self):
         # Get one item
         for i, e in enumerate(self.clist):

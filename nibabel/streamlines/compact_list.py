@@ -101,6 +101,10 @@ class CompactList(object):
             shape except for the first dimension.
 
         """
+        if self._data is None:
+            elem = np.asarray(elements[0])
+            self._data = np.zeros((0, elem.shape[1]), dtype=elem.dtype)
+
         if isinstance(elements, CompactList):
             self._data = np.concatenate([self._data, elements._data], axis=0)
             lengths = elements._lengths
