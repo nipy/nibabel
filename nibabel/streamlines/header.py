@@ -46,10 +46,10 @@ class TractogramHeader(object):
                 self.to_world_space = hdr[Field.VOXEL_TO_RASMM]
 
         elif type(hdr) is TractogramHeader:
-            self.nb_streamlines = hdr.nb_streamlines
-            self.nb_scalars_per_point = hdr.nb_scalars_per_point
-            self.nb_properties_per_streamline = hdr.nb_properties_per_streamline
-            self.to_world_space = hdr.to_world_space
+            self._nb_streamlines = hdr._nb_streamlines
+            self._nb_scalars_per_point = hdr._nb_scalars_per_point
+            self._nb_properties_per_streamline = hdr._nb_properties_per_streamline
+            self._to_world_space = hdr._to_world_space
             self.extra = copy.deepcopy(hdr.extra)
 
     @property
