@@ -9,8 +9,8 @@ from nibabel.testing import assert_arrays_equal, isiterable
 from nose.tools import assert_equal, assert_raises, assert_true
 
 from .. import base_format
-from ..base_format import Tractogram, LazyTractogram
-from ..base_format import DataError, HeaderError, HeaderWarning, UsageWarning
+from ..tractogram import Tractogram, LazyTractogram
+from ..base_format import DataError, HeaderError, HeaderWarning#, UsageWarning
 
 #from .. import trk
 from ..trk import TrkFile
@@ -253,6 +253,15 @@ class TestTRK(unittest.TestCase):
                                 data_per_streamline={'properties': properties})
         trk = TrkFile(tractogram, ref=self.affine)
         assert_raises(IndexError, trk.save, BytesIO())
+
+    def test_load_write_simple_file(self):
+        trk = TrkFile.load(self.simple_trk_filename, lazy_load=False)
+        trk_file = BytesIO()
+        trk.save(trk_file)
+
+        # trk = TrkFile.load(self.simple_trk_filename, lazy_load=True)
+        # check_tractogram(trk.tractogram, self.nb_streamlines, self.streamlines, [], [])
+
 
     # def test_write_file_lazy_tractogram(self):
     #     streamlines = lambda: (point for point in self.streamlines)

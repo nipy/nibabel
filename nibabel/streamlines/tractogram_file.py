@@ -17,7 +17,8 @@ class TractogramFile(object):
 
     def __init__(self, tractogram, header=None):
         self._tractogram = tractogram
-        self._header = TractogramHeader() if header is None else header
+        #self._header = TractogramHeader() if header is None else header
+        self._header = TractogramHeader(header)
 
     @property
     def tractogram(self):
