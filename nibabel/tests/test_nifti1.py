@@ -1248,11 +1248,14 @@ class TestNifti1General(object):
 @runif_extra_has('slow')
 def test_large_nifti1():
     image_shape = (91, 109, 91, 1200)
-    img = Nifti1Image(np.zeros(image_shape, dtype=np.float32),
+    img = Nifti1Image(np.ones(image_shape, dtype=np.float32),
                       affine=np.eye(4))
+    # Dump and load the large image.
     with InTemporaryDirectory():
         img.to_filename('test.nii.gz')
         del img
         data = load('test.nii.gz').get_data()
-    assert_array_equal(np.asarray(image_shape), data.shape)
-    assert_true(np.all(data == 0.))
+    # Check that te data are all ones
+    assert_equal(image_shape, data.shape)
+    n_ones = np.sum((data == 1.))
+    assert_equal(np.prod(image_shape), n_ones)
