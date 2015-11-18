@@ -578,7 +578,6 @@ class TrkFile(TractogramFile):
 
                 if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
                     #tractogram.data_per_streamline['properties'] = properties
-                    nb_properties = np.fromstring(property_name[-1], np.int8)
                     tractogram.data_per_streamline['properties'] = properties[:, cpt:]
 
         # Bring tractogram to RAS+ and mm space
@@ -592,7 +591,7 @@ class TrkFile(TractogramFile):
         #if tractogram.header.nb_properties_per_streamline != trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
         #    raise HeaderError("'nb_properties_per_streamline' does not match.")
 
-        return cls(tractogram, ref=affine, header=trk_reader.header)
+        return cls(tractogram, header=trk_reader.header, ref=affine)
 
     def save(self, fileobj):
         ''' Saves tractogram to a file-like object using TRK format.

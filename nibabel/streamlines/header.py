@@ -25,12 +25,32 @@ class Field:
 
 
 class TractogramHeader(object):
-    def __init__(self):
+    def __init__(self, hdr=None):
         self._nb_streamlines = None
         self._nb_scalars_per_point = None
         self._nb_properties_per_streamline = None
         self._to_world_space = np.eye(4)
         self.extra = OrderedDict()
+
+        if type(hdr) is dict:
+            if Field.NB_POINTS in hdr:
+                self.nb_streamlines = hdr[Field.NB_POINTS]
+
+            if Field.NB_SCALARS_PER_POINT in hdr:
+                self.nb_scalars_per_point = hdr[Field.NB_SCALARS_PER_POINT]
+
+            if Field.NB_PROPERTIES_PER_STREAMLINE in hdr:
+                self.nb_properties_per_streamline = hdr[Field.NB_PROPERTIES_PER_STREAMLINE]
+
+            if Field.VOXEL_TO_RASMM in hdr:
+                self.to_world_space = hdr[Field.VOXEL_TO_RASMM]
+
+        elif type(hdr) is TractogramHeader:
+            self.nb_streamlines = hdr.nb_streamlines
+            self.nb_scalars_per_point = hdr.nb_scalars_per_point
+            self.nb_properties_per_streamline = hdr.nb_properties_per_streamline
+            self.to_world_space = hdr.to_world_space
+            self.extra = copy.deepcopy(hdr.extra)
 
     @property
     def to_world_space(self):
