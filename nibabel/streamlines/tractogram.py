@@ -111,35 +111,35 @@ class Tractogram(object):
     def __getitem__(self, idx):
         pts = self.streamlines[idx]
 
-        new_data_per_streamline = {}
+        data_per_streamline = {}
         for key in self.data_per_streamline:
-            new_data_per_streamline[key] = self.data_per_streamline[key][idx]
+            data_per_streamline[key] = self.data_per_streamline[key][idx]
 
-        new_data_per_point = {}
+        data_per_point = {}
         for key in self.data_per_point:
-                new_data_per_point[key] = self.data_per_point[key][idx]
+            data_per_point[key] = self.data_per_point[key][idx]
 
-        if type(idx) is slice:
-            return Tractogram(pts, new_data_per_streamline, new_data_per_point)
+        if isinstance(idx, int) or isinstance(idx, np.integer):
+            return TractogramItem(pts, data_per_streamline, data_per_point)
 
-        return TractogramItem(pts, new_data_per_streamline, new_data_per_point)
+        return Tractogram(pts, data_per_streamline, data_per_point)
 
     def __len__(self):
         return len(self.streamlines)
 
     def copy(self):
         """ Returns a copy of this `Tractogram` object. """
-        new_data_per_streamline = {}
+        data_per_streamline = {}
         for key in self.data_per_streamline:
-            new_data_per_streamline[key] = self.data_per_streamline[key].copy()
+            data_per_streamline[key] = self.data_per_streamline[key].copy()
 
-        new_data_per_point = {}
+        data_per_point = {}
         for key in self.data_per_point:
-                new_data_per_point[key] = self.data_per_point[key].copy()
+                data_per_point[key] = self.data_per_point[key].copy()
 
         tractogram = Tractogram(self.streamlines.copy(),
-                                new_data_per_streamline,
-                                new_data_per_point)
+                                data_per_streamline,
+                                data_per_point)
         return tractogram
 
     def apply_affine(self, affine):
