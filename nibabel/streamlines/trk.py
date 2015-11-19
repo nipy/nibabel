@@ -218,10 +218,19 @@ class TrkWriter(object):
     def __init__(self, fileobj, header):
         self.header = self.create_empty_header()
 
-        # Override hdr's fields by those contain in `header`.
+        # Override hdr's fields by those contained in `header`.
         for k, v in header.extra.items():
             if k in header_2_dtype.fields.keys():
                 self.header[k] = v
+
+        # TODO: Fix that ugly patch.
+        # Because the assignment operator on ndarray of string only copy the
+        # first entry, we have to do it explicitly!
+        if "property_name" in header.extra:
+            self.header["property_name"][:] = header.extra["property_name"][:]
+
+        if "scalar_name" in header.extra:
+            self.header["scalar_name"][:] = header.extra["scalar_name"][:]
 
         self.header[Field.NB_STREAMLINES] = 0
         if header.nb_streamlines is not None:

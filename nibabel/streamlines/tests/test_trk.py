@@ -206,6 +206,9 @@ class TestTRK(unittest.TestCase):
         assert_tractogram_equal(loaded_trk.tractogram, loaded_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
+        #raw = trk_file.read()
+        #raw = raw[:38] + "\x00"*200 + raw[38+200:]  # Overwrite the sclar name section
+        #raw = raw[:240] + "\x00"*200 + raw[240+200:]  # Overwrite the property name section
         assert_equal(open(self.complex_trk_filename, 'rb').read(), trk_file.read())
 
     def test_write_erroneous_file(self):
