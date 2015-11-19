@@ -154,18 +154,27 @@ class CompactList(object):
             return self._data[start:start+self._lengths[idx]]
 
         elif type(idx) is slice:
-            compact_list = CompactList()
-            compact_list._data = self._data
-            compact_list._offsets = self._offsets[idx]
-            compact_list._lengths = self._lengths[idx]
-            return compact_list
+            clist = CompactList()
+            clist._data = self._data
+            clist._offsets = self._offsets[idx]
+            clist._lengths = self._lengths[idx]
+            return clist
 
         elif type(idx) is list:
-            compact_list = CompactList()
-            compact_list._data = self._data
-            compact_list._offsets = [self._offsets[i] for i in idx]
-            compact_list._lengths = [self._lengths[i] for i in idx]
-            return compact_list
+            clist = CompactList()
+            clist._data = self._data
+            clist._offsets = [self._offsets[i] for i in idx]
+            clist._lengths = [self._lengths[i] for i in idx]
+            return clist
+
+        elif isinstance(idx, np.ndarray) and idx.dtype == np.bool:
+            clist = CompactList()
+            clist._data = self._data
+            clist._offsets = [self._offsets[i]
+                              for i, take_it in enumerate(idx) if take_it]
+            clist._lengths = [self._lengths[i]
+                              for i, take_it in enumerate(idx) if take_it]
+            return clist
 
         raise TypeError("Index must be a int or a slice! Not " + str(type(idx)))
 
@@ -184,19 +193,19 @@ class CompactList(object):
         return repr(list(self))
 
 
-def save_compact_list(filename, compact_list):
+def save_compact_list(filename, clist):
     """ Saves a `CompactList` object to a .npz file. """
     np.savez(filename,
-             data=compact_list._data,
-             offsets=compact_list._offsets,
-             lengths=compact_list._lengths)
+             data=clist._data,
+             offsets=clist._offsets,
+             lengths=clist._lengths)
 
 
 def load_compact_list(filename):
     """ Loads a `CompactList` object from a .npz file. """
     content = np.load(filename)
-    compact_list = CompactList()
-    compact_list._data = content["data"]
-    compact_list._offsets = content["offsets"].tolist()
-    compact_list._lengths = content["lengths"].tolist()
-    return compact_list
+    clist = CompactList()
+    clist._data = content["data"]
+    clist._offsets = content["offsets"].tolist()
+    clist._lengths = content["lengths"].tolist()
+    return clist
