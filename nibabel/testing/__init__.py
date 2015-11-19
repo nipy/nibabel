@@ -168,9 +168,10 @@ class catch_warn_reset(clear_and_catch_warnings):
                       FutureWarning)
 
 
+EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+
+
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    def decorator(func):
-        skip_set = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
-        return skipif(test_str not in skip_set, "Skip slow tests.")(func)
-    return decorator
+    return skipif(test_str not in EXTRA_SET,
+                  "Skip {0} tests.".format(test_str))

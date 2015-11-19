@@ -1255,7 +1255,7 @@ def test_large_nifti1():
         img.to_filename('test.nii.gz')
         del img
         data = load('test.nii.gz').get_data()
-    # Check that te data are all ones
+    # Check that the data are all ones
     assert_equal(image_shape, data.shape)
     n_ones = np.sum((data == 1.))
     assert_equal(np.prod(image_shape), n_ones)

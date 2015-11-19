@@ -13,7 +13,6 @@ import bz2
 import gzip
 import sys
 from os.path import splitext
-from distutils.version import LooseVersion
 
 
 # The largest memory chunk that gzip can use for reads
