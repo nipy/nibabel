@@ -206,6 +206,19 @@ class TestCompactList(unittest.TestCase):
         for i, e in enumerate(clist_view):
             assert_array_equal(e, self.clist[i*2])
 
+        # Use advance indexing with ndarray of data type bool.
+        idx = np.array([False, True, True, False, True])
+        clist_view = self.clist[idx]
+        assert_true(clist_view is not self.clist)
+        assert_true(clist_view._data is self.clist._data)
+        assert_array_equal(clist_view._offsets,
+                           np.asarray(self.clist._offsets)[idx])
+        assert_array_equal(clist_view._lengths,
+                           np.asarray(self.clist._lengths)[idx])
+        assert_array_equal(clist_view[0], self.clist[1])
+        assert_array_equal(clist_view[1], self.clist[2])
+        assert_array_equal(clist_view[2], self.clist[4])
+
 
 def test_save_and_load_compact_list():
 
