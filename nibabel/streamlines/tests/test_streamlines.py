@@ -12,9 +12,9 @@ from nibabel.testing import clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal, isiterable
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
-from ..base_format import Tractogram, LazyTractogram, TractogramFile
-from ..base_format import HeaderError, UsageWarning
-from ..header import Field
+from ..tractogram import Tractogram, LazyTractogram
+from ..tractogram_file import TractogramFile
+from ..tractogram import UsageWarning
 from .. import trk
 
 DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
