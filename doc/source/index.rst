@@ -61,7 +61,7 @@ contributed code and discussion (in rough order of appearance):
 * Demian Wassermann
 * Philippe Gervais
 * Justin Lecher
-* Ben Cippolini
+* `Ben Cipollini`_
 * Chris Markiewicz
 * Clemens C. C. Bauer
 
