@@ -13,17 +13,18 @@ import warnings
 
 import numpy as np
 
-from ..externals.six import BytesIO
-from ..casting import type_info, have_binary128
-from ..tmpdirs import InTemporaryDirectory
-from ..spatialimages import HeaderDataError
-from ..eulerangles import euler2mat
-from ..affines import from_matvec
-from .. import nifti1 as nifti1
-from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
-                      Nifti1Pair, Nifti1Extension, Nifti1Extensions,
-                      data_type_codes, extension_codes, slice_order_codes)
-
+from nibabel import nifti1 as nifti1
+from nibabel.affines import from_matvec
+from nibabel.casting import type_info, have_binary128
+from nibabel.eulerangles import euler2mat
+from nibabel.externals.six import BytesIO
+from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
+                            Nifti1Pair, Nifti1Extension, Nifti1Extensions,
+                            data_type_codes, extension_codes,
+                            slice_order_codes)
+from nibabel.openers import ImageOpener
+from nibabel.spatialimages import HeaderDataError
+from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
@@ -35,7 +36,7 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 
-from ..testing import data_path, suppress_warnings
+from ..testing import data_path, suppress_warnings, runif_extra_has
 
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
@@ -1242,3 +1243,19 @@ class TestNifti1General(object):
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
+
+
+@runif_extra_has('slow')
+def test_large_nifti1():
+    image_shape = (91, 109, 91, 1200)
+    img = Nifti1Image(np.ones(image_shape, dtype=np.float32),
+                      affine=np.eye(4))
+    # Dump and load the large image.
+    with InTemporaryDirectory():
+        img.to_filename('test.nii.gz')
+        del img
+        data = load('test.nii.gz').get_data()
+    # Check that the data are all ones
+    assert_equal(image_shape, data.shape)
+    n_ones = np.sum((data == 1.))
+    assert_equal(np.prod(image_shape), n_ones)
