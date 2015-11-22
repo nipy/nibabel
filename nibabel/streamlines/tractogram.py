@@ -287,7 +287,7 @@ class LazyTractogram(Tractogram):
                 for s in streamlines_gen:
                     yield apply_affine(self._affine_to_apply, s)
 
-            streamlines_gen = _apply_affine()
+            return _apply_affine()
 
         return streamlines_gen
 
