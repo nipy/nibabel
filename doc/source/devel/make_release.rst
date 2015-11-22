@@ -6,27 +6,6 @@ A guide to making a nibabel release
 
 This is a guide for developers who are doing a nibabel release.
 
-.. _release-tools:
-
-Release tools
-=============
-
-There are some release utilities that come with nibabel.  nibabel should
-install these as the ``nisext`` package, and the testing stuff is
-understandably in the ``testers`` module of that package.  nibabel has
-Makefile targets for their use.  The relevant targets are::
-
-    make check-version-info
-    make check-files
-    make sdist-tests
-
-The first installs the code from a git archive, from the repository, and for
-in-place use, and runs the ``get_info()`` function to confirm that
-installation is working and information parameters are set correctly.
-
-The second (``sdist-tests``) makes an sdist source distribution archive,
-installs it to a temporary directory, and runs the tests of that install.
-
 .. _release-checklist:
 
 Release checklist
@@ -117,8 +96,8 @@ Release checklist
   Fix ``setup.py`` to carry across any files that should be in the
   distribution.
 
-* You probably have virtualenvs for different Python versions.  Check the
-  tests pass for different configurations. The long-hand way looks like this::
+* You may have virtualenvs for different Python versions.  Check the tests
+  pass for different configurations. The long-hand way looks like this::
 
     workon python26
     make distclean
@@ -141,6 +120,44 @@ Release checklist
 * Check everything compiles without syntax errors::
 
     python -m compileall .
+
+* Make sure you are set up to use the ``try_branch.py`` - see
+  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
+
+* Make sure all your changes are committed or removed, because
+  ``try_branch.py`` pushes up the changes in the working tree;
+
+* Force build of your release candidate branch with the slow and big-memory
+  tests on the ``zibi`` buildslave::
+
+    try_branch.py nibabel-py2.7-osx-10.10
+
+  Check the build web-page for errors:
+
+  * https://nipy.bic.berkeley.edu/builders/nibabel-py2.7-osx-10.10
+
+* Force builds of your local branch on the win32 and amd64 binaries on
+  buildbot::
+
+    try_branch.py nibabel-bdist32-27
+    try_branch.py nibabel-bdist32-34
+    try_branch.py nibabel-bdist64-27
+
+  Check the builds completed without error on their respective web-pages:
+
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
+
+  Then get the built binaries in:
+
+  * https://nipy.bic.berkeley.edu/nibabel-dist
+
+  When you've done the release to pypi, you can upload them to pypi with the
+  admin files interface.
+
+  If you are already on a Windows machine, you could have done the manual
+  command to build instead: ``python setup.py bdist_wininst``.
 
 * The release should now be ready.
 
@@ -178,25 +195,12 @@ Release checklist
 
     git push --tags
 
-* Force builds of the win32 and amd64 binaries from the buildbot. Go to pages:
-
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
-
-  For each of these, enter the revision number (e.g. "2.0.0") in the field
-  "Revision to build". Then get the built binaries in:
-
-  * https://nipy.bic.berkeley.edu/nibabel-dist
-
-  and upload them to pypi with the admin files interface.
-
-  If you are already on a Windows machine, you could have done the manual
-  command to upload instead: ``python setup.py bdist_wininst upload``.
-
 * Now the version number is OK, push the docs to github pages with::
 
     make upload-html
+
+* Finally (for the release uploads) upload the Windows binaries you built with
+  ``try_branch.py`` above;
 
 * Set up maintenance / development branches
 
