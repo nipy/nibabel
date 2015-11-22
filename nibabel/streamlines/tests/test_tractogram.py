@@ -203,6 +203,10 @@ class TestLazyTractogram(unittest.TestCase):
 
         self.nb_streamlines = len(self.streamlines)
 
+        self.colors_func = lambda: (x for x in self.colors)
+        self.mean_curvature_func = lambda: (x for x in self.mean_curvature)
+        self.mean_color_func = lambda: (x for x in self.mean_color)
+
     def test_lazy_tractogram_creation(self):
         # To create tractogram from arrays use `Tractogram`.
         assert_raises(TypeError, LazyTractogram, self.streamlines)
@@ -231,9 +235,9 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Create tractogram with streamlines and other data
         streamlines = lambda: (x for x in self.streamlines)
-        data_per_point = {"colors": lambda: (x for x in self.colors)}
-        data_per_streamline = {'mean_curv': lambda: (x for x in self.mean_curvature),
-                               'mean_color': lambda: (x for x in self.mean_color)}
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curv': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
 
         tractogram = LazyTractogram(streamlines,
                                     data_per_streamline=data_per_streamline,
@@ -274,75 +278,60 @@ class TestLazyTractogram(unittest.TestCase):
 
     def test_lazy_tractogram_indexing(self):
         streamlines = lambda: (x for x in self.streamlines)
-        scalars = lambda: (x for x in self.colors)
-        properties = lambda: (x for x in self.mean_curvature_torsion)
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curv': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
 
         # By default, `LazyTractogram` object does not support indexing.
-        tractogram = LazyTractogram(streamlines, scalars, properties)
+        tractogram = LazyTractogram(streamlines,
+                                    data_per_streamline=data_per_streamline,
+                                    data_per_point=data_per_point)
         assert_raises(AttributeError, tractogram.__getitem__, 0)
-
-        # Create a `LazyTractogram` object with indexing support.
-        def getitem_without_properties(idx):
-            if isinstance(idx, int) or isinstance(idx, np.integer):
-                return self.streamlines[idx], self.colors[idx]
-
-            return list(zip(self.streamlines[idx], self.colors[idx]))
-
-        tractogram = LazyTractogram(streamlines, scalars, properties,
-                                    getitem_without_properties)
-        streamlines, scalars = tractogram[0]
-        assert_array_equal(streamlines, self.streamlines[0])
-        assert_array_equal(scalars, self.colors[0])
-
-        streamlines, scalars = zip(*tractogram[::-1])
-        assert_arrays_equal(streamlines, self.streamlines[::-1])
-        assert_arrays_equal(scalars, self.colors[::-1])
-
-        streamlines, scalars = zip(*tractogram[:-1])
-        assert_arrays_equal(streamlines, self.streamlines[:-1])
-        assert_arrays_equal(scalars, self.colors[:-1])
 
     def test_lazy_tractogram_len(self):
         streamlines = lambda: (x for x in self.streamlines)
-        scalars = lambda: (x for x in self.colors)
-        properties = lambda: (x for x in self.mean_curvature_torsion)
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curv': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
 
-        with clear_and_catch_warnings(record=True, modules=[module_tractogram]) as w:
+        modules = [module_tractogram]  # Modules for which to catch warnings.
+        with clear_and_catch_warnings(record=True, modules=modules) as w:
             warnings.simplefilter("always")  # Always trigger warnings.
 
             # Calling `len` will create new generators each time.
-            tractogram = LazyTractogram(streamlines, scalars, properties)
+            tractogram = LazyTractogram(streamlines,
+                                        data_per_streamline=data_per_streamline,
+                                        data_per_point=data_per_point)
+            assert_true(tractogram._nb_streamlines is None)
+
             # This should produce a warning message.
             assert_equal(len(tractogram), self.nb_streamlines)
+            assert_equal(tractogram._nb_streamlines, self.nb_streamlines)
             assert_equal(len(w), 1)
 
-            tractogram = LazyTractogram(streamlines, scalars, properties)
-            # This should still produce a warning message.
+            tractogram = LazyTractogram(streamlines,
+                                        data_per_streamline=data_per_streamline,
+                                        data_per_point=data_per_point)
+
+            # New instances should still produce a warning message.
             assert_equal(len(tractogram), self.nb_streamlines)
             assert_equal(len(w), 2)
             assert_true(issubclass(w[-1].category, UsageWarning))
 
-            # This should *not* produce a warning.
+            # Calling again 'len' again should *not* produce a warning.
             assert_equal(len(tractogram), self.nb_streamlines)
             assert_equal(len(w), 2)
 
-        with clear_and_catch_warnings(record=True, modules=[module_tractogram]) as w:
+        with clear_and_catch_warnings(record=True, modules=modules) as w:
             # Once we iterated through the tractogram, we know the length.
-            tractogram = LazyTractogram(streamlines, scalars, properties)
-            assert_true(tractogram.header.nb_streamlines is None)
-            for streamline in tractogram:
-                pass
 
-            assert_equal(tractogram.header.nb_streamlines,
-                         len(self.streamlines))
+            tractogram = LazyTractogram(streamlines,
+                                        data_per_streamline=data_per_streamline,
+                                        data_per_point=data_per_point)
+
+            assert_true(tractogram._nb_streamlines is None)
+            isiterable(tractogram)  # Force to iterate through all streamlines.
+            assert_equal(tractogram._nb_streamlines, len(self.streamlines))
             # This should *not* produce a warning.
             assert_equal(len(tractogram), len(self.streamlines))
-            assert_equal(len(w), 0)
-
-        with clear_and_catch_warnings(record=True, modules=[module_tractogram]) as w:
-            # It first checks if number of tractogram is in the header.
-            tractogram = LazyTractogram(streamlines, scalars, properties)
-            tractogram.header.nb_streamlines = 1234
-            # This should *not* produce a warning.
-            assert_equal(len(tractogram), 1234)
             assert_equal(len(w), 0)

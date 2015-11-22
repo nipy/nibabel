@@ -228,7 +228,6 @@ class LazyTractogram(Tractogram):
                                              data_per_point)
         self._nb_streamlines = None
         self._data = None
-        self._getitem = None
         self._affine_to_apply = np.eye(4)
 
     @classmethod
@@ -343,10 +342,7 @@ class LazyTractogram(Tractogram):
         return _gen_data()
 
     def __getitem__(self, idx):
-        if self._getitem is None:
-            raise AttributeError('`LazyTractogram` does not support indexing.')
-
-        return self._getitem(idx)
+        raise AttributeError('`LazyTractogram` does not support indexing.')
 
     def __iter__(self):
         i = 0
