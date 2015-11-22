@@ -5,7 +5,7 @@ import warnings
 from nibabel.testing import assert_arrays_equal, isiterable
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.externals.six.moves import zip
 
 from .. import tractogram as module_tractogram
@@ -346,3 +346,23 @@ class TestLazyTractogram(unittest.TestCase):
             # This should *not* produce a warning.
             assert_equal(len(tractogram), len(self.streamlines))
             assert_equal(len(w), 0)
+
+    def test_lazy_tractogram_apply_affine(self):
+        streamlines = lambda: (x for x in self.streamlines)
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curv': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
+
+        affine = np.eye(4)
+        scaling = np.array((1, 2, 3), dtype=float)
+        affine[range(3), range(3)] = scaling
+
+        tractogram = LazyTractogram(streamlines,
+                                    data_per_streamline=data_per_streamline,
+                                    data_per_point=data_per_point)
+
+        tractogram.apply_affine(affine)
+        assert_true(isiterable(tractogram))
+        assert_equal(len(tractogram), len(self.streamlines))
+        for s1, s2 in zip(tractogram.streamlines, self.streamlines):
+            assert_array_almost_equal(s1, s2*scaling)

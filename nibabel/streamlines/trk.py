@@ -295,8 +295,20 @@ class TrkWriter(object):
         i4_dtype = np.dtype("i4")
         f4_dtype = np.dtype("f4")
 
+        try:
+            first_item = next(iter(tractogram))
+        except StopIteration:
+            # Empty tractogram
+            self.header[Field.NB_STREAMLINES] = 0
+            self.header[Field.NB_SCALARS_PER_POINT] = 0
+            self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = 0
+            # Overwrite header with updated one.
+            self.file.seek(self.beginning, os.SEEK_SET)
+            self.file.write(self.header.tostring())
+            return
+
         # Update the 'property_name' field using 'data_per_streamline' of the tractogram.
-        data_for_streamline = tractogram[0].data_for_streamline
+        data_for_streamline = first_item.data_for_streamline
         data_for_streamline_keys = sorted(data_for_streamline.keys())[:MAX_NB_NAMED_SCALARS_PER_POINT]
         self.header['property_name'] = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE, dtype='S20')
         for i, k in enumerate(data_for_streamline_keys):
@@ -311,7 +323,7 @@ class TrkWriter(object):
             self.header['property_name'][i] = property_name
 
         # Update the 'scalar_name' field using 'data_per_point' of the tractogram.
-        data_for_points = tractogram[0].data_for_points
+        data_for_points = first_item.data_for_points
         data_for_points_keys = sorted(data_for_points.keys())[:MAX_NB_NAMED_SCALARS_PER_POINT]
         self.header['scalar_name'] = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
         for i, k in enumerate(data_for_points_keys):
@@ -636,7 +648,7 @@ class TrkFile(TractogramFile):
                     if len(scalar_name) == 0:
                         continue
 
-                    nb_scalars = np.fromstring(scalar_name[-1], np.int8)
+                    nb_scalars = int(np.fromstring(scalar_name[-1], np.int8))
                     scalar_name = scalar_name.split('\x00')[0]
                     data_per_point_slice[scalar_name] = slice(cpt, cpt+nb_scalars)
                     cpt += nb_scalars
@@ -651,7 +663,7 @@ class TrkFile(TractogramFile):
                     if len(property_name) == 0:
                         continue
 
-                    nb_properties = np.fromstring(property_name[-1], np.int8)
+                    nb_properties = int(np.fromstring(property_name[-1], np.int8))
                     property_name = property_name.split('\x00')[0]
                     data_per_streamline_slice[property_name] = slice(cpt, cpt+nb_properties)
                     cpt += nb_properties
@@ -661,8 +673,8 @@ class TrkFile(TractogramFile):
 
             def _read():
                 for pts, scals, props in trk_reader:
-                    data_for_streamline = {k: props[:, v] for k, v in data_per_streamline_slice.items()}
                     data_for_points = {k: scals[:, v] for k, v in data_per_point_slice.items()}
+                    data_for_streamline = {k: props[v] for k, v in data_per_streamline_slice.items()}
                     yield TractogramItem(pts, data_for_streamline, data_for_points)
 
             tractogram = LazyTractogram.create_from(_read)
@@ -735,8 +747,7 @@ class TrkFile(TractogramFile):
         trk_writer = TrkWriter(fileobj, self.header)
         trk_writer.write(self.tractogram)
 
-    @staticmethod
-    def pretty_print(fileobj):
+    def __str__(self):
         ''' Gets a formatted string of the header of a TRK file.
 
         Parameters
@@ -751,32 +762,32 @@ class TrkFile(TractogramFile):
         info : string
             Header information relevant to the TRK format.
         '''
-        trk_reader = TrkReader(fileobj)
-        hdr = trk_reader.header
+        #trk_reader = TrkReader(fileobj)
+        hdr = self.header
 
         info = ""
-        info += "MAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
-        info += "v.{0}".format(hdr['version'])
-        info += "dim: {0}".format(hdr[Field.DIMENSIONS])
-        info += "voxel_sizes: {0}".format(hdr[Field.VOXEL_SIZES])
-        info += "orgin: {0}".format(hdr[Field.ORIGIN])
-        info += "nb_scalars: {0}".format(hdr[Field.NB_SCALARS_PER_POINT])
-        info += "scalar_name:\n {0}".format("\n".join(hdr['scalar_name']))
-        info += "nb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
-        info += "property_name:\n {0}".format("\n".join(hdr['property_name']))
-        info += "vox_to_world: {0}".format(hdr[Field.VOXEL_TO_RASMM])
-        info += "voxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
-        info += "image_orientation_patient: {0}".format(hdr['image_orientation_patient'])
-        info += "pad1: {0}".format(hdr['pad1'])
-        info += "pad2: {0}".format(hdr['pad2'])
-        info += "invert_x: {0}".format(hdr['invert_x'])
-        info += "invert_y: {0}".format(hdr['invert_y'])
-        info += "invert_z: {0}".format(hdr['invert_z'])
-        info += "swap_xy: {0}".format(hdr['swap_xy'])
-        info += "swap_yz: {0}".format(hdr['swap_yz'])
-        info += "swap_zx: {0}".format(hdr['swap_zx'])
-        info += "n_count: {0}".format(hdr[Field.NB_STREAMLINES])
-        info += "hdr_size: {0}".format(hdr['hdr_size'])
-        info += "endianess: {0}".format(hdr[Field.ENDIAN])
+        info += "\nMAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
+        info += "\nv.{0}".format(hdr['version'])
+        info += "\ndim: {0}".format(hdr[Field.DIMENSIONS])
+        info += "\nvoxel_sizes: {0}".format(hdr[Field.VOXEL_SIZES])
+        info += "\norgin: {0}".format(hdr[Field.ORIGIN])
+        info += "\nnb_scalars: {0}".format(hdr[Field.NB_SCALARS_PER_POINT])
+        info += "\nscalar_name:\n {0}".format("\n".join(hdr['scalar_name']))
+        info += "\nnb_properties: {0}".format(hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
+        info += "\nproperty_name:\n {0}".format("\n".join(hdr['property_name']))
+        info += "\nvox_to_world: {0}".format(hdr[Field.VOXEL_TO_RASMM])
+        info += "\nvoxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
+        info += "\nimage_orientation_patient: {0}".format(hdr['image_orientation_patient'])
+        info += "\npad1: {0}".format(hdr['pad1'])
+        info += "\npad2: {0}".format(hdr['pad2'])
+        info += "\ninvert_x: {0}".format(hdr['invert_x'])
+        info += "\ninvert_y: {0}".format(hdr['invert_y'])
+        info += "\ninvert_z: {0}".format(hdr['invert_z'])
+        info += "\nswap_xy: {0}".format(hdr['swap_xy'])
+        info += "\nswap_yz: {0}".format(hdr['swap_yz'])
+        info += "\nswap_zx: {0}".format(hdr['swap_zx'])
+        info += "\nn_count: {0}".format(hdr[Field.NB_STREAMLINES])
+        info += "\nhdr_size: {0}".format(hdr['hdr_size'])
+        #info += "endianess: {0}".format(hdr[Field.ENDIAN])
 
         return info
