@@ -16,6 +16,7 @@ import numpy as np
 
 import nibabel.gifti as gi
 from nibabel.gifti.util import gifti_endian_codes
+from nibabel.gifti.parse_gifti_fast import Outputter, parse_gifti_file
 from nibabel.loadsave import load, save
 from nibabel.nifti1 import xform_codes
 from nibabel.tmpdirs import InTemporaryDirectory
@@ -286,12 +287,14 @@ def test_labeltable_deprecations():
 
     # Test deprecation
     with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         assert_equal(lt, img.get_labeltable())
+        assert_equal(len(w), 1)
 
     with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         img.set_labeltable(lt)
+        assert_equal(len(w), 1)
     assert_equal(lt, img.labeltable)
 
 
@@ -313,3 +316,24 @@ def test_parse_dataarrays():
             load(fn)
             assert_equal(len(w), 1)
             assert_equal(img.numDA, 0)
+
+
+def test_parse_deprecated():
+
+    # Test deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        op = Outputter()
+        assert_equal(len(w), 1)
+        op.initialize()  # smoke test--no error.
+
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        assert_raises(ValueError, parse_gifti_file)
+        assert_equal(len(w), 1)
+
+
+def test_parse_with_buffersize():
+    for buff_sz in [None, 1, 2**12]:
+        img2 = load(DATA_FILE2, buffer_size=buff_sz)
+        assert_equal(img2.darrays[0].data.shape, (143479, 1))
