@@ -627,24 +627,42 @@ class TrkFile(TractogramFile):
         affine = np.dot(offset, affine)
 
         if lazy_load:
-            # TODO when LazyTractogram has been refactored.
-            def _apply_transform(trk_reader):
-                for pts, scals, props in trk_reader:
-                    # TRK's streamlines are in 'voxelmm' space, we send them to voxel space.
-                    pts = pts / trk_reader.header[Field.VOXEL_SIZES]
-                    # TrackVis considers coordinate (0,0,0) to be the corner of the
-                    # voxel whereas streamlines returned assume (0,0,0) to be the
-                    # center of the voxel. Thus, streamlines are shifted of half
-                    #a voxel.
-                    pts -= np.array(trk_reader.header[Field.VOXEL_SIZES])/2.
-                    trk_reader
-                    yield pts, scals, props
+            #pts, scals, props = next(iter(trk_reader))
+
+            data_per_point_slice = {}
+            if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
+                cpt = 0
+                for scalar_name in trk_reader.header['scalar_name']:
+                    if len(scalar_name) == 0:
+                        continue
+
+                    nb_scalars = np.fromstring(scalar_name[-1], np.int8)
+                    scalar_name = scalar_name.split('\x00')[0]
+                    data_per_point_slice[scalar_name] = slice(cpt, cpt+nb_scalars)
+                    cpt += nb_scalars
+
+                if cpt < trk_reader.header[Field.NB_SCALARS_PER_POINT]:
+                    data_per_point_slice['scalars'] = slice(cpt, trk_reader.header[Field.NB_SCALARS_PER_POINT])
+
+            data_per_streamline_slice = {}
+            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
+                cpt = 0
+                for property_name in trk_reader.header['property_name']:
+                    if len(property_name) == 0:
+                        continue
+
+                    nb_properties = np.fromstring(property_name[-1], np.int8)
+                    property_name = property_name.split('\x00')[0]
+                    data_per_streamline_slice[property_name] = slice(cpt, cpt+nb_properties)
+                    cpt += nb_properties
+
+                if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
+                    data_per_streamline_slice['properties'] = slice(cpt, trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE])
 
             def _read():
                 for pts, scals, props in trk_reader:
-                    # TODO
-                    data_for_streamline = {}
-                    data_for_points = {}
+                    data_for_streamline = {k: props[:, v] for k, v in data_per_streamline_slice.items()}
+                    data_for_points = {k: scals[:, v] for k, v in data_per_point_slice.items()}
                     yield TractogramItem(pts, data_for_streamline, data_for_points)
 
             tractogram = LazyTractogram.create_from(_read)
@@ -671,7 +689,6 @@ class TrkFile(TractogramFile):
                     cpt += nb_scalars
 
                 if cpt < trk_reader.header[Field.NB_SCALARS_PER_POINT]:
-                    #tractogram.data_per_point['scalars'] = scalars
                     clist = CompactList()
                     clist._data = scalars._data[:, cpt:]
                     clist._offsets = scalars._offsets
@@ -690,7 +707,6 @@ class TrkFile(TractogramFile):
                     cpt += nb_properties
 
                 if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
-                    #tractogram.data_per_streamline['properties'] = properties
                     tractogram.data_per_streamline['properties'] = properties[:, cpt:]
 
         # Bring tractogram to RAS+ and mm space

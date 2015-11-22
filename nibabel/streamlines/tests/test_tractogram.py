@@ -256,7 +256,18 @@ class TestLazyTractogram(unittest.TestCase):
             assert_arrays_equal(tractogram.data_per_point['colors'],
                                 self.colors)
 
-        # Create `LazyTractogram` from a coroutine yielding 3-tuples
+    def test_lazy_tractogram_create_from(self):
+        # Create `LazyTractogram` from a coroutine yielding nothing (i.e empty).
+        _empty_data_gen = lambda: iter([])
+
+        tractogram = LazyTractogram.create_from(_empty_data_gen)
+        assert_true(isiterable(tractogram))
+        assert_equal(len(tractogram), 0)
+        assert_arrays_equal(tractogram.streamlines, [])
+        assert_equal(tractogram.data_per_point, {})
+        assert_equal(tractogram.data_per_streamline, {})
+
+        # Create `LazyTractogram` from a coroutine yielding TractogramItem
         def _data_gen():
             for d in zip(self.streamlines, self.colors,
                          self.mean_curvature, self.mean_color):
