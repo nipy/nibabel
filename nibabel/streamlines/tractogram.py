@@ -249,21 +249,27 @@ class LazyTractogram(Tractogram):
         lazy_tractogram = cls()
         lazy_tractogram._data = data_func
 
-        # Set data_per_streamline using data_func
-        def _gen(key):
-            return lambda: (t.data_for_streamline[key] for t in data_func())
+        try:
+            first_item = next(data_func())
 
-        data_per_streamline_keys = next(data_func()).data_for_streamline.keys()
-        for k in data_per_streamline_keys:
-            lazy_tractogram._data_per_streamline[k] = _gen(k)
+            # Set data_per_streamline using data_func
+            def _gen(key):
+                return lambda: (t.data_for_streamline[key] for t in data_func())
 
-        # Set data_per_point using data_func
-        def _gen(key):
-            return lambda: (t.data_for_points[key] for t in data_func())
+            data_per_streamline_keys = first_item.data_for_streamline.keys()
+            for k in data_per_streamline_keys:
+                lazy_tractogram._data_per_streamline[k] = _gen(k)
 
-        data_per_point_keys = next(data_func()).data_for_points.keys()
-        for k in data_per_point_keys:
-            lazy_tractogram._data_per_point[k] = _gen(k)
+            # Set data_per_point using data_func
+            def _gen(key):
+                return lambda: (t.data_for_points[key] for t in data_func())
+
+            data_per_point_keys = first_item.data_for_points.keys()
+            for k in data_per_point_keys:
+                lazy_tractogram._data_per_point[k] = _gen(k)
+
+        except StopIteration:
+            pass
 
         return lazy_tractogram
 
