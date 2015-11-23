@@ -695,27 +695,23 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Notes
         -----
-        Allows for freesurfer hack for large vectors described in
-        https://github.com/nipy/nibabel/issues/100 and
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        Applies freesurfer hack for large vectors described in `issue 100`_ and
+        `save_nifti.m <save77_>`_.
 
         Allows for freesurfer hack for 7th order icosahedron surface described
-        in
-        https://github.com/nipy/nibabel/issues/309
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
+        in `issue 309`_, load_nifti.m_, and `save_nifti.m <save50_>`_.
         '''
         shape = super(Nifti1Header, self).get_data_shape()
-        # Apply freesurfer hack for vector
-        if shape == (-1, 1, 1):
+        # Apply freesurfer hack for large vectors
+        if shape[:3] == (-1, 1, 1):
             vec_len = int(self._structarr['glmin'])
             if vec_len == 0:
                 raise HeaderDataError('-1 in dim[1] but 0 in glmin; '
                                       'inconsistent freesurfer type header?')
-            return (vec_len, 1, 1)
+            return (vec_len, 1, 1) + shape[3:]
         # Apply freesurfer hack for ico7 surface
-        elif shape == (27307, 1, 6):
-            return (163842, 1, 1)
+        elif shape[:3] == (27307, 1, 6):
+            return (163842, 1, 1) + shape[3:]
         else:  # Normal case
             return shape
 
@@ -725,6 +721,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
 
+        Nifti1 images can have up to seven dimensions. For FreeSurfer-variant
+        Nifti surface files, the first dimension is assumed to correspond to
+        vertices/nodes on a surface, and dimensions two and three are
+        constrained to have depth of 1. Dimensions 4-7 are constrained only by
+        type bounds.
+
         Parameters
         ----------
         shape : sequence
@@ -732,24 +734,43 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Notes
         -----
-        Applies freesurfer hack for large vectors described in
-        https://github.com/nipy/nibabel/issues/100 and
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn5022&r=5022#77
+        Applies freesurfer hack for large vectors described in `issue 100`_ and
+        `save_nifti.m <save77_>`_.
 
         Allows for freesurfer hack for 7th order icosahedron surface described
-        in
-        https://github.com/nipy/nibabel/issues/309
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?r=8776#86
-        https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?r=8776#50
+        in `issue 309`_, load_nifti.m_, and `save_nifti.m <save50_>`_.
+
+        The Nifti1 `standard header`_ allows for the following "point set"
+        definition of a surface, not currently implemented in nibabel.
+
+        ::
+
+          To signify that the vector value at each voxel is really a
+          spatial coordinate (e.g., the vertices or nodes of a surface mesh):
+            - dataset must have a 5th dimension
+            - intent_code must be NIFTI_INTENT_POINTSET
+            - dim[0] = 5
+            - dim[1] = number of points
+            - dim[2] = dim[3] = dim[4] = 1
+            - dim[5] must be the dimensionality of space (e.g., 3 => 3D space).
+            - intent_name may describe the object these points come from
+              (e.g., "pial", "gray/white" , "EEG", "MEG").
+
+        .. _issue 100: https://github.com/nipy/nibabel/issues/100
+        .. _issue 309: https://github.com/nipy/nibabel/issues/309
+        .. _save77: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#77
+        .. _save50: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#50
+        .. _load_nifti.m: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?spec=svn8776&r=8776#86
+        .. _standard header: http://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
         '''
         hdr = self._structarr
         shape = tuple(shape)
 
         # Apply freesurfer hack for ico7 surface
-        if shape == (163842, 1, 1):
-            shape = (27307, 1, 6)
-        # Apply freesurfer hack for vector
-        elif (len(shape) == 3 and shape[1:] == (1, 1) and
+        if shape[:3] == (163842, 1, 1):
+            shape = (27307, 1, 6) + shape[3:]
+        # Apply freesurfer hack for large vectors
+        elif (len(shape) >= 3 and shape[1:3] == (1, 1) and
                 shape[0] > np.iinfo(hdr['dim'].dtype.base).max):
             try:
                 hdr['glmin'] = shape[0]
@@ -762,7 +783,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                                       shape[0])
             warnings.warn('Using large vector Freesurfer hack; header will '
                           'not be compatible with SPM or FSL', stacklevel=2)
-            shape = (-1, 1, 1)
+            shape = (-1, 1, 1) + shape[3:]
         super(Nifti1Header, self).set_data_shape(shape)
 
     def get_qform_quaternion(self):
@@ -801,7 +822,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         quat = self.get_qform_quaternion()
         R = quat2mat(quat)
         vox = hdr['pixdim'][1:4].copy()
-        if np.any(vox) < 0:
+        if np.any(vox < 0):
             raise HeaderDataError('pixdims[1,2,3] should be positive')
         qfac = hdr['pixdim'][0]
         if qfac not in (-1, 1):

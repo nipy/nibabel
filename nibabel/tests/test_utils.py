@@ -1227,3 +1227,21 @@ def test__write_data():
                       slope = slope,
                       post_clips = post_clips,
                       nan_fill = nan_fill)
+
+
+def test_array_from_file_overflow():
+    # Test for int overflow in size calculation in array_from_file
+    shape = (1500,) * 6
+    class NoStringIO:  # Null file-like for forcing error
+        def seek(self, n_bytes):
+            pass
+        def read(self, n_bytes):
+            return b''
+    try:
+        array_from_file(shape, np.int8, NoStringIO())
+    except IOError as err:
+        message = str(err)
+    assert_equal(message,
+                 'Expected {0} bytes, got {1} bytes from {2}\n'
+                 ' - could the file be damaged?'.format(
+                     11390625000000000000, 0, 'object'))

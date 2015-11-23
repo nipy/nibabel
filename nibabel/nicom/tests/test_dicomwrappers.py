@@ -9,12 +9,17 @@ from copy import copy
 
 import numpy as np
 
+have_dicom = True
 try:
-    import dicom
+    import dicom as pydicom
+    read_file = pydicom.read_file
 except ImportError:
-    have_dicom = False
-else:
-    have_dicom = True
+    try:
+        import pydicom
+    except ImportError:
+        have_dicom = False
+    else:
+        from pydicom.dicomio import read_file
 dicom_test = np.testing.dec.skipif(not have_dicom,
                                    'could not import pydicom')
 
@@ -32,8 +37,8 @@ IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
 DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm.gz')
 if have_dicom:
-    DATA = dicom.read_file(gzip.open(DATA_FILE))
-    DATA_PHILIPS = dicom.read_file(gzip.open(DATA_FILE_PHILIPS))
+    DATA = read_file(gzip.open(DATA_FILE))
+    DATA_PHILIPS = read_file(gzip.open(DATA_FILE_PHILIPS))
 else:
     DATA = None
     DATA_PHILIPS = None
@@ -166,7 +171,7 @@ def test_wrapper_from_data():
 
 @dicom_test
 def test_wrapper_args_kwds():
-    # Test we can pass args, kwargs to dicom.read_file
+    # Test we can pass args, kwargs to read_file
     dcm = didw.wrapper_from_file(DATA_FILE)
     data = dcm.get_data()
     # Passing in non-default arg for defer_size
@@ -177,7 +182,7 @@ def test_wrapper_args_kwds():
     assert_array_equal(data, dcm2.get_data())
     # Trying to read non-dicom file raises pydicom error, usually
     csa_fname = pjoin(IO_DATA_PATH, 'csa2_b0.bin')
-    assert_raises(dicom.filereader.InvalidDicomError,
+    assert_raises(pydicom.filereader.InvalidDicomError,
                   didw.wrapper_from_file,
                   csa_fname)
     # We can force the read, in which case rubbish returns

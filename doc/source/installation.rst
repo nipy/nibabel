@@ -114,7 +114,11 @@ Just install the modules by invoking::
 If sudo is not configured (or even installed) you might have to use
 ``su`` instead.
 
-Now fire up Python and try importing the module to see if everything is fine.
+
+Validating your install
+-----------------------
+
+For a basic test of your installation, fire up Python and try importing the module to see if everything is fine.
 It should look something like this::
 
     Python 2.7.8 (v2.7.8:ee879c0ffa11, Jun 29 2014, 21:07:35)
@@ -122,5 +126,10 @@ It should look something like this::
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import nibabel
     >>>
+
+
+To run the nibabel test suite, from the terminal run ``nosetests nibabel`` or ``python -c "import nibabel; nibabel.test()``.
+
+To run an extended test suite that validates ``nibabel`` for long-running and resource-intensive cases, please see :ref:`advanced_testing`.
 
 .. include:: links_names.txt

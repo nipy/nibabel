@@ -130,11 +130,9 @@ Release checklist
 * Check on different platforms, particularly windows and PPC. Look at the
   `nipy buildbot`_ automated test runs for this.
 
-* Check the documentation doctests::
+* Check the documentation doctests (forcing Python 2)::
 
-    cd doc
-    make doctest
-    cd ..
+    make -C doc doctest SPHINXBUILD="python $(which sphinx-build)"
 
   This should also be tested by `nibabel on travis`_.
 
