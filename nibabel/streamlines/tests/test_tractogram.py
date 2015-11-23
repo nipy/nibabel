@@ -13,6 +13,38 @@ from ..tractogram import UsageWarning
 from ..tractogram import TractogramItem, Tractogram, LazyTractogram
 
 
+# def check_tractogram(tractogram, streamlines,
+#                      data_per_streamline, data_per_point):
+#     # Check data
+#     assert_true(isiterable(tractogram))
+#     assert_equal(len(tractogram), len(streamlines))
+#     assert_arrays_equal(tractogram.streamlines, streamlines)
+
+#     for key in data_per_streamline.keys():
+#         assert_arrays_equal(tractogram.data_per_streamline[key],
+#                             data_per_streamline[key])
+
+#     for key in data_per_point.keys():
+#         assert_arrays_equal(tractogram.data_per_point[key],
+#                             data_per_point[key])
+
+
+def assert_tractogram_equal(t1, t2):
+    assert_true(isiterable(t1))
+    assert_equal(len(t1), len(t2))
+    assert_arrays_equal(t1.streamlines, t2.streamlines)
+
+    assert_equal(len(t1.data_per_streamline), len(t2.data_per_streamline))
+    for key in t1.data_per_streamline.keys():
+        assert_arrays_equal(t1.data_per_streamline[key],
+                            t2.data_per_streamline[key])
+
+    assert_equal(len(t1.data_per_point), len(t2.data_per_point))
+    for key in t1.data_per_point.keys():
+        assert_arrays_equal(t1.data_per_point[key],
+                            t2.data_per_point[key])
+
+
 class TestTractogramItem(unittest.TestCase):
 
     def test_creating_tractogram_item(self):
