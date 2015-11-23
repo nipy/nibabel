@@ -132,9 +132,7 @@ Release checklist
 
 * Check the documentation doctests::
 
-    cd doc
-    make doctest
-    cd ..
+    make -C doc doctest
 
   This should also be tested by `nibabel on travis`_.
 

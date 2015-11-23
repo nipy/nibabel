@@ -34,6 +34,19 @@ References like "pr/298" refer to github pull request numbers.
     are raising a DataError if the track is truncated when ``strict=True``
     (the default), rather than a TypeError when trying to create the points
     array.
+
+* 2.0.2 (Monday 23 November 2015)
+
+  * Fix for integer overflow on large images (pr/325) (MB);
+  * Fix for Freesurfer nifti files with unusual dimensions (pr/332) (Chris
+    Markiewicz);
+  * Fix typos on benchmarks and tests (pr/336, pr/340, pr/347) (Chris
+    Markiewicz);
+  * Fix Windows install script (pr/339) (MB);
+  * Support for Python 3.5 (pr/363) (MB) and numpy 1.10 (pr/358) (Chris
+    Markiewicz);
+  * Update pydicom imports to permit version 1.0 (pr/379) (Chris Markiewicz);
+  * Workaround for Python 3.5.0 gzip regression (pr/383) (Ben Cipollini).
   * tripwire.TripWire object now raises subclass of AttributeError when trying
     to get an attribute, rather than a direct subclass of Exception.  This
     prevents Python 3.5 triggering the tripwire when doing inspection prior to
