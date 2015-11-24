@@ -6,6 +6,24 @@ A guide to making a nibabel release
 
 This is a guide for developers who are doing a nibabel release.
 
+The general idea of these instructions is to go through the following steps:
+
+* Make sure that the code is in the right state for release;
+* update release-related docs such as the Changelog;
+* update various documents giving dependencies, dates and so on;
+* check all standard and release-specific tests pass;
+* make the *release commit* and release tag;
+* check Windows binary builds and slow / big memory tests;
+* push source and windows builds to pypi;
+* push docs;
+* push release commit and tag to github;
+* announce.
+
+We leave pushing the tag to the last possible moment, because it's very bad
+practice to change a git tag once it has reached the public servers (in our
+case, github).  So we want to make sure of the contents of the release before
+pushing the tag.
+
 .. _release-checklist:
 
 Release checklist
@@ -121,6 +139,11 @@ Release checklist
 
     python -m compileall .
 
+* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit.
+  Then::
+
+    make source-release
+
 * Make sure you are set up to use the ``try_branch.py`` - see
   https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
 
@@ -158,13 +181,6 @@ Release checklist
 
   If you are already on a Windows machine, you could have done the manual
   command to build instead: ``python setup.py bdist_wininst``.
-
-* The release should now be ready.
-
-* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit.
-  Then::
-
-    make source-release
 
 * Once everything looks good, you are ready to upload the source release to
   PyPi.  See `setuptools intro`_.  Make sure you have a file
@@ -227,10 +243,9 @@ Release checklist
     by 1.  Thus the development series ('trunk') will have a version number
     here of '2.1.0.dev' and the next full release will be '2.1.0'.
 
-    Next merge the maintenace branch with the "ours" strategy.  This just
+    Next merge the maintenance branch with the "ours" strategy.  This just
     labels the maintenance `info.py` edits as seen but discarded, so we can
-    merge from maintenance in future without getting spurious merge
-    conflicts::
+    merge from maintenance in future without getting spurious merge conflicts::
 
        git merge -s ours maint/2.0.x
 
