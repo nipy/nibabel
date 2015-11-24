@@ -266,11 +266,18 @@ class TrkWriter(object):
         data_for_streamline_keys = sorted(data_for_streamline.keys())
         self.header['property_name'] = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE, dtype='S20')
         for i, k in enumerate(data_for_streamline_keys):
-            if len(k) > 18:
-                raise ValueError("Property name '{0}' too long (max 18 char.)".format(k))
+            nb_values = data_for_streamline[k].shape[0]
 
-            v = data_for_streamline[k]
-            property_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(v.shape[0], dtype=np.int8).tostring()
+            if len(k) > 20:
+                raise ValueError("Property name '{0}' is too long (max 20 char.)".format(k))
+            elif len(k) > 18 and nb_values > 1:
+                raise ValueError("Property name '{0}' is too long (need to be less than 18 characters when storing more than one value".format(k))
+
+            property_name = k
+            if nb_values > 1:
+                # Use the last to bytes of the name to store the nb of values associated to this data_for_streamline.
+                property_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(nb_values, dtype=np.int8).tostring()
+
             self.header['property_name'][i] = property_name
 
         # Update the 'scalar_name' field using 'data_per_point' of the tractogram.
@@ -281,11 +288,18 @@ class TrkWriter(object):
         data_for_points_keys = sorted(data_for_points.keys())
         self.header['scalar_name'] = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
         for i, k in enumerate(data_for_points_keys):
-            if len(k) > 18:
-                raise ValueError("Scalar name '{0}' too long (max 18 char.)".format(k))
+            nb_values = data_for_points[k].shape[1]
 
-            v = data_for_points[k]
-            scalar_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(v.shape[1], dtype=np.int8).tostring()
+            if len(k) > 20:
+                raise ValueError("Scalar name '{0}' is too long (max 18 char.)".format(k))
+            elif len(k) > 18 and nb_values > 1:
+                raise ValueError("Scalar name '{0}' is too long (need to be less than 18 characters when storing more than one value".format(k))
+
+            scalar_name = k
+            if nb_values > 1:
+                # Use the last to bytes of the name to store the nb of values associated to this data_for_streamline.
+                scalar_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(nb_values, dtype=np.int8).tostring()
+
             self.header['scalar_name'][i] = scalar_name
 
         # `Tractogram` streamlines are in RAS+ and mm space, we will compute

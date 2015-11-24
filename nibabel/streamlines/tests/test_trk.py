@@ -203,7 +203,8 @@ class TestTRK(unittest.TestCase):
         assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
-        assert_equal(trk_file.read(), open(self.complex_trk_filename, 'rb').read())
+        assert_equal(trk_file.read(),
+                     open(self.complex_trk_filename, 'rb').read())
 
     def test_write_erroneous_file(self):
         # No scalars for every points
@@ -332,12 +333,22 @@ class TestTRK(unittest.TestCase):
         # So in reality we allow name of 18 characters, otherwise
         # the name is truncated and warning is issue.
         for nb_chars in range(22):
-            data_per_point = {'A'*nb_chars: self.fa}
+            data_per_point = {'A'*nb_chars: self.colors}
             tractogram = Tractogram(self.streamlines,
                                     data_per_point=data_per_point)
 
             trk = TrkFile(tractogram)
             if nb_chars > 18:
+                assert_raises(ValueError, trk.save, BytesIO())
+            else:
+                trk.save(BytesIO())
+
+            data_per_point = {'A'*nb_chars: self.fa}
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_point=data_per_point)
+
+            trk = TrkFile(tractogram)
+            if nb_chars > 20:
                 assert_raises(ValueError, trk.save, BytesIO())
             else:
                 trk.save(BytesIO())
@@ -348,12 +359,22 @@ class TestTRK(unittest.TestCase):
         # So in reality we allow name of 18 characters, otherwise
         # the name is truncated and warning is issue.
         for nb_chars in range(22):
-            data_per_streamline = {'A'*nb_chars: self.mean_torsion}
+            data_per_streamline = {'A'*nb_chars: self.mean_colors}
             tractogram = Tractogram(self.streamlines,
                                     data_per_streamline=data_per_streamline)
 
             trk = TrkFile(tractogram)
             if nb_chars > 18:
+                assert_raises(ValueError, trk.save, BytesIO())
+            else:
+                trk.save(BytesIO())
+
+            data_per_streamline = {'A'*nb_chars: self.mean_torsion}
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_streamline=data_per_streamline)
+
+            trk = TrkFile(tractogram)
+            if nb_chars > 20:
                 assert_raises(ValueError, trk.save, BytesIO())
             else:
                 trk.save(BytesIO())
