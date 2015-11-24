@@ -109,7 +109,8 @@ PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
 NAME                = 'nibabel'
-MAINTAINER          = "Matthew Brett, Michael Hanke and Eric Larson"
+MAINTAINER          = "Matthew Brett, Michael Hanke, Eric Larson, " \
+                      "Chris Markiewicz"
 MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
