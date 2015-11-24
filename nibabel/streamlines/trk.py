@@ -21,7 +21,6 @@ from .base_format import DataError, HeaderError, HeaderWarning
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 
-from .utils import get_affine_from_reference
 
 MAX_NB_NAMED_SCALARS_PER_POINT = 10
 MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE = 10
@@ -217,45 +216,6 @@ class TrkWriter(object):
 
         return header
 
-    # def __init__(self, fileobj, header):
-    #     self.header = self.create_empty_header()
-
-    #     # Override hdr's fields by those contained in `header`.
-    #     for k, v in header.extra.items():
-    #         if k in header_2_dtype.fields.keys():
-    #             self.header[k] = v
-
-    #     # TODO: Fix that ugly patch.
-    #     # Because the assignment operator on ndarray of string only copy the
-    #     # first entry, we have to do it explicitly!
-    #     if "property_name" in header.extra:
-    #         self.header["property_name"][:] = header.extra["property_name"][:]
-
-    #     if "scalar_name" in header.extra:
-    #         self.header["scalar_name"][:] = header.extra["scalar_name"][:]
-
-    #     self.header[Field.NB_STREAMLINES] = 0
-    #     if header.nb_streamlines is not None:
-    #         self.header[Field.NB_STREAMLINES] = header.nb_streamlines
-
-    #     self.header[Field.NB_SCALARS_PER_POINT] = header.nb_scalars_per_point
-    #     self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = header.nb_properties_per_streamline
-    #     self.header[Field.VOXEL_SIZES] = header.voxel_sizes
-    #     self.header[Field.VOXEL_TO_RASMM] = header.to_world_space
-    #     self.header[Field.VOXEL_ORDER] = header.voxel_order
-
-    #     # Keep counts for correcting incoherent fields or warn.
-    #     self.nb_streamlines = 0
-    #     self.nb_points = 0
-    #     self.nb_scalars = 0
-    #     self.nb_properties = 0
-
-    #     # Write header
-    #     self.file = Opener(fileobj, mode="wb")
-    #     # Keep track of the beginning of the header.
-    #     self.beginning = self.file.tell()
-    #     self.file.write(self.header.tostring())
-
     def __init__(self, fileobj, header):
         self.header = self.create_empty_header()
 
@@ -263,15 +223,6 @@ class TrkWriter(object):
         for k, v in header.items():
             if k in header_2_dtype.fields.keys():
                 self.header[k] = v
-
-        # self.header[Field.NB_STREAMLINES] = 0
-        # if header.nb_streamlines is not None:
-        #     self.header[Field.NB_STREAMLINES] = header.nb_streamlines
-
-        # self.header[Field.NB_SCALARS_PER_POINT] = header.nb_scalars_per_point
-        # self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = header.nb_properties_per_streamline
-        # self.header[Field.VOXEL_SIZES] = header.voxel_sizes
-        # self.header[Field.VOXEL_TO_RASMM] = header.to_world_space
 
         # By default, the voxel order is LPS.
         # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
@@ -309,34 +260,33 @@ class TrkWriter(object):
 
         # Update the 'property_name' field using 'data_per_streamline' of the tractogram.
         data_for_streamline = first_item.data_for_streamline
-        data_for_streamline_keys = sorted(data_for_streamline.keys())[:MAX_NB_NAMED_SCALARS_PER_POINT]
+        if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
+            raise ValueError("Can only store {0} named data_per_streamline (properties).".format(MAX_NB_NAMED_SCALARS_PER_POINT))
+
+        data_for_streamline_keys = sorted(data_for_streamline.keys())
         self.header['property_name'] = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE, dtype='S20')
         for i, k in enumerate(data_for_streamline_keys):
-            if i >= MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
-                warnings.warn(("Can only store {0} named properties: '{1}' will be omitted.".format(MAX_NB_NAMED_SCALARS_PER_POINT, k)), HeaderWarning)
-
-            if len(k) > 19:
-                warnings.warn(("Property name '{0}' has be truncated to {1}.".format(k, k[:19])), HeaderWarning)
+            if len(k) > 18:
+                raise ValueError("Property name '{0}' too long (max 18 char.)".format(k))
 
             v = data_for_streamline[k]
-            property_name = k[:19].ljust(19, '\x00') + np.array(v.shape[0], dtype=np.int8).tostring()
+            property_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(v.shape[0], dtype=np.int8).tostring()
             self.header['property_name'][i] = property_name
 
         # Update the 'scalar_name' field using 'data_per_point' of the tractogram.
         data_for_points = first_item.data_for_points
-        data_for_points_keys = sorted(data_for_points.keys())[:MAX_NB_NAMED_SCALARS_PER_POINT]
+        if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
+            raise ValueError("Can only store {0} named data_per_point (scalars).".format(MAX_NB_NAMED_SCALARS_PER_POINT))
+
+        data_for_points_keys = sorted(data_for_points.keys())
         self.header['scalar_name'] = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
         for i, k in enumerate(data_for_points_keys):
-            if i >= MAX_NB_NAMED_SCALARS_PER_POINT:
-                warnings.warn(("Can only store {0} named scalars: '{1}' will be omitted.".format(MAX_NB_NAMED_SCALARS_PER_POINT, k)), HeaderWarning)
-
-            if len(k) > 19:
-                warnings.warn(("Scalar name '{0}' has be truncated to {1}.".format(k, k[:19])), HeaderWarning)
+            if len(k) > 18:
+                raise ValueError("Scalar name '{0}' too long (max 18 char.)".format(k))
 
             v = data_for_points[k]
-            scalar_name = k[:19].ljust(19, '\x00') + np.array(v.shape[1], dtype=np.int8).tostring()
+            scalar_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(v.shape[1], dtype=np.int8).tostring()
             self.header['scalar_name'][i] = scalar_name
-
 
         # `Tractogram` streamlines are in RAS+ and mm space, we will compute
         # the affine matrix that will bring them back to 'voxelmm' as required
@@ -638,39 +588,48 @@ class TrkFile(TractogramFile):
         offset[:-1, -1] -= np.array(trk_reader.header[Field.VOXEL_SIZES])/2.
         affine = np.dot(offset, affine)
 
-        if lazy_load:
-            #pts, scals, props = next(iter(trk_reader))
 
-            data_per_point_slice = {}
-            if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
-                cpt = 0
-                for scalar_name in trk_reader.header['scalar_name']:
-                    if len(scalar_name) == 0:
-                        continue
+        # Find scalars and properties name
+        data_per_point_slice = {}
+        if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
+            cpt = 0
+            for scalar_name in trk_reader.header['scalar_name']:
+                if len(scalar_name) == 0:
+                    continue
 
+                # Check if we encoded the number of values we stocked for this scalar name.
+                nb_scalars = 1
+                if scalar_name[-2] == '\x00' and scalar_name[-1] != '\x00':
                     nb_scalars = int(np.fromstring(scalar_name[-1], np.int8))
-                    scalar_name = scalar_name.split('\x00')[0]
-                    data_per_point_slice[scalar_name] = slice(cpt, cpt+nb_scalars)
-                    cpt += nb_scalars
 
-                if cpt < trk_reader.header[Field.NB_SCALARS_PER_POINT]:
-                    data_per_point_slice['scalars'] = slice(cpt, trk_reader.header[Field.NB_SCALARS_PER_POINT])
+                scalar_name = scalar_name.split('\x00')[0]
+                data_per_point_slice[scalar_name] = slice(cpt, cpt+nb_scalars)
+                cpt += nb_scalars
 
-            data_per_streamline_slice = {}
-            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
-                cpt = 0
-                for property_name in trk_reader.header['property_name']:
-                    if len(property_name) == 0:
-                        continue
+            if cpt < trk_reader.header[Field.NB_SCALARS_PER_POINT]:
+                data_per_point_slice['scalars'] = slice(cpt, trk_reader.header[Field.NB_SCALARS_PER_POINT])
 
+        data_per_streamline_slice = {}
+        if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
+            cpt = 0
+            for property_name in trk_reader.header['property_name']:
+                if len(property_name) == 0:
+                    continue
+
+                # Check if we encoded the number of values we stocked for this property name.
+                nb_properties = 1
+                if property_name[-2] == '\x00' and property_name[-1] != '\x00':
                     nb_properties = int(np.fromstring(property_name[-1], np.int8))
-                    property_name = property_name.split('\x00')[0]
-                    data_per_streamline_slice[property_name] = slice(cpt, cpt+nb_properties)
-                    cpt += nb_properties
 
-                if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
-                    data_per_streamline_slice['properties'] = slice(cpt, trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE])
+                property_name = property_name.split('\x00')[0]
+                data_per_streamline_slice[property_name] = slice(cpt, cpt+nb_properties)
+                cpt += nb_properties
 
+            if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
+                data_per_streamline_slice['properties'] = slice(cpt, trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE])
+
+
+        if lazy_load:
             def _read():
                 for pts, scals, props in trk_reader:
                     data_for_points = {k: scals[:, v] for k, v in data_per_point_slice.items()}
@@ -683,43 +642,15 @@ class TrkFile(TractogramFile):
             streamlines, scalars, properties = create_compactlist_from_generator(trk_reader)
             tractogram = Tractogram(streamlines)
 
-            if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
-                cpt = 0
-                for scalar_name in trk_reader.header['scalar_name']:
-                    if len(scalar_name) == 0:
-                        continue
+            for scalar_name, slice_ in data_per_point_slice.items():
+                clist = CompactList()
+                clist._data = scalars._data[:, slice_]
+                clist._offsets = scalars._offsets
+                clist._lengths = scalars._lengths
+                tractogram.data_per_point[scalar_name] = clist
 
-                    nb_scalars = np.fromstring(scalar_name[-1], np.int8)
-
-                    clist = CompactList()
-                    clist._data = scalars._data[:, cpt:cpt+nb_scalars]
-                    clist._offsets = scalars._offsets
-                    clist._lengths = scalars._lengths
-
-                    scalar_name = scalar_name.split('\x00')[0]
-                    tractogram.data_per_point[scalar_name] = clist
-                    cpt += nb_scalars
-
-                if cpt < trk_reader.header[Field.NB_SCALARS_PER_POINT]:
-                    clist = CompactList()
-                    clist._data = scalars._data[:, cpt:]
-                    clist._offsets = scalars._offsets
-                    clist._lengths = scalars._lengths
-                    tractogram.data_per_point['scalars'] = clist
-
-            if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
-                cpt = 0
-                for property_name in trk_reader.header['property_name']:
-                    if len(property_name) == 0:
-                        continue
-
-                    nb_properties = np.fromstring(property_name[-1], np.int8)
-                    property_name = property_name.split('\x00')[0]
-                    tractogram.data_per_streamline[property_name] = properties[:, cpt:cpt+nb_properties]
-                    cpt += nb_properties
-
-                if cpt < trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
-                    tractogram.data_per_streamline['properties'] = properties[:, cpt:]
+            for property_name, slice_ in data_per_streamline_slice.items():
+                tractogram.data_per_streamline[property_name] = properties[:, slice_]
 
         # Bring tractogram to RAS+ and mm space
         tractogram.apply_affine(affine.astype(np.float32))
