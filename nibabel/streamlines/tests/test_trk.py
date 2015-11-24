@@ -13,7 +13,7 @@ from .. import base_format
 from ..tractogram import Tractogram, LazyTractogram
 from ..base_format import DataError, HeaderError, HeaderWarning#, UsageWarning
 
-#from .. import trk
+from .. import trk as trk_module
 from ..trk import TrkFile, header_2_dtype
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
@@ -111,7 +111,7 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK file where `voxel_order` was not provided.
         voxel_order = np.zeros(1, dtype="|S3").tostring()
         new_trk_file = trk_file[:948] + voxel_order + trk_file[948+3:]
-        with clear_and_catch_warnings(record=True, modules=[trk]) as w:
+        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
             TrkFile.load(BytesIO(new_trk_file))
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, HeaderWarning))
@@ -135,11 +135,11 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file)
-        assert_tractogram_equal(loaded_trk.tractogram, tractogram)
+        new_trk = TrkFile.load(trk_file)
+        assert_tractogram_equal(new_trk.tractogram, tractogram)
 
-        loaded_trk_orig = TrkFile.load(self.empty_trk_filename)
-        assert_tractogram_equal(loaded_trk.tractogram, loaded_trk_orig.tractogram)
+        new_trk_orig = TrkFile.load(self.empty_trk_filename)
+        assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(trk_file.read(), open(self.empty_trk_filename, 'rb').read())
@@ -152,11 +152,11 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file)
-        assert_tractogram_equal(loaded_trk.tractogram, tractogram)
+        new_trk = TrkFile.load(trk_file)
+        assert_tractogram_equal(new_trk.tractogram, tractogram)
 
-        loaded_trk_orig = TrkFile.load(self.simple_trk_filename)
-        assert_tractogram_equal(loaded_trk.tractogram, loaded_trk_orig.tractogram)
+        new_trk_orig = TrkFile.load(self.simple_trk_filename)
+        assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(trk_file.read(), open(self.simple_trk_filename, 'rb').read())
@@ -171,8 +171,8 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file, lazy_load=False)
-        assert_tractogram_equal(loaded_trk.tractogram, tractogram)
+        new_trk = TrkFile.load(trk_file, lazy_load=False)
+        assert_tractogram_equal(new_trk.tractogram, tractogram)
 
         # With properties
         tractogram = Tractogram(self.streamlines,
@@ -183,8 +183,8 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file, lazy_load=False)
-        assert_tractogram_equal(loaded_trk.tractogram, tractogram)
+        new_trk = TrkFile.load(trk_file, lazy_load=False)
+        assert_tractogram_equal(new_trk.tractogram, tractogram)
 
         # With scalars and properties
         tractogram = Tractogram(self.streamlines,
@@ -196,11 +196,11 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file, lazy_load=False)
-        assert_tractogram_equal(loaded_trk.tractogram, tractogram)
+        new_trk = TrkFile.load(trk_file, lazy_load=False)
+        assert_tractogram_equal(new_trk.tractogram, tractogram)
 
-        loaded_trk_orig = TrkFile.load(self.complex_trk_filename)
-        assert_tractogram_equal(loaded_trk.tractogram, loaded_trk_orig.tractogram)
+        new_trk_orig = TrkFile.load(self.complex_trk_filename)
+        assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(trk_file.read(), open(self.complex_trk_filename, 'rb').read())
@@ -249,8 +249,8 @@ class TestTRK(unittest.TestCase):
                 trk_file = BytesIO()
                 trk.save(trk_file)
 
-                loaded_trk = TrkFile.load(filename, lazy_load=False)
-                assert_tractogram_equal(loaded_trk.tractogram, trk.tractogram)
+                new_trk = TrkFile.load(filename, lazy_load=False)
+                assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
                 trk_file.seek(0, os.SEEK_SET)
                 #assert_equal(trk_file.read(), open(filename, 'rb').read())
@@ -263,13 +263,97 @@ class TestTRK(unittest.TestCase):
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
-        loaded_trk = TrkFile.load(trk_file)
+        new_trk = TrkFile.load(trk_file)
 
-        assert_header_equal(loaded_trk.header, trk.header)
-        assert_tractogram_equal(loaded_trk.tractogram, trk.tractogram)
+        assert_header_equal(new_trk.header, trk.header)
+        assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
-        loaded_trk_orig = TrkFile.load(self.simple_LPS_trk_filename)
-        assert_tractogram_equal(loaded_trk.tractogram, loaded_trk_orig.tractogram)
+        new_trk_orig = TrkFile.load(self.simple_LPS_trk_filename)
+        assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(trk_file.read(), open(self.simple_LPS_trk_filename, 'rb').read())
+
+    def test_write_too_many_scalars_and_properties(self):
+        # TRK supports up to 10 data_per_point.
+        data_per_point = {}
+        for i in range(10):
+            data_per_point['#{0}'.format(i)] = self.fa
+
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_point=data_per_point)
+
+            trk_file = BytesIO()
+            trk = TrkFile(tractogram)
+            trk.save(trk_file)
+            trk_file.seek(0, os.SEEK_SET)
+
+            new_trk = TrkFile.load(trk_file, lazy_load=False)
+            assert_tractogram_equal(new_trk.tractogram, tractogram)
+
+        # More than 10 data_per_point should raise an error.
+        data_per_point['#{0}'.format(i+1)] = self.fa
+
+        tractogram = Tractogram(self.streamlines,
+                                data_per_point=data_per_point)
+
+        trk = TrkFile(tractogram)
+        assert_raises(ValueError, trk.save, BytesIO())
+
+        # TRK supports up to 10 data_per_streamline.
+        data_per_streamline = {}
+        for i in range(10):
+            data_per_streamline['#{0}'.format(i)] = self.mean_torsion
+
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_streamline=data_per_streamline)
+
+            trk_file = BytesIO()
+            trk = TrkFile(tractogram)
+            trk.save(trk_file)
+            trk_file.seek(0, os.SEEK_SET)
+
+            new_trk = TrkFile.load(trk_file, lazy_load=False)
+            assert_tractogram_equal(new_trk.tractogram, tractogram)
+
+        # More than 10 data_per_streamline should raise an error.
+        data_per_streamline['#{0}'.format(i+1)] = self.mean_torsion
+
+        tractogram = Tractogram(self.streamlines,
+                                data_per_streamline=data_per_streamline)
+
+        trk = TrkFile(tractogram)
+        assert_raises(ValueError, trk.save, BytesIO())
+
+    def test_write_scalars_and_properties_name_too_long(self):
+        # TRK supports data_per_point name up to 20 characters.
+        # However, we reserve the last two characters to store
+        # the number of values associated to each data_per_point.
+        # So in reality we allow name of 18 characters, otherwise
+        # the name is truncated and warning is issue.
+        for nb_chars in range(22):
+            data_per_point = {'A'*nb_chars: self.fa}
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_point=data_per_point)
+
+            trk = TrkFile(tractogram)
+            if nb_chars > 18:
+                assert_raises(ValueError, trk.save, BytesIO())
+            else:
+                trk.save(BytesIO())
+
+        # TRK supports data_per_streamline name up to 20 characters.
+        # However, we reserve the last two characters to store
+        # the number of values associated to each data_per_streamline.
+        # So in reality we allow name of 18 characters, otherwise
+        # the name is truncated and warning is issue.
+        for nb_chars in range(22):
+            data_per_streamline = {'A'*nb_chars: self.mean_torsion}
+            tractogram = Tractogram(self.streamlines,
+                                    data_per_streamline=data_per_streamline)
+
+            trk = TrkFile(tractogram)
+            if nb_chars > 18:
+                assert_raises(ValueError, trk.save, BytesIO())
+            else:
+                trk.save(BytesIO())
