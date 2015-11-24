@@ -70,7 +70,7 @@ a NumPy_ array
 >>> data.shape
 (128, 96, 24, 2)
 >>> type(data)
-<type 'numpy.ndarray'>
+<... 'numpy.ndarray'>
 
 The complete information embedded in an image header is available via a
 format-specific header object.
