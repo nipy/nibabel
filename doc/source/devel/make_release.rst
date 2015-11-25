@@ -164,12 +164,14 @@ Release checklist
 
     try_branch.py nibabel-bdist32-27
     try_branch.py nibabel-bdist32-34
+    try_branch.py nibabel-bdist32-35
     try_branch.py nibabel-bdist64-27
 
   Check the builds completed without error on their respective web-pages:
 
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-35
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
 
   Then get the built binaries in:
