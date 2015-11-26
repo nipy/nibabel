@@ -5,7 +5,7 @@
    and name substitutions.  It may be included in many files,
    therefore it should only contain link targets and name
    substitutions.  Try grepping for "^\.\. _" to find plausible
-   candidates for this list.  
+   candidates for this list.
 
 
 .. NOTE: reST targets are
@@ -233,6 +233,7 @@
 .. _Michael Hanke: http://mih.voxindeserto.de
 .. _Gaël Varoquaux: http://gael-varoquaux.info/
 .. _Stephan Gerhard: http://www.unidesign.ch
+.. _Ben Cipollini: http://bcipolli.github.io/
 
 .. Substitutions
 .. |emdash| unicode:: U+02014

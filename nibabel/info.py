@@ -69,7 +69,7 @@ Website
 =======
 
 Current documentation on nibabel can always be found at the `NIPY nibabel
-website <https://nipy.github.io/nibabel>`_.
+website <http://nipy.org/nibabel>`_.
 
 Mailing Lists
 =============
@@ -90,7 +90,7 @@ You can find our sources and single-click downloads:
 * Downloads of all `available releases`_.
 
 .. _main repository: https://github.com/nipy/nibabel
-.. _Documentation: https://nipy.github.io/nibabel
+.. _Documentation: http://nipy.org/nibabel
 .. _current release: https://pypi.python.org/pypi/nibabel
 .. _current development version: https://github.com/nipy/nibabel/archive/master.zip
 .. _available releases: https://github.com/nipy/nibabel/releases
@@ -109,16 +109,17 @@ PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
 NAME                = 'nibabel'
-MAINTAINER          = "Matthew Brett, Michael Hanke and Eric Larson"
-MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
+MAINTAINER          = "Matthew Brett, Michael Hanke, Eric Larson, " \
+                      "Chris Markiewicz"
+MAINTAINER_EMAIL    = "neuroimaging@python.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
-URL                 = "https://nipy.github.io/nibabel"
+URL                 = "http://nipy.org/nibabel"
 DOWNLOAD_URL        = "https://github.com/nipy/nibabel"
 LICENSE             = "MIT license"
 CLASSIFIERS         = CLASSIFIERS
 AUTHOR              = "Matthew Brett, Michael Hanke, Stephan Gerhard"
-AUTHOR_EMAIL        = "nipy-devel@neuroimaging.scipy.org"
+AUTHOR_EMAIL        = "neuroimaging@python.org"
 PLATFORMS           = "OS Independent"
 MAJOR               = _version_major
 MINOR               = _version_minor
