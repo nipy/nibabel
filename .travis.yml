@@ -107,7 +107,7 @@ script:
       COVER_ARGS="--with-coverage --cover-package nibabel";
       fi
     - if [ "$DOC_DOC_TEST" == "1" ]; then
-      pip install sphinx;
+      pip install sphinx numpydoc texext;
       cd ../doc;
       make html;
       make doctest;
