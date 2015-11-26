@@ -29,6 +29,10 @@ try:
     import numpydoc
 except ImportError:
     raise RuntimeError('Need to install "numpydoc" package for doc build')
+try:
+    import texext
+except ImportError:
+    raise RuntimeError('Need to install "texext" package for doc build')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -55,7 +59,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.autosummary',
-              'math_dollar',  # has to go before numpydoc
+              'texext.math_dollar',  # has to go before numpydoc
               'numpydoc',
               'only_directives',
               'plot_directive',
