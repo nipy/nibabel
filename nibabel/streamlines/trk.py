@@ -307,14 +307,6 @@ class TrkWriter(object):
         # by the TRK format.
         affine = np.eye(4)
 
-        # TrackVis considers coordinate (0,0,0) to be the corner of the
-        # voxel whereas `Tractogram` streamlines assume (0,0,0) is the
-        # center of the voxel. Thus, streamlines are shifted of half a voxel.
-        offset = np.eye(4)
-        offset[:-1, -1] += np.array(self.header[Field.VOXEL_SIZES])/2.
-        affine = np.dot(offset, affine)
-
-
         # Applied the inverse of the affine found in the TRK header.
         # rasmm -> voxel
         affine = np.dot(np.linalg.inv(self.header[Field.VOXEL_TO_RASMM]), affine)
@@ -329,6 +321,13 @@ class TrkWriter(object):
         ornt = nib.orientations.ornt_transform(affine_ornt, header_ornt)
         M = nib.orientations.inv_ornt_aff(ornt, self.header[Field.DIMENSIONS])
         affine = np.dot(M, affine)
+
+        # TrackVis considers coordinate (0,0,0) to be the corner of the
+        # voxel whereas `Tractogram` streamlines assume (0,0,0) is the
+        # center of the voxel. Thus, streamlines are shifted of half a voxel.
+        offset = np.eye(4)
+        offset[:-1, -1] += 0.5
+        affine = np.dot(offset, affine)
 
         # Finally send the streamlines in mm space.
         # voxel -> voxelmm
@@ -580,6 +579,13 @@ class TrkFile(TractogramFile):
         scale[range(3), range(3)] /= trk_reader.header[Field.VOXEL_SIZES]
         affine = np.dot(scale, affine)
 
+        # TrackVis considers coordinate (0,0,0) to be the corner of the voxel
+        # whereas streamlines returned assume (0,0,0) to be the center of the
+        # voxel. Thus, streamlines are shifted of half a voxel.
+        offset = np.eye(4)
+        offset[:-1, -1] -= 0.5
+        affine = np.dot(offset, affine)
+
         # If the voxel order implied by the affine does not match the voxel
         # order in the TRK header, change the orientation.
         # voxel (header) -> voxel (affine)
@@ -594,13 +600,6 @@ class TrkFile(TractogramFile):
         # Applied the affine found in the TRK header.
         # voxel -> rasmm
         affine = np.dot(trk_reader.header[Field.VOXEL_TO_RASMM], affine)
-
-        # TrackVis considers coordinate (0,0,0) to be the corner of the voxel
-        # whereas streamlines returned assume (0,0,0) to be the center of the
-        # voxel. Thus, streamlines are shifted of half a voxel.
-        offset = np.eye(4)
-        offset[:-1, -1] -= np.array(trk_reader.header[Field.VOXEL_SIZES])/2.
-        affine = np.dot(offset, affine)
 
 
         # Find scalars and properties name
