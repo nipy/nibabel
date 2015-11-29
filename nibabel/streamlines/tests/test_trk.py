@@ -9,9 +9,8 @@ from nibabel.testing import assert_arrays_equal, isiterable
 from nose.tools import assert_equal, assert_raises, assert_true
 
 from .test_tractogram import assert_tractogram_equal
-from .. import base_format
 from ..tractogram import Tractogram, LazyTractogram
-from ..base_format import DataError, HeaderError, HeaderWarning#, UsageWarning
+from ..tractogram_file import DataError, HeaderError, HeaderWarning
 
 from .. import trk as trk_module
 from ..trk import TrkFile, header_2_dtype

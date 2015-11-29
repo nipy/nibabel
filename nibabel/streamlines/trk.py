@@ -18,7 +18,7 @@ from nibabel.volumeutils import (native_code, swapped_code)
 
 from .compact_list import CompactList
 from .tractogram_file import TractogramFile
-from .base_format import DataError, HeaderError, HeaderWarning
+from .tractogram_file import DataError, HeaderError, HeaderWarning
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 

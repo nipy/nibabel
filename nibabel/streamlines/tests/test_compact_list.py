@@ -51,6 +51,20 @@ class TestCompactList(unittest.TestCase):
         assert_true(clist._data is None)
         assert_true(clist.shape is None)
 
+        # Force CompactList constructor to use buffering.
+        old_buffer_size = CompactList.BUFFER_SIZE
+        CompactList.BUFFER_SIZE = 1
+        clist = CompactList(data)
+        assert_equal(len(clist), len(data))
+        assert_equal(len(clist._offsets), len(data))
+        assert_equal(len(clist._lengths), len(data))
+        assert_equal(clist._data.shape[0], sum(lengths))
+        assert_equal(clist._data.shape[1], 3)
+        assert_equal(clist._offsets, [0] + np.cumsum(lengths)[:-1].tolist())
+        assert_equal(clist._lengths, lengths)
+        assert_equal(clist.shape, data[0].shape[1:])
+        CompactList.BUFFER_SIZE = old_buffer_size
+
     def test_creating_compactlist_from_generator(self):
         rng = np.random.RandomState(42)
         data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
@@ -94,6 +108,11 @@ class TestCompactList(unittest.TestCase):
     def test_compactlist_iter(self):
         for e, d in zip(self.clist, self.data):
             assert_array_equal(e, d)
+
+        # Try iterate through a corrupted CompactList object.
+        clist = self.clist.copy()
+        clist._lengths = clist._lengths[::2]
+        assert_raises(ValueError, list, clist)
 
     def test_compactlist_copy(self):
         clist = self.clist.copy()
@@ -218,6 +237,13 @@ class TestCompactList(unittest.TestCase):
         assert_array_equal(clist_view[0], self.clist[1])
         assert_array_equal(clist_view[1], self.clist[2])
         assert_array_equal(clist_view[2], self.clist[4])
+
+        # Test invalid indexing
+        assert_raises(TypeError, self.clist.__getitem__, 'abc')
+
+    def test_compactlist_repr(self):
+        # Test that calling repr on a CompactList object is not falling.
+        repr(self.clist)
 
 
 def test_save_and_load_compact_list():
