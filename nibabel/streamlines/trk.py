@@ -647,8 +647,8 @@ class TrkFile(TractogramFile):
         if lazy_load:
             def _read():
                 for pts, scals, props in trk_reader:
-                    data_for_points = {k: scals[:, v] for k, v in data_per_point_slice.items()}
-                    data_for_streamline = {k: props[v] for k, v in data_per_streamline_slice.items()}
+                    data_for_points = dict((k, scals[:, v]) for k, v in data_per_point_slice.items())
+                    data_for_streamline = dict((k, props[v]) for k, v in data_per_streamline_slice.items())
                     yield TractogramItem(pts, data_for_streamline, data_for_points)
 
             tractogram = LazyTractogram.create_from(_read)
