@@ -17,7 +17,7 @@ class TestCompactList(unittest.TestCase):
     def setUp(self):
         rng = np.random.RandomState(42)
         self.data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        self.lengths = map(len, self.data)
+        self.lengths = list(map(len, self.data))
         self.clist = CompactList(self.data)
 
     def test_creating_empty_compactlist(self):
@@ -31,7 +31,7 @@ class TestCompactList(unittest.TestCase):
     def test_creating_compactlist_from_list(self):
         rng = np.random.RandomState(42)
         data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        lengths = map(len, data)
+        lengths = list(map(len, data))
 
         clist = CompactList(data)
         assert_equal(len(clist), len(data))
@@ -54,7 +54,7 @@ class TestCompactList(unittest.TestCase):
     def test_creating_compactlist_from_generator(self):
         rng = np.random.RandomState(42)
         data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        lengths = map(len, data)
+        lengths = list(map(len, data))
 
         gen = (e for e in data)
         clist = CompactList(gen)
@@ -78,7 +78,7 @@ class TestCompactList(unittest.TestCase):
     def test_creating_compactlist_from_compact_list(self):
         rng = np.random.RandomState(42)
         data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        lengths = map(len, data)
+        lengths = list(map(len, data))
 
         clist = CompactList(data)
         clist2 = CompactList(clist)
@@ -152,7 +152,7 @@ class TestCompactList(unittest.TestCase):
         rng = np.random.RandomState(1234)
         shape = self.clist.shape
         new_data = [rng.rand(rng.randint(10, 50), *shape) for _ in range(5)]
-        lengths = map(len, new_data)
+        lengths = list(map(len, new_data))
         clist.extend(new_data)
         assert_equal(len(clist), len(self.clist)+len(new_data))
         assert_array_equal(clist._offsets[-len(new_data):],
@@ -187,7 +187,7 @@ class TestCompactList(unittest.TestCase):
             assert_array_equal(self.clist[i], e)
 
         # Get multiple items (this will create a view).
-        clist_view = self.clist[range(len(self.clist))]
+        clist_view = self.clist[list(range(len(self.clist)))]
         assert_true(clist_view is not self.clist)
         assert_true(clist_view._data is self.clist._data)
         assert_true(clist_view._offsets is not self.clist._offsets)
