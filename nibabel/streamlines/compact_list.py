@@ -5,6 +5,9 @@ class CompactList(object):
     """ Class for compacting list of ndarrays with matching shape except for
     the first dimension.
     """
+
+    BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
+
     def __init__(self, iterable=None):
         """
         Parameters
@@ -31,20 +34,19 @@ class CompactList(object):
 
         elif iterable is not None:
             # Initialize the `CompactList` object from iterable's item.
-            BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
-
             offset = 0
             for i, e in enumerate(iterable):
                 e = np.asarray(e)
                 if i == 0:
-                    self._data = np.empty((BUFFER_SIZE,) + e.shape[1:],
-                                          dtype=e.dtype)
+                    new_shape = (CompactList.BUFFER_SIZE,) + e.shape[1:]
+                    self._data = np.empty(new_shape, dtype=e.dtype)
 
                 end = offset + len(e)
                 if end >= len(self._data):
-                    # Resize is needed (at least `len(e)` items will be added).
-                    self._data.resize((len(self._data) + len(e)+BUFFER_SIZE,)
-                                      + self.shape)
+                    # Resize needed, adding `len(e)` new items plus some buffer.
+                    nb_points = len(self._data)
+                    nb_points += len(e) + CompactList.BUFFER_SIZE
+                    self._data.resize((nb_points,) + self.shape)
 
                 self._offsets.append(offset)
                 self._lengths.append(len(e))

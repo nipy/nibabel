@@ -127,7 +127,7 @@ class TestTractogram(unittest.TestCase):
         assert_raises(ValueError, Tractogram, self.streamlines,
                       data_per_point=data_per_point)
 
-    def test_tractogram_getter(self):
+    def test_tractogram_getitem(self):
         # Tractogram with only streamlines
         tractogram = Tractogram(streamlines=self.streamlines)
 
@@ -199,6 +199,43 @@ class TestTractogram(unittest.TestCase):
                             self.mean_color[::-1])
         assert_arrays_equal(r_tractogram.data_per_point['colors'],
                             self.colors[::-1])
+
+    def test_tractogram_copy(self):
+        # Create a tractogram with streamlines and other data.
+        tractogram1 = Tractogram(
+            self.streamlines,
+            data_per_streamline={'mean_curvature': self.mean_curvature,
+                                 'mean_color': self.mean_color},
+            data_per_point={'colors': self.colors})
+
+        # Create a copy of the tractogram.
+        tractogram2 = tractogram1.copy()
+
+        # Check we copied the data and not simply created new references.
+        assert_true(tractogram1 is not tractogram2)
+        assert_true(tractogram1.streamlines is not tractogram2.streamlines)
+        assert_true(tractogram1.data_per_streamline
+                    is not tractogram2.data_per_streamline)
+        assert_true(tractogram1.data_per_streamline['mean_curvature']
+                    is not tractogram2.data_per_streamline['mean_curvature'])
+        assert_true(tractogram1.data_per_streamline['mean_color']
+                    is not tractogram2.data_per_streamline['mean_color'])
+        assert_true(tractogram1.data_per_point
+                    is not tractogram2.data_per_point)
+        assert_true(tractogram1.data_per_point['colors']
+                    is not tractogram2.data_per_point['colors'])
+
+        # Check the data are the equivalent.
+        assert_true(isiterable(tractogram2))
+        assert_equal(len(tractogram1), len(tractogram2))
+        assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
+        assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
+        assert_arrays_equal(tractogram1.data_per_streamline['mean_curvature'],
+                            tractogram2.data_per_streamline['mean_curvature'])
+        assert_arrays_equal(tractogram1.data_per_streamline['mean_color'],
+                            tractogram2.data_per_streamline['mean_color'])
+        assert_arrays_equal(tractogram1.data_per_point['colors'],
+                            tractogram2.data_per_point['colors'])
 
 
 class TestLazyTractogram(unittest.TestCase):
@@ -303,7 +340,10 @@ class TestLazyTractogram(unittest.TestCase):
         assert_arrays_equal(tractogram.data_per_point['colors'],
                             self.colors)
 
-    def test_lazy_tractogram_indexing(self):
+        # Creating a LazyTractogram from not a corouting should raise an error.
+        assert_raises(TypeError, LazyTractogram.create_from, _data_gen())
+
+    def test_lazy_tractogram_getitem(self):
         streamlines = lambda: (x for x in self.streamlines)
         data_per_point = {"colors": self.colors_func}
         data_per_streamline = {'mean_curv': self.mean_curvature_func,
@@ -382,3 +422,57 @@ class TestLazyTractogram(unittest.TestCase):
         assert_equal(len(tractogram), len(self.streamlines))
         for s1, s2 in zip(tractogram.streamlines, self.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
+
+    def test_lazy_tractogram_copy(self):
+        # Create tractogram with streamlines and other data
+        streamlines = lambda: (x for x in self.streamlines)
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curv': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
+
+        tractogram1 = LazyTractogram(streamlines,
+                                     data_per_streamline=data_per_streamline,
+                                     data_per_point=data_per_point)
+        assert_true(isiterable(tractogram1))  # Implicitly set _nb_streamlines.
+
+        # Create a copy of the tractogram.
+        tractogram2 = tractogram1.copy()
+
+        # Check we copied the data and not simply created new references.
+        assert_true(tractogram1 is not tractogram2)
+
+        # When copying LazyTractogram, coroutines generating streamlines should
+        # be the same.
+        assert_true(tractogram1._streamlines is tractogram2._streamlines)
+
+        # Copying LazyTractogram, creates new internal LazyDict objects,
+        # but coroutines contained in it should be the same.
+        assert_true(tractogram1._data_per_streamline
+                    is not tractogram2._data_per_streamline)
+        assert_true(tractogram1.data_per_streamline.store['mean_curv']
+                    is tractogram2.data_per_streamline.store['mean_curv'])
+        assert_true(tractogram1.data_per_streamline.store['mean_color']
+                    is tractogram2.data_per_streamline.store['mean_color'])
+        assert_true(tractogram1._data_per_point
+                    is not tractogram2._data_per_point)
+        assert_true(tractogram1.data_per_point.store['colors']
+                    is tractogram2.data_per_point.store['colors'])
+
+        # The affine should be a copy.
+        assert_true(tractogram1._affine_to_apply
+                    is not tractogram2._affine_to_apply)
+        assert_array_equal(tractogram1._affine_to_apply,
+                           tractogram2._affine_to_apply)
+
+        # Check the data are the equivalent.
+        assert_equal(tractogram1._nb_streamlines, tractogram2._nb_streamlines)
+        assert_true(isiterable(tractogram2))
+        assert_equal(len(tractogram1), len(tractogram2))
+        assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
+        assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
+        assert_arrays_equal(tractogram1.data_per_streamline['mean_curv'],
+                            tractogram2.data_per_streamline['mean_curv'])
+        assert_arrays_equal(tractogram1.data_per_streamline['mean_color'],
+                            tractogram2.data_per_streamline['mean_color'])
+        assert_arrays_equal(tractogram1.data_per_point['colors'],
+                            tractogram2.data_per_point['colors'])

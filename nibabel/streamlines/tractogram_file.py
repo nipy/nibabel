@@ -3,6 +3,18 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 from .header import TractogramHeader
 
 
+class HeaderWarning(Warning):
+    pass
+
+
+class HeaderError(Exception):
+    pass
+
+
+class DataError(Exception):
+    pass
+
+
 class abstractclassmethod(classmethod):
     __isabstractmethod__ = True
 

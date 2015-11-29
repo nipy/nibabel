@@ -202,7 +202,12 @@ class LazyTractogram(Tractogram):
 
         def __init__(self, *args, **kwargs):
             self.store = dict()
-            self.update(dict(*args, **kwargs))  # Use update to set keys.
+
+            # Use update to set keys.
+            if len(args) == 1 and isinstance(args[0], LazyTractogram.LazyDict):
+                self.update(dict(args[0].store.items()))
+            else:
+                self.update(dict(*args, **kwargs))
 
         def __getitem__(self, key):
             return self.store[key]()
@@ -377,8 +382,9 @@ class LazyTractogram(Tractogram):
         tractogram = LazyTractogram(self._streamlines,
                                     self._data_per_streamline,
                                     self._data_per_point)
-        tractogram.nb_streamlines = self.nb_streamlines
+        tractogram._nb_streamlines = self._nb_streamlines
         tractogram._data = self._data
+        tractogram._affine_to_apply = self._affine_to_apply.copy()
         return tractogram
 
     def apply_affine(self, affine):
