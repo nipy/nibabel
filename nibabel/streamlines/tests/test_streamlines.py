@@ -145,11 +145,6 @@ class TestLoadSave(unittest.TestCase):
                                              self.data_per_streamline,
                                              self.data_per_point)
 
-        #self.nb_streamlines = len(self.streamlines)
-        #self.nb_scalars_per_point = self.colors[0].shape[1]
-        #self.nb_properties_per_streamline = len(self.mean_curvature_torsion[0])
-        #self.to_world_space = np.eye(4)
-
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             for empty_filename in self.empty_filenames:

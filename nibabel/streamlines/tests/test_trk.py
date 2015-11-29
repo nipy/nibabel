@@ -38,8 +38,11 @@ class TestTRK(unittest.TestCase):
         self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
         # simple.trk contains only streamlines
         self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
-        # simple_LPS.trk contains only streamlines
-        self.simple_LPS_trk_filename = os.path.join(DATA_PATH, "simple_LPS.trk")
+        # standard.trk contains only streamlines
+        self.standard_trk_filename = os.path.join(DATA_PATH, "standard.trk")
+        # standard.LPS.trk contains only streamlines
+        self.standard_LPS_trk_filename = os.path.join(DATA_PATH, "standard.LPS.trk")
+
         # complex.trk contains streamlines, scalars and properties
         self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
 
@@ -257,10 +260,14 @@ class TestTRK(unittest.TestCase):
                 #assert_equal(trk_file.read(), open(filename, 'rb').read())
 
     def test_load_write_LPS_file(self):
-        trk = TrkFile.load(self.simple_LPS_trk_filename, lazy_load=False)
+        # Load the RAS and LPS version of the standard.
+        trk_RAS = TrkFile.load(self.standard_trk_filename, lazy_load=False)
+        trk_LPS = TrkFile.load(self.standard_LPS_trk_filename, lazy_load=False)
+        assert_tractogram_equal(trk_LPS.tractogram, trk_RAS.tractogram)
 
+        # Write back the standard.
         trk_file = BytesIO()
-        trk = TrkFile(trk.tractogram, trk.header)
+        trk = TrkFile(trk_LPS.tractogram, trk_LPS.header)
         trk.save(trk_file)
         trk_file.seek(0, os.SEEK_SET)
 
@@ -269,11 +276,12 @@ class TestTRK(unittest.TestCase):
         assert_header_equal(new_trk.header, trk.header)
         assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
-        new_trk_orig = TrkFile.load(self.simple_LPS_trk_filename)
+        new_trk_orig = TrkFile.load(self.standard_LPS_trk_filename)
         assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
-        assert_equal(trk_file.read(), open(self.simple_LPS_trk_filename, 'rb').read())
+        assert_equal(trk_file.read(),
+                     open(self.standard_LPS_trk_filename, 'rb').read())
 
     def test_write_too_many_scalars_and_properties(self):
         # TRK supports up to 10 data_per_point.
