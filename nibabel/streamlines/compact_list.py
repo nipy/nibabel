@@ -110,7 +110,7 @@ class CompactList(object):
             lengths = elements._lengths
         else:
             self._data = np.concatenate([self._data] + list(elements), axis=0)
-            lengths = map(len, elements)
+            lengths = list(map(len, elements))
 
         idx = self._offsets[-1] + self._lengths[-1] if len(self) > 0 else 0
         self._lengths.extend(lengths)

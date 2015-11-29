@@ -13,6 +13,7 @@ import nibabel as nib
 
 from nibabel.affines import apply_affine
 from nibabel.openers import Opener
+from nibabel.py3k import asbytes, asstr
 from nibabel.volumeutils import (native_code, swapped_code)
 
 from .compact_list import CompactList
@@ -276,7 +277,7 @@ class TrkWriter(object):
             property_name = k
             if nb_values > 1:
                 # Use the last to bytes of the name to store the nb of values associated to this data_for_streamline.
-                property_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(nb_values, dtype=np.int8).tostring()
+                property_name = asbytes(k[:18].ljust(18, '\x00')) + b'\x00' + np.array(nb_values, dtype=np.int8).tostring()
 
             self.header['property_name'][i] = property_name
 
@@ -298,7 +299,7 @@ class TrkWriter(object):
             scalar_name = k
             if nb_values > 1:
                 # Use the last to bytes of the name to store the nb of values associated to this data_for_streamline.
-                scalar_name = k[:18].ljust(18, '\x00') + '\x00' + np.array(nb_values, dtype=np.int8).tostring()
+                scalar_name = asbytes(k[:18].ljust(18, '\x00')) + b'\x00' + np.array(nb_values, dtype=np.int8).tostring()
 
             self.header['scalar_name'][i] = scalar_name
 
@@ -314,7 +315,7 @@ class TrkWriter(object):
         # If the voxel order implied by the affine does not match the voxel
         # order in the TRK header, change the orientation.
         # voxel (affine) -> voxel (header)
-        header_ornt = self.header[Field.VOXEL_ORDER]
+        header_ornt = asstr(self.header[Field.VOXEL_ORDER])
         affine_ornt = "".join(nib.orientations.aff2axcodes(self.header[Field.VOXEL_TO_RASMM]))
         header_ornt = nib.orientations.axcodes2ornt(header_ornt)
         affine_ornt = nib.orientations.axcodes2ornt(affine_ornt)
@@ -589,7 +590,7 @@ class TrkFile(TractogramFile):
         # If the voxel order implied by the affine does not match the voxel
         # order in the TRK header, change the orientation.
         # voxel (header) -> voxel (affine)
-        header_ornt = trk_reader.header[Field.VOXEL_ORDER]
+        header_ornt = asstr(trk_reader.header[Field.VOXEL_ORDER])
         affine_ornt = "".join(nib.orientations.aff2axcodes(trk_reader.header[Field.VOXEL_TO_RASMM]))
         header_ornt = nib.orientations.axcodes2ornt(header_ornt)
         affine_ornt = nib.orientations.axcodes2ornt(affine_ornt)
@@ -601,12 +602,12 @@ class TrkFile(TractogramFile):
         # voxel -> rasmm
         affine = np.dot(trk_reader.header[Field.VOXEL_TO_RASMM], affine)
 
-
         # Find scalars and properties name
         data_per_point_slice = {}
         if trk_reader.header[Field.NB_SCALARS_PER_POINT] > 0:
             cpt = 0
             for scalar_name in trk_reader.header['scalar_name']:
+                scalar_name = asstr(scalar_name)
                 if len(scalar_name) == 0:
                     continue
 
@@ -626,6 +627,7 @@ class TrkFile(TractogramFile):
         if trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
             cpt = 0
             for property_name in trk_reader.header['property_name']:
+                property_name = asstr(property_name)
                 if len(property_name) == 0:
                     continue
 
