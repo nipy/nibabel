@@ -25,7 +25,7 @@ from numpy.testing import assert_almost_equal, assert_array_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
-from ..testing import assert_dt_equal
+from ..testing import assert_dt_equal, assert_re_in
 from .test_parrec import (DTI_PAR_BVECS, DTI_PAR_BVALS,
                           EXAMPLE_IMAGES as PARREC_EXAMPLES)
 from .test_parrec_data import BALLS, AFF_OFF
@@ -54,15 +54,60 @@ DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 
 @script_test
-def test_nib_ls():
+def _test_nib_ls_example4d(opts=[], hdrs_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
     expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
-                   "2.00x2.00x2.20x2000.00  #exts: 2 sform$")
-    cmd = ['nib-ls', fname]
+                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform$"
+                   % hdrs_str)
+    cmd = ['nib-ls'] + opts + [fname]
     code, stdout, stderr = run_command(cmd)
     assert_equal(fname, stdout[:len(fname)])
-    assert_not_equal(re.match(expected_re, stdout[len(fname):]), None)
+    assert_re_in(expected_re, stdout[len(fname):])
+
+@script_test
+def test_nib_ls():
+    yield _test_nib_ls_example4d
+    yield _test_nib_ls_example4d, ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+
+@script_test
+def test_nib_ls_multiple():
+    # verify that correctly lists/formats for multiple files
+    fnames = [
+        pjoin(DATA_PATH, f)
+        for f in ('example4d.nii.gz', 'example_nifti2.nii.gz', 'small.mnc', 'nifti2.hdr')
+    ]
+    code, stdout, stderr = run_command(['nib-ls'] + fnames)
+    stdout_lines = stdout.split('\n')
+    assert_equal(len(stdout_lines), 4)
+    # they should be indented correctly.  Since all files are int type -
+    ln = max(len(f) for f in fnames)
+    assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4)
+    # and if disregard type indicator which might vary
+    assert_equal(
+        [l[l.index('['):] for l in stdout_lines],
+        [
+            '[128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform',
+            '[ 32,  20,  12,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform',
+            '[ 18,  28,  29]      9.00x8.00x7.00',
+            '[ 91, 109,  91]      2.00x2.00x2.00'
+        ]
+    )
+
+    # Now run with -s for stats
+    code, stdout, stderr = run_command(['nib-ls', '-s'] + fnames)
+    stdout_lines = stdout.split('\n')
+    assert_equal(len(stdout_lines), 4)
+    assert_equal(
+        [l[l.index('['):] for l in stdout_lines],
+        [
+            '[128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform [229725]   2:1.2e+03',
+            '[ 32,  20,  12,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform  [15360]  46:7.6e+02',
+            '[ 18,  28,  29]      9.00x8.00x7.00                          [14616]    0.12:93',
+            '[ 91, 109,  91]      2.00x2.00x2.00                           error'
+        ]
+    )
+
 
 
 @script_test
