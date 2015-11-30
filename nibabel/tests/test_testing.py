@@ -148,7 +148,7 @@ def test_assert_re_in():
     assert_re_in(".*", "")
     assert_re_in(".*", ["any"])
 
-    # should do match not search
+    # Should do match not search
     assert_re_in("ab", "abc")
     assert_raises(AssertionError, assert_re_in, "ab", "cab")
     assert_raises(AssertionError, assert_re_in, "ab$", "abc")
@@ -161,5 +161,5 @@ def test_assert_re_in():
     assert_re_in("ab", ("", "abc", "laskdjf"))
     assert_raises(AssertionError, assert_re_in, "ab$", ("ddd", ""))
 
-    # shouldn't "match" the emty list
+    # Shouldn't "match" the empty list
     assert_raises(AssertionError, assert_re_in, "", [])

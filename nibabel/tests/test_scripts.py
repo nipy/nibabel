@@ -53,8 +53,7 @@ script_test.__test__ = False # It's not a test
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 
-@script_test
-def _test_nib_ls_example4d(opts=[], hdrs_str=""):
+def check_nib_ls_example4d(opts=[], hdrs_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
     expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
@@ -67,15 +66,17 @@ def _test_nib_ls_example4d(opts=[], hdrs_str=""):
 
 @script_test
 def test_nib_ls():
-    yield _test_nib_ls_example4d
-    yield _test_nib_ls_example4d, ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+    yield check_nib_ls_example4d
+    yield check_nib_ls_example4d, \
+          ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
 
 @script_test
 def test_nib_ls_multiple():
     # verify that correctly lists/formats for multiple files
     fnames = [
         pjoin(DATA_PATH, f)
-        for f in ('example4d.nii.gz', 'example_nifti2.nii.gz', 'small.mnc', 'nifti2.hdr')
+        for f in ('example4d.nii.gz', 'example_nifti2.nii.gz',
+                  'small.mnc', 'nifti2.hdr')
     ]
     code, stdout, stderr = run_command(['nib-ls'] + fnames)
     stdout_lines = stdout.split('\n')
