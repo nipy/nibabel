@@ -82,7 +82,9 @@ def test_nib_ls_multiple():
     assert_equal(len(stdout_lines), 4)
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
-    assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4)
+    assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4,
+                 msg="Type sub-string didn't start with 'i'. "
+                     "Full output was: %s" % stdout_lines)
     # and if disregard type indicator which might vary
     assert_equal(
         [l[l.index('['):] for l in stdout_lines],
