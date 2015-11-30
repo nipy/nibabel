@@ -9,6 +9,7 @@
 ''' Utilities for testing '''
 from __future__ import division, print_function
 
+import re
 import os
 import sys
 import warnings
@@ -57,6 +58,17 @@ def assert_allclose_safely(a, b, match_nans=True):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b))
+
+
+def assert_re_in(regex, c, flags=0):
+    """Assert that container (list, str, etc) contains entry matching the regex
+    """
+    if not isinstance(c, (list, tuple)):
+        c = [c]
+    for e in c:
+        if re.match(regex, e, flags=flags):
+            return
+    raise AssertionError("Not a single entry matched %r in %r" % (regex, c))
 
 
 def get_fresh_mod(mod_name=__name__):
