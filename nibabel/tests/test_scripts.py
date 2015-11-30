@@ -20,6 +20,7 @@ from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
 from nose.tools import (assert_true, assert_false, assert_not_equal,
                         assert_equal)
+from nose import SkipTest
 
 from numpy.testing import assert_almost_equal, assert_array_equal
 
@@ -81,6 +82,11 @@ def test_nib_ls_multiple():
     code, stdout, stderr = run_command(['nib-ls'] + fnames)
     stdout_lines = stdout.split('\n')
     assert_equal(len(stdout_lines), 4)
+    try:
+        load(pjoin(DATA_PATH, 'small.mnc'))
+    except:
+        raise SkipTest("For the other tests should be able to load MINC files")
+
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
     assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4,
