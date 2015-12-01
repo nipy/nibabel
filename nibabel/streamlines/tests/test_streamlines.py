@@ -28,21 +28,21 @@ def test_is_supported():
     assert_false(nib.streamlines.is_supported(""))
 
     # Valid file without extension
-    for tractogram_file in nib.streamlines.FORMATS.values():
+    for tfile_cls in nib.streamlines.FORMATS.values():
         f = BytesIO()
-        f.write(tractogram_file.get_magic_number())
+        f.write(tfile_cls.get_magic_number())
         f.seek(0, os.SEEK_SET)
         assert_true(nib.streamlines.is_supported(f))
 
     # Wrong extension but right magic number
-    for tractogram_file in nib.streamlines.FORMATS.values():
+    for tfile_cls in nib.streamlines.FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
-            f.write(tractogram_file.get_magic_number())
+            f.write(tfile_cls.get_magic_number())
             f.seek(0, os.SEEK_SET)
             assert_true(nib.streamlines.is_supported(f))
 
     # Good extension but wrong magic number
-    for ext, tractogram_file in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in nib.streamlines.FORMATS.items():
         with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
             f.write(b"pass")
             f.seek(0, os.SEEK_SET)
@@ -53,7 +53,7 @@ def test_is_supported():
     assert_false(nib.streamlines.is_supported(f))
 
     # Good extension, string only
-    for ext, tractogram_file in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in nib.streamlines.FORMATS.items():
         f = "my_tractogram" + ext
         assert_true(nib.streamlines.is_supported(f))
 
@@ -61,38 +61,43 @@ def test_is_supported():
 def test_detect_format():
     # Emtpy file/string
     f = BytesIO()
-    assert_equal(nib.streamlines.detect_format(f), None)
-    assert_equal(nib.streamlines.detect_format(""), None)
+    assert_true(nib.streamlines.detect_format(f) is None)
+    assert_true(nib.streamlines.detect_format("") is None)
 
     # Valid file without extension
-    for tractogram_file in nib.streamlines.FORMATS.values():
+    for tfile_cls in nib.streamlines.FORMATS.values():
         f = BytesIO()
-        f.write(tractogram_file.get_magic_number())
+        f.write(tfile_cls.get_magic_number())
         f.seek(0, os.SEEK_SET)
-        assert_equal(nib.streamlines.detect_format(f), tractogram_file)
+        assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Wrong extension but right magic number
-    for tractogram_file in nib.streamlines.FORMATS.values():
+    for tfile_cls in nib.streamlines.FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
-            f.write(tractogram_file.get_magic_number())
+            f.write(tfile_cls.get_magic_number())
             f.seek(0, os.SEEK_SET)
-            assert_equal(nib.streamlines.detect_format(f), tractogram_file)
+            assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Good extension but wrong magic number
-    for ext, tractogram_file in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in nib.streamlines.FORMATS.items():
         with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
             f.write(b"pass")
             f.seek(0, os.SEEK_SET)
-            assert_equal(nib.streamlines.detect_format(f), None)
+            assert_true(nib.streamlines.detect_format(f) is None)
 
     # Wrong extension, string only
     f = "my_tractogram.asd"
-    assert_equal(nib.streamlines.detect_format(f), None)
+    assert_true(nib.streamlines.detect_format(f) is None)
 
     # Good extension, string only
-    for ext, tractogram_file in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in nib.streamlines.FORMATS.items():
         f = "my_tractogram" + ext
-        assert_equal(nib.streamlines.detect_format(f), tractogram_file)
+        assert_equal(nib.streamlines.detect_format(f), tfile_cls)
+
+    # Extension should not be case-sensitive.
+    for ext, tfile_cls in nib.streamlines.FORMATS.items():
+        f = "my_tractogram" + ext.upper()
+        assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
 
 class TestLoadSave(unittest.TestCase):
