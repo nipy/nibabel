@@ -5,7 +5,7 @@ import numpy as np
 from nibabel.externals.six import BytesIO
 
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
-from nibabel.testing import assert_arrays_equal, isiterable
+from nibabel.testing import assert_arrays_equal, check_iteration
 from nose.tools import assert_equal, assert_raises, assert_true
 
 from .test_tractogram import assert_tractogram_equal

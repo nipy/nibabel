@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import warnings
 
-from nibabel.testing import assert_arrays_equal, isiterable
+from nibabel.testing import assert_arrays_equal, check_iteration
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -14,7 +14,7 @@ from ..tractogram import TractogramItem, Tractogram, LazyTractogram
 
 
 def assert_tractogram_equal(t1, t2):
-    assert_true(isiterable(t1))
+    assert_true(check_iteration(t1))
     assert_equal(len(t1), len(t2))
     assert_arrays_equal(t1.streamlines, t2.streamlines)
 
@@ -81,7 +81,7 @@ class TestTractogram(unittest.TestCase):
         assert_arrays_equal(tractogram.streamlines, [])
         assert_equal(tractogram.data_per_streamline, {})
         assert_equal(tractogram.data_per_point, {})
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
 
         # Create a tractogram with only streamlines
         tractogram = Tractogram(streamlines=self.streamlines)
@@ -89,7 +89,7 @@ class TestTractogram(unittest.TestCase):
         assert_arrays_equal(tractogram.streamlines, self.streamlines)
         assert_equal(tractogram.data_per_streamline, {})
         assert_equal(tractogram.data_per_point, {})
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
 
         # Create a tractogram with streamlines and other data.
         tractogram = Tractogram(
@@ -107,7 +107,7 @@ class TestTractogram(unittest.TestCase):
         assert_arrays_equal(tractogram.data_per_point['colors'],
                             self.colors)
 
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
 
         # Inconsistent number of scalars between streamlines
         wrong_data = [[(1, 0, 0)]*1,
@@ -226,7 +226,7 @@ class TestTractogram(unittest.TestCase):
                     is not tractogram2.data_per_point['colors'])
 
         # Check the data are the equivalent.
-        assert_true(isiterable(tractogram2))
+        assert_true(check_iteration(tractogram2))
         assert_equal(len(tractogram1), len(tractogram2))
         assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
         assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
@@ -280,7 +280,7 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Empty `LazyTractogram`
         tractogram = LazyTractogram()
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), 0)
         assert_arrays_equal(tractogram.streamlines, [])
         assert_equal(tractogram.data_per_point, {})
@@ -296,7 +296,7 @@ class TestLazyTractogram(unittest.TestCase):
                                     data_per_streamline=data_per_streamline,
                                     data_per_point=data_per_point)
 
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), self.nb_streamlines)
 
         # Coroutines get re-called and creates new iterators.
@@ -314,7 +314,7 @@ class TestLazyTractogram(unittest.TestCase):
         _empty_data_gen = lambda: iter([])
 
         tractogram = LazyTractogram.create_from(_empty_data_gen)
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), 0)
         assert_arrays_equal(tractogram.streamlines, [])
         assert_equal(tractogram.data_per_point, {})
@@ -330,7 +330,7 @@ class TestLazyTractogram(unittest.TestCase):
                 yield TractogramItem(d[0], data_for_streamline, data_for_points)
 
         tractogram = LazyTractogram.create_from(_data_gen)
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), self.nb_streamlines)
         assert_arrays_equal(tractogram.streamlines, self.streamlines)
         assert_arrays_equal(tractogram.data_per_streamline['mean_curv'],
@@ -397,7 +397,7 @@ class TestLazyTractogram(unittest.TestCase):
                                         data_per_point=data_per_point)
 
             assert_true(tractogram._nb_streamlines is None)
-            isiterable(tractogram)  # Force to iterate through all streamlines.
+            check_iteration(tractogram)  # Force iteration through tractogram.
             assert_equal(tractogram._nb_streamlines, len(self.streamlines))
             # This should *not* produce a warning.
             assert_equal(len(tractogram), len(self.streamlines))
@@ -418,7 +418,7 @@ class TestLazyTractogram(unittest.TestCase):
                                     data_per_point=data_per_point)
 
         tractogram.apply_affine(affine)
-        assert_true(isiterable(tractogram))
+        assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), len(self.streamlines))
         for s1, s2 in zip(tractogram.streamlines, self.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
@@ -433,7 +433,7 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram1 = LazyTractogram(streamlines,
                                      data_per_streamline=data_per_streamline,
                                      data_per_point=data_per_point)
-        assert_true(isiterable(tractogram1))  # Implicitly set _nb_streamlines.
+        assert_true(check_iteration(tractogram1))  # Implicitly set _nb_streamlines.
 
         # Create a copy of the tractogram.
         tractogram2 = tractogram1.copy()
@@ -466,7 +466,7 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Check the data are the equivalent.
         assert_equal(tractogram1._nb_streamlines, tractogram2._nb_streamlines)
-        assert_true(isiterable(tractogram2))
+        assert_true(check_iteration(tractogram2))
         assert_equal(len(tractogram1), len(tractogram2))
         assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)
         assert_arrays_equal(tractogram1.streamlines, tractogram2.streamlines)

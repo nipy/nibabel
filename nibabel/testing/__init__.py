@@ -179,17 +179,7 @@ class suppress_warnings(error_warnings):
 
 
 class catch_warn_reset(clear_and_catch_warnings):
-
     def __init__(self, *args, **kwargs):
         warnings.warn('catch_warn_reset is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',
                       FutureWarning)
-
-
-EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
-
-
-def runif_extra_has(test_str):
-    """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return skipif(test_str not in EXTRA_SET,
-                  "Skip {0} tests.".format(test_str))
