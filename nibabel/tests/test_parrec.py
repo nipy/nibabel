@@ -113,7 +113,6 @@ PREVIOUS_AFFINES = {
          [0., 0., 3.3, -64.35],
          [0., 0., 0., 1.]]),
 }
-
 # Original values for b values in DTI.PAR, still in PSL orientation
 DTI_PAR_BVECS = np.array([[-0.667, -0.667, -0.333],
                           [-0.333, 0.667, -0.667],
@@ -259,6 +258,10 @@ def test_get_sorted_slice_indices():
         hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
+    # different result when strict_sort=True
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1], strict_sort=True)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices)[::-1])
+
 
 def test_vol_number():
     # Test algorithm for calculating volume number
@@ -336,6 +339,25 @@ def test_diffusion_parameters():
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
     # Permute to match bvec directions to acquisition directions
     assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
+    # Check q vectors
+    assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+
+
+def test_diffusion_parameters_strict_sort():
+    # Check getting diffusion parameters from diffusion example
+    dti_par = pjoin(DATA_PATH, 'DTI.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
+    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    bvals, bvecs = dti_hdr.get_bvals_bvecs()
+    assert_almost_equal(bvals, np.sort(DTI_PAR_BVALS))
+    # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
+    # Permute to match bvec directions to acquisition directions
+    # note that bval sorting occurs prior to bvec sorting
+    assert_almost_equal(bvecs,
+                        DTI_PAR_BVECS[
+                            np.ix_(np.argsort(DTI_PAR_BVALS), [2, 0, 1])])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
 
@@ -530,9 +552,10 @@ class FakeHeader(object):
     """ Minimal API of header for PARRECArrayProxy
     """
 
-    def __init__(self, shape, dtype):
+    def __init__(self, shape, dtype, strict_sort=False):
         self._shape = shape
         self._dtype = np.dtype(dtype)
+        self.strict_sort = strict_sort
 
     def get_data_shape(self):
         return self._shape

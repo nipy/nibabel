@@ -618,7 +618,8 @@ class PARRECArrayProxy(object):
 class PARRECHeader(SpatialHeader):
     """PAR/REC header"""
 
-    def __init__(self, info, image_defs, permit_truncated=False):
+    def __init__(self, info, image_defs, permit_truncated=False,
+                 strict_sort=False):
         """
         Parameters
         ----------
@@ -631,10 +632,14 @@ class PARRECHeader(SpatialHeader):
         permit_truncated : bool, optional
             If True, a warning is emitted instead of an error when a truncated
             recording is detected.
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
         self.permit_truncated = permit_truncated
+        self.strict_sort = strict_sort
         _truncation_checks(info, image_defs, permit_truncated)
         # charge with basic properties to be able to use base class
         # functionality
@@ -660,14 +665,16 @@ class PARRECHeader(SpatialHeader):
                           'non-PARREC header.')
 
     @classmethod
-    def from_fileobj(klass, fileobj, permit_truncated=False):
+    def from_fileobj(klass, fileobj, permit_truncated=False,
+                     strict_sort=False):
         info, image_defs = parse_PAR_header(fileobj)
-        return klass(info, image_defs, permit_truncated)
+        return klass(info, image_defs, permit_truncated, strict_sort)
 
     def copy(self):
         return PARRECHeader(deepcopy(self.general_info),
                             self.image_defs.copy(),
-                            self.permit_truncated)
+                            self.permit_truncated,
+                            self.strict_sort)
 
     def as_analyze_map(self):
         """Convert PAR parameters to NIFTI1 format"""
@@ -1003,6 +1010,9 @@ class PARRECHeader(SpatialHeader):
         If the recording is truncated, the returned indices take care of
         discarding any slice indices from incomplete volumes.
 
+        If `self.strict_sort` is True, a more complicated sorting based on
+        multiple fields from the .PAR file is used.
+
         Returns
         -------
         slice_indices : list
@@ -1010,13 +1020,71 @@ class PARRECHeader(SpatialHeader):
             array, and (equivalently) the only dimension of
             ``self.image_defs``.
         """
-        slice_nos = self.image_defs['slice number']
-        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
-        keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
-        # Figure out how many we need to remove from the end, and trim them
-        # Based on our sorting, they should always be last
+        if not self.strict_sort:
+            slice_nos = self.image_defs['slice number']
+            is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+            keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
+            sort_order = np.lexsort(keys)
+        else:
+            # Sort based on a larger number of keys.  This is more complicated
+            # but works for .PAR files that get missorted by the above method
+            slice_nos = self.image_defs['slice number']
+            dynamics = self.image_defs['dynamic scan number']
+            phases = self.image_defs['cardiac phase number']
+            echos = self.image_defs['echo number']
+
+            # try adding keys only present in a subset of .PAR files
+            try:
+                # only present in PAR v4.2+
+                asl_labels = self.image_defs['label type']
+                asl_keys = (asl_labels, )
+            except:
+                asl_keys = ()
+            if not self.general_info['diffusion'] == 0:
+                try:
+                    # only present for .PAR v4.1+
+                    bvals = self.image_defs['diffusion b value number']
+                    bvecs = self.image_defs['gradient orientation number']
+                except:
+                    bvals = self.image_defs['diffusion_b_factor']
+                    # use hash to get a single sortable value per direction
+                    bvecs = [hash(tuple(
+                        a)) for a in self.image_defs['diffusion'].tolist()]
+                diffusion_keys = (bvecs, bvals)
+            else:
+                diffusion_keys = ()
+
+            # Define the desired sort order (last key is highest precedence)
+            keys = (slice_nos, echos, phases) + \
+                diffusion_keys + asl_keys + (dynamics, )
+
+            """
+            Data sorting is done in two stages:
+                - run an initial sort using the keys defined above
+                - call vol_is_full to identify potentially missing volumes
+                - call vol_numbers to assign unique volume numbers if for some
+                  reason the keys defined above don't provide a unique sort
+                  order (e.g. this occurs for the Trace volume in DTI)
+                - run a final sort using the vol_numbers and is_full keys
+            """
+            initial_sort_order = np.lexsort(keys)
+            is_full = vol_is_full(slice_nos[initial_sort_order],
+                                  self.general_info['max_slices'])
+            vol_nos = vol_numbers(slice_nos[initial_sort_order])
+
+            # have to "unsort" is_full and vol_nos to match the other sort keys
+            unsort_indices = np.argsort(initial_sort_order)
+            is_full = is_full[unsort_indices]
+            vol_nos = np.asarray(vol_nos)[unsort_indices]
+
+            # final set of sort keys
+            keys += (vol_nos, np.logical_not(is_full), )
+            sort_order = np.lexsort(keys)
+
+        # Figure out how many we need to remove from the end, and trim them.
+        # Based on our sorting, they should always be last.
         n_used = np.prod(self.get_data_shape()[2:])
-        return np.lexsort(keys)[:n_used]
+        return sort_order[:n_used]
 
 
 class PARRECImage(SpatialImage):
@@ -1033,7 +1101,7 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_file_map(klass, file_map, mmap=True, permit_truncated=False,
-                      scaling='dv'):
+                      scaling='dv', strict_sort=False):
         """ Create PARREC image from file map `file_map`
 
         Parameters
@@ -1054,11 +1122,15 @@ class PARRECImage(SpatialImage):
         scaling : {'dv', 'fp'}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(
                 hdr_fobj,
-                permit_truncated=permit_truncated)
+                permit_truncated=permit_truncated,
+                strict_sort=strict_sort)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr,
                                      mmap=mmap, scaling=scaling)
@@ -1068,7 +1140,7 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_filename(klass, filename, mmap=True, permit_truncated=False,
-                      scaling='dv'):
+                      scaling='dv', strict_sort=False):
         """ Create PARREC image from filename `filename`
 
         Parameters
@@ -1088,12 +1160,16 @@ class PARRECImage(SpatialImage):
         scaling : {'dv', 'fp'}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.
         """
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map,
                                    mmap=mmap,
                                    permit_truncated=permit_truncated,
-                                   scaling=scaling)
+                                   scaling=scaling,
+                                   strict_sort=strict_sort)
 
     load = from_filename
 
