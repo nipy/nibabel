@@ -148,7 +148,7 @@ class CompactList(object):
         Returns
         -------
         ndarray object(s)
-            When `idx` is a int, returns a single ndarray.
+            When `idx` is an int, returns a single ndarray.
             When `idx` is either a slice or a list, returns a list of ndarrays.
         """
         if isinstance(idx, int) or isinstance(idx, np.integer):
@@ -178,7 +178,7 @@ class CompactList(object):
                               for i, take_it in enumerate(idx) if take_it]
             return clist
 
-        raise TypeError("Index must be a int or a slice! Not " + str(type(idx)))
+        raise TypeError("Index must be an int or a slice! Not " + str(type(idx)))
 
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
