@@ -155,14 +155,14 @@ class CompactList(object):
             start = self._offsets[idx]
             return self._data[start:start+self._lengths[idx]]
 
-        elif type(idx) is slice:
+        elif isinstance(idx, slice):
             clist = CompactList()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
             return clist
 
-        elif type(idx) is list:
+        elif isinstance(idx, list):
             clist = CompactList()
             clist._data = self._data
             clist._offsets = [self._offsets[i] for i in idx]
@@ -178,7 +178,8 @@ class CompactList(object):
                               for i, take_it in enumerate(idx) if take_it]
             return clist
 
-        raise TypeError("Index must be an int or a slice! Not " + str(type(idx)))
+        raise TypeError("Index must be either an int, a slice, a list of int"
+                        " or a ndarray of bool! Not " + str(type(idx)))
 
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
