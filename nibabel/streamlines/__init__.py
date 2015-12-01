@@ -1,3 +1,6 @@
+import os
+from ..externals.six import string_types
+
 from .header import TractogramHeader
 from .compact_list import CompactList
 from .tractogram import Tractogram, LazyTractogram
@@ -54,11 +57,9 @@ def detect_format(fileobj):
         except IOError:
             pass
 
-    import os
-    from ..externals.six import string_types
     if isinstance(fileobj, string_types):
         _, ext = os.path.splitext(fileobj)
-        return FORMATS.get(ext, None)
+        return FORMATS.get(ext.lower())
 
     return None
 
