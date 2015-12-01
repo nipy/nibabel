@@ -11,6 +11,7 @@ from __future__ import division, print_function
 
 import sys
 import warnings
+import collections
 from os.path import dirname, abspath, join as pjoin
 from nibabel.externals.six.moves import zip_longest
 
@@ -59,7 +60,8 @@ def assert_allclose_safely(a, b, match_nans=True):
     assert_true(np.allclose(a, b))
 
 
-def isiterable(iterable):
+def check_iteration(iterable):
+    """ Checks that an object can be iterated through without errors. """
     try:
         for _ in iterable:
             pass
