@@ -496,11 +496,13 @@ class MGHImage(SpatialImage):
         '''
         if not mmap in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        mghf = file_map['image'].get_prepare_fileobj('rb')
+        img_fh = file_map['image']
+        mghf = img_fh.get_prepare_fileobj('rb')
         header = klass.header_class.from_fileobj(mghf)
         affine = header.get_affine()
         hdr_copy = header.copy()
-        data = klass.ImageArrayProxy(mghf, hdr_copy, mmap=mmap)
+        # Pass original image fileobj / filename to array proxy
+        data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap)
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
