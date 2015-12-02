@@ -107,16 +107,23 @@ class CompactList(object):
             elem = np.asarray(elements[0])
             self._data = np.zeros((0, elem.shape[1]), dtype=elem.dtype)
 
+        next_offset = self._data.shape[0]
+
         if isinstance(elements, CompactList):
-            self._data = np.concatenate([self._data, elements._data], axis=0)
-            lengths = elements._lengths
+            self._data.resize((self._data.shape[0]+sum(elements._lengths),
+                               self._data.shape[1]))
+
+            for offset, length in zip(elements._offsets, elements._lengths):
+                self._offsets.append(next_offset)
+                self._lengths.append(length)
+                self._data[next_offset:next_offset+length] = elements._data[offset:offset+length]
+                next_offset += length
+
         else:
             self._data = np.concatenate([self._data] + list(elements), axis=0)
             lengths = list(map(len, elements))
-
-        idx = self._offsets[-1] + self._lengths[-1] if len(self) > 0 else 0
-        self._lengths.extend(lengths)
-        self._offsets.extend(np.cumsum([idx] + lengths).tolist()[:-1])
+            self._lengths.extend(lengths)
+            self._offsets.extend(np.cumsum([next_offset] + lengths).tolist()[:-1])
 
     def copy(self):
         """ Creates a copy of this ``CompactList`` object. """
