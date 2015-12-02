@@ -4,6 +4,7 @@ import tempfile
 import numpy as np
 
 from nose.tools import assert_equal, assert_raises, assert_true
+from nibabel.testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 from nibabel.externals.six.moves import zip, zip_longest
 
@@ -170,7 +171,7 @@ class TestCompactList(unittest.TestCase):
 
         rng = np.random.RandomState(1234)
         shape = self.clist.shape
-        new_data = [rng.rand(rng.randint(10, 50), *shape) for _ in range(5)]
+        new_data = [rng.rand(rng.randint(10, 50), *shape) for _ in range(10)]
         lengths = list(map(len, new_data))
         clist.extend(new_data)
         assert_equal(len(clist), len(self.clist)+len(new_data))
@@ -183,22 +184,38 @@ class TestCompactList(unittest.TestCase):
 
         # Extend with another `CompactList` object.
         clist = self.clist.copy()
-        new_data = CompactList(new_data)
-        clist.extend(new_data)
-        assert_equal(len(clist), len(self.clist)+len(new_data))
-        assert_array_equal(clist._offsets[-len(new_data):],
+        new_clist = CompactList(new_data)
+        clist.extend(new_clist)
+        assert_equal(len(clist), len(self.clist)+len(new_clist))
+        assert_array_equal(clist._offsets[-len(new_clist):],
                            len(self.clist._data) + np.cumsum([0] + lengths[:-1]))
 
-        assert_equal(clist._lengths[-len(new_data):], lengths)
-        assert_array_equal(clist._data[-sum(lengths):], new_data._data)
+        assert_equal(clist._lengths[-len(new_clist):], lengths)
+        assert_array_equal(clist._data[-sum(lengths):], new_clist._data)
+
+        # Extend with another `CompactList` object that is a view (e.g. been sliced).
+        # Need to make sure we extend only the data we need.
+        clist = self.clist.copy()
+        new_clist = CompactList(new_data)[::2]
+        clist.extend(new_clist)
+        assert_equal(len(clist), len(self.clist)+len(new_clist))
+        assert_equal(len(clist._data), len(self.clist._data)+sum(new_clist._lengths))
+        assert_array_equal(clist._offsets[-len(new_clist):],
+                           len(self.clist._data) + np.cumsum([0] + new_clist._lengths[:-1]))
+
+        assert_equal(clist._lengths[-len(new_clist):], lengths[::2])
+        assert_array_equal(clist._data[-sum(new_clist._lengths):], new_clist.copy()._data)
+        assert_arrays_equal(clist[-len(new_clist):], new_clist)
 
         # Test extending an empty CompactList
         clist = CompactList()
-        clist.extend(new_data)
-        assert_equal(len(clist), len(new_data))
-        assert_array_equal(clist._offsets, new_data._offsets)
-        assert_array_equal(clist._lengths, new_data._lengths)
-        assert_array_equal(clist._data, new_data._data)
+        new_clist = CompactList(new_data)
+        clist.extend(new_clist)
+        assert_equal(len(clist), len(new_clist))
+        assert_array_equal(clist._offsets, new_clist._offsets)
+        assert_array_equal(clist._lengths, new_clist._lengths)
+        assert_array_equal(clist._data, new_clist._data)
+
 
     def test_compactlist_getitem(self):
         # Get one item
