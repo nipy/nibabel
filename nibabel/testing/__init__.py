@@ -12,9 +12,12 @@ from __future__ import division, print_function
 import os
 import sys
 import warnings
+import collections
 from os.path import dirname, abspath, join as pjoin
+from nibabel.externals.six.moves import zip_longest
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
@@ -57,6 +60,22 @@ def assert_allclose_safely(a, b, match_nans=True):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b))
+
+
+def check_iteration(iterable):
+    """ Checks that an object can be iterated through without errors. """
+    try:
+        for _ in iterable:
+            pass
+    except:
+        return False
+
+    return True
+
+
+def assert_arrays_equal(arrays1, arrays2):
+    for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
+        assert_array_equal(arr1, arr2)
 
 
 def get_fresh_mod(mod_name=__name__):
