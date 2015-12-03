@@ -208,43 +208,6 @@ class TestTRK(unittest.TestCase):
         assert_equal(trk_file.read(),
                      open(self.complex_trk_filename, 'rb').read())
 
-    def test_write_erroneous_file(self):
-        # No scalars for every points
-        scalars = [[(1, 0, 0)],
-                   [(0, 1, 0)],
-                   [(0, 0, 1)]]
-
-        tractogram = Tractogram(self.streamlines,
-                                data_per_point={'scalars': scalars})
-        trk = TrkFile(tractogram)
-        assert_raises(DataError, trk.save, BytesIO())
-
-        # No scalars for every streamlines
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1, 0)]*2]
-
-        tractogram = Tractogram(self.streamlines,
-                                data_per_point={'scalars': scalars})
-        trk = TrkFile(tractogram)
-        assert_raises(IndexError, trk.save, BytesIO())
-
-        # Inconsistent number of properties
-        properties = [np.array([1.11, 1.22], dtype="f4"),
-                      np.array([2.11], dtype="f4"),
-                      np.array([3.11, 3.22], dtype="f4")]
-        tractogram = Tractogram(self.streamlines,
-                                data_per_streamline={'properties': properties})
-        trk = TrkFile(tractogram)
-        assert_raises(DataError, trk.save, BytesIO())
-
-        # No properties for every streamlines
-        properties = [np.array([1.11, 1.22], dtype="f4"),
-                      np.array([2.11, 2.22], dtype="f4")]
-        tractogram = Tractogram(self.streamlines,
-                                data_per_streamline={'properties': properties})
-        trk = TrkFile(tractogram)
-        assert_raises(IndexError, trk.save, BytesIO())
-
     def test_load_write_file(self):
         for filename in [self.empty_trk_filename, self.simple_trk_filename, self.complex_trk_filename]:
             for lazy_load in [False, True]:

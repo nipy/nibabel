@@ -62,6 +62,73 @@ class Tractogram(object):
         associated to each point (excluding the three coordinates).
 
     """
+    class DataDict(collections.MutableMapping):
+        def __init__(self, tractogram, *args, **kwargs):
+            self.tractogram = tractogram
+            self.store = dict()
+
+            # Use update to set the keys.
+            if len(args) == 1:
+                if isinstance(args[0], Tractogram.DataDict):
+                    self.update(dict(args[0].store.items()))
+                elif args[0] is None:
+                    return
+                else:
+                    self.update(dict(*args, **kwargs))
+            else:
+                self.update(dict(*args, **kwargs))
+
+        def __getitem__(self, key):
+            return self.store[key]
+
+        def __delitem__(self, key):
+            del self.store[key]
+
+        def __iter__(self):
+            return iter(self.store)
+
+        def __len__(self):
+            return len(self.store)
+
+    class DataPerStreamlineDict(DataDict):
+        """ Internal dictionary that makes sure data are 2D ndarray. """
+
+        def __setitem__(self, key, value):
+            value = np.asarray(value)
+
+            if value.ndim == 1 and value.dtype != object:
+                # Reshape without copy
+                value.shape = ((len(value), 1))
+
+            if value.ndim != 2:
+                raise ValueError("data_per_streamline must be a 2D ndarray.")
+
+            # We make sure there is the right amount of values
+            # (i.e. same as the number of streamlines in the tractogram).
+            if len(value) != len(self.tractogram):
+                msg = ("The number of values ({0}) should match the number of"
+                       " streamlines ({1}).")
+                raise ValueError(msg.format(len(value), len(self.tractogram)))
+
+            self.store[key] = value
+
+    class DataPerPointDict(DataDict):
+        """ Internal dictionary that makes sure data are `CompactList`. """
+
+        def __setitem__(self, key, value):
+            value = CompactList(value)
+
+            # We make sure we have the right amount of values (i.e. same as
+            # the total number of points of all streamlines in the tractogram).
+            if len(value._data) != len(self.tractogram.streamlines._data):
+                msg = ("The number of values ({0}) should match the total"
+                       " number of points of all streamlines ({1}).")
+                nb_streamlines_points = self.tractogram.streamlines._data
+                raise ValueError(msg.format(len(value._data),
+                                            len(nb_streamlines_points)))
+
+            self.store[key] = value
+
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None):
@@ -84,12 +151,8 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        if value is None:
-            value = {}
-
-        self._data_per_streamline = {}
-        for k, v in value.items():
-            self._data_per_streamline[k] = np.asarray(v)
+        self._data_per_streamline = Tractogram.DataPerStreamlineDict(self,
+                                                                     value)
 
     @property
     def data_per_point(self):
@@ -97,12 +160,7 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        if value is None:
-            value = {}
-
-        self._data_per_point = {}
-        for k, v in value.items():
-            self._data_per_point[k] = CompactList(v)
+        self._data_per_point = Tractogram.DataPerPointDict(self, value)
 
     def __iter__(self):
         for i in range(len(self.streamlines)):

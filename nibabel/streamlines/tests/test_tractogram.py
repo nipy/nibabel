@@ -237,6 +237,46 @@ class TestTractogram(unittest.TestCase):
         assert_arrays_equal(tractogram1.data_per_point['colors'],
                             tractogram2.data_per_point['colors'])
 
+    def test_creating_invalid_tractogram(self):
+        # Not enough data_per_point for all the points of all streamlines.
+        scalars = [[(1, 0, 0)]*1,
+                   [(0, 1, 0)]*2,
+                   [(0, 0, 1)]*3]  # Last streamlines has 5 points.
+
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_point={'scalars': scalars})
+
+        # Not enough data_per_streamline for all streamlines.
+        properties = [np.array([1.11, 1.22], dtype="f4"),
+                      np.array([3.11, 3.22], dtype="f4")]
+
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_streamline={'properties': properties})
+
+        # Inconsistent dimension for a data_per_point.
+        scalars = [[(1, 0, 0)]*1,
+                   [(0, 1)]*2,
+                   [(0, 0, 1)]*5]
+
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_point={'scalars': scalars})
+
+        # Inconsistent dimension for a data_per_streamline.
+        properties = [[1.11, 1.22],
+                      [2.11],
+                      [3.11, 3.22]]
+
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_streamline={'properties': properties})
+
+        # Too many dimension for a data_per_streamline.
+        properties = [np.array([[1.11], [1.22]], dtype="f4"),
+                      np.array([[2.11], [2.22]], dtype="f4"),
+                      np.array([[3.11], [3.22]], dtype="f4")]
+
+        assert_raises(ValueError, Tractogram, self.streamlines,
+                      data_per_streamline={'properties': properties})
+
 
 class TestLazyTractogram(unittest.TestCase):
 
