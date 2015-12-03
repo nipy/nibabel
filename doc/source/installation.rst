@@ -59,7 +59,7 @@ or (if you need root permission to install on a unix system)::
 Debian/Ubuntu
 -------------
 
-Our friendas at NeuroDebian_ have packaged NiBabel at `NiBabel NeuroDebian`_.
+Our friends at NeuroDebian_ have packaged NiBabel at `NiBabel NeuroDebian`_.
 Please follow the instructions on the NeuroDebian_ website on how to access
 their repositories. Once this is done, installing NiBabel is::
 
@@ -69,7 +69,7 @@ their repositories. Once this is done, installing NiBabel is::
 Install from source
 ===================
 
-If no installer or package is provided for your platfom, you can install
+If no installer or package is provided for your platform, you can install
 NiBabel from source.
 
 Requirements
