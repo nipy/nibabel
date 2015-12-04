@@ -1,22 +1,7 @@
-import os
-import unittest
-import tempfile
-import numpy as np
+from nose.tools import assert_raises
 
-from os.path import join as pjoin
-
-import nibabel as nib
-from nibabel.externals.six import BytesIO
-
-from nibabel.testing import clear_and_catch_warnings
-from nibabel.testing import assert_arrays_equal, check_iteration
-from nose.tools import assert_equal, assert_raises, assert_true, assert_false
-
-from .test_tractogram import assert_tractogram_equal
+from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
-from ..tractogram import Tractogram, LazyTractogram
-from ..tractogram import UsageWarning
-from .. import trk
 
 
 def test_subclassing_tractogram_file():

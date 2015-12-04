@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from nibabel.externals.six import with_metaclass
 
 
 class HeaderWarning(Warning):
@@ -21,9 +22,8 @@ class abstractclassmethod(classmethod):
         super(abstractclassmethod, self).__init__(callable)
 
 
-class TractogramFile(object):
+class TractogramFile(with_metaclass(ABCMeta)):
     ''' Convenience class to encapsulate tractogram file format. '''
-    __metaclass__ = ABCMeta
 
     def __init__(self, tractogram, header=None):
         self._tractogram = tractogram
