@@ -379,87 +379,6 @@ class TrkWriter(object):
         self.file.write(self.header.tostring())
 
 
-def create_compactlist_from_generator(gen):
-    BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
-
-    streamlines = CompactList()
-    scalars = CompactList()
-    properties = np.array([])
-
-    gen = iter(gen)
-    try:
-        first_element = next(gen)
-        gen = itertools.chain([first_element], gen)
-    except StopIteration:
-        return streamlines, scalars, properties
-
-    # Allocated some buffer memory.
-    pts = np.asarray(first_element[0])
-    scals = np.asarray(first_element[1])
-    props = np.asarray(first_element[2])
-
-    scals_shape = scals.shape
-    props_shape = props.shape
-
-    streamlines._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
-    scalars._data = np.empty((BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
-    properties = np.empty((BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
-
-    offset = 0
-    for i, (pts, scals, props) in enumerate(gen):
-        pts = np.asarray(pts)
-        scals = np.asarray(scals)
-        props = np.asarray(props)
-
-        if scals.shape[1] != scals_shape[1]:
-            raise ValueError("Number of scalars differs from one"
-                             " point or streamline to another")
-
-        if props.shape != props_shape:
-            raise ValueError("Number of properties differs from one"
-                             " streamline to another")
-
-        end = offset + len(pts)
-        if end >= len(streamlines._data):
-            # Resize is needed (at least `len(pts)` items will be added).
-            streamlines._data.resize((len(streamlines._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
-            scalars._data.resize((len(scalars._data) + len(scals)+BUFFER_SIZE, scals.shape[1]))
-
-        streamlines._offsets.append(offset)
-        streamlines._lengths.append(len(pts))
-        streamlines._data[offset:offset+len(pts)] = pts
-        scalars._data[offset:offset+len(scals)] = scals
-
-        offset += len(pts)
-
-        if i >= len(properties):
-            properties.resize((len(properties) + BUFFER_SIZE, props.shape[0]))
-
-        properties[i] = props
-
-    # Clear unused memory.
-    streamlines._data.resize((offset, pts.shape[1]))
-
-    if scals_shape[1] == 0:
-        # Because resizing an empty ndarray creates memory!
-        scalars._data = np.empty((offset, scals.shape[1]))
-    else:
-        scalars._data.resize((offset, scals.shape[1]))
-
-    # Share offsets and lengths between streamlines and scalars.
-    scalars._offsets = streamlines._offsets
-    scalars._lengths = streamlines._lengths
-
-    if props_shape[0] == 0:
-        # Because resizing an empty ndarray creates memory!
-        properties = np.empty((i+1, props.shape[0]))
-    else:
-        properties.resize((i+1, props.shape[0]))
-
-    return streamlines, scalars, properties
-
-
-
 class TrkFile(TractogramFile):
     ''' Convenience class to encapsulate TRK file format.
 
@@ -477,8 +396,9 @@ class TrkFile(TractogramFile):
     # Contants
     MAGIC_NUMBER = b"TRACK"
     HEADER_SIZE = 1000
+    READ_BUFFER_SIZE = 10000000  # About 128 Mb if only no scalars nor properties.
 
-    def __init__(self, tractogram, header=None, ref=np.eye(4)):
+    def __init__(self, tractogram, header=None):
         """
         Parameters
         ----------
@@ -487,9 +407,6 @@ class TrkFile(TractogramFile):
 
         header : ``TractogramHeader`` file (optional)
             Metadata associated to this tractogram file.
-
-        ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
-            Reference space where streamlines live in.
 
         Notes
         -----
@@ -501,7 +418,6 @@ class TrkFile(TractogramFile):
             header = dict(zip(header_rec.dtype.names, header_rec))
 
         super(TrkFile, self).__init__(tractogram, header)
-        #self._affine = get_affine_from_reference(ref)
 
     @classmethod
     def get_magic_number(cls):
@@ -540,6 +456,87 @@ class TrkFile(TractogramFile):
             return magic_number == cls.MAGIC_NUMBER
 
         return False
+
+    @classmethod
+    def _create_compactlist_from_generator(cls, gen):
+        """ Creates a CompactList object from a generator yielding tuples of
+            points, scalars and properties. """
+
+        streamlines = CompactList()
+        scalars = CompactList()
+        properties = np.array([])
+
+        gen = iter(gen)
+        try:
+            first_element = next(gen)
+            gen = itertools.chain([first_element], gen)
+        except StopIteration:
+            return streamlines, scalars, properties
+
+        # Allocated some buffer memory.
+        pts = np.asarray(first_element[0])
+        scals = np.asarray(first_element[1])
+        props = np.asarray(first_element[2])
+
+        scals_shape = scals.shape
+        props_shape = props.shape
+
+        streamlines._data = np.empty((cls.READ_BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
+        scalars._data = np.empty((cls.READ_BUFFER_SIZE, scals.shape[1]), dtype=scals.dtype)
+        properties = np.empty((cls.READ_BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
+
+        offset = 0
+        for i, (pts, scals, props) in enumerate(gen):
+            pts = np.asarray(pts)
+            scals = np.asarray(scals)
+            props = np.asarray(props)
+
+            if scals.shape[1] != scals_shape[1]:
+                raise ValueError("Number of scalars differs from one"
+                                 " point or streamline to another")
+
+            if props.shape != props_shape:
+                raise ValueError("Number of properties differs from one"
+                                 " streamline to another")
+
+            end = offset + len(pts)
+            if end >= len(streamlines._data):
+                # Resize is needed (at least `len(pts)` items will be added).
+                streamlines._data.resize((len(streamlines._data) + len(pts)+cls.READ_BUFFER_SIZE, pts.shape[1]))
+                scalars._data.resize((len(scalars._data) + len(scals)+cls.READ_BUFFER_SIZE, scals.shape[1]))
+
+            streamlines._offsets.append(offset)
+            streamlines._lengths.append(len(pts))
+            streamlines._data[offset:offset+len(pts)] = pts
+            scalars._data[offset:offset+len(scals)] = scals
+
+            offset += len(pts)
+
+            if i >= len(properties):
+                properties.resize((len(properties) + cls.READ_BUFFER_SIZE, props.shape[0]))
+
+            properties[i] = props
+
+        # Clear unused memory.
+        streamlines._data.resize((offset, pts.shape[1]))
+
+        if scals_shape[1] == 0:
+            # Because resizing an empty ndarray creates memory!
+            scalars._data = np.empty((offset, scals.shape[1]))
+        else:
+            scalars._data.resize((offset, scals.shape[1]))
+
+        # Share offsets and lengths between streamlines and scalars.
+        scalars._offsets = streamlines._offsets
+        scalars._lengths = streamlines._lengths
+
+        if props_shape[0] == 0:
+            # Because resizing an empty ndarray creates memory!
+            properties = np.empty((i+1, props.shape[0]))
+        else:
+            properties.resize((i+1, props.shape[0]))
+
+        return streamlines, scalars, properties
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -654,7 +651,7 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.create_from(_read)
 
         else:
-            streamlines, scalars, properties = create_compactlist_from_generator(trk_reader)
+            streamlines, scalars, properties = cls._create_compactlist_from_generator(trk_reader)
             tractogram = Tractogram(streamlines)
 
             for scalar_name, slice_ in data_per_point_slice.items():
@@ -678,7 +675,7 @@ class TrkFile(TractogramFile):
         #if tractogram.header.nb_properties_per_streamline != trk_reader.header[Field.NB_PROPERTIES_PER_STREAMLINE]:
         #    raise HeaderError("'nb_properties_per_streamline' does not match.")
 
-        return cls(tractogram, header=trk_reader.header, ref=affine)
+        return cls(tractogram, header=trk_reader.header)
 
     def save(self, fileobj):
         ''' Saves tractogram to a file-like object using TRK format.

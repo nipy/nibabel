@@ -247,3 +247,10 @@ class TestLoadSave(unittest.TestCase):
 
                 tfile = nib.streamlines.load(f, lazy_load=False)
                 assert_tractogram_equal(tfile.tractogram, tractogram)
+
+    def test_load_unknown_format(self):
+        assert_raises(ValueError, nib.streamlines.load, "")
+
+    def test_save_unknown_format(self):
+        assert_raises(ValueError,
+                      nib.streamlines.save_tractogram, Tractogram(), "")

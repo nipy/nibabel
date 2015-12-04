@@ -50,22 +50,22 @@ class TractogramFile(object):
     def get_header(self):
         return self.header
 
-    @classmethod
+    @abstractclassmethod
     def get_magic_number(cls):
         ''' Returns streamlines file's magic number. '''
         raise NotImplementedError()
 
-    @classmethod
+    @abstractclassmethod
     def support_data_per_point(cls):
         ''' Tells if this tractogram format supports saving data per point. '''
         raise NotImplementedError()
 
-    @classmethod
+    @abstractclassmethod
     def support_data_per_streamline(cls):
         ''' Tells if this tractogram format supports saving data per streamline. '''
         raise NotImplementedError()
 
-    @classmethod
+    @abstractclassmethod
     def is_correct_format(cls, fileobj):
         ''' Checks if the file has the right streamlines file format.
         Parameters

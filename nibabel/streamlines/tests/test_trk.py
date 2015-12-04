@@ -348,3 +348,17 @@ class TestTRK(unittest.TestCase):
                 assert_raises(ValueError, trk.save, BytesIO())
             else:
                 trk.save(BytesIO())
+
+    def test_str(self):
+        trk = TrkFile.load(self.complex_trk_filename)
+        str(trk)  # Simply test it's not failing when called.
+
+    def test_read_buffer_size(self):
+        tmp = TrkFile.READ_BUFFER_SIZE
+        TrkFile.READ_BUFFER_SIZE = 1
+
+        for lazy_load in [False, True]:
+            trk = TrkFile.load(self.complex_trk_filename, lazy_load=lazy_load)
+            assert_tractogram_equal(trk.tractogram, self.complex_tractogram)
+
+        TrkFile.READ_BUFFER_SIZE = tmp
