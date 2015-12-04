@@ -1,7 +1,7 @@
 import os
 from ..externals.six import string_types
 
-from .header import TractogramHeader
+from .header import Field
 from .compact_list import CompactList
 from .tractogram import Tractogram, LazyTractogram
 
