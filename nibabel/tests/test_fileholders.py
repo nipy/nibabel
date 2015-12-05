@@ -50,4 +50,12 @@ def test_same_file_as():
     assert_true(fh3.same_file_as(fh4_again))
 
 
-
+def test_file_like():
+    # Test returning file object or filename
+    fh = FileHolder('a_fname')
+    assert_equal(fh.file_like, 'a_fname')
+    bio = BytesIO()
+    fh = FileHolder(fileobj=bio)
+    assert_true(fh.file_like is bio)
+    fh = FileHolder('a_fname', fileobj=bio)
+    assert_true(fh.file_like is bio)

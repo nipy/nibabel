@@ -90,6 +90,12 @@ class FileHolder(object):
         return ((self.filename == other.filename) and
                 (self.fileobj == other.fileobj))
 
+    @property
+    def file_like(self):
+        """ Return ``self.fileobj`` if not None, otherwise ``self.filename``
+        """
+        return self.fileobj if self.fileobj is not None else self.filename
+
 
 def copy_file_map(file_map):
     ''' Copy mapping of fileholders given by `file_map`

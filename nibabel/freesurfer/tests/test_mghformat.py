@@ -9,12 +9,15 @@
 '''Tests for mghformat reading writing'''
 
 import os
+import io
+import gzip
 
 import numpy as np
 
 from ...externals.six import BytesIO
-from .. import load, save, MGHImage
-from ..mghformat import MGHHeader, MGHError
+from .. import load, save
+from ...openers import ImageOpener
+from ..mghformat import MGHHeader, MGHError, MGHImage
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
 
@@ -27,6 +30,8 @@ from numpy.testing import (assert_equal, assert_array_equal,
 from ...testing import data_path
 
 from ...tests import test_spatialimages as tsi
+
+MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
 # sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
@@ -43,8 +48,7 @@ def test_read_mgh():
     # mri_volsynth --dim 3 4 5 2 --vol test.mgz
     # --cdircos 1 2 3 --rdircos 2 3 1 --sdircos 3 1 2
     # mri_volsynth is a FreeSurfer command
-    mgz_path = os.path.join(data_path, 'test.mgz')
-    mgz = load(mgz_path)
+    mgz = load(MGZ_FNAME)
 
     # header
     h = mgz.header
@@ -165,8 +169,7 @@ def test_header_updating():
     # Don't update the header information if the affine doesn't change.
     # Luckily the test.mgz dataset had a bad set of cosine vectors, so these
     # will be changed if the affine gets updated
-    mgz_path = os.path.join(data_path, 'test.mgz')
-    mgz = load(mgz_path)
+    mgz = load(MGZ_FNAME)
     hdr = mgz.header
     # Test against mri_info output
     exp_aff = np.loadtxt(BytesIO(b"""
@@ -228,6 +231,26 @@ def test_header_slope_inter():
     # Test placeholder slope / inter method
     hdr = MGHHeader()
     assert_equal(hdr.get_slope_inter(), (None, None))
+
+
+def test_mgh_load_fileobj():
+    # Checks the filename gets passed to array proxy
+    #
+    # This is a bit of an implementation detail, but the test is to make sure
+    # that we aren't passing ImageOpener objects to the array proxy, as these
+    # were confusing mmap on Python 3.  If there's some sensible reason not to
+    # pass the filename to the array proxy, please feel free to change this
+    # test.
+    img = MGHImage.load(MGZ_FNAME)
+    assert_equal(img.dataobj.file_like, MGZ_FNAME)
+    # Check fileobj also passed into dataobj
+    with ImageOpener(MGZ_FNAME) as fobj:
+        contents = fobj.read()
+    bio = io.BytesIO(contents)
+    fm = MGHImage.make_file_map(mapping=dict(image=bio))
+    img2 = MGHImage.from_file_map(fm)
+    assert_true(img2.dataobj.file_like is bio)
+    assert_array_equal(img.get_data(), img2.get_data())
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
