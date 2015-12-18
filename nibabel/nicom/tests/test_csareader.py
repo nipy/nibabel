@@ -1,6 +1,7 @@
 """ Testing Siemens CSA header reader
 """
 from os.path import join as pjoin
+from copy import deepcopy
 import gzip
 
 import numpy as np
@@ -13,6 +14,8 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from .test_dicomwrappers import (have_dicom, dicom_test,
                                  IO_DATA_PATH, DATA, DATA_FILE)
+if have_dicom:
+    from .test_dicomwrappers import pydicom
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
@@ -128,3 +131,15 @@ def test_ice_dims():
         assert_equal(csa.get_ice_dims(csa_info),
                      ex_dims)
     assert_equal(csa.get_ice_dims({}), None)
+
+
+@dicom_test
+def test_missing_csa_elem():
+    # Test that we get None instead of raising an Exception when the file has
+    # the PrivateCreator element for the CSA dict but not the element with the
+    # actual CSA header (perhaps due to anonymization)
+    dcm = deepcopy(DATA)
+    csa_tag = pydicom.tag.Tag(0x29, 0x1010)
+    del dcm[csa_tag]
+    hdr = csa.get_csa_header(dcm, 'image')
+    assert_equal(hdr, None)

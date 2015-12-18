@@ -63,8 +63,10 @@ def get_csa_header(dcm_data, csa_type='image'):
     if section_start is None:
         return None
     element_no = section_start + element_offset
-    # Assume tag exists
-    tag = dcm_data[(0x29, element_no)]
+    try:
+        tag = dcm_data[(0x29, element_no)]
+    except KeyError:
+        return None
     return read(tag.value)
 
 
