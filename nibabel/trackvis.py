@@ -47,7 +47,7 @@ header_1_dtd = [
     ('hdr_size', 'i4'),
     ]
 
-# Version 2 adds a 4x4 matrix giving the affine transformtation going
+# Version 2 adds a 4x4 matrix giving the affine transformation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
 # coordinates (axes L->R, P->A, I->S).  IF (0 based) value [3, 3] from
 # this matrix is 0, this means the matrix is not recorded.
