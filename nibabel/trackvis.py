@@ -111,7 +111,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
         The coordinates in which you want the points in the *output*
         streamlines expressed.  If None, then return the points exactly as they
         are stored in the trackvis file. The points will probably be in
-        trackviz voxmm space - see Notes for ``write`` function.  If 'voxel',
+        trackvis voxmm space - see Notes for ``write`` function.  If 'voxel',
         we convert the points to voxel space simply by dividing by the recorded
         voxel size.  If 'rasmm' we'll convert the points to RAS mm space (real
         space). For 'rasmm' we check if the affine is set and matches the voxel
@@ -291,8 +291,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     points_space : {None, 'voxel', 'rasmm'}, optional
         The coordinates in which the points in the input streamlines are
         expressed.  If None, then assume the points are as you want them
-        (probably trackviz voxmm space - see Notes).  If 'voxel', the points
-        are in voxel space, and we will transform them to trackviz voxmm space.
+        (probably trackvis voxmm space - see Notes).  If 'voxel', the points
+        are in voxel space, and we will transform them to trackvis voxmm space.
         If 'rasmm' the points are in RAS mm space (real space).  We transform
         them to trackvis voxmm space.  If 'voxel' or 'rasmm' we insist that the
         voxel sizes and ordering are set to non-default values.  If 'rasmm' we
@@ -331,7 +331,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     Notes
     -----
     Trackvis (the application) expects the ``points`` in the streamlines be in
-    what we call *trackviz voxmm* coordinates.  If we have a point (x, y, z) in
+    what we call *trackvis voxmm* coordinates.  If we have a point (x, y, z) in
     voxmm coordinates, and ``voxel_size`` has the voxel sizes for each of the 3
     dimensions, then x, y, z refer to mm in voxel space. Thus if i, j, k is a
     point in voxel coordinates, then ``x = i * voxel_size[0]; y = j *
@@ -343,7 +343,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     axis goes from posterior to anterior, "S" -> inferior to superior.  If
     "voxel_order" is empty we assume "LPS".
 
-    This information comes from some helpful replies on the trackviz forum
+    This information comes from some helpful replies on the trackvis forum
     about `interpreting point coordiantes
     <http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates>`_
     '''
