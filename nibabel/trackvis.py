@@ -449,7 +449,7 @@ def _check_hdr_points_space(hdr, points_space):
         checks.  'voxel' checks for all ``hdr['voxel_sizes'] being <= zero
         (error) or any being zero (warning).  'rasmm' checks for presence of
         non-zeros affine in ``hdr['vox_to_ras']``, and that the affine therein
-        corresponds to ``hdr['voxel_order']`` and ''hdr['voxe_sizes']`` - and
+        corresponds to ``hdr['voxel_order']`` and ''hdr['voxel_sizes']`` - and
         raises an error otherwise.
 
     Returns
