@@ -91,6 +91,7 @@ def main(**extra_args):
                           'nibabel.tests',
                           'nibabel.benchmarks',
                           'nibabel.streamlines',
+                          'nibabel.streamlines.tests',
                           # install nisext as its own package
                           'nisext',
                           'nisext.tests'],
