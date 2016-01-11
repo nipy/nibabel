@@ -115,6 +115,16 @@ class TrkReader(object):
             header_str = f.read(header_2_dtype.itemsize)
             header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
 
+            # Check endianness
+            self.endianness = native_code
+            if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
+                self.endianness = swapped_code
+
+                # Swap byte order
+                header_rec = header_rec.newbyteorder()#np.array(header_rec, dtype=header_rec.newbyteorder().dtype)
+                if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
+                    raise HeaderError('Invalid hdr_size: {0} instead of {1}'.format(header_rec['hdr_size'], TrkFile.HEADER_SIZE))
+
             if header_rec['version'] == 1:
                 header_rec = np.fromstring(string=header_str, dtype=header_1_dtype)
             elif header_rec['version'] == 2:
@@ -124,16 +134,6 @@ class TrkReader(object):
 
             # Convert the first record of `header_rec` into a dictionnary
             self.header = dict(zip(header_rec.dtype.names, header_rec[0]))
-
-            # Check endianness
-            self.endianness = native_code
-            if self.header['hdr_size'] != TrkFile.HEADER_SIZE:
-                self.endianness = swapped_code
-
-                # Swap byte order
-                self.header = dict(zip(header_rec.dtype.names, header_rec[0].newbyteorder()))
-                if self.header['hdr_size'] != TrkFile.HEADER_SIZE:
-                    raise HeaderError('Invalid hdr_size: {0} instead of {1}'.format(self.header['hdr_size'], TrkFile.HEADER_SIZE))
 
             # By default, the voxel order is LPS.
             # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
@@ -241,11 +241,12 @@ class TrkWriter(object):
         self.file = Opener(fileobj, mode="wb")
         # Keep track of the beginning of the header.
         self.beginning = self.file.tell()
+
         self.file.write(self.header.tostring())
 
     def write(self, tractogram):
-        i4_dtype = np.dtype("i4")
-        f4_dtype = np.dtype("f4")
+        i4_dtype = np.dtype("<i4")  # Always save in little-endian.
+        f4_dtype = np.dtype("<f4")  # Always save in little-endian.
 
         try:
             first_item = next(iter(tractogram))

@@ -56,6 +56,113 @@ class TestTractogramItem(unittest.TestCase):
                            colors)
 
 
+class TestTractogramDataDict(unittest.TestCase):
+
+    def setUp(self):
+        self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
+                            np.arange(2*3, dtype="f4").reshape((2, 3)),
+                            np.arange(5*3, dtype="f4").reshape((5, 3))]
+
+        self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
+                       np.array([(0, 1, 0)]*2, dtype="f4"),
+                       np.array([(0, 0, 1)]*5, dtype="f4")]
+
+        self.mean_curvature = np.array([1.11, 2.11, 3.11], dtype="f4")
+        self.mean_color = np.array([[0, 1, 0],
+                                    [0, 0, 1],
+                                    [1, 0, 0]], dtype="f4")
+
+        self.nb_streamlines = len(self.streamlines)
+
+        # Create a tractogram with streamlines and other data.
+        self.tractogram = Tractogram(
+            self.streamlines,
+            data_per_streamline={'mean_curvature': self.mean_curvature,
+                                 'mean_color': self.mean_color},
+            data_per_point={'colors': self.colors})
+
+    def test_datadict_creation(self):
+        # Create a DataPerStreamlineDict object using another
+        # DataPerStreamlineDict object.
+        data_per_streamline = self.tractogram.data_per_streamline
+        data_dict = Tractogram.DataPerStreamlineDict(self.tractogram,
+                                                     data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(self.tractogram.data_per_streamline)-1)
+
+        # Create a DataPerStreamlineDict object using an existing dict object.
+        data_per_streamline = self.tractogram.data_per_streamline.store
+        data_dict = Tractogram.DataPerStreamlineDict(self.tractogram,
+                                                     data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(data_per_streamline)-1)
+
+        # Create a DataPerStreamlineDict object using keyword arguments.
+        data_per_streamline = self.tractogram.data_per_streamline.store
+        data_dict = Tractogram.DataPerStreamlineDict(self.tractogram,
+                                                     **data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(data_per_streamline)-1)
+
+
+class TestTractogramLazyDict(unittest.TestCase):
+
+    def setUp(self):
+        self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
+                            np.arange(2*3, dtype="f4").reshape((2, 3)),
+                            np.arange(5*3, dtype="f4").reshape((5, 3))]
+
+        self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
+                       np.array([(0, 1, 0)]*2, dtype="f4"),
+                       np.array([(0, 0, 1)]*5, dtype="f4")]
+
+        self.mean_curvature = np.array([1.11, 2.11, 3.11], dtype="f4")
+        self.mean_color = np.array([[0, 1, 0],
+                                    [0, 0, 1],
+                                    [1, 0, 0]], dtype="f4")
+
+        self.nb_streamlines = len(self.streamlines)
+
+        self.colors_func = lambda: (x for x in self.colors)
+        self.mean_curvature_func = lambda: (x for x in self.mean_curvature)
+        self.mean_color_func = lambda: (x for x in self.mean_color)
+
+        streamlines = lambda: (x for x in self.streamlines)
+        data_per_point = {"colors": self.colors_func}
+        data_per_streamline = {'mean_curvature': self.mean_curvature_func,
+                               'mean_color': self.mean_color_func}
+
+        # Create a tractogram with streamlines and other data.
+        self.tractogram = LazyTractogram(
+            streamlines,
+            data_per_streamline=data_per_streamline,
+            data_per_point=data_per_point)
+
+    def test_lazydict_creation(self):
+        # Create a DataPerStreamlineDict object using another
+        # DataPerStreamlineDict object.
+        data_per_streamline = self.tractogram.data_per_streamline
+        data_dict = LazyTractogram.LazyDict(data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(list(data_dict[k]), list(data_per_streamline[k]))
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(self.tractogram.data_per_streamline)-1)
+
+
 class TestTractogram(unittest.TestCase):
 
     def setUp(self):

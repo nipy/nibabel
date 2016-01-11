@@ -1,4 +1,5 @@
 import os
+import copy
 import unittest
 import numpy as np
 
@@ -14,6 +15,7 @@ from ..tractogram_file import DataError, HeaderError, HeaderWarning
 
 from .. import trk as trk_module
 from ..trk import TrkFile, header_2_dtype
+from ..header import Field
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -40,10 +42,13 @@ class TestTRK(unittest.TestCase):
         # standard.trk contains only streamlines
         self.standard_trk_filename = os.path.join(DATA_PATH, "standard.trk")
         # standard.LPS.trk contains only streamlines
-        self.standard_LPS_trk_filename = os.path.join(DATA_PATH, "standard.LPS.trk")
+        self.standard_LPS_trk_filename = os.path.join(DATA_PATH,
+                                                      "standard.LPS.trk")
 
         # complex.trk contains streamlines, scalars and properties
         self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
+        self.complex_trk_big_endian_filename = os.path.join(DATA_PATH,
+                                                            "complex_big_endian.trk")
 
         self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                             np.arange(2*3, dtype="f4").reshape((2, 3)),
@@ -129,6 +134,24 @@ class TestTRK(unittest.TestCase):
         new_trk_file = trk_file[:996] + hdr_size + trk_file[996+4:]
         assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
 
+    def test_load_complex_file_in_big_endian(self):
+        trk_file = open(self.complex_trk_big_endian_filename, 'rb').read()
+        # We use hdr_size as an indicator of little vs big endian.
+        hdr_size_big_endian = np.array(1000, dtype=">i4").tostring()
+        assert_equal(trk_file[996:996+4], hdr_size_big_endian)
+
+        for lazy_load in [False, True]:
+            trk = TrkFile.load(self.complex_trk_big_endian_filename,
+                               lazy_load=lazy_load)
+            assert_tractogram_equal(trk.tractogram, self.complex_tractogram)
+
+    def test_tractogram_file_properties(self):
+        trk = TrkFile.load(self.simple_trk_filename)
+        assert_equal(trk.streamlines, trk.tractogram.streamlines)
+        assert_equal(trk.get_streamlines(), trk.streamlines)
+        assert_equal(trk.get_tractogram(), trk.tractogram)
+        assert_equal(trk.get_header(), trk.header)
+
     def test_write_empty_file(self):
         tractogram = Tractogram()
 
@@ -144,7 +167,8 @@ class TestTRK(unittest.TestCase):
         assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
-        assert_equal(trk_file.read(), open(self.empty_trk_filename, 'rb').read())
+        assert_equal(trk_file.read(),
+                     open(self.empty_trk_filename, 'rb').read())
 
     def test_write_simple_file(self):
         tractogram = Tractogram(self.streamlines)
@@ -161,7 +185,8 @@ class TestTRK(unittest.TestCase):
         assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
 
         trk_file.seek(0, os.SEEK_SET)
-        assert_equal(trk_file.read(), open(self.simple_trk_filename, 'rb').read())
+        assert_equal(trk_file.read(),
+                     open(self.simple_trk_filename, 'rb').read())
 
     def test_write_complex_file(self):
         # With scalars
@@ -209,7 +234,9 @@ class TestTRK(unittest.TestCase):
                      open(self.complex_trk_filename, 'rb').read())
 
     def test_load_write_file(self):
-        for filename in [self.empty_trk_filename, self.simple_trk_filename, self.complex_trk_filename]:
+        for filename in [self.empty_trk_filename,
+                         self.simple_trk_filename,
+                         self.complex_trk_filename]:
             for lazy_load in [False, True]:
                 trk = TrkFile.load(filename, lazy_load=lazy_load)
                 trk_file = BytesIO()
@@ -244,6 +271,43 @@ class TestTRK(unittest.TestCase):
         trk_file.seek(0, os.SEEK_SET)
         assert_equal(trk_file.read(),
                      open(self.standard_LPS_trk_filename, 'rb').read())
+
+        # Test writing a file where the header is missing the Field.VOXEL_ORDER.
+        trk_file = BytesIO()
+
+        # For TRK file format, the default voxel order is LPS.
+        header = copy.deepcopy(trk_LPS.header)
+        header[Field.VOXEL_ORDER] = b""
+
+        trk = TrkFile(trk_LPS.tractogram, header)
+        trk.save(trk_file)
+        trk_file.seek(0, os.SEEK_SET)
+
+        new_trk = TrkFile.load(trk_file)
+
+        assert_header_equal(new_trk.header, trk_LPS.header)
+        assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
+
+        new_trk_orig = TrkFile.load(self.standard_LPS_trk_filename)
+        assert_tractogram_equal(new_trk.tractogram, new_trk_orig.tractogram)
+
+        trk_file.seek(0, os.SEEK_SET)
+        assert_equal(trk_file.read(),
+                     open(self.standard_LPS_trk_filename, 'rb').read())
+
+    def test_write_optional_header_fields(self):
+        # The TRK file format doesn't support additional header fields.
+        # If provided, they will be ignored.
+        tractogram = Tractogram()
+
+        trk_file = BytesIO()
+        header = {'extra': 1234}
+        trk = TrkFile(tractogram, header)
+        trk.save(trk_file)
+        trk_file.seek(0, os.SEEK_SET)
+
+        new_trk = TrkFile.load(trk_file)
+        assert_true("extra" not in new_trk.header)
 
     def test_write_too_many_scalars_and_properties(self):
         # TRK supports up to 10 data_per_point.
