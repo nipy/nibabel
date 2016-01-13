@@ -26,7 +26,7 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist), 0)
         assert_equal(len(clist._offsets), 0)
         assert_equal(len(clist._lengths), 0)
-        assert_true(clist._data is None)
+        assert_equal(clist._data.ndim, 0)
         assert_true(clist.shape is None)
 
     def test_creating_compactlist_from_list(self):
@@ -49,7 +49,7 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist), 0)
         assert_equal(len(clist._offsets), 0)
         assert_equal(len(clist._lengths), 0)
-        assert_true(clist._data is None)
+        assert_equal(clist._data.ndim, 0)
         assert_true(clist.shape is None)
 
         # Force CompactList constructor to use buffering.
@@ -87,7 +87,7 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist), 0)
         assert_equal(len(clist._offsets), 0)
         assert_equal(len(clist._lengths), 0)
-        assert_true(clist._data is None)
+        assert_equal(clist._data.ndim, 0)
         assert_true(clist.shape is None)
 
     def test_creating_compactlist_from_compact_list(self):

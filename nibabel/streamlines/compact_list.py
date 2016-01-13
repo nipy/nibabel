@@ -22,7 +22,7 @@ class CompactList(object):
         memory is allocated. For an actual copy use the `.copy()` method.
         """
         # Create new empty `CompactList` object.
-        self._data = None
+        self._data = np.array(0)
         self._offsets = []
         self._lengths = []
 
@@ -54,13 +54,13 @@ class CompactList(object):
                 offset += len(e)
 
             # Clear unused memory.
-            if self._data is not None:
+            if self._data.ndim != 0:
                 self._data.resize((offset,) + self.shape)
 
     @property
     def shape(self):
         """ Returns the matching shape of the elements in this compact list. """
-        if self._data is None:
+        if self._data.ndim == 0:
             return None
 
         return self._data.shape[1:]
@@ -79,7 +79,7 @@ class CompactList(object):
         If you need to add multiple elements you should consider
         `CompactList.extend`.
         """
-        if self._data is None:
+        if self._data.ndim == 0:
             self._data = np.asarray(element).copy()
             self._offsets.append(0)
             self._lengths.append(len(element))
@@ -103,7 +103,7 @@ class CompactList(object):
             shape except for the first dimension.
 
         """
-        if self._data is None:
+        if self._data.ndim == 0:
             elem = np.asarray(elements[0])
             self._data = np.zeros((0, elem.shape[1]), dtype=elem.dtype)
 
