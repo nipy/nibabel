@@ -8,29 +8,25 @@ from nibabel.externals.six import BytesIO
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
 from nibabel.testing import assert_arrays_equal, check_iteration
 from nose.tools import assert_equal, assert_raises, assert_true
+from numpy.testing import assert_array_equal
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
 from ..tractogram_file import DataError, HeaderError, HeaderWarning
 
 from .. import trk as trk_module
-from ..trk import TrkFile, header_2_dtype
+from ..trk import TrkFile
 from ..header import Field
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def assert_header_equal(h1, h2):
-    header1 = np.zeros(1, dtype=header_2_dtype)
-    header2 = np.zeros(1, dtype=header_2_dtype)
+    for k in h1.keys():
+        assert_array_equal(h2[k], h1[k])
 
-    for k, v in h1.items():
-        header1[k] = v
-
-    for k, v in h2.items():
-        header2[k] = v
-
-    assert_equal(header1, header2)
+    for k in h2.keys():
+        assert_array_equal(h1[k], h2[k])
 
 
 class TestTRK(unittest.TestCase):

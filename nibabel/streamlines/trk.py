@@ -208,9 +208,9 @@ class TrkWriter(object):
 
         #Default values
         header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
-        header[Field.VOXEL_SIZES] = (1, 1, 1)
-        header[Field.DIMENSIONS] = (1, 1, 1)
-        header[Field.VOXEL_TO_RASMM] = np.eye(4)
+        header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
+        header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
+        header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
         header[Field.VOXEL_ORDER] = b"RAS"
         header['version'] = 2
         header['hdr_size'] = TrkFile.HEADER_SIZE
@@ -416,7 +416,7 @@ class TrkFile(TractogramFile):
         """
         if header is None:
             header_rec = TrkWriter.create_empty_header()
-            header = dict(zip(header_rec.dtype.names, header_rec))
+            header = dict(zip(header_rec.dtype.names, header_rec[0]))
 
         super(TrkFile, self).__init__(tractogram, header)
 
