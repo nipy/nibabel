@@ -7,9 +7,9 @@ from os.path import join as pjoin
 
 import nibabel as nib
 from nibabel.externals.six import BytesIO
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nibabel.testing import clear_and_catch_warnings
-from nibabel.testing import assert_arrays_equal, check_iteration
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
 from .test_tractogram import assert_tractogram_equal
@@ -206,18 +206,20 @@ class TestLoadSave(unittest.TestCase):
     def test_save_empty_file(self):
         tractogram = Tractogram()
         for ext, cls in nib.streamlines.FORMATS.items():
-            with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
-                nib.streamlines.save_tractogram(tractogram, f.name)
-                tfile = nib.streamlines.load(f, lazy_load=False)
-                assert_tractogram_equal(tfile.tractogram, tractogram)
+            with InTemporaryDirectory():
+                with open('streamlines' + ext, 'w+b') as f:
+                    nib.streamlines.save_tractogram(tractogram, f.name)
+                    tfile = nib.streamlines.load(f, lazy_load=False)
+                    assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_simple_file(self):
         tractogram = Tractogram(self.streamlines)
         for ext, cls in nib.streamlines.FORMATS.items():
-            with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
-                nib.streamlines.save_tractogram(tractogram, f.name)
-                tfile = nib.streamlines.load(f, lazy_load=False)
-                assert_tractogram_equal(tfile.tractogram, tractogram)
+            with InTemporaryDirectory():
+                with open('streamlines' + ext, 'w+b') as f:
+                    nib.streamlines.save_tractogram(tractogram, f.name)
+                    tfile = nib.streamlines.load(f, lazy_load=False)
+                    assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_complex_file(self):
         complex_tractogram = Tractogram(self.streamlines,
@@ -225,28 +227,31 @@ class TestLoadSave(unittest.TestCase):
                                         self.data_per_point)
 
         for ext, cls in nib.streamlines.FORMATS.items():
-            with tempfile.NamedTemporaryFile(mode="w+b", suffix=ext) as f:
-                with clear_and_catch_warnings(record=True, modules=[trk]) as w:
-                    nib.streamlines.save_tractogram(complex_tractogram, f.name)
+            with InTemporaryDirectory():
+                with open('streamlines' + ext, 'w+b') as f:
+                    with clear_and_catch_warnings(record=True,
+                                                  modules=[trk]) as w:
+                        nib.streamlines.save_tractogram(complex_tractogram,
+                                                        f.name)
 
-                    # If streamlines format does not support saving data per
-                    # point or data per streamline, a warning message should
-                    # be issued.
-                    if not (cls.support_data_per_point()
-                            and cls.support_data_per_streamline()):
-                        assert_equal(len(w), 1)
-                        assert_true(issubclass(w[0].category, UsageWarning))
+                        # If streamlines format does not support saving data per
+                        # point or data per streamline, a warning message should
+                        # be issued.
+                        if not (cls.support_data_per_point()
+                                and cls.support_data_per_streamline()):
+                            assert_equal(len(w), 1)
+                            assert_true(issubclass(w[0].category, UsageWarning))
 
-                tractogram = Tractogram(self.streamlines)
+                    tractogram = Tractogram(self.streamlines)
 
-                if cls.support_data_per_point():
-                    tractogram.data_per_point = self.data_per_point
+                    if cls.support_data_per_point():
+                        tractogram.data_per_point = self.data_per_point
 
-                if cls.support_data_per_streamline():
-                    tractogram.data_per_streamline = self.data_per_streamline
+                    if cls.support_data_per_streamline():
+                        tractogram.data_per_streamline = self.data_per_streamline
 
-                tfile = nib.streamlines.load(f, lazy_load=False)
-                assert_tractogram_equal(tfile.tractogram, tractogram)
+                    tfile = nib.streamlines.load(f, lazy_load=False)
+                    assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_load_unknown_format(self):
         assert_raises(ValueError, nib.streamlines.load, "")
