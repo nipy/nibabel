@@ -6,7 +6,7 @@ class CompactList(object):
     the first dimension.
     """
 
-    BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
+    BUFFER_SIZE = 349525  # About 4 Mb if item shape is 3 (e.g. 3D points).
 
     def __init__(self, iterable=None):
         """

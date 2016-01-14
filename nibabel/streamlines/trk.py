@@ -397,7 +397,7 @@ class TrkFile(TractogramFile):
     # Contants
     MAGIC_NUMBER = b"TRACK"
     HEADER_SIZE = 1000
-    READ_BUFFER_SIZE = 10000000  # About 128 Mb if only no scalars nor properties.
+    READ_BUFFER_SIZE = 349525  # About 4 Mb if there is no scalars nor properties.
 
     def __init__(self, tractogram, header=None):
         """
