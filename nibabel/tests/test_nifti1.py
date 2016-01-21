@@ -20,8 +20,7 @@ from nibabel.eulerangles import euler2mat
 from nibabel.externals.six import BytesIO
 from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             Nifti1Pair, Nifti1Extension, Nifti1Extensions,
-                            data_type_codes, extension_codes,
-                            slice_order_codes)
+                            data_type_codes, slice_order_codes)
 from nibabel.openers import ImageOpener
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
@@ -35,11 +34,13 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
-
 from ..testing import data_path, suppress_warnings, runif_extra_has
 
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
+from .nibabel_data import get_nibabel_data, needs_nibabel_data
+from .test_arraywriters import rt_err_estimate, IUINT_TYPES
+from .test_helpers import bytesio_filemap, bytesio_round_trip
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
@@ -1034,9 +1035,8 @@ def test_ext_eq():
 
 
 def test_extension_codes():
-    for k in extension_codes.keys():
+    for k in Nifti1Extensions.extension_codes.keys():
         Nifti1Extension(k, 'somevalue')
-
 
 def test_extension_list():
     ext_c0 = Nifti1Extensions()

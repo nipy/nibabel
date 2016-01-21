@@ -252,6 +252,7 @@ class Nifti1Extension(object):
     as `comment`. More sophisticated extensions should/will be supported by
     dedicated subclasses.
     """
+
     def __init__(self, code, content):
         """
         Parameters
@@ -259,13 +260,13 @@ class Nifti1Extension(object):
         code : int|str
           Canonical extension code as defined in the NIfTI standard, given
           either as integer or corresponding label
-          (see :data:`~nibabel.nifti1.extension_codes`)
+          (see :data:`~nibabel.nifti1.Nifti1Extensions.extension_codes`)
         content : str
           Extension content as read from the NIfTI file header. This content is
           converted into a runtime representation.
         """
         try:
-            self._code = extension_codes.code[code]
+            self._code = self.extension_codes.code[code]
         except KeyError:
             # XXX or fail or at least complain?
             self._code = code
@@ -333,12 +334,12 @@ class Nifti1Extension(object):
 
     def __repr__(self):
         try:
-            code = extension_codes.label[self._code]
+            code = self.extension_codes.label[self._code]
         except KeyError:
             # deal with unknown codes
             code = self._code
 
-        s = "Nifti1Extension('%s', '%s')" % (code, self._content)
+        s = "%s('%s', '%s')" % (self.__class__.__name__, code, self._content)
         return s
 
     def __eq__(self, other):
@@ -378,27 +379,27 @@ class Nifti1Extension(object):
         fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
 
 
-# NIfTI header extension type codes (ECODE)
-# see nifti1_io.h for a complete list of all known extensions and
-# references to their description or contacts of the respective
-# initiators
-extension_codes = Recoder((
-    (0, "ignore", Nifti1Extension),
-    (2, "dicom", Nifti1Extension),
-    (4, "afni", Nifti1Extension),
-    (6, "comment", Nifti1Extension),
-    (8, "xcede", Nifti1Extension),
-    (10, "jimdiminfo", Nifti1Extension),
-    (12, "workflow_fwds", Nifti1Extension),
-    (14, "freesurfer", Nifti1Extension),
-    (16, "pypickle", Nifti1Extension)
-    ),
-    fields=('code', 'label', 'handler'))
-
-
 class Nifti1Extensions(list):
     """Simple extension collection, implemented as a list-subclass.
     """
+
+    # NIfTI header extension type codes (ECODE)
+    # see nifti1_io.h for a complete list of all known extensions and
+    # references to their description or contacts of the respective
+    # initiators
+    extension_codes = Recoder((
+            (0, "ignore", Nifti1Extension),
+            (2, "dicom", Nifti1Extension),
+            (4, "afni", Nifti1Extension),
+            (6, "comment", Nifti1Extension),
+            (8, "xcede", Nifti1Extension),
+            (10, "jimdiminfo", Nifti1Extension),
+            (12, "workflow_fwds", Nifti1Extension),
+            (14, "freesurfer", Nifti1Extension),
+            (16, "pypickle", Nifti1Extension),
+        ),
+        fields=('code', 'label', 'handler'))
+
     def count(self, ecode):
         """Returns the number of extensions matching a given *ecode*.
 
@@ -408,7 +409,7 @@ class Nifti1Extensions(list):
             The ecode can be specified either literal or as numerical value.
         """
         count = 0
-        code = extension_codes.code[ecode]
+        code = self.extension_codes.code[ecode]
         for e in self:
             if e.get_code() == code:
                 count += 1
@@ -424,7 +425,7 @@ class Nifti1Extensions(list):
         return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
-        s = "Nifti1Extensions(%s)" % ', '.join(str(e) for e in self)
+        s = "%s(%s)" % (self.__class__.__name__, ', '.join(str(e) for e in self))
         return s
 
     def __cmp__(self, other):
@@ -506,13 +507,20 @@ class Nifti1Extensions(list):
             # 'extension_codes' also knows the best implementation to handle
             # a particular extension type
             try:
-                ext = extension_codes.handler[ecode](ecode, evalue)
+                ext = klass.extension_codes.handler[ecode](ecode, evalue)
             except KeyError:
                 # unknown extension type
                 # XXX complain or fail or go with a generic extension
                 ext = Nifti1Extension(ecode, evalue)
             extensions.append(ext)
         return extensions
+
+# Hack, as Nifti1Extension and Nifti1Extensions both need extension_codes,
+# and both refer to each other... so no resolution possible.
+Nifti1Extension.extension_codes = Nifti1Extensions.extension_codes
+# Deprecating extension_codes (no class reference) has proven to be
+# challenging, so I leave it here as-is.
+extension_codes = Nifti1Extensions.extension_codes
 
 
 class Nifti1Header(SpmAnalyzeHeader):
