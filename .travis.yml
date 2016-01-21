@@ -116,3 +116,6 @@ script:
       fi
 after_success:
     - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
+
+notifications:
+    webhooks: http://nipy.bic.berkeley.edu:54856/travis
