@@ -68,12 +68,14 @@ class TractogramFile(with_metaclass(ABCMeta)):
     @abstractclassmethod
     def is_correct_format(cls, fileobj):
         ''' Checks if the file has the right streamlines file format.
+
         Parameters
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             pointing to a streamlines file (and ready to read from the
             beginning of the header).
+
         Returns
         -------
         is_correct_format : boolean
@@ -84,6 +86,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
         ''' Loads streamlines from a file-like object.
+
         Parameters
         ----------
         fileobj : string or file-like object
@@ -93,6 +96,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
         lazy_load : boolean (optional)
             Load streamlines in a lazy manner i.e. they will not be kept
             in memory. For postprocessing speed, turn off this option.
+
         Returns
         -------
         tractogram_file : ``TractogramFile`` object
@@ -104,6 +108,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
     @abstractmethod
     def save(self, fileobj):
         ''' Saves streamlines to a file-like object.
+
         Parameters
         ----------
         fileobj : string or file-like object

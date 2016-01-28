@@ -384,6 +384,49 @@ class TestTractogram(unittest.TestCase):
         assert_raises(ValueError, Tractogram, self.streamlines,
                       data_per_streamline={'properties': properties})
 
+    def test_tractogram_apply_affine(self):
+        # Create a tractogram with streamlines and other data.
+        tractogram = Tractogram(
+            self.streamlines,
+            data_per_streamline={'mean_curvature': self.mean_curvature,
+                                 'mean_color': self.mean_color},
+            data_per_point={'colors': self.colors})
+
+        affine = np.eye(4)
+        scaling = np.array((1, 2, 3), dtype=float)
+        affine[range(3), range(3)] = scaling
+
+        # Apply the affine to the streamline in a lazy manner.
+        transformed_tractogram = tractogram.apply_affine(affine, lazy=True)
+        assert_true(type(transformed_tractogram) is LazyTractogram)
+        assert_true(check_iteration(transformed_tractogram))
+        assert_equal(len(transformed_tractogram), len(self.streamlines))
+        for s1, s2 in zip(transformed_tractogram.streamlines,
+                          self.streamlines):
+            assert_array_almost_equal(s1, s2*scaling)
+
+        for s1, s2 in zip(transformed_tractogram.streamlines,
+                          tractogram.streamlines):
+            assert_array_almost_equal(s1, s2*scaling)
+
+        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+                           np.dot(np.eye(4), np.linalg.inv(affine)))
+
+        # Apply the affine to the streamlines in-place.
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_true(transformed_tractogram is tractogram)
+        assert_true(check_iteration(transformed_tractogram))
+        assert_equal(len(transformed_tractogram), len(self.streamlines))
+        for s1, s2 in zip(transformed_tractogram.streamlines,
+                          self.streamlines):
+            assert_array_almost_equal(s1, s2*scaling)
+
+        # Apply affine again and check the affine_to_rasmm property.
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+                           np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
+                                                    np.linalg.inv(affine))))
+
 
 class TestLazyTractogram(unittest.TestCase):
 
@@ -500,7 +543,7 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram = LazyTractogram(streamlines,
                                     data_per_streamline=data_per_streamline,
                                     data_per_point=data_per_point)
-        assert_raises(AttributeError, tractogram.__getitem__, 0)
+        assert_raises(NotImplementedError, tractogram.__getitem__, 0)
 
     def test_lazy_tractogram_len(self):
         streamlines = lambda: (x for x in self.streamlines)
@@ -569,6 +612,12 @@ class TestLazyTractogram(unittest.TestCase):
         assert_equal(len(tractogram), len(self.streamlines))
         for s1, s2 in zip(tractogram.streamlines, self.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
+
+        # Apply affine again and check the affine_to_rasmm property.
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+                           np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
+                                                    np.linalg.inv(affine))))
 
     def test_lazy_tractogram_copy(self):
         # Create tractogram with streamlines and other data

@@ -44,22 +44,11 @@ class Tractogram(object):
 
     Tractogram objects have three main properties: ``streamlines``
 
-    Parameters
+    Attributes
     ----------
-    streamlines : list of ndarray of shape (Nt, 3)
-        Sequence of T streamlines. One streamline is an ndarray of shape
-        (Nt, 3) where Nt is the number of points of streamline t.
-
-    data_per_streamline : dictionary of list of ndarray of shape (P,)
-        Sequence of T ndarrays of shape (P,) where T is the number of
-        streamlines defined by ``streamlines``, P is the number of properties
-        associated to each streamline.
-
-    data_per_point : dictionary of list of ndarray of shape (Nt, M)
-        Sequence of T ndarrays of shape (Nt, M) where T is the number of
-        streamlines defined by ``streamlines``, Nt is the number of points
-        for a particular streamline t and M is the number of scalars
-        associated to each point (excluding the three coordinates).
+    affine_to_rasmm : 2D array (4,4)
+        Affine that brings the streamlines back to *RAS+* and *mm* space
+        where coordinate (0,0,0) refers to the center of the voxel.
 
     """
     class DataDict(collections.MutableMapping):
@@ -132,10 +121,30 @@ class Tractogram(object):
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None):
+        """
+        Parameters
+        ----------
+        streamlines : list of ndarray of shape (Nt, 3) (optional)
+            Sequence of T streamlines. One streamline is an ndarray of
+            shape (Nt, 3) where Nt is the number of points of streamline t.
 
+        data_per_streamline : dict of list of ndarray of shape (P,) (optional)
+            Sequence of T ndarrays of shape (P,) where T is the number of
+            streamlines defined by ``streamlines``, P is the number of
+            properties associated to each streamline.
+
+        data_per_point : dict of list of ndarray of shape (Nt, M) (optional)
+            Sequence of T ndarrays of shape (Nt, M) where T is the number
+            of streamlines defined by ``streamlines``, Nt is the number of
+            points for a particular streamline t and M is the number of
+            scalars associated to each point (excluding the three
+            coordinates).
+
+        """
         self.streamlines = streamlines
         self.data_per_streamline = data_per_streamline
         self.data_per_point = data_per_point
+        self._affine_to_rasmm = np.eye(4)
 
     @property
     def streamlines(self):
@@ -161,6 +170,11 @@ class Tractogram(object):
     @data_per_point.setter
     def data_per_point(self, value):
         self._data_per_point = Tractogram.DataPerPointDict(self, value)
+
+    @property
+    def affine_to_rasmm(self):
+        # Return a copy. User should use self.apply_affine` to modify it.
+        return self._affine_to_rasmm.copy()
 
     def __iter__(self):
         for i in range(len(self.streamlines)):
@@ -198,25 +212,47 @@ class Tractogram(object):
         tractogram = Tractogram(self.streamlines.copy(),
                                 data_per_streamline,
                                 data_per_point)
+
+        tractogram._affine_to_rasmm = self.affine_to_rasmm
         return tractogram
 
-    def apply_affine(self, affine):
+    def apply_affine(self, affine, lazy=False):
         """ Applies an affine transformation on the points of each streamline.
 
-        This is performed in-place.
+        If `lazy` is not specified, this is performed *in-place*.
 
         Parameters
         ----------
         affine : 2D array (4,4)
-            Transformation that will be applied on each streamline.
+            Transformation that will be applied to every streamline.
+
+        Returns
+        -------
+        tractogram : ``Tractogram`` or ``LazyTractogram`` object
+            Tractogram where the streamlines have been transformed according
+            to the given affine transformation. If the `lazy` option is true,
+            it returns a ``LazyTractogram`` object, otherwise it returns a
+            reference to this ``Tractogram`` object with updated streamlines.
+
         """
+        if lazy:
+            lazy_tractogram = LazyTractogram.from_tractogram(self)
+            lazy_tractogram.apply_affine(affine)
+            return lazy_tractogram
+
         if len(self.streamlines) == 0:
-            return
+            return self
 
         BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
         for i in range(0, len(self.streamlines._data), BUFFER_SIZE):
             pts = self.streamlines._data[i:i+BUFFER_SIZE]
             self.streamlines._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
+
+        # Update the affine that brings back the streamlines to RASmm.
+        self._affine_to_rasmm = np.dot(self._affine_to_rasmm,
+                                       np.linalg.inv(affine))
+
+        return self
 
 
 class LazyTractogram(Tractogram):
@@ -226,28 +262,6 @@ class LazyTractogram(Tractogram):
     ``scalars`` and ``properties``. Tractogram objects are iterable and
     produce tuple of ``streamlines``, ``scalars`` and ``properties`` for each
     streamline.
-
-    Parameters
-    ----------
-    streamlines_func : coroutine ouputting (Nt,3) array-like (optional)
-        Function yielding streamlines. One streamline is
-        an ndarray of shape (Nt,3) where Nt is the number of points of
-        streamline t.
-
-    scalars_func : coroutine ouputting (Nt,M) array-like (optional)
-        Function yielding scalars for a particular streamline t. The scalars
-        are represented as an ndarray of shape (Nt,M) where Nt is the number
-        of points of that streamline t and M is the number of scalars
-        associated to each point (excluding the three coordinates).
-
-    properties_func : coroutine ouputting (P,) array-like (optional)
-        Function yielding properties for a particular streamline t. The
-        properties are represented as an ndarray of shape (P,) where P is
-        the number of properties associated to each streamline.
-
-    getitem_func : function `idx -> 3-tuples` (optional)
-        Function returning a subset of the tractogram given an index or a
-        slice (i.e. the __getitem__ function to use).
 
     Notes
     -----
@@ -285,25 +299,83 @@ class LazyTractogram(Tractogram):
         def __len__(self):
             return len(self.store)
 
-    def __init__(self, streamlines=None, data_per_streamline=None,
+    def __init__(self, streamlines=None,
+                 data_per_streamline=None,
                  data_per_point=None):
-        super(LazyTractogram, self).__init__(streamlines, data_per_streamline,
+        """
+        Parameters
+        ----------
+        streamlines : coroutine yielding ndarrays of shape (Nt,3) (optional)
+            Function yielding streamlines. One streamline is an ndarray of
+            shape (Nt,3) where Nt is the number of points of streamline t.
+
+        data_per_streamline : dict of coroutines yielding ndarrays of shape (P,) (optional)
+            Function yielding properties for a particular streamline t. The
+            properties are represented as an ndarray of shape (P,) where P is
+            the number of properties associated to each streamline.
+
+        data_per_point : dict of coroutines yielding ndarrays of shape (Nt,M) (optional)
+            Function yielding scalars for a particular streamline t. The
+            scalars are represented as an ndarray of shape (Nt,M) where Nt
+            is the number of points of that streamline t and M is the number
+            of scalars associated to each point (excluding the three
+            coordinates).
+
+        """
+        super(LazyTractogram, self).__init__(streamlines,
+                                             data_per_streamline,
                                              data_per_point)
         self._nb_streamlines = None
         self._data = None
         self._affine_to_apply = np.eye(4)
 
     @classmethod
-    def create_from(cls, data_func):
-        ''' Creates a `LazyTractogram` from a coroutine yielding
-        `TractogramItem` objects.
+    def from_tractogram(cls, tractogram):
+        ''' Creates a ``LazyTractogram`` object from a ``Tractogram`` object.
 
         Parameters
         ----------
-        data_func : coroutine yielding `TractogramItem` objects
+        tractogram : ``Tractgogram`` object
+            Tractogram from which to create a ``LazyTractogram`` object.
+
+        Returns
+        -------
+        lazy_tractogram : ``LazyTractogram`` object
+            New lazy tractogram.
+
+        '''
+        data_per_streamline = {}
+        for key, value in tractogram.data_per_streamline.items():
+            data_per_streamline[key] = lambda: value
+
+        data_per_point = {}
+        for key, value in tractogram.data_per_point.items():
+                data_per_point[key] = lambda: value
+
+        lazy_tractogram = cls(lambda: tractogram.streamlines.copy(),
+                              data_per_streamline,
+                              data_per_point)
+
+        lazy_tractogram._nb_streamlines = len(tractogram)
+        lazy_tractogram._affine_to_rasmm = tractogram.affine_to_rasmm
+        return lazy_tractogram
+
+    @classmethod
+    def create_from(cls, data_func):
+        ''' Creates a ``LazyTractogram`` from a coroutine yielding
+        ``TractogramItem`` objects.
+
+        Parameters
+        ----------
+        data_func : coroutine yielding ``TractogramItem`` objects
             A function that whenever it is called starts yielding
-            `TractogramItem` objects that should be part of this
+            ``TractogramItem`` objects that should be part of this
             LazyTractogram.
+
+        Returns
+        -------
+        lazy_tractogram : ``LazyTractogram`` object
+            New lazy tractogram.
 
         '''
         if not callable(data_func):
@@ -411,7 +483,7 @@ class LazyTractogram(Tractogram):
         return _gen_data()
 
     def __getitem__(self, idx):
-        raise AttributeError('`LazyTractogram` does not support indexing.')
+        raise NotImplementedError('`LazyTractogram` does not support indexing.')
 
     def __iter__(self):
         i = 0
@@ -446,11 +518,26 @@ class LazyTractogram(Tractogram):
         return tractogram
 
     def apply_affine(self, affine):
-        """ Applies an affine transformation on the streamlines.
+        """ Applies an affine transformation to the streamlines.
+
+        The transformation will be applied just before returning the
+        streamlines.
 
         Parameters
         ----------
         affine : 2D array (4,4)
             Transformation that will be applied on each streamline.
+
+        Returns
+        -------
+        lazy_tractogram : ``LazyTractogram`` object
+            Reference to this instance of ``LazyTractogram``.
+
         """
+        # Update the affine that will be applied when returning streamlines.
         self._affine_to_apply = np.dot(affine, self._affine_to_apply)
+
+        # Update the affine that brings back the streamlines to RASmm.
+        self._affine_to_rasmm = np.dot(self._affine_to_rasmm,
+                                       np.linalg.inv(affine))
+        return self
