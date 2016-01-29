@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from nibabel.externals.six import with_metaclass
 
+from .header import Field
+
 
 class HeaderWarning(Warning):
     pass
@@ -41,6 +43,10 @@ class TractogramFile(with_metaclass(ABCMeta)):
     def header(self):
         return self._header
 
+    @property
+    def affine(self):
+        return self.header.get(Field.VOXEL_TO_RASMM)
+
     def get_tractogram(self):
         return self.tractogram
 
@@ -49,6 +55,10 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     def get_header(self):
         return self.header
+
+    def get_affine(self):
+        """ Returns vox -> rasmm affine. """
+        return self.affine
 
     @abstractclassmethod
     def get_magic_number(cls):
