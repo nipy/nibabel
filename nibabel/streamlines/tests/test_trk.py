@@ -111,6 +111,24 @@ class TestTRK(unittest.TestCase):
         trk = TrkFile.load(BytesIO(new_trk_file), lazy_load=False)
         assert_tractogram_equal(trk.tractogram, self.simple_tractogram)
 
+        # Simulate a TRK where `vox_to_ras` is not recorded (i.e. all zeros).
+        vox_to_ras = np.zeros((4, 4), dtype=np.float32).tostring()
+        new_trk_file = trk_file[:440] + vox_to_ras + trk_file[440+64:]
+        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+            trk = TrkFile.load(BytesIO(new_trk_file))
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("identity" in str(w[0].message))
+            assert_array_equal(trk.affine, np.eye(4))
+
+        # Simulate a TRK where `vox_to_ras` is invalid.
+        vox_to_ras = np.zeros((4, 4), dtype=np.float32)
+        vox_to_ras[3, 3] = 1
+        vox_to_ras = vox_to_ras.tostring()
+        new_trk_file = trk_file[:440] + vox_to_ras + trk_file[440+64:]
+        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+            assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+
         # Simulate a TRK file where `voxel_order` was not provided.
         voxel_order = np.zeros(1, dtype="|S3").tostring()
         new_trk_file = trk_file[:948] + voxel_order + trk_file[948+3:]
