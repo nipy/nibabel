@@ -528,6 +528,8 @@ class TrkFile(TractogramFile):
         properties = np.empty((cls.READ_BUFFER_SIZE, props.shape[0]), dtype=props.dtype)
 
         offset = 0
+        offsets = []
+        lengths = []
         for i, (pts, scals, props) in enumerate(gen):
             pts = np.asarray(pts)
             scals = np.asarray(scals)
@@ -547,8 +549,8 @@ class TrkFile(TractogramFile):
                 streamlines._data.resize((len(streamlines._data) + len(pts)+cls.READ_BUFFER_SIZE, pts.shape[1]))
                 scalars._data.resize((len(scalars._data) + len(scals)+cls.READ_BUFFER_SIZE, scals.shape[1]))
 
-            streamlines._offsets.append(offset)
-            streamlines._lengths.append(len(pts))
+            offsets.append(offset)
+            lengths.append(len(pts))
             streamlines._data[offset:offset+len(pts)] = pts
             scalars._data[offset:offset+len(scals)] = scals
 
@@ -558,6 +560,9 @@ class TrkFile(TractogramFile):
                 properties.resize((len(properties) + cls.READ_BUFFER_SIZE, props.shape[0]))
 
             properties[i] = props
+
+        streamlines._offsets = np.asarray(offsets)
+        streamlines._lengths = np.asarray(lengths)
 
         # Clear unused memory.
         streamlines._data.resize((offset, pts.shape[1]))

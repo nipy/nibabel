@@ -23,8 +23,8 @@ class CompactList(object):
         """
         # Create new empty `CompactList` object.
         self._data = np.array(0)
-        self._offsets = []
-        self._lengths = []
+        self._offsets = np.array([], dtype=int)
+        self._lengths = np.array([], dtype=int)
 
         if isinstance(iterable, CompactList):
             # Create a view.
@@ -33,6 +33,8 @@ class CompactList(object):
             self._lengths = iterable._lengths
 
         elif iterable is not None:
+            offsets = []
+            lengths = []
             # Initialize the `CompactList` object from iterable's item.
             offset = 0
             for i, e in enumerate(iterable):
@@ -48,10 +50,13 @@ class CompactList(object):
                     nb_points += len(e) + CompactList.BUFFER_SIZE
                     self._data.resize((nb_points,) + self.shape)
 
-                self._offsets.append(offset)
-                self._lengths.append(len(e))
+                offsets.append(offset)
+                lengths.append(len(e))
                 self._data[offset:offset+len(e)] = e
                 offset += len(e)
+
+            self._offsets = np.asarray(offsets)
+            self._lengths = np.asarray(lengths)
 
             # Clear unused memory.
             if self._data.ndim != 0:
@@ -81,16 +86,16 @@ class CompactList(object):
         """
         if self._data.ndim == 0:
             self._data = np.asarray(element).copy()
-            self._offsets.append(0)
-            self._lengths.append(len(element))
+            self._offsets = np.array([0])
+            self._lengths = np.array([len(element)])
             return
 
         if element.shape[1:] != self.shape:
             raise ValueError("All dimensions, except the first one,"
                              " must match exactly")
 
-        self._offsets.append(len(self._data))
-        self._lengths.append(len(element))
+        self._offsets = np.r_[self._offsets, len(self._data)]
+        self._lengths = np.r_[self._lengths, len(element)]
         self._data = np.append(self._data, element, axis=0)
 
     def extend(self, elements):
@@ -113,17 +118,20 @@ class CompactList(object):
             self._data.resize((self._data.shape[0]+sum(elements._lengths),
                                self._data.shape[1]))
 
+            offsets = []
             for offset, length in zip(elements._offsets, elements._lengths):
-                self._offsets.append(next_offset)
-                self._lengths.append(length)
+                offsets.append(next_offset)
                 self._data[next_offset:next_offset+length] = elements._data[offset:offset+length]
                 next_offset += length
+
+            self._lengths = np.r_[self._lengths, elements._lengths]
+            self._offsets = np.r_[self._offsets, offsets]
 
         else:
             self._data = np.concatenate([self._data] + list(elements), axis=0)
             lengths = list(map(len, elements))
-            self._lengths.extend(lengths)
-            self._offsets.extend(np.cumsum([next_offset] + lengths).tolist()[:-1])
+            self._lengths = np.r_[self._lengths, lengths]
+            self._offsets = np.r_[self._offsets, np.cumsum([next_offset] + lengths)[:-1]]
 
     def copy(self):
         """ Creates a copy of this ``CompactList`` object. """
@@ -135,12 +143,15 @@ class CompactList(object):
         clist._data = np.empty((total_lengths,) + self._data.shape[1:],
                                dtype=self._data.dtype)
 
-        idx = 0
+        next_offset = 0
+        offsets = []
         for offset, length in zip(self._offsets, self._lengths):
-            clist._offsets.append(idx)
-            clist._lengths.append(length)
-            clist._data[idx:idx+length] = self._data[offset:offset+length]
-            idx += length
+            offsets.append(next_offset)
+            clist._data[next_offset:next_offset+length] = self._data[offset:offset+length]
+            next_offset += length
+
+        clist._offsets = np.asarray(offsets)
+        clist._lengths = self._lengths.copy()
 
         return clist
 
@@ -172,8 +183,8 @@ class CompactList(object):
         elif isinstance(idx, list):
             clist = CompactList()
             clist._data = self._data
-            clist._offsets = [self._offsets[i] for i in idx]
-            clist._lengths = [self._lengths[i] for i in idx]
+            clist._offsets = self._offsets[idx]
+            clist._lengths = self._lengths[idx]
             return clist
 
         elif isinstance(idx, np.ndarray) and idx.dtype == np.bool:
@@ -216,6 +227,6 @@ def load_compact_list(filename):
     content = np.load(filename)
     clist = CompactList()
     clist._data = content["data"]
-    clist._offsets = content["offsets"].tolist()
-    clist._lengths = content["lengths"].tolist()
+    clist._offsets = content["offsets"]#.tolist()
+    clist._lengths = content["lengths"]#.tolist()
     return clist

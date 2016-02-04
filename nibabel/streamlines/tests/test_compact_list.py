@@ -40,8 +40,8 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist._lengths), len(data))
         assert_equal(clist._data.shape[0], sum(lengths))
         assert_equal(clist._data.shape[1], 3)
-        assert_equal(clist._offsets, [0] + np.cumsum(lengths)[:-1].tolist())
-        assert_equal(clist._lengths, lengths)
+        assert_array_equal(clist._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
+        assert_array_equal(clist._lengths, lengths)
         assert_equal(clist.shape, data[0].shape[1:])
 
         # Empty list
@@ -61,8 +61,8 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist._lengths), len(data))
         assert_equal(clist._data.shape[0], sum(lengths))
         assert_equal(clist._data.shape[1], 3)
-        assert_equal(clist._offsets, [0] + np.cumsum(lengths)[:-1].tolist())
-        assert_equal(clist._lengths, lengths)
+        assert_array_equal(clist._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
+        assert_array_equal(clist._lengths, lengths)
         assert_equal(clist.shape, data[0].shape[1:])
         CompactList.BUFFER_SIZE = old_buffer_size
 
@@ -78,8 +78,8 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist._lengths), len(data))
         assert_equal(clist._data.shape[0], sum(lengths))
         assert_equal(clist._data.shape[1], 3)
-        assert_equal(clist._offsets, [0] + np.cumsum(lengths)[:-1].tolist())
-        assert_equal(clist._lengths, lengths)
+        assert_array_equal(clist._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
+        assert_array_equal(clist._lengths, lengths)
         assert_equal(clist.shape, data[0].shape[1:])
 
         # Already consumed generator
@@ -102,8 +102,8 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist2._lengths), len(data))
         assert_equal(clist2._data.shape[0], sum(lengths))
         assert_equal(clist2._data.shape[1], 3)
-        assert_equal(clist2._offsets, [0] + np.cumsum(lengths)[:-1].tolist())
-        assert_equal(clist2._lengths, lengths)
+        assert_array_equal(clist2._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
+        assert_array_equal(clist2._lengths, lengths)
         assert_equal(clist2.shape, data[0].shape[1:])
 
     def test_compactlist_iter(self):
@@ -133,6 +133,10 @@ class TestCompactList(unittest.TestCase):
         assert_true(clist._data.shape[0] < self.clist._data.shape[0])
         assert_true(len(clist) < len(self.clist))
         assert_true(clist._data is not self.clist._data)
+        assert_array_equal(clist._lengths, self.clist[::2]._lengths)
+        assert_array_equal(clist._offsets,
+                           np.cumsum(np.r_[0, self.clist[::2]._lengths])[:-1])
+        assert_arrays_equal(clist, self.clist[::2])
 
     def test_compactlist_append(self):
         # Maybe not necessary if `self.setUp` is always called before a
@@ -178,7 +182,7 @@ class TestCompactList(unittest.TestCase):
         assert_array_equal(clist._offsets[-len(new_data):],
                            len(self.clist._data) + np.cumsum([0] + lengths[:-1]))
 
-        assert_equal(clist._lengths[-len(new_data):], lengths)
+        assert_array_equal(clist._lengths[-len(new_data):], lengths)
         assert_array_equal(clist._data[-sum(lengths):],
                            np.concatenate(new_data, axis=0))
 
@@ -188,9 +192,9 @@ class TestCompactList(unittest.TestCase):
         clist.extend(new_clist)
         assert_equal(len(clist), len(self.clist)+len(new_clist))
         assert_array_equal(clist._offsets[-len(new_clist):],
-                           len(self.clist._data) + np.cumsum([0] + lengths[:-1]))
+                           len(self.clist._data) + np.cumsum(np.r_[0, lengths[:-1]]))
 
-        assert_equal(clist._lengths[-len(new_clist):], lengths)
+        assert_array_equal(clist._lengths[-len(new_clist):], lengths)
         assert_array_equal(clist._data[-sum(lengths):], new_clist._data)
 
         # Extend with another `CompactList` object that is a view (e.g. been sliced).
@@ -201,9 +205,9 @@ class TestCompactList(unittest.TestCase):
         assert_equal(len(clist), len(self.clist)+len(new_clist))
         assert_equal(len(clist._data), len(self.clist._data)+sum(new_clist._lengths))
         assert_array_equal(clist._offsets[-len(new_clist):],
-                           len(self.clist._data) + np.cumsum([0] + new_clist._lengths[:-1]))
+                           len(self.clist._data) + np.cumsum(np.r_[0, new_clist._lengths[:-1]]))
 
-        assert_equal(clist._lengths[-len(new_clist):], lengths[::2])
+        assert_array_equal(clist._lengths[-len(new_clist):], lengths[::2])
         assert_array_equal(clist._data[-sum(new_clist._lengths):], new_clist.copy()._data)
         assert_arrays_equal(clist[-len(new_clist):], new_clist)
 
@@ -215,7 +219,6 @@ class TestCompactList(unittest.TestCase):
         assert_array_equal(clist._offsets, new_clist._offsets)
         assert_array_equal(clist._lengths, new_clist._lengths)
         assert_array_equal(clist._data, new_clist._data)
-
 
     def test_compactlist_getitem(self):
         # Get one item
@@ -248,9 +251,9 @@ class TestCompactList(unittest.TestCase):
         assert_true(clist_view is not self.clist)
         assert_true(clist_view._data is self.clist._data)
         assert_array_equal(clist_view._offsets,
-                           np.asarray(self.clist._offsets)[idx])
+                           self.clist._offsets[idx])
         assert_array_equal(clist_view._lengths,
-                           np.asarray(self.clist._lengths)[idx])
+                           self.clist._lengths[idx])
         assert_array_equal(clist_view[0], self.clist[1])
         assert_array_equal(clist_view[1], self.clist[2])
         assert_array_equal(clist_view[2], self.clist[4])
