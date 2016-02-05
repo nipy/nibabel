@@ -11,10 +11,10 @@ Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
 """
 
 from io import BytesIO
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, tostring  # flake8: noqa aliasing
 from xml.parsers.expat import ParserCreate
 
-from .filebasedimages import FileBasedHeader, FileBasedImage
+from .filebasedimages import FileBasedHeader
 
 
 class XmlSerializable(object):
@@ -32,7 +32,6 @@ class XmlSerializable(object):
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
     """ Basic wrapper around FileBasedHeader and XmlSerializable."""
-    pass
 
 
 class XmlParser(object):

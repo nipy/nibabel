@@ -144,12 +144,10 @@ from .volumeutils import shape_zoom_affine
 
 class HeaderDataError(Exception):
     ''' Class to indicate error in getting or setting header data '''
-    pass
 
 
 class HeaderTypeError(Exception):
     ''' Class to indicate error in parameters into header functions '''
-    pass
 
 
 class SpatialHeader(FileBasedHeader):

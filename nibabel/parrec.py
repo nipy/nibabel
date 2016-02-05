@@ -243,7 +243,6 @@ class PARRECError(Exception):
     To be raised whenever PAR/REC is not happy, or we are not happy with
     PAR/REC.
     """
-    pass
 
 
 # Value after colon may be absent
