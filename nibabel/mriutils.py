@@ -11,7 +11,7 @@ Utilities for calculations related to MRI
 """
 from __future__ import division
 
-__all__ = ['dwell_time']
+__all__ = ['calculate_dwell_time']
 
 GYROMAGNETIC_RATIO = 42.576  # MHz/T for hydrogen nucleus
 PROTON_WATER_FAT_SHIFT = 3.4  # ppm
