@@ -11,7 +11,7 @@ _version_major = 2
 _version_minor = 1
 _version_micro = 0
 _version_extra = 'dev'
-#_version_extra = ''
+# _version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
@@ -109,8 +109,7 @@ PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
 NAME = 'nibabel'
-MAINTAINER          = "Matthew Brett, Michael Hanke, Eric Larson, " \
-                      "Chris Markiewicz"
+MAINTAINER = "Matthew Brett, Michael Hanke, Eric Larson, Chris Markiewicz"
 MAINTAINER_EMAIL = "neuroimaging@python.org"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description

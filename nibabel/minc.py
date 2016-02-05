@@ -7,4 +7,4 @@ warnings.warn("We will remove this module from nibabel soon; "
               FutureWarning,
               stacklevel=2)
 
-from .minc1 import *
+from .minc1 import *  # noqa

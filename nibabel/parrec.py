@@ -15,7 +15,7 @@ This implementation aims to read version 4.0 through 4.2 of this format. Other
 versions could probably be supported, but we need example images to test
 against.  If you want us to support another version, and have an image we can
 add to the test suite, let us know.  You would make us very happy by submitting
-a pull request.
+a pull request.  # noqa
 
 ###############
 PAR file format
@@ -406,7 +406,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
         warnings.warn(msg)
 
     def _chk_trunc(idef_name, gdef_max_name):
-        if not gdef_max_name in general_info:
+        if gdef_max_name not in general_info:
             return
         id_values = image_defs[idef_name + ' number']
         n_have = len(set(id_values))

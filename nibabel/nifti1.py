@@ -716,7 +716,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             return shape
 
     def set_data_shape(self, shape):
-        ''' Set shape of data
+        ''' Set shape of data  # noqa
 
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
@@ -1644,7 +1644,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                                          extra,
                                          file_map)
         # Force set of s/q form when header is None unless affine is also None
-        if header is None and not affine is None:
+        if header is None and affine is not None:
             self._affine2header()
     # Copy docstring
     __init__.doc = analyze.AnalyzeImage.__init__.__doc__

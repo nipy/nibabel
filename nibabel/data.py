@@ -298,7 +298,7 @@ def make_datasource(pkg_def, **kwargs):
                e)
         if 'name' in pkg_def:
             msg += '\n\nYou may need the package "%s"' % pkg_def['name']
-        if not pkg_hint is None:
+        if pkg_hint is not None:
             msg += '\n\n%s' % pkg_hint
         raise DataError(msg)
     return VersionedDatasource(pth)

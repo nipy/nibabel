@@ -92,7 +92,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             if Ellipsis in remaining:
                 raise ValueError("More than one Ellipsis in slicing "
                                  "expression")
-            real_remaining = [r for r in remaining if not r is None]
+            real_remaining = [r for r in remaining if r is not None]
             n_ellided = n_dim - n_real - len(real_remaining)
             can_slicers.extend((slice(None),) * n_ellided)
             n_real += n_ellided
@@ -144,7 +144,7 @@ def slice2outax(ndim, sliceobj):
         if isinstance(obj, Integral):
             out_ax_inds.append(None)
             continue
-        if not obj is None:
+        if obj is not None:
             out_ax_inds.append(out_ax_no)
         out_ax_no += 1
     return tuple(out_ax_inds)
@@ -210,9 +210,9 @@ def fill_slicer(slicer, in_len):
     start, stop, step = slicer.start, slicer.stop, slicer.step
     if step is None:
         step = 1
-    if not start is None and start < 0:
+    if start is not None and start < 0:
         start = in_len + start
-    if not stop is None and stop < 0:
+    if stop is not None and stop < 0:
         stop = in_len + stop
     if step > 0:
         if start is None:
@@ -424,7 +424,7 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride,
         elif action == 'contiguous':  # Cannot be int
             # If this is already contiguous, default None behavior handles it
             step = slicer.step
-            if not step in (-1, 1):
+            if step not in (-1, 1):
                 if step < 0:
                     slicer = _positive_slice(slicer)
                 return (slice(slicer.start, slicer.stop, 1),
@@ -480,7 +480,7 @@ def calc_slicedefs(sliceobj, in_shape, itemsize, offset, order,
         `segments` and reshaping via `read_shape`.  Slices are in terms of
         `read_shape`.  If empty, no new slicing to apply
     """
-    if not order in "CF":
+    if order not in "CF":
         raise ValueError("order should be one of 'CF'")
     sliceobj = canonical_slicers(sliceobj, in_shape)
     # order fastest changing first (record reordering)

@@ -269,7 +269,7 @@ def type_info(np_type):
     # Oh dear, we don't recognize the type information.  Try some known types
     # and then give up. At this stage we're expecting exotic longdouble or
     # their complex equivalent.
-    if not np_type in (np.longdouble, np.longcomplex) or width not in (16, 32):
+    if np_type not in (np.longdouble, np.longcomplex) or width not in (16, 32):
         raise FloatingError('We had not expected type %s' % np_type)
     if (vals == (1, 1, 16) and on_powerpc() and
             _check_maxexp(np.longdouble, 1024)):
@@ -439,7 +439,7 @@ def int_to_float(val, flt_type):
     f : numpy scalar
         of type `flt_type`
     """
-    if not flt_type is np.longdouble:
+    if flt_type is not np.longdouble:
         return flt_type(val)
     # The following works around a nasty numpy 1.4.1 bug such that:
     # >>> int(np.uint32(2**32-1)

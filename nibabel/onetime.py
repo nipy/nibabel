@@ -21,9 +21,9 @@ Hettinger. http://users.rcn.com/python/download/Descriptor.htm
 """
 from __future__ import division, print_function, absolute_import
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Classes and Functions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class ResetMixin(object):
@@ -130,7 +130,6 @@ class OneTimeProperty(object):
 
     def __get__(self, obj, type=None):
         """This will be called on attribute access on the class or instance."""
-
         if obj is None:
             # Being called on the class, return the original function. This
             # way, introspection works on the class.
@@ -173,9 +172,9 @@ def auto_attr(func):
     return OneTimeProperty(func)
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Deprecated API
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # For backwards compatibility
 setattr_on_read = auto_attr

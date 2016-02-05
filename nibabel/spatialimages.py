@@ -138,7 +138,7 @@ import warnings
 import numpy as np
 
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .filebasedimages import ImageFileError  # needed for back-compat.
+from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
 from .volumeutils import shape_zoom_affine
 
 

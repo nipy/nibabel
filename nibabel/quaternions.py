@@ -318,7 +318,8 @@ def rotate_vector(v, q):
 
     Notes
     -----
-    See: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
+    See:
+    https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
 
     '''
     varr = np.zeros((4,))

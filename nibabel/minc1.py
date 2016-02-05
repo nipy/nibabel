@@ -199,7 +199,7 @@ class Minc1File(object):
             shape = self.get_data_shape()
             sliceobj = canonical_slicers(sliceobj, shape)
             # Indices into sliceobj referring to image axes
-            ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+            ax_inds = [i for i, obj in enumerate(sliceobj) if obj is not None]
             assert len(ax_inds) == len(shape)
             # Slice imax, imin using same slicer as for data
             nscales_ax = ax_inds[nscales]

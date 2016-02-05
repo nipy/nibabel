@@ -492,7 +492,7 @@ class MGHImage(SpatialImage):
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         img_fh = file_map['image']
         mghf = img_fh.get_prepare_fileobj('rb')
@@ -528,7 +528,7 @@ class MGHImage(SpatialImage):
         -------
         img : MGHImage instance
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map, mmap=mmap)

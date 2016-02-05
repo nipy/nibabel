@@ -522,7 +522,7 @@ class LabeledWrapStruct(WrapStruct):
         >>> hdr.get_value_label('datatype')
         'two'
         '''
-        if not fieldname in self._field_recoders:
+        if fieldname not in self._field_recoders:
             raise ValueError('%s not a coded field' % fieldname)
         code = int(self._structarr[fieldname])
         try:

@@ -166,7 +166,7 @@ def from_matvec(matrix, vector=None):
     t = np.zeros((nin + 1, nout + 1), matrix.dtype)
     t[0:nin, 0:nout] = matrix
     t[nin, nout] = 1.
-    if not vector is None:
+    if vector is not None:
         t[0:nin, nout] = vector
     return t
 

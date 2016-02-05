@@ -278,7 +278,7 @@ class Wrapper(object):
 
     def __getitem__(self, key):
         """ Return values from DICOM object"""
-        if not key in self.dcm_data:
+        if key not in self.dcm_data:
             raise KeyError('"%s" not in self.dcm_data' % key)
         return self.dcm_data.get(key)
 
@@ -646,7 +646,7 @@ class SiemensWrapper(Wrapper):
         """ Add ICE dims from CSA header to signature """
         signature = super(SiemensWrapper, self).series_signature
         ice = csar.get_ice_dims(self.csa_header)
-        if not ice is None:
+        if ice is not None:
             ice = ice[:6] + ice[8:9]
         signature['ICE_Dims'] = (ice, lambda x, y: x == y)
         return signature
