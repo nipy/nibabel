@@ -37,7 +37,7 @@ MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
 # sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
-v2rtkr = np.array([[-1.0, 0.0, 0.0,  1.5],
+v2rtkr = np.array([[-1.0, 0.0, 0.0, 1.5],
                    [0.0, 0.0, 1.0, -2.5],
                    [0.0, -1.0, 0.0, 2.0],
                    [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)

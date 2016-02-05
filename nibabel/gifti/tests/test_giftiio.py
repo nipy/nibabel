@@ -19,6 +19,7 @@ from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
 
 
 class TestGiftiIO(object):
+
     def setUp(self):
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)

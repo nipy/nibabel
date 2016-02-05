@@ -89,7 +89,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 empty=b'',  # pass an empty sniff, should query in fn
                 irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
                 bad_sniff=b'a' * sizeof_hdr,  # Bad sniff, should fail
-                ).items():
+        ).items():
 
             for klass in img_klasses:
                 if klass == expected_img_klass:

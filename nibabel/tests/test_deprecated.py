@@ -20,12 +20,16 @@ def test_module_proxy():
 def test_futurewarning_mixin():
     # Test mixin for FutureWarning
     class C(object):
+
         def __init__(self, val):
             self.val = val
+
         def meth(self):
             return self.val
+
     class D(FutureWarningMixin, C):
         pass
+
     class E(FutureWarningMixin, C):
         warn_message = "Oh no, not this one"
     with warnings.catch_warnings(record=True) as warns:

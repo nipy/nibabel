@@ -38,8 +38,8 @@ def _proc_stdout(stdout):
 
 
 runner = ScriptRunner(
-    script_sdir = 'bin',
-    debug_print_var = 'NIPY_DEBUG_PRINT',
+    script_sdir='bin',
+    debug_print_var='NIPY_DEBUG_PRINT',
     output_processor=_proc_stdout)
 run_command = runner.run_command
 
@@ -48,7 +48,7 @@ def script_test(func):
     # Decorator to label test as a script_test
     func.script_test = True
     return func
-script_test.__test__ = False # It's not a test
+script_test.__test__ = False  # It's not a test
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 

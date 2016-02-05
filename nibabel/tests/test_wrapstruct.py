@@ -44,6 +44,7 @@ from ..testing import (assert_equal, assert_true, assert_false,
 
 INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
 
+
 class _TestWrapStructBase(TestCase):
     ''' Class implements base tests for binary headers
 
@@ -103,9 +104,9 @@ class _TestWrapStructBase(TestCase):
     def test_mappingness(self):
         hdr = self.header_class()
         assert_raises(ValueError,
-                    hdr.__setitem__,
-                    'nonexistent key',
-                    0.1)
+                      hdr.__setitem__,
+                      'nonexistent key',
+                      0.1)
         hdr_dt = hdr.structarr.dtype
         keys = hdr.keys()
         assert_equal(keys, list(hdr))
@@ -177,13 +178,13 @@ class _TestWrapStructBase(TestCase):
             return hdrc, '', ()
         # Non zero level, test above and below threshold
         # Logging level above threshold, no log
-        logger.setLevel(level+1)
-        e_lev = level+1
+        logger.setLevel(level + 1)
+        e_lev = level + 1
         hdrc.check_fix(logger=logger, error_level=e_lev)
         assert_equal(str_io.getvalue(), '')
         # Logging level below threshold, log appears
-        logger.setLevel(level+1)
-        logger.setLevel(level-1)
+        logger.setLevel(level + 1)
+        logger.setLevel(level - 1)
         hdrc = hdr.copy()
         hdrc.check_fix(logger=logger, error_level=e_lev)
         assert_true(str_io.getvalue() != '')
@@ -245,7 +246,9 @@ class _TestWrapStructBase(TestCase):
         assert_equal(hdr_bs.endianness, swapped_code)
         assert_not_equal(hdr.binaryblock, hdr_bs.binaryblock)
         # Note that contents is not rechecked on swap / copy
+
         class DC(self.header_class):
+
             def check_fix(self, *args, **kwargs):
                 raise Exception
         # Assumes check=True default
@@ -356,7 +359,7 @@ class MyWrapStruct(WrapStruct):
 
 
 class MyLabeledWrapStruct(LabeledWrapStruct, MyWrapStruct):
-    _field_recoders = {} # for recoding values for str
+    _field_recoders = {}  # for recoding values for str
 
 
 class TestMyWrapStruct(_TestWrapStructBase):
@@ -424,7 +427,7 @@ class TestMyWrapStruct(_TestWrapStructBase):
         # pretent header defined at the top of this file
         HC = self.header_class
         hdr = HC()
-        hdr['an_integer'] = 2 # severity 40
+        hdr['an_integer'] = 2  # severity 40
         fhdr, message, raiser = self.log_chk(hdr, 40)
         return
         assert_equal(fhdr['an_integer'], 1)
@@ -433,10 +436,10 @@ class TestMyWrapStruct(_TestWrapStructBase):
         assert_raises(*raiser)
         # lower case string
         hdr = HC()
-        hdr['a_str'] = 'Hello' # severity = 20
+        hdr['a_str'] = 'Hello'  # severity = 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(message, 'a_str should be lower case; '
-                           'set a_str to lower case')
+                     'set a_str to lower case')
         assert_raises(*raiser)
 
     def test_logger_error(self):
@@ -450,7 +453,7 @@ class TestMyWrapStruct(_TestWrapStructBase):
         logger.setLevel(20)
         logger.addHandler(logging.StreamHandler(str_io))
         # Prepare something that needs fixing
-        hdr['a_str'] = 'Fullness' # severity 20
+        hdr['a_str'] = 'Fullness'  # severity 20
         log_cache = imageglobals.logger, imageglobals.error_level
         try:
             # Check log message appears in new logger

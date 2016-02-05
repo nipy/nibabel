@@ -117,10 +117,11 @@ def test_warn_error():
     n_warns = len(warnings.filters)
     with error_warnings():
         assert_raises(UserWarning, warnings.warn, 'A test')
-    with error_warnings() as w: # w not used for anything
+    with error_warnings() as w:  # w not used for anything
         assert_raises(UserWarning, warnings.warn, 'A test')
     assert_equal(n_warns, len(warnings.filters))
     # Check other errors are propagated
+
     def f():
         with error_warnings():
             raise ValueError('An error')
@@ -133,11 +134,12 @@ def test_warn_ignore():
     with suppress_warnings():
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
-    with suppress_warnings() as w: # w not used
+    with suppress_warnings() as w:  # w not used
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
     assert_equal(n_warns, len(warnings.filters))
     # Check other errors are propagated
+
     def f():
         with suppress_warnings():
             raise ValueError('An error')

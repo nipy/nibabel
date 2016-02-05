@@ -30,7 +30,7 @@ def test_loading():
         par_root, ext = splitext(basename(par))
         # NA.PAR appears to be a localizer, with three slices in each of the
         # three orientations: sagittal; coronal, transverse
-        if par_root ==  'NA':
+        if par_root == 'NA':
             continue
         # Check we can load the image
         pimg = load(par)

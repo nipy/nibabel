@@ -84,7 +84,7 @@ def test_init_basic():
     # Len returns number of checks
     battrun = BatteryRunner((chk1,))
     assert_equal(len(battrun), 1)
-    battrun = BatteryRunner((chk1,chk2))
+    battrun = BatteryRunner((chk1, chk2))
     assert_equal(len(battrun), 2)
 
 
@@ -106,13 +106,15 @@ def test_report_strings():
     rep.problem_level = 30
     rep.write_raise(str_io)
     assert_equal(str_io.getvalue(), 'Level 30: msg; fix\n')
-    str_io.truncate(0); str_io.seek(0)
+    str_io.truncate(0)
+    str_io.seek(0)
     # No fix string, no fix message
     rep.fix_msg = ''
     rep.write_raise(str_io)
     assert_equal(str_io.getvalue(), 'Level 30: msg\n')
     rep.fix_msg = 'fix'
-    str_io.truncate(0); str_io.seek(0)
+    str_io.truncate(0)
+    str_io.seek(0)
     # If we drop the level, nothing goes to the log
     rep.problem_level = 20
     rep.write_raise(str_io)
@@ -120,7 +122,8 @@ def test_report_strings():
     # Unless we set the default log level in the call
     rep.write_raise(str_io, log_level=20)
     assert_equal(str_io.getvalue(), 'Level 20: msg; fix\n')
-    str_io.truncate(0); str_io.seek(0)
+    str_io.truncate(0)
+    str_io.seek(0)
     # If we set the error level down this low, we raise an error
     assert_raises(ValueError, rep.write_raise, str_io, 20)
     # But the log level wasn't low enough to do a log entry
@@ -130,7 +133,8 @@ def test_report_strings():
     assert_raises(ValueError, rep.write_raise, str_io, 20, 20)
     assert_equal(str_io.getvalue(), 'Level 20: msg; fix\n')
     # If there's no error, we can't raise
-    str_io.truncate(0); str_io.seek(0)
+    str_io.truncate(0)
+    str_io.seek(0)
     rep.error = None
     rep.write_raise(str_io, 20)
     assert_equal(str_io.getvalue(), '')
@@ -140,14 +144,15 @@ def test_logging():
     rep = Report(ValueError, 20, 'msg', 'fix')
     str_io = StringIO()
     logger = logging.getLogger('test.logger')
-    logger.setLevel(30) # defaultish level
+    logger.setLevel(30)  # defaultish level
     logger.addHandler(logging.StreamHandler(str_io))
     rep.log_raise(logger)
     assert_equal(str_io.getvalue(), '')
     rep.problem_level = 30
     rep.log_raise(logger)
     assert_equal(str_io.getvalue(), 'msg; fix\n')
-    str_io.truncate(0); str_io.seek(0)
+    str_io.truncate(0)
+    str_io.seek(0)
 
 
 def test_checks():
@@ -164,8 +169,8 @@ def test_checks():
                         20,
                         'no "testkey"',
                         'added "testkey"'))
-    assert_equal(obj, {'testkey':1})
-    battrun = BatteryRunner((chk1,chk2))
+    assert_equal(obj, {'testkey': 1})
+    battrun = BatteryRunner((chk1, chk2))
     reports = battrun.check_only({})
     assert_equal(reports[0],
                  Report(KeyError,
@@ -181,7 +186,7 @@ def test_checks():
     # In the case of fix, the previous fix exposes a different error
     # Note, because obj is mutable, first and second point to modified
     # (and final) dictionary
-    output_obj = {'testkey':0}
+    output_obj = {'testkey': 0}
     assert_equal(reports[0],
                  Report(KeyError,
                         20,

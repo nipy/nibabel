@@ -122,7 +122,7 @@ class GenericImageAPI(ValidateAPI):
     def validate_header(self, imaker, params):
         # Check header API
         img = imaker()
-        hdr = img.header # we can fetch it
+        hdr = img.header  # we can fetch it
         # Change shape in header, check this changes img.header
         shape = hdr.get_data_shape()
         new_shape = (shape[0] + 1,) + shape[1:]
@@ -164,7 +164,7 @@ class GenericImageAPI(ValidateAPI):
                 rt_img = bytesio_round_trip(img)
             assert_equal(rt_img.get_data_dtype().type, params['dtype'])
         # Setting to a different dtype
-        img.set_data_dtype(np.float32) # assumed supported for all formats
+        img.set_data_dtype(np.float32)  # assumed supported for all formats
         assert_equal(img.get_data_dtype().type, np.float32)
         # dtype survives round trip
         if self.can_save:
@@ -214,7 +214,7 @@ class GenericImageAPI(ValidateAPI):
             assert_true(img.in_memory)
             data_again = img.get_data()
             assert_true(data is data_again)
-        else: # not proxy
+        else:  # not proxy
             for caching in (None, 'fill', 'unchanged'):
                 img = imaker()
                 get_data_func = (img.get_data if caching is None else
@@ -256,7 +256,7 @@ class GenericImageAPI(ValidateAPI):
         if not self.can_save:
             raise SkipTest
         img = imaker()
-        img.set_data_dtype(np.float32) # to avoid rounding in load / save
+        img.set_data_dtype(np.float32)  # to avoid rounding in load / save
         # The bytesio_round_trip helper tests bytesio load / save via file_map
         rt_img = bytesio_round_trip(img)
         assert_array_equal(img.shape, rt_img.shape)
@@ -273,7 +273,7 @@ class GenericImageAPI(ValidateAPI):
             rt_img = img.__class__.from_filename(fname)
             assert_array_equal(img.shape, rt_img.shape)
             assert_almost_equal(img.get_data(), rt_img.get_data())
-            del rt_img # to allow windows to delete the directory
+            del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()
@@ -292,7 +292,7 @@ class LoadImageAPI(GenericImageAPI):
 
     def obj_params(self):
         for img_params in self.example_images:
-            yield lambda : self.loader(img_params['fname']), img_params
+            yield lambda: self.loader(img_params['fname']), img_params
 
     def validate_path_maybe_image(self, imaker, params):
         for img_params in self.example_images:
@@ -322,8 +322,9 @@ class MakeImageAPI(LoadImageAPI):
             yield func, params
         # Create a new images
         aff = np.diag([1, 2, 3, 1])
+
         def make_imaker(arr, aff, header=None):
-            return lambda : self.image_maker(arr, aff, header)
+            return lambda: self.image_maker(arr, aff, header)
         for shape in self.example_shapes:
             for dtype in (np.uint8, np.int16, np.float32):
                 arr = np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
@@ -331,17 +332,18 @@ class MakeImageAPI(LoadImageAPI):
                 hdr.set_data_dtype(dtype)
                 func = make_imaker(arr.copy(), aff, hdr)
                 params = dict(
-                    dtype = dtype,
-                    affine = aff,
-                    data = arr,
-                    shape = shape,
-                    is_proxy = False)
+                    dtype=dtype,
+                    affine=aff,
+                    data=arr,
+                    shape=shape,
+                    is_proxy=False)
                 yield func, params
         if not self.can_save:
             return
         # Add a proxy image
         # We assume that loading from a fileobj creates a proxy image
         params['is_proxy'] = True
+
         def prox_imaker():
             img = self.image_maker(arr, aff, hdr)
             rt_img = bytesio_round_trip(img)
@@ -407,6 +409,7 @@ class TestMinc1API(ImageHeaderAPI):
 
 
 class TestMinc2API(TestMinc1API):
+
     def __init__(self):
         if not have_h5py:
             raise SkipTest('Need h5py for these tests')
@@ -417,6 +420,7 @@ class TestMinc2API(TestMinc1API):
 
 
 class TestPARRECAPI(LoadImageAPI):
+
     def loader(self, fname):
         return parrec.load(fname)
 
@@ -434,7 +438,7 @@ class TestPARRECAPI(LoadImageAPI):
 
 class TestMGHAPI(ImageHeaderAPI):
     klass = image_maker = MGHImage
-    example_shapes = ((2, 3, 4), (2, 3, 4, 5)) # MGH can only do >= 3D
+    example_shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'

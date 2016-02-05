@@ -34,7 +34,7 @@ def test_multiload():
     if N > 5000:
         warn('It would take too long to test file handles, aborting')
         return
-    arr = np.arange(24).reshape((2,3,4))
+    arr = np.arange(24).reshape((2, 3, 4))
     img = Nifti1Image(arr, np.eye(4))
     imgs = []
     try:

@@ -27,20 +27,20 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
         hdr = self.header_class()
         assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
         for in_tup, exp_err, out_tup, raw_slope in (
-            ((2.0,), None, (2.0, 0.), 2.),
-            ((None,), None, (None, None), np.nan),
-            ((1.0, None), None, (1.0, 0.), 1.),
-            # non zero intercept causes error
-            ((None, 1.1), HeaderTypeError, (None, None), np.nan),
-            ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
-            # null scalings
-            ((0.0, None), HeaderDataError, (None, None), 0.),
-            ((np.nan, np.nan), None, (None, None), np.nan),
-            ((np.nan, None), None, (None, None), np.nan),
-            ((None, np.nan), None, (None, None), np.nan),
-            ((np.inf, None), HeaderDataError, (None, None), np.inf),
-            ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
-            ((None, 0.0), None, (None, None), np.nan)):
+                ((2.0,), None, (2.0, 0.), 2.),
+                ((None,), None, (None, None), np.nan),
+                ((1.0, None), None, (1.0, 0.), 1.),
+                # non zero intercept causes error
+                ((None, 1.1), HeaderTypeError, (None, None), np.nan),
+                ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
+                # null scalings
+                ((0.0, None), HeaderDataError, (None, None), 0.),
+                ((np.nan, np.nan), None, (None, None), np.nan),
+                ((np.nan, None), None, (None, None), np.nan),
+                ((None, np.nan), None, (None, None), np.nan),
+                ((np.inf, None), HeaderDataError, (None, None), np.inf),
+                ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
+                ((None, 0.0), None, (None, None), np.nan)):
             hdr = self.header_class()
             if not exp_err is None:
                 assert_raises(exp_err, hdr.set_slope_inter, *in_tup)

@@ -57,12 +57,12 @@ def test_find_private_section_real():
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'third\Wsectio[nN]')),
-                                      0x1200)
+                 0x1200)
     # No match -> None
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'not third\Wsectio[nN]')),
-                                      None)
+                 None)
     # If there are gaps in the sequence before the one we want, that is OK
     ds.add_new((0x11, 0x13), 'LO', b'near section')
     assert_equal(find_private_section(ds, 0x11, 'near section'), 0x1300)

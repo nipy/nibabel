@@ -24,7 +24,7 @@ def test_gifti_image():
     # arguments.
     gi = GiftiImage()
     assert_equal(gi.darrays, [])
-    arr = np.zeros((2,3))
+    arr = np.zeros((2, 3))
     gi.darrays.append(arr)
     # Now check we didn't overwrite the default arg
     gi = GiftiImage()
@@ -63,9 +63,9 @@ def test_gifti_image():
 def test_dataarray():
     for dt_code in data_type_codes.value_set():
         data_type = data_type_codes.type[dt_code]
-        if data_type is np.void: # not supported
+        if data_type is np.void:  # not supported
             continue
-        arr = np.zeros((10,3), dtype=data_type)
+        arr = np.zeros((10, 3), dtype=data_type)
         da = GiftiDataArray.from_array(arr, 'triangle')
         assert_equal(da.datatype, data_type_codes[arr.dtype])
         bs_arr = arr.byteswap().newbyteorder()
@@ -142,7 +142,7 @@ def test_gifti_label_rgba():
 
 def test_print_summary():
     for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                            DATA_FILE5, DATA_FILE6]:
+                DATA_FILE5, DATA_FILE6]:
         gimg = nib.load(fil)
         gimg.print_summary()
 

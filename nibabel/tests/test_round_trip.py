@@ -17,6 +17,7 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 
 DEBUG = True
 
+
 def round_trip(arr, out_dtype):
     img = Nifti1Image(arr, np.eye(4))
     img.file_map['image'].fileobj = BytesIO()
@@ -89,6 +90,7 @@ def test_big_bad_ulp():
 
 BIG_FLOAT = np.float64
 
+
 def test_round_trip():
     scaling_type = np.float32
     rng = np.random.RandomState(20111121)
@@ -102,7 +104,7 @@ def test_round_trip():
     # Expanding standard deviations
     for i, sd_10 in enumerate(sd_10s):
         sd = 10.0**sd_10
-        V_in = rng.normal(0, sd, size=(N,1))
+        V_in = rng.normal(0, sd, size=(N, 1))
         for j, in_type in enumerate(f_types):
             for k, out_type in enumerate(iuint_types):
                 check_arr(sd_10, V_in, in_type, out_type, scaling_type)
@@ -115,7 +117,7 @@ def test_round_trip():
             center = type_range / 2.0 + mn
             # float(sd) because type_range can be type 'long'
             width = type_range * float(sd)
-            V_in = rng.normal(center, width, size=(N,1))
+            V_in = rng.normal(center, width, size=(N, 1))
             for k, out_type in enumerate(iuint_types):
                 check_arr(sd, V_in, in_type, out_type, scaling_type)
 
@@ -125,7 +127,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     if arr_dash is None:
         # Scaling causes a header or writer error
         return
-    nzs = arr != 0 # avoid divide by zero error
+    nzs = arr != 0  # avoid divide by zero error
     if not np.any(nzs):
         if DEBUG:
             raise ValueError('Array all zero')
@@ -137,7 +139,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         return
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
-    if slope == 1: # integers output, offset only scaling
+    if slope == 1:  # integers output, offset only scaling
         if set((in_type, out_type)) == set((np.int64, np.uint64)):
             # Scaling to or from 64 bit ints can go outside range of continuous
             # integers for float64 and thus lose precision; take this into
@@ -146,7 +148,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             Ai = A - inter
             ulps = [big_bad_ulp(A), big_bad_ulp(Ai)]
             exp_abs_err = np.max(ulps, axis=0)
-        else: # floats can give full precision - no error!
+        else:  # floats can give full precision - no error!
             exp_abs_err = np.zeros_like(abs_err)
         rel_thresh = 0
     else:
