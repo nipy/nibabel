@@ -173,14 +173,14 @@ class CompactList(object):
             start = self._offsets[idx]
             return self._data[start:start+self._lengths[idx]]
 
-        elif isinstance(idx, slice):
+        elif isinstance(idx, slice) or isinstance(idx, list):
             clist = CompactList()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
             return clist
 
-        elif isinstance(idx, list):
+        elif isinstance(idx, np.ndarray) and np.issubdtype(idx.dtype, np.integer):
             clist = CompactList()
             clist._data = self._data
             clist._offsets = self._offsets[idx]

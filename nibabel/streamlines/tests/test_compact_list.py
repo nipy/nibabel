@@ -226,15 +226,27 @@ class TestCompactList(unittest.TestCase):
             assert_array_equal(self.clist[i], e)
 
         # Get multiple items (this will create a view).
-        clist_view = self.clist[list(range(len(self.clist)))]
+        indices = list(range(len(self.clist)))
+        clist_view = self.clist[indices]
         assert_true(clist_view is not self.clist)
         assert_true(clist_view._data is self.clist._data)
         assert_true(clist_view._offsets is not self.clist._offsets)
         assert_true(clist_view._lengths is not self.clist._lengths)
         assert_array_equal(clist_view._offsets, self.clist._offsets)
         assert_array_equal(clist_view._lengths, self.clist._lengths)
-        for e1, e2 in zip_longest(clist_view, self.clist):
-            assert_array_equal(e1, e2)
+        assert_arrays_equal(clist_view, self.clist)
+
+        # Get multiple items using ndarray of data type.
+        for dtype in [np.int8, np.int16, np.int32, np.int64]:
+            clist_view = self.clist[np.array(indices, dtype=dtype)]
+            assert_true(clist_view is not self.clist)
+            assert_true(clist_view._data is self.clist._data)
+            assert_true(clist_view._offsets is not self.clist._offsets)
+            assert_true(clist_view._lengths is not self.clist._lengths)
+            assert_array_equal(clist_view._offsets, self.clist._offsets)
+            assert_array_equal(clist_view._lengths, self.clist._lengths)
+            for e1, e2 in zip_longest(clist_view, self.clist):
+                assert_array_equal(e1, e2)
 
         # Get slice (this will create a view).
         clist_view = self.clist[::2]
