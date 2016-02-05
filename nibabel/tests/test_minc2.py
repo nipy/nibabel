@@ -20,7 +20,6 @@ from .. import minc2
 from ..minc2 import Minc2File, Minc2Image
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..testing import data_path
 

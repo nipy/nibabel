@@ -15,7 +15,8 @@ from numpy import pi
 from .. import eulerangles as nea
 from .. import quaternions as nq
 
-from nose.tools import assert_true, assert_false, assert_equal
+from nose.tools import assert_false
+from nose.tools import assert_true
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 

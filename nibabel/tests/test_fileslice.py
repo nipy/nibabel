@@ -17,7 +17,9 @@ from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          calc_slicedefs, _simple_fileslice, slice2outax,
                          strided_scalar)
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_false
+from nose.tools import assert_raises
 
 from numpy.testing import assert_array_equal
 

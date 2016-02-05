@@ -238,7 +238,7 @@ def test_make_datasource():
 @raises(DataError)
 def test_bomber():
     b = Bomber('bomber example', 'a message')
-    res = b.any_attribute
+    b.any_attribute
 
 
 def test_bomber_inspect():
@@ -265,11 +265,11 @@ def test_datasource_or_bomber():
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.2\n')
         ds = datasource_or_bomber(pkg_def)
-        fn = ds.get_filename('some_file.txt')
+        ds.get_filename('some_file.txt')
         # check that versioning works
         pkg_def['min version'] = '0.2'
         ds = datasource_or_bomber(pkg_def)  # OK
-        fn = ds.get_filename('some_file.txt')
+        ds.get_filename('some_file.txt')
         pkg_def['min version'] = '0.3'
         ds = datasource_or_bomber(pkg_def)  # not OK
         yield (assert_raises,

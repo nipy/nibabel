@@ -68,7 +68,6 @@ class MGHError(Exception):
     To be raised whenever MGH is not happy, or we are not happy with
     MGH.
     """
-    pass
 
 
 class MGHHeader(object):
@@ -225,7 +224,6 @@ class MGHHeader(object):
 
     def check_fix(self):
         ''' Pass. maybe for now'''
-        pass
 
     def get_affine(self):
         ''' Get the affine transform from the header information.

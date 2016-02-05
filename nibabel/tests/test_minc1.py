@@ -25,7 +25,7 @@ from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from ..tmpdirs import InTemporaryDirectory
 from ..testing import data_path
 

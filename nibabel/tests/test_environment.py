@@ -4,16 +4,14 @@
 import os
 from os import environ as env
 from os.path import join as pjoin, abspath
-import sys
 
-import numpy as np
 
 from .. import environment as nibe
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_equal
 
 from nose import with_setup
 

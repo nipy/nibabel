@@ -12,13 +12,13 @@ import numpy as np
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
                             flip_axis, apply_orientation, OrientationError,
                             ornt2axcodes, axcodes2ornt, aff2axcodes)
 
-from ..affines import from_matvec, to_matvec
+from ..affines import from_matvec
 
 
 IN_ARRS = [np.eye(4),
@@ -296,7 +296,6 @@ def test_axcodes2ornt():
 
 
 def test_aff2axcodes():
-    labels = (('left', 'right'), ('back', 'front'), ('down', 'up'))
     assert_equal(aff2axcodes(np.eye(4)), tuple('RAS'))
     aff = [[0, 1, 0, 10], [-1, 0, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]
     assert_equal(aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))),

@@ -51,7 +51,6 @@ class ValidateAPI(with_metaclass(validator2test)):
 
     See :class:`TextValidateSomething` for an example
     """
-    pass
 
 
 class TestValidateSomething(ValidateAPI):

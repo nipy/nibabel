@@ -9,7 +9,6 @@
 """ Testing fileutils module
 """
 
-import numpy as np
 
 from ..fileutils import read_zt_byte_strings
 

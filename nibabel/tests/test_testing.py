@@ -7,7 +7,8 @@ import warnings
 
 import numpy as np
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_raises
 from ..testing import (error_warnings, suppress_warnings,
                        clear_and_catch_warnings, assert_allclose_safely,
                        get_fresh_mod)

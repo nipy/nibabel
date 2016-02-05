@@ -10,7 +10,6 @@ from .. import dwiparams as dwp
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_dicomwrappers import (have_dicom, dicom_test,
                                  IO_DATA_PATH, DATA, DATA_FILE)
@@ -109,7 +108,7 @@ def test_csa_params():
     assert_equal(b_matrix.shape, (3, 3))
     # check (by absence of error) that the B matrix is positive
     # semi-definite.
-    q = dwp.B2q(b_matrix)
+    dwp.B2q(b_matrix)
     b_value = csa.get_b_value(csa_info)
     assert_equal(b_value, 1000)
     g_vector = csa.get_g_vector(csa_info)

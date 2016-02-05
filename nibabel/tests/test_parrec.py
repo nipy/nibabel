@@ -301,7 +301,7 @@ def test_truncated_load():
         gen_info, slice_info = parse_PAR_header(fobj)
     assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
     with clear_and_catch_warnings(record=True) as wlist:
-        hdr = PARRECHeader(gen_info, slice_info, True)
+        PARRECHeader(gen_info, slice_info, True)
         assert_equal(len(wlist), 1)
 
 

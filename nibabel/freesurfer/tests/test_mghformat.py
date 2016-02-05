@@ -10,7 +10,6 @@
 
 import os
 import io
-import gzip
 
 import numpy as np
 
@@ -134,7 +133,7 @@ def bad_dtype_mgh():
     v = np.ones((7, 13, 3, 22)).astype(np.uint16)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
-    img = MGHImage(v, None)
+    MGHImage(v, None)
 
 
 def test_bad_dtype_mgh():

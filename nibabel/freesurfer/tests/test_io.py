@@ -70,7 +70,7 @@ def test_geometry():
         coords2, faces2 = read_geometry(surf_path)
 
         with open(surf_path, 'rb') as fobj:
-            magic = np.fromfile(fobj, ">u1", 3)
+            np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
 
     assert_equal(create_stamp, read_create_stamp)

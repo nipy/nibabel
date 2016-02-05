@@ -331,17 +331,17 @@ def test_slope_inter_castable():
         data = np.array(arr, dtype=in_dtt)
         # With scaling but no intercept
         if slope_only:
-            aw = SlopeArrayWriter(data, out_dtt)
+            SlopeArrayWriter(data, out_dtt)
         else:
             assert_raises(WriterError, SlopeArrayWriter, data, out_dtt)
         # With scaling and intercept
         if slope_inter:
-            aw = SlopeInterArrayWriter(data, out_dtt)
+            SlopeInterArrayWriter(data, out_dtt)
         else:
             assert_raises(WriterError, SlopeInterArrayWriter, data, out_dtt)
         # With neither
         if neither:
-            aw = ArrayWriter(data, out_dtt)
+            ArrayWriter(data, out_dtt)
         else:
             assert_raises(WriterError, ArrayWriter, data, out_dtt)
 

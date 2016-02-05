@@ -22,7 +22,6 @@ from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                             data_type_codes, extension_codes,
                             slice_order_codes)
-from nibabel.openers import ImageOpener
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload

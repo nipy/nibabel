@@ -21,7 +21,7 @@ from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 from nose.tools import (assert_true, assert_false, assert_not_equal,
                         assert_equal)
 
-from numpy.testing import assert_almost_equal, assert_array_equal
+from numpy.testing import assert_almost_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data

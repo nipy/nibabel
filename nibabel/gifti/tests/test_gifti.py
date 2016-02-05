@@ -9,7 +9,7 @@ from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData)
 from nibabel.gifti.gifti import data_tag
-from nibabel.nifti1 import data_type_codes, intent_codes
+from nibabel.nifti1 import data_type_codes
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -179,7 +179,7 @@ def test_gifti_image():
 
 
 def test_data_tag_deprecated():
-    img = GiftiImage()
+    GiftiImage()
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         data_tag(np.array([]), 'ASCII', '%i', 1)

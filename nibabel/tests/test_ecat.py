@@ -172,7 +172,7 @@ class TestEcatSubHeader(TestCase):
         assert_equal(self.subhdr._get_frame_offset(), 1536)
         dat = self.subhdr.raw_data_from_fileobj()
         assert_equal(dat.shape, self.subhdr.get_shape())
-        scale_factor = self.subhdr.subheaders[0]['scale_factor']
+        self.subhdr.subheaders[0]['scale_factor']
         assert_equal(self.subhdr.subheaders[0]['scale_factor'].item(), 1.0)
         ecat_calib_factor = self.hdr['ecat_calibration_factor']
         assert_equal(ecat_calib_factor, 25007614.0)

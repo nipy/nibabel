@@ -2,7 +2,8 @@
 
 from ..keywordonly import kw_only_func, kw_only_meth
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_raises
 
 
 def test_kw_only_func():

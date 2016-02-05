@@ -64,4 +64,4 @@ class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):
 def test_origin_affine():
     # check that origin affine works, only
     hdr = Spm2AnalyzeHeader()
-    aff = hdr.get_origin_affine()
+    hdr.get_origin_affine()

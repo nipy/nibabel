@@ -10,9 +10,9 @@
 
 import sys
 
-import numpy as np
 
-from nose.tools import assert_raises, assert_true, assert_equal
+from nose.tools import assert_equal
+from nose.tools import assert_true
 
 from ..volumeutils import (endian_codes, native_code, swapped_code)
 

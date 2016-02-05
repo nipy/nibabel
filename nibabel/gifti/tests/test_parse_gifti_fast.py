@@ -21,7 +21,7 @@ from nibabel.loadsave import load, save
 from nibabel.nifti1 import xform_codes
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
@@ -113,7 +113,7 @@ def test_read_ordering():
 def test_load_metadata():
     for i, dat in enumerate(datafiles):
         img = load(dat)
-        me = img.meta
+        img.meta
         assert_equal(numDA[i], img.numDA)
         assert_equal(img.version, '1.0')
 

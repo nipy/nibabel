@@ -24,7 +24,6 @@ With deprecation warnings
 _field_recoders -> field_recoders
 '''
 import logging
-import warnings
 import numpy as np
 
 from ..externals.six import BytesIO, StringIO
@@ -157,7 +156,7 @@ class _TestWrapStructBase(TestCase):
         # structarr attribute also read only
         hdr = self.header_class()
         # Just check we can get structarr
-        _ = hdr.structarr
+        hdr.structarr
         # That it's read only
         assert_raises(AttributeError, hdr.__setattr__, 'structarr', 0)
 
