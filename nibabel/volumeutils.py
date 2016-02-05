@@ -1543,9 +1543,9 @@ class BinOpener(Opener):
     __doc__ = Opener.__doc__
 
     def __init__(self, *args, **kwargs):
-        warnings.warn("Please use %s class instead of %s" % (
-            Opener.__class__.__name__,
-            self.__class__.__name__),
+        warnings.warn(
+            "Please use %s class instead of %s" % (Opener.__class__.__name__,
+                                                   self.__class__.__name__),
             DeprecationWarning, stacklevel=2)
         return super(BinOpener, self).__init__(*args, **kwargs)
 
