@@ -225,7 +225,7 @@ class SpatialHeader(FileBasedHeader):
         self._shape = tuple([int(s) for s in shape])
         # set any unset zooms to 1.0
         nzs = min(len(self._zooms), ndim)
-        self._zooms = self._zooms[:nzs] + (1.0,) * (ndim-nzs)
+        self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
     def get_zooms(self):
         return self._zooms
@@ -308,6 +308,7 @@ def supported_np_types(obj):
 
 class Header(SpatialHeader):
     '''Alias for SpatialHeader; kept for backwards compatibility.'''
+
     def __init__(self, *args, **kwargs):
         warnings.warn('Header is deprecated, use SpatialHeader',
                       DeprecationWarning, stacklevel=2)

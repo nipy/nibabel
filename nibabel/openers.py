@@ -33,7 +33,7 @@ class BufferedGzipFile(gzip.GzipFile):
     # It also helps limit the exposure to this code.
     if sys.version_info[:3] == (3, 5, 0):
         def __init__(self, fileish, mode='rb', compresslevel=9,
-                     buffer_size=2**32-1):
+                     buffer_size=2**32 - 1):
             super(BufferedGzipFile, self).__init__(fileish, mode=mode,
                                                    compresslevel=compresslevel)
             self.buffer_size = buffer_size

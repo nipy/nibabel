@@ -27,6 +27,7 @@ import base64
 class GiftiMetaData(xml.XmlSerializable):
     """ A list of GiftiNVPairs in stored in
     the list self.data """
+
     def __init__(self, nvpair=None):
         self.data = []
         if nvpair is not None:
@@ -189,6 +190,7 @@ class GiftiCoordSystem(xml.XmlSerializable):
 @np.deprecate_with_doc("This is an internal API that will be discontinued.")
 def data_tag(dataarray, encoding, datatype, ordering):
     class DataTag(xml.XmlSerializable):
+
         def __init__(self, *args):
             self.args = args
 

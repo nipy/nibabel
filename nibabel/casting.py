@@ -272,7 +272,7 @@ def type_info(np_type):
     if not np_type in (np.longdouble, np.longcomplex) or width not in (16, 32):
         raise FloatingError('We had not expected type %s' % np_type)
     if (vals == (1, 1, 16) and on_powerpc() and
-        _check_maxexp(np.longdouble, 1024)):
+            _check_maxexp(np.longdouble, 1024)):
         # double pair on PPC.  The _check_nmant routine does not work for this
         # type, hence the powerpc platform check instead
         ret.update(dict(nmant=106, width=width))
@@ -664,7 +664,7 @@ def best_float():
     except FloatingError:
         return np.float64
     if (long_info['nmant'] > type_info(np.float64)['nmant'] and
-        machine() != 'sparc64'):  # sparc has crazy-slow float128
+            machine() != 'sparc64'):  # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
 

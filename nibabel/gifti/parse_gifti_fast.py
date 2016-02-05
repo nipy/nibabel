@@ -279,8 +279,7 @@ class GiftiImageParser(XmlParser):
         self._char_blocks.append(data)
 
     def flush_chardata(self):
-        """ Collate and process collected character data
-        """
+        """ Collate and process collected character data"""
         if self._char_blocks is None:
             return
         # Just join the strings to get the data.  Maybe there are some memory
@@ -327,18 +326,18 @@ class GiftiImageParser(XmlParser):
 
     @property
     def pending_data(self):
-        " True if there is character data pending for processing "
+        """True if there is character data pending for processing"""
         return self._char_blocks is not None
 
 
 class Outputter(GiftiImageParser):
+
     @np.deprecate_with_doc("Use GiftiImageParser instead.")
     def __init__(self):
         super(Outputter, self).__init__()
 
     def initialize(self):
-        """ Initialize outputter
-        """
+        """ Initialize outputter"""
         self.__init__()
 
 

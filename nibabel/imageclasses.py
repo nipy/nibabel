@@ -34,6 +34,7 @@ all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
 
 # DEPRECATED: mapping of names to classes and class functionality
 class ClassMapDict(dict):
+
     def __getitem__(self, *args, **kwargs):
         warnings.warn("class_map is deprecated.", DeprecationWarning,
                       stacklevel=2)
@@ -88,6 +89,7 @@ class_map = ClassMapDict(
 
 
 class ExtMapRecoder(Recoder):
+
     def __getitem__(self, *args, **kwargs):
         warnings.warn("ext_map is deprecated.", DeprecationWarning,
                       stacklevel=2)

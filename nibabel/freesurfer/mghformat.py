@@ -15,7 +15,7 @@ import numpy as np
 
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
-from ..fileholders import FileHolder,  copy_file_map
+from ..fileholders import FileHolder, copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
@@ -33,11 +33,11 @@ header_dtd = [
     ('delta', '>f4', (3,)),
     ('Mdc', '>f4', (3, 3)),
     ('Pxyz_c', '>f4', (3,))
-    ]
+]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
     ('mrparms', '>f4', (4,))
-    ]
+]
 
 header_dtype = np.dtype(header_dtd)
 footer_dtype = np.dtype(footer_dtd)
@@ -47,13 +47,13 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
     (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
-                         np.dtype(np.uint8).newbyteorder('>')),
+     np.dtype(np.uint8).newbyteorder('>')),
     (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
-                         np.dtype(np.int16).newbyteorder('>')),
+     np.dtype(np.int16).newbyteorder('>')),
     (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
-                         np.dtype(np.int32).newbyteorder('>')),
+     np.dtype(np.int32).newbyteorder('>')),
     (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
-                         np.dtype(np.float32).newbyteorder('>')))
+     np.dtype(np.float32).newbyteorder('>')))
 
 # make full code alias bank, including dtype column
 data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',

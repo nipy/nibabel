@@ -45,7 +45,7 @@ header_1_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
 # Version 2 adds a 4x4 matrix giving the affine transformation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
@@ -75,7 +75,7 @@ header_2_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
 # Full header numpy dtypes
 header_1_dtype = np.dtype(header_1_dtd)
@@ -250,7 +250,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     return streamlines, hdr
 
 
-def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
+def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
           points_space=None):
     ''' Write header and `streamlines` to trackvis file `fileobj`
 
@@ -792,6 +792,7 @@ class TrackvisFile(object):
         space. If 'points_space' is not None, you can use this to give the
         relationship between voxels, rasmm and voxmm space (above).
     '''
+
     def __init__(self,
                  streamlines,
                  mapping=None,

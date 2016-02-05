@@ -214,7 +214,7 @@ def append_diag(aff, steps, starts=()):
         starts = np.zeros(n_steps, dtype=steps.dtype)
     elif len(starts) != n_steps:
         raise ValueError('Steps should have same length as starts')
-    old_n_out, old_n_in = aff.shape[0]-1, aff.shape[1]-1
+    old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
     aff_plus = np.zeros((old_n_out + n_steps + 1,
                          old_n_in + n_steps + 1), dtype=aff.dtype)
@@ -223,7 +223,7 @@ def append_diag(aff, steps, starts=()):
     aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]
     # Add new diagonal elements
     for i, el in enumerate(steps):
-        aff_plus[old_n_out+i, old_n_in+i] = el
+        aff_plus[old_n_out + i, old_n_in + i] = el
     # Add translations for new affine, plus last 1
     aff_plus[old_n_out:, -1] = list(starts) + [1]
     return aff_plus

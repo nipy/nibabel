@@ -14,7 +14,7 @@ from . import spm99analyze as spm99  # module import
 image_dimension_dtd = spm99.image_dimension_dtd[:]
 image_dimension_dtd[
     image_dimension_dtd.index(('funused2', 'f4'))
-    ] = ('scl_inter', 'f4')
+] = ('scl_inter', 'f4')
 
 # Full header numpy dtype combined across sub-fields
 header_dtype = np.dtype(spm99.header_key_dtd +

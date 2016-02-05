@@ -16,7 +16,7 @@ _CONVERTERS = {
     'SL': int,    # signed long
     'UL': int,    # unsigned long
     'IS': int,    # integer string
-    }
+}
 
 MAX_CSA_ITEMS = 199
 
@@ -152,7 +152,7 @@ def read(csa_str):
             # go to 4 byte boundary
             plus4 = item_len % 4
             if plus4 != 0:
-                up_str.ptr += (4-plus4)
+                up_str.ptr += (4 - plus4)
         tag['items'] = items
         csa_dict['tags'][name] = tag
     return csa_dict

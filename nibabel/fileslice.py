@@ -88,7 +88,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             can_slicers.append(None)
             continue
         if slicer == Ellipsis:
-            remaining = sliceobj[i+1:]
+            remaining = sliceobj[i + 1:]
             if Ellipsis in remaining:
                 raise ValueError("More than one Ellipsis in slicing "
                                  "expression")
@@ -276,7 +276,7 @@ def _positive_slice(slicer):
     n = gap / step
     n = int(n) - 1 if int(n) == n else int(n)
     end = start + n * step
-    return slice(end, start+1, -step)
+    return slice(end, start + 1, -step)
 
 
 def threshold_heuristic(slicer,
@@ -399,7 +399,7 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride,
         if slicer == slice(0, dim_len, 1):
             return slice(None), slice(None)
         # full, but reversed
-        if slicer == slice(dim_len-1, None, -1):
+        if slicer == slice(dim_len - 1, None, -1):
             return slice(None), slice(None, None, -1)
         # Not full, mabye continuous
         is_int = False

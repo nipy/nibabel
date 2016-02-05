@@ -117,7 +117,7 @@ main_header_dtd = [
     ('data_units', '32S'),
     ('septa_state', np.uint16),
     ('fill', '12S')
-    ]
+]
 hdr_dtype = np.dtype(main_header_dtd)
 
 
@@ -384,7 +384,7 @@ def read_mlist(fileobj, endianness):
             mlist = []
             return mlist
         # Use all but first housekeeping row
-        mlists.append(rows[1:n_rows+1])
+        mlists.append(rows[1:n_rows + 1])
         mlist_index += n_rows
         if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
@@ -467,7 +467,7 @@ def get_series_framenumbers(mlist):
     try:
         for frame_stored, (true_order, _) in frames_order.items():
             # frame as stored in file -> true number in series
-            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+            frame_dict[frame_stored] = trueframenumbers[true_order] + 1
         return frame_dict
     except:
         raise IOError('Error in header or mlist order unknown')
@@ -571,7 +571,7 @@ class EcatSubHeader(object):
 
         dims = self.get_shape(frame)
         # get translations from center of image
-        origin_offset = (np.array(dims)-1) / 2.0
+        origin_offset = (np.array(dims) - 1) / 2.0
         aff = np.diag(zooms)
         aff[:3, -1] = -origin_offset * zooms[:-1] + np.array([x_off, y_off,
                                                               z_off])
@@ -664,6 +664,7 @@ class EcatImageArrayProxy(object):
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
     '''
+
     def __init__(self, subheader):
         self._subheader = subheader
         self._data = None
@@ -706,7 +707,7 @@ class EcatImageArrayProxy(object):
         slice3 = sliceobj[ax_inds[3]]
         # We will load volume by volume.  Make slicer into volume by dropping
         # index over the volume axis
-        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3]+1:]
+        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3] + 1:]
         # int index for 4th axis, load one slice
         if isinstance(slice3, Integral):
             data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
@@ -868,16 +869,16 @@ class EcatImage(SpatialImage):
         hdr_fid = hdr_file.get_prepare_fileobj(mode='rb')
         header = klass._header.from_fileobj(hdr_fid)
         hdr_copy = header.copy()
-        ### LOAD MLIST
+        # LOAD MLIST
         mlist = np.zeros((header['num_frames'], 4), dtype=np.int32)
         mlist_data = read_mlist(hdr_fid, hdr_copy.endianness)
         mlist[:len(mlist_data)] = mlist_data
-        ### LOAD SUBHEADERS
+        # LOAD SUBHEADERS
         subheaders = klass._subheader(hdr_copy, mlist, hdr_fid)
-        ### LOAD DATA
-        ##  Class level ImageArrayProxy
+        # LOAD DATA
+        # Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)
-        ## Get affine
+        # Get affine
         if not subheaders._check_affines():
             warnings.warn('Affines different across frames, loading affine '
                           'from FIRST frame', UserWarning)
@@ -961,7 +962,7 @@ class EcatImage(SpatialImage):
             image = self._subheader.raw_data_from_fileobj(index)
 
             # Write frame images
-            self._write_data(image, imgf, pos+2, endianness='>')
+            self._write_data(image, imgf, pos + 2, endianness='>')
 
             # Move to dictionnary offset and write dictionnary entry
             self._write_data(mlist[index], imgf, entry_pos, endianness='>')

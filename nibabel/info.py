@@ -108,23 +108,23 @@ NUMPY_MIN_VERSION = '1.5'
 PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
-NAME                = 'nibabel'
+NAME = 'nibabel'
 MAINTAINER          = "Matthew Brett, Michael Hanke, Eric Larson, " \
                       "Chris Markiewicz"
-MAINTAINER_EMAIL    = "neuroimaging@python.org"
-DESCRIPTION         = description
-LONG_DESCRIPTION    = long_description
-URL                 = "http://nipy.org/nibabel"
-DOWNLOAD_URL        = "https://github.com/nipy/nibabel"
-LICENSE             = "MIT license"
-CLASSIFIERS         = CLASSIFIERS
-AUTHOR              = "Matthew Brett, Michael Hanke, Stephan Gerhard"
-AUTHOR_EMAIL        = "neuroimaging@python.org"
-PLATFORMS           = "OS Independent"
-MAJOR               = _version_major
-MINOR               = _version_minor
-MICRO               = _version_micro
-ISRELEASE           = _version_extra == ''
-VERSION             = __version__
-PROVIDES            = ["nibabel", 'nisext']
-REQUIRES            = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
+MAINTAINER_EMAIL = "neuroimaging@python.org"
+DESCRIPTION = description
+LONG_DESCRIPTION = long_description
+URL = "http://nipy.org/nibabel"
+DOWNLOAD_URL = "https://github.com/nipy/nibabel"
+LICENSE = "MIT license"
+CLASSIFIERS = CLASSIFIERS
+AUTHOR = "Matthew Brett, Michael Hanke, Stephan Gerhard"
+AUTHOR_EMAIL = "neuroimaging@python.org"
+PLATFORMS = "OS Independent"
+MAJOR = _version_major
+MINOR = _version_minor
+MICRO = _version_micro
+ISRELEASE = _version_extra == ''
+VERSION = __version__
+PROVIDES = ["nibabel", 'nisext']
+REQUIRES = ["numpy (>=%s)" % NUMPY_MIN_VERSION]

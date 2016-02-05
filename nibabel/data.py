@@ -33,6 +33,7 @@ class BomberError(DataError, AttributeError):
 
 class Datasource(object):
     ''' Simple class to add base path to relative path '''
+
     def __init__(self, base_path):
         ''' Initialize datasource
 
@@ -87,7 +88,7 @@ class Datasource(object):
         out_list = list()
         for base, dirs, files in os.walk(self.base_path):
             if relative:
-                base = base[len(self.base_path)+1:]
+                base = base[len(self.base_path) + 1:]
             for filename in files:
                 out_list.append(pjoin(base, filename))
         return out_list
@@ -97,6 +98,7 @@ class VersionedDatasource(Datasource):
     ''' Datasource with version information in config file
 
     '''
+
     def __init__(self, base_path, config_filename=None):
         ''' Initialize versioned datasource
 
@@ -239,8 +241,8 @@ def find_data_dir(root_dirs, *names):
         if os.path.isdir(pth):
             return pth
     raise DataError('Could not find datasource "%s" in data path "%s"' %
-                   (ds_relative,
-                    os.path.pathsep.join(root_dirs)))
+                    (ds_relative,
+                     os.path.pathsep.join(root_dirs)))
 
 
 def make_datasource(pkg_def, **kwargs):
@@ -304,6 +306,7 @@ def make_datasource(pkg_def, **kwargs):
 
 class Bomber(object):
     ''' Class to raise an informative error when used '''
+
     def __init__(self, name, msg):
         self.name = name
         self.msg = msg
@@ -350,7 +353,7 @@ def datasource_or_bomber(pkg_def, **options):
         return Bomber(sys_relpath, str(e))
     # check version
     if (version is None or
-        LooseVersion(ds.version) >= LooseVersion(version)):
+            LooseVersion(ds.version) >= LooseVersion(version)):
         return ds
     if 'name' in pkg_def:
         pkg_name = pkg_def['name']

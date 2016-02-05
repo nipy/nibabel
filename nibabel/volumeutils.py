@@ -76,6 +76,7 @@ class Recoder(object):
     >>> recodes[2]
     2
     '''
+
     def __init__(self, codes, fields=('code',), map_maker=dict):
         ''' Create recoder object
 
@@ -234,6 +235,7 @@ class DtypeMapper(object):
     is a dtype, we compare (using ==) all known dtype keys to the input key,
     and return any matching values for the matching key.
     """
+
     def __init__(self):
         self._dict = {}
         self._dtype_keys = []
@@ -1121,7 +1123,7 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
         [mn, mx, info['min'], info['max']], np.maximum_sctype(np.float))
     # with intercept
     if allow_intercept:
-        data_range = mx-mn
+        data_range = mx - mn
         if data_range == 0:
             return 1.0, mn
         type_range = type_max - type_min
@@ -1496,7 +1498,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     if x_flip:
         zooms[0] *= -1
     # Get translations from center of image
-    origin = (shape-1) / 2.0
+    origin = (shape - 1) / 2.0
     aff = np.eye(4)
     aff[:3, :3] = np.diag(zooms)
     aff[:3, -1] = -origin * zooms
@@ -1542,9 +1544,9 @@ class BinOpener(Opener):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("Please use %s class instead of %s" % (
-                          Opener.__class__.__name__,
-                          self.__class__.__name__),
-                      DeprecationWarning, stacklevel=2)
+            Opener.__class__.__name__,
+            self.__class__.__name__),
+            DeprecationWarning, stacklevel=2)
         return super(BinOpener, self).__init__(*args, **kwargs)
 
 
