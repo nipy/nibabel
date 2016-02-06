@@ -179,7 +179,6 @@ def test_gifti_image():
 
 
 def test_data_tag_deprecated():
-    GiftiImage()
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         data_tag(np.array([]), 'ASCII', '%i', 1)

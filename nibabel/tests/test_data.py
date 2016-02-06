@@ -238,7 +238,7 @@ def test_make_datasource():
 @raises(DataError)
 def test_bomber():
     b = Bomber('bomber example', 'a message')
-    b.any_attribute
+    b.any_attribute  # no error
 
 
 def test_bomber_inspect():

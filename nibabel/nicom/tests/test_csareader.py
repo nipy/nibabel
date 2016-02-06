@@ -108,7 +108,7 @@ def test_csa_params():
     assert_equal(b_matrix.shape, (3, 3))
     # check (by absence of error) that the B matrix is positive
     # semi-definite.
-    dwp.B2q(b_matrix)
+    dwp.B2q(b_matrix)  # no error
     b_value = csa.get_b_value(csa_info)
     assert_equal(b_value, 1000)
     g_vector = csa.get_g_vector(csa_info)
