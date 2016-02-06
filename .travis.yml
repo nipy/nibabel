@@ -62,8 +62,8 @@ before_install:
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip  # upgrade to latest pip to find 3.5 wheels
-    - retry pip install nose # always
+    - pip install -U pip wheel  # upgrade to latest pip find 3.5 wheels; wheel to avoid errors
+    - retry pip install nose flake8  # always
     - wheelhouse_pip_install $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
@@ -98,6 +98,8 @@ install:
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test
 script:
+    # Run styles first, only on core nibabel code.
+    - flake8 nibabel
     # Change into an innocuous directory and find tests from installation
     - mkdir for_testing
     - cd for_testing
