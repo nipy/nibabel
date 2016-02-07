@@ -22,7 +22,6 @@ from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             Nifti1Pair, Nifti1Extension, Nifti1Extensions,
                             data_type_codes, extension_codes,
                             slice_order_codes)
-from nibabel.openers import ImageOpener
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload
@@ -260,8 +259,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         dim_type = hdr.template_dtype['dim'].base
         glmin = hdr.template_dtype['glmin'].base
         too_big = int(np.iinfo(dim_type).max) + 1
-        hdr.set_data_shape((too_big-1, 1, 1))
-        assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
+        hdr.set_data_shape((too_big - 1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (too_big - 1, 1, 1))
         # The freesurfer case
         full_shape = (too_big, 1, 1, 1, 1, 1, 1)
         for dim in range(3, 8):
@@ -289,15 +288,15 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
         with suppress_warnings():
-            hdr.set_data_shape((far_too_big-1, 1, 1))
-        assert_equal(hdr.get_data_shape(), (far_too_big-1, 1, 1))
+            hdr.set_data_shape((far_too_big - 1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (far_too_big - 1, 1, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big, 1, 1))
         # glmin of zero raises error (implausible vector length)
         hdr.set_data_shape((-1, 1, 1))
         hdr['glmin'] = 0
         assert_raises(HeaderDataError, hdr.get_data_shape)
         # Lists or tuples or arrays will work for setting shape
-        for shape in ((too_big-1, 1, 1), (too_big, 1, 1)):
+        for shape in ((too_big - 1, 1, 1), (too_big, 1, 1)):
             for constructor in (list, tuple, np.array):
                 with suppress_warnings():
                     hdr.set_data_shape(constructor(shape))
@@ -433,7 +432,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr['quatern_d'] = 0
         assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
         # Check threshold set correctly for float32
-        hdr['quatern_b'] = 1+np.finfo(self.quat_dtype).eps
+        hdr['quatern_b'] = 1 + np.finfo(self.quat_dtype).eps
         assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
 
     def test_qform(self):
@@ -495,7 +494,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # values in a predictable way, for the tests below.
         _stringer = lambda val: val is not None and '%2.1f' % val or None
         _print_me = lambda s: list(map(_stringer, s))
-        #The following examples are from the nifti1.h documentation.
+        # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
         assert_equal(_print_me(hdr.get_slice_times()),
                      ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
@@ -548,7 +547,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         ehdr = self.header_class()
         ehdr.set_intent('t test', (10,), name='some score')
         assert_equal(ehdr.get_intent(),
-                    ('t test', (10.0,), 'some score'))
+                     ('t test', (10.0,), 'some score'))
         # invalid intent name
         assert_raises(KeyError, ehdr.set_intent, 'no intention')
         # too many parameters

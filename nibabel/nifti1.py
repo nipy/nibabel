@@ -71,7 +71,7 @@ header_dtd = [
     ('srow_z', 'f4', (4,)),    # 312; 3rd row affine transform
     ('intent_name', 'S16'),    # 328; name or meaning of data
     ('magic', 'S4')            # 344; must be 'ni1\0' or 'n+1\0'
-    ]
+]
 
 # Full header numpy dtype
 header_dtype = np.dtype(header_dtd)
@@ -110,7 +110,7 @@ _dtdefs = (  # code, label, dtype definition, niistring
                              ('G', 'u1'),
                              ('B', 'u1'),
                              ('A', 'u1')]), "NIFTI_TYPE_RGBA32"),
-    )
+)
 
 # Make full code alias bank, including dtype column
 data_type_codes = make_dt_codes(_dtdefs)
@@ -242,7 +242,7 @@ intent_codes = Recoder((
      "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME"),
     (3005, 'trajectory connectivity', (),
      'NIFTI_INTENT_CONNECTIVITY_CONNECTIVITY_TRAJECTORY'),
-    ), fields=('code', 'label', 'parameters', 'niistring'))
+), fields=('code', 'label', 'parameters', 'niistring'))
 
 
 class Nifti1Extension(object):
@@ -252,6 +252,7 @@ class Nifti1Extension(object):
     as `comment`. More sophisticated extensions should/will be supported by
     dedicated subclasses.
     """
+
     def __init__(self, code, content):
         """
         Parameters
@@ -392,13 +393,14 @@ extension_codes = Recoder((
     (12, "workflow_fwds", Nifti1Extension),
     (14, "freesurfer", Nifti1Extension),
     (16, "pypickle", Nifti1Extension)
-    ),
+),
     fields=('code', 'label', 'handler'))
 
 
 class Nifti1Extensions(list):
     """Simple extension collection, implemented as a list-subclass.
     """
+
     def count(self, ecode):
         """Returns the number of extensions matching a given *ecode*.
 
@@ -714,7 +716,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             return shape
 
     def set_data_shape(self, shape):
-        ''' Set shape of data
+        ''' Set shape of data  # noqa
 
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
@@ -1139,9 +1141,9 @@ class Nifti1Header(SpmAnalyzeHeader):
         freq = info & 3
         phase = (info >> 2) & 3
         slice = (info >> 4) & 3
-        return (freq-1 if freq else None,
-                phase-1 if phase else None,
-                slice-1 if slice else None)
+        return (freq - 1 if freq else None,
+                phase - 1 if phase else None,
+                slice - 1 if slice else None)
 
     def set_dim_info(self, freq=None, phase=None, slice=None):
         ''' Sets nifti MRI slice etc dimension information
@@ -1182,11 +1184,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
-            info = info | ((freq+1) & 3)
+            info = info | ((freq + 1) & 3)
         if phase is not None:
-            info = info | (((phase+1) & 3) << 2)
+            info = info | (((phase + 1) & 3) << 2)
         if slice is not None:
-            info = info | (((slice+1) & 3) << 4)
+            info = info | (((slice + 1) & 3) << 4)
         self._structarr['dim_info'] = info
 
     def get_intent(self, code_repr='label'):
@@ -1226,7 +1228,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         else:
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code])
-        params = (float(hdr['intent_p%d' % (i+1)]) for i in range(n_params))
+        params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
         name = asstr(np.asscalar(hdr['intent_name']))
         return label, tuple(params), name
 
@@ -1282,7 +1284,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
-            hdr['intent_p%d' % (i+1)] = param
+            hdr['intent_p%d' % (i + 1)] = param
         hdr['intent_code'] = icode
         hdr['intent_name'] = name
 
@@ -1383,15 +1385,15 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slice_start < 0:
             raise HeaderDataError('slice_start should be >= 0')
         if slice_end == 0:
-            slice_end = slice_len-1
+            slice_end = slice_len - 1
         n_timed = slice_end - slice_start + 1
         if n_timed < 1:
             raise HeaderDataError('slice_end should be > slice_start')
         st_order = self._slice_time_order(slabel, n_timed)
         times = st_order * duration
-        return ((None,)*slice_start +
+        return ((None,) * slice_start +
                 tuple(times) +
-                (None,)*(slice_len-slice_end-1))
+                (None,) * (slice_len - slice_end - 1))
 
     def set_slice_times(self, slice_times):
         ''' Set slice times into *hdr*
@@ -1432,9 +1434,9 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise HeaderDataError('Not all slice times can be None')
         for ind, time in enumerate(slice_times[::-1]):
             if time is not None:
-                slice_end = slice_len-ind-1
+                slice_end = slice_len - ind - 1
                 break
-        timed = slice_times[slice_start:slice_end+1]
+        timed = slice_times[slice_start:slice_end + 1]
         for time in timed:
             if time is None:
                 raise HeaderDataError('Cannot have None in middle '
@@ -1642,7 +1644,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                                          extra,
                                          file_map)
         # Force set of s/q form when header is None unless affine is also None
-        if header is None and not affine is None:
+        if header is None and affine is not None:
             self._affine2header()
     # Copy docstring
     __init__.doc = analyze.AnalyzeImage.__init__.__doc__

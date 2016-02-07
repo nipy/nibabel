@@ -3,15 +3,15 @@
 
 from ..externals.six import BytesIO
 
-import numpy as np
 
-from ..fileholders import FileHolder, FileHolderError, copy_file_map
-from ..tmpdirs import InTemporaryDirectory
+from ..fileholders import FileHolder
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_false
+from nose.tools import assert_true
 
 
 def test_init():

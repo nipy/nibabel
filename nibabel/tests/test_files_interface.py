@@ -19,12 +19,12 @@ from ..spatialimages import SpatialImage
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 
 def test_files_spatialimages():
     # test files creation in image classes
-    arr = np.zeros((2,3,4))
+    arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
     klasses = [klass for klass in all_image_classes
                if klass.rw and issubclass(klass, SpatialImage)]
@@ -51,7 +51,7 @@ def test_files_spatialimages():
 
 def test_files_interface():
     # test high-level interface to files mapping
-    arr = np.zeros((2,3,4))
+    arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
     img = Nifti1Image(arr, aff)
     # single image
@@ -68,7 +68,7 @@ def test_files_interface():
     # fileobjs - single image
     img = Nifti1Image(arr, aff)
     img.file_map['image'].fileobj = BytesIO()
-    img.to_file_map() # saves to files
+    img.to_file_map()  # saves to files
     img2 = Nifti1Image.from_file_map(img.file_map)
     # img still has correct data
     assert_array_equal(img2.get_data(), img.get_data())
@@ -78,7 +78,7 @@ def test_files_interface():
     # no header yet
     assert_raises(FileHolderError, img.to_file_map)
     img.file_map['header'].fileobj = BytesIO()
-    img.to_file_map() # saves to files
+    img.to_file_map()  # saves to files
     img2 = Nifti1Pair.from_file_map(img.file_map)
     # img still has correct data
     assert_array_equal(img2.get_data(), img.get_data())

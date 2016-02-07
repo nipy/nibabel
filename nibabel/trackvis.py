@@ -45,7 +45,7 @@ header_1_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
 # Version 2 adds a 4x4 matrix giving the affine transformation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
@@ -75,7 +75,7 @@ header_2_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
 # Full header numpy dtypes
 header_1_dtype = np.dtype(header_1_dtd)
@@ -214,7 +214,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
                 # Short of bytes, should we raise an error or continue?
                 actual_n_pts = int(len(pts_str) / pt_size)
                 if actual_n_pts != n_pts:
-                    if strict == True:
+                    if strict:
                         raise DataError('Expecting {0} points for stream {1}, '
                                         'found {2}'.format(
                                             n_pts, n_streams, actual_n_pts))
@@ -250,7 +250,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     return streamlines, hdr
 
 
-def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
+def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
           points_space=None):
     ''' Write header and `streamlines` to trackvis file `fileobj`
 
@@ -371,13 +371,13 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     # Get number of scalars and properties
     pts, scalars, props = streams0
     # calculate number of scalars
-    if not scalars is None:
+    if scalars is not None:
         n_s = scalars.shape[1]
     else:
         n_s = 0
     hdr['n_scalars'] = n_s
     # calculate number of properties
-    if not props is None:
+    if props is not None:
         n_p = props.size
         hdr['n_properties'] = n_p
     else:
@@ -792,6 +792,7 @@ class TrackvisFile(object):
         space. If 'points_space' is not None, you can use this to give the
         relationship between voxels, rasmm and voxmm space (above).
     '''
+
     def __init__(self,
                  streamlines,
                  mapping=None,
@@ -815,7 +816,7 @@ class TrackvisFile(object):
         self.endianness = endianness
         self.filename = filename
         self.points_space = points_space
-        if not affine is None:
+        if affine is not None:
             self.set_affine(affine, pos_vox=True, set_order=True)
 
     @classmethod

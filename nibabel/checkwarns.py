@@ -15,10 +15,12 @@ import warnings
 from .testing import (error_warnings, suppress_warnings)
 
 
-warnings.warn('The checkwarns module is deprecated and will be removed in nibabel v3.0', FutureWarning)
+warnings.warn('The checkwarns module is deprecated and will be removed '
+              'in nibabel v3.0', FutureWarning)
 
 
 class ErrorWarnings(error_warnings):
+
     def __init__(self, *args, **kwargs):
         warnings.warn('ErrorWarnings is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.error_warnings.',
@@ -27,6 +29,7 @@ class ErrorWarnings(error_warnings):
 
 
 class IgnoreWarnings(suppress_warnings):
+
     def __init__(self, *args, **kwargs):
         warnings.warn('IgnoreWarnings is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.suppress_warnings.',

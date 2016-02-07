@@ -20,6 +20,7 @@ class FileHolderError(Exception):
 class FileHolder(object):
     ''' class to contain filename, fileobj and file position
     '''
+
     def __init__(self,
                  filename=None,
                  fileobj=None,

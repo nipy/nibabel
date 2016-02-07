@@ -162,6 +162,7 @@ class suppress_warnings(error_warnings):
 
 
 class catch_warn_reset(clear_and_catch_warnings):
+
     def __init__(self, *args, **kwargs):
         warnings.warn('catch_warn_reset is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',

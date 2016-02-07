@@ -10,7 +10,6 @@
 
 import os
 import io
-import gzip
 
 import numpy as np
 
@@ -37,7 +36,7 @@ MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
                 [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
 # sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
-v2rtkr = np.array([[-1.0, 0.0, 0.0,  1.5],
+v2rtkr = np.array([[-1.0, 0.0, 0.0, 1.5],
                    [0.0, 0.0, 1.0, -2.5],
                    [0.0, -1.0, 0.0, 2.0],
                    [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)
@@ -134,7 +133,7 @@ def bad_dtype_mgh():
     v = np.ones((7, 13, 3, 22)).astype(np.uint16)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
-    img = MGHImage(v, None)
+    MGHImage(v, None)
 
 
 def test_bad_dtype_mgh():

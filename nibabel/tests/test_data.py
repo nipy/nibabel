@@ -9,9 +9,9 @@ import sys
 import tempfile
 
 from ..data import (get_data_path, find_data_dir,
-    DataError, _cfg_value, make_datasource,
-    Datasource, VersionedDatasource, Bomber,
-    datasource_or_bomber)
+                    DataError, _cfg_value, make_datasource,
+                    Datasource, VersionedDatasource, Bomber,
+                    datasource_or_bomber)
 
 from ..tmpdirs import TemporaryDirectory
 
@@ -27,6 +27,7 @@ from .test_environment import (setup_environment,
                                USER_KEY)
 
 DATA_FUNCS = {}
+
 
 def setup_data_env():
     setup_environment()
@@ -52,8 +53,8 @@ def test_datasource():
     pth = pjoin('some', 'path')
     ds = Datasource(pth)
     yield assert_equal, ds.get_filename('unlikeley'), pjoin(pth, 'unlikeley')
-    yield (assert_equal, ds.get_filename('un','like','ley'),
-           pjoin(pth, 'un','like','ley'))
+    yield (assert_equal, ds.get_filename('un', 'like', 'ley'),
+           pjoin(pth, 'un', 'like', 'ley'))
 
 
 def test_versioned():
@@ -137,8 +138,8 @@ def test_data_path():
     if USER_KEY in env:
         del os.environ[USER_KEY]
     fake_user_dir = '/user/path'
-    nibd.get_nipy_system_dir = lambda : '/unlikely/path'
-    nibd.get_nipy_user_dir = lambda : fake_user_dir
+    nibd.get_nipy_system_dir = lambda: '/unlikely/path'
+    nibd.get_nipy_user_dir = lambda: fake_user_dir
     # now we should only have anything pointed to in the user's dir
     old_pth = get_data_path()
     # We should have only sys.prefix and, iff sys.prefix == /usr,
@@ -163,13 +164,13 @@ def test_data_path():
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s' % tst_pth)
-        nibd.get_nipy_user_dir = lambda : tmpdir
+        nibd.get_nipy_user_dir = lambda: tmpdir
         assert_equal(get_data_path(), tst_list + def_dirs + [tmpdir])
-    nibd.get_nipy_user_dir = lambda : fake_user_dir
+    nibd.get_nipy_user_dir = lambda: fake_user_dir
     assert_equal(get_data_path(), old_pth)
     # with some trepidation, the system config files
     with TemporaryDirectory() as tmpdir:
-        nibd.get_nipy_system_dir = lambda : tmpdir
+        nibd.get_nipy_system_dir = lambda: tmpdir
         tmpfile = pjoin(tmpdir, 'an_example.ini')
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
@@ -213,19 +214,19 @@ def test_find_data_dir():
 @with_environment
 def test_make_datasource():
     pkg_def = dict(
-        relpath = 'pkg')
+        relpath='pkg')
     with TemporaryDirectory() as tmpdir:
-        nibd.get_data_path = lambda : [tmpdir]
+        nibd.get_data_path = lambda: [tmpdir]
         yield (assert_raises,
-           DataError,
-           make_datasource,
-           pkg_def)
+               DataError,
+               make_datasource,
+               pkg_def)
         pkg_dir = pjoin(tmpdir, 'pkg')
         os.mkdir(pkg_dir)
         yield (assert_raises,
-           DataError,
-           make_datasource,
-           pkg_def)
+               DataError,
+               make_datasource,
+               pkg_def)
         tmpfile = pjoin(pkg_dir, 'config.ini')
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DEFAULT]\n')
@@ -237,7 +238,7 @@ def test_make_datasource():
 @raises(DataError)
 def test_bomber():
     b = Bomber('bomber example', 'a message')
-    res = b.any_attribute
+    b.any_attribute  # no error
 
 
 def test_bomber_inspect():
@@ -248,9 +249,9 @@ def test_bomber_inspect():
 @with_environment
 def test_datasource_or_bomber():
     pkg_def = dict(
-        relpath = 'pkg')
+        relpath='pkg')
     with TemporaryDirectory() as tmpdir:
-        nibd.get_data_path = lambda : [tmpdir]
+        nibd.get_data_path = lambda: [tmpdir]
         ds = datasource_or_bomber(pkg_def)
         yield (assert_raises,
                DataError,
@@ -264,16 +265,15 @@ def test_datasource_or_bomber():
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.2\n')
         ds = datasource_or_bomber(pkg_def)
-        fn = ds.get_filename('some_file.txt')
+        ds.get_filename('some_file.txt')
         # check that versioning works
         pkg_def['min version'] = '0.2'
-        ds = datasource_or_bomber(pkg_def) # OK
-        fn = ds.get_filename('some_file.txt')
+        ds = datasource_or_bomber(pkg_def)  # OK
+        ds.get_filename('some_file.txt')
         pkg_def['min version'] = '0.3'
-        ds = datasource_or_bomber(pkg_def) # not OK
+        ds = datasource_or_bomber(pkg_def)  # not OK
         yield (assert_raises,
                DataError,
                getattr,
                ds,
                'get_filename')
-

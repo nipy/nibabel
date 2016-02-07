@@ -26,14 +26,15 @@ class BufferedGzipFile(gzip.GzipFile):
     in Python 3.5.0.
 
     This works around a known issue in Python 3.5.
-    See https://bugs.python.org/issue25626"""
+    See https://bugs.python.org/issue25626
+    """
 
     # This helps avoid defining readinto in Python 2.6,
     #   where it is undefined on gzip.GzipFile.
     # It also helps limit the exposure to this code.
     if sys.version_info[:3] == (3, 5, 0):
         def __init__(self, fileish, mode='rb', compresslevel=9,
-                     buffer_size=2**32-1):
+                     buffer_size=2**32 - 1):
             super(BufferedGzipFile, self).__init__(fileish, mode=mode,
                                                    compresslevel=compresslevel)
             self.buffer_size = buffer_size
@@ -114,7 +115,7 @@ class Opener(object):
         n_args = len(args)
         full_kwargs.update(dict(zip(arg_names[:n_args], args)))
         # Set default mode
-        if not 'mode' in full_kwargs:
+        if 'mode' not in full_kwargs:
             kwargs['mode'] = 'rb'
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel

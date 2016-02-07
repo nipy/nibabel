@@ -16,6 +16,7 @@ class validator2test(type):
     """
     def __new__(mcs, name, bases, dict):
         klass = type.__new__(mcs, name, bases, dict)
+
         def make_test(name, validator):
             def meth(self):
                 for imaker, params in self.obj_params():
@@ -30,7 +31,6 @@ class validator2test(type):
             test_meth = make_test(name, getattr(klass, name))
             setattr(klass, test_meth.__name__, test_meth)
         return klass
-
 
 
 class ValidateAPI(with_metaclass(validator2test)):
@@ -51,7 +51,6 @@ class ValidateAPI(with_metaclass(validator2test)):
 
     See :class:`TextValidateSomething` for an example
     """
-    pass
 
 
 class TestValidateSomething(ValidateAPI):
@@ -67,6 +66,7 @@ class TestValidateSomething(ValidateAPI):
         example.
         """
         class C(object):
+
             def __init__(self, var):
                 self.var = var
 
@@ -75,7 +75,6 @@ class TestValidateSomething(ValidateAPI):
 
         yield C(5), {'var': 5}
         yield C('easypeasy'), {'var': 'easypeasy'}
-
 
     def validate_something(self, obj, params):
         """ Do some checks of the `obj` API against `params`
