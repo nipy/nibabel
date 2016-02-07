@@ -21,7 +21,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
-from .. import xmlbasedimages as xml
+from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import string_types
 from ..filebasedimages import FileBasedImage, FileBasedHeader
