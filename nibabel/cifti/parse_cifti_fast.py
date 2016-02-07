@@ -9,13 +9,11 @@
 from __future__ import division, print_function, absolute_import
 
 from distutils.version import LooseVersion
-
-from ..externals.six import BytesIO
 from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
-from .cifti import (CiftiMetaData, CiftiImage, CiftiHeader, CiftiLabel,
+from .cifti import (CiftiImage, CiftiHeader, CiftiMetaData, CiftiLabel,
                     CiftiLabelTable, CiftiVertexIndices,
                     CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
@@ -23,13 +21,80 @@ from .cifti import (CiftiMetaData, CiftiImage, CiftiHeader, CiftiLabel,
                     CiftiVertices, CiftiVolume, CIFTI_BrainStructures,
                     CIFTI_MODEL_TYPES,
                     CiftiDenseDataSeries)
+from .. import xmlutils as xml
+from ..externals.six import BytesIO
+from ..nifti1 import Nifti1Extension, extension_codes
+from ..nifti2 import Nifti2Header, Nifti2Image
 
-DEBUG_PRINT = False
 
-class Outputter(object):
+class CiftiExtension(Nifti1Extension):
+    code = 32
 
-    def __init__(self):
-        # finite state machine stack
+    def __init__(self, code=None, content=None):
+        Nifti1Extension.__init__(self, code=code or self.code, content=content)
+
+    def _unmangle(self, value):
+        from .parse_cifti_fast import CiftiParser
+
+        parser = CiftiParser()
+        parser.parse(string=value)
+        self._content = parser.header
+        return self._content
+
+    def _mangle(self, value):
+        if not isinstance(value, CiftiHeader):
+            raise ValueError('Can only mangle a CiftiHeader.')
+        return value.to_xml()
+
+extension_codes.add_codes((
+    (CiftiExtension.code, "cifti", CiftiExtension),))
+
+
+class _CiftiAsNiftiHeader(Nifti2Header):
+    ''' Class for Cifti2 header extension '''
+
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if not Nifti2Header.may_contain_header(binaryblock):
+            return False
+        hdr = Nifti2Header(binaryblock=binaryblock[:Nifti2Header.sizeof_hdr])
+        intent_code = hdr.get_intent('code')[0]
+        return intent_code >= 3000 and intent_code < 3100  # and intent_code != 3002
+
+
+class _CiftiAsNiftiImage(Nifti2Image):
+    header_class = _CiftiAsNiftiHeader
+    files_types = (('image', '.nii'),)
+    valid_exts = ('.nii',)
+    makeable = False
+    rw = True
+
+    def __init__(self, dataobj, affine, header=None,
+                 extra=None, file_map=None):
+        """Convert NIFTI-2 file to CIFTI"""
+        super(_CiftiAsNiftiImage, self).__init__(dataobj=dataobj,
+                                                 affine=affine,
+                                                 header=header,
+                                                 extra=extra,
+                                                 file_map=file_map)
+
+        # Get cifti header from extension
+        self.cifti_img = reduce(lambda accum, newval: newval
+                                    if isinstance(newval, CiftiExtension)
+                                    else accum,
+                                self.get_header().extensions, None)
+        if self.cifti_img is None:
+            raise ValueError('Nifti2 header does not contain a CIFTI '
+                             'extension')
+        self.cifti_img.data = self.get_data()
+
+
+class CiftiParser(xml.XmlParser):
+
+    def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
+        super(CiftiParser, self).__init__(encoding=encoding,
+                                          buffer_size=buffer_size,
+                                          verbose=verbose)        # finite state machine stack
         self.fsm_state = []
         self.struct_state = []
 
@@ -42,8 +107,9 @@ class Outputter(object):
 
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
-        if DEBUG_PRINT:
+        if self.verbose > 0:
             print('Start element:\n\t', repr(name), attrs)
+
         if name == 'CIFTI':
             # create gifti image
             self.header = CiftiHeader()
@@ -52,27 +118,33 @@ class Outputter(object):
                 raise ValueError('Only CIFTI-2 files are supported')
             self.fsm_state.append('CIFTI')
             self.struct_state.append(self.header)
+
         elif name == 'Matrix':
             self.fsm_state.append('Matrix')
             matrix = CiftiMatrix()
-            header = self.struct_state[-1]
-            assert isinstance(header, CiftiHeader)
-            header.matrix = matrix
+            parent = self.struct_state[-1]
+            assert isinstance(parent, CiftiHeader)
+            parent.matrix = matrix
             self.struct_state.append(matrix)
+
         elif name == 'MetaData':
             self.fsm_state.append('MetaData')
             meta = CiftiMetaData()
             parent = self.struct_state[-1]
             assert isinstance(parent, (CiftiMatrix, CiftiNamedMap))
             self.struct_state.append(meta)
+
         elif name == 'MD':
             pair = ['', '']
             self.fsm_state.append('MD')
             self.struct_state.append(pair)
+
         elif name == 'Name':
             self.write_to = 'Name'
+
         elif name == 'Value':
             self.write_to = 'Value'
+
         elif name == 'MatrixIndicesMap':
             self.fsm_state.append('MatrixIndicesMap')
             mim = CiftiMatrixIndicesMap(appliesToMatrixDimension=int(attrs["AppliesToMatrixDimension"]),
@@ -89,6 +161,7 @@ class Outputter(object):
             assert isinstance(matrix, CiftiMatrix)
             matrix.add_cifti_matrix_indices_map(mim)
             self.struct_state.append(mim)
+
         elif name == 'NamedMap':
             self.fsm_state.append('NamedMap')
             named_map = CiftiNamedMap()
@@ -96,6 +169,7 @@ class Outputter(object):
             assert isinstance(mim, CiftiMatrixIndicesMap)
             self.struct_state.append(named_map)
             mim.add_cifti_named_map(named_map)
+
         elif name == 'LabelTable':
             named_map = self.struct_state[-1]
             mim = self.struct_state[-2]
@@ -104,6 +178,7 @@ class Outputter(object):
             assert isinstance(named_map, CiftiNamedMap)
             self.fsm_state.append('LabelTable')
             self.struct_state.append(lata)
+
         elif name == 'Label':
             lata = self.struct_state[-1]
             assert isinstance(lata, CiftiLabelTable)
@@ -121,11 +196,13 @@ class Outputter(object):
             self.write_to = 'Label'
             self.fsm_state.append('Label')
             self.struct_state.append(label)
+
         elif name == "MapName":
             named_map = self.struct_state[-1]
             assert isinstance(named_map, CiftiNamedMap)
             self.fsm_state.append('MapName')
             self.write_to = 'MapName'
+
         elif name == "Surface":
             surface = CiftiSurface()
             mim = self.struct_state[-1]
@@ -134,6 +211,7 @@ class Outputter(object):
             surface.brainStructure = attrs["BrainStructure"]
             surface.surfaceNumberOfVertices = int(attrs["SurfaceNumberOfVertices"])
             mim.add_cifti_surface(surface)
+
         elif name == "Parcel":
             parcel = CiftiParcel()
             mim = self.struct_state[-1]
@@ -142,6 +220,7 @@ class Outputter(object):
             mim.add_cifti_parcel(parcel)
             self.fsm_state.append('Parcel')
             self.struct_state.append(parcel)
+
         elif name == "Vertices":
             vertices = CiftiVertices()
             parcel = self.struct_state[-1]
@@ -152,12 +231,13 @@ class Outputter(object):
             self.fsm_state.append('Vertices')
             self.struct_state.append(vertices)
             self.write_to = 'Vertices'
+
         elif name == "VoxelIndicesIJK":
             parent = self.struct_state[-1]
             assert isinstance(parent, (CiftiParcel, CiftiBrainModel))
             parent.voxelIndicesIJK = CiftiVoxelIndicesIJK()
-
             self.write_to = 'VoxelIndices'
+
         elif name == "Volume":
             mim = self.struct_state[-1]
             assert isinstance(mim, CiftiMatrixIndicesMap)
@@ -167,6 +247,7 @@ class Outputter(object):
             mim.volume = volume
             self.fsm_state.append('Volume')
             self.struct_state.append(volume)
+
         elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
             volume = self.struct_state[-1]
             assert isinstance(volume, CiftiVolume)
@@ -176,6 +257,7 @@ class Outputter(object):
             self.fsm_state.append('TransformMatrix')
             self.struct_state.append(transform)
             self.write_to = 'TransformMatrix'
+
         elif name == "BrainModel":
             model = CiftiBrainModel()
             mim = self.struct_state[-1]
@@ -194,6 +276,7 @@ class Outputter(object):
             mim.add_cifti_brain_model(model)
             self.fsm_state.append('BrainModel')
             self.struct_state.append(model)
+
         elif name == "VertexIndices":
             index = CiftiVertexIndices()
             model = self.struct_state[-1]
@@ -205,26 +288,31 @@ class Outputter(object):
 
     def EndElementHandler(self, name):
         self.flush_chardata()
-        if DEBUG_PRINT:
+        if self.verbose > 0:
             print('End element:\n\t', repr(name))
+
         if name == 'CIFTI':
             # remove last element of the list
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == 'Matrix':
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == 'MetaData':
             self.fsm_state.pop()
             meta = self.struct_state.pop()
             parent = self.struct_state[-1]
             parent.set_metadata(meta)
+
         elif name == 'MD':
             self.fsm_state.pop()
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
             if pair[0]:
                 meta.data.append(pair)
+
         elif name == 'Name':
             self.write_to = None
         elif name == 'Value':
@@ -244,6 +332,7 @@ class Outputter(object):
             lata = self.struct_state[-1]
             lata.labels.append(label)
             self.write_to = None
+
         elif name == "MapName":
             self.fsm_state.pop()
             self.write_to = None
@@ -254,11 +343,13 @@ class Outputter(object):
             self.fsm_state.pop()
             self.struct_state.pop()
             self.write_to = None
+
         elif name == "VoxelIndicesIJK":
             self.write_to = None
         elif name == "Volume":
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
             self.fsm_state.pop()
             self.struct_state.pop()
@@ -338,41 +429,14 @@ class Outputter(object):
     @property
     def pending_data(self):
         " True if there is character data pending for processing "
-        return not self._char_blocks is None
+        return self._char_blocks is not None
 
 
-def parse_cifti_string(cifti_string):
-    """ Parse cifti header, return
-
-    Parameters
-    ----------
-    string : str
-        string containing cifti header
-
-    Returns
-    -------
-    header : cifti header
-    """
-    parser = ParserCreate()
-    HANDLER_NAMES = ['StartElementHandler',
-                     'EndElementHandler',
-                     'CharacterDataHandler']
-    out = Outputter()
-    for name in HANDLER_NAMES:
-        setattr(parser, name, getattr(out, name))
-    parser.Parse(cifti_string, True)
-    return out.header
-
-def create_cifti_image(nifti2_image, cifti_header, intent_code):
-    data = np.squeeze(nifti2_image.get_data())
-    nifti_header = nifti2_image.get_header()
-    for ext in nifti_header.extensions:
-        if ext.get_code() == 32:
-            nifti_header.extensions.remove(ext)
-            break
-    header = parse_cifti_string(cifti_header)
-    if intent_code == 3002:
-        img = CiftiDenseDataSeries(data, header, nifti_header)
-    else:
-        img = CiftiImage(data, header, nifti_header)
-    return img
+class _CiftiDenseDataSeriesNiftiHeader(_CiftiAsNiftiHeader):
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if not _CiftiAsNiftiHeader.may_contain_header(binaryblock):
+            return False
+        hdr = Nifti2Header(binaryblock=binaryblock[:Nifti2Header.sizeof_hdr])
+        intent_code = hdr.get_intent('code')[0]
+        return intent_code == 3002

@@ -17,12 +17,12 @@
    cifti
 """
 
-from .parse_cifti_fast import create_cifti_image
-from .cifti import (CiftiMetaData, CiftiHeader, CiftiImage, CiftiLabel,
-                    CiftiLabelTable, CiftiVertexIndices,
+from .parse_cifti_fast import CiftiExtension
+from .cifti import (CiftiMetaData, CiftiHeader, CiftiImage,
+                    CiftiDenseDataSeriesHeader, CiftiDenseDataSeries,
+                    CiftiLabel, CiftiLabelTable, CiftiVertexIndices,
                     CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
                     CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,
                     CiftiVertices, CiftiVolume, CIFTI_BrainStructures,
                     CIFTI_MODEL_TYPES, load, save)
-

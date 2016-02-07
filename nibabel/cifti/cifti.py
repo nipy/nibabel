@@ -18,11 +18,14 @@ Stuff about the CIFTI file format here:
 
 '''
 from __future__ import division, print_function, absolute_import
-from ..externals.six import string_types
 
 import numpy as np
 
-DEBUG_PRINT = False
+from ..externals.six import string_types
+from ..filebasedimages import FileBasedImage, FileBasedHeader
+from ..nifti1 import Nifti1Extension
+from ..nifti2 import Nifti2Image
+
 
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
@@ -726,7 +729,7 @@ class CiftiMatrix(object):
         return res
 
 
-class CiftiHeader(object):
+class CiftiHeader(FileBasedHeader):
     ''' Class for Cifti2 header extension '''
 
     version = str
@@ -752,65 +755,88 @@ class CiftiHeader(object):
             return header.copy()
         raise ValueError('header is not a CiftiHeader')
 
-class CiftiImage(object):
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        from .parse_cifti_fast import _CiftiAsNiftiHeader
+        return _CiftiAsNiftiHeader.may_contain_header(binaryblock)
+
+
+class CiftiImage(FileBasedImage):
+    # It is a Nifti2Image, but because Nifti2Image object
+    # contains both the *format* and the assumption that it's
+    # a spatial image, we can't inherit directly.
     header_class = CiftiHeader
+    valid_exts = Nifti2Image.valid_exts
+    files_types = Nifti2Image.files_types
+    makeable = False
+    rw = True
 
     def __init__(self, data=None, header=None, nifti_header=None):
-        self.header = CiftiHeader()
-        if header is not None:
-            self.header = header
+        self._header = header or CiftiHeader()
         self.data = data
         self.extra = nifti_header
 
-    @classmethod
-    def instance_to_filename(klass, img, filename):
-        ''' Save `img` in our own format, to name implied by `filename`
-
-        This is a class method
-
-        Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header`` and
-           ``extra``.
-        filename : str
-           Filename, implying name to which to save image.
-        '''
-        img = klass.from_image(img)
-        img.to_filename(filename)
+    def get_data(self):
+        return self.data
 
     @classmethod
-    def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
+    def from_file_map(klass, file_map):
+        """ Load a Gifti image from a file_map
 
         Parameters
-        ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``spatialimage`` -
-           specifically ``get_data``, ``get_affine``, ``get_header`` and
-           ``extra``.
+        file_map : string
 
         Returns
         -------
-        cimg : ``spatialimage`` instance
-           Image, of our own class
-        '''
-        return klass(img._dataobj,
-                     klass.header_class.from_header(img.header),
-                     extra=img.extra.copy())
+        img : GiftiImage
+            Returns a GiftiImage
+         """
+        from .parse_cifti_fast import _CiftiAsNiftiImage, CiftiExtension
+        nifti_img = _CiftiAsNiftiImage.from_file_map(file_map)
 
-    def to_filename(self, filename):
-        if not filename.endswith('nii'):
-            ValueError('CIFTI files have to be stored as uncompressed NIFTI2')
-        from ..nifti2 import Nifti2Image
-        from ..nifti1 import Nifti1Extension
-        data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
+        # Get cifti header
+        cifti_header = reduce(lambda accum, item: item.get_content()
+                                  if isinstance(item, CiftiExtension)
+                                  else accum,
+                              nifti_img.get_header().extensions or [],
+                              None)
+        if cifti_header is None:
+            raise ValueError(('Nifti2 header does not contain a CIFTI '
+                              'extension'))
+
+        # Construct cifti image
+        cifti_img = CiftiImage(data=np.squeeze(nifti_img.get_data()),
+                               header=cifti_header,
+                               nifti_header=nifti_img.get_header())
+        cifti_img.file_map = nifti_img.file_map
+        return cifti_img
+
+    def to_file_map(self, file_map=None):
+        """ Save the current image to the specified file_map
+
+        Parameters
+        ----------
+        file_map : string
+
+        Returns
+        -------
+        None
+        """
+        from .parse_cifti_fast import CiftiExtension
         header = self.extra
-        extension = Nifti1Extension(32, self.header.to_xml().encode())
+        extension = CiftiExtension(content=self.header.to_xml().encode())
         header.extensions.append(extension)
+        data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
         img = Nifti2Image(data, None, header)
-        img.to_filename(filename)
+        img.to_file_map(file_map or self.file_map)
+
+
+class CiftiDenseDataSeriesHeader(CiftiHeader):
+
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        from .parse_cifti_fast import _CiftiDenseDataSeriesNiftiHeader
+        return _CiftiDenseDataSeriesNiftiHeader.may_contain_header(binaryblock)
 
 
 class CiftiDenseDataSeries(CiftiImage):
@@ -831,7 +857,9 @@ class CiftiDenseDataSeries(CiftiImage):
     series of sampling depths along the surface normal from the white to pial
     surface.  It retains the 't' in dtseries from CIFTI-1 naming conventions.
     """
-    suffix = '.dtseries.nii'
+    header_class = CiftiDenseDataSeriesHeader
+    valid_exts = ('.dtseries.nii',)
+    files_types = (('image', '.dtseries.nii'),)
 
 
 def load(filename):
@@ -852,8 +880,8 @@ def load(filename):
     ImageFileError: if `filename` doesn't look like cifti
     IOError : if `filename` does not exist
     """
-    from ..nifti2 import load as Nifti2load
-    return Nifti2load(filename).as_cifti()
+    from .parse_cifti_fast import _CiftiAsNiftiImage
+    return _CiftiAsNiftiImage.from_filename(filename)
 
 
 def save(img, filename):
@@ -865,5 +893,3 @@ def save(img, filename):
         filename to which to save image
     """
     CiftiImage.instance_to_filename(img, filename)
-
-
