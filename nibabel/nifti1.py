@@ -232,31 +232,6 @@ intent_codes = Recoder((
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
     (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
-    # The codes below appear on the CIFTI-2 standard
-    # http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
-    # https://www.nitrc.org/forum/attachment.php?attachid=341&group_id=454&forum_id=1955
-    (3000, 'dense fiber/fan samples', (), 'NIFTI_INTENT_CONNECTIVITY_UNKNOWN'),
-    (3001, 'dense connectivity', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE'),
-    (3002, 'dense data series/fiber fans', (),
-     'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES'),
-    (3003, 'parcellated connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED'),
-    (3004, 'parcellated data series', (),
-     "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES"),
-    (3006, 'dense scalar', (),
-     'NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS'),
-    (3007, 'dense label', (),
-     'NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS'),
-    (3008, 'parcellated scalar', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR'),
-    (3009, 'parcellated dense connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE'),
-    (3010, 'dense parcellated connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED'),
-    (3011, 'parcellated connectivity series', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES'),
-    (3012, 'parcellated connectivity scalar', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR'),
 ), fields=('code', 'label', 'parameters', 'niistring'))
 
 
