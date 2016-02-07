@@ -107,7 +107,7 @@ header_key_dtd = [
     ('session_error', 'i2'),
     ('regular', 'S1'),
     ('hkey_un0', 'S1')
-    ]
+]
 image_dimension_dtd = [
     ('dim', 'i2', (8,)),
     ('vox_units', 'S4'),
@@ -127,7 +127,7 @@ image_dimension_dtd = [
     ('verified', 'i4'),
     ('glmax', 'i4'),
     ('glmin', 'i4')
-    ]
+]
 data_history_dtd = [
     ('descrip', 'S80'),
     ('aux_file', 'S24'),
@@ -147,7 +147,7 @@ data_history_dtd = [
     ('omin', 'i4'),
     ('smax', 'i4'),
     ('smin', 'i4')
-    ]
+]
 
 # Full header numpy dtype combined across sub-fields
 header_dtype = np.dtype(header_key_dtd + image_dimension_dtd +
@@ -606,7 +606,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         ndims = dims[0]
         if ndims == 0:
             return 0,
-        return tuple(int(d) for d in dims[1:ndims+1])
+        return tuple(int(d) for d in dims[1:ndims + 1])
 
     def set_data_shape(self, shape):
         ''' Set shape of data
@@ -624,18 +624,18 @@ class AnalyzeHeader(LabeledWrapStruct):
         dims[:] = 1
         dims[0] = ndims
         try:
-            dims[1:ndims+1] = shape
+            dims[1:ndims + 1] = shape
         except (ValueError, OverflowError):
             # numpy 1.4.1 at least generates a ValueError from trying to set a
             # python long into an int64 array (dims are int64 for nifti2)
             values_fit = False
         else:
-            values_fit = np.all(dims[1:ndims+1] == shape)
+            values_fit = np.all(dims[1:ndims + 1] == shape)
         # Error if we did not succeed setting dimensions
         if not values_fit:
             raise HeaderDataError('shape %s does not fit in dim datatype' %
                                   (shape,))
-        self._structarr['pixdim'][ndims+1:] = 1.0
+        self._structarr['pixdim'][ndims + 1:] = 1.0
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields
@@ -659,8 +659,8 @@ class AnalyzeHeader(LabeledWrapStruct):
         hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
-        return shape_zoom_affine(hdr['dim'][1:ndim+1],
-                                 hdr['pixdim'][1:ndim+1],
+        return shape_zoom_affine(hdr['dim'][1:ndim + 1],
+                                 hdr['pixdim'][1:ndim + 1],
                                  self.default_x_flip)
 
     get_best_affine = get_base_affine
@@ -691,7 +691,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         if ndim == 0:
             return (1.0,)
         pixdims = hdr['pixdim']
-        return tuple(pixdims[1:ndim+1])
+        return tuple(pixdims[1:ndim + 1])
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
@@ -708,7 +708,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
-        pixdims[1:ndim+1] = zooms[:]
+        pixdims[1:ndim + 1] = zooms[:]
 
     def as_analyze_map(self):
         """ Return header as mapping for conversion to Analyze types
@@ -794,7 +794,7 @@ class AnalyzeHeader(LabeledWrapStruct):
             If float, value must be 0.0 or we raise a ``HeaderTypeError``
         '''
         if ((slope in (None, 1) or np.isnan(slope)) and
-            (inter in (None, 0) or np.isnan(inter))):
+                (inter in (None, 0) or np.isnan(inter))):
             return
         raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
                               'for Analyze headers')

@@ -28,6 +28,7 @@ from .test_fileslice import slicer_samples
 
 
 class FunkyHeader(object):
+
     def __init__(self, shape):
         self.shape = shape
 
@@ -55,7 +56,7 @@ class CArrayProxy(ArrayProxy):
 
 def test_init():
     bio = BytesIO()
-    shape = [2,3,4]
+    shape = [2, 3, 4]
     dtype = np.int32
     arr = np.arange(24, dtype=dtype).reshape(shape)
     bio.seek(16)
@@ -90,7 +91,7 @@ def write_raw_data(arr, hdr, fileobj):
 
 def test_nifti1_init():
     bio = BytesIO()
-    shape = (2,3,4)
+    shape = (2, 3, 4)
     hdr = Nifti1Header()
     arr = np.arange(24, dtype=np.int16).reshape(shape)
     write_raw_data(arr, hdr, bio)
@@ -150,6 +151,7 @@ def test_is_proxy():
     assert_false(is_proxy(bio))
     assert_false(is_proxy(hdr))
     assert_false(is_proxy(np.zeros((2, 3, 4))))
+
     class NP(object):
         is_proxy = False
     assert_false(is_proxy(NP()))
@@ -158,6 +160,7 @@ def test_is_proxy():
 def test_get_unscaled():
     # Test fetch of raw array
     class FunkyHeader2(FunkyHeader):
+
         def get_slope_inter(self):
             return 2.1, 3.14
     shape = (2, 3, 4)
@@ -188,14 +191,14 @@ def check_mmap(hdr, offset, proxy_class, check_mode=True):
             fobj.write(b' ' * offset)
             fobj.write(arr.tostring(order='F'))
         for mmap, expected_mode in (
-            # mmap value, expected memmap mode
-            # mmap=None -> no mmap value
-            # expected mode=None -> no memmap returned
-            (None, 'c'),
-            (True, 'c'),
-            ('c', 'c'),
-            ('r', 'r'),
-            (False, None)):
+                # mmap value, expected memmap mode
+                # mmap=None -> no mmap value
+                # expected mode=None -> no memmap returned
+                (None, 'c'),
+                (True, 'c'),
+                ('c', 'c'),
+                ('r', 'r'),
+                (False, None)):
             kwargs = {}
             if mmap is not None:
                 kwargs['mmap'] = mmap

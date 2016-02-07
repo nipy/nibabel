@@ -24,6 +24,7 @@ class ModuleProxy(object):
     when you do attribute access and return the attributes of the imported
     module.
     """
+
     def __init__(self, module_name):
         self._module_name = module_name
 

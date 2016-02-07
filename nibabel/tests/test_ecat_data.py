@@ -27,13 +27,13 @@ ECAT_TEST_PATH = pjoin(get_nibabel_data(), 'nipy-ecattest')
 class TestNegatives(object):
     opener = staticmethod(load)
     example_params = dict(
-        fname = os.path.join(ECAT_TEST_PATH, 'ECAT7_testcaste_neg_values.v'),
-        shape = (256, 256, 63, 1),
-        type = np.int16,
+        fname=os.path.join(ECAT_TEST_PATH, 'ECAT7_testcaste_neg_values.v'),
+        shape=(256, 256, 63, 1),
+        type=np.int16,
         # These values from freec64
-        min = -0.00061576,
-        max =  0.19215,
-        mean = 0.04933,
+        min=-0.00061576,
+        max=0.19215,
+        mean=0.04933,
         # unit: 1/cm
     )
 

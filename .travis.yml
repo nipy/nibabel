@@ -24,7 +24,6 @@ env:
         - INSTALL_TYPE="setup"
 python:
     - 2.6
-    - 3.2
     - 3.3
     - 3.4
     - 3.5
@@ -58,13 +57,19 @@ matrix:
     - python: 2.7
       env:
         - INSTALL_TYPE=requirements
+    - python: 2.7
+      env:
+        - STYLE=1
+    - python: 3.5
+      env:
+        - STYLE=1
 before_install:
     - source tools/travis_tools.sh
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip  # upgrade to latest pip to find 3.5 wheels
-    - retry pip install nose # always
+    - pip install -U pip wheel  # upgrade to latest pip find 3.5 wheels; wheel to avoid errors
+    - retry pip install nose flake8  # always
     - wheelhouse_pip_install $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
@@ -99,20 +104,29 @@ install:
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test
 script:
-    # Change into an innocuous directory and find tests from installation
-    - mkdir for_testing
-    - cd for_testing
-    - if [ "${COVERAGE}" == "1" ]; then
-      cp ../.coveragerc .;
-      COVER_ARGS="--with-coverage --cover-package nibabel";
-      fi
-    - if [ "$DOC_DOC_TEST" == "1" ]; then
-      pip install sphinx;
-      cd ../doc;
-      make html;
-      make doctest;
+    - |
+      if [ "${STYLE}" == "1" ]; then
+          # Run styles only on core nibabel code.
+          flake8 nibabel
       else
-      nosetests --with-doctest $COVER_ARGS nibabel;
+          # Change into an innocuous directory and find tests from installation
+          mkdir for_testing
+          cd for_testing
+          if [ "${COVERAGE}" == "1" ]; then
+              cp ../.coveragerc .;
+              COVER_ARGS="--with-coverage --cover-package nibabel";
+          fi
+          if [ "$DOC_DOC_TEST" == "1" ]; then
+              pip install sphinx numpydoc texext;
+              cd ../doc;
+              make html;
+              make doctest;
+          else
+              nosetests --with-doctest $COVER_ARGS nibabel;
+          fi
       fi
 after_success:
     - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
+
+notifications:
+    webhooks: http://nipy.bic.berkeley.edu:54856/travis

@@ -113,7 +113,7 @@ header_dtd = [
     ('intent_name', 'S16'),     # 508; name or meaning of data
     ('dim_info', 'u1'),         # 524; MRI slice ordering code
     ('unused_str', 'S15'),      # 525; unused, filled with \0
-    ]  # total 540
+]  # total 540
 
 # Full header numpy dtype
 header_dtype = np.dtype(header_dtd)

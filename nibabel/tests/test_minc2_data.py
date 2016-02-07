@@ -45,17 +45,17 @@ class TestEPIFrame(object):
     zooms = [-0.8984375, -0.8984375, 3.]
     starts = [117.25609125, 138.89861125, -54.442028]
     example_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_EPI-frame.mnc'),
-        shape = (40, 256, 256),
-        type = np.int16,
-        affine = _make_affine((z_cos, y_cos, x_cos),
-                              zooms[::-1],
-                              starts[::-1]),
-        zooms = [abs(v) for v in zooms[::-1]],
+        fname=os.path.join(MINC2_PATH, 'mincex_EPI-frame.mnc'),
+        shape=(40, 256, 256),
+        type=np.int16,
+        affine=_make_affine((z_cos, y_cos, x_cos),
+                            zooms[::-1],
+                            starts[::-1]),
+        zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
-        min = 0.,
-        max = 1273,
-        mean = 93.52085367)
+        min=0.,
+        max=1273,
+        mean=93.52085367)
 
     @needs_nibabel_data('nitest-minc2')
     def test_load(self):
@@ -87,27 +87,27 @@ class TestB0(TestEPIFrame):
     zooms = [-0.8984375, -0.8984375, 6.49999990444107]
     starts = [105.473101260826, 151.74885125, -61.8714747993248]
     example_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_diff-B0.mnc'),
-        shape = (19, 256, 256),
-        type = np.int16,
-        affine = _make_affine((z_cos, y_cos, x_cos),
-                              zooms[::-1],
-                              starts[::-1]),
-        zooms = [abs(v) for v in zooms[::-1]],
+        fname=os.path.join(MINC2_PATH, 'mincex_diff-B0.mnc'),
+        shape=(19, 256, 256),
+        type=np.int16,
+        affine=_make_affine((z_cos, y_cos, x_cos),
+                            zooms[::-1],
+                            starts[::-1]),
+        zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
-        min = 4.566971917,
-        max = 3260.121093,
-        mean = 163.8305553)
+        min=4.566971917,
+        max=3260.121093,
+        mean=163.8305553)
 
 
 class TestFA(TestEPIFrame):
     example_params = TestB0.example_params.copy()
     new_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_diff-FA.mnc'),
+        fname=os.path.join(MINC2_PATH, 'mincex_diff-FA.mnc'),
         # These values from mincstats
-        min = 0.008068881038,
-        max = 1.224754546,
-        mean = 0.7520087469)
+        min=0.008068881038,
+        max=1.224754546,
+        mean=0.7520087469)
     example_params.update(new_params)
 
 
@@ -118,17 +118,17 @@ class TestGado(TestEPIFrame):
     zooms = [1, -1, -1]
     starts = [-75.76775, 115.80462, 81.38605]
     example_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_gado-contrast.mnc'),
-        shape = (100, 170, 146),
-        type = np.int16,
-        affine = _make_affine((z_cos, y_cos, x_cos),
-                              zooms[::-1],
-                              starts[::-1]),
-        zooms = [abs(v) for v in zooms[::-1]],
+        fname=os.path.join(MINC2_PATH, 'mincex_gado-contrast.mnc'),
+        shape=(100, 170, 146),
+        type=np.int16,
+        affine=_make_affine((z_cos, y_cos, x_cos),
+                            zooms[::-1],
+                            starts[::-1]),
+        zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
-        min = 0,
-        max = 938668.8698,
-        mean = 128169.3488)
+        min=0,
+        max=938668.8698,
+        mean=128169.3488)
 
 
 class TestT1(TestEPIFrame):
@@ -138,37 +138,37 @@ class TestT1(TestEPIFrame):
     zooms = [1, 1, 1]
     starts = [-90, -126, -12]
     example_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_t1.mnc'),
-        shape = (110, 217, 181),
-        type = np.int16,
-        affine = _make_affine((z_cos, y_cos, x_cos),
-                              zooms[::-1],
-                              starts[::-1]),
-        zooms = [abs(v) for v in zooms[::-1]],
+        fname=os.path.join(MINC2_PATH, 'mincex_t1.mnc'),
+        shape=(110, 217, 181),
+        type=np.int16,
+        affine=_make_affine((z_cos, y_cos, x_cos),
+                            zooms[::-1],
+                            starts[::-1]),
+        zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
-        min = 0,
-        max = 100,
-        mean = 23.1659928)
+        min=0,
+        max=100,
+        mean=23.1659928)
 
 
 class TestPD(TestEPIFrame):
     example_params = TestT1.example_params.copy()
     new_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_pd.mnc'),
+        fname=os.path.join(MINC2_PATH, 'mincex_pd.mnc'),
         # These values from mincstats
-        min = 0,
-        max = 102.5024482,
-        mean = 23.82625718)
+        min=0,
+        max=102.5024482,
+        mean=23.82625718)
     example_params.update(new_params)
 
 
 class TestMask(TestEPIFrame):
     example_params = TestT1.example_params.copy()
     new_params = dict(
-        fname = os.path.join(MINC2_PATH, 'mincex_mask.mnc'),
-        type = np.uint8,
+        fname=os.path.join(MINC2_PATH, 'mincex_mask.mnc'),
+        type=np.uint8,
         # These values from mincstats
-        min = 0,
-        max = 1,
-        mean = 0.3817466618)
+        min=0,
+        max=1,
+        mean=0.3817466618)
     example_params.update(new_params)

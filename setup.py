@@ -16,14 +16,15 @@ from functools import partial
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+if os.path.exists('MANIFEST'):
+    os.remove('MANIFEST')
 
 # For some commands, use setuptools.
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
             'install_egg_info', 'egg_info', 'easy_install', 'bdist_wheel',
             'bdist_mpkg')).intersection(sys.argv)) > 0:
     # setup_egg imports setuptools setup, thus monkeypatching distutils.
-    import setup_egg
+    import setup_egg  # noqa
 
 from distutils.core import setup
 
@@ -42,7 +43,7 @@ if 'setuptools' in sys.modules:
         tests_require=['nose'],
         test_suite='nose.collector',
         zip_safe=False,
-        extras_require = dict(
+        extras_require=dict(
             doc='Sphinx>=0.3',
             test='nose>=0.10.1'),
     )

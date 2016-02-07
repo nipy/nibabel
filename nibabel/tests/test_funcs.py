@@ -21,6 +21,8 @@ from numpy.testing import assert_array_equal
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 _counter = 0
+
+
 def _as_fname(img):
     global _counter
     fname = 'img%3d.nii' % _counter
@@ -55,10 +57,10 @@ def test_concat():
                 data1_numel = np.asarray(data1_shape).prod()
                 data1 = np.arange(data1_numel).reshape(data1_shape)
                 img1_mem = Nifti1Image(data1, affine)
-                img2_mem = Nifti1Image(data1, affine+1)  # bad affine
+                img2_mem = Nifti1Image(data1, affine + 1)  # bad affine
 
                 # Loop over every possible axis, including None (explicit and implied)
-                for axis in (list(range(-(dim-2), (dim-1))) + [None, '__default__']):
+                for axis in (list(range(-(dim - 2), (dim - 1))) + [None, '__default__']):
 
                     # Allow testing default vs. passing explicit param
                     if axis == '__default__':
@@ -104,12 +106,14 @@ def test_concat():
                             except ValueError as ve:
                                 assert_true(expect_error, str(ve))
                             else:
-                                assert_false(expect_error, "Expected a concatenation error, but got none.")
+                                assert_false(
+                                    expect_error, "Expected a concatenation error, but got none.")
                                 assert_array_equal(all_imgs.get_data(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
                             # check that not-matching affines raise error
-                            assert_raises(ValueError, concat_images, [img0, img2], **concat_imgs_kwargs)
+                            assert_raises(ValueError, concat_images, [
+                                          img0, img2], **concat_imgs_kwargs)
 
                             # except if check_affines is False
                             try:
@@ -117,19 +121,20 @@ def test_concat():
                             except ValueError as ve:
                                 assert_true(expect_error, str(ve))
                             else:
-                                assert_false(expect_error, "Expected a concatenation error, but got none.")
+                                assert_false(
+                                    expect_error, "Expected a concatenation error, but got none.")
                                 assert_array_equal(all_imgs.get_data(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
 
 def test_closest_canonical():
-    arr = np.arange(24).reshape((2,3,4,1))
+    arr = np.arange(24).reshape((2, 3, 4, 1))
     # no funky stuff, returns same thing
     img = Nifti1Image(arr, np.eye(4))
     xyz_img = as_closest_canonical(img)
     assert_true(img is xyz_img)
     # a axis flip
-    img = Nifti1Image(arr, np.diag([-1,1,1,1]))
+    img = Nifti1Image(arr, np.diag([-1, 1, 1, 1]))
     xyz_img = as_closest_canonical(img)
     assert_false(img is xyz_img)
     out_arr = xyz_img.get_data()
@@ -138,7 +143,7 @@ def test_closest_canonical():
     xyz_img = as_closest_canonical(img, True)
     # but there is if the affine is not diagonal
     aff = np.eye(4)
-    aff[0,1] = 0.1
+    aff[0, 1] = 0.1
     # although it's more or less canonical already
     img = Nifti1Image(arr, aff)
     xyz_img = as_closest_canonical(img)

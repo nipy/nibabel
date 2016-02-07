@@ -17,14 +17,13 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 
-
 def assert_all_in(in_shape, in_affine, out_shape, out_affine):
     slices = tuple(slice(N) for N in in_shape)
     n_axes = len(in_shape)
     in_grid = np.mgrid[slices]
     in_grid = np.rollaxis(in_grid, 0, n_axes + 1)
     v2v = npl.inv(out_affine).dot(in_affine)
-    if n_axes < 3: # reduced dimensions case
+    if n_axes < 3:  # reduced dimensions case
         new_v2v = np.eye(n_axes + 1)
         new_v2v[:n_axes, :n_axes] = v2v[:n_axes, :n_axes]
         new_v2v[:n_axes, -1] = v2v[:n_axes, -1]
@@ -50,7 +49,7 @@ def test_vox2out_vox():
         ((2, 3, 4), np.eye(4), None, (2, 3, 4), np.eye(4)),
         # Flip first axis
         ((2, 3, 4), np.diag([-1, 1, 1, 1]), None,
-         (2, 3, 4), [[1, 0, 0, -1], # axis reversed -> -ve offset
+         (2, 3, 4), [[1, 0, 0, -1],  # axis reversed -> -ve offset
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
                      [0, 0, 0, 1]]),
@@ -75,9 +74,9 @@ def test_vox2out_vox():
                      [0, 0, 0, 1]]),
         # Less than 3 axes
         ((2, 3), np.eye(4), None,
-         (2, 3),  np.eye(4)),
+         (2, 3), np.eye(4)),
         ((2,), np.eye(4), None,
-         (2,),  np.eye(4)),
+         (2,), np.eye(4)),
         # Number of voxel sizes matches length
         ((2, 3), np.diag([4, 5, 6, 1]), (4, 5),
          (2, 3), np.diag([4, 5, 1, 1])),
@@ -101,9 +100,9 @@ def test_vox2out_vox():
 def test_slice2volume():
     # Get affine expressing selection of single slice from volume
     for axis, def_aff in zip((0, 1, 2), (
-        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
-        [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
-        [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
+            [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
+            [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
         for val in (0, 5, 10):
             exp_aff = np.array(def_aff)
             exp_aff[axis, -1] = val

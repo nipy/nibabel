@@ -27,9 +27,10 @@ _dt_dict = {
     ('h', 'signed__'): np.int16,
     ('i', 'unsigned'): np.uint32,
     ('i', 'signed__'): np.int32,
-    }
+}
 
-# See https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
+# See
+# https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
 _default_dir_cos = {
     'xspace': [1, 0, 0],
     'yspace': [0, 1, 0],
@@ -47,6 +48,7 @@ class Minc1File(object):
     this only when reading a MINC file, to pull out useful header
     information, and for the method of reading the data out
     '''
+
     def __init__(self, mincfile):
         self._mincfile = mincfile
         self._image = mincfile.variables['image']
@@ -112,7 +114,7 @@ class Minc1File(object):
             steps[i] = dim.step
             starts[i] = dim.start
         origin = np.dot(rot_mat, starts)
-        aff = np.eye(nspatial+1)
+        aff = np.eye(nspatial + 1)
         aff[:nspatial, :nspatial] = rot_mat * steps
         aff[:nspatial, nspatial] = origin
         return aff
@@ -197,7 +199,7 @@ class Minc1File(object):
             shape = self.get_data_shape()
             sliceobj = canonical_slicers(sliceobj, shape)
             # Indices into sliceobj referring to image axes
-            ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+            ax_inds = [i for i, obj in enumerate(sliceobj) if obj is not None]
             assert len(ax_inds) == len(shape)
             # Slice imax, imin using same slicer as for data
             nscales_ax = ax_inds[nscales]
@@ -209,7 +211,7 @@ class Minc1File(object):
             i_slicer += broad_part
             imax = self._get_array(image_max)[i_slicer]
             imin = self._get_array(image_min)[i_slicer]
-        slope = (imax-imin) / (dmax-dmin)
+        slope = (imax - imin) / (dmax - dmin)
         inter = (imin - dmin * slope)
         out_data *= slope
         out_data += inter
@@ -243,6 +245,7 @@ class MincImageArrayProxy(object):
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
     '''
+
     def __init__(self, minc_file):
         self.minc_file = minc_file
         self._shape = minc_file.get_data_shape()
@@ -280,6 +283,7 @@ class MincHeader(SpatialHeader):
 
 
 class Minc1Header(MincHeader):
+
     @classmethod
     def may_contain_header(klass, binaryblock):
         return binaryblock[:4] == b'CDF\x01'

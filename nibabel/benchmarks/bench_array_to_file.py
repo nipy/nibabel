@@ -19,8 +19,6 @@ import sys
 
 import numpy as np
 
-from ..externals.six import BytesIO
-from ..volumeutils import array_to_file
 
 from .butils import print_git_title
 

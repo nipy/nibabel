@@ -14,9 +14,10 @@ from ..volumeutils import Recoder, DtypeMapper, native_code, swapped_code
 
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
+
 def test_recoder():
     # simplest case, no aliases
-    codes = ((1,),(2,))
+    codes = ((1,), (2,))
     rc = Recoder(codes)
     yield assert_equal, rc.code[1], 1
     yield assert_equal, rc.code[2], 2
@@ -27,8 +28,8 @@ def test_recoder():
     yield assert_equal, rc.code1[1], 1
     yield assert_equal, rc.code1[2], 2
     # code and label
-    codes = ((1,'one'), (2,'two'))
-    rc = Recoder(codes) # just with implicit alias
+    codes = ((1, 'one'), (2, 'two'))
+    rc = Recoder(codes)  # just with implicit alias
     yield assert_equal, rc.code[1], 1
     yield assert_equal, rc.code[2], 2
     yield assert_raises, KeyError, rc.code.__getitem__, 3
@@ -36,19 +37,19 @@ def test_recoder():
     yield assert_equal, rc.code['two'], 2
     yield assert_raises, KeyError, rc.code.__getitem__, 'three'
     yield assert_raises, AttributeError, rc.__getattribute__, 'label'
-    rc = Recoder(codes, ['code1', 'label']) # with explicit column names
+    rc = Recoder(codes, ['code1', 'label'])  # with explicit column names
     yield assert_raises, AttributeError, rc.__getattribute__, 'code'
     yield assert_equal, rc.code1[1], 1
     yield assert_equal, rc.code1['one'], 1
     yield assert_equal, rc.label[1], 'one'
     yield assert_equal, rc.label['one'], 'one'
     # code, label, aliases
-    codes = ((1,'one','1','first'), (2,'two'))
-    rc = Recoder(codes) # just with implicit alias
+    codes = ((1, 'one', '1', 'first'), (2, 'two'))
+    rc = Recoder(codes)  # just with implicit alias
     yield assert_equal, rc.code[1], 1
     yield assert_equal, rc.code['one'], 1
     yield assert_equal, rc.code['first'], 1
-    rc = Recoder(codes, ['code1', 'label']) # with explicit column names
+    rc = Recoder(codes, ['code1', 'label'])  # with explicit column names
     yield assert_equal, rc.code1[1], 1
     yield assert_equal, rc.code1['first'], 1
     yield assert_equal, rc.label[1], 'one'
@@ -60,20 +61,25 @@ def test_recoder():
 def test_custom_dicter():
     # Allow custom dict-like object in constructor
     class MyDict(object):
+
         def __init__(self):
             self._keys = []
+
         def __setitem__(self, key, value):
             self._keys.append(key)
+
         def __getitem__(self, key):
             if key in self._keys:
                 return 'spam'
             return 'eggs'
+
         def keys(self):
             return ['some', 'keys']
+
         def values(self):
             return ['funny', 'list']
     # code, label, aliases
-    codes = ((1,'one','1','first'), (2,'two'))
+    codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes, map_maker=MyDict)
     yield assert_equal, rc.code[1], 'spam'
     yield assert_equal, rc.code['one'], 'spam'
@@ -84,7 +90,7 @@ def test_custom_dicter():
 
 
 def test_add_codes():
-    codes = ((1,'one','1','first'), (2,'two'))
+    codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes)
     yield assert_equal, rc.code['two'], 2
     yield assert_raises, KeyError, rc.code.__getitem__, 'three'
@@ -95,7 +101,7 @@ def test_add_codes():
 
 def test_sugar():
     # Syntactic sugar for recoder class
-    codes = ((1,'one','1','first'), (2,'two'))
+    codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes)
     # Field1 is synonym for first named dict
     yield assert_equal, rc.code, rc.field1
@@ -105,7 +111,7 @@ def test_sugar():
     yield assert_equal, rc[1], rc.field1[1]
     yield assert_equal, rc['two'], rc.field1['two']
     # keys gets all keys
-    yield assert_equal, set(rc.keys()), set((1,'one','1','first',2,'two'))
+    yield assert_equal, set(rc.keys()), set((1, 'one', '1', 'first', 2, 'two'))
     # value_set gets set of values from first column
     yield assert_equal, rc.value_set(), set((1, 2))
     # or named column if given
@@ -151,5 +157,3 @@ def test_dtmapper():
     assert_equal(d[sw_dt], 'spam')
     sw_intp_dt = intp_dt.newbyteorder(swapped_code)
     assert_equal(d[sw_intp_dt], 'spam')
-
-
