@@ -16,11 +16,12 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+
 @dicom_test
 def test_read_dwi():
     img = didr.mosaic_to_nii(DATA)
     arr = img.get_data()
-    assert_equal(arr.shape, (128,128,48))
+    assert_equal(arr.shape, (128, 128, 48))
     assert_array_almost_equal(img.affine, EXPECTED_AFFINE)
 
 

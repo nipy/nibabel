@@ -42,6 +42,7 @@ class TripWire(object):
         ...
     TripWireError: We do not have a_module
     """
+
     def __init__(self, msg):
         self._msg = msg
 

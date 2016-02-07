@@ -19,10 +19,10 @@ from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
 
 
 class TestGiftiIO(object):
+
     def setUp(self):
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
-            import nibabel.gifti.giftiio
             assert_equal(len(w), 1)
 
 
@@ -31,5 +31,5 @@ def test_read_deprecated():
         warnings.simplefilter('always', DeprecationWarning)
         from nibabel.gifti.giftiio import read
 
-        img = read(DATA_FILE1)
+        read(DATA_FILE1)
         assert_equal(len(w), 1)

@@ -20,6 +20,7 @@ class FileHolderError(Exception):
 class FileHolder(object):
     ''' class to contain filename, fileobj and file position
     '''
+
     def __init__(self,
                  filename=None,
                  fileobj=None,
@@ -89,6 +90,12 @@ class FileHolder(object):
         """
         return ((self.filename == other.filename) and
                 (self.fileobj == other.fileobj))
+
+    @property
+    def file_like(self):
+        """ Return ``self.fileobj`` if not None, otherwise ``self.filename``
+        """
+        return self.fileobj if self.fileobj is not None else self.filename
 
 
 def copy_file_map(file_map):

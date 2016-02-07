@@ -43,7 +43,7 @@ def resample_img2img(img_to, img_from, order=1, out_class=nib.Nifti1Image):
                                  rzs,
                                  trans,
                                  img_to.shape,
-                                 order = order)
+                                 order=order)
     return out_class(data, img_to.affine)
 
 

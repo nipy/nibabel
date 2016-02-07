@@ -36,6 +36,7 @@ from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 class Hdf5Bunch(object):
     """ Make object for accessing attributes of variable
     """
+
     def __init__(self, var):
         for name, value in var.attrs.items():
             setattr(self, name, value)
@@ -48,6 +49,7 @@ class Minc2File(Minc1File):
     this only when reading a MINC2 file, to pull out useful header
     information, and for the method of reading the data out
     '''
+
     def __init__(self, mincfile):
         self._mincfile = mincfile
         minc_part = mincfile['minc-2.0']
@@ -135,6 +137,7 @@ class Minc2File(Minc1File):
 
 
 class Minc2Header(MincHeader):
+
     @classmethod
     def may_contain_header(klass, binaryblock):
         return binaryblock[:4] == b'\211HDF'

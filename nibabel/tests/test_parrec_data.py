@@ -13,7 +13,8 @@ from ..parrec import load
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
 from nose import SkipTest
-from nose.tools import assert_true, assert_false, assert_equal
+from nose.tools import assert_equal
+from nose.tools import assert_true
 
 from numpy.testing import assert_almost_equal
 
@@ -30,7 +31,7 @@ def test_loading():
         par_root, ext = splitext(basename(par))
         # NA.PAR appears to be a localizer, with three slices in each of the
         # three orientations: sagittal; coronal, transverse
-        if par_root ==  'NA':
+        if par_root == 'NA':
             continue
         # Check we can load the image
         pimg = load(par)
@@ -59,6 +60,6 @@ def test_fieldmap():
     # second is phase.  The NIfTI has very odd scaling, being all negative.
     fieldmap_par = pjoin(BALLS, 'PARREC', 'fieldmap.PAR')
     fieldmap_nii = pjoin(BALLS, 'NIFTI', 'fieldmap.nii.gz')
-    pimg = load(fieldmap_par)
-    nimg = top_load(fieldmap_nii)
+    load(fieldmap_par)
+    top_load(fieldmap_nii)
     raise SkipTest('Fieldmap remains puzzling')

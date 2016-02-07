@@ -25,10 +25,13 @@ from ..testing import error_warnings
 class Lunk(object):
     # bare file-like for testing
     closed = False
+
     def __init__(self, message):
-        self.message=message
+        self.message = message
+
     def write(self):
         pass
+
     def read(self):
         return self.message
 
@@ -93,6 +96,7 @@ def test_BinOpener():
 
 
 class TestImageOpener:
+
     def setUp(self):
         self.compress_ext_map = ImageOpener.compress_ext_map.copy()
 
@@ -151,6 +155,7 @@ def test_compressionlevel():
     # bzip2 needs a fairly large file to show differences in compression level
     many_selves = my_self * 50
     # Test we can set default compression at class level
+
     class MyOpener(Opener):
         default_compresslevel = 5
     with InTemporaryDirectory():
@@ -174,6 +179,7 @@ def test_compressionlevel():
 def test_compressed_ext_case():
     # Test openers usually ignore case for compressed exts
     contents = b'palindrome of Bolton is notlob'
+
     class StrictOpener(Opener):
         compress_ext_icase = False
     exts = ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2')
@@ -193,7 +199,7 @@ def test_compressed_ext_case():
             with StrictOpener(fname, 'rb') as fobj:
                 assert_equal(fobj.read(), contents)
             lext = ext.lower()
-            if lext != ext: # extension should not be recognized -> file
+            if lext != ext:  # extension should not be recognized -> file
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
                 assert_true(isinstance(fobj.fobj, GzipFile))
@@ -223,6 +229,7 @@ def test_set_extensions():
             assert_true(hasattr(fobj.fobj, 'compress'))
         with Opener('test.glrph', 'w') as fobj:
             assert_false(hasattr(fobj.fobj, 'compress'))
+
         class MyOpener(Opener):
             compress_ext_map = Opener.compress_ext_map.copy()
             compress_ext_map['.glrph'] = Opener.gz_def
@@ -254,7 +261,7 @@ def test_close_if_mine():
 def test_iter():
     # Check we can iterate over lines, if the underlying file object allows it
     lines = \
-"""On the
+        """On the
 blue ridged mountains
 of
 virginia

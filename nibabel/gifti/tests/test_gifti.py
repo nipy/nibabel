@@ -9,7 +9,7 @@ from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData)
 from nibabel.gifti.gifti import data_tag
-from nibabel.nifti1 import data_type_codes, intent_codes
+from nibabel.nifti1 import data_type_codes
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -24,7 +24,7 @@ def test_gifti_image():
     # arguments.
     gi = GiftiImage()
     assert_equal(gi.darrays, [])
-    arr = np.zeros((2,3))
+    arr = np.zeros((2, 3))
     gi.darrays.append(arr)
     # Now check we didn't overwrite the default arg
     gi = GiftiImage()
@@ -63,9 +63,9 @@ def test_gifti_image():
 def test_dataarray():
     for dt_code in data_type_codes.value_set():
         data_type = data_type_codes.type[dt_code]
-        if data_type is np.void: # not supported
+        if data_type is np.void:  # not supported
             continue
-        arr = np.zeros((10,3), dtype=data_type)
+        arr = np.zeros((10, 3), dtype=data_type)
         da = GiftiDataArray.from_array(arr, 'triangle')
         assert_equal(da.datatype, data_type_codes[arr.dtype])
         bs_arr = arr.byteswap().newbyteorder()
@@ -142,7 +142,7 @@ def test_gifti_label_rgba():
 
 def test_print_summary():
     for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                            DATA_FILE5, DATA_FILE6]:
+                DATA_FILE5, DATA_FILE6]:
         gimg = nib.load(fil)
         gimg.print_summary()
 
@@ -179,7 +179,6 @@ def test_gifti_image():
 
 
 def test_data_tag_deprecated():
-    img = GiftiImage()
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         data_tag(np.array([]), 'ASCII', '%i', 1)

@@ -39,9 +39,6 @@ def load(filename, **kwargs):
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
         if is_valid:
             img = image_klass.from_filename(filename, **kwargs)
-            if 'Nifti2Image' in str(image_klass):
-                if img.is_cifti:
-                    return img.as_cifti()
             return img
 
     raise ImageFileError('Cannot work out file type of "%s"' %
@@ -105,6 +102,10 @@ def save(img, filename):
     # Inline imports, as this module really shouldn't reference any image type
     from .nifti1 import Nifti1Image, Nifti1Pair
     from .nifti2 import Nifti2Image, Nifti2Pair
+
+    klass = None
+    converted = None
+
     if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
         klass = Nifti1Pair
     elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
@@ -119,8 +120,23 @@ def save(img, filename):
         if not valid_klasses:  # if list is empty
             raise ImageFileError('Cannot work out file type of "%s"' %
                                  filename)
-        klass = valid_klasses[0]
-    converted = klass.from_image(img)
+
+        # Got a list of valid extensions, but that's no guarantee
+        #   the file conversion will work. So, try each image
+        #   in order...
+        for klass in valid_klasses:
+            try:
+                converted = klass.from_image(img)
+                break
+            except Exception as e:
+                continue
+        # ... and if none of them work, raise an error.
+        if converted is None:
+            raise e
+
+    # Here, we either have a klass or a converted image.
+    if converted is None:
+        converted = klass.from_image(img)
     converted.to_filename(filename)
 
 

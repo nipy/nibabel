@@ -76,6 +76,7 @@ class Recoder(object):
     >>> recodes[2]
     2
     '''
+
     def __init__(self, codes, fields=('code',), map_maker=dict):
         ''' Create recoder object
 
@@ -234,6 +235,7 @@ class DtypeMapper(object):
     is a dtype, we compare (using ==) all known dtype keys to the input key,
     and return any matching values for the matching key.
     """
+
     def __init__(self):
         self._dict = {}
         self._dtype_keys = []
@@ -355,7 +357,7 @@ def make_dt_codes(codes_seqs):
     '''
     fields = ['code', 'label', 'type']
     len0 = len(codes_seqs[0])
-    if not len0 in (3, 4):
+    if len0 not in (3, 4):
         raise ValueError('Sequences must be length 3 or 4')
     if len0 == 4:
         fields.append('niistring')
@@ -485,7 +487,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> np.all(arr == arr2)
     True
     '''
-    if not mmap in (True, False, 'c', 'r', 'r+'):
+    if mmap not in (True, False, 'c', 'r', 'r+'):
         raise ValueError("mmap value should be one of True, False, 'c', "
                          "'r', 'r+'")
     if mmap is True:
@@ -632,8 +634,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     if offset is not None:
         seek_tell(fileobj, offset)
-    if (div_none or (mn, mx) == (0, 0) or ((mn is not None and mx is not None)
-                                           and mx < mn)):
+    if (div_none or (mn, mx) == (0, 0) or
+            ((mn is not None and mx is not None) and mx < mn)):
         write_zeros(fileobj, data.size * out_dtype.itemsize)
         return
     if order not in 'FC':
@@ -806,17 +808,17 @@ def _write_data(data,
     nan_need_copy = ((pre_clips, in_cast, inter, slope, post_clips) ==
                      (None, None, 0, 1, None))
     for dslice in data:  # cycle over first dimension to save memory
-        if not pre_clips is None:
+        if pre_clips is not None:
             dslice = np.clip(dslice, *pre_clips)
-        if not in_cast is None:
+        if in_cast is not None:
             dslice = dslice.astype(in_cast)
         if inter != 0.0:
             dslice = dslice - inter
         if slope != 1.0:
             dslice = dslice / slope
-        if not post_clips is None:
+        if post_clips is not None:
             dslice = np.clip(np.rint(dslice), *post_clips)
-        if not nan_fill is None:
+        if nan_fill is not None:
             nans = np.isnan(dslice)
             if np.any(nans):
                 if nan_need_copy:
@@ -1045,7 +1047,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
     mn, mx = writer.finite_range()
     if (mn, mx) == (np.inf, -np.inf):  # No valid data
         return (None, None, None, None)
-    if not in_dtype.kind in 'fc':
+    if in_dtype.kind not in 'fc':
         mn, mx = (None, None)
     return get_slope_inter(writer) + (mn, mx)
 
@@ -1121,7 +1123,7 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
         [mn, mx, info['min'], info['max']], np.maximum_sctype(np.float))
     # with intercept
     if allow_intercept:
-        data_range = mx-mn
+        data_range = mx - mn
         if data_range == 0:
             return 1.0, mn
         type_range = type_max - type_min
@@ -1298,7 +1300,7 @@ def better_float_of(first, second, default=np.float32):
     second = np.dtype(second)
     default = np.dtype(default).type
     kinds = (first.kind, second.kind)
-    if not 'f' in kinds:
+    if 'f' not in kinds:
         return default
     if kinds == ('f', 'f'):
         if first.itemsize >= second.itemsize:
@@ -1314,7 +1316,7 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     """ Smallest float type for scaling of `tst_arr` that does not overflow
     """
     assert direction in ('read', 'write')
-    if not default in OK_FLOATS and default is np.longdouble:
+    if default not in OK_FLOATS and default is np.longdouble:
         # Omitted longdouble
         return default
     def_ind = OK_FLOATS.index(default)
@@ -1496,7 +1498,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     if x_flip:
         zooms[0] *= -1
     # Get translations from center of image
-    origin = (shape-1) / 2.0
+    origin = (shape - 1) / 2.0
     aff = np.eye(4)
     aff[:3, :3] = np.diag(zooms)
     aff[:3, -1] = -origin * zooms
@@ -1541,10 +1543,10 @@ class BinOpener(Opener):
     __doc__ = Opener.__doc__
 
     def __init__(self, *args, **kwargs):
-        warnings.warn("Please use %s class instead of %s" % (
-                          Opener.__class__.__name__,
-                          self.__class__.__name__),
-                      DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "Please use %s class instead of %s" % (Opener.__class__.__name__,
+                                                   self.__class__.__name__),
+            DeprecationWarning, stacklevel=2)
         return super(BinOpener, self).__init__(*args, **kwargs)
 
 

@@ -15,7 +15,7 @@ This implementation aims to read version 4.0 through 4.2 of this format. Other
 versions could probably be supported, but we need example images to test
 against.  If you want us to support another version, and have an image we can
 add to the test suite, let us know.  You would make us very happy by submitting
-a pull request.
+a pull request.  # noqa
 
 ###############
 PAR file format
@@ -115,15 +115,15 @@ PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
 # These come from looking at transverse, sagittal, coronal datasets where we
 # can see the LR, PA, SI orientation of the slice axes from the scanned object
 ACQ_TO_PSL = dict(
-    transverse=np.array([[0,  1,  0, 0],  # P
-                         [0,  0,  1, 0],  # S
-                         [1,  0,  0, 0],  # L
-                         [0,  0,  0, 1]]),
+    transverse=np.array([[0, 1, 0, 0],  # P
+                         [0, 0, 1, 0],  # S
+                         [1, 0, 0, 0],  # L
+                         [0, 0, 0, 1]]),
     sagittal=np.diag([1, -1, -1, 1]),
-    coronal=np.array([[0,  0,  1, 0],  # P
-                      [0, -1,  0, 0],  # S
-                      [1,  0,  0, 0],  # L
-                      [0,  0,  0, 1]])
+    coronal=np.array([[0, 0, 1, 0],  # P
+                      [0, -1, 0, 0],  # S
+                      [1, 0, 0, 0],  # L
+                      [0, 0, 0, 1]])
 )
 
 # General information dict definitions
@@ -167,7 +167,7 @@ _hdr_key_dict = {
     'Max. number of gradient orients': ('max_gradient_orient', int),
     # Line below added for par / rec version > 4.1
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
-    }
+}
 
 # Image information as coded into a numpy structured array
 # header items order per image definition line
@@ -217,7 +217,7 @@ image_def_dtds['V4.1'] = image_def_dtds['V4'] + [
     ('contrast type', 'S30'),               # XXX might be too short?
     ('diffusion anisotropy type', 'S30'),   # XXX might be too short?
     ('diffusion', float, (3,)),
-    ]
+]
 
 # Extra image def fields for 4.2 compared to 4.1
 image_def_dtds['V4.2'] = image_def_dtds['V4.1'] + [
@@ -243,7 +243,6 @@ class PARRECError(Exception):
     To be raised whenever PAR/REC is not happy, or we are not happy with
     PAR/REC.
     """
-    pass
 
 
 # Value after colon may be absent
@@ -407,7 +406,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
         warnings.warn(msg)
 
     def _chk_trunc(idef_name, gdef_max_name):
-        if not gdef_max_name in general_info:
+        if gdef_max_name not in general_info:
             return
         id_values = image_defs[idef_name + ' number']
         n_have = len(set(id_values))
@@ -536,6 +535,7 @@ def exts2pars(exts_source):
 
 
 class PARRECArrayProxy(object):
+
     @kw_only_meth(2)
     def __init__(self, file_like, header, mmap=True, scaling='dv'):
         """ Initialize PARREC array proxy
@@ -617,6 +617,7 @@ class PARRECArrayProxy(object):
 
 class PARRECHeader(SpatialHeader):
     """PAR/REC header"""
+
     def __init__(self, info, image_defs, permit_truncated=False):
         """
         Parameters

@@ -3,15 +3,15 @@
 
 from ..externals.six import BytesIO
 
-import numpy as np
 
-from ..fileholders import FileHolder, FileHolderError, copy_file_map
-from ..tmpdirs import InTemporaryDirectory
+from ..fileholders import FileHolder
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_false
+from nose.tools import assert_true
 
 
 def test_init():
@@ -50,4 +50,12 @@ def test_same_file_as():
     assert_true(fh3.same_file_as(fh4_again))
 
 
-
+def test_file_like():
+    # Test returning file object or filename
+    fh = FileHolder('a_fname')
+    assert_equal(fh.file_like, 'a_fname')
+    bio = BytesIO()
+    fh = FileHolder(fileobj=bio)
+    assert_true(fh.file_like is bio)
+    fh = FileHolder('a_fname', fileobj=bio)
+    assert_true(fh.file_like is bio)

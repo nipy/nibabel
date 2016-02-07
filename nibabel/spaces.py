@@ -77,7 +77,7 @@ def vox2out_vox(mapped_voxels, voxel_sizes=None):
     if n_axes < 3:
         in_shape += (1,) * (3 - n_axes)
     out_vox = np.ones((3,))
-    if not voxel_sizes is None:
+    if voxel_sizes is not None:
         if not len(voxel_sizes) == n_axes:
             raise ValueError('voxel sizes length should match shape')
         if not np.all(np.array(voxel_sizes) > 0):

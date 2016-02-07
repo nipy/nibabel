@@ -27,6 +27,7 @@ class Unpacker(object):
     >>> upk.ptr
     7
     '''
+
     def __init__(self, buf, ptr=0, endian=None):
         ''' Initialize unpacker
 
