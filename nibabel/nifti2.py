@@ -11,10 +11,6 @@
 Format described here:
 
     https://www.nitrc.org/forum/message.php?msg_id=3738
-
-Stuff about the CIFTI file format here:
-
-    https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
 '''
 
 import numpy as np
@@ -23,7 +19,6 @@ from .analyze import AnalyzeHeader
 from .batteryrunners import Report
 from .spatialimages import HeaderDataError, ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
-from .cifti import create_cifti_image
 
 r"""
 Header struct from : https://www.nitrc.org/forum/message.php?msg_id=3738
@@ -252,31 +247,6 @@ class Nifti2Image(Nifti1Image):
     header_class = Nifti2Header
     _meta_sniff_len = header_class.sizeof_hdr
 
-    @property
-    def is_cifti(self):
-        hdr = self.get_header()
-        intent_code = hdr.get_intent('code')[0]
-        cifti_header = False
-        if intent_code >= 3000 and intent_code < 3100:
-            cifti_header = True
-        return cifti_header
-
-    def as_cifti(self):
-        """Convert NIFTI-2 file to CIFTI"""
-        if not self.is_cifti:
-            TypeError('Nifti2 image is not a CIFTI file')
-        hdr = self.get_header()
-        intent_code = hdr.get_intent('code')[0]
-        cifti_header = None
-        if hdr.extensions is not None:
-            for extension in hdr.extensions:
-                if extension.get_code() == 32:
-                    cifti_header = extension.get_content()
-        if cifti_header is None:
-            raise ValueError(('Nifti2 header does not contain a CIFTI '
-                              'extension'))
-        img = create_cifti_image(self, cifti_header, intent_code)
-        return img
 
 def load(filename):
     """ Load NIfTI2 single or pair image from `filename`

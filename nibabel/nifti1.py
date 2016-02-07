@@ -496,7 +496,6 @@ extension_codes = Recoder((
     (12, "workflow_fwds", Nifti1Extension),
     (14, "freesurfer", Nifti1Extension),
     (16, "pypickle", Nifti1Extension),
-    (32, "cifti", Nifti1Extension)
 ), fields=('code', 'label', 'handler'))
 
 
