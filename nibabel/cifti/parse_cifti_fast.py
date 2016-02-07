@@ -9,18 +9,16 @@
 from __future__ import division, print_function, absolute_import
 
 from distutils.version import LooseVersion
-from xml.parsers.expat import ParserCreate, ExpatError
 
 import numpy as np
 
-from .cifti import (CiftiImage, CiftiHeader, CiftiMetaData, CiftiLabel,
+from .cifti import (CiftiHeader, CiftiMetaData, CiftiLabel,
                     CiftiLabelTable, CiftiVertexIndices,
                     CiftiVoxelIndicesIJK, CiftiBrainModel, CiftiMatrix,
                     CiftiMatrixIndicesMap, CiftiNamedMap, CiftiParcel,
                     CiftiSurface, CiftiTransformationMatrixVoxelIndicesIJKtoXYZ,
                     CiftiVertices, CiftiVolume, CIFTI_BrainStructures,
-                    CIFTI_MODEL_TYPES,
-                    CiftiDenseDataSeries)
+                    CIFTI_MODEL_TYPES)  # CiftiDenseDataSeries
 from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import BytesIO
@@ -108,8 +106,8 @@ class _CiftiAsNiftiImage(Nifti2Image):
 
         # Get cifti header from extension
         self.cifti_img = reduce(lambda accum, newval: newval
-                                    if isinstance(newval, CiftiExtension)
-                                    else accum,
+                                if isinstance(newval, CiftiExtension)
+                                else accum,
                                 self.get_header().extensions, None)
         if self.cifti_img is None:
             raise ValueError('Nifti2 header does not contain a CIFTI '
@@ -175,8 +173,9 @@ class CiftiParser(xml.XmlParser):
 
         elif name == 'MatrixIndicesMap':
             self.fsm_state.append('MatrixIndicesMap')
-            mim = CiftiMatrixIndicesMap(applies_to_matrix_dimension=int(attrs["AppliesToMatrixDimension"]),
-                                        indices_map_to_data_type=attrs["IndicesMapToDataType"])
+            mim = CiftiMatrixIndicesMap(
+                applies_to_matrix_dimension=int(attrs["AppliesToMatrixDimension"]),
+                indices_map_to_data_type=attrs["IndicesMapToDataType"])
             for key, dtype in [("NumberOfSeriesPoints", int),
                                ("SeriesExponent", int),
                                ("SeriesStart", float),

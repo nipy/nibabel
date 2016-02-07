@@ -25,7 +25,6 @@ from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import string_types
 from ..filebasedimages import FileBasedImage, FileBasedHeader
-from ..nifti1 import Nifti1Extension
 from ..nifti2 import Nifti2Image
 
 
@@ -464,7 +463,6 @@ class CiftiBrainModel(object):
     def _to_xml_element(self):
         brain_model = xml.Element('BrainModel')
 
-        attrs = []
         for key in ['IndexOffset', 'IndexCount', 'ModelType', 'BrainStructure',
                     'SurfaceNumberOfVertices']:
             attr = inflection.underscore(key)
@@ -593,7 +591,7 @@ class CiftiMatrixIndicesMap(object):
 
     def _to_xml_element(self):
         assert self.applies_to_matrix_dimension is not None
-        attrs = []
+
         mat_ind_map = xml.Element('MatrixIndicesMap')
         for key in ['AppliesToMatrixDimension', 'IndicesMapToDataType',
                     'NumberOfSeriesPoints', 'SeriesExponent', 'SeriesStart',
@@ -739,9 +737,10 @@ class CiftiImage(FileBasedImage):
         nifti_img = _CiftiAsNiftiImage.from_file_map(file_map)
 
         # Get cifti header
-        cifti_header = reduce(lambda accum, item: item.get_content()
-                                  if isinstance(item, CiftiExtension)
-                                  else accum,
+        cifti_header = reduce(lambda accum, item:
+                              item.get_content()
+                              if isinstance(item, CiftiExtension)
+                              else accum,
                               nifti_img.get_header().extensions or [],
                               None)
         if cifti_header is None:
