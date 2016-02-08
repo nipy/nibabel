@@ -244,11 +244,11 @@ class GiftiDataArray(xml.XmlSerializable):
     """
 
     def __init__(self, data=None,
-                  encoding="GIFTI_ENCODING_B64GZ",
-                  endian=sys.byteorder,
-                  coordsys=None,
-                  ordering="C",
-                  meta=None):
+                 encoding="GIFTI_ENCODING_B64GZ",
+                 endian=sys.byteorder,
+                 coordsys=None,
+                 ordering="C",
+                 meta=None):
         """
         Returns a shell object that cannot be saved.
         """
