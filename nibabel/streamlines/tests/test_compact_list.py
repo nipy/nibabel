@@ -8,9 +8,7 @@ from nibabel.testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 from nibabel.externals.six.moves import zip, zip_longest
 
-from ..compact_list import (CompactList,
-                            load_compact_list,
-                            save_compact_list)
+from ..compact_list import CompactList
 
 
 class TestCompactList(unittest.TestCase):
@@ -277,25 +275,26 @@ class TestCompactList(unittest.TestCase):
         # Test that calling repr on a CompactList object is not falling.
         repr(self.clist)
 
+    def test_save_and_load_compact_list(self):
 
-def test_save_and_load_compact_list():
+        # Test saving and loading an empty CompactList.
+        with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
+            clist = CompactList()
+            clist.save(f)
+            f.seek(0, os.SEEK_SET)
+            loaded_clist = CompactList.from_filename(f)
+            assert_array_equal(loaded_clist._data, clist._data)
+            assert_array_equal(loaded_clist._offsets, clist._offsets)
+            assert_array_equal(loaded_clist._lengths, clist._lengths)
 
-    with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
-        clist = CompactList()
-        save_compact_list(f, clist)
-        f.seek(0, os.SEEK_SET)
-        loaded_clist = load_compact_list(f)
-        assert_array_equal(loaded_clist._data, clist._data)
-        assert_array_equal(loaded_clist._offsets, clist._offsets)
-        assert_array_equal(loaded_clist._lengths, clist._lengths)
-
-    with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
-        rng = np.random.RandomState(42)
-        data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        clist = CompactList(data)
-        save_compact_list(f, clist)
-        f.seek(0, os.SEEK_SET)
-        loaded_clist = load_compact_list(f)
-        assert_array_equal(loaded_clist._data, clist._data)
-        assert_array_equal(loaded_clist._offsets, clist._offsets)
-        assert_array_equal(loaded_clist._lengths, clist._lengths)
+        # Test saving and loading a CompactList.
+        with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
+            rng = np.random.RandomState(42)
+            data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
+            clist = CompactList(data)
+            clist.save(f)
+            f.seek(0, os.SEEK_SET)
+            loaded_clist = CompactList.from_filename(f)
+            assert_array_equal(loaded_clist._data, clist._data)
+            assert_array_equal(loaded_clist._offsets, clist._offsets)
+            assert_array_equal(loaded_clist._lengths, clist._lengths)

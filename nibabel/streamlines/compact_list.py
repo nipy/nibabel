@@ -166,14 +166,15 @@ class CompactList(object):
 
         Parameters
         ----------
-        idx : int, slice or list
+        idx : int or slice or list or ndarray of bool dtype or ndarray of int dtype
             Index of the element(s) to get.
 
         Returns
         -------
-        ndarray object(s)
+        ndarray(s)
             When `idx` is an int, returns a single ndarray.
-            When `idx` is either a slice or a list, returns a list of ndarrays.
+            When `idx` is either a slice, a list or a ndarray, returns a list
+            of ndarrays.
         """
         if isinstance(idx, int) or isinstance(idx, np.integer):
             start = self._offsets[idx]
@@ -219,20 +220,19 @@ class CompactList(object):
     def __repr__(self):
         return repr(list(self))
 
+    def save(self, filename):
+        """ Saves this :class:`CompactList` object to a .npz file. """
+        np.savez(filename,
+                 data=self._data,
+                 offsets=self._offsets,
+                 lengths=self._lengths)
 
-def save_compact_list(filename, clist):
-    """ Saves a :class:`CompactList` object to a .npz file. """
-    np.savez(filename,
-             data=clist._data,
-             offsets=clist._offsets,
-             lengths=clist._lengths)
-
-
-def load_compact_list(filename):
-    """ Loads a :class:`CompactList` object from a .npz file. """
-    content = np.load(filename)
-    clist = CompactList()
-    clist._data = content["data"]
-    clist._offsets = content["offsets"]
-    clist._lengths = content["lengths"]
-    return clist
+    @classmethod
+    def from_filename(cls, filename):
+        """ Loads a :class:`CompactList` object from a .npz file. """
+        content = np.load(filename)
+        clist = cls()
+        clist._data = content["data"]
+        clist._offsets = content["offsets"]
+        clist._lengths = content["lengths"]
+        return clist
