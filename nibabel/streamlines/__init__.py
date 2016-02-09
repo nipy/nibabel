@@ -45,9 +45,8 @@ def detect_format(fileobj):
 
     Returns
     -------
-    tractogram_file : ``TractogramFile`` class
-        Returns an instance of a `TractogramFile` class containing data and
-        metadata of the tractogram contained from `fileobj`.
+    tractogram_file : :class:TractogramFile class
+        The class type guessed from the content of `fileobj`.
     '''
     for format in FORMATS.values():
         try:
@@ -78,13 +77,10 @@ def load(fileobj, lazy_load=False, ref=None):
         Load streamlines in a lazy manner i.e. they will not be kept
         in memory.
 
-    ref : filename | `Nifti1Image` object | 2D array (4,4) (optional)
-        Reference space where streamlines will live in `fileobj`.
-
     Returns
     -------
-    tractogram_file : ``TractogramFile``
-        Returns an instance of a `TractogramFile` class containing data and
+    tractogram_file : :class:TractogramFile object
+        Returns an instance of a :class:TractogramFile containing data and
         metadata of the tractogram loaded from `fileobj`.
     '''
     tractogram_file = detect_format(fileobj)
@@ -100,7 +96,7 @@ def save(tractogram_file, filename):
 
     Parameters
     ----------
-    tractogram_file : ``TractogramFile`` object
+    tractogram_file : :class:TractogramFile object
         Tractogram to be saved on disk.
 
     filename : str
@@ -115,7 +111,7 @@ def save_tractogram(tractogram, filename, **kwargs):
 
     Parameters
     ----------
-    tractogram : ``Tractogram`` object
+    tractogram : :class:Tractogram object
         Tractogram to be saved.
 
     filename : str

@@ -109,7 +109,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
         Returns
         -------
-        tractogram_file : ``TractogramFile`` object
+        tractogram_file : :class:TractogramFile object
             Returns an object containing tractogram data and header
             information.
         '''

@@ -14,7 +14,7 @@ class UsageWarning(Warning):
 class TractogramItem(object):
     """ Class containing information about one streamline.
 
-    ``TractogramItem`` objects have three main properties: `streamline`,
+    :class:TractogramItem objects have three main properties: `streamline`,
     `data_for_streamline`, and `data_for_points`.
 
     Parameters
@@ -42,11 +42,12 @@ class TractogramItem(object):
 class Tractogram(object):
     """ Class containing information about streamlines.
 
-    Tractogram objects have three main properties: ``streamlines``
+    Tractogram objects have three main properties: `streamlines`,
+    `data_per_streamline` and `data_per_point`.
 
     Attributes
     ----------
-    affine_to_rasmm : 2D array (4,4)
+    affine_to_rasmm : 2D ndarray (4,4)
         Affine that brings the streamlines back to *RAS+* and *mm* space
         where coordinate (0,0,0) refers to the center of the voxel.
 
@@ -102,7 +103,7 @@ class Tractogram(object):
             self.store[key] = value
 
     class DataPerPointDict(DataDict):
-        """ Internal dictionary that makes sure data are `CompactList`. """
+        """ Internal dictionary making sure data are :class:CompactList objects. """
 
         def __setitem__(self, key, value):
             value = CompactList(value)
@@ -130,12 +131,12 @@ class Tractogram(object):
 
         data_per_streamline : dict of list of ndarray of shape (P,) (optional)
             Sequence of T ndarrays of shape (P,) where T is the number of
-            streamlines defined by ``streamlines``, P is the number of
+            streamlines defined by `streamlines`, P is the number of
             properties associated to each streamline.
 
         data_per_point : dict of list of ndarray of shape (Nt, M) (optional)
             Sequence of T ndarrays of shape (Nt, M) where T is the number
-            of streamlines defined by ``streamlines``, Nt is the number of
+            of streamlines defined by `streamlines`, Nt is the number of
             points for a particular streamline t and M is the number of
             scalars associated to each point (excluding the three
             coordinates).
@@ -200,7 +201,7 @@ class Tractogram(object):
         return len(self.streamlines)
 
     def copy(self):
-        """ Returns a copy of this `Tractogram` object. """
+        """ Returns a copy of this :class:Tractogram object. """
         data_per_streamline = {}
         for key in self.data_per_streamline:
             data_per_streamline[key] = self.data_per_streamline[key].copy()
@@ -228,11 +229,11 @@ class Tractogram(object):
 
         Returns
         -------
-        tractogram : ``Tractogram`` or ``LazyTractogram`` object
+        tractogram : :class:Tractogram or :class:LazyTractogram object
             Tractogram where the streamlines have been transformed according
             to the given affine transformation. If the `lazy` option is true,
-            it returns a ``LazyTractogram`` object, otherwise it returns a
-            reference to this ``Tractogram`` object with updated streamlines.
+            it returns a :class:LazyTractogram object, otherwise it returns a
+            reference to this :class:Tractogram object with updated streamlines.
 
         """
         if lazy:
@@ -258,15 +259,15 @@ class Tractogram(object):
 class LazyTractogram(Tractogram):
     ''' Class containing information about streamlines.
 
-    Tractogram objects have four main properties: ``header``, ``streamlines``,
-    ``scalars`` and ``properties``. Tractogram objects are iterable and
-    produce tuple of ``streamlines``, ``scalars`` and ``properties`` for each
+    Tractogram objects have four main properties: `header`, `streamlines`,
+    `scalars` and `properties`. Tractogram objects are iterable and
+    produce tuple of `streamlines`, `scalars` and `properties` for each
     streamline.
 
     Notes
     -----
-    If provided, ``scalars`` and ``properties`` must yield the same number of
-    values as ``streamlines``.
+    If provided, `scalars` and `properties` must yield the same number of
+    values as `streamlines`.
     '''
 
     class LazyDict(collections.MutableMapping):
@@ -331,16 +332,16 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def from_tractogram(cls, tractogram):
-        ''' Creates a ``LazyTractogram`` object from a ``Tractogram`` object.
+        ''' Creates a :class:LazyTractogram object from a :class:Tractogram object.
 
         Parameters
         ----------
-        tractogram : ``Tractgogram`` object
-            Tractogram from which to create a ``LazyTractogram`` object.
+        tractogram : :class:Tractgogram object
+            Tractogram from which to create a :class:LazyTractogram object.
 
         Returns
         -------
-        lazy_tractogram : ``LazyTractogram`` object
+        lazy_tractogram : :class:LazyTractogram object
             New lazy tractogram.
 
         '''
@@ -362,19 +363,19 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def create_from(cls, data_func):
-        ''' Creates a ``LazyTractogram`` from a coroutine yielding
-        ``TractogramItem`` objects.
+        ''' Creates a :class:LazyTractogram from a coroutine yielding
+        :class:TractogramItem objects.
 
         Parameters
         ----------
-        data_func : coroutine yielding ``TractogramItem`` objects
+        data_func : coroutine yielding :class:TractogramItem objects
             A function that whenever it is called starts yielding
-            ``TractogramItem`` objects that should be part of this
+            :class:TractogramItem objects that should be part of this
             LazyTractogram.
 
         Returns
         -------
-        lazy_tractogram : ``LazyTractogram`` object
+        lazy_tractogram : :class:LazyTractogram object
             New lazy tractogram.
 
         '''
@@ -508,7 +509,7 @@ class LazyTractogram(Tractogram):
         return self._nb_streamlines
 
     def copy(self):
-        """ Returns a copy of this `LazyTractogram` object. """
+        """ Returns a copy of this :class:LazyTractogram object. """
         tractogram = LazyTractogram(self._streamlines,
                                     self._data_per_streamline,
                                     self._data_per_point)
@@ -530,8 +531,8 @@ class LazyTractogram(Tractogram):
 
         Returns
         -------
-        lazy_tractogram : ``LazyTractogram`` object
-            Reference to this instance of ``LazyTractogram``.
+        lazy_tractogram : :class:LazyTractogram object
+            Reference to this instance of :class:LazyTractogram.
 
         """
         # Update the affine that will be applied when returning streamlines.

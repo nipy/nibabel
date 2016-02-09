@@ -10,7 +10,7 @@ def get_affine_from_reference(ref):
 
     Parameter
     ---------
-    ref : filename | `Nifti1Image` object | 2D array (4,4)
+    ref : filename | :class:Nifti1Image object | 2D array (4,4)
         Reference space where streamlines live in `fileobj`.
 
     Returns

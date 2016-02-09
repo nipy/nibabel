@@ -443,10 +443,10 @@ class TrkFile(TractogramFile):
         """
         Parameters
         ----------
-        tractogram : ``Tractogram`` object
-            Tractogram that will be contained in this ``TrkFile``.
+        tractogram : :class:Tractogram object
+            Tractogram that will be contained in this :class:TrkFile.
 
-        header : ``TractogramHeader`` file (optional)
+        header : dict (optional)
             Metadata associated to this tractogram file.
 
         Notes
@@ -602,7 +602,7 @@ class TrkFile(TractogramFile):
 
         Returns
         -------
-        trk_file : ``TrkFile`` object
+        trk_file : :class:TrkFile object
             Returns an object containing tractogram data and header
             information.
 
