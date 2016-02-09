@@ -10,16 +10,22 @@ def get_affine_from_reference(ref):
 
     Parameter
     ---------
-    ref : filename | :class:Nifti1Image object | 2D array (4,4)
-        Reference space where streamlines live in `fileobj`.
+    ref : str or :class:`Nifti1Image` object or ndarray shape (4, 4)
+        If str then it's the filename of reference file that will be loaded
+        using :func:nibabel.load in order to obtain the affine.
+        If :class:`Nifti1Image` object then the affine is obtained from it.
+        If ndarray shape (4, 4) then it's the affine.
 
     Returns
     -------
-    affine : 2D array (4,4)
+    affine : ndarray (4, 4)
+        Transformation matrix mapping voxel space to RAS+mm space.
+
     """
     if type(ref) is np.ndarray:
         if ref.shape != (4, 4):
-            raise ValueError("`ref` needs to be a numpy array with shape (4,4)!")
+            msg = "`ref` needs to be a numpy array with shape (4, 4)!"
+            raise ValueError(msg)
 
         return ref
     elif isinstance(ref, SpatialImage):
@@ -30,6 +36,6 @@ def get_affine_from_reference(ref):
 
 
 def pop(iterable):
-    "Returns the next item from the iterable else None"
+    """ Returns the next item from the iterable else None. """
     value = list(itertools.islice(iterable, 1))
     return value[0] if len(value) > 0 else None

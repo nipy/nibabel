@@ -14,18 +14,24 @@ class UsageWarning(Warning):
 class TractogramItem(object):
     """ Class containing information about one streamline.
 
-    :class:TractogramItem objects have three main properties: `streamline`,
+    :class:`TractogramItem` objects have three main properties: `streamline`,
     `data_for_streamline`, and `data_for_points`.
 
     Parameters
     ----------
-    streamline : ndarray of shape (N, 3)
+    streamline : ndarray shape (N, 3)
         Points of this streamline represented as an ndarray of shape (N, 3)
         where N is the number of points.
-
     data_for_streamline : dict
-
+        Dictionary containing some data associated to this particular
+        streamline. Each key `k` is mapped to a ndarray of shape (Pk,), where
+        `Pt` is the dimension of the data associated with key `k`.
     data_for_points : dict
+        Dictionary containing some data associated to each point of this
+        particular streamline. Each key `k` is mapped to a ndarray of
+        shape (Nt, Mk), where `Nt` is the number of points of this streamline
+        and `Mk` is the dimension of the data associated with key `k`.
+
     """
     def __init__(self, streamline, data_for_streamline, data_for_points):
         self.streamline = np.asarray(streamline)
@@ -47,7 +53,7 @@ class Tractogram(object):
 
     Attributes
     ----------
-    affine_to_rasmm : 2D ndarray (4,4)
+    affine_to_rasmm : ndarray shape (4, 4)
         Affine that brings the streamlines back to *RAS+* and *mm* space
         where coordinate (0,0,0) refers to the center of the voxel.
 
@@ -81,7 +87,7 @@ class Tractogram(object):
             return len(self.store)
 
     class DataPerStreamlineDict(DataDict):
-        """ Internal dictionary that makes sure data are 2D ndarray. """
+        """ Internal dictionary that makes sure data are 2D array. """
 
         def __setitem__(self, key, value):
             value = np.asarray(value)
@@ -91,7 +97,7 @@ class Tractogram(object):
                 value.shape = ((len(value), 1))
 
             if value.ndim != 2:
-                raise ValueError("data_per_streamline must be a 2D ndarray.")
+                raise ValueError("data_per_streamline must be a 2D array.")
 
             # We make sure there is the right amount of values
             # (i.e. same as the number of streamlines in the tractogram).
@@ -103,7 +109,8 @@ class Tractogram(object):
             self.store[key] = value
 
     class DataPerPointDict(DataDict):
-        """ Internal dictionary making sure data are :class:CompactList objects. """
+        """ Internal dictionary making sure data are :class:`CompactList` objects.
+        """
 
         def __setitem__(self, key, value):
             value = CompactList(value)
@@ -128,12 +135,10 @@ class Tractogram(object):
         streamlines : list of ndarray of shape (Nt, 3) (optional)
             Sequence of T streamlines. One streamline is an ndarray of
             shape (Nt, 3) where Nt is the number of points of streamline t.
-
         data_per_streamline : dict of list of ndarray of shape (P,) (optional)
             Sequence of T ndarrays of shape (P,) where T is the number of
             streamlines defined by `streamlines`, P is the number of
             properties associated to each streamline.
-
         data_per_point : dict of list of ndarray of shape (Nt, M) (optional)
             Sequence of T ndarrays of shape (Nt, M) where T is the number
             of streamlines defined by `streamlines`, Nt is the number of
@@ -201,7 +206,7 @@ class Tractogram(object):
         return len(self.streamlines)
 
     def copy(self):
-        """ Returns a copy of this :class:Tractogram object. """
+        """ Returns a copy of this :class:`Tractogram` object. """
         data_per_streamline = {}
         for key in self.data_per_streamline:
             data_per_streamline[key] = self.data_per_streamline[key].copy()
@@ -224,16 +229,21 @@ class Tractogram(object):
 
         Parameters
         ----------
-        affine : 2D array (4,4)
+        affine : ndarray shape (4, 4)
             Transformation that will be applied to every streamline.
+        lazy_load : {False, True}, optional
+            If True, streamlines are *not* transformed in-place and a
+            :class:`LazyTractogram` object is returned. Otherwise, streamlines
+            are modified in-place.
 
         Returns
         -------
-        tractogram : :class:Tractogram or :class:LazyTractogram object
+        tractogram : :class:`Tractogram` or :class:`LazyTractogram` object
             Tractogram where the streamlines have been transformed according
             to the given affine transformation. If the `lazy` option is true,
-            it returns a :class:LazyTractogram object, otherwise it returns a
-            reference to this :class:Tractogram object with updated streamlines.
+            it returns a :class:`LazyTractogram` object, otherwise it returns a
+            reference to this :class:`Tractogram` object with updated
+            streamlines.
 
         """
         if lazy:
@@ -257,7 +267,7 @@ class Tractogram(object):
 
 
 class LazyTractogram(Tractogram):
-    ''' Class containing information about streamlines.
+    """ Class containing information about streamlines.
 
     Tractogram objects have four main properties: `header`, `streamlines`,
     `scalars` and `properties`. Tractogram objects are iterable and
@@ -268,7 +278,8 @@ class LazyTractogram(Tractogram):
     -----
     If provided, `scalars` and `properties` must yield the same number of
     values as `streamlines`.
-    '''
+
+    """
 
     class LazyDict(collections.MutableMapping):
         """ Internal dictionary with lazy evaluations. """
@@ -309,12 +320,10 @@ class LazyTractogram(Tractogram):
         streamlines : coroutine yielding ndarrays of shape (Nt,3) (optional)
             Function yielding streamlines. One streamline is an ndarray of
             shape (Nt,3) where Nt is the number of points of streamline t.
-
         data_per_streamline : dict of coroutines yielding ndarrays of shape (P,) (optional)
             Function yielding properties for a particular streamline t. The
             properties are represented as an ndarray of shape (P,) where P is
             the number of properties associated to each streamline.
-
         data_per_point : dict of coroutines yielding ndarrays of shape (Nt,M) (optional)
             Function yielding scalars for a particular streamline t. The
             scalars are represented as an ndarray of shape (Nt,M) where Nt
@@ -332,19 +341,19 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def from_tractogram(cls, tractogram):
-        ''' Creates a :class:LazyTractogram object from a :class:Tractogram object.
+        """ Creates a :class:`LazyTractogram` object from a :class:`Tractogram` object.
 
         Parameters
         ----------
-        tractogram : :class:Tractgogram object
-            Tractogram from which to create a :class:LazyTractogram object.
+        tractogram : :class:`Tractgogram` object
+            Tractogram from which to create a :class:`LazyTractogram` object.
 
         Returns
         -------
-        lazy_tractogram : :class:LazyTractogram object
+        lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
 
-        '''
+        """
         data_per_streamline = {}
         for key, value in tractogram.data_per_streamline.items():
             data_per_streamline[key] = lambda: value
@@ -363,22 +372,22 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def create_from(cls, data_func):
-        ''' Creates a :class:LazyTractogram from a coroutine yielding
-        :class:TractogramItem objects.
+        """ Creates a :class:`LazyTractogram` from a coroutine yielding
+        :class:`TractogramItem` objects.
 
         Parameters
         ----------
-        data_func : coroutine yielding :class:TractogramItem objects
+        data_func : coroutine yielding :class:`TractogramItem` objects
             A function that whenever it is called starts yielding
-            :class:TractogramItem objects that should be part of this
+            :class:`TractogramItem` objects that should be part of this
             LazyTractogram.
 
         Returns
         -------
-        lazy_tractogram : :class:LazyTractogram object
+        lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
 
-        '''
+        """
         if not callable(data_func):
             raise TypeError("`data_func` must be a coroutine.")
 
@@ -509,7 +518,7 @@ class LazyTractogram(Tractogram):
         return self._nb_streamlines
 
     def copy(self):
-        """ Returns a copy of this :class:LazyTractogram object. """
+        """ Returns a copy of this :class:`LazyTractogram` object. """
         tractogram = LazyTractogram(self._streamlines,
                                     self._data_per_streamline,
                                     self._data_per_point)
@@ -531,8 +540,8 @@ class LazyTractogram(Tractogram):
 
         Returns
         -------
-        lazy_tractogram : :class:LazyTractogram object
-            Reference to this instance of :class:LazyTractogram.
+        lazy_tractogram : :class:`LazyTractogram` object
+            Reference to this instance of :class:`LazyTractogram`.
 
         """
         # Update the affine that will be applied when returning streamlines.

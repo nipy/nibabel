@@ -87,7 +87,7 @@ header_2_dtype = np.dtype(header_2_dtd)
 
 
 class TrkReader(object):
-    ''' Convenience class to encapsulate TRK file format.
+    """ Convenience class to encapsulate TRK file format.
 
     Parameters
     ----------
@@ -105,7 +105,8 @@ class TrkReader(object):
 
     Thus, streamlines are shifted of half a voxel on load and are shifted
     back on save.
-    '''
+
+    """
     def __init__(self, fileobj):
         self.fileobj = fileobj
 
@@ -222,7 +223,7 @@ class TrkReader(object):
 class TrkWriter(object):
     @classmethod
     def create_empty_header(cls):
-        ''' Return an empty compliant TRK header. '''
+        """ Return an empty compliant TRK header. """
         header = np.zeros(1, dtype=header_2_dtype)
 
         # Default values
@@ -421,7 +422,7 @@ class TrkWriter(object):
 
 
 class TrkFile(TractogramFile):
-    ''' Convenience class to encapsulate TRK file format.
+    """ Convenience class to encapsulate TRK file format.
 
     Note
     ----
@@ -432,7 +433,8 @@ class TrkFile(TractogramFile):
 
     Thus, streamlines are shifted of half a voxel on load and are shifted
     back on save.
-    '''
+
+    """
 
     # Contants
     MAGIC_NUMBER = b"TRACK"
@@ -443,10 +445,10 @@ class TrkFile(TractogramFile):
         """
         Parameters
         ----------
-        tractogram : :class:Tractogram object
-            Tractogram that will be contained in this :class:TrkFile.
+        tractogram : :class:`Tractogram` object
+            Tractogram that will be contained in this :class:`TrkFile`.
 
-        header : dict (optional)
+        header : dict, optional
             Metadata associated to this tractogram file.
 
         Notes
@@ -463,22 +465,23 @@ class TrkFile(TractogramFile):
 
     @classmethod
     def get_magic_number(cls):
-        ''' Return TRK's magic number. '''
+        """ Return TRK's magic number. """
         return cls.MAGIC_NUMBER
 
     @classmethod
     def support_data_per_point(cls):
-        ''' Tells if this tractogram format supports saving data per point. '''
+        """ Tells if this tractogram format supports saving data per point. """
         return True
 
     @classmethod
     def support_data_per_streamline(cls):
-        ''' Tells if this tractogram format supports saving data per streamline. '''
+        """ Tells if this tractogram format supports saving data per streamline.
+        """
         return True
 
     @classmethod
     def is_correct_format(cls, fileobj):
-        ''' Check if the file is in TRK format.
+        """ Check if the file is in TRK format.
 
         Parameters
         ----------
@@ -489,9 +492,10 @@ class TrkFile(TractogramFile):
 
         Returns
         -------
-        is_correct_format : boolean
-            Returns True if `fileobj` is in TRK format.
-        '''
+        is_correct_format : {True, False}
+            Returns True if `fileobj` is compatible with TRK format,
+            otherwise returns False.
+        """
         with Opener(fileobj) as f:
             magic_number = f.read(5)
             f.seek(-5, os.SEEK_CUR)
@@ -587,7 +591,7 @@ class TrkFile(TractogramFile):
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
-        ''' Loads streamlines from a file-like object.
+        """ Loads streamlines from a file-like object.
 
         Parameters
         ----------
@@ -595,22 +599,23 @@ class TrkFile(TractogramFile):
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header).
-
-        lazy_load : boolean (optional)
-            Load streamlines in a lazy manner i.e. they will not be kept
-            in memory.
+        lazy_load : {False, True}, optional
+            If True, load streamlines in a lazy manner i.e. they will not be
+            kept in memory. Otherwise, load all streamlines in memory.
 
         Returns
         -------
-        trk_file : :class:TrkFile object
+        trk_file : :class:`TrkFile` object
             Returns an object containing tractogram data and header
             information.
 
         Notes
         -----
-        Streamlines of the returned tractogram are assumed to be in RASmm
-        space where coordinate (0,0,0) refers to the center of the voxel.
-        '''
+        Streamlines of the returned tractogram are assumed to be in *RAS*
+        and *mm* space where coordinate (0,0,0) refers to the center of the
+        voxel.
+
+        """
         trk_reader = TrkReader(fileobj)
 
         # TRK's streamlines are in 'voxelmm' space, we will compute the
@@ -718,7 +723,7 @@ class TrkFile(TractogramFile):
         return cls(tractogram, header=trk_reader.header)
 
     def save(self, fileobj):
-        ''' Saves tractogram to a file-like object using TRK format.
+        """ Saves tractogram to a file-like object using TRK format.
 
         Parameters
         ----------
@@ -726,12 +731,13 @@ class TrkFile(TractogramFile):
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header data).
-        '''
+
+        """
         trk_writer = TrkWriter(fileobj, self.header)
         trk_writer.write(self.tractogram)
 
     def __str__(self):
-        ''' Gets a formatted string of the header of a TRK file.
+        """ Gets a formatted string of the header of a TRK file.
 
         Parameters
         ----------
@@ -744,7 +750,8 @@ class TrkFile(TractogramFile):
         -------
         info : string
             Header information relevant to the TRK format.
-        '''
+
+        """
         hdr = self.header
 
         info = ""

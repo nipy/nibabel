@@ -25,7 +25,7 @@ class abstractclassmethod(classmethod):
 
 
 class TractogramFile(with_metaclass(ABCMeta)):
-    ''' Convenience class to encapsulate tractogram file format. '''
+    """ Convenience class to encapsulate tractogram file format. """
 
     def __init__(self, tractogram, header=None):
         self._tractogram = tractogram
@@ -62,22 +62,23 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractclassmethod
     def get_magic_number(cls):
-        ''' Returns streamlines file's magic number. '''
+        """ Returns streamlines file's magic number. """
         raise NotImplementedError()
 
     @abstractclassmethod
     def support_data_per_point(cls):
-        ''' Tells if this tractogram format supports saving data per point. '''
+        """ Tells if this tractogram format supports saving data per point. """
         raise NotImplementedError()
 
     @abstractclassmethod
     def support_data_per_streamline(cls):
-        ''' Tells if this tractogram format supports saving data per streamline. '''
+        """ Tells if this tractogram format supports saving data per streamline.
+        """
         raise NotImplementedError()
 
     @abstractclassmethod
     def is_correct_format(cls, fileobj):
-        ''' Checks if the file has the right streamlines file format.
+        """ Checks if the file has the right streamlines file format.
 
         Parameters
         ----------
@@ -88,14 +89,16 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
         Returns
         -------
-        is_correct_format : boolean
-            Returns True if `fileobj` is in the right streamlines file format.
-        '''
+        is_correct_format : {True, False}
+            Returns True if `fileobj` is in the right streamlines file format,
+            otherwise returns False.
+
+        """
         raise NotImplementedError()
 
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
-        ''' Loads streamlines from a file-like object.
+        """ Loads streamlines from a file-like object.
 
         Parameters
         ----------
@@ -103,26 +106,28 @@ class TractogramFile(with_metaclass(ABCMeta)):
             If string, a filename; otherwise an open file-like object
             pointing to a streamlines file (and ready to read from the
             beginning of the header).
-        lazy_load : boolean (optional)
-            Load streamlines in a lazy manner i.e. they will not be kept
-            in memory. For postprocessing speed, turn off this option.
+        lazy_load : {False, True}, optional
+            If True, load streamlines in a lazy manner i.e. they will not be
+            kept in memory. Otherwise, load all streamlines in memory.
 
         Returns
         -------
-        tractogram_file : :class:TractogramFile object
+        tractogram_file : :class:`TractogramFile` object
             Returns an object containing tractogram data and header
             information.
-        '''
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def save(self, fileobj):
-        ''' Saves streamlines to a file-like object.
+        """ Saves streamlines to a file-like object.
 
         Parameters
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             opened and ready to write.
-        '''
+
+        """
         raise NotImplementedError()

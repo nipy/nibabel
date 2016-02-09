@@ -13,12 +13,12 @@ class CompactList(object):
         Parameters
         ----------
         iterable : iterable (optional)
-            If specified, create a :class:CompactList object initialized from
+            If specified, create a :class:`CompactList` object initialized from
             iterable's items, otherwise it will be empty.
 
         Notes
         -----
-        If `iterable` is a :class:CompactList object, a view is returned and no
+        If `iterable` is a :class:`CompactList` object, a view is returned and no
         memory is allocated. For an actual copy use the `.copy()` method.
         """
         # Create new empty `CompactList` object.
@@ -103,9 +103,16 @@ class CompactList(object):
 
         Parameters
         ----------
-        elements : list of ndarrays, :class:CompactList object
-            Elements to append. The shape must match already inserted elements
-            shape except for the first dimension.
+        elements : list of ndarrays or :class:`CompactList` object
+            If list of ndarrays, each ndarray will be concatenated along the
+            first dimension then appended to the data of this CompactList.
+            If :class:`CompactList` object, its data are simply appended to
+            the data of this CompactList.
+
+        Notes
+        -----
+            The shape of the elements to be added must match the one of the data
+            of this CompactList except for the first dimension.
 
         """
         if self._data.ndim == 0:
@@ -134,7 +141,7 @@ class CompactList(object):
             self._offsets = np.r_[self._offsets, np.cumsum([next_offset] + lengths)[:-1]]
 
     def copy(self):
-        """ Creates a copy of this :class:CompactList object. """
+        """ Creates a copy of this :class:`CompactList` object. """
         # We do not simply deepcopy this object since we might have a chance
         # to use less memory. For example, if the compact list being copied
         # is the result of a slicing operation on a compact list.
@@ -215,7 +222,7 @@ class CompactList(object):
 
 
 def save_compact_list(filename, clist):
-    """ Saves a :class:CompactList object to a .npz file. """
+    """ Saves a :class:`CompactList` object to a .npz file. """
     np.savez(filename,
              data=clist._data,
              offsets=clist._offsets,
@@ -223,7 +230,7 @@ def save_compact_list(filename, clist):
 
 
 def load_compact_list(filename):
-    """ Loads a :class:CompactList object from a .npz file. """
+    """ Loads a :class:`CompactList` object from a .npz file. """
     content = np.load(filename)
     clist = CompactList()
     clist._data = content["data"]
