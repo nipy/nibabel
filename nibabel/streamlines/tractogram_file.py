@@ -72,8 +72,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractclassmethod
     def support_data_per_streamline(cls):
-        """ Tells if this tractogram format supports saving data per streamline.
-        """
+        """ Tells if this tractogram format supports saving data per streamline. """
         raise NotImplementedError()
 
     @abstractclassmethod

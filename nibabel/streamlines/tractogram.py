@@ -109,8 +109,7 @@ class Tractogram(object):
             self.store[key] = value
 
     class DataPerPointDict(DataDict):
-        """ Internal dictionary making sure data are :class:`CompactList` objects.
-        """
+        """ Internal dictionary making sure data are :class:`CompactList` objects. """
 
         def __setitem__(self, key, value):
             value = CompactList(value)

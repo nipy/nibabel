@@ -475,8 +475,7 @@ class TrkFile(TractogramFile):
 
     @classmethod
     def support_data_per_streamline(cls):
-        """ Tells if this tractogram format supports saving data per streamline.
-        """
+        """ Tells if this tractogram format supports saving data per streamline. """
         return True
 
     @classmethod
