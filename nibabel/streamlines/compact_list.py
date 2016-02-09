@@ -12,19 +12,18 @@ class CompactList(object):
         """
         Parameters
         ----------
-        iterable : iterable (optional)
-            If specified, create a :class:`CompactList` object initialized from
-            iterable's items, otherwise it will be empty.
+        iterable : None or iterable of array-like objects or :class:`CompactList`, optional
+            If None, create an empty :class:`CompactList` object.
+            If iterable, create a :class:`CompactList` object initialized from
+            the iterable's items.
+            If :class:`CompactList`, create a view (no memory is allocated).
+            For an actual copy use :method:`CompactList.copy` instead.
 
-        Notes
-        -----
-        If `iterable` is a :class:`CompactList` object, a view is returned and no
-        memory is allocated. For an actual copy use the `.copy()` method.
         """
         # Create new empty `CompactList` object.
         self._data = np.array(0)
-        self._offsets = np.array([], dtype=int)
-        self._lengths = np.array([], dtype=int)
+        self._offsets = np.array([], dtype=np.intp)
+        self._lengths = np.array([], dtype=np.intp)
 
         if isinstance(iterable, CompactList):
             # Create a view.
@@ -48,7 +47,7 @@ class CompactList(object):
                     # Resize needed, adding `len(e)` new items plus some buffer.
                     nb_points = len(self._data)
                     nb_points += len(e) + CompactList.BUFFER_SIZE
-                    self._data.resize((nb_points,) + self.shape)
+                    self._data.resize((nb_points,) + self.common_shape)
 
                 offsets.append(offset)
                 lengths.append(len(e))
@@ -60,13 +59,13 @@ class CompactList(object):
 
             # Clear unused memory.
             if self._data.ndim != 0:
-                self._data.resize((offset,) + self.shape)
+                self._data.resize((offset,) + self.common_shape)
 
     @property
-    def shape(self):
+    def common_shape(self):
         """ Returns the matching shape of the elements in this compact list. """
         if self._data.ndim == 0:
-            return None
+            return ()
 
         return self._data.shape[1:]
 
@@ -90,9 +89,9 @@ class CompactList(object):
             self._lengths = np.array([len(element)])
             return
 
-        if element.shape[1:] != self.shape:
-            raise ValueError("All dimensions, except the first one,"
-                             " must match exactly")
+        if element.shape[1:] != self.common_shape:
+            msg = "All dimensions, except the first one, must match exactly"
+            raise ValueError(msg)
 
         self._offsets = np.r_[self._offsets, len(self._data)]
         self._lengths = np.r_[self._lengths, len(element)]
