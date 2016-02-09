@@ -2,7 +2,7 @@ import os
 from ..externals.six import string_types
 
 from .header import Field
-from .compact_list import CompactList
+from .array_sequence import ArraySequence
 from .tractogram import Tractogram, LazyTractogram
 from .tractogram_file import TractogramFile
 

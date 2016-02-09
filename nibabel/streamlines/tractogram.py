@@ -4,7 +4,7 @@ from warnings import warn
 
 from nibabel.affines import apply_affine
 
-from .compact_list import CompactList
+from .array_sequence import ArraySequence
 
 
 class UsageWarning(Warning):
@@ -109,10 +109,10 @@ class Tractogram(object):
             self.store[key] = value
 
     class DataPerPointDict(DataDict):
-        """ Internal dictionary making sure data are :class:`CompactList` objects. """
+        """ Internal dictionary making sure data are :class:`ArraySequence` objects. """
 
         def __setitem__(self, key, value):
-            value = CompactList(value)
+            value = ArraySequence(value)
 
             # We make sure we have the right amount of values (i.e. same as
             # the total number of points of all streamlines in the tractogram).
@@ -157,7 +157,7 @@ class Tractogram(object):
 
     @streamlines.setter
     def streamlines(self, value):
-        self._streamlines = CompactList(value)
+        self._streamlines = ArraySequence(value)
 
     @property
     def data_per_streamline(self):

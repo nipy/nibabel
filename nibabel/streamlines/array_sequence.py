@@ -1,9 +1,18 @@
 import numpy as np
 
 
-class CompactList(object):
-    """ Class for compacting list of ndarrays with matching shape except for
-    the first dimension.
+class ArraySequence(object):
+    """ Sequence of ndarrays having variable first dimension sizes.
+
+    This is a container allowing to store multiple ndarrays where each ndarray
+    might have different first dimension size but a *common* size for the
+    remaining dimensions.
+
+    More generally, an instance of :class:`ArraySequence` of length $N$ is
+    compoosed of $N$ ndarrays of shape $(d_n, d_2, ... d_D)$ where
+    $n \in [1,N]$, $d_n$ might vary from one ndarray to another and
+    $d_2, ..., d_D)$ have to be the same for every ndarray.
+
     """
 
     BUFFER_SIZE = 87382*4  # About 4 Mb if item shape is 3 (e.g. 3D points).
@@ -12,20 +21,20 @@ class CompactList(object):
         """
         Parameters
         ----------
-        iterable : None or iterable of array-like objects or :class:`CompactList`, optional
-            If None, create an empty :class:`CompactList` object.
-            If iterable, create a :class:`CompactList` object initialized from
-            the iterable's items.
-            If :class:`CompactList`, create a view (no memory is allocated).
-            For an actual copy use :method:`CompactList.copy` instead.
+        iterable : None or iterable or :class:`ArraySequence`, optional
+            If None, create an empty :class:`ArraySequence` object.
+            If iterable, create a :class:`ArraySequence` object initialized
+            from array-like objects yielded by the iterable.
+            If :class:`ArraySequence`, create a view (no memory is allocated).
+            For an actual copy use :meth:`.copy` instead.
 
         """
-        # Create new empty `CompactList` object.
+        # Create new empty `ArraySequence` object.
         self._data = np.array(0)
         self._offsets = np.array([], dtype=np.intp)
         self._lengths = np.array([], dtype=np.intp)
 
-        if isinstance(iterable, CompactList):
+        if isinstance(iterable, ArraySequence):
             # Create a view.
             self._data = iterable._data
             self._offsets = iterable._offsets
@@ -34,19 +43,19 @@ class CompactList(object):
         elif iterable is not None:
             offsets = []
             lengths = []
-            # Initialize the `CompactList` object from iterable's item.
+            # Initialize the `ArraySequence` object from iterable's item.
             offset = 0
             for i, e in enumerate(iterable):
                 e = np.asarray(e)
                 if i == 0:
-                    new_shape = (CompactList.BUFFER_SIZE,) + e.shape[1:]
+                    new_shape = (ArraySequence.BUFFER_SIZE,) + e.shape[1:]
                     self._data = np.empty(new_shape, dtype=e.dtype)
 
                 end = offset + len(e)
                 if end >= len(self._data):
-                    # Resize needed, adding `len(e)` new items plus some buffer.
+                    # Resize needed, adding `len(e)` items plus some buffer.
                     nb_points = len(self._data)
-                    nb_points += len(e) + CompactList.BUFFER_SIZE
+                    nb_points += len(e) + ArraySequence.BUFFER_SIZE
                     self._data.resize((nb_points,) + self.common_shape)
 
                 offsets.append(offset)
@@ -63,14 +72,14 @@ class CompactList(object):
 
     @property
     def common_shape(self):
-        """ Returns the matching shape of the elements in this compact list. """
+        """ Matching shape of the elements in this array sequence. """
         if self._data.ndim == 0:
             return ()
 
         return self._data.shape[1:]
 
     def append(self, element):
-        """ Appends `element` to this compact list.
+        """ Appends :obj:`element` to this array sequence.
 
         Parameters
         ----------
@@ -81,7 +90,7 @@ class CompactList(object):
         Notes
         -----
         If you need to add multiple elements you should consider
-        `CompactList.extend`.
+        `ArraySequence.extend`.
         """
         if self._data.ndim == 0:
             self._data = np.asarray(element).copy()
@@ -98,20 +107,20 @@ class CompactList(object):
         self._data = np.append(self._data, element, axis=0)
 
     def extend(self, elements):
-        """ Appends all `elements` to this compact list.
+        """ Appends all `elements` to this array sequence.
 
         Parameters
         ----------
-        elements : list of ndarrays or :class:`CompactList` object
+        elements : list of ndarrays or :class:`ArraySequence` object
             If list of ndarrays, each ndarray will be concatenated along the
-            first dimension then appended to the data of this CompactList.
-            If :class:`CompactList` object, its data are simply appended to
-            the data of this CompactList.
+            first dimension then appended to the data of this ArraySequence.
+            If :class:`ArraySequence` object, its data are simply appended to
+            the data of this ArraySequence.
 
         Notes
         -----
-            The shape of the elements to be added must match the one of the data
-            of this CompactList except for the first dimension.
+            The shape of the elements to be added must match the one of the
+            data of this :class:`ArraySequence` except for the first dimension.
 
         """
         if self._data.ndim == 0:
@@ -120,14 +129,15 @@ class CompactList(object):
 
         next_offset = self._data.shape[0]
 
-        if isinstance(elements, CompactList):
+        if isinstance(elements, ArraySequence):
             self._data.resize((self._data.shape[0]+sum(elements._lengths),
                                self._data.shape[1]))
 
             offsets = []
             for offset, length in zip(elements._offsets, elements._lengths):
                 offsets.append(next_offset)
-                self._data[next_offset:next_offset+length] = elements._data[offset:offset+length]
+                chunk = elements._data[offset:offset+length]
+                self._data[next_offset:next_offset+length] = chunk
                 next_offset += length
 
             self._lengths = np.r_[self._lengths, elements._lengths]
@@ -137,14 +147,15 @@ class CompactList(object):
             self._data = np.concatenate([self._data] + list(elements), axis=0)
             lengths = list(map(len, elements))
             self._lengths = np.r_[self._lengths, lengths]
-            self._offsets = np.r_[self._offsets, np.cumsum([next_offset] + lengths)[:-1]]
+            self._offsets = np.r_[self._offsets,
+                                  np.cumsum([next_offset] + lengths)[:-1]]
 
     def copy(self):
-        """ Creates a copy of this :class:`CompactList` object. """
+        """ Creates a copy of this :class:`ArraySequence` object. """
         # We do not simply deepcopy this object since we might have a chance
-        # to use less memory. For example, if the compact list being copied
-        # is the result of a slicing operation on a compact list.
-        clist = CompactList()
+        # to use less memory. For example, if the array sequence being copied
+        # is the result of a slicing operation on a array sequence.
+        clist = ArraySequence()
         total_lengths = np.sum(self._lengths)
         clist._data = np.empty((total_lengths,) + self._data.shape[1:],
                                dtype=self._data.dtype)
@@ -153,7 +164,8 @@ class CompactList(object):
         offsets = []
         for offset, length in zip(self._offsets, self._lengths):
             offsets.append(next_offset)
-            clist._data[next_offset:next_offset+length] = self._data[offset:offset+length]
+            chunk = self._data[offset:offset+length]
+            clist._data[next_offset:next_offset+length] = chunk
             next_offset += length
 
         clist._offsets = np.asarray(offsets)
@@ -162,40 +174,46 @@ class CompactList(object):
         return clist
 
     def __getitem__(self, idx):
-        """ Gets element(s) through indexing.
+        """ Gets sequence(s) through advanced indexing.
 
         Parameters
         ----------
-        idx : int or slice or list or ndarray of bool dtype or ndarray of int dtype
-            Index of the element(s) to get.
+        idx : int or slice or list or ndarray
+            If int, index of the element to retrieve.
+            If slice, use slicing to retrieve elements.
+            If list, indices of the elements to retrieve.
+            If ndarray with dtype int, indices of the elements to retrieve.
+            If ndarray with dtype bool, only retrieve selected elements.
 
         Returns
         -------
-        ndarray(s)
-            When `idx` is an int, returns a single ndarray.
-            When `idx` is either a slice, a list or a ndarray, returns a list
-            of ndarrays.
+        ndarray or :class:`ArraySequence`
+            If `idx` is an int, returns the selected sequence.
+            Otherwise, returns a :class:`ArraySequence` object which is view
+            of the selected sequences.
+
         """
         if isinstance(idx, int) or isinstance(idx, np.integer):
             start = self._offsets[idx]
             return self._data[start:start+self._lengths[idx]]
 
         elif isinstance(idx, slice) or isinstance(idx, list):
-            clist = CompactList()
+            clist = ArraySequence()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
             return clist
 
-        elif isinstance(idx, np.ndarray) and np.issubdtype(idx.dtype, np.integer):
-            clist = CompactList()
+        elif isinstance(idx, np.ndarray) and np.issubdtype(idx.dtype,
+                                                           np.integer):
+            clist = ArraySequence()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
             return clist
 
         elif isinstance(idx, np.ndarray) and idx.dtype == np.bool:
-            clist = CompactList()
+            clist = ArraySequence()
             clist._data = self._data
             clist._offsets = [self._offsets[i]
                               for i, take_it in enumerate(idx) if take_it]
@@ -208,7 +226,7 @@ class CompactList(object):
 
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
-            raise ValueError("CompactList object corrupted:"
+            raise ValueError("ArraySequence object corrupted:"
                              " len(self._lengths) != len(self._offsets)")
 
         for offset, lengths in zip(self._offsets, self._lengths):
@@ -221,7 +239,7 @@ class CompactList(object):
         return repr(list(self))
 
     def save(self, filename):
-        """ Saves this :class:`CompactList` object to a .npz file. """
+        """ Saves this :class:`ArraySequence` object to a .npz file. """
         np.savez(filename,
                  data=self._data,
                  offsets=self._offsets,
@@ -229,7 +247,7 @@ class CompactList(object):
 
     @classmethod
     def from_filename(cls, filename):
-        """ Loads a :class:`CompactList` object from a .npz file. """
+        """ Loads a :class:`ArraySequence` object from a .npz file. """
         content = np.load(filename)
         clist = cls()
         clist._data = content["data"]

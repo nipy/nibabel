@@ -17,7 +17,7 @@ from nibabel.py3k import asbytes, asstr
 from nibabel.volumeutils import (native_code, swapped_code)
 from nibabel.orientations import (aff2axcodes, axcodes2ornt)
 
-from .compact_list import CompactList
+from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile
 from .tractogram_file import DataError, HeaderError, HeaderWarning
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
@@ -503,12 +503,12 @@ class TrkFile(TractogramFile):
         return False
 
     @classmethod
-    def _create_compactlist_from_generator(cls, gen):
-        """ Creates a CompactList object from a generator yielding tuples of
+    def _create_arraysequence_from_generator(cls, gen):
+        """ Creates a ArraySequence object from a generator yielding tuples of
             points, scalars and properties. """
 
-        streamlines = CompactList()
-        scalars = CompactList()
+        streamlines = ArraySequence()
+        scalars = ArraySequence()
         properties = np.array([])
 
         gen = iter(gen)
@@ -703,15 +703,15 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.create_from(_read)
 
         else:
-            streamlines, scalars, properties = cls._create_compactlist_from_generator(trk_reader)
+            streamlines, scalars, properties = cls._create_arraysequence_from_generator(trk_reader)
             tractogram = Tractogram(streamlines)
 
             for scalar_name, slice_ in data_per_point_slice.items():
-                clist = CompactList()
-                clist._data = scalars._data[:, slice_]
-                clist._offsets = scalars._offsets
-                clist._lengths = scalars._lengths
-                tractogram.data_per_point[scalar_name] = clist
+                seq = ArraySequence()
+                seq._data = scalars._data[:, slice_]
+                seq._offsets = scalars._offsets
+                seq._lengths = scalars._lengths
+                tractogram.data_per_point[scalar_name] = seq
 
             for property_name, slice_ in data_per_streamline_slice.items():
                 tractogram.data_per_streamline[property_name] = properties[:, slice_]
