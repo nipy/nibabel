@@ -208,7 +208,7 @@ class TestLoadSave(unittest.TestCase):
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
                 with open('streamlines' + ext, 'w+b') as f:
-                    nib.streamlines.save_tractogram(tractogram, f.name)
+                    nib.streamlines.save(tractogram, f.name)
                     tfile = nib.streamlines.load(f, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
@@ -217,7 +217,7 @@ class TestLoadSave(unittest.TestCase):
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
                 with open('streamlines' + ext, 'w+b') as f:
-                    nib.streamlines.save_tractogram(tractogram, f.name)
+                    nib.streamlines.save(tractogram, f.name)
                     tfile = nib.streamlines.load(f, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
@@ -231,12 +231,11 @@ class TestLoadSave(unittest.TestCase):
                 with open('streamlines' + ext, 'w+b') as f:
                     with clear_and_catch_warnings(record=True,
                                                   modules=[trk]) as w:
-                        nib.streamlines.save_tractogram(complex_tractogram,
-                                                        f.name)
+                        nib.streamlines.save(complex_tractogram, f.name)
 
-                        # If streamlines format does not support saving data per
-                        # point or data per streamline, a warning message should
-                        # be issued.
+                        # If streamlines format does not support saving data
+                        # per point or data per streamline, a warning message
+                        # should be issued.
                         if not (cls.support_data_per_point()
                                 and cls.support_data_per_streamline()):
                             assert_equal(len(w), 1)
@@ -257,5 +256,4 @@ class TestLoadSave(unittest.TestCase):
         assert_raises(ValueError, nib.streamlines.load, "")
 
     def test_save_unknown_format(self):
-        assert_raises(ValueError,
-                      nib.streamlines.save_tractogram, Tractogram(), "")
+        assert_raises(ValueError, nib.streamlines.save, Tractogram(), "")
