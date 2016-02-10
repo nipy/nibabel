@@ -29,18 +29,6 @@ class TestArraySequence(unittest.TestCase):
 
     def test_creating_arraysequence_from_list(self):
         rng = np.random.RandomState(42)
-        data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
-        lengths = list(map(len, data))
-
-        seq = ArraySequence(data)
-        assert_equal(len(seq), len(data))
-        assert_equal(len(seq._offsets), len(data))
-        assert_equal(len(seq._lengths), len(data))
-        assert_equal(seq._data.shape[0], sum(lengths))
-        assert_equal(seq._data.shape[1], 3)
-        assert_array_equal(seq._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
-        assert_array_equal(seq._lengths, lengths)
-        assert_equal(seq.common_shape, data[0].shape[1:])
 
         # Empty list
         seq = ArraySequence([])
@@ -50,7 +38,29 @@ class TestArraySequence(unittest.TestCase):
         assert_equal(seq._data.ndim, 0)
         assert_true(seq.common_shape == ())
 
+        # List of ndarrays.
+        N = 5
+        nb_arrays = 10
+        for ndim in range(0, N+1):
+            common_shape = tuple([rng.randint(1, 10) for _ in range(ndim-1)])
+            data = [rng.rand(*(rng.randint(10, 50),) + common_shape)
+                    for _ in range(nb_arrays)]
+            lengths = list(map(len, data))
+
+            seq = ArraySequence(data)
+            assert_equal(len(seq), len(data))
+            assert_equal(len(seq), nb_arrays)
+            assert_equal(len(seq._offsets), nb_arrays)
+            assert_equal(len(seq._lengths), nb_arrays)
+            assert_equal(seq._data.shape[0], sum(lengths))
+            assert_equal(seq._data.shape[1:], common_shape)
+            assert_equal(seq.common_shape, common_shape)
+            assert_array_equal(seq._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
+            assert_array_equal(seq._lengths, lengths)
+
         # Force ArraySequence constructor to use buffering.
+        data = [rng.rand(rng.randint(10, 50), 3) for _ in range(10)]
+        lengths = list(map(len, data))
         old_buffer_size = ArraySequence.BUFFER_SIZE
         ArraySequence.BUFFER_SIZE = 1
         seq = ArraySequence(data)
