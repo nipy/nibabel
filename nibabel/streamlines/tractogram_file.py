@@ -4,6 +4,10 @@ from nibabel.externals.six import with_metaclass
 from .header import Field
 
 
+class ExtensionWarning(Warning):
+    pass
+
+
 class HeaderWarning(Warning):
     pass
 

@@ -14,7 +14,7 @@ from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
-from ..tractogram_file import TractogramFile
+from ..tractogram_file import TractogramFile, ExtensionWarning
 from ..tractogram import UsageWarning
 from .. import trk
 
@@ -202,6 +202,25 @@ class TestLoadSave(unittest.TestCase):
 
                 assert_tractogram_equal(tfile.tractogram,
                                         tractogram)
+
+    def test_save_tractogram_file(self):
+        tractogram = Tractogram(self.streamlines)
+        trk_file = trk.TrkFile(tractogram)
+
+        # No need for keyword arguments.
+        assert_raises(ValueError, nib.streamlines.save,
+                      trk_file, "dummy.trk", header={})
+
+        # Wrong extension.
+        with clear_and_catch_warnings(record=True,
+                                      modules=[nib.streamlines]) as w:
+            trk_file = trk.TrkFile(tractogram)
+            assert_raises(ValueError, nib.streamlines.save,
+                          trk_file, "dummy.tck", header={})
+
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, ExtensionWarning))
+            assert_true("extension" in str(w[0].message))
 
     def test_save_empty_file(self):
         tractogram = Tractogram()

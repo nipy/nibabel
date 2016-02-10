@@ -1,20 +1,16 @@
 import os
+import warnings
 from ..externals.six import string_types
 
 from .header import Field
 from .array_sequence import ArraySequence
 from .tractogram import Tractogram, LazyTractogram
-from .tractogram_file import TractogramFile
+from .tractogram_file import ExtensionWarning
 
 from .trk import TrkFile
-#from .tck import TckFile
-#from .vtk import VtkFile
 
 # List of all supported formats
-FORMATS = {".trk": TrkFile,
-           #".tck": TckFile,
-           #".vtk": VtkFile,
-           }
+FORMATS = {".trk": TrkFile}
 
 
 def is_supported(fileobj):
@@ -112,18 +108,30 @@ def save(tractogram, filename, **kwargs):
     filename : str
         Name of the file where the tractogram will be saved.
     \*\*kwargs : keyword arguments
-         Keyword arguments passed to :class:`TractogramFile` constructor.
+        Keyword arguments passed to :class:`TractogramFile` constructor.
+        Should not be specified if `tractogram` is already an instance of
+        :class:`TractogramFile`.
 
     """
-    tractogram_file = tractogram
+    tractogram_file_class = detect_format(filename)
     if isinstance(tractogram, Tractogram):
-        # We have to guess the file format.
-        tractogram_file_class = detect_format(filename)
-
         if tractogram_file_class is None:
             msg = "Unknown tractogram file format: '{}'".format(filename)
             raise ValueError(msg)
 
         tractogram_file = tractogram_file_class(tractogram, **kwargs)
+
+    else:  # Assume it's a TractogramFile object.
+        tractogram_file = tractogram
+        if tractogram_file_class is None \
+                or not isinstance(tractogram_file, tractogram_file_class):
+            msg = ("The extension you specified is unusual for the provided"
+                   " 'TractogramFile' object.")
+            warnings.warn(msg, ExtensionWarning)
+
+        if len(kwargs) > 0:
+            msg = ("A 'TractogramFile' object was provided, no need for"
+                   " keyword arguments.")
+        raise ValueError(msg)
 
     tractogram_file.save(filename)
