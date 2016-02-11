@@ -36,6 +36,7 @@ class ArraySequence(object):
             For an actual copy use :meth:`.copy` instead.
         """
         # Create new empty `ArraySequence` object.
+        self._is_view = False
         self._data = np.array(0)
         self._offsets = np.array([], dtype=np.intp)
         self._lengths = np.array([], dtype=np.intp)
@@ -48,6 +49,7 @@ class ArraySequence(object):
             self._data = iterable._data
             self._offsets = iterable._offsets
             self._lengths = iterable._lengths
+            self._is_view = True
             return
 
         # Add elements of the iterable.
@@ -136,6 +138,9 @@ class ArraySequence(object):
             The shape of the elements to be added must match the one of the
             data of this :class:`ArraySequence` except for the first dimension.
         """
+        if len(elements) == 0:
+            return
+
         if self._data.ndim == 0:
             elem = np.asarray(elements[0])
             self._data = np.zeros((0, elem.shape[1]), dtype=elem.dtype)
@@ -168,23 +173,23 @@ class ArraySequence(object):
         # We do not simply deepcopy this object since we might have a chance
         # to use less memory. For example, if the array sequence being copied
         # is the result of a slicing operation on a array sequence.
-        clist = ArraySequence()
+        seq = ArraySequence()
         total_lengths = np.sum(self._lengths)
-        clist._data = np.empty((total_lengths,) + self._data.shape[1:],
-                               dtype=self._data.dtype)
+        seq._data = np.empty((total_lengths,) + self._data.shape[1:],
+                             dtype=self._data.dtype)
 
         next_offset = 0
         offsets = []
         for offset, length in zip(self._offsets, self._lengths):
             offsets.append(next_offset)
             chunk = self._data[offset:offset+length]
-            clist._data[next_offset:next_offset+length] = chunk
+            seq._data[next_offset:next_offset+length] = chunk
             next_offset += length
 
-        clist._offsets = np.asarray(offsets)
-        clist._lengths = self._lengths.copy()
+        seq._offsets = np.asarray(offsets)
+        seq._lengths = self._lengths.copy()
 
-        return clist
+        return seq
 
     def __getitem__(self, idx):
         """ Gets sequence(s) through advanced indexing.
@@ -210,20 +215,22 @@ class ArraySequence(object):
             return self._data[start:start+self._lengths[idx]]
 
         elif isinstance(idx, (slice, list)):
-            clist = ArraySequence()
-            clist._data = self._data
-            clist._offsets = self._offsets[idx]
-            clist._lengths = self._lengths[idx]
-            return clist
+            seq = ArraySequence()
+            seq._data = self._data
+            seq._offsets = self._offsets[idx]
+            seq._lengths = self._lengths[idx]
+            seq._is_view = True
+            return seq
 
         elif (isinstance(idx, np.ndarray) and
                 (np.issubdtype(idx.dtype, np.integer) or
                  np.issubdtype(idx.dtype, np.bool))):
-            clist = ArraySequence()
-            clist._data = self._data
-            clist._offsets = self._offsets[idx]
-            clist._lengths = self._lengths[idx]
-            return clist
+            seq = ArraySequence()
+            seq._data = self._data
+            seq._offsets = self._offsets[idx]
+            seq._lengths = self._lengths[idx]
+            seq._is_view = True
+            return seq
 
         raise TypeError("Index must be either an int, a slice, a list of int"
                         " or a ndarray of bool! Not " + str(type(idx)))
@@ -253,8 +260,8 @@ class ArraySequence(object):
     def from_filename(cls, filename):
         """ Loads a :class:`ArraySequence` object from a .npz file. """
         content = np.load(filename)
-        clist = cls()
-        clist._data = content["data"]
-        clist._offsets = content["offsets"]
-        clist._lengths = content["lengths"]
-        return clist
+        seq = cls()
+        seq._data = content["data"]
+        seq._offsets = content["offsets"]
+        seq._lengths = content["lengths"]
+        return seq
