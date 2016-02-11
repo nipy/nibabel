@@ -95,7 +95,6 @@ class TractogramFile(with_metaclass(ABCMeta)):
         is_correct_format : {True, False}
             Returns True if `fileobj` is in the right streamlines file format,
             otherwise returns False.
-
         """
         raise NotImplementedError()
 
@@ -118,7 +117,6 @@ class TractogramFile(with_metaclass(ABCMeta)):
         tractogram_file : :class:`TractogramFile` object
             Returns an object containing tractogram data and header
             information.
-
         """
         raise NotImplementedError()
 
@@ -131,6 +129,5 @@ class TractogramFile(with_metaclass(ABCMeta)):
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             opened and ready to write.
-
         """
         raise NotImplementedError()

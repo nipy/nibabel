@@ -31,7 +31,6 @@ class TractogramItem(object):
         particular streamline. Each key `k` is mapped to a ndarray of
         shape (Nt, Mk), where `Nt` is the number of points of this streamline
         and `Mk` is the dimension of the data associated with key `k`.
-
     """
     def __init__(self, streamline, data_for_streamline, data_for_points):
         self.streamline = np.asarray(streamline)
@@ -56,7 +55,6 @@ class Tractogram(object):
     affine_to_rasmm : ndarray shape (4, 4)
         Affine that brings the streamlines back to *RAS+* and *mm* space
         where coordinate (0,0,0) refers to the center of the voxel.
-
     """
     class DataDict(collections.MutableMapping):
         def __init__(self, tractogram, *args, **kwargs):
@@ -144,7 +142,6 @@ class Tractogram(object):
             points for a particular streamline t and M is the number of
             scalars associated to each point (excluding the three
             coordinates).
-
         """
         self.streamlines = streamlines
         self.data_per_streamline = data_per_streamline
@@ -196,7 +193,7 @@ class Tractogram(object):
         for key in self.data_per_point:
             data_per_point[key] = self.data_per_point[key][idx]
 
-        if isinstance(idx, int) or isinstance(idx, np.integer):
+        if isinstance(idx, (int, np.integer)):
             return TractogramItem(pts, data_per_streamline, data_per_point)
 
         return Tractogram(pts, data_per_streamline, data_per_point)
@@ -243,7 +240,6 @@ class Tractogram(object):
             it returns a :class:`LazyTractogram` object, otherwise it returns a
             reference to this :class:`Tractogram` object with updated
             streamlines.
-
         """
         if lazy:
             lazy_tractogram = LazyTractogram.from_tractogram(self)
@@ -277,7 +273,6 @@ class LazyTractogram(Tractogram):
     -----
     If provided, `scalars` and `properties` must yield the same number of
     values as `streamlines`.
-
     """
 
     class LazyDict(collections.MutableMapping):
@@ -329,7 +324,6 @@ class LazyTractogram(Tractogram):
             is the number of points of that streamline t and M is the number
             of scalars associated to each point (excluding the three
             coordinates).
-
         """
         super(LazyTractogram, self).__init__(streamlines,
                                              data_per_streamline,
@@ -351,7 +345,6 @@ class LazyTractogram(Tractogram):
         -------
         lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
-
         """
         data_per_streamline = {}
         for key, value in tractogram.data_per_streamline.items():
@@ -385,7 +378,6 @@ class LazyTractogram(Tractogram):
         -------
         lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
-
         """
         if not callable(data_func):
             raise TypeError("`data_func` must be a coroutine.")
@@ -541,7 +533,6 @@ class LazyTractogram(Tractogram):
         -------
         lazy_tractogram : :class:`LazyTractogram` object
             Reference to this instance of :class:`LazyTractogram`.
-
         """
         # Update the affine that will be applied when returning streamlines.
         self._affine_to_apply = np.dot(affine, self._affine_to_apply)

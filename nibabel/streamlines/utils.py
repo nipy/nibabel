@@ -20,7 +20,6 @@ def get_affine_from_reference(ref):
     -------
     affine : ndarray (4, 4)
         Transformation matrix mapping voxel space to RAS+mm space.
-
     """
     if type(ref) is np.ndarray:
         if ref.shape != (4, 4):

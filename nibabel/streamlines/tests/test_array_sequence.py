@@ -265,7 +265,7 @@ class TestArraySequence(unittest.TestCase):
         for i, e in enumerate(seq_view):
             assert_array_equal(e, self.seq[i*2])
 
-        # Use advance indexing with ndarray of data type bool.
+        # Use advanced indexing with ndarray of data type bool.
         idx = np.array([False, True, True, False, True])
         seq_view = self.seq[idx]
         assert_true(seq_view is not self.seq)

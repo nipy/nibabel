@@ -26,7 +26,6 @@ def is_supported(fileobj):
     Returns
     -------
     is_supported : boolean
-
     """
     return detect_format(fileobj) is not None
 
@@ -45,13 +44,11 @@ def detect_format(fileobj):
     -------
     tractogram_file : :class:`TractogramFile` class
         The class type guessed from the content of `fileobj`.
-
     """
     for format in FORMATS.values():
         try:
             if format.is_correct_format(fileobj):
                 return format
-
         except IOError:
             pass
 
@@ -77,14 +74,13 @@ def load(fileobj, lazy_load=False, ref=None):
 
     Returns
     -------
-    tractogram_file : :class:TractogramFile object
-        Returns an instance of a :class:TractogramFile containing data and
+    tractogram_file : :class:`TractogramFile` object
+        Returns an instance of a :class:`TractogramFile` containing data and
         metadata of the tractogram loaded from `fileobj`.
 
     Notes
     -----
     The streamline coordinate (0,0,0) refers to the center of the voxel.
-
     """
     tractogram_file = detect_format(fileobj)
 
@@ -111,7 +107,6 @@ def save(tractogram, filename, **kwargs):
         Keyword arguments passed to :class:`TractogramFile` constructor.
         Should not be specified if `tractogram` is already an instance of
         :class:`TractogramFile`.
-
     """
     tractogram_file_class = detect_format(filename)
     if isinstance(tractogram, Tractogram):
@@ -123,8 +118,8 @@ def save(tractogram, filename, **kwargs):
 
     else:  # Assume it's a TractogramFile object.
         tractogram_file = tractogram
-        if tractogram_file_class is None \
-                or not isinstance(tractogram_file, tractogram_file_class):
+        if (tractogram_file_class is None or
+                not isinstance(tractogram_file, tractogram_file_class)):
             msg = ("The extension you specified is unusual for the provided"
                    " 'TractogramFile' object.")
             warnings.warn(msg, ExtensionWarning)

@@ -105,7 +105,6 @@ class TrkReader(object):
 
     Thus, streamlines are shifted of half a voxel on load and are shifted
     back on save.
-
     """
     def __init__(self, fileobj):
         self.fileobj = fileobj
@@ -433,7 +432,6 @@ class TrkFile(TractogramFile):
 
     Thus, streamlines are shifted of half a voxel on load and are shifted
     back on save.
-
     """
 
     # Contants
@@ -613,7 +611,6 @@ class TrkFile(TractogramFile):
         Streamlines of the returned tractogram are assumed to be in *RAS*
         and *mm* space where coordinate (0,0,0) refers to the center of the
         voxel.
-
         """
         trk_reader = TrkReader(fileobj)
 
@@ -730,7 +727,6 @@ class TrkFile(TractogramFile):
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header data).
-
         """
         trk_writer = TrkWriter(fileobj, self.header)
         trk_writer.write(self.tractogram)
@@ -749,7 +745,6 @@ class TrkFile(TractogramFile):
         -------
         info : string
             Header information relevant to the TRK format.
-
         """
         hdr = self.header
 

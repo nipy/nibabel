@@ -1,6 +1,14 @@
 import numpy as np
 
 
+def is_array_sequence(obj):
+    """ Return True if `obj` is an array sequence. """
+    try:
+        return obj.is_array_sequence
+    except AttributeError:
+        return False
+
+
 class ArraySequence(object):
     """ Sequence of ndarrays having variable first dimension sizes.
 
@@ -9,10 +17,9 @@ class ArraySequence(object):
     remaining dimensions.
 
     More generally, an instance of :class:`ArraySequence` of length $N$ is
-    compoosed of $N$ ndarrays of shape $(d_n, d_2, ... d_D)$ where
-    $n \in [1,N]$, $d_n$ might vary from one ndarray to another and
-    $d_2, ..., d_D)$ have to be the same for every ndarray.
-
+    composed of $N$ ndarrays of shape $(d_1, d_2, ... d_D)$ where $d_1$
+    can vary in length between arrays but $(d_2, ..., d_D)$ have to be the
+    same for every ndarray.
     """
 
     BUFFER_SIZE = 87382*4  # About 4 Mb if item shape is 3 (e.g. 3D points).
@@ -27,48 +34,55 @@ class ArraySequence(object):
             from array-like objects yielded by the iterable.
             If :class:`ArraySequence`, create a view (no memory is allocated).
             For an actual copy use :meth:`.copy` instead.
-
         """
         # Create new empty `ArraySequence` object.
         self._data = np.array(0)
         self._offsets = np.array([], dtype=np.intp)
         self._lengths = np.array([], dtype=np.intp)
 
-        if isinstance(iterable, ArraySequence):
+        if iterable is None:
+            return
+
+        if is_array_sequence(iterable):
             # Create a view.
             self._data = iterable._data
             self._offsets = iterable._offsets
             self._lengths = iterable._lengths
+            return
 
-        elif iterable is not None:
-            offsets = []
-            lengths = []
-            # Initialize the `ArraySequence` object from iterable's item.
-            offset = 0
-            for i, e in enumerate(iterable):
-                e = np.asarray(e)
-                if i == 0:
-                    new_shape = (ArraySequence.BUFFER_SIZE,) + e.shape[1:]
-                    self._data = np.empty(new_shape, dtype=e.dtype)
+        # Add elements of the iterable.
+        offsets = []
+        lengths = []
+        # Initialize the `ArraySequence` object from iterable's item.
+        offset = 0
+        for i, e in enumerate(iterable):
+            e = np.asarray(e)
+            if i == 0:
+                new_shape = (ArraySequence.BUFFER_SIZE,) + e.shape[1:]
+                self._data = np.empty(new_shape, dtype=e.dtype)
 
-                end = offset + len(e)
-                if end >= len(self._data):
-                    # Resize needed, adding `len(e)` items plus some buffer.
-                    nb_points = len(self._data)
-                    nb_points += len(e) + ArraySequence.BUFFER_SIZE
-                    self._data.resize((nb_points,) + self.common_shape)
+            end = offset + len(e)
+            if end >= len(self._data):
+                # Resize needed, adding `len(e)` items plus some buffer.
+                nb_points = len(self._data)
+                nb_points += len(e) + ArraySequence.BUFFER_SIZE
+                self._data.resize((nb_points,) + self.common_shape)
 
-                offsets.append(offset)
-                lengths.append(len(e))
-                self._data[offset:offset+len(e)] = e
-                offset += len(e)
+            offsets.append(offset)
+            lengths.append(len(e))
+            self._data[offset:offset+len(e)] = e
+            offset += len(e)
 
-            self._offsets = np.asarray(offsets)
-            self._lengths = np.asarray(lengths)
+        self._offsets = np.asarray(offsets)
+        self._lengths = np.asarray(lengths)
 
-            # Clear unused memory.
-            if self._data.ndim != 0:
-                self._data.resize((offset,) + self.common_shape)
+        # Clear unused memory.
+        if self._data.ndim != 0:
+            self._data.resize((offset,) + self.common_shape)
+
+    @property
+    def is_array_sequence(self):
+        return True
 
     @property
     def common_shape(self):
@@ -121,7 +135,6 @@ class ArraySequence(object):
         -----
             The shape of the elements to be added must match the one of the
             data of this :class:`ArraySequence` except for the first dimension.
-
         """
         if self._data.ndim == 0:
             elem = np.asarray(elements[0])
@@ -129,7 +142,7 @@ class ArraySequence(object):
 
         next_offset = self._data.shape[0]
 
-        if isinstance(elements, ArraySequence):
+        if is_array_sequence(elements):
             self._data.resize((self._data.shape[0]+sum(elements._lengths),
                                self._data.shape[1]))
 
@@ -191,34 +204,25 @@ class ArraySequence(object):
             If `idx` is an int, returns the selected sequence.
             Otherwise, returns a :class:`ArraySequence` object which is view
             of the selected sequences.
-
         """
-        if isinstance(idx, int) or isinstance(idx, np.integer):
+        if isinstance(idx, (int, np.integer)):
             start = self._offsets[idx]
             return self._data[start:start+self._lengths[idx]]
 
-        elif isinstance(idx, slice) or isinstance(idx, list):
+        elif isinstance(idx, (slice, list)):
             clist = ArraySequence()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
             return clist
 
-        elif isinstance(idx, np.ndarray) and np.issubdtype(idx.dtype,
-                                                           np.integer):
+        elif (isinstance(idx, np.ndarray) and
+                (np.issubdtype(idx.dtype, np.integer) or
+                 np.issubdtype(idx.dtype, np.bool))):
             clist = ArraySequence()
             clist._data = self._data
             clist._offsets = self._offsets[idx]
             clist._lengths = self._lengths[idx]
-            return clist
-
-        elif isinstance(idx, np.ndarray) and idx.dtype == np.bool:
-            clist = ArraySequence()
-            clist._data = self._data
-            clist._offsets = [self._offsets[i]
-                              for i, take_it in enumerate(idx) if take_it]
-            clist._lengths = [self._lengths[i]
-                              for i, take_it in enumerate(idx) if take_it]
             return clist
 
         raise TypeError("Index must be either an int, a slice, a list of int"
