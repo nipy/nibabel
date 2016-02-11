@@ -163,7 +163,10 @@ class OrthoSlicer3D(object):
         # Set up volumes axis
         if self.n_volumes > 1 and len(self._axes) > 3:
             ax = self._axes[3]
-            ax.set_axis_bgcolor('k')
+            try:
+                ax.set_facecolor('k')
+            except AttributeError:  # old mpl
+                ax.set_axis_bgcolor('k')
             ax.set_title('Volumes')
             y = np.zeros(self.n_volumes + 1)
             x = np.arange(self.n_volumes + 1) - 0.5
@@ -363,7 +366,7 @@ class OrthoSlicer3D(object):
 
         # Update volume trace
         if self.n_volumes > 1 and len(self._axes) > 3:
-            idx = [None, Ellipsis] * 3
+            idx = [slice(None)] * len(self._axes)
             for ii in range(3):
                 idx[self._order[ii]] = self._data_idx[ii]
             vdata = self._data[idx].ravel()
