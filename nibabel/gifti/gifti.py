@@ -423,10 +423,6 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
                  labeltable=None, darrays=None, version="1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
-        # placed here temporarily for git diff purposes
-        from .parse_gifti_fast import GiftiImageParser
-        GiftiImage.parser = GiftiImageParser
-
         if darrays is None:
             darrays = []
         if meta is None:
@@ -596,7 +592,8 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         img : GiftiImage
             Returns a GiftiImage
          """
-        parser = klass.parser(buffer_size=buffer_size)
+        from .parse_gifti_fast import GiftiImageParser
+        parser = GiftiImageParser(buffer_size=buffer_size)
         parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
         img = parser.img
         return img
