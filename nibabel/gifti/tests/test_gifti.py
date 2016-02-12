@@ -7,7 +7,7 @@ import numpy as np
 import nibabel as nib
 from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
-                           GiftiLabelTable, GiftiMetaData)
+                           GiftiLabelTable, GiftiMetaData, GiftiNVPairs)
 from nibabel.gifti.gifti import data_tag
 from nibabel.nifti1 import data_type_codes
 
@@ -34,14 +34,23 @@ def test_gifti_image():
     gi = GiftiImage()
     assert_equal(gi.numDA, 0)
 
+    # Test from numpy numeric array
     data = np.random.random((5,))
     da = GiftiDataArray.from_array(data)
     gi.add_gifti_data_array(da)
     assert_equal(gi.numDA, 1)
     assert_array_equal(gi.darrays[0].data, data)
 
+    # Test removing
     gi.remove_gifti_data_array(0)
     assert_equal(gi.numDA, 0)
+
+    # Test from string
+    da = GiftiDataArray.from_array('zzzzz')
+    gi.add_gifti_data_array(da)
+    assert_equal(gi.numDA, 1)
+    assert_array_equal(gi.darrays[0].data, data)
+
 
     # Remove from empty
     gi = GiftiImage()
@@ -106,6 +115,13 @@ def test_metadata():
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(len(GiftiMetaData().get_metadata()), 0)
         assert_equal(len(w), 1)
+
+
+def test_metadata():
+    nvpair = GiftiNVPairs('key', 'value')
+    da = GiftiMetaData(nvpair=nvpair)
+    assert_equal(da.data[0].name, 'key')
+    assert_equal(da.data[0].value, 'value')
 
 
 def test_gifti_label_rgba():
