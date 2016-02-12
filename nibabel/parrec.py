@@ -1170,9 +1170,8 @@ class PARRECHeader(SpatialHeader):
             dynamic_keys.remove('slice number')
 
         # remove dynamic keys that may not be present in older .PAR versions
-        for key in dynamic_keys:
-            if key not in image_defs.dtype.fields:
-                dynamic_keys.remove(key)
+        dynamic_keys = [d for d in dynamic_keys if d in
+                        image_defs.dtype.fields]
 
         non_unique_keys = []
         for key in dynamic_keys:
