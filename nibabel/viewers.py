@@ -72,6 +72,8 @@ class OrthoSlicer3D(object):
         data = np.asanyarray(data)
         if data.ndim < 3:
             raise ValueError('data must have at least 3 dimensions')
+        if np.iscomplexobj(data):
+            raise TypeError("Complex data not supported")
         affine = np.array(affine, float) if affine is not None else np.eye(4)
         if affine.ndim != 2 or affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')

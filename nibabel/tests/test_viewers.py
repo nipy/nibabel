@@ -66,6 +66,11 @@ def test_viewer():
     v = OrthoSlicer3D(data[:, :, :, 0])
     v._on_scroll(nt('event', 'button inaxes key')('up', v._axes[0], 'shift'))
     v._on_keypress(nt('event', 'key')('escape'))
+    v.close()
+
+    # complex input should raise a TypeError prior to figure creation
+    assert_raises(TypeError, OrthoSlicer3D,
+                  data[:, :, :, 0].astype(np.complex64))
 
     # other cases
     fig, axes = plt.subplots(1, 4)
