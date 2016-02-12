@@ -119,8 +119,7 @@ def resample_from_to(from_img,
                      out_class=Nifti1Image):
     """ Resample image `from_img` to mapped voxel space `to_vox_map`
 
-    Resample using N-d spline interpolation (where N is given by the `order`
-    argument).
+    Resample using N-d spline interpolation.
 
     Parameters
     ----------
