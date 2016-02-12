@@ -15,7 +15,7 @@ from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
 
 from numpy.testing.decorators import skipif
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_equal
 
 from nose.tools import assert_raises, assert_true
 
@@ -48,7 +48,17 @@ def test_viewer():
         v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, ax, 1))
     v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, None))
     v.set_volume_idx(1)
+
+    # decrement/increment volume numbers via keypress
     v.set_volume_idx(1)  # should just pass
+    v._on_keypress(nt('event', 'key')('-'))  # decrement
+    assert_equal(v._data_idx[3], 0)
+    v._on_keypress(nt('event', 'key')('+'))  # increment
+    assert_equal(v._data_idx[3], 1)
+    v._on_keypress(nt('event', 'key')('-'))
+    v._on_keypress(nt('event', 'key')('='))  # alternative increment key
+    assert_equal(v._data_idx[3], 1)
+
     v.close()
     v._draw()  # should be safe
 

@@ -22,6 +22,12 @@ class OrthoSlicer3D(object):
     corresponding slices in the other two. Scrolling up and
     down moves the slice up and down in the current axis.
 
+    OrthoSlicer3d also supports 4-dimensional data, where multiple
+    3-dimensional volumes are stacked along the last axis.  For 4-dimensional
+    data the fourth figure axis can be used to control which 3-dimensional
+    volume is displayed.  Alternatively, the - key can be used to decrement the
+    displayed volume and the + or = keys can be used to increment it.
+
     Example
     -------
     >>> import numpy as np
@@ -436,6 +442,16 @@ class OrthoSlicer3D(object):
         """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
             self.close()
+        elif event.key in ["=", '+']:
+            # increment volume index
+            new_idx = min(self._data_idx[3]+1, self.n_volumes)
+            self._set_volume_index(new_idx, update_slices=True)
+            self._draw()
+        elif event.key == '-':
+            # decrement volume index
+            new_idx = max(self._data_idx[3]-1, 0)
+            self._set_volume_index(new_idx, update_slices=True)
+            self._draw()
 
     def _draw(self):
         """Update all four (or three) plots"""
