@@ -263,6 +263,21 @@ def test_get_sorted_slice_indices():
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices)[::-1])
 
 
+def test_sorting_dual_echo_T1():
+    # For this .PAR file, instead of getting 1 echo per volume, they get
+    # mixed up unless strict_sort=True
+    dti_par = pjoin(DATA_PATH, 'T1_dual_echo.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+    sorted_indices = dti_hdr.get_sorted_slice_indices()
+    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
+    n_half = len(dti_hdr.image_defs) // 2
+    # first half (volume 1) should all correspond to echo 1
+    assert_equal(np.all(sorted_echos[:n_half] == 1), True)
+    # second half (volume 2) should all correspond to echo 2
+    assert_equal(np.all(sorted_echos[n_half:] == 2), True)
+
+
 def test_vol_number():
     # Test algorithm for calculating volume number
     assert_array_equal(vol_numbers([1, 3, 0]), [0, 0, 0])
