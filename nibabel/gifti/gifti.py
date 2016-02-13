@@ -419,14 +419,15 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
     valid_exts = ('.gii',)
     files_types = (('image', '.gii'),)
 
+    # The parser will in due course be a GiftiImageParser, but we can't set
+    # that now, because it would result in a circular import.  We set it after
+    # the class has been defined, at the end of the class definition.
+    parser = None
+
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
                  labeltable=None, darrays=None, version="1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
-        # placed here temporarily for git diff purposes
-        from .parse_gifti_fast import GiftiImageParser
-        GiftiImage.parser = GiftiImageParser
-
         if darrays is None:
             darrays = []
         if meta is None:
@@ -606,3 +607,8 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         file_map = klass.filespec_to_file_map(filename)
         img = klass.from_file_map(file_map, buffer_size=buffer_size)
         return img
+
+
+# Now GiftiImage is defined, we can import the parser module and set the parser
+from .parse_gifti_fast import GiftiImageParser
+GiftiImage.parser = GiftiImageParser
