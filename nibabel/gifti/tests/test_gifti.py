@@ -7,7 +7,7 @@ import numpy as np
 import nibabel as nib
 from nibabel.externals.six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
-                           GiftiLabelTable, GiftiMetaData)
+                           GiftiLabelTable, GiftiMetaData, GiftiNVPairs)
 from nibabel.gifti.gifti import data_tag
 from nibabel.nifti1 import data_type_codes
 
@@ -34,13 +34,23 @@ def test_gifti_image():
     gi = GiftiImage()
     assert_equal(gi.numDA, 0)
 
-    da = GiftiDataArray(data='data')
+    # Test from numpy numeric array
+    data = np.random.random((5,))
+    da = GiftiDataArray.from_array(data)
     gi.add_gifti_data_array(da)
     assert_equal(gi.numDA, 1)
-    assert_equal(gi.darrays[0].data, 'data')
+    assert_array_equal(gi.darrays[0].data, data)
 
+    # Test removing
     gi.remove_gifti_data_array(0)
     assert_equal(gi.numDA, 0)
+
+    # Test from string
+    da = GiftiDataArray.from_array('zzzzz')
+    gi.add_gifti_data_array(da)
+    assert_equal(gi.numDA, 1)
+    assert_array_equal(gi.darrays[0].data, data)
+
 
     # Remove from empty
     gi = GiftiImage()
@@ -49,14 +59,13 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray(data='data')
+    da = GiftiDataArray.from_array(np.zeros((5,)), intent=0)
     gi.add_gifti_data_array(da)
 
-    gi.remove_gifti_data_array_by_intent(0)
-    assert_equal(gi.numDA, 1)
+    gi.remove_gifti_data_array_by_intent(3)
+    assert_equal(gi.numDA, 1, "data array should exist on 'missed' remove")
 
-    gi.darrays[0].intent = 0
-    gi.remove_gifti_data_array_by_intent(0)
+    gi.remove_gifti_data_array_by_intent(da.intent)
     assert_equal(gi.numDA, 0)
 
 
@@ -97,13 +106,22 @@ def test_labeltable():
 def test_metadata():
     # Test deprecation
     with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         assert_equal(len(GiftiDataArray().get_metadata()), 0)
+        assert_equal(len(w), 1)
 
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(len(GiftiMetaData().get_metadata()), 0)
+        assert_equal(len(w), 1)
+
+
+def test_metadata():
+    nvpair = GiftiNVPairs('key', 'value')
+    da = GiftiMetaData(nvpair=nvpair)
+    assert_equal(da.data[0].name, 'key')
+    assert_equal(da.data[0].value, 'value')
 
 
 def test_gifti_label_rgba():
@@ -133,6 +151,7 @@ def test_gifti_label_rgba():
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         assert_equal(kwargs['red'], gl3.get_rgba()[0])
+        assert_equal(len(w), 1)
 
     # Test default value
     gl4 = GiftiLabel()
