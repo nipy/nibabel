@@ -14,6 +14,7 @@ from http://www.nitrc.org/projects/gifti/
 from __future__ import division, print_function, absolute_import
 
 import sys
+import warnings
 
 import numpy as np
 
@@ -407,6 +408,10 @@ class GiftiDataArray(xml.XmlSerializable):
         -------
         da : instance of our own class
         """
+        warnings.warn(
+            "Please use GiftiDataArray constructor instead of from_array "
+            "class method",
+            DeprecationWarning, stacklevel=2)
         return klass(data=darray,
                      intent=intent,
                      datatype=datatype,

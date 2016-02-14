@@ -40,7 +40,7 @@ def test_gifti_image():
 
     # Test from numpy numeric array
     data = np.random.random((5,))
-    da = GiftiDataArray.from_array(data)
+    da = GiftiDataArray(data)
     gi.add_gifti_data_array(da)
     assert_equal(gi.numDA, 1)
     assert_array_equal(gi.darrays[0].data, data)
@@ -56,7 +56,7 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray.from_array(np.zeros((5,)), intent=0)
+    da = GiftiDataArray(np.zeros((5,)), intent=0)
     gi.add_gifti_data_array(da)
 
     gi.remove_gifti_data_array_by_intent(3)
@@ -153,19 +153,25 @@ def test_dataarray_init():
 
 
 def test_dataarray_from_array():
-    for dt_code in data_type_codes.value_set():
-        data_type = data_type_codes.type[dt_code]
-        if data_type is np.void:  # not supported
-            continue
-        arr = np.zeros((10, 3), dtype=data_type)
-        da = GiftiDataArray.from_array(arr, 'triangle')
-        assert_equal(da.datatype, data_type_codes[arr.dtype])
-        bs_arr = arr.byteswap().newbyteorder()
-        da = GiftiDataArray.from_array(bs_arr, 'triangle')
-        assert_equal(da.datatype, data_type_codes[arr.dtype])
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        da = GiftiDataArray.from_array(np.ones((3, 4)))
+        assert_equal(len(w), 1)
+        for dt_code in data_type_codes.value_set():
+            data_type = data_type_codes.type[dt_code]
+            if data_type is np.void:  # not supported
+                continue
+            arr = np.zeros((10, 3), dtype=data_type)
+            da = GiftiDataArray.from_array(arr, 'triangle')
+            assert_equal(da.datatype, data_type_codes[arr.dtype])
+            bs_arr = arr.byteswap().newbyteorder()
+            da = GiftiDataArray.from_array(bs_arr, 'triangle')
+            assert_equal(da.datatype, data_type_codes[arr.dtype])
 
+
+def test_to_xml_open_close_deprecations():
     # Smoke test on deprecated functions
-    da = GiftiDataArray.from_array(np.ones((1,)), 'triangle')
+    da = GiftiDataArray(np.ones((1,)), 'triangle')
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
         assert_true(isinstance(da.to_xml_open(), string_types))
