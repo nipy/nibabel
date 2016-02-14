@@ -133,7 +133,6 @@ class GiftiLabel(xml.XmlSerializable):
         the GIFTI file format, the attribute Index was used instead of Key. If
         an Index attribute is encountered, it should be processed like the Key
         attribute."
-    label : str
     red : None or float
         Optional value for red.
     green : None or float
@@ -149,10 +148,8 @@ class GiftiLabel(xml.XmlSerializable):
     because they are floats, not 4 8-bit integers.
     """
 
-    def __init__(self, key=0, label='', red=None, green=None, blue=None,
-                 alpha=None):
+    def __init__(self, key=0, red=None, green=None, blue=None, alpha=None):
         self.key = key
-        self.label = label
         self.red = red
         self.green = green
         self.blue = blue
