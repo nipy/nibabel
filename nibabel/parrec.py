@@ -329,6 +329,21 @@ def _process_image_lines(image_lines, version):
     return image_defs
 
 
+def _direction_numbers(bvecs):
+    """ Enumerate directions from an (N, 3) array of direction vectors.
+    """
+    cnt = 0
+    bvec_dict = {}
+    bvec_nos = np.zeros(len(bvecs))
+    for i, bvec in enumerate(bvecs):
+        bv = tuple(bvec)
+        if bv not in bvec_dict:
+            bvec_dict[bv] = cnt
+            cnt += 1
+        bvec_nos[i] = bvec_dict.get(bv)
+    return bvec_nos
+
+
 def vol_numbers(slice_nos):
     """ Calculate volume numbers inferred from slice numbers `slice_nos`
 
@@ -634,7 +649,9 @@ class PARRECHeader(SpatialHeader):
             recording is detected.
         strict_sort : bool, optional, keyword-only
             If True, a larger number of header fields are used while sorting
-            the REC data array.
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
@@ -746,6 +763,11 @@ class PARRECHeader(SpatialHeader):
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
         return bvals, bvecs
+
+    def get_def(self, name):
+        """ Return a single image definition field. """
+        idef = self.image_defs
+        return idef[name] if name in idef.dtype.names else None
 
     def _get_unique_image_prop(self, name):
         """ Scan image definitions and return unique value of a property.
@@ -1011,7 +1033,9 @@ class PARRECHeader(SpatialHeader):
         discarding any slice indices from incomplete volumes.
 
         If `self.strict_sort` is True, a more complicated sorting based on
-        multiple fields from the .PAR file is used.
+        multiple fields from the .PAR file is used.  This may produce a
+        different sort order than `strict_sort=False`, where volumes are sorted
+        by the order in which the slices appear in the .PAR file.
 
         Returns
         -------
@@ -1034,22 +1058,18 @@ class PARRECHeader(SpatialHeader):
             echos = self.image_defs['echo number']
 
             # try adding keys only present in a subset of .PAR files
-            try:
-                # only present in PAR v4.2+
-                asl_labels = self.image_defs['label type']
-                asl_keys = (asl_labels, )
-            except:
-                asl_keys = ()
+            idefs = self.image_defs
+            asl_keys = (idefs['label_type'], ) if 'label_type' in \
+                idefs.dtype.names else ()
+
             if not self.general_info['diffusion'] == 0:
-                try:
-                    # only present for .PAR v4.1+
-                    bvals = self.image_defs['diffusion b value number']
-                    bvecs = self.image_defs['gradient orientation number']
-                except:
-                    bvals = self.image_defs['diffusion_b_factor']
-                    # use hash to get a single sortable value per direction
-                    bvecs = [hash(tuple(
-                        a)) for a in self.image_defs['diffusion'].tolist()]
+                bvals = self.get_def('diffusion b value number')
+                if bvals is None:
+                    bvals = self.get_def('diffusion_b_factor')
+                bvecs = self.get_def('gradient orientation number')
+                if bvecs is None:
+                    # manually enumerate the different directions
+                    bvecs = _direction_numbers(self.get_def('diffusion'))
                 diffusion_keys = (bvecs, bvals)
             else:
                 diffusion_keys = ()
@@ -1124,7 +1144,9 @@ class PARRECImage(SpatialImage):
             :meth:`PARRECHeader.get_data_scaling`).
         strict_sort : bool, optional, keyword-only
             If True, a larger number of header fields are used while sorting
-            the REC data array.
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(
@@ -1162,7 +1184,9 @@ class PARRECImage(SpatialImage):
             :meth:`PARRECHeader.get_data_scaling`).
         strict_sort : bool, optional, keyword-only
             If True, a larger number of header fields are used while sorting
-            the REC data array.
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map,

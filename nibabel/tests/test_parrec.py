@@ -567,10 +567,9 @@ class FakeHeader(object):
     """ Minimal API of header for PARRECArrayProxy
     """
 
-    def __init__(self, shape, dtype, strict_sort=False):
+    def __init__(self, shape, dtype):
         self._shape = shape
         self._dtype = np.dtype(dtype)
-        self.strict_sort = strict_sort
 
     def get_data_shape(self):
         return self._shape
