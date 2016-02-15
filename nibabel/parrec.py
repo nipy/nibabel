@@ -1056,6 +1056,7 @@ class PARRECHeader(SpatialHeader):
             dynamics = self.image_defs['dynamic scan number']
             phases = self.image_defs['cardiac phase number']
             echos = self.image_defs['echo number']
+            image_type = self.image_defs['image_type_mr']
 
             # try adding keys only present in a subset of .PAR files
             idefs = self.image_defs
@@ -1076,7 +1077,7 @@ class PARRECHeader(SpatialHeader):
 
             # Define the desired sort order (last key is highest precedence)
             keys = (slice_nos, echos, phases) + \
-                diffusion_keys + asl_keys + (dynamics, )
+                diffusion_keys + asl_keys + (dynamics, image_type)
 
             """
             Data sorting is done in two stages:
@@ -1098,8 +1099,8 @@ class PARRECHeader(SpatialHeader):
             vol_nos = np.asarray(vol_nos)[unsort_indices]
 
             # final set of sort keys
-            keys += (vol_nos, np.logical_not(is_full), )
-            sort_order = np.lexsort(keys)
+            keys += (vol_nos, np.logical_not(is_full))  # highest priority
+            sort_order = np.lexsort(tuple(keys))
 
         # Figure out how many we need to remove from the end, and trim them.
         # Based on our sorting, they should always be last.
