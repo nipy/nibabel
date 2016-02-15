@@ -1021,6 +1021,54 @@ class PARRECHeader(SpatialHeader):
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         return inplane_shape + (len(self.image_defs),)
 
+    def _strict_sort_keys(self):
+        """ Determine the sort order based on several image definition fields.
+
+        Data sorting is done in two stages:
+            - run an initial sort using several keys of interest
+            - call `vol_is_full` to identify potentially missing volumes
+              and add the result to the list of sort keys
+        """
+        # Sort based on a larger number of keys.  This is more complicated
+        # but works for .PAR files that get missorted by the above method
+        slice_nos = self.image_defs['slice number']
+        dynamics = self.image_defs['dynamic scan number']
+        phases = self.image_defs['cardiac phase number']
+        echos = self.image_defs['echo number']
+        image_type = self.image_defs['image_type_mr']
+
+        # try adding keys only present in a subset of .PAR files
+        idefs = self.image_defs
+        asl_keys = (idefs['label_type'], ) if 'label_type' in \
+            idefs.dtype.names else ()
+
+        if not self.general_info['diffusion'] == 0:
+            bvals = self.get_def('diffusion b value number')
+            if bvals is None:
+                bvals = self.get_def('diffusion_b_factor')
+            bvecs = self.get_def('gradient orientation number')
+            if bvecs is None:
+                # manually enumerate the different directions
+                bvecs = _direction_numbers(self.get_def('diffusion'))
+            diffusion_keys = (bvecs, bvals)
+        else:
+            diffusion_keys = ()
+
+        # Define the desired sort order (last key is highest precedence)
+        keys = (slice_nos, echos, phases) + \
+            diffusion_keys + asl_keys + (dynamics, image_type)
+
+        initial_sort_order = np.lexsort(keys)
+        is_full = vol_is_full(slice_nos[initial_sort_order],
+                              self.general_info['max_slices'])
+
+        # have to "unsort" is_full to match the other sort keys
+        unsort_indices = np.argsort(initial_sort_order)
+        is_full = is_full[unsort_indices]
+
+        # final set of sort keys
+        return keys + (np.logical_not(is_full), )
+
     def get_sorted_slice_indices(self):
         """Return indices to sort (and maybe discard) slices in REC file.
 
@@ -1048,60 +1096,10 @@ class PARRECHeader(SpatialHeader):
             slice_nos = self.image_defs['slice number']
             is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
             keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
-            sort_order = np.lexsort(keys)
         else:
-            # Sort based on a larger number of keys.  This is more complicated
-            # but works for .PAR files that get missorted by the above method
-            slice_nos = self.image_defs['slice number']
-            dynamics = self.image_defs['dynamic scan number']
-            phases = self.image_defs['cardiac phase number']
-            echos = self.image_defs['echo number']
-            image_type = self.image_defs['image_type_mr']
+            keys = self._strict_sort_keys()
 
-            # try adding keys only present in a subset of .PAR files
-            idefs = self.image_defs
-            asl_keys = (idefs['label_type'], ) if 'label_type' in \
-                idefs.dtype.names else ()
-
-            if not self.general_info['diffusion'] == 0:
-                bvals = self.get_def('diffusion b value number')
-                if bvals is None:
-                    bvals = self.get_def('diffusion_b_factor')
-                bvecs = self.get_def('gradient orientation number')
-                if bvecs is None:
-                    # manually enumerate the different directions
-                    bvecs = _direction_numbers(self.get_def('diffusion'))
-                diffusion_keys = (bvecs, bvals)
-            else:
-                diffusion_keys = ()
-
-            # Define the desired sort order (last key is highest precedence)
-            keys = (slice_nos, echos, phases) + \
-                diffusion_keys + asl_keys + (dynamics, image_type)
-
-            """
-            Data sorting is done in two stages:
-                - run an initial sort using the keys defined above
-                - call vol_is_full to identify potentially missing volumes
-                - call vol_numbers to assign unique volume numbers if for some
-                  reason the keys defined above don't provide a unique sort
-                  order (e.g. this occurs for the Trace volume in DTI)
-                - run a final sort using the vol_numbers and is_full keys
-            """
-            initial_sort_order = np.lexsort(keys)
-            is_full = vol_is_full(slice_nos[initial_sort_order],
-                                  self.general_info['max_slices'])
-            vol_nos = vol_numbers(slice_nos[initial_sort_order])
-
-            # have to "unsort" is_full and vol_nos to match the other sort keys
-            unsort_indices = np.argsort(initial_sort_order)
-            is_full = is_full[unsort_indices]
-            vol_nos = np.asarray(vol_nos)[unsort_indices]
-
-            # final set of sort keys
-            keys += (vol_nos, np.logical_not(is_full))  # highest priority
-            sort_order = np.lexsort(tuple(keys))
-
+        sort_order = np.lexsort(keys)
         # Figure out how many we need to remove from the end, and trim them.
         # Based on our sorting, they should always be last.
         n_used = np.prod(self.get_data_shape()[2:])
