@@ -24,6 +24,7 @@ import numpy as np
 from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import string_types
+from ..externals.six.moves import reduce
 from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
@@ -769,7 +770,7 @@ class Cifti2Image(FileBasedImage):
         """
         from .parse_cifti2_fast import Cifti2Extension
         header = self.extra
-        extension = Cifti2Extension(content=self.header.to_xml().encode())
+        extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
         data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
         img = Nifti2Image(data, None, header)
