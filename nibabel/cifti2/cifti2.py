@@ -482,7 +482,7 @@ class Cifti2MatrixIndicesMap(object):
 
     Provides a mapping between matrix indices and their interpretation.
     """
-    # applies_to_matrix_dimension = int
+    # applies_to_matrix_dimension = list
     # indices_map_to_data_type = str
     # number_of_series_points = int
     # series_exponent = int
@@ -594,9 +594,10 @@ class Cifti2MatrixIndicesMap(object):
         assert self.applies_to_matrix_dimension is not None
 
         mat_ind_map = xml.Element('MatrixIndicesMap')
-        for key in ['AppliesToMatrixDimension', 'IndicesMapToDataType',
-                    'NumberOfSeriesPoints', 'SeriesExponent', 'SeriesStart',
-                    'SeriesStep', 'SeriesUnit']:
+        dims_as_strings = [str(dim) for dim in self.applies_to_matrix_dimension]
+        mat_ind_map.attrib['AppliesToMatrixDimension'] = ','.join(dims_as_strings)
+        for key in ['IndicesMapToDataType', 'NumberOfSeriesPoints', 'SeriesExponent',
+                    'SeriesStart', 'SeriesStep', 'SeriesUnit']:
             attr = inflection.underscore(key)
             value = getattr(self, attr)
             if value is not None:
