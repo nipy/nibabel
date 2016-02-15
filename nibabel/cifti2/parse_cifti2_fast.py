@@ -22,6 +22,7 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
 from .. import xmlutils as xml
 from ..externals import inflection
 from ..externals.six import BytesIO
+from ..externals.six.moves import reduce
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
 from ..nifti2 import Nifti2Header, Nifti2Image
 
