@@ -154,20 +154,22 @@ def test_top_level_load():
 
 def test_header():
     v42_hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with open(V4_PAR, 'rt') as fobj:
-        v4_hdr = PARRECHeader.from_fileobj(fobj)
-    with open(V41_PAR, 'rt') as fobj:
-        v41_hdr = PARRECHeader.from_fileobj(fobj)
-    for hdr in (v42_hdr, v41_hdr, v4_hdr):
-        hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-        assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
-        assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
-        assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
-        assert_equal(hdr.get_data_offset(), 0)
-        si = np.array([np.unique(x) for x in hdr.get_data_scaling()]).ravel()
-        assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
-        assert_equal(hdr.get_q_vectors(), None)
-        assert_equal(hdr.get_bvals_bvecs(), (None, None))
+    for strict_sort in [False, True]:
+        with open(V4_PAR, 'rt') as fobj:
+            v4_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
+        with open(V41_PAR, 'rt') as fobj:
+            v41_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
+        for hdr in (v42_hdr, v41_hdr, v4_hdr):
+            hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+            assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
+            assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
+            assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
+            assert_equal(hdr.get_data_offset(), 0)
+            si = np.array(
+                [np.unique(x) for x in hdr.get_data_scaling()]).ravel()
+            assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
+            assert_equal(hdr.get_q_vectors(), None)
+            assert_equal(hdr.get_bvals_bvecs(), (None, None))
 
 
 def test_header_scaling():
