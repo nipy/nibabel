@@ -316,6 +316,42 @@ def test_sorting_multiple_echos_and_contrasts():
     assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
 
 
+def test_sorting_multiecho_ASL():
+    # For this .PAR file has 3 keys corresponding to volumes:
+    #    'echo number', 'label type', 'dynamic scan number'
+    dti_par = pjoin(DATA_PATH, 'ASL_3D_Multiecho.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+    sorted_indices = dti_hdr.get_sorted_slice_indices()
+    sorted_slices = dti_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
+    sorted_dynamics = dti_hdr.image_defs['dynamic scan number'][sorted_indices]
+    sorted_labels = dti_hdr.image_defs['label type'][sorted_indices]
+    ntotal = len(dti_hdr.image_defs)
+    nslices = sorted_slices.max()
+    nechos = sorted_echos.max()
+    nlabels = sorted_labels.max()
+    ndynamics = sorted_dynamics.max()
+    assert_equal(nslices, 8)
+    assert_equal(nechos, 3)
+    assert_equal(nlabels, 2)
+    assert_equal(ndynamics, 2)
+    # check that dynamics vary slowest
+    assert_array_equal(
+        np.all(sorted_dynamics[:ntotal//ndynamics] == 1), True)
+    assert_array_equal(
+        np.all(sorted_dynamics[ntotal//ndynamics:ntotal] == 2), True)
+    # check that labels vary 2nd slowest
+    assert_array_equal(np.all(sorted_labels[:nslices*nechos] == 1), True)
+    assert_array_equal(
+        np.all(sorted_labels[nslices*nechos:2*nslices*nechos] == 2), True)
+    # check that echos vary 2nd fastest
+    assert_array_equal(np.all(sorted_echos[:nslices] == 1), True)
+    assert_array_equal(np.all(sorted_echos[nslices:2*nslices] == 2), True)
+    assert_array_equal(np.all(sorted_echos[2*nslices:3*nslices] == 3), True)
+    # check that slices vary fastest
+    assert_array_equal(sorted_slices[:nslices], np.arange(1, nslices+1))
+
 def test_vol_number():
     # Test algorithm for calculating volume number
     assert_array_equal(vol_numbers([1, 3, 0]), [0, 0, 0])
