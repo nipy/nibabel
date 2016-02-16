@@ -278,6 +278,44 @@ def test_sorting_dual_echo_T1():
     assert_equal(np.all(sorted_echos[n_half:] == 2), True)
 
 
+def test_sorting_multiple_echos_and_contrasts():
+    # This .PAR file has 3 echos and 4 image types (real, imaginary, magnitude,
+    # phase).
+    # After sorting should be:
+        # Type 0, Echo 1, Slices 1-30
+        # Type 0, Echo 2, Slices 1-30
+        # Type 0, Echo 3, Slices 1-30
+        # Type 1, Echo 1, Slices 1-30
+        # ...
+        # Type 3, Echo 3, Slices 1-30
+    dti_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+    sorted_indices = dti_hdr.get_sorted_slice_indices()
+    sorted_slices = dti_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
+    sorted_types = dti_hdr.image_defs['image_type_mr'][sorted_indices]
+
+    ntotal = len(dti_hdr.image_defs)
+    nslices = sorted_slices.max()
+    nechos = sorted_echos.max()
+    for slice_offset in range(ntotal//nslices):
+        istart = slice_offset*nslices
+        iend = (slice_offset+1)*nslices
+        # innermost sort index is slices
+        assert_array_equal(sorted_slices[istart:iend],
+                           np.arange(1, nslices+1))
+        current_echo = slice_offset % nechos + 1
+        # same echo for each slice in the group
+        assert_equal(np.all(sorted_echos[istart:iend] == current_echo),
+                     True)
+    # outermost sort index is image_type_mr
+    assert_equal(np.all(sorted_types[:ntotal//4] == 0), True)
+    assert_equal(np.all(sorted_types[ntotal//4:ntotal//2] == 1), True)
+    assert_equal(np.all(sorted_types[ntotal//2:3*ntotal//4] == 2), True)
+    assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
+
+
 def test_vol_number():
     # Test algorithm for calculating volume number
     assert_array_equal(vol_numbers([1, 3, 0]), [0, 0, 0])
