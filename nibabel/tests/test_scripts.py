@@ -283,7 +283,9 @@ def test_parrec2nii_with_data():
         # Writes bvals, bvecs files if asked
         run_command(['parrec2nii', '--overwrite', '--keep-trace',
                      '--bvs', dti_par])
-        assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
+        bvecs_trace = np.loadtxt('DTI.bvecs').T
+        bvals_trace = np.loadtxt('DTI.bvals')
+        assert_almost_equal(bvals_trace, DTI_PAR_BVALS)
         img = load('DTI.nii')
         data = img.get_data().copy()
         del img
@@ -317,8 +319,8 @@ def test_parrec2nii_with_data():
         assert_equal(data_notrace.shape[-1], len(bvecs_notrace))
         del img
         # ensure correct volume was removed
-        good_mask = np.logical_or((bvecs_notrace != 0).any(axis=1),
-                                  bvals_notrace == 0)
+        good_mask = np.logical_or((bvecs_trace != 0).any(axis=1),
+                                  bvals_trace == 0)
         assert_almost_equal(data_notrace, data[..., good_mask])
         assert_almost_equal(bvals_notrace, np.array(DTI_PAR_BVALS)[good_mask])
         assert_almost_equal(bvecs_notrace, bvecs_LAS[good_mask])
