@@ -322,3 +322,12 @@ def test_parrec2nii_with_data():
         assert_almost_equal(data_notrace, data[..., good_mask])
         assert_almost_equal(bvals_notrace, np.array(DTI_PAR_BVALS)[good_mask])
         assert_almost_equal(bvecs_notrace, bvecs_LAS[good_mask])
+        # test --strict-sort
+        run_command(['parrec2nii', '--overwrite', '--keep-trace',
+                     '--bvs', '--strict-sort', dti_par])
+        # strict-sort: bvals should be in ascending order
+        assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
+        img = load('DTI.nii')
+        data_sorted = img.get_data().copy()
+        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
+        del img
