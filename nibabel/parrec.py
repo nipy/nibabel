@@ -1039,7 +1039,7 @@ class PARRECHeader(SpatialHeader):
 
         # try adding keys only present in a subset of .PAR files
         idefs = self.image_defs
-        asl_keys = (idefs['label_type'], ) if 'label_type' in \
+        asl_keys = (idefs['label type'], ) if 'label type' in \
             idefs.dtype.names else ()
 
         if not self.general_info['diffusion'] == 0:
