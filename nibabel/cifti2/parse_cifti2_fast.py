@@ -172,8 +172,9 @@ class Cifti2Parser(xml.XmlParser):
 
         elif name == 'MatrixIndicesMap':
             self.fsm_state.append('MatrixIndicesMap')
+            dimensions = [int(value) for value in attrs["AppliesToMatrixDimension"].split(',')]
             mim = Cifti2MatrixIndicesMap(
-                applies_to_matrix_dimension=int(attrs["AppliesToMatrixDimension"]),
+                applies_to_matrix_dimension=dimensions,
                 indices_map_to_data_type=attrs["IndicesMapToDataType"])
             for key, dtype in [("NumberOfSeriesPoints", int),
                                ("SeriesExponent", int),
