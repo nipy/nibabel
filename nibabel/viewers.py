@@ -446,12 +446,12 @@ class OrthoSlicer3D(object):
             self.close()
         elif event.key in ["=", '+']:
             # increment volume index
-            new_idx = min(self._data_idx[3]+1, self.n_volumes)
+            new_idx = min(self._data_idx[3] + 1, self.n_volumes)
             self._set_volume_index(new_idx, update_slices=True)
             self._draw()
         elif event.key == '-':
             # decrement volume index
-            new_idx = max(self._data_idx[3]-1, 0)
+            new_idx = max(self._data_idx[3] - 1, 0)
             self._set_volume_index(new_idx, update_slices=True)
             self._draw()
 
