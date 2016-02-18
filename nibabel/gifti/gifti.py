@@ -618,7 +618,14 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         img : GiftiImage
             Returns a GiftiImage
          """
-        parser = klass.parser(buffer_size=buffer_size)
+        # Note for refactorers: We were aiming to make ``parser`` a class
+        # attribute such that klass.parser().parse(...) would return an
+        # instance of klass.
+        #
+        # In the current setup of parse_gifti_fast.GiftiImageParser, this
+        # results in a circular dependency, so using a local import only.
+        from .parse_gifti_fast import GiftiImageParser
+        parser = GiftiImageParser(buffer_size=buffer_size)
         parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
         img = parser.img
         return img
