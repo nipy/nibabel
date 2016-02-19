@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import collections
 from warnings import warn
@@ -5,10 +6,6 @@ from warnings import warn
 from nibabel.affines import apply_affine
 
 from .array_sequence import ArraySequence
-
-
-class UsageWarning(Warning):
-    pass
 
 
 class TractogramItem(object):
@@ -50,11 +47,6 @@ class Tractogram(object):
     Tractogram objects have three main properties: `streamlines`,
     `data_per_streamline` and `data_per_point`.
 
-    Attributes
-    ----------
-    affine_to_rasmm : ndarray shape (4, 4)
-        Affine that brings the streamlines back to *RAS+* and *mm* space
-        where coordinate (0,0,0) refers to the center of the voxel.
     """
     class DataDict(collections.MutableMapping):
         def __init__(self, tractogram, *args, **kwargs):
@@ -85,7 +77,7 @@ class Tractogram(object):
             return len(self.store)
 
     class DataPerStreamlineDict(DataDict):
-        """ Internal dictionary that makes sure data are 2D array. """
+        """ Dictionary that makes sure data are 2D array. """
 
         def __setitem__(self, key, value):
             value = np.asarray(value)
@@ -107,7 +99,7 @@ class Tractogram(object):
             self.store[key] = value
 
     class DataPerPointDict(DataDict):
-        """ Internal dictionary making sure data are :class:`ArraySequence` objects. """
+        """ Dictionary making sure data are :class:`ArraySequence` objects. """
 
         def __setitem__(self, key, value):
             value = ArraySequence(value)
@@ -125,7 +117,8 @@ class Tractogram(object):
 
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
-                 data_per_point=None):
+                 data_per_point=None,
+                 affine_to_rasmm=np.eye(4)):
         """
         Parameters
         ----------
@@ -142,11 +135,15 @@ class Tractogram(object):
             points for a particular streamline t and M is the number of
             scalars associated to each point (excluding the three
             coordinates).
+        affine_to_rasmm : ndarray of shape (4, 4)
+            Transformation matrix that brings the streamlines contained in
+            this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
+            refers to the center of the voxel.
         """
         self.streamlines = streamlines
         self.data_per_streamline = data_per_streamline
         self.data_per_point = data_per_point
-        self._affine_to_rasmm = np.eye(4)
+        self._affine_to_rasmm = affine_to_rasmm
 
     @property
     def streamlines(self):
@@ -173,9 +170,8 @@ class Tractogram(object):
     def data_per_point(self, value):
         self._data_per_point = Tractogram.DataPerPointDict(self, value)
 
-    @property
-    def affine_to_rasmm(self):
-        # Return a copy. User should use self.apply_affine` to modify it.
+    def get_affine_to_rasmm(self):
+        """ Returns the affine bringing this tractogram to RAS+mm. """
         return self._affine_to_rasmm.copy()
 
     def __iter__(self):
@@ -203,20 +199,7 @@ class Tractogram(object):
 
     def copy(self):
         """ Returns a copy of this :class:`Tractogram` object. """
-        data_per_streamline = {}
-        for key in self.data_per_streamline:
-            data_per_streamline[key] = self.data_per_streamline[key].copy()
-
-        data_per_point = {}
-        for key in self.data_per_point:
-                data_per_point[key] = self.data_per_point[key].copy()
-
-        tractogram = Tractogram(self.streamlines.copy(),
-                                data_per_streamline,
-                                data_per_point)
-
-        tractogram._affine_to_rasmm = self.affine_to_rasmm
-        return tractogram
+        return copy.deepcopy(self)
 
     def apply_affine(self, affine, lazy=False):
         """ Applies an affine transformation on the points of each streamline.
@@ -359,7 +342,7 @@ class LazyTractogram(Tractogram):
                               data_per_point)
 
         lazy_tractogram._nb_streamlines = len(tractogram)
-        lazy_tractogram._affine_to_rasmm = tractogram.affine_to_rasmm
+        lazy_tractogram._affine_to_rasmm = tractogram.get_affine_to_rasmm()
         return lazy_tractogram
 
     @classmethod
@@ -502,7 +485,7 @@ class LazyTractogram(Tractogram):
                  " streamlines, you might want to set it beforehand via"
                  " `self.header.nb_streamlines`."
                  " Note this will consume any generators used to create this"
-                 " `LazyTractogram` object.", UsageWarning)
+                 " `LazyTractogram` object.", Warning)
             # Count the number of streamlines.
             self._nb_streamlines = sum(1 for _ in self.streamlines)
 

@@ -15,10 +15,62 @@ from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
 from ..tractogram_file import TractogramFile, ExtensionWarning
-from ..tractogram import UsageWarning
 from .. import trk
 
 DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
+
+DATA = {}
+
+
+def setup():
+    global DATA
+    DATA['empty_filenames'] = [pjoin(DATA_PATH, "empty" + ext)
+                               for ext in nib.streamlines.FORMATS.keys()]
+    DATA['simple_filenames'] = [pjoin(DATA_PATH, "simple" + ext)
+                                for ext in nib.streamlines.FORMATS.keys()]
+    DATA['complex_filenames'] = [pjoin(DATA_PATH, "complex" + ext)
+                                 for ext in nib.streamlines.FORMATS.keys()]
+
+    DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
+                           np.arange(2*3, dtype="f4").reshape((2, 3)),
+                           np.arange(5*3, dtype="f4").reshape((5, 3))]
+
+    fa = [np.array([[0.2]], dtype="f4"),
+          np.array([[0.3],
+                    [0.4]], dtype="f4"),
+          np.array([[0.5],
+                    [0.6],
+                    [0.6],
+                    [0.7],
+                    [0.8]], dtype="f4")]
+
+    colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
+              np.array([(0, 1, 0)]*2, dtype="f4"),
+              np.array([(0, 0, 1)]*5, dtype="f4")]
+
+    mean_curvature = [np.array([1.11], dtype="f4"),
+                      np.array([2.11], dtype="f4"),
+                      np.array([3.11], dtype="f4")]
+
+    mean_torsion = [np.array([1.22], dtype="f4"),
+                    np.array([2.22], dtype="f4"),
+                    np.array([3.22], dtype="f4")]
+
+    mean_colors = [np.array([1, 0, 0], dtype="f4"),
+                   np.array([0, 1, 0], dtype="f4"),
+                   np.array([0, 0, 1], dtype="f4")]
+
+    DATA['data_per_point'] = {'colors': colors,
+                              'fa': fa}
+    DATA['data_per_streamline'] = {'mean_curvature': mean_curvature,
+                                   'mean_torsion': mean_torsion,
+                                   'mean_colors': mean_colors}
+
+    DATA['empty_tractogram'] = Tractogram()
+    DATA['simple_tractogram'] = Tractogram(DATA['streamlines'])
+    DATA['complex_tractogram'] = Tractogram(DATA['streamlines'],
+                                            DATA['data_per_streamline'],
+                                            DATA['data_per_point'])
 
 
 def test_is_supported():
@@ -101,58 +153,10 @@ def test_detect_format():
 
 
 class TestLoadSave(unittest.TestCase):
-    def setUp(self):
-        self.empty_filenames = [pjoin(DATA_PATH, "empty" + ext)
-                                for ext in nib.streamlines.FORMATS.keys()]
-        self.simple_filenames = [pjoin(DATA_PATH, "simple" + ext)
-                                 for ext in nib.streamlines.FORMATS.keys()]
-        self.complex_filenames = [pjoin(DATA_PATH, "complex" + ext)
-                                  for ext in nib.streamlines.FORMATS.keys()]
-
-        self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
-                            np.arange(2*3, dtype="f4").reshape((2, 3)),
-                            np.arange(5*3, dtype="f4").reshape((5, 3))]
-
-        self.fa = [np.array([[0.2]], dtype="f4"),
-                   np.array([[0.3],
-                             [0.4]], dtype="f4"),
-                   np.array([[0.5],
-                             [0.6],
-                             [0.6],
-                             [0.7],
-                             [0.8]], dtype="f4")]
-
-        self.colors = [np.array([(1, 0, 0)]*1, dtype="f4"),
-                       np.array([(0, 1, 0)]*2, dtype="f4"),
-                       np.array([(0, 0, 1)]*5, dtype="f4")]
-
-        self.mean_curvature = [np.array([1.11], dtype="f4"),
-                               np.array([2.11], dtype="f4"),
-                               np.array([3.11], dtype="f4")]
-
-        self.mean_torsion = [np.array([1.22], dtype="f4"),
-                             np.array([2.22], dtype="f4"),
-                             np.array([3.22], dtype="f4")]
-
-        self.mean_colors = [np.array([1, 0, 0], dtype="f4"),
-                            np.array([0, 1, 0], dtype="f4"),
-                            np.array([0, 0, 1], dtype="f4")]
-
-        self.data_per_point = {'colors': self.colors,
-                               'fa': self.fa}
-        self.data_per_streamline = {'mean_curvature': self.mean_curvature,
-                                    'mean_torsion': self.mean_torsion,
-                                    'mean_colors': self.mean_colors}
-
-        self.empty_tractogram = Tractogram()
-        self.simple_tractogram = Tractogram(self.streamlines)
-        self.complex_tractogram = Tractogram(self.streamlines,
-                                             self.data_per_streamline,
-                                             self.data_per_point)
 
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
-            for empty_filename in self.empty_filenames:
+            for empty_filename in DATA['empty_filenames']:
                 tfile = nib.streamlines.load(empty_filename,
                                              lazy_load=lazy_load)
                 assert_true(isinstance(tfile, TractogramFile))
@@ -163,11 +167,11 @@ class TestLoadSave(unittest.TestCase):
                     assert_true(type(tfile.tractogram), LazyTractogram)
 
                 assert_tractogram_equal(tfile.tractogram,
-                                        self.empty_tractogram)
+                                        DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
-            for simple_filename in self.simple_filenames:
+            for simple_filename in DATA['simple_filenames']:
                 tfile = nib.streamlines.load(simple_filename,
                                              lazy_load=lazy_load)
                 assert_true(isinstance(tfile, TractogramFile))
@@ -178,11 +182,11 @@ class TestLoadSave(unittest.TestCase):
                     assert_true(type(tfile.tractogram), LazyTractogram)
 
                 assert_tractogram_equal(tfile.tractogram,
-                                        self.simple_tractogram)
+                                        DATA['simple_tractogram'])
 
     def test_load_complex_file(self):
         for lazy_load in [False, True]:
-            for complex_filename in self.complex_filenames:
+            for complex_filename in DATA['complex_filenames']:
                 tfile = nib.streamlines.load(complex_filename,
                                              lazy_load=lazy_load)
                 assert_true(isinstance(tfile, TractogramFile))
@@ -192,19 +196,19 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert_true(type(tfile.tractogram), LazyTractogram)
 
-                tractogram = Tractogram(self.streamlines)
+                tractogram = Tractogram(DATA['streamlines'])
 
                 if tfile.support_data_per_point():
-                    tractogram.data_per_point = self.data_per_point
+                    tractogram.data_per_point = DATA['data_per_point']
 
                 if tfile.support_data_per_streamline():
-                    tractogram.data_per_streamline = self.data_per_streamline
+                    tractogram.data_per_streamline = DATA['data_per_streamline']
 
                 assert_tractogram_equal(tfile.tractogram,
                                         tractogram)
 
     def test_save_tractogram_file(self):
-        tractogram = Tractogram(self.streamlines)
+        tractogram = Tractogram(DATA['streamlines'])
         trk_file = trk.TrkFile(tractogram)
 
         # No need for keyword arguments.
@@ -232,7 +236,7 @@ class TestLoadSave(unittest.TestCase):
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_simple_file(self):
-        tractogram = Tractogram(self.streamlines)
+        tractogram = Tractogram(DATA['streamlines'])
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
                 with open('streamlines' + ext, 'w+b') as f:
@@ -241,9 +245,9 @@ class TestLoadSave(unittest.TestCase):
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_complex_file(self):
-        complex_tractogram = Tractogram(self.streamlines,
-                                        self.data_per_streamline,
-                                        self.data_per_point)
+        complex_tractogram = Tractogram(DATA['streamlines'],
+                                        DATA['data_per_streamline'],
+                                        DATA['data_per_point'])
 
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
@@ -255,18 +259,18 @@ class TestLoadSave(unittest.TestCase):
                         # If streamlines format does not support saving data
                         # per point or data per streamline, a warning message
                         # should be issued.
-                        if not (cls.support_data_per_point()
-                                and cls.support_data_per_streamline()):
+                        if not (cls.support_data_per_point() and
+                                cls.support_data_per_streamline()):
                             assert_equal(len(w), 1)
-                            assert_true(issubclass(w[0].category, UsageWarning))
+                            assert_true(issubclass(w[0].category, Warning))
 
-                    tractogram = Tractogram(self.streamlines)
+                    tractogram = Tractogram(DATA['streamlines'])
 
                     if cls.support_data_per_point():
-                        tractogram.data_per_point = self.data_per_point
+                        tractogram.data_per_point = DATA['data_per_point']
 
                     if cls.support_data_per_streamline():
-                        tractogram.data_per_streamline = self.data_per_streamline
+                        tractogram.data_per_streamline = DATA['data_per_streamline']
 
                     tfile = nib.streamlines.load(f, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)

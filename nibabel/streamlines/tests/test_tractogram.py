@@ -9,7 +9,6 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nibabel.externals.six.moves import zip
 
 from .. import tractogram as module_tractogram
-from ..tractogram import UsageWarning
 from ..tractogram import TractogramItem, Tractogram, LazyTractogram
 
 
@@ -197,6 +196,13 @@ class TestTractogram(unittest.TestCase):
         assert_equal(tractogram.data_per_streamline, {})
         assert_equal(tractogram.data_per_point, {})
         assert_true(check_iteration(tractogram))
+
+        # Create a tractogram with streamlines and a given affine.
+        affine = np.diag([1, 2, 3, 1])
+        tractogram = Tractogram(streamlines=self.streamlines,
+                                affine_to_rasmm=affine)
+        assert_arrays_equal(tractogram.streamlines, self.streamlines)
+        assert_array_equal(tractogram.get_affine_to_rasmm(), affine)
 
         # Create a tractogram with streamlines and other data.
         tractogram = Tractogram(
@@ -409,7 +415,7 @@ class TestTractogram(unittest.TestCase):
                           tractogram.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
 
-        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+        assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.linalg.inv(affine)))
 
         # Apply the affine to the streamlines in-place.
@@ -421,9 +427,9 @@ class TestTractogram(unittest.TestCase):
                           self.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
 
-        # Apply affine again and check the affine_to_rasmm property.
+        # Apply affine again and check the affine_to_rasmm.
         transformed_tractogram = tractogram.apply_affine(affine)
-        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+        assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
 
@@ -573,7 +579,7 @@ class TestLazyTractogram(unittest.TestCase):
             # New instances should still produce a warning message.
             assert_equal(len(tractogram), self.nb_streamlines)
             assert_equal(len(w), 2)
-            assert_true(issubclass(w[-1].category, UsageWarning))
+            assert_true(issubclass(w[-1].category, Warning))
 
             # Calling again 'len' again should *not* produce a warning.
             assert_equal(len(tractogram), self.nb_streamlines)
@@ -613,9 +619,9 @@ class TestLazyTractogram(unittest.TestCase):
         for s1, s2 in zip(tractogram.streamlines, self.streamlines):
             assert_array_almost_equal(s1, s2*scaling)
 
-        # Apply affine again and check the affine_to_rasmm property.
+        # Apply affine again and check the affine_to_rasmm.
         transformed_tractogram = tractogram.apply_affine(affine)
-        assert_array_equal(transformed_tractogram.affine_to_rasmm,
+        assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
 

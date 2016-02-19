@@ -46,7 +46,7 @@ def check_arr_seq(seq, arrays):
     assert_equal(seq.common_shape, arrays[0].shape[1:])
     assert_arrays_equal(seq, arrays)
 
-    # If seq is a view, there order of internal data is not guarantied.
+    # If seq is a view, then order of internal data is not guaranteed.
     if seq._is_view:
         # The only thing we can check is the _lengths.
         assert_array_equal(sorted(seq._lengths), sorted(lengths))
