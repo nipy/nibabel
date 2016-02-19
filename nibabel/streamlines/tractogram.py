@@ -8,6 +8,136 @@ from nibabel.affines import apply_affine
 from .array_sequence import ArraySequence
 
 
+class DataDict(collections.MutableMapping):
+    """ Dictionary that makes sure data are 2D array.
+
+    This container behaves like a standard dictionary but it makes sure its
+    elements are ndarrays. In addition, it makes sure the amount of data
+    contained in those ndarrays matches the number of streamlines of the
+    :class:`Tractogram` object provided at the instantiation of this
+    dictionary.
+    """
+    def __init__(self, tractogram, *args, **kwargs):
+        self.tractogram = tractogram
+        self.store = dict()
+
+        # Use update to set the keys.
+        if len(args) == 1:
+            if isinstance(args[0], DataDict):
+                self.update(dict(args[0].store.items()))
+            elif args[0] is None:
+                return
+            else:
+                self.update(dict(*args, **kwargs))
+        else:
+            self.update(dict(*args, **kwargs))
+
+    def __getitem__(self, key):
+        try:
+            return self.store[key]
+        except KeyError:
+            pass  # Maybe it is an integer.
+        except TypeError:
+            pass  # Maybe it is an object for advanced indexing.
+
+        # Try to interpret key as an index/slice in which case we
+        # perform (advanced) indexing on every element of the dictionnary.
+        try:
+            idx = key
+            new_dict = type(self)(None)
+            for k, v in self.items():
+                new_dict[k] = v[idx]
+
+            return new_dict
+        except TypeError:
+            pass
+
+        # That means key was not an index/slice after all.
+        return self.store[key]  # Will raise the proper error.
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+
+class DataPerStreamlineDict(DataDict):
+    """ Dictionary that makes sure data are 2D array.
+
+    This container behaves like a standard dictionary but it makes sure its
+    elements are ndarrays. In addition, it makes sure the amount of data
+    contained in those ndarrays matches the number of streamlines of the
+    :class:`Tractogram` object provided at the instantiation of this
+    dictionary.
+    """
+    def __setitem__(self, key, value):
+        value = np.asarray(value)
+
+        if value.ndim == 1 and value.dtype != object:
+            # Reshape without copy
+            value.shape = ((len(value), 1))
+
+        if value.ndim != 2:
+            raise ValueError("data_per_streamline must be a 2D array.")
+
+        # We make sure there is the right amount of values
+        # (i.e. same as the number of streamlines in the tractogram).
+        if self.tractogram is not None and len(value) != len(self.tractogram):
+            msg = ("The number of values ({0}) should match the number of"
+                   " streamlines ({1}).")
+            raise ValueError(msg.format(len(value), len(self.tractogram)))
+
+        self.store[key] = value
+
+
+class DataPerPointDict(DataDict):
+    """ Dictionary making sure data are :class:`ArraySequence` objects.
+
+    This container behaves like a standard dictionary but it makes sure its
+    elements are :class:`ArraySequence` objects. In addition, it makes sure
+    the amount of data contained in those :class:`ArraySequence` objects
+    matches the the number of points of the :class:`Tractogram` object
+    provided at the instantiation of this dictionary.
+    """
+
+    def __setitem__(self, key, value):
+        value = ArraySequence(value)
+
+        # We make sure we have the right amount of values (i.e. same as
+        # the total number of points of all streamlines in the tractogram).
+        if (self.tractogram is not None and
+                len(value._data) != len(self.tractogram.streamlines._data)):
+            msg = ("The number of values ({0}) should match the total"
+                   " number of points of all streamlines ({1}).")
+            nb_streamlines_points = self.tractogram.streamlines._data
+            raise ValueError(msg.format(len(value._data),
+                                        len(nb_streamlines_points)))
+
+        self.store[key] = value
+
+
+class LazyDict(DataDict):
+    """ Dictionary of coroutines with lazy evaluation.
+
+    This container behaves like an dictionary but it makes sure its elements
+    are callable objects and assumed to be coroutines yielding values. When
+    getting the element associated to a given key, the element (i.e. a
+    coroutine) is first called before being returned.
+    """
+    def __getitem__(self, key):
+        return self.store[key]()
+
+    def __setitem__(self, key, value):
+        if value is not None and not callable(value):
+            raise TypeError("`value` must be a coroutine or None.")
+
+        self.store[key] = value
+
+
 class TractogramItem(object):
     """ Class containing information about one streamline.
 
@@ -48,73 +178,6 @@ class Tractogram(object):
     `data_per_streamline` and `data_per_point`.
 
     """
-    class DataDict(collections.MutableMapping):
-        def __init__(self, tractogram, *args, **kwargs):
-            self.tractogram = tractogram
-            self.store = dict()
-
-            # Use update to set the keys.
-            if len(args) == 1:
-                if isinstance(args[0], Tractogram.DataDict):
-                    self.update(dict(args[0].store.items()))
-                elif args[0] is None:
-                    return
-                else:
-                    self.update(dict(*args, **kwargs))
-            else:
-                self.update(dict(*args, **kwargs))
-
-        def __getitem__(self, key):
-            return self.store[key]
-
-        def __delitem__(self, key):
-            del self.store[key]
-
-        def __iter__(self):
-            return iter(self.store)
-
-        def __len__(self):
-            return len(self.store)
-
-    class DataPerStreamlineDict(DataDict):
-        """ Dictionary that makes sure data are 2D array. """
-
-        def __setitem__(self, key, value):
-            value = np.asarray(value)
-
-            if value.ndim == 1 and value.dtype != object:
-                # Reshape without copy
-                value.shape = ((len(value), 1))
-
-            if value.ndim != 2:
-                raise ValueError("data_per_streamline must be a 2D array.")
-
-            # We make sure there is the right amount of values
-            # (i.e. same as the number of streamlines in the tractogram).
-            if len(value) != len(self.tractogram):
-                msg = ("The number of values ({0}) should match the number of"
-                       " streamlines ({1}).")
-                raise ValueError(msg.format(len(value), len(self.tractogram)))
-
-            self.store[key] = value
-
-    class DataPerPointDict(DataDict):
-        """ Dictionary making sure data are :class:`ArraySequence` objects. """
-
-        def __setitem__(self, key, value):
-            value = ArraySequence(value)
-
-            # We make sure we have the right amount of values (i.e. same as
-            # the total number of points of all streamlines in the tractogram).
-            if len(value._data) != len(self.tractogram.streamlines._data):
-                msg = ("The number of values ({0}) should match the total"
-                       " number of points of all streamlines ({1}).")
-                nb_streamlines_points = self.tractogram.streamlines._data
-                raise ValueError(msg.format(len(value._data),
-                                            len(nb_streamlines_points)))
-
-            self.store[key] = value
-
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None,
@@ -159,8 +222,7 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        self._data_per_streamline = Tractogram.DataPerStreamlineDict(self,
-                                                                     value)
+        self._data_per_streamline = DataPerStreamlineDict(self, value)
 
     @property
     def data_per_point(self):
@@ -168,7 +230,7 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        self._data_per_point = Tractogram.DataPerPointDict(self, value)
+        self._data_per_point = DataPerPointDict(self, value)
 
     def get_affine_to_rasmm(self):
         """ Returns the affine bringing this tractogram to RAS+mm. """
@@ -257,37 +319,6 @@ class LazyTractogram(Tractogram):
     If provided, `scalars` and `properties` must yield the same number of
     values as `streamlines`.
     """
-
-    class LazyDict(collections.MutableMapping):
-        """ Internal dictionary with lazy evaluations. """
-
-        def __init__(self, *args, **kwargs):
-            self.store = dict()
-
-            # Use update to set keys.
-            if len(args) == 1 and isinstance(args[0], LazyTractogram.LazyDict):
-                self.update(dict(args[0].store.items()))
-            else:
-                self.update(dict(*args, **kwargs))
-
-        def __getitem__(self, key):
-            return self.store[key]()
-
-        def __setitem__(self, key, value):
-            if value is not None and not callable(value):
-                raise TypeError("`value` must be a coroutine or None.")
-
-            self.store[key] = value
-
-        def __delitem__(self, key):
-            del self.store[key]
-
-        def __iter__(self):
-            return iter(self.store)
-
-        def __len__(self):
-            return len(self.store)
-
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None):
@@ -426,7 +457,7 @@ class LazyTractogram(Tractogram):
         if value is None:
             value = {}
 
-        self._data_per_streamline = LazyTractogram.LazyDict(value)
+        self._data_per_streamline = LazyDict(self, value)
 
     @property
     def data_per_point(self):
@@ -437,7 +468,7 @@ class LazyTractogram(Tractogram):
         if value is None:
             value = {}
 
-        self._data_per_point = LazyTractogram.LazyDict(value)
+        self._data_per_point = LazyDict(self, value)
 
     @property
     def data(self):
