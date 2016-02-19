@@ -19,10 +19,10 @@ Stuff about the CIFTI2 file format here:
 '''
 from __future__ import division, print_function, absolute_import
 
+import re
 import numpy as np
 
 from .. import xmlutils as xml
-from ..externals import inflection
 from ..externals.six import string_types
 from ..externals.six.moves import reduce
 from ..filebasedimages import FileBasedHeader, FileBasedImage
@@ -91,6 +91,12 @@ def _value_or_make_klass(val, klass):
         return klass()
     else:
         return _value_if_klass(val, klass)
+
+
+def _underscore(string):
+    """ Convert a string from camelcase to underscored """
+    string = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', string)
+    return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
 
 class Cifti2MetaData(xml.XmlSerializable):
@@ -466,7 +472,7 @@ class Cifti2BrainModel(object):
 
         for key in ['IndexOffset', 'IndexCount', 'ModelType', 'BrainStructure',
                     'SurfaceNumberOfVertices']:
-            attr = inflection.underscore(key)
+            attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
                 brain_model.attrib[key] = str(value)
@@ -598,7 +604,7 @@ class Cifti2MatrixIndicesMap(object):
         mat_ind_map.attrib['AppliesToMatrixDimension'] = ','.join(dims_as_strings)
         for key in ['IndicesMapToDataType', 'NumberOfSeriesPoints', 'SeriesExponent',
                     'SeriesStart', 'SeriesStep', 'SeriesUnit']:
-            attr = inflection.underscore(key)
+            attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
                 mat_ind_map.attrib[key] = str(value)
