@@ -18,9 +18,8 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
                      Cifti2Surface, Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BrainStructures,
-                     CIFTI_MODEL_TYPES)
+                     CIFTI_MODEL_TYPES, _underscore)
 from .. import xmlutils as xml
-from ..externals import inflection
 from ..externals.six import BytesIO
 from ..externals.six.moves import reduce
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
@@ -182,8 +181,7 @@ class Cifti2Parser(xml.XmlParser):
                                ("SeriesStep", float),
                                ("SeriesUnit", str)]:
                 if key in attrs:
-                    attr = inflection.underscore(key)
-                    setattr(mim, attr, dtype(attrs[key]))
+                    setattr(mim, _underscore(key), dtype(attrs[key]))
             matrix = self.struct_state[-1]
             assert isinstance(matrix, Cifti2Matrix)
             matrix.add_cifti_matrix_indices_map(mim)
@@ -296,8 +294,7 @@ class Cifti2Parser(xml.XmlParser):
                                ("BrainStructure", str),
                                ("SurfaceNumberOfVertices", int)]:
                 if key in attrs:
-                    attr = inflection.underscore(key)
-                    setattr(model, attr, dtype(attrs[key]))
+                    setattr(model, _underscore(key), dtype(attrs[key]))
             assert model.brain_structure in CIFTI_BrainStructures
             assert model.model_type in CIFTI_MODEL_TYPES
             mim.add_cifti_brain_model(model)
