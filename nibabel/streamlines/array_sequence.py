@@ -22,7 +22,7 @@ class ArraySequence(object):
     same for every ndarray.
     """
 
-    BUFFER_SIZE = 87382*4  # About 4 Mb if item shape is 3 (e.g. 3D points).
+    BUFFER_SIZE = 87382 * 4  # About 4 Mb if item shape is 3 (e.g. 3D points).
 
     def __init__(self, iterable=None):
         """
@@ -72,7 +72,7 @@ class ArraySequence(object):
 
             offsets.append(offset)
             lengths.append(len(e))
-            self._data[offset:offset+len(e)] = e
+            self._data[offset:offset + len(e)] = e
             offset += len(e)
 
         self._offsets = np.asarray(offsets)
@@ -148,14 +148,14 @@ class ArraySequence(object):
         next_offset = self._data.shape[0]
 
         if is_array_sequence(elements):
-            self._data.resize((self._data.shape[0]+sum(elements._lengths),
+            self._data.resize((self._data.shape[0] + sum(elements._lengths),
                                self._data.shape[1]))
 
             offsets = []
             for offset, length in zip(elements._offsets, elements._lengths):
                 offsets.append(next_offset)
-                chunk = elements._data[offset:offset+length]
-                self._data[next_offset:next_offset+length] = chunk
+                chunk = elements._data[offset:offset + length]
+                self._data[next_offset:next_offset + length] = chunk
                 next_offset += length
 
             self._lengths = np.r_[self._lengths, elements._lengths]
@@ -182,8 +182,8 @@ class ArraySequence(object):
         offsets = []
         for offset, length in zip(self._offsets, self._lengths):
             offsets.append(next_offset)
-            chunk = self._data[offset:offset+length]
-            seq._data[next_offset:next_offset+length] = chunk
+            chunk = self._data[offset:offset + length]
+            seq._data[next_offset:next_offset + length] = chunk
             next_offset += length
 
         seq._offsets = np.asarray(offsets)
@@ -212,7 +212,7 @@ class ArraySequence(object):
         """
         if isinstance(idx, (int, np.integer)):
             start = self._offsets[idx]
-            return self._data[start:start+self._lengths[idx]]
+            return self._data[start:start + self._lengths[idx]]
 
         elif isinstance(idx, (slice, list)):
             seq = ArraySequence()
@@ -241,7 +241,7 @@ class ArraySequence(object):
                              " len(self._lengths) != len(self._offsets)")
 
         for offset, lengths in zip(self._offsets, self._lengths):
-            yield self._data[offset: offset+lengths]
+            yield self._data[offset: offset + lengths]
 
     def __len__(self):
         return len(self._offsets)

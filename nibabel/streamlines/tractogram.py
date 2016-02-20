@@ -295,9 +295,10 @@ class Tractogram(object):
             return self
 
         BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
-        for i in range(0, len(self.streamlines._data), BUFFER_SIZE):
-            pts = self.streamlines._data[i:i+BUFFER_SIZE]
-            self.streamlines._data[i:i+BUFFER_SIZE] = apply_affine(affine, pts)
+        for start in range(0, len(self.streamlines._data), BUFFER_SIZE):
+            end = start + BUFFER_SIZE
+            pts = self.streamlines._data[start:end]
+            self.streamlines._data[start:end] = apply_affine(affine, pts)
 
         # Update the affine that brings back the streamlines to RASmm.
         self._affine_to_rasmm = np.dot(self._affine_to_rasmm,

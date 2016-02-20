@@ -18,12 +18,12 @@ def setup():
     global SEQ_DATA
     rng = np.random.RandomState(42)
     SEQ_DATA['rng'] = rng
-    SEQ_DATA['data'] = generate_data(nb_arrays=10, common_shape=(3,), rng=rng)
+    SEQ_DATA['data'] = generate_data(nb_arrays=5, common_shape=(3,), rng=rng)
     SEQ_DATA['seq'] = ArraySequence(SEQ_DATA['data'])
 
 
 def generate_data(nb_arrays, common_shape, rng):
-    data = [rng.rand(*(rng.randint(10, 50),) + common_shape)
+    data = [rng.rand(*(rng.randint(3, 20),) + common_shape)
             for _ in range(nb_arrays)]
     return data
 
@@ -79,7 +79,7 @@ class TestArraySequence(unittest.TestCase):
         for ndim in range(0, N+1):
             common_shape = tuple([SEQ_DATA['rng'].randint(1, 10)
                                  for _ in range(ndim-1)])
-            data = generate_data(nb_arrays=10, common_shape=common_shape,
+            data = generate_data(nb_arrays=5, common_shape=common_shape,
                                  rng=SEQ_DATA['rng'])
             check_arr_seq(ArraySequence(data), data)
 
@@ -213,7 +213,7 @@ class TestArraySequence(unittest.TestCase):
         SEQ_DATA['rng'].shuffle(indices)
         seq_view = SEQ_DATA['seq'][indices]
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
-        check_arr_seq(seq_view, np.asarray(SEQ_DATA['data'])[indices])
+        check_arr_seq(seq_view, [SEQ_DATA['data'][i] for i in indices])
 
         # Get slice (this will create a view).
         seq_view = SEQ_DATA['seq'][::2]
@@ -224,7 +224,9 @@ class TestArraySequence(unittest.TestCase):
         selection = np.array([False, True, True, False, True])
         seq_view = SEQ_DATA['seq'][selection]
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
-        check_arr_seq(seq_view, np.asarray(SEQ_DATA['data'])[selection])
+        check_arr_seq(seq_view,
+                      [SEQ_DATA['data'][i]
+                       for i, keep in enumerate(selection) if keep])
 
         # Test invalid indexing
         assert_raises(TypeError, SEQ_DATA['seq'].__getitem__, 'abc')
