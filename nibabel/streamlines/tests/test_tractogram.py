@@ -389,33 +389,72 @@ class TestTractogram(unittest.TestCase):
         # Apply the affine to the streamline in a lazy manner.
         transformed_tractogram = tractogram.apply_affine(affine, lazy=True)
         assert_true(type(transformed_tractogram) is LazyTractogram)
-        assert_true(check_iteration(transformed_tractogram))
-        assert_equal(len(transformed_tractogram), len(DATA['streamlines']))
-        for s1, s2 in zip(transformed_tractogram.streamlines,
-                          DATA['streamlines']):
-            assert_array_almost_equal(s1, s2*scaling)
-
-        for s1, s2 in zip(transformed_tractogram.streamlines,
-                          tractogram.streamlines):
-            assert_array_almost_equal(s1, s2*scaling)
-
+        check_tractogram(transformed_tractogram,
+                         streamlines=[s*scaling for s in DATA['streamlines']],
+                         data_per_streamline=DATA['data_per_streamline'],
+                         data_per_point=DATA['data_per_point'])
         assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.linalg.inv(affine)))
+        # Make sure streamlines of the original tractogram have not been modified.
+        assert_arrays_equal(tractogram.streamlines, DATA['streamlines'])
 
         # Apply the affine to the streamlines in-place.
         transformed_tractogram = tractogram.apply_affine(affine)
         assert_true(transformed_tractogram is tractogram)
-        assert_true(check_iteration(transformed_tractogram))
-        assert_equal(len(transformed_tractogram), len(DATA['streamlines']))
-        for s1, s2 in zip(transformed_tractogram.streamlines,
-                          DATA['streamlines']):
-            assert_array_almost_equal(s1, s2*scaling)
+        check_tractogram(tractogram,
+                         streamlines=[s*scaling for s in DATA['streamlines']],
+                         data_per_streamline=DATA['data_per_streamline'],
+                         data_per_point=DATA['data_per_point'])
 
         # Apply affine again and check the affine_to_rasmm.
         transformed_tractogram = tractogram.apply_affine(affine)
         assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
+
+        # Check that applying an affine and its inverse give us back the
+        # original streamlines.
+        tractogram = DATA['tractogram'].copy()
+        affine = np.random.RandomState(1234).randn(4, 4)
+        affine[-1] = [0, 0, 0, 1]  # Remove perspective projection.
+
+        tractogram.apply_affine(affine)
+        tractogram.apply_affine(np.linalg.inv(affine))
+        assert_array_almost_equal(tractogram.get_affine_to_rasmm(), np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
+
+    def test_tractogram_to_world(self):
+        tractogram = DATA['tractogram'].copy()
+        affine = np.random.RandomState(1234).randn(4, 4)
+        affine[-1] = [0, 0, 0, 1]  # Remove perspective projection.
+
+        # Apply the affine to the streamlines, then bring them back
+        # to world space in a lazy manner.
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
+                           np.linalg.inv(affine))
+
+        tractogram_world = transformed_tractogram.to_world(lazy=True)
+        assert_true(type(tractogram_world) is LazyTractogram)
+        assert_array_almost_equal(tractogram_world.get_affine_to_rasmm(),
+                                  np.eye(4))
+        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
+
+        # Bring them back streamlines to world space in a in-place manner.
+        tractogram_world = transformed_tractogram.to_world()
+        assert_true(tractogram_world is tractogram)
+        assert_array_almost_equal(tractogram.get_affine_to_rasmm(), np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
+
+        # Calling to_world twice should do nothing.
+        tractogram_world2 = transformed_tractogram.to_world()
+        assert_true(tractogram_world2 is tractogram)
+        assert_array_almost_equal(tractogram.get_affine_to_rasmm(), np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
 
 
 class TestLazyTractogram(unittest.TestCase):
@@ -531,17 +570,46 @@ class TestLazyTractogram(unittest.TestCase):
 
         tractogram = DATA['lazy_tractogram'].copy()
 
-        tractogram.apply_affine(affine)
-        assert_true(check_iteration(tractogram))
-        assert_equal(len(tractogram), len(DATA['streamlines']))
-        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
-            assert_array_almost_equal(s1, s2*scaling)
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_true(transformed_tractogram is tractogram)
+        assert_array_equal(tractogram._affine_to_apply, affine)
+        assert_array_equal(tractogram.get_affine_to_rasmm(),
+                           np.dot(np.eye(4), np.linalg.inv(affine)))
+        check_tractogram(tractogram,
+                         streamlines=[s*scaling for s in DATA['streamlines']],
+                         data_per_streamline=DATA['data_per_streamline'],
+                         data_per_point=DATA['data_per_point'])
 
         # Apply affine again and check the affine_to_rasmm.
         transformed_tractogram = tractogram.apply_affine(affine)
+        assert_array_equal(tractogram._affine_to_apply, np.dot(affine, affine))
         assert_array_equal(transformed_tractogram.get_affine_to_rasmm(),
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
+
+    def test_tractogram_to_world(self):
+        tractogram = DATA['lazy_tractogram'].copy()
+        affine = np.random.RandomState(1234).randn(4, 4)
+        affine[-1] = [0, 0, 0, 1]  # Remove perspective projection.
+
+        # Apply the affine to the streamlines, then bring them back
+        # to world space in a lazy manner.
+        tractogram.apply_affine(affine)
+        assert_array_equal(tractogram.get_affine_to_rasmm(),
+                           np.linalg.inv(affine))
+
+        tractogram_world = tractogram.to_world()
+        assert_true(tractogram_world is tractogram)
+        assert_array_almost_equal(tractogram.get_affine_to_rasmm(),
+                                  np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
+
+        # Calling to_world twice should do nothing.
+        tractogram.to_world()
+        assert_array_almost_equal(tractogram.get_affine_to_rasmm(), np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
 
     def test_lazy_tractogram_copy(self):
         # Create a copy of the lazy tractogram.

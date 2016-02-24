@@ -198,6 +198,12 @@ class Tractogram(object):
     Tractogram objects have three main properties: `streamlines`,
     `data_per_streamline` and `data_per_point`.
 
+    Streamlines of a tractogram can be in any coordinate system of your
+    choice as long as you provide the correct `affine_to_rasmm` matrix, at
+    construction time, that brings the streamlines back to *RAS+*, *mm* space,
+    where the coordinates (0,0,0) corresponds to the center of the voxel
+    (opposed to a corner).
+
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -243,9 +249,6 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        # if is_lazy_dict(value):
-        # self._data_per_streamline = DataPerStreamlineDict(self, **value.items())
-        # else:
         self._data_per_streamline = DataPerStreamlineDict(self, value)
 
     @property
@@ -254,9 +257,6 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        # if is_lazy_dict(value):
-        #     self._data_per_point = DataPerPointDict(self, **value.items())
-        # else:
         self._data_per_point = DataPerPointDict(self, value)
 
     def get_affine_to_rasmm(self):
@@ -333,6 +333,28 @@ class Tractogram(object):
 
         return self
 
+    def to_world(self, lazy=False):
+        """ Brings the streamlines to world space (i.e. RAS+ and mm).
+
+        If `lazy` is not specified, this is performed *in-place*.
+
+        Parameters
+        ----------
+        lazy_load : {False, True}, optional
+            If True, streamlines are *not* transformed in-place and a
+            :class:`LazyTractogram` object is returned. Otherwise, streamlines
+            are modified in-place.
+
+        Returns
+        -------
+        tractogram : :class:`Tractogram` or :class:`LazyTractogram` object
+            Tractogram where the streamlines have been sent to world space.
+            If the `lazy` option is true, it returns a :class:`LazyTractogram`
+            object, otherwise it returns a reference to this
+            :class:`Tractogram` object with updated streamlines.
+        """
+        return self.apply_affine(self._affine_to_rasmm, lazy=lazy)
+
 
 class LazyTractogram(Tractogram):
     """ Class containing information about streamlines.
@@ -394,17 +416,21 @@ class LazyTractogram(Tractogram):
         lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
         """
-        data_per_streamline = {}
-        for key, value in tractogram.data_per_streamline.items():
-            data_per_streamline[key] = lambda: value
+        lazy_tractogram = cls(lambda: tractogram.streamlines.copy())
 
-        data_per_point = {}
-        for key, value in tractogram.data_per_point.items():
-                data_per_point[key] = lambda: value
+        # Set data_per_streamline using data_func
+        def _gen(key):
+            return lambda: iter(tractogram.data_per_streamline[key])
 
-        lazy_tractogram = cls(lambda: tractogram.streamlines.copy(),
-                              data_per_streamline,
-                              data_per_point)
+        for k in tractogram.data_per_streamline:
+            lazy_tractogram._data_per_streamline[k] = _gen(k)
+
+        # Set data_per_point using data_func
+        def _gen(key):
+            return lambda: iter(tractogram.data_per_point[key])
+
+        for k in tractogram.data_per_point:
+            lazy_tractogram._data_per_point[k] = _gen(k)
 
         lazy_tractogram._nb_streamlines = len(tractogram)
         lazy_tractogram._affine_to_rasmm = tractogram.get_affine_to_rasmm()
@@ -584,3 +610,16 @@ class LazyTractogram(Tractogram):
         self._affine_to_rasmm = np.dot(self._affine_to_rasmm,
                                        np.linalg.inv(affine))
         return self
+
+    def to_world(self):
+        """ Brings the streamlines to world space (i.e. RAS+ and mm).
+
+        The transformation will be applied just before returning the
+        streamlines.
+
+        Returns
+        -------
+        lazy_tractogram : :class:`LazyTractogram` object
+            Reference to this instance of :class:`LazyTractogram`.
+        """
+        return self.apply_affine(self._affine_to_rasmm)
