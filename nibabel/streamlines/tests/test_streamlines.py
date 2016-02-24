@@ -226,23 +226,28 @@ class TestLoadSave(unittest.TestCase):
             assert_true(issubclass(w[0].category, ExtensionWarning))
             assert_true("extension" in str(w[0].message))
 
+        with InTemporaryDirectory():
+            nib.streamlines.save(trk_file, "dummy.trk")
+            tfile = nib.streamlines.load("dummy.trk", lazy_load=False)
+            assert_tractogram_equal(tfile.tractogram, tractogram)
+
     def test_save_empty_file(self):
         tractogram = Tractogram()
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
-                with open('streamlines' + ext, 'w+b') as f:
-                    nib.streamlines.save(tractogram, f.name)
-                    tfile = nib.streamlines.load(f, lazy_load=False)
-                    assert_tractogram_equal(tfile.tractogram, tractogram)
+                filename = 'streamlines' + ext
+                nib.streamlines.save(tractogram, filename)
+                tfile = nib.streamlines.load(filename, lazy_load=False)
+                assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_simple_file(self):
         tractogram = Tractogram(DATA['streamlines'])
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
-                with open('streamlines' + ext, 'w+b') as f:
-                    nib.streamlines.save(tractogram, f.name)
-                    tfile = nib.streamlines.load(f, lazy_load=False)
-                    assert_tractogram_equal(tfile.tractogram, tractogram)
+                filename = 'streamlines' + ext
+                nib.streamlines.save(tractogram, filename)
+                tfile = nib.streamlines.load(filename, lazy_load=False)
+                assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_complex_file(self):
         complex_tractogram = Tractogram(DATA['streamlines'],
@@ -251,18 +256,19 @@ class TestLoadSave(unittest.TestCase):
 
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
-                with open('streamlines' + ext, 'w+b') as f:
-                    with clear_and_catch_warnings(record=True,
-                                                  modules=[trk]) as w:
-                        nib.streamlines.save(complex_tractogram, f.name)
+                filename = 'streamlines' + ext
 
-                        # If streamlines format does not support saving data
-                        # per point or data per streamline, a warning message
-                        # should be issued.
-                        if not (cls.support_data_per_point() and
-                                cls.support_data_per_streamline()):
-                            assert_equal(len(w), 1)
-                            assert_true(issubclass(w[0].category, Warning))
+                with clear_and_catch_warnings(record=True,
+                                              modules=[trk]) as w:
+                    nib.streamlines.save(complex_tractogram, filename)
+
+                    # If streamlines format does not support saving data
+                    # per point or data per streamline, a warning message
+                    # should be issued.
+                    if not (cls.support_data_per_point() and
+                            cls.support_data_per_streamline()):
+                        assert_equal(len(w), 1)
+                        assert_true(issubclass(w[0].category, Warning))
 
                     tractogram = Tractogram(DATA['streamlines'])
 
@@ -272,7 +278,7 @@ class TestLoadSave(unittest.TestCase):
                     if cls.support_data_per_streamline():
                         tractogram.data_per_streamline = DATA['data_per_streamline']
 
-                    tfile = nib.streamlines.load(f, lazy_load=False)
+                    tfile = nib.streamlines.load(filename, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_load_unknown_format(self):

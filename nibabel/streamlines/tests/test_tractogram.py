@@ -1,3 +1,4 @@
+import sys
 import unittest
 import numpy as np
 import warnings
@@ -241,6 +242,22 @@ class TestTractogram(unittest.TestCase):
                          DATA['data_per_streamline'],
                          DATA['data_per_point'])
 
+        # Create a tractogram from another tractogram attributes.
+        tractogram2 = Tractogram(tractogram.streamlines,
+                                 tractogram.data_per_streamline,
+                                 tractogram.data_per_point)
+
+        assert_tractogram_equal(tractogram2, tractogram)
+
+        # Create a tractogram from a LazyTractogram object.
+        tractogram = LazyTractogram(DATA['streamlines_func'],
+                                    DATA['data_per_streamline_func'],
+                                    DATA['data_per_point_func'])
+
+        tractogram2 = Tractogram(tractogram.streamlines,
+                                 tractogram.data_per_streamline,
+                                 tractogram.data_per_point)
+
         # Inconsistent number of scalars between streamlines
         wrong_data = [[(1, 0, 0)]*1,
                       [(0, 1, 0), (0, 1)],
@@ -263,6 +280,9 @@ class TestTractogram(unittest.TestCase):
         # Retrieve TractogramItem by their index.
         for i, t in enumerate(DATA['tractogram']):
             assert_tractogram_item_equal(DATA['tractogram'][i], t)
+
+            if sys.version_info < (3,):
+                assert_tractogram_item_equal(DATA['tractogram'][long(i)], t)
 
         # Get one TractogramItem out of two.
         tractogram_view = DATA['simple_tractogram'][::2]
@@ -411,7 +431,7 @@ class TestLazyTractogram(unittest.TestCase):
                                'mean_colors': (x for x in DATA['mean_colors'])}
 
         # Creating LazyTractogram with generators is not allowed as
-        # generators get exhausted and are not reusable unlike coroutines.
+        # generators get exhausted and are not reusable unlike generator function.
         assert_raises(TypeError, LazyTractogram, streamlines)
         assert_raises(TypeError, LazyTractogram,
                       data_per_streamline=data_per_streamline)
@@ -430,7 +450,7 @@ class TestLazyTractogram(unittest.TestCase):
         assert_true(check_iteration(tractogram))
         assert_equal(len(tractogram), len(DATA['streamlines']))
 
-        # Coroutines get re-called and creates new iterators.
+        # Generator functions get re-called and creates new iterators.
         for i in range(2):
             assert_tractogram_equal(tractogram, DATA['tractogram'])
 
@@ -441,7 +461,7 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram = LazyTractogram.create_from(_empty_data_gen)
         check_tractogram(tractogram)
 
-        # Create `LazyTractogram` from a coroutine yielding TractogramItem
+        # Create `LazyTractogram` from a generator function yielding TractogramItem.
         data = [DATA['streamlines'], DATA['fa'], DATA['colors'],
                 DATA['mean_curvature'], DATA['mean_torsion'],
                 DATA['mean_colors']]
@@ -530,13 +550,13 @@ class TestLazyTractogram(unittest.TestCase):
         # Check we copied the data and not simply created new references.
         assert_true(tractogram is not DATA['lazy_tractogram'])
 
-        # When copying LazyTractogram, coroutines generating streamlines should
-        # be the same.
+        # When copying LazyTractogram, the generator function yielding streamlines
+        # should stay the same.
         assert_true(tractogram._streamlines
                     is DATA['lazy_tractogram']._streamlines)
 
         # Copying LazyTractogram, creates new internal LazyDict objects,
-        # but coroutines contained in it should be the same.
+        # but generator functions contained in it should stay the same.
         assert_true(tractogram._data_per_streamline
                     is not DATA['lazy_tractogram']._data_per_streamline)
         assert_true(tractogram._data_per_point

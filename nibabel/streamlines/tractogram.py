@@ -1,4 +1,5 @@
 import copy
+import numbers
 import numpy as np
 import collections
 from warnings import warn
@@ -6,6 +7,16 @@ from warnings import warn
 from nibabel.affines import apply_affine
 
 from .array_sequence import ArraySequence
+
+
+def is_data_dict(obj):
+    """ Tells if obj is a :class:`DataDict`. """
+    return hasattr(obj, 'store')
+
+
+def is_lazy_dict(obj):
+    """ Tells if obj is a :class:`LazyDict`. """
+    return is_data_dict(obj) and callable(obj.store.values()[0])
 
 
 class DataDict(collections.MutableMapping):
@@ -24,7 +35,7 @@ class DataDict(collections.MutableMapping):
         # Use update to set the keys.
         if len(args) == 1:
             if isinstance(args[0], DataDict):
-                self.update(dict(args[0].store.items()))
+                self.update(**args[0])
             elif args[0] is None:
                 return
             else:
@@ -75,7 +86,7 @@ class DataPerStreamlineDict(DataDict):
     dictionary.
     """
     def __setitem__(self, key, value):
-        value = np.asarray(value)
+        value = np.asarray(list(value))
 
         if value.ndim == 1 and value.dtype != object:
             # Reshape without copy
@@ -121,19 +132,29 @@ class DataPerPointDict(DataDict):
 
 
 class LazyDict(DataDict):
-    """ Dictionary of coroutines with lazy evaluation.
+    """ Dictionary of generator functions.
 
     This container behaves like an dictionary but it makes sure its elements
-    are callable objects and assumed to be coroutines yielding values. When
-    getting the element associated to a given key, the element (i.e. a
-    coroutine) is first called before being returned.
+    are callable objects and assumed to be generator function yielding values.
+    When getting the element associated to a given key, the element (i.e. a
+    generator function) is first called before being returned.
     """
+    def __init__(self, tractogram, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], LazyDict):
+            # Copy the generator functions.
+            self.tractogram = tractogram
+            self.store = dict()
+            self.update(**args[0].store)
+            return
+
+        super(LazyDict, self).__init__(tractogram, *args, **kwargs)
+
     def __getitem__(self, key):
         return self.store[key]()
 
     def __setitem__(self, key, value):
         if value is not None and not callable(value):
-            raise TypeError("`value` must be a coroutine or None.")
+            raise TypeError("`value` must be a generator function or None.")
 
         self.store[key] = value
 
@@ -222,6 +243,9 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
+        # if is_lazy_dict(value):
+        # self._data_per_streamline = DataPerStreamlineDict(self, **value.items())
+        # else:
         self._data_per_streamline = DataPerStreamlineDict(self, value)
 
     @property
@@ -230,6 +254,9 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
+        # if is_lazy_dict(value):
+        #     self._data_per_point = DataPerPointDict(self, **value.items())
+        # else:
         self._data_per_point = DataPerPointDict(self, value)
 
     def get_affine_to_rasmm(self):
@@ -251,7 +278,7 @@ class Tractogram(object):
         for key in self.data_per_point:
             data_per_point[key] = self.data_per_point[key][idx]
 
-        if isinstance(idx, (int, np.integer)):
+        if isinstance(idx, (numbers.Integral, np.integer)):
             return TractogramItem(pts, data_per_streamline, data_per_point)
 
         return Tractogram(pts, data_per_streamline, data_per_point)
@@ -270,7 +297,7 @@ class Tractogram(object):
 
         Parameters
         ----------
-        affine : ndarray shape (4, 4)
+        affine : ndarray of shape (4, 4)
             Transformation that will be applied to every streamline.
         lazy_load : {False, True}, optional
             If True, streamlines are *not* transformed in-place and a
@@ -326,19 +353,25 @@ class LazyTractogram(Tractogram):
         """
         Parameters
         ----------
-        streamlines : coroutine yielding ndarrays of shape (Nt,3) (optional)
-            Function yielding streamlines. One streamline is an ndarray of
-            shape (Nt,3) where Nt is the number of points of streamline t.
-        data_per_streamline : dict of coroutines yielding ndarrays of shape (P,) (optional)
-            Function yielding properties for a particular streamline t. The
-            properties are represented as an ndarray of shape (P,) where P is
-            the number of properties associated to each streamline.
-        data_per_point : dict of coroutines yielding ndarrays of shape (Nt,M) (optional)
-            Function yielding scalars for a particular streamline t. The
-            scalars are represented as an ndarray of shape (Nt,M) where Nt
-            is the number of points of that streamline t and M is the number
-            of scalars associated to each point (excluding the three
-            coordinates).
+        streamlines : generator function yielding, optional
+            Generator function yielding streamlines. One streamline is an
+            ndarray of shape ($N_t$, 3) where $N_t$ is the number of points of
+            streamline $t$.
+        data_per_streamline : dict of generator functions, optional
+            Dictionary where the items are (str, generator function).
+            Each key represents an information $i$ to be kept along side every
+            streamline, and its associated value is a generator function
+            yielding that information via ndarrays of shape ($P_i$,) where
+            $P_i$ is the number scalar values to store for that particular
+            information $i$.
+        data_per_point : dict of generator functions, optional
+            Dictionary where the items are (str, generator function).
+            Each key represents an information $i$ to be kept along side every
+            point of every streamline, and its associated value is a generator
+            function yielding that information via ndarrays of shape
+            ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
+            streamline $t$ and $M_i$ is the number scalar values to store for
+            that particular information $i$.
         """
         super(LazyTractogram, self).__init__(streamlines,
                                              data_per_streamline,
@@ -379,15 +412,16 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def create_from(cls, data_func):
-        """ Creates a :class:`LazyTractogram` from a coroutine yielding
-        :class:`TractogramItem` objects.
+        """ Creates an instance from a generator function.
+
+        The generator function must yield :class:`TractogramItem` objects.
 
         Parameters
         ----------
-        data_func : coroutine yielding :class:`TractogramItem` objects
-            A function that whenever it is called starts yielding
-            :class:`TractogramItem` objects that should be part of this
-            LazyTractogram.
+        data_func : generator function yielding :class:`TractogramItem` objects
+            Generator function that whenever it is called starts yielding
+            :class:`TractogramItem` objects that will be used to instantiate a
+            :class:`LazyTractogram`.
 
         Returns
         -------
@@ -395,7 +429,7 @@ class LazyTractogram(Tractogram):
             New lazy tractogram.
         """
         if not callable(data_func):
-            raise TypeError("`data_func` must be a coroutine.")
+            raise TypeError("`data_func` must be a generator function.")
 
         lazy_tractogram = cls()
         lazy_tractogram._data = data_func
@@ -445,7 +479,7 @@ class LazyTractogram(Tractogram):
     @streamlines.setter
     def streamlines(self, value):
         if value is not None and not callable(value):
-            raise TypeError("`streamlines` must be a coroutine.")
+            raise TypeError("`streamlines` must be a generator function.")
 
         self._streamlines = value
 
@@ -455,9 +489,6 @@ class LazyTractogram(Tractogram):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        if value is None:
-            value = {}
-
         self._data_per_streamline = LazyDict(self, value)
 
     @property
@@ -466,9 +497,6 @@ class LazyTractogram(Tractogram):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        if value is None:
-            value = {}
-
         self._data_per_point = LazyDict(self, value)
 
     @property

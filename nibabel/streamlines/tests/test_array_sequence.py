@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 import tempfile
 import numpy as np
@@ -6,7 +7,6 @@ import numpy as np
 from nose.tools import assert_equal, assert_raises, assert_true
 from nibabel.testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
-from nibabel.externals.six.moves import zip, zip_longest
 
 from ..array_sequence import ArraySequence, is_array_sequence
 
@@ -32,7 +32,8 @@ def check_empty_arr_seq(seq):
     assert_equal(len(seq), 0)
     assert_equal(len(seq._offsets), 0)
     assert_equal(len(seq._lengths), 0)
-    assert_equal(seq._data.ndim, 0)
+    # assert_equal(seq._data.ndim, 0)
+    assert_equal(seq._data.ndim, 1)
     assert_true(seq.common_shape == ())
 
 
@@ -138,6 +139,11 @@ class TestArraySequence(unittest.TestCase):
         seq.append(element)
         check_arr_seq(seq, SEQ_DATA['data'] + [element])
 
+        # Append a list of list.
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+        seq.append(element.tolist())
+        check_arr_seq(seq, SEQ_DATA['data'] + [element])
+
         # Append to an empty ArraySequence.
         seq = ArraySequence()
         seq.append(element)
@@ -162,6 +168,11 @@ class TestArraySequence(unittest.TestCase):
         # Extend with a list of ndarrays.
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
         seq.extend(new_data)
+        check_arr_seq(seq, SEQ_DATA['data'] + new_data)
+
+        # Extend with a generator.
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+        seq.extend((d for d in new_data))
         check_arr_seq(seq, SEQ_DATA['data'] + new_data)
 
         # Extend with another `ArraySequence` object.
@@ -194,6 +205,9 @@ class TestArraySequence(unittest.TestCase):
         # Get one item
         for i, e in enumerate(SEQ_DATA['seq']):
             assert_array_equal(SEQ_DATA['seq'][i], e)
+
+            if sys.version_info < (3,):
+                assert_array_equal(SEQ_DATA['seq'][long(i)], e)
 
         # Get all items using indexing (creates a view).
         indices = list(range(len(SEQ_DATA['seq'])))

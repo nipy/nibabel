@@ -1,3 +1,4 @@
+import numbers
 import numpy as np
 
 
@@ -37,7 +38,7 @@ class ArraySequence(object):
         """
         # Create new empty `ArraySequence` object.
         self._is_view = False
-        self._data = np.array(0)
+        self._data = np.array([])
         self._offsets = np.array([], dtype=np.intp)
         self._lengths = np.array([], dtype=np.intp)
 
@@ -79,8 +80,7 @@ class ArraySequence(object):
         self._lengths = np.asarray(lengths)
 
         # Clear unused memory.
-        if self._data.ndim != 0:
-            self._data.resize((offset,) + self.common_shape)
+        self._data.resize((offset,) + self.common_shape)
 
     @property
     def is_array_sequence(self):
@@ -89,13 +89,10 @@ class ArraySequence(object):
     @property
     def common_shape(self):
         """ Matching shape of the elements in this array sequence. """
-        if self._data.ndim == 0:
-            return ()
-
         return self._data.shape[1:]
 
     def append(self, element):
-        """ Appends :obj:`element` to this array sequence.
+        """ Appends `element` to this array sequence.
 
         Parameters
         ----------
@@ -108,28 +105,28 @@ class ArraySequence(object):
         If you need to add multiple elements you should consider
         `ArraySequence.extend`.
         """
-        if self._data.ndim == 0:
-            self._data = np.asarray(element).copy()
-            self._offsets = np.array([0])
-            self._lengths = np.array([len(element)])
-            return
+        element = np.asarray(element)
 
-        if element.shape[1:] != self.common_shape:
+        if self.common_shape != () and element.shape[1:] != self.common_shape:
             msg = "All dimensions, except the first one, must match exactly"
             raise ValueError(msg)
 
-        self._offsets = np.r_[self._offsets, len(self._data)]
-        self._lengths = np.r_[self._lengths, len(element)]
-        self._data = np.append(self._data, element, axis=0)
+        next_offset = self._data.shape[0]
+        size = (self._data.shape[0] + element.shape[0],) + element.shape[1:]
+        self._data.resize(size)
+        self._data[next_offset:] = element
+        self._offsets = np.r_[self._offsets, next_offset]
+        self._lengths = np.r_[self._lengths, element.shape[0]]
 
     def extend(self, elements):
         """ Appends all `elements` to this array sequence.
 
         Parameters
         ----------
-        elements : list of ndarrays or :class:`ArraySequence` object
-            If list of ndarrays, each ndarray will be concatenated along the
-            first dimension then appended to the data of this ArraySequence.
+        elements : iterable of ndarrays or :class:`ArraySequence` object
+            If iterable of ndarrays, each ndarray will be concatenated along
+            the first dimension then appended to the data of this
+            ArraySequence.
             If :class:`ArraySequence` object, its data are simply appended to
             the data of this ArraySequence.
 
@@ -138,35 +135,31 @@ class ArraySequence(object):
             The shape of the elements to be added must match the one of the
             data of this :class:`ArraySequence` except for the first dimension.
         """
+        if not is_array_sequence(elements):
+            self.extend(ArraySequence(elements))
+            return
+
         if len(elements) == 0:
             return
 
-        if self._data.ndim == 0:
-            elem = np.asarray(elements[0])
-            self._data = np.zeros((0, elem.shape[1]), dtype=elem.dtype)
+        if (self.common_shape != () and
+                elements.common_shape != self.common_shape):
+            msg = "All dimensions, except the first one, must match exactly"
+            raise ValueError(msg)
 
         next_offset = self._data.shape[0]
+        self._data.resize((self._data.shape[0] + sum(elements._lengths),
+                           elements._data.shape[1]))
 
-        if is_array_sequence(elements):
-            self._data.resize((self._data.shape[0] + sum(elements._lengths),
-                               self._data.shape[1]))
+        offsets = []
+        for offset, length in zip(elements._offsets, elements._lengths):
+            offsets.append(next_offset)
+            chunk = elements._data[offset:offset + length]
+            self._data[next_offset:next_offset + length] = chunk
+            next_offset += length
 
-            offsets = []
-            for offset, length in zip(elements._offsets, elements._lengths):
-                offsets.append(next_offset)
-                chunk = elements._data[offset:offset + length]
-                self._data[next_offset:next_offset + length] = chunk
-                next_offset += length
-
-            self._lengths = np.r_[self._lengths, elements._lengths]
-            self._offsets = np.r_[self._offsets, offsets]
-
-        else:
-            self._data = np.concatenate([self._data] + list(elements), axis=0)
-            lengths = list(map(len, elements))
-            self._lengths = np.r_[self._lengths, lengths]
-            self._offsets = np.r_[self._offsets,
-                                  np.cumsum([next_offset] + lengths)[:-1]]
+        self._lengths = np.r_[self._lengths, elements._lengths]
+        self._offsets = np.r_[self._offsets, offsets]
 
     def copy(self):
         """ Creates a copy of this :class:`ArraySequence` object. """
@@ -210,7 +203,7 @@ class ArraySequence(object):
             Otherwise, returns a :class:`ArraySequence` object which is view
             of the selected sequences.
         """
-        if isinstance(idx, (int, np.integer)):
+        if isinstance(idx, (numbers.Integral, np.integer)):
             start = self._offsets[idx]
             return self._data[start:start + self._lengths[idx]]
 

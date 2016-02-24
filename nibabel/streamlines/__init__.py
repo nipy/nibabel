@@ -127,6 +127,6 @@ def save(tractogram, filename, **kwargs):
         if len(kwargs) > 0:
             msg = ("A 'TractogramFile' object was provided, no need for"
                    " keyword arguments.")
-        raise ValueError(msg)
+            raise ValueError(msg)
 
     tractogram_file.save(filename)
