@@ -193,10 +193,7 @@ class TractogramItem(object):
 
 
 class Tractogram(object):
-    """ Class containing information about streamlines.
-
-    Tractogram objects have three main properties: `streamlines`,
-    `data_per_streamline` and `data_per_point`.
+    """ Container for streamlines and their data information.
 
     Streamlines of a tractogram can be in any coordinate system of your
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
@@ -204,6 +201,25 @@ class Tractogram(object):
     where the coordinates (0,0,0) corresponds to the center of the voxel
     (opposed to a corner).
 
+    Attributes
+    ----------
+    streamlines : :class:`ArraySequence` object
+        Sequence of $T$ streamlines. Each streamline is an ndarray of
+        shape ($N_t$, 3) where $N_t$ is the number of points of
+        streamline $t$.
+    data_per_streamline : dict of 2D arrays
+        Dictionary where the items are (str, 2D array).
+        Each key represents an information $i$ to be kept along side every
+        streamline, and its associated value is a 2D array of shape
+        ($T$, $P_i$) where $T$ is the number of streamlines and $P_i$ is
+        the number scalar values to store for that particular information $i$.
+    data_per_point : dict of :class:`ArraySequence` objects
+        Dictionary where the items are (str, :class:`ArraySequence`).
+        Each key represents an information $i$ to be kept along side every
+        point of every streamline, and its associated value is an iterable
+        of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
+        points for a particular streamline $t$ and $M_i$ is the number
+        scalar values to store for that particular information $i$.
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -212,19 +228,23 @@ class Tractogram(object):
         """
         Parameters
         ----------
-        streamlines : list of ndarray of shape (Nt, 3) (optional)
-            Sequence of T streamlines. One streamline is an ndarray of
-            shape (Nt, 3) where Nt is the number of points of streamline t.
-        data_per_streamline : dict of list of ndarray of shape (P,) (optional)
-            Sequence of T ndarrays of shape (P,) where T is the number of
-            streamlines defined by `streamlines`, P is the number of
-            properties associated to each streamline.
-        data_per_point : dict of list of ndarray of shape (Nt, M) (optional)
-            Sequence of T ndarrays of shape (Nt, M) where T is the number
-            of streamlines defined by `streamlines`, Nt is the number of
-            points for a particular streamline t and M is the number of
-            scalars associated to each point (excluding the three
-            coordinates).
+        streamlines : iterable of ndarrays or :class:`ArraySequence`, optional
+            Sequence of $T$ streamlines. Each streamline is an ndarray of
+            shape ($N_t$, 3) where $N_t$ is the number of points of
+            streamline $t$.
+        data_per_streamline : dict of iterable of ndarrays, optional
+            Dictionary where the items are (str, iterable).
+            Each key represents an information $i$ to be kept along side every
+            streamline, and its associated value is an iterable of ndarrays of
+            shape ($P_i$,) where $P_i$ is the number scalar values to store
+            for that particular information $i$.
+        data_per_point : dict of iterable of ndarrays, optional
+            Dictionary where the items are (str, iterable).
+            Each key represents an information $i$ to be kept along side every
+            point of every streamline, and its associated value is an iterable
+            of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
+            points for a particular streamline $t$ and $M_i$ is the number
+            scalar values to store for that particular information $i$.
         affine_to_rasmm : ndarray of shape (4, 4)
             Transformation matrix that brings the streamlines contained in
             this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
@@ -357,26 +377,53 @@ class Tractogram(object):
 
 
 class LazyTractogram(Tractogram):
-    """ Class containing information about streamlines.
+    """ Lazy container for streamlines and their data information.
 
-    Tractogram objects have four main properties: `header`, `streamlines`,
-    `scalars` and `properties`. Tractogram objects are iterable and
-    produce tuple of `streamlines`, `scalars` and `properties` for each
-    streamline.
+    This container behaves lazily as it uses generator functions to manage
+    streamlines and their data information. This container is thus memory
+    friendly since it doesn't require having all those data loaded in memory.
+
+    Streamlines of a lazy tractogram can be in any coordinate system of your
+    choice as long as you provide the correct `affine_to_rasmm` matrix, at
+    construction time, that brings the streamlines back to *RAS+*, *mm* space,
+    where the coordinates (0,0,0) corresponds to the center of the voxel
+    (opposed to a corner).
+
+    Attributes
+    ----------
+    streamlines : generator function
+        Generator function yielding streamlines. Each streamline is an
+        ndarray of shape ($N_t$, 3) where $N_t$ is the number of points of
+        streamline $t$.
+    data_per_streamline : :class:`LazyDict` object
+        Dictionary where the items are (str, instantiated generator).
+        Each key represents an information $i$ to be kept along side every
+        streamline, and its associated value is a generator function
+        yielding that information via ndarrays of shape ($P_i$,) where
+        $P_i$ is the number scalar values to store for that particular
+        information $i$.
+    data_per_point : :class:`LazyDict` object
+        Dictionary where the items are (str, instantiated generator).
+        Each key represents an information $i$ to be kept along side every
+        point of every streamline, and its associated value is a generator
+        function yielding that information via ndarrays of shape
+        ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
+        streamline $t$ and $M_i$ is the number scalar values to store for
+        that particular information $i$.
 
     Notes
     -----
-    If provided, `scalars` and `properties` must yield the same number of
-    values as `streamlines`.
+    LazyTractogram objects do not support indexing currently.
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
-                 data_per_point=None):
+                 data_per_point=None,
+                 affine_to_rasmm=np.eye(4)):
         """
         Parameters
         ----------
-        streamlines : generator function yielding, optional
-            Generator function yielding streamlines. One streamline is an
+        streamlines : generator function, optional
+            Generator function yielding streamlines. Each streamline is an
             ndarray of shape ($N_t$, 3) where $N_t$ is the number of points of
             streamline $t$.
         data_per_streamline : dict of generator functions, optional
@@ -394,10 +441,15 @@ class LazyTractogram(Tractogram):
             ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
             streamline $t$ and $M_i$ is the number scalar values to store for
             that particular information $i$.
+        affine_to_rasmm : ndarray of shape (4, 4)
+            Transformation matrix that brings the streamlines contained in
+            this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
+            refers to the center of the voxel.
         """
         super(LazyTractogram, self).__init__(streamlines,
                                              data_per_streamline,
-                                             data_per_point)
+                                             data_per_point,
+                                             affine_to_rasmm)
         self._nb_streamlines = None
         self._data = None
         self._affine_to_apply = np.eye(4)
