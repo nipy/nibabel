@@ -86,7 +86,7 @@ class TckReader(object):
                     nb_bytes_to_read = BUFFER_SIZE * 3 * self.dtype.itemsize
                     bytes_read = f.read(nb_bytes_to_read)
                     buff += bytes_read
-                    eof = len(bytes_read) != 0
+                    eof = len(bytes_read) == 0
 
                 pts = np.frombuffer(buff, dtype=self.dtype)  # Convert binary to float
 
