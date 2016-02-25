@@ -14,6 +14,7 @@ import nibabel as nib
 
 from nibabel.affines import apply_affine
 from nibabel.openers import Opener
+from nibabel.py3k import asbytes, asstr
 from nibabel.volumeutils import (native_code, swapped_code)
 
 from .array_sequence import ArraySequence
@@ -81,6 +82,7 @@ class TckReader(object):
             i = 0
 
             while not eof or not np.all(np.isinf(pts)):
+
                 if not eof:
                     # Read BUFFER_SIZE triplets of coordinates (float32)
                     nb_bytes_to_read = BUFFER_SIZE * 3 * self.dtype.itemsize
@@ -165,7 +167,7 @@ class TckWriter(object):
         lines.extend(["{0}: {1}".format(k, v) for k, v in self.header.items() if k not in exclude])
         lines.append("file: . ")  # Manually add this last field.
         out = "\n".join(lines)
-        self.file.write(out)
+        self.file.write(asbytes(out))
 
         # Compute offset to the beginning of the binary data
         offset = len(out) + 5  # +5 is for "\nEND\n" added just before the data.
@@ -179,9 +181,9 @@ class TckWriter(object):
         if len(str(self.offset)) != len(str(offset)):
             self.offset += 1  # +1, we need one more character for that new digit.
 
-        self.file.write(str(self.offset) + "\n")
-        self.file.write("END\n")
-        self.file.write(self.EOF_DELIMITER.tostring())
+        self.file.write(asbytes(str(self.offset) + "\n"))
+        self.file.write(asbytes(b"END\n"))
+        self.file.write(asbytes(self.EOF_DELIMITER.tostring()))
 
     def write(self, tractogram):
         # Start writing before the EOF_DELIMITER.
@@ -191,14 +193,14 @@ class TckWriter(object):
             self.header[Field.NB_STREAMLINES] += 1
 
             # TODO: use a buffer instead of writing one streamline at once.
-            self.file.write(np.r_[s.astype('<f4'), self.FIBER_DELIMITER].tostring())
+            self.file.write(asbytes(np.r_[s.astype('<f4'), self.FIBER_DELIMITER].tostring()))
 
         # Add the EOF_DELIMITER.
-        self.file.write(self.EOF_DELIMITER.tostring())
+        self.file.write(asbytes(self.EOF_DELIMITER.tostring()))
 
         # Overwrite the streamlines count in the header.
         self.file.seek(self.count_offset, os.SEEK_SET)
-        self.file.write("count: {0:010}\n".format(self.header[Field.NB_STREAMLINES]))
+        self.file.write(asbytes("count: {0:010}\n".format(self.header[Field.NB_STREAMLINES])))
 
         # Go back at the end of the file.
         self.file.seek(0, os.SEEK_END)
