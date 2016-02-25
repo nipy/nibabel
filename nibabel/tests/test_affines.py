@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from ..affines import (apply_affine, append_diag, to_matvec, from_matvec,
-                       dot_reduce)
+from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
+                       from_matvec, dot_reduce)
 
 
 from nose.tools import assert_equal, assert_raises
@@ -123,7 +123,7 @@ def test_append_diag():
                         [0, 0, 0, 5, 9],
                         [0, 0, 0, 0, 1]])
     # Length of starts has to match length of steps
-    assert_raises(ValueError, append_diag, aff, [5, 6], [9])
+    assert_raises(AffineError, append_diag, aff, [5, 6], [9])
 
 
 def test_dot_reduce():
