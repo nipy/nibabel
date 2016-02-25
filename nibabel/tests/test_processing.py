@@ -185,10 +185,18 @@ def test_resample_to_output():
     # Image aligned to output axes - no-op
     data = np.arange(24).reshape((2, 3, 4))
     img = Nifti1Image(data, np.eye(4))
+    # Check default resampling
     img2 = resample_to_output(img)
     assert_array_equal(img2.shape, (2, 3, 4))
     assert_array_equal(img2.affine, np.eye(4))
     assert_array_equal(img2.dataobj, data)
+    # Check resampling with different voxel size specifications
+    for vox_sizes in (None, 1, [1, 1, 1]):
+        img2 = resample_to_output(img, vox_sizes)
+        assert_array_equal(img2.shape, (2, 3, 4))
+        assert_array_equal(img2.affine, np.eye(4))
+        assert_array_equal(img2.dataobj, data)
+    img2 = resample_to_output(img, vox_sizes)
     # Check 2D works
     img_2d = Nifti1Image(data[0], np.eye(4))
     img3 = resample_to_output(img_2d)

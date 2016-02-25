@@ -194,7 +194,8 @@ def resample_to_output(in_img,
         Gives the diagonal entries of ``out_img.affine` (except the trailing 1
         for the homogenous coordinates) (``out_img.affine ==
         np.diag(voxel_sizes + [1])``). If None, return identity
-        `out_img.affine`.
+        `out_img.affine`.  If scalar, interpret as vector ``[voxel_sizes] *
+        len(in_img.shape)``.
     order : int, optional
         The order of the spline interpolation, default is 3.  The order has to
         be in the range 0-5 (see ``scipy.ndimage.affine_transform``).
@@ -218,10 +219,14 @@ def resample_to_output(in_img,
     """
     if out_class is None:
         out_class = in_img.__class__
-    # Allow 2D images by promoting to 3D.  We might want to see what a slice
-    # looks like when resampled into world coordinates
     in_shape = in_img.shape
     n_dim = len(in_shape)
+    if voxel_sizes is not None:
+        voxel_sizes = np.asarray(voxel_sizes)
+        if voxel_sizes.ndim == 0:  # Scalar
+            voxel_sizes = np.repeat(voxel_sizes, n_dim)
+    # Allow 2D images by promoting to 3D.  We might want to see what a slice
+    # looks like when resampled into world coordinates
     if n_dim < 3:  # Expand image to 3D, make voxel sizes match
         new_shape = in_shape + (1,) * (3 - n_dim)
         data = in_img.get_data().reshape(new_shape)  # 2D data should be small
