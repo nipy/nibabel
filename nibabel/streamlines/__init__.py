@@ -10,9 +10,12 @@ from .tractogram import Tractogram, LazyTractogram
 from .tractogram_file import ExtensionWarning
 
 from .trk import TrkFile
+from .tck import TckFile
 
 # List of all supported formats
-FORMATS = {".trk": TrkFile}
+FORMATS = {".trk": TrkFile,
+           ".tck": TckFile
+           }
 
 
 def is_supported(fileobj):
