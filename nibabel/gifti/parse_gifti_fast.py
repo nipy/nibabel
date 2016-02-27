@@ -13,6 +13,7 @@ import sys
 import warnings
 import zlib
 from ..externals.six import StringIO
+from xml.parsers.expat import ExpatError
 
 import numpy as np
 
@@ -23,6 +24,10 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from ..xmlutils import XmlParser
+
+
+class GiftiParseError(ExpatError):
+    """ Gifti-specific parsing error """
 
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
@@ -130,12 +135,12 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'Name':
             if self.nvpair is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'Name'
 
         elif name == 'Value':
             if self.nvpair is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'Value'
 
         elif name == 'LabelTable':
@@ -193,17 +198,17 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'DataSpace':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'DataSpace'
 
         elif name == 'TransformedSpace':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'TransformedSpace'
 
         elif name == 'MatrixData':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'MatrixData'
 
         elif name == 'Data':

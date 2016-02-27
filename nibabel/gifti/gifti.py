@@ -6,9 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""" Classes defining Gifti objects
+
+The Gifti specification was (at time of writing) available as a PDF download
+from http://www.nitrc.org/projects/gifti/
+"""
 from __future__ import division, print_function, absolute_import
 
 import sys
+import warnings
 
 import numpy as np
 
@@ -25,8 +31,8 @@ import base64
 
 
 class GiftiMetaData(xml.XmlSerializable):
-    """ A list of GiftiNVPairs in stored in
-    the list self.data """
+    """ A sequence of GiftiNVPairs containing metadata for a gifti data array
+    """
 
     def __init__(self, nvpair=None):
         self.data = []
@@ -68,9 +74,12 @@ class GiftiMetaData(xml.XmlSerializable):
 
 
 class GiftiNVPairs(object):
-    """
-    name = str
-    value = str
+    """ Gifti name / value pairs
+
+    Attributes
+    ----------
+    name : str
+    value : str
     """
     def __init__(self, name='', value=''):
         self.name = name
@@ -78,6 +87,13 @@ class GiftiNVPairs(object):
 
 
 class GiftiLabelTable(xml.XmlSerializable):
+    """ Gifti label table: a sequence of key, label pairs
+
+    From the gifti spec dated 2011-01-14:
+        The label table is used by DataArrays whose values are an key into the
+        LabelTable's labels. A file should contain at most one LabelTable and
+        it must be located in the file prior to any DataArray elements.
+    """
 
     def __init__(self):
         self.labels = []
@@ -104,23 +120,37 @@ class GiftiLabelTable(xml.XmlSerializable):
 
 
 class GiftiLabel(xml.XmlSerializable):
-    """
-    key = int
-    label = str
-    # rgba
-    # freesurfer examples seem not to conform
-    # to datatype "NIFTI_TYPE_RGBA32" because they
-    # are floats, not unsigned 32-bit integers
-    red = float
-    green = float
-    blue = float
-    alpha = float
+    """ Gifti label: association of integer key with optional RGBA values
+
+    Quotes are from the gifti spec dated 2011-01-14.
+
+    Attributes
+    ----------
+    key : int
+        (From the spec): "This required attribute contains a non-negative
+        integer value. If a DataArray's Intent is NIFTI_INTENT_LABEL and a
+        value in the DataArray is 'X', its corresponding label is the label
+        with the Key attribute containing the value 'X'. In early versions of
+        the GIFTI file format, the attribute Index was used instead of Key. If
+        an Index attribute is encountered, it should be processed like the Key
+        attribute."
+    red : None or float
+        Optional value for red.
+    green : None or float
+        Optional value for green.
+    blue : None or float
+        Optional value for blue.
+    alpha : None or float
+        Optional value for alpha.
+
+    Notes
+    -----
+    freesurfer examples seem not to conform to datatype "NIFTI_TYPE_RGBA32"
+    because they are floats, not 4 8-bit integers.
     """
 
-    def __init__(self, key=0, label='', red=None, green=None, blue=None,
-                 alpha=None):
+    def __init__(self, key=0, red=None, green=None, blue=None, alpha=None):
         self.key = key
-        self.label = label
         self.red = red
         self.green = green
         self.blue = blue
@@ -137,12 +167,12 @@ class GiftiLabel(xml.XmlSerializable):
 
     @rgba.setter
     def rgba(self, rgba):
-        """ Set RGBA via tuple
+        """ Set RGBA via sequence
 
         Parameters
         ----------
-        rgba : tuple (red, green, blue, alpha)
-
+        rgba : length 4 sequence
+            Sequence containing values for red, green, blue, alpha.
         """
         if len(rgba) != 4:
             raise ValueError('rgba must be length 4.')
@@ -159,10 +189,38 @@ def _arr2txt(arr, elem_fmt):
 
 
 class GiftiCoordSystem(xml.XmlSerializable):
-    """
-    dataspace = int
-    xformspace = int
-    xform = np.ndarray  # 4x4 numpy array
+    """ Gifti coordinate system transform matrix
+
+    Quotes are from the gifti spec dated 2011-01-14.
+
+        "For a DataArray with an Intent NIFTI_INTENT_POINTSET, this element
+        describes the stereotaxic space of the data before and after the
+        application of a transformation matrix. The most common stereotaxic
+        space is the Talairach Space that places the origin at the anterior
+        commissure and the negative X, Y, and Z axes correspond to left,
+        posterior, and inferior respectively.  At least one
+        CoordinateSystemTransformMatrix is required in a DataArray with an
+        intent of NIFTI_INTENT_POINTSET. Multiple
+        CoordinateSystemTransformMatrix elements may be used to describe the
+        transformation to multiple spaces."
+
+    Attributes
+    ----------
+    dataspace : int
+        From the spec: "Contains the stereotaxic space of a DataArray's data
+        prior to application of the transformation matrix. The stereotaxic
+        space should be one of:
+            NIFTI_XFORM_UNKNOWN
+            NIFTI_XFORM_SCANNER_ANAT
+            NIFTI_XFORM_ALIGNED_ANAT
+            NIFTI_XFORM_TALAIRACH
+            NIFTI_XFORM_MNI_152"
+    xformspace : int
+        Spec: "Contains the stereotaxic space of a DataArray's data after
+        application of the transformation matrix. See the DataSpace element for
+        a list of stereotaxic spaces."
+    xform : array-like shape (4, 4)
+        Affine transformation matrix
     """
 
     def __init__(self, dataspace=0, xformspace=0, xform=None):
@@ -205,8 +263,8 @@ def data_tag(dataarray, encoding, datatype, ordering):
 
 
 def _data_tag_element(dataarray, encoding, datatype, ordering):
-    """ Creates the data tag depending on the required encoding,
-    returns as XML element"""
+    """ Creates data tag with given `encoding`, returns as XML element
+    """
     import zlib
     ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
@@ -228,42 +286,84 @@ def _data_tag_element(dataarray, encoding, datatype, ordering):
 
 
 class GiftiDataArray(xml.XmlSerializable):
-    """
-    # These are for documentation only; we don't use these class variables
-    intent = int
-    datatype = int
-    ind_ord = int
-    dims = list
-    encoding = int
-    endian = int
-    ext_fname = str
-    ext_offset = str
-    data = np.ndarray
-    coordsys = GiftiCoordSystem
-    meta = GiftiMetaData
+    """ Container for Gifti numerical data array and associated metadata
+
+    Quotes are from the gifti spec dated 2011-01-14.
+
+    Description of DataArray in spec:
+        "This element contains the numeric data and its related metadata. The
+        CoordinateSystemTransformMatrix child is only used when the DataArray's
+        Intent is NIFTI_INTENT_POINTSET.  FileName and FileOffset are required
+        if the data is stored in an external file."
+
+    Attributes
+    ----------
+    darray : None or ndarray
+        Data array
+    intent : int
+        NIFTI intent code, see nifti1.intent_codes
+    datatype : int
+        NIFTI data type codes, see nifti1.data_type_codes.  From the spec:
+        "This required attribute describes the numeric type of the data
+        contained in a Data Array and are limited to the types displayed in the
+        table:
+
+        NIFTI_TYPE_UINT8 : Unsigned, 8-bit bytes.
+        NIFTI_TYPE_INT32 : Signed, 32-bit integers.
+        NIFTI_TYPE_FLOAT32 : 32-bit single precision floating point."
+
+        At the moment, we do not enforce that the datatype is one of these
+        three.
+    encoding : string
+        Encoding of the data, see util.gifti_encoding_codes; default is
+        GIFTI_ENCODING_B64GZ.
+    endian : string
+        The Endianness to store the data array.  Should correspond to the
+        machine endianness.  Default is system byteorder.
+    coordsys : :class:`GiftiCoordSystem` instance
+        Input and output coordinate system with tranformation matrix between
+        the two.
+    ind_ord : int
+        The ordering of the array. see util.array_index_order_codes.  Default
+        is RowMajorOrder - C ordering
+    meta : :class:`GiftiMetaData` instance
+        An instance equivalent to a dictionary for metadata information.
+    ext_fname : str
+        Filename in which data is stored, or empty string if no corresponding
+        filename.
+    ext_offset : int
+        Position in bytes within `ext_fname` at which to start reading data.
     """
 
-    def __init__(self, data=None,
+    def __init__(self,
+                 data=None,
+                 intent='NIFTI_INTENT_NONE',
+                 datatype=None,
                  encoding="GIFTI_ENCODING_B64GZ",
                  endian=sys.byteorder,
                  coordsys=None,
                  ordering="C",
-                 meta=None):
+                 meta=None,
+                 ext_fname='',
+                 ext_offset=0):
         """
         Returns a shell object that cannot be saved.
         """
-        self.data = data
-        self.dims = []
-        self.meta = meta or GiftiMetaData()
+        self.data = None if data is None else np.asarray(data)
+        self.intent = intent_codes.code[intent]
+        if datatype is None:
+            datatype = 'none' if self.data is None else self.data.dtype
+        self.datatype = data_type_codes.code[datatype]
+        self.encoding = gifti_encoding_codes.code[encoding]
+        self.endian = gifti_endian_codes.code[endian]
         self.coordsys = coordsys or GiftiCoordSystem()
-        self.ext_fname = ''
-        self.ext_offset = ''
-        self.intent = 0  # required attribute, NIFTI_INTENT_NONE
-        self.datatype = 0  # required attribute, void/none
-        # python/numpy default: column major order
         self.ind_ord = array_index_order_codes.code[ordering]
-        self.encoding = encoding
-        self.endian = endian
+        self.meta = (GiftiMetaData() if meta is None else
+                     meta if isinstance(meta, GiftiMetaData) else
+                     GiftiMetaData.from_dict(meta))
+        self.ext_fname = ext_fname
+        self.ext_offset = ext_offset
+        self.dims = [] if self.data is None else list(self.data.shape)
 
     @property
     def num_dim(self):
@@ -308,22 +408,18 @@ class GiftiDataArray(xml.XmlSerializable):
         -------
         da : instance of our own class
         """
-        if meta is None:
-            meta = {}
-        cda = klass(darray)
-        cda.dims = list(darray.shape)
-        if datatype is None:
-            cda.datatype = data_type_codes.code[darray.dtype]
-        else:
-            cda.datatype = data_type_codes.code[datatype]
-        cda.intent = intent_codes.code[intent]
-        cda.encoding = gifti_encoding_codes.code[encoding]
-        cda.endian = gifti_endian_codes.code[endian]
-        if coordsys is not None:
-            cda.coordsys = coordsys
-        cda.ind_ord = array_index_order_codes.code[ordering]
-        cda.meta = GiftiMetaData.from_dict(meta)
-        return cda
+        warnings.warn(
+            "Please use GiftiDataArray constructor instead of from_array "
+            "class method",
+            DeprecationWarning, stacklevel=2)
+        return klass(data=darray,
+                     intent=intent,
+                     datatype=datatype,
+                     encoding=encoding,
+                     endian=endian,
+                     coordsys=coordsys,
+                     ordering=ordering,
+                     meta=meta)
 
     def _to_xml_element(self):
         # fix endianness to machine endianness
@@ -364,7 +460,7 @@ class GiftiDataArray(xml.XmlSerializable):
 %s\tEncoding="%s"
 \tEndian="%s"
 \tExternalFileName="%s"
-\tExternalFileOffset="%s">\n"""
+\tExternalFileOffset="%d">\n"""
         di = ""
         for i, n in enumerate(self.dims):
             di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
@@ -476,8 +572,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
 
         Parameters
         ----------
-        labeltable : GiftiLabelTable
-
+        labeltable : :class:`GiftiLabelTable` instance
         """
         if not isinstance(labeltable, GiftiLabelTable):
             raise TypeError("Not a valid GiftiLabelTable instance")
@@ -501,11 +596,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
 
         Parameters
         ----------
-        meta : GiftiMetaData
-
-        Returns
-        -------
-        None
+        meta : :class:`GiftiMetaData` instance
         """
         if not isinstance(meta, GiftiMetaData):
             raise TypeError("Not a valid GiftiMetaData instance")
@@ -524,7 +615,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
 
         Parameters
         ----------
-        dataarr : GiftiDataArray
+        dataarr : :class:`GiftiDataArray` instance
         """
         if not isinstance(dataarr, GiftiDataArray):
             raise TypeError("Not a valid GiftiDataArray instance")
@@ -542,11 +633,9 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
                 self.darrays.remove(dele)
 
     def get_arrays_from_intent(self, intent):
-        """ Returns a a list of GiftiDataArray elements matching
-        the given intent """
-
+        """ Return list of GiftiDataArray elements matching given intent
+        """
         it = intent_codes.code[intent]
-
         return [x for x in self.darrays if x.intent == it]
 
     @np.deprecate_with_doc("Use get_arrays_from_intent instead.")
@@ -595,7 +684,9 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
 
         Parameters
         ----------
-        file_map : string
+        file_map : dict
+            Dictionary with single key ``image`` with associated value which is
+            a :class:`FileHolder` instance pointing to the image file.
 
         Returns
         -------
@@ -611,17 +702,18 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         """ Load a Gifti image from a file_map
 
         Parameters
-        file_map : string
+        ----------
+        file_map : dict
+            Dictionary with single key ``image`` with associated value which is
+            a :class:`FileHolder` instance pointing to the image file.
 
         Returns
         -------
         img : GiftiImage
-            Returns a GiftiImage
-         """
+        """
         parser = klass.parser(buffer_size=buffer_size)
         parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
-        img = parser.img
-        return img
+        return parser.img
 
     @classmethod
     def from_filename(klass, filename, buffer_size=35000000):
