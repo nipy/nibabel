@@ -1,10 +1,13 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 
+from itertools import product
+
 import numpy as np
 
+from ..eulerangles import euler2mat
 from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
-                       from_matvec, dot_reduce)
+                       from_matvec, dot_reduce, voxel_sizes)
 
 
 from nose.tools import assert_equal, assert_raises
@@ -144,3 +147,34 @@ def test_dot_reduce():
                        np.dot(mat2, np.dot(vec, mat)))
     assert_array_equal(dot_reduce(mat, vec, mat2, ),
                        np.dot(mat, np.dot(vec, mat2)))
+
+
+def test_voxel_sizes():
+    affine = np.diag([2, 3, 4, 1])
+    assert_almost_equal(voxel_sizes(affine), [2, 3, 4])
+    # Some example rotations
+    rotations = []
+    for x_rot, y_rot, z_rot in product((0, 0.4), (0, 0.6), (0, 0.8)):
+        rotations.append(euler2mat(z_rot, y_rot, x_rot))
+    # Works on any size of array
+    for n in range(2, 10):
+        vox_sizes = np.arange(n) + 4.1
+        aff = np.diag(list(vox_sizes) + [1])
+        assert_almost_equal(voxel_sizes(aff), vox_sizes)
+        # Translations make no difference
+        aff[:-1, -1] = np.arange(n) + 10
+        assert_almost_equal(voxel_sizes(aff), vox_sizes)
+        # Does not have to be square
+        new_row = np.vstack((np.zeros(n + 1), aff))
+        assert_almost_equal(voxel_sizes(new_row), vox_sizes)
+        new_col = np.c_[np.zeros(n + 1), aff]
+        assert_almost_equal(voxel_sizes(new_col),
+                            [0] + list(vox_sizes))
+        if n < 3:
+            continue
+        # Rotations do not change the voxel size
+        for rotation in rotations:
+            rot_affine = np.eye(n + 1)
+            rot_affine[:3, :3] = rotation
+            full_aff = rot_affine.dot(aff)
+            assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
