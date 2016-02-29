@@ -59,7 +59,7 @@ def detect_format(fileobj):
     return None
 
 
-def load(fileobj, lazy_load=False, ref=None):
+def load(fileobj, lazy_load=False):
     """ Loads streamlines in *RAS+* and *mm* space from a file-like object.
 
     Parameters
