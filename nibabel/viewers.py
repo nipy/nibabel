@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import numpy as np
 import weakref
 
+from .affines import voxel_sizes
 from .optpkg import optional_package
 from .orientations import aff2axcodes, axcodes2ornt
 
@@ -37,29 +38,25 @@ class OrthoSlicer3D(object):
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
     # Skip doctest above b/c not all systems have mpl installed
-    def __init__(self, data, affine=None, axes=None, cmap='gray',
-                 pcnt_range=(1., 99.), figsize=(8, 8), title=None):
+    def __init__(self, data, affine=None, axes=None, title=None):
         """
         Parameters
         ----------
-        data : ndarray
+        data : array-like
             The data that will be displayed by the slicer. Should have 3+
             dimensions.
-        affine : array-like | None
+        affine : array-like or None
             Affine transform for the data. This is used to determine
             how the data should be sliced for plotting into the saggital,
             coronal, and axial view axes. If None, identity is assumed.
             The aspect ratio of the data are inferred from the affine
             transform.
-        axes : tuple of mpl.Axes | None, optional
+        axes : tuple of mpl.Axes or None, optional
             3 or 4 axes instances for the 3 slices plus volumes,
             or None (default).
-        cmap : str | instance of cmap, optional
-            String or cmap instance specifying colormap.
-        pcnt_range : array-like, optional
-            Percentile range over which to scale image for display.
-        figsize : tuple
-            Figure size (in inches) to use if axes are None.
+        title : str or None
+            The title to display. Can be None (default) to display no
+            title.
         """
         # Nest imports so that matplotlib.use() has the appropriate
         # effect in testing
@@ -75,21 +72,21 @@ class OrthoSlicer3D(object):
         if np.iscomplexobj(data):
             raise TypeError("Complex data not supported")
         affine = np.array(affine, float) if affine is not None else np.eye(4)
-        if affine.ndim != 2 or affine.shape != (4, 4):
+        if affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')
         # determine our orientation
-        self._affine = affine.copy()
+        self._affine = affine
         codes = axcodes2ornt(aff2axcodes(self._affine))
         self._order = np.argsort([c[0] for c in codes])
         self._flips = np.array([c[1] < 0 for c in codes])[self._order]
         self._flips = list(self._flips) + [False]  # add volume dim
-        self._scalers = np.abs(self._affine).max(axis=0)[:3]
+        self._scalers = voxel_sizes(self._affine)
         self._inv_affine = np.linalg.inv(affine)
         # current volume info
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
-        vmin, vmax = np.percentile(data, pcnt_range)
+        self._clim = np.percentile(data, (1., 99.))
         del data
 
         if axes is None:  # make the axes
@@ -111,7 +108,7 @@ class OrthoSlicer3D(object):
             #   <--  R          <--  t  -->
 
             fig, axes = plt.subplots(2, 2)
-            fig.set_size_inches(figsize, forward=True)
+            fig.set_size_inches((8, 8), forward=True)
             self._axes = [axes[0, 0], axes[0, 1], axes[1, 0], axes[1, 1]]
             plt.tight_layout(pad=0.1)
             if self.n_volumes <= 1:
@@ -132,14 +129,14 @@ class OrthoSlicer3D(object):
         r = [self._scalers[self._order[2]] / self._scalers[self._order[1]],
              self._scalers[self._order[2]] / self._scalers[self._order[0]],
              self._scalers[self._order[1]] / self._scalers[self._order[0]]]
-        self._sizes = [self._data.shape[o] for o in self._order]
+        self._sizes = [self._data.shape[order] for order in self._order]
         for ii, xax, yax, ratio, label in zip([0, 1, 2], [1, 0, 0], [2, 2, 1],
                                               r, ('SAIP', 'SLIR', 'ALPR')):
             ax = self._axes[ii]
             d = np.zeros((self._sizes[yax], self._sizes[xax]))
-            im = self._axes[ii].imshow(d, vmin=vmin, vmax=vmax, aspect=1,
-                                       cmap=cmap, interpolation='nearest',
-                                       origin='lower')
+            im = self._axes[ii].imshow(
+                d, vmin=self._clim[0], vmax=self._clim[1], aspect=1,
+                cmap='gray', interpolation='nearest', origin='lower')
             self._ims.append(im)
             vert = ax.plot([0] * 2, [-0.5, self._sizes[yax] - 0.5],
                            color=(0, 1, 0), linestyle='-')[0]
@@ -240,6 +237,11 @@ class OrthoSlicer3D(object):
         for link in list(self._links):  # make a copy before iterating
             self._unlink(link())
 
+    def draw(self):
+        """Redraw the current image"""
+        for fig in self._figs:
+            fig.canvas.draw()
+
     @property
     def n_volumes(self):
         """Number of volumes in the data"""
@@ -249,6 +251,38 @@ class OrthoSlicer3D(object):
     def position(self):
         """The current coordinates"""
         return self._position[:3].copy()
+
+    @property
+    def figs(self):
+        """A tuple of the figure(s) containing the axes"""
+        return tuple(self._figs)
+
+    @property
+    def cmap(self):
+        """The current colormap"""
+        return self._cmap
+
+    @cmap.setter
+    def cmap(self, cmap):
+        for im in self._ims:
+            im.set_cmap(cmap)
+        self._cmap = cmap
+        self.draw()
+
+    @property
+    def clim(self):
+        """The current color limits"""
+        return self._clim
+
+    @clim.setter
+    def clim(self, clim):
+        clim = np.array(clim, float)
+        if clim.shape != (2,):
+            raise ValueError('clim must be a 2-element array-like')
+        for im in self._ims:
+            im.set_clim(clim)
+        self._clim = tuple(clim)
+        self.draw()
 
     def link_to(self, other):
         """Link positional changes between two canvases

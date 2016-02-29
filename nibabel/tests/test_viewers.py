@@ -48,6 +48,10 @@ def test_viewer():
         v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, ax, 1))
     v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, None))
     v.set_volume_idx(1)
+    v.cmap = 'hot'
+    v.clim = (0, 3)
+    assert_raises(ValueError, OrthoSlicer3D.clim.fset, v, (0.,))  # bad limits
+    assert_raises(ValueError, OrthoSlicer3D.cmap.fset, v, 'foo')  # wrong cmap
 
     # decrement/increment volume numbers via keypress
     v.set_volume_idx(1)  # should just pass
@@ -75,11 +79,13 @@ def test_viewer():
     # other cases
     fig, axes = plt.subplots(1, 4)
     plt.close(fig)
-    v1 = OrthoSlicer3D(data, pcnt_range=[0.1, 0.9], axes=axes)
+    v1 = OrthoSlicer3D(data, axes=axes)
     aff = np.array([[0, 1, 0, 3], [-1, 0, 0, 2], [0, 0, 2, 1], [0, 0, 0, 1]],
                    float)
     v2 = OrthoSlicer3D(data, affine=aff, axes=axes[:3])
+    # bad data (not 3+ dim)
     assert_raises(ValueError, OrthoSlicer3D, data[:, :, 0, 0])
+    # bad affine (not 4x4)
     assert_raises(ValueError, OrthoSlicer3D, data, affine=np.eye(3))
     assert_raises(TypeError, v2.link_to, 1)
     v2.link_to(v1)

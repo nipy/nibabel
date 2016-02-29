@@ -663,7 +663,7 @@ class SpatialImage(FileBasedImage):
                         "array data with `img.dataobj[slice]` or "
                         "`img.get_data()[slice]`")
 
-    def plot(self):
+    def orthoview(self):
         """Plot the image using OrthoSlicer3D
 
         Returns
@@ -677,5 +677,5 @@ class SpatialImage(FileBasedImage):
         consider using viewer.show() (equivalently plt.show()) to show
         the figure.
         """
-        return OrthoSlicer3D(self.get_data(), self.get_affine(),
+        return OrthoSlicer3D(self.dataobj, self.affine,
                              title=self.get_filename())
