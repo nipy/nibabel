@@ -213,17 +213,17 @@ class Cifti2Label(xml.XmlSerializable):
         return (self.red, self.green, self.blue, self.alpha)
 
     def _to_xml_element(self):
-        lab = xml.SubElement(labeltable, 'Label')
-        lab.attrib['Key'] = str(ele.key)
-        lab.text = str(ele.label)
-        if ele.red is not None:
-            lab.attrib['Red'] = str(ele.red)
-        if ele.green is not None:
-            lab.attrib['Green'] = str(ele.green)
-        if ele.blue is not None:
-            lab.attrib['Blue'] = str(ele.blue)
-        if ele.alpha is not None:
-            lab.attrib['Alpha'] = str(ele.alpha)
+        lab = xml.Element('Label')
+        lab.attrib['Key'] = str(self.key)
+        lab.text = str(self.label)
+        if self.red is not None:
+            lab.attrib['Red'] = str(self.red)
+        if self.green is not None:
+            lab.attrib['Green'] = str(self.green)
+        if self.blue is not None:
+            lab.attrib['Blue'] = str(self.blue)
+        if self.alpha is not None:
+            lab.attrib['Alpha'] = str(self.alpha)
         return lab
 
 
