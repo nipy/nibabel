@@ -203,6 +203,7 @@ class Cifti2Parser(xml.XmlParser):
             assert isinstance(named_map, Cifti2NamedMap)
             self.fsm_state.append('LabelTable')
             self.struct_state.append(lata)
+            named_map.label_table = lata
 
         elif name == 'Label':
             lata = self.struct_state[-1]
