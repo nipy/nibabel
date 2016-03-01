@@ -184,22 +184,22 @@ def write_morph_data(file_like, values, fnum=0):
     """
     magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
 
+    array = np.asarray(values).astype('>f4').squeeze()
+    if len(array.shape) > 1:
+        raise ValueError("Multi-dimensional values not supported")
+
     i4info = np.iinfo('i4')
-    if len(values) > i4info.max:
+    if len(array) > i4info.max:
         raise ValueError("Too many values for morphometry file")
     if not i4info.min <= fnum <= i4info.max:
         raise ValueError("Argument fnum must be between {0} and {1}".format(
                          i4info.min, i4info.max))
 
-    array = np.asarray(values).astype('>f4')
-    if len(array.shape) > 1:
-        raise ValueError("Multi-dimensional values not supported")
-
     with Opener(file_like, 'wb') as fobj:
         fobj.write(magic_bytes)
 
         # vertex count, face count (unused), vals per vertex (only 1 supported)
-        fobj.write(np.array([len(values), fnum, 1], dtype='>i4'))
+        fobj.write(np.array([len(array), fnum, 1], dtype='>i4'))
 
         fobj.write(array)
 
