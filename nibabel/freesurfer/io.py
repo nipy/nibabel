@@ -6,6 +6,7 @@ import time
 
 
 from .. externals.six.moves import xrange
+from ..openers import Opener
 
 
 def _fread3(fobj):
@@ -160,8 +161,8 @@ def read_morph_data(filepath):
     return curv
 
 
-def write_morph_data(filepath, values, fnum=0):
-    """Write Freesurfer morphometry data `values` to file `filepath`
+def write_morph_data(file_like, values, fnum=0):
+    """Write Freesurfer morphometry data `values` to file-like `file_like`
 
     Equivalent to FreeSurfer's `write_curv.m`_
 
@@ -173,8 +174,9 @@ def write_morph_data(filepath, values, fnum=0):
 
     Parameters
     ----------
-    filepath : str
-        Path to annotation file to be written
+    file_like : file-like
+        String containing path of file to be written, or file-like object, open
+        in binary write (`'wb'` mode, implementing the `write` method)
     values : array-like
         Surface morphometry values
     fnum : int, optional
@@ -193,13 +195,13 @@ def write_morph_data(filepath, values, fnum=0):
     if len(array.shape) > 1:
         raise ValueError("Multi-dimensional values not supported")
 
-    with open(filepath, 'wb') as fobj:
-        magic_bytes.tofile(fobj)
+    with Opener(file_like, 'wb') as fobj:
+        fobj.write(magic_bytes)
 
         # vertex count, face count (unused), vals per vertex (only 1 supported)
-        np.array([len(values), fnum, 1], dtype='>i4').tofile(fobj)
+        fobj.write(np.array([len(values), fnum, 1], dtype='>i4'))
 
-        array.tofile(fobj)
+        fobj.write(array)
 
 
 def read_annot(filepath, orig_ids=False):
