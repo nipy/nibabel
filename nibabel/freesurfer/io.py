@@ -179,17 +179,20 @@ def write_morph_data(file_like, values, fnum=0):
         in binary write (`'wb'` mode, implementing the `write` method)
     values : array-like
         Surface morphometry values
+
+        Shape must be (N,), (N, 1), (1, N) or (N, 1, 1)
     fnum : int, optional
         Number of faces in the associated surface
     """
     magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
 
-    array = np.asarray(values).astype('>f4').squeeze()
-    if len(array.shape) > 1:
-        raise ValueError("Multi-dimensional values not supported")
+    vector = np.asarray(values)
+    vnum = np.prod(vector.shape)
+    if vector.shape not in ((vnum,), (vnum, 1), (1, vnum), (vnum, 1, 1)):
+        raise ValueError("Invalid shape: argument values must be a vector")
 
     i4info = np.iinfo('i4')
-    if len(array) > i4info.max:
+    if vnum > i4info.max:
         raise ValueError("Too many values for morphometry file")
     if not i4info.min <= fnum <= i4info.max:
         raise ValueError("Argument fnum must be between {0} and {1}".format(
@@ -199,9 +202,9 @@ def write_morph_data(file_like, values, fnum=0):
         fobj.write(magic_bytes)
 
         # vertex count, face count (unused), vals per vertex (only 1 supported)
-        fobj.write(np.array([len(array), fnum, 1], dtype='>i4'))
+        fobj.write(np.array([vnum, fnum, 1], dtype='>i4'))
 
-        fobj.write(array)
+        fobj.write(vector.astype('>f4'))
 
 
 def read_annot(filepath, orig_ids=False):

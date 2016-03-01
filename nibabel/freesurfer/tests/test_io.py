@@ -104,7 +104,7 @@ def test_write_morph_data():
     """Test write_morph_data edge cases"""
     values = np.arange(20, dtype='>f4')
     okay_shapes = [(20,), (20, 1), (20, 1, 1), (1, 20)]
-    bad_shape = (10, 2)
+    bad_shapes = [(10, 2), (1, 1, 20, 1, 1)]
     big_num = np.iinfo('i4').max + 1
     with InTemporaryDirectory():
         for shape in okay_shapes:
@@ -114,9 +114,10 @@ def test_write_morph_data():
         assert_raises(ValueError, write_morph_data, 'test.curv',
                       np.zeros(shape), big_num)
         assert_raises(ValueError, write_morph_data, 'test.curv',
-                      values.reshape(bad_shape))
-        assert_raises(ValueError, write_morph_data, 'test.curv',
                       strided_scalar((big_num,)))
+        for shape in bad_shapes:
+            assert_raises(ValueError, write_morph_data, 'test.curv',
+                          values.reshape(shape))
 
 
 @freesurfer_test
