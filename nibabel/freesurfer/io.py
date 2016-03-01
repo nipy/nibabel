@@ -160,27 +160,46 @@ def read_morph_data(filepath):
     return curv
 
 
-def write_morph_data(filepath, values):
-    """Write out a Freesurfer morphometry data file.
+def write_morph_data(filepath, values, fnum=0):
+    """Write Freesurfer morphometry data `values` to file `filepath`
 
-    See:
+    Equivalent to FreeSurfer's `write_curv.m`_
+
+    See also:
     http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew
+
+    .. _write_curv.m: \
+    https://github.com/neurodebian/freesurfer/blob/debian-sloppy/matlab/write_curv.m
 
     Parameters
     ----------
     filepath : str
         Path to annotation file to be written
-    values : ndarray, shape (n_vertices,)
+    values : array-like
         Surface morphometry values
+    fnum : int, optional
+        Number of faces in the associated surface
     """
     magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
+
+    i4info = np.iinfo('i4')
+    if len(values) > i4info.max:
+        raise ValueError("Too many values for morphometry file")
+    if not i4info.min <= fnum <= i4info.max:
+        raise ValueError("Argument fnum must be between {0} and {1}".format(
+                         i4info.min, i4info.max))
+
+    array = np.asarray(values).astype('>f4')
+    if len(array.shape) > 1:
+        raise ValueError("Multi-dimensional values not supported")
+
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
 
         # vertex count, face count (unused), vals per vertex (only 1 supported)
-        np.array([len(values), 0, 1], dtype='>i4').tofile(fobj)
+        np.array([len(values), fnum, 1], dtype='>i4').tofile(fobj)
 
-        np.array(values, dtype='>f4').tofile(fobj)
+        array.tofile(fobj)
 
 
 def read_annot(filepath, orig_ids=False):
