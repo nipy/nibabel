@@ -75,6 +75,85 @@ def test_readwritedata():
             img = nib.load(name)
             nib.save(img, 'test.nii')
             img2 = nib.load('test.nii')
-            assert_equal(len(img.header.matrix.mims), len(img2.header.matrix.mims))
-            assert_array_almost_equal(img.data,
-                                      img2.data)
+            assert_equal(len(img.header.matrix.mims),
+                         len(img2.header.matrix.mims))
+            # Order should be preserved in load/save
+            for mim1, mim2 in zip(img.header.matrix.mims,
+                                  img2.header.matrix.mims):
+                assert_equal(len(mim1.named_maps), len(mim2.named_maps))
+                for map1, map2 in zip(mim1.named_maps, mim2.named_maps):
+                    assert_equal(map1.map_name, map2.map_name)
+                    if map1.label_table is None:
+                        assert_true(map2.label_table is None)
+                    else:
+                        assert_equal(len(map1.label_table.labels),
+                                     len(map2.label_table.labels))
+            assert_array_almost_equal(img.data, img2.data)
+
+
+def test_cifti2types():
+    """Check that we instantiate Cifti2 classes correctly, and that our
+    test files exercise all classes"""
+    counter = {ci.Cifti2LabelTable: 0,
+               ci.Cifti2Label: 0,
+               ci.Cifti2NamedMap: 0,
+               ci.Cifti2Surface: 0,
+               ci.Cifti2VoxelIndicesIJK: 0,
+               ci.Cifti2Vertices: 0,
+               ci.Cifti2Parcel: 0,
+               ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ: 0,
+               ci.Cifti2Volume: 0,
+               ci.Cifti2VertexIndices: 0,
+               ci.Cifti2BrainModel: 0,
+               ci.Cifti2MatrixIndicesMap: 0,
+               }
+    for name in datafiles:
+        hdr = nib.load(name).header
+        # Matrix and MetaData aren't conditional, so don't bother counting
+        assert_true(isinstance(hdr.matrix, ci.Cifti2Matrix))
+        assert_true(isinstance(hdr.matrix.metadata, ci.Cifti2MetaData))
+        assert_true(isinstance(hdr.matrix.mims, list))
+        for mim in hdr.matrix.mims:
+            assert_true(isinstance(mim, ci.Cifti2MatrixIndicesMap))
+            counter[ci.Cifti2MatrixIndicesMap] += 1
+            assert_true(isinstance(mim.brain_models, list))
+            for bm in mim.brain_models:
+                assert_true(isinstance(bm, ci.Cifti2BrainModel))
+                counter[ci.Cifti2BrainModel] += 1
+                if isinstance(bm.vertex_indices, ci.Cifti2VertexIndices):
+                    counter[ci.Cifti2VertexIndices] += 1
+                if isinstance(bm.voxel_indices_ijk, ci.Cifti2VoxelIndicesIJK):
+                    counter[ci.Cifti2VoxelIndicesIJK] += 1
+            assert_true(isinstance(mim.named_maps, list))
+            for nm in mim.named_maps:
+                assert_true(isinstance(nm, ci.Cifti2NamedMap))
+                counter[ci.Cifti2NamedMap] += 1
+                assert_true(isinstance(nm.metadata, ci.Cifti2MetaData))
+                if isinstance(nm.label_table, ci.Cifti2LabelTable):
+                    counter[ci.Cifti2LabelTable] += 1
+                    assert_true(isinstance(nm.label_table.labels, list))
+                    for label in nm.label_table.labels:
+                        assert_true(isinstance(label, ci.Cifti2Label))
+                        counter[ci.Cifti2Label] += 1
+            assert_true(isinstance(mim.parcels, list))
+            for parc in mim.parcels:
+                assert_true(isinstance(parc, ci.Cifti2Parcel))
+                counter[ci.Cifti2Parcel] += 1
+                if isinstance(parc.voxel_indices_ijk,
+                              ci.Cifti2VoxelIndicesIJK):
+                    counter[ci.Cifti2VoxelIndicesIJK] += 1
+                assert_true(isinstance(parc.vertices, list))
+                for vtcs in parc.vertices:
+                    assert_true(isinstance(vtcs, ci.Cifti2Vertices))
+                    counter[ci.Cifti2Vertices] += 1
+            assert_true(isinstance(mim.surfaces, list))
+            for surf in mim.surfaces:
+                assert_true(isinstance(surf, ci.Cifti2Surface))
+                counter[ci.Cifti2Surface] += 1
+            if isinstance(mim.volume, ci.Cifti2Volume):
+                counter[ci.Cifti2Volume] += 1
+                if isinstance(mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz,
+                              ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ):
+                    counter[ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ] += 1
+    for klass, count in counter.items():
+        assert_true(count > 0, "No exercise of " + klass.__name__)
