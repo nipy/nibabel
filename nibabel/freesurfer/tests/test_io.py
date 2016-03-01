@@ -13,7 +13,7 @@ import numpy as np
 from numpy.testing import assert_equal, dec
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
-                write_geometry, write_annot)
+                write_geometry, write_morph_data, write_annot)
 
 from ...tests.nibabel_data import get_nibabel_data
 
@@ -92,6 +92,11 @@ def test_morph_data():
     curv = read_morph_data(curv_path)
     assert_true(-1.0 < curv.min() < 0)
     assert_true(0 < curv.max() < 1.0)
+    with InTemporaryDirectory():
+        new_path = 'test'
+        write_morph_data(new_path, curv)
+        curv2 = read_morph_data(new_path)
+        assert_equal(curv2, curv)
 
 
 @freesurfer_test
