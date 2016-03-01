@@ -160,23 +160,27 @@ def read_morph_data(filepath):
     return curv
 
 
-def write_morph_data(filename, values):
-    '''
-    '''
-    with open(filename, 'wb') as f:
+def write_morph_data(filepath, values):
+    """Write out a Freesurfer morphometry data file.
 
-      # magic number
-      np.array([255], dtype='>u1').tofile(f)
-      np.array([255], dtype='>u1').tofile(f)
-      np.array([255], dtype='>u1').tofile(f)
+    See:
+    http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew
 
-      # vertices number and two un-used int4
-      np.array([len(values)], dtype='>i4').tofile(f)
-      np.array([0], dtype='>i4').tofile(f)
-      np.array([1], dtype='>i4').tofile(f)
+    Parameters
+    ----------
+    filepath : str
+        Path to annotation file to be written
+    values : ndarray, shape (n_vertices,)
+        Surface morphometry values
+    """
+    magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
+    with open(filepath, 'wb') as fobj:
+        magic_bytes.tofile(fobj)
 
-      # now the data
-      np.array(values, dtype='>f4').tofile(f)
+        # vertex count, face count (unused), vals per vertex (only 1 supported)
+        np.array([len(values), 0, 1], dtype='>i4').tofile(fobj)
+
+        np.array(values, dtype='>f4').tofile(fobj)
 
 
 def read_annot(filepath, orig_ids=False):
