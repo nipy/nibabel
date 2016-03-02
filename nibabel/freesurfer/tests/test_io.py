@@ -10,12 +10,13 @@ from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal, dec
+from numpy.testing import assert_equal, assert_raises, dec
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
-                write_geometry, write_annot)
+                write_geometry, write_morph_data, write_annot)
 
 from ...tests.nibabel_data import get_nibabel_data
+from ...fileslice import strided_scalar
 
 
 DATA_SDIR = 'fsaverage'
@@ -92,6 +93,33 @@ def test_morph_data():
     curv = read_morph_data(curv_path)
     assert_true(-1.0 < curv.min() < 0)
     assert_true(0 < curv.max() < 1.0)
+    with InTemporaryDirectory():
+        new_path = 'test'
+        write_morph_data(new_path, curv)
+        curv2 = read_morph_data(new_path)
+        assert_equal(curv2, curv)
+
+
+def test_write_morph_data():
+    """Test write_morph_data edge cases"""
+    values = np.arange(20, dtype='>f4')
+    okay_shapes = [(20,), (20, 1), (20, 1, 1), (1, 20)]
+    bad_shapes = [(10, 2), (1, 1, 20, 1, 1)]
+    big_num = np.iinfo('i4').max + 1
+    with InTemporaryDirectory():
+        for shape in okay_shapes:
+            write_morph_data('test.curv', values.reshape(shape))
+            # Check ordering is preserved, regardless of shape
+            assert_equal(values, read_morph_data('test.curv'))
+        assert_raises(ValueError, write_morph_data, 'test.curv',
+                      np.zeros(shape), big_num)
+        # Windows 32-bit overflows Python int
+        if np.dtype(np.int) != np.dtype(np.int32):
+            assert_raises(ValueError, write_morph_data, 'test.curv',
+                          strided_scalar((big_num,)))
+        for shape in bad_shapes:
+            assert_raises(ValueError, write_morph_data, 'test.curv',
+                          values.reshape(shape))
 
 
 @freesurfer_test

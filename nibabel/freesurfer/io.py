@@ -6,6 +6,7 @@ import time
 
 
 from .. externals.six.moves import xrange
+from ..openers import Opener
 
 
 def _fread3(fobj):
@@ -158,6 +159,52 @@ def read_morph_data(filepath):
             _fread3(fobj)
             curv = np.fromfile(fobj, ">i2", vnum) / 100
     return curv
+
+
+def write_morph_data(file_like, values, fnum=0):
+    """Write Freesurfer morphometry data `values` to file-like `file_like`
+
+    Equivalent to FreeSurfer's `write_curv.m`_
+
+    See also:
+    http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew
+
+    .. _write_curv.m: \
+    https://github.com/neurodebian/freesurfer/blob/debian-sloppy/matlab/write_curv.m
+
+    Parameters
+    ----------
+    file_like : file-like
+        String containing path of file to be written, or file-like object, open
+        in binary write (`'wb'` mode, implementing the `write` method)
+    values : array-like
+        Surface morphometry values
+
+        Shape must be (N,), (N, 1), (1, N) or (N, 1, 1)
+    fnum : int, optional
+        Number of faces in the associated surface
+    """
+    magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
+
+    vector = np.asarray(values)
+    vnum = np.prod(vector.shape)
+    if vector.shape not in ((vnum,), (vnum, 1), (1, vnum), (vnum, 1, 1)):
+        raise ValueError("Invalid shape: argument values must be a vector")
+
+    i4info = np.iinfo('i4')
+    if vnum > i4info.max:
+        raise ValueError("Too many values for morphometry file")
+    if not i4info.min <= fnum <= i4info.max:
+        raise ValueError("Argument fnum must be between {0} and {1}".format(
+                         i4info.min, i4info.max))
+
+    with Opener(file_like, 'wb') as fobj:
+        fobj.write(magic_bytes)
+
+        # vertex count, face count (unused), vals per vertex (only 1 supported)
+        fobj.write(np.array([vnum, fnum, 1], dtype='>i4'))
+
+        fobj.write(vector.astype('>f4'))
 
 
 def read_annot(filepath, orig_ids=False):
