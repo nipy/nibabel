@@ -113,8 +113,10 @@ def test_write_morph_data():
             assert_equal(values, read_morph_data('test.curv'))
         assert_raises(ValueError, write_morph_data, 'test.curv',
                       np.zeros(shape), big_num)
-        assert_raises(ValueError, write_morph_data, 'test.curv',
-                      strided_scalar((big_num,)))
+        # Windows 32-bit overflows Python int
+        if np.dtype(np.int) != np.dtype(np.int32):
+            assert_raises(ValueError, write_morph_data, 'test.curv',
+                          strided_scalar((big_num,)))
         for shape in bad_shapes:
             assert_raises(ValueError, write_morph_data, 'test.curv',
                           values.reshape(shape))
