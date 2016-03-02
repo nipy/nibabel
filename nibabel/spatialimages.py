@@ -139,6 +139,7 @@ import numpy as np
 
 from .filebasedimages import FileBasedHeader, FileBasedImage
 from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
+from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 
 
@@ -661,3 +662,20 @@ class SpatialImage(FileBasedImage):
         raise TypeError("Cannot slice image objects; consider slicing image "
                         "array data with `img.dataobj[slice]` or "
                         "`img.get_data()[slice]`")
+
+    def orthoview(self):
+        """Plot the image using OrthoSlicer3D
+
+        Returns
+        -------
+        viewer : instance of OrthoSlicer3D
+            The viewer.
+
+        Notes
+        -----
+        This requires matplotlib. If a non-interactive backend is used,
+        consider using viewer.show() (equivalently plt.show()) to show
+        the figure.
+        """
+        return OrthoSlicer3D(self.dataobj, self.affine,
+                             title=self.get_filename())
