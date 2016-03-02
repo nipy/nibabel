@@ -13,6 +13,7 @@ import sys
 import warnings
 import zlib
 from ..externals.six import StringIO
+from xml.parsers.expat import ExpatError
 
 import numpy as np
 
@@ -23,6 +24,10 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from ..xmlutils import XmlParser
+
+
+class GiftiParseError(ExpatError):
+    """ Gifti-specific parsing error """
 
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
@@ -130,12 +135,12 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'Name':
             if self.nvpair is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'Name'
 
         elif name == 'Value':
             if self.nvpair is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'Value'
 
         elif name == 'LabelTable':
@@ -167,14 +172,14 @@ class GiftiImageParser(XmlParser):
             if "ArrayIndexingOrder" in attrs:
                 self.da.ind_ord = array_index_order_codes.code[
                     attrs["ArrayIndexingOrder"]]
-            if "Dimensionality" in attrs:
-                self.da.num_dim = int(attrs["Dimensionality"])
-            for i in range(self.da.num_dim):
+            num_dim = int(attrs.get("Dimensionality", 0))
+            for i in range(num_dim):
                 di = "Dim%s" % str(i)
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
             # dimensionality has to correspond to the number of DimX given
-            assert len(self.da.dims) == self.da.num_dim
+            # TODO (bcipolli): don't assert; raise parse warning, and recover.
+            assert len(self.da.dims) == num_dim
             if "Encoding" in attrs:
                 self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
             if "Endian" in attrs:
@@ -193,17 +198,17 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'DataSpace':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'DataSpace'
 
         elif name == 'TransformedSpace':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'TransformedSpace'
 
         elif name == 'MatrixData':
             if self.coordsys is None:
-                raise ExpatError
+                raise GiftiParseError
             self.write_to = 'MatrixData'
 
         elif name == 'Data':

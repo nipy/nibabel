@@ -9,6 +9,7 @@
 ''' Utilities for testing '''
 from __future__ import division, print_function
 
+import re
 import os
 import sys
 import warnings
@@ -36,7 +37,7 @@ def assert_dt_equal(a, b):
     assert_equal(np.dtype(a).str, np.dtype(b).str)
 
 
-def assert_allclose_safely(a, b, match_nans=True):
+def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     """ Allclose in integers go all wrong for large integers
     """
     a = np.atleast_1d(a)  # 0d arrays cannot be indexed
@@ -56,7 +57,18 @@ def assert_allclose_safely(a, b, match_nans=True):
         a = a.astype(float)
     if b.dtype.kind in 'ui':
         b = b.astype(float)
-    assert_true(np.allclose(a, b))
+    assert_true(np.allclose(a, b, rtol=rtol, atol=atol))
+
+
+def assert_re_in(regex, c, flags=0):
+    """Assert that container (list, str, etc) contains entry matching the regex
+    """
+    if not isinstance(c, (list, tuple)):
+        c = [c]
+    for e in c:
+        if re.match(regex, e, flags=flags):
+            return
+    raise AssertionError("Not a single entry matched %r in %r" % (regex, c))
 
 
 def get_fresh_mod(mod_name=__name__):

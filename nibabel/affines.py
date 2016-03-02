@@ -8,6 +8,13 @@ import numpy as np
 from .externals.six.moves import reduce
 
 
+class AffineError(ValueError):
+    """ Errors in calculating or using affines """
+    # Inherits from ValueError to keep compatibility with ValueError previously
+    # raised in append_diag
+    pass
+
+
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
 
@@ -213,7 +220,7 @@ def append_diag(aff, steps, starts=()):
     if len(starts) == 0:
         starts = np.zeros(n_steps, dtype=steps.dtype)
     elif len(starts) != n_steps:
-        raise ValueError('Steps should have same length as starts')
+        raise AffineError('Steps should have same length as starts')
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
     aff_plus = np.zeros((old_n_out + n_steps + 1,
@@ -247,3 +254,45 @@ def dot_reduce(*args):
         ...  arg[N-2].dot(arg[N-1])))...``
     """
     return reduce(lambda x, y: np.dot(y, x), args[::-1])
+
+
+def voxel_sizes(affine):
+    r""" Return voxel size for each input axis given `affine`
+
+    The `affine` is the mapping between array (voxel) coordinates and mm
+    (world) coordinates.
+
+    The voxel size for the first voxel (array) axis is the distance moved in
+    world coordinates when moving one unit along the first voxel (array) axis.
+    This is the distance between the world coordinate of voxel (0, 0, 0) and
+    the world coordinate of voxel (1, 0, 0).  The world coordinate vector of
+    voxel coordinate vector (0, 0, 0) is given by ``v0 = affine.dot((0, 0, 0,
+    1)[:3]``.  The world coordinate vector of voxel vector (1, 0, 0) is
+    ``v1_ax1 = affine.dot((1, 0, 0, 1))[:3]``.  The final 1 in the voxel
+    vectors and the ``[:3]`` at the end are because the affine works on
+    homogenous coodinates.  The translations part of the affine is ``trans =
+    affine[:3, 3]``, and the rotations, zooms and shearing part of the affine
+    is ``rzs = affine[:3, :3]``. Because of the final 1 in the input voxel
+    vector, ``v0 == rzs.dot((0, 0, 0)) + trans``, and ``v1_ax1 == rzs.dot((1,
+    0, 0)) + trans``, and the difference vector is ``rzs.dot((0, 0, 0)) -
+    rzs.dot((1, 0, 0)) == rzs.dot((1, 0, 0)) == rzs[:, 0]``.  The distance
+    vectors in world coordinates between (0, 0, 0) and (1, 0, 0), (0, 1, 0),
+    (0, 0, 1) are given by ``rzs.dot(np.eye(3)) = rzs``.  The voxel sizes are
+    the Euclidean lengths of the distance vectors.  So, the voxel sizes are
+    the Euclidean lengths of the columns of the affine (excluding the last row
+    and column of the affine).
+
+    Parameters
+    ----------
+    affine : 2D array-like
+        Affine transformation array.  Usually shape (4, 4), but can be any 2D
+        array.
+
+    Returns
+    -------
+    vox_sizes : 1D array
+        Voxel sizes for each input axis of affine.  Usually 1D array length 3,
+        but in general has length (N-1) where input `affine` is shape (M, N).
+    """
+    top_left = affine[:-1, :-1]
+    return np.sqrt(np.sum(top_left ** 2, axis=0))

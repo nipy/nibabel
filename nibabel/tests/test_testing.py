@@ -11,7 +11,7 @@ from nose.tools import assert_equal
 from nose.tools import assert_raises
 from ..testing import (error_warnings, suppress_warnings,
                        clear_and_catch_warnings, assert_allclose_safely,
-                       get_fresh_mod)
+                       get_fresh_mod, assert_re_in)
 
 
 def assert_warn_len_equal(mod, n_in_context):
@@ -145,3 +145,24 @@ def test_warn_ignore():
         with suppress_warnings():
             raise ValueError('An error')
     assert_raises(ValueError, f)
+
+
+def test_assert_re_in():
+    assert_re_in(".*", "")
+    assert_re_in(".*", ["any"])
+
+    # Should do match not search
+    assert_re_in("ab", "abc")
+    assert_raises(AssertionError, assert_re_in, "ab", "cab")
+    assert_raises(AssertionError, assert_re_in, "ab$", "abc")
+
+    # Sufficient to have one entry matching
+    assert_re_in("ab", ["", "abc", "laskdjf"])
+    assert_raises(AssertionError, assert_re_in, "ab$", ["ddd", ""])
+
+    # Tuples should be ok too
+    assert_re_in("ab", ("", "abc", "laskdjf"))
+    assert_raises(AssertionError, assert_re_in, "ab$", ("ddd", ""))
+
+    # Shouldn't "match" the empty list
+    assert_raises(AssertionError, assert_re_in, "", [])
