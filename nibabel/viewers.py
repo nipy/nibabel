@@ -14,30 +14,34 @@ from .orientations import aff2axcodes, axcodes2ornt
 
 
 class OrthoSlicer3D(object):
-    """Orthogonal-plane slicer.
+    """ Orthogonal-plane slice viewer.
 
-    OrthoSlicer3d expects 3-dimensional data, and by default it creates a
-    figure with 3 axes, one for each slice orientation.
+    OrthoSlicer3d expects 3- or 4-dimensional array data.  It treats
+    4D data as a sequence of 3D spatial volumes, where a slice over the final
+    array axis gives a single 3D spatial volume.
+
+    For 3D data, the default behavior is to create a figure with 3 axes, one
+    for each slice orientation of the spatial volume.
 
     Clicking and dragging the mouse in any one axis will select out the
     corresponding slices in the other two. Scrolling up and
     down moves the slice up and down in the current axis.
 
-    OrthoSlicer3d also supports 4-dimensional data, where multiple
-    3-dimensional volumes are stacked along the last axis.  For 4-dimensional
-    data the fourth figure axis can be used to control which 3-dimensional
-    volume is displayed.  Alternatively, the - key can be used to decrement the
-    displayed volume and the + or = keys can be used to increment it.
+    For 4D data, the fourth figure axis can be used to control which
+    3D volume is displayed.  Alternatively, the ``-`` key can be used to
+    decrement the displayed volume and the ``+`` or ``=`` keys can be used to
+    increment it.
 
     Example
     -------
     >>> import numpy as np
-    >>> a = np.sin(np.linspace(0,np.pi,20))
-    >>> b = np.sin(np.linspace(0,np.pi*5,20))
-    >>> data = np.outer(a,b)[..., np.newaxis]*a
+    >>> a = np.sin(np.linspace(0, np.pi, 20))
+    >>> b = np.sin(np.linspace(0, np.pi*5, 20))
+    >>> data = np.outer(a, b)[..., np.newaxis] * a
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
     # Skip doctest above b/c not all systems have mpl installed
+
     def __init__(self, data, affine=None, axes=None, title=None):
         """
         Parameters
@@ -45,24 +49,24 @@ class OrthoSlicer3D(object):
         data : array-like
             The data that will be displayed by the slicer. Should have 3+
             dimensions.
-        affine : array-like or None
+        affine : array-like or None, optional
             Affine transform for the data. This is used to determine
-            how the data should be sliced for plotting into the saggital,
+            how the data should be sliced for plotting into the sagittal,
             coronal, and axial view axes. If None, identity is assumed.
             The aspect ratio of the data are inferred from the affine
             transform.
         axes : tuple of mpl.Axes or None, optional
             3 or 4 axes instances for the 3 slices plus volumes,
             or None (default).
-        title : str or None
+        title : str or None, optional
             The title to display. Can be None (default) to display no
             title.
         """
-        # Nest imports so that matplotlib.use() has the appropriate
-        # effect in testing
-        plt, _, _ = optional_package('matplotlib.pyplot')
-        mpl_img, _, _ = optional_package('matplotlib.image')
-        mpl_patch, _, _ = optional_package('matplotlib.patches')
+        # Use these late imports of matplotlib so that we have some hope that
+        # the test functions are the first to set the matplotlib backend. The
+        # tests set the backend to something that doesn't require a display.
+        self._plt = plt = optional_package('matplotlib.pyplot')[0]
+        mpl_patch = optional_package('matplotlib.patches')[0]
         self._title = title
         self._closed = False
 
@@ -198,10 +202,10 @@ class OrthoSlicer3D(object):
 
         # actually set data meaningfully
         self._position = np.zeros(4)
-        self._position[3] = 1.  # convenience for affine multn
+        self._position[3] = 1.  # convenience for affine multiplication
         self._changing = False  # keep track of status to avoid loops
         self._links = []  # other viewers this one is linked to
-        plt.draw()
+        self._plt.draw()
         for fig in self._figs:
             fig.canvas.draw()
         self._set_volume_index(0, update_slices=False)
@@ -220,16 +224,14 @@ class OrthoSlicer3D(object):
     def show(self):
         """Show the slicer in blocking mode; convenience for ``plt.show()``
         """
-        plt, _, _ = optional_package('matplotlib.pyplot')
-        plt.show()
+        self._plt.show()
 
     def close(self):
         """Close the viewer figures
         """
         self._cleanup()
-        plt, _, _ = optional_package('matplotlib.pyplot')
         for f in self._figs:
-            plt.close(f)
+            self._plt.close(f)
 
     def _cleanup(self):
         """Clean up before closing"""
@@ -377,7 +379,7 @@ class OrthoSlicer3D(object):
         for ii, (size, idx) in enumerate(zip(self._sizes, idxs)):
             self._data_idx[ii] = max(min(int(round(idx)), size - 1), 0)
         for ii in range(3):
-            # saggital: get to S/A
+            # sagittal: get to S/A
             # coronal: get to S/L
             # axial: get to A/L
             data = np.take(self._current_vol_data, self._data_idx[ii],
