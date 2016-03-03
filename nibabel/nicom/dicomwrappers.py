@@ -293,6 +293,17 @@ class Wrapper(object):
         """ Get values from underlying dicom data """
         return self.dcm_data.get(key, default)
 
+    def get_elem(self, key):
+        """ Get DICOM element instead of just the value """
+        tag = tag_for_keyword(key)
+        if tag is None or tag not in self.dcm_data:
+            raise KeyError('"%s" not in self.dcm_data' % key)
+        return self.dcm_data.get(tag)
+
+    def __iter__(self):
+        """ Iterate over available DICOM keywords """
+        return iter(self.dcm_data.dir())
+
     @deprecate_with_version('get_affine method is deprecated.\n'
                             'Please use the ``img.affine`` property '
                             'instead.',

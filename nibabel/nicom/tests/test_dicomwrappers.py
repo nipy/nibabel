@@ -74,6 +74,8 @@ def test_wrappers():
         assert dw.get('AcquisitionNumber') is None
         with pytest.raises(KeyError):
             dw['not an item']
+        with pytest.raises(KeyError):
+            dw.get_elem('not an item')
         with pytest.raises(didw.WrapperError):
             dw.get_data()
         with pytest.raises(didw.WrapperError):
@@ -93,8 +95,18 @@ def test_wrappers():
         dw = maker(DATA)
         assert dw.get('InstanceNumber') == 2
         assert dw.get('AcquisitionNumber') == 2
+        elem = dw.get_elem('InstanceNumber')
+        assert type(elem) == pydicom.dataelem.DataElement
+        assert elem.value == 2
+        assert elem.VR == 'IS'
         with pytest.raises(KeyError):
             dw['not an item']
+        with pytest.raises(KeyError):
+            dw.get_elem('not an item')
+        # Test we get a key error when using real DICOM keyword that isn't in
+        # this dataset
+        with pytest.raises(KeyError):
+            dw.get_elem('ShutterShape')
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
         dw = maker(DATA)
         assert dw.is_mosaic
