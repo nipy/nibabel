@@ -1,5 +1,6 @@
 """ Testing Siemens CSA header reader
 """
+import sys
 from os.path import join as pjoin
 from copy import deepcopy
 import gzip
@@ -11,9 +12,12 @@ from .. import dwiparams as dwp
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
+from numpy.testing.decorators import skipif
 
 from .test_dicomwrappers import (have_dicom, dicom_test,
                                  IO_DATA_PATH, DATA, DATA_FILE)
+if have_dicom:
+    from .test_dicomwrappers import pydicom
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
@@ -31,11 +35,7 @@ def test_csa_header_read():
     assert_true(csa.is_mosaic(hdr))
     # Get a shallow copy of the data, lacking the CSA marker
     # Need to do it this way because del appears broken in pydicom 0.9.7
-    try:
-        from dicom.dataset import Dataset
-    except ImportError:
-        from pydicom.dataset import Dataset
-    data2 = Dataset()
+    data2 = pydicom.dataset.Dataset()
     for element in DATA:
         if (element.tag.group, element.tag.elem) != (0x29, 0x10):
             data2.add(element)
@@ -132,16 +132,14 @@ def test_ice_dims():
 
 
 @dicom_test
+@skipif(sys.version_info < (2,7) and pydicom.__version__ < '1.0',
+        'Known issue for python 2.6 and pydicom < 1.0')
 def test_missing_csa_elem():
     # Test that we get None instead of raising an Exception when the file has
     # the PrivateCreator element for the CSA dict but not the element with the
     # actual CSA header (perhaps due to anonymization)
-    try:
-        from dicom.tag import Tag
-    except ImportError:
-        from pydicom.tag import Tag
     dcm = deepcopy(DATA)
-    csa_tag = Tag(0x29, 0x1010)
+    csa_tag = pydicom.dataset.Tag(0x29, 0x1010)
     del dcm[csa_tag]
     hdr = csa.get_csa_header(dcm, 'image')
     assert_equal(hdr, None)
