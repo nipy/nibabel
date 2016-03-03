@@ -7,6 +7,7 @@ import os
 import struct
 import warnings
 import itertools
+import string
 
 import numpy as np
 import nibabel as nib
@@ -781,34 +782,34 @@ class TrkFile(TractogramFile):
         info : string
             Header information relevant to the TRK format.
         """
-        hdr = self.header
-
-        info = ""
-        info += "\nMAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
-        info += "\nv.{0}".format(hdr['version'])
-        info += "\ndim: {0}".format(hdr[Field.DIMENSIONS])
-        info += "\nvoxel_sizes: {0}".format(hdr[Field.VOXEL_SIZES])
-        info += "\norgin: {0}".format(hdr[Field.ORIGIN])
-        info += "\nnb_scalars: {0}".format(hdr[Field.NB_SCALARS_PER_POINT])
-        info += "\nscalar_name:\n {0}".format(
-            "\n".join(map(asstr, hdr['scalar_name'])))
-        info += "\nnb_properties: {0}".format(
-            hdr[Field.NB_PROPERTIES_PER_STREAMLINE])
-        info += "\nproperty_name:\n {0}".format(
-            "\n".join(map(asstr, hdr['property_name'])))
-        info += "\nvox_to_world: {0}".format(hdr[Field.VOXEL_TO_RASMM])
-        info += "\nvoxel_order: {0}".format(hdr[Field.VOXEL_ORDER])
-        info += "\nimage_orientation_patient: {0}".format(
-            hdr['image_orientation_patient'])
-        info += "\npad1: {0}".format(hdr['pad1'])
-        info += "\npad2: {0}".format(hdr['pad2'])
-        info += "\ninvert_x: {0}".format(hdr['invert_x'])
-        info += "\ninvert_y: {0}".format(hdr['invert_y'])
-        info += "\ninvert_z: {0}".format(hdr['invert_z'])
-        info += "\nswap_xy: {0}".format(hdr['swap_xy'])
-        info += "\nswap_yz: {0}".format(hdr['swap_yz'])
-        info += "\nswap_zx: {0}".format(hdr['swap_zx'])
-        info += "\nn_count: {0}".format(hdr[Field.NB_STREAMLINES])
-        info += "\nhdr_size: {0}".format(hdr['hdr_size'])
-
-        return info
+        vars = self.header.copy()
+        for attr in dir(Field):
+            if attr[0] in string.ascii_uppercase:
+                hdr_field = getattr(Field, attr)
+                if hdr_field in vars:
+                    vars[attr] = vars[hdr_field]
+        vars['scalar_names'] = '\n'.join(map(asstr, vars['scalar_name']))
+        vars['property_names'] = "\n".join(map(asstr, vars['property_name']))
+        return """\
+MAGIC NUMBER: {MAGIC_NUMBER}
+v.{version}
+dim: {DIMENSIONS}
+voxel_sizes: {VOXEL_SIZES}
+orgin: {ORIGIN}
+nb_scalars: {NB_SCALARS_PER_POINT}
+scalar_name:\n {scalar_names}
+nb_properties: {NB_PROPERTIES_PER_STREAMLINE}
+property_name:\n {property_names}
+vox_to_world: {VOXEL_TO_RASMM}
+voxel_order: {VOXEL_ORDER}
+image_orientation_patient: {image_orientation_patient}
+pad1: {pad1}
+pad2: {pad2}
+invert_x: {invert_x}
+invert_y: {invert_y}
+invert_z: {invert_z}
+swap_xy: {swap_xy}
+swap_yz: {swap_yz}
+swap_zx: {swap_zx}
+n_count: {NB_STREAMLINES}
+hdr_size: {hdr_size}""".format(**vars)
