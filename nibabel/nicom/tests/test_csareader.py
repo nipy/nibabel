@@ -136,3 +136,14 @@ def test_missing_csa_elem():
     del dcm[csa_tag]
     hdr = csa.get_csa_header(dcm, 'image')
     assert hdr is None
+
+
+def test_read_write_rt():
+    # Try doing a read-write-read round trip and make sure the dictionary
+    # representation of the header is the same. We can't exactly reproduce the
+    # original string representation currently.
+    for csa_str in (CSA2_B0, CSA2_B1000):
+        csa_info = csa.read(csa_str)
+        new_csa_str = csa.write(csa_info)
+        new_csa_info = csa.read(new_csa_str)
+        assert csa_info == new_csa_info
