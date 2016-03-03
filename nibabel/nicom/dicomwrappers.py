@@ -107,6 +107,8 @@ class Wrapper(object):
     * is_same_series(other)
     * __getitem__ : return attributes from `dcm_data`
     * get(key[, default]) - as usual given __getitem__ above
+    * get_elem(key) - Provide full DICOM element instead of just value
+    * __iter__ - Iterate over DICOM keys available in this data set
 
     Attributes and things that look like attributes:
 
