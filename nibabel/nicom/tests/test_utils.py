@@ -2,7 +2,12 @@
 """
 import re
 
-from ..utils import find_private_section
+import pytest
+from numpy.testing import (assert_almost_equal,
+                           assert_array_equal)
+
+from ..utils import (find_private_section, seconds_to_tm, tm_to_seconds,
+                     as_to_years, years_to_as)
 
 from . import dicom_test
 from ...pydicom_compat import pydicom
@@ -47,3 +52,35 @@ def test_find_private_section_real():
     assert find_private_section(ds, 0x11, 'near section') == 0x1300
     ds.add_new((0x11, 0x15), 'LO', b'far section')
     assert find_private_section(ds, 0x11, 'far section') == 0x1500
+
+
+def test_tm_to_seconds():
+    for str_val in ('', '1', '111', '11111', '111111.', '1111111', '1:11',
+                    ' 111'):
+        with pytest.raises(ValueError):
+            tm_to_seconds(str_val)
+    assert_almost_equal(tm_to_seconds('01'), 60*60)
+    assert_almost_equal(tm_to_seconds('0101'), 61*60)
+    assert_almost_equal(tm_to_seconds('010101'), 61*60 + 1)
+    assert_almost_equal(tm_to_seconds('010101.001'), 61*60 + 1.001)
+    assert_almost_equal(tm_to_seconds('01:01:01.001'), 61*60 + 1.001)
+
+
+def test_tm_rt():
+    for tm_val in ('010101.00000', '010101.00100', '122432.12345'):
+        assert tm_val == seconds_to_tm(tm_to_seconds(tm_val))
+
+
+def test_as_to_years():
+    assert as_to_years('1') == 1.0
+    assert as_to_years('1Y') == 1.0
+    assert as_to_years('53') == 53.0
+    assert as_to_years('53Y') == 53.0
+    assert_almost_equal(as_to_years('2M'), 2. / 12.)
+    assert_almost_equal(as_to_years('2D'), 2. / 365.)
+    assert_almost_equal(as_to_years('2W'), 2. * (7. / 365.))
+
+
+def test_as_rt():
+    for as_val in ('1Y', '53Y', '2M', '2W', '2D'):
+        assert as_val == years_to_as(as_to_years(as_val))
