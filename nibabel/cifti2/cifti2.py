@@ -100,8 +100,12 @@ def _underscore(string):
 
 
 class Cifti2MetaData(xml.XmlSerializable):
-    """ A list of key-value pairs stored in the list self.data """
+    """ A list of name-value pairs
 
+    Attributes
+    ----------
+    data : list of (name, value) tuples
+    """
     def __init__(self, nvpair=None):
         self.data = []
         self.add_metadata(nvpair)
@@ -171,6 +175,8 @@ class Cifti2MetaData(xml.XmlSerializable):
 
 
 class Cifti2LabelTable(xml.XmlSerializable):
+    """ Cifti2 label table: a sequence of ``Cifti2Label``s
+    """
 
     def __init__(self):
         self.labels = []
@@ -197,9 +203,28 @@ class Cifti2LabelTable(xml.XmlSerializable):
 
 
 class Cifti2Label(xml.XmlSerializable):
+    """ Cifti2 label: association of integer key with a name and RGBA values
 
-    def __init__(self, key=0, label='', red=None,
-                 green=None, blue=None, alpha=None):
+    Attribute descriptions are from the CIFTI-2 spec dated 2014-03-01.
+    For all color components, value is floating point with range 0.0 to 1.0.
+
+    Attributes
+    ----------
+    key : int
+        Integer, data value which is assigned this name and color.
+    label : str
+        Name of the label.
+    red : None or float
+        Red color component for label.
+    green : None or float
+        Green color component for label.
+    blue : None or float
+        Blue color component for label.
+    alpha : None or float
+        Alpha color component for label.
+    """
+    def __init__(self, key=0, label='', red=None, green=None, blue=None,
+                 alpha=None):
         self.key = key
         self.label = label
         self.red = red
@@ -228,13 +253,24 @@ class Cifti2Label(xml.XmlSerializable):
 
 
 class Cifti2NamedMap(xml.XmlSerializable):
-    """Class for Named Map"""
-    map_name = str
+    """Cifti2 named map: association of name and optional data with a map index
 
+    Associates a name, optional metadata, and possibly a LabelTable with an
+    index in a map.
+
+    Attributes
+    ----------
+    map_name : str
+        Name of map
+    metadata : None or Cifti2MetaData
+        Metadata associated with named map
+    label_table : None or Cifti2LabelTable
+        Label table associated with named map
+    """
     def __init__(self, map_name=None, metadata=None, label_table=None):
         self.map_name = map_name
-        self.metadata = metadata  # _value_or_make_klass(metadata, Cifti2MetaData)
-        self.label_table = label_table  # _value_or_make_klass(label_table, Cifti2LabelTable)
+        self.metadata = metadata
+        self.label_table = label_table
 
     @property
     def metadata(self):
@@ -284,10 +320,20 @@ class Cifti2NamedMap(xml.XmlSerializable):
 
 
 class Cifti2Surface(xml.XmlSerializable):
-    """Class for Surface """
-    # brainStructure = str
-    # surfaceNumberOfVertices = int
+    """Cifti surface: association of brain structure and number of vertices
 
+    "Specifies the number of vertices for a surface, when IndicesMapToDataType
+    is 'CIFTI_INDEX_TYPE_PARCELS.' This is separate from the Parcel element
+    because there can be multiple parcels on one surface, and one parcel may
+    involve multiple surfaces."
+
+    Attributes
+    ----------
+    brain_structure : str
+        Name of brain structure
+    surface_number_of_vertices : int
+        Number of vertices on surface
+    """
     def __init__(self, brain_structure=None, surface_number_of_vertices=None):
         self.brain_structure = brain_structure
         self.surface_number_of_vertices = surface_number_of_vertices
@@ -301,26 +347,45 @@ class Cifti2Surface(xml.XmlSerializable):
 
 
 class Cifti2VoxelIndicesIJK(xml.XmlSerializable):
-    # indices = np.array
+    """Cifti2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
+    "Identifies the voxels that model a brain structure, or participate in a
+    parcel. Note that when this is a child of BrainModel, the IndexCount
+    attribute of the BrainModel indicates the number of voxels contained in
+    this element."
+
+    Attributes
+    ----------
+    indices : ndarray shape (N, 3)
+        Array of N triples (i, j, k)
+    """
     def __init__(self, indices=None):
         self.indices = indices
 
     def _to_xml_element(self):
         assert self.indices is not None
         vox_ind = xml.Element('VoxelIndicesIJK')
-        if self.indices is not None:
-            vox_ind.text = ''
-            for row in self.indices:
-                vox_ind.text += ' '.join(row.astype(str).tolist()) + '\n'
+        vox_ind.text = '\n'.join(' '.join(row.astype(str))
+                                 for row in self.indices)
         return vox_ind
 
 
 class Cifti2Vertices(xml.XmlSerializable):
+    """Cifti2 vertices - association of brain structure and a list of vertices
 
-    # brain_structure = str
-    # vertices = np.array
+    "Contains a BrainStructure type and a list of vertex indices within a
+    Parcel."
 
+    Attribute descriptions are from the CIFTI-2 spec dated 2014-03-01.
+
+    Attributes
+    ----------
+    brain_structure : str
+        A string from the BrainStructure list to identify what surface this
+        vertex list is from (usually left cortex, right cortex, or cerebellum).
+    vertices : ndarray shape (N,)
+        Vertex indices (which are independent for each surface, and zero-based)
+    """
     def __init__(self, brain_structure=None, vertices=None):
         self.vertices = vertices
         self.brain_structure = brain_structure
@@ -331,14 +396,22 @@ class Cifti2Vertices(xml.XmlSerializable):
         vertices.attrib['BrainStructure'] = str(self.brain_structure)
 
         if self.vertices is not None:
-            vertices.text = ' '.join(self.vertices.astype(str).tolist())
+            vertices.text = ' '.join(self.vertices.astype(str))
         return vertices
 
 
 class Cifti2Parcel(object):
-    """Class for Parcel"""
-    # name = str
+    """Cifti2 parcel: association of a name with vertices and/or voxels
 
+    Attributes
+    ----------
+    name : str
+        Name of parcel
+    voxel_indices_ijk : None or Cifti2VoxelIndicesIJK
+        Voxel indices associated with parcel
+    vertices : list of Cifti2Vertices
+        Vertices associated with parcel
+    """
     def __init__(self, name=None, voxel_indices_ijk=None, vertices=None):
         self.name = name
         self.voxel_indices_ijk = voxel_indices_ijk
@@ -379,7 +452,18 @@ class Cifti2Parcel(object):
 
 
 class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
+    """Matrix that translates voxel indices to spatial coordinates
 
+    Attributes
+    ----------
+    meter_exponent : int
+        "[S]pecifies that the coordinate result from the transformation matrix
+        should be multiplied by 10 to this power to get the spatial coordinates
+        in meters (e.g., if this is '-3', then the transformation matrix is in
+        millimeters)."
+    matrix : array-like shape (4, 4)
+        Affine transformation matrix from voxel indices to RAS space
+    """
     # meterExponent = int
     # matrix = np.array
 
@@ -391,18 +475,25 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
         assert self.matrix is not None
         trans = xml.Element('TransformationMatrixVoxelIndicesIJKtoXYZ')
         trans.attrib['MeterExponent'] = str(self.meter_exponent)
-        if self.matrix is not None:
-            trans.text = ''
-            for row in self.matrix:
-                trans.text += ' '.join(['%.10f' % val for val in row]) + "\n"
+        trans.text = '\n'.join(' '.join(map('%.10f'.format, row))
+                               for row in self.matrix)
         return trans
 
 
 class Cifti2Volume(object):
+    """Cifti2 volume: information about a volume for mappings that use voxels
 
-    # volumeDimensions = np.array
-    # transformationMatrixVoxelIndicesIJKtoXYZ = np.array
-
+    Attributes
+    ----------
+    volume_dimensions : array-like shape (3,)
+        "[T]he lengthss of the three volume file dimensions that are related to
+        spatial coordinates, in number of voxels. Voxel indices (which are
+        zero-based) that are used in the mapping that this element applies to
+        must be within these dimensions."
+    transformation_matrix_voxel_indices_ijk_to_xyz \
+        : Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ
+        Matrix that translates voxel indices to spatial coordinates
+    """
     def __init__(self, volume_dimensions=None, transform_matrix=None):
         self.volume_dimensions = volume_dimensions
         self.transformation_matrix_voxel_indices_ijk_to_xyz = transform_matrix
@@ -417,8 +508,15 @@ class Cifti2Volume(object):
 
 
 class Cifti2VertexIndices(object):
-    # indices = np.array
+    """Cifti2 vertex indices: vertex indices for an associated brain model
 
+    Attributes
+    ----------
+    indices : ndarray shape (n,)
+        The vertex indices (which are independent for each surface, and
+        zero-based) that are used in this brain model[.] The parent
+        BrainModel's ``index_count`` indicates the number of indices.
+    """
     def __init__(self, indices=None):
         self.indices = indices
 
