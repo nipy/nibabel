@@ -158,6 +158,17 @@ def obj_from_atoms(atoms, namespace):
     return prev_root, el.obj_id
 
 
+def _get_value(assign):
+    value = assign.value
+    if isinstance(value, ast.Num):
+        return value.n
+    if isinstance(value, ast.Str):
+        return value.s
+    if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub):
+        return -value.operand.n
+    raise AscconvParseError('Unexpected RHS of assignment: {0}'.format(value))
+
+
 def parse_ascconv(ascconv_str, str_delim='"'):
     '''Parse the 'ASCCONV' format from `input_str`.
 
@@ -191,7 +202,6 @@ def parse_ascconv(ascconv_str, str_delim='"'):
     for assign in tree.body:
         atoms = assign2atoms(assign)
         obj_to_index, key = obj_from_atoms(atoms, prot_dict)
-        value = assign.value.n if isinstance(assign.value, ast.Num) else assign.value.s
-        obj_to_index[key] = value
+        obj_to_index[key] = _get_value(assign)
 
     return prot_dict, attrs

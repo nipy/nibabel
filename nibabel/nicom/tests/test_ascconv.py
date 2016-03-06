@@ -26,7 +26,7 @@ def test_ascconv_parse():
     assert_array_almost_equal(ascconv_dict['sProtConsistencyInfo']['flNominalB0'],
                               2.89362)
     assert_equal(ascconv_dict['sProtConsistencyInfo']['flGMax'], 26)
-    assert_equal(ascconv_dict['sSliceArray'].keys(),
+    assert_equal(list(ascconv_dict['sSliceArray'].keys()),
                  ['asSlice', 'anAsc', 'anPos', 'lSize', 'lConc', 'ucMode',
                   'sTSat'])
     slice_arr = ascconv_dict['sSliceArray']
@@ -44,10 +44,12 @@ def test_ascconv_parse():
     assert_equal(len(as_list), 12)
     for i, el in enumerate(as_list):
         assert_equal(
-            el.keys(),
+            list(el.keys()),
             ['sCoilElementID', 'lElementSelected', 'lRxChannelConnected'])
         assert_equal(el['lElementSelected'], 1)
         assert_equal(el['lRxChannelConnected'], i + 1)
+    # Test negative number
+    assert_array_almost_equal(as_slice[0]['sPosition']['dCor'], -20.03015269)
 
 
 def test_ascconv_w_attrs():
