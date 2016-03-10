@@ -64,6 +64,7 @@ def test_tm_to_seconds():
     assert_almost_equal(tm_to_seconds('010101'), 61*60 + 1)
     assert_almost_equal(tm_to_seconds('010101.001'), 61*60 + 1.001)
     assert_almost_equal(tm_to_seconds('01:01:01.001'), 61*60 + 1.001)
+    assert_almost_equal(tm_to_seconds('02:03'), 123 * 60)
 
 
 def test_tm_rt():
@@ -82,5 +83,15 @@ def test_as_to_years():
 
 
 def test_as_rt():
-    for as_val in ('1Y', '53Y', '2M', '2W', '2D'):
+    # Round trip
+    for as_val in ('1Y', '53Y', '153Y',
+                   '2M', '42M', '200M',
+                   '2W', '42W', '930W',
+                   '2D', '45D', '999D'):
         assert as_val == years_to_as(as_to_years(as_val))
+    # Any day multiple of 7 may be represented as weeks
+    for as_val, other_as_val in (('7D', '1W'),
+                                 ('14D', '2W'),
+                                 ('21D', '3W'),
+                                 ('42D', '6W')):
+        assert years_to_as(as_to_years(as_val)) in (as_val, other_as_val)

@@ -2,7 +2,11 @@
 """
 
 import re, string
+
 from numpy.compat.py3k import asstr
+import numpy as np
+
+from ..externals import OrderedDict
 
 
 def find_private_section(dcm_data, group_no, creator):
@@ -53,9 +57,16 @@ def find_private_section(dcm_data, group_no, creator):
     return None
 
 
+TM_EXP = re.compile(r"^(\d\d)(\d\d)?(\d\d)?(\.\d+)?$")
+# Allow ACR/NEMA style format which includes colons between hours/minutes and
+# minutes/seconds.  See TM / time description in PS3.5 of the DICOM standard at
+# http://dicom.nema.org/Dicom/2011/11_05pu.pdf
+TM_EXP_1COLON = re.compile(r"^(\d\d):(\d\d)()?()?$")
+TM_EXP_2COLONS = re.compile(r"^(\d\d):(\d\d):(\d\d)?(\.\d+)?$")
+
+
 def tm_to_seconds(time_str):
-    '''Convert a DICOM time value (value representation of 'TM') to the number
-    of seconds past midnight.
+    '''Convert DICOM time value (VR of 'TM') to seconds past midnight.
 
     Parameters
     ----------
@@ -66,45 +77,36 @@ def tm_to_seconds(time_str):
     -------
     sec_past_midnight : float
         The number of seconds past midnight
+
+    Notes
+    -----
+    From TM / time description in `PS3.5 of the DICOM standard
+    <http://dicom.nema.org/Dicom/2011/11_05pu.pdf>`_::
+
+        A string of characters of the format HHMMSS.FFFFFF; where HH contains
+        hours (range "00" - "23"), MM contains minutes (range "00" - "59"), SS
+        contains seconds (range "00" - "60"), and FFFFFF contains a fractional
+        part of a second as small as 1 millionth of a second (range “000000” -
+        “999999”). A 24-hour clock is used. Midnight shall be represented by
+        only “0000“ since “2400“ would violate the hour range. The string may
+        be padded with trailing spaces.  Leading and embedded spaces are not
+        allowed.
+
+        One or more of the components MM, SS, or FFFFFF may be unspecified as
+        long as every component to the right of an unspecified component is
+        also unspecified, which indicates that the value is not precise to the
+        precision of those unspecified components.
     '''
     # Allow trailing white space
     time_str = time_str.rstrip()
-
-    # Allow ACR/NEMA style format which includes colons between hours/minutes
-    # and minutes/seconds
-    colons = [x.start() for x in re.finditer(':', time_str)]
-    if len(colons) > 0:
-        if colons not in ([2], [2, 5]):
-            raise ValueError("Invalid use of colons in 'TM' VR")
-        time_str = time_str.replace(':', '')
-
-    # Make sure the string length is valid
-    str_len = len(time_str)
-    is_valid = str_len > 0
-    if str_len <= 6:
-        # If there are six or less chars, there should be an even number
-        if str_len % 2 != 0:
-            is_valid = False
+    for matcher in (TM_EXP, TM_EXP_1COLON, TM_EXP_2COLONS):
+        match = matcher.match(time_str)
+        if match is not None:
+            break
     else:
-        # If there are more than six chars, the seventh position should be
-        # a decimal followed by at least one digit
-        if str_len == 7 or time_str[6] != '.':
-            is_valid = False
-    if not is_valid:
-        raise ValueError("Invalid number of digits for 'TM' VR")
-
-    # Make sure we don't have leading white space
-    if time_str[0] in string.whitespace:
-        raise ValueError("Leading whitespace not allowed in 'TM' VR")
-
-    # The minutes and seconds are optional
-    result = int(time_str[:2]) * 3600
-    if str_len > 2:
-        result += int(time_str[2:4]) * 60
-    if str_len > 4:
-        result += float(time_str[4:])
-
-    return float(result)
+        raise ValueError('Invalid tm string "{0}"'.format(time_str))
+    parts = [float(v) if v else 0 for v in match.groups()]
+    return np.multiply(parts, [3600, 60, 1, 1]).sum()
 
 
 def seconds_to_tm(seconds):
@@ -119,18 +121,25 @@ def seconds_to_tm(seconds):
     -------
     tm : str
         String suitable for use as value in DICOM element with VR of 'TM'
+
+    Notes
+    -----
+    See docstring for :func:`tm_to_seconds`.
     '''
-    hours = seconds // 3600
-    seconds -= hours * 3600
-    minutes = seconds // 60
-    seconds -= minutes * 60
-    res = '%02d%02d%08.5f' % (hours, minutes, seconds)
-    return res
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    return '%02d%02d%08.5f' % (hours, minutes, seconds)
+
+
+CONVERSIONS = OrderedDict((('Y', 1), ('M', 12), ('W', (365. / 7)), ('D', 365)))
+CONV_KEYS = list(CONVERSIONS)
+CONV_VALS = np.array(list(CONVERSIONS.values()))
+
+AGE_EXP = re.compile(r'^(\d+)(Y|M|W|D)?$')
 
 
 def as_to_years(age_str):
-    '''Convert a DICOM age value (value representation of 'AS') to the age in
-    years.
+    '''Convert DICOM age value (VR of 'AS') to the age in years
 
     Parameters
     ----------
@@ -141,18 +150,23 @@ def as_to_years(age_str):
     -------
     age : float
         The age of the subject in years
+
+    Notes
+    -----
+    From AS / age string description in `PS3.5 of the DICOM standard
+    <http://dicom.nema.org/Dicom/2011/11_05pu.pdf>`_::
+
+        A string of characters with one of the following formats -- nnnD, nnnW,
+        nnnM, nnnY; where nnn shall contain the number of days for D, weeks for
+        W, months for M, or years for Y.  Example: “018M” would represent an
+        age of 18 months.
     '''
-    age_str = age_str.strip()
-    if age_str[-1] == 'Y':
-        return float(age_str[:-1])
-    elif age_str[-1] == 'M':
-        return float(age_str[:-1]) / 12
-    elif age_str[-1] == 'W':
-        return float(age_str[:-1]) / (365. / 7)
-    elif age_str[-1] == 'D':
-        return float(age_str[:-1]) / 365
-    else:
-        return float(age_str)
+    match = AGE_EXP.match(age_str.strip())
+    if not match:
+        raise ValueError('Invalid age string "{0}"'.format(age_str))
+    val, code = match.groups()
+    code = 'Y' if code is None else code
+    return float(val) / CONVERSIONS[code]
 
 
 def years_to_as(years):
@@ -167,22 +181,18 @@ def years_to_as(years):
     -------
     as : str
         String suitable for use as value in DICOM element with VR of 'AS'
+
+    Notes
+    -----
+    See docstring for :func:`as_to_years`.
     '''
     if years == round(years):
         return '%dY' % years
-
-   # Choose how to represent the age (years, months, weeks, or days)
-    conversions = (('Y', 1), ('M', 12), ('W', (365. / 7)), ('D', 365))
-    # Try all the conversions, ignore ones that have more than three digits
-    # which is the limit for the AS value representation, or where they round
-    # to zero
-    results = [(years * x[1], x[0]) for x in conversions]
-    results = [x for x in results
-               if round(x[0]) > 0 and len('%d' % x[0]) < 4]
-    # Choose the first one that is close to the minimum error
-    errors = [abs(x[0] - round(x[0])) for x in results]
-    min_error = min(errors)
-    best_idx = 0
-    while errors[best_idx] - min_error > 0.001:
-        best_idx += 1
-    return '%d%s' % (round(results[best_idx][0]), results[best_idx][1])
+    # Choose how to represent the age (years, months, weeks, or days).
+    # Try all the conversions, ignore ones that have more than three digits,
+    # which is the limit for the AS value representation.
+    conved = years * CONV_VALS
+    conved[conved >= 1000] = np.nan  # Too many digits for AS field
+    year_error = np.abs(conved - np.round(conved)) / CONV_VALS
+    best_i = np.nanargmin(year_error)
+    return "{0:.0f}{1}".format(conved[best_i], CONV_KEYS[best_i])
