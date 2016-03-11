@@ -11,6 +11,7 @@ than an AttributeError - breaking the 'properties manifesto'.   So, any
 processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 """
+from __future__ import division
 
 import operator
 
@@ -724,7 +725,7 @@ class MosaicWrapper(SiemensWrapper):
     Adds attributes:
 
     * n_mosaic : int
-    * mosaic_size : float
+    * mosaic_size : int
     """
     is_mosaic = True
 
@@ -758,7 +759,7 @@ class MosaicWrapper(SiemensWrapper):
                                    'header; is this really '
                                    'Siemens mosiac data?')
         self.n_mosaic = n_mosaic
-        self.mosaic_size = np.ceil(np.sqrt(n_mosaic))
+        self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
 
     @one_time
     def image_shape(self):

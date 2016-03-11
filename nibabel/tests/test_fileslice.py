@@ -7,8 +7,12 @@ PY2 = sys.version_info[0] < 3
 from io import BytesIO
 from itertools import product
 from functools import partial
+from distutils.version import LooseVersion
 
 import numpy as np
+
+# np > 1.11 makes double ellipsis illegal in indices
+HAVE_NP_GT_1p11 = LooseVersion(np.__version__) > '1.11'
 
 from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          predict_shape, read_segments, _positive_slice,
@@ -41,7 +45,11 @@ def test_is_fancy():
     for slice0 in slices:
         _check_slice(slice0)
         _check_slice((slice0,))  # tuple is same
+        # Double ellipsis illegal in np 1.12dev - set up check for that case
+        maybe_bad = HAVE_NP_GT_1p11 and slice0 is Ellipsis
         for slice1 in slices:
+            if maybe_bad and slice1 is Ellipsis:
+                continue
             _check_slice((slice0, slice1))
     assert_false(is_fancy((None,)))
     assert_false(is_fancy((None, 1)))
