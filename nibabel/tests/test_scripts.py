@@ -263,7 +263,7 @@ def test_parrec2nii_with_data():
                 assert_almost_equal(aff_off, AFF_OFF, 3)
                 # The difference is max in the order of 0.5 voxel
                 vox_sizes = vox_size(philips_img.affine)
-                assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.5))
+                assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.501))
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
                     conved_data_lps = flip_axis(conved_img.dataobj, 1)

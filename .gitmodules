@@ -10,3 +10,6 @@
 [submodule "nibabel-data/nitest-freesurfer"]
 	path = nibabel-data/nitest-freesurfer
 	url = https://bitbucket.org/nipy/nitest-freesurfer.git
+[submodule "nibabel-data/parrec_oblique"]
+	path = nibabel-data/parrec_oblique
+	url = https://github.com/grlee77/parrec_oblique.git

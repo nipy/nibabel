@@ -126,6 +126,8 @@ ACQ_TO_PSL = dict(
                       [0, 0, 0, 1]])
 )
 
+DEG2RAD = np.pi / 180.
+
 # General information dict definitions
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
@@ -876,11 +878,13 @@ class PARRECHeader(SpatialHeader):
                 "Unknown slice orientation ({0}).".format(slice_orientation))
         # hdr has deg, we need radians
         # Order is [ap, fh, rl]
-        ang_rad = self.general_info['angulation'] * np.pi / 180.0
-        # euler2mat accepts z, y, x angles and does rotation around z, y, x
-        # axes in that order. It's possible that PAR assumes rotation in a
-        # different order, we still need some relevant data to test this
-        rot = from_matvec(euler2mat(*ang_rad[::-1]), [0, 0, 0])
+        ap_rot, fh_rot, rl_rot = self.general_info['angulation'] * DEG2RAD
+        Mx = euler2mat(x=ap_rot)
+        My = euler2mat(y=fh_rot)
+        Mz = euler2mat(z=rl_rot)
+        # By trial and error, this unexpected order of rotations seem to give
+        # the closest to the observed (converted NIfTI) affine.
+        rot = from_matvec(dot_reduce(Mz, Mx, My))
         # compose the PSL affine
         psl_aff = dot_reduce(rot, permute_to_psl, zoomer, to_center)
         if origin == 'scanner':
