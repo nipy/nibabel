@@ -185,7 +185,7 @@ def proc_file(infile, opts):
 
     bvals, bvecs = pr_hdr.get_bvals_bvecs()
     if not opts.keep_trace:  # discard Philips DTI trace if present
-        if bvals is not None:
+        if bvecs is not None:
             bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
             if bad_mask.sum() > 0:
                 pl = 's' if bad_mask.sum() != 1 else ''
@@ -229,6 +229,14 @@ def proc_file(infile, opts):
     if opts.bvs:
         if bvals is None and bvecs is None:
             verbose('No DTI volumes detected, bvals and bvecs not written')
+        elif bvecs is None:
+            verbose('DTI volumes detected, but no diffusion direction info was'
+                    'found.  Writing .bvals file only.')
+            with open(basefilename + '.bvals', 'w') as fid:
+                # np.savetxt could do this, but it's just a loop anyway
+                for val in bvals:
+                    fid.write('%s ' % val)
+                fid.write('\n')
         else:
             verbose('Writing .bvals and .bvecs files')
             # Transform bvecs with reorientation affine

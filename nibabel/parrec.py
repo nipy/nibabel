@@ -728,6 +728,8 @@ class PARRECHeader(SpatialHeader):
         # All bvals within volume should be the same
         assert not np.any(np.diff(bvals, axis=0))
         bvals = bvals[0]
+        if 'diffusion' not in self.image_defs:
+            return bvals, None
         bvecs = self.image_defs['diffusion'][reorder].reshape(
             (n_slices, n_vols, 3), order='F')
         # All 3 values of bvecs should be same within volume
