@@ -329,21 +329,6 @@ def _process_image_lines(image_lines, version):
     return image_defs
 
 
-def _direction_numbers(bvecs):
-    """ Enumerate directions from an (N, 3) array of direction vectors.
-    """
-    cnt = 0
-    bvec_dict = {}
-    bvec_nos = np.zeros(len(bvecs))
-    for i, bvec in enumerate(bvecs):
-        bv = tuple(bvec)
-        if bv not in bvec_dict:
-            bvec_dict[bv] = cnt
-            cnt += 1
-        bvec_nos[i] = bvec_dict.get(bv)
-    return bvec_nos
-
-
 def vol_numbers(slice_nos):
     """ Calculate volume numbers inferred from slice numbers `slice_nos`
 
@@ -1024,6 +1009,11 @@ class PARRECHeader(SpatialHeader):
     def _strict_sort_keys(self):
         """ Determine the sort order based on several image definition fields.
 
+        If the sort keys are not unique for each volume, we calculate a volume
+        number by looking for repeating slice numbers
+        (see :func:`vol_numbers`).  This may occur for diffusion scans from
+        older V4 .PAR format, where diffusion direction info is not stored.
+
         Data sorting is done in two stages:
             - run an initial sort using several keys of interest
             - call `vol_is_full` to identify potentially missing volumes
@@ -1048,21 +1038,22 @@ class PARRECHeader(SpatialHeader):
                 bvals = self.get_def('diffusion_b_factor')
             bvecs = self.get_def('gradient orientation number')
             if bvecs is None:
-                # manually enumerate the different directions
-                bvecs = _direction_numbers(self.get_def('diffusion'))
-            diffusion_keys = (bvecs, bvals)
+                # no b-vectors available
+                diffusion_keys = (bvals, )
+            else:
+                diffusion_keys = (bvecs, bvals)
         else:
             diffusion_keys = ()
 
         # Define the desired sort order (last key is highest precedence)
-        keys = (slice_nos, echos, phases) + \
+        keys = (slice_nos, vol_numbers(slice_nos), echos, phases) + \
             diffusion_keys + asl_keys + (dynamics, image_type)
 
         initial_sort_order = np.lexsort(keys)
         is_full = vol_is_full(slice_nos[initial_sort_order],
                               self.general_info['max_slices'])
 
-        # have to "unsort" is_full to match the other sort keys
+        # have to "unsort" is_full and volumes to match the other sort keys
         unsort_indices = np.argsort(initial_sort_order)
         is_full = is_full[unsort_indices]
 
