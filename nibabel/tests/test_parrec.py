@@ -350,13 +350,13 @@ def test_diffusion_parameters_v4():
     assert_almost_equal(bvals, DTI_PAR_BVALS)
     # no b-vector info in V4 .PAR files
     assert_equal(bvecs, None)
-    assert_equal(dti_hdr.get_q_vectors(), None)
+    assert_equal(dti_v4_hdr.get_q_vectors(), None)
 
 
 def test_null_diffusion_params():
     # Test non-diffusion PARs return None for diffusion params
     for par, fobj in gen_par_fobj():
-        if basename(par) in ('DTI.PAR', 'NA.PAR'):
+        if basename(par) in ('DTI.PAR', 'DTIv40.PAR', 'NA.PAR'):
             continue
         gen_info, slice_info = parse_PAR_header(fobj)
         with suppress_warnings():
