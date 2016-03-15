@@ -382,8 +382,8 @@ class OrthoSlicer3D(object):
             # sagittal: get to S/A
             # coronal: get to S/L
             # axial: get to A/L
-            data = np.take(self._current_vol_data, self._data_idx[ii],
-                           axis=self._order[ii])
+            data = np.rollaxis(self._current_vol_data,
+                               axis=self._order[ii])[self._data_idx[ii]]
             xax = [1, 0, 0][ii]
             yax = [2, 2, 1][ii]
             if self._order[xax] < self._order[yax]:
