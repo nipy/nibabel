@@ -77,8 +77,8 @@ def get_opt_parser():
                    JSON format with a filename matching the input .PAR, but
                    with the extension .ordering.json.  Only labels that vary
                    along the 4th dimension are exported.  (e.g. for a single
-                   a single volume structural scan there are no dynamic labels
-                   and no output file will be created)""")))
+                   volume structural scan there are no dynamic labels and no
+                   output file will be created)""")))
     p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help=one_line(
