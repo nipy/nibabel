@@ -734,15 +734,17 @@ class PARRECHeader(SpatialHeader):
         n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
-        # All bvals within volume should be the same
-        assert not np.any(np.diff(bvals, axis=0))
+        if not self.strict_sort:
+            # All bvals within volume should be the same
+            assert not np.any(np.diff(bvals, axis=0))
         bvals = bvals[0]
         if 'diffusion' not in self.image_defs.dtype.names:
             return bvals, None
         bvecs = self.image_defs['diffusion'][reorder].reshape(
             (n_slices, n_vols, 3), order='F')
-        # All 3 values of bvecs should be same within volume
-        assert not np.any(np.diff(bvecs, axis=0))
+        if not self.strict_sort:
+            # All 3 values of bvecs should be same within volume
+            assert not np.any(np.diff(bvecs, axis=0))
         bvecs = bvecs[0]
         # rotate bvecs to match stored image orientation
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
@@ -1046,19 +1048,21 @@ class PARRECHeader(SpatialHeader):
             diffusion_keys = ()
 
         # Define the desired sort order (last key is highest precedence)
-        keys = (slice_nos, vol_numbers(slice_nos), echos, phases) + \
+        keys = (slice_nos, echos, phases) + \
             diffusion_keys + asl_keys + (dynamics, image_type)
 
         initial_sort_order = np.lexsort(keys)
+        vol_nos = vol_numbers(slice_nos[initial_sort_order])
         is_full = vol_is_full(slice_nos[initial_sort_order],
                               self.general_info['max_slices'])
 
         # have to "unsort" is_full and volumes to match the other sort keys
         unsort_indices = np.argsort(initial_sort_order)
         is_full = is_full[unsort_indices]
+        vol_nos = np.asarray(vol_nos)[unsort_indices]
 
         # final set of sort keys
-        return keys + (np.logical_not(is_full), )
+        return (keys[0], vol_nos) + keys[1:] + (np.logical_not(is_full), )
 
     def get_sorted_slice_indices(self):
         """Return indices to sort (and maybe discard) slices in REC file.

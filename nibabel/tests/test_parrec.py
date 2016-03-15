@@ -268,12 +268,16 @@ def test_get_sorted_slice_indices():
 def test_sorting_dual_echo_T1():
     # For this .PAR file, instead of getting 1 echo per volume, they get
     # mixed up unless strict_sort=True
-    dti_par = pjoin(DATA_PATH, 'T1_dual_echo.PAR')
-    with open(dti_par, 'rt') as fobj:
-        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
-    sorted_indices = dti_hdr.get_sorted_slice_indices()
-    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
-    n_half = len(dti_hdr.image_defs) // 2
+    t1_par = pjoin(DATA_PATH, 'T1_dual_echo.PAR')
+    with open(t1_par, 'rt') as fobj:
+        t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(t1_hdr.image_defs)
+
+    sorted_indices = t1_hdr.get_sorted_slice_indices()
+    sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
+    n_half = len(t1_hdr.image_defs) // 2
     # first half (volume 1) should all correspond to echo 1
     assert_equal(np.all(sorted_echos[:n_half] == 1), True)
     # second half (volume 2) should all correspond to echo 2
@@ -290,15 +294,19 @@ def test_sorting_multiple_echos_and_contrasts():
         # Type 1, Echo 1, Slices 1-30
         # ...
         # Type 3, Echo 3, Slices 1-30
-    dti_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
-    with open(dti_par, 'rt') as fobj:
-        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
-    sorted_indices = dti_hdr.get_sorted_slice_indices()
-    sorted_slices = dti_hdr.image_defs['slice number'][sorted_indices]
-    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
-    sorted_types = dti_hdr.image_defs['image_type_mr'][sorted_indices]
+    t1_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
+    with open(t1_par, 'rt') as fobj:
+        t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
-    ntotal = len(dti_hdr.image_defs)
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(t1_hdr.image_defs)
+
+    sorted_indices = t1_hdr.get_sorted_slice_indices()
+    sorted_slices = t1_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
+    sorted_types = t1_hdr.image_defs['image_type_mr'][sorted_indices]
+
+    ntotal = len(t1_hdr.image_defs)
     nslices = sorted_slices.max()
     nechos = sorted_echos.max()
     for slice_offset in range(ntotal//nslices):
@@ -321,15 +329,19 @@ def test_sorting_multiple_echos_and_contrasts():
 def test_sorting_multiecho_ASL():
     # For this .PAR file has 3 keys corresponding to volumes:
     #    'echo number', 'label type', 'dynamic scan number'
-    dti_par = pjoin(DATA_PATH, 'ASL_3D_Multiecho.PAR')
-    with open(dti_par, 'rt') as fobj:
-        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
-    sorted_indices = dti_hdr.get_sorted_slice_indices()
-    sorted_slices = dti_hdr.image_defs['slice number'][sorted_indices]
-    sorted_echos = dti_hdr.image_defs['echo number'][sorted_indices]
-    sorted_dynamics = dti_hdr.image_defs['dynamic scan number'][sorted_indices]
-    sorted_labels = dti_hdr.image_defs['label type'][sorted_indices]
-    ntotal = len(dti_hdr.image_defs)
+    asl_par = pjoin(DATA_PATH, 'ASL_3D_Multiecho.PAR')
+    with open(asl_par, 'rt') as fobj:
+        asl_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(asl_hdr.image_defs)
+
+    sorted_indices = asl_hdr.get_sorted_slice_indices()
+    sorted_slices = asl_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = asl_hdr.image_defs['echo number'][sorted_indices]
+    sorted_dynamics = asl_hdr.image_defs['dynamic scan number'][sorted_indices]
+    sorted_labels = asl_hdr.image_defs['label type'][sorted_indices]
+    ntotal = len(asl_hdr.image_defs)
     nslices = sorted_slices.max()
     nechos = sorted_echos.max()
     nlabels = sorted_labels.max()
@@ -439,6 +451,10 @@ def test_diffusion_parameters_strict_sort():
     dti_par = pjoin(DATA_PATH, 'DTI.PAR')
     with open(dti_par, 'rt') as fobj:
         dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(dti_hdr.image_defs)
+
     assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
     assert_equal(dti_hdr.general_info['diffusion'], 1)
     bvals, bvecs = dti_hdr.get_bvals_bvecs()
