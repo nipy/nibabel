@@ -734,17 +734,15 @@ class PARRECHeader(SpatialHeader):
         n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
-        if not self.strict_sort:
-            # All bvals within volume should be the same
-            assert not np.any(np.diff(bvals, axis=0))
+        # All bvals within volume should be the same
+        assert not np.any(np.diff(bvals, axis=0))
         bvals = bvals[0]
         if 'diffusion' not in self.image_defs.dtype.names:
             return bvals, None
         bvecs = self.image_defs['diffusion'][reorder].reshape(
             (n_slices, n_vols, 3), order='F')
-        if not self.strict_sort:
-            # All 3 values of bvecs should be same within volume
-            assert not np.any(np.diff(bvecs, axis=0))
+        # All 3 values of bvecs should be same within volume
+        assert not np.any(np.diff(bvecs, axis=0))
         bvecs = bvecs[0]
         # rotate bvecs to match stored image orientation
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
@@ -752,7 +750,7 @@ class PARRECHeader(SpatialHeader):
         return bvals, bvecs
 
     def get_def(self, name):
-        """ Return a single image definition field. """
+        """Return a single image definition field (or None if missing) """
         idef = self.image_defs
         return idef[name] if name in idef.dtype.names else None
 
@@ -1008,33 +1006,48 @@ class PARRECHeader(SpatialHeader):
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         return inplane_shape + (len(self.image_defs),)
 
-    def _strict_sort_keys(self):
+    def _strict_sort_order(self):
         """ Determine the sort order based on several image definition fields.
 
-        If the sort keys are not unique for each volume, we calculate a volume
-        number by looking for repeating slice numbers
-        (see :func:`vol_numbers`).  This may occur for diffusion scans from
-        older V4 .PAR format, where diffusion direction info is not stored.
+        The fields taken into consideration, if present, are (in order from
+        slowest to fastest variation after sorting):
+
+            - image_defs['image_type_mr']                # Re, Im, Mag, Phase
+            - image_defs['dynamic scan number']          # repetition
+            - image_defs['label type']                   # ASL tag/control
+            - image_defs['diffusion b value number']     # diffusion b value
+            - image_defs['gradient orientation number']  # diffusion directoin
+            - image_defs['cardiac phase number']         # cardiac phase
+            - image_defs['echo number']                  # echo
+            - image_defs['slice number']                 # slice
 
         Data sorting is done in two stages:
-            - run an initial sort using several keys of interest
-            - call `vol_is_full` to identify potentially missing volumes
-              and add the result to the list of sort keys
+
+            1. an initial sort using the keys described above
+            2. a resort after generating two additional sort keys:
+
+                * a key to assign unique volume numbers to any volumes that
+                  didn't have a unique sort based on the keys above
+                  (see :func:`vol_numbers`).
+                * a sort key based on `vol_is_full` to identify truncated
+                  volumes
+
+        A case where the initial sort may not create a unique label for each
+        volume is diffusion scans acquired in the older V4 .PAR format, where
+        diffusion direction info is not available.
         """
-        # Sort based on a larger number of keys.  This is more complicated
-        # but works for .PAR files that get missorted by the above method
-        slice_nos = self.image_defs['slice number']
-        dynamics = self.image_defs['dynamic scan number']
-        phases = self.image_defs['cardiac phase number']
-        echos = self.image_defs['echo number']
-        image_type = self.image_defs['image_type_mr']
-
-        # try adding keys only present in a subset of .PAR files
+        # sort keys present in all supported .PAR versions
         idefs = self.image_defs
-        asl_keys = (idefs['label type'], ) if 'label type' in \
-            idefs.dtype.names else ()
+        slice_nos = idefs['slice number']
+        dynamics = idefs['dynamic scan number']
+        phases = idefs['cardiac phase number']
+        echos = idefs['echo number']
+        image_type = idefs['image_type_mr']
 
-        if not self.general_info['diffusion'] == 0:
+        # sort keys only present in a subset of .PAR files
+        asl_keys = ((idefs['label type'], ) if 'label type' in
+                    idefs.dtype.names else ())
+        if self.general_info['diffusion'] != 0:
             bvals = self.get_def('diffusion b value number')
             if bvals is None:
                 bvals = self.get_def('diffusion_b_factor')
@@ -1047,30 +1060,34 @@ class PARRECHeader(SpatialHeader):
         else:
             diffusion_keys = ()
 
-        # Define the desired sort order (last key is highest precedence)
+        # initial sort (last key is highest precedence)
         keys = (slice_nos, echos, phases) + \
             diffusion_keys + asl_keys + (dynamics, image_type)
-
         initial_sort_order = np.lexsort(keys)
+
+        # sequentially number the volumes based on the initial sort
         vol_nos = vol_numbers(slice_nos[initial_sort_order])
+        # identify truncated volumes
         is_full = vol_is_full(slice_nos[initial_sort_order],
                               self.general_info['max_slices'])
 
-        # have to "unsort" is_full and volumes to match the other sort keys
-        unsort_indices = np.argsort(initial_sort_order)
-        is_full = is_full[unsort_indices]
-        vol_nos = np.asarray(vol_nos)[unsort_indices]
+        # second stage of sorting
+        return initial_sort_order[np.lexsort((vol_nos, is_full))]
 
-        # final set of sort keys
-        return (keys[0], vol_nos) + keys[1:] + (np.logical_not(is_full), )
-
-    def get_sorted_slice_indices(self):
-        """Return indices to sort (and maybe discard) slices in REC file.
-
+    def _lax_sort_order(self):
+        """
         Sorts by (fast to slow): slice number, volume number.
 
         We calculate volume number by looking for repeating slice numbers (see
         :func:`vol_numbers`).
+        """
+        slice_nos = self.image_defs['slice number']
+        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
+        return np.lexsort(keys)
+
+    def get_sorted_slice_indices(self):
+        """Return indices to sort (and maybe discard) slices in REC file.
 
         If the recording is truncated, the returned indices take care of
         discarding any slice indices from incomplete volumes.
@@ -1088,13 +1105,10 @@ class PARRECHeader(SpatialHeader):
             ``self.image_defs``.
         """
         if not self.strict_sort:
-            slice_nos = self.image_defs['slice number']
-            is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
-            keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
+            sort_order = self._lax_sort_order()
         else:
-            keys = self._strict_sort_keys()
+            sort_order = self._strict_sort_order()
 
-        sort_order = np.lexsort(keys)
         # Figure out how many we need to remove from the end, and trim them.
         # Based on our sorting, they should always be last.
         n_used = np.prod(self.get_data_shape()[2:])
