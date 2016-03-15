@@ -340,10 +340,23 @@ def test_diffusion_parameters():
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
 
 
+def test_diffusion_parameters_v4():
+    dti_v4_par = pjoin(DATA_PATH, 'DTIv40.PAR')
+    with open(dti_v4_par, 'rt') as fobj:
+        dti_v4_hdr = PARRECHeader.from_fileobj(fobj)
+    assert_equal(dti_v4_hdr.get_data_shape(), (80, 80, 10, 8))
+    assert_equal(dti_v4_hdr.general_info['diffusion'], 1)
+    bvals, bvecs = dti_v4_hdr.get_bvals_bvecs()
+    assert_almost_equal(bvals, DTI_PAR_BVALS)
+    # no b-vector info in V4 .PAR files
+    assert_equal(bvecs, None)
+    assert_equal(dti_v4_hdr.get_q_vectors(), None)
+
+
 def test_null_diffusion_params():
     # Test non-diffusion PARs return None for diffusion params
     for par, fobj in gen_par_fobj():
-        if basename(par) in ('DTI.PAR', 'NA.PAR'):
+        if basename(par) in ('DTI.PAR', 'DTIv40.PAR', 'NA.PAR'):
             continue
         gen_info, slice_info = parse_PAR_header(fobj)
         with suppress_warnings():
