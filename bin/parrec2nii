@@ -113,6 +113,13 @@ def get_opt_parser():
                default=False,
                help=one_line("""Overwrite file if it exists. Default:
                              False""")))
+    p.add_option(
+        Option("--strict-sort", action="store_true", dest="strict_sort",
+               default=False,
+               help=one_line("""Use additional keys in determining the order
+                to sort the slices within the .REC file.  This may be necessary
+                for more complicated scans with multiple echos,
+                cardiac phases, ASL label states, etc.""")))
     return p
 
 
@@ -148,7 +155,8 @@ def proc_file(infile, opts):
     infile = fname_ext_ul_case(infile)
     pr_img = pr.load(infile,
                      permit_truncated=opts.permit_truncated,
-                     scaling=scaling)
+                     scaling=scaling,
+                     strict_sort=opts.strict_sort)
     pr_hdr = pr_img.header
     affine = pr_hdr.get_affine(origin=opts.origin)
     slope, intercept = pr_hdr.get_data_scaling(scaling)

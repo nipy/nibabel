@@ -113,7 +113,6 @@ PREVIOUS_AFFINES = {
          [0., 0., 3.3, -64.35],
          [0., 0., 0., 1.]]),
 }
-
 # Original values for b values in DTI.PAR, still in PSL orientation
 DTI_PAR_BVECS = np.array([[-0.667, -0.667, -0.333],
                           [-0.333, 0.667, -0.667],
@@ -155,20 +154,22 @@ def test_top_level_load():
 
 def test_header():
     v42_hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with open(V4_PAR, 'rt') as fobj:
-        v4_hdr = PARRECHeader.from_fileobj(fobj)
-    with open(V41_PAR, 'rt') as fobj:
-        v41_hdr = PARRECHeader.from_fileobj(fobj)
-    for hdr in (v42_hdr, v41_hdr, v4_hdr):
-        hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-        assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
-        assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
-        assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
-        assert_equal(hdr.get_data_offset(), 0)
-        si = np.array([np.unique(x) for x in hdr.get_data_scaling()]).ravel()
-        assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
-        assert_equal(hdr.get_q_vectors(), None)
-        assert_equal(hdr.get_bvals_bvecs(), (None, None))
+    for strict_sort in [False, True]:
+        with open(V4_PAR, 'rt') as fobj:
+            v4_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
+        with open(V41_PAR, 'rt') as fobj:
+            v41_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
+        for hdr in (v42_hdr, v41_hdr, v4_hdr):
+            hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+            assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
+            assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
+            assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
+            assert_equal(hdr.get_data_offset(), 0)
+            si = np.array(
+                [np.unique(x) for x in hdr.get_data_scaling()]).ravel()
+            assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
+            assert_equal(hdr.get_q_vectors(), None)
+            assert_equal(hdr.get_bvals_bvecs(), (None, None))
 
 
 def test_header_scaling():
@@ -259,6 +260,111 @@ def test_get_sorted_slice_indices():
         hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
+    # different result when strict_sort=True
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1], strict_sort=True)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices)[::-1])
+
+
+def test_sorting_dual_echo_T1():
+    # For this .PAR file, instead of getting 1 echo per volume, they get
+    # mixed up unless strict_sort=True
+    t1_par = pjoin(DATA_PATH, 'T1_dual_echo.PAR')
+    with open(t1_par, 'rt') as fobj:
+        t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(t1_hdr.image_defs)
+
+    sorted_indices = t1_hdr.get_sorted_slice_indices()
+    sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
+    n_half = len(t1_hdr.image_defs) // 2
+    # first half (volume 1) should all correspond to echo 1
+    assert_equal(np.all(sorted_echos[:n_half] == 1), True)
+    # second half (volume 2) should all correspond to echo 2
+    assert_equal(np.all(sorted_echos[n_half:] == 2), True)
+
+
+def test_sorting_multiple_echos_and_contrasts():
+    # This .PAR file has 3 echos and 4 image types (real, imaginary, magnitude,
+    # phase).
+    # After sorting should be:
+        # Type 0, Echo 1, Slices 1-30
+        # Type 0, Echo 2, Slices 1-30
+        # Type 0, Echo 3, Slices 1-30
+        # Type 1, Echo 1, Slices 1-30
+        # ...
+        # Type 3, Echo 3, Slices 1-30
+    t1_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
+    with open(t1_par, 'rt') as fobj:
+        t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(t1_hdr.image_defs)
+
+    sorted_indices = t1_hdr.get_sorted_slice_indices()
+    sorted_slices = t1_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
+    sorted_types = t1_hdr.image_defs['image_type_mr'][sorted_indices]
+
+    ntotal = len(t1_hdr.image_defs)
+    nslices = sorted_slices.max()
+    nechos = sorted_echos.max()
+    for slice_offset in range(ntotal//nslices):
+        istart = slice_offset*nslices
+        iend = (slice_offset+1)*nslices
+        # innermost sort index is slices
+        assert_array_equal(sorted_slices[istart:iend],
+                           np.arange(1, nslices+1))
+        current_echo = slice_offset % nechos + 1
+        # same echo for each slice in the group
+        assert_equal(np.all(sorted_echos[istart:iend] == current_echo),
+                     True)
+    # outermost sort index is image_type_mr
+    assert_equal(np.all(sorted_types[:ntotal//4] == 0), True)
+    assert_equal(np.all(sorted_types[ntotal//4:ntotal//2] == 1), True)
+    assert_equal(np.all(sorted_types[ntotal//2:3*ntotal//4] == 2), True)
+    assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
+
+
+def test_sorting_multiecho_ASL():
+    # For this .PAR file has 3 keys corresponding to volumes:
+    #    'echo number', 'label type', 'dynamic scan number'
+    asl_par = pjoin(DATA_PATH, 'ASL_3D_Multiecho.PAR')
+    with open(asl_par, 'rt') as fobj:
+        asl_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(asl_hdr.image_defs)
+
+    sorted_indices = asl_hdr.get_sorted_slice_indices()
+    sorted_slices = asl_hdr.image_defs['slice number'][sorted_indices]
+    sorted_echos = asl_hdr.image_defs['echo number'][sorted_indices]
+    sorted_dynamics = asl_hdr.image_defs['dynamic scan number'][sorted_indices]
+    sorted_labels = asl_hdr.image_defs['label type'][sorted_indices]
+    ntotal = len(asl_hdr.image_defs)
+    nslices = sorted_slices.max()
+    nechos = sorted_echos.max()
+    nlabels = sorted_labels.max()
+    ndynamics = sorted_dynamics.max()
+    assert_equal(nslices, 8)
+    assert_equal(nechos, 3)
+    assert_equal(nlabels, 2)
+    assert_equal(ndynamics, 2)
+    # check that dynamics vary slowest
+    assert_array_equal(
+        np.all(sorted_dynamics[:ntotal//ndynamics] == 1), True)
+    assert_array_equal(
+        np.all(sorted_dynamics[ntotal//ndynamics:ntotal] == 2), True)
+    # check that labels vary 2nd slowest
+    assert_array_equal(np.all(sorted_labels[:nslices*nechos] == 1), True)
+    assert_array_equal(
+        np.all(sorted_labels[nslices*nechos:2*nslices*nechos] == 2), True)
+    # check that echos vary 2nd fastest
+    assert_array_equal(np.all(sorted_echos[:nslices] == 1), True)
+    assert_array_equal(np.all(sorted_echos[nslices:2*nslices] == 2), True)
+    assert_array_equal(np.all(sorted_echos[2*nslices:3*nslices] == 3), True)
+    # check that slices vary fastest
+    assert_array_equal(sorted_slices[:nslices], np.arange(1, nslices+1))
 
 def test_vol_number():
     # Test algorithm for calculating volume number
@@ -336,6 +442,29 @@ def test_diffusion_parameters():
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
     # Permute to match bvec directions to acquisition directions
     assert_almost_equal(bvecs, DTI_PAR_BVECS[:, [2, 0, 1]])
+    # Check q vectors
+    assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
+
+
+def test_diffusion_parameters_strict_sort():
+    # Check getting diffusion parameters from diffusion example
+    dti_par = pjoin(DATA_PATH, 'DTI.PAR')
+    with open(dti_par, 'rt') as fobj:
+        dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
+
+    # should get the correct order even if we randomly shuffle the order
+    np.random.shuffle(dti_hdr.image_defs)
+
+    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
+    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    bvals, bvecs = dti_hdr.get_bvals_bvecs()
+    assert_almost_equal(bvals, np.sort(DTI_PAR_BVALS))
+    # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
+    # Permute to match bvec directions to acquisition directions
+    # note that bval sorting occurs prior to bvec sorting
+    assert_almost_equal(bvecs,
+                        DTI_PAR_BVECS[
+                            np.ix_(np.argsort(DTI_PAR_BVALS), [2, 0, 1])])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
 
