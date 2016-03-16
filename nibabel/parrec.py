@@ -1126,7 +1126,7 @@ class PARRECHeader(SpatialHeader):
         n_used = np.prod(self.get_data_shape()[2:])
         return sort_order[:n_used]
 
-    def get_dimension_labels(self, collapse_slices=True):
+    def get_volume_labels(self, collapse_slices=True):
         """ Dynamic labels corresponding to the final data dimension(s).
 
         This is useful for custom data sorting.  A subset of the info in
@@ -1148,6 +1148,8 @@ class PARRECHeader(SpatialHeader):
             The ordering of each value corresponds to that returned by
             ``self.get_sorted_slice_indices``.
         """
+        sorted_indices = self.get_sorted_slice_indices()
+        image_defs = self.image_defs
 
         # define which keys to store sorting info for
         dynamic_keys = ['slice number',
@@ -1162,9 +1164,6 @@ class PARRECHeader(SpatialHeader):
                         'scanning sequence',
                         'gradient orientation number',
                         'diffusion b value number']
-
-        sorted_indices = self.get_sorted_slice_indices()
-        image_defs = self.image_defs
 
         if collapse_slices:
             dynamic_keys.remove('slice number')
@@ -1187,15 +1186,12 @@ class PARRECHeader(SpatialHeader):
                 non_unique_keys.append(key)
 
         if collapse_slices:
-            if 'slice orientation' in non_unique_keys:
-                raise ValueError("for non-unique slice orientation, need "
-                                 "collapse_slice=False")
-            if 'image angulation' in non_unique_keys:
-                raise ValueError("for non-unique image angulation, need "
-                                 "collapse_slice=False")
-            if 'image_display_orientation' in non_unique_keys:  # ???
-                raise ValueError("for non-unique display orientation, need "
-                                 "collapse_slice=False")
+            for key in ('slice_orientation', 'image_angulation',
+                        'image_display_orientation'):
+                if key in non_unique_keys:
+                    raise ValueError(
+                        'for values of {0} that differ overslices, use '
+                        '"collapse_slice=False"'.format(key))
             sl1_indices = image_defs['slice number'][sorted_indices] == 1
 
         sort_info = {}

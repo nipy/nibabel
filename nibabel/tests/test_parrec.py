@@ -192,13 +192,13 @@ def test_header_scaling():
 def test_header_dimension_labels():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     # check volume labels
-    vol_labels = hdr.get_dimension_labels()
+    vol_labels = hdr.get_volume_labels()
     assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
     assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
     # check that output is ndarray rather than list
     assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
     # check case with individual slice labels
-    slice_vol_labels = hdr.get_dimension_labels(collapse_slices=False)
+    slice_vol_labels = hdr.get_volume_labels(collapse_slices=False)
     # verify that both expected keys are present
     assert_true('slice number' in slice_vol_labels)
     assert_true('dynamic scan number' in slice_vol_labels)
@@ -302,7 +302,7 @@ def test_sorting_dual_echo_T1():
     assert_equal(np.all(sorted_echos[n_half:] == 2), True)
 
     # check volume labels
-    vol_labels = t1_hdr.get_dimension_labels()
+    vol_labels = t1_hdr.get_volume_labels()
     assert_equal(list(vol_labels.keys()), ['echo number'])
     assert_array_equal(vol_labels['echo number'], [1, 2])
 
@@ -349,7 +349,7 @@ def test_sorting_multiple_echos_and_contrasts():
     assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
 
     # check volume labels
-    vol_labels = t1_hdr.get_dimension_labels()
+    vol_labels = t1_hdr.get_volume_labels()
     assert_equal(sorted(list(vol_labels.keys())),
                  ['echo number', 'image_type_mr'])
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
@@ -398,7 +398,7 @@ def test_sorting_multiecho_ASL():
     assert_array_equal(sorted_slices[:nslices], np.arange(1, nslices+1))
 
     # check volume labels
-    vol_labels = asl_hdr.get_dimension_labels()
+    vol_labels = asl_hdr.get_volume_labels()
     assert_equal(sorted(list(vol_labels.keys())),
                  ['dynamic scan number', 'echo number', 'label type'])
     assert_array_equal(vol_labels['dynamic scan number'], [1]*6 + [2]*6)
