@@ -220,7 +220,8 @@ def inv_ornt_aff(ornt, shape):
     # ornt indicates the transpose that has occurred to get the current
     # ordering, relative to canonical, so we just use that.
     # undo_reorder is a row permutatation matrix
-    undo_reorder = np.eye(p + 1)[list(ornt[:, 0]) + [p], :]
+    axis_transpose = [int(v) for v in ornt[:, 0]]
+    undo_reorder = np.eye(p + 1)[axis_transpose + [p], :]
     undo_flip = np.diag(list(ornt[:, 1]) + [1.0])
     center_trans = -(shape - 1) / 2.0
     undo_flip[:p, p] = (ornt[:, 1] * center_trans) - center_trans
