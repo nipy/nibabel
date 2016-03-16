@@ -249,18 +249,6 @@ class PARRECError(Exception):
 GEN_RE = re.compile(r".\s+(.*?)\s*:\s*(.*)")
 
 
-def _unique_rows(a):
-    """
-    find unique rows of a 2D array.  based on discussion at:
-    http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
-    """
-    if a.ndim != 2:
-        raise ValueError("expected 2D input")
-    b = np.ascontiguousarray(a).view(
-        np.dtype((np.void, a.dtype.itemsize * a.shape[1])))
-    return np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
-
-
 def _split_header(fobj):
     """ Split header into `version`, `gen_dict`, `image_lines` """
     version = None
@@ -1126,7 +1114,7 @@ class PARRECHeader(SpatialHeader):
         n_used = np.prod(self.get_data_shape()[2:])
         return sort_order[:n_used]
 
-    def get_volume_labels(self, collapse_slices=True):
+    def get_volume_labels(self):
         """ Dynamic labels corresponding to the final data dimension(s).
 
         This is useful for custom data sorting.  A subset of the info in
@@ -1134,39 +1122,25 @@ class PARRECHeader(SpatialHeader):
         data dimension(s).  Only labels that have more than one unique value
         across the dataset will be returned.
 
-        Parameters
-        ----------
-        collapse_slices : bool, optional
-            If True, only return volume indices (corresponding to the first
-            slice).  If False, return indices corresponding to individual
-            slices as well (with shape matching self.shape[2:]).
-
         Returns
         -------
         sort_info : dict
-            Each key corresponds to a dynamically varying sequence dimension.
-            The ordering of each value corresponds to that returned by
-            ``self.get_sorted_slice_indices``.
+            Each key corresponds to volume labels for a dynamically varying
+            sequence dimension.  The ordering of the labels matches the volume
+            ordering determined via ``self.get_sorted_slice_indices``.
         """
         sorted_indices = self.get_sorted_slice_indices()
         image_defs = self.image_defs
 
-        # define which keys to store sorting info for
-        dynamic_keys = ['slice number',
-                        'cardiac phase number',
+        # define which keys which might vary across image volumes
+        dynamic_keys = ['cardiac phase number',
                         'echo number',
                         'label type',
                         'image_type_mr',
                         'dynamic scan number',
-                        'slice orientation',
-                        'image_display_orientation',  # ????
-                        'image angulation',
                         'scanning sequence',
                         'gradient orientation number',
                         'diffusion b value number']
-
-        if collapse_slices:
-            dynamic_keys.remove('slice number')
 
         # remove dynamic keys that may not be present in older .PAR versions
         dynamic_keys = [d for d in dynamic_keys if d in
@@ -1177,31 +1151,18 @@ class PARRECHeader(SpatialHeader):
             ndim = image_defs[key].ndim
             if ndim == 1:
                 num_unique = len(np.unique(image_defs[key]))
-            elif ndim == 2:
-                # for 2D cases, e.g. 'image angulation'
-                num_unique = len(_unique_rows(image_defs[key]))
             else:
-                raise ValueError("unexpected image_defs shape > 2D")
+                raise ValueError("unexpected image_defs shape > 1D")
             if num_unique > 1:
                 non_unique_keys.append(key)
 
-        if collapse_slices:
-            for key in ('slice_orientation', 'image_angulation',
-                        'image_display_orientation'):
-                if key in non_unique_keys:
-                    raise ValueError(
-                        'for values of {0} that differ overslices, use '
-                        '"collapse_slice=False"'.format(key))
-            sl1_indices = image_defs['slice number'][sorted_indices] == 1
+        # each key in dynamic keys will be identical across slices, so use
+        # the value at slice 1.
+        sl1_indices = image_defs['slice number'][sorted_indices] == 1
 
         sort_info = {}
         for key in non_unique_keys:
-            if collapse_slices:
-                sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
-            else:
-                value = image_defs[key][sorted_indices]
-                sort_info[key] = value.reshape(self.get_data_shape()[2:],
-                                               order='F')
+            sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
         return sort_info
 
 

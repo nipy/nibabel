@@ -197,14 +197,6 @@ def test_header_dimension_labels():
     assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
     # check that output is ndarray rather than list
     assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
-    # check case with individual slice labels
-    slice_vol_labels = hdr.get_volume_labels(collapse_slices=False)
-    # verify that both expected keys are present
-    assert_true('slice number' in slice_vol_labels)
-    assert_true('dynamic scan number' in slice_vol_labels)
-    # verify shape of labels matches final dimensions of data
-    assert_equal(slice_vol_labels['slice number'].shape,
-                 hdr.get_data_shape()[2:])
 
 
 def test_orientation():
@@ -720,9 +712,6 @@ class FakeHeader(object):
     def get_rec_shape(self):
         n_slices = np.prod(self._shape[2:])
         return self._shape[:2] + (n_slices,)
-
-    def sorted_labels(self, sorted_indices, collapse_slices):
-        return np.arange(self._shape[-1])
 
 
 def test_parrec_proxy():
