@@ -95,6 +95,7 @@ from copy import deepcopy
 import re
 from io import StringIO
 from locale import getpreferredencoding
+from collections import OrderedDict
 
 from .keywordonly import kw_only_meth
 from .spatialimages import SpatialHeader, SpatialImage
@@ -1160,7 +1161,7 @@ class PARRECHeader(SpatialHeader):
         # the value at slice 1.
         sl1_indices = image_defs['slice number'][sorted_indices] == 1
 
-        sort_info = {}
+        sort_info = OrderedDict(non_unique_keys)
         for key in non_unique_keys:
             sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
         return sort_info
