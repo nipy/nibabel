@@ -41,6 +41,8 @@ TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
 V4_PAR = pjoin(DATA_PATH, 'phantom_fake_v4.PAR')
 # Fake V4.1
 V41_PAR = pjoin(DATA_PATH, 'phantom_fake_v4_1.PAR')
+# Fake V4.1 with dual TRs
+DUAL_TR_PAR = pjoin(DATA_PATH, 'phantom_fake_dualTR.PAR')
 # Anonymized PAR
 ANON_PAR = pjoin(DATA_PATH, 'umass_anonymized.PAR')
 # Fake varying scaling
@@ -777,3 +779,11 @@ def test_exts2par():
                    list(nii_img.header.extensions)):
         hdrs = exts2pars(source)
         assert_equal(len(hdrs), 2)
+
+
+def test_dualTR():
+    with open(DUAL_TR_PAR, 'rt') as fobj:
+        with suppress_warnings():
+            dualTR_hdr = PARRECHeader.from_fileobj(fobj)
+        assert_array_equal(dualTR_hdr.general_info['repetition_time'],
+                           np.asarray([2000., 500.]))
