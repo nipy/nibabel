@@ -782,8 +782,13 @@ def test_exts2par():
 
 
 def test_dualTR():
+    expected_TRs = np.asarray([2000., 500.])
     with open(DUAL_TR_PAR, 'rt') as fobj:
-        with suppress_warnings():
+        with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
+            simplefilter('always')
             dualTR_hdr = PARRECHeader.from_fileobj(fobj)
+        assert_equal(len(wlist), 1)
         assert_array_equal(dualTR_hdr.general_info['repetition_time'],
-                           np.asarray([2000., 500.]))
+                           expected_TRs)
+        # zoom on 4th dimensions is the first TR (in seconds)
+        assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0]/1000)
