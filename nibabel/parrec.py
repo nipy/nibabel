@@ -129,6 +129,7 @@ ACQ_TO_PSL = dict(
 # General information dict definitions
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
+# if shape is None, the number of elements is to be determined on read
 _hdr_key_dict = {
     'Patient name': ('patient_name',),
     'Examination name': ('exam_name',),
