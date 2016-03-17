@@ -1161,7 +1161,7 @@ class PARRECHeader(SpatialHeader):
         # the value at slice 1.
         sl1_indices = image_defs['slice number'][sorted_indices] == 1
 
-        sort_info = OrderedDict(non_unique_keys)
+        sort_info = OrderedDict()
         for key in non_unique_keys:
             sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
         return sort_info
