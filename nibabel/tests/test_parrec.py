@@ -189,7 +189,7 @@ def test_header_scaling():
     assert_false(np.all(fp_scaling == dv_scaling))
 
 
-def test_header_dimension_labels():
+def test_header_volume_labels():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     # check volume labels
     vol_labels = hdr.get_volume_labels()
@@ -342,8 +342,7 @@ def test_sorting_multiple_echos_and_contrasts():
 
     # check volume labels
     vol_labels = t1_hdr.get_volume_labels()
-    assert_equal(sorted(list(vol_labels.keys())),
-                 ['echo number', 'image_type_mr'])
+    assert_equal(list(vol_labels.keys()), ['echo number', 'image_type_mr'])
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
     assert_array_equal(vol_labels['image_type_mr'],
                        [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3])
@@ -391,8 +390,8 @@ def test_sorting_multiecho_ASL():
 
     # check volume labels
     vol_labels = asl_hdr.get_volume_labels()
-    assert_equal(sorted(list(vol_labels.keys())),
-                 ['dynamic scan number', 'echo number', 'label type'])
+    assert_equal(list(vol_labels.keys()),
+                 ['echo number', 'label type', 'dynamic scan number'])
     assert_array_equal(vol_labels['dynamic scan number'], [1]*6 + [2]*6)
     assert_array_equal(vol_labels['label type'], [1]*3 + [2]*3 + [1]*3 + [2]*3)
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
