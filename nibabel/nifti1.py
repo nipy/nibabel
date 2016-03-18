@@ -436,10 +436,10 @@ class Nifti1DicomExtension(Nifti1Extension):
 
 
 try:
+    from dicom.dataset import Dataset
+    from dicom.filebase import DicomFileLike
     from dicom.filereader import read_dataset
     from dicom.filewriter import write_dataset
-    from dicom.filebase import DicomFileLike
-    from dicom.dataset import Dataset
     from dicom.values import converters as dicom_converters
     from io import BytesIO
 except ImportError:

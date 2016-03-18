@@ -1077,6 +1077,7 @@ def test_nifti_extensions():
     assert_true(exts_container.count('comment') == 1)
     assert_true(exts_container.count('afni') == 1)
 
+
 @dicom_test
 def test_nifti_dicom_extension():
     nim = load(image_file)
@@ -1084,50 +1085,53 @@ def test_nifti_dicom_extension():
     exts_container = hdr.extensions
 
     # create an empty dataset if no content provided (to write a new header)
-    dcmext = Nifti1DicomExtension(2,b'')
+    dcmext = Nifti1DicomExtension(2, b'')
     assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
     assert_equal(len(dcmext.get_content().values()), 0)
 
     # use a dataset if provided
     ds = dicom.dataset.Dataset()
-    ds.add_new((0x10,0x20),'LO','NiPy')
-    dcmext = Nifti1DicomExtension(2,ds)
+    ds.add_new((0x10, 0x20), 'LO', 'NiPy')
+    dcmext = Nifti1DicomExtension(2, ds)
     assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
     assert_equal(len(dcmext.get_content().values()), 1)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
 
-    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR
-    dcmbytes_explicit = struct.pack('<HH2sH4s',0x10,0x20,
-        'LO'.encode('utf-8'),4,'NiPy'.encode('utf-8'))
-    dcmext = Nifti1DicomExtension(2,dcmbytes_explicit)
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / LE
+    dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20,
+                                    'LO'.encode('utf-8'), 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert_equal(dcmext.__class__, Nifti1DicomExtension)
-    assert_equal(dcmext._guess_implicit_VR(),False)
-    assert_equal(dcmext.get_code(),2)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext.get_code(), 2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
-    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_explicit)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
-    dcmbytes_implicit = struct.pack('<HHL4s',0x10,0x20,4,'NiPy'.encode('utf-8'))
-    dcmext = Nifti1DicomExtension(2,dcmbytes_implicit)
-    assert_equal(dcmext._guess_implicit_VR(),True)
-    assert_equal(dcmext.get_code(),2)
+    dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
+    assert_equal(dcmext._guess_implicit_VR(), True)
+    assert_equal(dcmext.get_code(), 2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
     assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
     # dicom extension access from nifti extensions
-    assert_equal(exts_container.count('dicom'),0)
+    assert_equal(exts_container.count('dicom'), 0)
     exts_container.append(dcmext)
     assert_equal(exts_container.count('dicom'), 1)
     assert_equal(exts_container.get_codes(), [6, 6, 2])
-    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_implicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
     bio = BytesIO()
-    dcmext.write_to(bio,False)
+    dcmext.write_to(bio, False)
+
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
