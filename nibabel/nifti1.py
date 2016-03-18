@@ -12,6 +12,7 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 '''
 from __future__ import division, print_function
 import warnings
+from io import BytesIO
 
 import numpy as np
 import numpy.linalg as npl
@@ -24,6 +25,7 @@ from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
+from .pydicom_compat import have_dicom, pydicom as pdcm
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -392,7 +394,7 @@ class Nifti1DicomExtension(Nifti1Extension):
             self._is_little_endian = parent_hdr.endianness == '<'
         else:
             self._is_little_endian = True
-        if content.__class__ == Dataset:
+        if content.__class__ == pdcm.dataset.Dataset:
             self._is_implicit_VR = False
             self._raw_content = self._mangle(content)
             self._content = content
@@ -404,13 +406,13 @@ class Nifti1DicomExtension(Nifti1Extension):
             self._content = ds
         else:  # Otherwise, initialize a new dicom dataset
             self._is_implicit_VR = False
-            self._content = Dataset()
+            self._content = pdcm.dataset.Dataset()
 
     def _unmangle_and_verify(self, content, is_implicit_VR, is_little_endian):
         """"Decode and verify dicom dataset"""
         ds = self._unmangle(content, is_implicit_VR, is_little_endian)
         for elem in ds:
-            if elem.VR not in dicom_converters.keys():
+            if elem.VR not in pdcm.values.converters.keys():
                 raise StandardError  # Ensure that all VRs are valid
         return ds
 
@@ -423,7 +425,7 @@ class Nifti1DicomExtension(Nifti1Extension):
         valid VRs
         """
         potential_vr = self._raw_content[4:6].decode()
-        if potential_vr in dicom_converters.keys():
+        if potential_vr in pdcm.values.converters.keys():
             implicit_VR = False
         else:
             implicit_VR = True
@@ -431,29 +433,21 @@ class Nifti1DicomExtension(Nifti1Extension):
 
     def _unmangle(self, value, is_implicit_VR=False, is_little_endian=True):
         bio = BytesIO(value)
-        ds = read_dataset(bio, is_implicit_VR, is_little_endian)
+        ds = pdcm.filereader.read_dataset(bio,
+                                          is_implicit_VR,
+                                          is_little_endian)
         return ds
 
     def _mangle(self, dataset):
         bio = BytesIO()
-        dio = DicomFileLike(bio)
+        dio = pdcm.filebase.DicomFileLike(bio)
         dio.is_implicit_VR = self._is_implicit_VR
         dio.is_little_endian = self._is_little_endian
-        ds_len = write_dataset(dio, dataset)
+        ds_len = pdcm.filewriter.write_dataset(dio, dataset)
         dio.seek(0)
         return dio.read(ds_len)
 
 
-try:
-    from dicom.dataset import Dataset
-    from dicom.filebase import DicomFileLike
-    from dicom.filereader import read_dataset
-    from dicom.filewriter import write_dataset
-    from dicom.values import converters as dicom_converters
-    from io import BytesIO
-except ImportError:
-    """Fall back to standard reader if pydicom unavailable."""
-    Nifti1DicomExtension = Nifti1Extension
 
 # NIfTI header extension type codes (ECODE)
 # see nifti1_io.h for a complete list of all known extensions and
@@ -461,7 +455,7 @@ except ImportError:
 # initiators
 extension_codes = Recoder((
     (0, "ignore", Nifti1Extension),
-    (2, "dicom", Nifti1DicomExtension),
+    (2, "dicom", Nifti1DicomExtension if have_dicom else Nifti1Extension),
     (4, "afni", Nifti1Extension),
     (6, "comment", Nifti1Extension),
     (8, "xcede", Nifti1Extension),

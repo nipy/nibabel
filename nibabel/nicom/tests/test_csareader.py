@@ -14,10 +14,8 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing.decorators import skipif
 
-from .test_dicomwrappers import (have_dicom, dicom_test,
-                                 IO_DATA_PATH, DATA, DATA_FILE)
-if have_dicom:
-    from .test_dicomwrappers import pydicom
+from nibabel.pydicom_compat import dicom_test, pydicom
+from .test_dicomwrappers import (IO_DATA_PATH, DATA)
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()

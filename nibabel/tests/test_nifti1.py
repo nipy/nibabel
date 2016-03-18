@@ -10,6 +10,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import warnings
+import struct
 
 import numpy as np
 
@@ -43,12 +44,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-from nibabel.optpkg import optional_package
-dicom, have_dicom, _ = optional_package('dicom')
-import struct
+from nibabel.pydicom_compat import pydicom, dicom_test
 
-dicom_test = np.testing.dec.skipif(not have_dicom,
-    'could not import pydicom')
 
 # Example transformation matrix
 R = [[0, -1, 0], [1, 0, 0], [0, 0, 1]]  # rotation matrix
@@ -1133,14 +1130,14 @@ def test_nifti_dicom_extension():
 
     # create an empty dataset if no content provided (to write a new header)
     dcmext = Nifti1DicomExtension(2, b'')
-    assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
     assert_equal(len(dcmext.get_content().values()), 0)
 
     # use a dataset if provided
-    ds = dicom.dataset.Dataset()
+    ds = pydicom.dataset.Dataset()
     ds.add_new((0x10, 0x20), 'LO', 'NiPy')
     dcmext = Nifti1DicomExtension(2, ds)
-    assert_equal(dcmext.get_content().__class__, dicom.dataset.Dataset)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
     assert_equal(len(dcmext.get_content().values()), 1)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
 

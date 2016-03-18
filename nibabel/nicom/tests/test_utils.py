@@ -12,8 +12,8 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 
 from ..utils import find_private_section
 
-from .test_dicomwrappers import (have_dicom, dicom_test,
-                                 IO_DATA_PATH, DATA, DATA_PHILIPS)
+from nibabel.pydicom_compat import dicom_test, pydicom
+from .test_dicomwrappers import (DATA, DATA_PHILIPS)
 
 
 @dicom_test
@@ -27,11 +27,7 @@ def test_find_private_section_real():
     assert_equal(find_private_section(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER'),
                  None)
     # Make fake datasets
-    try:
-        from dicom.dataset import Dataset
-    except ImportError:
-        from pydicom.dataset import Dataset
-    ds = Dataset({})
+    ds = pydicom.dataset.Dataset({})
     ds.add_new((0x11, 0x10), 'LO', b'some section')
     assert_equal(find_private_section(ds, 0x11, 'some section'), 0x1000)
     ds.add_new((0x11, 0x11), 'LO', b'anther section')

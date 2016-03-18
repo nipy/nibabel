@@ -9,19 +9,7 @@ from copy import copy
 
 import numpy as np
 
-have_dicom = True
-try:
-    import dicom as pydicom
-    read_file = pydicom.read_file
-except ImportError:
-    try:
-        import pydicom
-    except ImportError:
-        have_dicom = False
-    else:
-        from pydicom.dicomio import read_file
-dicom_test = np.testing.dec.skipif(not have_dicom,
-                                   'could not import pydicom')
+from nibabel.pydicom_compat import have_dicom, pydicom, read_file, dicom_test
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
