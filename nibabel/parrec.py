@@ -131,6 +131,7 @@ DEG2RAD = np.pi / 180.
 # General information dict definitions
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
+# if shape is None, the number of elements is to be determined on read
 _hdr_key_dict = {
     'Patient name': ('patient_name',),
     'Examination name': ('exam_name',),
@@ -150,7 +151,7 @@ _hdr_key_dict = {
     'Technique': ('tech',),
     'Scan resolution  (x, y)': ('scan_resolution', int, (2,)),
     'Scan mode': ('scan_mode',),
-    'Repetition time [ms]': ('repetition_time', float),
+    'Repetition time [ms]': ('repetition_time', float, None),
     'FOV (ap,fh,rl) [mm]': ('fov', float, (3,)),
     'Water Fat shift [pixels]': ('water_fat_shift', float),
     'Angulation midslice(ap,fh,rl)[degr]': ('angulation', float, (3,)),
@@ -297,7 +298,9 @@ def _process_gen_dict(gen_dict):
         elif len(props) == 3:
             # array with dtype and shape
             value = np.fromstring(value, props[1], sep=' ')
-            value.shape = props[2]
+            # if shape is None, allow arbitrary length
+            if props[2] is not None:
+                value.shape = props[2]
         general_info[props[0]] = value
     return general_info
 
@@ -844,7 +847,9 @@ class PARRECHeader(SpatialHeader):
         zooms[2] = slice_thickness + slice_gap
         # If 4D dynamic scan, convert time from milliseconds to seconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
-            zooms[3] = self.general_info['repetition_time'] / 1000.
+            if len(self.general_info['repetition_time']) > 1:
+                warnings.warn("multiple TRs found in .PAR file")
+            zooms[3] = self.general_info['repetition_time'][0] / 1000.
         return zooms
 
     def get_affine(self, origin='scanner'):
