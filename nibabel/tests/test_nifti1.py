@@ -1104,6 +1104,7 @@ def test_nifti_dicom_extension():
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert_equal(dcmext.__class__, Nifti1DicomExtension)
     assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext._is_little_endian, True)
     assert_equal(dcmext.get_code(), 2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
@@ -1118,19 +1119,36 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext.get_code(), 2)
     assert_equal(dcmext.get_content().PatientID, 'NiPy')
     assert_equal(len(dcmext.get_content().values()), 1)
-    assert_equal(dcmext._mangle(dcmext.get_content()),dcmbytes_implicit)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_implicit)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / BE
+    dcmbytes_explicit_be = struct.pack('>2H2sH4s', 0x10, 0x20,
+                                       'LO'.encode('utf-8'), 4,
+                                       'NiPy'.encode('utf-8'))
+    hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
+    assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(dcmext.get_content()[0x10, 0x20].value, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # Check that a dicom dataset is written w/ BE encoding when not created
+    # using BE bytestring when given a BE nifti header
+    dcmext = Nifti1DicomExtension(2, ds, parent_hdr=hdr_be)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
 
     # dicom extension access from nifti extensions
     assert_equal(exts_container.count('dicom'), 0)
     exts_container.append(dcmext)
     assert_equal(exts_container.count('dicom'), 1)
     assert_equal(exts_container.get_codes(), [6, 6, 2])
-    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_implicit)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
-
-    bio = BytesIO()
-    dcmext.write_to(bio, False)
 
 
 class TestNifti1General(object):

@@ -382,34 +382,48 @@ class Nifti1Extension(object):
 
 
 class Nifti1DicomExtension(Nifti1Extension):
-    """Class for NIfTI1 DICOM header extension.
+    """NIfTI1 DICOM header extension.
 
     This class is a thin wrapper around pydicom to read a binary DICOM
     byte string. If pydicom is not available, it silently falls back to the
     standard NiftiExtension class.
     """
-    def __init__(self, code, content):
+    def __init__(self, code, content, parent_hdr=None):
         self._code = code
+        if parent_hdr:
+            self._is_little_endian = parent_hdr.endianness == '<'
+        else:
+            self._is_little_endian = True
         if content.__class__ == Dataset:
             self._is_implicit_VR = False
-            self._is_little_endian = True
             self._raw_content = self._mangle(content)
             self._content = content
         elif len(content):  # Got a byte string - unmangle it
             self._raw_content = content
             self._is_implicit_VR = self._guess_implicit_VR()
-            self._is_little_endian = self._guess_little_endian()
-            self._content = self._unmangle(content)
-        else:
+            ds = self._unmangle_and_verify(content, self._is_implicit_VR,
+                                           self._is_little_endian)
+            self._content = ds
+        else:  # Otherwise, initialize a new dicom dataset
             self._is_implicit_VR = False
-            self._is_little_endian = True
             self._content = Dataset()
 
+    def _unmangle_and_verify(self, content, is_implicit_VR, is_little_endian):
+        """"Decode and verify dicom dataset"""
+        ds = self._unmangle(content, is_implicit_VR, is_little_endian)
+        for elem in ds:
+            if elem.VR not in dicom_converters.keys():
+                raise StandardError  # Ensure that all VRs are valid
+        return ds
+
     def _guess_implicit_VR(self):
-        """Without a DICOM Transfer Syntax, it's difficult to tell if Value
+        """Try to guess DICOM syntax by checking for valid VRs.
+
+        Without a DICOM Transfer Syntax, it's difficult to tell if Value
         Representations (VRs) are included in the DICOM encoding or not.
         This reads where the first VR would be and checks it against a list of
-        valid VRs"""
+        valid VRs
+        """
         potential_vr = self._raw_content[4:6].decode()
         if potential_vr in dicom_converters.keys():
             implicit_VR = False
@@ -417,12 +431,9 @@ class Nifti1DicomExtension(Nifti1Extension):
             implicit_VR = True
         return implicit_VR
 
-    def _guess_little_endian(self):
-        return True
-
-    def _unmangle(self, value):
+    def _unmangle(self, value, is_implicit_VR=False, is_little_endian=True):
         bio = BytesIO(value)
-        ds = read_dataset(bio, self._is_implicit_VR, self._is_little_endian)
+        ds = read_dataset(bio, is_implicit_VR, is_little_endian)
         return ds
 
     def _mangle(self, dataset):
