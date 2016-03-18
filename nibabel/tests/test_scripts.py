@@ -9,7 +9,7 @@ from __future__ import division, print_function, absolute_import
 import os
 from os.path import (dirname, join as pjoin, abspath, splitext, basename,
                      exists)
-import re
+import csv
 from glob import glob
 
 import numpy as np
@@ -18,8 +18,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
-from nose.tools import (assert_true, assert_false, assert_not_equal,
-                        assert_equal)
+from nose.tools import assert_true, assert_false, assert_equal
 from nose import SkipTest
 
 from numpy.testing import assert_almost_equal
@@ -333,3 +332,17 @@ def test_parrec2nii_with_data():
         data_sorted = img.get_data().copy()
         assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
         del img
+
+        # Writes .ordering.csv if requested
+        run_command(['parrec2nii', '--overwrite', '--volume-info', dti_par])
+        assert_true(exists('DTI.ordering.csv'))
+        with open('DTI.ordering.csv', 'r') as csvfile:
+            csvreader = csv.reader(csvfile, delimiter=',')
+            csv_keys = csvreader.__next__()  # header row
+            nlines = 0  # count number of non-header rows
+            for line in csvreader:
+                nlines += 1
+
+        assert_equal(sorted(csv_keys), ['diffusion b value number',
+                                        'gradient orientation number'])
+        assert_equal(nlines, 8)  # 8 volumes present in DTI.PAR

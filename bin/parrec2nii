@@ -8,6 +8,7 @@ import numpy as np
 import numpy.linalg as npl
 import sys
 import os
+import csv
 import nibabel
 import nibabel.parrec as pr
 from nibabel.parrec import one_line
@@ -66,6 +67,18 @@ def get_opt_parser():
                    """The magnetic field strength of the recording, only needed
                    for --dwell-time. The field strength must be supplied
                    because it is not encoded in the PAR/REC format.""")))
+    p.add_option(
+        Option("-i", "--volume-info", action="store_true", dest="vol_info",
+               default=False,
+               help=one_line(
+                   """Export .PAR volume labels corresponding to the fourth
+                   dimension of the data.  The dimension info will be stored in
+                   CSV format with the first row containing dimension labels
+                   and the subsequent rows (one per volume), the corresponding
+                   indices.  Only labels that vary along the 4th dimension are
+                   exported (e.g. for a single volume structural scan there
+                   are no dynamic labels and no output file will be created).
+                   """)))
     p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help=one_line(
@@ -261,6 +274,17 @@ def proc_file(infile, opts):
                     for val in row:
                         fid.write('%s ' % val)
                     fid.write('\n')
+
+    # export data labels varying along the 4th dimensions if requested
+    if opts.vol_info:
+        labels = pr_img.header.get_volume_labels()
+        if len(labels) > 0:
+            vol_keys = list(labels.keys())
+            with open(basefilename + '.ordering.csv', 'w') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=',')
+                csvwriter.writerow(vol_keys)
+                for vals in zip(*[labels[k] for k in vol_keys]):
+                    csvwriter.writerow(vals)
 
     # write out dwell time if requested
     if opts.dwell_time:

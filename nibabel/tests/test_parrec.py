@@ -191,6 +191,16 @@ def test_header_scaling():
     assert_false(np.all(fp_scaling == dv_scaling))
 
 
+def test_header_volume_labels():
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    # check volume labels
+    vol_labels = hdr.get_volume_labels()
+    assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
+    assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
+    # check that output is ndarray rather than list
+    assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
+
+
 def test_orientation():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_array_equal(HDR_DEFS['slice orientation'], 1)
@@ -285,6 +295,11 @@ def test_sorting_dual_echo_T1():
     # second half (volume 2) should all correspond to echo 2
     assert_equal(np.all(sorted_echos[n_half:] == 2), True)
 
+    # check volume labels
+    vol_labels = t1_hdr.get_volume_labels()
+    assert_equal(list(vol_labels.keys()), ['echo number'])
+    assert_array_equal(vol_labels['echo number'], [1, 2])
+
 
 def test_sorting_multiple_echos_and_contrasts():
     # This .PAR file has 3 echos and 4 image types (real, imaginary, magnitude,
@@ -327,6 +342,13 @@ def test_sorting_multiple_echos_and_contrasts():
     assert_equal(np.all(sorted_types[ntotal//2:3*ntotal//4] == 2), True)
     assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
 
+    # check volume labels
+    vol_labels = t1_hdr.get_volume_labels()
+    assert_equal(list(vol_labels.keys()), ['echo number', 'image_type_mr'])
+    assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
+    assert_array_equal(vol_labels['image_type_mr'],
+                       [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3])
+
 
 def test_sorting_multiecho_ASL():
     # For this .PAR file has 3 keys corresponding to volumes:
@@ -367,6 +389,15 @@ def test_sorting_multiecho_ASL():
     assert_array_equal(np.all(sorted_echos[2*nslices:3*nslices] == 3), True)
     # check that slices vary fastest
     assert_array_equal(sorted_slices[:nslices], np.arange(1, nslices+1))
+
+    # check volume labels
+    vol_labels = asl_hdr.get_volume_labels()
+    assert_equal(list(vol_labels.keys()),
+                 ['echo number', 'label type', 'dynamic scan number'])
+    assert_array_equal(vol_labels['dynamic scan number'], [1]*6 + [2]*6)
+    assert_array_equal(vol_labels['label type'], [1]*3 + [2]*3 + [1]*3 + [2]*3)
+    assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
+
 
 def test_vol_number():
     # Test algorithm for calculating volume number
