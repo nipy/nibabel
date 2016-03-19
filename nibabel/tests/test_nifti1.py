@@ -1194,6 +1194,9 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
     assert_equal(dcmext.get_sizeondisk() % 16, 0)
 
+    # creating an extension with bad content should raise
+    assert_raises(TypeError, Nifti1DicomExtension, 2, 0)
+
 
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
