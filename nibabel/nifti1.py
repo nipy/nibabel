@@ -448,7 +448,6 @@ class Nifti1DicomExtension(Nifti1Extension):
         return dio.read(ds_len)
 
 
-
 # NIfTI header extension type codes (ECODE)
 # see nifti1_io.h for a complete list of all known extensions and
 # references to their description or contacts of the respective
@@ -1986,4 +1985,3 @@ def save(img, filename):
         Nifti1Image.instance_to_filename(img, filename)
     except ImageFileError:
         Nifti1Pair.instance_to_filename(img, filename)
-
