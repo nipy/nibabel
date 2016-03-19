@@ -418,19 +418,22 @@ class Nifti1DicomExtension(Nifti1Extension):
             self._is_little_endian = parent_hdr.endianness == '<'
         else:
             self._is_little_endian = True
-        if content.__class__ == pdcm.dataset.Dataset:
+        if isinstance(content, pdcm.dataset.Dataset):
             self._is_implicit_VR = False
             self._raw_content = self._mangle(content)
             self._content = content
-        elif len(content):  # Got a byte string - unmangle it
+        elif isinstance(content, bytes):  # Got a byte string - unmangle it
             self._raw_content = content
             self._is_implicit_VR = self._guess_implicit_VR()
             ds = self._unmangle_and_verify(content, self._is_implicit_VR,
                                            self._is_little_endian)
             self._content = ds
-        else:  # Otherwise, initialize a new dicom dataset
+        elif content == None:  # Otherwise, initialize a new dicom dataset
             self._is_implicit_VR = False
             self._content = pdcm.dataset.Dataset()
+        else:
+            raise TypeError("content must be either a bytestring or a pydicom "
+                            "Dataset. Got %s" % content.__class__)
 
     def _unmangle_and_verify(self, content, is_implicit_VR, is_little_endian):
         """"Decode and verify dicom dataset"""
