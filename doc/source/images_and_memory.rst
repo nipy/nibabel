@@ -136,14 +136,14 @@ proxy to return the array directly by passing ``dataobj`` to the numpy
 >>> proxy_img = nib.load(example_file)
 >>> data_array = np.asarray(proxy_img.dataobj)
 >>> type(data_array)
-<type 'numpy.ndarray'>
+<... 'numpy.ndarray'>
 
 This also works for array images, because ``np.asarray`` returns the array:
 
 >>> array_img = nib.Nifti1Image(array_data, affine)
 >>> data_array = np.asarray(array_img.dataobj)
 >>> type(data_array)
-<type 'numpy.ndarray'>
+<... 'numpy.ndarray'>
 
 If you want to avoid caching you can avoid ``get_data()`` and always use
 ``np.asarray(img.dataobj)``.

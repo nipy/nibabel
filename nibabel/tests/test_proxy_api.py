@@ -73,7 +73,7 @@ def _some_slicers(shape):
     for i in range(ndim):
         if i % 2:
             slicers[i, i] = -1
-        elif shape[i] < 2: # some proxy examples have length 1 axes
+        elif shape[i] < 2:  # some proxy examples have length 1 axes
             slicers[i, i] = 0
     # Add a newaxis to keep us on our toes
     no_pos = ndim // 2
@@ -147,7 +147,7 @@ class _TestProxyAPI(ValidateAPI):
         if isinstance(fio, string_types):
             return
         assert_array_equal(prox, params['arr_out'])
-        fio.read() # move to end of file
+        fio.read()  # move to end of file
         assert_array_equal(prox, params['arr_out'])
 
     def validate_proxy_slicing(self, pmaker, params):
@@ -210,10 +210,10 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                             hdr.set_data_shape(shape)
                             if self.settable_offset:
                                 hdr.set_data_offset(offset)
-                            if (slope, inter) == (1, 0): # No scaling applied
+                            if (slope, inter) == (1, 0):  # No scaling applied
                                 # dtype from array
                                 dtype_out = dtype
-                            else: # scaling or offset applied
+                            else:  # scaling or offset applied
                                 # out dtype predictable from apply_read_scaling
                                 # and datatypes of slope, inter
                                 hdr.set_slope_inter(slope, inter)
@@ -222,6 +222,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                                                          1. if s is None else s,
                                                          0. if i is None else i)
                                 dtype_out = tmp.dtype.type
+
                             def sio_func():
                                 fio = BytesIO()
                                 fio.truncate(0)
@@ -234,18 +235,19 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                                         fio,
                                         new_hdr)
                             params = dict(
-                                dtype = dtype,
-                                dtype_out = dtype_out,
-                                arr = arr.copy(),
-                                arr_out = arr * slope + inter,
-                                shape = shape,
-                                offset = offset,
-                                slope = slope,
-                                inter = inter)
+                                dtype=dtype,
+                                dtype_out=dtype_out,
+                                arr=arr.copy(),
+                                arr_out=arr * slope + inter,
+                                shape=shape,
+                                offset=offset,
+                                slope=slope,
+                                inter=inter)
                             yield sio_func, params
                             # Same with filenames
                             with InTemporaryDirectory():
                                 fname = 'data.bin'
+
                                 def fname_func():
                                     with open(fname, 'wb') as fio:
                                         fio.seek(offset)
@@ -296,7 +298,7 @@ class TestNifti1ProxyAPI(TestSpm99AnalyzeProxyAPI):
 
 class TestMGHAPI(TestAnalyzeProxyAPI):
     header_class = MGHHeader
-    shapes = ((2, 3, 4), (2, 3, 4, 5)) # MGH can only do >= 3D
+    shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_slope = False
     has_inter = False
     settable_offset = False
@@ -308,6 +310,7 @@ class TestMinc1API(_TestProxyAPI):
     file_class = minc1.Minc1File
     eg_fname = 'tiny.mnc'
     eg_shape = (10, 20, 20)
+
     @staticmethod
     def opener(f):
         return netcdf_file(f, mode='r')
@@ -327,6 +330,7 @@ class TestMinc1API(_TestProxyAPI):
         eg_path = pjoin(DATA_PATH, self.eg_fname)
         arr_out = self.file_class(
             self.opener(eg_path)).get_scaled_data()
+
         def eg_func():
             mf = self.file_class(self.opener(eg_path))
             prox = minc1.MincImageArrayProxy(mf)
@@ -345,6 +349,7 @@ if have_h5py:
         file_class = minc2.Minc2File
         eg_fname = 'small.mnc'
         eg_shape = (18, 28, 29)
+
         @staticmethod
         def opener(f):
             return h5py.File(f, mode='r')
@@ -358,6 +363,7 @@ class TestEcatAPI(_TestProxyAPI):
         eg_path = pjoin(DATA_PATH, self.eg_fname)
         img = ecat.load(eg_path)
         arr_out = img.get_data()
+
         def eg_func():
             img = ecat.load(eg_path)
             sh = img.get_subheaders()
@@ -378,6 +384,7 @@ class TestPARRECAPI(_TestProxyAPI):
     def _func_dict(self, rec_name):
         img = parrec.load(rec_name)
         arr_out = img.get_data()
+
         def eg_func():
             img = parrec.load(rec_name)
             prox = parrec.PARRECArrayProxy(rec_name,
@@ -386,7 +393,7 @@ class TestPARRECAPI(_TestProxyAPI):
             fobj = open(rec_name, 'rb')
             return prox, fobj, img.header
         return (eg_func,
-                dict(shape = img.shape,
+                dict(shape=img.shape,
                      dtype_out=np.float64,
                      arr_out=arr_out))
 

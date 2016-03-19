@@ -88,10 +88,8 @@ def types_filenames(template_fname, types_exts,
     if template_fname.endswith('.'):
         template_fname = template_fname[:-1]
     filename, found_ext, ignored, guessed_name = \
-              parse_filename(template_fname,
-                             types_exts,
-                             trailing_suffixes,
-                             match_case)
+        parse_filename(template_fname, types_exts, trailing_suffixes,
+                       match_case)
     # Flag cases where we just set the input name directly
     direct_set_name = None
     if enforce_extensions:
@@ -103,7 +101,7 @@ def types_filenames(template_fname, types_exts,
                 raise TypesFilenamesError(
                     'File extension "%s" was not in expected list: %s'
                     % (found_ext, [e for t, e in types_exts]))
-            elif ignored: # there was no extension, but an ignored suffix
+            elif ignored:  # there was no extension, but an ignored suffix
                 # This is a special case like 'test.gz' (where .gz
                 # is ignored). It's confusing to change
                 # this to test.img.gz, or test.gz.img, so error
@@ -112,7 +110,7 @@ def types_filenames(template_fname, types_exts,
                     % ignored)
         # if we've got to here, we have a guessed name and a found
         # extension.
-    else: # not enforcing extensions. If there's an extension, we set the
+    else:  # not enforcing extensions. If there's an extension, we set the
         # filename directly from input, for the first types_exts type
         # only.  Also, if there was no extension, but an ignored suffix
         # ('test.gz' type case), we set the filename directly.
@@ -126,12 +124,12 @@ def types_filenames(template_fname, types_exts,
     # we've found .IMG as the extension, we want .HDR as the matching
     # one.  Let's only do this when the extension is all upper or all
     # lower case.
-    proc_ext = lambda s : s
+    proc_ext = lambda s: s
     if found_ext:
         if found_ext == found_ext.upper():
-            proc_ext = lambda s : s.upper()
+            proc_ext = lambda s: s.upper()
         elif found_ext == found_ext.lower():
-            proc_ext = lambda s : s.lower()
+            proc_ext = lambda s: s.lower()
     for name, ext in types_exts:
         if name == direct_set_name:
             tfns[name] = template_fname
@@ -206,7 +204,6 @@ def parse_filename(filename,
             break
     guessed_name = None
     found_ext = None
-    tem = dict(types_exts)
     for name, ext in types_exts:
         if ext and endswith(filename, ext):
             extpos = -len(ext)

@@ -288,7 +288,7 @@ There is an example nipy data package ``nipy-examplepkg`` in the
 ``examples`` directory of the NIPY repository.
 
 The machinery for creating and maintaining data packages is available at
-http://github.com/nipy/data-packaging.
+https://github.com/nipy/data-packaging.
 
 See the ``README.txt`` file there for more information.
 

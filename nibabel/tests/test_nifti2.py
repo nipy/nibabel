@@ -34,7 +34,11 @@ class _Nifti2Mixin(object):
     sizeof_hdr = Nifti2Header.sizeof_hdr
     quat_dtype = np.float64
 
-    def test_freesurfer_hack(self):
+    def test_freesurfer_large_vector_hack(self):
+        # Disable this check
+        pass
+
+    def test_freesurfer_ico7_hack(self):
         # Disable this check
         pass
 

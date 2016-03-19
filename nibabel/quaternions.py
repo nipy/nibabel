@@ -86,7 +86,7 @@ def fillpositive(xyz, w2_thresh=None):
         raise ValueError('xyz should have length 3')
     # If necessary, guess precision of input
     if w2_thresh is None:
-        try: # trap errors for non-array, integer array
+        try:  # trap errors for non-array, integer array
             w2_thresh = -np.finfo(xyz.dtype).eps * 3
         except (AttributeError, ValueError):
             w2_thresh = -FLOAT_EPS * 3
@@ -124,7 +124,7 @@ def quat2mat(q):
     References
     ----------
     Algorithm from
-    http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
 
     Examples
     --------
@@ -137,20 +137,19 @@ def quat2mat(q):
     True
     '''
     w, x, y, z = q
-    Nq = w*w + x*x + y*y + z*z
+    Nq = w * w + x * x + y * y + z * z
     if Nq < FLOAT_EPS:
         return np.eye(3)
-    s = 2.0/Nq
-    X = x*s
-    Y = y*s
-    Z = z*s
-    wX = w*X; wY = w*Y; wZ = w*Z
-    xX = x*X; xY = x*Y; xZ = x*Z
-    yY = y*Y; yZ = y*Z; zZ = z*Z
-    return np.array(
-           [[ 1.0-(yY+zZ), xY-wZ, xZ+wY ],
-            [ xY+wZ, 1.0-(xX+zZ), yZ-wX ],
-            [ xZ-wY, yZ+wX, 1.0-(xX+yY) ]])
+    s = 2.0 / Nq
+    X = x * s
+    Y = y * s
+    Z = z * s
+    wX, wY, wZ = w * X, w * Y, w * Z
+    xX, xY, xZ = x * X, x * Y, x * Z
+    yY, yZ, zZ = y * Y, y * Z, z * Z
+    return np.array([[1.0 - (yY + zZ), xY - wZ, xZ + wY],
+                     [xY + wZ, 1.0 - (xX + zZ), yZ - wX],
+                     [xZ - wY, yZ + wX, 1.0 - (xX + yY)]])
 
 
 def mat2quat(M):
@@ -180,7 +179,7 @@ def mat2quat(M):
 
     References
     ----------
-    * http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    * https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
     * Bar-Itzhack, Itzhack Y. (2000), "New method for extracting the
       quaternion from a rotation matrix", AIAA Journal of Guidance,
       Control and Dynamics 23(6):1085-1087 (Engineering Note), ISSN
@@ -203,11 +202,11 @@ def mat2quat(M):
     Qxx, Qyx, Qzx, Qxy, Qyy, Qzy, Qxz, Qyz, Qzz = M.flat
     # Fill only lower half of symmetric matrix
     K = np.array([
-        [Qxx - Qyy - Qzz, 0,               0,               0              ],
-        [Qyx + Qxy,       Qyy - Qxx - Qzz, 0,               0              ],
-        [Qzx + Qxz,       Qzy + Qyz,       Qzz - Qxx - Qyy, 0              ],
-        [Qyz - Qzy,       Qzx - Qxz,       Qxy - Qyx,       Qxx + Qyy + Qzz]]
-        ) / 3.0
+        [Qxx - Qyy - Qzz, 0, 0, 0],
+        [Qyx + Qxy, Qyy - Qxx - Qzz, 0, 0],
+        [Qzx + Qxz, Qzy + Qyz, Qzz - Qxx - Qyy, 0],
+        [Qyz - Qzy, Qzx - Qxz, Qxy - Qyx, Qxx + Qyy + Qzz]]
+    ) / 3.0
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
     # Select largest eigenvector, reorder to w,x,y,z quaternion
@@ -233,14 +232,14 @@ def mult(q1, q2):
 
     Notes
     -----
-    See : http://en.wikipedia.org/wiki/Quaternions#Hamilton_product
+    See : https://en.wikipedia.org/wiki/Quaternions#Hamilton_product
     '''
     w1, x1, y1, z1 = q1
     w2, x2, y2, z2 = q2
-    w = w1*w2 - x1*x2 - y1*y2 - z1*z2
-    x = w1*x2 + x1*w2 + y1*z2 - z1*y2
-    y = w1*y2 + y1*w2 + z1*x2 - x1*z2
-    z = w1*z2 + z1*w2 + x1*y2 - y1*x2
+    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
     return np.array([w, x, y, z])
 
 
@@ -299,7 +298,7 @@ def inverse(q):
 
 def eye():
     ''' Return identity quaternion '''
-    return np.array([1.0,0,0,0])
+    return np.array([1.0, 0, 0, 0])
 
 
 def rotate_vector(v, q):
@@ -319,7 +318,8 @@ def rotate_vector(v, q):
 
     Notes
     -----
-    See: http://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
+    See:
+    https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
 
     '''
     varr = np.zeros((4,))
@@ -393,8 +393,8 @@ def angle_axis2quat(theta, vector, is_normalized=False):
     vector = np.array(vector)
     if not is_normalized:
         # Cannot divide in-place because input vector may be integer type,
-        # whereas output will be float type; this may raise an error in versions
-        # of numpy > 1.6.1
+        # whereas output will be float type; this may raise an error in
+        # versions of numpy > 1.6.1
         vector = vector / math.sqrt(np.dot(vector, vector))
     t2 = theta / 2.0
     st2 = math.sin(t2)
@@ -422,22 +422,22 @@ def angle_axis2mat(theta, vector, is_normalized=False):
 
     Notes
     -----
-    From: http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle
+    From: https://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle
     '''
     x, y, z = vector
     if not is_normalized:
-        n = math.sqrt(x*x + y*y + z*z)
-        x = x/n
-        y = y/n
-        z = z/n
-    c = math.cos(theta); s = math.sin(theta); C = 1-c
-    xs = x*s;   ys = y*s;   zs = z*s
-    xC = x*C;   yC = y*C;   zC = z*C
-    xyC = x*yC; yzC = y*zC; zxC = z*xC
-    return np.array([
-            [ x*xC+c,   xyC-zs,   zxC+ys ],
-            [ xyC+zs,   y*yC+c,   yzC-xs ],
-            [ zxC-ys,   yzC+xs,   z*zC+c ]])
+        n = math.sqrt(x * x + y * y + z * z)
+        x = x / n
+        y = y / n
+        z = z / n
+    c, s = math.cos(theta), math.sin(theta)
+    C = 1 - c
+    xs, ys, zs = x * s, y * s, z * s
+    xC, yC, zC = x * C, y * C, z * C
+    xyC, yzC, zxC = x * yC, y * zC, z * xC
+    return np.array([[x * xC + c, xyC - zs, zxC + ys],
+                     [xyC + zs, y * yC + c, yzC - xs],
+                     [zxC - ys, yzC + xs, z * zC + c]])
 
 
 def quat2angle_axis(quat, identity_thresh=None):
@@ -485,10 +485,10 @@ def quat2angle_axis(quat, identity_thresh=None):
     if identity_thresh is None:
         try:
             identity_thresh = np.finfo(vec.dtype).eps * 3
-        except ValueError: # integer type
+        except ValueError:  # integer type
             identity_thresh = FLOAT_EPS * 3
-    n = math.sqrt(x*x + y*y + z*z)
+    n = math.sqrt(x * x + y * y + z * z)
     if n < identity_thresh:
         # if vec is nearly 0,0,0, this is an identity rotation
         return 0.0, np.array([1.0, 0, 0])
-    return  2 * math.acos(w), vec / n
+    return 2 * math.acos(w), vec / n

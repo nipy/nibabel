@@ -23,12 +23,11 @@ import bz2
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
-
+from ..openers import ImageOpener
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
-                           allopen, # for backwards compatibility
-                           BinOpener,
+                           allopen,  # for backwards compatibility
                            fname_ext_ul_case,
                            calculate_scale,
                            can_cast,
@@ -45,7 +44,7 @@ from ..volumeutils import (array_from_file,
                            rec2dict,
                            _dt_min_max,
                            _write_data,
-                          )
+                           )
 from ..openers import Opener
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
@@ -93,8 +92,8 @@ def test_fobj_string_assumptions():
     fname = 'test.bin'
     with InTemporaryDirectory():
         for n, opener in itertools.product(
-            (256, 1024, 2560, 25600),
-            (open, gzip.open, bz2.BZ2File)):
+                (256, 1024, 2560, 25600),
+                (open, gzip.open, bz2.BZ2File)):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
@@ -124,7 +123,7 @@ def test_fobj_string_assumptions():
 
 
 def test_array_from_file():
-    shape = (2,3,4)
+    shape = (2, 3, 4)
     dtype = np.dtype(np.float32)
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     # Check on string buffers
@@ -152,7 +151,7 @@ def test_array_from_file():
     assert_equal(len(arr), 0)
     # Check error from small file
     assert_raises(IOError, array_from_file,
-                        shape, dtype, BytesIO())
+                  shape, dtype, BytesIO())
     # check on real file
     fd, fname = tempfile.mkstemp()
     with InTemporaryDirectory():
@@ -161,7 +160,7 @@ def test_array_from_file():
         # For windows this will raise a WindowsError from mmap, Unices
         # appear to raise an IOError
         assert_raises(Exception, array_from_file,
-                            shape, dtype, in_buf)
+                      shape, dtype, in_buf)
         del in_buf
 
 
@@ -212,7 +211,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
     instr = b' ' * offset + in_arr.tostring(order='F')
     out_buf.write(instr)
     out_buf.flush()
-    if in_buf is None: # we're using in_buf from out_buf
+    if in_buf is None:  # we're using in_buf from out_buf
         out_buf.seek(0)
         in_buf = out_buf
     arr = array_from_file(
@@ -225,7 +224,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
 
 def test_array_from_file_openers():
     # Test array_from_file also works with Opener objects
-    shape = (2,3,4)
+    shape = (2, 3, 4)
     dtype = np.dtype(np.float32)
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     with InTemporaryDirectory():
@@ -233,7 +232,7 @@ def test_array_from_file_openers():
                                              (0, 5, 10)):
             fname = 'test.bin' + ext
             with Opener(fname, 'wb') as out_buf:
-                if offset != 0: # avoid http://bugs.python.org/issue16828
+                if offset != 0:  # avoid https://bugs.python.org/issue16828
                     out_buf.write(b' ' * offset)
                 out_buf.write(in_arr.tostring(order='F'))
             with Opener(fname, 'rb') as in_buf:
@@ -251,10 +250,10 @@ def test_array_from_file_reread():
     fname = 'test.bin'
     with InTemporaryDirectory():
         for shape, opener, dtt, order in itertools.product(
-            ((64,), (64, 65), (64, 65, 66)),
-            (open, gzip.open, bz2.BZ2File, BytesIO),
-            (np.int16, np.float32),
-            ('F', 'C')):
+                ((64,), (64, 65), (64, 65, 66)),
+                (open, gzip.open, bz2.BZ2File, BytesIO),
+                (np.int16, np.float32),
+                ('F', 'C')):
             n_els = np.prod(shape)
             in_arr = np.arange(n_els, dtype=dtt).reshape(shape)
             is_bio = hasattr(opener, 'getvalue')
@@ -309,10 +308,10 @@ def test_a2f_intercept_scale():
     str_io = BytesIO()
     # intercept
     data_back = write_return(arr, str_io, np.float64, 0, 1.0)
-    assert_array_equal(data_back, arr-1)
+    assert_array_equal(data_back, arr - 1)
     # scaling
     data_back = write_return(arr, str_io, np.float64, 0, 1.0, 2.0)
-    assert_array_equal(data_back, (arr-1) / 2.0)
+    assert_array_equal(data_back, (arr - 1) / 2.0)
 
 
 def test_a2f_upscale():
@@ -327,7 +326,7 @@ def test_a2f_upscale():
     str_io = BytesIO()
     # We need to provide mn, mx for function to be able to calculate upcasting
     array_to_file(arr, str_io, np.uint8, intercept=inter, divslope=slope,
-                  mn = info['min'], mx = info['max'])
+                  mn=info['min'], mx=info['max'])
     raw = array_from_file(arr.shape, np.uint8, str_io)
     back = apply_read_scaling(raw, slope, inter)
     top = back - arr
@@ -374,7 +373,7 @@ def test_a2f_order():
     data_back = write_return(arr, str_io, ndt, order='C')
     assert_array_equal(data_back, [0.0, 1.0, 2.0])
     # but does in the 2D case
-    arr = np.array([[0.0, 1.0],[2.0, 3.0]])
+    arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     data_back = write_return(arr, str_io, ndt, order='F')
     assert_array_equal(data_back, arr)
     data_back = write_return(arr, str_io, ndt, order='C')
@@ -385,15 +384,15 @@ def test_a2f_nan2zero():
     ndt = np.dtype(np.float)
     str_io = BytesIO()
     # nans set to 0 for integer output case, not float
-    arr = np.array([[np.nan, 0],[0, np.nan]])
-    data_back = write_return(arr, str_io, ndt) # float, thus no effect
+    arr = np.array([[np.nan, 0], [0, np.nan]])
+    data_back = write_return(arr, str_io, ndt)  # float, thus no effect
     assert_array_equal(data_back, arr)
     # True is the default, but just to show it's possible
     data_back = write_return(arr, str_io, ndt, nan2zero=True)
     assert_array_equal(data_back, arr)
     with np.errstate(invalid='ignore'):
         data_back = write_return(arr, str_io, np.int64, nan2zero=True)
-    assert_array_equal(data_back, [[0, 0],[0, 0]])
+    assert_array_equal(data_back, [[0, 0], [0, 0]])
     # otherwise things get a bit weird; tidied here
     # How weird?  Look at arr.astype(np.int64)
     with np.errstate(invalid='ignore'):
@@ -415,10 +414,10 @@ def test_a2f_nan2zero_scaling():
     # Array values including zero before scaling but not after
     bio = BytesIO()
     for in_dt, out_dt, zero_in, inter in itertools.product(
-        FLOAT_TYPES,
-        IUINT_TYPES,
-        (True, False),
-        (0, -100)):
+            FLOAT_TYPES,
+            IUINT_TYPES,
+            (True, False),
+            (0, -100)):
         in_info = np.finfo(in_dt)
         out_info = np.iinfo(out_dt)
         mx = min(in_info.max, out_info.max * 2., 2**32) + inter
@@ -529,10 +528,10 @@ def test_a2f_scaled_unscaled():
     # without scaling
     fobj = BytesIO()
     for in_dtype, out_dtype, intercept, divslope in itertools.product(
-        NUMERIC_TYPES,
-        NUMERIC_TYPES,
-        (0, 0.5, -1, 1),
-        (1, 0.5, 2)):
+            NUMERIC_TYPES,
+            NUMERIC_TYPES,
+            (0, 0.5, -1, 1),
+            (1, 0.5, 2)):
         mn_in, mx_in = _dt_min_max(in_dtype)
         nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
         arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
@@ -558,17 +557,17 @@ def test_a2f_scaled_unscaled():
                                     intercept=intercept)
             exp_back = arr.copy()
             if (in_dtype in IUINT_TYPES and
-                out_dtype in IUINT_TYPES and
-                (intercept, divslope) == (0, 1)):
+                    out_dtype in IUINT_TYPES and
+                    (intercept, divslope) == (0, 1)):
                 # Direct iu to iu casting.
                 # Need to clip if ranges not the same.
                 # Use smaller of input, output range to avoid np.clip upcasting
                 # the array because of large clip limits.
                 if (mn_in, mx_in) != (mn_out, mx_out):
                     exp_back = np.clip(exp_back,
-                                    max(mn_in, mn_out),
-                                    min(mx_in, mx_out))
-            else: # Need to deal with nans, casting to float, clipping
+                                       max(mn_in, mn_out),
+                                       min(mx_in, mx_out))
+            else:  # Need to deal with nans, casting to float, clipping
                 if in_dtype in CFLOAT_TYPES and out_dtype in IUINT_TYPES:
                     exp_back[np.isnan(exp_back)] = 0
                 if in_dtype not in COMPLEX_TYPES:
@@ -578,7 +577,7 @@ def test_a2f_scaled_unscaled():
                 if divslope != 1:
                     exp_back /= divslope
                 if (exp_back.dtype.type in CFLOAT_TYPES and
-                    out_dtype in IUINT_TYPES):
+                        out_dtype in IUINT_TYPES):
                     exp_back = np.round(exp_back).astype(float)
                     exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
             exp_back = exp_back.astype(out_dtype)
@@ -602,12 +601,12 @@ def test_a2f_bad_scaling():
                                                        'uint',
                                                        'float',
                                                        'complex']],
-                         [])
+                          [])
     for in_type, out_type, slope, inter in itertools.product(
-        NUMERICAL_TYPES,
-        NUMERICAL_TYPES,
-        (None, 1, 0, np.nan, -np.inf, np.inf),
-        (0, np.nan, -np.inf, np.inf)):
+            NUMERICAL_TYPES,
+            NUMERICAL_TYPES,
+            (None, 1, 0, np.nan, -np.inf, np.inf),
+            (0, np.nan, -np.inf, np.inf)):
         arr = np.ones((2,), dtype=in_type)
         fobj = BytesIO()
         if (slope, inter) == (1, 0):
@@ -737,7 +736,7 @@ def test_apply_scaling():
     assert_equal((i16_arr * big).dtype, np.float32)
     # An equivalent case is a little hard to find for the intercept
     nmant_32 = type_info(np.float32)['nmant']
-    big_delta = np.float32(2**(floor_log2(big)-nmant_32))
+    big_delta = np.float32(2**(floor_log2(big) - nmant_32))
     assert_equal((i16_arr * big_delta + big).dtype, np.float32)
     # Upcasting does occur with this routine
     assert_equal(apply_read_scaling(i16_arr, big).dtype, np.float64)
@@ -798,15 +797,15 @@ def test_working_type():
         assert_equal(wt(in_type, 1.0, 0.0), in_ts)
         in_val = d1(in_type(0))
         for slope_type in NUMERIC_TYPES:
-            sl_val = slope_type(1) # no scaling, regardless of type
+            sl_val = slope_type(1)  # no scaling, regardless of type
             assert_equal(wt(in_type, sl_val, 0.0), in_ts)
-            sl_val = slope_type(2) # actual scaling
+            sl_val = slope_type(2)  # actual scaling
             out_val = in_val / d1(sl_val)
             assert_equal(wt(in_type, sl_val), out_val.dtype.str)
             for inter_type in NUMERIC_TYPES:
-                i_val = inter_type(0) # no scaling, regardless of type
+                i_val = inter_type(0)  # no scaling, regardless of type
                 assert_equal(wt(in_type, 1, i_val), in_ts)
-                i_val = inter_type(1) # actual scaling
+                i_val = inter_type(1)  # actual scaling
                 out_val = in_val - d1(i_val)
                 assert_equal(wt(in_type, 1, i_val), out_val.dtype.str)
                 # Combine scaling and intercept
@@ -860,8 +859,8 @@ def test_best_write_scale_ftype():
         # Information on this float
         L_info = type_info(lower_t)
         t_max = L_info['max']
-        nmant = L_info['nmant'] # number of significand digits
-        big_delta = lower_t(2**(floor_log2(t_max) - nmant)) # delta below max
+        nmant = L_info['nmant']  # number of significand digits
+        big_delta = lower_t(2**(floor_log2(t_max) - nmant))  # delta below max
         # Even large values that don't overflow don't change output
         arr = np.array([0, t_max], dtype=lower_t)
         assert_equal(best_write_scale_ftype(arr, 1, 0), lower_t)
@@ -870,8 +869,8 @@ def test_best_write_scale_ftype():
         # Scaling < 1 increases values, so upcast may be needed (and is here)
         assert_equal(best_write_scale_ftype(arr, lower_t(0.99), 0), higher_t)
         # Large minus offset on large array can cause upcast
-        assert_equal(best_write_scale_ftype(arr, 1, -big_delta/2.01), lower_t)
-        assert_equal(best_write_scale_ftype(arr, 1, -big_delta/2.0), higher_t)
+        assert_equal(best_write_scale_ftype(arr, 1, -big_delta / 2.01), lower_t)
+        assert_equal(best_write_scale_ftype(arr, 1, -big_delta / 2.0), higher_t)
         # With infs already in input, default type returns
         arr[0] = np.inf
         assert_equal(best_write_scale_ftype(arr, lower_t(0.5), 0), lower_t)
@@ -904,15 +903,15 @@ def test_can_cast():
 def test_write_zeros():
     bio = BytesIO()
     write_zeros(bio, 10000)
-    assert_equal(bio.getvalue(), b'\x00'*10000)
+    assert_equal(bio.getvalue(), b'\x00' * 10000)
     bio.seek(0)
     bio.truncate(0)
     write_zeros(bio, 10000, 256)
-    assert_equal(bio.getvalue(), b'\x00'*10000)
+    assert_equal(bio.getvalue(), b'\x00' * 10000)
     bio.seek(0)
     bio.truncate(0)
     write_zeros(bio, 200, 256)
-    assert_equal(bio.getvalue(), b'\x00'*200)
+    assert_equal(bio.getvalue(), b'\x00' * 200)
 
 
 def test_seek_tell():
@@ -928,7 +927,7 @@ def test_seek_tell():
             st = functools.partial(seek_tell, write0=write0)
             bio.seek(0)
             # First write the file
-            with BinOpener(in_file, 'wb') as fobj:
+            with ImageOpener(in_file, 'wb') as fobj:
                 assert_equal(fobj.tell(), 0)
                 # already at position - OK
                 st(fobj, 0)
@@ -939,7 +938,7 @@ def test_seek_tell():
                 # Files other than BZ2Files can seek forward on write, leaving
                 # zeros in their wake.  BZ2Files can't seek when writing, unless
                 # we enable the write0 flag to seek_tell
-                if not write0 and in_file == 'test.bz2': # Can't seek write in bz2
+                if not write0 and in_file == 'test.bz2':  # Can't seek write in bz2
                     # write the zeros by hand for the read test below
                     fobj.write(b'\x00' * diff)
                 else:
@@ -949,7 +948,7 @@ def test_seek_tell():
                 fobj.write(b'\x02' * tail)
             bio.seek(0)
             # Now read back the file testing seek_tell in reading mode
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.tell(), 0)
                 st(fobj, 0)
                 assert_equal(fobj.tell(), 0)
@@ -961,22 +960,22 @@ def test_seek_tell():
                 st(fobj, 0)
             bio.seek(0)
             # Check we have the expected written output
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.read(),
                              b'\x01' * start + b'\x00' * diff + b'\x02' * tail)
         for in_file in ('test2.gz', 'test2.bz2'):
             # Check failure of write seek backwards
-            with BinOpener(in_file, 'wb') as fobj:
+            with ImageOpener(in_file, 'wb') as fobj:
                 fobj.write(b'g' * 10)
                 assert_equal(fobj.tell(), 10)
                 seek_tell(fobj, 10)
                 assert_equal(fobj.tell(), 10)
                 assert_raises(IOError, seek_tell, fobj, 5)
             # Make sure read seeks don't affect file
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 seek_tell(fobj, 10)
                 seek_tell(fobj, 0)
-            with BinOpener(in_file, 'rb') as fobj:
+            with ImageOpener(in_file, 'rb') as fobj:
                 assert_equal(fobj.read(), b'g' * 10)
 
 
@@ -986,7 +985,9 @@ def test_seek_tell_logic():
     bio = BytesIO()
     seek_tell(bio, 10)
     assert_equal(bio.tell(), 10)
+
     class BabyBio(BytesIO):
+
         def seek(self, *args):
             raise IOError()
     bio = BabyBio()
@@ -995,22 +996,13 @@ def test_seek_tell_logic():
     # Put fileobj in correct position by writing
     ZEROB = b'\x00'
     bio.write(ZEROB * 10)
-    seek_tell(bio, 10) # already there, nothing to do
+    seek_tell(bio, 10)  # already there, nothing to do
     assert_equal(bio.tell(), 10)
     assert_equal(bio.getvalue(), ZEROB * 10)
     # Try write zeros to get to new position
     assert_raises(IOError, bio.seek, 20)
     seek_tell(bio, 20, write0=True)
     assert_equal(bio.getvalue(), ZEROB * 20)
-
-
-def test_BinOpener():
-    # Test that BinOpener does add '.mgz' as gzipped file type
-    with InTemporaryDirectory():
-        with BinOpener('test.gz', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
-        with BinOpener('test.mgz', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
 
 
 def test_fname_ext_ul_case():
@@ -1095,27 +1087,27 @@ def test_shape_zoom_affine():
     shape = (3, 5, 7)
     zooms = (3, 2, 1)
     res = shape_zoom_affine(shape, zooms)
-    exp = np.array([[-3.,  0.,  0.,  3.],
-                    [ 0.,  2.,  0., -4.],
-                    [ 0.,  0.,  1., -3.],
-                    [ 0.,  0.,  0.,  1.]])
+    exp = np.array([[-3., 0., 0., 3.],
+                    [0., 2., 0., -4.],
+                    [0., 0., 1., -3.],
+                    [0., 0., 0., 1.]])
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine((3, 5), (3, 2))
-    exp = np.array([[-3.,  0.,  0.,  3.],
-                    [ 0.,  2.,  0., -4.],
-                    [ 0.,  0.,  1., -0.],
-                    [ 0.,  0.,  0.,  1.]])
+    exp = np.array([[-3., 0., 0., 3.],
+                    [0., 2., 0., -4.],
+                    [0., 0., 1., -0.],
+                    [0., 0., 0., 1.]])
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine(shape, zooms, False)
-    exp = np.array([[ 3.,  0.,  0., -3.],
-                    [ 0.,  2.,  0., -4.],
-                    [ 0.,  0.,  1., -3.],
-                    [ 0.,  0.,  0.,  1.]])
+    exp = np.array([[3., 0., 0., -3.],
+                    [0., 2., 0., -4.],
+                    [0., 0., 1., -3.],
+                    [0., 0., 0., 1.]])
     assert_array_almost_equal(res, exp)
 
 
 def test_rec2dict():
-    r = np.zeros((), dtype = [('x', 'i4'), ('s', 'S10')])
+    r = np.zeros((), dtype=[('x', 'i4'), ('s', 'S10')])
     d = rec2dict(r)
     assert_equal(d, {'x': 0, 's': b''})
 
@@ -1170,12 +1162,12 @@ def test__write_data():
                   shape,
                   out_dtype,
                   order='F',
-                  in_cast = None,
-                  pre_clips = None,
-                  inter = 0.,
-                  slope = 1.,
-                  post_clips = None,
-                  nan_fill = None):
+                  in_cast=None,
+                  pre_clips=None,
+                  inter=0.,
+                  slope=1.,
+                  post_clips=None,
+                  nan_fill=None):
         sio = BytesIO()
         to_write = data.reshape(shape)
         # to check that we didn't modify in-place
@@ -1196,34 +1188,55 @@ def test__write_data():
 
     # check shape writing
     for shape, order in itp(
-        ((24,), (24, 1), (24, 1, 1), (1, 24), (1, 1, 24), (2, 3, 4),
-         (6, 1, 4), (1, 6, 4), (6, 4, 1)),
-        'FC'):
+            ((24,), (24, 1), (24, 1, 1), (1, 24), (1, 1, 24), (2, 3, 4),
+             (6, 1, 4), (1, 6, 4), (6, 4, 1)),
+            'FC'):
         assert_rt(np.arange(24), shape, np.int16, order=order)
 
     # check defense against modifying data in-place
     for in_cast, pre_clips, inter, slope, post_clips, nan_fill in itp(
-        (None, np.float32),
-        (None, (-1, 25)),
-        (0., 1.),
-        (1., 0.5),
-        (None, (-2, 49)),
-        (None, 1)):
+            (None, np.float32),
+            (None, (-1, 25)),
+            (0., 1.),
+            (1., 0.5),
+            (None, (-2, 49)),
+            (None, 1)):
         data = np.arange(24).astype(np.float32)
         assert_rt(data, shape, np.int16,
-                  in_cast = in_cast,
-                  pre_clips = pre_clips,
-                  inter = inter,
-                  slope = slope,
-                  post_clips = post_clips,
-                  nan_fill = nan_fill)
+                  in_cast=in_cast,
+                  pre_clips=pre_clips,
+                  inter=inter,
+                  slope=slope,
+                  post_clips=post_clips,
+                  nan_fill=nan_fill)
         # Check defense against in-place modification with nans present
         if not nan_fill is None:
             data[1] = np.nan
             assert_rt(data, shape, np.int16,
-                      in_cast = in_cast,
-                      pre_clips = pre_clips,
-                      inter = inter,
-                      slope = slope,
-                      post_clips = post_clips,
-                      nan_fill = nan_fill)
+                      in_cast=in_cast,
+                      pre_clips=pre_clips,
+                      inter=inter,
+                      slope=slope,
+                      post_clips=post_clips,
+                      nan_fill=nan_fill)
+
+
+def test_array_from_file_overflow():
+    # Test for int overflow in size calculation in array_from_file
+    shape = (1500,) * 6
+
+    class NoStringIO:  # Null file-like for forcing error
+
+        def seek(self, n_bytes):
+            pass
+
+        def read(self, n_bytes):
+            return b''
+    try:
+        array_from_file(shape, np.int8, NoStringIO())
+    except IOError as err:
+        message = str(err)
+    assert_equal(message,
+                 'Expected {0} bytes, got {1} bytes from {2}\n'
+                 ' - could the file be damaged?'.format(
+                     11390625000000000000, 0, 'object'))

@@ -14,3 +14,4 @@ Developer documentation page
     add_image_format
     devdiscuss
     make_release
+    advanced_testing

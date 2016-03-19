@@ -6,6 +6,7 @@ import time
 
 
 from .. externals.six.moves import xrange
+from ..openers import Opener
 
 
 def _fread3(fobj):
@@ -160,6 +161,52 @@ def read_morph_data(filepath):
     return curv
 
 
+def write_morph_data(file_like, values, fnum=0):
+    """Write Freesurfer morphometry data `values` to file-like `file_like`
+
+    Equivalent to FreeSurfer's `write_curv.m`_
+
+    See also:
+    http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew
+
+    .. _write_curv.m: \
+    https://github.com/neurodebian/freesurfer/blob/debian-sloppy/matlab/write_curv.m
+
+    Parameters
+    ----------
+    file_like : file-like
+        String containing path of file to be written, or file-like object, open
+        in binary write (`'wb'` mode, implementing the `write` method)
+    values : array-like
+        Surface morphometry values
+
+        Shape must be (N,), (N, 1), (1, N) or (N, 1, 1)
+    fnum : int, optional
+        Number of faces in the associated surface
+    """
+    magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
+
+    vector = np.asarray(values)
+    vnum = np.prod(vector.shape)
+    if vector.shape not in ((vnum,), (vnum, 1), (1, vnum), (vnum, 1, 1)):
+        raise ValueError("Invalid shape: argument values must be a vector")
+
+    i4info = np.iinfo('i4')
+    if vnum > i4info.max:
+        raise ValueError("Too many values for morphometry file")
+    if not i4info.min <= fnum <= i4info.max:
+        raise ValueError("Argument fnum must be between {0} and {1}".format(
+                         i4info.min, i4info.max))
+
+    with Opener(file_like, 'wb') as fobj:
+        fobj.write(magic_bytes)
+
+        # vertex count, face count (unused), vals per vertex (only 1 supported)
+        fobj.write(np.array([vnum, fnum, 1], dtype='>i4'))
+
+        fobj.write(vector.astype('>f4'))
+
+
 def read_annot(filepath, orig_ids=False):
     """Read in a Freesurfer annotation from a .annot file.
 
@@ -226,6 +273,9 @@ def read_annot(filepath, orig_ids=False):
                 ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
                               ctab[i, 2] * (2 ** 16))
         ctab[:, 3] = 255
+
+    labels = labels.astype(np.int)
+
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
         mask = labels != 0
@@ -238,7 +288,7 @@ def write_annot(filepath, labels, ctab, names):
     """Write out a Freesurfer annotation file.
 
     See:
-    http://ftp.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
+    https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
 
     Parameters
     ----------
@@ -270,9 +320,9 @@ def write_annot(filepath, labels, ctab, names):
         clut_labels[np.where(labels == -1)] = 0
 
         # vno, label
-        data = np.vstack((np.array(range(vnum)).astype(dt),
-                          clut_labels.astype(dt))).T
-        data.byteswap().tofile(fobj)
+        data = np.vstack((np.array(range(vnum)),
+                          clut_labels)).T.astype(dt)
+        data.tofile(fobj)
 
         # tag
         write(1)

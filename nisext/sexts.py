@@ -222,7 +222,7 @@ echo First line of %pyscript% does not start with "#!"
 exit /b 1
 :goodstart
 set py_exe=%line1:~2%
-call %py_exe% %pyscript% %*
+call "%py_exe%" %pyscript% %*
 """
 
 class install_scripts_bat(install_scripts):
@@ -238,7 +238,7 @@ class install_scripts_bat(install_scripts):
     Notes
     -----
     See discussion at
-    http://matthew-brett.github.com/pydagogue/installing_scripts.html and
+    https://matthew-brett.github.io/pydagogue/installing_scripts.html and
     example at git://github.com/matthew-brett/myscripter.git for more
     background.
     """

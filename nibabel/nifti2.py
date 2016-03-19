@@ -10,11 +10,11 @@
 
 Format described here:
 
-    http://www.nitrc.org/forum/message.php?msg_id=3738
+    https://www.nitrc.org/forum/message.php?msg_id=3738
 
 Stuff about the CIFTI file format here:
 
-    http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
+    https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
 '''
 
 import numpy as np
@@ -25,7 +25,7 @@ from .spatialimages import HeaderDataError, ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
 
 r"""
-Header struct from : http://www.nitrc.org/forum/message.php?msg_id=3738
+Header struct from : https://www.nitrc.org/forum/message.php?msg_id=3738
 
 /*! \struct nifti_2_header
     \brief Data structure defining the fields in the nifti2 header.
@@ -79,45 +79,45 @@ typedef struct nifti_2_header nifti_2_header ;
 # nifti2 flat header definition for first 540 bytes
 # First number in comments indicates offset in file header in bytes
 header_dtd = [
-    ('sizeof_hdr', 'i4'), # 0; must be 540
-    ('magic', 'S4'),      # 4; must be 'ni2\0' or 'n+2\0'
-    ('eol_check', 'i1', (4,)), # 8; must be 0D 0A 1A 0A
-    ('datatype', 'i2'),   # 12; it's the datatype
-    ('bitpix', 'i2'),     # 14; number of bits per voxel
-    ('dim', 'i8', (8,)),  # 16; data array dimensions
-    ('intent_p1', 'f8'),  # 80; first intent parameter
-    ('intent_p2', 'f8'),  # 88; second intent parameter
-    ('intent_p3', 'f8'),  # 96; third intent parameter
-    ('pixdim', 'f8', (8,)), # 104; grid spacings (units below)
-    ('vox_offset', 'i8'), # 168; offset to data in image file
-    ('scl_slope', 'f8'),  # 176; data scaling slope
-    ('scl_inter', 'f8'),  # 184; data scaling intercept
-    ('cal_max', 'f8'),    # 192; max display intensity
-    ('cal_min', 'f8'),    # 200; min display intensity
-    ('slice_duration', 'f8'), # 208; time for 1 slice
-    ('toffset', 'f8'),   # 216; time axis shift
-    ('slice_start', 'i8'), # 224; first slice index
-    ('slice_end', 'i8'), # 232; last slice index
-    ('descrip', 'S80'),  # 240; any text
-    ('aux_file', 'S24'), # 320; auxiliary filename
-    ('qform_code', 'i4'), # 344; xform code
-    ('sform_code', 'i4'), # 348; xform code
-    ('quatern_b', 'f8'), # 352; quaternion b param
-    ('quatern_c', 'f8'), # 360; quaternion c param
-    ('quatern_d', 'f8'), # 368; quaternion d param
-    ('qoffset_x', 'f8'), # 376; quaternion x shift
-    ('qoffset_y', 'f8'), # 384; quaternion y shift
-    ('qoffset_z', 'f8'), # 392; quaternion z shift
-    ('srow_x', 'f8', (4,)), # 400; 1st row affine transform
-    ('srow_y', 'f8', (4,)), # 432; 2nd row affine transform
-    ('srow_z', 'f8', (4,)), # 464; 3rd row affine transform
-    ('slice_code', 'i4'), # 496; slice timing order
-    ('xyzt_units', 'i4'), # 500; inits of pixdim[1..4]
-    ('intent_code', 'i4'),# 504; NIFTI intent code
-    ('intent_name', 'S16'), # 508; name or meaning of data
-    ('dim_info', 'u1'),   # 524; MRI slice ordering code
-    ('unused_str', 'S15'), # 525; unused, filled with \0
-    ] # total 540
+    ('sizeof_hdr', 'i4'),       # 0; must be 540
+    ('magic', 'S4'),            # 4; must be 'ni2\0' or 'n+2\0'
+    ('eol_check', 'i1', (4,)),  # 8; must be 0D 0A 1A 0A
+    ('datatype', 'i2'),         # 12; it's the datatype
+    ('bitpix', 'i2'),           # 14; number of bits per voxel
+    ('dim', 'i8', (8,)),        # 16; data array dimensions
+    ('intent_p1', 'f8'),        # 80; first intent parameter
+    ('intent_p2', 'f8'),        # 88; second intent parameter
+    ('intent_p3', 'f8'),        # 96; third intent parameter
+    ('pixdim', 'f8', (8,)),     # 104; grid spacings (units below)
+    ('vox_offset', 'i8'),       # 168; offset to data in image file
+    ('scl_slope', 'f8'),        # 176; data scaling slope
+    ('scl_inter', 'f8'),        # 184; data scaling intercept
+    ('cal_max', 'f8'),          # 192; max display intensity
+    ('cal_min', 'f8'),          # 200; min display intensity
+    ('slice_duration', 'f8'),   # 208; time for 1 slice
+    ('toffset', 'f8'),          # 216; time axis shift
+    ('slice_start', 'i8'),      # 224; first slice index
+    ('slice_end', 'i8'),        # 232; last slice index
+    ('descrip', 'S80'),         # 240; any text
+    ('aux_file', 'S24'),        # 320; auxiliary filename
+    ('qform_code', 'i4'),       # 344; xform code
+    ('sform_code', 'i4'),       # 348; xform code
+    ('quatern_b', 'f8'),        # 352; quaternion b param
+    ('quatern_c', 'f8'),        # 360; quaternion c param
+    ('quatern_d', 'f8'),        # 368; quaternion d param
+    ('qoffset_x', 'f8'),        # 376; quaternion x shift
+    ('qoffset_y', 'f8'),        # 384; quaternion y shift
+    ('qoffset_z', 'f8'),        # 392; quaternion z shift
+    ('srow_x', 'f8', (4,)),     # 400; 1st row affine transform
+    ('srow_y', 'f8', (4,)),     # 432; 2nd row affine transform
+    ('srow_z', 'f8', (4,)),     # 464; 3rd row affine transform
+    ('slice_code', 'i4'),       # 496; slice timing order
+    ('xyzt_units', 'i4'),       # 500; inits of pixdim[1..4]
+    ('intent_code', 'i4'),      # 504; NIFTI intent code
+    ('intent_name', 'S16'),     # 508; name or meaning of data
+    ('dim_info', 'u1'),         # 524; MRI slice ordering code
+    ('unused_str', 'S15'),      # 525; unused, filled with \0
+]  # total 540
 
 # Full header numpy dtype
 header_dtype = np.dtype(header_dtd)
@@ -221,6 +221,16 @@ class Nifti2Header(Nifti1Header):
             rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return 540 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
+
 
 class Nifti2PairHeader(Nifti2Header):
     ''' Class for NIfTI2 pair header '''
@@ -232,12 +242,14 @@ class Nifti2Pair(Nifti1Pair):
     """ Class for NIfTI2 format image, header pair
     """
     header_class = Nifti2PairHeader
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 class Nifti2Image(Nifti1Image):
     """ Class for single file NIfTI2 format image
     """
     header_class = Nifti2Header
+    _meta_sniff_len = header_class.sizeof_hdr
 
 
 def load(filename):

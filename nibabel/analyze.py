@@ -46,13 +46,13 @@ diagonal affines), and cannot do integer scaling.
 The inability to store affines means that we have to guess what orientation the
 image has.  Most Analyze images are stored on disk in (fastest-changing to
 slowest-changing) R->L, P->A and I->S order.  That is, the first voxel is the
-rightmost, most posterior and most inferior voxel location in the image, and the
-next voxel is one voxel towards the left of the image.
+rightmost, most posterior and most inferior voxel location in the image, and
+the next voxel is one voxel towards the left of the image.
 
 Most people refer to this disk storage format as 'radiological', on the basis
 that, if you load up the data as an array ``img_arr`` where the first axis is
-the fastest changing, then take a slice in the I->S axis - ``img_arr[:,:,10]`` -
-then the right part of the brain will be on the left of your displayed slice.
+the fastest changing, then take a slice in the I->S axis - ``img_arr[:,:,10]``
+- then the right part of the brain will be on the left of your displayed slice.
 Radiologists like looking at images where the left of the brain is on the right
 side of the image.
 
@@ -60,9 +60,9 @@ Conversely, if the image has the voxels stored with the left voxels first -
 L->R, P->A, I->S, then this would be 'neurological' format.  Neurologists like
 looking at images where the left side of the brain is on the left of the image.
 
-When we are guessing at an affine for Analyze, this translates to the problem of
-whether the affine should consider proceeding within the data down an X line as
-being from left to right, or right to left.
+When we are guessing at an affine for Analyze, this translates to the problem
+of whether the affine should consider proceeding within the data down an X line
+as being from left to right, or right to left.
 
 By default we assume that the image is stored in R->L format.  We encode this
 choice in the ``default_x_flip`` flag that can be True or False.  True means
@@ -107,7 +107,7 @@ header_key_dtd = [
     ('session_error', 'i2'),
     ('regular', 'S1'),
     ('hkey_un0', 'S1')
-    ]
+]
 image_dimension_dtd = [
     ('dim', 'i2', (8,)),
     ('vox_units', 'S4'),
@@ -127,7 +127,7 @@ image_dimension_dtd = [
     ('verified', 'i4'),
     ('glmax', 'i4'),
     ('glmin', 'i4')
-    ]
+]
 data_history_dtd = [
     ('descrip', 'S80'),
     ('aux_file', 'S24'),
@@ -147,24 +147,24 @@ data_history_dtd = [
     ('omin', 'i4'),
     ('smax', 'i4'),
     ('smin', 'i4')
-    ]
+]
 
 # Full header numpy dtype combined across sub-fields
 header_dtype = np.dtype(header_key_dtd + image_dimension_dtd +
                         data_history_dtd)
 
-_dtdefs = ( # code, conversion function, equivalent dtype, aliases
+_dtdefs = (  # code, conversion function, equivalent dtype, aliases
     (0, 'none', np.void),
-    (1, 'binary', np.void), # 1 bit per voxel, needs thought
+    (1, 'binary', np.void),  # 1 bit per voxel, needs thought
     (2, 'uint8', np.uint8),
     (4, 'int16', np.int16),
     (8, 'int32', np.int32),
     (16, 'float32', np.float32),
-    (32, 'complex64', np.complex64), # numpy complex format?
+    (32, 'complex64', np.complex64),  # numpy complex format?
     (64, 'float64', np.float64),
-    (128, 'RGB', np.dtype([('R','u1'),
-                  ('G', 'u1'),
-                  ('B', 'u1')])),
+    (128, 'RGB', np.dtype([('R', 'u1'),
+                           ('G', 'u1'),
+                           ('B', 'u1')])),
     (255, 'all', np.void))
 
 # Make full code alias bank, including dtype column
@@ -343,7 +343,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         hdr_data['dim'] = 1
         hdr_data['dim'][0] = 0
         hdr_data['pixdim'] = 1
-        hdr_data['datatype'] = 16 # float32
+        hdr_data['datatype'] = 16  # float32
         hdr_data['bitpix'] = 32
         return hdr_data
 
@@ -606,7 +606,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         ndims = dims[0]
         if ndims == 0:
             return 0,
-        return tuple(int(d) for d in dims[1:ndims+1])
+        return tuple(int(d) for d in dims[1:ndims + 1])
 
     def set_data_shape(self, shape):
         ''' Set shape of data
@@ -624,18 +624,18 @@ class AnalyzeHeader(LabeledWrapStruct):
         dims[:] = 1
         dims[0] = ndims
         try:
-            dims[1:ndims+1] = shape
+            dims[1:ndims + 1] = shape
         except (ValueError, OverflowError):
             # numpy 1.4.1 at least generates a ValueError from trying to set a
             # python long into an int64 array (dims are int64 for nifti2)
             values_fit = False
         else:
-            values_fit = np.all(dims[1:ndims+1] == shape)
+            values_fit = np.all(dims[1:ndims + 1] == shape)
         # Error if we did not succeed setting dimensions
         if not values_fit:
             raise HeaderDataError('shape %s does not fit in dim datatype' %
                                   (shape,))
-        self._structarr['pixdim'][ndims+1:] = 1.0
+        self._structarr['pixdim'][ndims + 1:] = 1.0
 
     def get_base_affine(self):
         ''' Get affine from basic (shared) header fields
@@ -659,8 +659,8 @@ class AnalyzeHeader(LabeledWrapStruct):
         hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
-        return shape_zoom_affine(hdr['dim'][1:ndim+1],
-                                 hdr['pixdim'][1:ndim+1],
+        return shape_zoom_affine(hdr['dim'][1:ndim + 1],
+                                 hdr['pixdim'][1:ndim + 1],
                                  self.default_x_flip)
 
     get_best_affine = get_base_affine
@@ -691,7 +691,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         if ndim == 0:
             return (1.0,)
         pixdims = hdr['pixdim']
-        return tuple(pixdims[1:ndim+1])
+        return tuple(pixdims[1:ndim + 1])
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
@@ -708,7 +708,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
-        pixdims[1:ndim+1] = zooms[:]
+        pixdims[1:ndim + 1] = zooms[:]
 
     def as_analyze_map(self):
         """ Return header as mapping for conversion to Analyze types
@@ -794,7 +794,7 @@ class AnalyzeHeader(LabeledWrapStruct):
             If float, value must be 0.0 or we raise a ``HeaderTypeError``
         '''
         if ((slope in (None, 1) or np.isnan(slope)) and
-            (inter in (None, 0) or np.isnan(inter))):
+                (inter in (None, 0) or np.isnan(inter))):
             return
         raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 '
                               'for Analyze headers')
@@ -858,7 +858,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         rep.problem_level = 10
         rep.problem_msg = 'bitpix does not match datatype'
         if fix:
-            hdr['bitpix'] = bitpix # inplace modification
+            hdr['bitpix'] = bitpix  # inplace modification
             rep.fix_msg = 'setting bitpix to match datatype'
         return hdr, rep
 
@@ -892,13 +892,28 @@ class AnalyzeHeader(LabeledWrapStruct):
             rep.fix_msg = ' and '.join(fmsgs)
         return hdr, rep
 
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if len(binaryblock) < klass.sizeof_hdr:
+            return False
+
+        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
+                                buffer=binaryblock[:klass.sizeof_hdr])
+        bs_hdr_struct = hdr_struct.byteswap()
+        return 348 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
+
 
 class AnalyzeImage(SpatialImage):
     """ Class for basic Analyze format image
     """
     header_class = AnalyzeHeader
-    files_types = (('image','.img'), ('header','.hdr'))
-    _compressed_exts = ('.gz', '.bz2')
+    _meta_sniff_len = header_class.sizeof_hdr
+    files_types = (('image', '.img'), ('header', '.hdr'))
+    valid_exts = ('.img', '.hdr')
+    _compressed_suffixes = ('.gz', '.bz2')
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 
@@ -931,10 +946,10 @@ class AnalyzeImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
@@ -971,10 +986,10 @@ class AnalyzeImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
@@ -1030,7 +1045,8 @@ class AnalyzeImage(SpatialImage):
             arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
-        # analyze images but most often this is because it's a single nifti file
+        # analyze images but most often this is because it's a single nifti
+        # file
         hdr_img_same = hdr_fh.same_file_as(img_fh)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
         if hdr_img_same:

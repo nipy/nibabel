@@ -6,8 +6,8 @@ Run benchmarks with::
     nib.bench()
 
 If you have doctests enabled by default in nose (with a noserc file or
-environment variable), and you have a numpy version <= 1.6.1, this will also run
-the doctests, let's hope they pass.
+environment variable), and you have a numpy version <= 1.6.1, this will also
+run the doctests, let's hope they pass.
 
 Run this benchmark with:
 
@@ -26,6 +26,7 @@ from .. import Nifti1Image
 from .butils import print_git_title
 
 from numpy.testing import measure
+
 
 def bench_load_save():
     rng = np.random.RandomState(20111001)
@@ -56,7 +57,7 @@ def bench_load_save():
     mtime = measure('img.from_file_map(img.file_map)', repeat)
     print('%30s %6.2f' % ('Load from int16, NaNs', mtime))
     # Int16 input, float output
-    arr = np.random.random_integers(low=-1000,high=-1000, size=img_shape)
+    arr = np.random.random_integers(low=-1000, high=1000, size=img_shape)
     arr = arr.astype(np.int16)
     img = Nifti1Image(arr, np.eye(4))
     sio = BytesIO()

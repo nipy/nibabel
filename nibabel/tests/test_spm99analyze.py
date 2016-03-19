@@ -16,12 +16,8 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 
 # Decorator to skip tests requiring save / load if scipy not available for mat
 # files
-try:
-    import scipy
-except ImportError:
-    have_scipy = False
-else:
-    have_scipy = True
+from ..optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
 scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
@@ -55,10 +51,10 @@ class HeaderScalingMixin(object):
 
     def test_data_scaling(self):
         hdr = self.header_class()
-        hdr.set_data_shape((1,2,3))
+        hdr.set_data_shape((1, 2, 3))
         hdr.set_data_dtype(np.int16)
         S3 = BytesIO()
-        data = np.arange(6, dtype=np.float64).reshape((1,2,3))
+        data = np.arange(6, dtype=np.float64).reshape((1, 2, 3))
         # This uses scaling
         hdr.data_to_fileobj(data, S3)
         data_back = hdr.data_from_fileobj(S3)
@@ -94,12 +90,12 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         # Test that upcasting works for huge scalefactors
         # See tests for apply_read_scaling in test_utils
         hdr = self.header_class()
-        hdr.set_data_shape((1,1,1))
+        hdr.set_data_shape((1, 1, 1))
         hdr.set_data_dtype(np.int16)
         sio = BytesIO()
         dtt = np.float32
         # This will generate a huge scalefactor
-        data = np.array([type_info(dtt)['max']], dtype=dtt)[:,None, None]
+        data = np.array([type_info(dtt)['max']], dtype=dtt)[:, None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert_true(np.allclose(data, data_back))
@@ -108,20 +104,20 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         hdr = self.header_class()
         assert_equal(hdr.get_slope_inter(), (1.0, None))
         for in_tup, exp_err, out_tup, raw_slope in (
-            ((2.0,), None, (2.0, None), 2.),
-            ((None,), None, (None, None), np.nan),
-            ((1.0, None), None, (1.0, None), 1.),
-            # non zero intercept causes error
-            ((None, 1.1), HeaderTypeError, (None, None), np.nan),
-            ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
-            # null scalings
-            ((0.0, None), HeaderDataError, (None, None), 0.),
-            ((np.nan, np.nan), None, (None, None), np.nan),
-            ((np.nan, None), None, (None, None), np.nan),
-            ((None, np.nan), None, (None, None), np.nan),
-            ((np.inf, None), HeaderDataError, (None, None), np.inf),
-            ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
-            ((None, 0.0), None, (None, None), np.nan)):
+                ((2.0,), None, (2.0, None), 2.),
+                ((None,), None, (None, None), np.nan),
+                ((1.0, None), None, (1.0, None), 1.),
+                # non zero intercept causes error
+                ((None, 1.1), HeaderTypeError, (None, None), np.nan),
+                ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
+                # null scalings
+                ((0.0, None), HeaderDataError, (None, None), 0.),
+                ((np.nan, np.nan), None, (None, None), np.nan),
+                ((np.nan, None), None, (None, None), np.nan),
+                ((None, np.nan), None, (None, None), np.nan),
+                ((np.inf, None), HeaderDataError, (None, None), np.inf),
+                ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
+                ((None, 0.0), None, (None, None), np.nan)):
             hdr = self.header_class()
             if not exp_err is None:
                 assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
@@ -140,19 +136,19 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         HC = self.header_class
         # origin
         hdr = HC()
-        hdr.data_shape = [1,1,1]
-        hdr['origin'][0] = 101 # severity 20
+        hdr.data_shape = [1, 1, 1]
+        hdr['origin'][0] = 101  # severity 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr, hdr)
         assert_equal(message, 'very large origin values '
-                           'relative to dims; leaving as set, '
-                           'ignoring for affine')
+                     'relative to dims; leaving as set, '
+                     'ignoring for affine')
         assert_raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
         assert_equal(dxer(hdr.binaryblock),
-                           'very large origin values '
-                           'relative to dims')
+                     'very large origin values '
+                     'relative to dims')
 
 
 class ImageScalingMixin(object):
@@ -329,8 +325,8 @@ class ImageScalingMixin(object):
         slope = 2
         inter = 10 if hdr.has_data_intercept else 0
         for in_dtype, out_dtype in itertools.product(
-            FLOAT_TYPES + IUINT_TYPES,
-            supported_types):
+                FLOAT_TYPES + IUINT_TYPES,
+                supported_types):
             # Need to check complex scaling
             mn_in, mx_in = _dt_min_max(in_dtype)
             arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
@@ -393,7 +389,7 @@ class ImageScalingMixin(object):
         img_class = self.image_class
         arr = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
         arr[0, 0, 0] = np.nan
-        arr[1, 0, 0] = 256 # to push outside uint8 range
+        arr[1, 0, 0] = 256  # to push outside uint8 range
         img = img_class(arr, np.eye(4))
         rt_img = bytesio_round_trip(img)
         assert_array_equal(rt_img.get_data(), arr)
@@ -447,8 +443,8 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types
         img_klass = self.image_class
-        arr = np.arange(24, dtype=np.int32).reshape((2,3,4))
-        aff = np.diag([2,3,4,1]) # no LR flip in affine
+        arr = np.arange(24, dtype=np.int32).reshape((2, 3, 4))
+        aff = np.diag([2, 3, 4, 1])  # no LR flip in affine
         img = img_klass(arr, aff)
         fm = img.file_map
         for key, value in fm.items():
@@ -467,34 +463,34 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         mats = loadmat(mat_fileobj)
         assert_true('M' in mats and 'mat' in mats)
         from_111 = np.eye(4)
-        from_111[:3,3] = -1
+        from_111[:3, 3] = -1
         to_111 = np.eye(4)
-        to_111[:3,3] = 1
+        to_111[:3, 3] = 1
         assert_array_equal(mats['mat'], np.dot(aff, from_111))
         # The M matrix does not include flips, so if we only have the M matrix
         # in the mat file, and we have default flipping, the mat resulting
         # should have a flip.  The 'mat' matrix does include flips and so
         # should be unaffected by the flipping.  If both are present we prefer
         # the the 'mat' matrix.
-        assert_true(img.header.default_x_flip) # check the default
-        flipper = np.diag([-1,1,1,1])
+        assert_true(img.header.default_x_flip)  # check the default
+        flipper = np.diag([-1, 1, 1, 1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
         savemat(mat_fileobj,
-                dict(M=np.diag([3,4,5,1]), mat=np.diag([6,7,8,1])))
+                dict(M=np.diag([3, 4, 5, 1]), mat=np.diag([6, 7, 8, 1])))
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
         assert_array_equal(r_img.affine,
-                           np.dot(np.diag([6,7,8,1]), to_111))
+                           np.dot(np.diag([6, 7, 8, 1]), to_111))
         # But will use M if present
         mat_fileobj.seek(0)
         mat_fileobj.truncate(0)
-        savemat(mat_fileobj, dict(M=np.diag([3,4,5,1])))
+        savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1])))
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_data(), arr)
         assert_array_equal(r_img.affine,
-                           np.dot(np.diag([3,4,5,1]), np.dot(flipper, to_111)))
+                           np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111)))
 
     def test_none_affine(self):
         # Allow for possibility of no affine resulting in nothing written into
@@ -502,7 +498,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # it's a fileobj, we get an empty fileobj
         img_klass = self.image_class
         # With a None affine - no matfile written
-        img = img_klass(np.zeros((2,3,4)), None)
+        img = img_klass(np.zeros((2, 3, 4)), None)
         aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
@@ -520,30 +516,30 @@ def test_origin_affine():
     hdr.set_zooms((3, 2, 1))
     assert_true(hdr.default_x_flip)
     assert_array_almost_equal(
-        hdr.get_origin_affine(), # from center of image
-        [[-3.,  0.,  0.,  3.],
-         [ 0.,  2.,  0., -4.],
-         [ 0.,  0.,  1., -3.],
-         [ 0.,  0.,  0.,  1.]])
-    hdr['origin'][:3] = [3,4,5]
+        hdr.get_origin_affine(),  # from center of image
+        [[-3., 0., 0., 3.],
+         [0., 2., 0., -4.],
+         [0., 0., 1., -3.],
+         [0., 0., 0., 1.]])
+    hdr['origin'][:3] = [3, 4, 5]
     assert_array_almost_equal(
-        hdr.get_origin_affine(), # using origin
-        [[-3.,  0.,  0.,  6.],
-         [ 0.,  2.,  0., -6.],
-         [ 0.,  0.,  1., -4.],
-         [ 0.,  0.,  0.,  1.]])
-    hdr['origin'] = 0 # unset origin
+        hdr.get_origin_affine(),  # using origin
+        [[-3., 0., 0., 6.],
+         [0., 2., 0., -6.],
+         [0., 0., 1., -4.],
+         [0., 0., 0., 1.]])
+    hdr['origin'] = 0  # unset origin
     hdr.set_data_shape((3, 5))
     assert_array_almost_equal(
         hdr.get_origin_affine(),
-        [[-3.,  0.,  0.,  3.],
-         [ 0.,  2.,  0., -4.],
-         [ 0.,  0.,  1., -0.],
-         [ 0.,  0.,  0.,  1.]])
+        [[-3., 0., 0., 3.],
+         [0., 2., 0., -4.],
+         [0., 0., 1., -0.],
+         [0., 0., 0., 1.]])
     hdr.set_data_shape((3, 5, 7))
     assert_array_almost_equal(
-        hdr.get_origin_affine(), # from center of image
-        [[-3.,  0.,  0.,  3.],
-         [ 0.,  2.,  0., -4.],
-         [ 0.,  0.,  1., -3.],
-         [ 0.,  0.,  0.,  1.]])
+        hdr.get_origin_affine(),  # from center of image
+        [[-3., 0., 0., 3.],
+         [0., 2., 0., -4.],
+         [0., 0., 1., -3.],
+         [0., 0., 0., 1.]])

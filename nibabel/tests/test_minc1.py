@@ -25,7 +25,7 @@ from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from ..tmpdirs import InTemporaryDirectory
 from ..testing import data_path
 
@@ -39,50 +39,50 @@ EG_FNAME = pjoin(data_path, 'tiny.mnc')
 # item.
 EXAMPLE_IMAGES = [
     dict(
-        fname = pjoin(data_path, 'tiny.mnc'),
-        shape = (10,20,20),
-        dtype = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (2., 2., 2.),
+        fname=pjoin(data_path, 'tiny.mnc'),
+        shape=(10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 2.0, -20],
+                         [0, 2.0, 0, -20],
+                         [2.0, 0, 0, -10],
+                         [0, 0, 0, 1]]),
+        zooms=(2., 2., 2.),
         # These values from SPM2
-        data_summary = dict(
-            min = 0.20784314,
-            max = 0.74901961,
-            mean = 0.60602819),
-        is_proxy = True),
+        data_summary=dict(
+            min=0.20784314,
+            max=0.74901961,
+            mean=0.60602819),
+        is_proxy=True),
     dict(
-        fname = pjoin(data_path, 'minc1_1_scale.mnc'),
-        shape = (10,20,20),
-        dtype = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (2., 2., 2.),
+        fname=pjoin(data_path, 'minc1_1_scale.mnc'),
+        shape=(10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 2.0, -20],
+                         [0, 2.0, 0, -20],
+                         [2.0, 0, 0, -10],
+                         [0, 0, 0, 1]]),
+        zooms=(2., 2., 2.),
         # These values from mincstats
-        data_summary = dict(
-            min = 0.2082842439,
-            max = 0.2094327615,
-            mean = 0.2091292083),
-        is_proxy = True),
+        data_summary=dict(
+            min=0.2082842439,
+            max=0.2094327615,
+            mean=0.2091292083),
+        is_proxy=True),
     dict(
-        fname = pjoin(data_path, 'minc1_4d.mnc'),
-        shape = (2, 10,20,20),
-        dtype = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (1., 2., 2., 2.),
+        fname=pjoin(data_path, 'minc1_4d.mnc'),
+        shape=(2, 10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 2.0, -20],
+                         [0, 2.0, 0, -20],
+                         [2.0, 0, 0, -10],
+                         [0, 0, 0, 1]]),
+        zooms=(1., 2., 2., 2.),
         # These values from mincstats
-        data_summary = dict(
-            min = 0.2078431373,
-            max = 1.498039216,
-            mean = 0.9090422837),
-        is_proxy = True),
+        data_summary=dict(
+            min=0.2078431373,
+            max=1.498039216,
+            mean=0.9090422837),
+        is_proxy=True),
 ]
 
 
@@ -102,7 +102,7 @@ def test_old_namespace():
         previous_import = isinstance(minc, types.ModuleType)
         if not previous_import:
             assert_true(isinstance(minc, ModuleProxy))
-        old_minc1image = minc.Minc1Image # just to check it works
+        old_minc1image = minc.Minc1Image  # just to check it works
         # There may or may not be a warning raised on accessing the proxy,
         # depending on whether the minc.py module is already imported in this
         # test run.
@@ -125,7 +125,7 @@ def test_old_namespace():
         assert_false(MincFile is Minc1File)
         assert_equal(warns, [])
         mf = MincFile(netcdf_file(EG_FNAME))
-        assert_equal(mf.get_data_shape(), (10, 20 , 20))
+        assert_equal(mf.get_data_shape(), (10, 20, 20))
         # Call to create object created warning
         assert_equal(warns.pop(0).category, FutureWarning)
 
@@ -155,13 +155,13 @@ class _TestMincFile(object):
             mnc = self.file_class(mnc_obj)
             data = mnc.get_scaled_data()
             for slicedef in ((slice(None),),
-                            (1,),
-                            (slice(None), 1),
-                            (1, slice(None)),
-                            (slice(None), 1, 1),
-                            (1, slice(None), 1),
-                            (1, 1, slice(None)),
-                            ):
+                             (1,),
+                             (slice(None), 1),
+                             (1, slice(None)),
+                             (slice(None), 1, 1),
+                             (1, slice(None), 1),
+                             (1, 1, slice(None)),
+                             ):
                 sliced_data = mnc.get_scaled_data(slicedef)
                 assert_array_equal(sliced_data, data[slicedef])
 

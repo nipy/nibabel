@@ -107,9 +107,10 @@ or the pixdims::
 
 '''
 
+
 class BatteryRunner(object):
     ''' Class to run set of checks '''
-    
+
     def __init__(self, checks):
         ''' Initialize instance from sequence of `checks`
 
@@ -174,6 +175,7 @@ class BatteryRunner(object):
 
 
 class Report(object):
+
     def __init__(self,
                  error=Exception,
                  problem_level=0,
@@ -286,7 +288,7 @@ class Report(object):
            ``self``
         log_level : int, optional
            Such that if `log_level` is >= ``self.problem_level`` we
-           write the report to `stream`, otherwise we write nothing. 
+           write the report to `stream`, otherwise we write nothing.
         '''
         if self.problem_level >= log_level:
             stream.write('Level %s: %s\n' %

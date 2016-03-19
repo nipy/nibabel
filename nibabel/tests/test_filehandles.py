@@ -24,7 +24,6 @@ from ..nifti1 import Nifti1Image
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_equal, assert_raises
 
 
 def test_multiload():
@@ -34,7 +33,7 @@ def test_multiload():
     if N > 5000:
         warn('It would take too long to test file handles, aborting')
         return
-    arr = np.arange(24).reshape((2,3,4))
+    arr = np.arange(24).reshape((2, 3, 4))
     img = Nifti1Image(arr, np.eye(4))
     imgs = []
     try:

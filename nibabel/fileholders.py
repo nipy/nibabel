@@ -10,7 +10,7 @@
 
 from copy import copy
 
-from .volumeutils import BinOpener
+from .openers import ImageOpener
 
 
 class FileHolderError(Exception):
@@ -20,6 +20,7 @@ class FileHolderError(Exception):
 class FileHolder(object):
     ''' class to contain filename, fileobj and file position
     '''
+
     def __init__(self,
                  filename=None,
                  fileobj=None,
@@ -63,10 +64,10 @@ class FileHolder(object):
            ``self.pos``
         '''
         if self.fileobj is not None:
-            obj = BinOpener(self.fileobj) # for context manager
+            obj = ImageOpener(self.fileobj)  # for context manager
             obj.seek(self.pos)
         elif self.filename is not None:
-            obj = BinOpener(self.filename, *args, **kwargs)
+            obj = ImageOpener(self.filename, *args, **kwargs)
             if self.pos != 0:
                 obj.seek(self.pos)
         else:
@@ -90,6 +91,12 @@ class FileHolder(object):
         return ((self.filename == other.filename) and
                 (self.fileobj == other.fileobj))
 
+    @property
+    def file_like(self):
+        """ Return ``self.fileobj`` if not None, otherwise ``self.filename``
+        """
+        return self.fileobj if self.fileobj is not None else self.filename
+
 
 def copy_file_map(file_map):
     ''' Copy mapping of fileholders given by `file_map`
@@ -109,4 +116,3 @@ def copy_file_map(file_map):
     for key, fh in file_map.items():
         fm_copy[key] = copy(fh)
     return fm_copy
-    

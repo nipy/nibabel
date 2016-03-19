@@ -22,10 +22,58 @@ NiBabel
 Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
 and Stephan Gerhard (SG).
 
-* 2.0.1
+References like "pr/298" refer to github pull request numbers.
+
+* Upcoming
 
   * Read and write support for DICOM tags in NIfTI Extended Header using
-    pydicom.
+    pydicom (pr/296);
+  * Trackvis reader will now allow final streamline to have fewer points that
+    tne numbe declared in the header, with ``strict=False`` argument to
+    ``read`` function;
+  * Minor API breakage in trackvis reader. We are now raising a DataError if
+    there are too few streamlines in the file, instead of a HeaderError.  We
+    are raising a DataError if the track is truncated when ``strict=True``
+    (the default), rather than a TypeError when trying to create the points
+    array.
+
+* 2.0.2 (Monday 23 November 2015)
+
+  * Fix for integer overflow on large images (pr/325) (MB);
+  * Fix for Freesurfer nifti files with unusual dimensions (pr/332) (Chris
+    Markiewicz);
+  * Fix typos on benchmarks and tests (pr/336, pr/340, pr/347) (Chris
+    Markiewicz);
+  * Fix Windows install script (pr/339) (MB);
+  * Support for Python 3.5 (pr/363) (MB) and numpy 1.10 (pr/358) (Chris
+    Markiewicz);
+  * Update pydicom imports to permit version 1.0 (pr/379) (Chris Markiewicz);
+  * Workaround for Python 3.5.0 gzip regression (pr/383) (Ben Cipollini).
+  * tripwire.TripWire object now raises subclass of AttributeError when trying
+    to get an attribute, rather than a direct subclass of Exception.  This
+    prevents Python 3.5 triggering the tripwire when doing inspection prior to
+    running doctests.
+  * Minor API change for tripwire.TripWire object; code that checked for
+    AttributeError will now also catch TripWireError.
+
+* 2.0.1 (Saturday 27 June 2015)
+
+  Contributions from Ben Cipollini, Chris Markiewicz, Alexandre Gramfort,
+  Clemens Bauer, github user freec84.
+
+  * Bugfix release with minor new features;
+  * Added ``axis`` parameter to ``concat_images`` (pr/298) (Ben Cipollini);
+  * Fix for unsigned integer data types in ECAT images (pr/302) (MB, test data
+    and issue report from Github user freec84);
+  * Added new ECAT and Freesurfer data files to automated testing;
+  * Fix for Freesurfer labels error on early numpies (pr/307) (Alexandre
+    Gramfort);
+  * Fixes for PAR / REC header parsing (pr/312) (MB, issue reporting and test
+    data by Clemens C. C. Bauer);
+  * Workaround for reading Freesurfer ico7 surface files (pr/315) (Chris
+    Markiewicz);
+  * Changed to github pages for doc hosting;
+  * Changed docs to point to neuroimaging@python.org mailing list.
 
 * 2.0.0 (Tuesday 9 December 2014)
 

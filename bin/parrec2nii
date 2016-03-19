@@ -8,6 +8,7 @@ import numpy as np
 import numpy.linalg as npl
 import sys
 import os
+import csv
 import nibabel
 import nibabel.parrec as pr
 from nibabel.parrec import one_line
@@ -67,6 +68,18 @@ def get_opt_parser():
                    for --dwell-time. The field strength must be supplied
                    because it is not encoded in the PAR/REC format.""")))
     p.add_option(
+        Option("-i", "--volume-info", action="store_true", dest="vol_info",
+               default=False,
+               help=one_line(
+                   """Export .PAR volume labels corresponding to the fourth
+                   dimension of the data.  The dimension info will be stored in
+                   CSV format with the first row containing dimension labels
+                   and the subsequent rows (one per volume), the corresponding
+                   indices.  Only labels that vary along the 4th dimension are
+                   exported (e.g. for a single volume structural scan there
+                   are no dynamic labels and no output file will be created).
+                   """)))
+    p.add_option(
         Option("--origin", action="store", dest="origin", default="scanner",
                help=one_line(
                    """Reference point of the q-form transformation of the NIfTI
@@ -113,6 +126,13 @@ def get_opt_parser():
                default=False,
                help=one_line("""Overwrite file if it exists. Default:
                              False""")))
+    p.add_option(
+        Option("--strict-sort", action="store_true", dest="strict_sort",
+               default=False,
+               help=one_line("""Use additional keys in determining the order
+                to sort the slices within the .REC file.  This may be necessary
+                for more complicated scans with multiple echos,
+                cardiac phases, ASL label states, etc.""")))
     return p
 
 
@@ -148,7 +168,8 @@ def proc_file(infile, opts):
     infile = fname_ext_ul_case(infile)
     pr_img = pr.load(infile,
                      permit_truncated=opts.permit_truncated,
-                     scaling=scaling)
+                     scaling=scaling,
+                     strict_sort=opts.strict_sort)
     pr_hdr = pr_img.header
     affine = pr_hdr.get_affine(origin=opts.origin)
     slope, intercept = pr_hdr.get_data_scaling(scaling)
@@ -185,7 +206,7 @@ def proc_file(infile, opts):
 
     bvals, bvecs = pr_hdr.get_bvals_bvecs()
     if not opts.keep_trace:  # discard Philips DTI trace if present
-        if bvals is not None:
+        if bvecs is not None:
             bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
             if bad_mask.sum() > 0:
                 pl = 's' if bad_mask.sum() != 1 else ''
@@ -229,6 +250,14 @@ def proc_file(infile, opts):
     if opts.bvs:
         if bvals is None and bvecs is None:
             verbose('No DTI volumes detected, bvals and bvecs not written')
+        elif bvecs is None:
+            verbose('DTI volumes detected, but no diffusion direction info was'
+                    'found.  Writing .bvals file only.')
+            with open(basefilename + '.bvals', 'w') as fid:
+                # np.savetxt could do this, but it's just a loop anyway
+                for val in bvals:
+                    fid.write('%s ' % val)
+                fid.write('\n')
         else:
             verbose('Writing .bvals and .bvecs files')
             # Transform bvecs with reorientation affine
@@ -245,6 +274,17 @@ def proc_file(infile, opts):
                     for val in row:
                         fid.write('%s ' % val)
                     fid.write('\n')
+
+    # export data labels varying along the 4th dimensions if requested
+    if opts.vol_info:
+        labels = pr_img.header.get_volume_labels()
+        if len(labels) > 0:
+            vol_keys = list(labels.keys())
+            with open(basefilename + '.ordering.csv', 'w') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=',')
+                csvwriter.writerow(vol_keys)
+                for vals in zip(*[labels[k] for k in vol_keys]):
+                    csvwriter.writerow(vals)
 
     # write out dwell time if requested
     if opts.dwell_time:

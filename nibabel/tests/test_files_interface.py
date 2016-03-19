@@ -12,28 +12,30 @@
 
 import numpy as np
 
-from .. import class_map, Nifti1Image, Nifti1Pair, MGHImage
+from .. import Nifti1Image, Nifti1Pair, MGHImage, all_image_classes
 from ..externals.six import BytesIO
 from ..fileholders import FileHolderError
+from ..spatialimages import SpatialImage
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 
-def test_files_images():
+def test_files_spatialimages():
     # test files creation in image classes
-    arr = np.zeros((2,3,4))
+    arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
-    for img_def in class_map.values():
-        klass = img_def['class']
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
+    for klass in klasses:
         file_map = klass.make_file_map()
         for key, value in file_map.items():
             assert_equal(value.filename, None)
             assert_equal(value.fileobj, None)
             assert_equal(value.pos, 0)
         # If we can't create new images in memory without loading, bail here
-        if not img_def['makeable']:
+        if not klass.makeable:
             continue
         # MGHImage accepts only a few datatypes
         # so we force a type change to float32
@@ -49,7 +51,7 @@ def test_files_images():
 
 def test_files_interface():
     # test high-level interface to files mapping
-    arr = np.zeros((2,3,4))
+    arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
     img = Nifti1Image(arr, aff)
     # single image
@@ -66,7 +68,7 @@ def test_files_interface():
     # fileobjs - single image
     img = Nifti1Image(arr, aff)
     img.file_map['image'].fileobj = BytesIO()
-    img.to_file_map() # saves to files
+    img.to_file_map()  # saves to files
     img2 = Nifti1Image.from_file_map(img.file_map)
     # img still has correct data
     assert_array_equal(img2.get_data(), img.get_data())
@@ -76,29 +78,29 @@ def test_files_interface():
     # no header yet
     assert_raises(FileHolderError, img.to_file_map)
     img.file_map['header'].fileobj = BytesIO()
-    img.to_file_map() # saves to files
+    img.to_file_map()  # saves to files
     img2 = Nifti1Pair.from_file_map(img.file_map)
     # img still has correct data
     assert_array_equal(img2.get_data(), img.get_data())
 
 
-def test_round_trip():
-   # write an image to files
-   data = np.arange(24, dtype='i4').reshape((2,3,4))
-   aff = np.eye(4)
-   klasses = [val['class'] for key, val in class_map.items()
-              if val['rw']]
-   for klass in klasses:
-       file_map = klass.make_file_map()
-       for key in file_map:
-           file_map[key].fileobj = BytesIO()
-       img = klass(data, aff)
-       img.file_map = file_map
-       img.to_file_map()
-       # read it back again from the written files
-       img2 = klass.from_file_map(file_map)
-       assert_array_equal(img2.get_data(), data)
-       # write, read it again
-       img2.to_file_map()
-       img3 = klass.from_file_map(file_map)
-       assert_array_equal(img3.get_data(), data)
+def test_round_trip_spatialimages():
+    # write an image to files
+    data = np.arange(24, dtype='i4').reshape((2, 3, 4))
+    aff = np.eye(4)
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
+    for klass in klasses:
+        file_map = klass.make_file_map()
+        for key in file_map:
+            file_map[key].fileobj = BytesIO()
+        img = klass(data, aff)
+        img.file_map = file_map
+        img.to_file_map()
+        # read it back again from the written files
+        img2 = klass.from_file_map(file_map)
+        assert_array_equal(img2.get_data(), data)
+        # write, read it again
+        img2.to_file_map()
+        img3 = klass.from_file_map(file_map)
+        assert_array_equal(img3.get_data(), data)
