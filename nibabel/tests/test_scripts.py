@@ -338,7 +338,7 @@ def test_parrec2nii_with_data():
         assert_true(exists('DTI.ordering.csv'))
         with open('DTI.ordering.csv', 'r') as csvfile:
             csvreader = csv.reader(csvfile, delimiter=',')
-            csv_keys = csvreader.__next__()  # header row
+            csv_keys = next(csvreader)  # header row
             nlines = 0  # count number of non-header rows
             for line in csvreader:
                 nlines += 1
