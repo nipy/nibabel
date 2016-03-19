@@ -22,7 +22,7 @@ pydicom = None
 try:
     import dicom as pydicom
     # Values not imported by default
-    import pydicom.values
+    import dicom.values
 except ImportError:
     try:
         import pydicom
