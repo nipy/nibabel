@@ -6,7 +6,41 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read ECAT format images """
+""" Read ECAT format images
+
+An ECAT format image consists of:
+
+* a *main header*;
+* at least one *matrix list* (mlist);
+
+ECAT thinks of memory locations in terms of *blocks*.  One block is 512
+bytes.  Thus block 1 starts at 0 bytes, block 2 at 512 bytes, and so on.
+
+The matrix list is an array with one row per frame in the data.
+
+Columns in the matrix list are:
+
+* 0 - Matrix identifier (frame number)
+* 1 - matrix data start block number (subheader followed by image data)
+* 2 - Last block number of matrix (image) data
+* 3 - Matrix status:
+    * 1 - exists - rw
+    * 2 - exists - ro
+    * 3 - matrix deleted
+
+There is one sub-header for each image frame (or matrix in the terminology
+above).  A sub-header can also be called an *image header*.  The sub-header is
+one block (512 bytes), and the frame (image) data follows.
+
+There is very little documentation of the ECAT format, and many of the comments
+in this code come from a combination of trial and error and wild speculation.
+
+XMedcon can read and write ECAT 6 format, and read ECAT 7 format: see
+http://xmedcon.sourceforge.net and the ECAT files in the source of XMedCon,
+currently ``libs/tpc/*ecat*`` and ``source/m-ecat*``.  Unfortunately XMedCon is
+GPL and some of the header files are adapted from CTI files (called CTI code
+below).  It's not clear what the licenses are for these files.
+"""
 
 import warnings
 from numbers import Integral
@@ -14,14 +48,14 @@ from numbers import Integral
 import numpy as np
 
 from .volumeutils import (native_code, swapped_code, make_dt_codes,
-                           array_from_file)
+                          array_from_file)
 from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
 
+BLOCK_SIZE = 512
 
-MAINHDRSZ = 502
 main_header_dtd = [
     ('magic_number', '14S'),
     ('original_filename', '32S'),
@@ -29,61 +63,61 @@ main_header_dtd = [
     ('system_type', np.uint16),
     ('file_type', np.uint16),
     ('serial_number', '10S'),
-    ('scan_start_time',np.uint32),
+    ('scan_start_time', np.uint32),
     ('isotope_name', '8S'),
     ('isotope_halflife', np.float32),
-    ('radiopharmaceutical','32S'),
+    ('radiopharmaceutical', '32S'),
     ('gantry_tilt', np.float32),
-    ('gantry_rotation',np.float32),
-    ('bed_elevation',np.float32),
+    ('gantry_rotation', np.float32),
+    ('bed_elevation', np.float32),
     ('intrinsic_tilt', np.float32),
-    ('wobble_speed',np.uint16),
-    ('transm_source_type',np.uint16),
-    ('distance_scanned',np.float32),
-    ('transaxial_fov',np.float32),
+    ('wobble_speed', np.uint16),
+    ('transm_source_type', np.uint16),
+    ('distance_scanned', np.float32),
+    ('transaxial_fov', np.float32),
     ('angular_compression', np.uint16),
-    ('coin_samp_mode',np.uint16),
-    ('axial_samp_mode',np.uint16),
-    ('ecat_calibration_factor',np.float32),
+    ('coin_samp_mode', np.uint16),
+    ('axial_samp_mode', np.uint16),
+    ('ecat_calibration_factor', np.float32),
     ('calibration_unitS', np.uint16),
-    ('calibration_units_type',np.uint16),
-    ('compression_code',np.uint16),
-    ('study_type','12S'),
-    ('patient_id','16S'),
-    ('patient_name','32S'),
-    ('patient_sex','1S'),
-    ('patient_dexterity','1S'),
-    ('patient_age',np.float32),
-    ('patient_height',np.float32),
-    ('patient_weight',np.float32),
-    ('patient_birth_date',np.uint32),
-    ('physician_name','32S'),
-    ('operator_name','32S'),
-    ('study_description','32S'),
-    ('acquisition_type',np.uint16),
-    ('patient_orientation',np.uint16),
+    ('calibration_units_type', np.uint16),
+    ('compression_code', np.uint16),
+    ('study_type', '12S'),
+    ('patient_id', '16S'),
+    ('patient_name', '32S'),
+    ('patient_sex', '1S'),
+    ('patient_dexterity', '1S'),
+    ('patient_age', np.float32),
+    ('patient_height', np.float32),
+    ('patient_weight', np.float32),
+    ('patient_birth_date', np.uint32),
+    ('physician_name', '32S'),
+    ('operator_name', '32S'),
+    ('study_description', '32S'),
+    ('acquisition_type', np.uint16),
+    ('patient_orientation', np.uint16),
     ('facility_name', '20S'),
-    ('num_planes',np.uint16),
-    ('num_frames',np.uint16),
-    ('num_gates',np.uint16),
-    ('num_bed_pos',np.uint16),
-    ('init_bed_position',np.float32),
-    ('bed_position','15f'),
-    ('plane_separation',np.float32),
-    ('lwr_sctr_thres',np.uint16),
-    ('lwr_true_thres',np.uint16),
-    ('upr_true_thres',np.uint16),
-    ('user_process_code','10S'),
-    ('acquisition_mode',np.uint16),
-    ('bin_size',np.float32),
-    ('branching_fraction',np.float32),
-    ('dose_start_time',np.uint32),
-    ('dosage',np.float32),
+    ('num_planes', np.uint16),
+    ('num_frames', np.uint16),
+    ('num_gates', np.uint16),
+    ('num_bed_pos', np.uint16),
+    ('init_bed_position', np.float32),
+    ('bed_position', '15f'),
+    ('plane_separation', np.float32),
+    ('lwr_sctr_thres', np.uint16),
+    ('lwr_true_thres', np.uint16),
+    ('upr_true_thres', np.uint16),
+    ('user_process_code', '10S'),
+    ('acquisition_mode', np.uint16),
+    ('bin_size', np.float32),
+    ('branching_fraction', np.float32),
+    ('dose_start_time', np.uint32),
+    ('dosage', np.float32),
     ('well_counter_corr_factor', np.float32),
     ('data_units', '32S'),
-    ('septa_state',np.uint16),
+    ('septa_state', np.uint16),
     ('fill', '12S')
-    ]
+]
 hdr_dtype = np.dtype(main_header_dtd)
 
 
@@ -138,7 +172,7 @@ subheader_dtd = [
     ('rfilter_code', np.uint16),
     ('rfilter_order', np.uint16),
     ('zfilter_cutoff', np.float32),
-    ('zfilter_resolution',np.float32),
+    ('zfilter_resolution', np.float32),
     ('zfilter_code', np.uint16),
     ('zfilter_order', np.uint16),
     ('mt_4_1', np.float32),
@@ -152,19 +186,24 @@ subheader_dtd = [
 subhdr_dtype = np.dtype(subheader_dtd)
 
 # Ecat Data Types
-_dtdefs = ( # code, name, equivalent dtype
+# See:
+# http://www.turkupetcentre.net/software/libdoc/libtpcimgio/ecat7_8h_source.html#l00060
+# and:
+# http://www.turkupetcentre.net/software/libdoc/libtpcimgio/ecat7r_8c_source.html#l00717
+_dtdefs = (  # code, name, equivalent dtype
     (1, 'ECAT7_BYTE', np.uint8),
+    # Byte signed? https://github.com/nipy/nibabel/pull/302/files#r28275780
     (2, 'ECAT7_VAXI2', np.int16),
-    (3, 'ECAT7_VAXI4', np.float32),
+    (3, 'ECAT7_VAXI4', np.int32),
     (4, 'ECAT7_VAXR4', np.float32),
     (5, 'ECAT7_IEEER4', np.float32),
-    (6, 'ECAT7_SUNI2', np.uint16),
+    (6, 'ECAT7_SUNI2', np.int16),
     (7, 'ECAT7_SUNI4', np.int32))
 data_type_codes = make_dt_codes(_dtdefs)
 
 
 # Matrix File Types
-ft_defs = ( # code, name
+ft_defs = (  # code, name
     (0, 'ECAT7_UNKNOWN'),
     (1, 'ECAT7_2DSCAN'),
     (2, 'ECAT7_IMAGE16'),
@@ -182,7 +221,7 @@ ft_defs = ( # code, name
     (14, 'ECAT7_3DSCANFIT'))
 file_type_codes = dict(ft_defs)
 
-patient_orient_defs = ( # code, description
+patient_orient_defs = (  # code, description
     (0, 'ECAT7_Feet_First_Prone'),
     (1, 'ECAT7_Head_First_Prone'),
     (2, 'ECAT7_Feet_First_Supine'),
@@ -194,10 +233,11 @@ patient_orient_defs = ( # code, description
     (8, 'ECAT7_Unknown_Orientation'))
 patient_orient_codes = dict(patient_orient_defs)
 
-#Indexes from the patient_orient_defs structure defined above for the
-#neurological and radiological viewing conventions
+# Indexes from the patient_orient_defs structure defined above for the
+# neurological and radiological viewing conventions
 patient_orient_radiological = [0, 2, 4, 6]
 patient_orient_neurological = [1, 3, 5, 7]
+
 
 class EcatHeader(WrapStruct):
     """Class for basic Ecat PET header
@@ -208,7 +248,8 @@ class EcatHeader(WrapStruct):
     * matrix list
       which lists the information for each frame collected (can have 1 to many
       frames)
-    * subheaders specific to each frame with possibly-variable sized data blocks
+    * subheaders specific to each frame with possibly-variable sized data
+      blocks
 
     This just reads the main Ecat Header, it does not load the data or read the
     mlist or any sub headers
@@ -253,9 +294,9 @@ class EcatHeader(WrapStruct):
         hdr_data = super(EcatHeader, klass).default_structarr(endianness)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
-        hdr_data['num_frames']= 0
-        hdr_data['file_type'] = 0 # Unknown
-        hdr_data['ecat_calibration_factor'] = 1.0 # scale factor
+        hdr_data['num_frames'] = 0
+        hdr_data['file_type'] = 0  # Unknown
+        hdr_data['ecat_calibration_factor'] = 1.0  # scale factor
         return hdr_data
 
     def get_data_dtype(self):
@@ -264,16 +305,17 @@ class EcatHeader(WrapStruct):
 
     def get_patient_orient(self):
         """ gets orientation of patient based on code stored
-        in header, not always reliable"""
+        in header, not always reliable
+        """
         code = self._structarr['patient_orientation'].item()
-        if not code in self._patient_orient_codes:
+        if code not in self._patient_orient_codes:
             raise KeyError('Ecat Orientation CODE %d not recognized' % code)
         return self._patient_orient_codes[code]
 
     def get_filetype(self):
         """ Type of ECAT Matrix File from code stored in header"""
         code = self._structarr['file_type'].item()
-        if not code in self._ft_codes:
+        if code not in self._ft_codes:
             raise KeyError('Ecat Filetype CODE %d not recognized' % code)
         return self._ft_codes[code]
 
@@ -296,56 +338,57 @@ def read_mlist(fileobj, endianness):
     mlist : (nframes, 4) ndarray
         matrix list is an array with ``nframes`` rows and columns:
 
-        * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
+        * 0 - Matrix identifier (frame number)
+        * 1 - matrix data start block number (subheader followed by image data)
+        * 2 - Last block number of matrix (image) data
         * 3 - Matrix status:
-
-          * 1 - exists - rw
-          * 2 - exists - ro
-          * 3 - matrix deleted
+            * 1 - exists - rw
+            * 2 - exists - ro
+            * 3 - matrix deleted
 
     Notes
     -----
-    A 'record' appears to be a block of 512 bytes.
+    A block is 512 bytes.
 
-    ``record_no`` in the code below is 1-based.  Record 1 may be the main
-    header, and the mlist records start at 2.
+    ``block_no`` in the code below is 1-based.  block 1 is the main header,
+    and the mlist blocks start at block number 2.
 
-    The 512 bytes in a record represents 32 rows of the int32 (nframes, 4)
-    mlist matrix.
+    The 512 bytes in an mlist block contain 32 rows of the int32 (nframes,
+    4) mlist matrix.
 
     The first row of these 32 looks like a special row.  The 4 values appear
     to be (respectively):
 
     * not sure - maybe negative number of mlist rows (out of 31) that are
-      blank and not used in this record.
-    * record_no - of next set of mlist entries or 0 if no more entries
-    * <no idea>
-    * n_rows - number of mlist rows in this record (between ?0 and 31)
+      blank and not used in this block.  Called `nfree` but unused in CTI
+      code;
+    * block_no - of next set of mlist entries or 2 if no more entries. We also
+      allow 1 or 0 to signal no more entries;
+    * <no idea>.  Called `prvblk` in CTI code, so maybe previous block no;
+    * n_rows - number of mlist rows in this block (between ?0 and 31) (called
+      `nused` in CTI code).
     """
-    dt = np.dtype(np.int32) # should this be uint32 given mlist dtype?
-    if not endianness is native_code:
+    dt = np.dtype(np.int32)
+    if endianness is not native_code:
         dt = dt.newbyteorder(endianness)
     mlists = []
     mlist_index = 0
-    mlist_record_no = 2 # 1-based indexing
+    mlist_block_no = 2  # 1-based indexing, block with first mlist
     while True:
-        # Read record containing mlist entries
-        fileobj.seek((mlist_record_no - 1) * 512) # fix 1-based indexing
-        dat = fileobj.read(128 * 32) # isn't this too long? Should be 512?
+        # Read block containing mlist entries
+        fileobj.seek((mlist_block_no - 1) * BLOCK_SIZE)  # fix 1-based indexing
+        dat = fileobj.read(BLOCK_SIZE)
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
-        # First row special
-        v0, mlist_record_no, v2, n_rows = rows[0]
-        if not (v0 + n_rows) == 31: # Some error condition here?
+        # First row special, points to next mlist entries if present
+        n_unused, mlist_block_no, _, n_rows = rows[0]
+        if not (n_unused + n_rows) == 31:  # Some error condition here?
             mlist = []
             return mlist
-        mlists.append(rows[1:n_rows+1])
+        # Use all but first housekeeping row
+        mlists.append(rows[1:n_rows + 1])
         mlist_index += n_rows
-        if mlist_record_no <= 2: # should record_no in (1, 2) be an error?
+        if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
-    # Code in ``get_frame_order`` seems to imply ids can be < 0; is that
-    # true? Should the dtype be uint32 or int32?
     return np.row_stack(mlists)
 
 
@@ -370,20 +413,20 @@ def get_frame_order(mlist):
     >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
     >>> img = ecat.load(ecat_file)
     >>> mlist = img.get_mlist()
-    >>> mlist.get_frame_order()
+    >>> get_frame_order(mlist)
     {0: [0, 16842758]}
     """
     ids = mlist[:, 0].copy()
     n_valid = np.sum(ids > 0)
-    ids[ids <=0] = ids.max() + 1 # put invalid frames at end after sort
+    ids[ids <= 0] = ids.max() + 1  # put invalid frames at end after sort
     valid_order = np.argsort(ids)
     if not all(valid_order == sorted(valid_order)):
-        #raise UserWarning if Frames stored out of order
-        warnings.warn_explicit('Frames stored out of order;'\
-                        'true order = %s\n'\
-                        'frames will be accessed in order '\
-                        'STORED, NOT true order'%(valid_order),
-                        UserWarning,'ecat', 0)
+        # raise UserWarning if Frames stored out of order
+        warnings.warn_explicit('Frames stored out of order;'
+                               'true order = %s\n'
+                               'frames will be accessed in order '
+                               'STORED, NOT true order' % valid_order,
+                               UserWarning, 'ecat', 0)
     id_dict = {}
     for i in range(n_valid):
         id_dict[i] = [valid_order[i], ids[valid_order[i]]]
@@ -414,7 +457,7 @@ def get_series_framenumbers(mlist):
     >>> ecat_file = os.path.join(nibabel_dir,'tests','data','tinypet.v')
     >>> img = ecat.load(ecat_file)
     >>> mlist = img.get_mlist()
-    >>> mlist.get_series_framenumbers()
+    >>> get_series_framenumbers(mlist)
     {0: 1}
     """
     nframes = len(mlist)
@@ -424,15 +467,15 @@ def get_series_framenumbers(mlist):
     frame_dict = {}
     try:
         for frame_stored, (true_order, _) in frames_order.items():
-            #frame as stored in file -> true number in series
-            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+            # frame as stored in file -> true number in series
+            frame_dict[frame_stored] = trueframenumbers[true_order] + 1
         return frame_dict
     except:
         raise IOError('Error in header or mlist order unknown')
 
 
 def read_subheaders(fileobj, mlist, endianness):
-    """retreive all subheaders and return list of subheader recarrays
+    """ Retrieve all subheaders and return list of subheader recarrays
 
     Parameters
     ----------
@@ -441,65 +484,30 @@ def read_subheaders(fileobj, mlist, endianness):
     mlist : (nframes, 4) ndarray
         Columns are:
         * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
+        * 1 - subheader block number
+        * 2 - Last block number of matrix data block.
         * 3 - Matrix status:
     endianness : {'<', '>'}
         little / big endian code
+
+    Returns
+    -------
+    subheaders : list
+        List of subheader structured arrays
     """
     subheaders = []
     dt = subhdr_dtype
-    if not endianness is native_code:
+    if endianness is not native_code:
         dt = dt.newbyteorder(endianness)
-    for mat_id, sh_recno, sh_last_recno, mat_stat in mlist:
-        if sh_recno == 0:
+    for mat_id, sh_blkno, sh_last_blkno, mat_stat in mlist:
+        if sh_blkno == 0:
             break
-        offset = (sh_recno - 1) * 512
+        offset = (sh_blkno - 1) * BLOCK_SIZE
         fileobj.seek(offset)
-        tmpdat = fileobj.read(512)
+        tmpdat = fileobj.read(BLOCK_SIZE)
         sh = np.ndarray(shape=(), dtype=dt, buffer=tmpdat)
         subheaders.append(sh)
     return subheaders
-
-
-class EcatMlist(object):
-    # Can we do without this object, just using the functions?
-
-    def __init__(self,fileobj, hdr):
-        """ gets list of frames and subheaders in pet file
-
-        Container for Ecat mlist
-
-        Data for mlist is numpy array shaem (frames, 4)
-
-        Columns are:
-
-        * 0 - Matrix identifier.
-        * 1 - subheader record number
-        * 2 - Last record number of matrix data block.
-        * 3 - Matrix status:
-          * 1 - exists - rw
-          * 2 - exists - ro
-          * 3 - matrix deleted
-
-        A record above is 512 bytes in the image data file
-
-        Parameters
-        -----------
-        fileobj : file-like
-            ECAT file <filename>.v  fileholder or file object with read, seek
-            methods
-        """
-        self.hdr = hdr
-        self._mlist = np.zeros((hdr['num_frames'], 4), dtype='uint32')
-        mlist_data = read_mlist(fileobj, hdr.endianness)
-        self._mlist[:len(mlist_data)] = mlist_data
-
-    def get_frame_order(self):
-        return get_frame_order(self._mlist)
-
-    def get_series_framenumbers(self):
-        return get_series_framenumbers(self._mlist)
 
 
 class EcatSubHeader(object):
@@ -514,9 +522,9 @@ class EcatSubHeader(object):
         Parameters
         -----------
         hdr : EcatHeader
-
-        mlist : EcatMlist
-
+            ECAT main header
+        mlist : array shape (N, 4)
+            Matrix list
         fileobj : ECAT file <filename>.v  fileholder or file object
                   with read, seek methods
         """
@@ -524,7 +532,7 @@ class EcatSubHeader(object):
         self.endianness = hdr.endianness
         self._mlist = mlist
         self.fileobj = fileobj
-        self.subheaders = read_subheaders(fileobj, mlist._mlist, hdr.endianness)
+        self.subheaders = read_subheaders(fileobj, mlist, hdr.endianness)
 
     def get_shape(self, frame=0):
         """ returns shape of given frame"""
@@ -532,14 +540,12 @@ class EcatSubHeader(object):
         x = subhdr['x_dimension'].item()
         y = subhdr['y_dimension'].item()
         z = subhdr['z_dimension'].item()
-        return (x,y,z)
+        return (x, y, z)
 
     def get_nframes(self):
         """returns number of frames"""
-        mlist = self._mlist
-        framed = mlist.get_frame_order()
+        framed = get_frame_order(self._mlist)
         return len(framed)
-
 
     def _check_affines(self):
         """checks if all affines are equal across frames"""
@@ -555,7 +561,7 @@ class EcatSubHeader(object):
                     return False
         return True
 
-    def get_frame_affine(self,frame=0):
+    def get_frame_affine(self, frame=0):
         """returns best affine for given frame of data"""
         subhdr = self.subheaders[frame]
         x_off = subhdr['x_offset']
@@ -566,12 +572,13 @@ class EcatSubHeader(object):
 
         dims = self.get_shape(frame)
         # get translations from center of image
-        origin_offset = (np.array(dims)-1) / 2.0
+        origin_offset = (np.array(dims) - 1) / 2.0
         aff = np.diag(zooms)
-        aff[:3,-1] = -origin_offset * zooms[:-1] + np.array([x_off,y_off,z_off])
+        aff[:3, -1] = -origin_offset * zooms[:-1] + np.array([x_off, y_off,
+                                                              z_off])
         return aff
 
-    def get_zooms(self,frame=0):
+    def get_zooms(self, frame=0):
         """returns zooms  ...pixdims"""
         subhdr = self.subheaders[frame]
         x_zoom = subhdr['x_pixel_size'] * 10
@@ -579,20 +586,17 @@ class EcatSubHeader(object):
         z_zoom = subhdr['z_pixel_size'] * 10
         return (x_zoom, y_zoom, z_zoom, 1)
 
-
     def _get_data_dtype(self, frame):
         dtcode = self.subheaders[frame]['data_type'].item()
         return self._data_type_codes.dtype[dtcode]
 
     def _get_frame_offset(self, frame=0):
-        mlist = self._mlist._mlist
-        offset = (mlist[frame][1]) * 512
-        return int(offset)
+        return int(self._mlist[frame][1] * BLOCK_SIZE)
 
     def _get_oriented_data(self, raw_data, orientation=None):
         '''
-        Get data oriented following ``patient_orientation`` header field. If the
-        ``orientation`` parameter is given, return data according to this
+        Get data oriented following ``patient_orientation`` header field. If
+        the ``orientation`` parameter is given, return data according to this
         orientation.
 
         :param raw_data: Numpy array containing the raw data
@@ -627,8 +631,8 @@ class EcatSubHeader(object):
         .. seealso:: data_from_fileobj
         '''
         dtype = self._get_data_dtype(frame)
-        if not self._header.endianness is native_code:
-            dtype=dtype.newbyteorder(self._header.endianness)
+        if self._header.endianness is not native_code:
+            dtype = dtype.newbyteorder(self._header.endianness)
         shape = self.get_shape(frame)
         offset = self._get_frame_offset(frame)
         fid_obj = self.fileobj
@@ -661,6 +665,7 @@ class EcatImageArrayProxy(object):
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
     '''
+
     def __init__(self, subheader):
         self._subheader = subheader
         self._data = None
@@ -685,9 +690,10 @@ class EcatImageArrayProxy(object):
         (``__getitem__``) below, or ``subheader.data_from_fileobj(frame)``
         '''
         data = np.empty(self.shape)
-        frame_mapping = self._subheader._mlist.get_frame_order()
+        frame_mapping = get_frame_order(self._subheader._mlist)
         for i in sorted(frame_mapping):
-            data[:,:,:,i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
+            data[:, :, :, i] = self._subheader.data_from_fileobj(
+                frame_mapping[i][0])
         return data
 
     def __getitem__(self, sliceobj):
@@ -695,14 +701,14 @@ class EcatImageArrayProxy(object):
         """
         sliceobj = canonical_slicers(sliceobj, self.shape)
         # Indices into sliceobj referring to image axes
-        ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+        ax_inds = [i for i, obj in enumerate(sliceobj) if obj is not None]
         assert len(ax_inds) == len(self.shape)
-        frame_mapping = self._subheader._mlist.get_frame_order()
+        frame_mapping = get_frame_order(self._subheader._mlist)
         # Analyze index for 4th axis
         slice3 = sliceobj[ax_inds[3]]
         # We will load volume by volume.  Make slicer into volume by dropping
         # index over the volume axis
-        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3]+1:]
+        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3] + 1:]
         # int index for 4th axis, load one slice
         if isinstance(slice3, Integral):
             data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
@@ -728,15 +734,15 @@ class EcatImage(SpatialImage):
     """
     _header = EcatHeader
     header_class = _header
+    valid_exts = ('.v',)
     _subheader = EcatSubHeader
-    _mlist = EcatMlist
     files_types = (('image', '.v'), ('header', '.v'))
 
     ImageArrayProxy = EcatImageArrayProxy
 
     def __init__(self, dataobj, affine, header,
                  subheader, mlist,
-                 extra = None, file_map = None):
+                 extra=None, file_map=None):
         """ Initialize Image
 
         The image is a combination of
@@ -755,8 +761,8 @@ class EcatImage(SpatialImage):
             meta data for this image format
         subheader : None or subheader instance
             meta data for each sub-image for frame in the image
-        mlist : None or mlist instance
-            meta data with array giving offset and order of data in file
+        mlist : None or array
+            Matrix list array giving offset and order of data in file
         extra : None or mapping, optional
             metadata associated with this image that cannot be
             stored in header or subheader
@@ -781,12 +787,12 @@ class EcatImage(SpatialImage):
         self._subheader = subheader
         self._mlist = mlist
         self._dataobj = dataobj
-        if not affine is None:
+        if affine is not None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
             affine = np.array(affine, dtype=np.float64, copy=True)
-            if not affine.shape == (4,4):
+            if not affine.shape == (4, 4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
         if extra is None:
@@ -801,15 +807,15 @@ class EcatImage(SpatialImage):
     @property
     def affine(self):
         if not self._subheader._check_affines():
-            warnings.warn('Affines different across frames, loading affine from FIRST frame',
-                          UserWarning )
+            warnings.warn('Affines different across frames, loading affine '
+                          'from FIRST frame', UserWarning)
         return self._affine
 
     def get_frame_affine(self, frame):
         """returns 4X4 affine"""
         return self._subheader.get_frame_affine(frame=frame)
 
-    def get_frame(self,frame, orientation=None):
+    def get_frame(self, frame, orientation=None):
         '''
         Get full volume for a time frame
 
@@ -819,19 +825,20 @@ class EcatImage(SpatialImage):
         '''
         return self._subheader.data_from_fileobj(frame, orientation)
 
-    def get_data_dtype(self,frame):
+    def get_data_dtype(self, frame):
         subhdr = self._subheader
         dt = subhdr._get_data_dtype(frame)
         return dt
 
     @property
     def shape(self):
-        x,y,z = self._subheader.get_shape()
+        x, y, z = self._subheader.get_shape()
         nframes = self._subheader.get_nframes()
         return(x, y, z, nframes)
 
     def get_mlist(self):
-        """ get access to the mlist """
+        """ get access to the mlist
+        """
         return self._mlist
 
     def get_subheaders(self):
@@ -857,28 +864,29 @@ class EcatImage(SpatialImage):
     @classmethod
     def from_file_map(klass, file_map):
         """class method to create image from mapping
-        specified in file_map"""
+        specified in file_map
+        """
         hdr_file, img_file = klass._get_fileholders(file_map)
-        #note header and image are in same file
-        hdr_fid = hdr_file.get_prepare_fileobj(mode = 'rb')
+        # note header and image are in same file
+        hdr_fid = hdr_file.get_prepare_fileobj(mode='rb')
         header = klass._header.from_fileobj(hdr_fid)
         hdr_copy = header.copy()
-        ### LOAD MLIST
-        mlist = klass._mlist(hdr_fid, hdr_copy)
-        ### LOAD SUBHEADERS
-        subheaders = klass._subheader(hdr_copy,
-                                      mlist,
-                                      hdr_fid)
-        ### LOAD DATA
-        ##  Class level ImageArrayProxy
+        # LOAD MLIST
+        mlist = np.zeros((header['num_frames'], 4), dtype=np.int32)
+        mlist_data = read_mlist(hdr_fid, hdr_copy.endianness)
+        mlist[:len(mlist_data)] = mlist_data
+        # LOAD SUBHEADERS
+        subheaders = klass._subheader(hdr_copy, mlist, hdr_fid)
+        # LOAD DATA
+        # Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)
-
-        ## Get affine
+        # Get affine
         if not subheaders._check_affines():
-            warnings.warn('Affines different across frames, loading affine from FIRST frame',
-                          UserWarning )
+            warnings.warn('Affines different across frames, loading affine '
+                          'from FIRST frame', UserWarning)
         aff = subheaders.get_frame_affine()
-        img = klass(data, aff, header, subheaders, mlist, extra=None, file_map = file_map)
+        img = klass(data, aff, header, subheaders, mlist,
+                    extra=None, file_map=file_map)
         return img
 
     def _get_empty_dir(self):
@@ -886,7 +894,7 @@ class EcatImage(SpatialImage):
         Get empty directory entry of the form
         [numAvail, nextDir, previousDir, numUsed]
         '''
-        return np.array([31, 2, 0, 0], dtype=np.uint32)
+        return np.array([31, 2, 0, 0], dtype=np.int32)
 
     def _write_data(self, data, stream, pos, dtype=None, endianness=None):
         '''
@@ -904,9 +912,8 @@ class EcatImage(SpatialImage):
             endianness = native_code
 
         stream.seek(pos)
-        writer = make_array_writer(
-            data.newbyteorder(endianness),
-            dtype).to_fileobj(stream)
+        make_array_writer(data.newbyteorder(endianness),
+                          dtype).to_fileobj(stream)
 
     def to_file_map(self, file_map=None):
         ''' Write ECAT7 image to `file_map` or contained ``self.file_map``
@@ -922,54 +929,54 @@ class EcatImage(SpatialImage):
         if file_map is None:
             file_map = self.file_map
 
-        data = self.get_data()
-        hdr = self.get_header()
-        mlist = self.get_mlist()._mlist
+        # It appears to be necessary to load the data before saving even if the
+        # data itself is not used.
+        self.get_data()
+        hdr = self.header
+        mlist = self._mlist
         subheaders = self.get_subheaders()
         dir_pos = 512
-        entry_pos = dir_pos + 16 #528
+        entry_pos = dir_pos + 16  # 528
         current_dir = self._get_empty_dir()
 
         hdr_fh, img_fh = self._get_fileholders(file_map)
         hdrf = hdr_fh.get_prepare_fileobj(mode='wb')
         imgf = hdrf
 
-        #Write main header
+        # Write main header
         hdr.write_to(hdrf)
 
-        #Write every frames
-        for index in range(0, self.get_header()['num_frames']):
-            #Move to subheader offset
+        # Write every frames
+        for index in range(0, self.header['num_frames']):
+            # Move to subheader offset
             frame_offset = subheaders._get_frame_offset(index) - 512
             imgf.seek(frame_offset)
 
-            #Write subheader
+            # Write subheader
             subhdr = subheaders.subheaders[index]
             imgf.write(subhdr.tostring())
 
-            #Seek to the next image block
+            # Seek to the next image block
             pos = imgf.tell()
             imgf.seek(pos + 2)
 
-            #Get frame and its data type
+            # Get frame
             image = self._subheader.raw_data_from_fileobj(index)
-            dtype = image.dtype
 
-            #Write frame images
-            self._write_data(image, imgf, pos+2, endianness='>')
+            # Write frame images
+            self._write_data(image, imgf, pos + 2, endianness='>')
 
-            #Move to dictionnary offset and write dictionnary entry
-            self._write_data(mlist[index], imgf, entry_pos,
-                np.uint32, endianness='>')
+            # Move to dictionnary offset and write dictionnary entry
+            self._write_data(mlist[index], imgf, entry_pos, endianness='>')
 
             entry_pos = entry_pos + 16
 
             current_dir[0] = current_dir[0] - 1
             current_dir[3] = current_dir[3] + 1
 
-            #Create a new directory is previous one is full
+            # Create a new directory is previous one is full
             if current_dir[0] == 0:
-                #self._write_dir(current_dir, imgf, dir_pos)
+                # self._write_dir(current_dir, imgf, dir_pos)
                 self._write_data(current_dir, imgf, dir_pos)
                 current_dir = self._get_empty_dir()
                 current_dir[3] = dir_pos / 512
@@ -979,23 +986,22 @@ class EcatImage(SpatialImage):
         tmp_avail = current_dir[0]
         tmp_used = current_dir[3]
 
-        #Fill directory with empty data until directory is full
+        # Fill directory with empty data until directory is full
         while current_dir[0] > 0:
             entry_pos = dir_pos + 16 + (16 * current_dir[3])
-            self._write_data(np.array([0,0,0,0]), imgf, entry_pos, np.uint32)
+            self._write_data(np.zeros(4, dtype=np.int32), imgf, entry_pos)
             current_dir[0] = current_dir[0] - 1
             current_dir[3] = current_dir[3] + 1
 
         current_dir[0] = tmp_avail
         current_dir[3] = tmp_used
 
-        #Write directory index
+        # Write directory index
         self._write_data(current_dir, imgf, dir_pos, endianness='>')
-
 
     @classmethod
     def from_image(klass, img):
-        raise NotImplementedError("Ecat images can only be generated "\
+        raise NotImplementedError("Ecat images can only be generated "
                                   "from file objects")
 
     @classmethod

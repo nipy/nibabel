@@ -29,7 +29,7 @@ def test_filenames():
                       types_exts)
         # If not enforcing extensions, it does the best job it can,
         # assuming the passed filename is for the first type (in this case
-        # 'image') 
+        # 'image')
         tfns = types_filenames('test.funny', types_exts,
                                enforce_extensions=False)
         assert_equal(tfns,
@@ -37,7 +37,7 @@ def test_filenames():
                       'image': 'test.funny'})
         # .gz and .bz2 suffixes to extensions, by default, are removed
         # before extension checking etc, and then put back onto every
-        # returned filename. 
+        # returned filename.
         tfns = types_filenames('test.img.gz', types_exts)
         assert_equal(tfns,
                      {'header': 'test.hdr.gz',
@@ -60,7 +60,7 @@ def test_filenames():
         assert_equal(tfns,
                      {'header': 'test.img.hdr',
                       'image': 'test.img.gz'})
-        # the suffixes we remove and replaces can be any suffixes. 
+        # the suffixes we remove and replaces can be any suffixes.
         tfns = types_filenames('test.img.bzr', types_exts, ('.bzr',))
         assert_equal(tfns,
                      {'header': 'test.hdr.bzr',
@@ -107,7 +107,7 @@ def test_filenames():
 
 
 def test_parse_filename():
-    types_exts = (('t1', 'ext1'),('t2', 'ext2'))
+    types_exts = (('t1', 'ext1'), ('t2', 'ext2'))
     exp_in_outs = (
         (('/path/fname.funny', ()),
          ('/path/fname', '.funny', None, None)),
@@ -131,19 +131,19 @@ def test_parse_filename():
         # test case sensitivity
         res = parse_filename('/path/fnameext2.GZ',
                              types_exts,
-                             ('.gz',), False) # case insensitive again
+                             ('.gz',), False)  # case insensitive again
         assert_equal(res, ('/path/fname', 'ext2', '.GZ', 't2'))
         res = parse_filename('/path/fnameext2.GZ',
                              types_exts,
-                             ('.gz',), True) # case sensitive
+                             ('.gz',), True)  # case sensitive
         assert_equal(res, ('/path/fnameext2', '.GZ', None, None))
         res = parse_filename('/path/fnameEXT2.gz',
                              types_exts,
-                             ('.gz',), False) # case insensitive
+                             ('.gz',), False)  # case insensitive
         assert_equal(res, ('/path/fname', 'EXT2', '.gz', 't2'))
         res = parse_filename('/path/fnameEXT2.gz',
                              types_exts,
-                             ('.gz',), True) # case sensitive
+                             ('.gz',), True)  # case sensitive
         assert_equal(res, ('/path/fnameEXT2', '', '.gz', None))
 
 
@@ -159,5 +159,3 @@ def test_splitext_addext():
     # case sensitive
     res = splitext_addext('fname.ext.FOO', ('.foo', '.bar'), True)
     assert_equal(res, ('fname.ext', '.FOO', ''))
-
-

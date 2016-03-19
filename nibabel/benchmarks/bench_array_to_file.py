@@ -6,8 +6,8 @@ Run benchmarks with::
     nib.bench()
 
 If you have doctests enabled by default in nose (with a noserc file or
-environment variable), and you have a numpy version <= 1.6.1, this will also run
-the doctests, let's hope they pass.
+environment variable), and you have a numpy version <= 1.6.1, this will also
+run the doctests, let's hope they pass.
 
 Run this benchmark with:
 
@@ -19,12 +19,11 @@ import sys
 
 import numpy as np
 
-from ..externals.six import BytesIO
-from ..volumeutils import array_to_file
 
 from .butils import print_git_title
 
 from numpy.testing import measure
+
 
 def bench_array_to_file():
     rng = np.random.RandomState(20111001)
@@ -50,7 +49,7 @@ def bench_array_to_file():
     mtime = measure('array_to_file(arr, BytesIO(), np.int16)', repeat)
     print('%30s %6.2f' % ('Save float64 to int16, infs', mtime))
     # Int16 input, float output
-    arr = np.random.random_integers(low=-1000,high=-1000, size=img_shape)
+    arr = np.random.random_integers(low=-1000, high=1000, size=img_shape)
     arr = arr.astype(np.int16)
     mtime = measure('array_to_file(arr, BytesIO(), np.float32)', repeat)
     print('%30s %6.2f' % ('Save Int16 to float32', mtime))

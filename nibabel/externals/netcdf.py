@@ -105,7 +105,7 @@ class netcdf_file(object):
     version : {1, 2}, optional
         version of netcdf to read / write, where 1 means *Classic
         format* and 2 means *64-bit offset format*.  Default is 1.  See
-        `here <http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/Which-Format.html>`_
+        `here <https://www.unidata.ucar.edu/software/netcdf/docs/netcdf/Which-Format.html>`_
         for more info.
 
     Notes
@@ -117,7 +117,7 @@ class netcdf_file(object):
     NetCDF files are a self-describing binary data format. The file contains
     metadata that describes the dimensions and variables in the file. More
     details about NetCDF files can be found `here
-    <http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html>`_. There
+    <https://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html>`_. There
     are three main sections to a NetCDF data structure:
 
     1. Dimensions
@@ -562,7 +562,7 @@ class netcdf_file(object):
         for var in range(count):
             (name, dimensions, shape, attributes,
              typecode, size, dtype_, begin_, vsize) = self._read_var()
-            # http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html
+            # https://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html
             # Note that vsize is the product of the dimension lengths
             # (omitting the record dimension) and the number of bytes
             # per value (determined from the type), increased to the

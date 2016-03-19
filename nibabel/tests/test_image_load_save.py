@@ -8,21 +8,13 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
 from __future__ import division, print_function, absolute_import
-from os.path import join as pjoin, dirname
-import shutil
-from tempfile import mkdtemp
 from ..externals.six import BytesIO
 
+import shutil
+from os.path import dirname, join as pjoin
+from tempfile import mkdtemp
+
 import numpy as np
-
-# If we don't have scipy, then we cannot write SPM format files
-try:
-    import scipy.io
-except ImportError:
-    have_scipy = False
-else:
-    have_scipy = True
-
 
 from .. import analyze as ana
 from .. import spm99analyze as spm99
@@ -31,15 +23,16 @@ from .. import nifti1 as ni1
 from .. import loadsave as nils
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
                 Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, class_map)
-
+                AnalyzeImage, MGHImage, all_image_classes)
 from ..tmpdirs import InTemporaryDirectory
-
 from ..volumeutils import native_code, swapped_code
+from ..optpkg import optional_package
+from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal
 
+_, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')
 MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
 
@@ -53,21 +46,21 @@ def round_trip(img):
     return img2
 
 
-def test_conversion():
+def test_conversion_spatialimages():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
+    klasses = [klass for klass in all_image_classes
+               if klass.rw and issubclass(klass, SpatialImage)]
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
-        for r_class_def in class_map.values():
-            r_class = r_class_def['class']
-            if not r_class_def['makeable']:
+        for r_class in klasses:
+            if not r_class.makeable:
                 continue
             img = r_class(data, affine)
             img.set_data_dtype(npt)
-            for w_class_def in class_map.values():
-                if not w_class_def['makeable']:
+            for w_class in klasses:
+                if not w_class.makeable:
                     continue
-                w_class = w_class_def['class']
                 img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_data(), data)
                 assert_array_equal(img2.affine, affine)
@@ -118,7 +111,7 @@ def test_save_load():
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
-    affine[:3,3] = [3,2,1]
+    affine[:3, 3] = [3, 2, 1]
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     with InTemporaryDirectory() as pth:
@@ -131,9 +124,9 @@ def test_save_load():
         assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
         # windows errors when trying to open files or delete the
-        # temporary directory. 
+        # temporary directory.
         del re_img
-        if have_scipy: # skip we we cannot read .mat files
+        if have_scipy:  # skip we we cannot read .mat files
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
             assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
@@ -143,7 +136,7 @@ def test_save_load():
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
             assert_true(isinstance(re_img3,
-                                         spm99.Spm99AnalyzeImage))
+                                   spm99.Spm99AnalyzeImage))
             assert_array_equal(re_img3.get_data(), data)
             assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
@@ -161,7 +154,7 @@ def test_two_to_one():
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
-    affine[:3,3] = [3,2,1]
+    affine[:3, 3] = [3, 2, 1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
     assert_equal(img.header['magic'], b'n+1')
@@ -208,7 +201,7 @@ def test_two_to_one():
 
 
 def test_negative_load_save():
-    shape = (1,2,5)
+    shape = (1, 2, 5)
     data = np.arange(10).reshape(shape) - 10.0
     affine = np.eye(4)
     hdr = ni1.Nifti1Header()

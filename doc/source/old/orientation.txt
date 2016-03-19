@@ -6,7 +6,7 @@
 
 Every image in ``nibabel`` has an orientation.  The orientation is the
 relationship between the voxels in the image array, and millimeters in
-some space.  
+some space.
 
 Affines as orientation
 ----------------------
@@ -85,7 +85,7 @@ the affine after loading, as in::
     img = nibabel.load('some_image.img')
     aff = img.get_affine()
     x_flipper = np.diag([-1,1,1,1])
-    lr_img = nibabel.Nifti1Image(img.get_data, np.dot(x_flipper, aff), img.get_header())
+    lr_img = nibabel.Nifti1Image(img.get_data, np.dot(x_flipper, aff), img.header)
 
 Affines for Analyze, SPM analyze, and NIFTI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -15,12 +15,13 @@ import numpy as np
 
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
-from ..fileholders import FileHolder,  copy_file_map
+from ..fileholders import FileHolder, copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
+from ..openers import ImageOpener
 
 # mgh header
-# See http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+# See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
 header_dtd = [
@@ -32,11 +33,11 @@ header_dtd = [
     ('delta', '>f4', (3,)),
     ('Mdc', '>f4', (3, 3)),
     ('Pxyz_c', '>f4', (3,))
-    ]
+]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
     ('mrparms', '>f4', (4,))
-    ]
+]
 
 header_dtype = np.dtype(header_dtd)
 footer_dtype = np.dtype(footer_dtd)
@@ -46,13 +47,13 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
     (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
-                         np.dtype(np.uint8).newbyteorder('>')),
+     np.dtype(np.uint8).newbyteorder('>')),
     (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
-                         np.dtype(np.int16).newbyteorder('>')),
+     np.dtype(np.int16).newbyteorder('>')),
     (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
-                         np.dtype(np.int32).newbyteorder('>')),
+     np.dtype(np.int32).newbyteorder('>')),
     (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
-                         np.dtype(np.float32).newbyteorder('>')))
+     np.dtype(np.float32).newbyteorder('>')))
 
 # make full code alias bank, including dtype column
 data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
@@ -67,7 +68,6 @@ class MGHError(Exception):
     To be raised whenever MGH is not happy, or we are not happy with
     MGH.
     """
-    pass
 
 
 class MGHHeader(object):
@@ -105,7 +105,7 @@ class MGHHeader(object):
         hdr = np.ndarray(shape=(),
                          dtype=self.template_dtype,
                          buffer=binaryblock)
-        #if goodRASFlag, discard delta, Mdc and c_ras stuff
+        # if goodRASFlag, discard delta, Mdc and c_ras stuff
         if int(hdr['goodRASFlag']) < 0:
             hdr = self._set_affine_default(hdr)
         self._header_data = hdr.copy()
@@ -179,15 +179,14 @@ class MGHHeader(object):
         # dimensions from the header, skip over and then read the footer
         # information
         hdr_str = fileobj.read(klass._hdrdtype.itemsize)
-        hdr_str_to_np = np.ndarray(shape=(),
-                         dtype=klass._hdrdtype,
-                         buffer=hdr_str)
+        hdr_str_to_np = np.ndarray(shape=(), dtype=klass._hdrdtype,
+                                   buffer=hdr_str)
         if not np.all(hdr_str_to_np['dims']):
             raise MGHError('Dimensions of the data should be non-zero')
         tp = int(hdr_str_to_np['type'])
-        fileobj.seek(DATA_OFFSET + \
-                int(klass._data_type_codes.bytespervox[tp]) * \
-                np.prod(hdr_str_to_np['dims']))
+        fileobj.seek(DATA_OFFSET +
+                     int(klass._data_type_codes.bytespervox[tp]) *
+                     np.prod(hdr_str_to_np['dims']))
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
         return klass(hdr_str + ftr_str, check)
 
@@ -225,7 +224,6 @@ class MGHHeader(object):
 
     def check_fix(self):
         ''' Pass. maybe for now'''
-        pass
 
     def get_affine(self):
         ''' Get the affine transform from the header information.
@@ -253,7 +251,7 @@ class MGHHeader(object):
 
     def get_vox2ras_tkr(self):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
-                http://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+                https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
         ds = np.array(self._header_data['delta'])
         ns = (np.array(self._header_data['dims'][:3]) * ds) / 2.0
@@ -344,7 +342,7 @@ class MGHHeader(object):
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
         '''
-        return int(self._data_type_codes.bytespervox[ \
+        return int(self._data_type_codes.bytespervox[
             int(self._header_data['type'])])
 
     def get_data_size(self):
@@ -458,8 +456,14 @@ class MGHImage(SpatialImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
+    valid_exts = ('.mgh', '.mgz')
+    # Register that .mgz extension signals gzip compression
+    ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def
     files_types = (('image', '.mgh'),)
-    _compressed_exts = (('.gz',))
+    _compressed_suffixes = ()
+
+    makeable = True
+    rw = True
 
     ImageArrayProxy = ArrayProxy
 
@@ -483,18 +487,20 @@ class MGHImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        mghf = file_map['image'].get_prepare_fileobj('rb')
+        img_fh = file_map['image']
+        mghf = img_fh.get_prepare_fileobj('rb')
         header = klass.header_class.from_fileobj(mghf)
         affine = header.get_affine()
         hdr_copy = header.copy()
-        data = klass.ImageArrayProxy(mghf, hdr_copy, mmap=mmap)
+        # Pass original image fileobj / filename to array proxy
+        data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap)
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
@@ -513,16 +519,16 @@ class MGHImage(SpatialImage):
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A `mmap`
-            value of True gives the same behavior as ``mmap='c'``.  If image
-            data file cannot be memory-mapped, ignore `mmap` value and read
-            array from file.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
 
         Returns
         -------
         img : MGHImage instance
         '''
-        if not mmap in (True, False, 'c', 'r'):
+        if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map, mmap=mmap)

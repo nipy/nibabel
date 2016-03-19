@@ -25,14 +25,15 @@ class DataError(Exception):
 class BomberError(DataError, AttributeError):
     """ Error when trying to access Bomber instance
 
-    Should be instance of AttributeError to allow Python 3 inspect to do various
-    ``hasattr`` checks without raising an error
+    Should be instance of AttributeError to allow Python 3 inspect to do
+    various ``hasattr`` checks without raising an error
     """
     pass
 
 
 class Datasource(object):
     ''' Simple class to add base path to relative path '''
+
     def __init__(self, base_path):
         ''' Initialize datasource
 
@@ -87,7 +88,7 @@ class Datasource(object):
         out_list = list()
         for base, dirs, files in os.walk(self.base_path):
             if relative:
-                base = base[len(self.base_path)+1:]
+                base = base[len(self.base_path) + 1:]
             for filename in files:
                 out_list.append(pjoin(base, filename))
         return out_list
@@ -97,6 +98,7 @@ class VersionedDatasource(Datasource):
     ''' Datasource with version information in config file
 
     '''
+
     def __init__(self, base_path, config_filename=None):
         ''' Initialize versioned datasource
 
@@ -140,7 +142,7 @@ class VersionedDatasource(Datasource):
 
 def _cfg_value(fname, section='DATA', value='path'):
     """ Utility function to fetch value from config file """
-    configp =  configparser.ConfigParser()
+    configp = configparser.ConfigParser()
     readfiles = configp.read(fname)
     if not readfiles:
         return ''
@@ -189,8 +191,8 @@ def get_data_path():
     because Debian has patched distutils in Python 2.6 to do default
     distutils installs there:
 
-    * http://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html#s-distutils
-    * http://www.mail-archive.com/debian-python@lists.debian.org/msg05084.html
+    * https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html#s-distutils
+    * https://www.mail-archive.com/debian-python@lists.debian.org/msg05084.html
     '''
     paths = []
     try:
@@ -239,8 +241,8 @@ def find_data_dir(root_dirs, *names):
         if os.path.isdir(pth):
             return pth
     raise DataError('Could not find datasource "%s" in data path "%s"' %
-                   (ds_relative,
-                    os.path.pathsep.join(root_dirs)))
+                    (ds_relative,
+                     os.path.pathsep.join(root_dirs)))
 
 
 def make_datasource(pkg_def, **kwargs):
@@ -248,8 +250,8 @@ def make_datasource(pkg_def, **kwargs):
 
     `data_path` is the only allowed keyword argument.
 
-    `pkg_def` is a dictionary with at least one key - 'relpath'.  'relpath' is a
-    relative path with unix forward slash separators.
+    `pkg_def` is a dictionary with at least one key - 'relpath'.  'relpath' is
+    a relative path with unix forward slash separators.
 
     The relative path to the data is found with::
 
@@ -264,12 +266,12 @@ def make_datasource(pkg_def, **kwargs):
     Parameters
     ----------
     pkg_def : dict
-       dict containing at least the key 'relpath'. 'relpath' is the data path of
-       the package relative to `data_path`.  It is in unix path format (using
-       forward slashes as directory separators).  `pkg_def` can also contain
-       optional keys 'name' (the name of the package), and / or a key 'install
-       hint' that we use in the returned error message from trying to use the
-       resulting datasource
+       dict containing at least the key 'relpath'. 'relpath' is the data path
+       of the package relative to `data_path`.  It is in unix path format
+       (using forward slashes as directory separators).  `pkg_def` can also
+       contain optional keys 'name' (the name of the package), and / or a key
+       'install hint' that we use in the returned error message from trying to
+       use the resulting datasource
     data_path : sequence of strings or None, optional
        sequence of paths in which to search for data.  If None (the
        default), then use ``get_data_path()``
@@ -296,7 +298,7 @@ def make_datasource(pkg_def, **kwargs):
                e)
         if 'name' in pkg_def:
             msg += '\n\nYou may need the package "%s"' % pkg_def['name']
-        if not pkg_hint is None:
+        if pkg_hint is not None:
             msg += '\n\n%s' % pkg_hint
         raise DataError(msg)
     return VersionedDatasource(pth)
@@ -304,6 +306,7 @@ def make_datasource(pkg_def, **kwargs):
 
 class Bomber(object):
     ''' Class to raise an informative error when used '''
+
     def __init__(self, name, msg):
         self.name = name
         self.msg = msg
@@ -350,7 +353,7 @@ def datasource_or_bomber(pkg_def, **options):
         return Bomber(sys_relpath, str(e))
     # check version
     if (version is None or
-        LooseVersion(ds.version) >= LooseVersion(version)):
+            LooseVersion(ds.version) >= LooseVersion(version)):
         return ds
     if 'name' in pkg_def:
         pkg_name = pkg_def['name']
@@ -363,4 +366,3 @@ def datasource_or_bomber(pkg_def, **options):
                 req_version=version,
                 pkg_hint=pkg_hint))
     return Bomber(sys_relpath, DataError(msg))
-

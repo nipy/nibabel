@@ -24,6 +24,7 @@ pil_test = np.testing.dec.skipif(not have_pil, 'could not import PIL.Image')
 
 data_dir = pjoin(dirname(__file__), 'data')
 
+
 def setup_module():
     if os.name == 'nt':
         raise SkipTest('FUSE not available for windows, skipping dft tests')
@@ -91,7 +92,6 @@ def test_png():
 def test_nifti():
     studies = dft.get_studies(data_dir)
     data = studies[0].series[0].as_nifti()
-    assert_equal(len(data), 352 + 2*256*256*2)
+    assert_equal(len(data), 352 + 2 * 256 * 256 * 2)
     h = nifti1.Nifti1Header(data[:348])
     assert_equal(h.get_data_shape(), (256, 256, 2))
-

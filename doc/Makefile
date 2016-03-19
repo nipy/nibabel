@@ -97,5 +97,5 @@ doctest: api-clean
 gitwash-update:
 	python ../tools/gitwash_dumper.py source nibabel --github-user=nipy \
 		--project-url=http://nipy.org/nibabel \
-		--project-ml-url=http://mail.scipy.org/mailman/listinfo/nipy-devel
+		--project-ml-url=https://mail.python.org/mailman/listinfo/neuroimaging
 

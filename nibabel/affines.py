@@ -8,6 +8,13 @@ import numpy as np
 from .externals.six.moves import reduce
 
 
+class AffineError(ValueError):
+    """ Errors in calculating or using affines """
+    # Inherits from ValueError to keep compatibility with ValueError previously
+    # raised in append_diag
+    pass
+
+
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
 
@@ -72,9 +79,9 @@ def apply_affine(aff, pts):
     shape = pts.shape
     pts = pts.reshape((-1, shape[-1]))
     # rzs == rotations, zooms, shears
-    rzs = aff[:-1,:-1]
-    trans = aff[:-1,-1]
-    res = np.dot(pts, rzs.T) + trans[None,:]
+    rzs = aff[:-1, :-1]
+    trans = aff[:-1, -1]
+    res = np.dot(pts, rzs.T) + trans[None, :]
     return res.reshape(shape)
 
 
@@ -90,8 +97,8 @@ def to_matvec(transform):
         NxM transform matrix in homogeneous coordinates representing an affine
         transformation from an (N-1)-dimensional space to an (M-1)-dimensional
         space. An example is a 4x4 transform representing rotations and
-        translations in 3 dimensions. A 4x3 matrix can represent a 2-dimensional
-        plane embedded in 3 dimensional space.
+        translations in 3 dimensions. A 4x3 matrix can represent a
+        2-dimensional plane embedded in 3 dimensional space.
 
     Returns
     -------
@@ -124,8 +131,8 @@ def to_matvec(transform):
 def from_matvec(matrix, vector=None):
     """ Combine a matrix and vector into an homogeneous affine
 
-    Combine a rotation / scaling / shearing matrix and translation vector into a
-    transform in homogeneous coordinates.
+    Combine a rotation / scaling / shearing matrix and translation vector into
+    a transform in homogeneous coordinates.
 
     Parameters
     ----------
@@ -163,10 +170,10 @@ def from_matvec(matrix, vector=None):
     """
     matrix = np.asarray(matrix)
     nin, nout = matrix.shape
-    t = np.zeros((nin+1,nout+1), matrix.dtype)
+    t = np.zeros((nin + 1, nout + 1), matrix.dtype)
     t[0:nin, 0:nout] = matrix
     t[nin, nout] = 1.
-    if not vector is None:
+    if vector is not None:
         t[0:nin, nout] = vector
     return t
 
@@ -175,8 +182,8 @@ def append_diag(aff, steps, starts=()):
     """ Add diagonal elements `steps` and translations `starts` to affine
 
     Typical use is in expanding 4x4 affines to larger dimensions.  Nipy is the
-    main consumer because it uses NxM affines, whereas we generally only use 4x4
-    affines; the routine is here for convenience.
+    main consumer because it uses NxM affines, whereas we generally only use
+    4x4 affines; the routine is here for convenience.
 
     Parameters
     ----------
@@ -213,19 +220,19 @@ def append_diag(aff, steps, starts=()):
     if len(starts) == 0:
         starts = np.zeros(n_steps, dtype=steps.dtype)
     elif len(starts) != n_steps:
-        raise ValueError('Steps should have same length as starts')
-    old_n_out, old_n_in = aff.shape[0]-1, aff.shape[1]-1
+        raise AffineError('Steps should have same length as starts')
+    old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
     aff_plus = np.zeros((old_n_out + n_steps + 1,
                          old_n_in + n_steps + 1), dtype=aff.dtype)
     # Get stuff from old affine
-    aff_plus[:old_n_out,:old_n_in] = aff[:old_n_out, :old_n_in]
-    aff_plus[:old_n_out,-1] = aff[:old_n_out,-1]
+    aff_plus[:old_n_out, :old_n_in] = aff[:old_n_out, :old_n_in]
+    aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]
     # Add new diagonal elements
     for i, el in enumerate(steps):
-        aff_plus[old_n_out+i, old_n_in+i] = el
+        aff_plus[old_n_out + i, old_n_in + i] = el
     # Add translations for new affine, plus last 1
-    aff_plus[old_n_out:,-1] = list(starts) + [1]
+    aff_plus[old_n_out:, -1] = list(starts) + [1]
     return aff_plus
 
 
@@ -247,3 +254,45 @@ def dot_reduce(*args):
         ...  arg[N-2].dot(arg[N-1])))...``
     """
     return reduce(lambda x, y: np.dot(y, x), args[::-1])
+
+
+def voxel_sizes(affine):
+    r""" Return voxel size for each input axis given `affine`
+
+    The `affine` is the mapping between array (voxel) coordinates and mm
+    (world) coordinates.
+
+    The voxel size for the first voxel (array) axis is the distance moved in
+    world coordinates when moving one unit along the first voxel (array) axis.
+    This is the distance between the world coordinate of voxel (0, 0, 0) and
+    the world coordinate of voxel (1, 0, 0).  The world coordinate vector of
+    voxel coordinate vector (0, 0, 0) is given by ``v0 = affine.dot((0, 0, 0,
+    1)[:3]``.  The world coordinate vector of voxel vector (1, 0, 0) is
+    ``v1_ax1 = affine.dot((1, 0, 0, 1))[:3]``.  The final 1 in the voxel
+    vectors and the ``[:3]`` at the end are because the affine works on
+    homogenous coodinates.  The translations part of the affine is ``trans =
+    affine[:3, 3]``, and the rotations, zooms and shearing part of the affine
+    is ``rzs = affine[:3, :3]``. Because of the final 1 in the input voxel
+    vector, ``v0 == rzs.dot((0, 0, 0)) + trans``, and ``v1_ax1 == rzs.dot((1,
+    0, 0)) + trans``, and the difference vector is ``rzs.dot((0, 0, 0)) -
+    rzs.dot((1, 0, 0)) == rzs.dot((1, 0, 0)) == rzs[:, 0]``.  The distance
+    vectors in world coordinates between (0, 0, 0) and (1, 0, 0), (0, 1, 0),
+    (0, 0, 1) are given by ``rzs.dot(np.eye(3)) = rzs``.  The voxel sizes are
+    the Euclidean lengths of the distance vectors.  So, the voxel sizes are
+    the Euclidean lengths of the columns of the affine (excluding the last row
+    and column of the affine).
+
+    Parameters
+    ----------
+    affine : 2D array-like
+        Affine transformation array.  Usually shape (4, 4), but can be any 2D
+        array.
+
+    Returns
+    -------
+    vox_sizes : 1D array
+        Voxel sizes for each input axis of affine.  Usually 1D array length 3,
+        but in general has length (N-1) where input `affine` is shape (M, N).
+    """
+    top_left = affine[:-1, :-1]
+    return np.sqrt(np.sum(top_left ** 2, axis=0))

@@ -59,9 +59,9 @@ def get_nipy_user_dir():
         pass
     home_dir = get_home_dir()
     if os.name == 'posix':
-         sdir = '.nipy'
+        sdir = '.nipy'
     else:
-         sdir = '_nipy'
+        sdir = '_nipy'
     return pjoin(home_dir, sdir)
 
 
@@ -92,4 +92,3 @@ def get_nipy_system_dir():
         return r'C:\etc\nipy'
     if os.name == 'posix':
         return '/etc/nipy'
-    

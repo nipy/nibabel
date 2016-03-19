@@ -10,25 +10,28 @@
 import os
 from gzip import GzipFile
 from bz2 import BZ2File
-
 from io import BytesIO, UnsupportedOperation
-from ..externals.six import PY3
+
 from ..py3k import asstr, asbytes
-
+from ..openers import Opener, ImageOpener
 from ..tmpdirs import InTemporaryDirectory
-
-from ..openers import Opener
+from ..volumeutils import BinOpener
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
+from ..testing import error_warnings
+
 
 class Lunk(object):
     # bare file-like for testing
     closed = False
+
     def __init__(self, message):
-        self.message=message
+        self.message = message
+
     def write(self):
         pass
+
     def read(self):
         return self.message
 
@@ -86,6 +89,47 @@ def test_Opener_various():
                     assert_not_equal(fobj.fileno(), 0)
 
 
+def test_BinOpener():
+    with error_warnings():
+        assert_raises(DeprecationWarning,
+                      BinOpener, 'test.txt', 'r')
+
+
+class TestImageOpener:
+
+    def setUp(self):
+        self.compress_ext_map = ImageOpener.compress_ext_map.copy()
+
+    def teardown(self):
+        ImageOpener.compress_ext_map = self.compress_ext_map
+
+    def test_vanilla(self):
+        # Test that ImageOpener does add '.mgz' as gzipped file type
+        with InTemporaryDirectory():
+            with ImageOpener('test.gz', 'w') as fobj:
+                assert_true(hasattr(fobj.fobj, 'compress'))
+            with ImageOpener('test.mgz', 'w') as fobj:
+                assert_true(hasattr(fobj.fobj, 'compress'))
+
+    def test_new_association(self):
+        def file_opener(fileish, mode):
+            return open(fileish, mode)
+
+        # Add the association
+        n_associations = len(ImageOpener.compress_ext_map)
+        ImageOpener.compress_ext_map['.foo'] = (file_opener, ('mode',))
+        assert_equal(n_associations + 1, len(ImageOpener.compress_ext_map))
+        assert_true('.foo' in ImageOpener.compress_ext_map)
+
+        with InTemporaryDirectory():
+            with ImageOpener('test.foo', 'w'):
+                pass
+            assert_true(os.path.exists('test.foo'))
+
+        # Check this doesn't add anything to parent
+        assert_false('.foo' in Opener.compress_ext_map)
+
+
 def test_file_like_wrapper():
     # Test wrapper using BytesIO (full API)
     message = b"History of the nude in"
@@ -111,6 +155,7 @@ def test_compressionlevel():
     # bzip2 needs a fairly large file to show differences in compression level
     many_selves = my_self * 50
     # Test we can set default compression at class level
+
     class MyOpener(Opener):
         default_compresslevel = 5
     with InTemporaryDirectory():
@@ -134,6 +179,7 @@ def test_compressionlevel():
 def test_compressed_ext_case():
     # Test openers usually ignore case for compressed exts
     contents = b'palindrome of Bolton is notlob'
+
     class StrictOpener(Opener):
         compress_ext_icase = False
     exts = ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2')
@@ -153,7 +199,7 @@ def test_compressed_ext_case():
             with StrictOpener(fname, 'rb') as fobj:
                 assert_equal(fobj.read(), contents)
             lext = ext.lower()
-            if lext != ext: # extension should not be recognized -> file
+            if lext != ext:  # extension should not be recognized -> file
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
                 assert_true(isinstance(fobj.fobj, GzipFile))
@@ -183,6 +229,7 @@ def test_set_extensions():
             assert_true(hasattr(fobj.fobj, 'compress'))
         with Opener('test.glrph', 'w') as fobj:
             assert_false(hasattr(fobj.fobj, 'compress'))
+
         class MyOpener(Opener):
             compress_ext_map = Opener.compress_ext_map.copy()
             compress_ext_map['.glrph'] = Opener.gz_def
@@ -214,7 +261,7 @@ def test_close_if_mine():
 def test_iter():
     # Check we can iterate over lines, if the underlying file object allows it
     lines = \
-"""On the
+        """On the
 blue ridged mountains
 of
 virginia

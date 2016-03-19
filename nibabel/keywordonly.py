@@ -3,6 +3,7 @@
 
 from functools import wraps
 
+
 def kw_only_func(n):
     """ Return function decorator enforcing maximum of `n` positional arguments
     """
@@ -24,4 +25,4 @@ def kw_only_meth(n):
     The method has at least one positional argument ``self`` or ``cls``; allow
     for that.
     """
-    return kw_only_func(n+1)
+    return kw_only_func(n + 1)

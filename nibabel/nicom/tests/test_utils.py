@@ -2,7 +2,6 @@
 """
 import re
 
-import numpy as np
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -28,7 +27,10 @@ def test_find_private_section_real():
     assert_equal(find_private_section(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER'),
                  None)
     # Make fake datasets
-    from dicom.dataset import Dataset
+    try:
+        from dicom.dataset import Dataset
+    except ImportError:
+        from pydicom.dataset import Dataset
     ds = Dataset({})
     ds.add_new((0x11, 0x10), 'LO', b'some section')
     assert_equal(find_private_section(ds, 0x11, 'some section'), 0x1000)
@@ -54,12 +56,12 @@ def test_find_private_section_real():
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'third\Wsectio[nN]')),
-                                      0x1200)
+                 0x1200)
     # No match -> None
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'not third\Wsectio[nN]')),
-                                      None)
+                 None)
     # If there are gaps in the sequence before the one we want, that is OK
     ds.add_new((0x11, 0x13), 'LO', b'near section')
     assert_equal(find_private_section(ds, 0x11, 'near section'), 0x1300)

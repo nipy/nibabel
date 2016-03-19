@@ -1,6 +1,7 @@
 """ This file contains defines parameters for nibabel that we use to fill
 settings in setup.py, the nibabel top-level docstring, and for building the
-docs.  In setup.py in particular, we exec this file, so it cannot import nibabel
+docs.  In setup.py in particular, we exec this file, so it cannot import
+nibabel
 """
 
 # nibabel version information.  An empty _version_extra corresponds to a
@@ -10,7 +11,7 @@ _version_major = 2
 _version_minor = 1
 _version_micro = 0
 _version_extra = 'dev'
-#_version_extra = ''
+# _version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
@@ -26,7 +27,7 @@ CLASSIFIERS = ["Development Status :: 4 - Beta",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
 
-description  = 'Access a multitude of neuroimaging data formats'
+description = 'Access a multitude of neuroimaging data formats'
 
 # Note: this long_description is the canonical place to edit this text.
 # It also appears in README.rst, but it should get there by running
@@ -55,10 +56,10 @@ DICOM_.  NiBabel is the successor of PyNIfTI_.
 .. _MINC2:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
 .. _PyNIfTI: http://niftilib.sourceforge.net/pynifti/
-.. _GIFTI: http://www.nitrc.org/projects/gifti
-.. _MGH: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+.. _GIFTI: https://www.nitrc.org/projects/gifti
+.. _MGH: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 .. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
-.. _Freesurfer: http://surfer.nmr.mgh.harvard.edu
+.. _Freesurfer: https://surfer.nmr.mgh.harvard.edu
 .. _DICOM: http://medical.nema.org/
 
 The various image format classes give full or selective access to header (meta)
@@ -88,7 +89,7 @@ You can find our sources and single-click downloads:
 * Download `current development version`_ as a zip file;
 * Downloads of all `available releases`_.
 
-.. _main repository: http://github.com/nipy/nibabel
+.. _main repository: https://github.com/nipy/nibabel
 .. _Documentation: http://nipy.org/nibabel
 .. _current release: https://pypi.python.org/pypi/nibabel
 .. _current development version: https://github.com/nipy/nibabel/archive/master.zip
@@ -103,26 +104,26 @@ nibabel distribution.
 """
 
 # versions for dependencies
-NUMPY_MIN_VERSION='1.5'
-PYDICOM_MIN_VERSION='0.9.7'
+NUMPY_MIN_VERSION = '1.5'
+PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
-NAME                = 'nibabel'
-MAINTAINER          = "Matthew Brett, Michael Hanke and Eric Larson"
-MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
-DESCRIPTION         = description
-LONG_DESCRIPTION    = long_description
-URL                 = "http://nipy.org/nibabel"
-DOWNLOAD_URL        = "http://github.com/nipy/nibabel"
-LICENSE             = "MIT license"
-CLASSIFIERS         = CLASSIFIERS
-AUTHOR              = "Matthew Brett, Michael Hanke, Stephan Gerhard"
-AUTHOR_EMAIL        = "nipy-devel@neuroimaging.scipy.org"
-PLATFORMS           = "OS Independent"
-MAJOR               = _version_major
-MINOR               = _version_minor
-MICRO               = _version_micro
-ISRELEASE           = _version_extra == ''
-VERSION             = __version__
-PROVIDES            = ["nibabel", 'nisext']
-REQUIRES            = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
+NAME = 'nibabel'
+MAINTAINER = "Matthew Brett, Michael Hanke, Eric Larson, Chris Markiewicz"
+MAINTAINER_EMAIL = "neuroimaging@python.org"
+DESCRIPTION = description
+LONG_DESCRIPTION = long_description
+URL = "http://nipy.org/nibabel"
+DOWNLOAD_URL = "https://github.com/nipy/nibabel"
+LICENSE = "MIT license"
+CLASSIFIERS = CLASSIFIERS
+AUTHOR = "Matthew Brett, Michael Hanke, Stephan Gerhard"
+AUTHOR_EMAIL = "neuroimaging@python.org"
+PLATFORMS = "OS Independent"
+MAJOR = _version_major
+MINOR = _version_minor
+MICRO = _version_micro
+ISRELEASE = _version_extra == ''
+VERSION = __version__
+PROVIDES = ["nibabel", 'nisext']
+REQUIRES = ["numpy (>=%s)" % NUMPY_MIN_VERSION]

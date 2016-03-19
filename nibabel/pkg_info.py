@@ -8,12 +8,13 @@ except ImportError:
 
 COMMIT_INFO_FNAME = 'COMMIT_INFO.txt'
 
+
 def pkg_commit_hash(pkg_path):
     ''' Get short form of commit hash given directory `pkg_path`
 
     There should be a file called 'COMMIT_INFO.txt' in `pkg_path`.  This is a
-    file in INI file format, with at least one section: ``commit hash``, and two
-    variables ``archive_subst_hash`` and ``install_hash``.  The first has a
+    file in INI file format, with at least one section: ``commit hash``, and
+    two variables ``archive_subst_hash`` and ``install_hash``.  The first has a
     substitution pattern in it which may have been filled by the execution of
     ``git archive`` if this is an archive generated that way.  The second is
     filled in by the installation, if the installation is from a git archive.
@@ -45,7 +46,7 @@ def pkg_commit_hash(pkg_path):
     cfg_parser = ConfigParser()
     cfg_parser.read(pth)
     archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
-    if not archive_subst.startswith('$Format'): # it has been substituted
+    if not archive_subst.startswith('$Format'):  # it has been substituted
         return 'archive substitution', archive_subst
     install_subst = cfg_parser.get('commit hash', 'install_hash')
     if install_subst != '':
