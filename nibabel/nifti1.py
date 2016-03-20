@@ -425,8 +425,8 @@ class Nifti1DicomExtension(Nifti1Extension):
         elif isinstance(content, bytes):  # Got a byte string - unmangle it
             self._raw_content = content
             self._is_implicit_VR = self._guess_implicit_VR()
-            ds = self._unmangle_and_verify(content, self._is_implicit_VR,
-                                           self._is_little_endian)
+            ds = self._unmangle(content, self._is_implicit_VR,
+                                self._is_little_endian)
             self._content = ds
         elif content == None:  # Otherwise, initialize a new dicom dataset
             self._is_implicit_VR = False
@@ -434,14 +434,6 @@ class Nifti1DicomExtension(Nifti1Extension):
         else:
             raise TypeError("content must be either a bytestring or a pydicom "
                             "Dataset. Got %s" % content.__class__)
-
-    def _unmangle_and_verify(self, content, is_implicit_VR, is_little_endian):
-        """"Decode and verify dicom dataset"""
-        ds = self._unmangle(content, is_implicit_VR, is_little_endian)
-        for elem in ds:
-            if elem.VR not in pdcm.values.converters.keys():
-                raise StandardError  # Ensure that all VRs are valid
-        return ds
 
     def _guess_implicit_VR(self):
         """Try to guess DICOM syntax by checking for valid VRs.
