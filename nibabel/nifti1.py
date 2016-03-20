@@ -259,7 +259,7 @@ class Nifti1Extension(object):
         """
         Parameters
         ----------
-        code : int|str
+        code : int or str
           Canonical extension code as defined in the NIfTI standard, given
           either as integer or corresponding label
           (see :data:`~nibabel.nifti1.extension_codes`)
@@ -385,25 +385,27 @@ class Nifti1DicomExtension(Nifti1Extension):
     """NIfTI1 DICOM header extension
 
     This class is a thin wrapper around pydicom to read a binary DICOM
-    byte string. If pydicom is not available, it silently falls back to the
-    standard NiftiExtension class.
+    byte string. If pydicom is available, content is exposed as a Dicom Dataset.
+    Otherwise, this silently falls back to the standard NiftiExtension class
+    and content is the raw bytestring loaded directly from the nifti file
+    header.
     """
     def __init__(self, code, content, parent_hdr=None):
         """
         Parameters
         ----------
-        code : int|str
+        code : int or str
           Canonical extension code as defined in the NIfTI standard, given
           either as integer or corresponding label
           (see :data:`~nibabel.nifti1.extension_codes`)
-        content : bytes|pydicom Dataset|None
+        content : bytes or pydicom Dataset or None
           Extension content - either a bytestring as read from the NIfTI file
           header or an existing pydicom Dataset. If a bystestring, the content
           is converted into a Dataset on initialization. If None, a new empty
           Dataset is created.
-        parent_hdr : :data:`~nibabel.nifti1.Nifti1Header`
-          Optional - If a dicom extension belongs to an existing
-          :data:`~nibabel.nifti1.Nifti1Header`, it may be provided here to
+        parent_hdr : :class:`~nibabel.nifti1.Nifti1Header`, optional
+          If a dicom extension belongs to an existing
+          :class:`~nibabel.nifti1.Nifti1Header`, it may be provided here to
           ensure that the DICOM dataset is written with correctly corresponding
           endianness; otherwise it is assumed the dataset is little endian.
 
@@ -428,7 +430,7 @@ class Nifti1DicomExtension(Nifti1Extension):
             ds = self._unmangle(content, self._is_implicit_VR,
                                 self._is_little_endian)
             self._content = ds
-        elif content == None:  # Otherwise, initialize a new dicom dataset
+        elif content is None:  # initialize a new dicom dataset
             self._is_implicit_VR = False
             self._content = pdcm.dataset.Dataset()
         else:
