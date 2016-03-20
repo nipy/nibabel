@@ -1133,6 +1133,12 @@ def test_nifti_dicom_extension():
     assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
     assert_equal(len(dcmext.get_content().values()), 0)
 
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2, None)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+
     # use a dataset if provided
     ds = pydicom.dataset.Dataset()
     ds.add_new((0x10, 0x20), 'LO', 'NiPy')
