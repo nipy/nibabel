@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!python
 """PAR/REC to NIfTI converter
 """
 from __future__ import division, print_function, absolute_import
