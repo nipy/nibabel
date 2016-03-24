@@ -50,10 +50,7 @@ def wrapper_from_file(file_like, *args, **kwargs):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
-    try:
-        from dicom import read_file
-    except ImportError:
-        from pydicom.dicomio import read_file
+    from ..pydicom_compat import read_file
 
     with ImageOpener(file_like) as fobj:
         dcm_data = read_file(fobj, *args, **kwargs)

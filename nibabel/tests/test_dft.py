@@ -17,8 +17,10 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 # Shield optional package imports
 from ..optpkg import optional_package
+
 # setup_module will raise SkipTest if no dicom to import
-dicom, have_dicom, _ = optional_package('dicom')
+from nibabel.pydicom_compat import have_dicom
+
 PImage, have_pil, _ = optional_package('PIL.Image')
 pil_test = np.testing.dec.skipif(not have_pil, 'could not import PIL.Image')
 

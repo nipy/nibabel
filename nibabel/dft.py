@@ -26,9 +26,7 @@ from .externals.six import BytesIO
 
 from .nifti1 import Nifti1Header
 
-# Shield optional dicom import
-from .optpkg import optional_package
-dicom, have_dicom, _ = optional_package('dicom')
+from .pydicom_compat import pydicom, read_file
 
 logger = logging.getLogger('nibabel.dft')
 
@@ -236,7 +234,7 @@ class _StorageInstance(object):
         return val
 
     def dicom(self):
-        return dicom.read_file(self.files[0])
+        return read_file(self.files[0])
 
 
 class _db_nochange:
@@ -383,8 +381,8 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = dicom.read_file('%s/%s' % (path, fname))
-    except dicom.filereader.InvalidDicomError:
+        do = read_file('%s/%s' % (path, fname))
+    except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None
     try:
