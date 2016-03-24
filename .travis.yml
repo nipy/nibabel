@@ -95,6 +95,7 @@ before_install:
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
+      pip install codecov;
       fi
 # command to install dependencies
 install:
@@ -139,7 +140,7 @@ script:
           fi
       fi
 after_success:
-    - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
+    - if [ "${COVERAGE}" == "1" ]; then coveralls; codecov; fi
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis
