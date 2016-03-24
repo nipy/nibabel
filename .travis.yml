@@ -45,6 +45,10 @@ matrix:
     - python: 2.7
       env:
         - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+    # test against numpy 1.7
+    - python: 2.7
+      env:
+        - DEPENDS="numpy==1.7.1"
     # pydicom 1.0 (currently unreleased)
     - python: 2.7
       env:
