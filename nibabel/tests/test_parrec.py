@@ -148,6 +148,15 @@ EXAMPLE_IMAGES = [
 ]
 
 
+def _shuffle(arr):
+    """Return a copy of the array with entries shuffled.
+
+    Needed to avoid a bug in np.random.shuffle for numpy 1.7.
+    see:  numpy/numpy#4286
+    """
+    return arr[np.argsort(np.random.randn(len(arr)))]
+
+
 def test_top_level_load():
     # Test PARREC images can be loaded from nib.load
     img = top_load(EG_PAR)
@@ -285,7 +294,7 @@ def test_sorting_dual_echo_T1():
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    np.random.shuffle(t1_hdr.image_defs)
+    t1_hdr.image_defs = _shuffle(t1_hdr.image_defs)
 
     sorted_indices = t1_hdr.get_sorted_slice_indices()
     sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
@@ -316,7 +325,7 @@ def test_sorting_multiple_echos_and_contrasts():
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    np.random.shuffle(t1_hdr.image_defs)
+    t1_hdr.image_defs = _shuffle(t1_hdr.image_defs)
 
     sorted_indices = t1_hdr.get_sorted_slice_indices()
     sorted_slices = t1_hdr.image_defs['slice number'][sorted_indices]
@@ -358,7 +367,7 @@ def test_sorting_multiecho_ASL():
         asl_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    np.random.shuffle(asl_hdr.image_defs)
+    asl_hdr.image_defs = _shuffle(asl_hdr.image_defs)
 
     sorted_indices = asl_hdr.get_sorted_slice_indices()
     sorted_slices = asl_hdr.image_defs['slice number'][sorted_indices]
@@ -486,7 +495,7 @@ def test_diffusion_parameters_strict_sort():
         dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    np.random.shuffle(dti_hdr.image_defs)
+    dti_hdr.image_defs = _shuffle(dti_hdr.image_defs)
 
     assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
     assert_equal(dti_hdr.general_info['diffusion'], 1)
