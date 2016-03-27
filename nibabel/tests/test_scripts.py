@@ -53,12 +53,12 @@ script_test.__test__ = False  # It's not a test
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 
-def check_nib_ls_example4d(opts=[], hdrs_str=""):
+def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
     expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
-                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform$"
-                   % hdrs_str)
+                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform%s$"
+                   % (hdrs_str, other_str))
     cmd = ['nib-ls'] + opts + [fname]
     code, stdout, stderr = run_command(cmd)
     assert_equal(fname, stdout[:len(fname)])
@@ -68,7 +68,15 @@ def check_nib_ls_example4d(opts=[], hdrs_str=""):
 def test_nib_ls():
     yield check_nib_ls_example4d
     yield check_nib_ls_example4d, \
-          ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+        ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+    yield check_nib_ls_example4d, ['-c'], "", " 2:3 3:2 4:1 5:1.*"
+    # both stats and counts
+    yield check_nib_ls_example4d, \
+        ['-c', '-s'], "", " \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"
+    # and must not error out if we allow for zeros
+    yield check_nib_ls_example4d, \
+        ['-c', '-s', '-z'], "", " \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"
+
 
 @script_test
 def test_nib_ls_multiple():
