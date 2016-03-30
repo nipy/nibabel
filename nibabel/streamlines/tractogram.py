@@ -320,7 +320,7 @@ class Tractogram(object):
         ----------
         affine : ndarray of shape (4, 4)
             Transformation that will be applied to every streamline.
-        lazy_load : {False, True}, optional
+        lazy : {False, True}, optional
             If True, streamlines are *not* transformed in-place and a
             :class:`LazyTractogram` object is returned. Otherwise, streamlines
             are modified in-place.
@@ -336,8 +336,7 @@ class Tractogram(object):
         """
         if lazy:
             lazy_tractogram = LazyTractogram.from_tractogram(self)
-            lazy_tractogram.apply_affine(affine)
-            return lazy_tractogram
+            return lazy_tractogram.apply_affine(affine)
 
         if len(self.streamlines) == 0:
             return self
@@ -361,7 +360,7 @@ class Tractogram(object):
 
         Parameters
         ----------
-        lazy_load : {False, True}, optional
+        lazy : {False, True}, optional
             If True, streamlines are *not* transformed in-place and a
             :class:`LazyTractogram` object is returned. Otherwise, streamlines
             are modified in-place.
@@ -641,7 +640,7 @@ class LazyTractogram(Tractogram):
         tractogram._affine_to_apply = self._affine_to_apply.copy()
         return tractogram
 
-    def apply_affine(self, affine):
+    def apply_affine(self, affine, lazy=True):
         """ Applies an affine transformation to the streamlines.
 
         The transformation given by the `affine` matrix is applied after any
@@ -651,29 +650,46 @@ class LazyTractogram(Tractogram):
         ----------
         affine : 2D array (4,4)
             Transformation matrix that will be applied on each streamline.
+        lazy : True, optional
+            Should always be True for :class:`LazyTractogram` object. Doing
+            otherwise will raise a ValueError.
 
         Returns
         -------
         lazy_tractogram : :class:`LazyTractogram` object
-            Reference to this instance of :class:`LazyTractogram`.
+            A copy of this :class:`LazyTractogram` instance but with a
+            transformation to be applied on the streamlines.
         """
+        if not lazy:
+            msg = "LazyTractogram only supports lazy transformations."
+            raise ValueError(msg)
+
+        tractogram = self.copy()  # New instance.
+
         # Update the affine that will be applied when returning streamlines.
-        self._affine_to_apply = np.dot(affine, self._affine_to_apply)
+        tractogram._affine_to_apply = np.dot(affine, self._affine_to_apply)
 
         # Update the affine that brings back the streamlines to RASmm.
-        self._affine_to_rasmm = np.dot(self._affine_to_rasmm,
-                                       np.linalg.inv(affine))
-        return self
+        tractogram._affine_to_rasmm = np.dot(self._affine_to_rasmm,
+                                             np.linalg.inv(affine))
+        return tractogram
 
-    def to_world(self):
+    def to_world(self, lazy=True):
         """ Brings the streamlines to world space (i.e. RAS+ and mm).
 
-        The transformation will be applied just before returning the
-        streamlines.
+        The transformation is applied after any other pending transformations
+        to the streamline points.
+
+        Parameters
+        ----------
+        lazy : True, optional
+            Should always be True for :class:`LazyTractogram` object. Doing
+            otherwise will raise a ValueError.
 
         Returns
         -------
         lazy_tractogram : :class:`LazyTractogram` object
-            Reference to this instance of :class:`LazyTractogram`.
+            A copy of this :class:`LazyTractogram` instance but with a
+            transformation to be applied on the streamlines.
         """
-        return self.apply_affine(self._affine_to_rasmm)
+        return self.apply_affine(self._affine_to_rasmm, lazy=lazy)

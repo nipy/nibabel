@@ -270,6 +270,43 @@ class TrkWriter(object):
 
         self.file.write(self.header.tostring())
 
+        # `Tractogram` streamlines are in RAS+ and mm space, we will compute
+        # the affine matrix that will bring them back to 'voxelmm' as required
+        # by the TRK format.
+        affine = np.eye(4)
+
+        # Applied the inverse of the affine found in the TRK header.
+        # rasmm -> voxel
+        affine = np.dot(np.linalg.inv(self.header[Field.VOXEL_TO_RASMM]),
+                        affine)
+
+        # If the voxel order implied by the affine does not match the voxel
+        # order in the TRK header, change the orientation.
+        # voxel (affine) -> voxel (header)
+        header_ornt = asstr(self.header[Field.VOXEL_ORDER])
+        affine_ornt = "".join(aff2axcodes(self.header[Field.VOXEL_TO_RASMM]))
+        header_ornt = axcodes2ornt(header_ornt)
+        affine_ornt = axcodes2ornt(affine_ornt)
+        ornt = nib.orientations.ornt_transform(affine_ornt, header_ornt)
+        M = nib.orientations.inv_ornt_aff(ornt, self.header[Field.DIMENSIONS])
+        affine = np.dot(M, affine)
+
+        # TrackVis considers coordinate (0,0,0) to be the corner of the
+        # voxel whereas `Tractogram` streamlines assume (0,0,0) is the
+        # center of the voxel. Thus, streamlines are shifted of half a voxel.
+        offset = np.eye(4)
+        offset[:-1, -1] += 0.5
+        affine = np.dot(offset, affine)
+
+        # Finally send the streamlines in mm space.
+        # voxel -> voxelmm
+        scale = np.eye(4)
+        scale[range(3), range(3)] *= self.header[Field.VOXEL_SIZES]
+        affine = np.dot(scale, affine)
+
+        # The TRK format uses float32 as the data type for points.
+        self._affine_rasmm_to_voxmm = affine.astype(np.float32)
+
     def write(self, tractogram):
         i4_dtype = np.dtype("<i4")  # Always save in little-endian.
         f4_dtype = np.dtype("<f4")  # Always save in little-endian.
@@ -350,50 +387,17 @@ class TrkWriter(object):
 
             self.header['scalar_name'][i] = scalar_name
 
-        # `Tractogram` streamlines are in RAS+ and mm space, we will compute
-        # the affine matrix that will bring them back to 'voxelmm' as required
-        # by the TRK format.
-        affine = np.eye(4)
-
-        # Applied the inverse of the affine found in the TRK header.
-        # rasmm -> voxel
-        affine = np.dot(np.linalg.inv(self.header[Field.VOXEL_TO_RASMM]),
-                        affine)
-
-        # If the voxel order implied by the affine does not match the voxel
-        # order in the TRK header, change the orientation.
-        # voxel (affine) -> voxel (header)
-        header_ornt = asstr(self.header[Field.VOXEL_ORDER])
-        affine_ornt = "".join(aff2axcodes(self.header[Field.VOXEL_TO_RASMM]))
-        header_ornt = axcodes2ornt(header_ornt)
-        affine_ornt = axcodes2ornt(affine_ornt)
-        ornt = nib.orientations.ornt_transform(affine_ornt, header_ornt)
-        M = nib.orientations.inv_ornt_aff(ornt, self.header[Field.DIMENSIONS])
-        affine = np.dot(M, affine)
-
-        # TrackVis considers coordinate (0,0,0) to be the corner of the
-        # voxel whereas `Tractogram` streamlines assume (0,0,0) is the
-        # center of the voxel. Thus, streamlines are shifted of half a voxel.
-        offset = np.eye(4)
-        offset[:-1, -1] += 0.5
-        affine = np.dot(offset, affine)
-
-        # Finally send the streamlines in mm space.
-        # voxel -> voxelmm
-        scale = np.eye(4)
-        scale[range(3), range(3)] *= self.header[Field.VOXEL_SIZES]
-        affine = np.dot(scale, affine)
-
-        # The TRK format uses float32 as the data type for points.
-        affine = affine.astype(np.float32)
+        # Make sure streamlines are in rasmm then send them to voxmm.
+        tractogram = tractogram.to_world(lazy=True)
+        tractogram = tractogram.apply_affine(self._affine_rasmm_to_voxmm,
+                                             lazy=True)
 
         for t in tractogram:
             if any((len(d) != len(t.streamline)
                     for d in t.data_for_points.values())):
                 raise DataError("Missing scalars for some points!")
 
-            points = apply_affine(affine,
-                                  np.asarray(t.streamline, dtype=f4_dtype))
+            points = np.asarray(t.streamline, dtype=f4_dtype)
             scalars = [np.asarray(t.data_for_points[k], dtype=f4_dtype)
                        for k in data_for_points_keys]
             scalars = np.concatenate([np.ndarray((len(points), 0),
@@ -747,8 +751,9 @@ class TrkFile(TractogramFile):
             for name, slice_ in data_per_streamline_slice.items():
                 tractogram.data_per_streamline[name] = properties[:, slice_]
 
-        # Bring tractogram to RAS+ and mm space
-        tractogram.apply_affine(affine.astype(np.float32))
+        # Bring tractogram to RAS+ and mm space.
+        tractogram = tractogram.apply_affine(affine.astype(np.float32))
+        tractogram._affine_to_rasmm = np.eye(4)
 
         return cls(tractogram, header=hdr)
 
