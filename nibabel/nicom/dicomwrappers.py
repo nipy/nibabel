@@ -475,7 +475,7 @@ class MultiframeWrapper(Wrapper):
              for frame in self.frames])
 
         # Check that there is only one multiframe stack index
-        stack_ids = set(frame.FrameContentSequence[0].get('StackID')
+        stack_ids = set(frame.FrameContentSequence[0].StackID
                         for frame in self.frames)
         if len(stack_ids) > 1:
             raise WrapperError("File contains more than one StackID. "
@@ -484,15 +484,16 @@ class MultiframeWrapper(Wrapper):
         # Determine if one of the Dimension indices refers to the stack id
         dim_seq = [(dim.DimensionIndexPointer, dim.FunctionalGroupPointer)
                    for dim in self.get('DimensionIndexSequence')]
-        try:
-            stack_dim_idx = dim_seq.index(((0x14, 0x2369), (0x14, 0x2397)))
-        except ValueError:
-            stack_dim_idx = None
-
-        # remove superfluous stack id index
-        if stack_dim_idx is not None:
+        # the pointer pair (StackID tag, FrameContentSequence tag) that
+        # indicates that the dimension refers to the StackID
+        stack_id_dim_pointer = ((0x20, 0x9056), (0x20, 0x9111))
+        # remove superfluous stack id index if present
+        if stack_id_dim_pointer in dim_seq:
+            stack_dim_idx = dim_seq.index(stack_id_dim_pointer)
             frame_indices = np.delete(frame_indices, stack_dim_idx, axis=1)
 
+        # account for the 2 additional dimensions (row and column) not included
+        # in the indices
         n_dim = frame_indices.shape[1] + 2
         # Store frame indices
         self._frame_indices = frame_indices
