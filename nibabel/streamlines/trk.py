@@ -12,7 +12,6 @@ import string
 import numpy as np
 import nibabel as nib
 
-from nibabel.affines import apply_affine
 from nibabel.openers import Opener
 from nibabel.py3k import asbytes, asstr
 from nibabel.volumeutils import (native_code, swapped_code)
@@ -791,8 +790,12 @@ class TrkFile(TractogramFile):
                 hdr_field = getattr(Field, attr)
                 if hdr_field in vars:
                     vars[attr] = vars[hdr_field]
-        vars['scalar_names'] = '\n'.join(map(asstr, vars['scalar_name']))
-        vars['property_names'] = "\n".join(map(asstr, vars['property_name']))
+        vars['scalar_names'] = '\n  '.join([asstr(s)
+                                            for s in vars['scalar_name']
+                                            if len(s) > 0])
+        vars['property_names'] = "\n  ".join([asstr(s)
+                                              for s in vars['property_name']
+                                              if len(s) > 0])
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}
@@ -800,10 +803,10 @@ dim: {DIMENSIONS}
 voxel_sizes: {VOXEL_SIZES}
 orgin: {ORIGIN}
 nb_scalars: {NB_SCALARS_PER_POINT}
-scalar_name:\n {scalar_names}
+scalar_name:\n  {scalar_names}
 nb_properties: {NB_PROPERTIES_PER_STREAMLINE}
-property_name:\n {property_names}
-vox_to_world: {VOXEL_TO_RASMM}
+property_name:\n  {property_names}
+vox_to_world:\n{VOXEL_TO_RASMM}
 voxel_order: {VOXEL_ORDER}
 image_orientation_patient: {image_orientation_patient}
 pad1: {pad1}
