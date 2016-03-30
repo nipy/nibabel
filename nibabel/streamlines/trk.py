@@ -450,7 +450,7 @@ class TrkFile(TractogramFile):
     back on save.
     """
 
-    # Contants
+    # Constants
     MAGIC_NUMBER = b"TRACK"
     HEADER_SIZE = 1000
     READ_BUFFER_SIZE = 87382 * 4  # About 4 Mb when no scalars nor properties.
@@ -513,8 +513,6 @@ class TrkFile(TractogramFile):
             magic_number = f.read(5)
             f.seek(-5, os.SEEK_CUR)
             return magic_number == cls.MAGIC_NUMBER
-
-        return False
 
     @classmethod
     def _create_arraysequence_from_generator(cls, gen):

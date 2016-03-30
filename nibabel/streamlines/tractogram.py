@@ -245,10 +245,11 @@ class Tractogram(object):
             of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
             points for a particular streamline $t$ and $M_i$ is the number
             scalar values to store for that particular information $i$.
-        affine_to_rasmm : ndarray of shape (4, 4)
+        affine_to_rasmm : ndarray of shape (4, 4), optional
             Transformation matrix that brings the streamlines contained in
             this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
-            refers to the center of the voxel.
+            refers to the center of the voxel. By default, the streamlines
+            are assumed to be already in *RAS+* and *mm* space.
         """
         self.streamlines = streamlines
         self.data_per_streamline = data_per_streamline
@@ -608,12 +609,13 @@ class LazyTractogram(Tractogram):
         raise NotImplementedError('`LazyTractogram` does not support indexing.')
 
     def __iter__(self):
-        i = 0
-        for i, tractogram_item in enumerate(self.data, start=1):
+        count = 0
+        for tractogram_item in self.data:
             yield tractogram_item
+            count += 1
 
         # Keep how many streamlines there are in this tractogram.
-        self._nb_streamlines = i
+        self._nb_streamlines = count
 
     def __len__(self):
         # Check if we know how many streamlines there are.
@@ -642,13 +644,13 @@ class LazyTractogram(Tractogram):
     def apply_affine(self, affine):
         """ Applies an affine transformation to the streamlines.
 
-        The transformation will be applied just before returning the
-        streamlines.
+        The transformation given by the `affine` matrix is applied after any
+        other pending transformations to the streamline points.
 
         Parameters
         ----------
         affine : 2D array (4,4)
-            Transformation that will be applied on each streamline.
+            Transformation matrix that will be applied on each streamline.
 
         Returns
         -------

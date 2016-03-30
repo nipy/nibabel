@@ -5,19 +5,19 @@ from .header import Field
 
 
 class ExtensionWarning(Warning):
-    pass
+    """ Base class for warnings about tractogram file extension. """
 
 
 class HeaderWarning(Warning):
-    pass
+    """ Base class for warnings about tractogram file header. """
 
 
 class HeaderError(Exception):
-    pass
+    """ Raised when a tractogram file header contains invalid information. """
 
 
 class DataError(Exception):
-    pass
+    """ Raised when data is missing or inconsistent in a tractogram file. """
 
 
 class abstractclassmethod(classmethod):
@@ -71,12 +71,12 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractclassmethod
     def support_data_per_point(cls):
-        """ Tells if this tractogram format supports saving data per point. """
+        """ Tells if this format supports saving data per point. """
         raise NotImplementedError()
 
     @abstractclassmethod
     def support_data_per_streamline(cls):
-        """ Tells if this tractogram format supports saving data per streamline. """
+        """ Tells if this format supports saving data per streamline. """
         raise NotImplementedError()
 
     @abstractclassmethod
