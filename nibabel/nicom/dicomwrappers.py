@@ -471,13 +471,30 @@ class MultiframeWrapper(Wrapper):
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
              for frame in self.frames])
-        n_dim = frame_indices.shape[1] + 1
-        # Check there is only one multiframe stack index
-        if np.any(np.diff(frame_indices[:, 0])):
-            raise WrapperError("File contains more than one StackID. Cannot "
-                               "handle multi-stack files")
+
+        # Check that there is only one multiframe stack index
+        stack_ids = set(frame.FrameContentSequence[0].StackID
+                        for frame in self.frames)
+        if len(stack_ids) > 1:
+            raise WrapperError("File contains more than one StackID. "
+                               "Cannot handle multi-stack files")
+
+        # Determine if one of the Dimension indices refers to the stack id
+        dim_seq = [(dim.DimensionIndexPointer, dim.FunctionalGroupPointer)
+                   for dim in self.get('DimensionIndexSequence')]
+        # the pointer pair (StackID tag, FrameContentSequence tag) that
+        # indicates that the dimension refers to the StackID
+        stack_id_dim_pointer = ((0x20, 0x9056), (0x20, 0x9111))
+        # remove superfluous stack id index if present
+        if stack_id_dim_pointer in dim_seq:
+            stack_dim_idx = dim_seq.index(stack_id_dim_pointer)
+            frame_indices = np.delete(frame_indices, stack_dim_idx, axis=1)
+
+        # account for the 2 additional dimensions (row and column) not included
+        # in the indices
+        n_dim = frame_indices.shape[1] + 2
         # Store frame indices
-        self._frame_indices = frame_indices[:, 1:]
+        self._frame_indices = frame_indices
         if n_dim < 4:  # 3D volume
             return rows, cols, n_frames
         # More than 3 dimensions
