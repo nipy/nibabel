@@ -6,8 +6,9 @@ import numpy as np
 
 from .. import dicomreaders as didr
 
-from .test_dicomwrappers import (dicom_test,
-                                 EXPECTED_AFFINE,
+from nibabel.pydicom_compat import dicom_test, pydicom
+
+from .test_dicomwrappers import (EXPECTED_AFFINE,
                                  EXPECTED_PARAMS,
                                  IO_DATA_PATH,
                                  DATA)
@@ -16,11 +17,12 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+
 @dicom_test
 def test_read_dwi():
     img = didr.mosaic_to_nii(DATA)
     arr = img.get_data()
-    assert_equal(arr.shape, (128,128,48))
+    assert_equal(arr.shape, (128, 128, 48))
     assert_array_almost_equal(img.affine, EXPECTED_AFFINE)
 
 
@@ -40,10 +42,6 @@ def test_passing_kwds():
     # Check that we correctly pass keywords to dicom
     dwi_glob = 'siemens_dwi_*.dcm.gz'
     csa_glob = 'csa*.bin'
-    try:
-        from dicom.filereader import InvalidDicomError
-    except ImportError:
-        from pydicom.filereader import InvalidDicomError
     for func in (didr.read_mosaic_dwi_dir, didr.read_mosaic_dir):
         data, aff, bs, gs = func(IO_DATA_PATH, dwi_glob)
         # This should not raise an error
@@ -59,7 +57,7 @@ def test_passing_kwds():
                       dwi_glob,
                       dicom_kwargs=dict(not_a_parameter=True))
         # These are invalid dicoms, so will raise an error unless force=True
-        assert_raises(InvalidDicomError,
+        assert_raises(pydicom.filereader.InvalidDicomError,
                       func,
                       IO_DATA_PATH,
                       csa_glob)

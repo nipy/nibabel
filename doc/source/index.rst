@@ -47,7 +47,7 @@ contributed code and discussion (in rough order of appearance):
 * Bago Amirbekian
 * Brendan Moloney
 * Félix C. Morency
-* Chris Johnson
+* Chris Markiewicz
 * JB Poline
 * Nolan Nichols
 * Nguyen, Ly
@@ -61,8 +61,7 @@ contributed code and discussion (in rough order of appearance):
 * Demian Wassermann
 * Philippe Gervais
 * Justin Lecher
-* Ben Cippolini
-* Chris Markiewicz
+* `Ben Cipollini`_
 * Clemens C. C. Bauer
 
 License reprise

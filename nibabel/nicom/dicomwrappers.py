@@ -11,6 +11,7 @@ than an AttributeError - breaking the 'properties manifesto'.   So, any
 processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 """
+from __future__ import division
 
 import operator
 
@@ -49,10 +50,7 @@ def wrapper_from_file(file_like, *args, **kwargs):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
-    try:
-        from dicom import read_file
-    except ImportError:
-        from pydicom.dicomio import read_file
+    from ..pydicom_compat import read_file
 
     with ImageOpener(file_like) as fobj:
         dcm_data = read_file(fobj, *args, **kwargs)
@@ -278,7 +276,7 @@ class Wrapper(object):
 
     def __getitem__(self, key):
         """ Return values from DICOM object"""
-        if not key in self.dcm_data:
+        if key not in self.dcm_data:
             raise KeyError('"%s" not in self.dcm_data' % key)
         return self.dcm_data.get(key)
 
@@ -663,7 +661,7 @@ class SiemensWrapper(Wrapper):
         """ Add ICE dims from CSA header to signature """
         signature = super(SiemensWrapper, self).series_signature
         ice = csar.get_ice_dims(self.csa_header)
-        if not ice is None:
+        if ice is not None:
             ice = ice[:6] + ice[8:9]
         signature['ICE_Dims'] = (ice, lambda x, y: x == y)
         return signature
@@ -741,7 +739,7 @@ class MosaicWrapper(SiemensWrapper):
     Adds attributes:
 
     * n_mosaic : int
-    * mosaic_size : float
+    * mosaic_size : int
     """
     is_mosaic = True
 
@@ -775,7 +773,7 @@ class MosaicWrapper(SiemensWrapper):
                                    'header; is this really '
                                    'Siemens mosiac data?')
         self.n_mosaic = n_mosaic
-        self.mosaic_size = np.ceil(np.sqrt(n_mosaic))
+        self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
 
     @one_time
     def image_shape(self):

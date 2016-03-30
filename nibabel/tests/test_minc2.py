@@ -20,7 +20,6 @@ from .. import minc2
 from ..minc2 import Minc2File, Minc2Image
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..testing import data_path
 
@@ -30,50 +29,50 @@ from . import test_minc1 as tm2
 # item.
 EXAMPLE_IMAGES = [
     dict(
-        fname = pjoin(data_path, 'small.mnc'),
-        shape = (18, 28, 29),
-        dtype = np.int16,
-        affine = np.array([[0, 0, 7.0, -98],
-                           [0, 8.0, 0, -134],
-                           [9.0, 0, 0, -72],
-                           [0, 0, 0, 1]]),
-        zooms = (9., 8., 7.),
+        fname=pjoin(data_path, 'small.mnc'),
+        shape=(18, 28, 29),
+        dtype=np.int16,
+        affine=np.array([[0, 0, 7.0, -98],
+                         [0, 8.0, 0, -134],
+                         [9.0, 0, 0, -72],
+                         [0, 0, 0, 1]]),
+        zooms=(9., 8., 7.),
         # These values from mincstats
-        data_summary = dict(
-            min = 0.1185331417,
-            max = 92.87690699,
-            mean = 31.2127952),
-        is_proxy = True),
+        data_summary=dict(
+            min=0.1185331417,
+            max=92.87690699,
+            mean=31.2127952),
+        is_proxy=True),
     dict(
-        fname = pjoin(data_path, 'minc2_1_scale.mnc'),
-        shape = (10,20,20),
-        dtype = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (2., 2., 2.),
+        fname=pjoin(data_path, 'minc2_1_scale.mnc'),
+        shape=(10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 2.0, -20],
+                         [0, 2.0, 0, -20],
+                         [2.0, 0, 0, -10],
+                         [0, 0, 0, 1]]),
+        zooms=(2., 2., 2.),
         # These values from mincstats
-        data_summary = dict(
-            min = 0.2082842439,
-            max = 0.2094327615,
-            mean = 0.2091292083),
-        is_proxy = True),
+        data_summary=dict(
+            min=0.2082842439,
+            max=0.2094327615,
+            mean=0.2091292083),
+        is_proxy=True),
     dict(
-        fname = pjoin(data_path, 'minc2_4d.mnc'),
-        shape = (2, 10,20,20),
-        dtype = np.uint8,
-        affine = np.array([[0, 0, 2.0, -20],
-                           [0, 2.0, 0, -20],
-                           [2.0, 0, 0, -10],
-                           [0, 0, 0, 1]]),
-        zooms = (1., 2., 2., 2.),
+        fname=pjoin(data_path, 'minc2_4d.mnc'),
+        shape=(2, 10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 2.0, -20],
+                         [0, 2.0, 0, -20],
+                         [2.0, 0, 0, -10],
+                         [0, 0, 0, 1]]),
+        zooms=(1., 2., 2., 2.),
         # These values from mincstats
-        data_summary = dict(
-            min = 0.2078431373,
-            max = 1.498039216,
-            mean = 0.9090422837),
-        is_proxy = True)
+        data_summary=dict(
+            min=0.2078431373,
+            max=1.498039216,
+            mean=0.9090422837),
+        is_proxy=True)
 ]
 
 if have_h5py:

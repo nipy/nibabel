@@ -19,8 +19,6 @@ import sys
 
 import numpy as np
 
-from ..externals.six import BytesIO
-from ..volumeutils import finite_range
 
 from .butils import print_git_title
 

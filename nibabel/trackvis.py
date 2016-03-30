@@ -45,9 +45,9 @@ header_1_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
-# Version 2 adds a 4x4 matrix giving the affine transformtation going
+# Version 2 adds a 4x4 matrix giving the affine transformation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
 # coordinates (axes L->R, P->A, I->S).  IF (0 based) value [3, 3] from
 # this matrix is 0, this means the matrix is not recorded.
@@ -75,7 +75,7 @@ header_2_dtd = [
     ('n_count', 'i4'),
     ('version', 'i4'),
     ('hdr_size', 'i4'),
-    ]
+]
 
 # Full header numpy dtypes
 header_1_dtype = np.dtype(header_1_dtd)
@@ -111,7 +111,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
         The coordinates in which you want the points in the *output*
         streamlines expressed.  If None, then return the points exactly as they
         are stored in the trackvis file. The points will probably be in
-        trackviz voxmm space - see Notes for ``write`` function.  If 'voxel',
+        trackvis voxmm space - see Notes for ``write`` function.  If 'voxel',
         we convert the points to voxel space simply by dividing by the recorded
         voxel size.  If 'rasmm' we'll convert the points to RAS mm space (real
         space). For 'rasmm' we check if the affine is set and matches the voxel
@@ -214,7 +214,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
                 # Short of bytes, should we raise an error or continue?
                 actual_n_pts = int(len(pts_str) / pt_size)
                 if actual_n_pts != n_pts:
-                    if strict == True:
+                    if strict:
                         raise DataError('Expecting {0} points for stream {1}, '
                                         'found {2}'.format(
                                             n_pts, n_streams, actual_n_pts))
@@ -250,7 +250,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     return streamlines, hdr
 
 
-def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
+def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
           points_space=None):
     ''' Write header and `streamlines` to trackvis file `fileobj`
 
@@ -291,8 +291,8 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     points_space : {None, 'voxel', 'rasmm'}, optional
         The coordinates in which the points in the input streamlines are
         expressed.  If None, then assume the points are as you want them
-        (probably trackviz voxmm space - see Notes).  If 'voxel', the points
-        are in voxel space, and we will transform them to trackviz voxmm space.
+        (probably trackvis voxmm space - see Notes).  If 'voxel', the points
+        are in voxel space, and we will transform them to trackvis voxmm space.
         If 'rasmm' the points are in RAS mm space (real space).  We transform
         them to trackvis voxmm space.  If 'voxel' or 'rasmm' we insist that the
         voxel sizes and ordering are set to non-default values.  If 'rasmm' we
@@ -331,7 +331,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     Notes
     -----
     Trackvis (the application) expects the ``points`` in the streamlines be in
-    what we call *trackviz voxmm* coordinates.  If we have a point (x, y, z) in
+    what we call *trackvis voxmm* coordinates.  If we have a point (x, y, z) in
     voxmm coordinates, and ``voxel_size`` has the voxel sizes for each of the 3
     dimensions, then x, y, z refer to mm in voxel space. Thus if i, j, k is a
     point in voxel coordinates, then ``x = i * voxel_size[0]; y = j *
@@ -343,7 +343,7 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     axis goes from posterior to anterior, "S" -> inferior to superior.  If
     "voxel_order" is empty we assume "LPS".
 
-    This information comes from some helpful replies on the trackviz forum
+    This information comes from some helpful replies on the trackvis forum
     about `interpreting point coordiantes
     <http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates>`_
     '''
@@ -371,13 +371,13 @@ def write(fileobj, streamlines,  hdr_mapping=None, endianness=None,
     # Get number of scalars and properties
     pts, scalars, props = streams0
     # calculate number of scalars
-    if not scalars is None:
+    if scalars is not None:
         n_s = scalars.shape[1]
     else:
         n_s = 0
     hdr['n_scalars'] = n_s
     # calculate number of properties
-    if not props is None:
+    if props is not None:
         n_p = props.size
         hdr['n_properties'] = n_p
     else:
@@ -449,7 +449,7 @@ def _check_hdr_points_space(hdr, points_space):
         checks.  'voxel' checks for all ``hdr['voxel_sizes'] being <= zero
         (error) or any being zero (warning).  'rasmm' checks for presence of
         non-zeros affine in ``hdr['vox_to_ras']``, and that the affine therein
-        corresponds to ``hdr['voxel_order']`` and ''hdr['voxe_sizes']`` - and
+        corresponds to ``hdr['voxel_order']`` and ''hdr['voxel_sizes']`` - and
         raises an error otherwise.
 
     Returns
@@ -792,6 +792,7 @@ class TrackvisFile(object):
         space. If 'points_space' is not None, you can use this to give the
         relationship between voxels, rasmm and voxmm space (above).
     '''
+
     def __init__(self,
                  streamlines,
                  mapping=None,
@@ -815,7 +816,7 @@ class TrackvisFile(object):
         self.endianness = endianness
         self.filename = filename
         self.points_space = points_space
-        if not affine is None:
+        if affine is not None:
             self.set_affine(affine, pos_vox=True, set_order=True)
 
     @classmethod

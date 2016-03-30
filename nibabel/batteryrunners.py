@@ -175,6 +175,7 @@ class BatteryRunner(object):
 
 
 class Report(object):
+
     def __init__(self,
                  error=Exception,
                  problem_level=0,

@@ -10,20 +10,21 @@
 from __future__ import division, print_function, absolute_import
 import os
 import warnings
+import struct
 
 import numpy as np
 
-from ..externals.six import BytesIO
-from ..casting import type_info, have_binary128
-from ..tmpdirs import InTemporaryDirectory
-from ..spatialimages import HeaderDataError
-from ..eulerangles import euler2mat
-from ..affines import from_matvec
-from .. import nifti1 as nifti1
-from ..nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
-                      Nifti1Pair, Nifti1Extension, Nifti1Extensions,
-                      data_type_codes, extension_codes, slice_order_codes)
-
+from nibabel import nifti1 as nifti1
+from nibabel.affines import from_matvec
+from nibabel.casting import type_info, have_binary128
+from nibabel.eulerangles import euler2mat
+from nibabel.externals.six import BytesIO
+from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
+                            Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
+                            Nifti1Extensions, data_type_codes, extension_codes,
+                            slice_order_codes)
+from nibabel.spatialimages import HeaderDataError
+from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
@@ -35,13 +36,15 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 
-from ..testing import data_path, suppress_warnings
+from ..testing import data_path, suppress_warnings, runif_extra_has
 
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
+
+from nibabel.pydicom_compat import pydicom, dicom_test
 
 
 # Example transformation matrix
@@ -259,8 +262,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         dim_type = hdr.template_dtype['dim'].base
         glmin = hdr.template_dtype['glmin'].base
         too_big = int(np.iinfo(dim_type).max) + 1
-        hdr.set_data_shape((too_big-1, 1, 1))
-        assert_equal(hdr.get_data_shape(), (too_big-1, 1, 1))
+        hdr.set_data_shape((too_big - 1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (too_big - 1, 1, 1))
         # The freesurfer case
         full_shape = (too_big, 1, 1, 1, 1, 1, 1)
         for dim in range(3, 8):
@@ -288,15 +291,15 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
         with suppress_warnings():
-            hdr.set_data_shape((far_too_big-1, 1, 1))
-        assert_equal(hdr.get_data_shape(), (far_too_big-1, 1, 1))
+            hdr.set_data_shape((far_too_big - 1, 1, 1))
+        assert_equal(hdr.get_data_shape(), (far_too_big - 1, 1, 1))
         assert_raises(HeaderDataError, hdr.set_data_shape, (far_too_big, 1, 1))
         # glmin of zero raises error (implausible vector length)
         hdr.set_data_shape((-1, 1, 1))
         hdr['glmin'] = 0
         assert_raises(HeaderDataError, hdr.get_data_shape)
         # Lists or tuples or arrays will work for setting shape
-        for shape in ((too_big-1, 1, 1), (too_big, 1, 1)):
+        for shape in ((too_big - 1, 1, 1), (too_big, 1, 1)):
             for constructor in (list, tuple, np.array):
                 with suppress_warnings():
                     hdr.set_data_shape(constructor(shape))
@@ -432,7 +435,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr['quatern_d'] = 0
         assert_true(np.allclose(hdr.get_qform_quaternion(), [0, 1, 0, 0]))
         # Check threshold set correctly for float32
-        hdr['quatern_b'] = 1+np.finfo(self.quat_dtype).eps
+        hdr['quatern_b'] = 1 + np.finfo(self.quat_dtype).eps
         assert_array_almost_equal(hdr.get_qform_quaternion(), [0, 1, 0, 0])
 
     def test_qform(self):
@@ -494,7 +497,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         # values in a predictable way, for the tests below.
         _stringer = lambda val: val is not None and '%2.1f' % val or None
         _print_me = lambda s: list(map(_stringer, s))
-        #The following examples are from the nifti1.h documentation.
+        # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
         assert_equal(_print_me(hdr.get_slice_times()),
                      ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6'])
@@ -547,7 +550,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         ehdr = self.header_class()
         ehdr.set_intent('t test', (10,), name='some score')
         assert_equal(ehdr.get_intent(),
-                    ('t test', (10.0,), 'some score'))
+                     ('t test', (10.0,), 'some score'))
         # invalid intent name
         assert_raises(KeyError, ehdr.set_intent, 'no intention')
         # too many parameters
@@ -1119,6 +1122,88 @@ def test_nifti_extensions():
     assert_true(exts_container.count('afni') == 1)
 
 
+@dicom_test
+def test_nifti_dicom_extension():
+    nim = load(image_file)
+    hdr = nim.header
+    exts_container = hdr.extensions
+
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2, b'')
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2, None)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+
+    # use a dataset if provided
+    ds = pydicom.dataset.Dataset()
+    ds.add_new((0x10, 0x20), 'LO', 'NiPy')
+    dcmext = Nifti1DicomExtension(2, ds)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / LE
+    dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20,
+                                    'LO'.encode('utf-8'), 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
+    assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext._is_little_endian, True)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
+    dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
+    assert_equal(dcmext._guess_implicit_VR(), True)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_implicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / BE
+    dcmbytes_explicit_be = struct.pack('>2H2sH4s', 0x10, 0x20,
+                                       'LO'.encode('utf-8'), 4,
+                                       'NiPy'.encode('utf-8'))
+    hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
+    assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(dcmext.get_content()[0x10, 0x20].value, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # Check that a dicom dataset is written w/ BE encoding when not created
+    # using BE bytestring when given a BE nifti header
+    dcmext = Nifti1DicomExtension(2, ds, parent_hdr=hdr_be)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+
+    # dicom extension access from nifti extensions
+    assert_equal(exts_container.count('dicom'), 0)
+    exts_container.append(dcmext)
+    assert_equal(exts_container.count('dicom'), 1)
+    assert_equal(exts_container.get_codes(), [6, 6, 2])
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # creating an extension with bad content should raise
+    assert_raises(TypeError, Nifti1DicomExtension, 2, 0)
+
+
 class TestNifti1General(object):
     """ Test class to test nifti1 in general
 
@@ -1242,3 +1327,19 @@ class TestNifti1General(object):
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
+
+
+@runif_extra_has('slow')
+def test_large_nifti1():
+    image_shape = (91, 109, 91, 1200)
+    img = Nifti1Image(np.ones(image_shape, dtype=np.float32),
+                      affine=np.eye(4))
+    # Dump and load the large image.
+    with InTemporaryDirectory():
+        img.to_filename('test.nii.gz')
+        del img
+        data = load('test.nii.gz').get_data()
+    # Check that the data are all ones
+    assert_equal(image_shape, data.shape)
+    n_ones = np.sum((data == 1.))
+    assert_equal(np.prod(image_shape), n_ones)

@@ -138,18 +138,17 @@ import warnings
 import numpy as np
 
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .filebasedimages import ImageFileError  # needed for back-compat.
+from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
+from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 
 
 class HeaderDataError(Exception):
     ''' Class to indicate error in getting or setting header data '''
-    pass
 
 
 class HeaderTypeError(Exception):
     ''' Class to indicate error in parameters into header functions '''
-    pass
 
 
 class SpatialHeader(FileBasedHeader):
@@ -225,7 +224,7 @@ class SpatialHeader(FileBasedHeader):
         self._shape = tuple([int(s) for s in shape])
         # set any unset zooms to 1.0
         nzs = min(len(self._zooms), ndim)
-        self._zooms = self._zooms[:nzs] + (1.0,) * (ndim-nzs)
+        self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
     def get_zooms(self):
         return self._zooms
@@ -308,6 +307,7 @@ def supported_np_types(obj):
 
 class Header(SpatialHeader):
     '''Alias for SpatialHeader; kept for backwards compatibility.'''
+
     def __init__(self, *args, **kwargs):
         warnings.warn('Header is deprecated, use SpatialHeader',
                       DeprecationWarning, stacklevel=2)
@@ -662,3 +662,20 @@ class SpatialImage(FileBasedImage):
         raise TypeError("Cannot slice image objects; consider slicing image "
                         "array data with `img.dataobj[slice]` or "
                         "`img.get_data()[slice]`")
+
+    def orthoview(self):
+        """Plot the image using OrthoSlicer3D
+
+        Returns
+        -------
+        viewer : instance of OrthoSlicer3D
+            The viewer.
+
+        Notes
+        -----
+        This requires matplotlib. If a non-interactive backend is used,
+        consider using viewer.show() (equivalently plt.show()) to show
+        the figure.
+        """
+        return OrthoSlicer3D(self.dataobj, self.affine,
+                             title=self.get_filename())

@@ -26,9 +26,7 @@ from .externals.six import BytesIO
 
 from .nifti1 import Nifti1Header
 
-# Shield optional dicom import
-from .optpkg import optional_package
-dicom, have_dicom, _ = optional_package('dicom')
+from .pydicom_compat import pydicom, read_file
 
 logger = logging.getLogger('nibabel.dft')
 
@@ -57,10 +55,11 @@ class InstanceStackError(DFTError):
 
     def __str__(self):
         fmt = 'expecting instance number %d, got %d'
-        return fmt % (self.i+1, self.si.instance_number)
+        return fmt % (self.i + 1, self.si.instance_number)
 
 
 class _Study(object):
+
     def __init__(self, d):
         self.uid = d['uid']
         self.date = d['date']
@@ -93,6 +92,7 @@ class _Study(object):
 
 
 class _Series(object):
+
     def __init__(self, d):
         self.uid = d['uid']
         self.study = d['study']
@@ -160,7 +160,7 @@ class _Series(object):
         for (i, si) in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
-            logger.info('reading %d/%d' % (i+1, len(self.storage_instances)))
+            logger.info('reading %d/%d' % (i + 1, len(self.storage_instances)))
             d = self.storage_instances[i].dicom()
             data[i, :, :] = d.pixel_array
 
@@ -190,7 +190,7 @@ class _Series(object):
         m = ((pdi * cosi[0], pdj * cosj[0], pdk * cosk[0], pos_1[0]),
              (pdi * cosi[1], pdj * cosj[1], pdk * cosk[1], pos_1[1]),
              (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
-             (            0,             0,             0,        1))
+             (0, 0, 0, 1))
 
         m = numpy.array(m)
 
@@ -212,6 +212,7 @@ class _Series(object):
 
 
 class _StorageInstance(object):
+
     def __init__(self, d):
         self.uid = d['uid']
         self.instance_number = d['instance_number']
@@ -233,11 +234,12 @@ class _StorageInstance(object):
         return val
 
     def dicom(self):
-        return dicom.read_file(self.files[0])
+        return read_file(self.files[0])
 
 
 class _db_nochange:
     """context guard for read-only database access"""
+
     def __enter__(self):
         self.c = DB.cursor()
         return self.c
@@ -251,6 +253,7 @@ class _db_nochange:
 
 class _db_change:
     """context guard for database access requiring a commit"""
+
     def __enter__(self):
         self.c = DB.cursor()
         return self.c
@@ -378,8 +381,8 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = dicom.read_file('%s/%s' % (path, fname))
-    except dicom.filereader.InvalidDicomError:
+        do = read_file('%s/%s' % (path, fname))
+    except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None
     try:

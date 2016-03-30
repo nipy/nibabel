@@ -2,7 +2,6 @@
 """
 import re
 
-import numpy as np
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -13,8 +12,8 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 
 from ..utils import find_private_section
 
-from .test_dicomwrappers import (have_dicom, dicom_test,
-                                 IO_DATA_PATH, DATA, DATA_PHILIPS)
+from nibabel.pydicom_compat import dicom_test, pydicom
+from .test_dicomwrappers import (DATA, DATA_PHILIPS)
 
 
 @dicom_test
@@ -28,11 +27,7 @@ def test_find_private_section_real():
     assert_equal(find_private_section(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER'),
                  None)
     # Make fake datasets
-    try:
-        from dicom.dataset import Dataset
-    except ImportError:
-        from pydicom.dataset import Dataset
-    ds = Dataset({})
+    ds = pydicom.dataset.Dataset({})
     ds.add_new((0x11, 0x10), 'LO', b'some section')
     assert_equal(find_private_section(ds, 0x11, 'some section'), 0x1000)
     ds.add_new((0x11, 0x11), 'LO', b'anther section')
@@ -57,12 +52,12 @@ def test_find_private_section_real():
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'third\Wsectio[nN]')),
-                                      0x1200)
+                 0x1200)
     # No match -> None
     assert_equal(find_private_section(ds,
                                       0x11,
                                       re.compile(r'not third\Wsectio[nN]')),
-                                      None)
+                 None)
     # If there are gaps in the sequence before the one we want, that is OK
     ds.add_new((0x11, 0x13), 'LO', b'near section')
     assert_equal(find_private_section(ds, 0x11, 'near section'), 0x1300)

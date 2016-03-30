@@ -7,8 +7,12 @@ PY2 = sys.version_info[0] < 3
 from io import BytesIO
 from itertools import product
 from functools import partial
+from distutils.version import LooseVersion
 
 import numpy as np
+
+# np > 1.11 makes double ellipsis illegal in indices
+HAVE_NP_GT_1p11 = LooseVersion(np.__version__) > '1.11'
 
 from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          predict_shape, read_segments, _positive_slice,
@@ -17,7 +21,9 @@ from ..fileslice import (is_fancy, canonical_slicers, fileslice,
                          calc_slicedefs, _simple_fileslice, slice2outax,
                          strided_scalar)
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
+from nose.tools import assert_equal
+from nose.tools import assert_false
+from nose.tools import assert_raises
 
 from numpy.testing import assert_array_equal
 
@@ -27,7 +33,7 @@ def _check_slice(sliceobj):
     a = np.arange(100).reshape((10, 10))
     b = a[sliceobj]
     if np.isscalar(b):
-        return # Can't check
+        return  # Can't check
     # Check if this is a view
     a[:] = 99
     b_is_view = np.all(b == 99)
@@ -38,8 +44,12 @@ def test_is_fancy():
     slices = (2, [2], [2, 3], Ellipsis, np.array(2), np.array((2, 3)))
     for slice0 in slices:
         _check_slice(slice0)
-        _check_slice((slice0,)) # tuple is same
+        _check_slice((slice0,))  # tuple is same
+        # Double ellipsis illegal in np 1.12dev - set up check for that case
+        maybe_bad = HAVE_NP_GT_1p11 and slice0 is Ellipsis
         for slice1 in slices:
+            if maybe_bad and slice1 is Ellipsis:
+                continue
             _check_slice((slice0, slice1))
     assert_false(is_fancy((None,)))
     assert_false(is_fancy((None, 1)))
@@ -154,14 +164,14 @@ def _slices_for_len(L):
         L - 1,
         -1,
         slice(None),
-        slice(L-1)]
+        slice(L - 1)]
     if L > 1:
         sdefs += [
             -2,
-            slice(1, L-1),
-            slice(1, L-1, 2),
-            slice(L-1, 1, -1),
-            slice(L-1, 1, -2)]
+            slice(1, L - 1),
+            slice(1, L - 1, 2),
+            slice(L - 1, 1, -1),
+            slice(L - 1, 1, -2)]
     return tuple(sdefs)
 
 
@@ -278,8 +288,12 @@ def test_threshold_heuristic():
 # Some dummy heuristics for optimize_slicer
 def _always(slicer, dim_len, stride):
     return 'full'
+
+
 def _partial(slicer, dim_len, stride):
     return 'contiguous'
+
+
 def _never(slicer, dim_len, stride):
     return None
 
@@ -383,31 +397,31 @@ def test_optimize_slicer():
         (slice(2, 8, 1), slice(None, None, 2)))
     # If this is the slowest changing dimension, heuristic can upgrade None to
     # contiguous, but not (None, contiguous) to full
-    assert_equal( # we've done this one already
+    assert_equal(  # we've done this one already
         optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _always),
         (slice(None), slice(0, 10, 2)))
-    assert_equal( # if slowest, just upgrade to contiguous
+    assert_equal(  # if slowest, just upgrade to contiguous
         optimize_slicer(slice(0, 10, 2), 10, True, True, 4, _always),
         (slice(0, 10, 1), slice(None, None, 2)))
-    assert_equal( # contiguous does not upgrade to full
+    assert_equal(  # contiguous does not upgrade to full
         optimize_slicer(slice(9), 10, True, True, 4, _always),
         (slice(0, 9, 1), slice(None)))
     # integer
     assert_equal(
         optimize_slicer(0, 10, True, False, 4, _never),
         (0, 'dropped'))
-    assert_equal( # can be negative
+    assert_equal(  # can be negative
         optimize_slicer(-1, 10, True, False, 4, _never),
         (9, 'dropped'))
-    assert_equal( # or float
+    assert_equal(  # or float
         optimize_slicer(0.9, 10, True, False, 4, _never),
         (0, 'dropped'))
-    assert_raises(ValueError, # should never get 'contiguous'
-        optimize_slicer, 0, 10, True, False, 4, _partial)
-    assert_equal( # full can be forced with heuristic
+    assert_raises(ValueError,  # should never get 'contiguous'
+                  optimize_slicer, 0, 10, True, False, 4, _partial)
+    assert_equal(  # full can be forced with heuristic
         optimize_slicer(0, 10, True, False, 4, _always),
         (slice(None), 0))
-    assert_equal( # but disabled for slowest changing dimension
+    assert_equal(  # but disabled for slowest changing dimension
         optimize_slicer(0, 10, True, True, 4, _always),
         (0, 'dropped'))
 
@@ -485,21 +499,21 @@ def test_optimize_read_slicers():
     assert_equal(optimize_read_slicers(
         (slice(9), slice(None), slice(None)), (10, 6, 2), 4, _depends0),
         ((slice(None), slice(None), slice(None)),
-          (slice(0, 9, 1), slice(None), slice(None))))
+         (slice(0, 9, 1), slice(None), slice(None))))
     assert_equal(optimize_read_slicers(
         (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends0),
         ((slice(None), slice(0, 5, 1), slice(None)),
-          (slice(None), slice(None), slice(None))))
+         (slice(None), slice(None), slice(None))))
     assert_equal(optimize_read_slicers(
         (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends1),
         ((slice(None), slice(None), slice(None)),
-          (slice(None), slice(0, 5, 1), slice(None))))
+         (slice(None), slice(0, 5, 1), slice(None))))
     # Check longs as integer slices
     sn = slice(None)
     assert_equal(optimize_read_slicers(
         (1, 2, 3), (2, 3, 4), 4, _always),
         ((sn, sn, 3), (1, 2)))
-    if PY2: # Check we can pass in longs as well
+    if PY2:  # Check we can pass in longs as well
         assert_equal(optimize_read_slicers(
             (long(1), long(2), long(3)), (2, 3, 4), 4, _always),
             ((sn, sn, 3), (1, 2)))
@@ -516,7 +530,7 @@ def test_slicers2segments():
     assert_equal(slicers2segments((slice(None),), (10,), 7, 4),
                  [[7, 10 * 4]])
     assert_equal(slicers2segments((0, slice(None)), (10, 6), 7, 4),
-                 [[7 + 10*4*i, 4] for i in range(6)])
+                 [[7 + 10 * 4 * i, 4] for i in range(6)])
     assert_equal(slicers2segments((slice(None), 0), (10, 6), 7, 4),
                  [[7, 10 * 4]])
     assert_equal(slicers2segments((slice(None), slice(None)), (10, 6), 7, 4),
@@ -524,7 +538,7 @@ def test_slicers2segments():
     assert_equal(slicers2segments(
         (slice(None), slice(None), 2), (10, 6, 4), 7, 4),
         [[7 + 10 * 6 * 2 * 4, 10 * 6 * 4]])
-    if PY2: # Check we can pass longs on Python 2
+    if PY2:  # Check we can pass longs on Python 2
         assert_equal(
             slicers2segments((long(0), long(1), long(2)), (10, 6, 4), 7, 4),
             [[7 + 10 * 4 + 10 * 6 * 2 * 4, 4]])
@@ -543,52 +557,52 @@ def test_calc_slicedefs():
         ([[7, 40]],
          (10,),
          (),
-        ))
+         ))
     assert_equal(
         calc_slicedefs((slice(9),), (10,), 4, 7, 'F', _never),
         ([[7, 36]],
          (9,),
          (),
-        ))
+         ))
     assert_equal(
         calc_slicedefs((slice(1, 9),), (10,), 4, 7, 'F', _never),
         ([[11, 32]],
          (8,),
          (),
-        ))
+         ))
     # Two dimensions, single slice
     assert_equal(
         calc_slicedefs((0,), (10, 6), 4, 7, 'F', _never),
         ([[7, 4], [47, 4], [87, 4], [127, 4], [167, 4], [207, 4]],
          (6,),
          (),
-        ))
+         ))
     assert_equal(
         calc_slicedefs((0,), (10, 6), 4, 7, 'C', _never),
         ([[7, 6 * 4]],
          (6,),
          (),
-        ))
+         ))
     # Two dimensions, contiguous not full
     assert_equal(
         calc_slicedefs((1, slice(1, 5)), (10, 6), 4, 7, 'F', _never),
         ([[51, 4], [91, 4], [131, 4], [171, 4]],
          (4,),
          (),
-        ))
+         ))
     assert_equal(
         calc_slicedefs((1, slice(1, 5)), (10, 6), 4, 7, 'C', _never),
-        ([[7 + 7*4, 16]],
+        ([[7 + 7 * 4, 16]],
          (4,),
          (),
-        ))
+         ))
     # With full slice first
     assert_equal(
         calc_slicedefs((slice(None), slice(1, 5)), (10, 6), 4, 7, 'F', _never),
         ([[47, 160]],
          (10, 4),
          (),
-        ))
+         ))
     # Check effect of heuristic on calc_slicedefs
     # Even integer slices can generate full when heuristic says so
     assert_equal(
@@ -596,14 +610,14 @@ def test_calc_slicedefs():
         ([[7, 10 * 6 * 4]],
          (10, 6),
          (1, slice(None)),
-        ))
+         ))
     # Except when last
     assert_equal(
         calc_slicedefs((slice(None), 1), (10, 6), 4, 7, 'F', _always),
         ([[7 + 10 * 4, 10 * 4]],
          (10,),
          (),
-        ))
+         ))
 
 
 def test_predict_shape():
@@ -631,8 +645,8 @@ def test_predict_shape():
 def test_strided_scalar():
     # Utility to make numpy array of given shape from scalar using striding
     for shape, scalar in product(
-        ((2,), (2, 3,), (2, 3, 4)),
-        (1, 2, np.int16(3))):
+            ((2,), (2, 3,), (2, 3, 4)),
+            (1, 2, np.int16(3))):
         expected = np.zeros(shape, dtype=np.array(scalar).dtype) + scalar
         observed = strided_scalar(shape, scalar)
         assert_array_equal(observed, expected)
@@ -643,6 +657,7 @@ def test_strided_scalar():
         # This addresses a numpy 1.10 breakage of broadcasting a strided
         # array without resizing (see GitHub PR #358)
         assert_false(observed.flags.writeable)
+
         def setval(x):
             x[..., 0] = 99
         # RuntimeError for numpy < 1.10

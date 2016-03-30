@@ -34,6 +34,7 @@ logger.addHandler(logging.StreamHandler())
 class ErrorLevel(object):
     """ Context manager to set log error level
     """
+
     def __init__(self, level):
         self.level = level
 
@@ -50,6 +51,7 @@ class ErrorLevel(object):
 
 class LoggingOutputSuppressor(object):
     """Context manager to prevent global logger from printing"""
+
     def __enter__(self):
         self.orig_handlers = logger.handlers
         for handler in self.orig_handlers:

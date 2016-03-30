@@ -111,7 +111,7 @@ def test_save_load():
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
-    affine[:3,3] = [3,2,1]
+    affine[:3, 3] = [3, 2, 1]
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     with InTemporaryDirectory() as pth:
@@ -124,9 +124,9 @@ def test_save_load():
         assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
         # windows errors when trying to open files or delete the
-        # temporary directory. 
+        # temporary directory.
         del re_img
-        if have_scipy: # skip we we cannot read .mat files
+        if have_scipy:  # skip we we cannot read .mat files
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
             assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
@@ -136,7 +136,7 @@ def test_save_load():
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
             assert_true(isinstance(re_img3,
-                                         spm99.Spm99AnalyzeImage))
+                                   spm99.Spm99AnalyzeImage))
             assert_array_equal(re_img3.get_data(), data)
             assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
@@ -154,7 +154,7 @@ def test_two_to_one():
     npt = np.float32
     data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
     affine = np.diag([1, 2, 3, 1])
-    affine[:3,3] = [3,2,1]
+    affine[:3, 3] = [3, 2, 1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
     assert_equal(img.header['magic'], b'n+1')
@@ -201,7 +201,7 @@ def test_two_to_one():
 
 
 def test_negative_load_save():
-    shape = (1,2,5)
+    shape = (1, 2, 5)
     data = np.arange(10).reshape(shape) - 10.0
     affine = np.eye(4)
     hdr = ni1.Nifti1Header()

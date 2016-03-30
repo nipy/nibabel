@@ -117,7 +117,7 @@ main_header_dtd = [
     ('data_units', '32S'),
     ('septa_state', np.uint16),
     ('fill', '12S')
-    ]
+]
 hdr_dtype = np.dtype(main_header_dtd)
 
 
@@ -305,16 +305,17 @@ class EcatHeader(WrapStruct):
 
     def get_patient_orient(self):
         """ gets orientation of patient based on code stored
-        in header, not always reliable"""
+        in header, not always reliable
+        """
         code = self._structarr['patient_orientation'].item()
-        if not code in self._patient_orient_codes:
+        if code not in self._patient_orient_codes:
             raise KeyError('Ecat Orientation CODE %d not recognized' % code)
         return self._patient_orient_codes[code]
 
     def get_filetype(self):
         """ Type of ECAT Matrix File from code stored in header"""
         code = self._structarr['file_type'].item()
-        if not code in self._ft_codes:
+        if code not in self._ft_codes:
             raise KeyError('Ecat Filetype CODE %d not recognized' % code)
         return self._ft_codes[code]
 
@@ -368,7 +369,7 @@ def read_mlist(fileobj, endianness):
       `nused` in CTI code).
     """
     dt = np.dtype(np.int32)
-    if not endianness is native_code:
+    if endianness is not native_code:
         dt = dt.newbyteorder(endianness)
     mlists = []
     mlist_index = 0
@@ -384,7 +385,7 @@ def read_mlist(fileobj, endianness):
             mlist = []
             return mlist
         # Use all but first housekeeping row
-        mlists.append(rows[1:n_rows+1])
+        mlists.append(rows[1:n_rows + 1])
         mlist_index += n_rows
         if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
@@ -467,7 +468,7 @@ def get_series_framenumbers(mlist):
     try:
         for frame_stored, (true_order, _) in frames_order.items():
             # frame as stored in file -> true number in series
-            frame_dict[frame_stored] = trueframenumbers[true_order]+1
+            frame_dict[frame_stored] = trueframenumbers[true_order] + 1
         return frame_dict
     except:
         raise IOError('Error in header or mlist order unknown')
@@ -496,7 +497,7 @@ def read_subheaders(fileobj, mlist, endianness):
     """
     subheaders = []
     dt = subhdr_dtype
-    if not endianness is native_code:
+    if endianness is not native_code:
         dt = dt.newbyteorder(endianness)
     for mat_id, sh_blkno, sh_last_blkno, mat_stat in mlist:
         if sh_blkno == 0:
@@ -571,7 +572,7 @@ class EcatSubHeader(object):
 
         dims = self.get_shape(frame)
         # get translations from center of image
-        origin_offset = (np.array(dims)-1) / 2.0
+        origin_offset = (np.array(dims) - 1) / 2.0
         aff = np.diag(zooms)
         aff[:3, -1] = -origin_offset * zooms[:-1] + np.array([x_off, y_off,
                                                               z_off])
@@ -630,7 +631,7 @@ class EcatSubHeader(object):
         .. seealso:: data_from_fileobj
         '''
         dtype = self._get_data_dtype(frame)
-        if not self._header.endianness is native_code:
+        if self._header.endianness is not native_code:
             dtype = dtype.newbyteorder(self._header.endianness)
         shape = self.get_shape(frame)
         offset = self._get_frame_offset(frame)
@@ -664,6 +665,7 @@ class EcatImageArrayProxy(object):
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
     '''
+
     def __init__(self, subheader):
         self._subheader = subheader
         self._data = None
@@ -699,14 +701,14 @@ class EcatImageArrayProxy(object):
         """
         sliceobj = canonical_slicers(sliceobj, self.shape)
         # Indices into sliceobj referring to image axes
-        ax_inds = [i for i, obj in enumerate(sliceobj) if not obj is None]
+        ax_inds = [i for i, obj in enumerate(sliceobj) if obj is not None]
         assert len(ax_inds) == len(self.shape)
         frame_mapping = get_frame_order(self._subheader._mlist)
         # Analyze index for 4th axis
         slice3 = sliceobj[ax_inds[3]]
         # We will load volume by volume.  Make slicer into volume by dropping
         # index over the volume axis
-        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3]+1:]
+        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3] + 1:]
         # int index for 4th axis, load one slice
         if isinstance(slice3, Integral):
             data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
@@ -785,7 +787,7 @@ class EcatImage(SpatialImage):
         self._subheader = subheader
         self._mlist = mlist
         self._dataobj = dataobj
-        if not affine is None:
+        if affine is not None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
@@ -862,22 +864,23 @@ class EcatImage(SpatialImage):
     @classmethod
     def from_file_map(klass, file_map):
         """class method to create image from mapping
-        specified in file_map"""
+        specified in file_map
+        """
         hdr_file, img_file = klass._get_fileholders(file_map)
         # note header and image are in same file
         hdr_fid = hdr_file.get_prepare_fileobj(mode='rb')
         header = klass._header.from_fileobj(hdr_fid)
         hdr_copy = header.copy()
-        ### LOAD MLIST
+        # LOAD MLIST
         mlist = np.zeros((header['num_frames'], 4), dtype=np.int32)
         mlist_data = read_mlist(hdr_fid, hdr_copy.endianness)
         mlist[:len(mlist_data)] = mlist_data
-        ### LOAD SUBHEADERS
+        # LOAD SUBHEADERS
         subheaders = klass._subheader(hdr_copy, mlist, hdr_fid)
-        ### LOAD DATA
-        ##  Class level ImageArrayProxy
+        # LOAD DATA
+        # Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)
-        ## Get affine
+        # Get affine
         if not subheaders._check_affines():
             warnings.warn('Affines different across frames, loading affine '
                           'from FIRST frame', UserWarning)
@@ -961,7 +964,7 @@ class EcatImage(SpatialImage):
             image = self._subheader.raw_data_from_fileobj(index)
 
             # Write frame images
-            self._write_data(image, imgf, pos+2, endianness='>')
+            self._write_data(image, imgf, pos + 2, endianness='>')
 
             # Move to dictionnary offset and write dictionnary entry
             self._write_data(mlist[index], imgf, entry_pos, endianness='>')

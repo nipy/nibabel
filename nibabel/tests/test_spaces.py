@@ -17,14 +17,13 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
 
 
-
 def assert_all_in(in_shape, in_affine, out_shape, out_affine):
     slices = tuple(slice(N) for N in in_shape)
     n_axes = len(in_shape)
     in_grid = np.mgrid[slices]
     in_grid = np.rollaxis(in_grid, 0, n_axes + 1)
     v2v = npl.inv(out_affine).dot(in_affine)
-    if n_axes < 3: # reduced dimensions case
+    if n_axes < 3:  # reduced dimensions case
         new_v2v = np.eye(n_axes + 1)
         new_v2v[:n_axes, :n_axes] = v2v[:n_axes, :n_axes]
         new_v2v[:n_axes, -1] = v2v[:n_axes, -1]
@@ -35,22 +34,19 @@ def assert_all_in(in_shape, in_affine, out_shape, out_affine):
     assert_true(np.all(out_grid < np.array(out_shape) + TINY))
 
 
-def test_vox2out_vox():
-    # Test world space bounding box
-    # Test basic case, identity, no voxel sizes passed
-    shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, np.eye(4))
+def get_outspace_params():
+    # Return in_shape, in_aff, vox, out_shape, out_aff for output space tests
+    # Put in function to use also for resample_to_output tests
     # Some affines as input to the tests
     trans_123 = [[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]]
     trans_m123 = [[1, 0, 0, -1], [0, 1, 0, -2], [0, 0, 1, -3], [0, 0, 0, 1]]
     rot_3 = from_matvec(euler2mat(np.pi / 4), [0, 0, 0])
-    for in_shape, in_aff, vox, out_shape, out_aff in (
+    return ( # in_shape, in_aff, vox, out_shape, out_aff
         # Identity
         ((2, 3, 4), np.eye(4), None, (2, 3, 4), np.eye(4)),
         # Flip first axis
         ((2, 3, 4), np.diag([-1, 1, 1, 1]), None,
-         (2, 3, 4), [[1, 0, 0, -1], # axis reversed -> -ve offset
+         (2, 3, 4), [[1, 0, 0, -1],  # axis reversed -> -ve offset
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
                      [0, 0, 0, 1]]),
@@ -75,13 +71,22 @@ def test_vox2out_vox():
                      [0, 0, 0, 1]]),
         # Less than 3 axes
         ((2, 3), np.eye(4), None,
-         (2, 3),  np.eye(4)),
+         (2, 3), np.eye(4)),
         ((2,), np.eye(4), None,
-         (2,),  np.eye(4)),
+         (2,), np.eye(4)),
         # Number of voxel sizes matches length
         ((2, 3), np.diag([4, 5, 6, 1]), (4, 5),
          (2, 3), np.diag([4, 5, 1, 1])),
-    ):
+    )
+
+
+def test_vox2out_vox():
+    # Test world space bounding box
+    # Test basic case, identity, no voxel sizes passed
+    shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
+    assert_array_equal(shape, (2, 3, 4))
+    assert_array_equal(aff, np.eye(4))
+    for in_shape, in_aff, vox, out_shape, out_aff in get_outspace_params():
         img = Nifti1Image(np.ones(in_shape), in_aff)
         for input in ((in_shape, in_aff), img):
             shape, aff = vox2out_vox(input, vox)
@@ -101,9 +106,9 @@ def test_vox2out_vox():
 def test_slice2volume():
     # Get affine expressing selection of single slice from volume
     for axis, def_aff in zip((0, 1, 2), (
-        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
-        [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
-        [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
+            [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
+            [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
         for val in (0, 5, 10):
             exp_aff = np.array(def_aff)
             exp_aff[axis, -1] = val

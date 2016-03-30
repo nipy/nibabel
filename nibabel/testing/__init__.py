@@ -9,12 +9,15 @@
 ''' Utilities for testing '''
 from __future__ import division, print_function
 
+import re
+import os
 import sys
 import warnings
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
 
+from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
 try:
     from nose.tools import (assert_equal, assert_not_equal,
@@ -34,7 +37,7 @@ def assert_dt_equal(a, b):
     assert_equal(np.dtype(a).str, np.dtype(b).str)
 
 
-def assert_allclose_safely(a, b, match_nans=True):
+def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     """ Allclose in integers go all wrong for large integers
     """
     a = np.atleast_1d(a)  # 0d arrays cannot be indexed
@@ -54,7 +57,18 @@ def assert_allclose_safely(a, b, match_nans=True):
         a = a.astype(float)
     if b.dtype.kind in 'ui':
         b = b.astype(float)
-    assert_true(np.allclose(a, b))
+    assert_true(np.allclose(a, b, rtol=rtol, atol=atol))
+
+
+def assert_re_in(regex, c, flags=0):
+    """Assert that container (list, str, etc) contains entry matching the regex
+    """
+    if not isinstance(c, (list, tuple)):
+        c = [c]
+    for e in c:
+        if re.match(regex, e, flags=flags):
+            return
+    raise AssertionError("Not a single entry matched %r in %r" % (regex, c))
 
 
 def get_fresh_mod(mod_name=__name__):
@@ -160,7 +174,17 @@ class suppress_warnings(error_warnings):
 
 
 class catch_warn_reset(clear_and_catch_warnings):
+
     def __init__(self, *args, **kwargs):
         warnings.warn('catch_warn_reset is deprecated and will be removed in '
                       'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',
                       FutureWarning)
+
+
+EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+
+
+def runif_extra_has(test_str):
+    """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
+    return skipif(test_str not in EXTRA_SET,
+                  "Skip {0} tests.".format(test_str))

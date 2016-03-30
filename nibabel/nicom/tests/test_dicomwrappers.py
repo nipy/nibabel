@@ -9,19 +9,7 @@ from copy import copy
 
 import numpy as np
 
-have_dicom = True
-try:
-    import dicom as pydicom
-    read_file = pydicom.read_file
-except ImportError:
-    try:
-        import pydicom
-    except ImportError:
-        have_dicom = False
-    else:
-        from pydicom.dicomio import read_file
-dicom_test = np.testing.dec.skipif(not have_dicom,
-                                   'could not import pydicom')
+from nibabel.pydicom_compat import have_dicom, pydicom, read_file, dicom_test
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
@@ -62,6 +50,7 @@ EXPECTED_AFFINE = np.array(  # do this for philips?
 EXPECTED_PARAMS = [992.05050247, (0.00507649,
                                   0.99997450,
                                   -0.005023611)]
+
 
 @dicom_test
 def test_wrappers():
@@ -124,6 +113,7 @@ def test_get_from_wrapper():
     # Check get defers to dcm_data get
 
     class FakeData2(object):
+
         def get(self, key, default):
             return 1
     d = FakeData2()
@@ -194,9 +184,9 @@ def test_wrapper_args_kwds():
 def test_dwi_params():
     dw = didw.wrapper_from_data(DATA)
     b_matrix = dw.b_matrix
-    assert_equal(b_matrix.shape, (3,3))
+    assert_equal(b_matrix.shape, (3, 3))
     q = dw.q_vector
-    b = np.sqrt(np.sum(q * q)) # vector norm
+    b = np.sqrt(np.sum(q * q))  # vector norm
     g = q / b
     assert_array_almost_equal(b, EXPECTED_PARAMS[0])
     assert_array_almost_equal(g, EXPECTED_PARAMS[1])
@@ -335,19 +325,19 @@ def test_rotation_matrix():
 
 @dicom_test
 def test_use_csa_sign():
-    #Test that we get the same slice normal, even after swapping the iop
-    #directions
+    # Test that we get the same slice normal, even after swapping the iop
+    # directions
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     iop = dw.image_orient_patient
-    dw.image_orient_patient = np.c_[iop[:,1], iop[:,0]]
+    dw.image_orient_patient = np.c_[iop[:, 1], iop[:, 0]]
     dw2 = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     assert_true(np.allclose(dw.slice_normal, dw2.slice_normal))
 
 
 @dicom_test
 def test_assert_parallel():
-    #Test that we get an AssertionError if the cross product and the CSA
-    #slice normal are not parallel
+    # Test that we get an AssertionError if the cross product and the CSA
+    # slice normal are not parallel
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
     assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
@@ -355,8 +345,8 @@ def test_assert_parallel():
 
 @dicom_test
 def test_decimal_rescale():
-    #Test that we don't get back a data array with dtype np.object when our
-    #rescale slope is a decimal
+    # Test that we don't get back a data array with dtype np.object when our
+    # rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
     assert_not_equal(dw.get_data().dtype, np.object)
 
@@ -379,7 +369,8 @@ def fake_frames(seq_name, field_name, value_seq):
         each element in list is obj.<seq_name>[0].<field_name> =
         value_seq[n] for n in range(N)
     """
-    class Fake(object): pass
+    class Fake(object):
+        pass
     frames = []
     for value in value_seq:
         fake_frame = Fake()
@@ -394,8 +385,8 @@ class TestMultiFrameWrapper(TestCase):
     # Test MultiframeWrapper
     MINIMAL_MF = {
         # Minimal contents of dcm_data for this wrapper
-         'PerFrameFunctionalGroupsSequence': [None],
-         'SharedFunctionalGroupsSequence': [None]}
+        'PerFrameFunctionalGroupsSequence': [None],
+        'SharedFunctionalGroupsSequence': [None]}
     WRAPCLASS = didw.MultiframeWrapper
 
     def test_shape(self):
@@ -435,6 +426,7 @@ class TestMultiFrameWrapper(TestCase):
             if idx is not None:
                 dim_idx_seq[idx] = DimensionIndex((0x20, 0x9056),(0x20, 0x9111))
             return dim_idx_seq
+
         # check 3D shape when StackID index is 0
         sid_dim = 0
         fake_mf['DimensionIndexSequence'] = my_fake_dim_idx_seq(2, sid_dim)
@@ -539,13 +531,13 @@ class TestMultiFrameWrapper(TestCase):
                                  [[0, 1, 0, 1, 0, 0]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient,
-                        [[0, 1], [1, 0], [0, 0]])
+                           [[0, 1], [1, 0], [0, 0]])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
         assert_raises(didw.WrapperError,
                       getattr, MFW(fake_mf), 'image_orient_patient')
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient,
-                        [[0, 1], [1, 0], [0, 0]])
+                           [[0, 1], [1, 0], [0, 0]])
 
     def test_voxel_sizes(self):
         # Test voxel size calculation
@@ -599,7 +591,7 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
         assert_raises(didw.WrapperError,
-                    getattr, MFW(fake_mf), 'image_position')
+                      getattr, MFW(fake_mf), 'image_position')
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
@@ -626,7 +618,7 @@ class TestMultiFrameWrapper(TestCase):
             data = data.byteswap()
         dat_str = data.tostring()
         assert_equal(sha1(dat_str).hexdigest(),
-                    '149323269b0af92baa7508e19ca315240f77fa8c')
+                     '149323269b0af92baa7508e19ca315240f77fa8c')
 
     def test_data_fake(self):
         # Test algorithm for get_data
@@ -695,8 +687,8 @@ class TestMultiFrameWrapper(TestCase):
         shape = (2, 3, 4, 2, 2)
         data = np.arange(np.prod(shape)).reshape(shape)
         sorted_data = data.reshape(shape[:2] + (-1,), order='F')
-        order = [11,  9, 10,  8,  3,  1,  2,  0,
-                 15, 13, 14, 12,  7,  5,  6,  4]
+        order = [11, 9, 10, 8, 3, 1, 2, 0,
+                 15, 13, 14, 12, 7, 5, 6, 4]
         sorted_data = sorted_data[..., np.argsort(order)]
         fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)

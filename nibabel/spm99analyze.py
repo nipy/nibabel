@@ -26,12 +26,12 @@ header_key_dtd = analyze.header_key_dtd
 image_dimension_dtd = analyze.image_dimension_dtd[:]
 image_dimension_dtd[
     image_dimension_dtd.index(('funused1', 'f4'))
-    ] = ('scl_slope', 'f4')
+] = ('scl_slope', 'f4')
 # originator text field used as image origin (translations)
 data_history_dtd = analyze.data_history_dtd[:]
 data_history_dtd[
     data_history_dtd.index(('originator', 'S10'))
-    ] = ('origin', 'i2', (5,))
+] = ('origin', 'i2', (5,))
 
 # Full header numpy dtype combined across sub-fields
 header_dtype = np.dtype(header_key_dtd +
@@ -148,10 +148,10 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         origin = hdr['origin'][:3]
         dims = hdr['dim'][1:4]
         if (np.any(origin) and
-            np.all(origin > -dims) and np.all(origin < dims*2)):
-            origin = origin-1
+                np.all(origin > -dims) and np.all(origin < dims * 2)):
+            origin = origin - 1
         else:
-            origin = (dims-1) / 2.0
+            origin = (dims - 1) / 2.0
         aff = np.eye(4)
         aff[:3, :3] = np.diag(zooms)
         aff[:3, -1] = -origin * zooms
@@ -223,7 +223,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         origin = hdr['origin'][0:3]
         dims = hdr['dim'][1:4]
         if (not np.any(origin) or
-            (np.all(origin > -dims) and np.all(origin < dims*2))):
+                (np.all(origin > -dims) and np.all(origin < dims * 2))):
             return hdr, rep
         rep.problem_level = 20
         rep.problem_msg = 'very large origin values relative to dims'

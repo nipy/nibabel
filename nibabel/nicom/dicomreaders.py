@@ -193,7 +193,7 @@ def _third_pass(wrappers):
     out_vol_lists = [vol_list]
     for dw in wrappers[1:]:
         z = dw.slice_indicator
-        if not z in these_zs:
+        if z not in these_zs:
             # same volume
             vol_list.append(dw)
             these_zs.append(z)

@@ -18,9 +18,9 @@ from os.path import (dirname, join as pjoin, isfile, isdir, realpath, pathsep)
 
 from subprocess import Popen, PIPE
 
-try: # Python 2
+try:  # Python 2
     string_types = basestring,
-except NameError: # Python 3
+except NameError:  # Python 3
     string_types = str,
 
 
@@ -33,7 +33,7 @@ def _get_package():
 
 
 # Same as __package__ for Python 2.6, 2.7 and >= 3.3
-MY_PACKAGE=_get_package()
+MY_PACKAGE = _get_package()
 
 
 def local_script_dir(script_sdir):
@@ -66,12 +66,13 @@ class ScriptRunner(object):
     Finds local scripts and local modules if running in the development
     directory, otherwise finds system scripts and modules.
     """
+
     def __init__(self,
-                 script_sdir = 'scripts',
-                 module_sdir = MY_PACKAGE,
-                 debug_print_var = None,
-                 output_processor = lambda x : x
-                ):
+                 script_sdir='scripts',
+                 module_sdir=MY_PACKAGE,
+                 debug_print_var=None,
+                 output_processor=lambda x: x
+                 ):
         """ Init ScriptRunner instance
 
         Parameters

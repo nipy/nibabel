@@ -33,7 +33,7 @@ def test_read_img_data():
                   'minc1_4d.mnc',
                   'test.mgz',
                   'tiny.mnc'
-                 ):
+                  ):
         fpath = pjoin(data_path, fname)
         img = load(fpath)
         data = img.get_data()

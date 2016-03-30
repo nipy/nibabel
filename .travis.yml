@@ -3,6 +3,7 @@
 # munges each line before executing it to print out the exit status.  It's okay
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
+
 language: python
 
 # Run jobs on container-based infrastructure, can be overridden per job
@@ -11,12 +12,12 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
-
 addons:
   apt:
     packages:
       - libhdf5-serial-dev
-
+      # For numpy --pre wheels
+      - libatlas-base-dev
 env:
     global:
         - DEPENDS="numpy scipy matplotlib h5py"
@@ -24,7 +25,6 @@ env:
         - INSTALL_TYPE="setup"
 python:
     - 2.6
-    - 3.2
     - 3.3
     - 3.4
     - 3.5
@@ -37,14 +37,26 @@ matrix:
     - python: 2.7
       env:
         - DEPENDS=numpy==1.5.1 PYDICOM=0
+    # Absolute minimum dependencies plus oldest MPL
+    - python: 2.7
+      env:
+        - DEPENDS=numpy==1.5.1 matplotlib==1.3.1 PYDICOM=0
     # Minimum pydicom dependency
     - python: 2.7
       env:
         - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+    # test against numpy 1.7
+    - python: 2.7
+      env:
+        - DEPENDS="numpy==1.7.1"
     # pydicom 1.0 (currently unreleased)
     - python: 2.7
       env:
         - PYDICOM="v1.0"
+    # test against pre-release builds
+    - python: 2.7
+      env:
+        - EXTRA_PIP_FLAGS="--pre"
     # Documentation doctests
     - python: 2.7
       env:
@@ -58,14 +70,20 @@ matrix:
     - python: 2.7
       env:
         - INSTALL_TYPE=requirements
+    - python: 2.7
+      env:
+        - STYLE=1
+    - python: 3.5
+      env:
+        - STYLE=1
 before_install:
     - source tools/travis_tools.sh
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip  # upgrade to latest pip to find 3.5 wheels
-    - retry pip install nose # always
-    - wheelhouse_pip_install $DEPENDS
+    - pip install -U pip wheel  # upgrade to latest pip find 3.5 wheels; wheel to avoid errors
+    - retry pip install nose flake8  # always
+    - wheelhouse_pip_install $EXTRA_PIP_FLAGS $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
         if [ "$PYDICOM" == "1" ]; then
@@ -77,6 +95,7 @@ before_install:
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
+      pip install codecov;
       fi
 # command to install dependencies
 install:
@@ -86,33 +105,42 @@ install:
       elif [ "$INSTALL_TYPE" == "sdist" ]; then
           python setup_egg.py egg_info  # check egg_info while we're here
           python setup_egg.py sdist
-          wheelhouse_pip_install dist/*.tar.gz
+          wheelhouse_pip_install $EXTRA_PIP_FLAGS dist/*.tar.gz
       elif [ "$INSTALL_TYPE" == "wheel" ]; then
           pip install wheel
           python setup_egg.py bdist_wheel
-          wheelhouse_pip_install dist/*.whl
+          wheelhouse_pip_install $EXTRA_PIP_FLAGS dist/*.whl
       elif [ "$INSTALL_TYPE" == "requirements" ]; then
-          wheelhouse_pip_install -r requirements.txt
+          wheelhouse_pip_install $EXTRA_PIP_FLAGS -r requirements.txt
           python setup.py install
       fi
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 # command to run tests, e.g. python setup.py test
 script:
-    # Change into an innocuous directory and find tests from installation
-    - mkdir for_testing
-    - cd for_testing
-    - if [ "${COVERAGE}" == "1" ]; then
-      cp ../.coveragerc .;
-      COVER_ARGS="--with-coverage --cover-package nibabel";
-      fi
-    - if [ "$DOC_DOC_TEST" == "1" ]; then
-      pip install sphinx;
-      cd ../doc;
-      make html;
-      make doctest;
+    - |
+      if [ "${STYLE}" == "1" ]; then
+          # Run styles only on core nibabel code.
+          flake8 nibabel
       else
-      nosetests --with-doctest $COVER_ARGS nibabel;
+          # Change into an innocuous directory and find tests from installation
+          mkdir for_testing
+          cd for_testing
+          if [ "${COVERAGE}" == "1" ]; then
+              cp ../.coveragerc .;
+              COVER_ARGS="--with-coverage --cover-package nibabel";
+          fi
+          if [ "$DOC_DOC_TEST" == "1" ]; then
+              cd ../doc;
+              pip install -r ../doc-requirements.txt
+              make html;
+              make doctest;
+          else
+              nosetests --with-doctest $COVER_ARGS nibabel;
+          fi
       fi
 after_success:
-    - if [ "${COVERAGE}" == "1" ]; then coveralls; fi
+    - if [ "${COVERAGE}" == "1" ]; then coveralls; codecov; fi
+
+notifications:
+    webhooks: http://nipy.bic.berkeley.edu:54856/travis
