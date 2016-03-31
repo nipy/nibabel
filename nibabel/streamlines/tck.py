@@ -48,14 +48,14 @@ class TckReader(object):
 
         with Opener(self.fileobj) as f:
             # Skip magic number
-            buffer = f.fobj.readline()
+            buffer = asstr(f.fobj.readline())
 
             #####
             # Read header
             ###
-            buffer = f.fobj.readline()
+            buffer = asstr(f.fobj.readline())
             while not buffer.rstrip().endswith("END"):
-                buffer += f.fobj.readline()
+                buffer += asstr(f.fobj.readline())
 
             # Build dictionary from header (not used)
             self.header = dict(item.split(': ') for item in buffer.rstrip().split('\n')[:-1])
@@ -76,7 +76,7 @@ class TckReader(object):
             f.seek(self.offset_data, os.SEEK_SET)
 
             eof = False
-            buff = ""
+            buff = b""
             pts = []
 
             i = 0
