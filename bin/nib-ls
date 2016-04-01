@@ -227,14 +227,14 @@ def proc_file(f, opts):
                 d = d[np.nonzero(d)]
             if opts.stats:
                 # just # of elements
-                row += ["[%d]" % np.prod(d.shape)]
+                row += ["@l[%d]" % np.prod(d.shape)]
                 # stats
-                row += [len(d) and '[%.2g, %.2g]' % (np.min(d), np.max(d)) or '-']
+                row += [len(d) and '@l[%.2g, %.2g]' % (np.min(d), np.max(d)) or '-']
             if opts.counts:
                 counter = Counter()
                 counter.update(d.flatten())
                 # go through each entry and report only non-0 ones
-                row += [" ".join("%g:%d" % (i, counter[i]) for i in sorted(counter))]
+                row += ["@l" + " ".join("%g:%d" % (i, counter[i]) for i in sorted(counter))]
         except Exception as e:
             verbose(2, "Failed to obtain stats/counts -- %s" % str(e))
             row += ['error']
