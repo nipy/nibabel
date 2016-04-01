@@ -189,6 +189,8 @@ class TckWriter(object):
         # Start writing before the EOF_DELIMITER.
         self.file.seek(-len(self.EOF_DELIMITER.tostring()), os.SEEK_END)
 
+        tractogram = tractogram.to_world(lazy=True)
+
         for s in tractogram.streamlines:
             self.header[Field.NB_STREAMLINES] += 1
 
