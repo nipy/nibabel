@@ -85,5 +85,21 @@ class TestTCK(unittest.TestCase):
                 loaded_tck = TckFile.load(filename, lazy_load=False)
                 assert_tractogram_equal(loaded_tck.tractogram, tck.tractogram)
 
-                tck_file.seek(0, os.SEEK_SET)
-                #assert_equal(tck_file.read(), open(filename, 'rb').read())
+                # tck_file.seek(0, os.SEEK_SET)
+                # assert_equal(tck_file.read(), open(filename, 'rb').read())
+
+        # Save tractogram that has an affine_to_rasmm.
+        for lazy_load in [False, True]:
+            tck = TckFile.load(self.simple_tck_filename, lazy_load=lazy_load)
+            affine = np.eye(4)
+            affine[0, 0] *= -1  # Flip in X
+            tractogram = Tractogram(tck.streamlines, affine_to_rasmm=affine)
+
+            new_tck = TckFile(tractogram)
+            tck_file = BytesIO()
+            new_tck.save(tck_file)
+            tck_file.seek(0, os.SEEK_SET)
+
+            loaded_tck = TckFile.load(tck_file, lazy_load=False)
+            assert_tractogram_equal(loaded_tck.tractogram,
+                                    tractogram.to_world(lazy=True))
