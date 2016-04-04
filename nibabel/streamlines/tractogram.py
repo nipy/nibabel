@@ -10,60 +10,55 @@ from .array_sequence import ArraySequence
 
 
 def is_data_dict(obj):
-    """ Tells if obj is a :class:`DataDict`. """
+    """ True if `obj` seems to implement the :class:`DataDict` API """
     return hasattr(obj, 'store')
 
 
 def is_lazy_dict(obj):
-    """ Tells if obj is a :class:`LazyDict`. """
+    """ True if `obj` seems to implement the :class:`LazyDict` API """
     return is_data_dict(obj) and callable(obj.store.values()[0])
 
 
-class DataDict(collections.MutableMapping):
-    """ Dictionary that makes sure data are 2D array.
+class SliceableDataDict(collections.MutableMapping):
+    """ Dictionary for which key access can do slicing on the values.
 
-    This container behaves like a standard dictionary but it makes sure its
-    elements are ndarrays. In addition, it makes sure the amount of data
-    contained in those ndarrays matches the number of streamlines of the
-    :class:`Tractogram` object provided at the instantiation of this
-    dictionary.
+    This container behaves like a standard dictionary but extends key access to
+    allow keys for key access to be indices slicing into the contained ndarray
+    values.
     """
-    def __init__(self, tractogram, *args, **kwargs):
-        self.tractogram = tractogram
+    def __init__(self, *args, **kwargs):
         self.store = dict()
-
         # Use update to set the keys.
-        if len(args) == 1:
-            if isinstance(args[0], DataDict):
-                self.update(**args[0])
-            elif args[0] is None:
-                return
-            else:
-                self.update(dict(*args, **kwargs))
+        if len(args) != 1:
+            self.update(dict(*args, **kwargs))
+            return
+        if args[0] is None:
+            return
+        if isinstance(args[0], SliceableDataDict):
+            self.update(**args[0])
         else:
             self.update(dict(*args, **kwargs))
 
     def __getitem__(self, key):
         try:
             return self.store[key]
-        except KeyError:
-            pass  # Maybe it is an integer.
-        except TypeError:
-            pass  # Maybe it is an object for advanced indexing.
+        except (KeyError, TypeError):
+            pass  # Maybe it is an integer or a slicing object
 
-        # Try to interpret key as an index/slice in which case we
-        # perform (advanced) indexing on every element of the dictionnary.
+        # Try to interpret key as an index/slice for every data element, in
+        # which case we perform (maybe advanced) indexing on every element of
+        # the dictionnary.
+        idx = key
+        new_dict = type(self)(None)
         try:
-            idx = key
-            new_dict = type(self)(None)
             for k, v in self.items():
                 new_dict[k] = v[idx]
-
-            return new_dict
         except TypeError:
             pass
+        else:
+            return new_dict
 
-        # That means key was not an index/slice after all.
+        # Key was not a valid index/slice after all.
         return self.store[key]  # Will raise the proper error.
 
     def __delitem__(self, key):
@@ -76,15 +71,21 @@ class DataDict(collections.MutableMapping):
         return len(self.store)
 
 
-class DataPerStreamlineDict(DataDict):
-    """ Dictionary that makes sure data are 2D array.
+class PerArrayDict(SliceableDataDict):
+    """ Dictionary for which key access can do slicing on the values.
 
-    This container behaves like a standard dictionary but it makes sure its
-    elements are ndarrays. In addition, it makes sure the amount of data
-    contained in those ndarrays matches the number of streamlines of the
-    :class:`Tractogram` object provided at the instantiation of this
+    This container behaves like a standard dictionary but extends key access to
+    allow keys for key access to be indices slicing into the contained ndarray
+    values.  The elements must also be ndarrays.
+
+    In addition, it makes sure the amount of data contained in those ndarrays
+    matches the number of streamlines given at the instantiation of this
     dictionary.
     """
+    def __init__(self, n_elements, *args, **kwargs):
+        self.n_elements = n_elements
+        super(PerArrayDict, self).__init__(*args, **kwargs)
+
     def __setitem__(self, key, value):
         value = np.asarray(list(value))
 
@@ -96,42 +97,15 @@ class DataPerStreamlineDict(DataDict):
             raise ValueError("data_per_streamline must be a 2D array.")
 
         # We make sure there is the right amount of values
-        # (i.e. same as the number of streamlines in the tractogram).
-        if self.tractogram is not None and len(value) != len(self.tractogram):
-            msg = ("The number of values ({0}) should match the number of"
-                   " streamlines ({1}).")
-            raise ValueError(msg.format(len(value), len(self.tractogram)))
+        if self.n_elements is not None and len(value) != self.n_elements:
+            msg = ("The number of values ({0}) should match n_elements "
+                   "({1}).").format(len(value), self.n_elements)
+            raise ValueError(msg)
 
         self.store[key] = value
 
 
-class DataPerPointDict(DataDict):
-    """ Dictionary making sure data are :class:`ArraySequence` objects.
-
-    This container behaves like a standard dictionary but it makes sure its
-    elements are :class:`ArraySequence` objects. In addition, it makes sure
-    the amount of data contained in those :class:`ArraySequence` objects
-    matches the the number of points of the :class:`Tractogram` object
-    provided at the instantiation of this dictionary.
-    """
-
-    def __setitem__(self, key, value):
-        value = ArraySequence(value)
-
-        # We make sure we have the right amount of values (i.e. same as
-        # the total number of points of all streamlines in the tractogram).
-        if (self.tractogram is not None and
-                len(value._data) != len(self.tractogram.streamlines._data)):
-            msg = ("The number of values ({0}) should match the total"
-                   " number of points of all streamlines ({1}).")
-            nb_streamlines_points = self.tractogram.streamlines._data
-            raise ValueError(msg.format(len(value._data),
-                                        len(nb_streamlines_points)))
-
-        self.store[key] = value
-
-
-class LazyDict(DataDict):
+class LazyDict(SliceableDataDict):
     """ Dictionary of generator functions.
 
     This container behaves like an dictionary but it makes sure its elements
@@ -139,15 +113,13 @@ class LazyDict(DataDict):
     When getting the element associated to a given key, the element (i.e. a
     generator function) is first called before being returned.
     """
-    def __init__(self, tractogram, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], LazyDict):
             # Copy the generator functions.
-            self.tractogram = tractogram
             self.store = dict()
             self.update(**args[0].store)
             return
-
-        super(LazyDict, self).__init__(tractogram, *args, **kwargs)
+        super(LazyDict, self).__init__(*args, **kwargs)
 
     def __getitem__(self, key):
         return self.store[key]()
@@ -155,7 +127,6 @@ class LazyDict(DataDict):
     def __setitem__(self, key, value):
         if value is not None and not callable(value):
             raise TypeError("`value` must be a generator function or None.")
-
         self.store[key] = value
 
 
