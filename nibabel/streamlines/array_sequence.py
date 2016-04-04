@@ -145,7 +145,7 @@ class ArraySequence(object):
         this :class:`ArraySequence` except for the first dimension.
         """
         if not is_array_sequence(elements):
-            self.extend(ArraySequence(elements))
+            self.extend(self.__class__(elements))
             return
 
         if len(elements) == 0:
@@ -184,7 +184,7 @@ class ArraySequence(object):
         less memory. For example, if the array sequence being copied is the
         result of a slicing operation on an array sequence.
         """
-        seq = ArraySequence()
+        seq = self.__class__()
         total_lengths = np.sum(self._lengths)
         seq._data = np.empty((total_lengths,) + self._data.shape[1:],
                              dtype=self._data.dtype)
@@ -226,7 +226,7 @@ class ArraySequence(object):
             return self._data[start:start + self._lengths[idx]]
 
         elif isinstance(idx, (slice, list)):
-            seq = ArraySequence()
+            seq = self.__class__()
             seq._data = self._data
             seq._offsets = self._offsets[idx]
             seq._lengths = self._lengths[idx]
@@ -236,7 +236,7 @@ class ArraySequence(object):
         elif (isinstance(idx, np.ndarray) and
                 (np.issubdtype(idx.dtype, np.integer) or
                  np.issubdtype(idx.dtype, np.bool))):
-            seq = ArraySequence()
+            seq = self.__class__()
             seq._data = self._data
             seq._offsets = self._offsets[idx]
             seq._lengths = self._lengths[idx]
