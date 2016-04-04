@@ -6,7 +6,6 @@ import gzip
 from hashlib import sha1
 from decimal import Decimal
 from copy import copy
-from collections import namedtuple
 
 import numpy as np
 
@@ -383,6 +382,17 @@ def fake_frames(seq_name, field_name, value_seq):
 
 
 def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
+    """ Make a fake dictionary of data that ``image_shape`` is dependent on.
+
+    Parameters
+    ----------
+    div_seq : list of tuples
+        list of values to use for the `DimensionIndexValues` of each frame.
+    sid_seq : list of int
+        list of values to use for the `StackID` of each frame.
+    sid_dim : int
+        the index of the column in 'div_seq' to use as 'sid_seq'
+    """
     class DimIdxSeqElem(object):
         def __init__(self, dip=(0, 0), fgp=(0, 0)):
             self.DimensionIndexPointer = dip

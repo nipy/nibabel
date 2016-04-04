@@ -461,7 +461,30 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_shape(self):
-        """The array shape as it will be returned by ``get_data()``"""
+        """The array shape as it will be returned by ``get_data()``
+
+        The shape is determined by the `Rows` DICOM attribute, `Columns`
+        DICOM attribute, and the set of frame indices given by the
+        `FrameContentSequence[0].DimensionIndexValues` DICOM attribute of each
+        element in the `PerFrameFunctionalGroupsSequence`.  The first two
+        axes of the returned shape correspond to the rows, and columns
+        respectively. The remaining axes correspond to those of the frame
+        indices with order preserved.
+
+        What each axis in the frame indices refers to is given by the
+        corresponding entry in the `DimensionIndexSequence` DICOM attribute.
+        WARNING, any axis refering to the `StackID` DICOM attribute will have 
+        been removed from the frame indices in determining the shape. This is
+        because only a file containing a single stack is currently allowed by
+        this wrapper.
+
+        References
+        ----------
+        - C.7.6.17 Multi-frame Dimension Module of Supplement 49 of the DICOM
+        standard.
+        - C.7.6.16.2.2 Frame Content Macro of Supplement 49 of the DICOM
+        standard.
+        """
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
@@ -471,25 +494,23 @@ class MultiframeWrapper(Wrapper):
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
              for frame in self.frames])
-
         # Check that there is only one multiframe stack index
         stack_ids = set(frame.FrameContentSequence[0].StackID
                         for frame in self.frames)
         if len(stack_ids) > 1:
             raise WrapperError("File contains more than one StackID. "
                                "Cannot handle multi-stack files")
-
         # Determine if one of the Dimension indices refers to the stack id
         dim_seq = [(dim.DimensionIndexPointer, dim.FunctionalGroupPointer)
                    for dim in self.get('DimensionIndexSequence')]
-        # the pointer pair (StackID tag, FrameContentSequence tag) that
-        # indicates that the dimension refers to the StackID
+        # the pointer pair (StackID Dicom-tag, FrameContentSequence Dicom-tag)
+        # that indicates that the corresponding axis in the DimensionIndexValues
+        # attribute refers to the StackID
         stack_id_dim_pointer = ((0x20, 0x9056), (0x20, 0x9111))
         # remove superfluous stack id index if present
         if stack_id_dim_pointer in dim_seq:
             stack_dim_idx = dim_seq.index(stack_id_dim_pointer)
             frame_indices = np.delete(frame_indices, stack_dim_idx, axis=1)
-
         # account for the 2 additional dimensions (row and column) not included
         # in the indices
         n_dim = frame_indices.shape[1] + 2
