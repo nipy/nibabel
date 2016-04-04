@@ -13,8 +13,8 @@ def is_array_sequence(obj):
 class ArraySequence(object):
     """ Sequence of ndarrays having variable first dimension sizes.
 
-    This is a container allowing to store multiple ndarrays where each ndarray
-    might have different first dimension size but a *common* size for the
+    This is a container that can store multiple ndarrays where each ndarray
+    might have a different first dimension size but a *common* size for the
     remaining dimensions.
 
     More generally, an instance of :class:`ArraySequence` of length $N$ is
@@ -26,7 +26,8 @@ class ArraySequence(object):
     BUFFER_SIZE = 87382 * 4  # About 4 Mb if item shape is 3 (e.g. 3D points).
 
     def __init__(self, iterable=None):
-        """
+        """ Initialize array sequence instance
+
         Parameters
         ----------
         iterable : None or iterable or :class:`ArraySequence`, optional
@@ -100,6 +101,10 @@ class ArraySequence(object):
             Element to append. The shape must match already inserted elements
             shape except for the first dimension.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
         If you need to add multiple elements you should consider
@@ -130,10 +135,14 @@ class ArraySequence(object):
             If :class:`ArraySequence` object, its data are simply appended to
             the data of this ArraySequence.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
-            The shape of the elements to be added must match the one of the
-            data of this :class:`ArraySequence` except for the first dimension.
+        The shape of the elements to be added must match the one of the data of
+        this :class:`ArraySequence` except for the first dimension.
         """
         if not is_array_sequence(elements):
             self.extend(ArraySequence(elements))
@@ -162,10 +171,19 @@ class ArraySequence(object):
         self._offsets = np.r_[self._offsets, offsets]
 
     def copy(self):
-        """ Creates a copy of this :class:`ArraySequence` object. """
-        # We do not simply deepcopy this object since we might have a chance
-        # to use less memory. For example, if the array sequence being copied
-        # is the result of a slicing operation on a array sequence.
+        """ Creates a copy of this :class:`ArraySequence` object.
+
+        Returns
+        -------
+        seq_copy : :class:`ArraySequence` instance
+            Copy of `self`.
+
+        Notes
+        -----
+        We do not simply deepcopy this object because we have a chance to use
+        less memory. For example, if the array sequence being copied is the
+        result of a slicing operation on an array sequence.
+        """
         seq = ArraySequence()
         total_lengths = np.sum(self._lengths)
         seq._data = np.empty((total_lengths,) + self._data.shape[1:],
@@ -185,7 +203,7 @@ class ArraySequence(object):
         return seq
 
     def __getitem__(self, idx):
-        """ Gets sequence(s) through advanced indexing.
+        """ Get sequence(s) through standard or advanced numpy indexing.
 
         Parameters
         ----------
@@ -200,7 +218,7 @@ class ArraySequence(object):
         -------
         ndarray or :class:`ArraySequence`
             If `idx` is an int, returns the selected sequence.
-            Otherwise, returns a :class:`ArraySequence` object which is view
+            Otherwise, returns a :class:`ArraySequence` object which is a view
             of the selected sequences.
         """
         if isinstance(idx, (numbers.Integral, np.integer)):
