@@ -73,46 +73,12 @@ def setup():
                                             DATA['data_per_point'])
 
 
-def test_is_supported():
-    # Emtpy file/string
+def test_is_supported_detect_format():
+    # Test is_supported and detect_format functions
+    # Empty file/string
     f = BytesIO()
     assert_false(nib.streamlines.is_supported(f))
     assert_false(nib.streamlines.is_supported(""))
-
-    # Valid file without extension
-    for tfile_cls in nib.streamlines.FORMATS.values():
-        f = BytesIO()
-        f.write(tfile_cls.get_magic_number())
-        f.seek(0, os.SEEK_SET)
-        assert_true(nib.streamlines.is_supported(f))
-
-    # Wrong extension but right magic number
-    for tfile_cls in nib.streamlines.FORMATS.values():
-        with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
-            f.write(tfile_cls.get_magic_number())
-            f.seek(0, os.SEEK_SET)
-            assert_true(nib.streamlines.is_supported(f))
-
-    # Good extension but wrong magic number
-    for ext, tfile_cls in nib.streamlines.FORMATS.items():
-        with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
-            f.write(b"pass")
-            f.seek(0, os.SEEK_SET)
-            assert_false(nib.streamlines.is_supported(f))
-
-    # Wrong extension, string only
-    f = "my_tractogram.asd"
-    assert_false(nib.streamlines.is_supported(f))
-
-    # Good extension, string only
-    for ext, tfile_cls in nib.streamlines.FORMATS.items():
-        f = "my_tractogram" + ext
-        assert_true(nib.streamlines.is_supported(f))
-
-
-def test_detect_format():
-    # Emtpy file/string
-    f = BytesIO()
     assert_true(nib.streamlines.detect_format(f) is None)
     assert_true(nib.streamlines.detect_format("") is None)
 
@@ -121,6 +87,7 @@ def test_detect_format():
         f = BytesIO()
         f.write(tfile_cls.get_magic_number())
         f.seek(0, os.SEEK_SET)
+        assert_true(nib.streamlines.is_supported(f))
         assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Wrong extension but right magic number
@@ -128,6 +95,7 @@ def test_detect_format():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
             f.write(tfile_cls.get_magic_number())
             f.seek(0, os.SEEK_SET)
+            assert_true(nib.streamlines.is_supported(f))
             assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Good extension but wrong magic number
@@ -135,15 +103,18 @@ def test_detect_format():
         with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
             f.write(b"pass")
             f.seek(0, os.SEEK_SET)
+            assert_false(nib.streamlines.is_supported(f))
             assert_true(nib.streamlines.detect_format(f) is None)
 
     # Wrong extension, string only
     f = "my_tractogram.asd"
+    assert_false(nib.streamlines.is_supported(f))
     assert_true(nib.streamlines.detect_format(f) is None)
 
     # Good extension, string only
     for ext, tfile_cls in nib.streamlines.FORMATS.items():
         f = "my_tractogram" + ext
+        assert_true(nib.streamlines.is_supported(f))
         assert_equal(nib.streamlines.detect_format(f), tfile_cls)
 
     # Extension should not be case-sensitive.
