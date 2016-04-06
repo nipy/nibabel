@@ -192,7 +192,8 @@ class _Series(object):
              (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
              (0, 0, 0, 1))
 
-        m = numpy.array(m)
+        # Values are python Decimals in pydicom 0.9.7
+        m = numpy.array(m, dtype=float)
 
         hdr = Nifti1Header(endianness='<')
         hdr.set_intent(0)
