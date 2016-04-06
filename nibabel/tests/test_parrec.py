@@ -735,8 +735,9 @@ class TestPARRECImage(tsi.MmapImageMixin):
     image_class = PARRECImage
     check_mmap_mode = False
 
-    def write_image(self):
-        return parrec.load(EG_PAR), EG_PAR
+    def get_disk_image(self):
+        # The example image does have image scaling to apply
+        return parrec.load(EG_PAR), EG_PAR, True
 
 
 def test_bitpix():

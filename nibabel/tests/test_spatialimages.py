@@ -340,8 +340,22 @@ class MmapImageMixin(object):
     #: whether to test mode of returned memory map
     check_mmap_mode = True
 
-    def write_image(self):
-        """ Return an image and an image filname to test against
+    def get_disk_image(self):
+        """ Return an image and an image filname, and scaling bool to test against
+
+        Subclasses can do anything to return an image, including loading a
+        pre-existing image from disk.
+
+        Returns
+        -------
+        img : class:`SpatialImage` instance
+        fname : str
+            Image filename
+        has_scaling : bool
+            True if the image array has scaling to apply to the raw image array
+            data, False otherwise.
+
+        Notes
         """
         img_klass = self.image_class
         shape = (3, 4, 2)
@@ -349,14 +363,13 @@ class MmapImageMixin(object):
         img = img_klass(data, None)
         fname = 'test' + img_klass.files_types[0][1]
         img.to_filename(fname)
-        return img, fname
+        return img, fname, False
 
     def test_load_mmap(self):
         # Test memory mapping when loading images
         img_klass = self.image_class
         with InTemporaryDirectory():
-            # This should have no scaling, can be mmapped
-            img, fname = self.write_image()
+            img, fname, has_scaling = self.get_disk_image()
             file_map = img.file_map.copy()
             for func, param1 in ((img_klass.from_filename, fname),
                                  (img_klass.load, fname),
