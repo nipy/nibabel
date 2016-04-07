@@ -24,7 +24,8 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
-from ..testing import clear_and_catch_warnings, suppress_warnings
+from ..testing import (clear_and_catch_warnings, suppress_warnings,
+                       VIRAL_MEMMAP)
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 
@@ -384,6 +385,13 @@ class MmapImageMixin(object):
                         ('c', 'c'),
                         ('r', 'r'),
                         (False, None)):
+                    # If the image has scaling, then numpy 1.12 will not return
+                    # a memmap, regardless of the input flags.  Previous
+                    # numpies returned a memmap object, even though the array
+                    # has no mmap memory backing.  See:
+                    # https://github.com/numpy/numpy/pull/7406
+                    if has_scaling and not VIRAL_MEMMAP:
+                        expected_mode = None
                     kwargs = {}
                     if mmap is not None:
                         kwargs['mmap'] = mmap

@@ -728,7 +728,9 @@ def test_parrec_proxy():
     # Test PAR / REC proxy class, including mmap flags
     shape = (10, 20, 30, 5)
     hdr = FakeHeader(shape, np.int32)
-    check_mmap(hdr, 0, PARRECArrayProxy, check_mode=False)
+    check_mmap(hdr, 0, PARRECArrayProxy,
+               has_scaling=True,
+               unscaled_is_view=False)
 
 
 class TestPARRECImage(tsi.MmapImageMixin):
