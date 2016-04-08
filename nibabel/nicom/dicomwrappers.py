@@ -481,12 +481,8 @@ class MultiframeWrapper(Wrapper):
         References
         ----------
 
-        * `C.7.6.16 Multi-Frame Functional Groups Module
-        <http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16>_`
-
-        * `C.7.6.17 Multi-Frame Dimension Module
-        <http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17>_`
-
+        * C.7.6.16 Multi-Frame Functional Groups Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
+        * C.7.6.17 Multi-Frame Dimension Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
         """
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
