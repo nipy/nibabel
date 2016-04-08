@@ -394,9 +394,10 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
         the index of the column in 'div_seq' to use as 'sid_seq'
     """
     class DimIdxSeqElem(object):
-        def __init__(self, dip=(0, 0), fgp=(0, 0)):
+        def __init__(self, dip=(0, 0), fgp=None):
             self.DimensionIndexPointer = dip
-            self.FunctionalGroupPointer = fgp
+            if fgp is not None:
+                self.FunctionalGroupPointer = fgp
     class FrmContSeqElem(object):
         def __init__(self, div, sid):
             self.DimensionIndexValues = div
@@ -415,7 +416,9 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
     dim_idx_seq = [DimIdxSeqElem()] * num_of_frames
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
-        dim_idx_seq[sid_dim] = DimIdxSeqElem((0x20, 0x9056), (0x20, 0x9111))
+        sid_tag = pydicom.datadict.tag_for_name('StackID')
+        fcs_tag = pydicom.datadict.tag_for_name('FrameContentSequence')
+        dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
     frames = [PerFrmFuncGrpSeqElem(div, sid)
               for div, sid in zip(div_seq, sid_seq)]
