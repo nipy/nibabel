@@ -5,7 +5,7 @@ import numpy as np
 
 
 def _memmap_after_ufunc():
-    """ Return True if memmap arrays always return memmap from ufuncs
+    """ Return True if ufuncs on memmap arrays always return memmap arrays
 
     This should be True for numpy < 1.12, False otherwise.
     """
@@ -15,5 +15,5 @@ def _memmap_after_ufunc():
     return mm_preserved
 
 
-# True if ufunc on memmap retuns a memmap
+# True if ufunc on memmap always returns a memmap
 VIRAL_MEMMAP = _memmap_after_ufunc()

@@ -342,7 +342,7 @@ class MmapImageMixin(object):
     check_mmap_mode = True
 
     def get_disk_image(self):
-        """ Return an image and an image filname, and scaling bool to test against
+        """ Return image, image filename, and flag for required scaling
 
         Subclasses can do anything to return an image, including loading a
         pre-existing image from disk.
@@ -351,12 +351,10 @@ class MmapImageMixin(object):
         -------
         img : class:`SpatialImage` instance
         fname : str
-            Image filename
+            Image filename.
         has_scaling : bool
             True if the image array has scaling to apply to the raw image array
             data, False otherwise.
-
-        Notes
         """
         img_klass = self.image_class
         shape = (3, 4, 2)
