@@ -23,6 +23,7 @@ from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
 from ..pydicom_compat import pydicom
 
+
 class WrapperError(Exception):
     pass
 
