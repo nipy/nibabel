@@ -21,7 +21,7 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
-
+from ..pydicom_compat import pydicom
 
 class WrapperError(Exception):
     pass
@@ -461,7 +461,29 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def image_shape(self):
-        """The array shape as it will be returned by ``get_data()``"""
+        """The array shape as it will be returned by ``get_data()``
+
+        The shape is determined by the *Rows* DICOM attribute, *Columns*
+        DICOM attribute, and the set of frame indices given by the
+        *FrameContentSequence[0].DimensionIndexValues* DICOM attribute of each
+        element in the *PerFrameFunctionalGroupsSequence*.  The first two
+        axes of the returned shape correspond to the rows, and columns
+        respectively. The remaining axes correspond to those of the frame
+        indices with order preserved.
+
+        What each axis in the frame indices refers to is given by the
+        corresponding entry in the *DimensionIndexSequence* DICOM attribute.
+        **WARNING**: Any axis refering to the *StackID* DICOM attribute will
+        have been removed from the frame indices in determining the shape. This
+        is because only a file containing a single stack is currently allowed by
+        this wrapper.
+
+        References
+        ----------
+
+        * C.7.6.16 Multi-Frame Functional Groups Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
+        * C.7.6.17 Multi-Frame Dimension Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
+        """
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
@@ -471,13 +493,25 @@ class MultiframeWrapper(Wrapper):
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
              for frame in self.frames])
-        n_dim = frame_indices.shape[1] + 1
-        # Check there is only one multiframe stack index
-        if np.any(np.diff(frame_indices[:, 0])):
-            raise WrapperError("File contains more than one StackID. Cannot "
-                               "handle multi-stack files")
+        # Check that there is only one multiframe stack index
+        stack_ids = set(frame.FrameContentSequence[0].StackID
+                        for frame in self.frames)
+        if len(stack_ids) > 1:
+            raise WrapperError("File contains more than one StackID. "
+                               "Cannot handle multi-stack files")
+        # Determine if one of the dimension indices refers to the stack id
+        dim_seq = [dim.DimensionIndexPointer
+                   for dim in self.get('DimensionIndexSequence')]
+        stackid_tag = pydicom.datadict.tag_for_name('StackID')
+        # remove the stack id axis if present
+        if stackid_tag in dim_seq:
+            stackid_dim_idx = dim_seq.index(stackid_tag)
+            frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
+        # account for the 2 additional dimensions (row and column) not included
+        # in the indices
+        n_dim = frame_indices.shape[1] + 2
         # Store frame indices
-        self._frame_indices = frame_indices[:, 1:]
+        self._frame_indices = frame_indices
         if n_dim < 4:  # 3D volume
             return rows, cols, n_frames
         # More than 3 dimensions
