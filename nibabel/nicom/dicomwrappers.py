@@ -412,7 +412,18 @@ class Wrapper(object):
 class MultiframeWrapper(Wrapper):
     """Wrapper for Enhanced MR Storage SOP Class
 
-    tested with Philips' Enhanced DICOM implementation
+    Tested with Philips' Enhanced DICOM implementation.
+
+    The specification for the Enhanced MR image IOP / SOP began life as `DICOM
+    supplement 49 <ftp://medical.nema.org/medical/dicom/final/sup49_ft.pdf>`_,
+    but as of 2016 it is part of the standard. In particular see:
+
+    * `A.36 Enhanced MR Information Object Definitions
+      <http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_A.36>`_;
+    * `C.7.6.16 Multi-Frame Functional Groups Module
+      <http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16>`_;
+    * `C.7.6.17 Multi-Frame Dimension Module
+      <http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17>`_.
 
     Attributes
     ----------
@@ -480,9 +491,12 @@ class MultiframeWrapper(Wrapper):
 
         References
         ----------
-
-        * C.7.6.16 Multi-Frame Functional Groups Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
-        * C.7.6.17 Multi-Frame Dimension Module: http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
+        * C.7.6.16 Multi-Frame Functional Groups Module:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
+        * C.7.6.17 Multi-Frame Dimension Module:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
+        * Diagram of DimensionIndexSequence and DimensionIndexValues:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1
         """
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
