@@ -24,7 +24,8 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
-from ..testing import clear_and_catch_warnings, suppress_warnings
+from ..testing import (clear_and_catch_warnings, suppress_warnings,
+                       VIRAL_MEMMAP)
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 
@@ -340,8 +341,20 @@ class MmapImageMixin(object):
     #: whether to test mode of returned memory map
     check_mmap_mode = True
 
-    def write_image(self):
-        """ Return an image and an image filname to test against
+    def get_disk_image(self):
+        """ Return image, image filename, and flag for required scaling
+
+        Subclasses can do anything to return an image, including loading a
+        pre-existing image from disk.
+
+        Returns
+        -------
+        img : class:`SpatialImage` instance
+        fname : str
+            Image filename.
+        has_scaling : bool
+            True if the image array has scaling to apply to the raw image array
+            data, False otherwise.
         """
         img_klass = self.image_class
         shape = (3, 4, 2)
@@ -349,14 +362,13 @@ class MmapImageMixin(object):
         img = img_klass(data, None)
         fname = 'test' + img_klass.files_types[0][1]
         img.to_filename(fname)
-        return img, fname
+        return img, fname, False
 
     def test_load_mmap(self):
         # Test memory mapping when loading images
         img_klass = self.image_class
         with InTemporaryDirectory():
-            # This should have no scaling, can be mmapped
-            img, fname = self.write_image()
+            img, fname, has_scaling = self.get_disk_image()
             file_map = img.file_map.copy()
             for func, param1 in ((img_klass.from_filename, fname),
                                  (img_klass.load, fname),
@@ -371,6 +383,13 @@ class MmapImageMixin(object):
                         ('c', 'c'),
                         ('r', 'r'),
                         (False, None)):
+                    # If the image has scaling, then numpy 1.12 will not return
+                    # a memmap, regardless of the input flags.  Previous
+                    # numpies returned a memmap object, even though the array
+                    # has no mmap memory backing.  See:
+                    # https://github.com/numpy/numpy/pull/7406
+                    if has_scaling and not VIRAL_MEMMAP:
+                        expected_mode = None
                     kwargs = {}
                     if mmap is not None:
                         kwargs['mmap'] = mmap

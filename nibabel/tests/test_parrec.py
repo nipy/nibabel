@@ -728,15 +728,18 @@ def test_parrec_proxy():
     # Test PAR / REC proxy class, including mmap flags
     shape = (10, 20, 30, 5)
     hdr = FakeHeader(shape, np.int32)
-    check_mmap(hdr, 0, PARRECArrayProxy, check_mode=False)
+    check_mmap(hdr, 0, PARRECArrayProxy,
+               has_scaling=True,
+               unscaled_is_view=False)
 
 
 class TestPARRECImage(tsi.MmapImageMixin):
     image_class = PARRECImage
     check_mmap_mode = False
 
-    def write_image(self):
-        return parrec.load(EG_PAR), EG_PAR
+    def get_disk_image(self):
+        # The example image does have image scaling to apply
+        return parrec.load(EG_PAR), EG_PAR, True
 
 
 def test_bitpix():

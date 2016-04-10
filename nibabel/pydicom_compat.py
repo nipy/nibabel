@@ -13,6 +13,9 @@ without error, and always defines:
 * dicom_test : test decorator that skips test if dicom not available.
 """
 
+# Module does (apparently) unused imports; stop flake8 complaining
+# flake8: noqa
+
 import numpy as np
 
 have_dicom = True
