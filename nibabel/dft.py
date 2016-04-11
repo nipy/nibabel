@@ -139,7 +139,7 @@ class _Series(object):
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
         im = PIL.Image.frombytes('L', (self.rows, self.columns),
-                                  data.tobytes())
+                                 data.tostring())
         s = BytesIO()
         im.save(s, 'PNG')
         return s.getvalue()
