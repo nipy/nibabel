@@ -44,7 +44,7 @@ matrix:
     # Minimum pydicom dependency
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.5.1 pydicom==0.9.7 pillow==2.6"
+        - DEPENDS="numpy==1.5.1 pydicom==0.9.7 PIL"
     # test against numpy 1.7
     - python: 2.7
       env:
