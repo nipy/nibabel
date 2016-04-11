@@ -124,6 +124,13 @@ class _Series(object):
 
     def as_png(self, index=None, scale_to_slice=True):
         import PIL.Image
+        # For compatibility with older versions of PIL that did not
+        # have `frombytes`:
+        if hasattr(PIL.Image, 'frombytes'):
+            frombytes = PIL.Image.frombytes
+        else:
+            frombytes = PIL.Image.fromstring
+
         if index is None:
             index = len(self.storage_instances) // 2
         d = self.storage_instances[index].dicom()
@@ -138,8 +145,9 @@ class _Series(object):
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = PIL.Image.frombytes('L', (self.rows, self.columns),
-                                 data.tostring())
+        im = frombytes('L', (self.rows, self.columns),
+                       data.tostring())
+
         s = BytesIO()
         im.save(s, 'PNG')
         return s.getvalue()
