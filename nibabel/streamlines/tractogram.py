@@ -545,7 +545,7 @@ class LazyTractogram(Tractogram):
             streamlines_gen = (t.streamline for t in self._data())
 
         # Check if we need to apply an affine.
-        if not np.all(self._affine_to_apply == np.eye(4)):
+        if not np.allclose(self._affine_to_apply, np.eye(4)):
             def _apply_affine():
                 for s in streamlines_gen:
                     yield apply_affine(self._affine_to_apply, s)
