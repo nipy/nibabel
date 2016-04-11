@@ -435,6 +435,7 @@ class TestMultiFrameWrapper(TestCase):
         'SharedFunctionalGroupsSequence': [None]}
     WRAPCLASS = didw.MultiframeWrapper
 
+    @dicom_test
     def test_shape(self):
         # Check the shape algorithm
         fake_mf = copy(self.MINIMAL_MF)
@@ -614,6 +615,7 @@ class TestMultiFrameWrapper(TestCase):
         assert_equal(sha1(dat_str).hexdigest(),
                      '149323269b0af92baa7508e19ca315240f77fa8c')
 
+    @dicom_test
     def test_data_fake(self):
         # Test algorithm for get_data
         fake_mf = copy(self.MINIMAL_MF)
