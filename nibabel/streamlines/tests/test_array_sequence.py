@@ -249,6 +249,20 @@ class TestArraySequence(unittest.TestCase):
         # Test that calling repr on a ArraySequence object is not falling.
         repr(SEQ_DATA['seq'])
 
+        # Test calling repr when the number of arrays is bigger dans Numpy's
+        # print option threshold.
+        nb_arrays = 50
+        seq = ArraySequence(generate_data(nb_arrays, common_shape=(1,),
+                                          rng=SEQ_DATA['rng']))
+
+        bkp_threshold = np.get_printoptions()['threshold']
+        np.set_printoptions(threshold=nb_arrays*2)
+        txt1 = repr(seq)
+        np.set_printoptions(threshold=nb_arrays//2)
+        txt2 = repr(seq)
+        assert_true(len(txt2) < len(txt1))
+        np.set_printoptions(threshold=bkp_threshold)
+
     def test_save_and_load_arraysequence(self):
         # Test saving and loading an empty ArraySequence.
         with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:

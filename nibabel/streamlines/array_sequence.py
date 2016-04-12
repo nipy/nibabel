@@ -263,7 +263,17 @@ class ArraySequence(object):
         return len(self._offsets)
 
     def __repr__(self):
-        return repr(list(self))
+        if len(self) > np.get_printoptions()['threshold']:
+            # Show only the first and last edgeitems.
+            edgeitems = np.get_printoptions()['edgeitems']
+            data = str(list(self[:edgeitems]))[:-1]
+            data += ", ..., "
+            data += str(list(self[-edgeitems:]))[1:]
+        else:
+            data = str(list(self))
+
+        return "{name}({data})".format(name=self.__class__.__name__,
+                                       data=data)
 
     def save(self, filename):
         """ Saves this :class:`ArraySequence` object to a .npz file. """
