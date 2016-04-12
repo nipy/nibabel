@@ -92,6 +92,11 @@ class ArraySequence(object):
         """ Matching shape of the elements in this array sequence. """
         return self._data.shape[1:]
 
+    @property
+    def nb_elements(self):
+        """ Total number of elements in this array sequence. """
+        return self._data.shape[0]
+
     def append(self, element):
         """ Appends `element` to this array sequence.
 

@@ -28,16 +28,16 @@ class SliceableDataDict(collections.MutableMapping):
     """
     def __init__(self, *args, **kwargs):
         self.store = dict()
-        # Use update to set the keys.
-        if len(args) != 1:
-            self.update(dict(*args, **kwargs))
-            return
-        if args[0] is None:
-            return
-        if isinstance(args[0], SliceableDataDict):
-            self.update(**args[0])
-        else:
-            self.update(dict(*args, **kwargs))
+        # Use the 'update' method to set the keys.
+        if len(args) == 1:
+            if args[0] is None:
+                return
+
+            if isinstance(args[0], SliceableDataDict):
+                self.update(**args[0])
+                return
+
+        self.update(dict(*args, **kwargs))
 
     def __getitem__(self, key):
         try:
@@ -53,7 +53,7 @@ class SliceableDataDict(collections.MutableMapping):
         try:
             for k, v in self.items():
                 new_dict[k] = v[idx]
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         else:
             return new_dict
@@ -82,8 +82,8 @@ class PerArrayDict(SliceableDataDict):
     matches the number of streamlines given at the instantiation of this
     dictionary.
     """
-    def __init__(self, n_elements, *args, **kwargs):
-        self.n_elements = n_elements
+    def __init__(self, nb_elements, *args, **kwargs):
+        self.nb_elements = nb_elements
         super(PerArrayDict, self).__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
@@ -97,15 +97,43 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError("data_per_streamline must be a 2D array.")
 
         # We make sure there is the right amount of values
-        if self.n_elements is not None and len(value) != self.n_elements:
+        if self.nb_elements is not None and len(value) != self.nb_elements:
             msg = ("The number of values ({0}) should match n_elements "
-                   "({1}).").format(len(value), self.n_elements)
+                   "({1}).").format(len(value), self.nb_elements)
             raise ValueError(msg)
 
         self.store[key] = value
 
 
-class LazyDict(SliceableDataDict):
+class PerArraySequenceDict(SliceableDataDict):
+    """ Dictionary for which key access can do slicing on the values.
+
+    This container behaves like a standard dictionary but extends key access to
+    allow keys for key access to be indices slicing into the contained ndarray
+    values.  The elements must also be :class:`ArraySequence`.
+
+    In addition, it makes sure the amount of data contained in those array
+    sequences matches the number of elements given at the instantiation
+    of this dictionary.
+    """
+    def __init__(self, nb_elements, *args, **kwargs):
+        self.nb_elements = nb_elements
+        super(PerArraySequenceDict, self).__init__(*args, **kwargs)
+
+    def __setitem__(self, key, value):
+        value = ArraySequence(value)
+
+        # We make sure there is the right amount of data.
+        if (self.nb_elements is not None and
+                value.nb_elements != self.nb_elements):
+            msg = ("The number of values ({0}) should match "
+                   "({1}).").format(value.nb_elements, self.nb_elements)
+            raise ValueError(msg)
+
+        self.store[key] = value
+
+
+class LazyDict(collections.MutableMapping):
     """ Dictionary of generator functions.
 
     This container behaves like an dictionary but it makes sure its elements
@@ -114,20 +142,37 @@ class LazyDict(SliceableDataDict):
     generator function) is first called before being returned.
     """
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], LazyDict):
-            # Copy the generator functions.
-            self.store = dict()
-            self.update(**args[0].store)
-            return
-        super(LazyDict, self).__init__(*args, **kwargs)
+        self.store = dict()
+        # Use the 'update' method to set the keys.
+        if len(args) == 1:
+            if args[0] is None:
+                return
+
+            if isinstance(args[0], LazyDict):
+                self.update(**args[0].store)  # Copy the generator functions.
+                return
+
+            if isinstance(args[0], SliceableDataDict):
+                self.update(**args[0])
+
+        self.update(dict(*args, **kwargs))
 
     def __getitem__(self, key):
         return self.store[key]()
 
     def __setitem__(self, key, value):
-        if value is not None and not callable(value):
+        if value is not None and not callable(value):  # TODO: why None?
             raise TypeError("`value` must be a generator function or None.")
         self.store[key] = value
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
 
 
 class TractogramItem(object):
@@ -222,7 +267,7 @@ class Tractogram(object):
             refers to the center of the voxel. By default, the streamlines
             are assumed to be already in *RAS+* and *mm* space.
         """
-        self.streamlines = streamlines
+        self._set_streamlines(streamlines)
         self.data_per_streamline = data_per_streamline
         self.data_per_point = data_per_point
         self._affine_to_rasmm = affine_to_rasmm
@@ -231,8 +276,7 @@ class Tractogram(object):
     def streamlines(self):
         return self._streamlines
 
-    @streamlines.setter
-    def streamlines(self, value):
+    def _set_streamlines(self, value):
         self._streamlines = ArraySequence(value)
 
     @property
@@ -241,7 +285,7 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        self._data_per_streamline = DataPerStreamlineDict(self, value)
+        self._data_per_streamline = PerArrayDict(len(self.streamlines), value)
 
     @property
     def data_per_point(self):
@@ -249,7 +293,8 @@ class Tractogram(object):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        self._data_per_point = DataPerPointDict(self, value)
+        self._data_per_point = PerArraySequenceDict(
+            self.streamlines.nb_elements, value)
 
     def get_affine_to_rasmm(self):
         """ Returns the affine bringing this tractogram to RAS+mm. """
@@ -488,7 +533,8 @@ class LazyTractogram(Tractogram):
 
             # Set data_per_streamline using data_func
             def _gen(key):
-                return lambda: (t.data_for_streamline[key] for t in data_func())
+                return lambda: (t.data_for_streamline[key]
+                                for t in data_func())
 
             data_per_streamline_keys = first_item.data_for_streamline.keys()
             for k in data_per_streamline_keys:
@@ -525,8 +571,7 @@ class LazyTractogram(Tractogram):
 
         return streamlines_gen
 
-    @streamlines.setter
-    def streamlines(self, value):
+    def _set_streamlines(self, value):
         if value is not None and not callable(value):
             raise TypeError("`streamlines` must be a generator function.")
 
@@ -538,7 +583,7 @@ class LazyTractogram(Tractogram):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        self._data_per_streamline = LazyDict(self, value)
+        self._data_per_streamline = LazyDict(value)
 
     @property
     def data_per_point(self):
@@ -546,7 +591,7 @@ class LazyTractogram(Tractogram):
 
     @data_per_point.setter
     def data_per_point(self, value):
-        self._data_per_point = LazyDict(self, value)
+        self._data_per_point = LazyDict(value)
 
     @property
     def data(self):
@@ -576,7 +621,7 @@ class LazyTractogram(Tractogram):
         return _gen_data()
 
     def __getitem__(self, idx):
-        raise NotImplementedError('`LazyTractogram` does not support indexing.')
+        raise NotImplementedError('LazyTractogram does not support indexing.')
 
     def __iter__(self):
         count = 0

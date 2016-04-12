@@ -11,7 +11,7 @@ from nibabel.externals.six.moves import zip
 
 from .. import tractogram as module_tractogram
 from ..tractogram import TractogramItem, Tractogram, LazyTractogram
-from ..tractogram import DataPerStreamlineDict, DataPerPointDict, LazyDict
+from ..tractogram import PerArrayDict, PerArraySequenceDict, LazyDict
 
 DATA = {}
 
@@ -126,6 +126,123 @@ def assert_tractogram_equal(t1, t2):
                      t2.data_per_streamline, t2.data_per_point)
 
 
+class TestPerArrayDict(unittest.TestCase):
+
+    def test_per_array_dict_creation(self):
+        # Create a PerArrayDict object using another
+        # PerArrayDict object.
+        nb_streamlines = len(DATA['tractogram'])
+        data_per_streamline = DATA['tractogram'].data_per_streamline
+        data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict),
+                     len(data_per_streamline)-1)
+
+        # Create a PerArrayDict object using an existing dict object.
+        data_per_streamline = DATA['data_per_streamline']
+        data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(data_per_streamline)-1)
+
+        # Create a PerArrayDict object using keyword arguments.
+        data_per_streamline = DATA['data_per_streamline']
+        data_dict = PerArrayDict(nb_streamlines, **data_per_streamline)
+        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        for k in data_dict.keys():
+            assert_array_equal(data_dict[k], data_per_streamline[k])
+
+        del data_dict['mean_curvature']
+        assert_equal(len(data_dict), len(data_per_streamline)-1)
+
+    def test_getitem(self):
+        sdict = PerArrayDict(len(DATA['tractogram']),
+                             DATA['data_per_streamline'])
+
+        assert_raises(KeyError, sdict.__getitem__, 'invalid')
+
+        # Test slicing and advanced indexing.
+        for k, v in DATA['tractogram'].data_per_streamline.items():
+            assert_true(k in sdict)
+            assert_arrays_equal(sdict[k], v)
+            assert_arrays_equal(sdict[::2][k], v[::2])
+            assert_arrays_equal(sdict[::-1][k], v[::-1])
+            assert_arrays_equal(sdict[-1][k], v[-1])
+            assert_arrays_equal(sdict[[0, -1]][k], v[[0, -1]])
+
+
+class TestPerArraySequenceDict(unittest.TestCase):
+
+    def test_per_array_sequence_dict_creation(self):
+        # Create a PerArraySequenceDict object using another
+        # PerArraySequenceDict object.
+        nb_elements = DATA['tractogram'].streamlines.nb_elements
+        data_per_point = DATA['tractogram'].data_per_point
+        data_dict = PerArraySequenceDict(nb_elements, data_per_point)
+        assert_equal(data_dict.keys(), data_per_point.keys())
+        for k in data_dict.keys():
+            assert_arrays_equal(data_dict[k], data_per_point[k])
+
+        del data_dict['fa']
+        assert_equal(len(data_dict),
+                     len(data_per_point)-1)
+
+        # Create a PerArraySequenceDict object using an existing dict object.
+        data_per_point = DATA['data_per_point']
+        data_dict = PerArraySequenceDict(nb_elements, data_per_point)
+        assert_equal(data_dict.keys(), data_per_point.keys())
+        for k in data_dict.keys():
+            assert_arrays_equal(data_dict[k], data_per_point[k])
+
+        del data_dict['fa']
+        assert_equal(len(data_dict), len(data_per_point)-1)
+
+        # Create a PerArraySequenceDict object using keyword arguments.
+        data_per_point = DATA['data_per_point']
+        data_dict = PerArraySequenceDict(nb_elements, **data_per_point)
+        assert_equal(data_dict.keys(), data_per_point.keys())
+        for k in data_dict.keys():
+            assert_arrays_equal(data_dict[k], data_per_point[k])
+
+        del data_dict['fa']
+        assert_equal(len(data_dict), len(data_per_point)-1)
+
+    def test_getitem(self):
+        nb_elements = DATA['tractogram'].streamlines.nb_elements
+        sdict = PerArraySequenceDict(nb_elements, DATA['data_per_point'])
+
+        assert_raises(KeyError, sdict.__getitem__, 'invalid')
+
+        # Test slicing and advanced indexing.
+        for k, v in DATA['tractogram'].data_per_point.items():
+            assert_true(k in sdict)
+            assert_arrays_equal(sdict[k], v)
+            assert_arrays_equal(sdict[::2][k], v[::2])
+            assert_arrays_equal(sdict[::-1][k], v[::-1])
+            assert_arrays_equal(sdict[-1][k], v[-1])
+            assert_arrays_equal(sdict[[0, -1]][k], v[[0, -1]])
+
+
+class TestLazyDict(unittest.TestCase):
+
+    def test_lazydict_creation(self):
+        data_dict = LazyDict(DATA['data_per_streamline_func'])
+        assert_equal(data_dict.keys(), DATA['data_per_streamline_func'].keys())
+        for k in data_dict.keys():
+            assert_array_equal(list(data_dict[k]),
+                               list(DATA['data_per_streamline'][k]))
+
+        assert_equal(len(data_dict),
+                     len(DATA['data_per_streamline_func']))
+
+
 class TestTractogramItem(unittest.TestCase):
 
     def test_creating_tractogram_item(self):
@@ -151,69 +268,6 @@ class TestTractogramItem(unittest.TestCase):
                            mean_color)
         assert_array_equal(t.data_for_points['colors'],
                            colors)
-
-
-class TestTractogramDataDict(unittest.TestCase):
-
-    def test_datadict_creation(self):
-        # Create a DataPerStreamlineDict object using another
-        # DataPerStreamlineDict object.
-        data_per_streamline = DATA['tractogram'].data_per_streamline
-        data_dict = DataPerStreamlineDict(DATA['tractogram'],
-                                          data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
-        for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
-
-        del data_dict['mean_curvature']
-        assert_equal(len(data_dict),
-                     len(DATA['tractogram'].data_per_streamline)-1)
-
-        # Create a DataPerStreamlineDict object using an existing dict object.
-        data_per_streamline = DATA['tractogram'].data_per_streamline.store
-        data_dict = DataPerStreamlineDict(DATA['tractogram'],
-                                          data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
-        for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
-
-        del data_dict['mean_curvature']
-        assert_equal(len(data_dict), len(data_per_streamline)-1)
-
-        # Create a DataPerStreamlineDict object using keyword arguments.
-        data_per_streamline = DATA['tractogram'].data_per_streamline.store
-        data_dict = DataPerStreamlineDict(DATA['tractogram'],
-                                          **data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
-        for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
-
-        del data_dict['mean_curvature']
-        assert_equal(len(data_dict), len(data_per_streamline)-1)
-
-    def test_getitem(self):
-        data_dict = DataPerPointDict(DATA['tractogram'],
-                                     DATA['data_per_point'])
-
-        assert_true('fa' in data_dict)
-        assert_arrays_equal(data_dict['fa'], DATA['fa'])
-        assert_arrays_equal(data_dict[::2]['fa'], DATA['fa'][::2])
-        assert_arrays_equal(data_dict[::-1]['fa'], DATA['fa'][::-1])
-        assert_arrays_equal(data_dict[-1]['fa'], DATA['fa'][-1])
-        assert_raises(KeyError, data_dict.__getitem__, 'invalid')
-
-
-class TestTractogramLazyDict(unittest.TestCase):
-
-    def test_lazydict_creation(self):
-        data_dict = LazyDict(None, DATA['data_per_streamline_func'])
-        assert_equal(data_dict.keys(), DATA['data_per_streamline_func'].keys())
-        for k in data_dict.keys():
-            assert_array_equal(list(data_dict[k]),
-                               list(DATA['data_per_streamline'][k]))
-
-        assert_equal(len(data_dict),
-                     len(DATA['data_per_streamline_func']))
 
 
 class TestTractogram(unittest.TestCase):
