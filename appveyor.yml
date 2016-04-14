@@ -30,15 +30,18 @@ install:
   # the parent CMD process).
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
+  # Set up a conda environment:
+  - conda config --set always_yes yes
+  - conda update -q conda
+  - conda info -a
+  - conda create -q -n test-environment python=%PYTHON_VERSION%
+  - activate test-environment
+
   # Check that we have the expected version and architecture for Python
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Install the dependencies of the project.
-  - conda update -q conda
-  - conda info -a
-  - conda create -q -n test-environment python=%PYTHON_VERSION%
-  - activate test-environment
   - "conda install --yes --quiet numpy scipy matplotlib nose h5py"
   - "pip install pydicom"
   - "python setup.py install"
