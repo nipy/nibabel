@@ -156,7 +156,7 @@ def get_opt_parser():
 
         Option("-z", "--zeros",
                action="store_true", dest='stats_zeros', default=False,
-               help="Include zeros into output basic data statistics (--stats)"),
+               help="Include zeros into output basic data statistics (--stats, --counts)"),
         ])
 
     return p
