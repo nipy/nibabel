@@ -20,7 +20,7 @@ addons:
       - libatlas-base-dev
 env:
     global:
-        - DEPENDS="numpy scipy matplotlib h5py"
+        - DEPENDS="numpy scipy matplotlib h5py pillow"
         - PYDICOM=1
         - INSTALL_TYPE="setup"
 python:
@@ -44,7 +44,7 @@ matrix:
     # Minimum pydicom dependency
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.5.1 pydicom==0.9.7"
+        - DEPENDS="numpy==1.5.1 pydicom==0.9.7 pillow==2.6"
     # test against numpy 1.7
     - python: 2.7
       env:
