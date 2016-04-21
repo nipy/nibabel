@@ -12,24 +12,26 @@ Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 """
 from __future__ import division, print_function, absolute_import
 
+import re
+import sys
+
+import numpy as np
+import nibabel as nib
+
+from math import ceil
+from optparse import OptionParser, Option
+from io import StringIO
+from nibabel.py3k import asunicode
+
 __author__ = 'Yaroslav Halchenko'
 __copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \
                 'and NiBabel contributors'
 __license__ = 'MIT'
 
-import re
-import sys
-from math import ceil
-from optparse import OptionParser, Option
-from io import StringIO
-
-import numpy as np
-
-import nibabel as nib
-from nibabel.py3k import asunicode
 
 # global verbosity switch
 verbose_level = 0
+
 
 def verbose(l, msg):
     """Print `s` if `l` is less than the `verbose_level`
@@ -40,9 +42,8 @@ def verbose(l, msg):
 
 
 def error(msg, exit_code):
-    print  >> sys.stderr, msg
+    print >> sys.stderr, msg
     sys.exit(exit_code)
-
 
 
 def table2string(table, out=None):
@@ -65,18 +66,19 @@ def table2string(table, out=None):
         out = StringIO()
 
     # equalize number of elements in each row
-    Nelements_max = len(table) \
-                    and max(len(x) for x in table)
+    nelements_max = \
+        len(table) and \
+        max(len(x) for x in table)
 
     for i, table_ in enumerate(table):
-        table[i] += [''] * (Nelements_max - len(table_))
+        table[i] += [''] * (nelements_max - len(table_))
 
     # figure out lengths within each column
     atable = np.asarray(table)
     # eat whole entry while computing width for @w (for wide)
     markup_strip = re.compile('^@([lrc]|w.*)')
-    col_width = [ max( [len(markup_strip.sub('', x))
-                        for x in column] ) for column in atable.T ]
+    col_width = [max([len(markup_strip.sub('', x))
+                      for x in column]) for column in atable.T]
     string = ""
     for i, table_ in enumerate(table):
         string_ = ""
@@ -85,26 +87,26 @@ def table2string(table, out=None):
             if item.startswith('@'):
                 align = item[1]
                 item = item[2:]
-                if not align in ['l', 'r', 'c', 'w']:
+                if align not in ['l', 'r', 'c', 'w']:
                     raise ValueError('Unknown alignment %s. Known are l,r,c' %
                                      align)
             else:
                 align = 'c'
 
-            NspacesL = max(ceil((col_width[j] - len(item))/2.0), 0)
-            NspacesR = max(col_width[j] - NspacesL - len(item), 0)
+            nspacesl = max(ceil((col_width[j] - len(item)) / 2.0), 0)
+            nspacesr = max(col_width[j] - nspacesl - len(item), 0)
 
             if align in ['w', 'c']:
                 pass
             elif align == 'l':
-                NspacesL, NspacesR = 0, NspacesL + NspacesR
+                nspacesl, nspacesr = 0, nspacesl + nspacesr
             elif align == 'r':
-                NspacesL, NspacesR = NspacesL + NspacesR, 0
+                nspacesl, nspacesr = nspacesl + nspacesr, 0
             else:
                 raise RuntimeError('Should not get here with align=%s' % align)
 
             string_ += "%%%ds%%s%%%ds " \
-                       % (NspacesL, NspacesR) % ('', item, '')
+                       % (nspacesl, nspacesr) % ('', item, '')
         string += string_.rstrip() + '\n'
     out.write(asunicode(string))
 
@@ -113,15 +115,17 @@ def table2string(table, out=None):
         out.close()
         return value
 
-def ap(l, format, sep=', '):
+
+def ap(l, format_, sep=', '):
     """Little helper to enforce consistency"""
     if l == '-':
         return l
-    ls = [format % x for x in l]
+    ls = [format_ % x for x in l]
     return sep.join(ls)
 
+
 def safe_get(obj, name):
-    """
+    """A getattr which would return '-' if getattr fails
     """
     try:
         f = getattr(obj, 'get_' + name)
@@ -130,11 +134,12 @@ def safe_get(obj, name):
         verbose(2, "get_%s() failed -- %s" % (name, e))
         return '-'
 
+
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-                usage="%s [OPTIONS] [FILE ...]\n\n" % sys.argv[0] + __doc__,
-                version="%prog " + nib.__version__)
+        usage="%s [OPTIONS] [FILE ...]\n\n" % sys.argv[0] + __doc__,
+        version="%prog " + nib.__version__)
 
     p.add_options([
         Option("-v", "--verbose", action="count",
@@ -151,14 +156,16 @@ def get_opt_parser():
 
         Option("-c", "--counts",
                action="store_true", dest='counts', default=False,
-               help="Output counts - number of entries for each numeric value (useful for int ROI maps)"),
+               help="Output counts - number of entries for each numeric value "
+                    "(useful for int ROI maps)"),
 
         Option("-z", "--zeros",
                action="store_true", dest='stats_zeros', default=False,
                help="Include zeros into output basic data statistics (--stats, --counts)"),
-        ])
+    ])
 
     return p
+
 
 def proc_file(f, opts):
     verbose(1, "Loading %s" % f)
@@ -172,21 +179,21 @@ def proc_file(f, opts):
         verbose(2, "Failed to gather information -- %s" % str(e))
         return row
 
-    row += [ str(safe_get(h, 'data_dtype')),
-             '@l[%s]' %ap(safe_get(h, 'data_shape'), '%3g'),
-             '@l%s' % ap(safe_get(h, 'zooms'), '%.2f', 'x') ]
+    row += [str(safe_get(h, 'data_dtype')),
+            '@l[%s]' % ap(safe_get(h, 'data_shape'), '%3g'),
+            '@l%s' % ap(safe_get(h, 'zooms'), '%.2f', 'x')]
     # Slope
-    if (hasattr(h, 'has_data_slope')
-        and (h.has_data_slope or h.has_data_intercept)) \
-       and not h.get_slope_inter() in [(1.0, 0.0), (None, None)]:
+    if hasattr(h, 'has_data_slope') and \
+            (h.has_data_slope or h.has_data_intercept) and \
+            not h.get_slope_inter() in [(1.0, 0.0), (None, None)]:
         row += ['@l*%.3g+%.3g' % h.get_slope_inter()]
     else:
-        row += [ '' ]
+        row += ['']
 
-    if (hasattr(h, 'extensions') and len(h.extensions)):
+    if hasattr(h, 'extensions') and len(h.extensions):
         row += ['@l#exts: %d' % len(h.extensions)]
     else:
-        row += [ '' ]
+        row += ['']
 
     if opts.header_fields:
         # signals "all fields"
@@ -198,16 +205,16 @@ def proc_file(f, opts):
             header_fields = opts.header_fields.split(',')
 
         for f in header_fields:
-            if not f: # skip empty
+            if not f:  # skip empty
                 continue
             try:
                 row += [str(h[f])]
             except (KeyError, ValueError):
-                row += [ 'error' ]
+                row += ['error']
 
     try:
-        if (hasattr(h, 'get_qform') and hasattr(h, 'get_sform')
-            and (h.get_qform() != h.get_sform()).any()):
+        if (hasattr(h, 'get_qform') and hasattr(h, 'get_sform') and
+                (h.get_qform() != h.get_sform()).any()):
             row += ['sform']
         else:
             row += ['']
@@ -233,7 +240,7 @@ def proc_file(f, opts):
                 items, inv = np.unique(d, return_inverse=True)
                 freq = np.bincount(inv)
                 row += ["@l" + " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))]
-        except Exception as e:
+        except IOError as e:
             verbose(2, "Failed to obtain stats/counts -- %s" % str(e))
             row += ['error']
     return row
