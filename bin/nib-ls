@@ -22,7 +22,6 @@ import sys
 from math import ceil
 from optparse import OptionParser, Option
 from io import StringIO
-from collections import Counter
 
 import numpy as np
 
@@ -231,10 +230,9 @@ def proc_file(f, opts):
                 # stats
                 row += [len(d) and '@l[%.2g, %.2g]' % (np.min(d), np.max(d)) or '-']
             if opts.counts:
-                counter = Counter()
-                counter.update(d.flatten())
-                # go through each entry and report only non-0 ones
-                row += ["@l" + " ".join("%g:%d" % (i, counter[i]) for i in sorted(counter))]
+                items, inv = np.unique(d, return_inverse=True)
+                freq = np.bincount(inv)
+                row += ["@l" + " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))]
         except Exception as e:
             verbose(2, "Failed to obtain stats/counts -- %s" % str(e))
             row += ['error']
