@@ -7,9 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import numpy as np
 from collections import namedtuple as nt
 
+import numpy as np
 
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
@@ -19,7 +19,9 @@ from numpy.testing import assert_array_equal, assert_equal
 
 from nose.tools import assert_raises, assert_true
 
-matplotlib, has_mpl = optional_package('matplotlib')[:2]
+# Need at least MPL 1.3 for viewer tests.
+matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.3')
+
 needs_mpl = skipif(not has_mpl, 'These tests need matplotlib')
 if has_mpl:
     matplotlib.use('Agg')
