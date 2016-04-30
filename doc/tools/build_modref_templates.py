@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     try:
         __import__(package)
-    except ImportError, e:
+    except ImportError as e:
         abort("Can not import " + package)
 
     module = sys.modules[package]
