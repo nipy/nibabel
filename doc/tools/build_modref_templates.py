@@ -14,7 +14,8 @@ from apigen import ApiDocWriter
 # version comparison
 from distutils.version import LooseVersion as V
 
-#*****************************************************************************
+# *****************************************************************************
+
 
 def abort(error):
     print('*WARNING* API documentation not generated: %s' % error)
