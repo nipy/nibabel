@@ -86,6 +86,38 @@ format - see https://github.com/nipy/nibabel/issues/274
 Philips XML header files, and some previous experience, suggest that the REC
 data is always stored as 8 or 16 bit unsigned integers - see
 https://github.com/nipy/nibabel/issues/275
+
+Data Sorting
+############
+
+PAR/REC files have a large number of potential image dimensions.  To handle
+sorting of volumes in PAR/REC files based on these fields and not the order
+slices first appear in the PAR file, the ``strict_sort`` flag of
+``nibabel.load`` (or ``parrec.load``) should be set to ``True``.  The fields
+that are taken into account during sorting are:
+
+    - slice number
+    - echo number
+    - cardiac phase number
+    - gradient orientation number
+    - diffusion b value number
+    - label type  (ASL tag vs. control)
+    - dynamic scan number
+    - image_type_mr  (Re, Im, Mag, Phase)
+
+Slices are sorted into the third dimension and the
+order of preference for sorting along the 4th dimension corresponds to the
+order in the list above.  If the image data has more than 4 dimensions these
+will all be concatenated along the 4th dimension.  For example, for a scan with
+two echos and two dynamics, the 4th dimension will have both echos of dynamic 1
+prior to the two echos for dynamic 2.
+
+The``get_volume_labels`` method of the header returns a dictionary containing
+the PAR field labels for this 4th dimension.
+
+The volume sorting described above can be enabled in the parrec2nii command
+utility via the option "--strict-sort".  The dimension info can be exported
+to a CSV file by adding the option "--volume-info".
 """
 from __future__ import print_function, division
 
