@@ -6,6 +6,7 @@ Test running scripts
 """
 from __future__ import division, print_function, absolute_import
 
+import sys
 import os
 from os.path import (dirname, join as pjoin, abspath, splitext, basename,
                      exists)
@@ -97,9 +98,10 @@ def test_nib_ls_multiple():
 
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
-    assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4,
-                 msg="Type sub-string didn't start with 'i'. "
-                     "Full output was: %s" % stdout_lines)
+    i_str = ' i' if sys.byteorder == 'little' else ' <i'
+    assert_equal([l[ln:ln + len(i_str)] for l in stdout_lines], [i_str] * 4,
+          msg="Type sub-string didn't start with '%s'. "
+              "Full output was: %s" % (i_str, stdout_lines))
     # and if disregard type indicator which might vary
     assert_equal(
         [l[l.index('['):] for l in stdout_lines],
