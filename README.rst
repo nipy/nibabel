@@ -41,14 +41,13 @@ Website
 =======
 
 Current documentation on nibabel can always be found at the `NIPY nibabel
-website <https://nipy.github.io/nibabel>`_.
+website <http://nipy.org/nibabel>`_.
 
 Mailing Lists
 =============
 
-Please see the `nipy devel list
-<http://mail.scipy.org/mailman/listinfo/nipy-devel>`_. The nipy devel list is
-fine for user and developer questions about nibabel.
+Please send any questions or suggestions to the `neuroimaging mailing list
+<https://mail.python.org/mailman/listinfo/neuroimaging>`_.
 
 Code
 ====
