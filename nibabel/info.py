@@ -88,7 +88,7 @@ You can find our sources and single-click downloads:
 * Downloads of all `available releases`_.
 
 .. _main repository: https://github.com/nipy/nibabel
-.. _Documentation: https://nipy.github.io/nibabel
+.. _Documentation: http://nipy.org/nibabel
 .. _current release: https://pypi.python.org/pypi/nibabel
 .. _current development version: https://github.com/nipy/nibabel/archive/master.zip
 .. _available releases: https://github.com/nipy/nibabel/releases
@@ -111,7 +111,7 @@ MAINTAINER          = "Matthew Brett, Michael Hanke and Eric Larson"
 MAINTAINER_EMAIL    = "nipy-devel@neuroimaging.scipy.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
-URL                 = "https://nipy.github.io/nibabel"
+URL                 = "http://nipy.org/nibabel"
 DOWNLOAD_URL        = "https://github.com/nipy/nibabel"
 LICENSE             = "MIT license"
 CLASSIFIERS         = CLASSIFIERS

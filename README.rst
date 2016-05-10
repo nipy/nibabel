@@ -61,7 +61,7 @@ You can find our sources and single-click downloads:
 * Downloads of all `available releases`_.
 
 .. _main repository: https://github.com/nipy/nibabel
-.. _Documentation: https://nipy.github.io/nibabel
+.. _Documentation: http://nipy.org/nibabel
 .. _current release: https://pypi.python.org/pypi/nibabel
 .. _current development version: https://github.com/nipy/nibabel/archive/master.zip
 .. _available releases: https://github.com/nipy/nibabel/releases
