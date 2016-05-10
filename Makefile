@@ -221,8 +221,8 @@ deb-src: check-debian distclean
 bdist_rpm:
 	$(PYTHON) setup.py bdist_rpm \
 	  --doc-files "doc" \
-	  --packager "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
-	  --vendor "nibabel authors <http://mail.scipy.org/mailman/listinfo/nipy-devel>"
+	  --packager "nibabel authors <http://mail.python.org/mailman/listinfo/neuroimaging>"
+	  --vendor "nibabel authors <http://mail.python.org/mailman/listinfo/neuroimaging>"
 
 
 # build MacOS installer -- depends on patched bdist_mpkg for Leopard
