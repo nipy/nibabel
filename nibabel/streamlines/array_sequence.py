@@ -10,6 +10,12 @@ def is_array_sequence(obj):
         return False
 
 
+def is_ndarray_of_int_or_bool(obj):
+    return (isinstance(obj, np.ndarray) and
+            (np.issubdtype(obj.dtype, np.integer) or
+            np.issubdtype(obj.dtype, np.bool)))
+
+
 class ArraySequence(object):
     """ Sequence of ndarrays having variable first dimension sizes.
 
@@ -23,9 +29,7 @@ class ArraySequence(object):
     same for every ndarray.
     """
 
-    BUFFER_SIZE = 87382 * 4  # About 4 Mb if item shape is 3 (e.g. 3D points).
-
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, buffer_size=4):
         """ Initialize array sequence instance
 
         Parameters
@@ -36,6 +40,8 @@ class ArraySequence(object):
             from array-like objects yielded by the iterable.
             If :class:`ArraySequence`, create a view (no memory is allocated).
             For an actual copy use :meth:`.copy` instead.
+        buffer_size : float, optional
+            Size (in Mb) for memory allocation when `iterable` is a generator.
         """
         # Create new empty `ArraySequence` object.
         self._is_view = False
@@ -62,14 +68,23 @@ class ArraySequence(object):
         for i, e in enumerate(iterable):
             e = np.asarray(e)
             if i == 0:
-                new_shape = (ArraySequence.BUFFER_SIZE,) + e.shape[1:]
+                try:
+                    n_elements = np.sum([len(iterable[i])
+                                         for i in range(len(iterable))])
+                    new_shape = (n_elements,) + e.shape[1:]
+                except TypeError:
+                    # Can't get the number of elements in iterable. So,
+                    # we use a memory buffer while building the ArraySequence.
+                    n_rows_buffer = buffer_size*1024**2 // e.nbytes
+                    new_shape = (n_rows_buffer,) + e.shape[1:]
+
                 self._data = np.empty(new_shape, dtype=e.dtype)
 
             end = offset + len(e)
-            if end >= len(self._data):
+            if end > len(self._data):
                 # Resize needed, adding `len(e)` items plus some buffer.
                 nb_points = len(self._data)
-                nb_points += len(e) + ArraySequence.BUFFER_SIZE
+                nb_points += len(e) + n_rows_buffer
                 self._data.resize((nb_points,) + self.common_shape)
 
             offsets.append(offset)
@@ -230,7 +245,7 @@ class ArraySequence(object):
             start = self._offsets[idx]
             return self._data[start:start + self._lengths[idx]]
 
-        elif isinstance(idx, (slice, list)):
+        elif isinstance(idx, (slice, list)) or is_ndarray_of_int_or_bool(idx):
             seq = self.__class__()
             seq._data = self._data
             seq._offsets = self._offsets[idx]
@@ -238,15 +253,20 @@ class ArraySequence(object):
             seq._is_view = True
             return seq
 
-        elif (isinstance(idx, np.ndarray) and
-                (np.issubdtype(idx.dtype, np.integer) or
-                 np.issubdtype(idx.dtype, np.bool))):
+        elif isinstance(idx, tuple):
             seq = self.__class__()
-            seq._data = self._data
-            seq._offsets = self._offsets[idx]
-            seq._lengths = self._lengths[idx]
+            seq._data = self._data.__getitem__((slice(None),) + idx[1:])
+            seq._offsets = self._offsets[idx[0]]
+            seq._lengths = self._lengths[idx[0]]
             seq._is_view = True
             return seq
+
+            # for name, slice_ in data_per_point_slice.items():
+            #     seq = ArraySequence()
+            #     seq._data = scalars._data[:, slice_]
+            #     seq._offsets = scalars._offsets
+            #     seq._lengths = scalars._lengths
+            #     tractogram.data_per_point[name] = seq
 
         raise TypeError("Index must be either an int, a slice, a list of int"
                         " or a ndarray of bool! Not " + str(type(idx)))
@@ -283,7 +303,7 @@ class ArraySequence(object):
                  lengths=self._lengths)
 
     @classmethod
-    def from_filename(cls, filename):
+    def load(cls, filename):
         """ Loads a :class:`ArraySequence` object from a .npz file. """
         content = np.load(filename)
         seq = cls()
@@ -291,3 +311,14 @@ class ArraySequence(object):
         seq._offsets = content["offsets"]
         seq._lengths = content["lengths"]
         return seq
+
+
+def create_arraysequences_from_generator(gen, n):
+    """ Creates :class:`ArraySequence` objects from a generator yielding tuples
+    """
+    seqs = [ArraySequence() for _ in range(n)]
+    for data in gen:
+        for i, seq in enumerate(seqs):
+            seq.append(data[i])
+
+    return seqs

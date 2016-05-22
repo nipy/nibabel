@@ -61,7 +61,7 @@ def check_arr_seq(seq, arrays):
 def check_arr_seq_view(seq_view, seq):
     assert_true(seq_view._is_view)
     assert_true(seq_view is not seq)
-    assert_true(seq_view._data is seq._data)
+    assert_true(np.may_share_memory(seq_view._data, seq._data))
     assert_true(seq_view._offsets is not seq._offsets)
     assert_true(seq_view._lengths is not seq._lengths)
 
@@ -77,7 +77,7 @@ class TestArraySequence(unittest.TestCase):
 
         # List of ndarrays.
         N = 5
-        for ndim in range(0, N+1):
+        for ndim in range(1, N+1):
             common_shape = tuple([SEQ_DATA['rng'].randint(1, 10)
                                  for _ in range(ndim-1)])
             data = generate_data(nb_arrays=5, common_shape=common_shape,
@@ -85,10 +85,9 @@ class TestArraySequence(unittest.TestCase):
             check_arr_seq(ArraySequence(data), data)
 
         # Force ArraySequence constructor to use buffering.
-        old_buffer_size = ArraySequence.BUFFER_SIZE
-        ArraySequence.BUFFER_SIZE = 1
-        check_arr_seq(ArraySequence(SEQ_DATA['data']), SEQ_DATA['data'])
-        ArraySequence.BUFFER_SIZE = old_buffer_size
+        buffer_size = 1. / 1024**2  # 1 bytes
+        check_arr_seq(ArraySequence(iter(SEQ_DATA['data']), buffer_size),
+                      SEQ_DATA['data'])
 
     def test_creating_arraysequence_from_generator(self):
         gen = (e for e in SEQ_DATA['data'])
@@ -245,6 +244,11 @@ class TestArraySequence(unittest.TestCase):
         # Test invalid indexing
         assert_raises(TypeError, SEQ_DATA['seq'].__getitem__, 'abc')
 
+        # Get specific columns.
+        seq_view = SEQ_DATA['seq'][:, 2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data']])
+
     def test_arraysequence_repr(self):
         # Test that calling repr on a ArraySequence object is not falling.
         repr(SEQ_DATA['seq'])
@@ -269,7 +273,7 @@ class TestArraySequence(unittest.TestCase):
             seq = ArraySequence()
             seq.save(f)
             f.seek(0, os.SEEK_SET)
-            loaded_seq = ArraySequence.from_filename(f)
+            loaded_seq = ArraySequence.load(f)
             assert_array_equal(loaded_seq._data, seq._data)
             assert_array_equal(loaded_seq._offsets, seq._offsets)
             assert_array_equal(loaded_seq._lengths, seq._lengths)
@@ -279,7 +283,7 @@ class TestArraySequence(unittest.TestCase):
             seq = SEQ_DATA['seq']
             seq.save(f)
             f.seek(0, os.SEEK_SET)
-            loaded_seq = ArraySequence.from_filename(f)
+            loaded_seq = ArraySequence.load(f)
             assert_array_equal(loaded_seq._data, seq._data)
             assert_array_equal(loaded_seq._offsets, seq._offsets)
             assert_array_equal(loaded_seq._lengths, seq._lengths)
