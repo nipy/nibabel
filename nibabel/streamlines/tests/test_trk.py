@@ -6,7 +6,7 @@ import numpy as np
 from nibabel.externals.six import BytesIO
 
 from nibabel.testing import suppress_warnings, clear_and_catch_warnings
-from nibabel.testing import assert_arrays_equal, check_iteration
+from nibabel.testing import assert_arrays_equal
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
 
@@ -431,13 +431,3 @@ class TestTRK(unittest.TestCase):
     def test_str(self):
         trk = TrkFile.load(self.complex_trk_filename)
         str(trk)  # Simply test it's not failing when called.
-
-    def test_read_buffer_size(self):
-        tmp = TrkFile.READ_BUFFER_SIZE
-        TrkFile.READ_BUFFER_SIZE = 1
-
-        for lazy_load in [False, True]:
-            trk = TrkFile.load(self.complex_trk_filename, lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, self.complex_tractogram)
-
-        TrkFile.READ_BUFFER_SIZE = tmp

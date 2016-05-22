@@ -65,21 +65,6 @@ class TractogramFile(with_metaclass(ABCMeta)):
         return self.affine
 
     @abstractclassmethod
-    def get_magic_number(cls):
-        """ Returns streamlines file's magic number. """
-        raise NotImplementedError()
-
-    @abstractclassmethod
-    def support_data_per_point(cls):
-        """ Tells if this format supports saving data per point. """
-        raise NotImplementedError()
-
-    @abstractclassmethod
-    def support_data_per_streamline(cls):
-        """ Tells if this format supports saving data per streamline. """
-        raise NotImplementedError()
-
-    @abstractclassmethod
     def is_correct_format(cls, fileobj):
         """ Checks if the file has the right streamlines file format.
 

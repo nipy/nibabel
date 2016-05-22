@@ -85,7 +85,7 @@ def test_is_supported_detect_format():
     # Valid file without extension
     for tfile_cls in nib.streamlines.FORMATS.values():
         f = BytesIO()
-        f.write(tfile_cls.get_magic_number())
+        f.write(tfile_cls.MAGIC_NUMBER)
         f.seek(0, os.SEEK_SET)
         assert_true(nib.streamlines.is_supported(f))
         assert_true(nib.streamlines.detect_format(f) is tfile_cls)
@@ -93,7 +93,7 @@ def test_is_supported_detect_format():
     # Wrong extension but right magic number
     for tfile_cls in nib.streamlines.FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
-            f.write(tfile_cls.get_magic_number())
+            f.write(tfile_cls.MAGIC_NUMBER)
             f.seek(0, os.SEEK_SET)
             assert_true(nib.streamlines.is_supported(f))
             assert_true(nib.streamlines.detect_format(f) is tfile_cls)
@@ -169,11 +169,12 @@ class TestLoadSave(unittest.TestCase):
 
                 tractogram = Tractogram(DATA['streamlines'])
 
-                if tfile.support_data_per_point():
+                if tfile.SUPPORTS_DATA_PER_POINT:
                     tractogram.data_per_point = DATA['data_per_point']
 
-                if tfile.support_data_per_streamline():
-                    tractogram.data_per_streamline = DATA['data_per_streamline']
+                if tfile.SUPPORTS_DATA_PER_STREAMLINE:
+                    data = DATA['data_per_streamline']
+                    tractogram.data_per_streamline = data
 
                 assert_tractogram_equal(tfile.tractogram,
                                         tractogram)
@@ -236,18 +237,19 @@ class TestLoadSave(unittest.TestCase):
                     # If streamlines format does not support saving data
                     # per point or data per streamline, a warning message
                     # should be issued.
-                    if not (cls.support_data_per_point() and
-                            cls.support_data_per_streamline()):
+                    if not (cls.SUPPORTS_DATA_PER_POINT and
+                            cls.SUPPORTS_DATA_PER_STREAMLINE):
                         assert_equal(len(w), 1)
                         assert_true(issubclass(w[0].category, Warning))
 
                     tractogram = Tractogram(DATA['streamlines'])
 
-                    if cls.support_data_per_point():
+                    if cls.SUPPORTS_DATA_PER_POINT:
                         tractogram.data_per_point = DATA['data_per_point']
 
-                    if cls.support_data_per_streamline():
-                        tractogram.data_per_streamline = DATA['data_per_streamline']
+                    if cls.SUPPORTS_DATA_PER_STREAMLINE:
+                        data = DATA['data_per_streamline']
+                        tractogram.data_per_streamline = data
 
                     tfile = nib.streamlines.load(filename, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)
