@@ -77,7 +77,9 @@ def check_iteration(iterable):
 
 
 def assert_arrays_equal(arrays1, arrays2):
+    """ Checks that two iterables yielding arrays are equals. """
     for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
+        assert_false(arr1 is None or arr2 is None)
         assert_array_equal(arr1, arr2)
 
 

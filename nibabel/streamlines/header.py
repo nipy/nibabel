@@ -16,4 +16,4 @@ class Field:
     ORIGIN = "origin"
     VOXEL_TO_RASMM = "voxel_to_rasmm"
     VOXEL_ORDER = "voxel_order"
-    ENDIAN = "endian"
+    ENDIANNESS = "endianness"

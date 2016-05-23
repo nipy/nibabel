@@ -610,10 +610,8 @@ class TrkFile(TractogramFile):
             for name, slice_ in data_per_streamline_slice.items():
                 tractogram.data_per_streamline[name] = properties[:, slice_]
 
-        # Bring tractogram to RAS+ and mm space.
-        affine_to_rasmm = get_affine_trackvis_to_rasmm(hdr)
-        tractogram = tractogram.apply_affine(affine_to_rasmm)
-        tractogram._affine_to_rasmm = np.eye(4)
+        tractogram.affine_to_rasmm = get_affine_trackvis_to_rasmm(hdr)
+        tractogram = tractogram.to_world()
 
         return cls(tractogram, header=hdr)
 

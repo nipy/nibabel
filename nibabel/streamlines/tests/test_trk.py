@@ -2,6 +2,7 @@ import os
 import copy
 import unittest
 import numpy as np
+from os.path import join as pjoin
 
 from nibabel.externals.six import BytesIO
 
@@ -18,7 +19,7 @@ from .. import trk as trk_module
 from ..trk import TrkFile
 from ..header import Field
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
+DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
 
 
 def assert_header_equal(h1, h2):
@@ -32,19 +33,19 @@ def assert_header_equal(h1, h2):
 class TestTRK(unittest.TestCase):
 
     def setUp(self):
-        self.empty_trk_filename = os.path.join(DATA_PATH, "empty.trk")
+        self.empty_trk_filename = pjoin(DATA_PATH, "empty.trk")
         # simple.trk contains only streamlines
-        self.simple_trk_filename = os.path.join(DATA_PATH, "simple.trk")
+        self.simple_trk_filename = pjoin(DATA_PATH, "simple.trk")
         # standard.trk contains only streamlines
-        self.standard_trk_filename = os.path.join(DATA_PATH, "standard.trk")
+        self.standard_trk_filename = pjoin(DATA_PATH, "standard.trk")
         # standard.LPS.trk contains only streamlines
-        self.standard_LPS_trk_filename = os.path.join(DATA_PATH,
-                                                      "standard.LPS.trk")
+        self.standard_LPS_trk_filename = pjoin(DATA_PATH,
+                                               "standard.LPS.trk")
 
         # complex.trk contains streamlines, scalars and properties
-        self.complex_trk_filename = os.path.join(DATA_PATH, "complex.trk")
-        self.complex_trk_big_endian_filename = os.path.join(DATA_PATH,
-                                                            "complex_big_endian.trk")
+        self.complex_trk_filename = pjoin(DATA_PATH, "complex.trk")
+        self.complex_trk_big_endian_filename = pjoin(DATA_PATH,
+                                                     "complex_big_endian.trk")
 
         self.streamlines = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                             np.arange(2*3, dtype="f4").reshape((2, 3)),
@@ -81,11 +82,13 @@ class TestTRK(unittest.TestCase):
                                     'mean_torsion': self.mean_torsion,
                                     'mean_colors': self.mean_colors}
 
-        self.empty_tractogram = Tractogram()
-        self.simple_tractogram = Tractogram(self.streamlines)
+        self.empty_tractogram = Tractogram(affine_to_rasmm=np.eye(4))
+        self.simple_tractogram = Tractogram(self.streamlines,
+                                            affine_to_rasmm=np.eye(4))
         self.complex_tractogram = Tractogram(self.streamlines,
                                              self.data_per_streamline,
-                                             self.data_per_point)
+                                             self.data_per_point,
+                                             affine_to_rasmm=np.eye(4))
 
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
@@ -168,7 +171,7 @@ class TestTRK(unittest.TestCase):
         assert_array_equal(trk.get_affine(), trk.header[Field.VOXEL_TO_RASMM])
 
     def test_write_empty_file(self):
-        tractogram = Tractogram()
+        tractogram = Tractogram(affine_to_rasmm=np.eye(4))
 
         trk_file = BytesIO()
         trk = TrkFile(tractogram)
@@ -186,7 +189,8 @@ class TestTRK(unittest.TestCase):
                      open(self.empty_trk_filename, 'rb').read())
 
     def test_write_simple_file(self):
-        tractogram = Tractogram(self.streamlines)
+        tractogram = Tractogram(self.streamlines,
+                                affine_to_rasmm=np.eye(4))
 
         trk_file = BytesIO()
         trk = TrkFile(tractogram)
@@ -206,7 +210,8 @@ class TestTRK(unittest.TestCase):
     def test_write_complex_file(self):
         # With scalars
         tractogram = Tractogram(self.streamlines,
-                                data_per_point=self.data_per_point)
+                                data_per_point=self.data_per_point,
+                                affine_to_rasmm=np.eye(4))
 
         trk_file = BytesIO()
         trk = TrkFile(tractogram)
@@ -218,7 +223,8 @@ class TestTRK(unittest.TestCase):
 
         # With properties
         tractogram = Tractogram(self.streamlines,
-                                data_per_streamline=self.data_per_streamline)
+                                data_per_streamline=self.data_per_streamline,
+                                affine_to_rasmm=np.eye(4))
 
         trk = TrkFile(tractogram)
         trk_file = BytesIO()
@@ -231,7 +237,8 @@ class TestTRK(unittest.TestCase):
         # With scalars and properties
         tractogram = Tractogram(self.streamlines,
                                 data_per_point=self.data_per_point,
-                                data_per_streamline=self.data_per_streamline)
+                                data_per_streamline=self.data_per_streamline,
+                                affine_to_rasmm=np.eye(4))
 
         trk_file = BytesIO()
         trk = TrkFile(tractogram)
@@ -261,7 +268,6 @@ class TestTRK(unittest.TestCase):
                 assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
                 trk_file.seek(0, os.SEEK_SET)
-                #assert_equal(trk_file.read(), open(filename, 'rb').read())
 
     def test_load_write_LPS_file(self):
         # Load the RAS and LPS version of the standard.
@@ -287,7 +293,8 @@ class TestTRK(unittest.TestCase):
         assert_equal(trk_file.read(),
                      open(self.standard_LPS_trk_filename, 'rb').read())
 
-        # Test writing a file where the header is missing the Field.VOXEL_ORDER.
+        # Test writing a file where the header is missing the
+        # Field.VOXEL_ORDER.
         trk_file = BytesIO()
 
         # For TRK file format, the default voxel order is LPS.
@@ -313,7 +320,7 @@ class TestTRK(unittest.TestCase):
     def test_write_optional_header_fields(self):
         # The TRK file format doesn't support additional header fields.
         # If provided, they will be ignored.
-        tractogram = Tractogram()
+        tractogram = Tractogram(affine_to_rasmm=np.eye(4))
 
         trk_file = BytesIO()
         header = {'extra': 1234}
@@ -331,7 +338,8 @@ class TestTRK(unittest.TestCase):
             data_per_point['#{0}'.format(i)] = self.fa
 
             tractogram = Tractogram(self.streamlines,
-                                    data_per_point=data_per_point)
+                                    data_per_point=data_per_point,
+                                    affine_to_rasmm=np.eye(4))
 
             trk_file = BytesIO()
             trk = TrkFile(tractogram)
@@ -345,7 +353,8 @@ class TestTRK(unittest.TestCase):
         data_per_point['#{0}'.format(i+1)] = self.fa
 
         tractogram = Tractogram(self.streamlines,
-                                data_per_point=data_per_point)
+                                data_per_point=data_per_point,
+                                affine_to_rasmm=np.eye(4))
 
         trk = TrkFile(tractogram)
         assert_raises(ValueError, trk.save, BytesIO())
@@ -356,7 +365,8 @@ class TestTRK(unittest.TestCase):
             data_per_streamline['#{0}'.format(i)] = self.mean_torsion
 
             tractogram = Tractogram(self.streamlines,
-                                    data_per_streamline=data_per_streamline)
+                                    data_per_streamline=data_per_streamline,
+                                    affine_to_rasmm=np.eye(4))
 
             trk_file = BytesIO()
             trk = TrkFile(tractogram)
@@ -384,7 +394,8 @@ class TestTRK(unittest.TestCase):
         for nb_chars in range(22):
             data_per_point = {'A'*nb_chars: self.colors}
             tractogram = Tractogram(self.streamlines,
-                                    data_per_point=data_per_point)
+                                    data_per_point=data_per_point,
+                                    affine_to_rasmm=np.eye(4))
 
             trk = TrkFile(tractogram)
             if nb_chars > 18:
@@ -394,7 +405,8 @@ class TestTRK(unittest.TestCase):
 
             data_per_point = {'A'*nb_chars: self.fa}
             tractogram = Tractogram(self.streamlines,
-                                    data_per_point=data_per_point)
+                                    data_per_point=data_per_point,
+                                    affine_to_rasmm=np.eye(4))
 
             trk = TrkFile(tractogram)
             if nb_chars > 20:
@@ -410,7 +422,8 @@ class TestTRK(unittest.TestCase):
         for nb_chars in range(22):
             data_per_streamline = {'A'*nb_chars: self.mean_colors}
             tractogram = Tractogram(self.streamlines,
-                                    data_per_streamline=data_per_streamline)
+                                    data_per_streamline=data_per_streamline,
+                                    affine_to_rasmm=np.eye(4))
 
             trk = TrkFile(tractogram)
             if nb_chars > 18:
@@ -420,7 +433,8 @@ class TestTRK(unittest.TestCase):
 
             data_per_streamline = {'A'*nb_chars: self.mean_torsion}
             tractogram = Tractogram(self.streamlines,
-                                    data_per_streamline=data_per_streamline)
+                                    data_per_streamline=data_per_streamline,
+                                    affine_to_rasmm=np.eye(4))
 
             trk = TrkFile(tractogram)
             if nb_chars > 20:

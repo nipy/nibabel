@@ -66,11 +66,13 @@ def setup():
                                    'mean_torsion': mean_torsion,
                                    'mean_colors': mean_colors}
 
-    DATA['empty_tractogram'] = Tractogram()
-    DATA['simple_tractogram'] = Tractogram(DATA['streamlines'])
+    DATA['empty_tractogram'] = Tractogram(affine_to_rasmm=np.eye(4))
+    DATA['simple_tractogram'] = Tractogram(DATA['streamlines'],
+                                           affine_to_rasmm=np.eye(4))
     DATA['complex_tractogram'] = Tractogram(DATA['streamlines'],
                                             DATA['data_per_streamline'],
-                                            DATA['data_per_point'])
+                                            DATA['data_per_point'],
+                                            affine_to_rasmm=np.eye(4))
 
 
 def test_is_supported_detect_format():
@@ -167,7 +169,8 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert_true(type(tfile.tractogram), LazyTractogram)
 
-                tractogram = Tractogram(DATA['streamlines'])
+                tractogram = Tractogram(DATA['streamlines'],
+                                        affine_to_rasmm=np.eye(4))
 
                 if tfile.SUPPORTS_DATA_PER_POINT:
                     tractogram.data_per_point = DATA['data_per_point']
@@ -180,7 +183,8 @@ class TestLoadSave(unittest.TestCase):
                                         tractogram)
 
     def test_save_tractogram_file(self):
-        tractogram = Tractogram(DATA['streamlines'])
+        tractogram = Tractogram(DATA['streamlines'],
+                                affine_to_rasmm=np.eye(4))
         trk_file = trk.TrkFile(tractogram)
 
         # No need for keyword arguments.
@@ -204,7 +208,7 @@ class TestLoadSave(unittest.TestCase):
             assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_empty_file(self):
-        tractogram = Tractogram()
+        tractogram = Tractogram(affine_to_rasmm=np.eye(4))
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
@@ -213,7 +217,8 @@ class TestLoadSave(unittest.TestCase):
                 assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_simple_file(self):
-        tractogram = Tractogram(DATA['streamlines'])
+        tractogram = Tractogram(DATA['streamlines'],
+                                affine_to_rasmm=np.eye(4))
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
@@ -224,7 +229,8 @@ class TestLoadSave(unittest.TestCase):
     def test_save_complex_file(self):
         complex_tractogram = Tractogram(DATA['streamlines'],
                                         DATA['data_per_streamline'],
-                                        DATA['data_per_point'])
+                                        DATA['data_per_point'],
+                                        affine_to_rasmm=np.eye(4))
 
         for ext, cls in nib.streamlines.FORMATS.items():
             with InTemporaryDirectory():
@@ -242,7 +248,8 @@ class TestLoadSave(unittest.TestCase):
                         assert_equal(len(w), 1)
                         assert_true(issubclass(w[0].category, Warning))
 
-                    tractogram = Tractogram(DATA['streamlines'])
+                    tractogram = Tractogram(DATA['streamlines'],
+                                            affine_to_rasmm=np.eye(4))
 
                     if cls.SUPPORTS_DATA_PER_POINT:
                         tractogram.data_per_point = DATA['data_per_point']

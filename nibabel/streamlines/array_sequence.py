@@ -112,6 +112,11 @@ class ArraySequence(object):
         """ Total number of elements in this array sequence. """
         return self._data.shape[0]
 
+    @property
+    def data(self):
+        """ Elements in this array sequence. """
+        return self._data
+
     def append(self, element):
         """ Appends `element` to this array sequence.
 

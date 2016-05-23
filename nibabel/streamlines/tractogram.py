@@ -240,7 +240,7 @@ class Tractogram(object):
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None,
-                 affine_to_rasmm=np.eye(4)):
+                 affine_to_rasmm=None):
         """
         Parameters
         ----------
@@ -261,16 +261,16 @@ class Tractogram(object):
             of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
             points for a particular streamline $t$ and $M_i$ is the number
             scalar values to store for that particular information $i$.
-        affine_to_rasmm : ndarray of shape (4, 4), optional
+        affine_to_rasmm : ndarray of shape (4, 4) or None, optional
             Transformation matrix that brings the streamlines contained in
             this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
             refers to the center of the voxel. By default, the streamlines
-            are assumed to be already in *RAS+* and *mm* space.
+            are in an unknown space, i.e. affine_to_rasmm is None.
         """
         self._set_streamlines(streamlines)
         self.data_per_streamline = data_per_streamline
         self.data_per_point = data_per_point
-        self._affine_to_rasmm = affine_to_rasmm
+        self.affine_to_rasmm = affine_to_rasmm
 
     @property
     def streamlines(self):
@@ -296,9 +296,14 @@ class Tractogram(object):
         self._data_per_point = PerArraySequenceDict(
             self.streamlines.nb_elements, value)
 
-    def get_affine_to_rasmm(self):
-        """ Returns the affine bringing this tractogram to RAS+mm. """
-        return self._affine_to_rasmm.copy()
+    @property
+    def affine_to_rasmm(self):
+        """ Affine bringing streamlines in this tractogram to RAS+mm. """
+        return copy.deepcopy(self._affine_to_rasmm)
+
+    @affine_to_rasmm.setter
+    def affine_to_rasmm(self, value):
+        self._affine_to_rasmm = value
 
     def __iter__(self):
         for i in range(len(self.streamlines)):
@@ -358,14 +363,15 @@ class Tractogram(object):
             return self
 
         BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
-        for start in range(0, len(self.streamlines._data), BUFFER_SIZE):
+        for start in range(0, len(self.streamlines.data), BUFFER_SIZE):
             end = start + BUFFER_SIZE
             pts = self.streamlines._data[start:end]
-            self.streamlines._data[start:end] = apply_affine(affine, pts)
+            self.streamlines.data[start:end] = apply_affine(affine, pts)
 
-        # Update the affine that brings back the streamlines to RASmm.
-        self._affine_to_rasmm = np.dot(self._affine_to_rasmm,
-                                       np.linalg.inv(affine))
+        if self.affine_to_rasmm is not None:
+            # Update the affine that brings back the streamlines to RASmm.
+            self.affine_to_rasmm = np.dot(self.affine_to_rasmm,
+                                          np.linalg.inv(affine))
 
         return self
 
@@ -389,7 +395,12 @@ class Tractogram(object):
             object, otherwise it returns a reference to this
             :class:`Tractogram` object with updated streamlines.
         """
-        return self.apply_affine(self._affine_to_rasmm, lazy=lazy)
+        if self.affine_to_rasmm is None:
+            msg = ("Streamlines are in a unknown space. This error can be"
+                   " avoided by setting the 'affine_to_rasmm' property.")
+            raise ValueError(msg)
+
+        return self.apply_affine(self.affine_to_rasmm, lazy=lazy)
 
 
 class LazyTractogram(Tractogram):
@@ -434,7 +445,7 @@ class LazyTractogram(Tractogram):
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
                  data_per_point=None,
-                 affine_to_rasmm=np.eye(4)):
+                 affine_to_rasmm=None):
         """
         Parameters
         ----------
@@ -457,10 +468,11 @@ class LazyTractogram(Tractogram):
             ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
             streamline $t$ and $M_i$ is the number scalar values to store for
             that particular information $i$.
-        affine_to_rasmm : ndarray of shape (4, 4)
+        affine_to_rasmm : ndarray of shape (4, 4) or None, optional
             Transformation matrix that brings the streamlines contained in
             this tractogram to *RAS+* and *mm* space where coordinate (0,0,0)
-            refers to the center of the voxel.
+            refers to the center of the voxel. By default, the streamlines
+            are in an unknown space, i.e. affine_to_rasmm is None.
         """
         super(LazyTractogram, self).__init__(streamlines,
                                              data_per_streamline,
@@ -501,7 +513,7 @@ class LazyTractogram(Tractogram):
             lazy_tractogram._data_per_point[k] = _gen(k)
 
         lazy_tractogram._nb_streamlines = len(tractogram)
-        lazy_tractogram._affine_to_rasmm = tractogram.get_affine_to_rasmm()
+        lazy_tractogram.affine_to_rasmm = tractogram.affine_to_rasmm
         return lazy_tractogram
 
     @classmethod
@@ -650,7 +662,8 @@ class LazyTractogram(Tractogram):
         """ Returns a copy of this :class:`LazyTractogram` object. """
         tractogram = LazyTractogram(self._streamlines,
                                     self._data_per_streamline,
-                                    self._data_per_point)
+                                    self._data_per_point,
+                                    self.affine_to_rasmm)
         tractogram._nb_streamlines = self._nb_streamlines
         tractogram._data = self._data
         tractogram._affine_to_apply = self._affine_to_apply.copy()
@@ -685,9 +698,10 @@ class LazyTractogram(Tractogram):
         # Update the affine that will be applied when returning streamlines.
         tractogram._affine_to_apply = np.dot(affine, self._affine_to_apply)
 
-        # Update the affine that brings back the streamlines to RASmm.
-        tractogram._affine_to_rasmm = np.dot(self._affine_to_rasmm,
-                                             np.linalg.inv(affine))
+        if tractogram.affine_to_rasmm is not None:
+            # Update the affine that brings back the streamlines to RASmm.
+            tractogram.affine_to_rasmm = np.dot(self.affine_to_rasmm,
+                                                np.linalg.inv(affine))
         return tractogram
 
     def to_world(self, lazy=True):
@@ -708,4 +722,9 @@ class LazyTractogram(Tractogram):
             A copy of this :class:`LazyTractogram` instance but with a
             transformation to be applied on the streamlines.
         """
-        return self.apply_affine(self._affine_to_rasmm, lazy=lazy)
+        if self.affine_to_rasmm is None:
+            msg = ("Streamlines are in a unknown space. This error can be"
+                   " avoided by setting the 'affine_to_rasmm' property.")
+            raise ValueError(msg)
+
+        return self.apply_affine(self.affine_to_rasmm, lazy=lazy)

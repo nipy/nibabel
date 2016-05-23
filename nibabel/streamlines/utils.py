@@ -1,8 +1,5 @@
 import numpy as np
 import nibabel
-import itertools
-
-from nibabel.spatialimages import SpatialImage
 
 
 def get_affine_from_reference(ref):
@@ -27,14 +24,8 @@ def get_affine_from_reference(ref):
             raise ValueError(msg)
 
         return ref
-    elif isinstance(ref, SpatialImage):
+    elif hasattr(ref, 'affine'):
         return ref.affine
 
     # Assume `ref` is the name of a neuroimaging file.
     return nibabel.load(ref).affine
-
-
-def pop(iterable):
-    """ Returns the next item from the iterable else None. """
-    value = list(itertools.islice(iterable, 1))
-    return value[0] if len(value) > 0 else None

@@ -4,17 +4,9 @@ import nibabel as nib
 
 from nibabel.testing import data_path
 from numpy.testing import assert_array_equal
-from nose.tools import assert_equal, assert_raises, assert_true
+from nose.tools import assert_raises
 
-from ..utils import pop, get_affine_from_reference
-
-
-def test_peek():
-    gen = (i for i in range(3))
-    assert_equal(pop(gen), 0)
-    assert_equal(pop(gen), 1)
-    assert_equal(pop(gen), 2)
-    assert_true(pop(gen) is None)
+from ..utils import get_affine_from_reference
 
 
 def test_get_affine_from_reference():
