@@ -223,13 +223,13 @@ class Tractogram(object):
         Sequence of $T$ streamlines. Each streamline is an ndarray of
         shape ($N_t$, 3) where $N_t$ is the number of points of
         streamline $t$.
-    data_per_streamline : dict of 2D arrays
+    data_per_streamline : :class:`PerArrayDict` object
         Dictionary where the items are (str, 2D array).
         Each key represents an information $i$ to be kept along side every
         streamline, and its associated value is a 2D array of shape
         ($T$, $P_i$) where $T$ is the number of streamlines and $P_i$ is
         the number scalar values to store for that particular information $i$.
-    data_per_point : dict of :class:`ArraySequence` objects
+    data_per_point : :class:`PerArraySequenceDict` object
         Dictionary where the items are (str, :class:`ArraySequence`).
         Each key represents an information $i$ to be kept along side every
         point of every streamline, and its associated value is an iterable

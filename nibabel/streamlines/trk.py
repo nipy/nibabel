@@ -128,6 +128,47 @@ def get_affine_rasmm_to_trackvis(header):
     return np.linalg.inv(get_affine_trackvis_to_rasmm(header))
 
 
+def encode_value_in_name(value, name, max_name_len=20):
+    """ Encodes a value in the last two bytes of a string.
+
+    If `value` is one, then there is no encoding and the last two bytes
+    are left untouched. This function also verify that the length of name is
+    less than `max_name_len`.
+
+    Parameters
+    ----------
+    value : int
+        Integer value to encode.
+    name : str
+        Name in which the last two bytes will serve to encode `value`.
+    max_name_len : int, optional
+        Maximum length name can have.
+
+    Returns
+    -------
+    encoded_name : str
+        Name containing the encoded value.
+    """
+
+    if len(name) > max_name_len:
+        msg = ("Data information named '{0}' is too long"
+               " (max {1} characters.)").format(name, max_name_len)
+        raise ValueError(msg)
+    elif len(name) > max_name_len-2 and value > 1:
+        msg = ("Data information named '{0}' is too long (need to be less"
+               " than {1} characters when storing more than one value"
+               " for a given data information."
+               ).format(name, max_name_len-2)
+        raise ValueError(msg)
+
+    if value > 1:
+        # Use the last two bytes of `name` to store `value`.
+        name = (asbytes(name[:18].ljust(18, '\x00')) + b'\x00' +
+                np.array(value, dtype=np.int8).tostring())
+
+    return name
+
+
 class TrkReader(object):
     """ Convenience class to encapsulate TRK file format.
 
@@ -326,8 +367,7 @@ class TrkWriter(object):
             self.file.write(self.header.tostring())
             return
 
-        # Update the 'property_name' field using 'data_per_streamline' of the
-        # tractogram.
+        # Update field 'property_name' using 'tractogram.data_per_streamline'.
         data_for_streamline = first_item.data_for_streamline
         if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
             msg = ("Can only store {0} named data_per_streamline (also known"
@@ -336,31 +376,16 @@ class TrkWriter(object):
             raise ValueError(msg)
 
         data_for_streamline_keys = sorted(data_for_streamline.keys())
-        self.header['property_name'] = np.zeros(
-            MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
-            dtype='S20')
-        for i, k in enumerate(data_for_streamline_keys):
-            nb_values = data_for_streamline[k].shape[0]
+        property_name = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
+                                 dtype='S20')
+        for i, name in enumerate(data_for_streamline_keys):
+            # Use the last to bytes of the name to store the number of values
+            # associated to this data_for_streamline.
+            nb_values = data_for_streamline[name].shape[-1]
+            property_name[i] = encode_value_in_name(nb_values, name)
+        self.header['property_name'][:] = property_name
 
-            if len(k) > 20:
-                raise ValueError(("Property name '{0}' is too long (max 20"
-                                  "characters.)").format(k))
-            elif len(k) > 18 and nb_values > 1:
-                raise ValueError(("Property name '{0}' is too long (need to be"
-                                  " less than 18 characters when storing more"
-                                  " than one value").format(k))
-
-            property_name = k
-            if nb_values > 1:
-                # Use the last to bytes of the name to store the nb of values
-                # associated to this data_for_streamline.
-                property_name = (asbytes(k[:18].ljust(18, '\x00')) + b'\x00' +
-                                 np.array(nb_values, dtype=np.int8).tostring())
-
-            self.header['property_name'][i] = property_name
-
-        # Update the 'scalar_name' field using 'data_per_point' of the
-        # tractogram.
+        # Update field 'scalar_name' using 'tractogram.data_per_point'.
         data_for_points = first_item.data_for_points
         if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
             raise ValueError(("Can only store {0} named data_per_point (also"
@@ -368,27 +393,13 @@ class TrkWriter(object):
                               ).format(MAX_NB_NAMED_SCALARS_PER_POINT))
 
         data_for_points_keys = sorted(data_for_points.keys())
-        self.header['scalar_name'] = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT,
-                                              dtype='S20')
-        for i, k in enumerate(data_for_points_keys):
-            nb_values = data_for_points[k].shape[1]
-
-            if len(k) > 20:
-                raise ValueError(("Scalar name '{0}' is too long (max 18"
-                                  " characters.)").format(k))
-            elif len(k) > 18 and nb_values > 1:
-                raise ValueError(("Scalar name '{0}' is too long (need to be"
-                                  " less than 18 characters when storing more"
-                                  " than one value").format(k))
-
-            scalar_name = k
-            if nb_values > 1:
-                # Use the last to bytes of the name to store the nb of values
-                # associated to this data_for_streamline.
-                scalar_name = (asbytes(k[:18].ljust(18, '\x00')) + b'\x00' +
-                               np.array(nb_values, dtype=np.int8).tostring())
-
-            self.header['scalar_name'][i] = scalar_name
+        scalar_name = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
+        for i, name in enumerate(data_for_points_keys):
+            # Use the last two bytes of the name to store the number of values
+            # associated to this data_for_streamline.
+            nb_values = data_for_points[name].shape[-1]
+            scalar_name[i] = encode_value_in_name(nb_values, name)
+        self.header['scalar_name'][:] = scalar_name
 
         # Make sure streamlines are in rasmm then send them to voxmm.
         tractogram = tractogram.to_world(lazy=True)
