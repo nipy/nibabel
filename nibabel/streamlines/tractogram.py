@@ -42,7 +42,7 @@ class SliceableDataDict(collections.MutableMapping):
     def __getitem__(self, key):
         try:
             return self.store[key]
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, IndexError):
             pass  # Maybe it is an integer or a slicing object
 
         # Try to interpret key as an index/slice for every data element, in
@@ -53,7 +53,7 @@ class SliceableDataDict(collections.MutableMapping):
         try:
             for k, v in self.items():
                 new_dict[k] = v[idx]
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, IndexError):
             pass
         else:
             return new_dict
