@@ -75,7 +75,7 @@ class ArraySequence(object):
                 except TypeError:
                     # Can't get the number of elements in iterable. So,
                     # we use a memory buffer while building the ArraySequence.
-                    n_rows_buffer = int(buffer_size*1024**2 // e.nbytes)
+                    n_rows_buffer = int(buffer_size * 1024**2 // e.nbytes)
                     new_shape = (n_rows_buffer,) + e.shape[1:]
 
                 self._data = np.empty(new_shape, dtype=e.dtype)

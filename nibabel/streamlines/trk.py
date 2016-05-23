@@ -154,11 +154,11 @@ def encode_value_in_name(value, name, max_name_len=20):
         msg = ("Data information named '{0}' is too long"
                " (max {1} characters.)").format(name, max_name_len)
         raise ValueError(msg)
-    elif len(name) > max_name_len-2 and value > 1:
+    elif len(name) > max_name_len - 2 and value > 1:
         msg = ("Data information named '{0}' is too long (need to be less"
                " than {1} characters when storing more than one value"
                " for a given data information."
-               ).format(name, max_name_len-2)
+               ).format(name, max_name_len - 2)
         raise ValueError(msg)
 
     if value > 1:
