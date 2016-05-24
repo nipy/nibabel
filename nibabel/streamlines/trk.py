@@ -100,8 +100,8 @@ def get_affine_trackvis_to_rasmm(header):
     affine = np.dot(scale, affine)
 
     # TrackVis considers coordinate (0,0,0) to be the corner of the
-    # voxel whereas streamlines returned assume (0,0,0) to be the
-    # center of the voxel. Thus, streamlines are shifted of half a voxel.
+    # voxel whereas streamlines returned assumes (0,0,0) to be the
+    # center of the voxel. Thus, streamlines are shifted by half a voxel.
     offset = np.eye(4)
     offset[:-1, -1] -= 0.5
     affine = np.dot(offset, affine)
@@ -132,21 +132,24 @@ def encode_value_in_name(value, name, max_name_len=20):
     """ Encodes a value in the last two bytes of a string.
 
     If `value` is one, then there is no encoding and the last two bytes
-    are left untouched. This function also verify that the length of name is
-    less than `max_name_len`.
+    are left untouched. Otherwise, the byte before the last will be
+    set to \x00 and the last byte will correspond to the value.
+
+    This function also verifies that the length of name is less
+    than `max_name_len`.
 
     Parameters
     ----------
-    value : int
-        Integer value to encode.
-    name : str
+    value : byte
+        Integer value between 0 and 255 to encode.
+    name : bytes
         Name in which the last two bytes will serve to encode `value`.
     max_name_len : int, optional
         Maximum length name can have.
 
     Returns
     -------
-    encoded_name : str
+    encoded_name : bytes
         Name containing the encoded value.
     """
 
@@ -161,9 +164,10 @@ def encode_value_in_name(value, name, max_name_len=20):
                ).format(name, max_name_len - 2)
         raise ValueError(msg)
 
+    name = name.ljust(max_name_len, '\x00')
     if value > 1:
         # Use the last two bytes of `name` to store `value`.
-        name = (asbytes(name[:18].ljust(18, '\x00')) + b'\x00' +
+        name = (asbytes(name[:max_name_len - 2]) + b'\x00' +
                 np.array(value, dtype=np.int8).tostring())
 
     return name
@@ -183,10 +187,10 @@ class TrkReader(object):
     ----
     TrackVis (so its file format: TRK) considers the streamline coordinate
     (0,0,0) to be in the corner of the voxel whereas NiBabel's streamlines
-    internal representation (Voxel space) assume (0,0,0) to be in the
+    internal representation (Voxel space) assumes (0,0,0) to be in the
     center of the voxel.
 
-    Thus, streamlines are shifted of half a voxel on load and are shifted
+    Thus, streamlines are shifted by half a voxel on load and are shifted
     back on save.
     """
     def __init__(self, fileobj):
@@ -461,10 +465,10 @@ class TrkFile(TractogramFile):
     ----
     TrackVis (so its file format: TRK) considers the streamline coordinate
     (0,0,0) to be in the corner of the voxel whereas NiBabel's streamlines
-    internal representation (Voxel space) assume (0,0,0) to be in the
+    internal representation (Voxel space) assumes (0,0,0) to be in the
     center of the voxel.
 
-    Thus, streamlines are shifted of half a voxel on load and are shifted
+    Thus, streamlines are shifted by half a voxel on load and are shifted
     back on save.
     """
 
@@ -515,8 +519,9 @@ class TrkFile(TractogramFile):
             otherwise returns False.
         """
         with Opener(fileobj) as f:
-            magic_number = f.read(5)
-            f.seek(-5, os.SEEK_CUR)
+            magic_len = len(cls.MAGIC_NUMBER)
+            magic_number = f.read(magic_len)
+            f.seek(-magic_len, os.SEEK_CUR)
             return magic_number == cls.MAGIC_NUMBER
 
     @classmethod

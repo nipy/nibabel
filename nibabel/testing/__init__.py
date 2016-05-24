@@ -65,19 +65,8 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     assert_true(np.allclose(a, b, rtol=rtol, atol=atol))
 
 
-def check_iteration(iterable):
-    """ Checks that an object can be iterated through without errors. """
-    try:
-        for _ in iterable:
-            pass
-    except:
-        return False
-
-    return True
-
-
 def assert_arrays_equal(arrays1, arrays2):
-    """ Checks that two iterables yielding arrays are equals. """
+    """ Check two iterables yield the same sequence of arrays. """
     for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
         assert_false(arr1 is None or arr2 is None)
         assert_array_equal(arr1, arr2)

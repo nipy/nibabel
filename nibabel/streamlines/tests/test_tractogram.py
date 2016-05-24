@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import warnings
 
-from nibabel.testing import assert_arrays_equal, check_iteration
+from nibabel.testing import assert_arrays_equal
 from nibabel.testing import clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -110,7 +110,7 @@ def check_tractogram(tractogram,
     streamlines = list(streamlines)
     assert_equal(len(tractogram), len(streamlines))
     assert_arrays_equal(tractogram.streamlines, streamlines)
-    assert_true(check_iteration(tractogram))
+    [t for t in tractogram]  # Force iteration through tractogram.
 
     assert_equal(len(tractogram.data_per_streamline), len(data_per_streamline))
     for key in data_per_streamline.keys():
@@ -556,7 +556,7 @@ class TestLazyTractogram(unittest.TestCase):
                                     DATA['data_per_streamline_func'],
                                     DATA['data_per_point_func'])
 
-        assert_true(check_iteration(tractogram))
+        [t for t in tractogram]  # Force iteration through tractogram.
         assert_equal(len(tractogram), len(DATA['streamlines']))
 
         # Generator functions get re-called and creates new iterators.
@@ -627,7 +627,7 @@ class TestLazyTractogram(unittest.TestCase):
             tractogram = LazyTractogram(DATA['streamlines_func'])
 
             assert_true(tractogram._nb_streamlines is None)
-            check_iteration(tractogram)  # Force iteration through tractogram.
+            [t for t in tractogram]  # Force iteration through tractogram.
             assert_equal(tractogram._nb_streamlines, len(DATA['streamlines']))
             # This should *not* produce a warning.
             assert_equal(len(tractogram), len(DATA['streamlines']))
