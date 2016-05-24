@@ -76,6 +76,9 @@ matrix:
     - python: 3.5
       env:
         - STYLE=1
+    - python: 3.5
+      env:
+        - DOC_DOC_TEST=1
 before_install:
     - source tools/travis_tools.sh
     - virtualenv --python=python venv
