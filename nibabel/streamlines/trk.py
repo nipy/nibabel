@@ -173,289 +173,20 @@ def encode_value_in_name(value, name, max_name_len=20):
     return name
 
 
-class TrkReader(object):
-    """ Convenience class to encapsulate TRK file format.
+def create_empty_header():
+    """ Return an empty compliant TRK header. """
+    header = np.zeros(1, dtype=header_2_dtype)
 
-    Parameters
-    ----------
-    fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object
-        pointing to TRK file (and ready to read from the beginning
-        of the TRK header)
+    # Default values
+    header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
+    header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
+    header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
+    header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
+    header[Field.VOXEL_ORDER] = b"RAS"
+    header['version'] = 2
+    header['hdr_size'] = TrkFile.HEADER_SIZE
 
-    Note
-    ----
-    TrackVis (so its file format: TRK) considers the streamline coordinate
-    (0,0,0) to be in the corner of the voxel whereas NiBabel's streamlines
-    internal representation (Voxel space) assumes (0,0,0) to be in the
-    center of the voxel.
-
-    Thus, streamlines are shifted by half a voxel on load and are shifted
-    back on save.
-    """
-    def __init__(self, fileobj):
-        self.fileobj = fileobj
-
-        with Opener(self.fileobj) as f:
-            # Read the header in one block.
-            header_str = f.read(header_2_dtype.itemsize)
-            header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
-
-            # Check endianness
-            endianness = native_code
-            if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
-                endianness = swapped_code
-
-                # Swap byte order
-                header_rec = header_rec.newbyteorder()
-                if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
-                    msg = "Invalid hdr_size: {0} instead of {1}"
-                    raise HeaderError(msg.format(header_rec['hdr_size'],
-                                                 TrkFile.HEADER_SIZE))
-
-            if header_rec['version'] == 1:
-                header_rec = np.fromstring(string=header_str,
-                                           dtype=header_1_dtype)
-            elif header_rec['version'] == 2:
-                pass  # Nothing more to do.
-            else:
-                raise HeaderError('NiBabel only supports versions 1 and 2.')
-
-            # Convert the first record of `header_rec` into a dictionnary
-            self.header = dict(zip(header_rec.dtype.names, header_rec[0]))
-            self.header[Field.ENDIANNESS] = endianness
-
-            # If vox_to_ras[3][3] is 0, it means the matrix is not recorded.
-            if self.header[Field.VOXEL_TO_RASMM][3][3] == 0:
-                self.header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype=np.float32)
-                warnings.warn(("Field 'vox_to_ras' in the TRK's header was"
-                               " not recorded. Will continue assuming it's"
-                               " the identity."), HeaderWarning)
-
-            # Check that the 'vox_to_ras' affine is valid, i.e. should be
-            # able to determine the axis directions.
-            axcodes = aff2axcodes(self.header[Field.VOXEL_TO_RASMM])
-            if None in axcodes:
-                msg = ("The 'vox_to_ras' affine is invalid! Could not"
-                       " determine the axis directions from it.\n{0}"
-                       ).format(self.header[Field.VOXEL_TO_RASMM])
-                raise HeaderError(msg)
-
-            # By default, the voxel order is LPS.
-            # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
-            if self.header[Field.VOXEL_ORDER] == b"":
-                msg = ("Voxel order is not specified, will assume 'LPS' since"
-                       "it is Trackvis software's default.")
-                warnings.warn(msg, HeaderWarning)
-                self.header[Field.VOXEL_ORDER] = b"LPS"
-
-            # Keep the file position where the data begin.
-            self.offset_data = f.tell()
-
-    def __iter__(self):
-        i4_dtype = np.dtype(self.header[Field.ENDIANNESS] + "i4")
-        f4_dtype = np.dtype(self.header[Field.ENDIANNESS] + "f4")
-
-        with Opener(self.fileobj) as f:
-            start_position = f.tell()
-
-            nb_pts_and_scalars = int(3 +
-                                     self.header[Field.NB_SCALARS_PER_POINT])
-            pts_and_scalars_size = int(nb_pts_and_scalars * f4_dtype.itemsize)
-            nb_properties = self.header[Field.NB_PROPERTIES_PER_STREAMLINE]
-            properties_size = int(nb_properties * f4_dtype.itemsize)
-
-            # Set the file position at the beginning of the data.
-            f.seek(self.offset_data, os.SEEK_SET)
-
-            # If 'count' field is 0, i.e. not provided, we have to loop
-            # until the EOF.
-            nb_streamlines = self.header[Field.NB_STREAMLINES]
-            if nb_streamlines == 0:
-                nb_streamlines = np.inf
-
-            count = 0
-            nb_pts_dtype = i4_dtype.str[:-1]
-            while count < nb_streamlines:
-                nb_pts_str = f.read(i4_dtype.itemsize)
-
-                # Check if we reached EOF
-                if len(nb_pts_str) == 0:
-                    break
-
-                # Read number of points of the next streamline.
-                nb_pts = struct.unpack(nb_pts_dtype, nb_pts_str)[0]
-
-                # Read streamline's data
-                points_and_scalars = np.ndarray(
-                    shape=(nb_pts, nb_pts_and_scalars),
-                    dtype=f4_dtype,
-                    buffer=f.read(nb_pts * pts_and_scalars_size))
-
-                points = points_and_scalars[:, :3]
-                scalars = points_and_scalars[:, 3:]
-
-                # Read properties
-                properties = np.ndarray(
-                    shape=(nb_properties,),
-                    dtype=f4_dtype,
-                    buffer=f.read(properties_size))
-
-                yield points, scalars, properties
-                count += 1
-
-            # In case the 'count' field was not provided.
-            self.header[Field.NB_STREAMLINES] = count
-
-            # Set the file position where it was (in case it was already open).
-            f.seek(start_position, os.SEEK_CUR)
-
-
-class TrkWriter(object):
-    @classmethod
-    def create_empty_header(cls):
-        """ Return an empty compliant TRK header. """
-        header = np.zeros(1, dtype=header_2_dtype)
-
-        # Default values
-        header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
-        header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
-        header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
-        header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
-        header[Field.VOXEL_ORDER] = b"RAS"
-        header['version'] = 2
-        header['hdr_size'] = TrkFile.HEADER_SIZE
-
-        return header
-
-    def __init__(self, fileobj, header):
-        self.header = self.create_empty_header()
-
-        # Override hdr's fields by those contained in `header`.
-        for k, v in header.items():
-            if k in header_2_dtype.fields.keys():
-                self.header[k] = v
-
-        # By default, the voxel order is LPS.
-        # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
-        if self.header[Field.VOXEL_ORDER] == b"":
-            self.header[Field.VOXEL_ORDER] = b"LPS"
-
-        # Keep counts for correcting incoherent fields or warn.
-        self.nb_streamlines = 0
-        self.nb_points = 0
-        self.nb_scalars = 0
-        self.nb_properties = 0
-
-        # Write header
-        self.header = self.header[0]
-        self.file = Opener(fileobj, mode="wb")
-        # Keep track of the beginning of the header.
-        self.beginning = self.file.tell()
-
-        self.file.write(self.header.tostring())
-
-    def write(self, tractogram):
-        i4_dtype = np.dtype("<i4")  # Always save in little-endian.
-        f4_dtype = np.dtype("<f4")  # Always save in little-endian.
-
-        try:
-            first_item = next(iter(tractogram))
-        except StopIteration:
-            # Empty tractogram
-            self.header[Field.NB_STREAMLINES] = 0
-            self.header[Field.NB_SCALARS_PER_POINT] = 0
-            self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = 0
-            # Overwrite header with updated one.
-            self.file.seek(self.beginning, os.SEEK_SET)
-            self.file.write(self.header.tostring())
-            return
-
-        # Update field 'property_name' using 'tractogram.data_per_streamline'.
-        data_for_streamline = first_item.data_for_streamline
-        if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
-            msg = ("Can only store {0} named data_per_streamline (also known"
-                   " as 'properties' in the TRK format)."
-                   ).format(MAX_NB_NAMED_SCALARS_PER_POINT)
-            raise ValueError(msg)
-
-        data_for_streamline_keys = sorted(data_for_streamline.keys())
-        property_name = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
-                                 dtype='S20')
-        for i, name in enumerate(data_for_streamline_keys):
-            # Use the last to bytes of the name to store the number of values
-            # associated to this data_for_streamline.
-            nb_values = data_for_streamline[name].shape[-1]
-            property_name[i] = encode_value_in_name(nb_values, name)
-        self.header['property_name'][:] = property_name
-
-        # Update field 'scalar_name' using 'tractogram.data_per_point'.
-        data_for_points = first_item.data_for_points
-        if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
-            raise ValueError(("Can only store {0} named data_per_point (also"
-                              " known as 'scalars' in the TRK format)."
-                              ).format(MAX_NB_NAMED_SCALARS_PER_POINT))
-
-        data_for_points_keys = sorted(data_for_points.keys())
-        scalar_name = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
-        for i, name in enumerate(data_for_points_keys):
-            # Use the last two bytes of the name to store the number of values
-            # associated to this data_for_streamline.
-            nb_values = data_for_points[name].shape[-1]
-            scalar_name[i] = encode_value_in_name(nb_values, name)
-        self.header['scalar_name'][:] = scalar_name
-
-        # Make sure streamlines are in rasmm then send them to voxmm.
-        tractogram = tractogram.to_world(lazy=True)
-        affine_to_trackvis = get_affine_rasmm_to_trackvis(self.header)
-        tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
-
-        for t in tractogram:
-            if any((len(d) != len(t.streamline)
-                    for d in t.data_for_points.values())):
-                raise DataError("Missing scalars for some points!")
-
-            points = np.asarray(t.streamline, dtype=f4_dtype)
-            scalars = [np.asarray(t.data_for_points[k], dtype=f4_dtype)
-                       for k in data_for_points_keys]
-            scalars = np.concatenate([np.ndarray((len(points), 0),
-                                                 dtype=f4_dtype)
-                                      ] + scalars, axis=1)
-            properties = [np.asarray(t.data_for_streamline[k], dtype=f4_dtype)
-                          for k in data_for_streamline_keys]
-            properties = np.concatenate([np.array([], dtype=f4_dtype)
-                                         ] + properties)
-
-            data = struct.pack(i4_dtype.str[:-1], len(points))
-            data += np.concatenate([points, scalars], axis=1).tostring()
-            data += properties.tostring()
-            self.file.write(data)
-
-            self.nb_streamlines += 1
-            self.nb_points += len(points)
-            self.nb_scalars += scalars.size
-            self.nb_properties += len(properties)
-
-        # Use those values to update the header.
-        nb_scalars_per_point = self.nb_scalars / self.nb_points
-        nb_properties_per_streamline = self.nb_properties / self.nb_streamlines
-
-        # Check for errors
-        if nb_scalars_per_point != int(nb_scalars_per_point):
-            msg = "Nb. of scalars differs from one point to another!"
-            raise DataError(msg)
-
-        if nb_properties_per_streamline != int(nb_properties_per_streamline):
-            msg = "Nb. of properties differs from one streamline to another!"
-            raise DataError(msg)
-
-        self.header[Field.NB_STREAMLINES] = self.nb_streamlines
-        self.header[Field.NB_SCALARS_PER_POINT] = nb_scalars_per_point
-        self.header[Field.NB_PROPERTIES_PER_STREAMLINE] = nb_properties_per_streamline
-
-        # Overwrite header with updated one.
-        self.file.seek(self.beginning, os.SEEK_SET)
-        self.file.write(self.header.tostring())
+    return header
 
 
 class TrkFile(TractogramFile):
@@ -495,7 +226,7 @@ class TrkFile(TractogramFile):
         of the voxel.
         """
         if header is None:
-            header_rec = TrkWriter.create_empty_header()
+            header_rec = create_empty_header()
             header = dict(zip(header_rec.dtype.names, header_rec[0]))
 
         super(TrkFile, self).__init__(tractogram, header)
@@ -533,7 +264,8 @@ class TrkFile(TractogramFile):
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
-            of the TRK header).
+            of the TRK header). Note that calling this function
+            does not change the file position.
         lazy_load : {False, True}, optional
             If True, load streamlines in a lazy manner i.e. they will not be
             kept in memory. Otherwise, load all streamlines in memory.
@@ -550,8 +282,7 @@ class TrkFile(TractogramFile):
         and *mm* space where coordinate (0,0,0) refers to the center of the
         voxel.
         """
-        trk_reader = TrkReader(fileobj)
-        hdr = trk_reader.header
+        hdr = cls._read_header(fileobj)
 
         # Find scalars and properties name
         data_per_point_slice = {}
@@ -603,7 +334,7 @@ class TrkFile(TractogramFile):
 
         if lazy_load:
             def _read():
-                for pts, scals, props in trk_reader:
+                for pts, scals, props in cls._read(fileobj, hdr):
                     items = data_per_point_slice.items()
                     data_for_points = dict((k, scals[:, v]) for k, v in items)
                     items = data_per_streamline_slice.items()
@@ -615,6 +346,7 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.create_from(_read)
 
         else:
+            trk_reader = cls._read(fileobj, hdr)
             arr_seqs = create_arraysequences_from_generator(trk_reader, n=3)
             streamlines, scalars, properties = arr_seqs
             properties = np.asarray(properties)  # Actually a 2d array.
@@ -641,8 +373,293 @@ class TrkFile(TractogramFile):
             pointing to TRK file (and ready to read from the beginning
             of the TRK header data).
         """
-        trk_writer = TrkWriter(fileobj, self.header)
-        trk_writer.write(self.tractogram)
+        header = create_empty_header()
+
+        # Override hdr's fields by those contained in `header`.
+        for k, v in self.header.items():
+            if k in header_2_dtype.fields.keys():
+                header[k] = v
+
+        # By default, the voxel order is LPS.
+        # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
+        if header[Field.VOXEL_ORDER] == b"":
+            header[Field.VOXEL_ORDER] = b"LPS"
+
+        # Keep counts for correcting incoherent fields or warn.
+        nb_streamlines = 0
+        nb_points = 0
+        nb_scalars = 0
+        nb_properties = 0
+
+        header = header[0]
+        with Opener(fileobj, mode="wb") as f:
+            # Keep track of the beginning of the header.
+            beginning = f.tell()
+
+            f.write(header.tostring())
+
+            i4_dtype = np.dtype("<i4")  # Always save in little-endian.
+            f4_dtype = np.dtype("<f4")  # Always save in little-endian.
+
+            try:
+                first_item = next(iter(self.tractogram))
+            except StopIteration:
+                # Empty tractogram
+                header[Field.NB_STREAMLINES] = 0
+                header[Field.NB_SCALARS_PER_POINT] = 0
+                header[Field.NB_PROPERTIES_PER_STREAMLINE] = 0
+                # Overwrite header with updated one.
+                f.seek(beginning, os.SEEK_SET)
+                f.write(header.tostring())
+                return
+
+            # Update field 'property_name' using 'data_per_streamline'.
+            data_for_streamline = first_item.data_for_streamline
+            if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
+                msg = ("Can only store {0} named data_per_streamline (also"
+                       " known as 'properties' in the TRK format)."
+                       ).format(MAX_NB_NAMED_SCALARS_PER_POINT)
+                raise ValueError(msg)
+
+            data_for_streamline_keys = sorted(data_for_streamline.keys())
+            property_name = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
+                                     dtype='S20')
+            for i, name in enumerate(data_for_streamline_keys):
+                # Use the last to bytes of the name to store the number of
+                # values associated to this data_for_streamline.
+                nb_values = data_for_streamline[name].shape[-1]
+                property_name[i] = encode_value_in_name(nb_values, name)
+            header['property_name'][:] = property_name
+
+            # Update field 'scalar_name' using 'tractogram.data_per_point'.
+            data_for_points = first_item.data_for_points
+            if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
+                msg = ("Can only store {0} named data_per_point (also known"
+                       " as 'scalars' in the TRK format)."
+                       ).format(MAX_NB_NAMED_SCALARS_PER_POINT)
+                raise ValueError(msg)
+
+            data_for_points_keys = sorted(data_for_points.keys())
+            scalar_name = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
+            for i, name in enumerate(data_for_points_keys):
+                # Use the last two bytes of the name to store the number of
+                # values associated to this data_for_streamline.
+                nb_values = data_for_points[name].shape[-1]
+                scalar_name[i] = encode_value_in_name(nb_values, name)
+            header['scalar_name'][:] = scalar_name
+
+            # Make sure streamlines are in rasmm then send them to voxmm.
+            tractogram = self.tractogram.to_world(lazy=True)
+            affine_to_trackvis = get_affine_rasmm_to_trackvis(header)
+            tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
+
+            for t in tractogram:
+                if any((len(d) != len(t.streamline)
+                        for d in t.data_for_points.values())):
+                    raise DataError("Missing scalars for some points!")
+
+                points = np.asarray(t.streamline, dtype=f4_dtype)
+                scalars = [np.asarray(t.data_for_points[k], dtype=f4_dtype)
+                           for k in data_for_points_keys]
+                scalars = np.concatenate([np.ndarray((len(points), 0),
+                                                     dtype=f4_dtype)
+                                          ] + scalars, axis=1)
+                properties = [np.asarray(t.data_for_streamline[k],
+                                         dtype=f4_dtype)
+                              for k in data_for_streamline_keys]
+                properties = np.concatenate([np.array([], dtype=f4_dtype)
+                                             ] + properties)
+
+                data = struct.pack(i4_dtype.str[:-1], len(points))
+                data += np.concatenate([points, scalars], axis=1).tostring()
+                data += properties.tostring()
+                f.write(data)
+
+                nb_streamlines += 1
+                nb_points += len(points)
+                nb_scalars += scalars.size
+                nb_properties += len(properties)
+
+            # Use those values to update the header.
+            nb_scalars_per_point = nb_scalars / nb_points
+            nb_properties_per_streamline = nb_properties / nb_streamlines
+
+            # Check for errors
+            if nb_scalars_per_point != int(nb_scalars_per_point):
+                msg = "Nb. of scalars differs from one point to another!"
+                raise DataError(msg)
+
+            if nb_properties_per_streamline != int(nb_properties_per_streamline):
+                msg = ("Nb. of properties differs from one streamline to"
+                       " another!")
+                raise DataError(msg)
+
+            header[Field.NB_STREAMLINES] = nb_streamlines
+            header[Field.NB_SCALARS_PER_POINT] = nb_scalars_per_point
+            header[Field.NB_PROPERTIES_PER_STREAMLINE] = nb_properties_per_streamline
+
+            # Overwrite header with updated one.
+            f.seek(beginning, os.SEEK_SET)
+            f.write(header.tostring())
+
+    @staticmethod
+    def _read_header(fileobj):
+        """ Reads a TRK header from a file.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header). Note that calling this function
+            does not change the file position.
+
+        Returns
+        -------
+        header : dict
+            Metadata associated to this tractogram file.
+        """
+        with Opener(fileobj) as f:
+            start_position = f.tell()
+
+            # Read the header in one block.
+            header_str = f.read(header_2_dtype.itemsize)
+            header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
+
+            # Check endianness
+            endianness = native_code
+            if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
+                endianness = swapped_code
+
+                # Swap byte order
+                header_rec = header_rec.newbyteorder()
+                if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
+                    msg = "Invalid hdr_size: {0} instead of {1}"
+                    raise HeaderError(msg.format(header_rec['hdr_size'],
+                                                 TrkFile.HEADER_SIZE))
+
+            if header_rec['version'] == 1:
+                header_rec = np.fromstring(string=header_str,
+                                           dtype=header_1_dtype)
+            elif header_rec['version'] == 2:
+                pass  # Nothing more to do.
+            else:
+                raise HeaderError('NiBabel only supports versions 1 and 2.')
+
+            # Convert the first record of `header_rec` into a dictionnary
+            header = dict(zip(header_rec.dtype.names, header_rec[0]))
+            header[Field.ENDIANNESS] = endianness
+
+            # If vox_to_ras[3][3] is 0, it means the matrix is not recorded.
+            if header[Field.VOXEL_TO_RASMM][3][3] == 0:
+                header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype=np.float32)
+                warnings.warn(("Field 'vox_to_ras' in the TRK's header was"
+                               " not recorded. Will continue assuming it's"
+                               " the identity."), HeaderWarning)
+
+            # Check that the 'vox_to_ras' affine is valid, i.e. should be
+            # able to determine the axis directions.
+            axcodes = aff2axcodes(header[Field.VOXEL_TO_RASMM])
+            if None in axcodes:
+                msg = ("The 'vox_to_ras' affine is invalid! Could not"
+                       " determine the axis directions from it.\n{0}"
+                       ).format(header[Field.VOXEL_TO_RASMM])
+                raise HeaderError(msg)
+
+            # By default, the voxel order is LPS.
+            # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
+            if header[Field.VOXEL_ORDER] == b"":
+                msg = ("Voxel order is not specified, will assume 'LPS' since"
+                       "it is Trackvis software's default.")
+                warnings.warn(msg, HeaderWarning)
+                header[Field.VOXEL_ORDER] = b"LPS"
+
+            # Keep the file position where the data begin.
+            header['_offset_data'] = f.tell()
+
+            # Set the file position where it was (in case it was already open).
+            f.seek(start_position, os.SEEK_CUR)
+
+            return header
+
+    @staticmethod
+    def _read(fileobj, header):
+        """ Reads TRK data from a file.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TRK file (and ready to read from the beginning
+            of the TRK header). Note that calling this function
+            does not change the file position.
+        header : dict
+            Metadata associated to this tractogram file.
+
+        Yields
+        ------
+        data : tuple of ndarrays
+            Streamline data: points, scalars, properties.
+            points: ndarray of shape (n_pts, 3)
+            scalars: ndarray of shape (n_pts, nb_scalars_per_per_point)
+            properties: ndarray of shape (nb_properties_per_per_point,)
+        """
+        i4_dtype = np.dtype(header[Field.ENDIANNESS] + "i4")
+        f4_dtype = np.dtype(header[Field.ENDIANNESS] + "f4")
+
+        with Opener(fileobj) as f:
+            start_position = f.tell()
+
+            nb_pts_and_scalars = int(3 +
+                                     header[Field.NB_SCALARS_PER_POINT])
+            pts_and_scalars_size = int(nb_pts_and_scalars * f4_dtype.itemsize)
+            nb_properties = header[Field.NB_PROPERTIES_PER_STREAMLINE]
+            properties_size = int(nb_properties * f4_dtype.itemsize)
+
+            # Set the file position at the beginning of the data.
+            f.seek(header["_offset_data"], os.SEEK_SET)
+
+            # If 'count' field is 0, i.e. not provided, we have to loop
+            # until the EOF.
+            nb_streamlines = header[Field.NB_STREAMLINES]
+            if nb_streamlines == 0:
+                nb_streamlines = np.inf
+
+            count = 0
+            nb_pts_dtype = i4_dtype.str[:-1]
+            while count < nb_streamlines:
+                nb_pts_str = f.read(i4_dtype.itemsize)
+
+                # Check if we reached EOF
+                if len(nb_pts_str) == 0:
+                    break
+
+                # Read number of points of the next streamline.
+                nb_pts = struct.unpack(nb_pts_dtype, nb_pts_str)[0]
+
+                # Read streamline's data
+                points_and_scalars = np.ndarray(
+                    shape=(nb_pts, nb_pts_and_scalars),
+                    dtype=f4_dtype,
+                    buffer=f.read(nb_pts * pts_and_scalars_size))
+
+                points = points_and_scalars[:, :3]
+                scalars = points_and_scalars[:, 3:]
+
+                # Read properties
+                properties = np.ndarray(
+                    shape=(nb_properties,),
+                    dtype=f4_dtype,
+                    buffer=f.read(properties_size))
+
+                yield points, scalars, properties
+                count += 1
+
+            # In case the 'count' field was not provided.
+            header[Field.NB_STREAMLINES] = count
+
+            # Set the file position where it was (in case it was already open).
+            f.seek(start_position, os.SEEK_CUR)
 
     def __str__(self):
         """ Gets a formatted string of the header of a TRK file.
