@@ -53,8 +53,9 @@ def setup():
                                    'mean_torsion': DATA['mean_torsion'],
                                    'mean_colors': DATA['mean_colors']}
 
-    DATA['empty_tractogram'] = Tractogram()
-    DATA['simple_tractogram'] = Tractogram(DATA['streamlines'])
+    DATA['empty_tractogram'] = Tractogram(affine_to_rasmm=np.eye(4))
+    DATA['simple_tractogram'] = Tractogram(DATA['streamlines'],
+                                           affine_to_rasmm=np.eye(4))
     DATA['tractogram'] = Tractogram(DATA['streamlines'],
                                     DATA['data_per_streamline'],
                                     DATA['data_per_point'],
