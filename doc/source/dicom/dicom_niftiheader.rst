@@ -70,4 +70,4 @@ Optional Dependency Note: If pydicom is not installed, nibabel uses a generic
 
 .. _`NIfTI Extensions Standard`: http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html
 
-.. include:: links_names.txt
+.. include:: ../links_names.txt
