@@ -334,6 +334,26 @@ class TestTractogram(unittest.TestCase):
         assert_raises(ValueError, Tractogram, DATA['streamlines'],
                       data_per_point=data_per_point)
 
+    def test_setting_affine_to_rasmm(self):
+        tractogram = DATA['tractogram'].copy()
+        affine = np.diag(range(4))
+
+        # Test assigning None.
+        tractogram.affine_to_rasmm = None
+        assert_true(tractogram.affine_to_rasmm is None)
+
+        # Test assigning a valid ndarray (should make a copy).
+        tractogram.affine_to_rasmm = affine
+        assert_true(tractogram.affine_to_rasmm is not affine)
+
+        # Test assigning a list of lists.
+        tractogram.affine_to_rasmm = affine.tolist()
+        assert_array_equal(tractogram.affine_to_rasmm, affine)
+
+        # Test assigning a ndarray with wrong shape.
+        assert_raises(ValueError, setattr, tractogram,
+                      "affine_to_rasmm", affine[::2])
+
     def test_tractogram_getitem(self):
         # Retrieve TractogramItem by their index.
         for i, t in enumerate(DATA['tractogram']):
@@ -480,6 +500,12 @@ class TestTractogram(unittest.TestCase):
         tractogram.apply_affine(affine)
         tractogram.apply_affine(np.linalg.inv(affine))
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
+            assert_array_almost_equal(s1, s2)
+
+        # Test applying the identity transformation.
+        tractogram = DATA['tractogram'].copy()
+        tractogram.apply_affine(np.eye(4))
         for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 

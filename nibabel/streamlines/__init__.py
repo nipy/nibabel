@@ -70,7 +70,8 @@ def load(fileobj, lazy_load=False):
         of the streamlines file's header).
     lazy_load : {False, True}, optional
         If True, load streamlines in a lazy manner i.e. they will not be kept
-        in memory. Otherwise, load all streamlines in memory.
+        in memory and only be loaded when needed.
+        Otherwise, load all streamlines in memory.
 
     Returns
     -------

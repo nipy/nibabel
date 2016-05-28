@@ -188,7 +188,7 @@ class TractogramItem(object):
         where N is the number of points.
     data_for_streamline : dict
         Dictionary containing some data associated to this particular
-        streamline. Each key `k` is mapped to a ndarray of shape (Pk,), where
+        streamline. Each key `k` is mapped to a ndarray of shape (Pt,), where
         `Pt` is the dimension of the data associated with key `k`.
     data_for_points : dict
         Dictionary containing some data associated to each point of this
@@ -225,17 +225,17 @@ class Tractogram(object):
         streamline $t$.
     data_per_streamline : :class:`PerArrayDict` object
         Dictionary where the items are (str, 2D array).
-        Each key represents an information $i$ to be kept along side every
+        Each key represents an information $i$ to be kept alongside every
         streamline, and its associated value is a 2D array of shape
         ($T$, $P_i$) where $T$ is the number of streamlines and $P_i$ is
-        the number scalar values to store for that particular information $i$.
+        the number of values to store for that particular information $i$.
     data_per_point : :class:`PerArraySequenceDict` object
         Dictionary where the items are (str, :class:`ArraySequence`).
-        Each key represents an information $i$ to be kept along side every
+        Each key represents an information $i$ to be kept alongside every
         point of every streamline, and its associated value is an iterable
         of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
         points for a particular streamline $t$ and $M_i$ is the number
-        scalar values to store for that particular information $i$.
+        values to store for that particular information $i$.
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -250,13 +250,13 @@ class Tractogram(object):
             streamline $t$.
         data_per_streamline : dict of iterable of ndarrays, optional
             Dictionary where the items are (str, iterable).
-            Each key represents an information $i$ to be kept along side every
+            Each key represents an information $i$ to be kept alongside every
             streamline, and its associated value is an iterable of ndarrays of
-            shape ($P_i$,) where $P_i$ is the number scalar values to store
+            shape ($P_i$,) where $P_i$ is the number of scalar values to store
             for that particular information $i$.
         data_per_point : dict of iterable of ndarrays, optional
             Dictionary where the items are (str, iterable).
-            Each key represents an information $i$ to be kept along side every
+            Each key represents an information $i$ to be kept alongside every
             point of every streamline, and its associated value is an iterable
             of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
             points for a particular streamline $t$ and $M_i$ is the number
@@ -303,6 +303,13 @@ class Tractogram(object):
 
     @affine_to_rasmm.setter
     def affine_to_rasmm(self, value):
+        if value is not None:
+            value = np.array(value)
+            if value.shape != (4, 4):
+                msg = ("Affine matrix has a shape of (4, 4) but a ndarray with"
+                       "shape {} was provided instead.").format(value.shape)
+                raise ValueError(msg)
+
         self._affine_to_rasmm = value
 
     def __iter__(self):
@@ -362,6 +369,9 @@ class Tractogram(object):
         if len(self.streamlines) == 0:
             return self
 
+        if np.all(affine == np.eye(4)):
+            return self  # No transformation.
+
         BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
         for start in range(0, len(self.streamlines.data), BUFFER_SIZE):
             end = start + BUFFER_SIZE
@@ -408,7 +418,7 @@ class LazyTractogram(Tractogram):
 
     This container behaves lazily as it uses generator functions to manage
     streamlines and their data information. This container is thus memory
-    friendly since it doesn't require having all those data loaded in memory.
+    friendly since it doesn't require having all this data loaded in memory.
 
     Streamlines of a lazy tractogram can be in any coordinate system of your
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
@@ -424,23 +434,26 @@ class LazyTractogram(Tractogram):
         streamline $t$.
     data_per_streamline : :class:`LazyDict` object
         Dictionary where the items are (str, instantiated generator).
-        Each key represents an information $i$ to be kept along side every
+        Each key represents an information $i$ to be kept alongside every
         streamline, and its associated value is a generator function
         yielding that information via ndarrays of shape ($P_i$,) where
-        $P_i$ is the number scalar values to store for that particular
+        $P_i$ is the number of values to store for that particular
         information $i$.
     data_per_point : :class:`LazyDict` object
         Dictionary where the items are (str, instantiated generator).
-        Each key represents an information $i$ to be kept along side every
+        Each key represents an information $i$ to be kept alongside every
         point of every streamline, and its associated value is a generator
         function yielding that information via ndarrays of shape
         ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
-        streamline $t$ and $M_i$ is the number scalar values to store for
+        streamline $t$ and $M_i$ is the number of values to store for
         that particular information $i$.
 
     Notes
     -----
     LazyTractogram objects do not support indexing currently.
+    LazyTractogram objects are suited for operations that can be linearized
+    such as applying an affine transformation or converting streamlines from
+    one file format to another.
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -455,18 +468,18 @@ class LazyTractogram(Tractogram):
             streamline $t$.
         data_per_streamline : dict of generator functions, optional
             Dictionary where the items are (str, generator function).
-            Each key represents an information $i$ to be kept along side every
+            Each key represents an information $i$ to be kept alongside every
             streamline, and its associated value is a generator function
             yielding that information via ndarrays of shape ($P_i$,) where
-            $P_i$ is the number scalar values to store for that particular
+            $P_i$ is the number of values to store for that particular
             information $i$.
         data_per_point : dict of generator functions, optional
             Dictionary where the items are (str, generator function).
-            Each key represents an information $i$ to be kept along side every
+            Each key represents an information $i$ to be kept alongside every
             point of every streamline, and its associated value is a generator
             function yielding that information via ndarrays of shape
             ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
-            streamline $t$ and $M_i$ is the number scalar values to store for
+            streamline $t$ and $M_i$ is the number of values to store for
             that particular information $i$.
         affine_to_rasmm : ndarray of shape (4, 4) or None, optional
             Transformation matrix that brings the streamlines contained in
@@ -525,7 +538,7 @@ class LazyTractogram(Tractogram):
         Parameters
         ----------
         data_func : generator function yielding :class:`TractogramItem` objects
-            Generator function that whenever it is called starts yielding
+            Generator function that whenever is called starts yielding
             :class:`TractogramItem` objects that will be used to instantiate a
             :class:`LazyTractogram`.
 
@@ -650,9 +663,7 @@ class LazyTractogram(Tractogram):
             warn("Number of streamlines will be determined manually by looping"
                  " through the streamlines. If you know the actual number of"
                  " streamlines, you might want to set it beforehand via"
-                 " `self.header.nb_streamlines`."
-                 " Note this will consume any generators used to create this"
-                 " `LazyTractogram` object.", Warning)
+                 " `self.header.nb_streamlines`.", Warning)
             # Count the number of streamlines.
             self._nb_streamlines = sum(1 for _ in self.streamlines)
 
