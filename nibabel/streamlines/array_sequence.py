@@ -80,67 +80,6 @@ class ArraySequence(object):
 
         coroutine.close()  # Terminate coroutine.
 
-    def _extend_using_coroutine(self, buffer_size=4):
-        """ Creates a coroutine allowing to append elements.
-
-        Parameters
-        ----------
-        buffer_size : float, optional
-            Size (in Mb) for memory pre-allocation.
-
-        Returns
-        -------
-        coroutine
-            Coroutine object which expects the values to be appended to this
-            array sequence.
-
-        Notes
-        -----
-        This method is essential for
-        :func:`create_arraysequences_from_generator` as it allows for an
-        efficient way of creating multiple array sequences in a hyperthreaded
-        fashion and still benefit from the memory buffering. Whitout this
-        method the alternative would be to use :meth:`append` which does
-        not have such buffering mechanism and thus is at least one order of
-        magnitude slower.
-        """
-        offsets = []
-        lengths = []
-
-        offset = 0 if len(self) == 0 else self._offsets[-1] + self._lengths[-1]
-        try:
-            first_element = True
-            while True:
-                e = (yield)
-                e = np.asarray(e)
-                if first_element:
-                    first_element = False
-                    n_rows_buffer = int(buffer_size * 1024**2 // e.nbytes)
-                    new_shape = (n_rows_buffer,) + e.shape[1:]
-                    if len(self) == 0:
-                        self._data = np.empty(new_shape, dtype=e.dtype)
-
-                end = offset + len(e)
-                if end > len(self._data):
-                    # Resize needed, adding `len(e)` items plus some buffer.
-                    nb_points = len(self._data)
-                    nb_points += len(e) + n_rows_buffer
-                    self._data.resize((nb_points,) + self.common_shape)
-
-                offsets.append(offset)
-                lengths.append(len(e))
-                self._data[offset:offset + len(e)] = e
-                offset += len(e)
-
-        except GeneratorExit:
-            pass
-
-        self._offsets = np.concatenate([self._offsets, offsets], axis=0)
-        self._lengths = np.concatenate([self._lengths, lengths], axis=0)
-
-        # Clear unused memory.
-        self._data.resize((offset,) + self.common_shape)
-
     @property
     def is_array_sequence(self):
         return True
@@ -237,6 +176,67 @@ class ArraySequence(object):
 
         self._lengths = np.r_[self._lengths, elements._lengths]
         self._offsets = np.r_[self._offsets, offsets]
+
+    def _extend_using_coroutine(self, buffer_size=4):
+        """ Creates a coroutine allowing to append elements.
+
+        Parameters
+        ----------
+        buffer_size : float, optional
+            Size (in Mb) for memory pre-allocation.
+
+        Returns
+        -------
+        coroutine
+            Coroutine object which expects the values to be appended to this
+            array sequence.
+
+        Notes
+        -----
+        This method is essential for
+        :func:`create_arraysequences_from_generator` as it allows for an
+        efficient way of creating multiple array sequences in a hyperthreaded
+        fashion and still benefit from the memory buffering. Whitout this
+        method the alternative would be to use :meth:`append` which does
+        not have such buffering mechanism and thus is at least one order of
+        magnitude slower.
+        """
+        offsets = []
+        lengths = []
+
+        offset = 0 if len(self) == 0 else self._offsets[-1] + self._lengths[-1]
+        try:
+            first_element = True
+            while True:
+                e = (yield)
+                e = np.asarray(e)
+                if first_element:
+                    first_element = False
+                    n_rows_buffer = int(buffer_size * 1024**2 // e.nbytes)
+                    new_shape = (n_rows_buffer,) + e.shape[1:]
+                    if len(self) == 0:
+                        self._data = np.empty(new_shape, dtype=e.dtype)
+
+                end = offset + len(e)
+                if end > len(self._data):
+                    # Resize needed, adding `len(e)` items plus some buffer.
+                    nb_points = len(self._data)
+                    nb_points += len(e) + n_rows_buffer
+                    self._data.resize((nb_points,) + self.common_shape)
+
+                offsets.append(offset)
+                lengths.append(len(e))
+                self._data[offset:offset + len(e)] = e
+                offset += len(e)
+
+        except GeneratorExit:
+            pass
+
+        self._offsets = np.r_[self._offsets, offsets].astype(np.intp)
+        self._lengths = np.r_[self._lengths, lengths].astype(np.intp)
+
+        # Clear unused memory.
+        self._data.resize((offset,) + self.common_shape)
 
     def copy(self):
         """ Creates a copy of this :class:`ArraySequence` object.

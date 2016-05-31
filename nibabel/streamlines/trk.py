@@ -601,8 +601,8 @@ class TrkFile(TractogramFile):
         data : tuple of ndarrays
             Streamline data: points, scalars, properties.
             points: ndarray of shape (n_pts, 3)
-            scalars: ndarray of shape (n_pts, nb_scalars_per_per_point)
-            properties: ndarray of shape (nb_properties_per_per_point,)
+            scalars: ndarray of shape (n_pts, nb_scalars_per_point)
+            properties: ndarray of shape (nb_properties_per_point,)
         """
         i4_dtype = np.dtype(header[Field.ENDIANNESS] + "i4")
         f4_dtype = np.dtype(header[Field.ENDIANNESS] + "f4")
@@ -663,13 +663,6 @@ class TrkFile(TractogramFile):
 
     def __str__(self):
         """ Gets a formatted string of the header of a TRK file.
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TRK file (and ready to read from the beginning
-            of the header).
 
         Returns
         -------
