@@ -200,6 +200,37 @@ class TestArraySequence(unittest.TestCase):
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
         assert_raises(ValueError, seq.extend, data)
 
+    def test_arraysequence_extend_using_coroutine(self):
+        new_data = generate_data(nb_arrays=10,
+                                 common_shape=SEQ_DATA['seq'].common_shape,
+                                 rng=SEQ_DATA['rng'])
+
+        # Extend with an empty list.
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+        coroutine = seq._extend_using_coroutine()
+        coroutine.send(None)
+        coroutine.close()
+        check_arr_seq(seq, SEQ_DATA['data'])
+
+        # Extend with a list of ndarrays.
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+        coroutine = seq._extend_using_coroutine()
+        coroutine.send(None)
+        for e in new_data:
+            coroutine.send(e)
+        coroutine.close()
+        check_arr_seq(seq, SEQ_DATA['data'] + new_data)
+
+        # Extend with elements of different shape.
+        data = generate_data(nb_arrays=10,
+                             common_shape=SEQ_DATA['seq'].common_shape*2,
+                             rng=SEQ_DATA['rng'])
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+
+        coroutine = seq._extend_using_coroutine()
+        coroutine.send(None)
+        assert_raises(ValueError, coroutine.send, data[0])
+
     def test_arraysequence_getitem(self):
         # Get one item
         for i, e in enumerate(SEQ_DATA['seq']):

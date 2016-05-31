@@ -425,7 +425,7 @@ class TrkFile(TractogramFile):
             property_name = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
                                      dtype='S20')
             for i, name in enumerate(data_for_streamline_keys):
-                # Use the last to bytes of the name to store the number of
+                # Use the last two bytes of the name to store the number of
                 # values associated to this data_for_streamline.
                 nb_values = data_for_streamline[name].shape[-1]
                 property_name[i] = encode_value_in_name(nb_values, name)

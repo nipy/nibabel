@@ -60,40 +60,83 @@ class ArraySequence(object):
             self._is_view = True
             return
 
-        # Add elements of the iterable.
+        try:
+            # If possible try pre-allocating memory.
+            if len(iterable) > 0:
+                first_element = np.asarray(iterable[0])
+                n_elements = np.sum([len(iterable[i])
+                                     for i in range(len(iterable))])
+                new_shape = (n_elements,) + first_element.shape[1:]
+                self._data = np.empty(new_shape, dtype=first_element.dtype)
+        except TypeError:
+            pass
+
+        # Initialize the `ArraySequence` object from iterable's item.
+        coroutine = self._extend_using_coroutine()
+        coroutine.send(None)  # Run until the first yield.
+
+        for e in iterable:
+            coroutine.send(e)
+
+        coroutine.close()  # Terminate coroutine.
+
+    def _extend_using_coroutine(self, buffer_size=4):
+        """ Creates a coroutine allowing to append elements.
+
+        Parameters
+        ----------
+        buffer_size : float, optional
+            Size (in Mb) for memory pre-allocation.
+
+        Returns
+        -------
+        coroutine
+            Coroutine object which expects the values to be appended to this
+            array sequence.
+
+        Notes
+        -----
+        This method is essential for
+        :func:`create_arraysequences_from_generator` as it allows for an
+        efficient way of creating multiple array sequences in a hyperthreaded
+        fashion and still benefit from the memory buffering. Whitout this
+        method the alternative would be to use :meth:`append` which does
+        not have such buffering mechanism and thus is at least one order of
+        magnitude slower.
+        """
         offsets = []
         lengths = []
-        # Initialize the `ArraySequence` object from iterable's item.
-        offset = 0
-        for i, e in enumerate(iterable):
-            e = np.asarray(e)
-            if i == 0:
-                try:
-                    n_elements = np.sum([len(iterable[i])
-                                         for i in range(len(iterable))])
-                    new_shape = (n_elements,) + e.shape[1:]
-                except TypeError:
-                    # Can't get the number of elements in iterable. So,
-                    # we use a memory buffer while building the ArraySequence.
+
+        offset = 0 if len(self) == 0 else self._offsets[-1] + self._lengths[-1]
+        try:
+            first_element = True
+            while True:
+                e = (yield)
+                e = np.asarray(e)
+                if first_element:
+                    first_element = False
                     n_rows_buffer = int(buffer_size * 1024**2 // e.nbytes)
                     new_shape = (n_rows_buffer,) + e.shape[1:]
+                    if len(self) == 0:
+                        self._data = np.empty(new_shape, dtype=e.dtype)
 
-                self._data = np.empty(new_shape, dtype=e.dtype)
+                end = offset + len(e)
+                if end > len(self._data):
+                    # Resize needed, adding `len(e)` items plus some buffer.
+                    nb_points = len(self._data)
+                    nb_points += len(e) + n_rows_buffer
+                    self._data.resize((nb_points,) + self.common_shape)
 
-            end = offset + len(e)
-            if end > len(self._data):
-                # Resize needed, adding `len(e)` items plus some buffer.
-                nb_points = len(self._data)
-                nb_points += len(e) + n_rows_buffer
-                self._data.resize((nb_points,) + self.common_shape)
+                offsets.append(offset)
+                lengths.append(len(e))
+                self._data[offset:offset + len(e)] = e
+                offset += len(e)
 
-            offsets.append(offset)
-            lengths.append(len(e))
-            self._data[offset:offset + len(e)] = e
-            offset += len(e)
+        except GeneratorExit:
+            pass
 
-        self._offsets = np.asarray(offsets)
-        self._lengths = np.asarray(lengths)
+        self._offsets = np.concatenate([self._offsets, offsets], axis=0)
+        self._lengths = np.concatenate([self._lengths, lengths], axis=0)
 
         # Clear unused memory.
         self._data.resize((offset,) + self.common_shape)
@@ -266,13 +309,6 @@ class ArraySequence(object):
             seq._is_view = True
             return seq
 
-            # for name, slice_ in data_per_point_slice.items():
-            #     seq = ArraySequence()
-            #     seq._data = scalars._data[:, slice_]
-            #     seq._offsets = scalars._offsets
-            #     seq._lengths = scalars._lengths
-            #     tractogram.data_per_point[name] = seq
-
         raise TypeError("Index must be either an int, a slice, a list of int"
                         " or a ndarray of bool! Not " + str(type(idx)))
 
@@ -320,10 +356,27 @@ class ArraySequence(object):
 
 def create_arraysequences_from_generator(gen, n):
     """ Creates :class:`ArraySequence` objects from a generator yielding tuples
+
+    Parameters
+    ----------
+    gen : generator
+        Generator yielding a size `n` tuple containing the values to put in the
+        array sequences.
+    n : int
+        Number of :class:`ArraySequences` object to create.
     """
     seqs = [ArraySequence() for _ in range(n)]
+    coroutines = [seq._extend_using_coroutine() for seq in seqs]
+
+    for coroutine in coroutines:
+        coroutine.send(None)
+
     for data in gen:
-        for i, seq in enumerate(seqs):
-            seq.append(data[i])
+        for i, coroutine in enumerate(coroutines):
+            if data[i].nbytes > 0:
+                coroutine.send(data[i])
+
+    for coroutine in coroutines:
+        coroutine.close()
 
     return seqs
