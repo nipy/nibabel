@@ -12,7 +12,7 @@ import numpy as np
 import nibabel as nib
 
 from nibabel.openers import Opener
-from nibabel.py3k import asbytes, asstr
+from nibabel.py3k import asstr
 from nibabel.volumeutils import (native_code, swapped_code)
 from nibabel.orientations import (aff2axcodes, axcodes2ornt)
 
@@ -203,7 +203,7 @@ def decode_value_from_name(encoded_name):
     elif len(splits) > 2:
         # The remaining bytes are not \x00, raising.
         msg = ("Wrong scalar_name or property_name: '{}'."
-               " Unused characters should be \\x00.").format(name)
+               " Unused characters should be \\x00.").format(encoded_name)
         raise HeaderError(msg)
 
     return name, value
