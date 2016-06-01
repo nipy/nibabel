@@ -394,6 +394,16 @@ class TestTractogram(unittest.TestCase):
                          t.data_per_streamline[::-1],
                          t.data_per_point[::-1])
 
+        # Add new data to a tractogram for which its `streamlines` is a view.
+        t = Tractogram(DATA['streamlines']*2, affine_to_rasmm=np.eye(4))
+        t = t[:len(DATA['streamlines'])]  # Create a view of `streamlines`
+        t.data_per_point['fa'] = DATA['fa']
+        t.data_per_point['colors'] = DATA['colors']
+        t.data_per_streamline['mean_curvature'] = DATA['mean_curvature']
+        t.data_per_streamline['mean_torsion'] = DATA['mean_torsion']
+        t.data_per_streamline['mean_colors'] = DATA['mean_colors']
+        assert_tractogram_equal(t, DATA['tractogram'])
+
     def test_tractogram_copy(self):
         # Create a copy of a tractogram.
         tractogram = DATA['tractogram'].copy()
