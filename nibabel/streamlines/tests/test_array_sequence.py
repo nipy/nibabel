@@ -323,3 +323,6 @@ class TestArraySequence(unittest.TestCase):
             assert_array_equal(loaded_seq._data, seq._data)
             assert_array_equal(loaded_seq._offsets, seq._offsets)
             assert_array_equal(loaded_seq._lengths, seq._lengths)
+
+            # Make sure we can add new elements to it.
+            loaded_seq.append(SEQ_DATA['data'][0])
