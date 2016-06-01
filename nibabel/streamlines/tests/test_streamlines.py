@@ -9,6 +9,7 @@ import nibabel as nib
 from nibabel.externals.six import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 
+from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
@@ -17,18 +18,16 @@ from ..tractogram import Tractogram, LazyTractogram
 from ..tractogram_file import TractogramFile, ExtensionWarning
 from .. import trk
 
-DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
-
 DATA = {}
 
 
 def setup():
     global DATA
-    DATA['empty_filenames'] = [pjoin(DATA_PATH, "empty" + ext)
+    DATA['empty_filenames'] = [pjoin(data_path, "empty" + ext)
                                for ext in nib.streamlines.FORMATS.keys()]
-    DATA['simple_filenames'] = [pjoin(DATA_PATH, "simple" + ext)
+    DATA['simple_filenames'] = [pjoin(data_path, "simple" + ext)
                                 for ext in nib.streamlines.FORMATS.keys()]
-    DATA['complex_filenames'] = [pjoin(DATA_PATH, "complex" + ext)
+    DATA['complex_filenames'] = [pjoin(data_path, "complex" + ext)
                                  for ext in nib.streamlines.FORMATS.keys()]
 
     DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),

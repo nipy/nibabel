@@ -6,6 +6,7 @@ from os.path import join as pjoin
 
 from nibabel.externals.six import BytesIO
 
+from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
@@ -18,24 +19,23 @@ from .. import trk as trk_module
 from ..trk import TrkFile
 from ..header import Field
 
-DATA_PATH = pjoin(os.path.dirname(__file__), 'data')
 DATA = {}
 
 
 def setup():
     global DATA
 
-    DATA['empty_trk_fname'] = pjoin(DATA_PATH, "empty.trk")
+    DATA['empty_trk_fname'] = pjoin(data_path, "empty.trk")
     # simple.trk contains only streamlines
-    DATA['simple_trk_fname'] = pjoin(DATA_PATH, "simple.trk")
+    DATA['simple_trk_fname'] = pjoin(data_path, "simple.trk")
     # standard.trk contains only streamlines
-    DATA['standard_trk_fname'] = pjoin(DATA_PATH, "standard.trk")
+    DATA['standard_trk_fname'] = pjoin(data_path, "standard.trk")
     # standard.LPS.trk contains only streamlines
-    DATA['standard_LPS_trk_fname'] = pjoin(DATA_PATH, "standard.LPS.trk")
+    DATA['standard_LPS_trk_fname'] = pjoin(data_path, "standard.LPS.trk")
 
     # complex.trk contains streamlines, scalars and properties
-    DATA['complex_trk_fname'] = pjoin(DATA_PATH, "complex.trk")
-    DATA['complex_trk_big_endian_fname'] = pjoin(DATA_PATH,
+    DATA['complex_trk_fname'] = pjoin(data_path, "complex.trk")
+    DATA['complex_trk_big_endian_fname'] = pjoin(data_path,
                                                  "complex_big_endian.trk")
 
     DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
