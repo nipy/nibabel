@@ -202,7 +202,7 @@ def decode_value_from_name(encoded_name):
         value = int(splits[1])  # Decode value.
     elif len(splits) > 2:
         # The remaining bytes are not \x00, raising.
-        msg = ("Wrong scalar_name or property_name: '{}'."
+        msg = ("Wrong scalar_name or property_name: '{0}'."
                " Unused characters should be \\x00.").format(encoded_name)
         raise HeaderError(msg)
 
