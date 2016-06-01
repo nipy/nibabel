@@ -280,6 +280,11 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
         check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data']])
 
+        # Combining multiple slicing and indexing operations.
+        seq_view = SEQ_DATA['seq'][::-2][:, 2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data'][::-2]])
+
     def test_arraysequence_repr(self):
         # Test that calling repr on a ArraySequence object is not falling.
         repr(SEQ_DATA['seq'])

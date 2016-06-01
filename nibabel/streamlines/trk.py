@@ -129,11 +129,11 @@ def get_affine_rasmm_to_trackvis(header):
 
 
 def encode_value_in_name(value, name, max_name_len=20):
-    """ Encodes a value in the last two bytes of a string.
+    """ Encodes a value in the last bytes of a string.
 
-    If `value` is one, then there is no encoding and the last two bytes
-    are left untouched. Otherwise, the byte before the last will be
-    set to \x00 and the last byte will correspond to the value.
+    If `value` is one, then there is no encoding and the last bytes
+    are left untouched. Otherwise, a \x00 byte is added after `name`
+    and followed by the ascii represensation of the value.
 
     This function also verifies that the length of name is less
     than `max_name_len`.
@@ -157,20 +157,56 @@ def encode_value_in_name(value, name, max_name_len=20):
         msg = ("Data information named '{0}' is too long"
                " (max {1} characters.)").format(name, max_name_len)
         raise ValueError(msg)
-    elif len(name) > max_name_len - 2 and value > 1:
+    elif value > 1 and len(name) + len(str(value)) + 1 > max_name_len:
         msg = ("Data information named '{0}' is too long (need to be less"
                " than {1} characters when storing more than one value"
                " for a given data information."
-               ).format(name, max_name_len - 2)
+               ).format(name, max_name_len - (len(str(value)) + 1))
         raise ValueError(msg)
 
-    name = name.ljust(max_name_len, '\x00')
+    encoded_name = name
     if value > 1:
-        # Use the last two bytes of `name` to store `value`.
-        name = (asbytes(name[:max_name_len - 2]) + b'\x00' +
-                np.array(value, dtype=np.int8).tostring())
+        # Store the name followed by \x00 and the `value` (in ascii).
+        encoded_name += '\x00' + str(value)
 
-    return name
+    encoded_name = encoded_name.ljust(max_name_len, '\x00')
+    return encoded_name
+
+
+def decode_value_from_name(encoded_name):
+    """ Decodes a value that has been encoded in the last bytes of a string.
+
+    Check :func:`encode_value_in_name` to see how the value has been encoded.
+
+    Parameters
+    ----------
+    encoded_name : bytes
+        Name in which a value has been encoded or not.
+
+    Returns
+    -------
+    name : bytes
+        Name without the encoded value.
+    value : int
+        Value decoded from the name.
+    """
+    encoded_name = asstr(encoded_name)
+    if len(encoded_name) == 0:
+        return encoded_name, 0
+
+    splits = encoded_name.rstrip('\x00').split('\x00')
+    name = splits[0]
+    value = 1
+
+    if len(splits) == 2:
+        value = int(splits[1])  # Decode value.
+    elif len(splits) > 2:
+        # The remaining bytes are not \x00, raising.
+        msg = ("Wrong scalar_name or property_name: '{}'."
+               " Unused characters should be \\x00.").format(name)
+        raise HeaderError(msg)
+
+    return name, value
 
 
 def create_empty_header():
@@ -289,17 +325,11 @@ class TrkFile(TractogramFile):
         if hdr[Field.NB_SCALARS_PER_POINT] > 0:
             cpt = 0
             for scalar_name in hdr['scalar_name']:
-                scalar_name = asstr(scalar_name)
-                if len(scalar_name) == 0:
+                scalar_name, nb_scalars = decode_value_from_name(scalar_name)
+
+                if nb_scalars == 0:
                     continue
 
-                # Check if we encoded the number of values we stocked for this
-                # scalar name.
-                nb_scalars = 1
-                if scalar_name[-2] == '\x00' and scalar_name[-1] != '\x00':
-                    nb_scalars = int(np.fromstring(scalar_name[-1], np.int8))
-
-                scalar_name = scalar_name.split('\x00')[0]
                 slice_obj = slice(cpt, cpt + nb_scalars)
                 data_per_point_slice[scalar_name] = slice_obj
                 cpt += nb_scalars
@@ -312,18 +342,12 @@ class TrkFile(TractogramFile):
         if hdr[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
             cpt = 0
             for property_name in hdr['property_name']:
-                property_name = asstr(property_name)
-                if len(property_name) == 0:
+                results = decode_value_from_name(property_name)
+                property_name, nb_properties = results
+
+                if nb_properties == 0:
                     continue
 
-                # Check if we encoded the number of values we stocked for this
-                # property name.
-                nb_properties = 1
-                if property_name[-2] == '\x00' and property_name[-1] != '\x00':
-                    nb_properties = int(np.fromstring(property_name[-1],
-                                                      np.int8))
-
-                property_name = property_name.split('\x00')[0]
                 slice_obj = slice(cpt, cpt + nb_properties)
                 data_per_streamline_slice[property_name] = slice_obj
                 cpt += nb_properties
