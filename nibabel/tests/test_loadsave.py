@@ -53,6 +53,10 @@ def test_read_img_data():
             del img
 
 
+def test_file_not_found():
+    assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
+
+
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)
