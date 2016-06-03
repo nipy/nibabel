@@ -2,7 +2,7 @@
 """
 
 import sys
-import imp
+import types
 
 from ..sexts import package_check
 
@@ -10,7 +10,7 @@ from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 FAKE_NAME = 'nisext_improbable'
 assert FAKE_NAME not in sys.modules
-FAKE_MODULE = imp.new_module('nisext_fake')
+FAKE_MODULE = types.ModuleType('nisext_fake')
 
 
 def test_package_check():

@@ -26,9 +26,7 @@ from .externals.six import BytesIO
 
 from .nifti1 import Nifti1Header
 
-# Shield optional dicom import
-from .optpkg import optional_package
-dicom, have_dicom, _ = optional_package('dicom')
+from .pydicom_compat import pydicom, read_file
 
 logger = logging.getLogger('nibabel.dft')
 
@@ -126,6 +124,13 @@ class _Series(object):
 
     def as_png(self, index=None, scale_to_slice=True):
         import PIL.Image
+        # For compatibility with older versions of PIL that did not
+        # have `frombytes`:
+        if hasattr(PIL.Image, 'frombytes'):
+            frombytes = PIL.Image.frombytes
+        else:
+            frombytes = PIL.Image.fromstring
+
         if index is None:
             index = len(self.storage_instances) // 2
         d = self.storage_instances[index].dicom()
@@ -140,8 +145,9 @@ class _Series(object):
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = PIL.Image.fromstring('L', (self.rows, self.columns),
-                                  data.tostring())
+        im = frombytes('L', (self.rows, self.columns),
+                       data.tostring())
+
         s = BytesIO()
         im.save(s, 'PNG')
         return s.getvalue()
@@ -194,7 +200,8 @@ class _Series(object):
              (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
              (0, 0, 0, 1))
 
-        m = numpy.array(m)
+        # Values are python Decimals in pydicom 0.9.7
+        m = numpy.array(m, dtype=float)
 
         hdr = Nifti1Header(endianness='<')
         hdr.set_intent(0)
@@ -236,7 +243,7 @@ class _StorageInstance(object):
         return val
 
     def dicom(self):
-        return dicom.read_file(self.files[0])
+        return read_file(self.files[0])
 
 
 class _db_nochange:
@@ -383,8 +390,8 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = dicom.read_file('%s/%s' % (path, fname))
-    except dicom.filereader.InvalidDicomError:
+        do = read_file('%s/%s' % (path, fname))
+    except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None
     try:

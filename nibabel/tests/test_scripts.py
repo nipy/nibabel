@@ -6,10 +6,11 @@ Test running scripts
 """
 from __future__ import division, print_function, absolute_import
 
+import sys
 import os
 from os.path import (dirname, join as pjoin, abspath, splitext, basename,
                      exists)
-import re
+import csv
 from glob import glob
 
 import numpy as np
@@ -18,8 +19,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
-from nose.tools import (assert_true, assert_false, assert_not_equal,
-                        assert_equal)
+from nose.tools import assert_true, assert_false, assert_equal
 from nose import SkipTest
 
 from numpy.testing import assert_almost_equal
@@ -54,12 +54,12 @@ script_test.__test__ = False  # It's not a test
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 
-def check_nib_ls_example4d(opts=[], hdrs_str=""):
+def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
     expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
-                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform$"
-                   % hdrs_str)
+                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform%s$"
+                   % (hdrs_str, other_str))
     cmd = ['nib-ls'] + opts + [fname]
     code, stdout, stderr = run_command(cmd)
     assert_equal(fname, stdout[:len(fname)])
@@ -69,7 +69,16 @@ def check_nib_ls_example4d(opts=[], hdrs_str=""):
 def test_nib_ls():
     yield check_nib_ls_example4d
     yield check_nib_ls_example4d, \
-          ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+        ['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"
+    yield check_nib_ls_example4d, ['-c'], "", " !1030 uniques. Use --all-counts"
+    yield check_nib_ls_example4d, ['-c', '--all-counts'], "", " 2:3 3:2 4:1 5:1.*"
+    # both stats and counts
+    yield check_nib_ls_example4d, \
+        ['-c', '-s', '--all-counts'], "", " \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"
+    # and must not error out if we allow for zeros
+    yield check_nib_ls_example4d, \
+        ['-c', '-s', '-z', '--all-counts'], "", " \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"
+
 
 @script_test
 def test_nib_ls_multiple():
@@ -89,9 +98,10 @@ def test_nib_ls_multiple():
 
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
-    assert_equal([l[ln:ln+2] for l in stdout_lines], [' i']*4,
-                 msg="Type sub-string didn't start with 'i'. "
-                     "Full output was: %s" % stdout_lines)
+    i_str = ' i' if sys.byteorder == 'little' else ' <i'
+    assert_equal([l[ln:ln + len(i_str)] for l in stdout_lines], [i_str] * 4,
+          msg="Type sub-string didn't start with '%s'. "
+              "Full output was: %s" % (i_str, stdout_lines))
     # and if disregard type indicator which might vary
     assert_equal(
         [l[l.index('['):] for l in stdout_lines],
@@ -110,10 +120,10 @@ def test_nib_ls_multiple():
     assert_equal(
         [l[l.index('['):] for l in stdout_lines],
         [
-            '[128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform [229725]   2:1.2e+03',
-            '[ 32,  20,  12,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform  [15360]  46:7.6e+02',
-            '[ 18,  28,  29]      9.00x8.00x7.00                          [14616]    0.12:93',
-            '[ 91, 109,  91]      2.00x2.00x2.00                           error'
+            '[128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform [229725] [2, 1.2e+03]',
+            '[ 32,  20,  12,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform [15360]  [46, 7.6e+02]',
+            '[ 18,  28,  29]      9.00x8.00x7.00                         [14616]  [0.12, 93]',
+            '[ 91, 109,  91]      2.00x2.00x2.00                          !error'
         ]
     )
 
@@ -263,7 +273,7 @@ def test_parrec2nii_with_data():
                 assert_almost_equal(aff_off, AFF_OFF, 3)
                 # The difference is max in the order of 0.5 voxel
                 vox_sizes = vox_size(philips_img.affine)
-                assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.5))
+                assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.501))
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
                     conved_data_lps = flip_axis(conved_img.dataobj, 1)
@@ -283,7 +293,9 @@ def test_parrec2nii_with_data():
         # Writes bvals, bvecs files if asked
         run_command(['parrec2nii', '--overwrite', '--keep-trace',
                      '--bvs', dti_par])
-        assert_almost_equal(np.loadtxt('DTI.bvals'), DTI_PAR_BVALS)
+        bvecs_trace = np.loadtxt('DTI.bvecs').T
+        bvals_trace = np.loadtxt('DTI.bvals')
+        assert_almost_equal(bvals_trace, DTI_PAR_BVALS)
         img = load('DTI.nii')
         data = img.get_data().copy()
         del img
@@ -317,8 +329,31 @@ def test_parrec2nii_with_data():
         assert_equal(data_notrace.shape[-1], len(bvecs_notrace))
         del img
         # ensure correct volume was removed
-        good_mask = np.logical_or((bvecs_notrace != 0).any(axis=1),
-                                  bvals_notrace == 0)
+        good_mask = np.logical_or((bvecs_trace != 0).any(axis=1),
+                                  bvals_trace == 0)
         assert_almost_equal(data_notrace, data[..., good_mask])
         assert_almost_equal(bvals_notrace, np.array(DTI_PAR_BVALS)[good_mask])
         assert_almost_equal(bvecs_notrace, bvecs_LAS[good_mask])
+        # test --strict-sort
+        run_command(['parrec2nii', '--overwrite', '--keep-trace',
+                     '--bvs', '--strict-sort', dti_par])
+        # strict-sort: bvals should be in ascending order
+        assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
+        img = load('DTI.nii')
+        data_sorted = img.get_data().copy()
+        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
+        del img
+
+        # Writes .ordering.csv if requested
+        run_command(['parrec2nii', '--overwrite', '--volume-info', dti_par])
+        assert_true(exists('DTI.ordering.csv'))
+        with open('DTI.ordering.csv', 'r') as csvfile:
+            csvreader = csv.reader(csvfile, delimiter=',')
+            csv_keys = next(csvreader)  # header row
+            nlines = 0  # count number of non-header rows
+            for line in csvreader:
+                nlines += 1
+
+        assert_equal(sorted(csv_keys), ['diffusion b value number',
+                                        'gradient orientation number'])
+        assert_equal(nlines, 8)  # 8 volumes present in DTI.PAR

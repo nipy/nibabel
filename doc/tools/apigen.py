@@ -40,7 +40,7 @@ class ApiDocWriter(object):
                  rst_extension='.txt',
                  package_skip_patterns=None,
                  module_skip_patterns=None,
-                 other_defines = True
+                 other_defines=True
                  ):
         ''' Initialize package for parsing
 
@@ -162,7 +162,7 @@ class ApiDocWriter(object):
         path = path.replace('.', os.path.sep)
         path = os.path.join(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'): # file
+        if os.path.exists(path + '.py'):  # file
             path += '.py'
         elif os.path.exists(os.path.join(path, '__init__.py')):
             path = os.path.join(path, '__init__.py')
@@ -184,7 +184,7 @@ class ApiDocWriter(object):
         if filename is None:
             print(filename, 'erk')
             # nothing that we could handle here.
-            return ([],[])
+            return ([], [])
 
         f = open(filename, 'rt')
         functions, classes = self._parse_lines(f)
@@ -207,7 +207,7 @@ class ApiDocWriter(object):
         classes : list of str
             A list of (public) class names in the module.
         """
-        mod = __import__(uri, fromlist=[uri])
+        mod = __import__(uri, fromlist=[uri.split('.')[-1]])
         # find all public objects in the module.
         obj_strs = [obj for obj in dir(mod) if not obj.startswith('_')]
         functions = []
@@ -276,7 +276,7 @@ class ApiDocWriter(object):
 
         # Make a shorter version of the uri that omits the package name for
         # titles
-        uri_short = re.sub(r'^%s\.' % self.package_name,'',uri)
+        uri_short = re.sub(r'^%s\.' % self.package_name, '', uri)
 
         head = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
         body = ''
@@ -300,10 +300,10 @@ class ApiDocWriter(object):
             body += '\n.. autoclass:: ' + c + '\n'
             # must NOT exclude from index to keep cross-refs working
             body += '  :members:\n' \
-                  '  :undoc-members:\n' \
-                  '  :show-inheritance:\n' \
-                  '\n' \
-                  '  .. automethod:: __init__\n\n'
+                '  :undoc-members:\n' \
+                '  :show-inheritance:\n' \
+                '\n' \
+                '  .. automethod:: __init__\n\n'
         head += '.. autosummary::\n\n'
         for f in classes + functions:
             head += '   ' + f + '\n'
@@ -402,7 +402,7 @@ class ApiDocWriter(object):
                 package_uri = '.'.join((root_uri, subpkg_name))
                 package_path = self._uri2path(package_uri)
                 if (package_path and
-                    self._survives_exclude(package_uri, 'package')):
+                        self._survives_exclude(package_uri, 'package')):
                     modules.append(package_uri)
 
         return sorted(modules)
@@ -425,12 +425,12 @@ class ApiDocWriter(object):
         written_modules = []
 
         for ulm, mods in module_by_ulm.items():
-            print "Generating docs for %s:" % ulm
+            print("Generating docs for %s:" % ulm)
             document_head = []
             document_body = []
 
             for m in mods:
-                print "  -> " + m
+                print("  -> " + m)
                 head, body = self.generate_api_doc(m)
 
                 document_head.append(head)
@@ -467,7 +467,7 @@ class ApiDocWriter(object):
             os.mkdir(outdir)
         # compose list of modules
         modules = self.discover_modules()
-        self.write_modules_api(modules,outdir)
+        self.write_modules_api(modules, outdir)
 
     def write_index(self, outdir, froot='gen', relative_to=None):
         """Make a reST API index file from written files
@@ -493,10 +493,11 @@ class ApiDocWriter(object):
         path = os.path.join(outdir, froot+self.rst_extension)
         # Path written into index is relative to rootpath
         if relative_to is not None:
-            relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, '')
+            relpath = (
+                outdir + os.path.sep).replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        idx = open(path,'wt')
+        idx = open(path, 'wt')
         w = idx.write
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
 
@@ -505,5 +506,5 @@ class ApiDocWriter(object):
         w("=" * len(title) + "\n\n")
         w('.. toctree::\n\n')
         for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath,f))
+            w('   %s\n' % os.path.join(relpath, f))
         idx.close()

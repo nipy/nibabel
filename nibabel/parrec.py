@@ -86,6 +86,38 @@ format - see https://github.com/nipy/nibabel/issues/274
 Philips XML header files, and some previous experience, suggest that the REC
 data is always stored as 8 or 16 bit unsigned integers - see
 https://github.com/nipy/nibabel/issues/275
+
+Data Sorting
+############
+
+PAR/REC files have a large number of potential image dimensions.  To handle
+sorting of volumes in PAR/REC files based on these fields and not the order
+slices first appear in the PAR file, the ``strict_sort`` flag of
+``nibabel.load`` (or ``parrec.load``) should be set to ``True``.  The fields
+that are taken into account during sorting are:
+
+    - slice number
+    - echo number
+    - cardiac phase number
+    - gradient orientation number
+    - diffusion b value number
+    - label type  (ASL tag vs. control)
+    - dynamic scan number
+    - image_type_mr  (Re, Im, Mag, Phase)
+
+Slices are sorted into the third dimension and the
+order of preference for sorting along the 4th dimension corresponds to the
+order in the list above.  If the image data has more than 4 dimensions these
+will all be concatenated along the 4th dimension.  For example, for a scan with
+two echos and two dynamics, the 4th dimension will have both echos of dynamic 1
+prior to the two echos for dynamic 2.
+
+The``get_volume_labels`` method of the header returns a dictionary containing
+the PAR field labels for this 4th dimension.
+
+The volume sorting described above can be enabled in the parrec2nii command
+utility via the option "--strict-sort".  The dimension info can be exported
+to a CSV file by adding the option "--volume-info".
 """
 from __future__ import print_function, division
 
@@ -95,6 +127,7 @@ from copy import deepcopy
 import re
 from io import StringIO
 from locale import getpreferredencoding
+from nibabel.externals import OrderedDict
 
 from .keywordonly import kw_only_meth
 from .spatialimages import SpatialHeader, SpatialImage
@@ -126,9 +159,12 @@ ACQ_TO_PSL = dict(
                       [0, 0, 0, 1]])
 )
 
+DEG2RAD = np.pi / 180.
+
 # General information dict definitions
 # assign props to PAR header entries
 # values are: (shortname[, dtype[, shape]])
+# if shape is None, the number of elements is to be determined on read
 _hdr_key_dict = {
     'Patient name': ('patient_name',),
     'Examination name': ('exam_name',),
@@ -148,7 +184,7 @@ _hdr_key_dict = {
     'Technique': ('tech',),
     'Scan resolution  (x, y)': ('scan_resolution', int, (2,)),
     'Scan mode': ('scan_mode',),
-    'Repetition time [ms]': ('repetition_time', float),
+    'Repetition time [ms]': ('repetition_time', float, None),
     'FOV (ap,fh,rl) [mm]': ('fov', float, (3,)),
     'Water Fat shift [pixels]': ('water_fat_shift', float),
     'Angulation midslice(ap,fh,rl)[degr]': ('angulation', float, (3,)),
@@ -295,7 +331,9 @@ def _process_gen_dict(gen_dict):
         elif len(props) == 3:
             # array with dtype and shape
             value = np.fromstring(value, props[1], sep=' ')
-            value.shape = props[2]
+            # if shape is None, allow arbitrary length
+            if props[2] is not None:
+                value.shape = props[2]
         general_info[props[0]] = value
     return general_info
 
@@ -618,7 +656,8 @@ class PARRECArrayProxy(object):
 class PARRECHeader(SpatialHeader):
     """PAR/REC header"""
 
-    def __init__(self, info, image_defs, permit_truncated=False):
+    def __init__(self, info, image_defs, permit_truncated=False,
+                 strict_sort=False):
         """
         Parameters
         ----------
@@ -631,10 +670,16 @@ class PARRECHeader(SpatialHeader):
         permit_truncated : bool, optional
             If True, a warning is emitted instead of an error when a truncated
             recording is detected.
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
         self.permit_truncated = permit_truncated
+        self.strict_sort = strict_sort
         _truncation_checks(info, image_defs, permit_truncated)
         # charge with basic properties to be able to use base class
         # functionality
@@ -660,14 +705,16 @@ class PARRECHeader(SpatialHeader):
                           'non-PARREC header.')
 
     @classmethod
-    def from_fileobj(klass, fileobj, permit_truncated=False):
+    def from_fileobj(klass, fileobj, permit_truncated=False,
+                     strict_sort=False):
         info, image_defs = parse_PAR_header(fileobj)
-        return klass(info, image_defs, permit_truncated)
+        return klass(info, image_defs, permit_truncated, strict_sort)
 
     def copy(self):
         return PARRECHeader(deepcopy(self.general_info),
                             self.image_defs.copy(),
-                            self.permit_truncated)
+                            self.permit_truncated,
+                            self.strict_sort)
 
     def as_analyze_map(self):
         """Convert PAR parameters to NIFTI1 format"""
@@ -703,7 +750,7 @@ class PARRECHeader(SpatialHeader):
             acquisition.
         """
         bvals, bvecs = self.get_bvals_bvecs()
-        if bvals is None and bvecs is None:
+        if bvals is None or bvecs is None:
             return None
         return bvecs * bvals[:, np.newaxis]
 
@@ -728,6 +775,8 @@ class PARRECHeader(SpatialHeader):
         # All bvals within volume should be the same
         assert not np.any(np.diff(bvals, axis=0))
         bvals = bvals[0]
+        if 'diffusion' not in self.image_defs.dtype.names:
+            return bvals, None
         bvecs = self.image_defs['diffusion'][reorder].reshape(
             (n_slices, n_vols, 3), order='F')
         # All 3 values of bvecs should be same within volume
@@ -737,6 +786,11 @@ class PARRECHeader(SpatialHeader):
         permute_to_psl = ACQ_TO_PSL[self.get_slice_orientation()]
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
         return bvals, bvecs
+
+    def get_def(self, name):
+        """Return a single image definition field (or None if missing) """
+        idef = self.image_defs
+        return idef[name] if name in idef.dtype.names else None
 
     def _get_unique_image_prop(self, name):
         """ Scan image definitions and return unique value of a property.
@@ -826,7 +880,9 @@ class PARRECHeader(SpatialHeader):
         zooms[2] = slice_thickness + slice_gap
         # If 4D dynamic scan, convert time from milliseconds to seconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
-            zooms[3] = self.general_info['repetition_time'] / 1000.
+            if len(self.general_info['repetition_time']) > 1:
+                warnings.warn("multiple TRs found in .PAR file")
+            zooms[3] = self.general_info['repetition_time'][0] / 1000.
         return zooms
 
     def get_affine(self, origin='scanner'):
@@ -876,11 +932,13 @@ class PARRECHeader(SpatialHeader):
                 "Unknown slice orientation ({0}).".format(slice_orientation))
         # hdr has deg, we need radians
         # Order is [ap, fh, rl]
-        ang_rad = self.general_info['angulation'] * np.pi / 180.0
-        # euler2mat accepts z, y, x angles and does rotation around z, y, x
-        # axes in that order. It's possible that PAR assumes rotation in a
-        # different order, we still need some relevant data to test this
-        rot = from_matvec(euler2mat(*ang_rad[::-1]), [0, 0, 0])
+        ap_rot, fh_rot, rl_rot = self.general_info['angulation'] * DEG2RAD
+        Mx = euler2mat(x=ap_rot)
+        My = euler2mat(y=fh_rot)
+        Mz = euler2mat(z=rl_rot)
+        # By trial and error, this unexpected order of rotations seem to give
+        # the closest to the observed (converted NIfTI) affine.
+        rot = from_matvec(dot_reduce(Mz, Mx, My))
         # compose the PSL affine
         psl_aff = dot_reduce(rot, permute_to_psl, zoomer, to_center)
         if origin == 'scanner':
@@ -990,16 +1048,96 @@ class PARRECHeader(SpatialHeader):
         inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
         return inplane_shape + (len(self.image_defs),)
 
-    def get_sorted_slice_indices(self):
-        """Return indices to sort (and maybe discard) slices in REC file.
+    def _strict_sort_order(self):
+        """ Determine the sort order based on several image definition fields.
 
+        The fields taken into consideration, if present, are (in order from
+        slowest to fastest variation after sorting):
+
+            - image_defs['image_type_mr']                # Re, Im, Mag, Phase
+            - image_defs['dynamic scan number']          # repetition
+            - image_defs['label type']                   # ASL tag/control
+            - image_defs['diffusion b value number']     # diffusion b value
+            - image_defs['gradient orientation number']  # diffusion directoin
+            - image_defs['cardiac phase number']         # cardiac phase
+            - image_defs['echo number']                  # echo
+            - image_defs['slice number']                 # slice
+
+        Data sorting is done in two stages:
+
+            1. an initial sort using the keys described above
+            2. a resort after generating two additional sort keys:
+
+                * a key to assign unique volume numbers to any volumes that
+                  didn't have a unique sort based on the keys above
+                  (see :func:`vol_numbers`).
+                * a sort key based on `vol_is_full` to identify truncated
+                  volumes
+
+        A case where the initial sort may not create a unique label for each
+        volume is diffusion scans acquired in the older V4 .PAR format, where
+        diffusion direction info is not available.
+        """
+        # sort keys present in all supported .PAR versions
+        idefs = self.image_defs
+        slice_nos = idefs['slice number']
+        dynamics = idefs['dynamic scan number']
+        phases = idefs['cardiac phase number']
+        echos = idefs['echo number']
+        image_type = idefs['image_type_mr']
+
+        # sort keys only present in a subset of .PAR files
+        asl_keys = ((idefs['label type'], ) if 'label type' in
+                    idefs.dtype.names else ())
+        if self.general_info['diffusion'] != 0:
+            bvals = self.get_def('diffusion b value number')
+            if bvals is None:
+                bvals = self.get_def('diffusion_b_factor')
+            bvecs = self.get_def('gradient orientation number')
+            if bvecs is None:
+                # no b-vectors available
+                diffusion_keys = (bvals, )
+            else:
+                diffusion_keys = (bvecs, bvals)
+        else:
+            diffusion_keys = ()
+
+        # initial sort (last key is highest precedence)
+        keys = (slice_nos, echos, phases) + \
+            diffusion_keys + asl_keys + (dynamics, image_type)
+        initial_sort_order = np.lexsort(keys)
+
+        # sequentially number the volumes based on the initial sort
+        vol_nos = vol_numbers(slice_nos[initial_sort_order])
+        # identify truncated volumes
+        is_full = vol_is_full(slice_nos[initial_sort_order],
+                              self.general_info['max_slices'])
+
+        # second stage of sorting
+        return initial_sort_order[np.lexsort((vol_nos, is_full))]
+
+    def _lax_sort_order(self):
+        """
         Sorts by (fast to slow): slice number, volume number.
 
         We calculate volume number by looking for repeating slice numbers (see
         :func:`vol_numbers`).
+        """
+        slice_nos = self.image_defs['slice number']
+        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
+        return np.lexsort(keys)
+
+    def get_sorted_slice_indices(self):
+        """Return indices to sort (and maybe discard) slices in REC file.
 
         If the recording is truncated, the returned indices take care of
         discarding any slice indices from incomplete volumes.
+
+        If `self.strict_sort` is True, a more complicated sorting based on
+        multiple fields from the .PAR file is used.  This may produce a
+        different sort order than `strict_sort=False`, where volumes are sorted
+        by the order in which the slices appear in the .PAR file.
 
         Returns
         -------
@@ -1008,13 +1146,66 @@ class PARRECHeader(SpatialHeader):
             array, and (equivalently) the only dimension of
             ``self.image_defs``.
         """
-        slice_nos = self.image_defs['slice number']
-        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
-        keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
-        # Figure out how many we need to remove from the end, and trim them
-        # Based on our sorting, they should always be last
+        if not self.strict_sort:
+            sort_order = self._lax_sort_order()
+        else:
+            sort_order = self._strict_sort_order()
+
+        # Figure out how many we need to remove from the end, and trim them.
+        # Based on our sorting, they should always be last.
         n_used = np.prod(self.get_data_shape()[2:])
-        return np.lexsort(keys)[:n_used]
+        return sort_order[:n_used]
+
+    def get_volume_labels(self):
+        """ Dynamic labels corresponding to the final data dimension(s).
+
+        This is useful for custom data sorting.  A subset of the info in
+        ``self.image_defs`` is returned in an order that matches the final
+        data dimension(s).  Only labels that have more than one unique value
+        across the dataset will be returned.
+
+        Returns
+        -------
+        sort_info : dict
+            Each key corresponds to volume labels for a dynamically varying
+            sequence dimension.  The ordering of the labels matches the volume
+            ordering determined via ``self.get_sorted_slice_indices``.
+        """
+        sorted_indices = self.get_sorted_slice_indices()
+        image_defs = self.image_defs
+
+        # define which keys which might vary across image volumes
+        dynamic_keys = ['cardiac phase number',
+                        'echo number',
+                        'label type',
+                        'image_type_mr',
+                        'dynamic scan number',
+                        'scanning sequence',
+                        'gradient orientation number',
+                        'diffusion b value number']
+
+        # remove dynamic keys that may not be present in older .PAR versions
+        dynamic_keys = [d for d in dynamic_keys if d in
+                        image_defs.dtype.fields]
+
+        non_unique_keys = []
+        for key in dynamic_keys:
+            ndim = image_defs[key].ndim
+            if ndim == 1:
+                num_unique = len(np.unique(image_defs[key]))
+            else:
+                raise ValueError("unexpected image_defs shape > 1D")
+            if num_unique > 1:
+                non_unique_keys.append(key)
+
+        # each key in dynamic keys will be identical across slices, so use
+        # the value at slice 1.
+        sl1_indices = image_defs['slice number'][sorted_indices] == 1
+
+        sort_info = OrderedDict()
+        for key in non_unique_keys:
+            sort_info[key] = image_defs[key][sorted_indices][sl1_indices]
+        return sort_info
 
 
 class PARRECImage(SpatialImage):
@@ -1031,7 +1222,7 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_file_map(klass, file_map, mmap=True, permit_truncated=False,
-                      scaling='dv'):
+                      scaling='dv', strict_sort=False):
         """ Create PARREC image from file map `file_map`
 
         Parameters
@@ -1052,11 +1243,17 @@ class PARRECImage(SpatialImage):
         scaling : {'dv', 'fp'}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(
                 hdr_fobj,
-                permit_truncated=permit_truncated)
+                permit_truncated=permit_truncated,
+                strict_sort=strict_sort)
         rec_fobj = file_map['image'].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr,
                                      mmap=mmap, scaling=scaling)
@@ -1066,7 +1263,7 @@ class PARRECImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_filename(klass, filename, mmap=True, permit_truncated=False,
-                      scaling='dv'):
+                      scaling='dv', strict_sort=False):
         """ Create PARREC image from filename `filename`
 
         Parameters
@@ -1086,12 +1283,18 @@ class PARRECImage(SpatialImage):
         scaling : {'dv', 'fp'}, optional, keyword-only
             Scaling method to apply to data (see
             :meth:`PARRECHeader.get_data_scaling`).
+        strict_sort : bool, optional, keyword-only
+            If True, a larger number of header fields are used while sorting
+            the REC data array.  This may produce a different sort order than
+            `strict_sort=False`, where volumes are sorted by the order in which
+            the slices appear in the .PAR file.
         """
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map,
                                    mmap=mmap,
                                    permit_truncated=permit_truncated,
-                                   scaling=scaling)
+                                   scaling=scaling,
+                                   strict_sort=strict_sort)
 
     load = from_filename
 

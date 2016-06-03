@@ -1,0 +1,3 @@
+# Requirements for running tests
+-r requirements.txt
+nose

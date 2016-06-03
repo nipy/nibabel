@@ -1,4 +1,7 @@
 """ Routines to support optional packages """
+from distutils.version import LooseVersion
+
+from .externals.six import string_types, callable
 
 try:
     import nose
@@ -10,7 +13,17 @@ else:
 from .tripwire import TripWire
 
 
-def optional_package(name, trip_msg=None):
+def _check_pkg_version(pkg, min_version):
+    # Default version checking function
+    if isinstance(min_version, string_types):
+        min_version = LooseVersion(min_version)
+    try:
+        return min_version <= pkg.__version__
+    except AttributeError:
+        return False
+
+
+def optional_package(name, trip_msg=None, min_version=None):
     """ Return package-like thing and module setup for package `name`
 
     Parameters
@@ -19,8 +32,14 @@ def optional_package(name, trip_msg=None):
         package name
     trip_msg : None or str
         message to give when someone tries to use the return package, but we
-        could not import it, and have returned a TripWire object instead.
-        Default message if None.
+        could not import it at an acceptable version, and have returned a
+        TripWire object instead. Default message if None.
+    min_version : None or str or LooseVersion or callable
+        If None, do not specify a minimum version.  If str, convert to a
+        `distutils.version.LooseVersion`.  If str or LooseVersion` compare to
+        version of package `name` with ``min_version <= pkg.__version__``.   If
+        callable, accepts imported ``pkg`` as argument, and returns value of
+        callable is True for acceptable package versions, False otherwise.
 
     Returns
     -------
@@ -66,6 +85,12 @@ def optional_package(name, trip_msg=None):
     >>> hasattr(subpkg, 'dirname')
     True
     """
+    if callable(min_version):
+        check_version = min_version
+    elif min_version is None:
+        check_version = lambda pkg: True
+    else:
+        check_version = lambda pkg: _check_pkg_version(pkg, min_version)
     # fromlist=[''] results in submodule being returned, rather than the top
     # level module.  See help(__import__)
     fromlist = [''] if '.' in name else []
@@ -75,7 +100,15 @@ def optional_package(name, trip_msg=None):
         pass
     else:  # import worked
         # top level module
-        return pkg, True, lambda: None
+        if check_version(pkg):
+            return pkg, True, lambda: None
+        # Failed version check
+        if trip_msg is None:
+            if callable(min_version):
+                trip_msg = 'Package %s fails version check' % min_version
+            else:
+                trip_msg = ('These functions need %s version >= %s' %
+                            (name, min_version))
     if trip_msg is None:
         trip_msg = ('We need package %s for these functions, but '
                     '``import %s`` raised an ImportError'

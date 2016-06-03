@@ -5,7 +5,7 @@ import getpass
 import time
 
 
-from .. externals.six.moves import xrange
+from ..externals.six.moves import xrange
 from ..openers import Opener
 
 

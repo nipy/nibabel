@@ -10,6 +10,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import warnings
+import struct
 
 import numpy as np
 
@@ -19,8 +20,8 @@ from nibabel.casting import type_info, have_binary128
 from nibabel.eulerangles import euler2mat
 from nibabel.externals.six import BytesIO
 from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
-                            Nifti1Pair, Nifti1Extension, Nifti1Extensions,
-                            data_type_codes, extension_codes,
+                            Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
+                            Nifti1Extensions, data_type_codes, extension_codes,
                             slice_order_codes)
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
@@ -42,6 +43,8 @@ from . import test_spm99analyze as tspm
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
+
+from nibabel.pydicom_compat import pydicom, dicom_test
 
 
 # Example transformation matrix
@@ -1117,6 +1120,88 @@ def test_nifti_extensions():
     assert_true(exts_container.get_codes() == [6, 4])
     assert_true(exts_container.count('comment') == 1)
     assert_true(exts_container.count('afni') == 1)
+
+
+@dicom_test
+def test_nifti_dicom_extension():
+    nim = load(image_file)
+    hdr = nim.header
+    exts_container = hdr.extensions
+
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2, b'')
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+    # create an empty dataset if no content provided (to write a new header)
+    dcmext = Nifti1DicomExtension(2, None)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 0)
+
+
+    # use a dataset if provided
+    ds = pydicom.dataset.Dataset()
+    ds.add_new((0x10, 0x20), 'LO', 'NiPy')
+    dcmext = Nifti1DicomExtension(2, ds)
+    assert_equal(dcmext.get_content().__class__, pydicom.dataset.Dataset)
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / LE
+    dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20,
+                                    'LO'.encode('utf-8'), 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
+    assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext._is_little_endian, True)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
+    dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4,
+                                    'NiPy'.encode('utf-8'))
+    dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
+    assert_equal(dcmext._guess_implicit_VR(), True)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_implicit)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / BE
+    dcmbytes_explicit_be = struct.pack('>2H2sH4s', 0x10, 0x20,
+                                       'LO'.encode('utf-8'), 4,
+                                       'NiPy'.encode('utf-8'))
+    hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
+    dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
+    assert_equal(dcmext.__class__, Nifti1DicomExtension)
+    assert_equal(dcmext._guess_implicit_VR(), False)
+    assert_equal(dcmext.get_code(), 2)
+    assert_equal(dcmext.get_content().PatientID, 'NiPy')
+    assert_equal(dcmext.get_content()[0x10, 0x20].value, 'NiPy')
+    assert_equal(len(dcmext.get_content().values()), 1)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # Check that a dicom dataset is written w/ BE encoding when not created
+    # using BE bytestring when given a BE nifti header
+    dcmext = Nifti1DicomExtension(2, ds, parent_hdr=hdr_be)
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+
+    # dicom extension access from nifti extensions
+    assert_equal(exts_container.count('dicom'), 0)
+    exts_container.append(dcmext)
+    assert_equal(exts_container.count('dicom'), 1)
+    assert_equal(exts_container.get_codes(), [6, 6, 2])
+    assert_equal(dcmext._mangle(dcmext.get_content()), dcmbytes_explicit_be)
+    assert_equal(dcmext.get_sizeondisk() % 16, 0)
+
+    # creating an extension with bad content should raise
+    assert_raises(TypeError, Nifti1DicomExtension, 2, 0)
 
 
 class TestNifti1General(object):

@@ -26,6 +26,8 @@ References like "pr/298" refer to github pull request numbers.
 
 * Upcoming
 
+  * Read and write support for DICOM tags in NIfTI Extended Header using
+    pydicom (pr/296);
   * Trackvis reader will now allow final streamline to have fewer points that
     tne numbe declared in the header, with ``strict=False`` argument to
     ``read`` function;

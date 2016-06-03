@@ -16,6 +16,7 @@ Contents:
    dicom_mosaic
    siemens_csa
    spm_dicom
+   dicom_niftiheader
 
 .. these documents not yet ready for public advertisement
 
