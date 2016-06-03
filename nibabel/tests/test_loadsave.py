@@ -54,7 +54,7 @@ def test_read_img_data():
 
 
 def test_file_not_found():
-    assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
+    assert_raises(IOError, load, 'does_not_exist.nii.gz')
 
 
 def test_read_img_data_nifti():

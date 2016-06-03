@@ -36,7 +36,7 @@ def load(filename, **kwargs):
        Image of guessed type
     '''
     if not op.exists(filename):
-        raise FileNotFoundError("No such file: '%s'" % filename)
+        raise IOError("No such file: '%s'" % filename)
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
