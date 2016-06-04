@@ -1,5 +1,12 @@
+from __future__ import division
+
 import numbers
+from operator import mul
+from functools import reduce
+
 import numpy as np
+
+MEGABYTE = 1024 * 1024
 
 
 def is_array_sequence(obj):
@@ -14,6 +21,26 @@ def is_ndarray_of_int_or_bool(obj):
     return (isinstance(obj, np.ndarray) and
             (np.issubdtype(obj.dtype, np.integer) or
             np.issubdtype(obj.dtype, np.bool)))
+
+
+class _BuildCache(object):
+    def __init__(self, arr_seq, common_shape, dtype):
+        self.offsets = list(arr_seq._offsets)
+        self.lengths = list(arr_seq._lengths)
+        self.next_offset = arr_seq._get_next_offset()
+        self.bytes_per_buf = arr_seq._buffer_size * MEGABYTE
+        self.dtype = dtype
+        if arr_seq.common_shape != () and common_shape != arr_seq.common_shape:
+            raise ValueError(
+                "All dimensions, except the first one, must match exactly")
+        self.common_shape = common_shape
+        n_in_row = reduce(mul, common_shape, 1)
+        bytes_per_row = n_in_row * dtype.itemsize
+        self.rows_per_buf = bytes_per_row / self.bytes_per_buf
+
+    def update_seq(self, arr_seq):
+        arr_seq._offsets = np.array(self.offsets)
+        arr_seq._lengths = np.array(self.lengths)
 
 
 class ArraySequence(object):
@@ -48,6 +75,8 @@ class ArraySequence(object):
         self._data = np.array([])
         self._offsets = np.array([], dtype=np.intp)
         self._lengths = np.array([], dtype=np.intp)
+        self._buffer_size = buffer_size
+        self._build_cache = None
 
         if iterable is None:
             return
@@ -60,25 +89,24 @@ class ArraySequence(object):
             self._is_view = True
             return
 
+        # If possible try pre-allocating memory.
         try:
-            # If possible try pre-allocating memory.
-            if len(iterable) > 0:
-                first_element = np.asarray(iterable[0])
-                n_elements = np.sum([len(iterable[i])
-                                     for i in range(len(iterable))])
-                new_shape = (n_elements,) + first_element.shape[1:]
-                self._data = np.empty(new_shape, dtype=first_element.dtype)
+            iter_len = len(iterable)
         except TypeError:
             pass
-
-        # Initialize the `ArraySequence` object from iterable's item.
-        coroutine = self._extend_using_coroutine()
-        coroutine.send(None)  # Run until the first yield.
+        else:  # We do know the iterable length
+            if iter_len == 0:
+                return
+            first_element = np.asarray(iterable[0])
+            n_elements = np.sum([len(iterable[i])
+                                for i in range(len(iterable))])
+            new_shape = (n_elements,) + first_element.shape[1:]
+            self._data = np.empty(new_shape, dtype=first_element.dtype)
 
         for e in iterable:
-            coroutine.send(e)
+            self.append(e, cache_build=True)
 
-        coroutine.close()  # Terminate coroutine.
+        self.finalize_append()
 
     @property
     def is_array_sequence(self):
@@ -92,21 +120,40 @@ class ArraySequence(object):
     @property
     def nb_elements(self):
         """ Total number of elements in this array sequence. """
-        return self._data.shape[0]
+        return np.sum(self._lengths)
 
     @property
     def data(self):
         """ Elements in this array sequence. """
         return self._data
 
-    def append(self, element):
+    def _get_next_offset(self):
+        """ Offset in ``self._data`` at which to write next element """
+        if len(self._offsets) == 0:
+            return 0
+        imax = np.argmax(self._offsets)
+        return self._offsets[imax] + self._lengths[imax]
+
+    def append(self, element, cache_build=False):
         """ Appends `element` to this array sequence.
+
+        Append can be a lot faster if it knows that it is appending several
+        elements instead of a single element.  In that case it can cache the
+        parameters it uses between append operations, in a "build cache".  To
+        tell append to do this, use ``cache_build=True``.  If you use
+        ``cache_build=True``, you need to finalize the append operations with
+        :method:`finalize_append`.
 
         Parameters
         ----------
         element : ndarray
             Element to append. The shape must match already inserted elements
             shape except for the first dimension.
+        cache_build : {False, True}
+            Whether to save the build cache from this append routine.  If True,
+            append can assume it is the only player updating `self`, and the
+            caller must finalize `self` after all append operations, with
+            ``self.finalize_append()``.
 
         Returns
         -------
@@ -118,17 +165,56 @@ class ArraySequence(object):
         `ArraySequence.extend`.
         """
         element = np.asarray(element)
+        if element.size == 0:
+            return
+        el_shape = element.shape
+        n_items, common_shape = el_shape[0], el_shape[1:]
+        build_cache = self._build_cache
+        in_cached_build = build_cache is not None
+        if not in_cached_build:  # One shot append, not part of sequence
+            build_cache = _BuildCache(self, common_shape, element.dtype)
+        next_offset = build_cache.next_offset
+        req_rows = next_offset + n_items
+        if self._data.shape[0] < req_rows:
+            self._resize_data_to(req_rows, build_cache)
+        self._data[next_offset:req_rows] = element
+        build_cache.offsets.append(next_offset)
+        build_cache.lengths.append(n_items)
+        build_cache.next_offset = req_rows
+        if in_cached_build:
+            return
+        if cache_build:
+            self._build_cache = build_cache
+        else:
+            build_cache.update_seq(self)
 
-        if self.common_shape != () and element.shape[1:] != self.common_shape:
-            msg = "All dimensions, except the first one, must match exactly"
-            raise ValueError(msg)
+    def finalize_append(self):
+        """ Finalize process of appending several elements to `self`
 
-        next_offset = self._data.shape[0]
-        size = (self._data.shape[0] + element.shape[0],) + element.shape[1:]
-        self._data.resize(size)
-        self._data[next_offset:] = element
-        self._offsets = np.r_[self._offsets, next_offset]
-        self._lengths = np.r_[self._lengths, element.shape[0]]
+        :method:`append` can be a lot faster if it knows that it is appending
+        several elements instead of a single element.  To tell the append
+        method this is the case, use ``cache_build=True``.  This method
+        finalizes the series of append operations after a call to
+        :method:`append` with ``cache_build=True``.
+        """
+        if self._build_cache is None:
+            return
+        self._build_cache.update_seq(self)
+        self._build_cache = None
+
+    def _resize_data_to(self, n_rows, build_cache):
+        """ Resize data array if required """
+        # Calculate new data shape, rounding up to nearest buffer size
+        n_bufs = np.ceil(n_rows / build_cache.rows_per_buf)
+        extended_n_rows = int(n_bufs * build_cache.rows_per_buf)
+        new_shape = (extended_n_rows,) + build_cache.common_shape
+        if self._data.size == 0:
+            self._data = np.empty(new_shape, dtype=build_cache.dtype)
+        else:
+            self._data.resize(new_shape)
+
+    def shrink_data(self):
+        self._data.resize((self._get_next_offset(),) + self.common_shape)
 
     def extend(self, elements):
         """ Appends all `elements` to this array sequence.
@@ -154,28 +240,16 @@ class ArraySequence(object):
         if not is_array_sequence(elements):
             self.extend(self.__class__(elements))
             return
-
         if len(elements) == 0:
             return
-
-        if (self.common_shape != () and
-                elements.common_shape != self.common_shape):
-            msg = "All dimensions, except the first one, must match exactly"
-            raise ValueError(msg)
-
-        next_offset = self._data.shape[0]
-        self._data.resize((self._data.shape[0] + sum(elements._lengths),
-                           elements._data.shape[1]))
-
-        offsets = []
-        for offset, length in zip(elements._offsets, elements._lengths):
-            offsets.append(next_offset)
-            chunk = elements._data[offset:offset + length]
-            self._data[next_offset:next_offset + length] = chunk
-            next_offset += length
-
-        self._lengths = np.r_[self._lengths, elements._lengths]
-        self._offsets = np.r_[self._offsets, offsets]
+        self._build_cache = _BuildCache(self,
+                                        elements.common_shape,
+                                        elements.data.dtype)
+        self._resize_data_to(self._get_next_offset() + elements.nb_elements,
+                             self._build_cache)
+        for element in elements:
+            self.append(element)
+        self.finalize_append()
 
     def _extend_using_coroutine(self, buffer_size=4):
         """ Creates a coroutine allowing to append elements.
@@ -204,7 +278,7 @@ class ArraySequence(object):
         offsets = []
         lengths = []
 
-        offset = 0 if len(self) == 0 else self._offsets[-1] + self._lengths[-1]
+        offset = self._get_next_offset()
         try:
             first_element = True
             while True:
@@ -293,20 +367,24 @@ class ArraySequence(object):
             start = self._offsets[idx]
             return self._data[start:start + self._lengths[idx]]
 
-        elif isinstance(idx, (slice, list)) or is_ndarray_of_int_or_bool(idx):
-            seq = self.__class__()
+        seq = self.__class__()
+        seq._is_view = True
+        if isinstance(idx, tuple):
+            off_idx = idx[0]
+            seq._data = self._data.__getitem__((slice(None),) + idx[1:])
+        else:
+            off_idx = idx
             seq._data = self._data
-            seq._offsets = self._offsets[idx]
-            seq._lengths = self._lengths[idx]
-            seq._is_view = True
+
+        if isinstance(off_idx, slice):  # Standard list slicing
+            seq._offsets = self._offsets[off_idx]
+            seq._lengths = self._lengths[off_idx]
             return seq
 
-        elif isinstance(idx, tuple):
-            seq = self.__class__()
-            seq._data = self._data.__getitem__((slice(None),) + idx[1:])
-            seq._offsets = self._offsets[idx[0]]
-            seq._lengths = self._lengths[idx[0]]
-            seq._is_view = True
+        if isinstance(off_idx, list) or is_ndarray_of_int_or_bool(off_idx):
+            # Fancy indexing
+            seq._offsets = self._offsets[off_idx]
+            seq._lengths = self._lengths[off_idx]
             return seq
 
         raise TypeError("Index must be either an int, a slice, a list of int"
