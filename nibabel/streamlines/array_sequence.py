@@ -444,17 +444,11 @@ def create_arraysequences_from_generator(gen, n):
         Number of :class:`ArraySequences` object to create.
     """
     seqs = [ArraySequence() for _ in range(n)]
-    coroutines = [seq._extend_using_coroutine() for seq in seqs]
-
-    for coroutine in coroutines:
-        coroutine.send(None)
-
     for data in gen:
-        for i, coroutine in enumerate(coroutines):
+        for i, seq in enumerate(seqs):
             if data[i].nbytes > 0:
-                coroutine.send(data[i])
+                seq.append(data[i], cache_build=True)
 
-    for coroutine in coroutines:
-        coroutine.close()
-
+    for seq in seqs:
+        seq.finalize_append()
     return seqs
