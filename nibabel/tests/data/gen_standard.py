@@ -1,3 +1,10 @@
+""" Generate mask and testing tractogram in known formats:
+
+* mask: standard.nii.gz
+* tractogram:
+
+    * standard.trk
+"""
 import numpy as np
 import nibabel as nib
 

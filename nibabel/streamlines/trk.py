@@ -541,10 +541,12 @@ class TrkFile(TractogramFile):
         Returns
         -------
         header : dict
-            Metadata associated to this tractogram file.
+            Metadata associated with this tractogram file.
         """
+        # Record start position if this is a file-like object
+        start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
+
         with Opener(fileobj) as f:
-            start_position = f.tell()
 
             # Read the header in one block.
             header_str = f.read(header_2_dtype.itemsize)
@@ -568,7 +570,8 @@ class TrkFile(TractogramFile):
             elif header_rec['version'] == 2:
                 pass  # Nothing more to do.
             else:
-                raise HeaderError('NiBabel only supports versions 1 and 2.')
+                raise HeaderError('NiBabel only supports versions 1 and 2 of '
+                                  'the Trackvis file format')
 
             # Convert the first record of `header_rec` into a dictionnary
             header = dict(zip(header_rec.dtype.names, header_rec[0]))
@@ -601,14 +604,15 @@ class TrkFile(TractogramFile):
             # Keep the file position where the data begin.
             header['_offset_data'] = f.tell()
 
-            # Set the file position where it was (in case it was already open).
-            f.seek(start_position, os.SEEK_CUR)
+        # Set the file position where it was, if it was previously open
+        if start_position is not None:
+            fileobj.seek(start_position, os.SEEK_CUR)
 
-            return header
+        return header
 
     @staticmethod
     def _read(fileobj, header):
-        """ Reads TRK data from a file.
+        """ Return generator that reads TRK data from `fileobj` given `header`
 
         Parameters
         ----------
@@ -618,15 +622,17 @@ class TrkFile(TractogramFile):
             of the TRK header). Note that calling this function
             does not change the file position.
         header : dict
-            Metadata associated to this tractogram file.
+            Metadata associated with this tractogram file.
 
         Yields
         ------
         data : tuple of ndarrays
-            Streamline data: points, scalars, properties.
-            points: ndarray of shape (n_pts, 3)
-            scalars: ndarray of shape (n_pts, nb_scalars_per_point)
-            properties: ndarray of shape (nb_properties_per_point,)
+            Length 3 tuple of streamline data of form (points, scalars,
+            properties), where:
+
+            * points: ndarray of shape (n_pts, 3)
+            * scalars: ndarray of shape (n_pts, nb_scalars_per_point)
+            * properties: ndarray of shape (nb_properties_per_point,)
         """
         i4_dtype = np.dtype(header[Field.ENDIANNESS] + "i4")
         f4_dtype = np.dtype(header[Field.ENDIANNESS] + "f4")
