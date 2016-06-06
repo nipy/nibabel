@@ -606,7 +606,7 @@ class TrkFile(TractogramFile):
 
         # Set the file position where it was, if it was previously open
         if start_position is not None:
-            fileobj.seek(start_position, os.SEEK_CUR)
+            fileobj.seek(start_position, os.SEEK_SET)
 
         return header
 

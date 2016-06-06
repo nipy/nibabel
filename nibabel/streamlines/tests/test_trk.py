@@ -7,7 +7,7 @@ from os.path import join as pjoin
 from nibabel.externals.six import BytesIO
 
 from nibabel.testing import data_path
-from nibabel.testing import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings, assert_arr_dict_equal
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
 
@@ -460,3 +460,19 @@ class TestTRK(unittest.TestCase):
     def test_str(self):
         trk = TrkFile.load(DATA['complex_trk_fname'])
         str(trk)  # Simply test it's not failing when called.
+
+    def test_header_read_restore(self):
+        # Test that reading a header restores the file position
+        trk_fname = DATA['simple_trk_fname']
+        bio = BytesIO()
+        bio.write(b'Along my very merry way')
+        hdr_pos = bio.tell()
+        hdr_from_fname = TrkFile._read_header(trk_fname)
+        with open(trk_fname, 'rb') as fobj:
+            bio.write(fobj.read())
+        bio.seek(hdr_pos)
+        # Check header is as expected
+        hdr_from_fname['_offset_data'] += hdr_pos  # Correct for start position
+        assert_arr_dict_equal(TrkFile._read_header(bio), hdr_from_fname)
+        # Check fileobject file position has not changed
+        assert_equal(bio.tell(), hdr_pos)
