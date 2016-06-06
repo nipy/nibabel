@@ -29,7 +29,8 @@ class _BuildCache(object):
         self.lengths = list(arr_seq._lengths)
         self.next_offset = arr_seq._get_next_offset()
         self.bytes_per_buf = arr_seq._buffer_size * MEGABYTE
-        self.dtype = dtype
+        # Use the passed dtype only if null data array
+        self.dtype = dtype if arr_seq._data.size == 0 else arr_seq._data.dtype
         if arr_seq.common_shape != () and common_shape != arr_seq.common_shape:
             raise ValueError(
                 "All dimensions, except the first one, must match exactly")
@@ -89,24 +90,7 @@ class ArraySequence(object):
             self._is_view = True
             return
 
-        # If possible try pre-allocating memory.
-        try:
-            iter_len = len(iterable)
-        except TypeError:
-            pass
-        else:  # We do know the iterable length
-            if iter_len == 0:
-                return
-            first_element = np.asarray(iterable[0])
-            n_elements = np.sum([len(iterable[i])
-                                for i in range(len(iterable))])
-            new_shape = (n_elements,) + first_element.shape[1:]
-            self._data = np.empty(new_shape, dtype=first_element.dtype)
-
-        for e in iterable:
-            self.append(e, cache_build=True)
-
-        self.finalize_append()
+        self.extend(iterable)
 
     @property
     def is_array_sequence(self):
@@ -237,18 +221,23 @@ class ArraySequence(object):
         The shape of the elements to be added must match the one of the data of
         this :class:`ArraySequence` except for the first dimension.
         """
-        if not is_array_sequence(elements):
-            self.extend(self.__class__(elements))
-            return
-        if len(elements) == 0:
-            return
-        self._build_cache = _BuildCache(self,
-                                        elements.common_shape,
-                                        elements.data.dtype)
-        self._resize_data_to(self._get_next_offset() + elements.nb_elements,
-                             self._build_cache)
-        for element in elements:
-            self.append(element)
+        # If possible try pre-allocating memory.
+        try:
+            iter_len = len(elements)
+        except TypeError:
+            pass
+        else:  # We do know the iterable length
+            if iter_len == 0:
+                return
+            e0 = np.asarray(elements[0])
+            n_elements = np.sum([len(e) for e in elements])
+            self._build_cache = _BuildCache(self, e0.shape[1:], e0.dtype)
+            self._resize_data_to(self._get_next_offset() + n_elements,
+                                 self._build_cache)
+
+        for e in elements:
+            self.append(e, cache_build=True)
+
         self.finalize_append()
 
     def _extend_using_coroutine(self, buffer_size=4):
