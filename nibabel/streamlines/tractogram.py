@@ -25,18 +25,16 @@ class SliceableDataDict(collections.MutableMapping):
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
     values.
+
+    Parameters
+    ----------
+    \*args :
+    \*\*kwargs :
+        Positional and keyword arguments, passed straight through the ``dict``
+        constructor.
     """
     def __init__(self, *args, **kwargs):
         self.store = dict()
-        # Use the 'update' method to set the keys.
-        if len(args) == 1:
-            if args[0] is None:
-                return
-
-            if isinstance(args[0], SliceableDataDict):
-                self.update(**args[0])
-                return
-
         self.update(dict(*args, **kwargs))
 
     def __getitem__(self, key):
@@ -47,9 +45,9 @@ class SliceableDataDict(collections.MutableMapping):
 
         # Try to interpret key as an index/slice for every data element, in
         # which case we perform (maybe advanced) indexing on every element of
-        # the dictionnary.
+        # the dictionary.
         idx = key
-        new_dict = type(self)(None)
+        new_dict = type(self)()
         try:
             for k, v in self.items():
                 new_dict[k] = v[idx]
@@ -81,8 +79,18 @@ class PerArrayDict(SliceableDataDict):
     In addition, it makes sure the amount of data contained in those ndarrays
     matches the number of streamlines given at the instantiation of this
     instance.
+
+    Parameters
+    ----------
+    nb_elements : None or int, optional
+        Number of elements per value in each key, value pair or None for not
+        specified.
+    \*args :
+    \*\*kwargs :
+        Positional and keyword arguments, passed straight through the ``dict``
+        constructor.
     """
-    def __init__(self, nb_elements, *args, **kwargs):
+    def __init__(self, nb_elements=None, *args, **kwargs):
         self.nb_elements = nb_elements
         super(PerArrayDict, self).__init__(*args, **kwargs)
 
@@ -105,7 +113,7 @@ class PerArrayDict(SliceableDataDict):
         self.store[key] = value
 
 
-class PerArraySequenceDict(SliceableDataDict):
+class PerArraySequenceDict(PerArrayDict):
     """ Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
@@ -116,10 +124,6 @@ class PerArraySequenceDict(SliceableDataDict):
     sequences matches the number of elements given at the instantiation
     of the instance.
     """
-    def __init__(self, nb_elements, *args, **kwargs):
-        self.nb_elements = nb_elements
-        super(PerArraySequenceDict, self).__init__(*args, **kwargs)
-
     def __setitem__(self, key, value):
         value = ArraySequence(value)
 
@@ -285,7 +289,8 @@ class Tractogram(object):
 
     @data_per_streamline.setter
     def data_per_streamline(self, value):
-        self._data_per_streamline = PerArrayDict(len(self.streamlines), value)
+        self._data_per_streamline = PerArrayDict(
+            len(self.streamlines), {} if value is None else value)
 
     @property
     def data_per_point(self):
@@ -294,7 +299,7 @@ class Tractogram(object):
     @data_per_point.setter
     def data_per_point(self, value):
         self._data_per_point = PerArraySequenceDict(
-            self.streamlines.nb_elements, value)
+            self.streamlines.nb_elements, {} if value is None else value)
 
     @property
     def affine_to_rasmm(self):

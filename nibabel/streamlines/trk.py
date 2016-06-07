@@ -93,8 +93,8 @@ def get_affine_trackvis_to_rasmm(header):
     The streamlines in a trackvis file are in 'voxelmm' space, where the
     coordinates refer to the corner of the voxel.
 
-    Compute the # affine matrix that will bring them back to RAS+ mm space,
-    where the coordinates refer to the center of the voxel.
+    Compute the affine matrix that will bring them back to RAS+ mm space, where
+    the coordinates refer to the center of the voxel.
 
     Parameters
     ----------
