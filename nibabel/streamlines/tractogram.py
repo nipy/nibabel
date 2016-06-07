@@ -530,7 +530,7 @@ class LazyTractogram(Tractogram):
         return lazy_tractogram
 
     @classmethod
-    def create_from(cls, data_func):
+    def from_data_func(cls, data_func):
         """ Creates an instance from a generator function.
 
         The generator function must yield :class:`TractogramItem` objects.

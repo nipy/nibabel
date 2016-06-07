@@ -600,11 +600,11 @@ class TestLazyTractogram(unittest.TestCase):
         for i in range(2):
             assert_tractogram_equal(tractogram, DATA['tractogram'])
 
-    def test_lazy_tractogram_create_from(self):
+    def test_lazy_tractogram_from_data_func(self):
         # Create an empty `LazyTractogram` yielding nothing.
         _empty_data_gen = lambda: iter([])
 
-        tractogram = LazyTractogram.create_from(_empty_data_gen)
+        tractogram = LazyTractogram.from_data_func(_empty_data_gen)
         check_tractogram(tractogram)
 
         # Create `LazyTractogram` from a generator function yielding TractogramItem.
@@ -623,11 +623,11 @@ class TestLazyTractogram(unittest.TestCase):
                                      data_for_streamline,
                                      data_for_points)
 
-        tractogram = LazyTractogram.create_from(_data_gen)
+        tractogram = LazyTractogram.from_data_func(_data_gen)
         assert_tractogram_equal(tractogram, DATA['tractogram'])
 
         # Creating a LazyTractogram from not a corouting should raise an error.
-        assert_raises(TypeError, LazyTractogram.create_from, _data_gen())
+        assert_raises(TypeError, LazyTractogram.from_data_func, _data_gen())
 
     def test_lazy_tractogram_getitem(self):
         assert_raises(NotImplementedError,

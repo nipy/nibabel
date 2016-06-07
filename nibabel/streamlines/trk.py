@@ -383,7 +383,7 @@ class TrkFile(TractogramFile):
                                          data_for_streamline,
                                          data_for_points)
 
-            tractogram = LazyTractogram.create_from(_read)
+            tractogram = LazyTractogram.from_data_func(_read)
 
         else:
             trk_reader = cls._read(fileobj, hdr)
