@@ -4,9 +4,8 @@ import warnings
 import numpy as np
 import getpass
 import time
-from collections import OrderedDict
 
-
+from ..externals import OrderedDict
 from ..externals.six.moves import xrange
 from ..openers import Opener
 
@@ -176,7 +175,7 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         postlude = [b'\x00\x00\x00\x14']
         for key, val in volume_info.items():
             if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
-                val = '{:.3f} {:.3f} {:.3f}'.format(*val)
+                val = '{:.4f} {:.4f} {:.4f}'.format(*val)
             elif key == 'volume':
                 val = '{:d} {:d} {:d}'.format(*val)
             key = key.ljust(6)
