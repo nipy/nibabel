@@ -170,10 +170,7 @@ class TestTRK(unittest.TestCase):
     def test_tractogram_file_properties(self):
         trk = TrkFile.load(DATA['simple_trk_fname'])
         assert_equal(trk.streamlines, trk.tractogram.streamlines)
-        assert_equal(trk.get_streamlines(), trk.streamlines)
-        assert_equal(trk.get_tractogram(), trk.tractogram)
-        assert_equal(trk.get_header(), trk.header)
-        assert_array_equal(trk.get_affine(), trk.header[Field.VOXEL_TO_RASMM])
+        assert_array_equal(trk.affine, trk.header[Field.VOXEL_TO_RASMM])
 
     def test_write_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))

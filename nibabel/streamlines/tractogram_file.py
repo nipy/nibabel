@@ -51,20 +51,8 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @property
     def affine(self):
+        """ voxmm -> rasmm affine. """
         return self.header.get(Field.VOXEL_TO_RASMM)
-
-    def get_tractogram(self):
-        return self.tractogram
-
-    def get_streamlines(self):
-        return self.streamlines
-
-    def get_header(self):
-        return self.header
-
-    def get_affine(self):
-        """ Returns vox -> rasmm affine. """
-        return self.affine
 
     @abstractclassmethod
     def is_correct_format(cls, fileobj):
