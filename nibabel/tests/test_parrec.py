@@ -23,7 +23,8 @@ from numpy.testing import (assert_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal)
 
-from ..testing import clear_and_catch_warnings, suppress_warnings
+from ..testing import (clear_and_catch_warnings, suppress_warnings,
+                       assert_arr_dict_equal)
 
 from .test_arrayproxy import check_mmap
 from . import test_spatialimages as tsi
@@ -616,13 +617,6 @@ def test_copy_on_init():
     hdr.image_defs['image pixel size'] = 8
     assert_array_equal(hdr.image_defs['image pixel size'], 8)
     assert_array_equal(HDR_DEFS['image pixel size'], 16)
-
-
-def assert_arr_dict_equal(dict1, dict2):
-    assert_equal(set(dict1), set(dict2))
-    for key, value1 in dict1.items():
-        value2 = dict2[key]
-        assert_array_equal(value1, value2)
 
 
 def assert_structarr_equal(star1, star2):
