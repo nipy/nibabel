@@ -1,3 +1,5 @@
+"""  Define abstract interface for Tractogram file classes
+"""
 from abc import ABCMeta, abstractmethod
 from nibabel.externals.six import with_metaclass
 
@@ -85,7 +87,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
-        """ Loads streamlines from a file-like object.
+        """ Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -107,7 +109,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractmethod
     def save(self, fileobj):
-        """ Saves streamlines to a file-like object.
+        """ Saves streamlines to a filename or file-like object.
 
         Parameters
         ----------

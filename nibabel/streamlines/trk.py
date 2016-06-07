@@ -309,7 +309,7 @@ class TrkFile(TractogramFile):
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
-        """ Loads streamlines from a file-like object.
+        """ Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -410,7 +410,7 @@ class TrkFile(TractogramFile):
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
-            pointing to TRK file (and ready to read from the beginning
+            pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
         header = create_empty_header()
