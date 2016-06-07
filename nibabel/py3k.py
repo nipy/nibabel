@@ -40,6 +40,7 @@ if sys.version_info[0] >= 3:
     strchar = 'U'
     ints2bytes = lambda seq: bytes(seq)
     ZEROB = bytes([0])
+    FileNotFoundError = FileNotFoundError
 else:
     import StringIO
     StringIO = BytesIO = StringIO.StringIO
@@ -62,6 +63,8 @@ else:
     ints2bytes = lambda seq: ''.join(chr(i) for i in seq)
     ZEROB = chr(0)
 
+    class FileNotFoundError(IOError):
+        pass
 
 def getexception():
     return sys.exc_info()[1]

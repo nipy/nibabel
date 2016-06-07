@@ -18,7 +18,7 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-
+from .py3k import FileNotFoundError
 
 def load(filename, **kwargs):
     ''' Load file given filename, guessing at file type
@@ -36,7 +36,7 @@ def load(filename, **kwargs):
        Image of guessed type
     '''
     if not op.exists(filename):
-        raise IOError("No such file: '%s'" % filename)
+        raise FileNotFoundError("No such file: '%s'" % filename)
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
