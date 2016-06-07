@@ -88,6 +88,24 @@ header_2_dtype = np.dtype(header_2_dtd)
 
 
 def get_affine_trackvis_to_rasmm(header):
+    """ Get affine mapping trackvis voxelmm space to RAS+ mm space
+
+    The streamlines in a trackvis file are in 'voxelmm' space, where the
+    coordinates refer to the corner of the voxel.
+
+    Compute the # affine matrix that will bring them back to RAS+ mm space,
+    where the coordinates refer to the center of the voxel.
+
+    Parameters
+    ----------
+    header : dict
+        Dict containing trackvis header.
+
+    Returns
+    -------
+    aff_tv2ras : shape (4, 4) array
+        Affine array mapping coordinates in 'voxelmm' space to RAS+ mm space.
+    """
     # TRK's streamlines are in 'voxelmm' space, we will compute the
     # affine matrix that will bring them back to RAS+ and mm space.
     affine = np.eye(4)
