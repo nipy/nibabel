@@ -186,9 +186,9 @@ class TestPerArraySequenceDict(unittest.TestCase):
     def test_per_array_sequence_dict_creation(self):
         # Create a PerArraySequenceDict object using another
         # PerArraySequenceDict object.
-        nb_elements = DATA['tractogram'].streamlines.nb_elements
+        total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         data_per_point = DATA['tractogram'].data_per_point
-        data_dict = PerArraySequenceDict(nb_elements, data_per_point)
+        data_dict = PerArraySequenceDict(total_nb_rows, data_per_point)
         assert_equal(data_dict.keys(), data_per_point.keys())
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
@@ -199,7 +199,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
 
         # Create a PerArraySequenceDict object using an existing dict object.
         data_per_point = DATA['data_per_point']
-        data_dict = PerArraySequenceDict(nb_elements, data_per_point)
+        data_dict = PerArraySequenceDict(total_nb_rows, data_per_point)
         assert_equal(data_dict.keys(), data_per_point.keys())
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
@@ -209,7 +209,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
 
         # Create a PerArraySequenceDict object using keyword arguments.
         data_per_point = DATA['data_per_point']
-        data_dict = PerArraySequenceDict(nb_elements, **data_per_point)
+        data_dict = PerArraySequenceDict(total_nb_rows, **data_per_point)
         assert_equal(data_dict.keys(), data_per_point.keys())
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
@@ -218,8 +218,8 @@ class TestPerArraySequenceDict(unittest.TestCase):
         assert_equal(len(data_dict), len(data_per_point)-1)
 
     def test_getitem(self):
-        nb_elements = DATA['tractogram'].streamlines.nb_elements
-        sdict = PerArraySequenceDict(nb_elements, DATA['data_per_point'])
+        total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
+        sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
 
         assert_raises(KeyError, sdict.__getitem__, 'invalid')
 

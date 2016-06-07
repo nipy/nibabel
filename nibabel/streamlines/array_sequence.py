@@ -102,8 +102,8 @@ class ArraySequence(object):
         return self._data.shape[1:]
 
     @property
-    def nb_elements(self):
-        """ Total number of elements in this array sequence. """
+    def total_nb_rows(self):
+        """ Total number of rows in this array sequence. """
         return np.sum(self._lengths)
 
     @property
@@ -112,7 +112,7 @@ class ArraySequence(object):
         return self._data
 
     def _get_next_offset(self):
-        """ Offset in ``self._data`` at which to write next element """
+        """ Offset in ``self._data`` at which to write next rowelement """
         if len(self._offsets) == 0:
             return 0
         imax = np.argmax(self._offsets)

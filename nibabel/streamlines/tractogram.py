@@ -82,16 +82,16 @@ class PerArrayDict(SliceableDataDict):
 
     Parameters
     ----------
-    nb_elements : None or int, optional
-        Number of elements per value in each key, value pair or None for not
+    n_rows : None or int, optional
+        Number of rows per value in each key, value pair or None for not
         specified.
     \*args :
     \*\*kwargs :
         Positional and keyword arguments, passed straight through the ``dict``
         constructor.
     """
-    def __init__(self, nb_elements=None, *args, **kwargs):
-        self.nb_elements = nb_elements
+    def __init__(self, n_rows=None, *args, **kwargs):
+        self.n_rows = n_rows
         super(PerArrayDict, self).__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
@@ -105,9 +105,9 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError("data_per_streamline must be a 2D array.")
 
         # We make sure there is the right amount of values
-        if self.nb_elements is not None and len(value) != self.nb_elements:
+        if self.n_rows is not None and len(value) != self.n_rows:
             msg = ("The number of values ({0}) should match n_elements "
-                   "({1}).").format(len(value), self.nb_elements)
+                   "({1}).").format(len(value), self.n_rows)
             raise ValueError(msg)
 
         self.store[key] = value
@@ -128,10 +128,10 @@ class PerArraySequenceDict(PerArrayDict):
         value = ArraySequence(value)
 
         # We make sure there is the right amount of data.
-        if (self.nb_elements is not None and
-                value.nb_elements != self.nb_elements):
+        if (self.n_rows is not None and
+                value.total_nb_rows != self.n_rows):
             msg = ("The number of values ({0}) should match "
-                   "({1}).").format(value.nb_elements, self.nb_elements)
+                   "({1}).").format(value.total_nb_rows, self.n_rows)
             raise ValueError(msg)
 
         self.store[key] = value
@@ -299,7 +299,7 @@ class Tractogram(object):
     @data_per_point.setter
     def data_per_point(self, value):
         self._data_per_point = PerArraySequenceDict(
-            self.streamlines.nb_elements, {} if value is None else value)
+            self.streamlines.total_nb_rows, {} if value is None else value)
 
     @property
     def affine_to_rasmm(self):

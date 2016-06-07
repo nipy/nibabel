@@ -116,8 +116,8 @@ class TestArraySequence(unittest.TestCase):
     def test_arraysequence_copy(self):
         orig = SEQ_DATA['seq']
         seq = orig.copy()
-        n_rows = seq.nb_elements
-        assert_equal(n_rows, orig.nb_elements)
+        n_rows = seq.total_nb_rows
+        assert_equal(n_rows, orig.total_nb_rows)
         assert_array_equal(seq._data, orig._data[:n_rows])
         assert_true(seq._data is not orig._data)
         assert_array_equal(seq._offsets, orig._offsets)
