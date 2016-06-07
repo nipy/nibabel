@@ -63,6 +63,7 @@ else:
     ints2bytes = lambda seq: ''.join(chr(i) for i in seq)
     ZEROB = chr(0)
 
+
     class FileNotFoundError(IOError):
         pass
 

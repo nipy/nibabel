@@ -20,6 +20,7 @@ from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .py3k import FileNotFoundError
 
+
 def load(filename, **kwargs):
     ''' Load file given filename, guessing at file type
 
