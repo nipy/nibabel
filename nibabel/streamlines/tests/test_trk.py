@@ -82,14 +82,6 @@ def setup():
                                             affine_to_rasmm=np.eye(4))
 
 
-def assert_header_equal(h1, h2):
-    for k in h1.keys():
-        assert_array_equal(h2[k], h1[k])
-
-    for k in h2.keys():
-        assert_array_equal(h1[k], h2[k])
-
-
 class TestTRK(unittest.TestCase):
 
     def test_load_empty_file(self):
@@ -298,7 +290,7 @@ class TestTRK(unittest.TestCase):
 
         new_trk = TrkFile.load(trk_file)
 
-        assert_header_equal(new_trk.header, trk.header)
+        assert_arr_dict_equal(new_trk.header, trk.header)
         assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
         new_trk_orig = TrkFile.load(DATA['standard_LPS_trk_fname'])
@@ -322,7 +314,7 @@ class TestTRK(unittest.TestCase):
 
         new_trk = TrkFile.load(trk_file)
 
-        assert_header_equal(new_trk.header, trk_LPS.header)
+        assert_arr_dict_equal(new_trk.header, trk_LPS.header)
         assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
         new_trk_orig = TrkFile.load(DATA['standard_LPS_trk_fname'])
