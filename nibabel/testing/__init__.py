@@ -200,3 +200,12 @@ def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
     return skipif(test_str not in EXTRA_SET,
                   "Skip {0} tests.".format(test_str))
+
+
+def assert_arr_dict_equal(dict1, dict2):
+    """ Assert that two dicts are equal, where dicts contain arrays
+    """
+    assert_equal(set(dict1), set(dict2))
+    for key, value1 in dict1.items():
+        value2 = dict2[key]
+        assert_array_equal(value1, value2)

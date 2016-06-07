@@ -1,3 +1,5 @@
+"""  Define abstract interface for Tractogram file classes
+"""
 from abc import ABCMeta, abstractmethod
 from nibabel.externals.six import with_metaclass
 
@@ -49,20 +51,8 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @property
     def affine(self):
+        """ voxmm -> rasmm affine. """
         return self.header.get(Field.VOXEL_TO_RASMM)
-
-    def get_tractogram(self):
-        return self.tractogram
-
-    def get_streamlines(self):
-        return self.streamlines
-
-    def get_header(self):
-        return self.header
-
-    def get_affine(self):
-        """ Returns vox -> rasmm affine. """
-        return self.affine
 
     @abstractclassmethod
     def is_correct_format(cls, fileobj):
@@ -85,7 +75,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
-        """ Loads streamlines from a file-like object.
+        """ Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -107,7 +97,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     @abstractmethod
     def save(self, fileobj):
-        """ Saves streamlines to a file-like object.
+        """ Saves streamlines to a filename or file-like object.
 
         Parameters
         ----------

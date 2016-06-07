@@ -88,6 +88,24 @@ header_2_dtype = np.dtype(header_2_dtd)
 
 
 def get_affine_trackvis_to_rasmm(header):
+    """ Get affine mapping trackvis voxelmm space to RAS+ mm space
+
+    The streamlines in a trackvis file are in 'voxelmm' space, where the
+    coordinates refer to the corner of the voxel.
+
+    Compute the # affine matrix that will bring them back to RAS+ mm space,
+    where the coordinates refer to the center of the voxel.
+
+    Parameters
+    ----------
+    header : dict
+        Dict containing trackvis header.
+
+    Returns
+    -------
+    aff_tv2ras : shape (4, 4) array
+        Affine array mapping coordinates in 'voxelmm' space to RAS+ mm space.
+    """
     # TRK's streamlines are in 'voxelmm' space, we will compute the
     # affine matrix that will bring them back to RAS+ and mm space.
     affine = np.eye(4)
@@ -129,48 +147,46 @@ def get_affine_rasmm_to_trackvis(header):
 
 
 def encode_value_in_name(value, name, max_name_len=20):
-    """ Encodes a value in the last bytes of a string.
+    """ Return `name` as fixed-length string, appending `value` as string.
 
-    If `value` is one, then there is no encoding and the last bytes
-    are left untouched. Otherwise, a \x00 byte is added after `name`
-    and followed by the ascii represensation of the value.
+    Form output from `name` if `value <= 1` else `name` + ``\x00`` +
+    str(value).
 
-    This function also verifies that the length of name is less
-    than `max_name_len`.
+    Return output as fixed length string length `max_name_len`, padded with
+    ``\x00``.
+
+    This function also verifies that the modified length of name is less than
+    `max_name_len`.
 
     Parameters
     ----------
-    value : byte
-        Integer value between 0 and 255 to encode.
-    name : bytes
-        Name in which the last two bytes will serve to encode `value`.
+    value : int
+        Integer value to encode.
+    name : str
+        Name to which we may append an ascii / latin-1 representation of
+        `value`.
     max_name_len : int, optional
-        Maximum length name can have.
+        Maximum length of byte string that output can have.
 
     Returns
     -------
     encoded_name : bytes
-        Name containing the encoded value.
+        Name maybe followed by ``\x00`` and ascii / latin-1 representation of
+        `value`, padded with ``\x00`` bytes.
     """
-
     if len(name) > max_name_len:
         msg = ("Data information named '{0}' is too long"
                " (max {1} characters.)").format(name, max_name_len)
         raise ValueError(msg)
-    elif value > 1 and len(name) + len(str(value)) + 1 > max_name_len:
+    encoded_name = name if value <= 1 else name + '\x00' + str(value)
+    if len(encoded_name) > max_name_len:
         msg = ("Data information named '{0}' is too long (need to be less"
                " than {1} characters when storing more than one value"
                " for a given data information."
                ).format(name, max_name_len - (len(str(value)) + 1))
         raise ValueError(msg)
-
-    encoded_name = name
-    if value > 1:
-        # Store the name followed by \x00 and the `value` (in ascii).
-        encoded_name += '\x00' + str(value)
-
-    encoded_name = encoded_name.ljust(max_name_len, '\x00')
-    return encoded_name
+    # Fill to the end with zeros
+    return encoded_name.ljust(max_name_len, '\x00').encode('latin1')
 
 
 def decode_value_from_name(encoded_name):
@@ -293,7 +309,7 @@ class TrkFile(TractogramFile):
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
-        """ Loads streamlines from a file-like object.
+        """ Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -388,13 +404,13 @@ class TrkFile(TractogramFile):
         return cls(tractogram, header=hdr)
 
     def save(self, fileobj):
-        """ Saves tractogram to a file-like object using TRK format.
+        """ Save tractogram to a filename or file-like object using TRK format.
 
         Parameters
         ----------
         fileobj : string or file-like object
             If string, a filename; otherwise an open file-like object
-            pointing to TRK file (and ready to read from the beginning
+            pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
         header = create_empty_header()
@@ -420,6 +436,7 @@ class TrkFile(TractogramFile):
             # Keep track of the beginning of the header.
             beginning = f.tell()
 
+            # Write temporary header that we will update at the end
             f.write(header.tostring())
 
             i4_dtype = np.dtype("<i4")  # Always save in little-endian.
@@ -449,8 +466,8 @@ class TrkFile(TractogramFile):
             property_name = np.zeros(MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE,
                                      dtype='S20')
             for i, name in enumerate(data_for_streamline_keys):
-                # Use the last two bytes of the name to store the number of
-                # values associated to this data_for_streamline.
+                # Append number of values as ascii to zero-terminated name
+                # to encode number of values into trackvis name.
                 nb_values = data_for_streamline[name].shape[-1]
                 property_name[i] = encode_value_in_name(nb_values, name)
             header['property_name'][:] = property_name
@@ -466,8 +483,8 @@ class TrkFile(TractogramFile):
             data_for_points_keys = sorted(data_for_points.keys())
             scalar_name = np.zeros(MAX_NB_NAMED_SCALARS_PER_POINT, dtype='S20')
             for i, name in enumerate(data_for_points_keys):
-                # Use the last two bytes of the name to store the number of
-                # values associated to this data_for_streamline.
+                # Append number of values as ascii to zero-terminated name
+                # to encode number of values into trackvis name.
                 nb_values = data_for_points[name].shape[-1]
                 scalar_name[i] = encode_value_in_name(nb_values, name)
             header['scalar_name'][:] = scalar_name
@@ -541,10 +558,12 @@ class TrkFile(TractogramFile):
         Returns
         -------
         header : dict
-            Metadata associated to this tractogram file.
+            Metadata associated with this tractogram file.
         """
+        # Record start position if this is a file-like object
+        start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
+
         with Opener(fileobj) as f:
-            start_position = f.tell()
 
             # Read the header in one block.
             header_str = f.read(header_2_dtype.itemsize)
@@ -568,7 +587,8 @@ class TrkFile(TractogramFile):
             elif header_rec['version'] == 2:
                 pass  # Nothing more to do.
             else:
-                raise HeaderError('NiBabel only supports versions 1 and 2.')
+                raise HeaderError('NiBabel only supports versions 1 and 2 of '
+                                  'the Trackvis file format')
 
             # Convert the first record of `header_rec` into a dictionnary
             header = dict(zip(header_rec.dtype.names, header_rec[0]))
@@ -601,14 +621,15 @@ class TrkFile(TractogramFile):
             # Keep the file position where the data begin.
             header['_offset_data'] = f.tell()
 
-            # Set the file position where it was (in case it was already open).
-            f.seek(start_position, os.SEEK_CUR)
+        # Set the file position where it was, if it was previously open
+        if start_position is not None:
+            fileobj.seek(start_position, os.SEEK_SET)
 
-            return header
+        return header
 
     @staticmethod
     def _read(fileobj, header):
-        """ Reads TRK data from a file.
+        """ Return generator that reads TRK data from `fileobj` given `header`
 
         Parameters
         ----------
@@ -618,15 +639,17 @@ class TrkFile(TractogramFile):
             of the TRK header). Note that calling this function
             does not change the file position.
         header : dict
-            Metadata associated to this tractogram file.
+            Metadata associated with this tractogram file.
 
         Yields
         ------
         data : tuple of ndarrays
-            Streamline data: points, scalars, properties.
-            points: ndarray of shape (n_pts, 3)
-            scalars: ndarray of shape (n_pts, nb_scalars_per_point)
-            properties: ndarray of shape (nb_properties_per_point,)
+            Length 3 tuple of streamline data of form (points, scalars,
+            properties), where:
+
+            * points: ndarray of shape (n_pts, 3)
+            * scalars: ndarray of shape (n_pts, nb_scalars_per_point)
+            * properties: ndarray of shape (nb_properties_per_point,)
         """
         i4_dtype = np.dtype(header[Field.ENDIANNESS] + "i4")
         f4_dtype = np.dtype(header[Field.ENDIANNESS] + "f4")

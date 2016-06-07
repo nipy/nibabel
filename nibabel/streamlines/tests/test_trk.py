@@ -7,7 +7,7 @@ from os.path import join as pjoin
 from nibabel.externals.six import BytesIO
 
 from nibabel.testing import data_path
-from nibabel.testing import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings, assert_arr_dict_equal
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
 
@@ -16,7 +16,7 @@ from ..tractogram import Tractogram
 from ..tractogram_file import HeaderError, HeaderWarning
 
 from .. import trk as trk_module
-from ..trk import TrkFile
+from ..trk import TrkFile, encode_value_in_name, decode_value_from_name
 from ..header import Field
 
 DATA = {}
@@ -80,14 +80,6 @@ def setup():
                                             DATA['data_per_streamline'],
                                             DATA['data_per_point'],
                                             affine_to_rasmm=np.eye(4))
-
-
-def assert_header_equal(h1, h2):
-    for k in h1.keys():
-        assert_array_equal(h2[k], h1[k])
-
-    for k in h2.keys():
-        assert_array_equal(h1[k], h2[k])
 
 
 class TestTRK(unittest.TestCase):
@@ -178,10 +170,7 @@ class TestTRK(unittest.TestCase):
     def test_tractogram_file_properties(self):
         trk = TrkFile.load(DATA['simple_trk_fname'])
         assert_equal(trk.streamlines, trk.tractogram.streamlines)
-        assert_equal(trk.get_streamlines(), trk.streamlines)
-        assert_equal(trk.get_tractogram(), trk.tractogram)
-        assert_equal(trk.get_header(), trk.header)
-        assert_array_equal(trk.get_affine(), trk.header[Field.VOXEL_TO_RASMM])
+        assert_array_equal(trk.affine, trk.header[Field.VOXEL_TO_RASMM])
 
     def test_write_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
@@ -298,7 +287,7 @@ class TestTRK(unittest.TestCase):
 
         new_trk = TrkFile.load(trk_file)
 
-        assert_header_equal(new_trk.header, trk.header)
+        assert_arr_dict_equal(new_trk.header, trk.header)
         assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
         new_trk_orig = TrkFile.load(DATA['standard_LPS_trk_fname'])
@@ -322,7 +311,7 @@ class TestTRK(unittest.TestCase):
 
         new_trk = TrkFile.load(trk_file)
 
-        assert_header_equal(new_trk.header, trk_LPS.header)
+        assert_arr_dict_equal(new_trk.header, trk_LPS.header)
         assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
         new_trk_orig = TrkFile.load(DATA['standard_LPS_trk_fname'])
@@ -460,3 +449,47 @@ class TestTRK(unittest.TestCase):
     def test_str(self):
         trk = TrkFile.load(DATA['complex_trk_fname'])
         str(trk)  # Simply test it's not failing when called.
+
+    def test_header_read_restore(self):
+        # Test that reading a header restores the file position
+        trk_fname = DATA['simple_trk_fname']
+        bio = BytesIO()
+        bio.write(b'Along my very merry way')
+        hdr_pos = bio.tell()
+        hdr_from_fname = TrkFile._read_header(trk_fname)
+        with open(trk_fname, 'rb') as fobj:
+            bio.write(fobj.read())
+        bio.seek(hdr_pos)
+        # Check header is as expected
+        hdr_from_fname['_offset_data'] += hdr_pos  # Correct for start position
+        assert_arr_dict_equal(TrkFile._read_header(bio), hdr_from_fname)
+        # Check fileobject file position has not changed
+        assert_equal(bio.tell(), hdr_pos)
+
+
+def test_encode_names():
+    # Test function for encoding numbers into property names
+    b0 = b'\x00'
+    assert_equal(encode_value_in_name(0, 'foo', 10),
+                 b'foo' + b0 * 7)
+    assert_equal(encode_value_in_name(1, 'foo', 10),
+                 b'foo' + b0 * 7)
+    assert_equal(encode_value_in_name(8, 'foo', 10),
+                 b'foo' + b0 + b'8' + b0 * 5)
+    assert_equal(encode_value_in_name(40, 'foobar', 10),
+                 b'foobar' + b0 + b'40' + b0)
+    assert_equal(encode_value_in_name(1, 'foobarbazz', 10), b'foobarbazz')
+    assert_raises(ValueError, encode_value_in_name, 1, 'foobarbazzz', 10)
+    assert_raises(ValueError, encode_value_in_name, 2, 'foobarbaz', 10)
+    assert_equal(encode_value_in_name(2, 'foobarba', 10), b'foobarba\x002')
+
+
+def test_decode_names():
+    # Test function for decoding name string into name, number
+    b0 = b'\x00'
+    assert_equal(decode_value_from_name(b''), ('', 0))
+    assert_equal(decode_value_from_name(b'foo' + b0 * 7), ('foo', 1))
+    assert_equal(decode_value_from_name(b'foo\x008' + b0 * 5), ('foo', 8))
+    assert_equal(decode_value_from_name(b'foobar\x0010\x00'), ('foobar', 10))
+    assert_raises(ValueError, decode_value_from_name, b'foobar\x0010\x01')
+    assert_raises(HeaderError, decode_value_from_name, b'foo\x0010\x00111')

@@ -80,7 +80,7 @@ class PerArrayDict(SliceableDataDict):
 
     In addition, it makes sure the amount of data contained in those ndarrays
     matches the number of streamlines given at the instantiation of this
-    dictionary.
+    instance.
     """
     def __init__(self, nb_elements, *args, **kwargs):
         self.nb_elements = nb_elements
@@ -114,7 +114,7 @@ class PerArraySequenceDict(SliceableDataDict):
 
     In addition, it makes sure the amount of data contained in those array
     sequences matches the number of elements given at the instantiation
-    of this dictionary.
+    of the instance.
     """
     def __init__(self, nb_elements, *args, **kwargs):
         self.nb_elements = nb_elements
@@ -136,9 +136,9 @@ class PerArraySequenceDict(SliceableDataDict):
 class LazyDict(collections.MutableMapping):
     """ Dictionary of generator functions.
 
-    This container behaves like an dictionary but it makes sure its elements
-    are callable objects and assumed to be generator function yielding values.
-    When getting the element associated to a given key, the element (i.e. a
+    This container behaves like a dictionary but it makes sure its elements are
+    callable objects that it assumes are generator functions yielding values.
+    When getting the element associated with a given key, the element (i.e. a
     generator function) is first called before being returned.
     """
     def __init__(self, *args, **kwargs):
@@ -178,7 +178,7 @@ class LazyDict(collections.MutableMapping):
 class TractogramItem(object):
     """ Class containing information about one streamline.
 
-    :class:`TractogramItem` objects have three main properties: `streamline`,
+    :class:`TractogramItem` objects have three public attributes: `streamline`,
     `data_for_streamline`, and `data_for_points`.
 
     Parameters
@@ -187,14 +187,14 @@ class TractogramItem(object):
         Points of this streamline represented as an ndarray of shape (N, 3)
         where N is the number of points.
     data_for_streamline : dict
-        Dictionary containing some data associated to this particular
-        streamline. Each key `k` is mapped to a ndarray of shape (Pt,), where
-        `Pt` is the dimension of the data associated with key `k`.
+        Dictionary containing some data associated with this particular
+        streamline. Each key ``k`` is mapped to a ndarray of shape (Pt,), where
+        ``Pt`` is the dimension of the data associated with key ``k``.
     data_for_points : dict
         Dictionary containing some data associated to each point of this
-        particular streamline. Each key `k` is mapped to a ndarray of
-        shape (Nt, Mk), where `Nt` is the number of points of this streamline
-        and `Mk` is the dimension of the data associated with key `k`.
+        particular streamline. Each key ``k`` is mapped to a ndarray of shape
+        (Nt, Mk), where ``Nt`` is the number of points of this streamline and
+        ``Mk`` is the dimension of the data associated with key ``k``.
     """
     def __init__(self, streamline, data_for_streamline, data_for_points):
         self.streamline = np.asarray(streamline)
@@ -215,7 +215,7 @@ class Tractogram(object):
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
     construction time, that brings the streamlines back to *RAS+*, *mm* space,
     where the coordinates (0,0,0) corresponds to the center of the voxel
-    (opposed to a corner).
+    (as opposed to the corner of the voxel).
 
     Attributes
     ----------
@@ -224,18 +224,18 @@ class Tractogram(object):
         shape ($N_t$, 3) where $N_t$ is the number of points of
         streamline $t$.
     data_per_streamline : :class:`PerArrayDict` object
-        Dictionary where the items are (str, 2D array).
-        Each key represents an information $i$ to be kept alongside every
-        streamline, and its associated value is a 2D array of shape
-        ($T$, $P_i$) where $T$ is the number of streamlines and $P_i$ is
-        the number of values to store for that particular information $i$.
+        Dictionary where the items are (str, 2D array).  Each key represents a
+        piece of information $i$ to be kept alongside every streamline, and its
+        associated value is a 2D array of shape ($T$, $P_i$) where $T$ is the
+        number of streamlines and $P_i$ is the number of values to store for
+        that particular piece of information $i$.
     data_per_point : :class:`PerArraySequenceDict` object
-        Dictionary where the items are (str, :class:`ArraySequence`).
-        Each key represents an information $i$ to be kept alongside every
-        point of every streamline, and its associated value is an iterable
-        of ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of
-        points for a particular streamline $t$ and $M_i$ is the number
-        values to store for that particular information $i$.
+        Dictionary where the items are (str, :class:`ArraySequence`).  Each key
+        represents a piece of information $i$ to be kept alongside every point
+        of every streamline, and its associated value is an iterable of
+        ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of points
+        for a particular streamline $t$ and $M_i$ is the number values to store
+        for that particular piece of information $i$.
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -424,7 +424,7 @@ class LazyTractogram(Tractogram):
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
     construction time, that brings the streamlines back to *RAS+*, *mm* space,
     where the coordinates (0,0,0) corresponds to the center of the voxel
-    (opposed to a corner).
+    (as opposed to the corner of the voxel).
 
     Attributes
     ----------
@@ -432,21 +432,21 @@ class LazyTractogram(Tractogram):
         Generator function yielding streamlines. Each streamline is an
         ndarray of shape ($N_t$, 3) where $N_t$ is the number of points of
         streamline $t$.
-    data_per_streamline : :class:`LazyDict` object
+    data_per_streamline : instance of :class:`LazyDict`
         Dictionary where the items are (str, instantiated generator).
-        Each key represents an information $i$ to be kept alongside every
-        streamline, and its associated value is a generator function
-        yielding that information via ndarrays of shape ($P_i$,) where
-        $P_i$ is the number of values to store for that particular
-        information $i$.
+        Each key represents a piece of information $i$ to be kept alongside
+        every streamline, and its associated value is a generator function
+        yielding that information via ndarrays of shape ($P_i$,) where $P_i$ is
+        the number of values to store for that particular piece of information
+        $i$.
     data_per_point : :class:`LazyDict` object
-        Dictionary where the items are (str, instantiated generator).
-        Each key represents an information $i$ to be kept alongside every
-        point of every streamline, and its associated value is a generator
-        function yielding that information via ndarrays of shape
-        ($N_t$, $M_i$) where $N_t$ is the number of points for a particular
-        streamline $t$ and $M_i$ is the number of values to store for
-        that particular information $i$.
+        Dictionary where the items are (str, instantiated generator).  Each key
+        represents a piece of information $i$ to be kept alongside every point
+        of every streamline, and its associated value is a generator function
+        yielding that information via ndarrays of shape ($N_t$, $M_i$) where
+        $N_t$ is the number of points for a particular streamline $t$ and $M_i$
+        is the number of values to store for that particular piece of
+        information $i$.
 
     Notes
     -----
@@ -599,7 +599,6 @@ class LazyTractogram(Tractogram):
     def _set_streamlines(self, value):
         if value is not None and not callable(value):
             raise TypeError("`streamlines` must be a generator function.")
-
         self._streamlines = value
 
     @property
