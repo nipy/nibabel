@@ -16,7 +16,7 @@ from ..tractogram import Tractogram
 from ..tractogram_file import HeaderError, HeaderWarning
 
 from .. import trk as trk_module
-from ..trk import TrkFile
+from ..trk import TrkFile, encode_value_in_name, decode_value_from_name
 from ..header import Field
 
 DATA = {}
@@ -468,3 +468,31 @@ class TestTRK(unittest.TestCase):
         assert_arr_dict_equal(TrkFile._read_header(bio), hdr_from_fname)
         # Check fileobject file position has not changed
         assert_equal(bio.tell(), hdr_pos)
+
+
+def test_encode_names():
+    # Test function for encoding numbers into property names
+    b0 = b'\x00'
+    assert_equal(encode_value_in_name(0, 'foo', 10),
+                 b'foo' + b0 * 7)
+    assert_equal(encode_value_in_name(1, 'foo', 10),
+                 b'foo' + b0 * 7)
+    assert_equal(encode_value_in_name(8, 'foo', 10),
+                 b'foo' + b0 + b'8' + b0 * 5)
+    assert_equal(encode_value_in_name(40, 'foobar', 10),
+                 b'foobar' + b0 + b'40' + b0)
+    assert_equal(encode_value_in_name(1, 'foobarbazz', 10), b'foobarbazz')
+    assert_raises(ValueError, encode_value_in_name, 1, 'foobarbazzz', 10)
+    assert_raises(ValueError, encode_value_in_name, 2, 'foobarbaz', 10)
+    assert_equal(encode_value_in_name(2, 'foobarba', 10), b'foobarba\x002')
+
+
+def test_decode_names():
+    # Test function for decoding name string into name, number
+    b0 = b'\x00'
+    assert_equal(decode_value_from_name(b''), ('', 0))
+    assert_equal(decode_value_from_name(b'foo' + b0 * 7), ('foo', 1))
+    assert_equal(decode_value_from_name(b'foo\x008' + b0 * 5), ('foo', 8))
+    assert_equal(decode_value_from_name(b'foobar\x0010\x00'), ('foobar', 10))
+    assert_raises(ValueError, decode_value_from_name, b'foobar\x0010\x01')
+    assert_raises(HeaderError, decode_value_from_name, b'foo\x0010\x00111')
