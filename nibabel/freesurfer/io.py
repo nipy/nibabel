@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
+import warnings
 import numpy as np
 import getpass
 import time
@@ -107,20 +108,31 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
 
             extra = fobj.read() if read_metadata else b''
             if extra:
+                volume_info = OrderedDict()
+
                 if extra[:4] != b'\x00\x00\x00\x14':
                     warnings.warn("Unknown extension code.")
-                volume_info = OrderedDict()
-                try:
-                    for line in extra[4:].split(b'\n'):
-                        key, val = map(bytes.strip, line.split(b'=', 1))
-                        key = key.decode('utf-8')
-                        if key in ('voxelsize', 'xras', 'yras', 'zras'):
-                            val = np.fromstring(val, sep=' ')
-                        elif key == 'volume':
-                            val = np.fromstring(val, sep=' ', dtype=np.uint)
-                        volume_info[key] = val
-                except ValueError:
-                    raise ValueError("Error parsing volume info")
+                else:
+                    try:
+                        for line in extra[4:].split(b'\n'):
+                            if len(line) == 0:
+                                continue
+                            key, val = map(bytes.strip, line.split(b'=', 1))
+                            print(key, val)
+                            key = key.decode('utf-8')
+                            if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
+                                val = np.fromstring(val, sep=' ')
+                                val = val.astype(np.float)
+                            elif key == 'volume':
+                                val = np.fromstring(val, sep=' ', dtype=np.uint)
+                                val = val.astype(np.int)
+                            volume_info[key] = val
+                    except ValueError:
+                        raise ValueError("Error parsing volume info")
+
+                if len(volume_info) == 0:
+                    warnings.warn("Volume geometry info is either "
+                                  "not contained or not valid.")
 
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")
@@ -160,10 +172,10 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
                                                 time.ctime())
 
     postlude = b''
-    if volume_info is not None:
+    if volume_info is not None and len(volume_info) > 0:
         postlude = [b'\x00\x00\x00\x14']
         for key, val in volume_info.items():
-            if key in ('voxelsize', 'xras', 'yras', 'zras'):
+            if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
                 val = '{:.3f} {:.3f} {:.3f}'.format(*val)
             elif key == 'volume':
                 val = '{:d} {:d} {:d}'.format(*val)
