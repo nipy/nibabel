@@ -45,6 +45,38 @@ def _fread3_many(fobj, n):
     return (b1 << 16) + (b2 << 8) + b3
 
 
+def _read_volume_info(extra):
+    volume_info = OrderedDict()
+
+    if extra is None:
+        return volume_info
+
+    if extra[:4] != b'\x00\x00\x00\x14':
+        warnings.warn("Unknown extension code.")
+    else:
+        try:
+            for line in extra[4:].split(b'\n'):
+                if len(line) == 0:
+                    continue
+                key, val = map(bytes.strip, line.split(b'=', 1))
+                key = key.decode('utf-8')
+                if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
+                    val = np.fromstring(val, sep=' ')
+                    val = val.astype(np.float)
+                elif key == 'volume':
+                    val = np.fromstring(val, sep=' ', dtype=np.uint)
+                    val = val.astype(np.int)
+                volume_info[key] = val
+        except ValueError:
+            raise ValueError("Error parsing volume info")
+
+    if len(volume_info) == 0:
+        warnings.warn("Volume geometry info is either "
+                      "not contained or not valid.")
+
+    return volume_info
+
+
 def read_geometry(filepath, read_metadata=False, read_stamp=False):
     """Read a triangular format Freesurfer surface mesh.
 
@@ -63,7 +95,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
         nvtx x 3 array of vertex (x, y, z) coordinates
     faces : numpy array
         nfaces x 3 array of defining mesh triangles
-    volume_info : dict-like
+    volume_info : OrderedDict
         If read_metadata is true, key-value pairs found in the geometry file
     create_stamp : str
         If read_stamp is true, the comment added by the program that saved
@@ -106,33 +138,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
             faces = np.fromfile(fobj, ">i4", fnum * 3).reshape(fnum, 3)
 
             extra = fobj.read() if read_metadata else b''
-            if extra:
-                volume_info = OrderedDict()
-
-                if extra[:4] != b'\x00\x00\x00\x14':
-                    warnings.warn("Unknown extension code.")
-                else:
-                    try:
-                        for line in extra[4:].split(b'\n'):
-                            if len(line) == 0:
-                                continue
-                            key, val = map(bytes.strip, line.split(b'=', 1))
-                            print(key, val)
-                            key = key.decode('utf-8')
-                            if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
-                                val = np.fromstring(val, sep=' ')
-                                val = val.astype(np.float)
-                            elif key == 'volume':
-                                val = np.fromstring(val, sep=' ', dtype=np.uint)
-                                val = val.astype(np.int)
-                            volume_info[key] = val
-                    except ValueError:
-                        raise ValueError("Error parsing volume info")
-
-                if len(volume_info) == 0:
-                    warnings.warn("Volume geometry info is either "
-                                  "not contained or not valid.")
-
+            volume_info = _read_volume_info(extra)
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")
 
@@ -175,11 +181,11 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         postlude = [b'\x00\x00\x00\x14']
         for key, val in volume_info.items():
             if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
-                val = '{:.4f} {:.4f} {:.4f}'.format(*val)
+                val = '{0:.4f} {1:.4f} {2:.4f}'.format(*val)
             elif key == 'volume':
-                val = '{:d} {:d} {:d}'.format(*val)
+                val = '{0:d} {1:d} {2:d}'.format(*val)
             key = key.ljust(6)
-            postlude.append('{} = {}'.format(key, val).encode('utf-8'))
+            postlude.append('{0} = {1}'.format(key, val).encode('utf-8'))
         postlude = b'\n'.join(postlude)
 
     with open(filepath, 'wb') as fobj:
