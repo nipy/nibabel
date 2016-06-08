@@ -56,7 +56,7 @@ def test_geometry():
     assert_equal(coords.shape[0], faces.max() + 1)
 
     # Test quad with sphere
-    with clear_and_catch_warnings() as w:
+    with clear_and_catch_warnings():
         warnings.filterwarnings('always', category=DeprecationWarning)
         surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
         coords, faces, volume_info, create_stamp = \
@@ -66,7 +66,6 @@ def test_geometry():
         assert_equal(0, len(volume_info))
         assert_equal(u'created by greve on Thu Jun  8 19:17:51 2006',
                      create_stamp)
-        assert_equal(len(w), 2)
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
     # with respect to read_geometry()
