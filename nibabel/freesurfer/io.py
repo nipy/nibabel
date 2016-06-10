@@ -48,11 +48,12 @@ def _fread3_many(fobj, n):
 def _read_volume_info(extra):
     volume_info = OrderedDict()
 
-    if extra is None:
-        return volume_info
-
-    if extra[:4] != b'\x00\x00\x00\x14':
-        warnings.warn("Unknown extension code.")
+    if extra is None:  # we pass b'' when user does not request info
+        pass
+    elif len(extra) == 0:
+        warnings.warn('No volume information contained in the file')
+    elif extra[:4] != b'\x00\x00\x00\x14':
+        warnings.warn("Unknown extension code for volume info: %r" % extra[:4])
     else:
         try:
             for line in extra[4:].split(b'\n'):
@@ -67,13 +68,11 @@ def _read_volume_info(extra):
                     val = np.fromstring(val, sep=' ', dtype=np.uint)
                     val = val.astype(np.int)
                 volume_info[key] = val
-        except ValueError:
-            raise ValueError("Error parsing volume info")
-
-    if len(volume_info) == 0:
-        warnings.warn("Volume geometry info is either "
-                      "not contained or not valid.")
-
+        except Exception as exp:
+            raise ValueError("Error parsing volume info: %s" % str(exp))
+        if len(volume_info) == 0:
+            warnings.warn("Volume geometry info is either "
+                          "not contained or not valid.")
     return volume_info
 
 
@@ -136,8 +135,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
             fnum = np.fromfile(fobj, ">i4", 1)[0]
             coords = np.fromfile(fobj, ">f4", vnum * 3).reshape(vnum, 3)
             faces = np.fromfile(fobj, ">i4", fnum * 3).reshape(fnum, 3)
-
-            extra = fobj.read() if read_metadata else b''
+            extra = fobj.read() if read_metadata else None
             volume_info = _read_volume_info(extra)
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")

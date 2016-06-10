@@ -56,16 +56,17 @@ def test_geometry():
     assert_equal(coords.shape[0], faces.max() + 1)
 
     # Test quad with sphere
-    with clear_and_catch_warnings():
+    surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
+    with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
         coords, faces, volume_info, create_stamp = \
             read_geometry(surf_path, read_metadata=True, read_stamp=True)
-        assert_equal(0, faces.min())
-        assert_equal(coords.shape[0], faces.max() + 1)
-        assert_equal(0, len(volume_info))
-        assert_equal(u'created by greve on Thu Jun  8 19:17:51 2006',
-                     create_stamp)
+    assert_true(any('extension code' in str(ww.message) for ww in w))
+    assert_equal(0, faces.min())
+    assert_equal(coords.shape[0], faces.max() + 1)
+    assert_equal(0, len(volume_info))
+    assert_equal(u'created by greve on Thu Jun  8 19:17:51 2006',
+                 create_stamp)
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
     # with respect to read_geometry()
@@ -83,6 +84,14 @@ def test_geometry():
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
+
+        # now write an incomplete file
+        write_geometry(surf_path, coords, faces)
+        with clear_and_catch_warnings() as w:
+            warnings.filterwarnings('always', category=DeprecationWarning)
+            read_geometry(surf_path, read_metadata=True)
+        assert_true(any('volume information contained' in str(ww.message)
+                        for ww in w))
 
     assert_equal(create_stamp, read_create_stamp)
 
