@@ -45,35 +45,20 @@ def _fread3_many(fobj, n):
     return (b1 << 16) + (b2 << 8) + b3
 
 
-def _read_volume_info(extra):
+def _read_volume_info(fobj):
     volume_info = OrderedDict()
-
-    if extra is None:
-        return volume_info
-
-    if extra[:4] != b'\x00\x00\x00\x14':
+    head = np.fromfile(fobj, '>i4', 3)
+    if any(head != [2, 0, 20]):
         warnings.warn("Unknown extension code.")
     else:
-        try:
-            for line in extra[4:].split(b'\n'):
-                if len(line) == 0:
-                    continue
-                key, val = map(bytes.strip, line.split(b'=', 1))
-                key = key.decode('utf-8')
-                if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
-                    val = np.fromstring(val, sep=' ')
-                    val = val.astype(np.float)
-                elif key == 'volume':
-                    val = np.fromstring(val, sep=' ', dtype=np.uint)
-                    val = val.astype(np.int)
-                volume_info[key] = val
-        except ValueError:
-            raise ValueError("Error parsing volume info")
-
-    if len(volume_info) == 0:
-        warnings.warn("Volume geometry info is either "
-                      "not contained or not valid.")
-
+        volume_info['head'] = head
+        for key in ['valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras',
+                    'zras', 'cras']:
+            pair = fobj.readline().split('=')
+            if pair[0].strip() != key or len(pair) != 2:
+                raise IOError('Error parsing volume info.')
+            volume_info[pair[0]] = pair[1]
+        # Ignore the rest
     return volume_info
 
 
@@ -105,7 +90,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
 
     with open(filepath, "rb") as fobj:
         magic = _fread3(fobj)
-        if magic == 16777215:  # Quad file
+        if magic in (16777215, 16777213):  # Quad file
             nvert = _fread3(fobj)
             nquad = _fread3(fobj)
             coords = np.fromfile(fobj, ">i2", nvert * 3).astype(np.float)
@@ -137,8 +122,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
             coords = np.fromfile(fobj, ">f4", vnum * 3).reshape(vnum, 3)
             faces = np.fromfile(fobj, ">i4", fnum * 3).reshape(fnum, 3)
 
-            extra = fobj.read() if read_metadata else b''
-            volume_info = _read_volume_info(extra)
+            volume_info = _read_volume_info(fobj)
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")
 
@@ -176,18 +160,6 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         create_stamp = "created by %s on %s" % (getpass.getuser(),
                                                 time.ctime())
 
-    postlude = b''
-    if volume_info is not None and len(volume_info) > 0:
-        postlude = [b'\x00\x00\x00\x14']
-        for key, val in volume_info.items():
-            if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
-                val = '{0:.4f} {1:.4f} {2:.4f}'.format(*val)
-            elif key == 'volume':
-                val = '{0:d} {1:d} {2:d}'.format(*val)
-            key = key.ljust(6)
-            postlude.append('{0} = {1}'.format(key, val).encode('utf-8'))
-        postlude = b'\n'.join(postlude)
-
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
         fobj.write(("%s\n\n" % create_stamp).encode('utf-8'))
@@ -199,7 +171,12 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         faces.astype('>i4').reshape(-1).tofile(fobj)
 
         # Add volume info, if given
-        fobj.write(postlude)
+        if volume_info is not None and len(volume_info) > 0:
+            for key, val in volume_info.items():
+                if key == 'head':
+                    val.tofile(fobj)
+                    continue
+                fobj.write('{0}={1}'.format(key, val).encode('utf-8'))
 
 
 def read_morph_data(filepath):

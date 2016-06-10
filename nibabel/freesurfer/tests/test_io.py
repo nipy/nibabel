@@ -63,7 +63,8 @@ def test_geometry():
             read_geometry(surf_path, read_metadata=True, read_stamp=True)
         assert_equal(0, faces.min())
         assert_equal(coords.shape[0], faces.max() + 1)
-        assert_equal(0, len(volume_info))
+        assert_equal(9, len(volume_info))
+        assert_equal([2, 0, 20], volume_info['head'])
         assert_equal(u'created by greve on Thu Jun  8 19:17:51 2006',
                      create_stamp)
 
@@ -73,13 +74,13 @@ def test_geometry():
         surf_path = 'test'
         create_stamp = "created by %s on %s" % (getpass.getuser(),
                                                 time.ctime())
-        volume_info['cras'] = np.array([1., 2., 3.])
+        volume_info['cras   '] = '1. 2. 3.'
         write_geometry(surf_path, coords, faces, create_stamp, volume_info)
 
         coords2, faces2, volume_info2 = \
             read_geometry(surf_path, read_metadata=True)
 
-        assert_equal(volume_info2['cras'], volume_info['cras'])
+        assert_equal(volume_info2['cras   '], volume_info['cras   '])
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
