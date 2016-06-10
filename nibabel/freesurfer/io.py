@@ -1,10 +1,11 @@
 from __future__ import division, print_function, absolute_import
 
+import warnings
 import numpy as np
 import getpass
 import time
 
-
+from ..externals import OrderedDict
 from ..externals.six.moves import xrange
 from ..openers import Opener
 
@@ -44,13 +45,48 @@ def _fread3_many(fobj, n):
     return (b1 << 16) + (b2 << 8) + b3
 
 
-def read_geometry(filepath):
+def _read_volume_info(extra):
+    volume_info = OrderedDict()
+
+    if extra is None:  # we pass b'' when user does not request info
+        pass
+    elif len(extra) == 0:
+        warnings.warn('No volume information contained in the file')
+    elif extra[:4] != b'\x00\x00\x00\x14':
+        warnings.warn("Unknown extension code for volume info: %r" % extra[:4])
+    else:
+        try:
+            for line in extra[4:].split(b'\n'):
+                if len(line) == 0:
+                    continue
+                key, val = map(bytes.strip, line.split(b'=', 1))
+                key = key.decode('utf-8')
+                if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
+                    val = np.fromstring(val, sep=' ')
+                    val = val.astype(np.float)
+                elif key == 'volume':
+                    val = np.fromstring(val, sep=' ', dtype=np.uint)
+                    val = val.astype(np.int)
+                volume_info[key] = val
+        except Exception as exp:
+            raise ValueError("Error parsing volume info: %s" % str(exp))
+        if len(volume_info) == 0:
+            warnings.warn("Volume geometry info is either "
+                          "not contained or not valid.")
+    return volume_info
+
+
+def read_geometry(filepath, read_metadata=False, read_stamp=False):
     """Read a triangular format Freesurfer surface mesh.
 
     Parameters
     ----------
     filepath : str
         Path to surface file
+    read_metadata : bool
+        Read metadata as key-value pairs
+    read_stamp : bool
+        Return the comment from the file
 
     Returns
     -------
@@ -58,7 +94,14 @@ def read_geometry(filepath):
         nvtx x 3 array of vertex (x, y, z) coordinates
     faces : numpy array
         nfaces x 3 array of defining mesh triangles
+    volume_info : OrderedDict
+        If read_metadata is true, key-value pairs found in the geometry file
+    create_stamp : str
+        If read_stamp is true, the comment added by the program that saved
+        the file
     """
+    volume_info = None
+
     with open(filepath, "rb") as fobj:
         magic = _fread3(fobj)
         if magic == 16777215:  # Quad file
@@ -86,20 +129,30 @@ def read_geometry(filepath):
                     nface += 1
 
         elif magic == 16777214:  # Triangle file
-            fobj.readline()  # create_stamp
+            create_stamp = fobj.readline().rstrip(b'\n').decode('utf-8')
             fobj.readline()
             vnum = np.fromfile(fobj, ">i4", 1)[0]
             fnum = np.fromfile(fobj, ">i4", 1)[0]
             coords = np.fromfile(fobj, ">f4", vnum * 3).reshape(vnum, 3)
             faces = np.fromfile(fobj, ">i4", fnum * 3).reshape(fnum, 3)
+            extra = fobj.read() if read_metadata else None
+            volume_info = _read_volume_info(extra)
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")
 
     coords = coords.astype(np.float)  # XXX: due to mayavi bug on mac 32bits
-    return coords, faces
+
+    ret = (coords, faces)
+    if read_metadata:
+        ret += (volume_info,)
+    if read_stamp:
+        ret += (create_stamp,)
+
+    return ret
 
 
-def write_geometry(filepath, coords, faces, create_stamp=None):
+def write_geometry(filepath, coords, faces, create_stamp=None,
+                   volume_info=None):
     """Write a triangular format Freesurfer surface mesh.
 
     Parameters
@@ -112,12 +165,26 @@ def write_geometry(filepath, coords, faces, create_stamp=None):
         nfaces x 3 array of defining mesh triangles
     create_stamp : str
         User/time stamp (default: "created by <user> on <ctime>")
+    volume_info : dict-like or None
+        Key-value pairs to encode at the end of the file
     """
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
 
     if create_stamp is None:
         create_stamp = "created by %s on %s" % (getpass.getuser(),
                                                 time.ctime())
+
+    postlude = b''
+    if volume_info is not None and len(volume_info) > 0:
+        postlude = [b'\x00\x00\x00\x14']
+        for key, val in volume_info.items():
+            if key in ('voxelsize', 'xras', 'yras', 'zras', 'cras'):
+                val = '{0:.4f} {1:.4f} {2:.4f}'.format(*val)
+            elif key == 'volume':
+                val = '{0:d} {1:d} {2:d}'.format(*val)
+            key = key.ljust(6)
+            postlude.append('{0} = {1}'.format(key, val).encode('utf-8'))
+        postlude = b'\n'.join(postlude)
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
@@ -128,6 +195,9 @@ def write_geometry(filepath, coords, faces, create_stamp=None):
         # Coerce types, just to be safe
         coords.astype('>f4').reshape(-1).tofile(fobj)
         faces.astype('>i4').reshape(-1).tofile(fobj)
+
+        # Add volume info, if given
+        fobj.write(postlude)
 
 
 def read_morph_data(filepath):
