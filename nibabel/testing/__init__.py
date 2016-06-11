@@ -16,6 +16,7 @@ import warnings
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from numpy.testing.decorators import skipif
 # Allow failed import of nose if not now running tests
@@ -24,6 +25,8 @@ try:
                             assert_true, assert_false, assert_raises)
 except ImportError:
     pass
+
+from nibabel.externals.six.moves import zip_longest
 
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
@@ -60,6 +63,13 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     if b.dtype.kind in 'ui':
         b = b.astype(float)
     assert_true(np.allclose(a, b, rtol=rtol, atol=atol))
+
+
+def assert_arrays_equal(arrays1, arrays2):
+    """ Check two iterables yield the same sequence of arrays. """
+    for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
+        assert_false(arr1 is None or arr2 is None)
+        assert_array_equal(arr1, arr2)
 
 
 def assert_re_in(regex, c, flags=0):
@@ -190,3 +200,12 @@ def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
     return skipif(test_str not in EXTRA_SET,
                   "Skip {0} tests.".format(test_str))
+
+
+def assert_arr_dict_equal(dict1, dict2):
+    """ Assert that two dicts are equal, where dicts contain arrays
+    """
+    assert_equal(set(dict1), set(dict2))
+    for key, value1 in dict1.items():
+        value2 = dict2[key]
+        assert_array_equal(value1, value2)

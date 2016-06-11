@@ -9,6 +9,7 @@
 # module imports
 """ Utilities to load and save image objects """
 
+import os.path as op
 import numpy as np
 import warnings
 
@@ -17,6 +18,7 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
+from .py3k import FileNotFoundError
 
 
 def load(filename, **kwargs):
@@ -34,6 +36,8 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    if not op.exists(filename):
+        raise FileNotFoundError("No such file: '%s'" % filename)
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)

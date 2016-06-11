@@ -835,9 +835,9 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         .. _issue 100: https://github.com/nipy/nibabel/issues/100
         .. _issue 309: https://github.com/nipy/nibabel/issues/309
-        .. _save77: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#77
-        .. _save50: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/save_nifti.m?spec=svn8776&r=8776#50
-        .. _load_nifti.m: https://code.google.com/p/fieldtrip/source/browse/trunk/external/freesurfer/load_nifti.m?spec=svn8776&r=8776#86
+        .. _save77: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L77-L82
+        .. _save50: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L50-L56
+        .. _load_nifti.m: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/load_nifti.m#L86-L89
         .. _standard header: http://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
         '''
         hdr = self._structarr

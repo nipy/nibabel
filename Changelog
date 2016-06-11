@@ -36,6 +36,9 @@ References like "pr/298" refer to github pull request numbers.
     are raising a DataError if the track is truncated when ``strict=True``
     (the default), rather than a TypeError when trying to create the points
     array.
+  * New API for managing streamlines and their different file formats. This
+    adds a new module ``nibabel.streamlines`` that will eventually deprecate
+    the current trackvis reader found in ``nibabel.trackvis``.
 
 * 2.0.2 (Monday 23 November 2015)
 
@@ -251,7 +254,7 @@ References like "pr/298" refer to github pull request numbers.
     the ability to transform to the image with data closest to the cononical
     image orientation (first axis left-to-right, second back-to-front, third
     down-to-up) (MB, Jonathan Taylor)
-  * Gifti format read and write support (preliminary) (Stephen Gerhard) 
+  * Gifti format read and write support (preliminary) (Stephen Gerhard)
   * Added utilities to use nipy-style data packages, by rip then edit of nipy
     data package code (MB)
   * Some improvements to release support (Jarrod Millman, MB, Fernando Perez)
@@ -469,7 +472,7 @@ visiting the URL::
 
   * Removed functionality for "NiftiImage.save() raises an IOError
     exception when writing the image file fails." (Yaroslav Halchenko)
-  * Added ability to force a filetype when setting the filename or saving 
+  * Added ability to force a filetype when setting the filename or saving
     a file.
   * Reverse the order of the 'header' and 'load' argument in the NiftiImage
     constructor. 'header' is now first as it seems to be used more often.
@@ -481,7 +484,7 @@ visiting the URL::
 
 * 0.20070301.2 (Thu, 1 Mar 2007)
 
-  * Fixed wrong link to the source tarball in README.html. 
+  * Fixed wrong link to the source tarball in README.html.
 
 
 * 0.20070301.1 (Thu, 1 Mar 2007)

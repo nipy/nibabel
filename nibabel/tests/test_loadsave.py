@@ -22,6 +22,7 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
+from ..py3k import FileNotFoundError
 
 data_path = pjoin(dirname(__file__), 'data')
 
@@ -51,6 +52,10 @@ def test_read_img_data():
             img = load(up_fpath)
             assert_array_equal(img.dataobj, data)
             del img
+
+
+def test_file_not_found():
+    assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
 
 
 def test_read_img_data_nifti():
