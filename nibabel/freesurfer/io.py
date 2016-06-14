@@ -79,6 +79,16 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
         Path to surface file
     read_metadata : bool
         Read metadata as key-value pairs
+        Valid keys:
+            'head' : array of int
+            'valid' : str
+            'filename' : str
+            'volume' : array of int, shape (3,)
+            'voxelsize' : array of float, shape (3,)
+            'xras' : array of float, shape (3,)
+            'yras' : array of float, shape (3,)
+            'zras' : array of float, shape (3,)
+            'cras' : array of float, shape (3,)
     read_stamp : bool
         Return the comment from the file
 
@@ -94,7 +104,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
         If read_stamp is true, the comment added by the program that saved
         the file
     """
-    volume_info = None
+    volume_info = OrderedDict()
 
     with open(filepath, "rb") as fobj:
         magic = _fread3(fobj)
@@ -164,6 +174,17 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         User/time stamp (default: "created by <user> on <ctime>")
     volume_info : dict-like or None
         Key-value pairs to encode at the end of the file
+        Valid keys:
+            'head' : array of int
+            'valid' : str
+            'filename' : str
+            'volume' : array of int, shape (3,)
+            'voxelsize' : array of float, shape (3,)
+            'xras' : array of float, shape (3,)
+            'yras' : array of float, shape (3,)
+            'zras' : array of float, shape (3,)
+            'cras' : array of float, shape (3,)
+
     """
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
 
@@ -187,6 +208,9 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
 
         for key, val in volume_info.items():
             if key == 'head':
+                if not (np.array_equal(val, [20]) or np.array_equal(
+                        val, [2, 0, 20])):
+                    warnings.warn("Unknown extension code.")
                 np.array(val, dtype='>i4').tofile(fobj)
             elif key in ('valid', 'filename'):
                 fobj.write('{0} = {1}\n'.format(key, val).encode('utf-8'))
