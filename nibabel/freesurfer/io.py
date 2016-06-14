@@ -182,18 +182,20 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         faces.astype('>i4').reshape(-1).tofile(fobj)
 
         # Add volume info, if given
-        if volume_info is not None and len(volume_info) > 0:
-            for key, val in volume_info.items():
-                if key == 'head':
-                    np.array(val, dtype='>i4').tofile(fobj)
-                elif key in ('valid', 'filename'):
-                    fobj.write('{0} = {1}\n'.format(key, val).encode('utf-8'))
-                elif key == 'volume':
-                    fobj.write('{0} = {1} {2} {3}\n'.format(
-                        key, val[0], val[1], val[2]).encode('utf-8'))
-                else:
-                    fobj.write('{0} = {1:.4f} {2:.4f} {3:.4f}\n'.format(
-                        key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
+        if volume_info is None or len(volume_info) == 0:
+            return
+
+        for key, val in volume_info.items():
+            if key == 'head':
+                np.array(val, dtype='>i4').tofile(fobj)
+            elif key in ('valid', 'filename'):
+                fobj.write('{0} = {1}\n'.format(key, val).encode('utf-8'))
+            elif key == 'volume':
+                fobj.write('{0} = {1} {2} {3}\n'.format(
+                    key, val[0], val[1], val[2]).encode('utf-8'))
+            else:
+                fobj.write('{0} = {1:.4f} {2:.4f} {3:.4f}\n'.format(
+                    key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
 
 
 def read_morph_data(filepath):

@@ -56,7 +56,6 @@ def test_geometry():
     assert_equal(coords.shape[0], faces.max() + 1)
 
     surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
-    warnings.filterwarnings('always', category=DeprecationWarning)
     coords, faces, volume_info, create_stamp = read_geometry(
         surf_path, read_metadata=True, read_stamp=True)
 
@@ -91,6 +90,7 @@ def test_geometry():
             read_geometry(surf_path, read_metadata=True)
         assert_true(any('volume information contained' in str(ww.message)
                         for ww in w))
+        assert_true(any('extension code' in str(ww.message) for ww in w))
 
     assert_equal(create_stamp, read_create_stamp)
 
