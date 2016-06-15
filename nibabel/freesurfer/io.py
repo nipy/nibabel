@@ -78,17 +78,17 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
     filepath : str
         Path to surface file
     read_metadata : bool
-        Read metadata as key-value pairs
+        Read metadata as key-value pairs.
         Valid keys:
-            'head' : array of int
-            'valid' : str
-            'filename' : str
-            'volume' : array of int, shape (3,)
-            'voxelsize' : array of float, shape (3,)
-            'xras' : array of float, shape (3,)
-            'yras' : array of float, shape (3,)
-            'zras' : array of float, shape (3,)
-            'cras' : array of float, shape (3,)
+            * 'head' : array of int
+            * 'valid' : str
+            * 'filename' : str
+            * 'volume' : array of int, shape (3,)
+            * 'voxelsize' : array of float, shape (3,)
+            * 'xras' : array of float, shape (3,)
+            * 'yras' : array of float, shape (3,)
+            * 'zras' : array of float, shape (3,)
+            * 'cras' : array of float, shape (3,)
     read_stamp : bool
         Return the comment from the file
 
@@ -173,17 +173,17 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
     create_stamp : str
         User/time stamp (default: "created by <user> on <ctime>")
     volume_info : dict-like or None
-        Key-value pairs to encode at the end of the file
+        Key-value pairs to encode at the end of the file.
         Valid keys:
-            'head' : array of int
-            'valid' : str
-            'filename' : str
-            'volume' : array of int, shape (3,)
-            'voxelsize' : array of float, shape (3,)
-            'xras' : array of float, shape (3,)
-            'yras' : array of float, shape (3,)
-            'zras' : array of float, shape (3,)
-            'cras' : array of float, shape (3,)
+            * 'head' : array of int
+            * 'valid' : str
+            * 'filename' : str
+            * 'volume' : array of int, shape (3,)
+            * 'voxelsize' : array of float, shape (3,)
+            * 'xras' : array of float, shape (3,)
+            * 'yras' : array of float, shape (3,)
+            * 'zras' : array of float, shape (3,)
+            * 'cras' : array of float, shape (3,)
 
     """
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
@@ -203,23 +203,8 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
         faces.astype('>i4').reshape(-1).tofile(fobj)
 
         # Add volume info, if given
-        if volume_info is None or len(volume_info) == 0:
-            return
-
-        for key, val in volume_info.items():
-            if key == 'head':
-                if not (np.array_equal(val, [20]) or np.array_equal(
-                        val, [2, 0, 20])):
-                    warnings.warn("Unknown extension code.")
-                np.array(val, dtype='>i4').tofile(fobj)
-            elif key in ('valid', 'filename'):
-                fobj.write('{0} = {1}\n'.format(key, val).encode('utf-8'))
-            elif key == 'volume':
-                fobj.write('{0} = {1} {2} {3}\n'.format(
-                    key, val[0], val[1], val[2]).encode('utf-8'))
-            else:
-                fobj.write('{0} = {1:.4f} {2:.4f} {3:.4f}\n'.format(
-                    key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
+        if volume_info is not None and len(volume_info) > 0:
+            fobj.write(_serialize_volume_info(volume_info))
 
 
 def read_morph_data(filepath):
@@ -461,3 +446,32 @@ def read_label(filepath, read_scalars=False):
         scalar_array = np.loadtxt(filepath, skiprows=2, usecols=[-1])
         return label_array, scalar_array
     return label_array
+
+
+def _serialize_volume_info(volume_info):
+    """Helper for serializing the volume info."""
+    keys = ['head', 'valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras',
+            'zras', 'cras']
+    diff = set(volume_info.keys()).difference(keys)
+    if len(diff) > 0:
+        raise ValueError('Invalid volume info: %s.' % diff.pop())
+
+    strings = list()
+    for key in keys:
+        if key == 'head':
+            if not (np.array_equal(volume_info[key], [20]) or np.array_equal(
+                    volume_info[key], [2, 0, 20])):
+                warnings.warn("Unknown extension code.")
+            strings.append(np.array(volume_info[key], dtype='>i4').tostring())
+        elif key in ('valid', 'filename'):
+            val = volume_info[key]
+            strings.append('{0} = {1}\n'.format(key, val).encode('utf-8'))
+        elif key == 'volume':
+            val = volume_info[key]
+            strings.append('{0} = {1} {2} {3}\n'.format(
+                key, val[0], val[1], val[2]).encode('utf-8'))
+        else:
+            val = volume_info[key]
+            strings.append('{0} = {1:f} {2:f} {3:f}\n'.format(
+                key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
+    return ''.join(strings)
