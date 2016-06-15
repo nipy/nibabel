@@ -91,6 +91,13 @@ def test_geometry():
         assert_true(any('volume information contained' in str(ww.message)
                         for ww in w))
         assert_true(any('extension code' in str(ww.message) for ww in w))
+        volume_info['head'] = [1, 2]
+        with clear_and_catch_warnings() as w:
+            write_geometry(surf_path, coords, faces, create_stamp, volume_info)
+        assert_true(any('Unknown extension' in str(ww.message) for ww in w))
+        volume_info['a'] = 0
+        assert_raises(ValueError, write_geometry, surf_path, coords,
+                      faces, create_stamp, volume_info)
 
     assert_equal(create_stamp, read_create_stamp)
 
