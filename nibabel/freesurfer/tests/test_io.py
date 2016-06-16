@@ -11,7 +11,7 @@ from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal, assert_raises, dec
+from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
@@ -78,6 +78,9 @@ def test_geometry():
         coords2, faces2, volume_info2 = \
             read_geometry(surf_path, read_metadata=True)
 
+        for key in ('xras', 'yras', 'zras', 'cras'):
+            assert_allclose(volume_info2[key], volume_info[key],
+                            rtol=1e-7, atol=1e-30)
         assert_equal(volume_info2['cras'], volume_info['cras'])
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
