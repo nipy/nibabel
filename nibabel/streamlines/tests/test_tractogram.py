@@ -374,7 +374,7 @@ class TestTractogram(unittest.TestCase):
                          DATA['tractogram'].data_per_streamline[::-1],
                          DATA['tractogram'].data_per_point[::-1])
 
-        # Make sure slicing conserve the affine_to_rasmm property.
+        # Make sure slicing conserves the affine_to_rasmm property.
         tractogram = DATA['tractogram'].copy()
         tractogram.affine_to_rasmm = DATA['rng'].rand(4, 4)
         tractogram_view = tractogram[::2]
