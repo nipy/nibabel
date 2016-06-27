@@ -117,7 +117,7 @@ def test_geometry():
     # Test new quad.
     new_quad = pjoin(get_nibabel_data(), 'nitest-freesurfer', 'subjects',
                      'bert', 'surf', 'lh.inflated.nofix')
-    coords, faces, volume_info = read_geometry(new_quad)
+    coords, faces = read_geometry(new_quad)
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
 
