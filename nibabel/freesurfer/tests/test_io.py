@@ -16,7 +16,7 @@ from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
 
-from ...tests.nibabel_data import get_nibabel_data
+from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
 from ...testing import clear_and_catch_warnings
 
@@ -48,6 +48,7 @@ def _hash_file_content(fname):
 
 
 @freesurfer_test
+@needs_nibabel_data('nitest-freesurfer')
 def test_geometry():
     """Test IO of .surf"""
     surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "inflated"))
@@ -112,6 +113,13 @@ def test_geometry():
     faces_swapped = faces.byteswap().newbyteorder()
     np.testing.assert_array_equal(coords_swapped, coords)
     np.testing.assert_array_equal(faces_swapped, faces)
+
+    # Test new quad.
+    new_quad = pjoin(get_nibabel_data(), 'nitest-freesurfer', 'subjects',
+                     'bert', 'surf', 'lh.inflated.nofix')
+    coords, faces, volume_info = read_geometry(new_quad)
+    assert_equal(0, faces.min())
+    assert_equal(coords.shape[0], faces.max() + 1)
 
 
 @freesurfer_test
