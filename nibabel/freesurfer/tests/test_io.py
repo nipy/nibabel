@@ -48,7 +48,6 @@ def _hash_file_content(fname):
 
 
 @freesurfer_test
-@needs_nibabel_data('nitest-freesurfer')
 def test_geometry():
     """Test IO of .surf"""
     surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "inflated"))
@@ -114,12 +113,22 @@ def test_geometry():
     np.testing.assert_array_equal(coords_swapped, coords)
     np.testing.assert_array_equal(faces_swapped, faces)
 
-    # Test new quad.
+
+@freesurfer_test
+@needs_nibabel_data('nitest-freesurfer')
+def test_quad_geometry():
+    """Test IO of freesurfer quad files."""
     new_quad = pjoin(get_nibabel_data(), 'nitest-freesurfer', 'subjects',
                      'bert', 'surf', 'lh.inflated.nofix')
     coords, faces = read_geometry(new_quad)
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
+    with InTemporaryDirectory():
+        new_path = 'test'
+        write_geometry(new_path, coords, faces)
+        coords2, faces2 = read_geometry(new_path)
+        assert_equal(coords, coords2)
+        assert_equal(faces, faces2)
 
 
 @freesurfer_test
