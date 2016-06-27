@@ -46,6 +46,7 @@ def _fread3_many(fobj, n):
 
 
 def _read_volume_info(fobj):
+    """Helper for reading the footer from a surface file."""
     volume_info = OrderedDict()
     head = np.fromfile(fobj, '>i4', 1)
     if not np.array_equal(head, [20]):  # Read two bytes more
@@ -106,13 +107,17 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
     """
     volume_info = OrderedDict()
 
+    TRIANGLE_MAGIC = 16777214
+    QUAD_MAGIC = 16777215
+    NEW_QUAD_MAGIC = 16777213
     with open(filepath, "rb") as fobj:
         magic = _fread3(fobj)
-        if magic in (16777215, 16777213):  # Quad file
+        if magic in (QUAD_MAGIC, NEW_QUAD_MAGIC):  # Quad file
             nvert = _fread3(fobj)
             nquad = _fread3(fobj)
-            coords = np.fromfile(fobj, ">i2", nvert * 3).astype(np.float)
-            coords = coords.reshape(-1, 3) / 100.0
+            (fmt, div) = (">i2", 100.) if magic == QUAD_MAGIC else (">f4", 1.)
+            coords = np.fromfile(fobj, fmt, nvert * 3).astype(np.float) / div
+            coords = coords.reshape(-1, 3)
             quads = _fread3_many(fobj, nquad * 4)
             quads = quads.reshape(nquad, 4)
             #
@@ -132,7 +137,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
                     faces[nface] = quad[0], quad[2], quad[3]
                     nface += 1
 
-        elif magic == 16777214:  # Triangle file
+        elif magic == TRIANGLE_MAGIC:  # Triangle file
             create_stamp = fobj.readline().rstrip(b'\n').decode('utf-8')
             fobj.readline()
             vnum = np.fromfile(fobj, ">i4", 1)[0]
