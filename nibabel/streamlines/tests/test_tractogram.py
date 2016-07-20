@@ -18,6 +18,7 @@ DATA = {}
 
 def setup():
     global DATA
+    DATA['rng'] = np.random.RandomState(1234)
     DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                            np.arange(2*3, dtype="f4").reshape((2, 3)),
                            np.arange(5*3, dtype="f4").reshape((5, 3))]
@@ -372,6 +373,13 @@ class TestTractogram(unittest.TestCase):
                          DATA['streamlines'][::-1],
                          DATA['tractogram'].data_per_streamline[::-1],
                          DATA['tractogram'].data_per_point[::-1])
+
+        # Make sure slicing conserves the affine_to_rasmm property.
+        tractogram = DATA['tractogram'].copy()
+        tractogram.affine_to_rasmm = DATA['rng'].rand(4, 4)
+        tractogram_view = tractogram[::2]
+        assert_array_equal(tractogram_view.affine_to_rasmm,
+                           tractogram.affine_to_rasmm)
 
     def test_tractogram_add_new_data(self):
         # Tractogram with only streamlines

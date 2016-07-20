@@ -335,7 +335,8 @@ class Tractogram(object):
         if isinstance(idx, (numbers.Integral, np.integer)):
             return TractogramItem(pts, data_per_streamline, data_per_point)
 
-        return Tractogram(pts, data_per_streamline, data_per_point)
+        return Tractogram(pts, data_per_streamline, data_per_point,
+                          affine_to_rasmm=self.affine_to_rasmm)
 
     def __len__(self):
         return len(self.streamlines)

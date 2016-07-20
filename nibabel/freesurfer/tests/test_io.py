@@ -4,20 +4,21 @@ from os.path import join as pjoin, isdir
 import getpass
 import time
 import hashlib
+import warnings
 
 
 from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal, assert_raises, dec
+from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
 
-from ...tests.nibabel_data import get_nibabel_data
+from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
-
+from ...testing import clear_and_catch_warnings
 
 DATA_SDIR = 'fsaverage'
 
@@ -54,11 +55,16 @@ def test_geometry():
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
 
-    # Test quad with sphere
     surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
-    coords, faces = read_geometry(surf_path)
+    coords, faces, volume_info, create_stamp = read_geometry(
+        surf_path, read_metadata=True, read_stamp=True)
+
     assert_equal(0, faces.min())
     assert_equal(coords.shape[0], faces.max() + 1)
+    assert_equal(9, len(volume_info))
+    assert_equal([2, 0, 20], volume_info['head'])
+    assert_equal(u'created by greve on Thu Jun  8 19:17:51 2006',
+                 create_stamp)
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
     # with respect to read_geometry()
@@ -66,13 +72,35 @@ def test_geometry():
         surf_path = 'test'
         create_stamp = "created by %s on %s" % (getpass.getuser(),
                                                 time.ctime())
-        write_geometry(surf_path, coords, faces, create_stamp)
+        volume_info['cras'] = [1., 2., 3.]
+        write_geometry(surf_path, coords, faces, create_stamp, volume_info)
 
-        coords2, faces2 = read_geometry(surf_path)
+        coords2, faces2, volume_info2 = \
+            read_geometry(surf_path, read_metadata=True)
 
+        for key in ('xras', 'yras', 'zras', 'cras'):
+            assert_allclose(volume_info2[key], volume_info[key],
+                            rtol=1e-7, atol=1e-30)
+        assert_equal(volume_info2['cras'], volume_info['cras'])
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
+
+        # now write an incomplete file
+        write_geometry(surf_path, coords, faces)
+        with clear_and_catch_warnings() as w:
+            warnings.filterwarnings('always', category=DeprecationWarning)
+            read_geometry(surf_path, read_metadata=True)
+        assert_true(any('volume information contained' in str(ww.message)
+                        for ww in w))
+        assert_true(any('extension code' in str(ww.message) for ww in w))
+        volume_info['head'] = [1, 2]
+        with clear_and_catch_warnings() as w:
+            write_geometry(surf_path, coords, faces, create_stamp, volume_info)
+        assert_true(any('Unknown extension' in str(ww.message) for ww in w))
+        volume_info['a'] = 0
+        assert_raises(ValueError, write_geometry, surf_path, coords,
+                      faces, create_stamp, volume_info)
 
     assert_equal(create_stamp, read_create_stamp)
 
@@ -84,6 +112,23 @@ def test_geometry():
     faces_swapped = faces.byteswap().newbyteorder()
     np.testing.assert_array_equal(coords_swapped, coords)
     np.testing.assert_array_equal(faces_swapped, faces)
+
+
+@freesurfer_test
+@needs_nibabel_data('nitest-freesurfer')
+def test_quad_geometry():
+    """Test IO of freesurfer quad files."""
+    new_quad = pjoin(get_nibabel_data(), 'nitest-freesurfer', 'subjects',
+                     'bert', 'surf', 'lh.inflated.nofix')
+    coords, faces = read_geometry(new_quad)
+    assert_equal(0, faces.min())
+    assert_equal(coords.shape[0], faces.max() + 1)
+    with InTemporaryDirectory():
+        new_path = 'test'
+        write_geometry(new_path, coords, faces)
+        coords2, faces2 = read_geometry(new_path)
+        assert_equal(coords, coords2)
+        assert_equal(faces, faces2)
 
 
 @freesurfer_test
