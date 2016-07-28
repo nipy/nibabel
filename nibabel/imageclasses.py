@@ -104,3 +104,22 @@ ext_map = ExtMapRecoder((
     ('mgz', '.mgz'),
     ('par', '.par'),
 ))
+
+
+def spatial_axes_first(img):
+    """ True if spatial image axes for `img` always preceed other axes
+
+    Parameters
+    ----------
+    img : object
+        Image object implementing at least ``shape`` attribute.
+
+    Returns
+    -------
+    spatial_axes_first : bool
+        True if image only has spatial axes (number of axes < 4) or image type
+        known to have spatial axes preceeding other axes.
+    """
+    if len(img.shape) < 4:
+        return True
+    return not isinstance(img, Minc1Image)
