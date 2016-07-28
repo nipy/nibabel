@@ -24,7 +24,8 @@ from nibabel.processing import (sigma2fwhm, fwhm2sigma, adapt_affine,
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 from nibabel.orientations import flip_axis, inv_ornt_aff
-from nibabel.affines import AffineError, from_matvec, to_matvec, apply_affine
+from nibabel.affines import (AffineError, from_matvec, to_matvec, apply_affine,
+                             voxel_sizes)
 from nibabel.eulerangles import euler2mat
 
 from numpy.testing import (assert_almost_equal,
@@ -40,6 +41,15 @@ from nibabel.testing import assert_allclose_safely
 needs_scipy = skipif(not have_scipy, 'These tests need scipy')
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
+
+# 3D MINC work correctly with processing, but not 4D MINC
+from .test_imageclasses import MINC_3DS, MINC_4DS
+
+# Filenames of other images that should work correctly with processing
+OTHER_IMGS = ('anatomical.nii', 'functional.nii',
+              'example4d.nii.gz', 'example_nifti2.nii.gz',
+              'phantom_EPI_asc_CLEAR_2_1.PAR')
+
 
 def test_sigma2fwhm():
     # Test from constant
@@ -344,6 +354,26 @@ def test_smooth_image():
     assert_equal(
         smooth_image(img_ni2, 0, out_class=None).__class__,
         Nifti2Image)
+
+
+@needs_scipy
+def test_spatial_axes_check():
+    for fname in MINC_3DS + OTHER_IMGS:
+        img = nib.load(pjoin(DATA_DIR, fname))
+        s_img = smooth_image(img, 0)
+        assert_array_equal(img.dataobj, s_img.dataobj)
+        out = resample_from_to(img, img, mode='nearest')
+        assert_almost_equal(img.dataobj, out.dataobj)
+        if len(img.shape) > 3:
+            continue
+        # Resample to output does not raise an error
+        out = resample_to_output(img, voxel_sizes(img.affine))
+    for fname in MINC_4DS:
+        img = nib.load(pjoin(DATA_DIR, fname))
+        assert_raises(ValueError, smooth_image, img, 0)
+        assert_raises(ValueError, resample_from_to, img, img, mode='nearest')
+        assert_raises(ValueError,
+                      resample_to_output, img, voxel_sizes(img.affine))
 
 
 def assert_spm_resampling_close(from_img, our_resampled, spm_resampled):
