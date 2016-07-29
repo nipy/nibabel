@@ -105,6 +105,13 @@ ext_map = ExtMapRecoder((
     ('par', '.par'),
 ))
 
+# Image classes known to require spatial axes to be first in index ordering.
+# When adding an image class, consider whether the new class should be listed
+# here.
+KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                       Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
+                       MGHImage, PARRECImage)
+
 
 def spatial_axes_first(img):
     """ True if spatial image axes for `img` always preceed other axes
@@ -122,4 +129,4 @@ def spatial_axes_first(img):
     """
     if len(img.shape) < 4:
         return True
-    return not isinstance(img, Minc1Image)
+    return type(img) in KNOWN_SPATIAL_FIRST
