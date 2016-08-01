@@ -369,6 +369,17 @@ class GiftiDataArray(xml.XmlSerializable):
     def num_dim(self):
         return len(self.dims)
 
+    # Setter for backwards compatibility with pymvpa
+    @num_dim.setter
+    def num_dim(self, value):
+        warnings.warn(
+            "num_dim will be read-only in future versions of nibabel",
+            DeprecationWarning, stacklevel=2)
+        if value != len(self.dims):
+            raise ValueError('num_dim value {0} != number of dimensions '
+                             'len(self.dims) {1}'
+                             .format(value, len(self.dims)))
+
     @classmethod
     def from_array(klass,
                    darray,

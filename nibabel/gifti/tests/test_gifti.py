@@ -182,6 +182,19 @@ def test_to_xml_open_close_deprecations():
         assert_equal(len(w), 1)
 
 
+def test_num_dim_deprecation():
+    da = GiftiDataArray(np.ones((2, 3, 4)))
+    # num_dim is property, set automatically from len(da.dims)
+    assert_equal(da.num_dim, 3)
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        # OK setting num_dim to correct value, but raises DeprecationWarning
+        da.num_dim = 3
+        assert_equal(len(w), 1)
+        # Any other value gives a ValueError
+        assert_raises(ValueError, setattr, da, 'num_dim', 4)
+
+
 def test_labeltable():
     img = GiftiImage()
     assert_equal(len(img.labeltable.labels), 0)
