@@ -436,6 +436,7 @@ class GiftiDataArray(xml.XmlSerializable):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
 
+        # All attribute values must be strings
         data_array = xml.Element('DataArray', attrib={
             'Intent': intent_codes.niistring[self.intent],
             'DataType': data_type_codes.niistring[self.datatype],
@@ -444,7 +445,7 @@ class GiftiDataArray(xml.XmlSerializable):
             'Encoding': gifti_encoding_codes.specs[self.encoding],
             'Endian': gifti_endian_codes.specs[self.endian],
             'ExternalFileName': self.ext_fname,
-            'ExternalFileOffset': self.ext_offset})
+            'ExternalFileOffset': str(self.ext_offset)})
         for di, dn in enumerate(self.dims):
             data_array.attrib['Dim%d' % di] = str(dn)
 
