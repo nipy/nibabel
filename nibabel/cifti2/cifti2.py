@@ -475,7 +475,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
         assert self.matrix is not None
         trans = xml.Element('TransformationMatrixVoxelIndicesIJKtoXYZ')
         trans.attrib['MeterExponent'] = str(self.meter_exponent)
-        trans.text = '\n'.join(' '.join(map('%.10f'.format, row))
+        trans.text = '\n'.join(' '.join(map('{:.10f}'.format, row))
                                for row in self.matrix)
         return trans
 
