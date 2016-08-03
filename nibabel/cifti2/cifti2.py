@@ -29,6 +29,11 @@ from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
 
+class CIFTI2HeaderError(Exception):
+    """ Error in CIFTI2 header
+    """
+
+
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
                    'CIFTI_INDEX_TYPE_SERIES',
@@ -165,11 +170,12 @@ class Cifti2MetaData(xml.XmlSerializable):
         metadata = xml.Element('MetaData')
 
         for name_text, value_text in self.data:
+            if value_text is None:
+                raise CIFTI2HeaderError('MetaData element requires text description')
             md = xml.SubElement(metadata, 'MD')
             name = xml.SubElement(md, 'Name')
             name.text = str(name_text)
             value = xml.SubElement(md, 'Value')
-            assert(value_text is not None)
             value.text = str(value_text)
         return metadata
 
@@ -192,7 +198,8 @@ class Cifti2LabelTable(xml.XmlSerializable):
         return self.labels_as_dict
 
     def _to_xml_element(self):
-        assert len(self.labels) > 0
+        if len(self.labels) == 0:
+            raise CIFTI2HeaderError('LabelTable element requires at least 1 label')
         labeltable = xml.Element('LabelTable')
         for ele in self.labels:
             labeltable.append(ele._to_xml_element())
@@ -339,7 +346,8 @@ class Cifti2Surface(xml.XmlSerializable):
         self.surface_number_of_vertices = surface_number_of_vertices
 
     def _to_xml_element(self):
-        assert self.brain_structure is not None
+        if self.brain_structure is None:
+            raise CIFTI2HeaderError('Surface element requires at least 1 BrainStructure')
         surf = xml.Element('Surface')
         surf.attrib['BrainStructure'] = str(self.brain_structure)
         surf.attrib['SurfaceNumberOfVertices'] = str(self.surface_number_of_vertices)
@@ -363,7 +371,9 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable):
         self.indices = indices
 
     def _to_xml_element(self):
-        assert self.indices is not None
+        if self.indices is None:
+            raise CIFTI2HeaderError('VoxelIndicesIJK element require an index table')
+
         vox_ind = xml.Element('VoxelIndicesIJK')
         vox_ind.text = '\n'.join(' '.join(row.astype(str))
                                  for row in self.indices)
@@ -391,7 +401,9 @@ class Cifti2Vertices(xml.XmlSerializable):
         self.brain_structure = brain_structure
 
     def _to_xml_element(self):
-        assert self.vertices is not None
+        if self.vertices is None:
+            raise CIFTI2HeaderError('Vertices element require a vertex table')
+
         vertices = xml.Element('Vertices')
         vertices.attrib['BrainStructure'] = str(self.brain_structure)
 
@@ -441,7 +453,9 @@ class Cifti2Parcel(object):
         self.vertices.pop(ith)
 
     def _to_xml_element(self):
-        assert self.name is not None
+        if self.name is None:
+            raise CIFTI2HeaderError('Parcel element requires a name')
+
         parcel = xml.Element('Parcel')
         parcel.attrib['Name'] = str(self.name)
         if self.voxel_indices_ijk:
@@ -472,7 +486,10 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
         self.matrix = matrix
 
     def _to_xml_element(self):
-        assert self.matrix is not None
+        if self.matrix is None:
+            raise CIFTI2HeaderError(
+                'TransformationMatrixVoxelIndicesIJKtoXYZ element requires a matrix'
+            )
         trans = xml.Element('TransformationMatrixVoxelIndicesIJKtoXYZ')
         trans.attrib['MeterExponent'] = str(self.meter_exponent)
         trans.text = '\n'.join(' '.join(map('{:.10f}'.format, row))
@@ -499,7 +516,9 @@ class Cifti2Volume(object):
         self.transformation_matrix_voxel_indices_ijk_to_xyz = transform_matrix
 
     def _to_xml_element(self):
-        assert self.volume_dimensions is not None
+        if self.volume_dimensions is None:
+            raise CIFTI2HeaderError('Volume element requires dimensions')
+
         volume = xml.Element('Volume')
         volume.attrib['VolumeDimensions'] = ','.join(
             [str(val) for val in self.volume_dimensions])
@@ -521,7 +540,9 @@ class Cifti2VertexIndices(object):
         self.indices = indices
 
     def _to_xml_element(self):
-        assert self.indices is not None
+        if self.indices is None:
+            raise CIFTI2HeaderError('VertexIndices element requires indices')
+
         vert_indices = xml.Element('VertexIndices')
         vert_indices.text = ' '.join(self.indices.astype(str).tolist())
         return vert_indices
@@ -695,7 +716,10 @@ class Cifti2MatrixIndicesMap(object):
         self.volume = None
 
     def _to_xml_element(self):
-        assert self.applies_to_matrix_dimension is not None
+        if self.applies_to_matrix_dimension is None:
+            raise CIFTI2HeaderError(
+                'MatrixIndicesMap element requires to be applied to at least 1 dimension'
+            )
 
         mat_ind_map = xml.Element('MatrixIndicesMap')
         dims_as_strings = [str(dim) for dim in self.applies_to_matrix_dimension]
@@ -707,19 +731,24 @@ class Cifti2MatrixIndicesMap(object):
             if value is not None:
                 mat_ind_map.attrib[key] = str(value)
         for named_map in self.named_maps:
-            assert named_map._to_xml_element() is not None
+            if named_map._to_xml_element() is None:
+                raise CIFTI2HeaderError('NamedMap element has an error')
             mat_ind_map.append(named_map._to_xml_element())
         for surface in self.surfaces:
-            assert surface._to_xml_element() is not None
+            if surface._to_xml_element() is None:
+                raise CIFTI2HeaderError('Surface element has an error')
             mat_ind_map.append(surface._to_xml_element())
         for parcel in self.parcels:
-            assert parcel._to_xml_element() is not None
+            if parcel._to_xml_element() is None:
+                raise CIFTI2HeaderError('Parcel element has an error')
             mat_ind_map.append(parcel._to_xml_element())
         if self.volume:
-            assert self.volume._to_xml_element() is not None
+            if self.volume._to_xml_element() is None:
+                raise CIFTI2HeaderError('Volume element has an error')
             mat_ind_map.append(self.volume._to_xml_element())
         for model in self.brain_models:
-            assert model._to_xml_element() is not None
+            if model._to_xml_element() is None:
+                raise CIFTI2HeaderError('BrainModel element has an error')
             mat_ind_map.append(model._to_xml_element())
         return mat_ind_map
 
@@ -766,7 +795,11 @@ class Cifti2Matrix(xml.XmlSerializable):
         self.mims.pop(ith)
 
     def _to_xml_element(self):
-        assert len(self.mims) != 0 or self.metadata is not None
+        if (len(self.mims) == 0 and self.metadata is None):
+            raise CIFTI2HeaderError(
+                'Matrix element requires either a MatrixIndicesMap or a Metadata element'
+            )
+
         mat = xml.Element('Matrix')
         if self.metadata:
             mat.append(self.metadata._to_xml_element())
