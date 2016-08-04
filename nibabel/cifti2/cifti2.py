@@ -120,25 +120,26 @@ class Cifti2MetaData(xml.XmlSerializable):
         if isinstance(metadata, dict):
             pairs = metadata.items()
         elif isinstance(metadata, (list, tuple)):
-            if not isinstance(metadata[0], string_types):
+            if len(metadata) > 0 and not isinstance(metadata[0], string_types):
                 for item in metadata:
                     self._add_remove_metadata(item, func)
                 return
-            elif len(metadata) == 2:
+            elif len(metadata) == 2 and isinstance(metadata[0], string_types):
                 pairs = [tuple((metadata[0], metadata[1]))]
             else:
                 raise ValueError('nvpair must be a 2-list or 2-tuple')
         else:
             raise ValueError('nvpair input must be a list, tuple or dict')
 
-        for pair in pairs:
-            if func == 'add':
+        if func == 'add':
+            for pair in pairs:
                 if pair not in self.data:
                     self.data.append(pair)
-            elif func == 'remove':
+        elif func == 'remove':
+            for pair in pairs:
                 self.data.remove(pair)
-            else:
-                raise ValueError('Unknown func %s' % func)
+        else:
+            raise ValueError('Unknown func %s' % func)
 
     def add_metadata(self, metadata):
         """Add metadata key-value pairs
@@ -163,15 +164,13 @@ class Cifti2MetaData(xml.XmlSerializable):
 
     def remove_metadata(self, metadata):
         if metadata is None:
-            return
+            ValueError("Need metadata to remove")
         self._add_remove_metadata(metadata, 'remove')
 
     def _to_xml_element(self):
         metadata = xml.Element('MetaData')
 
         for name_text, value_text in self.data:
-            if value_text is None:
-                raise CIFTI2HeaderError('MetaData element requires text description')
             md = xml.SubElement(metadata, 'MD')
             name = xml.SubElement(md, 'Name')
             name.text = str(name_text)

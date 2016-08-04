@@ -16,22 +16,26 @@ from nose.tools import assert_true, assert_equal, assert_raises
 def test_cifti2_metadata():
     md = ci.Cifti2MetaData()
     assert_equal(md.data, [])
+    assert_raises(ValueError, md.add_metadata, 0)
     assert_raises(ValueError, md.add_metadata, ['a'])
+    assert_raises(ValueError, md.remove_metadata, None)
+    assert_raises(ValueError, md._add_remove_metadata, [('a', 'b')], 'loren')
 
-    md.add_metadata([('a', 'aval'), ('b', 'bval')])
-    assert_equal(len(md.data), 2)
+    metadata_test = [('a', 'aval'), ('b', 'bval')]
+    md.add_metadata(metadata_test)
+    assert_equal(md.data, metadata_test)
 
     md.add_metadata([['a', 'aval'], ['b', 'bval']])
-    assert_equal(len(md.data), 2)
+    assert_equal(md.data, metadata_test)
 
     md.add_metadata({'a': 'aval', 'b': 'bval'})
-    assert_equal(len(md.data), 2)
+    assert_equal(md.data, metadata_test)
 
     md.add_metadata({'a': 'aval', 'd': 'dval'})
-    assert_equal(len(md.data), 3)
+    assert_equal(md.data, metadata_test + [('d', 'dval')])
 
     md.remove_metadata({'a': 'aval', 'd': 'dval'})
-    assert_equal(len(md.data), 1)
+    assert_equal(md.data, metadata_test[1:])
 
     assert_raises(ValueError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
     assert_equal(md.to_xml().decode('utf-8'),
