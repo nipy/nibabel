@@ -186,7 +186,7 @@ class GiftiImageParser(XmlParser):
                 self.da.endian = gifti_endian_codes.code[attrs["Endian"]]
             if "ExternalFileName" in attrs:
                 self.da.ext_fname = attrs["ExternalFileName"]
-            if "ExternalFileOffset" in attrs:
+            if "ExternalFileOffset" in attrs and attrs["ExternalFileOffset"]:
                 self.da.ext_offset = int(attrs["ExternalFileOffset"])
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
