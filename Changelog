@@ -20,25 +20,62 @@ NiBabel
 +++++++
 
 Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
-and Stephan Gerhard (SG).
+Ben Cipollini (BC), Marc-Alexandre Côté (MC), Chris Markiewicz (CM), Stephan
+Gerhard (SG) and Eric Larson (EL).
 
 References like "pr/298" refer to github pull request numbers.
 
-* Upcoming
+* 2.1 (TBA)
 
-  * Read and write support for DICOM tags in NIfTI Extended Header using
-    pydicom (pr/296);
-  * Trackvis reader will now allow final streamline to have fewer points that
-    tne numbe declared in the header, with ``strict=False`` argument to
-    ``read`` function;
-  * Minor API breakage in trackvis reader. We are now raising a DataError if
-    there are too few streamlines in the file, instead of a HeaderError.  We
-    are raising a DataError if the track is truncated when ``strict=True``
-    (the default), rather than a TypeError when trying to create the points
-    array.
+  We dropped support for Pythons 2.6 and 3.2 for this release.
+
   * New API for managing streamlines and their different file formats. This
     adds a new module ``nibabel.streamlines`` that will eventually deprecate
-    the current trackvis reader found in ``nibabel.trackvis``.
+    the current trackvis reader found in ``nibabel.trackvis`` (pr/391) (MC,
+    reviewed by Bago Amirbekian, Samuel St-Jean, MB);
+  * A prototype image viewer using matplotlib (pr/404) (EL, based on a
+    proto-prototype by Paul Ivanov);
+  * Functions for image resampling and smoothing using scipy ndimage (pr/255)
+    (MB, reviewed by EL, BC);
+  * Comprehensive refactor and generalization of surface / GIFTI file support
+    with improved API and extended tests (pr/352-355, pr/360, pr/365, pr/403)
+    (BC, reviewed by CM, MB);
+  * Refactor of image classes (pr/328, pr/329) (BC, reviewed by CM);
+  * Extensions to FreeSurfer module to fix reading and writing of FreeSurfer
+    geometry data (pr/460) (Alexandre Gramfort, Jaakko Leppäkangas, reviewed
+    by EL, CM, MB);
+  * Add ability to write FreeSurfer morphology data (pr/414) (CM, BC, reviewed
+    by BC);
+  * Read and write support for DICOM tags in NIfTI Extended Header using
+    pydicom (pr/296) (Eric Kastman);
+  * Various improvements to PAR / REC handling by Gregory R. Lee: supporting
+    multiple TR values (pr/429); output of volume labels (pr/427); fix for
+    some diffusion files (pr/426); option for more sophisticated sorting of
+    volumes (pr/409);
+  * Fixes to rotation order to generate affine matrices of PAR / REC files;
+  * Helper function to return voxel sizes from an affine matrix (pr/413);
+  * Trackvis reader will now allow final streamline to have fewer points than
+    the number declared in the header, with ``strict=False`` argument to
+    ``read`` function;
+  * Minor API breakage in trackvis reader. We are now raising a ``DataError``
+    if there are too few streamlines in the file, instead of a
+    ``HeaderError``.  We are raising a ``DataError`` if the track is truncated
+    when ``strict=True`` (the default), rather than a ``TypeError`` when
+    trying to create the points array.
+  * More explicit error when trying to read image from non-existent file
+    (pr/455) (Ariel Rokem);
+  * Better Appveyor testing on new Python versions (pr/446) (Ariel Rokem);
+  * Fixes to DICOM multiframe reading to avoid assumptions on the position of
+    the multiframe index (pr/439) (Eric M. Baker);
+  * More robust handling of "CSA" private information in DICOM files (pr/393)
+    (Brendan Moloney);
+  * Fix shebang lines in scripts for correct install into virtualenvs via pip
+    (pr/434);
+  * Extension to `nib-ls` command to show image statistics (pr/437) and other
+    header files (pr/348) (Yarik Halchenko);
+  * Various fixes for numpy matplotlib, and PIL / Pillow compatibility (CM,
+    Ariel Rokem, MB);
+  * Improved test framework for warnings (pr/345) (BC, reviewed by CM, MB);
 
 * 2.0.2 (Monday 23 November 2015)
 
