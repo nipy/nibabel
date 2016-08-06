@@ -99,6 +99,44 @@ DATA_FILE5_darr2 = np.array([[6402, 17923, 25602],
 DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
 
 
+def assert_default_types(loaded):
+    default = loaded.__class__()
+    for attr in dir(default):
+        defaulttype = type(getattr(default, attr))
+        # Optional elements may have default of None
+        if defaulttype is type(None):
+            continue
+        loadedtype = type(getattr(loaded, attr))
+        assert loadedtype == defaulttype, \
+            "Type mismatch for attribute: {} ({!s} != {!s})".format(
+                attr, loadedtype, defaulttype)
+
+
+def test_default_types():
+    for fname in datafiles:
+        img = load(fname)
+        # GiftiImage
+        assert_default_types(img)
+        # GiftiMetaData
+        assert_default_types(img.meta)
+        # GiftiNVPairs
+        for nvpair in img.meta.data:
+            assert_default_types(nvpair)
+        # GiftiLabelTable
+        assert_default_types(img.labeltable)
+        # GiftiLabel elements can be None or float; skip
+        # GiftiDataArray
+        for darray in img.darrays:
+            assert_default_types(darray)
+            # GiftiCoordSystem
+            assert_default_types(darray.coordsys)
+            # GiftiMetaData
+            assert_default_types(darray.meta)
+            # GiftiNVPairs
+            for nvpair in darray.meta.data:
+                assert_default_types(nvpair)
+
+
 def test_read_ordering():
     # DATA_FILE1 has an expected darray[0].data shape of (3,3).  However if we
     # read another image first (DATA_FILE2) then the shape is wrong
