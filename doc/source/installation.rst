@@ -75,7 +75,12 @@ NiBabel from source.
 Requirements
 ------------
 
-*  Python_ 2.6 or greater
+.. check these against:
+    nibabel/info.py
+    requirements.txt
+    .travis.yml
+
+*  Python_ 2.7 or greater
 *  NumPy_ 1.5 or greater
 *  SciPy_ (for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.7 or greater (for DICOM support)

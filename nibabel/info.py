@@ -102,8 +102,11 @@ nibabel is licensed under the BSD license.  Please see the COPYING file in the
 nibabel distribution.
 """
 
-# versions for dependencies
-NUMPY_MIN_VERSION = '1.5'
+# versions for dependencies. Check these against:
+# doc/source/installation.rst
+# requirements.txt
+# .travis.yml
+NUMPY_MIN_VERSION = '1.5.1'
 PYDICOM_MIN_VERSION = '0.9.7'
 
 # Main setup parameters
