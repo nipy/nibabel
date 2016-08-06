@@ -728,6 +728,10 @@ class TrkFile(TractogramFile):
         vars['property_names'] = "\n  ".join([asstr(s)
                                               for s in vars['property_name']
                                               if len(s) > 0])
+        # Make all byte strings into strings
+        # Fixes recursion error on Python 3.3
+        vars = dict((k, asstr(v) if hasattr(v, 'decode') else v)
+                    for k, v in vars.items())
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}
