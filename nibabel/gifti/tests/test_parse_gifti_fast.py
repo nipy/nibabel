@@ -107,12 +107,13 @@ def assert_default_types(loaded):
         if defaulttype is type(None):
             continue
         loadedtype = type(getattr(loaded, attr))
-        assert loadedtype == defaulttype, \
-            "Type mismatch for attribute: {} ({!s} != {!s})".format(
-                attr, loadedtype, defaulttype)
+        assert_equal(loadedtype, defaulttype,
+                     "Type mismatch for attribute: {} ({!s} != {!s})".format(
+                         attr, loadedtype, defaulttype))
 
 
 def test_default_types():
+    # Test that variable types are same in loaded and default instances
     for fname in datafiles:
         img = load(fname)
         # GiftiImage

@@ -81,7 +81,7 @@ class GiftiNVPairs(object):
     name : str
     value : str
     """
-    def __init__(self, name='', value=''):
+    def __init__(self, name=u'', value=u''):
         self.name = name
         self.value = value
 
@@ -344,7 +344,7 @@ class GiftiDataArray(xml.XmlSerializable):
                  coordsys=None,
                  ordering="C",
                  meta=None,
-                 ext_fname='',
+                 ext_fname=u'',
                  ext_offset=0):
         """
         Returns a shell object that cannot be saved.
@@ -518,7 +518,8 @@ class GiftiDataArray(xml.XmlSerializable):
 
 
 class GiftiImage(xml.XmlSerializable, FileBasedImage):
-    """
+    """ GIFTI image object
+
     The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
 
@@ -554,7 +555,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
     parser = None
 
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
-                 labeltable=None, darrays=None, version="1.0"):
+                 labeltable=None, darrays=None, version=u"1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
         if darrays is None:
