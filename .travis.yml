@@ -24,7 +24,6 @@ env:
         - PYDICOM=1
         - INSTALL_TYPE="setup"
 python:
-    - 2.6
     - 3.3
     - 3.4
     - 3.5
