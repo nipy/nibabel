@@ -77,6 +77,11 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     return newarr
 
 
+def _str2int(in_str):
+    # Convert string to integer, where empty string gives 0
+    return int(in_str) if in_str else 0
+
+
 class GiftiImageParser(XmlParser):
 
     def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
@@ -187,7 +192,7 @@ class GiftiImageParser(XmlParser):
             if "ExternalFileName" in attrs:
                 self.da.ext_fname = attrs["ExternalFileName"]
             if "ExternalFileOffset" in attrs:
-                self.da.ext_offset = attrs["ExternalFileOffset"]
+                self.da.ext_offset = _str2int(attrs["ExternalFileOffset"])
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
 

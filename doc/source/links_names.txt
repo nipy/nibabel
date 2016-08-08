@@ -108,7 +108,7 @@
    https://pip.readthedocs.org/en/latest/installing.html
 .. _twine: https://pypi.python.org/pypi/twine
 .. _datapkg: https://pythonhosted.org/datapkg/
-.. _python imaging library: http://pythonware.com/products/pil/
+.. _python imaging library: https://pypi.python.org/pypi/Pillow
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org

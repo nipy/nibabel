@@ -81,7 +81,7 @@ class GiftiNVPairs(object):
     name : str
     value : str
     """
-    def __init__(self, name='', value=''):
+    def __init__(self, name=u'', value=u''):
         self.name = name
         self.value = value
 
@@ -344,7 +344,7 @@ class GiftiDataArray(xml.XmlSerializable):
                  coordsys=None,
                  ordering="C",
                  meta=None,
-                 ext_fname='',
+                 ext_fname=u'',
                  ext_offset=0):
         """
         Returns a shell object that cannot be saved.
@@ -436,6 +436,7 @@ class GiftiDataArray(xml.XmlSerializable):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
 
+        # All attribute values must be strings
         data_array = xml.Element('DataArray', attrib={
             'Intent': intent_codes.niistring[self.intent],
             'DataType': data_type_codes.niistring[self.datatype],
@@ -444,7 +445,7 @@ class GiftiDataArray(xml.XmlSerializable):
             'Encoding': gifti_encoding_codes.specs[self.encoding],
             'Endian': gifti_endian_codes.specs[self.endian],
             'ExternalFileName': self.ext_fname,
-            'ExternalFileOffset': self.ext_offset})
+            'ExternalFileOffset': str(self.ext_offset)})
         for di, dn in enumerate(self.dims):
             data_array.attrib['Dim%d' % di] = str(dn)
 
@@ -517,7 +518,8 @@ class GiftiDataArray(xml.XmlSerializable):
 
 
 class GiftiImage(xml.XmlSerializable, FileBasedImage):
-    """
+    """ GIFTI image object
+
     The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
 
@@ -553,7 +555,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
     parser = None
 
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
-                 labeltable=None, darrays=None, version="1.0"):
+                 labeltable=None, darrays=None, version=u"1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
         if darrays is None:
