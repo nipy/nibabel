@@ -236,6 +236,12 @@
 .. _Ben Cipollini: http://bcipolli.github.io/
 .. _Eric Larson: https://staff.washington.edu/larsoner
 .. _Marc-Alexandre Côté: https://marccote.github.io
+.. _Jarrod Millman: http://www.jarrodmillman.com/
+.. _Alexandre Gramfort: http://alexandre.gramfort.net
+.. _Ariel Rokem: http://arokem.org
+.. _Bertrand Thirion: https://team.inria.fr/parietal/bertrand-thirions-page
+.. _Nolan Nichols: http://www.nolan-nichols.com
+.. _Satrajit Ghosh: http://satra.cogitatum.org
 
 .. Substitutions
 .. |emdash| unicode:: U+02014

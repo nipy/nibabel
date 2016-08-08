@@ -36,12 +36,12 @@ contributed code and discussion (in rough order of appearance):
 * Chris Burns
 * `Gaël Varoquaux`_
 * Ian Nimmo-Smith
-* Jarrod Millman
-* Bertrand Thirion
+* `Jarrod Millman`_
+* `Bertrand Thirion`_
 * Thomas Ballinger
 * Cindee Madison
 * Valentin Haenel
-* Alexandre Gramfort
+* `Alexandre Gramfort`_
 * Christian Haselgrove
 * Krish Subramaniam
 * Yannick Schwartz
@@ -50,8 +50,8 @@ contributed code and discussion (in rough order of appearance):
 * Félix C. Morency
 * JB Poline
 * Basile Pinsard
-* Satrajit Ghosh
-* Nolan Nichols
+* `Satrajit Ghosh`_
+* `Nolan Nichols`_
 * Nguyen, Ly
 * Philippe Gervais
 * Demian Wassermann
@@ -67,8 +67,7 @@ contributed code and discussion (in rough order of appearance):
 * Samuel St-Jean
 * Gregory R. Lee
 * Eric M. Baker
-* Ariel Rokem
-* Marc-Alexandre Côté
+* `Ariel Rokem`_
 * Eleftherios Garyfallidis
 * Jaakko Leppäkangas
 
