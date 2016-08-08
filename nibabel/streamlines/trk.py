@@ -413,7 +413,8 @@ class TrkFile(TractogramFile):
             pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
-        header = create_empty_header()
+        # Enforce little-endian byte order for header
+        header = create_empty_header().newbyteorder('<')
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
@@ -499,20 +500,20 @@ class TrkFile(TractogramFile):
                         for d in t.data_for_points.values())):
                     raise DataError("Missing scalars for some points!")
 
-                points = np.asarray(t.streamline, dtype=f4_dtype)
-                scalars = [np.asarray(t.data_for_points[k], dtype=f4_dtype)
+                points = np.asarray(t.streamline)
+                scalars = [np.asarray(t.data_for_points[k])
                            for k in data_for_points_keys]
-                scalars = np.concatenate([np.ndarray((len(points), 0),
-                                                     dtype=f4_dtype)
+                scalars = np.concatenate([np.ndarray((len(points), 0),)
                                           ] + scalars, axis=1)
-                properties = [np.asarray(t.data_for_streamline[k],
-                                         dtype=f4_dtype)
+                properties = [np.asarray(t.data_for_streamline[k])
                               for k in data_for_streamline_keys]
-                properties = np.concatenate([np.array([], dtype=f4_dtype)
-                                             ] + properties)
+                properties = np.concatenate(
+                    [np.array([])] + properties).astype(f4_dtype)
 
                 data = struct.pack(i4_dtype.str[:-1], len(points))
-                data += np.concatenate([points, scalars], axis=1).tostring()
+                pts_scalars = np.concatenate(
+                    [points, scalars], axis=1).astype(f4_dtype)
+                data += pts_scalars.tostring()
                 data += properties.tostring()
                 f.write(data)
 
