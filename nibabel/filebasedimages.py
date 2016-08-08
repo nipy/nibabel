@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
+import os
 import warnings
 
 from .externals.six import string_types
@@ -15,6 +16,14 @@ from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
 from .openers import ImageOpener
+
+# OS-specific path
+_GIT_ANNEX_OBJECTS_PATH = os.path.join('.git', 'annex', 'objects')
+
+
+def _is_annex_symlink(path):
+    """Return True if file is a symlink to the git-annex objects"""
+    return os.path.islink(path) and _GIT_ANNEX_OBJECTS_PATH in os.path.realpath(path)
 
 
 class ImageFileError(Exception):
@@ -347,7 +356,16 @@ class FileBasedImage(object):
         -------
         None
         '''
-        self.file_map = self.filespec_to_file_map(filename)
+        self.file_map = file_map = self.filespec_to_file_map(filename)
+        remove_env = os.environ.get('NIBABEL_REMOVE_BEFORE_TO_FILENAME', None)
+        for _, fh in file_map.items():
+            if not isinstance(fh, FileHolder):
+                continue
+            if os.path.lexists(fh.filename) and (remove_env or _is_annex_symlink(fh.filename)):
+                # Remove previous file where new file would be saved
+                # Necessary e.g. for cases where file is a symlink pointing
+                # to some non-writable file (e.g. under git annex control)
+                os.unlink(fh.filename)
         self.to_file_map()
 
     def to_filespec(self, filename):
