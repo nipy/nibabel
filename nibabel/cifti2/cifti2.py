@@ -409,8 +409,8 @@ class Cifti2Vertices(xml.XmlSerializable):
         self.brain_structure = brain_structure
 
     def _to_xml_element(self):
-        if self.vertices is None:
-            raise CIFTI2HeaderError('Vertices element require a vertex table')
+        if self.brain_structure is None:
+            raise CIFTI2HeaderError('Vertices element require a BrainStructure')
 
         vertices = xml.Element('Vertices')
         vertices.attrib['BrainStructure'] = str(self.brain_structure)
@@ -420,7 +420,7 @@ class Cifti2Vertices(xml.XmlSerializable):
         return vertices
 
 
-class Cifti2Parcel(object):
+class Cifti2Parcel(xml.XmlSerializable):
     """Cifti2 parcel: association of a name with vertices and/or voxels
 
     Attributes
@@ -473,7 +473,7 @@ class Cifti2Parcel(object):
         return parcel
 
 
-class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
+class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
     """Matrix that translates voxel indices to spatial coordinates
 
     Attributes
@@ -505,7 +505,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(object):
         return trans
 
 
-class Cifti2Volume(object):
+class Cifti2Volume(xml.XmlSerializable):
     """Cifti2 volume: information about a volume for mappings that use voxels
 
     Attributes
@@ -534,7 +534,7 @@ class Cifti2Volume(object):
         return volume
 
 
-class Cifti2VertexIndices(object):
+class Cifti2VertexIndices(xml.XmlSerializable):
     """Cifti2 vertex indices: vertex indices for an associated brain model
 
     Attributes
