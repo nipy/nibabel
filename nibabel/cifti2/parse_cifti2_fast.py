@@ -412,17 +412,22 @@ class Cifti2Parser(xml.XmlParser):
 
         elif name == 'Name':
             self.write_to = None
+
         elif name == 'Value':
             self.write_to = None
+
         elif name == 'MatrixIndicesMap':
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == 'NamedMap':
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == 'LabelTable':
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == 'Label':
             self.fsm_state.pop()
             label = self.struct_state.pop()
@@ -433,9 +438,11 @@ class Cifti2Parser(xml.XmlParser):
         elif name == "MapName":
             self.fsm_state.pop()
             self.write_to = None
+
         elif name == "Parcel":
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == "Vertices":
             self.fsm_state.pop()
             self.struct_state.pop()
@@ -443,6 +450,7 @@ class Cifti2Parser(xml.XmlParser):
 
         elif name == "VoxelIndicesIJK":
             self.write_to = None
+
         elif name == "Volume":
             self.fsm_state.pop()
             self.struct_state.pop()
@@ -451,9 +459,11 @@ class Cifti2Parser(xml.XmlParser):
             self.fsm_state.pop()
             self.struct_state.pop()
             self.write_to = None
+
         elif name == "BrainModel":
             self.fsm_state.pop()
             self.struct_state.pop()
+
         elif name == "VertexIndices":
             self.fsm_state.pop()
             self.struct_state.pop()
@@ -488,37 +498,44 @@ class Cifti2Parser(xml.XmlParser):
             data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[0] = data
+
         elif self.write_to == 'Value':
             data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[1] = data
+
         elif self.write_to == 'Vertices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             vertices = self.struct_state[-1]
             vertices.vertices = np.genfromtxt(c, dtype=np.int)
             c.close()
+
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             parent = self.struct_state[-1]
             parent.voxel_indices_ijk.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
+
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             index = self.struct_state[-1]
             index.indices = np.genfromtxt(c, dtype=np.int)
             c.close()
+
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             transform = self.struct_state[-1]
             transform.matrix = np.genfromtxt(c, dtype=np.float)
             c.close()
+
         elif self.write_to == 'Label':
             label = self.struct_state[-1]
             label.label = data.strip().encode('utf-8')
+
         elif self.write_to == 'MapName':
             named_map = self.struct_state[-1]
             named_map.map_name = data.strip()  # .decode('utf-8')

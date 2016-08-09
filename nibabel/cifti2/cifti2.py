@@ -924,7 +924,6 @@ class Cifti2Image(FileBasedImage):
 
 
 class Cifti2DenseDataSeriesHeader(Cifti2Header):
-
     @classmethod
     def may_contain_header(klass, binaryblock):
         from .parse_cifti2_fast import _Cifti2DenseDataSeriesNiftiHeader
