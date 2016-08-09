@@ -244,6 +244,15 @@ class Cifti2Label(xml.XmlSerializable):
         return (self.red, self.green, self.blue, self.alpha)
 
     def _to_xml_element(self):
+        if self.label is '':
+            raise CIFTI2HeaderError('Label needs a name')
+        for c_ in ('red', 'blue', 'green', 'alpha'):
+            if not (getattr(self, c_) is None or (0 <= float(getattr(self, c_)) <= 1)):
+                v = str(getattr(self, c_))
+                raise CIFTI2HeaderError(
+                    'Label invalid %s needs to be a float between 0 and 1. and it is %s' %
+                    (c_, v)
+                )
         lab = xml.Element('Label')
         lab.attrib['Key'] = str(self.key)
         lab.text = str(self.label)
