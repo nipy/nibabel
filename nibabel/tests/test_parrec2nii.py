@@ -10,7 +10,7 @@ AN_OLD_AFFINE = numpy.array(
      [0.86045705, 0., 7.78655376, -27.91161211],
      [0., 0., 0., 1.]])
 
-def test_parrec2nii():
+def test_parrec2nii_sets_qform_with_code2():
     parrec2nii = imp.load_source('parrec2nii', 'bin/parrec2nii')
     parrec2nii.verbose.switch = False
 
@@ -43,3 +43,4 @@ def test_parrec2nii():
 
     infile = 'nonexistent.PAR'
     parrec2nii.proc_file(infile, opts)
+    nhdr.set_qform.assert_called_with(pr_hdr.get_affine(), code=2)    
