@@ -88,7 +88,7 @@ before_install:
     - source venv/bin/activate
     - python --version # just to check
     - pip install -U pip wheel  # upgrade to latest pip find 3.5 wheels; wheel to avoid errors
-    - retry pip install nose flake8  # always
+    - retry pip install nose flake8 mock  # always
     - wheelhouse_pip_install $EXTRA_PIP_FLAGS $DEPENDS
     # pydicom <= 0.9.8 doesn't install on python 3
     - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
