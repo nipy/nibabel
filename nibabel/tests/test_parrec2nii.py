@@ -1,6 +1,6 @@
 """ Tests for the parrec2nii exe code
 """
-import imp, numpy
+import imp, numpy, sys, os
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 from nose.tools import assert_equal
@@ -9,7 +9,10 @@ from numpy import array as npa
 from nibabel.tests.test_parrec import EG_PAR, VARY_PAR
 from os.path import dirname, join, isfile, basename
 from ..tmpdirs import InTemporaryDirectory
-BINDIR = join(dirname(dirname(dirname(__file__))), 'bin')
+## Possible locations of the parrec2nii executable;
+BINDIRS = [join(dirname(dirname(dirname(__file__))), 'bin'), 
+            sys.executable,
+            join(os.environ['VIRTUALENV'],'bin')]
 
 
 AN_OLD_AFFINE = numpy.array(
@@ -24,10 +27,18 @@ PAR_AFFINE = numpy.array(
  [   0.86045705,    0.  ,          7.78655376,  -58.25061211],
  [   0.        ,    0.  ,          0.        ,    1.        ]])
 
+def find_parrec2nii():
+    for bindir in BINDIRS:
+        parrec2niiPath = join(bindir, 'parrec2nii')
+        if isfile(parrec2niiPath):
+            return parrec2niiPath
+    else:
+        raise AssertionError('Could not find parrec2nii executable.')
+
 def test_parrec2nii_sets_qform_with_code2():
     """Unit test that ensures that set_qform() is called on the new header.
     """
-    parrec2nii = imp.load_source('parrec2nii', join(BINDIR, 'parrec2nii'))
+    parrec2nii = imp.load_source('parrec2nii', find_parrec2nii())
     parrec2nii.verbose.switch = False
 
     parrec2nii.io_orientation = Mock()
@@ -67,7 +78,7 @@ def test_parrec2nii_save_load_qform_code():
     picks up the qform.
     """
     import nibabel
-    parrec2nii = imp.load_source('parrec2nii', join(BINDIR, 'parrec2nii'))
+    parrec2nii = imp.load_source('parrec2nii', find_parrec2nii())
     parrec2nii.verbose.switch = False
 
     opts = Mock()
