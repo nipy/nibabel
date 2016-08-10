@@ -870,7 +870,7 @@ class Cifti2Image(FileBasedImage):
         nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map)
 
         # Get cifti2 header
-        for item in nifti_img.get_header().extensions:
+        for item in nifti_img.header.extensions:
             if isinstance(item, Cifti2Extension):
                 cifti_header = item.get_content()
                 break
@@ -884,7 +884,7 @@ class Cifti2Image(FileBasedImage):
         # Construct cifti image
         cifti_img = Cifti2Image(data=nifti_img.get_data()[0, 0, 0, 0],
                                 header=cifti_header,
-                                nifti_header=nifti_img.get_header())
+                                nifti_header=nifti_img.header)
         cifti_img.file_map = nifti_img.file_map
         return cifti_img
 
