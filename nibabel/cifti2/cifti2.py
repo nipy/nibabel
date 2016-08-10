@@ -81,20 +81,12 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                          'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
 
-def _value_if_klass(val, klass, none_ok=True):
-    if none_ok and val is None:
+def _value_if_klass(val, klass, check_isinstance_or_none=True):
+    if check_isinstance_or_none and val is None:
         return val
     elif isinstance(val, klass):
         return val
-    else:
-        raise ValueError('Not a valid %s instance.' % klass.__name__)
-
-
-def _value_or_make_klass(val, klass):
-    if val is None:
-        return klass()
-    else:
-        return _value_if_klass(val, klass)
+    raise ValueError('Not a valid %s instance.' % klass.__name__)
 
 
 def _underscore(string):
@@ -645,7 +637,7 @@ class Cifti2MatrixIndicesMap(object):
         self.named_maps = named_maps if named_maps is not None else []
         self.parcels = parcels if parcels is not None else []
         self.surfaces = surfaces if surfaces is not None else []
-        self.volume = volume  # _value_or_make_klass(volume, Cifti2Volume)
+        self.volume = volume
 
     def add_cifti_brain_model(self, brain_model):
         """ Adds a brain model to the Cifti2MatrixIndicesMap
