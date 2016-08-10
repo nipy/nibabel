@@ -21,6 +21,7 @@ import numpy as np
 
 from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
+from .deprecated import deprecate_with_version
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -373,7 +374,10 @@ def make_dt_codes(codes_seqs):
     return Recoder(dt_codes, fields + ['dtype', 'sw_dtype'], DtypeMapper)
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('can_cast deprecated. '
+                        'Please use arraywriter classes instead',
+                        '1.2',
+                        '3.0')
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     ''' Return True if we can safely cast ``in_type`` to ``out_type``
 
@@ -1007,7 +1011,10 @@ def working_type(in_type, slope=1.0, inter=0.0):
     return val.dtype.type
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('calculate_scale deprecated. '
+                        'Please use arraywriter classes instead',
+                        '1.2',
+                        '3.0')
 def calculate_scale(data, out_dtype, allow_intercept):
     ''' Calculate scaling and optional intercept for data
 
@@ -1052,7 +1059,10 @@ def calculate_scale(data, out_dtype, allow_intercept):
     return get_slope_inter(writer) + (mn, mx)
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('scale_min_max deprecated. Please use arraywriter '
+                        'classes instead.',
+                        '1.2',
+                        '3.0')
 def scale_min_max(mn, mx, out_type, allow_intercept):
     ''' Return scaling and intercept min, max of data, given output type
 
