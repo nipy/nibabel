@@ -114,11 +114,12 @@ class _Cifti2AsNiftiImage(Nifti2Image):
 
 
 class Cifti2Parser(xml.XmlParser):
-
+    '''Class to parse an XML string into a CIFTI2 header object'''
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
+        __doc__ = xml.XmlParser.__init__.__doc__
         super(Cifti2Parser, self).__init__(encoding=encoding,
                                            buffer_size=buffer_size,
-                                           verbose=verbose)        # finite state machine stack
+                                           verbose=verbose)
         self.fsm_state = []
         self.struct_state = []
 
