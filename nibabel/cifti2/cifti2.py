@@ -24,7 +24,6 @@ import collections
 import numpy as np
 
 from .. import xmlutils as xml
-from ..externals.six import string_types
 from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
@@ -106,23 +105,6 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     def __init__(self):
         self.data = collections.OrderedDict()
 
-    def _normalize_metadata_parameter(self, metadata):
-        pairs = []
-        if metadata is None:
-            pass
-        elif isinstance(metadata, collections.Mapping):
-            pairs = [(k, v) for k, v in metadata.items()]
-        elif isinstance(metadata, (list, tuple)):
-            if len(metadata) > 0 and not isinstance(metadata[0], string_types):
-                pairs = [tuple(p) for p in metadata]
-            elif len(metadata) == 2 and isinstance(metadata[0], string_types):
-                pairs = [tuple((metadata[0], metadata[1]))]
-            else:
-                raise ValueError('nvpair must be a 2-list or 2-tuple')
-        else:
-            raise ValueError('nvpair input must be a list, tuple or dict')
-        return pairs
-
     def __getitem__(self, key):
         return self.data[key]
 
@@ -143,7 +125,7 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
 
         Parameters
         ----------
-        metadata : key-value pair, mapping, iterable of [key-value pair]
+        metadata : dict-like datatype
 
         Returns
         -------
@@ -152,8 +134,8 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
         """
         if metadata is None:
             raise ValueError("The metadata parameter can't be None")
-        pairs = self._normalize_metadata_parameter(metadata)
-        for k, _ in pairs:
+        pairs = dict(metadata)
+        for k in pairs:
             del self.data[k]
 
     def _to_xml_element(self):

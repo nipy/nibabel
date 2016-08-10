@@ -45,12 +45,6 @@ def test_cifti2_MetaData():
 
     assert_equal(list(iter(md)), list(iter(collections.OrderedDict(metadata_test))))
     
-    md.update([['a', 'aval'], ['b', 'bval']])
-    assert_equal(md.data, dict(metadata_test))
-
-    md.update([['a', 'aval'], ['b', 'bval']])
-    assert_equal(md.data, dict(metadata_test))
-
     md.update({'a': 'aval', 'b': 'bval'})
     assert_equal(md.data, dict(metadata_test))
 
@@ -59,12 +53,6 @@ def test_cifti2_MetaData():
 
     md.difference_update({'a': 'aval', 'd': 'dval'})
     assert_equal(md.data, dict(metadata_test[1:]))
-
-    md.update({'a': 'aval', 'd': 'dval'})
-    md.difference_update([('a', 'aval'), ('d', 'dval')])
-    assert_equal(md.data, dict(metadata_test[1:]))
-
-
 
     assert_raises(KeyError, md.difference_update, {'a': 'aval', 'd': 'dval'})
     assert_equal(md.to_xml().decode('utf-8'),
