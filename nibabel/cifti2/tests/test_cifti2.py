@@ -25,7 +25,7 @@ def compare_xml_leaf(str1, str2):
 
     return (x1.tag == x2.tag) and (x1.attrib and x2.attrib)
 
-def test_cifti2_MetaData():
+def test_cifti2_metadata():
     md = ci.Cifti2MetaData()
     assert_equal(len(md), 0)
     assert_equal(list(iter(md)), [])
@@ -59,7 +59,7 @@ def test_cifti2_MetaData():
     assert_equal(md.to_xml().decode('utf-8'),
                  '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>')
 
-def test_cifti2_LabelTable():
+def test_cifti2_labeltable():
     lt = ci.Cifti2LabelTable()
     assert_equal(len(lt), 0)
     assert_raises(ci.CIFTI2HeaderError, lt.to_xml)
@@ -89,7 +89,7 @@ def test_cifti2_LabelTable():
 
 
 
-def test_cifti2_Label():
+def test_cifti2_label():
     lb = ci.Cifti2Label()
     lb.label = 'Test'
     lb.key = 0
@@ -151,11 +151,35 @@ def test_cifti2_volume():
 
 def test_cifti2_vertexindices():
     vi = ci.Cifti2VertexIndices()
+    assert_equal(len(vi), 0)
     assert_raises(ci.CIFTI2HeaderError, vi.to_xml)
-    vi.indices = np.array([0, 1, 2])
+    vi.extend(np.array([0, 1, 2]))
+    assert_equal(len(vi), 3)
     assert_equal(
         vi.to_xml().decode('utf-8'),
         '<VertexIndices>0 1 2</VertexIndices>'
+    )
+
+
+def test_cifti2_cifti2voxelindicesijk():
+    vi = ci.Cifti2VoxelIndicesIJK()
+    assert_equal(len(vi), 0)
+    assert_raises(ci.CIFTI2HeaderError, vi.to_xml)
+    vi.extend(np.array([[0, 1, 2]]))
+    assert_equal(len(vi), 1)
+    assert_equal(vi[0], [0, 1, 2])
+    vi.append([3, 4, 5])
+    assert_equal(len(vi), 2)
+    assert_equal(vi[1], [3, 4, 5])
+    assert_equal(vi[1, 1], 4)
+    assert_equal(vi[0, 1:], [1, 2])
+
+    #test for vi[:, 0]
+    assert_raises(NotImplementedError, vi.__getitem__, (slice(None), 0))
+
+    assert_equal(
+        vi.to_xml().decode('utf-8'),
+        '<VoxelIndicesIJK>0 1 2\n3 4 5</VoxelIndicesIJK>'
     )
 
 def test_underscoring():

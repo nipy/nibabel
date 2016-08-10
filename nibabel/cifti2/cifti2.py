@@ -368,7 +368,7 @@ class Cifti2Surface(xml.XmlSerializable):
         return surf
 
 
-class Cifti2VoxelIndicesIJK(xml.XmlSerializable):
+class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
     """Cifti2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
     "Identifies the voxels that model a brain structure, or participate in a
@@ -376,21 +376,69 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable):
     attribute of the BrainModel indicates the number of voxels contained in
     this element."
 
-    Attributes
-    ----------
-    indices : ndarray shape (N, 3)
-        Array of N triples (i, j, k)
+    Each element of this sequence is a triple of integers.
     """
     def __init__(self, indices=None):
-        self.indices = indices
+        self._indices = []
+        if indices is not None:
+            self.extend(indices)
+
+    def __len__(self):
+        return len(self._indices)
+
+    def __delitem__(self, index):
+        if not isinstance(index, int) and len(index) > 1:
+            raise NotImplementedError
+        del self._indices[index]
+
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            return self._indices[index]
+        elif len(index) == 2:
+            if not isinstance(index[0], int):
+                raise NotImplementedError
+            return self._indices[index[0]][index[1]]
+        else:
+            raise ValueError('Only row and row,column access is allowed')
+
+    def __setitem__(self, index, value):
+        if isinstance(index, int):
+            try:
+                value = [int(v) for v in value]
+                if len(value) != 3:
+                    raise ValueError('rows are triples of ints')
+                self._indices[index[0]] = value
+            except ValueError:
+                raise ValueError('value must be a triple of ints')
+        elif len(index) == 2:
+            try:
+                if not isinstance(index[0], int):
+                    raise NotImplementedError
+                value = int(value)
+                self._indices[index[0]][index[1]] = value
+            except ValueError:
+                raise ValueError('value must be an int')
+        else:
+            raise ValueError
+
+    def insert(self, index, value):
+        if not isinstance(index, int) and len(index) != 1:
+            raise ValueError('Only rows can be inserted')
+        try:
+            value = [int(v) for v in value]
+            if len(value) != 3:
+                raise ValueError
+            self._indices.insert(index, value)
+        except ValueError:
+            raise ValueError('value must be a triple of int')
 
     def _to_xml_element(self):
-        if self.indices is None:
+        if len(self) == 0:
             raise CIFTI2HeaderError('VoxelIndicesIJK element require an index table')
 
         vox_ind = xml.Element('VoxelIndicesIJK')
-        vox_ind.text = '\n'.join(' '.join(row.astype(str))
-                                 for row in self.indices)
+        vox_ind.text = '\n'.join(' '.join([str(v) for v in row])
+                                 for row in self._indices)
         return vox_ind
 
 
@@ -540,25 +588,47 @@ class Cifti2Volume(xml.XmlSerializable):
         return volume
 
 
-class Cifti2VertexIndices(xml.XmlSerializable):
+class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
     """Cifti2 vertex indices: vertex indices for an associated brain model
 
-    Attributes
-    ----------
-    indices : ndarray shape (n,)
-        The vertex indices (which are independent for each surface, and
-        zero-based) that are used in this brain model[.] The parent
-        BrainModel's ``index_count`` indicates the number of indices.
+    The vertex indices (which are independent for each surface, and
+    zero-based) that are used in this brain model[.] The parent
+    BrainModel's ``index_count`` indicates the number of indices.
     """
     def __init__(self, indices=None):
-        self.indices = indices
+        self._indices = []
+        if indices is not None:
+            self.extend(indices)
+
+    def __len__(self):
+        return len(self._indices)
+
+    def __delitem__(self, index):
+        del self._indices[index]
+
+    def __getitem__(self, index):
+        return self._indices[index]
+
+    def __setitem__(self, index, value):
+        try:
+            value = int(value)
+            self._indices[index] = value
+        except ValueError:
+            raise ValueError('value must be an int')
+
+    def insert(self, index, value):
+        try:
+            value = int(value)
+            self._indices.insert(index, value)
+        except ValueError:
+            raise ValueError('value must be an int')
 
     def _to_xml_element(self):
-        if self.indices is None:
+        if len(self) == 0:
             raise CIFTI2HeaderError('VertexIndices element requires indices')
 
         vert_indices = xml.Element('VertexIndices')
-        vert_indices.text = ' '.join(self.indices.astype(str).tolist())
+        vert_indices.text = ' '.join([str(i) for i in self])
         return vert_indices
 
 

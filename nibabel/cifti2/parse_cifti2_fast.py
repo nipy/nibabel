@@ -543,14 +543,14 @@ class Cifti2Parser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             parent = self.struct_state[-1]
-            parent.voxel_indices_ijk.indices = np.genfromtxt(c, dtype=np.int)
+            parent.voxel_indices_ijk.extend(np.genfromtxt(c, dtype=np.int))
             c.close()
 
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             index = self.struct_state[-1]
-            index.indices = np.genfromtxt(c, dtype=np.int)
+            index.extend(np.genfromtxt(c, dtype=np.int))
             c.close()
 
         elif self.write_to == 'TransformMatrix':
