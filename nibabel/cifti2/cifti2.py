@@ -814,8 +814,6 @@ class Cifti2Matrix(xml.XmlSerializable):
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     ''' Class for Cifti2 header extension '''
 
-    # version = str
-
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
         xml.XmlSerializable.__init__(self)
@@ -848,9 +846,8 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
 
 class Cifti2Image(FileBasedImage):
-    # It is a Nifti2Image, but because Nifti2Image object
-    # contains both the *format* and the assumption that it's
-    # a spatial image, we can't inherit directly.
+    """ Class for single file CIfTI2 format image
+    """
     header_class = Cifti2Header
     valid_exts = Nifti2Image.valid_exts
     files_types = Nifti2Image.files_types
@@ -858,6 +855,27 @@ class Cifti2Image(FileBasedImage):
     rw = True
 
     def __init__(self, data=None, header=None, nifti_header=None):
+        ''' Initialize image
+
+        The image is a combination of (array, affine matrix, header, nifti_header),
+        with optional metadata in `extra`, and filename / file-like objects
+        contained in the `file_map` mapping.
+
+        Parameters
+        ----------
+        dataobj : object
+           Object containg image data.  It should be some object that retuns an
+           array from ``np.asanyarray``.  It should have a ``shape`` attribute
+           or property
+        affine : None or (4,4) array-like
+           homogenous affine giving relationship between voxel coordinates and
+           world coordinates.  Affine can also be None.  In this case,
+           ``obj.affine`` also returns None, and the affine as written to disk
+           will depend on the file format.
+        header : Cifti2Header object
+        nifti_header : None or mapping or nifti2 header instance, optional
+           metadata for this image format
+        '''
         self._header = header or Cifti2Header()
         self.data = data
         self.extra = nifti_header
@@ -892,7 +910,7 @@ class Cifti2Image(FileBasedImage):
                              'extension')
 
         # Construct cifti image
-        cifti_img = Cifti2Image(data=np.squeeze(nifti_img.get_data()),
+        cifti_img = Cifti2Image(data=nifti_img.get_data()[0, 0, 0, 0],
                                 header=cifti_header,
                                 nifti_header=nifti_img.get_header())
         cifti_img.file_map = nifti_img.file_map

@@ -41,7 +41,7 @@ def test_read_ordering():
     # read another image first (DATA_FILE2) then the shape is wrong
     # Read an image
     img2 = nib.load(DATA_FILE6)
-    assert_equal(img2.data.shape, (91282,))
+    assert_equal(img2.data.shape, (1, 91282))
 
 
 def test_version():
