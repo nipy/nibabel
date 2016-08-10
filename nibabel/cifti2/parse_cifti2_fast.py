@@ -138,7 +138,7 @@ class _Cifti2AsNiftiImage(Nifti2Image):
         self.cifti_img = reduce(lambda accum, newval: newval
                                 if isinstance(newval, Cifti2Extension)
                                 else accum,
-                                self.get_header().extensions, None)
+                                self.header.extensions, None)
         if self.cifti_img is None:
             raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
