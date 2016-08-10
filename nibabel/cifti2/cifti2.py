@@ -904,6 +904,9 @@ class Cifti2Image(FileBasedImage):
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
         data = np.reshape(self.data, (1, 1, 1, 1) + self.data.shape)
+        # If qform not set, reset pixdim values so Nifti2 does not complain
+        if header['qform_code'] == 0:
+            header['pixdim'][:4] = 1
         img = Nifti2Image(data, None, header)
         img.to_file_map(file_map or self.file_map)
 
