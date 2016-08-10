@@ -408,7 +408,7 @@ class Cifti2Parser(xml.XmlParser):
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
             if pair[0]:
-                meta.data.append(pair)
+                meta.add_metadata(pair)
 
         elif name == 'Name':
             self.write_to = None

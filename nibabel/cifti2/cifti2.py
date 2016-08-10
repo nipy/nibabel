@@ -105,7 +105,7 @@ class Cifti2MetaData(xml.XmlSerializable):
     data : list of (name, value) tuples
     """
     def __init__(self, nvpair=None):
-        self.data = []
+        self.data = {}
         self.add_metadata(nvpair)
 
     def _normalize_metadata_parameter(self, metadata):
@@ -128,10 +128,6 @@ class Cifti2MetaData(xml.XmlSerializable):
     def add_metadata(self, metadata):
         """Add metadata key-value pairs
 
-        This allows storing multiple keys with the same name but different
-
-        values.
-
         Parameters
         ----------
         metadata : name-value pair, mapping, iterable of [name-value pair]
@@ -143,15 +139,10 @@ class Cifti2MetaData(xml.XmlSerializable):
         """
         pairs = self._normalize_metadata_parameter(metadata)
         for pair in pairs:
-            if pair not in self.data:
-                self.data.append(pair)
+            self.data[pair[0]] = pair[1]
 
     def remove_metadata(self, metadata):
         """Remove metadata key-value pairs
-
-        This allows storing multiple keys with the same name but different
-
-        values.
 
         Parameters
         ----------
@@ -165,18 +156,13 @@ class Cifti2MetaData(xml.XmlSerializable):
         if metadata is None:
             raise ValueError("The metadata parameter can't be None")
         pairs = self._normalize_metadata_parameter(metadata)
-        removed = False
-        for pair in pairs:
-            if pair in self.data:
-                removed = True
-                self.data.remove(pair)
-        if not removed:
-            raise ValueError('The MetaData element was not in MetaData')
+        for k, _ in pairs:
+            del self.data[k]
 
     def _to_xml_element(self):
         metadata = xml.Element('MetaData')
 
-        for name_text, value_text in self.data:
+        for name_text, value_text in self.data.items():
             md = xml.SubElement(metadata, 'MD')
             name = xml.SubElement(md, 'Name')
             name.text = str(name_text)

@@ -25,32 +25,35 @@ def compare_xml_leaf(str1, str2):
 
 def test_cifti2_MetaData():
     md = ci.Cifti2MetaData()
-    assert_equal(md.data, [])
+    assert_equal(md.data, {})
     assert_raises(ValueError, md.add_metadata, 0)
     assert_raises(ValueError, md.add_metadata, ['a'])
     assert_raises(ValueError, md.remove_metadata, None)
 
     metadata_test = [('a', 'aval'), ('b', 'bval')]
     md.add_metadata(metadata_test)
-    assert_equal(md.data, metadata_test)
+    assert_equal(md.data, dict(metadata_test))
 
     md.add_metadata([['a', 'aval'], ['b', 'bval']])
-    assert_equal(md.data, metadata_test)
+    assert_equal(md.data, dict(metadata_test))
 
     md.add_metadata({'a': 'aval', 'b': 'bval'})
-    assert_equal(md.data, metadata_test)
+    assert_equal(md.data, dict(metadata_test))
 
     md.add_metadata({'a': 'aval', 'd': 'dval'})
-    assert_equal(md.data, metadata_test + [('d', 'dval')])
+    assert_equal(md.data, dict(metadata_test + [('d', 'dval')]))
 
     md.remove_metadata({'a': 'aval', 'd': 'dval'})
-    assert_equal(md.data, metadata_test[1:])
+    assert_equal(md.data, dict(metadata_test[1:]))
 
-    assert_raises(ValueError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
+    assert_raises(KeyError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
     assert_equal(md.to_xml().decode('utf-8'),
                  '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>')
 
-    md.remove_metadata(['b', 'bval'])
+    md.add_metadata({'b': 'cval'})
+    assert_equal(md.data, dict([('b', 'cval')]))
+
+    md.remove_metadata(['b', 'cval'])
     assert_equal(len(md.data), 0)
     assert_equal(md.to_xml().decode('utf-8'), '<MetaData />')
 
