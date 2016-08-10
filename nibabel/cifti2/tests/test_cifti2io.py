@@ -37,9 +37,6 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
 def test_read_ordering():
-    # DATA_FILE1 has an expected darray[0].data shape of (3,3).  However if we
-    # read another image first (DATA_FILE2) then the shape is wrong
-    # Read an image
     img2 = nib.load(DATA_FILE6)
     assert_equal(img2.data.shape, (1, 91282))
 
