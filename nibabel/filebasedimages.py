@@ -269,14 +269,6 @@ class FileBasedImage(object):
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_filespec(klass, filespec):
-        warnings.warn('``from_filespec`` class method is deprecated\n'
-                      'Please use the ``from_filename`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        klass.from_filename(filespec)
-
-    @classmethod
     def from_file_map(klass, file_map):
         raise NotImplementedError
 
