@@ -1,8 +1,9 @@
 """ Testing gifti objects
 """
+import collections
+from lxml import etree
 
 import numpy as np
-from lxml import etree
 
 from ...nifti1 import data_type_codes, intent_codes
 
@@ -42,7 +43,7 @@ def test_cifti2_MetaData():
     md.update(metadata_test)
     assert_equal(md.data, dict(metadata_test))
 
-    assert_equal(list(iter(md)), list(iter(dict(metadata_test))))
+    assert_equal(list(iter(md)), list(iter(collections.OrderedDict(metadata_test))))
     
     md.update([['a', 'aval'], ['b', 'bval']])
     assert_equal(md.data, dict(metadata_test))
@@ -58,6 +59,12 @@ def test_cifti2_MetaData():
 
     md.difference_update({'a': 'aval', 'd': 'dval'})
     assert_equal(md.data, dict(metadata_test[1:]))
+
+    md.update({'a': 'aval', 'd': 'dval'})
+    md.difference_update([('a', 'aval'), ('d', 'dval')])
+    assert_equal(md.data, dict(metadata_test[1:]))
+
+
 
     assert_raises(KeyError, md.difference_update, {'a': 'aval', 'd': 'dval'})
     assert_equal(md.to_xml().decode('utf-8'),
@@ -89,6 +96,8 @@ def test_cifti2_LabelTable():
     )
 
     assert_raises(ValueError, lt.__setitem__, 1, label)
+    assert_raises(ValueError, lt.__setitem__, 0, test_tuple[:-1])
+
 
 
 def test_cifti2_Label():

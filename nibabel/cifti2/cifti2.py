@@ -104,7 +104,7 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     data : list of (name, value) tuples
     """
     def __init__(self):
-        self.data = {}
+        self.data = collections.OrderedDict()
 
     def _normalize_metadata_parameter(self, metadata):
         pairs = []
@@ -684,11 +684,9 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
         return self._maps[index]
 
     def __setitem__(self, index, value):
-        # self.validate_item(value)
         self._maps[index] = value
 
     def insert(self, index, value):
-        # self.validate_item(value)
         self._maps.insert(index, value)
 
     @property
@@ -721,28 +719,6 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
         for p in self:
             if isinstance(p, Cifti2BrainModel):
                 yield p
-
-    def validate_item(self, value):
-        appropriate_type = self._valid_type_mappings_
-        for k in self._valid_type_mappings_:
-            if isinstance(value, k):
-                appropriate_type = self._valid_type_mappings_[k]
-                break
-        else:
-            raise ValueError(
-                "Value must be of type Cifti2BrainModel, Cifti2Parcel, Cifti2NamedMap, "
-                "Cifti2Volume or Cifti2Surface"
-            )
-
-        if len(self) == 0 and self.indices_map_to_data_type is None:
-            self.indices_map_to_data_type = appropriate_type
-        elif self.indices_map_to_data_type != appropriate_type:
-            raise ValueError('Wrong type of value for the set indices_map_to_data_type')
-
-        if len(self) == 1 and isinstance(value, Cifti2Volume):
-            raise ValueError("Only one Cifti2Volume element is admitted")
-
-        self.indices_map_to_data_type = appropriate_type
 
     def _to_xml_element(self):
         if self.applies_to_matrix_dimension is None:
