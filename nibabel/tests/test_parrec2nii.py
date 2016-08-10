@@ -6,7 +6,7 @@ from numpy.testing import (assert_almost_equal,
 from nose.tools import assert_equal
 from mock import Mock, MagicMock
 from numpy import array as npa
-from test_parrec import EG_PAR, VARY_PAR
+from nibabel.tests.test_parrec import EG_PAR, VARY_PAR
 from os.path import dirname, join, isfile, basename
 from ..tmpdirs import InTemporaryDirectory
 
