@@ -20,7 +20,7 @@ from nose.tools import assert_true, assert_equal, assert_raises
 def compare_xml_leaf(str1, str2):
     x1 = ElementTree.fromstring(str1)
     x2 = ElementTree.fromstring(str2)
-    if len(x1.getchildren()) > 0 or len(x2.getchildren()) > 0:
+    if len(x1) > 0 or len(x2) > 0:
         raise ValueError
 
     return (x1.tag == x2.tag) and (x1.attrib and x2.attrib)
