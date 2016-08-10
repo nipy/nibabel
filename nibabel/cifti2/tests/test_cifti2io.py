@@ -17,30 +17,36 @@ import numpy as np
 import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
+
+CIFTI2_DATA = pjoin(get_nibabel_data(), 'nitest-cifti2')
+
+
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 
-IO_DATA_PATH = pjoin(dirname(__file__), 'data')
-DATA_FILE1 = pjoin(IO_DATA_PATH, '')
-DATA_FILE2 = pjoin(IO_DATA_PATH,
+DATA_FILE1 = pjoin(CIFTI2_DATA, '')
+DATA_FILE2 = pjoin(CIFTI2_DATA,
                    'Conte69.MyelinAndCorrThickness.32k_fs_LR.dscalar.nii')
-DATA_FILE3 = pjoin(IO_DATA_PATH,
+DATA_FILE3 = pjoin(CIFTI2_DATA,
                    'Conte69.MyelinAndCorrThickness.32k_fs_LR.dtseries.nii')
-DATA_FILE4 = pjoin(IO_DATA_PATH,
+DATA_FILE4 = pjoin(CIFTI2_DATA,
                    'Conte69.MyelinAndCorrThickness.32k_fs_LR.ptseries.nii')
-DATA_FILE5 = pjoin(IO_DATA_PATH,
+DATA_FILE5 = pjoin(CIFTI2_DATA,
                    'Conte69.parcellations_VGD11b.32k_fs_LR.dlabel.nii')
-DATA_FILE6 = pjoin(IO_DATA_PATH, 'ones.dscalar.nii')
+DATA_FILE6 = pjoin(CIFTI2_DATA, 'ones.dscalar.nii')
 datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
+@needs_nibabel_data('nitest-cifti2')
 def test_read_ordering():
     img2 = nib.load(DATA_FILE6)
     assert_equal(img2.data.shape, (1, 91282))
 
 
+@needs_nibabel_data('nitest-cifti2')
 def test_version():
     for i, dat in enumerate(datafiles):
         img = nib.load(dat)
@@ -66,6 +72,7 @@ def test_dataarray1():
 '''
 
 
+@needs_nibabel_data('nitest-cifti2')
 def test_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
@@ -88,6 +95,7 @@ def test_readwritedata():
             assert_array_almost_equal(img.data, img2.data)
 
 
+@needs_nibabel_data('nitest-cifti2')
 def test_cifti2types():
     """Check that we instantiate Cifti2 classes correctly, and that our
     test files exercise all classes"""
