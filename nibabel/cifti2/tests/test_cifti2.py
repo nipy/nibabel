@@ -25,50 +25,71 @@ def compare_xml_leaf(str1, str2):
 
 def test_cifti2_MetaData():
     md = ci.Cifti2MetaData()
+    assert_equal(len(md), 0)
+    assert_equal(list(iter(md)), [])
     assert_equal(md.data, {})
-    assert_raises(ValueError, md.add_metadata, 0)
-    assert_raises(ValueError, md.add_metadata, ['a'])
-    assert_raises(ValueError, md.remove_metadata, None)
+    assert_raises(ValueError, md.difference_update, None)
+
+    md['a'] = 'aval'
+    assert_equal(md['a'], 'aval')
+    assert_equal(len(md), 1)
+    assert_equal(md.data, dict([('a', 'aval')]))
+
+    del md['a']
+    assert_equal(len(md), 0)
 
     metadata_test = [('a', 'aval'), ('b', 'bval')]
-    md.add_metadata(metadata_test)
+    md.update(metadata_test)
     assert_equal(md.data, dict(metadata_test))
 
-    md.add_metadata([['a', 'aval'], ['b', 'bval']])
+    assert_equal(list(iter(md)), list(iter(dict(metadata_test))))
+    
+    md.update([['a', 'aval'], ['b', 'bval']])
     assert_equal(md.data, dict(metadata_test))
 
-    md.add_metadata([['a', 'aval'], ['b', 'bval']])
+    md.update([['a', 'aval'], ['b', 'bval']])
     assert_equal(md.data, dict(metadata_test))
 
-    md.add_metadata({'a': 'aval', 'b': 'bval'})
+    md.update({'a': 'aval', 'b': 'bval'})
     assert_equal(md.data, dict(metadata_test))
 
-    md.add_metadata({'a': 'aval', 'd': 'dval'})
+    md.update({'a': 'aval', 'd': 'dval'})
     assert_equal(md.data, dict(metadata_test + [('d', 'dval')]))
 
-    md.remove_metadata({'a': 'aval', 'd': 'dval'})
+    md.difference_update({'a': 'aval', 'd': 'dval'})
     assert_equal(md.data, dict(metadata_test[1:]))
 
-    assert_raises(KeyError, md.remove_metadata, {'a': 'aval', 'd': 'dval'})
+    assert_raises(KeyError, md.difference_update, {'a': 'aval', 'd': 'dval'})
     assert_equal(md.to_xml().decode('utf-8'),
                  '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>')
-
-    md.add_metadata({'b': 'cval'})
-    assert_equal(md.data, dict([('b', 'cval')]))
-
-    md.remove_metadata(['b', 'cval'])
-    assert_equal(len(md.data), 0)
-    assert_equal(md.to_xml().decode('utf-8'), '<MetaData />')
 
 def test_cifti2_LabelTable():
     lt = ci.Cifti2LabelTable()
     assert_equal(len(lt), 0)
-    assert_equal(len(lt.get_labels_as_dict()), 0)
     assert_raises(ci.CIFTI2HeaderError, lt.to_xml)
+
     label = ci.Cifti2Label(label='Test', key=0)
-    lt.labels = [label]
+    lt[0] = label
     assert_equal(len(lt), 1)
-    assert_equal(lt.get_labels_as_dict(), {label.key: label.label})
+    assert_equal(dict(lt), {label.key: label})
+
+    lt.clear()
+    lt.append(label)
+    assert_equal(len(lt), 1)
+    assert_equal(dict(lt), {label.key: label})
+
+    lt.clear()
+    test_tuple = (label.label, label.red, label.green, label.blue, label.alpha)
+    lt[label.key] = test_tuple
+    assert_equal(len(lt), 1)
+    v = lt[label.key]
+    assert_equal(
+        (v.label, v.red, v.green, v.blue, v.alpha),
+        test_tuple
+    )
+
+    assert_raises(ValueError, lt.__setitem__, 1, label)
+
 
 def test_cifti2_Label():
     lb = ci.Cifti2Label()

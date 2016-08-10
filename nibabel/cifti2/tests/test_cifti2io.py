@@ -65,19 +65,19 @@ def test_readwritedata():
             img = ci.load(name)
             nib.save(img, 'test.nii')
             img2 = ci.load('test.nii')
-            assert_equal(len(img.header.matrix.mims),
-                         len(img2.header.matrix.mims))
+            assert_equal(len(img.header.matrix),
+                         len(img2.header.matrix))
             # Order should be preserved in load/save
-            for mim1, mim2 in zip(img.header.matrix.mims,
-                                  img2.header.matrix.mims):
+            for mim1, mim2 in zip(img.header.matrix,
+                                  img2.header.matrix):
                 assert_equal(len(mim1.named_maps), len(mim2.named_maps))
                 for map1, map2 in zip(mim1.named_maps, mim2.named_maps):
                     assert_equal(map1.map_name, map2.map_name)
                     if map1.label_table is None:
                         assert_true(map2.label_table is None)
                     else:
-                        assert_equal(len(map1.label_table.labels),
-                                     len(map2.label_table.labels))
+                        assert_equal(len(map1.label_table),
+                                     len(map2.label_table))
             assert_array_almost_equal(img.data, img2.data)
 
 
@@ -88,19 +88,19 @@ def test_nibabel_readwritedata():
             img = nib.load(name)
             nib.save(img, 'test.nii')
             img2 = nib.load('test.nii')
-            assert_equal(len(img.header.matrix.mims),
-                         len(img2.header.matrix.mims))
+            assert_equal(len(img.header.matrix),
+                         len(img2.header.matrix))
             # Order should be preserved in load/save
-            for mim1, mim2 in zip(img.header.matrix.mims,
-                                  img2.header.matrix.mims):
+            for mim1, mim2 in zip(img.header.matrix,
+                                  img2.header.matrix):
                 assert_equal(len(mim1.named_maps), len(mim2.named_maps))
                 for map1, map2 in zip(mim1.named_maps, mim2.named_maps):
                     assert_equal(map1.map_name, map2.map_name)
                     if map1.label_table is None:
                         assert_true(map2.label_table is None)
                     else:
-                        assert_equal(len(map1.label_table.labels),
-                                     len(map2.label_table.labels))
+                        assert_equal(len(map1.label_table),
+                                     len(map2.label_table))
             assert_array_almost_equal(img.data, img2.data)
 
 
@@ -126,8 +126,7 @@ def test_cifti2types():
         # Matrix and MetaData aren't conditional, so don't bother counting
         assert_true(isinstance(hdr.matrix, ci.Cifti2Matrix))
         assert_true(isinstance(hdr.matrix.metadata, ci.Cifti2MetaData))
-        assert_true(isinstance(hdr.matrix.mims, list))
-        for mim in hdr.matrix.mims:
+        for mim in hdr.matrix:
             assert_true(isinstance(mim, ci.Cifti2MatrixIndicesMap))
             counter[ci.Cifti2MatrixIndicesMap] += 1
             assert_true(isinstance(mim.brain_models, list))
@@ -145,9 +144,8 @@ def test_cifti2types():
                 assert_true(isinstance(nm.metadata, ci.Cifti2MetaData))
                 if isinstance(nm.label_table, ci.Cifti2LabelTable):
                     counter[ci.Cifti2LabelTable] += 1
-                    assert_true(isinstance(nm.label_table.labels, list))
-                    for label in nm.label_table.labels:
-                        assert_true(isinstance(label, ci.Cifti2Label))
+                    for label in nm.label_table:
+                        assert_true(isinstance(nm.label_table[label], ci.Cifti2Label))
                         counter[ci.Cifti2Label] += 1
             assert_true(isinstance(mim.parcels, list))
             for parc in mim.parcels:

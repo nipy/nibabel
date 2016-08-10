@@ -96,16 +96,15 @@ def _underscore(string):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
 
-class Cifti2MetaData(xml.XmlSerializable):
+class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     """ A list of name-value pairs
 
     Attributes
     ----------
     data : list of (name, value) tuples
     """
-    def __init__(self, nvpair=None):
+    def __init__(self):
         self.data = {}
-        self.add_metadata(nvpair)
 
     def _normalize_metadata_parameter(self, metadata):
         pairs = []
@@ -124,23 +123,22 @@ class Cifti2MetaData(xml.XmlSerializable):
             raise ValueError('nvpair input must be a list, tuple or dict')
         return pairs
 
-    def add_metadata(self, metadata):
-        """Add metadata key-value pairs
+    def __getitem__(self, key):
+        return self.data[key]
 
-        Parameters
-        ----------
-        metadata : name-value pair, mapping, iterable of [name-value pair]
+    def __setitem__(self, key, value):
+        self.data[key] = value
 
-        Returns
-        -------
-        None
+    def __delitem__(self, key):
+        del self.data[key]
 
-        """
-        pairs = self._normalize_metadata_parameter(metadata)
-        for pair in pairs:
-            self.data[pair[0]] = pair[1]
+    def __len__(self):
+        return len(self.data)
 
-    def remove_metadata(self, metadata):
+    def __iter__(self):
+        return iter(self.data)
+
+    def difference_update(self, metadata):
         """Remove metadata key-value pairs
 
         Parameters
@@ -170,32 +168,64 @@ class Cifti2MetaData(xml.XmlSerializable):
         return metadata
 
 
-class Cifti2LabelTable(xml.XmlSerializable):
+class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
     """ Cifti2 label table: a sequence of ``Cifti2Label``s
     """
 
     def __init__(self):
-        self.labels = []
+        self._labels = collections.OrderedDict()
 
     def __len__(self):
-        return len(self.labels)
+        return len(self._labels)
 
-    def get_labels_as_dict(self):
-        labels_as_dict = collections.OrderedDict()
-        for ele in self.labels:
-            labels_as_dict[ele.key] = ele.label
-        return labels_as_dict
+    def __getitem__(self, key):
+        return self._labels[key]
+
+    def append(self, label):
+        self[label.key] = label
+
+    def __setitem__(self, key, value):
+        if isinstance(value, Cifti2Label):
+            if key != value.key:
+                raise ValueError("The key and the label's key must agree")
+            self._labels[key] = value
+        else:
+            try:
+                key = int(key)
+                v = (str(value[0]),) + tuple(float(v) for v in value[1:] if 0 <= float(v) <= 1)
+                if len(v) != 5:
+                    raise ValueError
+            except:
+                raise ValueError(
+                    'Key must be integer and value a string and 4-tuple of floats between 0 and 1'
+                )
+
+            label = Cifti2Label(
+                key=key,
+                label=v[0],
+                red=v[1],
+                green=v[2],
+                blue=v[3],
+                alpha=v[4]
+            )
+            self._labels[key] = label
+
+    def __delitem__(self, key):
+        del self._labels[key]
+
+    def __iter__(self):
+        return iter(self._labels)
 
     def _to_xml_element(self):
-        if len(self.labels) == 0:
+        if len(self) == 0:
             raise CIFTI2HeaderError('LabelTable element requires at least 1 label')
         labeltable = xml.Element('LabelTable')
-        for ele in self.labels:
+        for ele in self._labels.values():
             labeltable.append(ele._to_xml_element())
         return labeltable
 
     def print_summary(self):
-        print(self.get_labels_as_dict())
+        print(dict((k, v.label) for k, v in self._labels.items()))
 
 
 class Cifti2Label(xml.XmlSerializable):
@@ -755,10 +785,10 @@ class Cifti2MatrixIndicesMap(object):
         return mat_ind_map
 
 
-class Cifti2Matrix(xml.XmlSerializable):
-    def __init__(self, meta=None, mims=None):
-        self.mims = mims if mims is not None else []
-        self.metadata = meta
+class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
+    def __init__(self):
+        self._mims = []
+        self.metadata = None
 
     @property
     def metadata(self):
@@ -780,24 +810,27 @@ class Cifti2Matrix(xml.XmlSerializable):
             raise TypeError("Not a valid Cifti2MetaData instance")
         self._meta = meta
 
-    def add_cifti_matrix_indices_map(self, mim):
-        """ Adds a matrix indices map to the Cifti2Matrix
-
-        Parameters
-        ----------
-        mim : Cifti2MatrixIndicesMap
-        """
-        if isinstance(mim, Cifti2MatrixIndicesMap):
-            self.mims.append(mim)
-        else:
+    def __setitem__(self, key, value):
+        if not isinstance(mim, Cifti2MatrixIndicesMap):
             raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
+        self._mims[key] = value
 
-    def remove_cifti2_matrix_indices_map(self, ith):
-        """ Removes the ith matrix indices map element from the Cifti2Matrix """
-        self.mims.pop(ith)
+    def __getitem__(self, key):
+        return self._mims[key]
+
+    def __delitem__(self, key):
+        del self._mims[key]
+
+    def __len__(self):
+        return len(self._mims)
+
+    def insert(self, index, value):
+        if not isinstance(value, Cifti2MatrixIndicesMap):
+            raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
+        self._mims.insert(index, value)
 
     def _to_xml_element(self):
-        if (len(self.mims) == 0 and self.metadata is None):
+        if (len(self) == 0 and self.metadata is None):
             raise CIFTI2HeaderError(
                 'Matrix element requires either a MatrixIndicesMap or a Metadata element'
             )
@@ -805,7 +838,7 @@ class Cifti2Matrix(xml.XmlSerializable):
         mat = xml.Element('Matrix')
         if self.metadata:
             mat.append(self.metadata._to_xml_element())
-        for mim in self.mims:
+        for mim in self._mims:
             mat.append(mim._to_xml_element())
         return mat
 

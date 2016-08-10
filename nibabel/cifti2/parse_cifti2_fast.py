@@ -195,7 +195,7 @@ class Cifti2Parser(xml.XmlParser):
                 raise CIFTI2HeaderError(
                     'MatrixIndicesMap element can only be a child of the CIFTI2 Matrix element'
                 )
-            matrix.add_cifti_matrix_indices_map(mim)
+            matrix.append(mim)
             self.struct_state.append(mim)
 
         elif name == 'NamedMap':
@@ -409,7 +409,7 @@ class Cifti2Parser(xml.XmlParser):
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
             if pair[0]:
-                meta.add_metadata(pair)
+                meta[pair[0]] = pair[1]
 
         elif name == 'Name':
             self.write_to = None
@@ -433,7 +433,7 @@ class Cifti2Parser(xml.XmlParser):
             self.fsm_state.pop()
             label = self.struct_state.pop()
             lata = self.struct_state[-1]
-            lata.labels.append(label)
+            lata.append(label)
             self.write_to = None
 
         elif name == "MapName":
