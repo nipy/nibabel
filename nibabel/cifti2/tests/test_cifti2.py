@@ -4,6 +4,7 @@ import collections
 from lxml import etree
 
 import numpy as np
+from xml.etree import ElementTree
 
 from ...nifti1 import data_type_codes, intent_codes
 
@@ -17,8 +18,8 @@ from nose.tools import assert_true, assert_equal, assert_raises
 
 
 def compare_xml_leaf(str1, str2):
-    x1 = etree.fromstring(str1)
-    x2 = etree.fromstring(str2)
+    x1 = ElementTree.fromstring(str1)
+    x2 = ElementTree.fromstring(str2)
     if len(x1.getchildren()) > 0 or len(x2.getchildren()) > 0:
         raise ValueError
 
