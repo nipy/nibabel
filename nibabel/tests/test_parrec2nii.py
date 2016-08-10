@@ -12,7 +12,7 @@ from ..tmpdirs import InTemporaryDirectory
 ## Possible locations of the parrec2nii executable;
 BINDIRS = [join(dirname(dirname(dirname(__file__))), 'bin'), 
             sys.executable,
-            join(os.environ['VIRTUALENV'],'bin')]
+            join(os.environ['VIRTUAL_ENV'],'bin')]
 
 
 AN_OLD_AFFINE = numpy.array(
