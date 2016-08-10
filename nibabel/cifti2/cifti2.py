@@ -90,7 +90,7 @@ def _value_if_klass(val, klass, check_isinstance_or_none=True):
 
 
 def _underscore(string):
-    """ Convert a string from camelcase to underscored """
+    """ Convert a string from CamelCase to underscored """
     string = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', string)
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
