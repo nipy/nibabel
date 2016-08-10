@@ -25,7 +25,6 @@ import numpy as np
 
 from .. import xmlutils as xml
 from ..externals.six import string_types
-from ..externals.six.moves import reduce
 from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
@@ -899,12 +898,13 @@ class Cifti2Image(FileBasedImage):
         nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map)
 
         # Get cifti2 header
-        cifti_header = reduce(lambda accum, item:
-                              item.get_content()
-                              if isinstance(item, Cifti2Extension)
-                              else accum,
-                              nifti_img.get_header().extensions or [],
-                              None)
+        for item in nifti_img.get_header().extensions:
+            if isinstance(item, Cifti2Extension):
+                cifti_header = item.get_content()
+                break
+        else:
+            cifti_header = None
+
         if cifti_header is None:
             raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
@@ -931,7 +931,7 @@ class Cifti2Image(FileBasedImage):
         header = self.extra
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
-        data = np.reshape(self.data, [1, 1, 1, 1] + list(self.data.shape))
+        data = np.reshape(self.data, (1, 1, 1, 1) + self.data.shape)
         img = Nifti2Image(data, None, header)
         img.to_file_map(file_map or self.file_map)
 
