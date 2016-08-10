@@ -233,16 +233,11 @@ class Cifti2Parser(xml.XmlParser):
                     'Label element can only be a child of the CIFTI2 LabelTable element'
                 )
             label = Cifti2Label()
-            if "Key" in attrs:
-                label.key = int(attrs["Key"])
-            if "Red" in attrs:
-                label.red = float(attrs["Red"])
-            if "Green" in attrs:
-                label.green = float(attrs["Green"])
-            if "Blue" in attrs:
-                label.blue = float(attrs["Blue"])
-            if "Alpha" in attrs:
-                label.alpha = float(attrs["Alpha"])
+            label.key = int(attrs["Key"])
+            label.red = float(attrs["Red"])
+            label.green = float(attrs["Green"])
+            label.blue = float(attrs["Blue"])
+            label.alpha = float(attrs["Alpha"])
             self.write_to = 'Label'
             self.fsm_state.append('Label')
             self.struct_state.append(label)
@@ -408,8 +403,7 @@ class Cifti2Parser(xml.XmlParser):
             self.fsm_state.pop()
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
-            if pair[0]:
-                meta[pair[0]] = pair[1]
+            meta[pair[0]] = pair[1]
 
         elif name == 'Name':
             self.write_to = None
