@@ -22,6 +22,7 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
 from .. import xmlutils as xml
 from ..externals.six import BytesIO
 from ..externals.six.moves import reduce
+from ..batteryrunners import Report
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
 from ..nifti2 import Nifti2Header, Nifti2Image
 
@@ -78,12 +79,43 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
     ''' Class for Cifti2 header extension '''
 
     @classmethod
-    def may_contain_header(klass, binaryblock):
-        if not Nifti2Header.may_contain_header(binaryblock):
-            return False
-        hdr = Nifti2Header(binaryblock=binaryblock[:Nifti2Header.sizeof_hdr])
-        intent_code = hdr.get_intent('code')[0]
+    def _valid_intent_code(klass, intent_code):
+        """ Return True if `intent_code` matches our class `klass`
+        """
         return intent_code >= 3000 and intent_code < 3100  # and intent_code != 3002
+
+    @classmethod
+    def may_contain_header(klass, binaryblock):
+        if not super(_Cifti2AsNiftiHeader, klass).may_contain_header(binaryblock):
+            return False
+        hdr = klass(binaryblock=binaryblock[:klass.sizeof_hdr])
+        return klass._valid_intent_code(hdr.get_intent('code')[0])
+
+    @classmethod
+    def _get_checks(klass):
+        # We need to return our own versions of - e.g. chk_datatype, to
+        # pick up the Nifti datatypes from our class
+        return (klass._chk_sizeof_hdr,
+                klass._chk_datatype,
+                klass._chk_bitpix,
+                klass._chk_pixdims,
+                klass._chk_magic,
+                klass._chk_offset,
+                klass._chk_qform_code,
+                klass._chk_sform_code)
+
+    def _chk_pixdims(hdr, fix=False):
+        rep = Report(CIFTI2HeaderError)
+        pixdims = hdr['pixdim']
+        spat_dims = pixdims[1:4]
+        if not np.any(spat_dims <= 0):
+            return hdr, rep
+        rep.problem_level = 35
+        rep.problem_msg('pixdim[1,2,3] should be zero or positive')
+        if fix:
+            hdr['pixdim'][1:4] = np.abs(spat_dims)
+            rep.fix_msg('setting to abs of pixdim values')
+        return hdr, rep
 
 
 class _Cifti2AsNiftiImage(Nifti2Image):
@@ -116,7 +148,6 @@ class _Cifti2AsNiftiImage(Nifti2Image):
 class Cifti2Parser(xml.XmlParser):
     '''Class to parse an XML string into a CIFTI2 header object'''
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
-        __doc__ = xml.XmlParser.__init__.__doc__
         super(Cifti2Parser, self).__init__(encoding=encoding,
                                            buffer_size=buffer_size,
                                            verbose=verbose)
@@ -129,6 +160,8 @@ class Cifti2Parser(xml.XmlParser):
 
         # Collecting char buffer fragments
         self._char_blocks = None
+
+    __init__.__doc__ = xml.XmlParser.__init__.__doc__
 
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
@@ -338,7 +371,7 @@ class Cifti2Parser(xml.XmlParser):
             model = Cifti2BrainModel()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderErrorCIFTI2HeaderError(
+                raise CIFTI2HeaderError(
                     'BrainModel element can only be a child '
                     'of the CIFTI2 MatrixIndicesMap element'
                 )
@@ -542,10 +575,9 @@ class Cifti2Parser(xml.XmlParser):
 
 
 class _Cifti2DenseDataSeriesNiftiHeader(_Cifti2AsNiftiHeader):
+
     @classmethod
-    def may_contain_header(klass, binaryblock):
-        if not _Cifti2AsNiftiHeader.may_contain_header(binaryblock):
-            return False
-        hdr = Nifti2Header(binaryblock=binaryblock[:Nifti2Header.sizeof_hdr])
-        intent_code = hdr.get_intent('code')[0]
+    def _valid_intent_code(klass, intent_code):
+        """ Return True if `intent_code` matches our class `klass`
+        """
         return intent_code == 3002
