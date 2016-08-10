@@ -170,12 +170,25 @@ def test_cifti2_cifti2voxelindicesijk():
     assert_equal(vi[0], [0, 1, 2])
     vi.append([3, 4, 5])
     assert_equal(len(vi), 2)
+    vi.append([6, 7, 8])
+    assert_equal(len(vi), 3)
+    del vi[-1]
+    assert_equal(len(vi), 2)
+
     assert_equal(vi[1], [3, 4, 5])
     assert_equal(vi[1, 1], 4)
     assert_equal(vi[0, 1:], [1, 2])
+    vi[0, 1] = 10
+    assert_equal(vi[0, 1], 10)
+    vi[0, 1] = 1
 
-    #test for vi[:, 0]
+    #test for vi[:, 0] and other slices
     assert_raises(NotImplementedError, vi.__getitem__, (slice(None), 0))
+    assert_raises(NotImplementedError, vi.__setitem__, (slice(None), 0), 0)
+    assert_raises(NotImplementedError, vi.__delitem__, (slice(None), 0))
+    assert_raises(ValueError, vi.__getitem__, (0, 0, 0))
+    assert_raises(ValueError, vi.__setitem__, (0, 0, 0), 0)
+
 
     assert_equal(
         vi.to_xml().decode('utf-8'),
