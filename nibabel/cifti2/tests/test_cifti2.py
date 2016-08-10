@@ -59,12 +59,12 @@ def test_cifti2_MetaData():
 
 def test_cifti2_LabelTable():
     lt = ci.Cifti2LabelTable()
-    assert_equal(lt.num_labels, 0)
+    assert_equal(len(lt), 0)
     assert_equal(len(lt.get_labels_as_dict()), 0)
     assert_raises(ci.CIFTI2HeaderError, lt.to_xml)
     label = ci.Cifti2Label(label='Test', key=0)
     lt.labels = [label]
-    assert_equal(lt.num_labels, 1)
+    assert_equal(len(lt), 1)
     assert_equal(lt.get_labels_as_dict(), {label.key: label.label})
 
 def test_cifti2_Label():

@@ -178,8 +178,7 @@ class Cifti2LabelTable(xml.XmlSerializable):
     def __init__(self):
         self.labels = []
 
-    @property
-    def num_labels(self):
+    def __len__(self):
         return len(self.labels)
 
     def get_labels_as_dict(self):
