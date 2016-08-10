@@ -125,6 +125,7 @@ def test_cifti2types():
                ci.Cifti2BrainModel: 0,
                ci.Cifti2MatrixIndicesMap: 0,
                }
+
     for name in datafiles:
         hdr = ci.load(name).header
         # Matrix and MetaData aren't conditional, so don't bother counting
@@ -165,5 +166,12 @@ def test_cifti2types():
                     if isinstance(map_.transformation_matrix_voxel_indices_ijk_to_xyz,
                                   ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ):
                         counter[ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ] += 1
+
+            assert_equal(list(mim.named_maps), [m_ for m_ in mim if isinstance(m_, ci.Cifti2NamedMap)])
+            assert_equal(list(mim.surfaces), [m_ for m_ in mim if isinstance(m_, ci.Cifti2Surface)])
+            assert_equal(list(mim.parcels), [m_ for m_ in mim if isinstance(m_, ci.Cifti2Parcel)])
+            assert_equal(list(mim.brain_models), [m_ for m_ in mim if isinstance(m_, ci.Cifti2BrainModel)])
+            assert_equal([mim.volume] if mim.volume else [], [m_ for m_ in mim if isinstance(m_, ci.Cifti2Volume)])
+
     for klass, count in counter.items():
         assert_true(count > 0, "No exercise of " + klass.__name__)

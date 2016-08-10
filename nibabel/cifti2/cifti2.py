@@ -580,7 +580,7 @@ class Cifti2VertexIndices(xml.XmlSerializable):
         return vert_indices
 
 
-class Cifti2BrainModel(object):
+class Cifti2BrainModel(xml.XmlSerializable):
 
     # index_offset = int
     # index_count = int
@@ -690,6 +690,37 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
     def insert(self, index, value):
         # self.validate_item(value)
         self._maps.insert(index, value)
+
+    @property
+    def named_maps(self):
+        for p in self:
+            if isinstance(p, Cifti2NamedMap):
+                yield p
+
+    @property
+    def surfaces(self):
+        for p in self:
+            if isinstance(p, Cifti2Surface):
+                yield p
+
+    @property
+    def parcels(self):
+        for p in self:
+            if isinstance(p, Cifti2Parcel):
+                yield p
+
+    @property
+    def volume(self):
+        for p in self:
+            if isinstance(p, Cifti2Volume):
+                return p
+        return None
+
+    @property
+    def brain_models(self):
+        for p in self:
+            if isinstance(p, Cifti2BrainModel):
+                yield p
 
     def validate_item(self, value):
         appropriate_type = self._valid_type_mappings_
