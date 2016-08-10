@@ -816,10 +816,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
         xml.XmlSerializable.__init__(self)
-        if matrix is None:
-            self.matrix = Cifti2Matrix()
-        else:
-            self.matrix = matrix
+        self.matrix = Cifti2Matrix() if matrix is None else Cifti2Matrix()
         self.version = version
 
     def _to_xml_element(self):
