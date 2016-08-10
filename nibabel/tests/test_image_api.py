@@ -153,6 +153,14 @@ class GenericImageAPI(ValidateAPI):
         # Read only
         assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
 
+    def validate_shape_deprecated(self, imaker, params):
+        # Check deprecated get_shape API
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            assert_equal(img.get_shape(), params['shape'])
+            assert_equal(len(w), 1)
+
     def validate_dtype(self, imaker, params):
         # data / storage dtype
         img = imaker()
@@ -246,7 +254,7 @@ class GenericImageAPI(ValidateAPI):
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter("always")
             assert_data_similar(img._data, params)
-            assert_equal(warns.pop(0).category, FutureWarning)
+            assert_equal(warns.pop(0).category, DeprecationWarning)
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, '_data', fake_data)

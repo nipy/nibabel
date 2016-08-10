@@ -1552,11 +1552,10 @@ class BinOpener(Opener):
     """ Deprecated class that used to handle .mgz through specialized logic."""
     __doc__ = Opener.__doc__
 
+    @deprecate_with_version('BinOpener class deprecated. '
+                            "Please use Opener class instead."
+                            '2.1', '4.0')
     def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "Please use %s class instead of %s" % (Opener.__class__.__name__,
-                                                   self.__class__.__name__),
-            DeprecationWarning, stacklevel=2)
         return super(BinOpener, self).__init__(*args, **kwargs)
 
 
@@ -1592,17 +1591,17 @@ def fname_ext_ul_case(fname):
     return fname
 
 
+@deprecate_with_version('allopen is deprecated. '
+                        'Please use "Opener" class instead.',
+                        '2.0', '4.0')
 def allopen(fileish, *args, **kwargs):
     """ Compatibility wrapper for old ``allopen`` function
 
     Wraps creation of ``Opener`` instance, while picking up module global
     ``default_compresslevel``.
 
-    Please see docstring for ``Opener`` for details.
+    Please see docstring of ``Opener`` for details.
     """
-    warnings.warn("Please use Opener class instead of this function",
-                  DeprecationWarning,
-                  stacklevel=2)
 
     class MyOpener(Opener):
         default_compresslevel = default_compresslevel

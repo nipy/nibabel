@@ -2,6 +2,7 @@
 """
 
 from os.path import dirname, join as pjoin
+import warnings
 
 import numpy as np
 
@@ -12,9 +13,13 @@ from nibabel.analyze import AnalyzeImage
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 
-from nibabel.imageclasses import spatial_axes_first
+from nibabel import imageclasses
+from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
 
-from nose.tools import (assert_true, assert_false)
+from nose.tools import (assert_true, assert_false, assert_equal)
+
+from nibabel.testing import clear_and_catch_warnings
+
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
 
@@ -46,3 +51,15 @@ def test_spatial_axes_first():
         img = nib.load(pjoin(DATA_DIR, fname))
         assert_true(len(img.shape) == 4)
         assert_false(spatial_axes_first(img))
+
+
+def test_deprecations():
+    with clear_and_catch_warnings(modules=[imageclasses]) as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        nifti_single = class_map['nifti_single']
+        assert_equal(nifti_single['class'], Nifti1Image)
+        assert_equal(len(w), 1)
+        nifti_ext = ext_map['.nii']
+        assert_equal(nifti_ext, 'nifti_single')
+        assert_equal(len(w), 2)
+

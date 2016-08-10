@@ -133,14 +133,13 @@ work:
 
 '''
 
-import warnings
-
 import numpy as np
 
 from .filebasedimages import FileBasedHeader, FileBasedImage
 from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
+from .deprecated import deprecate_with_version
 
 
 class HeaderDataError(Exception):
@@ -308,9 +307,11 @@ def supported_np_types(obj):
 class Header(SpatialHeader):
     '''Alias for SpatialHeader; kept for backwards compatibility.'''
 
+    @deprecate_with_version('Header class is deprecated.\n'
+                            'Please use SpatialHeader instead.'
+                            'instead.',
+                            '2.1', '4.0')
     def __init__(self, *args, **kwargs):
-        warnings.warn('Header is deprecated, use SpatialHeader',
-                      DeprecationWarning, stacklevel=2)
         super(Header, self).__init__(*args, **kwargs)
 
 
@@ -373,11 +374,10 @@ class SpatialImage(FileBasedImage):
         self._data_cache = None
 
     @property
+    @deprecate_with_version('_data attribute not part of public API. '
+                            'please use "dataobj" property instead.',
+                            '2.0', '4.0')
     def _data(self):
-        warnings.warn('Please use ``dataobj`` instead of ``_data``; '
-                      'We will remove this wrapper for ``_data`` soon',
-                      FutureWarning,
-                      stacklevel=2)
         return self._dataobj
 
     @property
@@ -612,14 +612,13 @@ class SpatialImage(FileBasedImage):
     def shape(self):
         return self._dataobj.shape
 
+    @deprecate_with_version('get_shape method is deprecated.\n'
+                            'Please use the ``img.shape`` property '
+                            'instead.',
+                            '1.2', '3.0')
     def get_shape(self):
         """ Return shape for image
-
-        This function deprecated; please use the ``shape`` property instead
         """
-        warnings.warn('Please use the shape property instead of get_shape',
-                      DeprecationWarning,
-                      stacklevel=2)
         return self.shape
 
     def get_data_dtype(self):

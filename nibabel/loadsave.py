@@ -131,12 +131,11 @@ def save(img, filename):
 def read_img_data(img, prefer='scaled'):
     """ Read data from image associated with files
 
-    We've deprecated this function and will remove it soon. If you want
-    unscaled data, please use ``img.dataobj.get_unscaled()`` instead.  If you
-    want scaled data, use ``img.get_data()`` (which will cache the loaded
-    array) or ``np.array(img.dataobj)`` (which won't cache the array). If you
-    want to load the data as for a modified header, save the image with the
-    modified header, and reload.
+    If you want unscaled data, please use ``img.dataobj.get_unscaled()``
+    instead.  If you want scaled data, use ``img.get_data()`` (which will cache
+    the loaded array) or ``np.array(img.dataobj)`` (which won't cache the
+    array). If you want to load the data as for a modified header, save the
+    image with the modified header, and reload.
 
     Parameters
     ----------
