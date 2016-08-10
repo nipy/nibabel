@@ -6,19 +6,18 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to NIfTI2 image format
+''' Read / write access to CIfTI2 image format
 
-Format described here:
+Format of the NIFTI2 container format described here:
 
     http://www.nitrc.org/forum/message.php?msg_id=3738
 
-Stuff about the CIFTI2 file format here:
+Definition of the CIFTI2 header format and file extensions here:
 
-    http://www.nitrc.org/plugins/mwiki/index.php/cifti2:ConnectivityMatrixFileFormats
+    https://www.nitrc.org/forum/attachment.php?attachid=333&group_id=454&forum_id=1955
 
 '''
 from __future__ import division, print_function, absolute_import
-
 import re
 import numpy as np
 
