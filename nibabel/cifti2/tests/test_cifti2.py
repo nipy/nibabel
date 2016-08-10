@@ -29,7 +29,6 @@ def test_cifti2_MetaData():
     assert_raises(ValueError, md.add_metadata, 0)
     assert_raises(ValueError, md.add_metadata, ['a'])
     assert_raises(ValueError, md.remove_metadata, None)
-    assert_raises(ValueError, md._add_remove_metadata, [('a', 'b')], 'loren')
 
     metadata_test = [('a', 'aval'), ('b', 'bval')]
     md.add_metadata(metadata_test)

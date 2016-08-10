@@ -19,6 +19,8 @@ Definition of the CIFTI2 header format and file extensions here:
 '''
 from __future__ import division, print_function, absolute_import
 import re
+import collections
+
 import numpy as np
 
 from .. import xmlutils as xml
@@ -106,43 +108,54 @@ class Cifti2MetaData(xml.XmlSerializable):
         self.data = []
         self.add_metadata(nvpair)
 
-    def _add_remove_metadata(self, metadata, func):
+    def _normalize_metadata_parameter(self, metadata):
         pairs = []
-        if isinstance(metadata, dict):
-            pairs = metadata.items()
+        if metadata is None:
+            pass
+        elif isinstance(metadata, collections.Mapping):
+            pairs = [(k, v) for k, v in metadata.items()]
         elif isinstance(metadata, (list, tuple)):
             if len(metadata) > 0 and not isinstance(metadata[0], string_types):
-                for item in metadata:
-                    self._add_remove_metadata(item, func)
-                return
+                pairs = [tuple(p) for p in metadata]
             elif len(metadata) == 2 and isinstance(metadata[0], string_types):
                 pairs = [tuple((metadata[0], metadata[1]))]
             else:
                 raise ValueError('nvpair must be a 2-list or 2-tuple')
         else:
             raise ValueError('nvpair input must be a list, tuple or dict')
-
-        if func == 'add':
-            for pair in pairs:
-                if pair not in self.data:
-                    self.data.append(pair)
-        elif func == 'remove':
-            for pair in pairs:
-                self.data.remove(pair)
-        else:
-            raise ValueError('Unknown func %s' % func)
+        return pairs
 
     def add_metadata(self, metadata):
         """Add metadata key-value pairs
 
         This allows storing multiple keys with the same name but different
-        values.
 
+        values.
 
         Parameters
         ----------
-        metadata : 2-List, 2-Tuple, Dictionary, List[2-List or 2-Tuple]
-                     Tuple[2-List or 2-Tuple]
+        metadata : name-value pair, mapping, iterable of [name-value pair]
+
+        Returns
+        -------
+        None
+
+        """
+        pairs = self._normalize_metadata_parameter(metadata)
+        for pair in pairs:
+            if pair not in self.data:
+                self.data.append(pair)
+
+    def remove_metadata(self, metadata):
+        """Remove metadata key-value pairs
+
+        This allows storing multiple keys with the same name but different
+
+        values.
+
+        Parameters
+        ----------
+        metadata : key-value pair, mapping, iterable of [key-value pair]
 
         Returns
         -------
@@ -150,13 +163,15 @@ class Cifti2MetaData(xml.XmlSerializable):
 
         """
         if metadata is None:
-            return
-        self._add_remove_metadata(metadata, 'add')
-
-    def remove_metadata(self, metadata):
-        if metadata is None:
-            ValueError("Need metadata to remove")
-        self._add_remove_metadata(metadata, 'remove')
+            raise ValueError("The metadata parameter can't be None")
+        pairs = self._normalize_metadata_parameter(metadata)
+        removed = False
+        for pair in pairs:
+            if pair in self.data:
+                removed = True
+                self.data.remove(pair)
+        if not removed:
+            raise ValueError('The MetaData element was not in MetaData')
 
     def _to_xml_element(self):
         metadata = xml.Element('MetaData')
