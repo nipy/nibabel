@@ -9,6 +9,8 @@ from numpy import array as npa
 from nibabel.tests.test_parrec import EG_PAR, VARY_PAR
 from os.path import dirname, join, isfile, basename
 from ..tmpdirs import InTemporaryDirectory
+BINDIR = join(dirname(dirname(dirname(__file__))), 'bin')
+
 
 AN_OLD_AFFINE = numpy.array(
     [[-3.64994708, 0., 1.83564171, 123.66276611],
@@ -25,7 +27,7 @@ PAR_AFFINE = numpy.array(
 def test_parrec2nii_sets_qform_with_code2():
     """Unit test that ensures that set_qform() is called on the new header.
     """
-    parrec2nii = imp.load_source('parrec2nii', 'bin/parrec2nii')
+    parrec2nii = imp.load_source('parrec2nii', join(BINDIR, 'parrec2nii'))
     parrec2nii.verbose.switch = False
 
     parrec2nii.io_orientation = Mock()
@@ -65,7 +67,7 @@ def test_parrec2nii_save_load_qform_code():
     picks up the qform.
     """
     import nibabel
-    parrec2nii = imp.load_source('parrec2nii', 'bin/parrec2nii')
+    parrec2nii = imp.load_source('parrec2nii', join(BINDIR, 'parrec2nii'))
     parrec2nii.verbose.switch = False
 
     opts = Mock()
