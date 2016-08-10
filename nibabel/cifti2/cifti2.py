@@ -182,10 +182,10 @@ class Cifti2LabelTable(xml.XmlSerializable):
         return len(self.labels)
 
     def get_labels_as_dict(self):
-        self.labels_as_dict = {}
+        labels_as_dict = collections.OrderedDict()
         for ele in self.labels:
-            self.labels_as_dict[ele.key] = ele.label
-        return self.labels_as_dict
+            labels_as_dict[ele.key] = ele.label
+        return labels_as_dict
 
     def _to_xml_element(self):
         if len(self.labels) == 0:
@@ -220,8 +220,8 @@ class Cifti2Label(xml.XmlSerializable):
     alpha : None or float
         Alpha color component for label.
     """
-    def __init__(self, key=0, label='', red=None, green=None, blue=None,
-                 alpha=None):
+    def __init__(self, key=0, label='', red=0, green=0, blue=0,
+                 alpha=0):
         self.key = key
         self.label = label
         self.red = red
@@ -237,24 +237,28 @@ class Cifti2Label(xml.XmlSerializable):
     def _to_xml_element(self):
         if self.label is '':
             raise CIFTI2HeaderError('Label needs a name')
+        try:
+            v = int(self.key)
+        except ValueError:
+            raise CIFTI2HeaderError('The key must be an integer')
         for c_ in ('red', 'blue', 'green', 'alpha'):
-            if not (getattr(self, c_) is None or (0 <= float(getattr(self, c_)) <= 1)):
-                v = str(getattr(self, c_))
+            try:
+                v = float(getattr(self, c_))
+                if not (0 <= v <= 1):
+                    raise ValueError
+            except ValueError:
                 raise CIFTI2HeaderError(
                     'Label invalid %s needs to be a float between 0 and 1. and it is %s' %
                     (c_, v)
                 )
+
         lab = xml.Element('Label')
         lab.attrib['Key'] = str(self.key)
         lab.text = str(self.label)
-        if self.red is not None:
-            lab.attrib['Red'] = str(self.red)
-        if self.green is not None:
-            lab.attrib['Green'] = str(self.green)
-        if self.blue is not None:
-            lab.attrib['Blue'] = str(self.blue)
-        if self.alpha is not None:
-            lab.attrib['Alpha'] = str(self.alpha)
+
+        for name in ('red', 'green', 'blue', 'alpha'):
+            attr = str(getattr(self, name))
+            lab.attrib[name.capitalize()] = attr
         return lab
 
 

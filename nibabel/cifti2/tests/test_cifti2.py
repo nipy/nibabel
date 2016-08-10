@@ -71,10 +71,10 @@ def test_cifti2_Label():
     lb = ci.Cifti2Label()
     lb.label = 'Test'
     lb.key = 0
-    assert_equal(lb.rgba, (None, None, None, None))
+    assert_equal(lb.rgba, (0, 0, 0, 0))
     assert(compare_xml_leaf(
         lb.to_xml().decode('utf-8'),
-        "<Label key='0'>Test</Label>"
+        "<Label Key='0' Red='0' Green='0' Blue='0' Alpha='0'>Test</Label>"
     ))
 
     lb.red = 0
@@ -87,6 +87,14 @@ def test_cifti2_Label():
         lb.to_xml().decode('utf-8'),
         "<Label Key='0' Red='0' Green='0.1' Blue='0.2' Alpha='0.3'>Test</Label>"
     ))
+
+    lb.red = 10
+    assert_raises(ci.CIFTI2HeaderError, lb.to_xml)
+    lb.red = 0
+
+    lb.key = 'a'
+    assert_raises(ci.CIFTI2HeaderError, lb.to_xml)
+    lb.key = 0
 
 def test_cifti2_parcel():
     pl = ci.Cifti2Parcel()
