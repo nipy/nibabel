@@ -41,10 +41,16 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
 @needs_nibabel_data('nitest-cifti2')
-def test_read_ordering():
-    img2 = nib.load(DATA_FILE6)
-    assert_equal(img2.data.shape, (1, 91282))
+def test_read_internal():
+    img2 = ci.load(DATA_FILE6)
+    assert_true(isinstance(img2.header, ci.Cifti2Header))
+    assert_equal(img2.shape, (1, 91282))
 
+@needs_nibabel_data('nitest-cifti2')
+def test_read():
+    img2 = nib.load(DATA_FILE6)
+    assert_true(isinstance(img2.header, ci.Cifti2Header))
+    assert_equal(img2.shape, (1, 91282))
 
 @needs_nibabel_data('nitest-cifti2')
 def test_version():
@@ -52,28 +58,31 @@ def test_version():
         img = nib.load(dat)
         assert_equal(LooseVersion(img.header.version), LooseVersion('2'))
 
-'''
-def test_dataarray1():
-    img1 = gi.read(DATA_FILE1)
-    # Round trip
+@needs_nibabel_data('nitest-cifti2')
+def test_readwritedata():
     with InTemporaryDirectory():
-        gi.write(img1, 'test.gii')
-        bimg = gi.read('test.gii')
-    for img in (img1, bimg):
-        assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
-        assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
-        me=img.darrays[0].meta.get_metadata()
-        assert_true('AnatomicalStructurePrimary' in me)
-        assert_true('AnatomicalStructureSecondary' in me)
-        assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
-        assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4,4))
-        assert_equal(xform_codes.niistring[img.darrays[0].coordsys.dataspace],'NIFTI_XFORM_TALAIRACH')
-        assert_equal(xform_codes.niistring[img.darrays[0].coordsys.xformspace],'NIFTI_XFORM_TALAIRACH')
-'''
+        for name in datafiles:
+            img = ci.load(name)
+            nib.save(img, 'test.nii')
+            img2 = ci.load('test.nii')
+            assert_equal(len(img.header.matrix.mims),
+                         len(img2.header.matrix.mims))
+            # Order should be preserved in load/save
+            for mim1, mim2 in zip(img.header.matrix.mims,
+                                  img2.header.matrix.mims):
+                assert_equal(len(mim1.named_maps), len(mim2.named_maps))
+                for map1, map2 in zip(mim1.named_maps, mim2.named_maps):
+                    assert_equal(map1.map_name, map2.map_name)
+                    if map1.label_table is None:
+                        assert_true(map2.label_table is None)
+                    else:
+                        assert_equal(len(map1.label_table.labels),
+                                     len(map2.label_table.labels))
+            assert_array_almost_equal(img.data, img2.data)
 
 
 @needs_nibabel_data('nitest-cifti2')
-def test_readwritedata():
+def test_nibabel_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
             img = nib.load(name)

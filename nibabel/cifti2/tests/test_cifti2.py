@@ -37,6 +37,9 @@ def test_cifti2_MetaData():
     md.add_metadata([['a', 'aval'], ['b', 'bval']])
     assert_equal(md.data, dict(metadata_test))
 
+    md.add_metadata([['a', 'aval'], ['b', 'bval']])
+    assert_equal(md.data, dict(metadata_test))
+
     md.add_metadata({'a': 'aval', 'b': 'bval'})
     assert_equal(md.data, dict(metadata_test))
 

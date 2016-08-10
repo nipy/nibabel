@@ -879,6 +879,10 @@ class Cifti2Image(FileBasedImage):
     def get_data(self):
         return self.data
 
+    @property
+    def shape(self):
+        return self.data.shape
+
     @classmethod
     def from_file_map(klass, file_map):
         """ Load a Cifti2 image from a file_map
@@ -981,8 +985,7 @@ def load(filename):
     ImageFileError: if `filename` doesn't look like cifti
     IOError : if `filename` does not exist
     """
-    from .parse_cifti2_fast import _Cifti2AsNiftiImage
-    return _Cifti2AsNiftiImage.from_filename(filename)
+    return Cifti2Image.from_filename(filename)
 
 
 def save(img, filename):
