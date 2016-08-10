@@ -207,7 +207,7 @@ class Cifti2Parser(xml.XmlParser):
                     'NamedMap element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             self.struct_state.append(named_map)
-            mim.add_cifti_named_map(named_map)
+            mim.append(named_map)
 
         elif name == 'LabelTable':
             named_map = self.struct_state[-1]
@@ -271,7 +271,7 @@ class Cifti2Parser(xml.XmlParser):
                 )
             surface.brain_structure = attrs["BrainStructure"]
             surface.surface_number_of_vertices = int(attrs["SurfaceNumberOfVertices"])
-            mim.add_cifti_surface(surface)
+            mim.append(surface)
 
         elif name == "Parcel":
             parcel = Cifti2Parcel()
@@ -281,7 +281,7 @@ class Cifti2Parser(xml.XmlParser):
                     'Parcel element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             parcel.name = attrs["Name"]
-            mim.add_cifti_parcel(parcel)
+            mim.append(parcel)
             self.fsm_state.append('Parcel')
             self.struct_state.append(parcel)
 
@@ -321,7 +321,7 @@ class Cifti2Parser(xml.XmlParser):
             dimensions = tuple([int(val) for val in
                                 attrs["VolumeDimensions"].split(',')])
             volume = Cifti2Volume(volume_dimensions=dimensions)
-            mim.volume = volume
+            mim.append(volume)
             self.fsm_state.append('Volume')
             self.struct_state.append(volume)
 
@@ -367,7 +367,7 @@ class Cifti2Parser(xml.XmlParser):
                 raise CIFTI2HeaderError(
                     'ModelType for this BrainModel element is not valid'
                 )
-            mim.add_cifti_brain_model(model)
+            mim.append(model)
             self.fsm_state.append('BrainModel')
             self.struct_state.append(model)
 

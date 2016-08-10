@@ -634,7 +634,7 @@ class Cifti2BrainModel(object):
         return brain_model
 
 
-class Cifti2MatrixIndicesMap(object):
+class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
     """Class for Matrix Indices Map
 
     Provides a mapping between matrix indices and their interpretation.
@@ -646,6 +646,13 @@ class Cifti2MatrixIndicesMap(object):
     # series_start = float
     # series_step = float
     # series_unit = str
+    _valid_type_mappings_ = {
+        Cifti2BrainModel: ('CIFTI_INDEX_TYPE_BRAIN_MODELS',),
+        Cifti2Parcel: ('CIFTI_INDEX_TYPE_PARCELS',),
+        Cifti2NamedMap: ('CIFTI_INDEX_TYPE_LABELS',),
+        Cifti2Volume: ('CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SERIES'),
+        Cifti2Surface: ('CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SERIES')
+    }
 
     def __init__(self, applies_to_matrix_dimension,
                  indices_map_to_data_type,
@@ -654,11 +661,8 @@ class Cifti2MatrixIndicesMap(object):
                  series_start=None,
                  series_step=None,
                  series_unit=None,
-                 brain_models=None,
-                 named_maps=None,
-                 parcels=None,
-                 surfaces=None,
-                 volume=None):
+                 maps=[],
+                 ):
         self.applies_to_matrix_dimension = applies_to_matrix_dimension
         self.indices_map_to_data_type = indices_map_to_data_type
         self.number_of_series_points = number_of_series_points
@@ -666,86 +670,48 @@ class Cifti2MatrixIndicesMap(object):
         self.series_start = series_start
         self.series_step = series_step
         self.series_unit = series_unit
-        self.brain_models = brain_models if brain_models is not None else []
-        self.named_maps = named_maps if named_maps is not None else []
-        self.parcels = parcels if parcels is not None else []
-        self.surfaces = surfaces if surfaces is not None else []
-        self.volume = volume
+        self._maps = []
+        for m in maps:
+            self.append(m)
 
-    def add_cifti_brain_model(self, brain_model):
-        """ Adds a brain model to the Cifti2MatrixIndicesMap
+    def __len__(self):
+        return len(self._maps)
 
-        Parameters
-        ----------
-        brain_model : Cifti2BrainModel
-        """
-        if not isinstance(brain_model, Cifti2BrainModel):
-            raise TypeError("Not a valid Cifti2BrainModel instance")
-        self.brain_models.append(brain_model)
+    def __delitem__(self, index):
+        del self._maps[index]
 
-    def remove_cifti_brain_model(self, ith):
-        """ Removes the ith brain model element from the Cifti2MatrixIndicesMap """
-        self.brain_models.pop(ith)
+    def __getitem__(self, index):
+        return self._maps[index]
 
-    def add_cifti_named_map(self, named_map):
-        """ Adds a named map to the Cifti2MatrixIndicesMap
+    def __setitem__(self, index, value):
+        # self.validate_item(value)
+        self._maps[index] = value
 
-        Parameters
-        ----------
-        named_map : Cifti2MatrixIndicesMap
-        """
-        if isinstance(named_map, Cifti2MatrixIndicesMap):
-            raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
-        self.named_maps.append(named_map)
+    def insert(self, index, value):
+        # self.validate_item(value)
+        self._maps.insert(index, value)
 
-    def remove_cifti_named_map(self, ith):
-        """ Removes the ith named_map element from the Cifti2MatrixIndicesMap """
-        self.named_maps.pop(ith)
+    def validate_item(self, value):
+        appropriate_type = self._valid_type_mappings_
+        for k in self._valid_type_mappings_:
+            if isinstance(value, k):
+                appropriate_type = self._valid_type_mappings_[k]
+                break
+        else:
+            raise ValueError(
+                "Value must be of type Cifti2BrainModel, Cifti2Parcel, Cifti2NamedMap, "
+                "Cifti2Volume or Cifti2Surface"
+            )
 
-    def add_cifti_parcel(self, parcel):
-        """ Adds a parcel to the Cifti2MatrixIndicesMap
+        if len(self) == 0 and self.indices_map_to_data_type is None:
+            self.indices_map_to_data_type = appropriate_type
+        elif self.indices_map_to_data_type != appropriate_type:
+            raise ValueError('Wrong type of value for the set indices_map_to_data_type')
 
-        Parameters
-        ----------
-        parcel : Cifti2Parcel
-        """
-        if not isinstance(parcel, Cifti2Parcel):
-            raise TypeError("Not a valid Cifti2Parcel instance")
-        self.parcels.append(parcel)
+        if len(self) == 1 and isinstance(value, Cifti2Volume):
+            raise ValueError("Only one Cifti2Volume element is admitted")
 
-    def remove_cifti2_parcel(self, ith):
-        """ Removes the ith parcel element from the Cifti2MatrixIndicesMap """
-        self.parcels.pop(ith)
-
-    def add_cifti_surface(self, surface):
-        """ Adds a surface to the Cifti2MatrixIndicesMap
-
-        Parameters
-        ----------
-        surface : Cifti2Surface
-        """
-        if not isinstance(surface, Cifti2Surface):
-            raise TypeError("Not a valid Cifti2Surface instance")
-        self.surfaces.append(surface)
-
-    def remove_cifti2_surface(self, ith):
-        """ Removes the ith surface element from the Cifti2MatrixIndicesMap """
-        self.surfaces.pop(ith)
-
-    def set_cifti2_volume(self, volume):
-        """ Adds a volume to the Cifti2MatrixIndicesMap
-
-        Parameters
-        ----------
-        volume : Cifti2Volume
-        """
-        if not isinstance(volume, Cifti2Volume):
-            raise TypeError("Not a valid Cifti2Volume instance")
-        self.volume = volume
-
-    def remove_cifti2_volume(self):
-        """ Removes the volume element from the Cifti2MatrixIndicesMap """
-        self.volume = None
+        self.indices_map_to_data_type = appropriate_type
 
     def _to_xml_element(self):
         if self.applies_to_matrix_dimension is None:
@@ -762,26 +728,9 @@ class Cifti2MatrixIndicesMap(object):
             value = getattr(self, attr)
             if value is not None:
                 mat_ind_map.attrib[key] = str(value)
-        for named_map in self.named_maps:
-            if named_map._to_xml_element() is None:
-                raise CIFTI2HeaderError('NamedMap element has an error')
-            mat_ind_map.append(named_map._to_xml_element())
-        for surface in self.surfaces:
-            if surface._to_xml_element() is None:
-                raise CIFTI2HeaderError('Surface element has an error')
-            mat_ind_map.append(surface._to_xml_element())
-        for parcel in self.parcels:
-            if parcel._to_xml_element() is None:
-                raise CIFTI2HeaderError('Parcel element has an error')
-            mat_ind_map.append(parcel._to_xml_element())
-        if self.volume:
-            if self.volume._to_xml_element() is None:
-                raise CIFTI2HeaderError('Volume element has an error')
-            mat_ind_map.append(self.volume._to_xml_element())
-        for model in self.brain_models:
-            if model._to_xml_element() is None:
-                raise CIFTI2HeaderError('BrainModel element has an error')
-            mat_ind_map.append(model._to_xml_element())
+        for map_ in self:
+            mat_ind_map.append(map_._to_xml_element())
+
         return mat_ind_map
 
 
