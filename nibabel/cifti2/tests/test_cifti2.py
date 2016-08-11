@@ -1,10 +1,9 @@
 """ Testing gifti objects
 """
 import collections
-from lxml import etree
+from xml.etree import ElementTree
 
 import numpy as np
-from xml.etree import ElementTree
 
 from ...nifti1 import data_type_codes, intent_codes
 
