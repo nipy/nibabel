@@ -21,7 +21,6 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      CIFTI_MODEL_TYPES, _underscore, CIFTI2HeaderError)
 from .. import xmlutils as xml
 from ..externals.six import BytesIO
-from ..externals.six.moves import reduce
 from ..batteryrunners import Report
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
 from ..nifti2 import Nifti2Header, Nifti2Image
@@ -135,10 +134,13 @@ class _Cifti2AsNiftiImage(Nifti2Image):
                                                   file_map=file_map)
 
         # Get cifti header from extension
-        self.cifti_img = reduce(lambda accum, newval: newval
-                                if isinstance(newval, Cifti2Extension)
-                                else accum,
-                                self.header.extensions, None)
+        for extension in self.header.extensions:
+            if isinstance(extension, Cifti2Extension):
+                self.cifti_img = extension
+                break
+        else:
+            self.cifti_img = None
+
         if self.cifti_img is None:
             raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
