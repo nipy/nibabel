@@ -32,9 +32,10 @@ References like "pr/298" refer to github pull request numbers.
   * New API for managing streamlines and their different file formats. This
     adds a new module ``nibabel.streamlines`` that will eventually deprecate
     the current trackvis reader found in ``nibabel.trackvis`` (pr/391) (MC,
-    reviewed by Bago Amirbekian, Samuel St-Jean, MB);
+    reviewed by Jean-Christophe Houde, Bago Amirbekian, Eleftherios
+    Garyfallidis, Samuel St-Jean, MB);
   * A prototype image viewer using matplotlib (pr/404) (EL, based on a
-    proto-prototype by Paul Ivanov);
+    proto-prototype by Paul Ivanov).  Reviewed by Gregory L. Lee, MB.;
   * Functions for image resampling and smoothing using scipy ndimage (pr/255)
     (MB, reviewed by EL, BC);
   * Comprehensive refactor and generalization of surface / GIFTI file support
