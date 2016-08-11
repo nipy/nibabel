@@ -13,7 +13,7 @@ from ... import cifti2 as ci
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_raises, assert_is_none
 
 
 
@@ -194,6 +194,35 @@ def test_cifti2_cifti2voxelindicesijk():
         vi.to_xml().decode('utf-8'),
         '<VoxelIndicesIJK>0 1 2\n3 4 5</VoxelIndicesIJK>'
     )
+
+def test_matrixindicesmap():
+    mim = ci.Cifti2MatrixIndicesMap(0, 'CIFTI_INDEX_TYPE_LABELS')
+    volume = ci.Cifti2Volume()
+    volume2 = ci.Cifti2Volume()
+    parcel = ci.Cifti2Parcel()
+
+    assert_is_none(mim.volume)
+    mim.append(volume)
+    mim.append(parcel)
+
+
+    assert_equal(mim.volume, volume)
+    assert_raises(ci.CIFTI2HeaderError, mim.insert, 0, volume)
+    assert_raises(ci.CIFTI2HeaderError, mim.__setitem__, 1, volume)
+
+    mim[0] = volume2
+    assert_equal(mim.volume, volume2)
+
+    del mim.volume
+    assert_is_none(mim.volume)
+    assert_raises(ValueError, delattr, mim, 'volume')
+
+    mim.volume = volume
+    assert_equal(mim.volume, volume)
+    mim.volume = volume2
+    assert_equal(mim.volume, volume2)
+
+    assert_raises(ValueError, setattr, mim, 'volume', parcel)
 
 def test_underscoring():
     # Pairs taken from inflection tests

@@ -736,9 +736,23 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
         return self._maps[index]
 
     def __setitem__(self, index, value):
+        if (
+            isinstance(value, Cifti2Volume) and
+            (
+                self.volume is not None and
+                not isinstance(self._maps[index], Cifti2Volume)
+            )
+        ):
+            raise CIFTI2HeaderError("Only one Volume can be in a MatrixIndicesMap")
         self._maps[index] = value
 
     def insert(self, index, value):
+        if (
+            isinstance(value, Cifti2Volume) and
+            self.volume is not None
+        ):
+            raise CIFTI2HeaderError("Only one Volume can be in a MatrixIndicesMap")
+
         self._maps.insert(index, value)
 
     @property
@@ -765,6 +779,27 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
             if isinstance(p, Cifti2Volume):
                 return p
         return None
+
+    @volume.setter
+    def volume(self, volume):
+        if not isinstance(volume, Cifti2Volume):
+            raise ValueError("You can only set a volume with a volume")
+        for i, v in enumerate(self):
+            if isinstance(v, Cifti2Volume):
+                break
+        else:
+            self.append(volume)
+            return
+        self[i] = volume
+
+    @volume.deleter
+    def volume(self):
+        for i, v in enumerate(self):
+            if isinstance(v, Cifti2Volume):
+                break
+        else:
+            raise ValueError("No Cifti2Volume element")
+        del self[i]
 
     @property
     def brain_models(self):
