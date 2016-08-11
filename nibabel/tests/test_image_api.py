@@ -113,11 +113,14 @@ class GenericImageAPI(ValidateAPI):
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
         img = imaker()
-        assert_almost_equal(img.get_affine(), params['affine'], 6)
-        assert_equal(img.get_affine().dtype, np.float64)
-        aff = img.get_affine()
-        aff[0, 0] = 1.5
-        assert_true(aff is img.get_affine())
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            assert_almost_equal(img.get_affine(), params['affine'], 6)
+            assert_equal(len(w), 1)
+            assert_equal(img.get_affine().dtype, np.float64)
+            aff = img.get_affine()
+            aff[0, 0] = 1.5
+            assert_true(aff is img.get_affine())
 
     def validate_header(self, imaker, params):
         # Check header API
@@ -134,9 +137,9 @@ class GenericImageAPI(ValidateAPI):
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
+        img = imaker()
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
-            img = imaker()
             hdr = img.get_header()
             assert_equal(len(w), 1)
             assert_true(hdr is img.header)

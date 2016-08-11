@@ -627,11 +627,12 @@ class SpatialImage(FileBasedImage):
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
 
+    @deprecate_with_version('get_affine method is deprecated.\n'
+                            'Please use the ``img.affine`` property '
+                            'instead.',
+                            '2.1', '4.0')
     def get_affine(self):
         """ Get affine from image
-
-        Please use the `affine` property instead of `get_affine`; we will
-        deprecate this method in future versions of nibabel.
         """
         return self.affine
 
