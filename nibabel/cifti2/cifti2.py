@@ -871,9 +871,7 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         -------
         None
         """
-        if meta is not None and not isinstance(meta, Cifti2MetaData):
-            raise TypeError("Not a valid Cifti2MetaData instance")
-        self._meta = meta
+        self._meta = _value_if_klass(meta, Cifti2MetaData, False)
 
     def __setitem__(self, key, value):
         if not isinstance(mim, Cifti2MatrixIndicesMap):
@@ -1066,6 +1064,7 @@ class Cifti2DenseDataSeriesHeader(Cifti2Header):
 
 class Cifti2DenseDataSeries(Cifti2Image):
     """Class to handle Dense Data Series
+
     Dense Data Series
     -----------------
 
