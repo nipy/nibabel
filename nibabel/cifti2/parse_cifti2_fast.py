@@ -327,7 +327,7 @@ class Cifti2Parser(xml.XmlParser):
                 raise CIFTI2HeaderError(
                     'BrainStructure for this Vertices element is not valid'
                 )
-            parcel.add_cifti_vertices(vertices)
+            parcel.append_cifti_vertices(vertices)
             self.fsm_state.append('Vertices')
             self.struct_state.append(vertices)
             self.write_to = 'Vertices'
@@ -576,10 +576,10 @@ class Cifti2Parser(xml.XmlParser):
         return self._char_blocks is not None
 
 
-class _Cifti2DenseDataSeriesNiftiHeader(_Cifti2AsNiftiHeader):
-
-    @classmethod
-    def _valid_intent_code(klass, intent_code):
-        """ Return True if `intent_code` matches our class `klass`
-        """
-        return intent_code == 3002
+# class _Cifti2DenseDataSeriesNiftiHeader(_Cifti2AsNiftiHeader):
+#
+#    @classmethod
+#    def _valid_intent_code(klass, intent_code):
+#        """ Return True if `intent_code` matches our class `klass`
+#        """
+#        return intent_code == 3002

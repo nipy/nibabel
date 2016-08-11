@@ -404,7 +404,7 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
                 value = [int(v) for v in value]
                 if len(value) != 3:
                     raise ValueError('rows are triples of ints')
-                self._indices[index[0]] = value
+                self._indices[index] = value
             except ValueError:
                 raise ValueError('value must be a triple of ints')
         elif len(index) == 2:
@@ -521,8 +521,8 @@ class Cifti2Parcel(xml.XmlSerializable):
     def voxel_indices_ijk(self, value):
         self._voxel_indices_ijk = _value_if_klass(value, Cifti2VoxelIndicesIJK)
 
-    def add_cifti_vertices(self, vertices):
-        """ Adds a vertices to the Cifti2Parcel
+    def append_cifti_vertices(self, vertices):
+        """ Appends a Cifti2Vertices element to the Cifti2Parcel
 
         Parameters
         ----------
@@ -532,8 +532,8 @@ class Cifti2Parcel(xml.XmlSerializable):
             raise TypeError("Not a valid Cifti2Vertices instance")
         self.vertices.append(vertices)
 
-    def remove_cifti2_vertices(self, ith):
-        """ Removes the ith vertices element from the Cifti2Parcel """
+    def pop_cifti2_vertices(self, ith):
+        """ Pops the ith vertices element from the Cifti2Parcel """
         self.vertices.pop(ith)
 
     def _to_xml_element(self):
@@ -871,10 +871,10 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         -------
         None
         """
-        self._meta = _value_if_klass(meta, Cifti2MetaData, False)
+        self._meta = _value_if_klass(meta, Cifti2MetaData, True)
 
     def __setitem__(self, key, value):
-        if not isinstance(mim, Cifti2MatrixIndicesMap):
+        if not isinstance(value, Cifti2MatrixIndicesMap):
             raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
         self._mims[key] = value
 
@@ -1055,35 +1055,35 @@ class Cifti2Image(FileBasedImage):
         img.to_file_map(file_map or self.file_map)
 
 
-class Cifti2DenseDataSeriesHeader(Cifti2Header):
-    @classmethod
-    def may_contain_header(klass, binaryblock):
-        from .parse_cifti2_fast import _Cifti2DenseDataSeriesNiftiHeader
-        return _Cifti2DenseDataSeriesNiftiHeader.may_contain_header(binaryblock)
+# class Cifti2DenseDataSeriesHeader(Cifti2Header):
+#    @classmethod
+#    def may_contain_header(klass, binaryblock):
+#        from .parse_cifti2_fast import _Cifti2DenseDataSeriesNiftiHeader
+#        return _Cifti2DenseDataSeriesNiftiHeader.may_contain_header(binaryblock)
 
 
-class Cifti2DenseDataSeries(Cifti2Image):
-    """Class to handle Dense Data Series
-
-    Dense Data Series
-    -----------------
-
-    Intent_code: 3002, NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES
-    Intent_name: ConnDenseSeries
-    File extension: .dtseries.nii
-    AppliesToMatrixDimension 0: series
-    AppliesToMatrixDimension 1: brain models
-
-    This file type represents data points in a series for every vertex and voxel
-    in the mapping.  A row is a complete data series,for a single vertex or
-    voxel in the mapping that applies along the second dimension. A data series
-    is often a timeseries, but it can also represent other data types such as a
-    series of sampling depths along the surface normal from the white to pial
-    surface.  It retains the 't' in dtseries from CIFTI-1 naming conventions.
-    """
-    header_class = Cifti2DenseDataSeriesHeader
-    valid_exts = ('.dtseries.nii',)
-    files_types = (('image', '.dtseries.nii'),)
+# class Cifti2DenseDataSeries(Cifti2Image):
+#    """Class to handle Dense Data Series
+#
+#    Dense Data Series
+#    -----------------
+#
+#    Intent_code: 3002, NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES
+#    Intent_name: ConnDenseSeries
+#    File extension: .dtseries.nii
+#    AppliesToMatrixDimension 0: series
+#    AppliesToMatrixDimension 1: brain models
+#
+#    This file type represents data points in a series for every vertex and voxel
+#    in the mapping.  A row is a complete data series,for a single vertex or
+#    voxel in the mapping that applies along the second dimension. A data series
+#    is often a timeseries, but it can also represent other data types such as a
+#    series of sampling depths along the surface normal from the white to pial
+#    surface.  It retains the 't' in dtseries from CIFTI-1 naming conventions.
+#    """
+#    header_class = Cifti2DenseDataSeriesHeader
+#    valid_exts = ('.dtseries.nii',)
+#    files_types = (('image', '.dtseries.nii'),)
 
 
 def load(filename):

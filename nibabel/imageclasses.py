@@ -9,7 +9,7 @@
 ''' Define supported image classes and names '''
 
 from .analyze import AnalyzeImage
-from .cifti2 import Cifti2Image, Cifti2DenseDataSeries
+from .cifti2 import Cifti2Image
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
@@ -28,7 +28,7 @@ _, have_scipy, _ = optional_package('scipy')
 
 # Ordered by the load/save priority.
 all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
-                     Cifti2DenseDataSeries, Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
+                     Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
                      Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
                      Minc1Image, Minc2Image, MGHImage,
                      PARRECImage, GiftiImage]
