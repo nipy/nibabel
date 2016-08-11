@@ -206,9 +206,6 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
             labeltable.append(ele._to_xml_element())
         return labeltable
 
-    def print_summary(self):
-        print(dict((k, v.label) for k, v in self._labels.items()))
-
 
 class Cifti2Label(xml.XmlSerializable):
     """ Cifti2 label: association of integer key with a name and RGBA values
@@ -992,6 +989,25 @@ class Cifti2Image(FileBasedImage):
                                 nifti_header=nifti_img.header)
         cifti_img.file_map = nifti_img.file_map
         return cifti_img
+
+    @classmethod
+    def from_image(klass, img):
+        ''' Class method to create new instance of own class from `img`
+
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``FileBasedImage``.
+
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        '''
+        if isinstance(img, klass):
+            return img
+        else:
+            raise NotImplementedError
 
     def to_file_map(self, file_map=None):
         """ Save the current image to the specified file_map

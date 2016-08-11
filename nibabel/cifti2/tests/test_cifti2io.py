@@ -63,7 +63,7 @@ def test_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
             img = ci.load(name)
-            nib.save(img, 'test.nii')
+            ci.save(img, 'test.nii')
             img2 = ci.load('test.nii')
             assert_equal(len(img.header.matrix),
                          len(img2.header.matrix))
