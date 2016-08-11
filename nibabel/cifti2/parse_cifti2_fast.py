@@ -538,7 +538,7 @@ class Cifti2Parser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             vertices = self.struct_state[-1]
-            vertices.vertices = np.genfromtxt(c, dtype=np.int)
+            vertices.extend(np.genfromtxt(c, dtype=np.int))
             c.close()
 
         elif self.write_to == 'VoxelIndices':

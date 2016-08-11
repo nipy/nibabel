@@ -439,25 +439,51 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
         return vox_ind
 
 
-class Cifti2Vertices(xml.XmlSerializable):
+class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
     """Cifti2 vertices - association of brain structure and a list of vertices
 
     "Contains a BrainStructure type and a list of vertex indices within a
     Parcel."
 
     Attribute descriptions are from the CIFTI-2 spec dated 2014-03-01.
+    The class behaves like a list of Vertex indices
+    (which are independent for each surface, and zero-based)
 
     Attributes
     ----------
     brain_structure : str
         A string from the BrainStructure list to identify what surface this
         vertex list is from (usually left cortex, right cortex, or cerebellum).
-    vertices : ndarray shape (N,)
-        Vertex indices (which are independent for each surface, and zero-based)
     """
     def __init__(self, brain_structure=None, vertices=None):
-        self.vertices = vertices
+        self._vertices = []
+        if vertices is not None:
+            self.extend(vertices)
+
         self.brain_structure = brain_structure
+
+    def __len__(self):
+        return len(self._vertices)
+
+    def __delitem__(self, index):
+        del self._vertices[index]
+
+    def __getitem__(self, index):
+        return self._vertices[index]
+
+    def __setitem__(self, index, value):
+        try:
+            value = int(value)
+            self._vertices[index] = value
+        except ValueError:
+            raise ValueError('value must be an int')
+
+    def insert(self, index, value):
+        try:
+            value = int(value)
+            self._vertices.insert(index, value)
+        except ValueError:
+            raise ValueError('value must be an int')
 
     def _to_xml_element(self):
         if self.brain_structure is None:
@@ -466,8 +492,7 @@ class Cifti2Vertices(xml.XmlSerializable):
         vertices = xml.Element('Vertices')
         vertices.attrib['BrainStructure'] = str(self.brain_structure)
 
-        if self.vertices is not None:
-            vertices.text = ' '.join(self.vertices.astype(str))
+        vertices.text = ' '.join([str(i) for i in self])
         return vertices
 
 

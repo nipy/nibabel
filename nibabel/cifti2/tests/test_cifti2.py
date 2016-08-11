@@ -134,7 +134,10 @@ def test_cifti2_vertices():
         vs.to_xml().decode('utf-8'),
         '<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER" />'
     )
-    vs.vertices = np.array([0, 1, 2])
+    assert_equal(len(vs), 0)
+    vs.extend(np.array([0, 1, 2]))
+    assert_equal(len(vs), 3)
+
     assert_equal(
         vs.to_xml().decode('utf-8'),
         '<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
@@ -158,7 +161,6 @@ def test_cifti2_vertexindices():
         vi.to_xml().decode('utf-8'),
         '<VertexIndices>0 1 2</VertexIndices>'
     )
-
 
 def test_cifti2_cifti2voxelindicesijk():
     vi = ci.Cifti2VoxelIndicesIJK()
