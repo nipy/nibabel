@@ -82,7 +82,7 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
     def _valid_intent_code(klass, intent_code):
         """ Return True if `intent_code` matches our class `klass`
         """
-        return intent_code >= 3000 and intent_code < 3100  # and intent_code != 3002
+        return intent_code >= 3000 and intent_code < 3100
 
     @classmethod
     def may_contain_header(klass, binaryblock):
