@@ -66,3 +66,18 @@ class TestNibabelDeprecator(_TestDF):
     """ Test deprecations against nibabel version """
 
     dep_func = deprecate_with_version
+
+
+def test_dev_version():
+    # Test that a dev version doesn't trigger deprecation error
+
+    @deprecate_with_version('foo', until='2.0')
+    def func():
+        return 99
+
+    try:
+        info.cmp_pkg_version.__defaults__ = ('2.0dev',)
+        # No error, even though version is dev version of current
+        assert_equal(func(), 99)
+    finally:
+        info.cmp_pkg_version.__defaults__ = ('2.0',)
