@@ -19,13 +19,14 @@ from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
-CIFTI2_DATA = pjoin(get_nibabel_data(), 'nitest-cifti2')
-
-
-
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
+
+NIBABEL_TEST_DATA = pjoin(dirname(nib.__file__), 'tests', 'data')
+NIFTI2_DATA = pjoin(NIBABEL_TEST_DATA, 'example_nifti2.nii.gz')
+
+CIFTI2_DATA = pjoin(get_nibabel_data(), 'nitest-cifti2')
 
 DATA_FILE1 = pjoin(CIFTI2_DATA, '')
 DATA_FILE2 = pjoin(CIFTI2_DATA,
@@ -39,6 +40,12 @@ DATA_FILE5 = pjoin(CIFTI2_DATA,
 DATA_FILE6 = pjoin(CIFTI2_DATA, 'ones.dscalar.nii')
 datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
+
+def test_read_nifti2():
+    filemap = ci.Cifti2Image.make_file_map()
+    for k in filemap:
+        filemap[k].fileobj = open(NIFTI2_DATA)
+    assert_raises(ValueError, ci.Cifti2Image.from_file_map, filemap)
 
 @needs_nibabel_data('nitest-cifti2')
 def test_read_internal():

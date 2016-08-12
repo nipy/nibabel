@@ -984,7 +984,7 @@ class Cifti2Image(FileBasedImage):
         """ Load a Cifti2 image from a file_map
 
         Parameters
-        file_map : string
+        file_map : file_map
 
         Returns
         -------
@@ -1000,9 +1000,6 @@ class Cifti2Image(FileBasedImage):
                 cifti_header = item.get_content()
                 break
         else:
-            cifti_header = None
-
-        if cifti_header is None:
             raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
 
