@@ -42,7 +42,7 @@ New features
 * Add ability to write FreeSurfer morphology data (pr/414) (CM, BC, reviewed
   by BC);
 * Read and write support for DICOM tags in NIfTI Extended Header using
-  pydicom (pr/296) (Eric Kastman);
+  pydicom (pr/296) (Eric Kastman).
 
 Enhancements
 ------------
@@ -65,7 +65,7 @@ Enhancements
 * More explicit error when trying to read image from non-existent file
   (pr/455) (Ariel Rokem);
 * Extension to `nib-ls` command to show image statistics (pr/437) and other
-  header files (pr/348) (Yarik Halchenko);
+  header files (pr/348) (Yarik Halchenko).
 
 Bug fixes
 ---------
@@ -87,15 +87,50 @@ Maintenance
 * Various fixes for numpy, matplotlib, and PIL / Pillow compatibility (CM,
   Ariel Rokem, MB);
 * Improved test framework for warnings (pr/345) (BC, reviewed by CM, MB);
+* New decorator to specify start and end versions for deprecation warnings
+  (MB, reviewed by CM).
 
-API changes
------------
+API changes and deprecations
+----------------------------
 
 * Minor API breakage in original (rather than new) trackvis reader. We are now
   raising a ``DataError`` if there are too few streamlines in the file,
   instead of a ``HeaderError``.  We are raising a ``DataError`` if the track
   is truncated when ``strict=True`` (the default), rather than a ``TypeError``
   when trying to create the points array.
+* Deprecation of ``get_header``, ``get_affine`` method of image objects for
+  removal in version 4.0;
+* Removed broken ``from_filespec`` method from image objects, and deprecated
+  ``from_filespec`` method of ECAT image objects for removal in 4.0;
+* Deprecation of ``class_map`` instance in ``imageclasses`` module in favor of
+  new image class attributes, for removal in 4.0;
+* Deprecation of ``ext_map`` instance in ``imageclasses`` module in favor of
+  new image loading API, for removal in 4.0;
+* Deprecation of ``Header`` class in favor of ``SpatialHeader``, for removal
+  in 4.0;
+* Deprecation of ``BinOpener`` class in favor of more generic ``Opener``
+  class, for removal in 4.0;
+* Deprecation of ``GiftiMetadata`` methods ``get_metadata`` and ``get_rgba``;
+  ``GiftiDataArray`` methods ``get_metadata``, ``get_labeltable``,
+  ``set_labeltable``; ``GiftiImage`` methods ``get_meta``, ``set_meta``.  All
+  these deprecated in favor of corresponding properties, for removal in 4.0;
+* Deprecation of ``giftiio`` ``read`` and ``write`` functions in favor of
+  nibabel ``load`` and ``save`` functions, for removal in 4.0;
+* Deprecation of ``gifti.data_tag`` function, for removal in 4.0;
+* Deprecation of write-access to ``GiftiDataArray.num_dim``, and new error
+  when trying to set invalid values for ``num_dim``.  We will remove
+  write-access in 4.0;
+* Deprecation of ``GiftiDataArray.from_array`` in favor of ``GiftiDataArray``
+  constructor, for removal in 4.0;
+* Deprecation of ``GiftiDataArray`` ``to_xml_open, to_xml_close`` methods in
+  favor of ``to_xml`` method, for removal in 4.0;
+* Deprecation of ``parse_gifti_fast.Outputter`` class in favor of
+  ``GiftiImageParser``, for removal in 4.0;
+* Deprecation of ``parse_gifti_fast.parse_gifti_file`` function in favor of
+  ``GiftiImageParser.parse`` method, for removal in 4.0;
+* Deprecation of ``loadsave`` functions ``guessed_image_type`` and
+  ``which_analyze_type``, in favor of new API where each image class tests the
+  file for compatibility during load, for removal in 4.0;
 
 2.0.2 (Monday 23 November 2015)
 ===============================
