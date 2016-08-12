@@ -10,6 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
 import sys
+import io
 from distutils.version import LooseVersion
 
 import numpy as np
@@ -44,7 +45,7 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 def test_read_nifti2():
     filemap = ci.Cifti2Image.make_file_map()
     for k in filemap:
-        filemap[k].fileobj = open(NIFTI2_DATA)
+        filemap[k].fileobj = io.open(NIFTI2_DATA)
     assert_raises(ValueError, ci.Cifti2Image.from_file_map, filemap)
 
 @needs_nibabel_data('nitest-cifti2')
