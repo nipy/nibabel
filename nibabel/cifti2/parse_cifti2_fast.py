@@ -110,10 +110,10 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
         if not np.any(spat_dims <= 0):
             return hdr, rep
         rep.problem_level = 35
-        rep.problem_msg('pixdim[1,2,3] should be zero or positive')
+        rep.problem_msg = 'pixdim[1,2,3] should be zero or positive'
         if fix:
             hdr['pixdim'][1:4] = np.abs(spat_dims)
-            rep.fix_msg('setting to abs of pixdim values')
+            rep.fix_msg = 'setting to abs of pixdim values'
         return hdr, rep
 
 
