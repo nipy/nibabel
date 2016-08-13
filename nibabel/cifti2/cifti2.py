@@ -720,14 +720,24 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
     """Class for Matrix Indices Map
 
     Provides a mapping between matrix indices and their interpretation.
+
+    Attribute
+    ---------
+        applies_to_matrix_dimension : list of ints
+            Dimensions of this matrix that follow this mapping
+        indices_map_to_data_type : str one of CIFTI_MAP_TYPES
+            Type of mapping to the matrix indices
+        number_of_series_points : int, optional
+            If it is a series, number of points in the series
+        series_exponent : int, optional
+            If it is a series the exponent of the increment
+        series_start : float, optional
+            If it is a series, starting time
+        series_step : float, optional
+            If it is a series, step per element
+        series_unit : str, optional
+            If it is a series, units
     """
-    # applies_to_matrix_dimension = list
-    # indices_map_to_data_type = str
-    # number_of_series_points = int
-    # series_exponent = int
-    # series_start = float
-    # series_step = float
-    # series_unit = str
     _valid_type_mappings_ = {
         Cifti2BrainModel: ('CIFTI_INDEX_TYPE_BRAIN_MODELS',),
         Cifti2Parcel: ('CIFTI_INDEX_TYPE_PARCELS',),
