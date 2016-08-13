@@ -88,10 +88,8 @@ CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                          'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
 
-def _value_if_klass(val, klass, check_isinstance_or_none=True):
-    if check_isinstance_or_none and val is None:
-        return val
-    elif isinstance(val, klass):
+def _value_if_klass(val, klass):
+    if val is None or isinstance(val, klass):
         return val
     raise ValueError('Not a valid %s instance.' % klass.__name__)
 
@@ -889,7 +887,7 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         -------
         None
         """
-        self._meta = _value_if_klass(meta, Cifti2MetaData, True)
+        self._meta = _value_if_klass(meta, Cifti2MetaData)
 
     def __setitem__(self, key, value):
         if not isinstance(value, Cifti2MatrixIndicesMap):
