@@ -28,6 +28,13 @@ from ..filebasedimages import FileBasedHeader, FileBasedImage
 from ..nifti2 import Nifti2Image
 
 
+def _float_01(val):
+    out = float(val)
+    if out < 0 or out > 1:
+        raise ValueError('Float must be between 0 and 1 inclusive')
+    return out
+
+
 class CIFTI2HeaderError(Exception):
     """ Error in CIFTI2 header
     """
@@ -171,26 +178,14 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
             if key != value.key:
                 raise ValueError("The key and the label's key must agree")
             self._labels[key] = value
-        else:
-            try:
-                key = int(key)
-                v = (str(value[0]),) + tuple(float(v) for v in value[1:] if 0 <= float(v) <= 1)
-                if len(v) != 5:
-                    raise ValueError
-            except:
-                raise ValueError(
-                    'Key must be integer and value a string and 4-tuple of floats between 0 and 1'
-                )
-
-            label = Cifti2Label(
-                key=key,
-                label=v[0],
-                red=v[1],
-                green=v[2],
-                blue=v[3],
-                alpha=v[4]
-            )
-            self._labels[key] = label
+            return
+        if len(value) != 5:
+            raise ValueError('Value should be length 5')
+        try:
+            self._labels[key] = Cifti2Label(*([key] + list(value)))
+        except ValueError:
+            raise ValueError('Key should be int, value should be sequence '
+                             'of str and 4 floats between 0 and 1')
 
     def __delitem__(self, key):
         del self._labels[key]
@@ -215,27 +210,26 @@ class Cifti2Label(xml.XmlSerializable):
 
     Attributes
     ----------
-    key : int
+    key : int, optional
         Integer, data value which is assigned this name and color.
-    label : str
+    label : str, optional
         Name of the label.
-    red : None or float
-        Red color component for label.
-    green : None or float
-        Green color component for label.
-    blue : None or float
-        Blue color component for label.
-    alpha : None or float
-        Alpha color component for label.
+    red : float, optional
+        Red color component for label (between 0 and 1).
+    green : float, optional
+        Green color component for label (between 0 and 1).
+    blue : float, optional
+        Blue color component for label (between 0 and 1).
+    alpha : float, optional
+        Alpha color component for label (between 0 and 1).
     """
-    def __init__(self, key=0, label='', red=0, green=0, blue=0,
-                 alpha=0):
-        self.key = key
-        self.label = label
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+    def __init__(self, key=0, label='', red=0., green=0., blue=0., alpha=0.):
+        self.key = int(key)
+        self.label = str(label)
+        self.red = _float_01(red)
+        self.green = _float_01(green)
+        self.blue = _float_01(blue)
+        self.alpha = _float_01(alpha)
 
     @property
     def rgba(self):
@@ -251,13 +245,11 @@ class Cifti2Label(xml.XmlSerializable):
             raise CIFTI2HeaderError('The key must be an integer')
         for c_ in ('red', 'blue', 'green', 'alpha'):
             try:
-                v = float(getattr(self, c_))
-                if not (0 <= v <= 1):
-                    raise ValueError
+                v = _float_01(getattr(self, c_))
             except ValueError:
                 raise CIFTI2HeaderError(
-                    'Label invalid %s needs to be a float between 0 and 1. and it is %s' %
-                    (c_, v)
+                    'Label invalid %s needs to be a float between 0 and 1. '
+                    'and it is %s' % (c_, v)
                 )
 
         lab = xml.Element('Label')
@@ -265,7 +257,8 @@ class Cifti2Label(xml.XmlSerializable):
         lab.text = str(self.label)
 
         for name in ('red', 'green', 'blue', 'alpha'):
-            attr = str(getattr(self, name))
+            val = getattr(self, name)
+            attr = '0' if val == 0 else '1' if val == 1 else str(val)
             lab.attrib[name.capitalize()] = attr
         return lab
 
