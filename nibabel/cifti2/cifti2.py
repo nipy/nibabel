@@ -981,7 +981,7 @@ class Cifti2Image(FileBasedImage):
         nifti_header : None or mapping or nifti2 header instance, optional
            metadata for this image format
         '''
-        self._header = header or Cifti2Header()
+        self._header = header if header is not None else Cifti2Header()
         self.data = data
         self.extra = nifti_header
 
