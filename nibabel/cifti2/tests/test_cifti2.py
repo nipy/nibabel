@@ -24,6 +24,12 @@ def compare_xml_leaf(str1, str2):
 
 
 def test_cifti2_metadata():
+    md = ci.Cifti2MetaData(metadata={'a': 'aval'})
+    assert_equal(len(md), 1)
+    assert_equal(list(iter(md)), ['a'])
+    assert_equal(md['a'], 'aval')
+    assert_equal(md.data, dict([('a', 'aval')]))
+
     md = ci.Cifti2MetaData()
     assert_equal(len(md), 0)
     assert_equal(list(iter(md)), [])

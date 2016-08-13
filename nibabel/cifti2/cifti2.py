@@ -109,8 +109,10 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     ----------
     data : list of (name, value) tuples
     """
-    def __init__(self):
+    def __init__(self, metadata=None):
         self.data = collections.OrderedDict()
+        if metadata is not None:
+            self.update(metadata)
 
     def __getitem__(self, key):
         return self.data[key]
