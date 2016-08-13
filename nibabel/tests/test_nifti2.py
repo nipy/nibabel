@@ -78,11 +78,6 @@ class TestNifti2Image(TestNifti1Image):
     image_class = Nifti2Image
 
 
-class TestNifti2Image(TestNifti1Image):
-    # Run analyze-flavor spatialimage tests
-    image_class = Nifti2Image
-
-
 class TestNifti2Pair(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti2Pair

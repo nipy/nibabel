@@ -20,6 +20,7 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BrainStructures,
                      CIFTI_MODEL_TYPES, _underscore, CIFTI2HeaderError)
 from .. import xmlutils as xml
+from ..spatialimages import HeaderDataError
 from ..externals.six import BytesIO
 from ..batteryrunners import Report
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
@@ -90,24 +91,25 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
         hdr = klass(binaryblock=binaryblock[:klass.sizeof_hdr])
         return klass._valid_intent_code(hdr.get_intent('code')[0])
 
-    @classmethod
-    def _get_checks(klass):
-        # We need to return our own versions of - e.g. chk_datatype, to
-        # pick up the Nifti datatypes from our class
-        return (klass._chk_sizeof_hdr,
-                klass._chk_datatype,
-                klass._chk_bitpix,
-                klass._chk_pixdims,
-                klass._chk_magic,
-                klass._chk_offset,
-                klass._chk_qform_code,
-                klass._chk_sform_code)
+    @staticmethod
+    def _chk_qfac(hdr, fix=False):
+        # Allow qfac of 0 without complaint for CIFTI2
+        rep = Report(HeaderDataError)
+        if hdr['pixdim'][0] in (-1, 0, 1):
+            return hdr, rep
+        rep.problem_level = 20
+        rep.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or 0 or -1'
+        if fix:
+            hdr['pixdim'][0] = 1
+            rep.fix_msg = 'setting qfac to 1'
+        return hdr, rep
 
+    @staticmethod
     def _chk_pixdims(hdr, fix=False):
-        rep = Report(CIFTI2HeaderError)
+        rep = Report(HeaderDataError)
         pixdims = hdr['pixdim']
         spat_dims = pixdims[1:4]
-        if not np.any(spat_dims <= 0):
+        if not np.any(spat_dims < 0):
             return hdr, rep
         rep.problem_level = 35
         rep.problem_msg = 'pixdim[1,2,3] should be zero or positive'
