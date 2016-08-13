@@ -346,7 +346,15 @@ class WrapStruct(object):
         return (k in self.keys()) and self._structarr[k] or d
 
     def check_fix(self, logger=None, error_level=None):
-        ''' Check structured data with checks '''
+        ''' Check structured data with checks
+
+        Parameters
+        ----------
+        logger : None or logging.Logger
+        error_level : None or int
+            Level of error severity at which to raise error.  Any error of
+            severity >= `error_level` will cause an exception.
+        '''
         if logger is None:
             logger = imageglobals.logger
         if error_level is None:
