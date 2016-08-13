@@ -949,7 +949,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
     @classmethod
     def may_contain_header(klass, binaryblock):
-        from .parse_cifti2_fast import _Cifti2AsNiftiHeader
+        from .parse_cifti2 import _Cifti2AsNiftiHeader
         return _Cifti2AsNiftiHeader.may_contain_header(binaryblock)
 
 
@@ -1002,7 +1002,7 @@ class Cifti2Image(FileBasedImage):
         img : Cifti2Image
             Returns a Cifti2Image
          """
-        from .parse_cifti2_fast import _Cifti2AsNiftiImage, Cifti2Extension
+        from .parse_cifti2 import _Cifti2AsNiftiImage, Cifti2Extension
         nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map)
 
         # Get cifti2 header
@@ -1051,7 +1051,7 @@ class Cifti2Image(FileBasedImage):
         -------
         None
         """
-        from .parse_cifti2_fast import Cifti2Extension
+        from .parse_cifti2 import Cifti2Extension
         header = self.extra
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)

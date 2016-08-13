@@ -15,7 +15,7 @@ from distutils.version import LooseVersion
 
 import nibabel as nib
 from nibabel import cifti2 as ci
-from nibabel.cifti2.parse_cifti2_fast import _Cifti2AsNiftiHeader
+from nibabel.cifti2.parse_cifti2 import _Cifti2AsNiftiHeader
 
 from nibabel.tmpdirs import InTemporaryDirectory
 from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data

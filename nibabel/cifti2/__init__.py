@@ -16,7 +16,7 @@
    cifti2
 """
 
-from .parse_cifti2_fast import Cifti2Extension
+from .parse_cifti2 import Cifti2Extension
 from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Image, Cifti2Label,
                      Cifti2LabelTable, Cifti2VertexIndices,
                      Cifti2VoxelIndicesIJK, Cifti2BrainModel, Cifti2Matrix,
