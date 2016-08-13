@@ -8,6 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
+from copy import deepcopy
+
 from .externals.six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
@@ -55,7 +57,7 @@ class FileBasedHeader(object):
         The copy should not be affected by any changes to the original
         object.
         '''
-        raise NotImplementedError
+        return deepcopy(self)
 
 
 class FileBasedImage(object):
@@ -189,11 +191,7 @@ class FileBasedImage(object):
         file_map : mapping, optional
            mapping giving file information for this image format
         '''
-
-        if header or self.header_class:
-            self._header = self.header_class.from_header(header)
-        else:
-            self._header = None
+        self._header = self.header_class.from_header(header)
         if extra is None:
             extra = {}
         self.extra = extra
@@ -231,10 +229,9 @@ class FileBasedImage(object):
         -------
         fname : None or str
            Returns None if there is no filename, or a filename string.
-           If an image may have several filenames assoctiated with it
-           (e.g Analyze ``.img, .hdr`` pair) then we return the more
-           characteristic filename (the ``.img`` filename in the case of
-           Analyze')
+           If an image may have several filenames associated with it (e.g.
+           Analyze ``.img, .hdr`` pair) then we return the more characteristic
+           filename (the ``.img`` filename in the case of Analyze')
         '''
         # which filename is returned depends on the ordering of the
         # 'files_types' class attribute - we return the name
