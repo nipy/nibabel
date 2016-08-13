@@ -992,7 +992,7 @@ class Cifti2Image(FileBasedImage):
                              'extension')
 
         # Construct cifti image
-        cifti_img = Cifti2Image(data=nifti_img.get_data()[0, 0, 0, 0],
+        cifti_img = Cifti2Image(data=nifti_img.dataobj[0, 0, 0, 0],
                                 header=cifti_header,
                                 nifti_header=nifti_img.header)
         cifti_img.file_map = nifti_img.file_map
