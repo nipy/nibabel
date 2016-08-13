@@ -27,6 +27,8 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
 
+import numpy as np
+
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
@@ -164,3 +166,10 @@ def is_proxy(obj):
         return obj.is_proxy
     except AttributeError:
         return False
+
+
+def reshape_dataobj(obj, shape):
+    """ Use `obj` reshape method if possible, else numpy reshape function
+    """
+    return (obj.reshape(shape) if hasattr(obj, 'reshape')
+            else np.reshape(obj, shape))

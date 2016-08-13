@@ -17,7 +17,7 @@ from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
-from ..arrayproxy import ArrayProxy, is_proxy
+from ..arrayproxy import ArrayProxy, is_proxy, reshape_dataobj
 from ..nifti1 import Nifti1Header
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -156,6 +156,33 @@ def test_is_proxy():
     class NP(object):
         is_proxy = False
     assert_false(is_proxy(NP()))
+
+
+def test_reshape_dataobj():
+    # Test function that reshapes using method if possible
+    shape = (1, 2, 3, 4)
+    hdr = FunkyHeader(shape)
+    bio = BytesIO()
+    prox = ArrayProxy(bio, hdr)
+    arr = np.arange(np.prod(shape), dtype=prox.dtype).reshape(shape)
+    bio.write(b'\x00' * prox.offset + arr.tostring(order='F'))
+    assert_array_equal(prox, arr)
+    assert_array_equal(reshape_dataobj(prox, (2, 3, 4)),
+                       np.reshape(arr, (2, 3, 4)))
+    assert_equal(prox.shape, shape)
+    assert_equal(arr.shape, shape)
+    assert_array_equal(reshape_dataobj(arr, (2, 3, 4)),
+                       np.reshape(arr, (2, 3, 4)))
+    assert_equal(arr.shape, shape)
+
+    class ArrGiver(object):
+
+        def __array__(self):
+            return arr
+
+    assert_array_equal(reshape_dataobj(ArrGiver(), (2, 3, 4)),
+                       np.reshape(arr, (2, 3, 4)))
+    assert_equal(arr.shape, shape)
 
 
 def test_get_unscaled():
