@@ -113,8 +113,12 @@ class ArrayProxy(object):
         return self._shape
 
     @property
-    def is_proxy(self):
-        return True
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def offset(self):
+        return self._offset
 
     @property
     def slope(self):
@@ -125,8 +129,8 @@ class ArrayProxy(object):
         return self._inter
 
     @property
-    def offset(self):
-        return self._offset
+    def is_proxy(self):
+        return True
 
     def get_unscaled(self):
         ''' Read of data from file

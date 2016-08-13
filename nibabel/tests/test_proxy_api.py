@@ -59,7 +59,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
-from ..testing import data_path as DATA_PATH
+from ..testing import data_path as DATA_PATH, assert_dt_equal
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -122,7 +122,7 @@ class _TestProxyAPI(ValidateAPI):
         prox, fio, hdr = pmaker()
         out = np.asarray(prox)
         assert_array_equal(out, params['arr_out'])
-        assert_equal(out.dtype.type, params['dtype_out'])
+        assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
 
@@ -204,8 +204,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                                                           slopes,
                                                           inters):
             n_els = np.prod(shape)
-            dt = np.dtype(dtype).newbyteorder(self.data_endian)
-            arr = np.arange(n_els, dtype=dt).reshape(shape)
+            dtype = np.dtype(dtype).newbyteorder(self.data_endian)
+            arr = np.arange(n_els, dtype=dtype).reshape(shape)
             data = arr.tostring(order=self.array_order)
             hdr = self.header_class()
             hdr.set_data_dtype(dtype)
@@ -263,6 +263,13 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                             new_hdr)
                 params = params.copy()
                 yield fname_func, params
+
+    def validate_dtype(self, pmaker, params):
+        # Read-only dtype attribute
+        prox, fio, hdr = pmaker()
+        assert_dt_equal(prox.dtype, params['dtype'])
+        assert_raises(AttributeError,
+                      prox.__setattr__, 'dtype', np.dtype(prox.dtype))
 
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset
