@@ -650,14 +650,27 @@ class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2BrainModel(xml.XmlSerializable):
+    '''
+    BrainModel element representing a mapping of the dimension to vertex or voxels.
+    Mapping to vertices of voxels must be specified.
 
-    # index_offset = int
-    # index_count = int
-    # model_type = str
-    # brain_structure = str
-    # surface_number_of_vertices = int
-    # voxel_indices_ijk = np.array
-    # vertex_indices = np.array
+    Attributes
+    ----------
+        index_offset : int
+            Start of the mapping
+        index_count : int
+            Number of elements in the array to be mapped
+        model_type : str
+            One of CIFTI_MODEL_TYPES
+        brain_structure : str
+            One of CIFTI_BrainStructures
+        surface_number_of_vertices : int
+            Number of vertices in the surface. Use only for surface-type structure
+        voxel_indices_ijk : Cifti2VoxelIndicesIJK, optional
+            Indices on the image towards where the array indices are mapped
+        vertex_indices : Cifti2VertexIndices, optional
+            Indices of the vertices towards where the array indices are mapped
+    '''
 
     def __init__(self, index_offset=None, index_count=None, model_type=None,
                  brain_structure=None, n_surface_vertices=None,
