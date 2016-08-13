@@ -952,11 +952,6 @@ class Cifti2Image(FileBasedImage):
            Object containg image data.  It should be some object that retuns an
            array from ``np.asanyarray``.  It should have a ``shape`` attribute
            or property
-        affine : None or (4,4) array-like
-           homogenous affine giving relationship between voxel coordinates and
-           world coordinates.  Affine can also be None.  In this case,
-           ``obj.affine`` also returns None, and the affine as written to disk
-           will depend on the file format.
         header : Cifti2Header object
         nifti_header : None or mapping or nifti2 header instance, optional
            metadata for this image format
