@@ -867,6 +867,23 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
+    """ CIFTI2 Matrix object
+
+    This is a list-like container where the elements are instances of
+    :class:`Cifti2MatrixIndicesMap`.
+
+    * Description: contains child elements that describe the meaning of the
+      values in the matrix.
+    * Attributes: [NA]
+    * Child Elements
+    * MetaData (0 .. 1)
+    * MatrixIndicesMap (1 .. N)
+    * Text Content: [NA]
+    * Parent Element: CIFTI
+
+    For each matrix (data) dimension, exactly one MatrixIndicesMap element must
+    list it in the AppliesToMatrixDimension attribute.
+    """
     def __init__(self):
         self._mims = []
         self.metadata = None
@@ -909,11 +926,9 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         self._mims.insert(index, value)
 
     def _to_xml_element(self):
-        if (len(self) == 0 and self.metadata is None):
-            raise CIFTI2HeaderError(
-                'Matrix element requires either a MatrixIndicesMap or a Metadata element'
-            )
-
+        # From the spec: "For each matrix dimension, exactly one
+        # MatrixIndicesMap element must list it in the AppliesToMatrixDimension
+        # attribute."
         mat = xml.Element('Matrix')
         if self.metadata:
             mat.append(self.metadata._to_xml_element())
@@ -970,9 +985,9 @@ class Cifti2Image(DataobjImage):
         Parameters
         ----------
         dataobj : object
-            Object containing image data.  It should be some object that returns
-            an array from ``np.asanyarray``.  It should have a ``shape``
-            attribute or property.
+            Object containing image data.  It should be some object that
+            returns an array from ``np.asanyarray``.  It should have a
+            ``shape`` attribute or property.
         header : Cifti2Header instance
             Header with data for / from XML part of CIFTI2 format.
         nifti_header : None or mapping or NIfTI2 header instance, optional
@@ -985,6 +1000,11 @@ class Cifti2Image(DataobjImage):
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
         self._nifti_header = Nifti2Header.from_header(nifti_header)
+        # if NIfTI header not specified, get data type from input array
+        if nifti_header is None:
+            if hasattr(dataobj, 'dtype'):
+                self._nifti_header.set_data_dtype(dataobj.dtype)
+        self.update_headers()
 
     @property
     def nifti_header(self):
@@ -1055,6 +1075,7 @@ class Cifti2Image(DataobjImage):
         None
         """
         from .parse_cifti2 import Cifti2Extension
+        self.update_headers()
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
@@ -1065,6 +1086,26 @@ class Cifti2Image(DataobjImage):
             header['pixdim'][:4] = 1
         img = Nifti2Image(data, None, header)
         img.to_file_map(file_map or self.file_map)
+
+    def update_headers(self):
+        ''' Harmonize CIFTI2 and NIfTI headers with image data
+
+        >>> import numpy as np
+        >>> data = np.zeros((2,3,4))
+        >>> img = Cifti2Image(data)
+        >>> img.shape == (2, 3, 4)
+        True
+        >>> img.update_headers()
+        >>> img.nifti_header.get_data_shape() == (2, 3, 4)
+        True
+        '''
+        self._nifti_header.set_data_shape(self._dataobj.shape)
+
+    def get_data_dtype(self):
+        return self._nifti_header.get_data_dtype()
+
+    def set_data_dtype(self, dtype):
+        self._nifti_header.set_data_dtype(dtype)
 
 
 def load(filename):

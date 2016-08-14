@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 import numpy as np
 
 from nibabel import cifti2 as ci
+from nibabel.nifti2 import Nifti2Header
 from nibabel.cifti2.cifti2 import _float_01
 
 from nose.tools import assert_true, assert_equal, assert_raises, assert_is_none
@@ -292,3 +293,19 @@ def test_underscoring():
 
     for camel, underscored in pairs:
         assert_equal(ci.cifti2._underscore(camel), underscored)
+
+
+class TestCifti2ImageAPI(_TDA):
+    """ Basic validation for Cifti2Image instances
+    """
+    # A callable returning an image from ``image_maker(data, header)``
+    image_maker = ci.Cifti2Image
+    # A callable returning a header from ``header_maker()``
+    header_maker = ci.Cifti2Header
+    # A callable returning a nifti header
+    ni_header_maker = Nifti2Header
+    example_shapes = ((2,), (2, 3), (2, 3, 4))
+    standard_extension = '.nii'
+
+    def make_imaker(self, arr, header=None, ni_header=None):
+        return lambda: self.image_maker(arr.copy(), header, ni_header)

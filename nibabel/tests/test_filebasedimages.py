@@ -60,15 +60,15 @@ class TestFBImageAPI(GenericImageAPI):
     can_save = True
     standard_extension = '.npy'
 
+    def make_imaker(self, arr, header=None):
+        return lambda: self.image_maker(arr, header)
+
     def obj_params(self):
         # Create new images
-        def make_imaker(arr, header=None):
-            return lambda: self.image_maker(arr, header)
-
         for shape, dtype in product(self.example_shapes, self.example_dtypes):
             arr = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
             hdr = self.header_maker()
-            func = make_imaker(arr.copy(), hdr)
+            func = self.make_imaker(arr.copy(), hdr)
             params = dict(
                 dtype=dtype,
                 data=arr,
