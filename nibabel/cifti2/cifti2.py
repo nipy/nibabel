@@ -12,10 +12,12 @@ Format of the NIFTI2 container format described here:
 
     http://www.nitrc.org/forum/message.php?msg_id=3738
 
-Definition of the CIFTI2 header format and file extensions here:
+Definition of the CIFTI2 header format and file extensions attached to this
+email:
 
-    https://www.nitrc.org/forum/attachment.php?attachid=333&group_id=454&forum_id=1955
+    http://www.nitrc.org/forum/forum.php?thread_id=4380&forum_id=1955
 
+Filename is ``CIFTI-2_Main_FINAL_1March2014.pdf``.
 '''
 from __future__ import division, print_function, absolute_import
 import re
@@ -103,6 +105,18 @@ def _underscore(string):
 class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     """ A list of name-value pairs
 
+    * Description - Provides a simple method for user-supplied metadata that
+      associates names with values.
+    * Attributes: [NA]
+    * Child Elements
+
+        * MD (0...N)
+
+    * Text Content: [NA]
+    * Parent Elements - Matrix, NamedMap
+
+    MD elements are a single metadata entry consisting of a name and a value.
+
     Attributes
     ----------
     data : list of (name, value) tuples
@@ -159,6 +173,16 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
 
 class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
     """ Cifti2 label table: a sequence of ``Cifti2Label``s
+
+    * Description - Used by NamedMap when IndicesMapToDataType is
+      "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
+      with label keys. Note that LABELS is the only mapping type that uses a
+      LabelTable. Display coloring of continuous-valued data is not specified
+      by CIFTI-2.
+    * Attributes: [NA]
+    * Child Elements - Label (0...N)
+    * Text Content: [NA]
+    * Parent Element - NamedMap
     """
 
     def __init__(self):
@@ -205,8 +229,25 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
 class Cifti2Label(xml.XmlSerializable):
     """ Cifti2 label: association of integer key with a name and RGBA values
 
-    Attribute descriptions are from the CIFTI-2 spec dated 2014-03-01.
     For all color components, value is floating point with range 0.0 to 1.0.
+
+    * Description - Associates a label key value with a name and a display
+      color.
+    * Attributes
+
+        * Key - Integer, data value which is assigned this name and color.
+        * Red - Red color component for label. Value is floating point with
+          range 0.0 to 1.0.
+        * Green - Green color component for label. Value is floating point with
+          range 0.0 to 1.0.
+        * Blue - Blue color component for label. Value is floating point with
+          range 0.0 to 1.0.
+        * Alpha - Alpha color component for label. Value is floating point with
+          range 0.0 to 1.0.
+
+    * Child Elements: [NA]
+    * Text Content - Name of the label.
+    * Parent Element - LabelTable
 
     Attributes
     ----------
@@ -268,6 +309,18 @@ class Cifti2NamedMap(xml.XmlSerializable):
 
     Associates a name, optional metadata, and possibly a LabelTable with an
     index in a map.
+
+    * Description - Associates a name, optional metadata, and possibly a
+      LabelTable with an index in a map.
+    * Attributes: [NA]
+    * Child Elements
+
+        * MapName (1)
+        * LabelTable (0...1)
+        * MetaData (0...1)
+
+    * Text Content: [NA]
+    * Parent Element - MatrixIndicesMap
 
     Attributes
     ----------
@@ -333,10 +386,21 @@ class Cifti2NamedMap(xml.XmlSerializable):
 class Cifti2Surface(xml.XmlSerializable):
     """Cifti surface: association of brain structure and number of vertices
 
-    "Specifies the number of vertices for a surface, when IndicesMapToDataType
-    is 'CIFTI_INDEX_TYPE_PARCELS.' This is separate from the Parcel element
-    because there can be multiple parcels on one surface, and one parcel may
-    involve multiple surfaces."
+    * Description - Specifies the number of vertices for a surface, when
+      IndicesMapToDataType is "CIFTI_INDEX_TYPE_PARCELS." This is separate from
+      the Parcel element because there can be multiple parcels on one surface,
+      and one parcel may involve multiple surfaces.
+    * Attributes
+
+        * BrainStructure - A string from the BrainStructure list to identify
+          what surface structure this element refers to (usually left cortex,
+          right cortex, or cerebellum).
+        * SurfaceNumberOfVertices - The number of vertices that this
+          structure's surface contains.
+
+    * Child Elements: [NA]
+    * Text Content: [NA]
+    * Parent Element - MatrixIndicesMap
 
     Attributes
     ----------
@@ -361,10 +425,18 @@ class Cifti2Surface(xml.XmlSerializable):
 class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
     """Cifti2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
-    "Identifies the voxels that model a brain structure, or participate in a
-    parcel. Note that when this is a child of BrainModel, the IndexCount
-    attribute of the BrainModel indicates the number of voxels contained in
-    this element."
+    * Description - Identifies the voxels that model a brain structure, or
+      participate in a parcel. Note that when this is a child of BrainModel,
+      the IndexCount attribute of the BrainModel indicates the number of voxels
+      contained in this element.
+    * Attributes: [NA]
+    * Child Elements: [NA]
+    * Text Content - IJK indices (which are zero-based) of each voxel in this
+      brain model or parcel, with each index separated by a whitespace
+      character. There are three indices per voxel.  If the parent element is
+      BrainModel, then the BrainModel element's IndexCount attribute indicates
+      the number of triplets (IJK indices) in this element's content.
+    * Parent Elements - BrainModel, Parcel
 
     Each element of this sequence is a triple of integers.
     """
@@ -435,12 +507,21 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
 class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
     """Cifti2 vertices - association of brain structure and a list of vertices
 
-    "Contains a BrainStructure type and a list of vertex indices within a
-    Parcel."
+    * Description - Contains a BrainStructure type and a list of vertex indices
+      within a Parcel.
+    * Attributes
 
-    Attribute descriptions are from the CIFTI-2 spec dated 2014-03-01.
-    The class behaves like a list of Vertex indices
-    (which are independent for each surface, and zero-based)
+        * BrainStructure - A string from the BrainStructure list to identify
+          what surface this vertex list is from (usually left cortex, right
+          cortex, or cerebellum).
+
+    * Child Elements: [NA]
+    * Text Content - Vertex indices (which are independent for each surface,
+      and zero-based) separated by whitespace characters.
+    * Parent Element - Parcel
+
+    The class behaves like a list of Vertex indices (which are independent for
+    each surface, and zero-based)
 
     Attributes
     ----------
@@ -491,6 +572,20 @@ class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
 
 class Cifti2Parcel(xml.XmlSerializable):
     """Cifti2 parcel: association of a name with vertices and/or voxels
+
+    * Description - Associates a name, plus vertices and/or voxels, with an
+      index.
+    * Attributes
+
+        * Name - The name of the parcel
+
+    * Child Elements
+
+        * Vertices (0...N)
+        * VoxelIndicesIJK (0...1)
+
+    * Text Content: [NA]
+    * Parent Element - MatrixIndicesMap
 
     Attributes
     ----------
@@ -545,15 +640,27 @@ class Cifti2Parcel(xml.XmlSerializable):
 class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
     """Matrix that translates voxel indices to spatial coordinates
 
+    * Description - Contains a matrix that translates Voxel IJK Indices to
+      spatial XYZ coordinates (+X=>right, +Y=>anterior, +Z=> superior). The
+      resulting coordinate is the center of the voxel.
+    * Attributes
+
+        * MeterExponent - Integer, specifies that the coordinate result from
+          the transformation matrix should be multiplied by 10 to this power to
+          get the spatial coordinates in meters (e.g., if this is "-3", then
+          the transformation matrix is in millimeters).
+
+    * Child Elements: [NA]
+    * Text Content - Sixteen floating-point values, in row-major order, that
+      form a 4x4 homogeneous transformation matrix.
+    *  Parent Element - Volume
+
     Attributes
     ----------
     meter_exponent : int
-        "[S]pecifies that the coordinate result from the transformation matrix
-        should be multiplied by 10 to this power to get the spatial coordinates
-        in meters (e.g., if this is '-3', then the transformation matrix is in
-        millimeters)."
+        See attribute description above.
     matrix : array-like shape (4, 4)
-        Affine transformation matrix from voxel indices to RAS space
+        Affine transformation matrix from voxel indices to RAS space.
     """
     # meterExponent = int
     # matrix = np.array
@@ -577,13 +684,27 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
 class Cifti2Volume(xml.XmlSerializable):
     """Cifti2 volume: information about a volume for mappings that use voxels
 
+    * Description - Provides information about the volume for any mappings that
+      use voxels.
+    * Attributes
+
+        * VolumeDimensions - Three integer values separated by commas, the
+          lengths of the three volume file dimensions that are related to
+          spatial coordinates, in number of voxels. Voxel indices (which are
+          zero-based) that are used in the mapping that this element applies to
+          must be within these dimensions.
+
+    * Child Elements
+
+        * TransformationMatrixVoxelIndicesIJKtoXYZ (1)
+
+    * Text Content: [NA]
+    * Parent Element - MatrixIndicesMap
+
     Attributes
     ----------
     volume_dimensions : array-like shape (3,)
-        "[T]he lengthss of the three volume file dimensions that are related to
-        spatial coordinates, in number of voxels. Voxel indices (which are
-        zero-based) that are used in the mapping that this element applies to
-        must be within these dimensions."
+        See attribute description above.
     transformation_matrix_voxel_indices_ijk_to_xyz \
         : Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ
         Matrix that translates voxel indices to spatial coordinates
@@ -609,6 +730,17 @@ class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
     The vertex indices (which are independent for each surface, and
     zero-based) that are used in this brain model[.] The parent
     BrainModel's ``index_count`` indicates the number of indices.
+
+    * Description - Contains a list of vertex indices for a BrainModel with
+      ModelType equal to CIFTI_MODEL_TYPE_SURFACE.
+    * Attributes: [NA]
+    * Child Elements: [NA]
+    * Text Content - The vertex indices (which are independent for each
+      surface, and zero-based) that are used in this brain model, with each
+      index separated by a whitespace character.  The parent BrainModel's
+      IndexCount attribute indicates the number of indices in this element's
+      content.
+    * Parent Element - BrainModel
     """
     def __init__(self, indices=None):
         self._indices = []
@@ -648,26 +780,106 @@ class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2BrainModel(xml.XmlSerializable):
-    '''
-    BrainModel element representing a mapping of the dimension to vertex or voxels.
+    ''' Element representing a mapping of the dimension to vertex or voxels.
+
     Mapping to vertices of voxels must be specified.
+
+    * Description - Maps a range of indices to surface vertices or voxels when
+      IndicesMapToDataType is "CIFTI_INDEX_TYPE_BRAIN_MODELS."
+    * Attributes
+
+        * IndexOffset - The matrix index of the first brainordinate of this
+          BrainModel. Note that matrix indices are zero-based.
+        * IndexCount - Number of surface vertices or voxels in this brain
+          model, must be positive.
+        * ModelType - Type of model representing the brain structure (surface
+        * or voxels).  Valid values are listed in the table below.
+        * BrainStructure - Identifies the brain structure. Valid values for
+          BrainStructure are listed in the table below. However, if the needed
+          structure is not listed in the table, a message should be posted to
+          the CIFTI Forum so that a standardized name can be created for the
+          structure and added to the table.
+        * SurfaceNumberOfVertices - When ModelType is CIFTI_MODEL_TYPE_SURFACE
+          this attribute contains the actual (or true) number of vertices in
+          the surface that is associated with this BrainModel. When this
+          BrainModel represents all vertices in the surface, this value is the
+          same as IndexCount. When this BrainModel represents only a subset of
+          the surface's vertices, IndexCount will be less than this value.
+
+    * Child Elements
+
+        * VertexIndices (0...1)
+        * VoxelIndicesIJK (0...1)
+
+    * Text Content: [NA]
+    * Parent Element - MatrixIndicesMap
+
+    ModelType Values
+    ----------------
+
+    =========================  ================================
+    ModelType                  Description
+    =========================  ================================
+    CIFTI_MODEL_TYPE_SURFACE   Modeled using surface vertices.
+    CIFTI_MODEL_TYPE_VOXELS    Modeled using voxels.
+    =========================  ================================
+
+    BrainStructure Values
+    ---------------------
+
+    =============================================
+    BrainStructure
+    =============================================
+    CIFTI_STRUCTURE_ACCUMBENS_LEFT
+    CIFTI_STRUCTURE_ACCUMBENS_RIGHT
+    CIFTI_STRUCTURE_ALL_WHITE_MATTER
+    CIFTI_STRUCTURE_ALL_GREY_MATTER
+    CIFTI_STRUCTURE_AMYGDALA_LEFT
+    CIFTI_STRUCTURE_AMYGDALA_RIGHT
+    CIFTI_STRUCTURE_BRAIN_STEM
+    CIFTI_STRUCTURE_CAUDATE_LEFT
+    CIFTI_STRUCTURE_CAUDATE_RIGHT
+    CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_LEFT
+    CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_RIGHT
+    CIFTI_STRUCTURE_CEREBELLUM
+    CIFTI_STRUCTURE_CEREBELLUM_LEFT
+    CIFTI_STRUCTURE_CEREBELLUM_RIGHT
+    CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_LEFT
+    CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_RIGHT
+    CIFTI_STRUCTURE_CORTEX
+    CIFTI_STRUCTURE_CORTEX_LEFT
+    CIFTI_STRUCTURE_CORTEX_RIGHT
+    CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT
+    CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT
+    CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT
+    CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT
+    CIFTI_STRUCTURE_OTHER
+    CIFTI_STRUCTURE_OTHER_GREY_MATTER
+    CIFTI_STRUCTURE_OTHER_WHITE_MATTER
+    CIFTI_STRUCTURE_PALLIDUM_LEFT
+    CIFTI_STRUCTURE_PALLIDUM_RIGHT
+    CIFTI_STRUCTURE_PUTAMEN_LEFT
+    CIFTI_STRUCTURE_PUTAMEN_RIGHT
+    CIFTI_STRUCTURE_THALAMUS_LEFT
+    CIFTI_STRUCTURE_THALAMUS_RIGHT
+    =============================================
 
     Attributes
     ----------
-        index_offset : int
-            Start of the mapping
-        index_count : int
-            Number of elements in the array to be mapped
-        model_type : str
-            One of CIFTI_MODEL_TYPES
-        brain_structure : str
-            One of CIFTI_BrainStructures
-        surface_number_of_vertices : int
-            Number of vertices in the surface. Use only for surface-type structure
-        voxel_indices_ijk : Cifti2VoxelIndicesIJK, optional
-            Indices on the image towards where the array indices are mapped
-        vertex_indices : Cifti2VertexIndices, optional
-            Indices of the vertices towards where the array indices are mapped
+    index_offset : int
+        Start of the mapping
+    index_count : int
+        Number of elements in the array to be mapped
+    model_type : str
+        One of CIFTI_MODEL_TYPES
+    brain_structure : str
+        One of CIFTI_BrainStructures
+    surface_number_of_vertices : int
+        Number of vertices in the surface. Use only for surface-type structure
+    voxel_indices_ijk : Cifti2VoxelIndicesIJK, optional
+        Indices on the image towards where the array indices are mapped
+    vertex_indices : Cifti2VertexIndices, optional
+        Indices of the vertices towards where the array indices are mapped
     '''
 
     def __init__(self, index_offset=None, index_count=None, model_type=None,
@@ -717,24 +929,59 @@ class Cifti2BrainModel(xml.XmlSerializable):
 class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
     """Class for Matrix Indices Map
 
-    Provides a mapping between matrix indices and their interpretation.
+    * Description - Provides a mapping between matrix indices and their
+      interpretation.
+    * Attributes
+
+        * AppliesToMatrixDimension - Lists the dimension(s) of the matrix to
+          which this MatrixIndicesMap applies. The dimensions of the matrix
+          start at zero (dimension 0 describes the indices along the first
+          dimension, dimension 1 describes the indices along the second
+          dimension, etc.). If this MatrixIndicesMap applies to more than one
+          matrix dimension, the values are separated by a comma.
+        * IndicesMapToDataType - Type of data to which the MatrixIndicesMap
+          applies.
+        * NumberOfSeriesPoints - Indicates how many samples there are in a
+          series mapping type. For example, this could be the number of
+          timepoints in a timeseries.
+        * SeriesExponent - Integer, SeriesStart and SeriesStep must be
+          multiplied by 10 raised to the power of the value of this attribute
+          to give the actual values assigned to indices (e.g., if SeriesStart
+          is "5" and SeriesExponent is "-3", the value of the first series
+          point is 0.005).
+        * SeriesStart - Indicates what quantity should be assigned to the first
+          series point.
+        * SeriesStep - Indicates amount of change between each series point.
+        * SeriesUnit - Indicates the unit of the result of multiplying
+          SeriesStart and SeriesStep by 10 to the power of SeriesExponent.
+
+    * Child Elements
+
+        * BrainModel (0...N)
+        * NamedMap (0...N)
+        * Parcel (0...N)
+        * Surface (0...N)
+        * Volume (0...1)
+
+    * Text Content: [NA]
+    * Parent Element - Matrix
 
     Attribute
     ---------
-        applies_to_matrix_dimension : list of ints
-            Dimensions of this matrix that follow this mapping
-        indices_map_to_data_type : str one of CIFTI_MAP_TYPES
-            Type of mapping to the matrix indices
-        number_of_series_points : int, optional
-            If it is a series, number of points in the series
-        series_exponent : int, optional
-            If it is a series the exponent of the increment
-        series_start : float, optional
-            If it is a series, starting time
-        series_step : float, optional
-            If it is a series, step per element
-        series_unit : str, optional
-            If it is a series, units
+    applies_to_matrix_dimension : list of ints
+        Dimensions of this matrix that follow this mapping
+    indices_map_to_data_type : str one of CIFTI_MAP_TYPES
+        Type of mapping to the matrix indices
+    number_of_series_points : int, optional
+        If it is a series, number of points in the series
+    series_exponent : int, optional
+        If it is a series the exponent of the increment
+    series_start : float, optional
+        If it is a series, starting time
+    series_step : float, optional
+        If it is a series, step per element
+    series_unit : str, optional
+        If it is a series, units
     """
     _valid_type_mappings_ = {
         Cifti2BrainModel: ('CIFTI_INDEX_TYPE_BRAIN_MODELS',),
@@ -876,8 +1123,10 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
       values in the matrix.
     * Attributes: [NA]
     * Child Elements
-    * MetaData (0 .. 1)
-    * MatrixIndicesMap (1 .. N)
+
+        * MetaData (0 .. 1)
+        * MatrixIndicesMap (1 .. N)
+
     * Text Content: [NA]
     * Parent Element: CIFTI
 
