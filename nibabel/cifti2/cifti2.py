@@ -174,7 +174,7 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
 
 
 class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
-    """ Cifti2 label table: a sequence of ``Cifti2Label``s
+    """ CIFTI2 label table: a sequence of ``Cifti2Label``s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
       "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
@@ -232,7 +232,7 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
 
 
 class Cifti2Label(xml.XmlSerializable):
-    """ Cifti2 label: association of integer key with a name and RGBA values
+    """ CIFTI2 label: association of integer key with a name and RGBA values
 
     For all color components, value is floating point with range 0.0 to 1.0.
 
@@ -310,7 +310,7 @@ class Cifti2Label(xml.XmlSerializable):
 
 
 class Cifti2NamedMap(xml.XmlSerializable):
-    """Cifti2 named map: association of name and optional data with a map index
+    """CIFTI2 named map: association of name and optional data with a map index
 
     Associates a name, optional metadata, and possibly a LabelTable with an
     index in a map.
@@ -428,7 +428,7 @@ class Cifti2Surface(xml.XmlSerializable):
 
 
 class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
-    """Cifti2 VoxelIndicesIJK: Set of voxel indices contained in a structure
+    """CIFTI2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
     * Description - Identifies the voxels that model a brain structure, or
       participate in a parcel. Note that when this is a child of BrainModel,
@@ -510,7 +510,7 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
-    """Cifti2 vertices - association of brain structure and a list of vertices
+    """CIFTI2 vertices - association of brain structure and a list of vertices
 
     * Description - Contains a BrainStructure type and a list of vertex indices
       within a Parcel.
@@ -576,7 +576,7 @@ class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2Parcel(xml.XmlSerializable):
-    """Cifti2 parcel: association of a name with vertices and/or voxels
+    """CIFTI2 parcel: association of a name with vertices and/or voxels
 
     * Description - Associates a name, plus vertices and/or voxels, with an
       index.
@@ -687,7 +687,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
 
 
 class Cifti2Volume(xml.XmlSerializable):
-    """Cifti2 volume: information about a volume for mappings that use voxels
+    """CIFTI2 volume: information about a volume for mappings that use voxels
 
     * Description - Provides information about the volume for any mappings that
       use voxels.
@@ -730,7 +730,7 @@ class Cifti2Volume(xml.XmlSerializable):
 
 
 class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
-    """Cifti2 vertex indices: vertex indices for an associated brain model
+    """CIFTI2 vertex indices: vertex indices for an associated brain model
 
     The vertex indices (which are independent for each surface, and
     zero-based) that are used in this brain model[.] The parent
@@ -1146,7 +1146,7 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
 
 
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
-    ''' Class for Cifti2 header extension '''
+    ''' Class for CIFTI2 header extension '''
 
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
@@ -1220,7 +1220,7 @@ class Cifti2Image(DataobjImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        """ Load a Cifti2 image from a file_map
+        """ Load a CIFTI2 image from a file_map
 
         Parameters
         ----------
