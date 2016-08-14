@@ -18,7 +18,7 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
                      Cifti2Surface, Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
-                     CIFTI_MODEL_TYPES, _underscore, CIFTI2HeaderError)
+                     CIFTI_MODEL_TYPES, _underscore, Cifti2HeaderError)
 from .. import xmlutils as xml
 from ..spatialimages import HeaderDataError
 from ..externals.six import BytesIO
@@ -186,7 +186,7 @@ class Cifti2Parser(xml.XmlParser):
             matrix = Cifti2Matrix()
             parent = self.struct_state[-1]
             if not isinstance(parent, Cifti2Header):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Matrix element can only be a child of the CIFTI2 Header element'
                 )
             parent.matrix = matrix
@@ -197,7 +197,7 @@ class Cifti2Parser(xml.XmlParser):
             meta = Cifti2MetaData()
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Matrix, Cifti2NamedMap)):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'MetaData element can only be a child of the CIFTI2 Matrix or NamedMap elements'
                 )
 
@@ -229,7 +229,7 @@ class Cifti2Parser(xml.XmlParser):
                     setattr(mim, _underscore(key), dtype(attrs[key]))
             matrix = self.struct_state[-1]
             if not isinstance(matrix, Cifti2Matrix):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'MatrixIndicesMap element can only be a child of the CIFTI2 Matrix element'
                 )
             matrix.append(mim)
@@ -240,7 +240,7 @@ class Cifti2Parser(xml.XmlParser):
             named_map = Cifti2NamedMap()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'NamedMap element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             self.struct_state.append(named_map)
@@ -250,13 +250,13 @@ class Cifti2Parser(xml.XmlParser):
             named_map = self.struct_state[-1]
             mim = self.struct_state[-2]
             if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_LABELS":
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'LabelTable element can only be a child of a MatrixIndicesMap '
                     'with CIFTI_INDEX_TYPE_LABELS type'
                 )
             lata = Cifti2LabelTable()
             if not isinstance(named_map, Cifti2NamedMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'LabelTable element can only be a child of the CIFTI2 NamedMap element'
                 )
             self.fsm_state.append('LabelTable')
@@ -266,7 +266,7 @@ class Cifti2Parser(xml.XmlParser):
         elif name == 'Label':
             lata = self.struct_state[-1]
             if not isinstance(lata, Cifti2LabelTable):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Label element can only be a child of the CIFTI2 LabelTable element'
                 )
             label = Cifti2Label()
@@ -282,7 +282,7 @@ class Cifti2Parser(xml.XmlParser):
         elif name == "MapName":
             named_map = self.struct_state[-1]
             if not isinstance(named_map, Cifti2NamedMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'MapName element can only be a child of the CIFTI2 NamedMap element'
                 )
 
@@ -293,11 +293,11 @@ class Cifti2Parser(xml.XmlParser):
             surface = Cifti2Surface()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Surface element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_PARCELS":
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Surface element can only be a child of a MatrixIndicesMap '
                     'with CIFTI_INDEX_TYPE_PARCELS type'
                 )
@@ -309,7 +309,7 @@ class Cifti2Parser(xml.XmlParser):
             parcel = Cifti2Parcel()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Parcel element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             parcel.name = attrs["Name"]
@@ -321,12 +321,12 @@ class Cifti2Parser(xml.XmlParser):
             vertices = Cifti2Vertices()
             parcel = self.struct_state[-1]
             if not isinstance(parcel, Cifti2Parcel):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Vertices element can only be a child of the CIFTI2 Parcel element'
                 )
             vertices.brain_structure = attrs["BrainStructure"]
             if vertices.brain_structure not in CIFTI_BRAIN_STRUCTURES:
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'BrainStructure for this Vertices element is not valid'
                 )
             parcel.append_cifti_vertices(vertices)
@@ -337,7 +337,7 @@ class Cifti2Parser(xml.XmlParser):
         elif name == "VoxelIndicesIJK":
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Parcel, Cifti2BrainModel)):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'VoxelIndicesIJK element can only be a child of the CIFTI2 '
                     'Parcel or BrainModel elements'
                 )
@@ -347,7 +347,7 @@ class Cifti2Parser(xml.XmlParser):
         elif name == "Volume":
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Volume element can only be a child of the CIFTI2 MatrixIndicesMap element'
                 )
             dimensions = tuple([int(val) for val in
@@ -360,7 +360,7 @@ class Cifti2Parser(xml.XmlParser):
         elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
             volume = self.struct_state[-1]
             if not isinstance(volume, Cifti2Volume):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'TransformationMatrixVoxelIndicesIJKtoXYZ element can only be a child '
                     'of the CIFTI2 Volume element'
                 )
@@ -375,12 +375,12 @@ class Cifti2Parser(xml.XmlParser):
             model = Cifti2BrainModel()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'BrainModel element can only be a child '
                     'of the CIFTI2 MatrixIndicesMap element'
                 )
             if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_BRAIN_MODELS":
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'BrainModel element can only be a child of a MatrixIndicesMap '
                     'with CIFTI_INDEX_TYPE_BRAIN_MODELS type'
                 )
@@ -392,11 +392,11 @@ class Cifti2Parser(xml.XmlParser):
                 if key in attrs:
                     setattr(model, _underscore(key), dtype(attrs[key]))
             if model.brain_structure not in CIFTI_BRAIN_STRUCTURES:
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'BrainStructure for this BrainModel element is not valid'
                 )
             if model.model_type not in CIFTI_MODEL_TYPES:
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'ModelType for this BrainModel element is not valid'
                 )
             mim.append(model)
@@ -407,7 +407,7 @@ class Cifti2Parser(xml.XmlParser):
             index = Cifti2VertexIndices()
             model = self.struct_state[-1]
             if not isinstance(model, Cifti2BrainModel):
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'VertexIndices element can only be a child '
                     'of the CIFTI2 BrainModel element'
                 )

@@ -37,7 +37,7 @@ def _float_01(val):
     return out
 
 
-class CIFTI2HeaderError(Exception):
+class Cifti2HeaderError(Exception):
     """ Error in CIFTI2 header
     """
 
@@ -224,7 +224,7 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
 
     def _to_xml_element(self):
         if len(self) == 0:
-            raise CIFTI2HeaderError('LabelTable element requires at least 1 label')
+            raise Cifti2HeaderError('LabelTable element requires at least 1 label')
         labeltable = xml.Element('LabelTable')
         for ele in self._labels.values():
             labeltable.append(ele._to_xml_element())
@@ -284,16 +284,16 @@ class Cifti2Label(xml.XmlSerializable):
 
     def _to_xml_element(self):
         if self.label is '':
-            raise CIFTI2HeaderError('Label needs a name')
+            raise Cifti2HeaderError('Label needs a name')
         try:
             v = int(self.key)
         except ValueError:
-            raise CIFTI2HeaderError('The key must be an integer')
+            raise Cifti2HeaderError('The key must be an integer')
         for c_ in ('red', 'blue', 'green', 'alpha'):
             try:
                 v = _float_01(getattr(self, c_))
             except ValueError:
-                raise CIFTI2HeaderError(
+                raise Cifti2HeaderError(
                     'Label invalid %s needs to be a float between 0 and 1. '
                     'and it is %s' % (c_, v)
                 )
@@ -420,7 +420,7 @@ class Cifti2Surface(xml.XmlSerializable):
 
     def _to_xml_element(self):
         if self.brain_structure is None:
-            raise CIFTI2HeaderError('Surface element requires at least 1 BrainStructure')
+            raise Cifti2HeaderError('Surface element requires at least 1 BrainStructure')
         surf = xml.Element('Surface')
         surf.attrib['BrainStructure'] = str(self.brain_structure)
         surf.attrib['SurfaceNumberOfVertices'] = str(self.surface_number_of_vertices)
@@ -501,7 +501,7 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
 
     def _to_xml_element(self):
         if len(self) == 0:
-            raise CIFTI2HeaderError('VoxelIndicesIJK element require an index table')
+            raise Cifti2HeaderError('VoxelIndicesIJK element require an index table')
 
         vox_ind = xml.Element('VoxelIndicesIJK')
         vox_ind.text = '\n'.join(' '.join([str(v) for v in row])
@@ -566,7 +566,7 @@ class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
 
     def _to_xml_element(self):
         if self.brain_structure is None:
-            raise CIFTI2HeaderError('Vertices element require a BrainStructure')
+            raise Cifti2HeaderError('Vertices element require a BrainStructure')
 
         vertices = xml.Element('Vertices')
         vertices.attrib['BrainStructure'] = str(self.brain_structure)
@@ -631,7 +631,7 @@ class Cifti2Parcel(xml.XmlSerializable):
 
     def _to_xml_element(self):
         if self.name is None:
-            raise CIFTI2HeaderError('Parcel element requires a name')
+            raise Cifti2HeaderError('Parcel element requires a name')
 
         parcel = xml.Element('Parcel')
         parcel.attrib['Name'] = str(self.name)
@@ -676,7 +676,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
 
     def _to_xml_element(self):
         if self.matrix is None:
-            raise CIFTI2HeaderError(
+            raise Cifti2HeaderError(
                 'TransformationMatrixVoxelIndicesIJKtoXYZ element requires a matrix'
             )
         trans = xml.Element('TransformationMatrixVoxelIndicesIJKtoXYZ')
@@ -720,7 +720,7 @@ class Cifti2Volume(xml.XmlSerializable):
 
     def _to_xml_element(self):
         if self.volume_dimensions is None:
-            raise CIFTI2HeaderError('Volume element requires dimensions')
+            raise Cifti2HeaderError('Volume element requires dimensions')
 
         volume = xml.Element('Volume')
         volume.attrib['VolumeDimensions'] = ','.join(
@@ -777,7 +777,7 @@ class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
 
     def _to_xml_element(self):
         if len(self) == 0:
-            raise CIFTI2HeaderError('VertexIndices element requires indices')
+            raise Cifti2HeaderError('VertexIndices element requires indices')
 
         vert_indices = xml.Element('VertexIndices')
         vert_indices.text = ' '.join([str(i) for i in self])
@@ -987,7 +987,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
                 not isinstance(self._maps[index], Cifti2Volume)
             )
         ):
-            raise CIFTI2HeaderError("Only one Volume can be in a MatrixIndicesMap")
+            raise Cifti2HeaderError("Only one Volume can be in a MatrixIndicesMap")
         self._maps[index] = value
 
     def insert(self, index, value):
@@ -995,7 +995,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
             isinstance(value, Cifti2Volume) and
             self.volume is not None
         ):
-            raise CIFTI2HeaderError("Only one Volume can be in a MatrixIndicesMap")
+            raise Cifti2HeaderError("Only one Volume can be in a MatrixIndicesMap")
 
         self._maps.insert(index, value)
 
@@ -1053,7 +1053,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
 
     def _to_xml_element(self):
         if self.applies_to_matrix_dimension is None:
-            raise CIFTI2HeaderError(
+            raise Cifti2HeaderError(
                 'MatrixIndicesMap element requires to be applied to at least 1 dimension'
             )
 

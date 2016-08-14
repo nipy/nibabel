@@ -82,7 +82,7 @@ def test__float_01():
 def test_cifti2_labeltable():
     lt = ci.Cifti2LabelTable()
     assert_equal(len(lt), 0)
-    assert_raises(ci.CIFTI2HeaderError, lt.to_xml)
+    assert_raises(ci.Cifti2HeaderError, lt.to_xml)
 
     label = ci.Cifti2Label(label='Test', key=0)
     lt[0] = label
@@ -133,23 +133,23 @@ def test_cifti2_label():
     ))
 
     lb.red = 10
-    assert_raises(ci.CIFTI2HeaderError, lb.to_xml)
+    assert_raises(ci.Cifti2HeaderError, lb.to_xml)
     lb.red = 0
 
     lb.key = 'a'
-    assert_raises(ci.CIFTI2HeaderError, lb.to_xml)
+    assert_raises(ci.Cifti2HeaderError, lb.to_xml)
     lb.key = 0
 
 
 def test_cifti2_parcel():
     pl = ci.Cifti2Parcel()
-    assert_raises(ci.CIFTI2HeaderError, pl.to_xml)
+    assert_raises(ci.Cifti2HeaderError, pl.to_xml)
     assert_raises(TypeError, pl.append_cifti_vertices, None)
 
 
 def test_cifti2_vertices():
     vs = ci.Cifti2Vertices()
-    assert_raises(ci.CIFTI2HeaderError, vs.to_xml)
+    assert_raises(ci.Cifti2HeaderError, vs.to_xml)
     vs.brain_structure = 'CIFTI_STRUCTURE_OTHER'
     assert_equal(
         vs.to_xml().decode('utf-8'),
@@ -171,23 +171,23 @@ def test_cifti2_vertices():
 
 def test_cifti2_transformationmatrixvoxelindicesijktoxyz():
     tr = ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ()
-    assert_raises(ci.CIFTI2HeaderError, tr.to_xml)
+    assert_raises(ci.Cifti2HeaderError, tr.to_xml)
 
 
 def test_cifti2_surface():
     s = ci.Cifti2Surface()
-    assert_raises(ci.CIFTI2HeaderError, s.to_xml)
+    assert_raises(ci.Cifti2HeaderError, s.to_xml)
 
 
 def test_cifti2_volume():
     vo = ci.Cifti2Volume()
-    assert_raises(ci.CIFTI2HeaderError, vo.to_xml)
+    assert_raises(ci.Cifti2HeaderError, vo.to_xml)
 
 
 def test_cifti2_vertexindices():
     vi = ci.Cifti2VertexIndices()
     assert_equal(len(vi), 0)
-    assert_raises(ci.CIFTI2HeaderError, vi.to_xml)
+    assert_raises(ci.Cifti2HeaderError, vi.to_xml)
     vi.extend(np.array([0, 1, 2]))
     assert_equal(len(vi), 3)
     assert_equal(
@@ -202,11 +202,11 @@ def test_cifti2_vertexindices():
 
 def test_cifti2_voxelindicesijk():
     vi = ci.Cifti2VoxelIndicesIJK()
-    assert_raises(ci.CIFTI2HeaderError, vi.to_xml)
+    assert_raises(ci.Cifti2HeaderError, vi.to_xml)
 
     vi = ci.Cifti2VoxelIndicesIJK()
     assert_equal(len(vi), 0)
-    assert_raises(ci.CIFTI2HeaderError, vi.to_xml)
+    assert_raises(ci.Cifti2HeaderError, vi.to_xml)
     vi.extend(np.array([[0, 1, 2]]))
     assert_equal(len(vi), 1)
     assert_equal(vi[0], [0, 1, 2])
@@ -253,8 +253,8 @@ def test_matrixindicesmap():
 
 
     assert_equal(mim.volume, volume)
-    assert_raises(ci.CIFTI2HeaderError, mim.insert, 0, volume)
-    assert_raises(ci.CIFTI2HeaderError, mim.__setitem__, 1, volume)
+    assert_raises(ci.Cifti2HeaderError, mim.insert, 0, volume)
+    assert_raises(ci.Cifti2HeaderError, mim.__setitem__, 1, volume)
 
     mim[0] = volume2
     assert_equal(mim.volume, volume2)

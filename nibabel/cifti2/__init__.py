@@ -24,4 +24,4 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Image, Cifti2Label,
                      Cifti2Surface,
                      Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
-                     CIFTI2HeaderError, CIFTI_MODEL_TYPES, load, save)
+                     Cifti2HeaderError, CIFTI_MODEL_TYPES, load, save)
