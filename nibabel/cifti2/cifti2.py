@@ -21,11 +21,11 @@ from __future__ import division, print_function, absolute_import
 import re
 import collections
 
-import numpy as np
-
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedHeader, FileBasedImage
-from ..nifti2 import Nifti2Image
+from ..filebasedimages import FileBasedHeader
+from ..dataobj_images import DataobjImage
+from ..nifti2 import Nifti2Image, Nifti2Header
+from ..arrayproxy import reshape_dataobj
 
 
 def _float_01(val):
@@ -940,21 +940,13 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         return cifti
 
     @classmethod
-    def from_header(klass, header=None):
-        if header is None:
-            return klass()
-        if type(header) == klass:
-            return header.copy()
-        raise ValueError('header is not a Cifti2Header')
-
-    @classmethod
     def may_contain_header(klass, binaryblock):
         from .parse_cifti2 import _Cifti2AsNiftiHeader
         return _Cifti2AsNiftiHeader.may_contain_header(binaryblock)
 
 
-class Cifti2Image(FileBasedImage):
-    """ Class for single file CIfTI2 format image
+class Cifti2Image(DataobjImage):
+    """ Class for single file CIFTI2 format image
     """
     header_class = Cifti2Header
     valid_exts = Nifti2Image.valid_exts
@@ -962,39 +954,48 @@ class Cifti2Image(FileBasedImage):
     makeable = False
     rw = True
 
-    def __init__(self, data=None, header=None, nifti_header=None):
+    def __init__(self,
+                 dataobj=None,
+                 header=None,
+                 nifti_header=None,
+                 extra=None,
+                 file_map=None):
         ''' Initialize image
 
-        The image is a combination of (array, affine matrix, header, nifti_header),
-        with optional metadata in `extra`, and filename / file-like objects
-        contained in the `file_map` mapping.
+        The image is a combination of (dataobj, header), with optional metadata
+        in `nifti_header` (a NIfTI2 header).  There may be more metadata in the
+        mapping `extra`. Filename / file-like objects can also go in the
+        `file_map` mapping.
 
         Parameters
         ----------
         dataobj : object
-           Object containg image data.  It should be some object that retuns an
-           array from ``np.asanyarray``.  It should have a ``shape`` attribute
-           or property
-        header : Cifti2Header object
-        nifti_header : None or mapping or nifti2 header instance, optional
-           metadata for this image format
+            Object containing image data.  It should be some object that returns
+            an array from ``np.asanyarray``.  It should have a ``shape``
+            attribute or property.
+        header : Cifti2Header instance
+            Header with data for / from XML part of CIFTI2 format.
+        nifti_header : None or mapping or NIfTI2 header instance, optional
+            Metadata for NIfTI2 component of this format.
+        extra : None or mapping
+            Extra metadata not captured by `header` or `nifti_header`.
+        file_map : mapping, optional
+            Mapping giving file information for this image format.
         '''
-        self._header = header if header is not None else Cifti2Header()
-        self.data = data
-        self.extra = nifti_header
-
-    def get_data(self):
-        return self.data
+        super(Cifti2Image, self).__init__(dataobj, header=header,
+                                          extra=extra, file_map=file_map)
+        self._nifti_header = Nifti2Header.from_header(nifti_header)
 
     @property
-    def shape(self):
-        return self.data.shape
+    def nifti_header(self):
+        return self._nifti_header
 
     @classmethod
     def from_file_map(klass, file_map):
         """ Load a Cifti2 image from a file_map
 
         Parameters
+        ----------
         file_map : file_map
 
         Returns
@@ -1011,15 +1012,16 @@ class Cifti2Image(FileBasedImage):
                 cifti_header = item.get_content()
                 break
         else:
-            raise ValueError('Nifti2 header does not contain a CIFTI2 '
+            raise ValueError('NIfTI2 header does not contain a CIFTI2 '
                              'extension')
 
-        # Construct cifti image
-        cifti_img = Cifti2Image(data=nifti_img.dataobj[0, 0, 0, 0],
-                                header=cifti_header,
-                                nifti_header=nifti_img.header)
-        cifti_img.file_map = nifti_img.file_map
-        return cifti_img
+        # Construct cifti image.
+        # User array proxy object where possible
+        dataobj = nifti_img.dataobj
+        return Cifti2Image(reshape_dataobj(dataobj, dataobj.shape[4:]),
+                           header=cifti_header,
+                           nifti_header=nifti_img.header,
+                           file_map=file_map)
 
     @classmethod
     def from_image(klass, img):
@@ -1027,35 +1029,37 @@ class Cifti2Image(FileBasedImage):
 
         Parameters
         ----------
-        img : ``spatialimage`` instance
-           In fact, an object with the API of ``FileBasedImage``.
+        img : instance
+            In fact, an object with the API of :class:`DataobjImage`.
 
         Returns
         -------
-        cimg : ``spatialimage`` instance
-           Image, of our own class
+        cimg : instance
+            Image, of our own class
         '''
         if isinstance(img, klass):
             return img
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def to_file_map(self, file_map=None):
-        """ Save the current image to the specified file_map
+        """ Write image to `file_map` or contained ``self.file_map``
 
         Parameters
         ----------
-        file_map : string
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead.
 
         Returns
         -------
         None
         """
         from .parse_cifti2 import Cifti2Extension
-        header = self.extra
+        header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
-        data = np.reshape(self.data, (1, 1, 1, 1) + self.data.shape)
+        data = reshape_dataobj(self.dataobj,
+                               (1, 1, 1, 1) + self.dataobj.shape)
         # If qform not set, reset pixdim values so Nifti2 does not complain
         if header['qform_code'] == 0:
             header['pixdim'][:4] = 1

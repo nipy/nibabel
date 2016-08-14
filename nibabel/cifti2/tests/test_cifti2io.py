@@ -58,10 +58,17 @@ def test_read_internal():
 
 
 @needs_nibabel_data('nitest-cifti2')
-def test_read():
+def test_read_and_proxies():
     img2 = nib.load(DATA_FILE6)
     assert_true(isinstance(img2.header, ci.Cifti2Header))
     assert_equal(img2.shape, (1, 91282))
+    # While we cannot reshape arrayproxies, all images are in-memory
+    assert_true(img2.in_memory)
+    data = img2.get_data()
+    assert_true(data is img2.dataobj)
+    # Uncaching has no effect, images are always array images
+    img2.uncache()
+    assert_true(data is img2.get_data())
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -95,7 +102,7 @@ def test_readwritedata():
                     else:
                         assert_equal(len(map1.label_table),
                                      len(map2.label_table))
-            assert_array_almost_equal(img.data, img2.data)
+            assert_array_almost_equal(img.dataobj, img2.dataobj)
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -122,7 +129,7 @@ def test_nibabel_readwritedata():
                     else:
                         assert_equal(len(map1.label_table),
                                      len(map2.label_table))
-            assert_array_almost_equal(img.data, img2.data)
+            assert_array_almost_equal(img.dataobj, img2.dataobj)
 
 
 @needs_nibabel_data('nitest-cifti2')
