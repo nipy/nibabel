@@ -48,46 +48,48 @@ CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_SCALARS',
                    'CIFTI_INDEX_TYPE_LABELS')
 
-CIFTI_MODEL_TYPES = ('CIFTI_MODEL_TYPE_SURFACE',
-                     'CIFTI_MODEL_TYPE_VOXELS')
+CIFTI_MODEL_TYPES = (
+    'CIFTI_MODEL_TYPE_SURFACE',  # Modeled using surface vertices
+    'CIFTI_MODEL_TYPE_VOXELS'    # Modeled using voxels.
+)
 
 CIFTI_SERIESUNIT_TYPES = ('SECOND',
                           'HERTZ',
                           'METER',
                           'RADIAN')
 
-CIFTI_BrainStructures = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
-                         'CIFTI_STRUCTURE_ACCUMBENS_RIGHT',
-                         'CIFTI_STRUCTURE_ALL_WHITE_MATTER',
-                         'CIFTI_STRUCTURE_ALL_GREY_MATTER',
-                         'CIFTI_STRUCTURE_AMYGDALA_LEFT',
-                         'CIFTI_STRUCTURE_AMYGDALA_RIGHT',
-                         'CIFTI_STRUCTURE_BRAIN_STEM',
-                         'CIFTI_STRUCTURE_CAUDATE_LEFT',
-                         'CIFTI_STRUCTURE_CAUDATE_RIGHT',
-                         'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_LEFT',
-                         'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_RIGHT',
-                         'CIFTI_STRUCTURE_CEREBELLUM',
-                         'CIFTI_STRUCTURE_CEREBELLUM_LEFT',
-                         'CIFTI_STRUCTURE_CEREBELLUM_RIGHT',
-                         'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_LEFT',
-                         'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_RIGHT',
-                         'CIFTI_STRUCTURE_CORTEX',
-                         'CIFTI_STRUCTURE_CORTEX_LEFT',
-                         'CIFTI_STRUCTURE_CORTEX_RIGHT',
-                         'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT',
-                         'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT',
-                         'CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT',
-                         'CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT',
-                         'CIFTI_STRUCTURE_OTHER',
-                         'CIFTI_STRUCTURE_OTHER_GREY_MATTER',
-                         'CIFTI_STRUCTURE_OTHER_WHITE_MATTER',
-                         'CIFTI_STRUCTURE_PALLIDUM_LEFT',
-                         'CIFTI_STRUCTURE_PALLIDUM_RIGHT',
-                         'CIFTI_STRUCTURE_PUTAMEN_LEFT',
-                         'CIFTI_STRUCTURE_PUTAMEN_RIGHT',
-                         'CIFTI_STRUCTURE_THALAMUS_LEFT',
-                         'CIFTI_STRUCTURE_THALAMUS_RIGHT')
+CIFTI_BRAIN_STRUCTURES = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
+                          'CIFTI_STRUCTURE_ACCUMBENS_RIGHT',
+                          'CIFTI_STRUCTURE_ALL_WHITE_MATTER',
+                          'CIFTI_STRUCTURE_ALL_GREY_MATTER',
+                          'CIFTI_STRUCTURE_AMYGDALA_LEFT',
+                          'CIFTI_STRUCTURE_AMYGDALA_RIGHT',
+                          'CIFTI_STRUCTURE_BRAIN_STEM',
+                          'CIFTI_STRUCTURE_CAUDATE_LEFT',
+                          'CIFTI_STRUCTURE_CAUDATE_RIGHT',
+                          'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_LEFT',
+                          'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_RIGHT',
+                          'CIFTI_STRUCTURE_CEREBELLUM',
+                          'CIFTI_STRUCTURE_CEREBELLUM_LEFT',
+                          'CIFTI_STRUCTURE_CEREBELLUM_RIGHT',
+                          'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_LEFT',
+                          'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_RIGHT',
+                          'CIFTI_STRUCTURE_CORTEX',
+                          'CIFTI_STRUCTURE_CORTEX_LEFT',
+                          'CIFTI_STRUCTURE_CORTEX_RIGHT',
+                          'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT',
+                          'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT',
+                          'CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT',
+                          'CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT',
+                          'CIFTI_STRUCTURE_OTHER',
+                          'CIFTI_STRUCTURE_OTHER_GREY_MATTER',
+                          'CIFTI_STRUCTURE_OTHER_WHITE_MATTER',
+                          'CIFTI_STRUCTURE_PALLIDUM_LEFT',
+                          'CIFTI_STRUCTURE_PALLIDUM_RIGHT',
+                          'CIFTI_STRUCTURE_PUTAMEN_LEFT',
+                          'CIFTI_STRUCTURE_PUTAMEN_RIGHT',
+                          'CIFTI_STRUCTURE_THALAMUS_LEFT',
+                          'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
 
 def _value_if_klass(val, klass):
@@ -180,7 +182,10 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
       LabelTable. Display coloring of continuous-valued data is not specified
       by CIFTI-2.
     * Attributes: [NA]
-    * Child Elements - Label (0...N)
+    * Child Elements
+
+        * Label (0...N)
+
     * Text Content: [NA]
     * Parent Element - NamedMap
     """
@@ -653,7 +658,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
     * Child Elements: [NA]
     * Text Content - Sixteen floating-point values, in row-major order, that
       form a 4x4 homogeneous transformation matrix.
-    *  Parent Element - Volume
+    * Parent Element - Volume
 
     Attributes
     ----------
@@ -793,7 +798,7 @@ class Cifti2BrainModel(xml.XmlSerializable):
         * IndexCount - Number of surface vertices or voxels in this brain
           model, must be positive.
         * ModelType - Type of model representing the brain structure (surface
-        * or voxels).  Valid values are listed in the table below.
+          or voxels).  Valid values are listed in the table below.
         * BrainStructure - Identifies the brain structure. Valid values for
           BrainStructure are listed in the table below. However, if the needed
           structure is not listed in the table, a message should be posted to
@@ -814,55 +819,9 @@ class Cifti2BrainModel(xml.XmlSerializable):
     * Text Content: [NA]
     * Parent Element - MatrixIndicesMap
 
-    ModelType Values
-    ----------------
+    For ModelType values, see CIFTI_MODEL_TYPES module attribute.
 
-    =========================  ================================
-    ModelType                  Description
-    =========================  ================================
-    CIFTI_MODEL_TYPE_SURFACE   Modeled using surface vertices.
-    CIFTI_MODEL_TYPE_VOXELS    Modeled using voxels.
-    =========================  ================================
-
-    BrainStructure Values
-    ---------------------
-
-    =============================================
-    BrainStructure
-    =============================================
-    CIFTI_STRUCTURE_ACCUMBENS_LEFT
-    CIFTI_STRUCTURE_ACCUMBENS_RIGHT
-    CIFTI_STRUCTURE_ALL_WHITE_MATTER
-    CIFTI_STRUCTURE_ALL_GREY_MATTER
-    CIFTI_STRUCTURE_AMYGDALA_LEFT
-    CIFTI_STRUCTURE_AMYGDALA_RIGHT
-    CIFTI_STRUCTURE_BRAIN_STEM
-    CIFTI_STRUCTURE_CAUDATE_LEFT
-    CIFTI_STRUCTURE_CAUDATE_RIGHT
-    CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_LEFT
-    CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_RIGHT
-    CIFTI_STRUCTURE_CEREBELLUM
-    CIFTI_STRUCTURE_CEREBELLUM_LEFT
-    CIFTI_STRUCTURE_CEREBELLUM_RIGHT
-    CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_LEFT
-    CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_RIGHT
-    CIFTI_STRUCTURE_CORTEX
-    CIFTI_STRUCTURE_CORTEX_LEFT
-    CIFTI_STRUCTURE_CORTEX_RIGHT
-    CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT
-    CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT
-    CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT
-    CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT
-    CIFTI_STRUCTURE_OTHER
-    CIFTI_STRUCTURE_OTHER_GREY_MATTER
-    CIFTI_STRUCTURE_OTHER_WHITE_MATTER
-    CIFTI_STRUCTURE_PALLIDUM_LEFT
-    CIFTI_STRUCTURE_PALLIDUM_RIGHT
-    CIFTI_STRUCTURE_PUTAMEN_LEFT
-    CIFTI_STRUCTURE_PUTAMEN_RIGHT
-    CIFTI_STRUCTURE_THALAMUS_LEFT
-    CIFTI_STRUCTURE_THALAMUS_RIGHT
-    =============================================
+    For BrainStructure values, see CIFTI_BRAIN_STRUCTURES model attribute.
 
     Attributes
     ----------
@@ -873,7 +832,7 @@ class Cifti2BrainModel(xml.XmlSerializable):
     model_type : str
         One of CIFTI_MODEL_TYPES
     brain_structure : str
-        One of CIFTI_BrainStructures
+        One of CIFTI_BRAIN_STRUCTURES
     surface_number_of_vertices : int
         Number of vertices in the surface. Use only for surface-type structure
     voxel_indices_ijk : Cifti2VoxelIndicesIJK, optional

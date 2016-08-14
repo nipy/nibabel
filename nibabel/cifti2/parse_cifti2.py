@@ -17,7 +17,7 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2VoxelIndicesIJK, Cifti2BrainModel, Cifti2Matrix,
                      Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
                      Cifti2Surface, Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
-                     Cifti2Vertices, Cifti2Volume, CIFTI_BrainStructures,
+                     Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
                      CIFTI_MODEL_TYPES, _underscore, CIFTI2HeaderError)
 from .. import xmlutils as xml
 from ..spatialimages import HeaderDataError
@@ -325,7 +325,7 @@ class Cifti2Parser(xml.XmlParser):
                     'Vertices element can only be a child of the CIFTI2 Parcel element'
                 )
             vertices.brain_structure = attrs["BrainStructure"]
-            if vertices.brain_structure not in CIFTI_BrainStructures:
+            if vertices.brain_structure not in CIFTI_BRAIN_STRUCTURES:
                 raise CIFTI2HeaderError(
                     'BrainStructure for this Vertices element is not valid'
                 )
@@ -391,7 +391,7 @@ class Cifti2Parser(xml.XmlParser):
                                ("SurfaceNumberOfVertices", int)]:
                 if key in attrs:
                     setattr(model, _underscore(key), dtype(attrs[key]))
-            if model.brain_structure not in CIFTI_BrainStructures:
+            if model.brain_structure not in CIFTI_BRAIN_STRUCTURES:
                 raise CIFTI2HeaderError(
                     'BrainStructure for this BrainModel element is not valid'
                 )
