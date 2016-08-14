@@ -9,6 +9,9 @@ from nibabel.filebasedimages import FileBasedHeader, FileBasedImage
 
 from nibabel.tests.test_image_api import GenericImageAPI
 
+from nose.tools import (assert_true, assert_false, assert_equal,
+                        assert_not_equal)
+
 
 class FBNumpyImage(FileBasedImage):
     header_class = FileBasedHeader
@@ -72,3 +75,35 @@ class TestFBImageAPI(GenericImageAPI):
                 shape=shape,
                 is_proxy=False)
             yield func, params
+
+
+def test_filebased_header():
+    # Test stuff about the default FileBasedHeader
+
+    class H(FileBasedHeader):
+
+        def __init__(self, seq=None):
+            if seq is None:
+                seq = []
+            self.a_list = list(seq)
+
+    in_list = [1, 3, 2]
+    hdr = H(in_list)
+    hdr_c = hdr.copy()
+    assert_equal(hdr_c.a_list, hdr.a_list)
+    # Copy is independent of original
+    hdr_c.a_list[0] = 99
+    assert_not_equal(hdr_c.a_list, hdr.a_list)
+    # From header does a copy
+    hdr2 = H.from_header(hdr)
+    assert_true(isinstance(hdr2, H))
+    assert_equal(hdr2.a_list, hdr.a_list)
+    hdr2.a_list[0] = 42
+    assert_not_equal(hdr2.a_list, hdr.a_list)
+    # Default header input to from_heder gives new empty header
+    hdr3 = H.from_header()
+    assert_true(isinstance(hdr3, H))
+    assert_equal(hdr3.a_list, [])
+    hdr4 = H.from_header(None)
+    assert_true(isinstance(hdr4, H))
+    assert_equal(hdr4.a_list, [])
