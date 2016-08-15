@@ -117,25 +117,6 @@ class GenericImageAPI(ValidateAPI):
             assert_equal(len(w), 1)
             assert_true(hdr is img.header)
 
-    def validate_shape(self, imaker, params):
-        # Validate shape
-        img = imaker()
-        # Same as expected shape
-        assert_equal(img.shape, params['shape'])
-        # Same as array shape if passed
-        if 'data' in params:
-            assert_equal(img.shape, params['data'].shape)
-        # Read only
-        assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
-
-    def validate_shape_deprecated(self, imaker, params):
-        # Check deprecated get_shape API
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
-            img = imaker()
-            assert_equal(img.get_shape(), params['shape'])
-            assert_equal(len(w), 1)
-
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
         if not self.can_save:
@@ -288,6 +269,26 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, '_data', fake_data)
+
+    def validate_shape(self, imaker, params):
+        # Validate shape
+        img = imaker()
+        # Same as expected shape
+        assert_equal(img.shape, params['shape'])
+        # Same as array shape if passed
+        if 'data' in params:
+            assert_equal(img.shape, params['data'].shape)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
+
+    def validate_shape_deprecated(self, imaker, params):
+        # Check deprecated get_shape API
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            assert_equal(img.get_shape(), params['shape'])
+            assert_equal(len(w), 1)
+
 
 
 class HeaderShapeMixin(object):
