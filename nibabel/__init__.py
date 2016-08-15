@@ -67,16 +67,17 @@ from . import mriutils
 from . import streamlines
 from . import viewers
 
-# be friendly on systems with ancient numpy -- no tests, but at least
-# importable
+# Note test requirement for "mock".  Requirement for "nose" tested by numpy.
 try:
+    import mock
+except ImportError:
+    def test(*args, **kwargs):
+        raise RuntimeError('Need "mock" package for tests')
+else:
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench
-    del Tester
-except ImportError:
-    def test(*args, **kwargs):
-        raise RuntimeError('Need numpy >= 1.2 for tests')
+    del mock, Tester
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 
