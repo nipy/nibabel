@@ -53,6 +53,7 @@ from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
+from .deprecated import deprecate_with_version
 
 BLOCK_SIZE = 512
 
@@ -846,6 +847,10 @@ class EcatImage(SpatialImage):
         return self._subheader
 
     @classmethod
+    @deprecate_with_version('from_filespec class method is deprecated.\n'
+                            'Please use the ``from_file_map`` class method '
+                            'instead.',
+                            '2.1', '4.0')
     def from_filespec(klass, filespec):
         return klass.from_filename(filespec)
 

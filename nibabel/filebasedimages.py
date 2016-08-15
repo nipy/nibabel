@@ -8,13 +8,12 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
-import warnings
-
 from .externals.six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
 from .openers import ImageOpener
+from .deprecated import deprecate_with_version
 
 
 class ImageFileError(Exception):
@@ -212,16 +211,13 @@ class FileBasedImage(object):
         '''
         raise TypeError("Cannot slice image objects.")
 
+    @deprecate_with_version('get_header method is deprecated.\n'
+                            'Please use the ``img.header`` property '
+                            'instead.',
+                            '2.1', '4.0')
     def get_header(self):
         """ Get header from image
-
-        Please use the `header` property instead of `get_header`; we will
-        deprecate this method in future versions of nibabel.
         """
-        warnings.warn('``get_header`` is deprecated.\n'
-                      'Please use the ``img.header`` property '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
         return self.header
 
     def get_filename(self):
@@ -269,23 +265,15 @@ class FileBasedImage(object):
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_filespec(klass, filespec):
-        warnings.warn('``from_filespec`` class method is deprecated\n'
-                      'Please use the ``from_filename`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
-        klass.from_filename(filespec)
-
-    @classmethod
     def from_file_map(klass, file_map):
         raise NotImplementedError
 
     @classmethod
+    @deprecate_with_version('from_files class method is deprecated.\n'
+                            'Please use the ``from_file_map`` class method '
+                            'instead.',
+                            '1.0', '3.0')
     def from_files(klass, file_map):
-        warnings.warn('``from_files`` class method is deprecated\n'
-                      'Please use the ``from_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
         return klass.from_file_map(file_map)
 
     @classmethod
@@ -326,11 +314,11 @@ class FileBasedImage(object):
         return file_map
 
     @classmethod
+    @deprecate_with_version('filespec_to_files class method is deprecated.\n'
+                            'Please use the "filespec_to_file_map" class '
+                            'method instead.',
+                            '1.0', '3.0')
     def filespec_to_files(klass, filespec):
-        warnings.warn('``filespec_to_files`` class method is deprecated\n'
-                      'Please use the ``filespec_to_file_map`` class method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
         return klass.filespec_to_file_map(filespec)
 
     def to_filename(self, filename):
@@ -350,20 +338,19 @@ class FileBasedImage(object):
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map()
 
+    @deprecate_with_version('to_filespec method is deprecated.\n'
+                            'Please use the "to_filename" method instead.',
+                            '1.0', '3.0')
     def to_filespec(self, filename):
-        warnings.warn('``to_filespec`` is deprecated, please '
-                      'use ``to_filename`` instead',
-                      DeprecationWarning, stacklevel=2)
         self.to_filename(filename)
 
     def to_file_map(self, file_map=None):
         raise NotImplementedError
 
+    @deprecate_with_version('to_files method is deprecated.\n'
+                            'Please use the "to_file_map" method instead.',
+                            '1.0', '3.0')
     def to_files(self, file_map=None):
-        warnings.warn('``to_files`` method is deprecated\n'
-                      'Please use the ``to_file_map`` method '
-                      'instead',
-                      DeprecationWarning, stacklevel=2)
         self.to_file_map(file_map)
 
     @classmethod

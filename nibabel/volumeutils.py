@@ -21,6 +21,7 @@ import numpy as np
 
 from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
+from .deprecated import deprecate_with_version
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -373,7 +374,10 @@ def make_dt_codes(codes_seqs):
     return Recoder(dt_codes, fields + ['dtype', 'sw_dtype'], DtypeMapper)
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('can_cast deprecated. '
+                        'Please use arraywriter classes instead',
+                        '1.2',
+                        '3.0')
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     ''' Return True if we can safely cast ``in_type`` to ``out_type``
 
@@ -1007,7 +1011,10 @@ def working_type(in_type, slope=1.0, inter=0.0):
     return val.dtype.type
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('calculate_scale deprecated. '
+                        'Please use arraywriter classes instead',
+                        '1.2',
+                        '3.0')
 def calculate_scale(data, out_dtype, allow_intercept):
     ''' Calculate scaling and optional intercept for data
 
@@ -1052,7 +1059,10 @@ def calculate_scale(data, out_dtype, allow_intercept):
     return get_slope_inter(writer) + (mn, mx)
 
 
-@np.deprecate_with_doc('Please use arraywriter classes instead')
+@deprecate_with_version('scale_min_max deprecated. Please use arraywriter '
+                        'classes instead.',
+                        '1.2',
+                        '3.0')
 def scale_min_max(mn, mx, out_type, allow_intercept):
     ''' Return scaling and intercept min, max of data, given output type
 
@@ -1542,11 +1552,10 @@ class BinOpener(Opener):
     """ Deprecated class that used to handle .mgz through specialized logic."""
     __doc__ = Opener.__doc__
 
+    @deprecate_with_version('BinOpener class deprecated. '
+                            "Please use Opener class instead."
+                            '2.1', '4.0')
     def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "Please use %s class instead of %s" % (Opener.__class__.__name__,
-                                                   self.__class__.__name__),
-            DeprecationWarning, stacklevel=2)
         return super(BinOpener, self).__init__(*args, **kwargs)
 
 
@@ -1582,17 +1591,17 @@ def fname_ext_ul_case(fname):
     return fname
 
 
+@deprecate_with_version('allopen is deprecated. '
+                        'Please use "Opener" class instead.',
+                        '2.0', '4.0')
 def allopen(fileish, *args, **kwargs):
     """ Compatibility wrapper for old ``allopen`` function
 
     Wraps creation of ``Opener`` instance, while picking up module global
     ``default_compresslevel``.
 
-    Please see docstring for ``Opener`` for details.
+    Please see docstring of ``Opener`` for details.
     """
-    warnings.warn("Please use Opener class instead of this function",
-                  DeprecationWarning,
-                  stacklevel=2)
 
     class MyOpener(Opener):
         default_compresslevel = default_compresslevel

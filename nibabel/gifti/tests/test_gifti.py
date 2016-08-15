@@ -206,17 +206,29 @@ def test_labeltable():
     img.labeltable = new_table
     assert_equal(len(img.labeltable.labels), 2)
 
+    # Test deprecations
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        newer_table = GiftiLabelTable()
+        newer_table.labels += ['test', 'me', 'again']
+        img.set_labeltable(newer_table)
+        assert_equal(len(w), 1)
+        assert_equal(len(img.get_labeltable().labels), 3)
+        assert_equal(len(w), 2)
+
 
 def test_metadata():
     nvpair = GiftiNVPairs('key', 'value')
-    da = GiftiMetaData(nvpair=nvpair)
-    assert_equal(da.data[0].name, 'key')
-    assert_equal(da.data[0].value, 'value')
+    md = GiftiMetaData(nvpair=nvpair)
+    assert_equal(md.data[0].name, 'key')
+    assert_equal(md.data[0].value, 'value')
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        assert_equal(len(GiftiDataArray().get_metadata()), 0)
+        assert_equal(md.get_metadata(), dict(key='value'))
         assert_equal(len(w), 1)
+        assert_equal(len(GiftiDataArray().get_metadata()), 0)
+        assert_equal(len(w), 2)
 
 
 def test_gifti_label_rgba():

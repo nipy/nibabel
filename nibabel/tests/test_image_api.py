@@ -113,11 +113,14 @@ class GenericImageAPI(ValidateAPI):
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
         img = imaker()
-        assert_almost_equal(img.get_affine(), params['affine'], 6)
-        assert_equal(img.get_affine().dtype, np.float64)
-        aff = img.get_affine()
-        aff[0, 0] = 1.5
-        assert_true(aff is img.get_affine())
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            assert_almost_equal(img.get_affine(), params['affine'], 6)
+            assert_equal(len(w), 1)
+            assert_equal(img.get_affine().dtype, np.float64)
+            aff = img.get_affine()
+            aff[0, 0] = 1.5
+            assert_true(aff is img.get_affine())
 
     def validate_header(self, imaker, params):
         # Check header API
@@ -134,9 +137,9 @@ class GenericImageAPI(ValidateAPI):
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
+        img = imaker()
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
-            img = imaker()
             hdr = img.get_header()
             assert_equal(len(w), 1)
             assert_true(hdr is img.header)
@@ -152,6 +155,14 @@ class GenericImageAPI(ValidateAPI):
         assert_equal(img.shape, img.get_data().shape)
         # Read only
         assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
+
+    def validate_shape_deprecated(self, imaker, params):
+        # Check deprecated get_shape API
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            assert_equal(img.get_shape(), params['shape'])
+            assert_equal(len(w), 1)
 
     def validate_dtype(self, imaker, params):
         # data / storage dtype
@@ -246,7 +257,7 @@ class GenericImageAPI(ValidateAPI):
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter("always")
             assert_data_similar(img._data, params)
-            assert_equal(warns.pop(0).category, FutureWarning)
+            assert_equal(warns.pop(0).category, DeprecationWarning)
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, '_data', fake_data)

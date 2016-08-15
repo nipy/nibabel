@@ -1,12 +1,21 @@
-""" This file contains defines parameters for nibabel that we use to fill
-settings in setup.py, the nibabel top-level docstring, and for building the
-docs.  In setup.py in particular, we exec this file, so it cannot import
-nibabel
+""" Define distrubution parameters for nibabel, including package version
+
+This file contains defines parameters for nibabel that we use to fill settings
+in setup.py, the nibabel top-level docstring, and for building the docs.  In
+setup.py in particular, we exec this file, so it cannot import nibabel.
 """
 
+import re
+from distutils.version import StrictVersion
+
 # nibabel version information.  An empty _version_extra corresponds to a
-# full release.  '.dev' as a _version_extra string means this is a development
-# version
+# full release.  *Any string* in `_version_extra` labels the version as
+# pre-release.  So, if `_version_extra` is not empty, the version is taken to
+# be earlier than the same version where `_version_extra` is empty (see
+# `cmp_pkg_version` below).
+#
+# We usually use `dev` as `_version_extra` to label this as a development
+# (pre-release) version.
 _version_major = 2
 _version_minor = 1
 _version_micro = 0
@@ -18,6 +27,62 @@ __version__ = "%s.%s.%s%s" % (_version_major,
                               _version_minor,
                               _version_micro,
                               _version_extra)
+
+
+def _parse_version(version_str):
+    """ Parse version string `version_str` in our format
+    """
+    match = re.match('([0-9.]*\d)(.*)', version_str)
+    if match is None:
+        raise ValueError('Invalid version ' + version_str)
+    return match.groups()
+
+
+def _cmp(a, b):
+    """ Implementation of ``cmp`` for Python 3
+    """
+    return (a > b) - (a < b)
+
+
+def cmp_pkg_version(version_str, pkg_version_str=__version__):
+    """ Compare `version_str` to current package version
+
+    To be valid, a version must have a numerical major version followed by a
+    dot, followed by a numerical minor version.  It may optionally be followed
+    by a dot and a numerical micro version, and / or by an "extra" string.
+    *Any* extra string labels the version as pre-release, so `1.2.0somestring`
+    compares as prior to (pre-release for) `1.2.0`, where `somestring` can be
+    any string.
+
+    Parameters
+    ----------
+    version_str : str
+        Version string to compare to current package version
+    pkg_version_str : str, optional
+        Version of our package.  Optional, set fom ``__version__`` by default.
+
+    Returns
+    -------
+    version_cmp : int
+        1 if `version_str` is a later version than `pkg_version_str`, 0 if
+        same, -1 if earlier.
+
+    Examples
+    --------
+    >>> cmp_pkg_version('1.2.1', '1.2.0')
+    1
+    >>> cmp_pkg_version('1.2.0dev', '1.2.0')
+    -1
+    """
+    version, extra = _parse_version(version_str)
+    pkg_version, pkg_extra = _parse_version(pkg_version_str)
+    if version != pkg_version:
+        return _cmp(StrictVersion(version), StrictVersion(pkg_version))
+    return (0 if extra == pkg_extra
+            else 1 if extra == ''
+            else -1 if pkg_extra == ''
+            else _cmp(extra, pkg_extra))
+
 
 CLASSIFIERS = ["Development Status :: 4 - Beta",
                "Environment :: Console",

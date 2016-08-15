@@ -9,6 +9,7 @@
 from __future__ import division, print_function, absolute_import
 
 import os
+import warnings
 
 import numpy as np
 
@@ -21,7 +22,7 @@ from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing import data_path, suppress_warnings
+from ..testing import data_path, suppress_warnings, clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase
@@ -261,7 +262,20 @@ class TestEcatImage(TestCase):
         assert_equal(data.min(), vals['min'])
         assert_array_almost_equal(data.mean(), vals['mean'])
 
-    def test_mlist_regreesion(self):
+    def test_mlist_regression(self):
         # Test mlist is as same as for nibabel 1.3.0
         assert_array_equal(self.img.get_mlist(),
                            [[16842758, 3, 3011, 1]])
+
+
+def test_from_filespec_deprecation():
+    # Check from_filespec raises Deprecation
+    with clear_and_catch_warnings() as w:
+        warnings.simplefilter('always', DeprecationWarning)
+        # No warning for standard load
+        img_loaded = EcatImage.load(ecat_file)
+        assert_equal(len(w), 0)
+        # Warning for from_filespec
+        img_speced = EcatImage.from_filespec(ecat_file)
+        assert_equal(len(w), 1)
+        assert_array_equal(img_loaded.get_data(), img_speced.get_data())

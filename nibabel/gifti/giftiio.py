@@ -10,10 +10,12 @@
 # Stephan Gerhard, Oktober 2010
 ##############
 
-import numpy as np
+from ..deprecated import deprecate_with_version
 
 
-@np.deprecate_with_doc("Use nibabel.load() instead.")
+@deprecate_with_version('giftiio.read function deprecated. '
+                        "Use nibabel.load() instead.",
+                        '2.1', '4.0')
 def read(filename):
     """ Load a Gifti image from a file
 
@@ -31,7 +33,9 @@ def read(filename):
     return load(filename)
 
 
-@np.deprecate_with_doc("Use nibabel.save() instead.")
+@deprecate_with_version('giftiio.write function deprecated. '
+                        "Use nibabel.load() instead.",
+                        '2.1', '4.0')
 def write(image, filename):
     """ Save the current image to a new file
 

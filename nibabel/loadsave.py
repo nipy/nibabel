@@ -11,7 +11,6 @@
 
 import os.path as op
 import numpy as np
-import warnings
 
 from .filename_parser import splitext_addext
 from .openers import ImageOpener
@@ -19,6 +18,7 @@ from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .py3k import FileNotFoundError
+from .deprecated import deprecate_with_version
 
 
 def load(filename, **kwargs):
@@ -48,7 +48,9 @@ def load(filename, **kwargs):
                          filename)
 
 
-@np.deprecate
+@deprecate_with_version('guessed_image_type deprecated.'
+                        '2.1',
+                        '4.0')
 def guessed_image_type(filename):
     """ Guess image type from file `filename`
 
@@ -62,8 +64,6 @@ def guessed_image_type(filename):
     image_class : class
         Class corresponding to guessed image type
     """
-    warnings.warn('guessed_image_type is deprecated', DeprecationWarning,
-                  stacklevel=2)
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
@@ -124,17 +124,18 @@ def save(img, filename):
     converted.to_filename(filename)
 
 
-@np.deprecate_with_doc('Please use ``img.dataobj.get_unscaled()`` '
-                       'instead')
+@deprecate_with_version('read_img_data deprecated.'
+                        'Please use ``img.dataobj.get_unscaled()`` instead.'
+                        '2.0.1',
+                        '4.0')
 def read_img_data(img, prefer='scaled'):
     """ Read data from image associated with files
 
-    We've deprecated this function and will remove it soon. If you want
-    unscaled data, please use ``img.dataobj.get_unscaled()`` instead.  If you
-    want scaled data, use ``img.get_data()`` (which will cache the loaded
-    array) or ``np.array(img.dataobj)`` (which won't cache the array). If you
-    want to load the data as for a modified header, save the image with the
-    modified header, and reload.
+    If you want unscaled data, please use ``img.dataobj.get_unscaled()``
+    instead.  If you want scaled data, use ``img.get_data()`` (which will cache
+    the loaded array) or ``np.array(img.dataobj)`` (which won't cache the
+    array). If you want to load the data as for a modified header, save the
+    image with the modified header, and reload.
 
     Parameters
     ----------
@@ -210,7 +211,9 @@ def read_img_data(img, prefer='scaled'):
         return hdr.raw_data_from_fileobj(fileobj)
 
 
-@np.deprecate
+@deprecate_with_version('which_analyze_type deprecated.'
+                        '2.1',
+                        '4.0')
 def which_analyze_type(binaryblock):
     """ Is `binaryblock` from NIfTI1, NIfTI2 or Analyze header?
 
@@ -238,8 +241,6 @@ def which_analyze_type(binaryblock):
     * if ``sizeof_hdr`` is 348 or byteswapped 348 assume Analyze
     * Return None
     """
-    warnings.warn('which_analyze_type is deprecated', DeprecationWarning,
-                  stacklevel=2)
     from .nifti1 import header_dtype
     hdr_struct = np.ndarray(shape=(), dtype=header_dtype, buffer=binaryblock)
     bs_hdr_struct = hdr_struct.byteswap()

@@ -194,7 +194,9 @@ class ArrayWriter(object):
             raise WriterError('Deprecated `nan2zero` argument to `to_fileobj` '
                               'must be same as class value set in __init__')
         warnings.warn('Please remove `nan2zero` from call to ' '`to_fileobj` '
-                      'and use in instance __init__ instead',
+                      'and use in instance __init__ instead.\n'
+                      '* deprecated in version: 2.0\n'
+                      '* will raise error in version: 4.0\n',
                       DeprecationWarning, stacklevel=3)
 
     def _needs_nan2zero(self):

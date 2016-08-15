@@ -24,6 +24,7 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from ..xmlutils import XmlParser
+from ..deprecated import deprecate_with_version
 
 
 class GiftiParseError(ExpatError):
@@ -342,7 +343,9 @@ class GiftiImageParser(XmlParser):
 
 class Outputter(GiftiImageParser):
 
-    @np.deprecate_with_doc("Use GiftiImageParser instead.")
+    @deprecate_with_version('Outputter class deprecated. '
+                            "Use GiftiImageParser instead.",
+                            '2.1', '4.0')
     def __init__(self):
         super(Outputter, self).__init__()
 
@@ -351,6 +354,8 @@ class Outputter(GiftiImageParser):
         self.__init__()
 
 
-@np.deprecate_with_doc("Use GiftiImageParser.parse() instead.")
+@deprecate_with_version('parse_gifti_file deprecated. '
+                        "Use GiftiImageParser.parse() instead.",
+                        '2.1', '4.0')
 def parse_gifti_file(fname=None, fptr=None, buffer_size=None):
     GiftiImageParser(buffer_size=buffer_size).parse(fname=fname, fptr=fptr)
