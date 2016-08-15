@@ -70,7 +70,8 @@ def test_parrec2nii_sets_qform_with_code2():
 
     infile = 'nonexistent.PAR'
     parrec2nii.proc_file(infile, opts)
-    nhdr.set_qform.assert_called_with(pr_hdr.get_affine(), code=2)
+    nhdr.set_qform.assert_called_with(AN_OLD_AFFINE, code=1)
+    nhdr.set_sform.assert_called_with(AN_OLD_AFFINE, code=1)
 
 
 def test_parrec2nii_save_load_qform_code():
@@ -98,6 +99,6 @@ def test_parrec2nii_save_load_qform_code():
             outfname = join(pth, basename(fname)).replace('.PAR', '.nii')
             assert_true(isfile(outfname))
             img = nibabel.load(outfname)
-            assert_almost_equal(img.get_affine(), PAR_AFFINE, 4)
-            assert_array_equal(img.header['qform_code'], 2)
-            assert_array_equal(img.header['sform_code'], 2)
+            assert_almost_equal(img.affine, PAR_AFFINE, 4)
+            assert_array_equal(img.header['qform_code'], 1)
+            assert_array_equal(img.header['sform_code'], 1)
