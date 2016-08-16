@@ -35,9 +35,8 @@ def teardown():
     imp.reload(parrec2nii)
 
 
-def test_parrec2nii_sets_qform_with_code2():
-    """Unit test that ensures that set_qform() is called on the new header.
-    """
+def test_parrec2nii_sets_qform_sform_code1():
+    # Unit test that ensures that set_qform() is called on the new header.
     imp.reload(parrec2nii)
     parrec2nii.verbose.switch = False
 
@@ -75,10 +74,9 @@ def test_parrec2nii_sets_qform_with_code2():
 
 
 def test_parrec2nii_save_load_qform_code():
-    """Tests that after parrec2nii saves file, it has the qform 'code'
-    set to '2', which means 'aligned', so that other software, e.g. FSL
-    picks up the qform.
-    """
+    # Tests that after parrec2nii saves file, it has the sform and qform 'code'
+    # set to '1', which means 'scanner', so that other software, e.g. FSL picks
+    # up the qform.
     imp.reload(parrec2nii)
     parrec2nii.verbose.switch = False
 
