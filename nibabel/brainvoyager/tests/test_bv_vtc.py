@@ -41,9 +41,9 @@ BVVTC_EXAMPLE_IMAGES = [
 
 BVVTC_EXAMPLE_HDRS = [
     OrderedDict([('version', 3),
-                 ('fmr', 'test.fmr'),
+                 ('fmr', b'test.fmr'),
                  ('nr_prts', 1),
-                 ('prts', [OrderedDict([('filename', 'test.prt')])]),
+                 ('prts', [OrderedDict([('filename', b'test.prt')])]),
                  ('current_prt', 0),
                  ('datatype', 2),
                  ('volumes', 5),

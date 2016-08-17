@@ -16,7 +16,6 @@ Author: Thomas Emmerling
 from __future__ import division
 from .bv import BvError, BvFileHeader, BvFileImage
 from ..spatialimages import HeaderDataError
-from ..batteryrunners import Report
 
 VTC_HDR_DICT_PROTO = (
     ('version', 'h', 3),

@@ -17,7 +17,6 @@ from __future__ import division
 from .bv import (BvError, BvFileHeader, BvFileImage, parse_BV_header,
                  pack_BV_header, calc_BV_header_size, combine_st, parse_st)
 from ..spatialimages import HeaderDataError
-from ..batteryrunners import Report
 import numpy as np
 
 
