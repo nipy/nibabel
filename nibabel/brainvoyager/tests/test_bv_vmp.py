@@ -52,13 +52,13 @@ BVVMP_EXAMPLE_IMAGES = [
         is_proxy=True),
     dict(
         fname=pjoin(data_path, 'test3.vmp'),
-        shape=(1, 10, 10, 10),
+        shape=(1, 5, 4, 3),
         dtype=np.float32,
-        affine=np.array([[-3., 0, 0, -21.],
-                         [0, 0, -3., -21.],
-                         [0, -3., 0, -21.],
+        affine=np.array([[-2., 0, 0, 122.],
+                         [0, 0, -2., 46.],
+                         [0, -2., 0, 140.],
                          [0, 0, 0, 1.]]),
-        zooms=(3., 3., 3.),
+        zooms=(2., 2., 2.),
         fileformat=BvVmpImage,
         # These values are from NeuroElf
         data_summary=dict(

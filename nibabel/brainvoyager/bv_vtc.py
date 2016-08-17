@@ -92,7 +92,7 @@ class BvVtcHeader(BvFileHeader):
         if (shape is None) and (zyx is None) and (t is None):
             raise HeaderDataError('Shape, zyx, or t needs to be specified!')
         if ((t is not None) and (t < 0)) or \
-           ((shape is not None) and (shape[3] < 0)):
+           ((shape is not None) and (len(shape) == 4) and (shape[3] < 0)):
             raise HeaderDataError('VTC files need at least one volume!')
         if shape is not None:
             # Use zyx and t parameters instead of shape.
