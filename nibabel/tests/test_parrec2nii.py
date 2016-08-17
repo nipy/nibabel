@@ -1,6 +1,5 @@
 """ Tests for the parrec2nii exe code
 """
-import imp
 from os.path import join, isfile, basename
 
 import numpy
@@ -9,7 +8,7 @@ from numpy import array as npa
 import nibabel
 from nibabel import parrec2nii_cmd as parrec2nii
 
-from mock import Mock, MagicMock
+from mock import Mock, MagicMock, patch
 from nose.tools import assert_true
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
@@ -30,26 +29,21 @@ PAR_AFFINE = numpy.array(
  [   0.        ,    0.  ,          0.        ,    1.        ]])
 
 
-def teardown():
-    # Reload tested module to clear run-time settings in tests
-    imp.reload(parrec2nii)
-
-
-def test_parrec2nii_sets_qform_sform_code1():
-    # Unit test that ensures that set_qform() is called on the new header.
-    imp.reload(parrec2nii)
+@patch('nibabel.parrec2nii_cmd.verbose')
+@patch('nibabel.parrec2nii_cmd.io_orientation')
+@patch('nibabel.parrec2nii_cmd.nifti1')
+@patch('nibabel.parrec2nii_cmd.pr')
+def test_parrec2nii_sets_qform_sform_code1(*args):
+    # Check that set_sform(), set_qform() are called on the new header.
     parrec2nii.verbose.switch = False
 
-    parrec2nii.io_orientation = Mock()
-    parrec2nii.io_orientation.return_value = [[0, 1],[1, 1],[2, 1]] # LAS+ 
+    parrec2nii.io_orientation.return_value = [[0, 1],[1, 1],[2, 1]] # LAS+
 
-    parrec2nii.nifti1 = Mock()
     nimg = Mock()
     nhdr = MagicMock()
     nimg.header = nhdr
     parrec2nii.nifti1.Nifti1Image.return_value = nimg
 
-    parrec2nii.pr = Mock()
     pr_img = Mock()
     pr_hdr = Mock()
     pr_hdr.get_data_scaling.return_value = (npa([]), npa([]))
@@ -73,11 +67,11 @@ def test_parrec2nii_sets_qform_sform_code1():
     nhdr.set_sform.assert_called_with(AN_OLD_AFFINE, code=1)
 
 
-def test_parrec2nii_save_load_qform_code():
+@patch('nibabel.parrec2nii_cmd.verbose')
+def test_parrec2nii_save_load_qform_code(*args):
     # Tests that after parrec2nii saves file, it has the sform and qform 'code'
     # set to '1', which means 'scanner', so that other software, e.g. FSL picks
     # up the qform.
-    imp.reload(parrec2nii)
     parrec2nii.verbose.switch = False
 
     opts = Mock()
