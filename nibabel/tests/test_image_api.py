@@ -294,12 +294,9 @@ class GenericImageAPI(ValidateAPI):
         new_dtype = np.float32
         # some Image types accept only a few datatypes and shapes
         # so we check and force a type change to a compatible dtype
-        try:
-            supported_dtypes = supported_np_types(img.header_class())
-            if new_dtype not in supported_dtypes:
-                new_dtype = supported_dtypes.pop()
-        except:
-            pass
+        supported_dtypes = supported_np_types(img.header_class())
+        if new_dtype not in supported_dtypes:
+            new_dtype = supported_dtypes.pop()
         img.set_data_dtype(new_dtype)
         # The bytesio_round_trip helper tests bytesio load / save via file_map
         rt_img = bytesio_round_trip(img)
@@ -370,19 +367,13 @@ class MakeImageAPI(LoadImageAPI):
         aff = np.diag([1, 2, 3, 1])
 
         # Try to retrieve allowed dims
-        try:
-            supported_dims = supported_dimensions(self.header_maker())
-            self.example_shapes = (shape for shape in self.example_shapes
-                                   if len(shape) in supported_dims)
-        except:
-            pass
+        supported_dims = supported_dimensions(self.header_maker())
+        self.example_shapes = (shape for shape in self.example_shapes
+                               if len(shape) in supported_dims)
         # Try to retrieve allowed dtypes
-        try:
-            supported_dtypes = supported_np_types(self.header_maker())
-            self.example_dtypes = (dtype for dtype in self.example_dtypes
-                                   if dtype in supported_dtypes)
-        except:
-            pass
+        supported_dtypes = supported_np_types(self.header_maker())
+        self.example_dtypes = (dtype for dtype in self.example_dtypes
+                               if dtype in supported_dtypes)
 
         def make_imaker(arr, aff, header=None):
             return lambda: self.image_maker(arr, aff, header)
