@@ -148,7 +148,8 @@ class GenericImageAPI(ValidateAPI):
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
             # Ignore numpy.rint warning in python3/windows
-            warnings.simplefilter('ignore', RuntimeWarning, 726)
+            warnings.filterwarnings('ignore',
+                                    'invalid value encountered in rint')
             img = imaker()
             hdr = img.get_header()
             assert_equal(len(w), 1)
@@ -170,6 +171,9 @@ class GenericImageAPI(ValidateAPI):
         # Check deprecated get_shape API
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
+            # Ignore numpy.rint warning in python3/windows
+            warnings.filterwarnings('ignore',
+                                    'invalid value encountered in rint')
             img = imaker()
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
