@@ -15,10 +15,10 @@ from ...tmpdirs import InTemporaryDirectory
 from ..bv import (readCString, parse_BV_header, pack_BV_header, BvFileHeader,
                   calc_BV_header_size, _proto2default, update_BV_header,
                   parse_st, combine_st, BvError)
-from ..bv_vtc import VTC_HDR_DICT_PROTO
+from ..bv_vtc import VTC_HDR_DICT_PROTO, BvVtcHeader
 from ..bv_vmr import BvVmrImage
 from ...testing import (assert_equal, assert_array_equal, data_path,
-                        assert_true, assert_false, assert_raises)
+                        assert_true, assert_raises)
 from . import BV_EXAMPLE_IMAGES, BV_EXAMPLE_HDRS
 from ...externals import OrderedDict
 
@@ -270,11 +270,42 @@ def test_BvFileHeader_xflip():
     # should only return
     bv.set_xflip(True)
 
+    # cannot flip most BV images
     assert_raises(BvError, bv.set_xflip, False)
 
 
 def test_BvFileHeader_endianness():
     assert_raises(BvError, BvFileHeader, endianness='>')
+
+
+def test_BvFileHeader_not_implemented():
+    bv = BvFileHeader()
+    assert_raises(NotImplementedError, bv.get_data_shape)
+    assert_raises(NotImplementedError, bv.set_data_shape, (1, 2, 3))
+
+
+def test_BvVtcHeader_from_header():
+    vtc = load(vtc_file)
+    vtc_data = vtc.get_data()
+
+    # try the same load through the header
+    fread = open(vtc_file, 'rb')
+    header = BvVtcHeader.from_fileobj(fread)
+    image = header.data_from_fileobj(fread)
+    assert_array_equal(vtc_data, image)
+    fread.close()
+
+
+def test_BvVtcHeader_data_from_fileobj():
+    vtc = load(vtc_file)
+    vtc_data = vtc.get_data()
+
+    # try the same load through the header
+    fread = open(vtc_file, 'rb')
+    header = BvVtcHeader.from_fileobj(fread)
+    image = header.data_from_fileobj(fread)
+    assert_array_equal(vtc_data, image)
+    fread.close()
 
 
 def test_parse_all_BV_headers():

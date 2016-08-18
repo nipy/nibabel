@@ -13,7 +13,7 @@ import numpy as np
 from ..bv import BvError
 from ..bv_vmr import BvVmrImage, BvVmrHeader
 from ...testing import (assert_equal, assert_true, assert_false, assert_raises,
-                        data_path)
+                        assert_array_equal, data_path)
 from ...externals import OrderedDict
 
 vmr_file = pjoin(data_path, 'test.vmr')
@@ -130,8 +130,21 @@ def test_BvVmrHeader_xflip():
     assert_true(vmr.get_xflip())
     vmr.set_xflip(False)
     assert_false(vmr.get_xflip())
+    assert_equal(vmr._hdr_dict['lr_convention'], 2)
+    vmr.set_xflip(True)
+    assert_true(vmr.get_xflip())
+    assert_equal(vmr._hdr_dict['lr_convention'], 1)
     vmr.set_xflip(0)
+    assert_equal(vmr._hdr_dict['lr_convention'], 0)
     assert_raises(BvError, vmr.get_xflip)
+
+    vmr = BvVmrImage.from_filename(vmr_file)
+    vmr.header.set_xflip(False)
+    expected_affine = [[1., 0., 0., 0.],
+                       [0., 0., -1., -1.],
+                       [0., -1., 0., 1.],
+                       [0., 0., 0., 1.]]
+    assert_array_equal(vmr.header.get_affine(), expected_affine)
 
 
 def test_BvVmrHeader_set_zooms():

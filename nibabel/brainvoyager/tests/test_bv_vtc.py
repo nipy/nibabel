@@ -115,6 +115,31 @@ def test_BvVtcHeader_xflip():
     assert_raises(BvError, vtc.get_xflip)
 
 
+def test_BvVtcHeader_guess_framing_cube():
+    vtc = BvVtcHeader()
+    assert_equal(vtc._guess_framing_cube(), (256, 256, 256))
+    vtc._hdr_dict['x_end'] = 400
+    vtc._hdr_dict['y_end'] = 400
+    vtc._hdr_dict['z_end'] = 400
+    assert_equal(vtc._guess_framing_cube(), (512, 512, 512))
+
+
+def test_BvVtcHeader_zooms():
+    vtc = BvVtcHeader()
+    assert_equal(vtc.get_zooms(), (3.0, 3.0, 3.0))
+
+    # set all zooms to one value (default for VTC files)
+    vtc.set_zooms(2)
+    assert_equal(vtc.get_zooms(), (2.0, 2.0, 2.0))
+    vtc.set_zooms((1.0, 1.0, 1.0))
+    assert_equal(vtc.get_zooms(), (1.0, 1.0, 1.0))
+    vtc.set_zooms((4, 4, 4))
+    assert_equal(vtc.get_zooms(), (4.0, 4.0, 4.0))
+
+    # set zooms to different values for the three dimensions (not possible)
+    assert_raises(BvError, vtc.set_zooms, (1.0, 2.0, 3.0))
+
+
 def test_BvVtcHeader_fileversion_error():
     vtc = BvVtcHeader()
     vtc._hdr_dict['version'] = 4

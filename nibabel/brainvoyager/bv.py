@@ -672,7 +672,7 @@ class BvFileHeader(Header):
         if not self.get_xflip():
             # make the BV internal Z axis neurological (left-is-left);
             # not default in BV files!
-            zooms[0] *= -1
+            zooms = (-zooms[0], zooms[1], zooms[2])
 
         # compute the rotation
         rot = np.zeros((3, 3))
