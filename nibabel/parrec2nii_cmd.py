@@ -221,7 +221,8 @@ def proc_file(infile, opts):
     nhdr = nimg.header
     nhdr.set_data_dtype(out_dtype)
     nhdr.set_slope_inter(slope, intercept)
-    nhdr.set_qform(affine, code=2)
+    nhdr.set_sform(affine, code=1)
+    nhdr.set_qform(affine, code=1)
 
     if 'parse' in opts.minmax:
         # need to get the scaled data
