@@ -24,8 +24,8 @@ Gerhard (SG) and Eric Larson (EL).
 
 References like "pr/298" refer to github pull request numbers.
 
-2.1 (TBA)
-=========
+2.1 (Monday 22 August 2016)
+===========================
 
 New features
 ------------
@@ -88,7 +88,9 @@ Maintenance
   Ariel Rokem, MB);
 * Improved test framework for warnings (pr/345) (BC, reviewed by CM, MB);
 * New decorator to specify start and end versions for deprecation warnings
-  (MB, reviewed by CM).
+  (MB, reviewed by CM);
+* Write qform affine matrix to NIfTI images output by ``parrec2nii`` (pr/478)
+  (Jasper J.F. van den Bosch, reviewed by Gregory R. Lee, MB).
 
 API changes and deprecations
 ----------------------------
@@ -98,6 +100,8 @@ API changes and deprecations
   instead of a ``HeaderError``.  We are raising a ``DataError`` if the track
   is truncated when ``strict=True`` (the default), rather than a ``TypeError``
   when trying to create the points array.
+* Change sform code that ``parrec2nii`` script writes to NIfTI images; change
+  from 2 ("aligned") to 1 ("scanner");
 * Deprecation of ``get_header``, ``get_affine`` method of image objects for
   removal in version 4.0;
 * Removed broken ``from_filespec`` method from image objects, and deprecated
