@@ -172,6 +172,7 @@ Release checklist
   buildbot::
 
     try_branch.py nibabel-bdist32-27
+    try_branch.py nibabel-bdist32-33
     try_branch.py nibabel-bdist32-34
     try_branch.py nibabel-bdist32-35
     try_branch.py nibabel-bdist64-27
@@ -179,19 +180,10 @@ Release checklist
   Check the builds completed without error on their respective web-pages:
 
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-33
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-35
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
-
-  Then get the built binaries in:
-
-  * https://nipy.bic.berkeley.edu/nibabel-dist
-
-  When you've done the release to pypi, you can upload them to pypi with the
-  admin files interface.
-
-  If you are already on a Windows machine, you could have done the manual
-  command to build instead: ``python setup.py bdist_wininst``.
 
 * Once everything looks good, you are ready to upload the source release to
   PyPi.  See `setuptools intro`_.  Make sure you have a file
