@@ -134,7 +134,7 @@ API changes and deprecations
   ``GiftiImageParser.parse`` method, for removal in 4.0;
 * Deprecation of ``loadsave`` functions ``guessed_image_type`` and
   ``which_analyze_type``, in favor of new API where each image class tests the
-  file for compatibility during load, for removal in 4.0;
+  file for compatibility during load, for removal in 4.0.
 
 2.0.2 (Monday 23 November 2015)
 ===============================

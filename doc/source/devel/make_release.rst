@@ -59,7 +59,7 @@ Release checklist
 
 * Check the copyright year in ``doc/source/conf.py``
 
-* Refresh the ``REAMDE.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
+* Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
   by running ``make refresh-readme``.
 
   Check the output of::
@@ -87,6 +87,10 @@ Release checklist
 * Clean::
 
     make distclean
+    # Check no files outside version control that you want to keep
+    git status
+    # Nuke
+    git clean -fxd
 
 * Make sure all tests pass (from the nibabel root directory)::
 
@@ -196,27 +200,34 @@ Release checklist
     [distutils]
     index-servers =
         pypi
+        warehouse
 
     [pypi]
     username:your.pypi.username
     password:your-password
 
-    [server-login]
+    [warehouse]
+    repository: https://upload.pypi.io/legacy/
     username:your.pypi.username
     password:your-password
 
 * When ready::
 
+    make distclean
+    git clean -fxd
     python setup.py register
-    python setup.py sdist --formats=gztar,zip upload
+    python setup.py sdist --formats=gztar,zip
+    # -s flag to sign the release
+    twine upload -s dist/nibabel*
 
-* Tag the release with tag of form ``2.0.0``::
+* Tag the release with signed tag of form ``2.0.0``::
 
-    git tag -am "Something about this release' 2.0.0
+    git tag -s 2.0.0
 
 * Push the tag and any other changes to trunk with::
 
-    git push --tags
+    git push origin 2.0.0
+    git push
 
 * Now the version number is OK, push the docs to github pages with::
 
