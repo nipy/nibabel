@@ -210,7 +210,7 @@ Release checklist
     python setup.py register
     python setup.py sdist --formats=gztar,zip
     # -s flag to sign the release
-    twine upload -s dist/nibabel*
+    twine upload -r warehouse -s dist/nibabel*
 
 * Tag the release with signed tag of form ``2.0.0``::
 
