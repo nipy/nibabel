@@ -77,21 +77,6 @@ Release checklist
 * Do a final check on the `nipy buildbot`_.  Use the ``try_branch.py``
   scheduler available in nibotmi_ to test particular schedulers.
 
-* If you have travis-ci_ building set up for your own repo you might want to
-  push the code in it's current state to a branch that will build, e.g::
-
-    git branch -D pre-release-test # in case branch already exists
-    git co -b pre-release-test
-    git push your-github-user pre-release-test -u
-
-* Clean::
-
-    make distclean
-    # Check no files outside version control that you want to keep
-    git status
-    # Nuke
-    git clean -fxd
-
 * Make sure all tests pass (from the nibabel root directory)::
 
     nosetests --with-doctest nibabel
@@ -185,6 +170,15 @@ Release checklist
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-35
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
 
+* Make sure you have travis-ci_ building set up for your own repo. Make a new
+  ``release-check`` (or similar) branch, and push the code in its current
+  state to a branch that will build, e.g::
+
+    git branch -D release-check # in case branch already exists
+    git co -b release-check
+    # You might need the --force flag here
+    git push your-github-user release-check -u
+
 * Once everything looks good, you are ready to upload the source release to
   PyPi.  See `setuptools intro`_.  Make sure you have a file
   ``\$HOME/.pypirc``, of form::
@@ -203,10 +197,16 @@ Release checklist
     username:your.pypi.username
     password:your-password
 
-* When ready::
+* Clean::
 
     make distclean
+    # Check no files outside version control that you want to keep
+    git status
+    # Nuke
     git clean -fxd
+
+* When ready::
+
     python setup.py register
     python setup.py sdist --formats=gztar,zip
     # -s flag to sign the release
@@ -258,7 +258,6 @@ Release checklist
     merge from maintenance in future without getting spurious merge conflicts::
 
        git merge -s ours maint/2.0.x
-
 
   If this is just a maintenance release from ``maint/2.0.x`` or similar, just
   tag and set the version number to - say - ``2.0.2.dev``.
