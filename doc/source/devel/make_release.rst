@@ -44,9 +44,15 @@ Release checklist
   notes are as complete as possible and that every contributor was recognized.
 
 * Look at ``doc/source/index.rst`` and add any authors not yet acknowledged.
+  You might want to use the following to list authors by the date of their
+  contributions::
 
-* Update new authors and add thansk in ``doc/source/index.rst`` and consider
-  any updates to the ``AUTHOR`` file.
+    git log --format="%aN <%aE>" --reverse | perl -e 'my %dedupe; while (<STDIN>) { print unless $dedupe{$_}++}'
+
+  (From:
+  http://stackoverflow.com/questions/6482436/list-of-authors-in-git-since-a-given-commit#6482473)
+
+  Consider any updates to the ``AUTHOR`` file.
 
 * Use the opportunity to update the ``.mailmap`` file if there are any
   duplicate authors listed from ``git shortlog -nse``.
@@ -63,9 +69,10 @@ Release checklist
   because this will be the output used by pypi_
 
 * Check the dependencies listed in ``nibabel/info.py`` (e.g.
-  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should
-  at least match. Do they still hold?  Make sure `nibabel on travis`_ is
-  testing the minimum dependencies specifically.
+  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst`` and in
+  ``requirements.txt`` and ``.travis.yml``.  They should at least match. Do
+  they still hold?  Make sure `nibabel on travis`_ is testing the minimum
+  dependencies specifically.
 
 * Do a final check on the `nipy buildbot`_.  Use the ``try_branch.py``
   scheduler available in nibotmi_ to test particular schedulers.
