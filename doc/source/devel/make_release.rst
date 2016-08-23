@@ -81,34 +81,65 @@ Release checklist
 
     nosetests --with-doctest nibabel
 
-* Make sure all tests pass from sdist::
+* Make sure you are set up to use the ``try_branch.py`` - see
+  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
 
-    make sdist-tests
+* Make sure all your changes are committed or removed, because
+  ``try_branch.py`` pushes up the changes in the working tree;
 
-  and the three ways of installing (from tarball, repo, local in repo)::
+* The following checks get run with the ``nibabel-release-checks``, as in::
 
-    make check-version-info
+    try_branch.py nibabel-release-checks
 
-  The last may not raise any errors, but you should detect in the output
-  lines of this form::
+  Beware: this build does not usually error, even if the steps do not give the
+  expected output.  You need to check the output manually by going to
+  https://nipy.bic.berkeley.edu/builders/nibabel-release-checks after the
+  build has finished.
 
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-    /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-    /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+  * Make sure all tests pass from sdist::
 
-* Check the ``setup.py`` file is picking up all the library code and scripts,
-  with::
+      make sdist-tests
 
-    make check-files
+    and the three ways of installing (from tarball, repo, local in repo)::
 
-  Look for output at the end about missed files, such as::
+      make check-version-info
 
-    Missed script files:  /Users/mb312/dev_trees/nibabel/bin/nib-dicomfs, /Users/mb312/dev_trees/nibabel/bin/nifti1_diagnose.py
+    The last may not raise any errors, but you should detect in the output
+    lines of this form::
 
-  Fix ``setup.py`` to carry across any files that should be in the
-  distribution.
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+      /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+      /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+
+  * Check the ``setup.py`` file is picking up all the library code and scripts,
+    with::
+
+      make check-files
+
+    Look for output at the end about missed files, such as::
+
+      Missed script files:  /Users/mb312/dev_trees/nibabel/bin/nib-dicomfs, /Users/mb312/dev_trees/nibabel/bin/nifti1_diagnose.py
+
+    Fix ``setup.py`` to carry across any files that should be in the
+    distribution.
+
+  * Check the documentation doctests::
+
+      make -C doc doctest
+
+    This should also be tested by `nibabel on travis`_.
+
+  * Check everything compiles without syntax errors::
+
+      python -m compileall .
+
+  * Check that nibabel correctly generates a source distribution::
+
+      make source-release
+
+* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit;
 
 * You may have virtualenvs for different Python versions.  Check the tests
   pass for different configurations. The long-hand way looks like this::
@@ -118,31 +149,10 @@ Release checklist
     make sdist-tests
     deactivate
 
-  etc for the different virtualenvs.
+  etc for the different virtualenvs;
 
 * Check on different platforms, particularly windows and PPC. Look at the
-  `nipy buildbot`_ automated test runs for this.
-
-* Check the documentation doctests::
-
-    make -C doc doctest
-
-  This should also be tested by `nibabel on travis`_.
-
-* Check everything compiles without syntax errors::
-
-    python -m compileall .
-
-* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit.
-  Then::
-
-    make source-release
-
-* Make sure you are set up to use the ``try_branch.py`` - see
-  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
-
-* Make sure all your changes are committed or removed, because
-  ``try_branch.py`` pushes up the changes in the working tree;
+  `nipy buildbot`_ automated test runs for this;
 
 * Force build of your release candidate branch with the slow and big-memory
   tests on the ``zibi`` buildslave::
