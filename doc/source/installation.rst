@@ -27,7 +27,7 @@ setup.py install``.
 Installer and packages
 ======================
 
-.. _install_pypi:
+.. _install-pypi:
 
 pip and the Python package index
 --------------------------------

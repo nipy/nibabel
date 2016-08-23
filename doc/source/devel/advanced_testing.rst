@@ -9,22 +9,22 @@
 
 .. _advanced_testing:
 
-************
+****************
 Advanced Testing
-************
+****************
 
 Setup
 -----
 
-Before running advanced tests, please update all submodules of nibabel, by running ``git submodule update --init``
-
+Before running advanced tests, please update all submodules of nibabel, by
+running ``git submodule update --init``
 
 Long-running tests
 ------------------
 
 Long-running tests are not enabled by default, and can be resource-intensive. To run these tests:
 
-* Set environment variable ``NIPY_EXTRA_TESTS=slow``
+* Set environment variable ``NIPY_EXTRA_TESTS=slow``;
 * Run ``nosetests``.
 
 Note that some tests may require a machine with >4GB of RAM.

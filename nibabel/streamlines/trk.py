@@ -244,8 +244,9 @@ def create_empty_header():
 class TrkFile(TractogramFile):
     """ Convenience class to encapsulate TRK file format.
 
-    Note
-    ----
+    Notes
+    -----
+
     TrackVis (so its file format: TRK) considers the streamline coordinate
     (0,0,0) to be in the corner of the voxel whereas NiBabel's streamlines
     internal representation (Voxel space) assumes (0,0,0) to be in the

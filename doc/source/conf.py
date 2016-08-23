@@ -61,8 +61,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'texext.math_dollar',  # has to go before numpydoc
               'numpydoc',
-              'only_directives',
-              'plot_directive',
+              'matplotlib.sphinxext.plot_directive',
               ]
 
 # the following doesn't work with sphinx < 1.0, but will make a separate

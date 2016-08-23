@@ -60,8 +60,9 @@ class FileBasedHeader(object):
 
 class FileBasedImage(object):
     '''
-    This abstract image class defines an interface for loading/saving images
-    from disk. It doesn't define any image properties.
+    Abstract image class with interface for loading/saving images from disk.
+
+    The class doesn't define any image properties.
 
     It has:
 
@@ -75,6 +76,7 @@ class FileBasedImage(object):
        * header
 
     methods:
+
        * .get_header() (deprecated, use header property instead)
        * .to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
@@ -95,9 +97,7 @@ class FileBasedImage(object):
     You cannot slice an image, and trying to slice an image generates an
     informative TypeError.
 
-
-    There are several ways of writing data.
-    =======================================
+    **There are several ways of writing data**
 
     There is the usual way, which is the default::
 
@@ -136,8 +136,7 @@ class FileBasedImage(object):
         hdr.set_data_dtype(data.dtype)
         img.to_filename(fname)
 
-    Files interface
-    ===============
+    **Files interface**
 
     The image has an attribute ``file_map``.  This is a mapping, that has keys
     corresponding to the file types that an image needs for storage.  For

@@ -1,4 +1,8 @@
-""" Read and write trackvis files
+""" Read and write trackvis files (old interface)
+
+See :mod:`nibabel.streamlines` for the new interface.
+
+We will deprecate this, the old interface, in some future release.
 """
 from __future__ import division, print_function
 import warnings
