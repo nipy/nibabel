@@ -16,8 +16,9 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2LabelTable, Cifti2VertexIndices,
                      Cifti2VoxelIndicesIJK, Cifti2BrainModel, Cifti2Matrix,
                      Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
-                     Cifti2Surface, Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
-                     Cifti2Vertices, Cifti2Volume, CIFTI_BrainStructures,
+                     Cifti2Surface,
+                     Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
+                     Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
                      CIFTI_MODEL_TYPES, _underscore)
 from .. import xmlutils as xml
 from ..externals.six import BytesIO
