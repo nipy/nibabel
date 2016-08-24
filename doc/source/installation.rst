@@ -48,11 +48,16 @@ the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
 distribution you want.  Download the distribution, unpack it, and then, from
 the unpacked directory, run::
 
-    python setup.py install
+    pip install .
 
-or (if you need root permission to install on a unix system)::
+If you get permission errors, this may be because ``pip`` is trying to install
+to the system directories.  You can solve this error by using ``sudo``, but we
+strongly suggest you either do an install into your "user" directories, like
+this::
 
-    sudo python setup.py install
+    pip install --user .
+
+or you work inside a virtualenv_.
 
 .. _install_debian:
 
@@ -66,60 +71,56 @@ their repositories. Once this is done, installing NiBabel is::
   apt-get update
   apt-get install python-nibabel
 
-Install from source
-===================
+Install a development version
+=============================
 
-If no installer or package is provided for your platform, you can install
-NiBabel from source.
+If you want to test the latest development version of nibabel, or you'd like to
+help by contributing bug-fixes or new features (excellent!), then this section
+is for you.
 
 Requirements
 ------------
 
-*  Python_ 2.6 or greater
+.. check these against:
+    nibabel/info.py
+    requirements.txt
+    .travis.yml
+
+*  Python_ 2.7 or greater
 *  NumPy_ 1.5 or greater
-*  SciPy_ (for full SPM-ANALYZE support)
-*  PyDICOM_ 0.9.7 or greater (for DICOM support)
-*  `Python Imaging Library`_ (for PNG conversion in DICOMFS)
-*  nose_ 0.11 or greater (to run the tests)
-*  sphinx_ (to build the documentation)
+*  SciPy_ (optional, for full SPM-ANALYZE support)
+*  PyDICOM_ 0.9.7 or greater (optional, for DICOM support)
+*  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
+*  nose_ 0.11 or greater (optional, to run the tests)
+*  sphinx_ (optional, to build the documentation)
 
-Get the sources
----------------
+Get the development sources
+---------------------------
 
-The latest release is always available from `NiBabel pypi`_.
-
-Alternatively, you can download a tarball of the latest development snapshot
-(i.e. the current state of the *master* branch of the NiBabel source code
-repository) from the `NiBabel github`_ page.
+You can download a tarball of the latest development snapshot (i.e. the current
+state of the *master* branch of the NiBabel source code repository) from the
+`NiBabel github`_ page.
 
 If you want to have access to the full NiBabel history and the latest
-development code, do a full clone (aka checkout) of the NiBabel
+development code, do a full clone (AKA checkout) of the NiBabel
 repository::
 
-  git clone git://github.com/nipy/nibabel.git
-
-or::
-
   git clone https://github.com/nipy/nibabel.git
-
-(The first may be faster, the second more likely to work behind a firewall).
 
 Installation
 ------------
 
 Just install the modules by invoking::
 
-  sudo python setup.py install
+  pip install .
 
-If sudo is not configured (or even installed) you might have to use
-``su`` instead.
-
+See :ref:`install-pypi` for advice on what to do for permission errors.
 
 Validating your install
 -----------------------
 
-For a basic test of your installation, fire up Python and try importing the module to see if everything is fine.
-It should look something like this::
+For a basic test of your installation, fire up Python and try importing the
+module to see if everything is fine.  It should look something like this::
 
     Python 2.7.8 (v2.7.8:ee879c0ffa11, Jun 29 2014, 21:07:35)
     [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
@@ -128,8 +129,10 @@ It should look something like this::
     >>>
 
 
-To run the nibabel test suite, from the terminal run ``nosetests nibabel`` or ``python -c "import nibabel; nibabel.test()``.
+To run the nibabel test suite, from the terminal run ``nosetests nibabel`` or
+``python -c "import nibabel; nibabel.test()``.
 
-To run an extended test suite that validates ``nibabel`` for long-running and resource-intensive cases, please see :ref:`advanced_testing`.
+To run an extended test suite that validates ``nibabel`` for long-running and
+resource-intensive cases, please see :ref:`advanced_testing`.
 
 .. include:: links_names.txt

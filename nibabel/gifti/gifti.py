@@ -14,7 +14,6 @@ from http://www.nitrc.org/projects/gifti/
 from __future__ import division, print_function, absolute_import
 
 import sys
-import warnings
 
 import numpy as np
 
@@ -23,6 +22,7 @@ from ..filebasedimages import FileBasedImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
+from ..deprecated import deprecate_with_version
 
 # {en,de}codestring in deprecated in Python3, but
 # {en,de}codebytes not available in Python2.
@@ -47,7 +47,10 @@ class GiftiMetaData(xml.XmlSerializable):
             meda.data.append(nv)
         return meda
 
-    @np.deprecate_with_doc("Use the metadata property instead.")
+    @deprecate_with_version(
+        'get_metadata method deprecated. '
+        "Use the metadata property instead."
+        '2.1', '4.0')
     def get_metadata(self):
         return self.metadata
 
@@ -81,7 +84,7 @@ class GiftiNVPairs(object):
     name : str
     value : str
     """
-    def __init__(self, name='', value=''):
+    def __init__(self, name=u'', value=u''):
         self.name = name
         self.value = value
 
@@ -156,7 +159,10 @@ class GiftiLabel(xml.XmlSerializable):
         self.blue = blue
         self.alpha = alpha
 
-    @np.deprecate_with_doc("Use the rgba property instead.")
+    @deprecate_with_version(
+        'get_rgba method deprecated. '
+        "Use the rgba property instead."
+        '2.1', '4.0')
     def get_rgba(self):
         return self.rgba
 
@@ -249,7 +255,9 @@ class GiftiCoordSystem(xml.XmlSerializable):
         print('Affine Transformation Matrix: \n', self.xform)
 
 
-@np.deprecate_with_doc("This is an internal API that will be discontinued.")
+@deprecate_with_version(
+    "data_tag is an internal API that will be discontinued.",
+    '2.1', '4.0')
 def data_tag(dataarray, encoding, datatype, ordering):
     class DataTag(xml.XmlSerializable):
 
@@ -344,7 +352,7 @@ class GiftiDataArray(xml.XmlSerializable):
                  coordsys=None,
                  ordering="C",
                  meta=None,
-                 ext_fname='',
+                 ext_fname=u'',
                  ext_offset=0):
         """
         Returns a shell object that cannot be saved.
@@ -369,7 +377,22 @@ class GiftiDataArray(xml.XmlSerializable):
     def num_dim(self):
         return len(self.dims)
 
+    # Setter for backwards compatibility with pymvpa
+    @num_dim.setter
+    @deprecate_with_version(
+        "num_dim will be read-only in future versions of nibabel",
+        '2.1', '4.0')
+    def num_dim(self, value):
+        if value != len(self.dims):
+            raise ValueError('num_dim value {0} != number of dimensions '
+                             'len(self.dims) {1}'
+                             .format(value, len(self.dims)))
+
     @classmethod
+    @deprecate_with_version(
+        'from_array method is deprecated. '
+        'Please use GiftiDataArray constructor instead.',
+        '2.1', '4.0')
     def from_array(klass,
                    darray,
                    intent="NIFTI_INTENT_NONE",
@@ -408,10 +431,6 @@ class GiftiDataArray(xml.XmlSerializable):
         -------
         da : instance of our own class
         """
-        warnings.warn(
-            "Please use GiftiDataArray constructor instead of from_array "
-            "class method",
-            DeprecationWarning, stacklevel=2)
         return klass(data=darray,
                      intent=intent,
                      datatype=datatype,
@@ -425,6 +444,7 @@ class GiftiDataArray(xml.XmlSerializable):
         # fix endianness to machine endianness
         self.endian = gifti_endian_codes.code[sys.byteorder]
 
+        # All attribute values must be strings
         data_array = xml.Element('DataArray', attrib={
             'Intent': intent_codes.niistring[self.intent],
             'DataType': data_type_codes.niistring[self.datatype],
@@ -433,7 +453,7 @@ class GiftiDataArray(xml.XmlSerializable):
             'Encoding': gifti_encoding_codes.specs[self.encoding],
             'Endian': gifti_endian_codes.specs[self.endian],
             'ExternalFileName': self.ext_fname,
-            'ExternalFileOffset': self.ext_offset})
+            'ExternalFileOffset': str(self.ext_offset)})
         for di, dn in enumerate(self.dims):
             data_array.attrib['Dim%d' % di] = str(dn)
 
@@ -451,7 +471,10 @@ class GiftiDataArray(xml.XmlSerializable):
 
         return data_array
 
-    @np.deprecate_with_doc("Use the to_xml() function instead.")
+    @deprecate_with_version(
+        'to_xml_open method deprecated. '
+        'Use the to_xml() function instead.',
+        '2.1', '4.0')
     def to_xml_open(self):
         out = """<DataArray Intent="%s"
 \tDataType="%s"
@@ -475,7 +498,10 @@ class GiftiDataArray(xml.XmlSerializable):
                       self.ext_offset,
                       )
 
-    @np.deprecate_with_doc("Use the to_xml() function instead.")
+    @deprecate_with_version(
+        'to_xml_close method deprecated. '
+        'Use the to_xml() function instead.',
+        '2.1', '4.0')
     def to_xml_close(self):
         return "</DataArray>\n"
 
@@ -495,7 +521,10 @@ class GiftiDataArray(xml.XmlSerializable):
             print('Coordinate System:')
             print(self.coordsys.print_summary())
 
-    @np.deprecate_with_doc("Use the metadata property instead.")
+    @deprecate_with_version(
+        'get_metadata method deprecated. '
+        "Use the metadata property instead."
+        '2.1', '4.0')
     def get_metadata(self):
         return self.meta.metadata
 
@@ -506,7 +535,8 @@ class GiftiDataArray(xml.XmlSerializable):
 
 
 class GiftiImage(xml.XmlSerializable, FileBasedImage):
-    """
+    """ GIFTI image object
+
     The Gifti spec suggests using the following suffixes to your
     filename when saving each specific type of data:
 
@@ -542,7 +572,7 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
     parser = None
 
     def __init__(self, header=None, extra=None, file_map=None, meta=None,
-                 labeltable=None, darrays=None, version="1.0"):
+                 labeltable=None, darrays=None, version=u"1.0"):
         super(GiftiImage, self).__init__(header=header, extra=extra,
                                          file_map=file_map)
         if darrays is None:
@@ -578,11 +608,17 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
             raise TypeError("Not a valid GiftiLabelTable instance")
         self._labeltable = labeltable
 
-    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    @deprecate_with_version(
+        'set_labeltable method deprecated. '
+        "Use the gifti_img.labeltable property instead.",
+        '2.1', '4.0')
     def set_labeltable(self, labeltable):
         self.labeltable = labeltable
 
-    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    @deprecate_with_version(
+        'get_labeltable method deprecated. '
+        "Use the gifti_img.labeltable property instead.",
+        '2.1', '4.0')
     def get_labeltable(self):
         return self.labeltable
 
@@ -602,11 +638,17 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
             raise TypeError("Not a valid GiftiMetaData instance")
         self._meta = meta
 
-    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    @deprecate_with_version(
+        'set_meta method deprecated. '
+        "Use the gifti_img.meta property instead.",
+        '2.1', '4.0')
     def set_metadata(self, meta):
         self.meta = meta
 
-    @np.deprecate_with_doc("Use the gifti_img.labeltable property instead.")
+    @deprecate_with_version(
+        'get_meta method deprecated. '
+        "Use the gifti_img.meta property instead.",
+        '2.1', '4.0')
     def get_meta(self):
         return self.meta
 
@@ -638,7 +680,10 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         it = intent_codes.code[intent]
         return [x for x in self.darrays if x.intent == it]
 
-    @np.deprecate_with_doc("Use get_arrays_from_intent instead.")
+    @deprecate_with_version(
+        'getArraysFromIntent method deprecated. '
+        "Use get_arrays_from_intent instead.",
+        '2.1', '4.0')
     def getArraysFromIntent(self, intent):
         return self.get_arrays_from_intent(intent)
 

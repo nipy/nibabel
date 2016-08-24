@@ -1,1 +1,8 @@
+# Minumum requirements
+#
+# Check these against
+#   nibabel/info.py
+#   .travis.yml
+#   doc/source/installation.rst
+
 numpy>=1.5.1

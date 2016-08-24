@@ -470,7 +470,7 @@ extension_codes = Recoder((
     (10, "jimdiminfo", Nifti1Extension),
     (12, "workflow_fwds", Nifti1Extension),
     (14, "freesurfer", Nifti1Extension),
-    (16, "pypickle", Nifti1Extension)
+    (16, "pypickle", Nifti1Extension),
 ), fields=('code', 'label', 'handler'))
 
 
@@ -835,9 +835,12 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         .. _issue 100: https://github.com/nipy/nibabel/issues/100
         .. _issue 309: https://github.com/nipy/nibabel/issues/309
-        .. _save77: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L77-L82
-        .. _save50: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L50-L56
-        .. _load_nifti.m: https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/load_nifti.m#L86-L89
+        .. _save77:
+            https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L77-L82
+        .. _save50:
+            https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/save_nifti.m#L50-L56
+        .. _load_nifti.m:
+            https://github.com/fieldtrip/fieldtrip/blob/428798b/external/freesurfer/load_nifti.m#L86-L89
         .. _standard header: http://nifti.nimh.nih.gov/pub/dist/src/niftilib/nifti1.h
         '''
         hdr = self._structarr

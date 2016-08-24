@@ -7,10 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Define supported image classes and names '''
-import warnings
 
 from .analyze import AnalyzeImage
-from .cifti2 import Cifti2Image, Cifti2DenseDataSeries
+from .cifti2 import Cifti2Image
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
@@ -21,6 +20,7 @@ from .parrec import PARRECImage
 from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .volumeutils import Recoder
+from .deprecated import deprecate_with_version
 
 from .optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
@@ -28,7 +28,7 @@ _, have_scipy, _ = optional_package('scipy')
 
 # Ordered by the load/save priority.
 all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
-                     Cifti2DenseDataSeries, Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
+                     Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
                      Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
                      Minc1Image, Minc2Image, MGHImage,
                      PARRECImage, GiftiImage]
@@ -37,9 +37,9 @@ all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
 # DEPRECATED: mapping of names to classes and class functionality
 class ClassMapDict(dict):
 
+    @deprecate_with_version('class_map is deprecated.',
+                            '2.1', '4.0')
     def __getitem__(self, *args, **kwargs):
-        warnings.warn("class_map is deprecated.", DeprecationWarning,
-                      stacklevel=2)
         return super(ClassMapDict, self).__getitem__(*args, **kwargs)
 
 class_map = ClassMapDict(
@@ -92,9 +92,9 @@ class_map = ClassMapDict(
 
 class ExtMapRecoder(Recoder):
 
+    @deprecate_with_version('ext_map is deprecated.',
+                            '2.1', '4.0')
     def __getitem__(self, *args, **kwargs):
-        warnings.warn("ext_map is deprecated.", DeprecationWarning,
-                      stacklevel=2)
         return super(ExtMapRecoder, self).__getitem__(*args, **kwargs)
 
 # mapping of extensions to default image class names
@@ -106,3 +106,29 @@ ext_map = ExtMapRecoder((
     ('mgz', '.mgz'),
     ('par', '.par'),
 ))
+
+# Image classes known to require spatial axes to be first in index ordering.
+# When adding an image class, consider whether the new class should be listed
+# here.
+KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                       Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
+                       MGHImage, PARRECImage)
+
+
+def spatial_axes_first(img):
+    """ True if spatial image axes for `img` always preceed other axes
+
+    Parameters
+    ----------
+    img : object
+        Image object implementing at least ``shape`` attribute.
+
+    Returns
+    -------
+    spatial_axes_first : bool
+        True if image only has spatial axes (number of axes < 4) or image type
+        known to have spatial axes preceeding other axes.
+    """
+    if len(img.shape) < 4:
+        return True
+    return type(img) in KNOWN_SPATIAL_FIRST

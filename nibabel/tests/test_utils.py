@@ -24,6 +24,7 @@ import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 from ..openers import ImageOpener
+from .. import volumeutils
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
@@ -54,7 +55,7 @@ from numpy.testing import (assert_array_almost_equal,
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from ..testing import (assert_dt_equal, assert_allclose_safely,
-                       suppress_warnings)
+                       suppress_warnings, clear_and_catch_warnings)
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -1033,10 +1034,12 @@ def test_fname_ext_ul_case():
 def test_allopen():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+    with clear_and_catch_warnings() as w:
+        warnings.filterwarnings('once', category=DeprecationWarning)
         # Test default mode is 'rb'
         fobj = allopen(__file__)
+        # Check we got the deprecation warning
+        assert_equal(len(w), 1)
         assert_equal(fobj.mode, 'rb')
         # That we can set it
         fobj = allopen(__file__, 'r')

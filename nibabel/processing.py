@@ -25,6 +25,7 @@ spnd, _, _ = optional_package('scipy.ndimage')
 from .affines import AffineError, to_matvec, from_matvec, append_diag
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Image
+from .imageclasses import spatial_axes_first
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
 
@@ -124,9 +125,9 @@ def resample_from_to(from_img,
     Parameters
     ----------
     from_img : object
-        Object having attributes ``dataobj``, ``affine``, ``header``. If
-        `out_class` is not None, ``img.__class__`` should be able to construct
-        an image from data, affine and header.
+        Object having attributes ``dataobj``, ``affine``, ``header`` and
+        ``shape``. If `out_class` is not None, ``img.__class__`` should be able
+        to construct an image from data, affine and header.
     to_vox_map : image object or length 2 sequence
         If object, has attributes ``shape`` giving input voxel shape, and
         ``affine`` giving mapping of input voxels to output space. If length 2
@@ -153,6 +154,10 @@ def resample_from_to(from_img,
         resampling `from_img` into axes aligned to the output space of
         ``from_img.affine``
     """
+    # This check requires `shape` attribute of image
+    if not spatial_axes_first(from_img):
+        raise ValueError('Cannot predict position of spatial axes for Image '
+                         'type ' + str(type(from_img)))
     try:
         to_shape, to_affine = to_vox_map.shape, to_vox_map.affine
     except AttributeError:
@@ -248,9 +253,9 @@ def smooth_image(img,
     Parameters
     ----------
     img : object
-        Object having attributes ``dataobj``, ``affine``, ``header``. If
-        `out_class` is not None, ``img.__class__`` should be able to construct
-        an image from data, affine and header.
+        Object having attributes ``dataobj``, ``affine``, ``header`` and
+        ``shape``. If `out_class` is not None, ``img.__class__`` should be able
+        to construct an image from data, affine and header.
     fwhm : scalar or length 3 sequence
         FWHM *in mm* over which to smooth.  The smoothing applies to the voxel
         axes, not to the output axes, but is in millimeters.  The function
@@ -280,6 +285,10 @@ def smooth_image(img,
         Image of instance specified by `out_class`, containing data output from
         smoothing `img` data by given FWHM kernel.
     """
+    # This check requires `shape` attribute of image
+    if not spatial_axes_first(img):
+        raise ValueError('Cannot predict position of spatial axes for Image '
+                         'type ' + str(type(img)))
     if out_class is None:
         out_class = img.__class__
     n_dim = len(img.shape)

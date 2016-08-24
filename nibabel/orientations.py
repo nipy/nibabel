@@ -13,6 +13,8 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 import numpy.linalg as npl
 
+from .deprecated import deprecate_with_version
+
 
 class OrientationError(Exception):
     pass
@@ -228,7 +230,10 @@ def inv_ornt_aff(ornt, shape):
     return np.dot(undo_flip, undo_reorder)
 
 
-@np.deprecate_with_doc("Please use inv_ornt_aff instead")
+@deprecate_with_version('orientation_affine deprecated. '
+                        'Please use inv_ornt_aff instead'
+                        '1.3',
+                        '3.0')
 def orientation_affine(ornt, shape):
     return inv_ornt_aff(ornt, shape)
 

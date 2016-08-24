@@ -186,17 +186,25 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             assert_array_equal([hdr['scl_slope'], hdr['scl_inter']],
                                raw_values)
 
-    def test_nifti_qsform_checks(self):
-        # qfac, qform, sform checks
-        # qfac
-        HC = self.header_class
-        hdr = HC()
+    def test_nifti_qfac_checks(self):
+        # Test qfac is 1 or -1
+        hdr = self.header_class()
+        # 1, -1 OK
+        hdr['pixdim'][0] = 1
+        self.log_chk(hdr, 0)
+        hdr['pixdim'][0] = -1
+        self.log_chk(hdr, 0)
+        # 0 is not
         hdr['pixdim'][0] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_equal(fhdr['pixdim'][0], 1)
         assert_equal(message,
                      'pixdim[0] (qfac) should be 1 '
                      '(default) or -1; setting qfac to 1')
+
+    def test_nifti_qsform_checks(self):
+        # qform, sform checks
+        HC = self.header_class
         # qform, sform
         hdr = HC()
         hdr['qform_code'] = -1

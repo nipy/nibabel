@@ -335,6 +335,39 @@ class TestSpatialImage(TestCase):
         assert_false(rt_img.get_data() is out_data)
         assert_array_equal(rt_img.get_data(), in_data)
 
+    def test_api_deprecations(self):
+
+        class FakeImage(self.image_class):
+
+            files_types = (('image', '.foo'),)
+
+            @classmethod
+            def to_file_map(self, file_map=None):
+                pass
+
+            @classmethod
+            def from_file_map(self, file_map=None):
+                pass
+
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        img = FakeImage(arr, aff)
+        bio = BytesIO()
+        file_map = FakeImage.make_file_map({'image': bio})
+
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img.to_files(file_map)
+            assert_equal(len(w), 1)
+            img.to_filespec('an_image')
+            assert_equal(len(w), 2)
+            img = FakeImage.from_files(file_map)
+            assert_equal(len(w), 3)
+            file_map = FakeImage.filespec_to_files('an_image')
+            assert_equal(list(file_map), ['image'])
+            assert_equal(file_map['image'].filename, 'an_image.foo')
+            assert_equal(len(w), 4)
+
 
 class MmapImageMixin(object):
     """ Mixin for testing images that may return memory maps """

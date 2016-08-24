@@ -27,6 +27,8 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 import warnings
 
+import numpy as np
+
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
@@ -111,8 +113,12 @@ class ArrayProxy(object):
         return self._shape
 
     @property
-    def is_proxy(self):
-        return True
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def offset(self):
+        return self._offset
 
     @property
     def slope(self):
@@ -123,8 +129,8 @@ class ArrayProxy(object):
         return self._inter
 
     @property
-    def offset(self):
-        return self._offset
+    def is_proxy(self):
+        return True
 
     def get_unscaled(self):
         ''' Read of data from file
@@ -164,3 +170,10 @@ def is_proxy(obj):
         return obj.is_proxy
     except AttributeError:
         return False
+
+
+def reshape_dataobj(obj, shape):
+    """ Use `obj` reshape method if possible, else numpy reshape function
+    """
+    return (obj.reshape(shape) if hasattr(obj, 'reshape')
+            else np.reshape(obj, shape))
