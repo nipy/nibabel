@@ -292,6 +292,22 @@ Release checklist
     Please take a look at the Makefile rules ``devel-src``, ``devel-dsc`` and
     ``orig-src``.
 
+* Go to: https://github.com/nipy/nibabel/tags and select the new tag, to fill
+  in the release notes.  Copy the relevant part of the Changelog into the
+  release notes.  Click on "Publish release".  This will cause Zenodo_ to
+  generate a new release "upload", including a DOI.  After a few minutes, go
+  to https://zenodo.org/deposit and click on the new release upload.  Click on
+  the "View" button and click on the DOI badge at the right to display the
+  text for adding a DOI badge in various formats. Copy the DOI Markdown text.
+  The markdown will look something like this::
+
+    [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.60847.svg)](http://dx.doi.org/10.5281/zenodo.60847)
+
+  Go back to the Github release page for this release, click "Edit release".
+  and copy the DOI into the release notes.  Click "Update release".
+
+  See: https://guides.github.com/activities/citable-code
+
 * Announce to the mailing lists.
 
 .. _setuptools intro: https://pythonhosted.org/an_example_pypi_project/setuptools.html
