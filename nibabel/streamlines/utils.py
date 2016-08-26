@@ -4,8 +4,8 @@ import nibabel
 def get_affine_from_reference(ref):
     """ Returns the affine defining the reference space.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     ref : str or :class:`Nifti1Image` object or ndarray shape (4, 4)
         If str then it's the filename of reference file that will be loaded
         using :func:`nibabel.load` in order to obtain the affine.

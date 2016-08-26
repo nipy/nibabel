@@ -126,7 +126,7 @@ class ArraySequence(object):
         parameters it uses between append operations, in a "build cache".  To
         tell append to do this, use ``cache_build=True``.  If you use
         ``cache_build=True``, you need to finalize the append operations with
-        :method:`finalize_append`.
+        :meth:`finalize_append`.
 
         Parameters
         ----------
@@ -175,11 +175,11 @@ class ArraySequence(object):
     def finalize_append(self):
         """ Finalize process of appending several elements to `self`
 
-        :method:`append` can be a lot faster if it knows that it is appending
+        :meth:`append` can be a lot faster if it knows that it is appending
         several elements instead of a single element.  To tell the append
         method this is the case, use ``cache_build=True``.  This method
         finalizes the series of append operations after a call to
-        :method:`append` with ``cache_build=True``.
+        :meth:`append` with ``cache_build=True``.
         """
         if self._build_cache is None:
             return

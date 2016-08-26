@@ -32,8 +32,8 @@ File Formats
    nifti2
    ecat
    parrec
+   streamlines
    trackvis
-
 
 Image Utilities
 ===============

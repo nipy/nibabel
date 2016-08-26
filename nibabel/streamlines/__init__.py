@@ -1,3 +1,5 @@
+""" Multiformat-capable streamline format read / write interface
+"""
 import os
 import warnings
 from ..externals.six import string_types

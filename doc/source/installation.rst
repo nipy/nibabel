@@ -27,7 +27,7 @@ setup.py install``.
 Installer and packages
 ======================
 
-.. _install_pypi:
+.. _install-pypi:
 
 pip and the Python package index
 --------------------------------
@@ -92,6 +92,7 @@ Requirements
 *  PyDICOM_ 0.9.7 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
 *  nose_ 0.11 or greater (optional, to run the tests)
+*  mock_ (optional, to run the tests)
 *  sphinx_ (optional, to build the documentation)
 
 Get the development sources

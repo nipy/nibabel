@@ -61,8 +61,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'texext.math_dollar',  # has to go before numpydoc
               'numpydoc',
-              'only_directives',
-              'plot_directive',
+              'matplotlib.sphinxext.plot_directive',
               ]
 
 # the following doesn't work with sphinx < 1.0, but will make a separate
@@ -83,7 +82,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2015, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
+copyright = u'2006-2016, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -1,3 +1,5 @@
+""" Read / write FreeSurfer geometry, morphometry, label, annotation formats
+"""
 from __future__ import division, print_function, absolute_import
 
 import warnings
@@ -77,33 +79,37 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
     Parameters
     ----------
     filepath : str
-        Path to surface file
-    read_metadata : bool
-        Read metadata as key-value pairs.
+        Path to surface file.
+    read_metadata : bool, optional
+        If True, read and return metadata as key-value pairs.
+
         Valid keys:
-            * 'head' : array of int
-            * 'valid' : str
-            * 'filename' : str
-            * 'volume' : array of int, shape (3,)
-            * 'voxelsize' : array of float, shape (3,)
-            * 'xras' : array of float, shape (3,)
-            * 'yras' : array of float, shape (3,)
-            * 'zras' : array of float, shape (3,)
-            * 'cras' : array of float, shape (3,)
-    read_stamp : bool
+
+        * 'head' : array of int
+        * 'valid' : str
+        * 'filename' : str
+        * 'volume' : array of int, shape (3,)
+        * 'voxelsize' : array of float, shape (3,)
+        * 'xras' : array of float, shape (3,)
+        * 'yras' : array of float, shape (3,)
+        * 'zras' : array of float, shape (3,)
+        * 'cras' : array of float, shape (3,)
+
+    read_stamp : bool, optional
         Return the comment from the file
 
     Returns
     -------
     coords : numpy array
-        nvtx x 3 array of vertex (x, y, z) coordinates
+        nvtx x 3 array of vertex (x, y, z) coordinates.
     faces : numpy array
-        nfaces x 3 array of defining mesh triangles
+        nfaces x 3 array of defining mesh triangles.
     volume_info : OrderedDict
-        If read_metadata is true, key-value pairs found in the geometry file
+        Returned only if `read_metadata` is True.  Key-value pairs found in the
+        geometry file.
     create_stamp : str
-        If read_stamp is true, the comment added by the program that saved
-        the file
+        Returned only if `read_stamp` is True.  The comment added by the
+        program that saved the file.
     """
     volume_info = OrderedDict()
 
@@ -170,25 +176,27 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
     Parameters
     ----------
     filepath : str
-        Path to surface file
+        Path to surface file.
     coords : numpy array
-        nvtx x 3 array of vertex (x, y, z) coordinates
+        nvtx x 3 array of vertex (x, y, z) coordinates.
     faces : numpy array
-        nfaces x 3 array of defining mesh triangles
-    create_stamp : str
+        nfaces x 3 array of defining mesh triangles.
+    create_stamp : str, optional
         User/time stamp (default: "created by <user> on <ctime>")
-    volume_info : dict-like or None
+    volume_info : dict-like or None, optional
         Key-value pairs to encode at the end of the file.
+
         Valid keys:
-            * 'head' : array of int
-            * 'valid' : str
-            * 'filename' : str
-            * 'volume' : array of int, shape (3,)
-            * 'voxelsize' : array of float, shape (3,)
-            * 'xras' : array of float, shape (3,)
-            * 'yras' : array of float, shape (3,)
-            * 'zras' : array of float, shape (3,)
-            * 'cras' : array of float, shape (3,)
+
+        * 'head' : array of int
+        * 'valid' : str
+        * 'filename' : str
+        * 'volume' : array of int, shape (3,)
+        * 'voxelsize' : array of float, shape (3,)
+        * 'xras' : array of float, shape (3,)
+        * 'yras' : array of float, shape (3,)
+        * 'zras' : array of float, shape (3,)
+        * 'cras' : array of float, shape (3,)
 
     """
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
@@ -229,7 +237,6 @@ def read_morph_data(filepath):
     -------
     curv : numpy array
         Vector representation of surface morpometry values
-
     """
     with open(filepath, "rb") as fobj:
         magic = _fread3(fobj)
@@ -260,11 +267,10 @@ def write_morph_data(file_like, values, fnum=0):
         String containing path of file to be written, or file-like object, open
         in binary write (`'wb'` mode, implementing the `write` method)
     values : array-like
-        Surface morphometry values
-
-        Shape must be (N,), (N, 1), (1, N) or (N, 1, 1)
+        Surface morphometry values.  Shape must be (N,), (N, 1), (1, N) or (N,
+        1, 1)
     fnum : int, optional
-        Number of faces in the associated surface
+        Number of faces in the associated surface.
     """
     magic_bytes = np.array([255, 255, 255], dtype=np.uint8)
 
@@ -434,17 +440,17 @@ def read_label(filepath, read_scalars=False):
     Parameters
     ----------
     filepath : str
-        Path to label file
-    read_scalars : bool
-        If true, read and return scalars associated with each vertex
+        Path to label file.
+    read_scalars : bool, optional
+        If True, read and return scalars associated with each vertex.
 
     Returns
     -------
     label_array : numpy array
-        Array with indices of vertices included in label
+        Array with indices of vertices included in label.
     scalar_array : numpy array (floats)
-        If read_scalars is True, array of scalar data for each vertex
-
+        Only returned if `read_scalars` is True.  Array of scalar data for each
+        vertex.
     """
     label_array = np.loadtxt(filepath, dtype=np.int, skiprows=2, usecols=[0])
     if read_scalars:

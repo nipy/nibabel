@@ -32,8 +32,8 @@ class OrthoSlicer3D(object):
     decrement the displayed volume and the ``+`` or ``=`` keys can be used to
     increment it.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> a = np.sin(np.linspace(0, np.pi, 20))
     >>> b = np.sin(np.linspace(0, np.pi*5, 20))

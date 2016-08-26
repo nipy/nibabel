@@ -1,6 +1,9 @@
+""" Field class defining common header fields in tractogram files
+"""
 
-class Field:
-    """ Header fields common to multiple streamlines file formats.
+
+class Field(object):
+    """ Header fields common to multiple streamline file formats.
 
     In IPython, use `nibabel.streamlines.Field??` to list them.
     """

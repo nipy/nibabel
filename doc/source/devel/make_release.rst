@@ -44,16 +44,22 @@ Release checklist
   notes are as complete as possible and that every contributor was recognized.
 
 * Look at ``doc/source/index.rst`` and add any authors not yet acknowledged.
+  You might want to use the following to list authors by the date of their
+  contributions::
 
-* Update new authors and add thansk in ``doc/source/index.rst`` and consider
-  any updates to the ``AUTHOR`` file.
+    git log --format="%aN <%aE>" --reverse | perl -e 'my %dedupe; while (<STDIN>) { print unless $dedupe{$_}++}'
+
+  (From:
+  http://stackoverflow.com/questions/6482436/list-of-authors-in-git-since-a-given-commit#6482473)
+
+  Consider any updates to the ``AUTHOR`` file.
 
 * Use the opportunity to update the ``.mailmap`` file if there are any
   duplicate authors listed from ``git shortlog -nse``.
 
 * Check the copyright year in ``doc/source/conf.py``
 
-* Refresh the ``REAMDE.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
+* Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
   by running ``make refresh-readme``.
 
   Check the output of::
@@ -63,56 +69,77 @@ Release checklist
   because this will be the output used by pypi_
 
 * Check the dependencies listed in ``nibabel/info.py`` (e.g.
-  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst``.  They should
-  at least match. Do they still hold?  Make sure `nibabel on travis`_ is
-  testing the minimum dependencies specifically.
+  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst`` and in
+  ``requirements.txt`` and ``.travis.yml``.  They should at least match. Do
+  they still hold?  Make sure `nibabel on travis`_ is testing the minimum
+  dependencies specifically.
 
 * Do a final check on the `nipy buildbot`_.  Use the ``try_branch.py``
   scheduler available in nibotmi_ to test particular schedulers.
-
-* If you have travis-ci_ building set up for your own repo you might want to
-  push the code in it's current state to a branch that will build, e.g::
-
-    git branch -D pre-release-test # in case branch already exists
-    git co -b pre-release-test
-    git push your-github-user pre-release-test -u
-
-* Clean::
-
-    make distclean
 
 * Make sure all tests pass (from the nibabel root directory)::
 
     nosetests --with-doctest nibabel
 
-* Make sure all tests pass from sdist::
+* Make sure you are set up to use the ``try_branch.py`` - see
+  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
 
-    make sdist-tests
+* Make sure all your changes are committed or removed, because
+  ``try_branch.py`` pushes up the changes in the working tree;
 
-  and the three ways of installing (from tarball, repo, local in repo)::
+* The following checks get run with the ``nibabel-release-checks``, as in::
 
-    make check-version-info
+    try_branch.py nibabel-release-checks
 
-  The last may not raise any errors, but you should detect in the output
-  lines of this form::
+  Beware: this build does not usually error, even if the steps do not give the
+  expected output.  You need to check the output manually by going to
+  https://nipy.bic.berkeley.edu/builders/nibabel-release-checks after the
+  build has finished.
 
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-    /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-    /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
-    {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+  * Make sure all tests pass from sdist::
 
-* Check the ``setup.py`` file is picking up all the library code and scripts,
-  with::
+      make sdist-tests
 
-    make check-files
+    and the three ways of installing (from tarball, repo, local in repo)::
 
-  Look for output at the end about missed files, such as::
+      make check-version-info
 
-    Missed script files:  /Users/mb312/dev_trees/nibabel/bin/nib-dicomfs, /Users/mb312/dev_trees/nibabel/bin/nifti1_diagnose.py
+    The last may not raise any errors, but you should detect in the output
+    lines of this form::
 
-  Fix ``setup.py`` to carry across any files that should be in the
-  distribution.
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+      /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+      /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
+      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
+
+  * Check the ``setup.py`` file is picking up all the library code and scripts,
+    with::
+
+      make check-files
+
+    Look for output at the end about missed files, such as::
+
+      Missed script files:  /Users/mb312/dev_trees/nibabel/bin/nib-dicomfs, /Users/mb312/dev_trees/nibabel/bin/nifti1_diagnose.py
+
+    Fix ``setup.py`` to carry across any files that should be in the
+    distribution.
+
+  * Check the documentation doctests::
+
+      make -C doc doctest
+
+    This should also be tested by `nibabel on travis`_.
+
+  * Check everything compiles without syntax errors::
+
+      python -m compileall .
+
+  * Check that nibabel correctly generates a source distribution::
+
+      make source-release
+
+* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit;
 
 * You may have virtualenvs for different Python versions.  Check the tests
   pass for different configurations. The long-hand way looks like this::
@@ -122,31 +149,10 @@ Release checklist
     make sdist-tests
     deactivate
 
-  etc for the different virtualenvs.
+  etc for the different virtualenvs;
 
 * Check on different platforms, particularly windows and PPC. Look at the
-  `nipy buildbot`_ automated test runs for this.
-
-* Check the documentation doctests::
-
-    make -C doc doctest
-
-  This should also be tested by `nibabel on travis`_.
-
-* Check everything compiles without syntax errors::
-
-    python -m compileall .
-
-* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit.
-  Then::
-
-    make source-release
-
-* Make sure you are set up to use the ``try_branch.py`` - see
-  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
-
-* Make sure all your changes are committed or removed, because
-  ``try_branch.py`` pushes up the changes in the working tree;
+  `nipy buildbot`_ automated test runs for this;
 
 * Force build of your release candidate branch with the slow and big-memory
   tests on the ``zibi`` buildslave::
@@ -161,6 +167,7 @@ Release checklist
   buildbot::
 
     try_branch.py nibabel-bdist32-27
+    try_branch.py nibabel-bdist32-33
     try_branch.py nibabel-bdist32-34
     try_branch.py nibabel-bdist32-35
     try_branch.py nibabel-bdist64-27
@@ -168,19 +175,19 @@ Release checklist
   Check the builds completed without error on their respective web-pages:
 
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
+  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-33
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-35
   * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
 
-  Then get the built binaries in:
+* Make sure you have travis-ci_ building set up for your own repo. Make a new
+  ``release-check`` (or similar) branch, and push the code in its current
+  state to a branch that will build, e.g::
 
-  * https://nipy.bic.berkeley.edu/nibabel-dist
-
-  When you've done the release to pypi, you can upload them to pypi with the
-  admin files interface.
-
-  If you are already on a Windows machine, you could have done the manual
-  command to build instead: ``python setup.py bdist_wininst``.
+    git branch -D release-check # in case branch already exists
+    git co -b release-check
+    # You might need the --force flag here
+    git push your-github-user release-check -u
 
 * Once everything looks good, you are ready to upload the source release to
   PyPi.  See `setuptools intro`_.  Make sure you have a file
@@ -189,27 +196,40 @@ Release checklist
     [distutils]
     index-servers =
         pypi
+        warehouse
 
     [pypi]
     username:your.pypi.username
     password:your-password
 
-    [server-login]
+    [warehouse]
+    repository: https://upload.pypi.io/legacy/
     username:your.pypi.username
     password:your-password
+
+* Clean::
+
+    make distclean
+    # Check no files outside version control that you want to keep
+    git status
+    # Nuke
+    git clean -fxd
 
 * When ready::
 
     python setup.py register
-    python setup.py sdist --formats=gztar,zip upload
+    python setup.py sdist --formats=gztar,zip
+    # -s flag to sign the release
+    twine upload -r warehouse -s dist/nibabel*
 
-* Tag the release with tag of form ``2.0.0``::
+* Tag the release with signed tag of form ``2.0.0``::
 
-    git tag -am "Something about this release' 2.0.0
+    git tag -s 2.0.0
 
 * Push the tag and any other changes to trunk with::
 
-    git push --tags
+    git push origin 2.0.0
+    git push
 
 * Now the version number is OK, push the docs to github pages with::
 
@@ -248,7 +268,6 @@ Release checklist
     merge from maintenance in future without getting spurious merge conflicts::
 
        git merge -s ours maint/2.0.x
-
 
   If this is just a maintenance release from ``maint/2.0.x`` or similar, just
   tag and set the version number to - say - ``2.0.2.dev``.

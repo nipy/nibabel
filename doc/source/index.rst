@@ -27,42 +27,49 @@ discussions, release procedure and more.
 Authors and Contributors
 ========================
 
-The main authors of NiBabel are `Matthew Brett`_, `Michael Hanke`_ and `Stephan
-Gerhard`_.  The authors are grateful to the following people who have
+The main authors of NiBabel are `Matthew Brett`_, `Michael Hanke`_, `Ben
+Cipollini`_, `Marc-Alexandre Côté`_, Chris Markiewicz, `Stephan Gerhard`_ and
+`Eric Larson`_.  The authors are grateful to the following people who have
 contributed code and discussion (in rough order of appearance):
 
 * `Yaroslav O. Halchenko`_
 * Chris Burns
 * `Gaël Varoquaux`_
 * Ian Nimmo-Smith
-* Jarrod Millman
-* Bertrand Thirion
+* `Jarrod Millman`_
+* `Bertrand Thirion`_
 * Thomas Ballinger
 * Cindee Madison
 * Valentin Haenel
-* Alexandre Gramfort
+* `Alexandre Gramfort`_
 * Christian Haselgrove
 * Krish Subramaniam
 * Yannick Schwartz
 * Bago Amirbekian
 * Brendan Moloney
 * Félix C. Morency
-* Chris Markiewicz
 * JB Poline
-* Nolan Nichols
-* Nguyen, Ly
 * Basile Pinsard
-* Kevin S. Hahn
-* Eric Larson
-* Nikolaas N. Oosterhof
-* ohinds
-* Michiel Cottaar
-* Satrajit Ghosh
-* Demian Wassermann
+* `Satrajit Ghosh`_
+* `Nolan Nichols`_
+* Nguyen, Ly
 * Philippe Gervais
+* Demian Wassermann
 * Justin Lecher
-* `Ben Cipollini`_
+* Oliver P. Hinds
+* Nikolaas N. Oosterhof
+* Kevin S. Hahn
+* Michiel Cottaar
+* Erik Kastman
+* Github user ``freec84``
+* Peter Fischer
 * Clemens C. C. Bauer
+* Samuel St-Jean
+* Gregory R. Lee
+* Eric M. Baker
+* `Ariel Rokem`_
+* Eleftherios Garyfallidis
+* Jaakko Leppäkangas
 
 License reprise
 ===============
