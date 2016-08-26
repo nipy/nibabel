@@ -277,6 +277,30 @@ def test_matrix():
     assert_raises(TypeError, m.__setitem__, 0, ci.Cifti2Parcel())
     assert_raises(TypeError, m.insert, 0, ci.Cifti2Parcel())
 
+    mim_none = ci.Cifti2MatrixIndicesMap(None, 'CIFTI_INDEX_TYPE_LABELS')
+    mim_0 = ci.Cifti2MatrixIndicesMap(0, 'CIFTI_INDEX_TYPE_LABELS')
+    mim_1 = ci.Cifti2MatrixIndicesMap(1, 'CIFTI_INDEX_TYPE_LABELS')
+    mim_01 = ci.Cifti2MatrixIndicesMap([0, 1], 'CIFTI_INDEX_TYPE_LABELS')
+
+    assert_raises(ci.Cifti2HeaderError, m.insert, 0, mim_none)
+    assert_equal(m.mapped_indices, [])
+   
+    h = ci.Cifti2Header(matrix=m)
+    assert_equal(m.mapped_indices, [])
+    m.insert(0, mim_0)
+    assert_equal(h.mapped_indices, [0])
+    assert_equal(h.number_of_mapped_indices, 1)
+    assert_raises(ci.Cifti2HeaderError, m.insert, 0, mim_0)
+    assert_raises(ci.Cifti2HeaderError, m.insert, 0, mim_01)
+    m[0] = mim_1
+    assert_equal(list(m.mapped_indices), [1])
+    m.insert(0, mim_0)
+    assert_equal(list(sorted(m.mapped_indices)), [0, 1])
+    assert_equal(h.number_of_mapped_indices, 2)
+    assert_equal(h.get_index_map(0), mim_0)
+    assert_equal(h.get_index_map(1), mim_1)
+    assert_raises(ci.Cifti2HeaderError, h.get_index_map, 2)
+
 
 def test_underscoring():
     # Pairs taken from inflection tests

@@ -1114,9 +1114,67 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         """
         self._meta = _value_if_klass(meta, Cifti2MetaData)
 
+    def _get_indices_from_mim(self, mim):
+        applies_to_matrix_dimension = mim.applies_to_matrix_dimension
+        if not isinstance(
+            applies_to_matrix_dimension,
+            collections.Iterable
+        ):
+            applies_to_matrix_dimension = (int(applies_to_matrix_dimension),)
+        return applies_to_matrix_dimension
+
+    @property
+    def mapped_indices(self):
+        '''
+        List of matrix indices that are mapped
+        '''
+        mapped_indices = []
+        for v in self:
+            a2md = self._get_indices_from_mim(v)
+            mapped_indices += a2md
+        return mapped_indices
+
+    def get_index_map(self, index):
+        '''
+        Cifti2 Mapping class for a given index
+
+        Parameters
+        ----------
+        index : int
+            Index for which we want to obtain the mapping.
+            Must be in the mapped_indices sequence.
+
+        Returns
+        -------
+        cifti2_map : Cifti2MatrixIndicesMap
+            Returns the Cifti2MatrixIndicesMap corresponding to
+            the given index.
+        '''
+
+        for v in self:
+            a2md = self._get_indices_from_mim(v)
+            if index in a2md:
+                return v
+        else:
+            raise Cifti2HeaderError("Index not mapped")
+
+    def _validate_new_mim(self, value):
+        if value.applies_to_matrix_dimension is None:
+            raise Cifti2HeaderError(
+                "Cifti2MatrixIndicesMap needs to have "
+                "the applies_to_matrix_dimension attribute set"
+            )
+        a2md = self._get_indices_from_mim(value)
+        if not set(self.mapped_indices).isdisjoint(a2md):
+            raise Cifti2HeaderError(
+                "Indices in this Cifti2MatrixIndicesMap "
+                "already mapped in this matrix"
+            )
+
     def __setitem__(self, key, value):
         if not isinstance(value, Cifti2MatrixIndicesMap):
             raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
+        self._validate_new_mim(value)
         self._mims[key] = value
 
     def __getitem__(self, key):
@@ -1131,6 +1189,7 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
     def insert(self, index, value):
         if not isinstance(value, Cifti2MatrixIndicesMap):
             raise TypeError("Not a valid Cifti2MatrixIndicesMap instance")
+        self._validate_new_mim(value)
         self._mims.insert(index, value)
 
     def _to_xml_element(self):
@@ -1151,7 +1210,9 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
         xml.XmlSerializable.__init__(self)
-        self.matrix = Cifti2Matrix() if matrix is None else Cifti2Matrix()
+        if matrix is None:
+            matrix = Cifti2Matrix()
+        self.matrix = matrix
         self.version = version
 
     def _to_xml_element(self):
@@ -1166,6 +1227,38 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     def may_contain_header(klass, binaryblock):
         from .parse_cifti2 import _Cifti2AsNiftiHeader
         return _Cifti2AsNiftiHeader.may_contain_header(binaryblock)
+
+    @property
+    def number_of_mapped_indices(self):
+        '''
+        Number of mapped indices
+        '''
+        return len(self.matrix)
+
+    @property
+    def mapped_indices(self):
+        '''
+        List of matrix indices that are mapped
+        '''
+        return self.matrix.mapped_indices
+
+    def get_index_map(self, index):
+        '''
+        Cifti2 Mapping class for a given index
+
+        Parameters
+        ----------
+        index : int
+            Index for which we want to obtain the mapping.
+            Must be in the mapped_indices sequence.
+
+        Returns
+        -------
+        cifti2_map : Cifti2MatrixIndicesMap
+            Returns the Cifti2MatrixIndicesMap corresponding to
+            the given index.
+        '''
+        return self.matrix.get_index_map(index)
 
 
 class Cifti2Image(DataobjImage):
