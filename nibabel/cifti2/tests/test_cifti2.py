@@ -7,7 +7,7 @@ import numpy as np
 
 from nibabel import cifti2 as ci
 from nibabel.nifti2 import Nifti2Header
-from nibabel.cifti2.cifti2 import _float_01
+from nibabel.cifti2.cifti2 import _float_01, _value_if_klass, Cifti2HeaderError
 
 from nose.tools import assert_true, assert_equal, assert_raises, assert_is_none
 
@@ -24,6 +24,12 @@ def compare_xml_leaf(str1, str2):
     print((x1.tag, x1.attrib, x1.text))
     print((x2.tag, x2.attrib, x2.text))
     return test
+
+
+def test_value_if_klass():
+    assert_equal(_value_if_klass(None, list), None)
+    assert_equal(_value_if_klass([1], list), [1])
+    assert_raises(ValueError, _value_if_klass, 1, list)
 
 
 def test_cifti2_metadata():
@@ -83,6 +89,7 @@ def test_cifti2_labeltable():
     lt = ci.Cifti2LabelTable()
     assert_equal(len(lt), 0)
     assert_raises(ci.Cifti2HeaderError, lt.to_xml)
+    assert_raises(ci.Cifti2HeaderError, lt._to_xml_element)
 
     label = ci.Cifti2Label(label='Test', key=0)
     lt[0] = label
@@ -146,6 +153,17 @@ def test_cifti2_parcel():
     assert_raises(ci.Cifti2HeaderError, pl.to_xml)
     assert_raises(TypeError, pl.append_cifti_vertices, None)
 
+    assert_raises(ValueError, ci.Cifti2Parcel, **{'vertices': [1, 2, 3]})
+    pl = ci.Cifti2Parcel(name='region',
+                         voxel_indices_ijk=ci.Cifti2VoxelIndicesIJK([[1, 2, 3]]),
+                         vertices=[ci.Cifti2Vertices([0, 1, 2])])
+    pl.pop_cifti2_vertices(0)
+    assert_equal(len(pl.vertices), 0)
+    assert_equal(
+        pl.to_xml().decode('utf-8'),
+        '<Parcel Name="region"><VoxelIndicesIJK>1 2 3</VoxelIndicesIJK></Parcel>'
+    )
+
 
 def test_cifti2_vertices():
     vs = ci.Cifti2Vertices()
@@ -158,7 +176,8 @@ def test_cifti2_vertices():
     assert_equal(len(vs), 0)
     vs.extend(np.array([0, 1, 2]))
     assert_equal(len(vs), 3)
-
+    assert_raises(ValueError, vs.__setitem__, 1, 'a')
+    assert_raises(ValueError, vs.insert, 1, 'a')
     assert_equal(
         vs.to_xml().decode('utf-8'),
         '<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
@@ -166,6 +185,8 @@ def test_cifti2_vertices():
 
     vs[0] = 10
     assert_equal(vs[0], 10)
+    assert_equal(len(vs), 3)
+    vs = ci.Cifti2Vertices(vertices=[0, 1, 2])
     assert_equal(len(vs), 3)
 
 
@@ -220,6 +241,8 @@ def test_cifti2_voxelindicesijk():
     assert_equal(vi[1], [3, 4, 5])
     vi[1] = [3, 4, 6]
     assert_equal(vi[1], [3, 4, 6])
+    assert_raises(ValueError, vi.__setitem__, 'a', [1, 2, 3])
+    assert_raises(TypeError, vi.__setitem__, [1, 2], [1, 2, 3])
     assert_raises(ValueError, vi.__setitem__, 1, [2, 3])
     assert_equal(vi[1, 1], 4)
     assert_raises(ValueError, vi.__setitem__, [1, 1], 'a')
@@ -239,6 +262,9 @@ def test_cifti2_voxelindicesijk():
         vi.to_xml().decode('utf-8'),
         '<VoxelIndicesIJK>0 1 2\n3 4 6</VoxelIndicesIJK>'
     )
+    assert_raises(TypeError, ci.Cifti2VoxelIndicesIJK, [0, 1])
+    vi = ci.Cifti2VoxelIndicesIJK([[1, 2, 3]])
+    assert_equal(len(vi), 1)
 
 
 def test_matrixindicesmap():

@@ -108,7 +108,6 @@ def main(**extra_args):
                            pjoin('externals', 'tests', 'data', '*'),
                            pjoin('nicom', 'tests', 'data', '*'),
                            pjoin('gifti', 'tests', 'data', '*'),
-                           pjoin('cifti2', 'tests', 'data', '*'),
                            pjoin('streamlines', 'tests', 'data', '*'),
                           ]},
           scripts      = [pjoin('bin', 'parrec2nii'),

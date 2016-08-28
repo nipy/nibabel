@@ -603,8 +603,12 @@ class Cifti2Parcel(xml.XmlSerializable):
     """
     def __init__(self, name=None, voxel_indices_ijk=None, vertices=None):
         self.name = name
-        self.voxel_indices_ijk = voxel_indices_ijk
+        self._voxel_indices_ijk = voxel_indices_ijk
         self.vertices = vertices if vertices is not None else []
+        for val in self.vertices:
+            if not isinstance(val, Cifti2Vertices):
+                raise ValueError(('Cifti2Parcel vertices must be instances of '
+                                  'Cifti2Vertices'))
 
     @property
     def voxel_indices_ijk(self):
