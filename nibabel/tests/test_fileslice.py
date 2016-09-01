@@ -740,6 +740,16 @@ def test_fileslice():
                     _check_slicer(sliceobj, arr, fobj, offset, order)
 
 
+def test_fileslice_dtype():
+    # Test that any valid dtype specifier works for fileslice
+    sliceobj = (slice(None), slice(2))
+    for dt in (np.dtype('int32'), np.int32, 'i4', 'int32', '>i4', '<i4'):
+        arr = np.arange(24, dtype=dt).reshape((2, 3, 4))
+        fobj = BytesIO(arr.tostring())
+        new_slice = fileslice(fobj, sliceobj, arr.shape, dt)
+        assert_array_equal(arr[sliceobj], new_slice)
+
+
 def test_fileslice_errors():
     # Test fileslice causes error on fancy indexing
     arr = np.arange(24).reshape((2, 3, 4))

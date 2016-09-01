@@ -719,17 +719,19 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
     Parameters
     ----------
     fileobj : file-like object
-        binary file-like object. Implements ``read`` and ``seek``
+        file-like object, opened for reading in binary mode. Implements
+        ``read`` and ``seek``.
     sliceobj : object
-        something that can be used to slice an array as in ``arr[sliceobj]``
+        something that can be used to slice an array as in ``arr[sliceobj]``.
     shape : sequence
-        shape of full array inside `fileobj`
-    dtype : dtype object
-        dtype of array inside `fileobj`
+        shape of full array inside `fileobj`.
+    dtype : dtype specifier
+        dtype of array inside `fileobj`, or input to ``numpy.dtype`` to specify
+        array dtype.
     offset : int, optional
         offset of array data within `fileobj`
     order : {'C', 'F'}, optional
-        memory layout of array in `fileobj`
+        memory layout of array in `fileobj`.
     heuristic : callable, optional
         function taking slice object, axis length, stride length as arguments,
         returning one of 'full', 'contiguous', None.  See
@@ -743,7 +745,8 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
     """
     if is_fancy(sliceobj):
         raise ValueError("Cannot handle fancy indexing")
-    itemsize = dtype.itemsize
+    dtype = np.dtype(dtype)
+    itemsize = int(dtype.itemsize)
     segments, sliced_shape, post_slicers = calc_slicedefs(
         sliceobj, shape, itemsize, offset, order)
     n_bytes = reduce(operator.mul, sliced_shape, 1) * itemsize
