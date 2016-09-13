@@ -14,7 +14,7 @@ from nibabel.py3k import asbytes, asstr
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile
-from .tractogram_file import HeaderError, DataWarning
+from .tractogram_file import HeaderError, DataWarning, DataError
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 
@@ -206,8 +206,8 @@ class TckFile(TractogramFile):
 
             for t in tractogram:
                 s = t.streamline.astype(dtype)
-                f.write(asbytes(np.r_[s.astype('<f4'),
-                                      self.FIBER_DELIMITER].tostring()))
+                data = np.r_[s, self.FIBER_DELIMITER]
+                f.write(asbytes(data.tostring()))
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
@@ -281,7 +281,7 @@ class TckFile(TractogramFile):
 
         with Opener(fileobj) as f:
             # Read magic number
-            buf = asstr(f.fobj.readline())
+            magic_number = asstr(f.fobj.readline())
 
             # Read all key-value pairs contained in the header.
             buf = asstr(f.fobj.readline())
@@ -290,6 +290,7 @@ class TckFile(TractogramFile):
 
         # Build header dictionary from the buffer.
         hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
+        hdr[Field.MAGIC_NUMBER] = magic_number
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
@@ -379,7 +380,15 @@ class TckFile(TractogramFile):
                 pts = pts.reshape([-1, 3])
                 idx_nan = np.arange(len(pts))[np.isnan(pts[:, 0])]
 
+                # Make sure we've read enough to find a streamline delimiter.
                 if len(idx_nan) == 0:
+                    # If we've read the whole file, then fail.
+                    if eof and not np.all(np.isinf(pts)):
+                        msg = ("Cannot find a streamline delimiter. This file"
+                               " might be corrupted.")
+                        raise DataError(msg)
+
+                    # Otherwise read a bit more.
                     continue
 
                 nb_pts_total = 0

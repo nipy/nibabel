@@ -5,11 +5,12 @@ from os.path import join as pjoin
 
 from nibabel.externals.six import BytesIO
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 
 from nibabel.testing import data_path
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram
+from ..tractogram_file import DataError
 
 from ..tck import TckFile
 
@@ -86,6 +87,20 @@ class TestTCK(unittest.TestCase):
             trk = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
             assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
 
+    def test_load_simple_file_in_big_endian(self):
+        for lazy_load in [False, True]:
+            tck = TckFile.load(DATA['simple_tck_big_endian_fname'],
+                               lazy_load=lazy_load)
+            assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+            assert_equal(tck.header['datatype'], 'Float32BE')
+
+    def test_load_file_with_wrong_information(self):
+        tck_file = open(DATA['simple_tck_fname'], 'rb').read()
+
+        # Simulate a TCK file where `datatype` was incorrectly provided.
+        new_tck_file = tck_file.replace("Float32LE", "Float32BE")
+        assert_raises(DataError, TckFile.load, BytesIO(new_tck_file))
+
     def test_write_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
 
@@ -149,3 +164,7 @@ class TestTCK(unittest.TestCase):
             loaded_tck = TckFile.load(tck_file, lazy_load=False)
             assert_tractogram_equal(loaded_tck.tractogram,
                                     tractogram.to_world(lazy=True))
+
+    def test_str(self):
+        tck = TckFile.load(DATA['simple_tck_fname'])
+        str(tck)  # Simply test it's not failing when called.
