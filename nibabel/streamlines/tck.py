@@ -241,7 +241,7 @@ class TckFile(TractogramFile):
         lines.append("datatype: Float32LE")  # We always use Float32LE to save TCK files.
         lines.extend(["{0}: {1}".format(k, v) for k, v in header.items() if k not in exclude])
         lines.append("file: . ")  # Manually add this last field.
-        out = "\n".join((line.replace('\n', '\t') for line in lines))
+        out = "\n".join((asstr(line).replace('\n', '\t') for line in lines))
         fileobj.write(asbytes(out))
 
         # Compute offset to the beginning of the binary data
