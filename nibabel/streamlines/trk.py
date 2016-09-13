@@ -220,7 +220,6 @@ class TrkFile(TractogramFile):
 
     Notes
     -----
-
     TrackVis (so its file format: TRK) considers the streamline coordinate
     (0,0,0) to be in the corner of the voxel whereas NiBabel's streamlines
     internal representation (Voxel space) assumes (0,0,0) to be in the
@@ -597,7 +596,7 @@ class TrkFile(TractogramFile):
             # Keep the file position where the data begin.
             header['_offset_data'] = f.tell()
 
-        # Set the file position where it was, if it was previously open
+        # Set the file position where it was, if it was previously open.
         if start_position is not None:
             fileobj.seek(start_position, os.SEEK_SET)
 

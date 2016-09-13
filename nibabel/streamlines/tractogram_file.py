@@ -14,6 +14,10 @@ class HeaderWarning(Warning):
     """ Base class for warnings about tractogram file header. """
 
 
+class DataWarning(Warning):
+    """ Base class for warnings about tractogram file data. """
+
+
 class HeaderError(Exception):
     """ Raised when a tractogram file header contains invalid information. """
 

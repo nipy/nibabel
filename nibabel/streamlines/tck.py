@@ -1,79 +1,360 @@
 from __future__ import division
 
 # Documentation available here:
-# https://github.com/MRtrix3/mrtrix3/wiki/MRtrix-Image-formats-(.mif-&-.mih)#tracks-file-format-tck
+# http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
 
 import os
-import struct
 import warnings
-import itertools
 from collections import OrderedDict
 
 import numpy as np
-import nibabel as nib
 
-from nibabel.affines import apply_affine
 from nibabel.openers import Opener
 from nibabel.py3k import asbytes, asstr
-from nibabel.volumeutils import (native_code, swapped_code)
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile
-from .tractogram_file import DataError, HeaderError, HeaderWarning
+from .tractogram_file import HeaderError, DataWarning
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 
-
+MEGABYTE = 1024 * 1024
 BUFFER_SIZE = 1000000
 
 
-class TckReader(object):
-    ''' Convenience class to encapsulate TCK file format.
+def create_empty_header():
+    ''' Return an empty compliant TCK header. '''
+    header = OrderedDict()
 
-    Parameters
-    ----------
-    fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object
-        pointing to TCK file (and ready to read from the beginning
-        of the TCK header)
+    # Default values
+    header[Field.MAGIC_NUMBER] = TckFile.MAGIC_NUMBER
+    header[Field.NB_STREAMLINES] = 0
+    header['datatype'] = "Float32LE"
+    return header
+
+
+class TckFile(TractogramFile):
+    """ Convenience class to encapsulate TCK file format.
 
     Notes
     -----
-    MRtrix (so its file format: TCK) considers the streamlines to be saved in
-    world space. It uses the same convention as Nifti: RAS+ and mm space with
-    the coordinate (0,0,0) being at the center of the voxel.
-    '''
-    def __init__(self, fileobj):
-        self.fileobj = fileobj
+    MRtrix (so its file format: TCK) considers the streamline coordinate
+    (0,0,0) to be in the center of the voxel which is also the case for
+    NiBabel's streamlines internal representation.
 
-        with Opener(self.fileobj) as f:
-            # Skip magic number
-            buffer = asstr(f.fobj.readline())
+    Moreover, streamlines coordinates coming from a TCK file are considered
+    to be in world space (RAS+ and mm space). MRtrix refers to that space
+    as the "real" or "scanner" space _[1].
 
-            #####
-            # Read header
-            ###
-            buffer = asstr(f.fobj.readline())
-            while not buffer.rstrip().endswith("END"):
-                buffer += asstr(f.fobj.readline())
+    References
+    ----------
+    [1] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
+    """
 
-            # Build dictionary from header (not used)
-            self.header = dict(item.split(': ') for item in buffer.rstrip().split('\n')[:-1])
+    # Contants
+    MAGIC_NUMBER = b"mrtrix tracks"
+    SUPPORTS_DATA_PER_POINT = False  # Not yet
+    SUPPORTS_DATA_PER_STREAMLINE = False  # Not yet
 
-            # Set datatype
-            self.dtype = np.dtype('>f4')
-            if self.header['datatype'].endswith('LE'):
-                self.dtype = np.dtype('<f4')
+    FIBER_DELIMITER = np.array([[np.nan, np.nan, np.nan]], '<f4')
+    EOF_DELIMITER = np.array([[np.inf, np.inf, np.inf]], '<f4')
 
-            # Keep the file position where the data begin.
-            self.offset_data = int(self.header['file'].split()[1])
+    def __init__(self, tractogram, header=None):
+        """
+        Parameters
+        ----------
+        tractogram : :class:`Tractogram` object
+            Tractogram that will be contained in this :class:`TckFile`.
 
-    def __iter__(self):
-        with Opener(self.fileobj) as f:
+        header : dict (optional)
+            Metadata associated to this tractogram file.
+
+        Notes
+        -----
+        Streamlines of the tractogram are assumed to be in *RAS+*
+        and *mm* space where coordinate (0,0,0) refers to the center
+        of the voxel.
+        """
+        if header is None:
+            header = create_empty_header()
+
+        super(TckFile, self).__init__(tractogram, header)
+
+    @classmethod
+    def is_correct_format(cls, fileobj):
+        """ Check if the file is in TCK format.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TCK file (and ready to read from the beginning
+            of the TCK header data). Note that calling this function
+            does not change the file position.
+
+        Returns
+        -------
+        is_correct_format : {True, False}
+            Returns True if `fileobj` is compatible with TCK format,
+            otherwise returns False.
+        """
+        with Opener(fileobj) as f:
+            magic_number = f.fobj.readline()
+            f.seek(-len(magic_number), os.SEEK_CUR)
+            return magic_number.strip() == cls.MAGIC_NUMBER
+
+    @classmethod
+    def load(cls, fileobj, lazy_load=False):
+        """ Loads streamlines from a filename or file-like object.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TCK file (and ready to read from the beginning
+            of the TCK header). Note that calling this function
+            does not change the file position.
+        lazy_load : {False, True}, optional
+            If True, load streamlines in a lazy manner i.e. they will not be
+            kept in memory. Otherwise, load all streamlines in memory.
+
+        Returns
+        -------
+        tck_file : :class:`TckFile` object
+            Returns an object containing tractogram data and header
+            information.
+
+        Notes
+        -----
+        Streamlines of the tractogram are assumed to be in *RAS+*
+        and *mm* space where coordinate (0,0,0) refers to the center
+        of the voxel.
+        """
+        hdr = cls._read_header(fileobj)
+
+        if lazy_load:
+            def _read():
+                for pts in cls._read(fileobj, hdr):
+                    yield TractogramItem(pts, {}, {})
+
+            tractogram = LazyTractogram.from_data_func(_read)
+
+        else:
+            tck_reader = cls._read(fileobj, hdr)
+            streamlines = ArraySequence(tck_reader)
+            tractogram = Tractogram(streamlines)
+
+        tractogram.affine_to_rasmm = np.eye(4)
+        return cls(tractogram, header=hdr)
+
+    def save(self, fileobj):
+        """ Save tractogram to a filename or file-like object using TCK format.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TCK file (and ready to write from the beginning
+            of the TCK header data).
+        """
+        # Enforce float32 in little-endian byte order for data.
+        dtype = np.dtype('<f4')
+        header = create_empty_header()
+
+        # Override hdr's fields by those contained in `header`.
+        header.update(self.header)
+
+        # Keep counts for correcting incoherent fields or warn.
+        nb_streamlines = 0
+
+        with Opener(fileobj, mode="wb") as f:
+            # Keep track of the beginning of the header.
+            beginning = f.tell()
+
+            # Write temporary header that we will update at the end
+            self._write_header(f, header)
+
+            try:
+                first_item = next(iter(self.tractogram))
+            except StopIteration:
+                # Empty tractogram
+                header[Field.NB_STREAMLINES] = 0
+                # Overwrite header with updated one.
+                f.seek(beginning, os.SEEK_SET)
+                self._write_header(f, header)
+
+                # Add the EOF_DELIMITER.
+                f.write(asbytes(self.EOF_DELIMITER.tostring()))
+                return
+
+            data_for_streamline = first_item.data_for_streamline
+            if len(data_for_streamline) > 0:
+                keys = ", ".join(data_for_streamline.keys())
+                msg = ("TCK format does not support saving additional data"
+                       " alongside streamlines. Dropping: {}".format(keys))
+                warnings.warn(msg, DataWarning)
+
+            data_for_points = first_item.data_for_points
+            if len(data_for_points) > 0:
+                keys = ", ".join(data_for_points.keys())
+                msg = ("TCK format does not support saving additional data"
+                       " alongside points. Dropping: {}".format(keys))
+                warnings.warn(msg, DataWarning)
+
+            # Make sure streamlines are in rasmm.
+            tractogram = self.tractogram.to_world(lazy=True)
+
+            for t in tractogram:
+                s = t.streamline.astype(dtype)
+                f.write(asbytes(np.r_[s.astype('<f4'), self.FIBER_DELIMITER].tostring()))
+                nb_streamlines += 1
+
+            # Add the EOF_DELIMITER.
+            f.write(asbytes(self.EOF_DELIMITER.tostring()))
+
+            header[Field.NB_STREAMLINES] = nb_streamlines
+
+            ## Overwrite the streamlines count in the header.
+            #self.file.seek(self.count_offset, os.SEEK_SET)
+            #self.file.write(asbytes("count: {0:010}\n".format(self.header[Field.NB_STREAMLINES])))
+
+            # Overwrite header with updated one.
+            f.seek(beginning, os.SEEK_SET)
+            self._write_header(f, header)
+
+    @staticmethod
+    def _write_header(fileobj, header):
+        """ Write TCK header to file-like object.
+
+        Parameters
+        ----------
+        fileobj : file-like object
+            An open file-like object pointing to TCK file (and ready to read
+            from the beginning of the TCK header).
+        """
+        # Fields to exclude
+        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES, "datatype", "file"]
+
+        lines = []
+        lines.append(header[Field.MAGIC_NUMBER])
+        lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
+        lines.append("datatype: Float32LE")  # We always use Float32LE to save TCK files.
+        lines.extend(["{0}: {1}".format(k, v) for k, v in header.items() if k not in exclude])
+        lines.append("file: . ")  # Manually add this last field.
+        out = "\n".join((line.replace('\n', '\t') for line in lines))
+        fileobj.write(asbytes(out))
+
+        # Compute offset to the beginning of the binary data
+        tentative_offset = len(out) + 5  # +5 is for "\nEND\n" added just before the data.
+
+        # Take in account the number of characters needed to write 'offset' in ASCII.
+        offset = tentative_offset + len(str(tentative_offset))
+
+        # Corner case: the new 'offset' needs one more character to write it in ASCII
+        # e.g. offset = 98 (i.e. 2 char.), so offset += 2 = 100 (i.e. 3 char.)
+        #      thus the final offset = 101.
+        if len(str(tentative_offset)) != len(str(offset)):
+            offset += 1  # +1, we need one more character for that new digit.
+
+        fileobj.write(asbytes(str(offset) + "\n"))
+        fileobj.write(asbytes(b"END\n"))
+
+    @staticmethod
+    def _read_header(fileobj):
+        """ Reads a TCK header from a file.
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TCK file (and ready to read from the beginning
+            of the TCK header). Note that calling this function
+            does not change the file position.
+
+        Returns
+        -------
+        header : dict
+            Metadata associated with this tractogram file.
+        """
+        # Record start position if this is a file-like object
+        start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
+
+        with Opener(fileobj) as f:
+            # Read magic number
+            buf = asstr(f.fobj.readline())
+
+            # Read all key-value pairs contained in the header.
+            buf = asstr(f.fobj.readline())
+            while not buf.rstrip().endswith("END"):
+                buf += asstr(f.fobj.readline())
+
+        # Build header dictionary from the buffer.
+        hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
+
+        # Check integrity of TCK header.
+        if 'datatype' not in hdr:
+            raise HeaderError("Missing 'datatype' attribute in TCK header.")
+
+        if not hdr['datatype'].startswith('Float32'):
+            msg = ("TCK only supports float32 dtype but 'dataype: {}' was"
+                   " specified in the header.").format(hdr['datatype'])
+            raise HeaderError(msg)
+
+        if 'file' not in hdr:
+            raise HeaderError("Missing 'file' attribute in TCK header.")
+
+        if hdr['file'].split()[0] != '.':
+            msg = ("TCK only supports single-file - in other words the"
+                   " filename part must be specified as '.' but '{}' was"
+                   " specified.").format(hdr['file'].split()[0])
+            raise HeaderError("Missing 'file' attribute in TCK header.")
+
+        # Set endianness and _dtype attributes in the header.
+        hdr[Field.ENDIANNESS] = '<'
+        if hdr['datatype'].endswith('BE'):
+            hdr[Field.ENDIANNESS] = '>'
+
+        hdr['_dtype'] = np.dtype(hdr[Field.ENDIANNESS] + 'f4')
+
+        # Keep the file position where the data begin.
+        hdr['_offset_data'] = int(hdr['file'].split()[1])
+
+        # Set the file position where it was, if it was previously open.
+        if start_position is not None:
+            fileobj.seek(start_position, os.SEEK_SET)
+
+        return hdr
+
+    @staticmethod
+    def _read(fileobj, header, buffer_size=4):
+        """ Return generator that reads TCK data from `fileobj` given `header`
+
+        Parameters
+        ----------
+        fileobj : string or file-like object
+            If string, a filename; otherwise an open file-like object
+            pointing to TCK file (and ready to read from the beginning
+            of the TCK header). Note that calling this function
+            does not change the file position.
+        header : dict
+            Metadata associated with this tractogram file.
+        buffer_size : float, optional
+            Size (in Mb) for buffering.
+
+        Yields
+        ------
+        points : ndarray of shape (n_pts, 3)
+            Streamline points
+        """
+        buffer_size = buffer_size * MEGABYTE
+        buffer_size += 3 - (buffer_size % 3)  # Make it a multiple of 3.
+        dtype = header["_dtype"]
+
+        with Opener(fileobj) as f:
             start_position = f.tell()
 
             # Set the file position at the beginning of the data.
-            f.seek(self.offset_data, os.SEEK_SET)
+            f.seek(header["_offset_data"], os.SEEK_SET)
 
             eof = False
             buff = b""
@@ -84,15 +365,15 @@ class TckReader(object):
             while not eof or not np.all(np.isinf(pts)):
 
                 if not eof:
-                    # Read BUFFER_SIZE triplets of coordinates (float32)
-                    nb_bytes_to_read = BUFFER_SIZE * 3 * self.dtype.itemsize
-                    bytes_read = f.read(nb_bytes_to_read)
+                    bytes_read = f.read(buffer_size)
                     buff += bytes_read
                     eof = len(bytes_read) == 0
 
-                pts = np.frombuffer(buff, dtype=self.dtype)  # Convert binary to float
+                # Read floats.
+                pts = np.frombuffer(buff, dtype=dtype)
 
-                if self.dtype != '<f4':
+                # Convert data to little-endian if needed.
+                if dtype != '<f4':
                     pts = pts.astype('<f4')
 
                 pts = pts.reshape([-1, 3])
@@ -114,266 +395,15 @@ class TckReader(object):
                     idx_start = idx_end + 1
 
                 # Remove pts plus the first triplet of NaN.
-                nb_bytes_to_remove = (nb_pts_total + len(idx_nan)) * 3 * self.dtype.itemsize
+                nb_tiplets_to_remove = nb_pts_total + len(idx_nan)
+                nb_bytes_to_remove = nb_tiplets_to_remove * 3 * dtype.itemsize
                 buff = buff[nb_bytes_to_remove:]
 
             # In case the 'count' field was not provided.
-            self.header[Field.NB_STREAMLINES] = i
+            header[Field.NB_STREAMLINES] = i
 
             # Set the file position where it was (in case it was already open).
             f.seek(start_position, os.SEEK_CUR)
-
-
-class TckWriter(object):
-
-    FIBER_DELIMITER = np.array([[np.nan, np.nan, np.nan]], '<f4')
-    EOF_DELIMITER = np.array([[np.inf, np.inf, np.inf]], '<f4')
-
-    @classmethod
-    def create_empty_header(cls):
-        ''' Return an empty compliant TCK header. '''
-        header = OrderedDict()
-
-        #Default values
-        header[Field.MAGIC_NUMBER] = TckFile.MAGIC_NUMBER
-        header[Field.NB_STREAMLINES] = 0
-        header['datatype'] = "Float32LE"
-
-        return header
-
-    def __init__(self, fileobj, header):
-        self.header = self.create_empty_header()
-
-        # Override hdr's fields by those contained in `header`.
-        for k, v in header.items():
-            self.header[k] = v
-
-        # Write header
-        self.file = Opener(fileobj, mode="wb")
-
-        # Keep track of the beginning of the header.
-        self.beginning = self.file.tell()
-
-        # Fields to exclude
-        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES, "datatype", "file"]
-
-        # We always put the field count after the magic number (the line after).
-        self.count_offset = len(self.header[Field.MAGIC_NUMBER])+1
-
-        lines = []
-        lines.append(self.header[Field.MAGIC_NUMBER])
-        lines.append("count: {0:010}".format(self.header[Field.NB_STREAMLINES]))
-        lines.append("datatype: Float32LE")  # We always use Float32LE to save TCK files.
-        lines.extend(["{0}: {1}".format(k, v) for k, v in self.header.items() if k not in exclude])
-        lines.append("file: . ")  # Manually add this last field.
-        out = "\n".join(lines)
-        self.file.write(asbytes(out))
-
-        # Compute offset to the beginning of the binary data
-        offset = len(out) + 5  # +5 is for "\nEND\n" added just before the data.
-
-        # Take in account the number of characters needed to write 'offset' in ASCII.
-        self.offset = offset + len(str(offset))
-
-        # Corner case: the new 'offset' needs one more character to write it in ASCII
-        # e.g. offset = 98 (i.e. 2 char.), so offset += 2 = 100 (i.e. 3 char.)
-        #      thus the final offset = 101.
-        if len(str(self.offset)) != len(str(offset)):
-            self.offset += 1  # +1, we need one more character for that new digit.
-
-        self.file.write(asbytes(str(self.offset) + "\n"))
-        self.file.write(asbytes(b"END\n"))
-        self.file.write(asbytes(self.EOF_DELIMITER.tostring()))
-
-    def write(self, tractogram):
-        # Start writing before the EOF_DELIMITER.
-        self.file.seek(-len(self.EOF_DELIMITER.tostring()), os.SEEK_END)
-
-        tractogram = tractogram.to_world(lazy=True)
-
-        for s in tractogram.streamlines:
-            self.header[Field.NB_STREAMLINES] += 1
-
-            # TODO: use a buffer instead of writing one streamline at once.
-            self.file.write(asbytes(np.r_[s.astype('<f4'), self.FIBER_DELIMITER].tostring()))
-
-        # Add the EOF_DELIMITER.
-        self.file.write(asbytes(self.EOF_DELIMITER.tostring()))
-
-        # Overwrite the streamlines count in the header.
-        self.file.seek(self.count_offset, os.SEEK_SET)
-        self.file.write(asbytes("count: {0:010}\n".format(self.header[Field.NB_STREAMLINES])))
-
-        # Go back at the end of the file.
-        self.file.seek(0, os.SEEK_END)
-
-
-def _create_array_sequence_from_generator(gen):
-    BUFFER_SIZE = 10000000  # About 128 Mb if item shape is 3.
-
-    streamlines = ArraySequence()
-
-    gen = iter(gen)
-    try:
-        first_element = next(gen)
-        gen = itertools.chain([first_element], gen)
-    except StopIteration:
-        return streamlines
-
-    # Allocated some buffer memory.
-    pts = np.asarray(first_element)
-    streamlines._data = np.empty((BUFFER_SIZE, pts.shape[1]), dtype=pts.dtype)
-
-    offset = 0
-    offsets = []
-    lengths = []
-    for i, pts in enumerate(gen):
-        pts = np.asarray(pts)
-
-        end = offset + len(pts)
-        if end >= len(streamlines._data):
-            # Resize is needed (at least `len(pts)` items will be added).
-            streamlines._data.resize((len(streamlines._data) + len(pts)+BUFFER_SIZE, pts.shape[1]))
-
-        offsets.append(offset)
-        lengths.append(len(pts))
-        streamlines._data[offset:offset+len(pts)] = pts
-
-        offset += len(pts)
-
-    streamlines._offsets = np.asarray(offsets)
-    streamlines._lengths = np.asarray(lengths)
-
-    # Clear unused memory.
-    streamlines._data.resize((offset, pts.shape[1]))
-
-    return streamlines
-
-
-class TckFile(TractogramFile):
-    ''' Convenience class to encapsulate TCK file format.
-
-    Notes
-    -----
-    MRtrix (so its file format: TCK) considers the streamlines to be saved in
-    world space. It uses the same convention as Nifti: RAS+ and mm space with
-    the coordinate (0,0,0) being at the center of the voxel.
-    '''
-
-    # Contants
-    MAGIC_NUMBER = "mrtrix tracks"
-
-    def __init__(self, tractogram, header=None):
-        """
-        Parameters
-        ----------
-        tractogram : ``Tractogram`` object
-            Tractogram that will be contained in this ``TckFile``.
-
-        header : dict (optional)
-            Metadata associated to this tractogram file.
-
-        Notes
-        -----
-        Streamlines of the tractogram are assumed to be in *RAS+* and *mm* space
-        where coordinate (0,0,0) refers to the center of the voxel.
-        """
-        if header is None:
-            header = TckWriter.create_empty_header()
-
-        super(TckFile, self).__init__(tractogram, header)
-
-    @classmethod
-    def get_magic_number(cls):
-        ''' Return TRK's magic number. '''
-        return cls.MAGIC_NUMBER
-
-    @classmethod
-    def support_data_per_point(cls):
-        ''' Tells if this tractogram format supports saving data per point. '''
-        return False
-
-    @classmethod
-    def support_data_per_streamline(cls):
-        ''' Tells if this tractogram format supports saving data per streamline. '''
-        return False
-
-    @classmethod
-    def is_correct_format(cls, fileobj):
-        ''' Check if the file is in TCK format.
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header data).
-
-        Returns
-        -------
-        is_correct_format : boolean
-            Returns True if `fileobj` is in TCK format.
-        '''
-        with Opener(fileobj) as f:
-            magic_number = f.fobj.readline()
-            f.seek(-len(magic_number), os.SEEK_CUR)
-            return magic_number.strip() == cls.MAGIC_NUMBER
-
-        return False
-
-    @classmethod
-    def load(cls, fileobj, lazy_load=False):
-        ''' Loads streamlines from a file-like object.
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TRK file (and ready to read from the beginning
-            of the TRK header).
-
-        lazy_load : boolean (optional)
-            Load streamlines in a lazy manner i.e. they will not be kept
-            in memory.
-
-        Returns
-        -------
-        tck_file : ``TckFile`` object
-            Returns an object containing tractogram data and header
-            information.
-
-        Notes
-        -----
-        Streamlines of the returned tractogram are assumed to be in RASmm
-        space where coordinate (0,0,0) refers to the center of the voxel.
-        '''
-        tck_reader = TckReader(fileobj)
-
-        if lazy_load:
-            def _read():
-                for pts in tck_reader:
-                    yield TractogramItem(pts, {}, {})
-
-            tractogram = LazyTractogram.create_from(_read)
-
-        else:
-            streamlines = _create_array_sequence_from_generator(tck_reader)
-            tractogram = Tractogram(streamlines)
-
-        return cls(tractogram, header=tck_reader.header)
-
-    def save(self, fileobj):
-        ''' Saves tractogram to a file-like object using TCK format.
-
-        Parameters
-        ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header data).
-        '''
-        tck_writer = TckWriter(fileobj, self.header)
-        tck_writer.write(self.tractogram)
 
     def __str__(self):
         ''' Gets a formatted string of the header of a TCK file.
@@ -383,12 +413,11 @@ class TckFile(TractogramFile):
         info : string
             Header information relevant to the TCK format.
         '''
-        #trk_reader = TrkReader(fileobj)
         hdr = self.header
 
         info = ""
         info += "\nMAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
         info += "\n"
-        info += "\n".join(["{}: {}".format(k, v) for k, v in self.header.items()])
-
+        info += "\n".join(["{}: {}".format(k, v)
+                           for k, v in hdr.items() if not k.startswith('_')])
         return info

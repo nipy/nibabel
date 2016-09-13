@@ -16,6 +16,7 @@ from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
 from ..tractogram_file import TractogramFile, ExtensionWarning
+from .. import FORMATS
 from .. import trk
 
 DATA = {}
@@ -24,11 +25,13 @@ DATA = {}
 def setup():
     global DATA
     DATA['empty_filenames'] = [pjoin(data_path, "empty" + ext)
-                               for ext in nib.streamlines.FORMATS.keys()]
+                               for ext in FORMATS.keys()]
     DATA['simple_filenames'] = [pjoin(data_path, "simple" + ext)
-                                for ext in nib.streamlines.FORMATS.keys()]
+                                for ext in FORMATS.keys()]
     DATA['complex_filenames'] = [pjoin(data_path, "complex" + ext)
-                                 for ext in nib.streamlines.FORMATS.keys()]
+                                 for ext, cls in FORMATS.items()
+                                 if (cls.SUPPORTS_DATA_PER_POINT or
+                                     cls.SUPPORTS_DATA_PER_STREAMLINE)]
 
     DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                            np.arange(2*3, dtype="f4").reshape((2, 3)),
@@ -84,7 +87,7 @@ def test_is_supported_detect_format():
     assert_true(nib.streamlines.detect_format("") is None)
 
     # Valid file without extension
-    for tfile_cls in nib.streamlines.FORMATS.values():
+    for tfile_cls in FORMATS.values():
         f = BytesIO()
         f.write(tfile_cls.MAGIC_NUMBER)
         f.seek(0, os.SEEK_SET)
@@ -92,7 +95,7 @@ def test_is_supported_detect_format():
         assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Wrong extension but right magic number
-    for tfile_cls in nib.streamlines.FORMATS.values():
+    for tfile_cls in FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
             f.write(tfile_cls.MAGIC_NUMBER)
             f.seek(0, os.SEEK_SET)
@@ -100,7 +103,7 @@ def test_is_supported_detect_format():
             assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
     # Good extension but wrong magic number
-    for ext, tfile_cls in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in FORMATS.items():
         with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
             f.write(b"pass")
             f.seek(0, os.SEEK_SET)
@@ -113,13 +116,13 @@ def test_is_supported_detect_format():
     assert_true(nib.streamlines.detect_format(f) is None)
 
     # Good extension, string only
-    for ext, tfile_cls in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in FORMATS.items():
         f = "my_tractogram" + ext
         assert_true(nib.streamlines.is_supported(f))
         assert_equal(nib.streamlines.detect_format(f), tfile_cls)
 
     # Extension should not be case-sensitive.
-    for ext, tfile_cls in nib.streamlines.FORMATS.items():
+    for ext, tfile_cls in FORMATS.items():
         f = "my_tractogram" + ext.upper()
         assert_true(nib.streamlines.detect_format(f) is tfile_cls)
 
@@ -208,7 +211,7 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
-        for ext, cls in nib.streamlines.FORMATS.items():
+        for ext, cls in FORMATS.items():
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -218,7 +221,7 @@ class TestLoadSave(unittest.TestCase):
     def test_save_simple_file(self):
         tractogram = Tractogram(DATA['streamlines'],
                                 affine_to_rasmm=np.eye(4))
-        for ext, cls in nib.streamlines.FORMATS.items():
+        for ext, cls in FORMATS.items():
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -231,7 +234,7 @@ class TestLoadSave(unittest.TestCase):
                                         DATA['data_per_point'],
                                         affine_to_rasmm=np.eye(4))
 
-        for ext, cls in nib.streamlines.FORMATS.items():
+        for ext, cls in FORMATS.items():
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
 
@@ -240,12 +243,17 @@ class TestLoadSave(unittest.TestCase):
                     nib.streamlines.save(complex_tractogram, filename)
 
                     # If streamlines format does not support saving data
-                    # per point or data per streamline, a warning message
+                    # per point or data per streamline, warning messages
                     # should be issued.
-                    if not (cls.SUPPORTS_DATA_PER_POINT and
-                            cls.SUPPORTS_DATA_PER_STREAMLINE):
-                        assert_equal(len(w), 1)
-                        assert_true(issubclass(w[0].category, Warning))
+                    nb_expected_warnings = 0
+                    if not cls.SUPPORTS_DATA_PER_POINT:
+                        nb_expected_warnings += 1
+                    if not cls.SUPPORTS_DATA_PER_STREAMLINE:
+                        nb_expected_warnings += 1
+
+                    assert_equal(len(w), nb_expected_warnings)
+                    for i in range(nb_expected_warnings):
+                        assert_true(issubclass(w[i].category, Warning))
 
                     tractogram = Tractogram(DATA['streamlines'],
                                             affine_to_rasmm=np.eye(4))
