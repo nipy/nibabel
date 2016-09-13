@@ -206,17 +206,14 @@ class TckFile(TractogramFile):
 
             for t in tractogram:
                 s = t.streamline.astype(dtype)
-                f.write(asbytes(np.r_[s.astype('<f4'), self.FIBER_DELIMITER].tostring()))
+                f.write(asbytes(np.r_[s.astype('<f4'),
+                                      self.FIBER_DELIMITER].tostring()))
                 nb_streamlines += 1
-
-            # Add the EOF_DELIMITER.
-            f.write(asbytes(self.EOF_DELIMITER.tostring()))
 
             header[Field.NB_STREAMLINES] = nb_streamlines
 
-            ## Overwrite the streamlines count in the header.
-            #self.file.seek(self.count_offset, os.SEEK_SET)
-            #self.file.write(asbytes("count: {0:010}\n".format(self.header[Field.NB_STREAMLINES])))
+            # Add the EOF_DELIMITER.
+            f.write(asbytes(self.EOF_DELIMITER.tostring()))
 
             # Overwrite header with updated one.
             f.seek(beginning, os.SEEK_SET)
@@ -233,26 +230,29 @@ class TckFile(TractogramFile):
             from the beginning of the TCK header).
         """
         # Fields to exclude
-        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES, "datatype", "file"]
+        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES,
+                   "datatype", "file"]
 
         lines = []
         lines.append(header[Field.MAGIC_NUMBER])
         lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
-        lines.append("datatype: Float32LE")  # We always use Float32LE to save TCK files.
-        lines.extend(["{0}: {1}".format(k, v) for k, v in header.items() if k not in exclude])
+        lines.append("datatype: Float32LE")  # Always Float32LE.
+        lines.extend(["{0}: {1}".format(k, v)
+                      for k, v in header.items() if k not in exclude])
         lines.append("file: . ")  # Manually add this last field.
         out = "\n".join((asstr(line).replace('\n', '\t') for line in lines))
         fileobj.write(asbytes(out))
 
-        # Compute offset to the beginning of the binary data
-        tentative_offset = len(out) + 5  # +5 is for "\nEND\n" added just before the data.
+        # Compute offset to the beginning of the binary data.
+        # We add 5 for "\nEND\n" that will be added just before the data.
+        tentative_offset = len(out) + 5
 
-        # Take in account the number of characters needed to write 'offset' in ASCII.
+        # Count the number of characters needed to write the offset in ASCII.
         offset = tentative_offset + len(str(tentative_offset))
 
-        # Corner case: the new 'offset' needs one more character to write it in ASCII
+        # The new offset might need one more character to write it in ASCII.
         # e.g. offset = 98 (i.e. 2 char.), so offset += 2 = 100 (i.e. 3 char.)
-        #      thus the final offset = 101.
+        # thus the final offset = 101.
         if len(str(tentative_offset)) != len(str(offset)):
             offset += 1  # +1, we need one more character for that new digit.
 
