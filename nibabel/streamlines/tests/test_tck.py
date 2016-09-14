@@ -4,6 +4,7 @@ import numpy as np
 from os.path import join as pjoin
 
 from nibabel.externals.six import BytesIO
+from nibabel.py3k import asbytes
 
 from nose.tools import assert_equal, assert_raises
 
@@ -98,7 +99,8 @@ class TestTCK(unittest.TestCase):
         tck_file = open(DATA['simple_tck_fname'], 'rb').read()
 
         # Simulate a TCK file where `datatype` was incorrectly provided.
-        new_tck_file = tck_file.replace("Float32LE", "Float32BE")
+        new_tck_file = tck_file.replace(asbytes("Float32LE"),
+                                        asbytes("Float32BE"))
         assert_raises(DataError, TckFile.load, BytesIO(new_tck_file))
 
     def test_write_empty_file(self):
