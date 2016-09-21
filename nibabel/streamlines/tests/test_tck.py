@@ -10,6 +10,7 @@ from nose.tools import assert_equal, assert_raises
 
 from nibabel.testing import data_path
 from .test_tractogram import assert_tractogram_equal
+from ..array_sequence import ArraySequence
 from ..tractogram import Tractogram
 from ..tractogram_file import DataError
 
@@ -80,13 +81,23 @@ class TestTCK(unittest.TestCase):
 
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
-            trk = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['empty_tractogram'])
+            tck = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
+            assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
-            trk = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
+            tck = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
+            assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+
+        # Force TCK loading to use buffering.
+        buffer_size = 1. / 1024**2  # 1 bytes
+        hdr = TckFile._read_header(DATA['simple_tck_fname'])
+        tck_reader = TckFile._read(DATA['simple_tck_fname'], hdr, buffer_size)
+        streamlines = ArraySequence(tck_reader)
+        tractogram = Tractogram(streamlines)
+        tractogram.affine_to_rasmm = np.eye(4)
+        tck = TckFile(tractogram, header=hdr)
+        assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
 
     def test_load_simple_file_in_big_endian(self):
         for lazy_load in [False, True]:

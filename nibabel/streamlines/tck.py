@@ -347,9 +347,11 @@ class TckFile(TractogramFile):
         points : ndarray of shape (n_pts, 3)
             Streamline points
         """
-        buffer_size = buffer_size * MEGABYTE
-        buffer_size += 3 - (buffer_size % 3)  # Make it a multiple of 3.
         dtype = header["_dtype"]
+        coordinate_size = 3 * dtype.itemsize
+        # Make buffer_size an integer and a multiple of coordinate_size.
+        buffer_size = int(buffer_size * MEGABYTE)
+        buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
         with Opener(fileobj) as f:
             start_position = f.tell()
