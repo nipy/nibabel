@@ -230,6 +230,7 @@ def pack_BV_header(hdr_dict_proto, hdr_dict, parent_hdr_dict=None):
             if hdr_dict[def_or_name[1]] == def_or_name[2]:
                 part = pack('<' + pack_format, value)
             else:
+                # skip to next header field if condition is not met
                 continue
         else:
             part = pack('<' + pack_format, value)
@@ -309,7 +310,7 @@ def update_BV_header(hdr_dict_proto, hdr_dict_old, hdr_dict_new,
        When update_BV_header() is called recursively the not yet updated
        (parent) hdr_dict is passed to give access to n_fields_name fields
        outside the current scope (see below).
-    parent_new: OrderedDict
+    parent_new: None or OrderedDict, optional
        When update_BV_header() is called recursively the not yet updated
        (parent) hdr_dict is passed to give access to n_fields_name fields
        outside the current scope (see below).
@@ -321,16 +322,18 @@ def update_BV_header(hdr_dict_proto, hdr_dict_old, hdr_dict_new,
         conditional fields.
     """
     for name, pack_format, def_or_name in hdr_dict_proto:
-        # handle nested loop fields
-        if isinstance(pack_format, tuple):
+        # handle only nested loop fields
+        if not isinstance(pack_format, tuple):
+            continue
+        else:
             # calculate the change of array length and the new array length
             if def_or_name in hdr_dict_old:
-                delta_values = hdr_dict_new[def_or_name] - \
-                    hdr_dict_old[def_or_name]
+                delta_values = (hdr_dict_new[def_or_name] -
+                                hdr_dict_old[def_or_name])
                 n_values = hdr_dict_new[def_or_name]
             else:
-                delta_values = parent_new[def_or_name] - \
-                    parent_old[def_or_name]
+                delta_values = (parent_new[def_or_name] -
+                                parent_old[def_or_name])
                 n_values = parent_new[def_or_name]
             if delta_values > 0:  # add nested loops
                 for i in range(delta_values):
@@ -384,8 +387,8 @@ def combine_st(st_array, inv=False):
 
     Parameters
     ----------
-    st_array: array
-        array filled with transformation matrices of shape (4, 4)
+    st_array: array of shape (n, 4, 4)
+        array filled with n transformation matrices of shape (4, 4)
 
     inv: boolean
         Set to true to invert the transformation matrices before
@@ -754,12 +757,12 @@ class BvFileHeader(Header):
         framing cube.
         """
         hdr = self._hdr_dict
-        x = hdr['x_start'] + \
-            ((hdr['x_end'] - hdr['x_start']) / 2)
-        y = hdr['y_start'] + \
-            ((hdr['y_end'] - hdr['y_start']) / 2)
-        z = hdr['z_start'] + \
-            ((hdr['z_end'] - hdr['z_start']) / 2)
+        x = (hdr['x_start'] +
+             ((hdr['x_end'] - hdr['x_start']) / 2))
+        y = (hdr['y_start'] +
+             ((hdr['y_end'] - hdr['y_start']) / 2))
+        z = (hdr['z_start'] +
+             ((hdr['z_end'] - hdr['z_start']) / 2))
         return z, y, x
 
     def get_zooms(self):
