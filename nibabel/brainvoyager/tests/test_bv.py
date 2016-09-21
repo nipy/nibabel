@@ -12,7 +12,7 @@ import os
 import numpy as np
 from ...loadsave import load
 from ...tmpdirs import InTemporaryDirectory
-from ..bv import (readCString, parse_BV_header, pack_BV_header, BvFileHeader,
+from ..bv import (read_c_string, parse_BV_header, pack_BV_header, BvFileHeader,
                   calc_BV_header_size, _proto2default, update_BV_header,
                   parse_st, combine_st, BvError)
 from ..bv_vtc import VTC_HDR_DICT_PROTO, BvVtcHeader
@@ -121,7 +121,7 @@ TEST_HDR_PACKED = \
               b'\x00sample\x00'])
 
 
-def test_readCString():
+def test_read_c_string():
     # sample binary block
     binary = b'test.fmr\x00test.prt\x00'
     with InTemporaryDirectory():
@@ -137,7 +137,7 @@ def test_readCString():
         fread = open(path, 'rb')
 
         # test readout of one string
-        assert_equal([s for s in readCString(fread)], [b'test.fmr'])
+        assert_equal([s for s in read_c_string(fread)], [b'test.fmr'])
 
         # test new file position
         assert_equal(fread.tell(), 9)
@@ -146,14 +146,14 @@ def test_readCString():
         fread.seek(0)
 
         # test readout of two strings
-        assert_equal([s for s in readCString(fread, 2, rewind=True)],
+        assert_equal([s for s in read_c_string(fread, 2, rewind=True)],
                      [b'test.fmr', b'test.prt'])
 
         # test automatic rewind
         assert_equal(fread.tell(), 0)
 
         # test readout of two strings with trailing zeros
-        assert_equal([s for s in readCString(fread, 2, strip=False)],
+        assert_equal([s for s in read_c_string(fread, 2, strip=False)],
                      [b'test.fmr\x00', b'test.prt\x00'])
 
         # test new file position
@@ -161,7 +161,7 @@ def test_readCString():
 
         # test readout of one string from given position
         fread.seek(0)
-        assert_equal([s for s in readCString(fread, startPos=9)],
+        assert_equal([s for s in read_c_string(fread, start_pos=9)],
                      [b'test.prt'])
         fread.close()
 
