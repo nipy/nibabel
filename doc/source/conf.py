@@ -22,8 +22,6 @@
 import sys
 import os
 
-import nibabel
-
 # Check for external Sphinx extensions we depend on
 try:
     import numpydoc
@@ -89,7 +87,7 @@ copyright = u'2006-2016, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 # built documents.
 #
 # The short X.Y version.
-version = nibabel.__version__
+version = rel['VERSION']
 # The full version, including alpha/beta/rc tags.
 release = version
 
