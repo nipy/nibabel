@@ -230,15 +230,15 @@ class TckFile(TractogramFile):
             from the beginning of the TCK header).
         """
         # Fields to exclude
-        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES,
-                   "datatype", "file"]
+        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES, Field.ENDIANNESS,
+                   "count", "datatype", "file"]
 
         lines = []
         lines.append(header[Field.MAGIC_NUMBER])
         lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
         lines.append("datatype: Float32LE")  # Always Float32LE.
         lines.extend(["{0}: {1}".format(k, v)
-                      for k, v in header.items() if k not in exclude])
+                      for k, v in header.items() if k not in exclude and not k.startswith("_")])
         lines.append("file: . ")  # Manually add this last field.
         out = "\n".join((asstr(line).replace('\n', '\t') for line in lines))
         fileobj.write(asbytes(out))
@@ -281,7 +281,7 @@ class TckFile(TractogramFile):
 
         with Opener(fileobj) as f:
             # Read magic number
-            magic_number = asstr(f.fobj.readline())
+            magic_number = asstr(f.fobj.readline()).strip()
 
             # Read all key-value pairs contained in the header.
             buf = asstr(f.fobj.readline())
