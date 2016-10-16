@@ -588,7 +588,7 @@ class SpatialImage(DataobjImage):
             "slicing image array data with `img.dataobj[slice]` or "
             "`img.get_data()[slice]`")
 
-    def orthoview(self):
+    def orthoview(self, **kwargs):
         """Plot the image using OrthoSlicer3D
 
         Returns
@@ -603,7 +603,7 @@ class SpatialImage(DataobjImage):
         the figure.
         """
         return OrthoSlicer3D(self.dataobj, self.affine,
-                             title=self.get_filename())
+                             title=self.get_filename(), **kwargs)
 
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image

@@ -42,7 +42,7 @@ class OrthoSlicer3D(object):
     """
     # Skip doctest above b/c not all systems have mpl installed
 
-    def __init__(self, data, affine=None, axes=None, title=None):
+    def __init__(self, data, affine=None, axes=None, title=None, vlim=None):
         """
         Parameters
         ----------
@@ -61,6 +61,9 @@ class OrthoSlicer3D(object):
         title : str or None, optional
             The title to display. Can be None (default) to display no
             title.
+        vlim : array-like or None, optional
+            Value limits to display image and time series. Can be None
+            (default) to derive limits from data.
         """
         # Use these late imports of matplotlib so that we have some hope that
         # the test functions are the first to set the matplotlib backend. The
@@ -91,7 +94,7 @@ class OrthoSlicer3D(object):
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
-        self._clim = np.percentile(data, (1., 99.))
+        self._clim = np.percentile(data, (1., 99.)) if vlim is None else vlim
         del data
 
         if axes is None:  # make the axes
@@ -184,8 +187,11 @@ class OrthoSlicer3D(object):
             ax.set_xticks(np.unique(np.linspace(0, self.n_volumes - 1,
                                                 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
-            yl = [self._data.min(), self._data.max()]
-            yl = [l + s * np.diff(lims)[0] for l, s in zip(yl, [-1.01, 1.01])]
+            if vlim is None:
+                yl = [self._data.min(), self._data.max()]
+                yl = [l + s * np.diff(lims)[0] for l, s in zip(yl, [-1.01, 1.01])]
+            else:
+                yl = vlim
             patch = mpl_patch.Rectangle([-0.5, yl[0]], 1., np.diff(yl)[0],
                                         fill=True, facecolor=(0, 1, 0),
                                         edgecolor=(0, 1, 0), alpha=0.25)
