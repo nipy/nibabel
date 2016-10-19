@@ -68,6 +68,14 @@ def test_viewer():
     v.close()
     v._draw()  # should be safe
 
+    # Manually set value limits
+    vlim = np.array([-20, 20])
+    v = OrthoSlicer3D(data, vlim=vlim)
+    assert_array_equal(v._clim, vlim)
+    for im in v._ims:
+        assert_array_equal(im.get_clim(), vlim)
+    assert_array_equal(v._axes[3].get_ylim(), vlim)
+
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
     v._on_scroll(nt('event', 'button inaxes key')('up', v._axes[0], 'shift'))

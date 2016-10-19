@@ -588,8 +588,17 @@ class SpatialImage(DataobjImage):
             "slicing image array data with `img.dataobj[slice]` or "
             "`img.get_data()[slice]`")
 
-    def orthoview(self, **kwargs):
+    def orthoview(self, axes=None, vlim=None):
         """Plot the image using OrthoSlicer3D
+
+        Parameters
+        ------------------
+        axes : tuple of mpl.Axes or None, optional
+            3 or 4 axes instances for the 3 slices plus volumes,
+            or None (default).
+        vlim : array-like or None, optional
+            Value limits to display image and time series. Can be None
+            (default) to derive limits from data.
 
         Returns
         -------
@@ -602,8 +611,8 @@ class SpatialImage(DataobjImage):
         consider using viewer.show() (equivalently plt.show()) to show
         the figure.
         """
-        return OrthoSlicer3D(self.dataobj, self.affine,
-                             title=self.get_filename(), **kwargs)
+        return OrthoSlicer3D(self.dataobj, self.affine, axes=axes,
+                             title=self.get_filename(), vlim=vlim)
 
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
