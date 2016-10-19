@@ -17,7 +17,7 @@ from ..viewers import OrthoSlicer3D
 from ..testing import skipif
 from numpy.testing import assert_array_equal, assert_equal
 
-from nose.tools import assert_raises, assert_true
+from nose.tools import assert_raises, assert_true, assert_false
 
 # Need at least MPL 1.3 for viewer tests.
 matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.3')
@@ -75,6 +75,15 @@ def test_viewer():
     for im in v._ims:
         assert_array_equal(im.get_clim(), vlim)
     assert_array_equal(v._axes[3].get_ylim(), vlim)
+    v.close()
+    v1 = OrthoSlicer3D(data)
+    v2 = OrthoSlicer3D(data, vlim=('1%', '99%'))
+    assert_array_equal(v1.clim, v2.clim)
+    v2.close()
+    v2 = OrthoSlicer3D(data, vlim=('2%', '98%'))
+    assert_false(np.array_equal(v1.clim, v2.clim))
+    v2.close()
+    v1.close()
 
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
