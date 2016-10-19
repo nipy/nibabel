@@ -63,7 +63,8 @@ class OrthoSlicer3D(object):
             title.
         vlim : array-like or None, optional
             Value limits to display image and time series. Can be None
-            (default) to derive limits from data.
+            (default) to derive limits from data. Bounds can be of the
+            form ``'x%'`` to use the ``x`` percentile of the data.
         """
         # Use these late imports of matplotlib so that we have some hope that
         # the test functions are the first to set the matplotlib backend. The
@@ -82,6 +83,13 @@ class OrthoSlicer3D(object):
         affine = np.array(affine, float) if affine is not None else np.eye(4)
         if affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')
+
+        if vlim is not None:
+            percentiles = all(isinstance(lim, str) and lim[-1] == '%'
+                              for lim in vlim)
+            if percentiles:
+                vlim = np.percentile(data, [float(lim[:-1]) for lim in vlim])
+
         # determine our orientation
         self._affine = affine
         codes = axcodes2ornt(aff2axcodes(self._affine))
