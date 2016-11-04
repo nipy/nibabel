@@ -607,7 +607,10 @@ class netcdf_file(object):
                     pos = self.fp.tell()
                     self.fp.seek(begin_)
                     data = fromstring(self.fp.read(a_size), dtype=dtype_)
-                    data.shape = shape
+                    # Avoid exception for empty variables.
+                    if len(data.shape) != 1 or data.shape[0] != 0:
+                        data.shape = shape
+
                     self.fp.seek(pos)
 
             # Add variable.
