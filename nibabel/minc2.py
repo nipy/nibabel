@@ -77,7 +77,7 @@ class Minc2File(Minc1File):
             dimorder = var.attrs['dimorder'].decode()
         except KeyError:  # No specified dimensions
             return []
-        return dimorder.split(',')
+        return dimorder.split(',')[:len(var.shape)]
 
     def get_data_dtype(self):
         return self._image.dtype
