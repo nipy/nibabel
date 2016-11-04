@@ -95,7 +95,7 @@ class Minc2File(Minc1File):
         info = np.iinfo(ddt.type)
         try:
             valid_range = self._image.attrs['valid_range']
-        except AttributeError:
+        except (AttributeError, KeyError):
             valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
