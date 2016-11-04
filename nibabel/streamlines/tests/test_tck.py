@@ -24,57 +24,20 @@ def setup():
     global DATA
 
     DATA['empty_tck_fname'] = pjoin(data_path, "empty.tck")
-    # simple.trk contains only streamlines
+    # simple.tck contains only streamlines
     DATA['simple_tck_fname'] = pjoin(data_path, "simple.tck")
     DATA['simple_tck_big_endian_fname'] = pjoin(data_path,
                                                 "simple_big_endian.tck")
-    # standard.trk contains only streamlines
+    # standard.tck contains only streamlines
     DATA['standard_tck_fname'] = pjoin(data_path, "standard.tck")
-    # complex.trk contains streamlines, scalars and properties
-    # DATA['complex_tck_fname'] = pjoin(data_path, "complex.tck")
 
     DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
                            np.arange(2*3, dtype="f4").reshape((2, 3)),
                            np.arange(5*3, dtype="f4").reshape((5, 3))]
 
-    # DATA['fa'] = [np.array([[0.2]], dtype="f4"),
-    #               np.array([[0.3],
-    #                         [0.4]], dtype="f4"),
-    #               np.array([[0.5],
-    #                         [0.6],
-    #                         [0.6],
-    #                         [0.7],
-    #                         [0.8]], dtype="f4")]
-
-    # DATA['colors'] = [np.array([(1, 0, 0)]*1, dtype="f4"),
-    #                   np.array([(0, 1, 0)]*2, dtype="f4"),
-    #                   np.array([(0, 0, 1)]*5, dtype="f4")]
-
-    # DATA['mean_curvature'] = [np.array([1.11], dtype="f4"),
-    #                           np.array([2.11], dtype="f4"),
-    #                           np.array([3.11], dtype="f4")]
-
-    # DATA['mean_torsion'] = [np.array([1.22], dtype="f4"),
-    #                         np.array([2.22], dtype="f4"),
-    #                         np.array([3.22], dtype="f4")]
-
-    # DATA['mean_colors'] = [np.array([1, 0, 0], dtype="f4"),
-    #                        np.array([0, 1, 0], dtype="f4"),
-    #                        np.array([0, 0, 1], dtype="f4")]
-
-    # DATA['data_per_point'] = {'colors': DATA['colors'],
-    #                           'fa': DATA['fa']}
-    # DATA['data_per_streamline'] = {'mean_curvature': DATA['mean_curvature'],
-    #                                'mean_torsion': DATA['mean_torsion'],
-    #                                'mean_colors': DATA['mean_colors']}
-
     DATA['empty_tractogram'] = Tractogram(affine_to_rasmm=np.eye(4))
     DATA['simple_tractogram'] = Tractogram(DATA['streamlines'],
                                            affine_to_rasmm=np.eye(4))
-    # DATA['complex_tractogram'] = Tractogram(DATA['streamlines'],
-    #                                         DATA['data_per_streamline'],
-    #                                         DATA['data_per_point'],
-    #                                         affine_to_rasmm=np.eye(4))
 
 
 class TestTCK(unittest.TestCase):
