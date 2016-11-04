@@ -111,8 +111,14 @@ class Minc1File(object):
             except AttributeError:
                 dir_cos = _default_dir_cos[name]
             rot_mat[:, i] = dir_cos
-            steps[i] = dim.step
-            starts[i] = dim.start
+            try:
+                steps[i] = dim.step
+            except AttributeError:
+                steps[i] = 1.0
+            try:
+                starts[i] = dim.start
+            except AttributeError:
+                starts[i] = 0.0
         origin = np.dot(rot_mat, starts)
         aff = np.eye(nspatial + 1)
         aff[:nspatial, :nspatial] = rot_mat * steps
