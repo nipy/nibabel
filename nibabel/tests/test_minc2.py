@@ -72,7 +72,22 @@ EXAMPLE_IMAGES = [
             min=0.2078431373,
             max=1.498039216,
             mean=0.9090422837),
-        is_proxy=True)
+        is_proxy=True),
+    dict(
+        fname=pjoin(data_path, 'minc2-no-att.mnc'),
+        shape=(10, 20, 20),
+        dtype=np.uint8,
+        affine=np.array([[0, 0, 1.0, 0],
+                         [0, 1.0, 0, 0],
+                         [1.0, 0, 0, 0],
+                         [0, 0, 0, 1]]),
+        zooms=(1., 1., 1.),
+        # These values from SPM2/mincstats
+        data_summary=dict(
+            min=0.20784314,
+            max=0.74901961,
+            mean=0.6061103),
+        is_proxy=True),
 ]
 
 if have_h5py:
