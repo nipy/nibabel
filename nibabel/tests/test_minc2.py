@@ -88,6 +88,21 @@ EXAMPLE_IMAGES = [
             max=0.74901961,
             mean=0.6061103),
         is_proxy=True),
+    dict(
+        fname=pjoin(data_path, 'minc2-4d-d.mnc'),
+        shape=(5, 16, 16, 16),
+        dtype=np.float64,
+        affine=np.array([[1., 0., 0.,  -6.96 ],
+                         [0., 1., 0., -12.453],
+                         [0., 0., 1.,  -9.48 ],
+                         [0., 0., 0., 1.]]),
+        zooms=(1., 1., 1., 1.),
+        # These values from mincstats
+        data_summary=dict(
+            min=0.0,
+            max=5.0,
+            mean=2.00078125),
+        is_proxy=True),
 ]
 
 if have_h5py:

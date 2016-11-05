@@ -77,6 +77,9 @@ class Minc2File(Minc1File):
             dimorder = var.attrs['dimorder'].decode()
         except KeyError:  # No specified dimensions
             return []
+        # The dimension name list must contain only as many entries
+        # as the variable has dimensions. This reduces errors when an
+        # unnecessary dimorder attribute is left behind.
         return dimorder.split(',')[:len(var.shape)]
 
     def get_data_dtype(self):
