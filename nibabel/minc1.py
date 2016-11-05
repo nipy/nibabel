@@ -105,7 +105,9 @@ class Minc1File(object):
         dim_names = list(self._dim_names)  # for indexing in loop
         for i, name in enumerate(self._spatial_dims):
             dim = self._dims[dim_names.index(name)]
-            rot_mat[:, i] = dim.direction_cosines if hasattr(dim, 'direction_cosines') else _default_dir_cos[name]
+            rot_mat[:, i] = (dim.direction_cosines
+                             if hasattr(dim, 'direction_cosines')
+                             else _default_dir_cos[name])
             steps[i] = dim.step if hasattr(dim, 'step') else 1.0
             starts[i] = dim.start if hasattr(dim, 'start') else 0.0
         origin = np.dot(rot_mat, starts)
