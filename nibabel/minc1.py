@@ -94,15 +94,8 @@ class Minc1File(object):
 
     def get_zooms(self):
         """ Get real-world sizes of voxels """
-        result = []
         # zooms must be positive; but steps in MINC can be negative
-        for dim in self._dims:
-            try:
-                x = abs(float(dim.step))
-            except AttributeError:
-                x = 1.0
-            result.append(x)
-        return tuple(result)
+        return tuple([abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims])
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
@@ -112,19 +105,9 @@ class Minc1File(object):
         dim_names = list(self._dim_names)  # for indexing in loop
         for i, name in enumerate(self._spatial_dims):
             dim = self._dims[dim_names.index(name)]
-            try:
-                dir_cos = dim.direction_cosines
-            except AttributeError:
-                dir_cos = _default_dir_cos[name]
-            rot_mat[:, i] = dir_cos
-            try:
-                steps[i] = dim.step
-            except AttributeError:
-                steps[i] = 1.0
-            try:
-                starts[i] = dim.start
-            except AttributeError:
-                starts[i] = 0.0
+            rot_mat[:, i] = dim.direction_cosines if hasattr(dim, 'direction_cosines') else _default_dir_cos[name]
+            steps[i] = dim.step if hasattr(dim, 'step') else 1.0
+            starts[i] = dim.start if hasattr(dim, 'start') else 0.0
         origin = np.dot(rot_mat, starts)
         aff = np.eye(nspatial + 1)
         aff[:nspatial, :nspatial] = rot_mat * steps
