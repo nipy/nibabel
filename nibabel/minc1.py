@@ -146,7 +146,7 @@ class Minc1File(object):
             try:
                 valid_range = [self._image.valid_min,
                                self._image.valid_max]
-            except (AttributeError, KeyError):
+            except AttributeError:
                 valid_range = [info.min, info.max]
         if valid_range[0] < info.min or valid_range[1] > info.max:
             raise ValueError('Valid range outside input '
