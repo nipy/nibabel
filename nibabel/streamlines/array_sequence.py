@@ -318,7 +318,6 @@ class ArraySequence(object):
         raise TypeError("Index must be either an int, a slice, a list of int"
                         " or a ndarray of bool! Not " + str(type(idx)))
 
-
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
             raise ValueError("ArraySequence object corrupted:"
