@@ -210,6 +210,13 @@ class netcdf_file(object):
             self.fp = open(self.filename, '%sb' % mode)
             if mmap is None:
                 mmap = True
+        try:
+            self.fp.seek(0, 2)
+            self.file_bytes = self.fp.tell()
+            self.fp.seek(0)
+        except ValueError:
+            self.file_bytes = -1 # Unknown file length (gzip).
+
         self.use_mmap = mmap
         self.version_byte = version
 
@@ -599,18 +606,20 @@ class netcdf_file(object):
             else:  # not a record variable
                 # Calculate size to avoid problems with vsize (above)
                 a_size = reduce(mul, shape, 1) * size
-                if self.use_mmap:
+                if self.file_bytes >= 0 and begin_+a_size > self.file_bytes:
+                    data = fromstring(b'\x00'*a_size, dtype=dtype_)
+                elif self.use_mmap:
                     mm = mmap(self.fp.fileno(), begin_+a_size, access=ACCESS_READ)
                     data = ndarray.__new__(ndarray, shape, dtype=dtype_,
                             buffer=mm, offset=begin_, order=0)
                 else:
                     pos = self.fp.tell()
                     self.fp.seek(begin_)
-                    data = fromstring(self.fp.read(a_size), dtype=dtype_)
-                    # Avoid exception for empty variables.
-                    if data.shape != (0,):
-                        data.shape = shape
-
+                    buf = self.fp.read(a_size)
+                    if len(buf) < a_size:
+                        buf = b'\x00'*a_size
+                    data = fromstring(buf, dtype=dtype_)
+                    data.shape = shape
                     self.fp.seek(pos)
 
             # Add variable.
