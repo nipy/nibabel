@@ -570,6 +570,17 @@ class TestTractogram(unittest.TestCase):
         tractogram.affine_to_rasmm = None
         assert_raises(ValueError, tractogram.to_world)
 
+    def test_tractogram_extend(self):
+        # Load tractogram that contains some metadata.
+        t = DATA['tractogram'].copy()
+        new_t = DATA['tractogram'].copy()
+
+        # Double the tractogram.
+        new_t += t
+        assert_equal(len(new_t), 2*len(t))
+        assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
+        assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
+
 
 class TestLazyTractogram(unittest.TestCase):
 
@@ -640,6 +651,11 @@ class TestLazyTractogram(unittest.TestCase):
     def test_lazy_tractogram_getitem(self):
         assert_raises(NotImplementedError,
                       DATA['lazy_tractogram'].__getitem__, 0)
+
+    def test_lazy_tractogram_extend(self):
+        t = DATA['lazy_tractogram'].copy()
+        new_t = DATA['lazy_tractogram'].copy()
+        assert_raises(NotImplementedError, new_t.__iadd__, t)
 
     def test_lazy_tractogram_len(self):
         modules = [module_tractogram]  # Modules for which to catch warnings.

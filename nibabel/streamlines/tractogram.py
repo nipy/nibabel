@@ -112,6 +112,28 @@ class PerArrayDict(SliceableDataDict):
 
         self.store[key] = value
 
+    def extend(self, other):
+        if len(self) != len(other):
+            msg = ("Size mismatched between the two PerArrayDict objects."
+                   " This PerArrayDict has {0} elements whereas the other "
+                   " has {1} elements.").format(len(self), len(other))
+            raise ValueError(msg)
+
+        if sorted(self.keys()) != sorted(other.keys()):
+            msg = ("Key mismatched between the two PerArrayDict objects."
+                   " This PerArrayDict contains '{0}' whereas the other "
+                   " contains '{1}'.").format(sorted(self.keys()),
+                                              sorted(other.keys()))
+            raise ValueError(msg)
+
+        self.n_rows += other.n_rows
+        for key in self.keys():
+            self[key] = np.concatenate([self[key], other[key]])
+
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
+
 
 class PerArraySequenceDict(PerArrayDict):
     """ Dictionary for which key access can do slicing on the values.
@@ -135,6 +157,28 @@ class PerArraySequenceDict(PerArrayDict):
             raise ValueError(msg)
 
         self.store[key] = value
+
+    def extend(self, other):
+        if len(self) != len(other):
+            msg = ("Size mismatched between the two PerArrayDict objects."
+                   " This PerArrayDict has {0} elements whereas the other "
+                   " has {1} elements.").format(len(self), len(other))
+            raise ValueError(msg)
+
+        if sorted(self.keys()) != sorted(other.keys()):
+            msg = ("Key mismatched between the two PerArrayDict objects."
+                   " This PerArrayDict contains '{0}' whereas the other "
+                   " contains '{1}'.").format(sorted(self.keys()),
+                                              sorted(other.keys()))
+            raise ValueError(msg)
+
+        self.n_rows += other.n_rows
+        for key in self.keys():
+            self[key].extend(other[key])
+
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
 
 
 class LazyDict(collections.MutableMapping):
@@ -418,6 +462,16 @@ class Tractogram(object):
 
         return self.apply_affine(self.affine_to_rasmm, lazy=lazy)
 
+    def extend(self, other):
+        # TODO: Make sure the other tractogram is compatible.
+        self.streamlines.extend(other.streamlines)
+        self.data_per_streamline += other.data_per_streamline
+        self.data_per_point += other.data_per_point
+
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
+
 
 class LazyTractogram(Tractogram):
     """ Lazy container for streamlines and their data information.
@@ -652,6 +706,9 @@ class LazyTractogram(Tractogram):
 
     def __getitem__(self, idx):
         raise NotImplementedError('LazyTractogram does not support indexing.')
+
+    def extend(self, other):
+        raise NotImplementedError('LazyTractogram does not support concatenation.')
 
     def __iter__(self):
         count = 0
