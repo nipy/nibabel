@@ -187,7 +187,7 @@ class TestPerArrayDict(unittest.TestCase):
         sdict2 = PerArrayDict(len(DATA['tractogram']),
                               DATA['data_per_streamline'])
 
-        sdict += sdict2
+        sdict.extend(sdict2)
         assert_equal(len(sdict), len(sdict2))
         for k, v in DATA['tractogram'].data_per_streamline.items():
             assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
@@ -253,7 +253,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
         sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
         sdict2 = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
 
-        sdict += sdict2
+        sdict.extend(sdict2)
         assert_equal(len(sdict), len(sdict2))
         for k, v in DATA['tractogram'].data_per_point.items():
             assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
@@ -602,9 +602,15 @@ class TestTractogram(unittest.TestCase):
     def test_tractogram_extend(self):
         # Load tractogram that contains some metadata.
         t = DATA['tractogram'].copy()
-        new_t = DATA['tractogram'].copy()
 
         # Double the tractogram.
+        new_t = t + t
+        assert_equal(len(new_t), 2*len(t))
+        assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
+        assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
+
+        # Double the tractogram inplace.
+        new_t = DATA['tractogram'].copy()
         new_t += t
         assert_equal(len(new_t), 2*len(t))
         assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])

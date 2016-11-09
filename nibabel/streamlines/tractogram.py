@@ -138,10 +138,6 @@ class PerArrayDict(SliceableDataDict):
         for key in self.keys():
             self[key] = np.concatenate([self[key], other[key]])
 
-    def __iadd__(self, other):
-        self.extend(other)
-        return self
-
 
 class PerArraySequenceDict(PerArrayDict):
     """ Dictionary for which key access can do slicing on the values.
@@ -191,10 +187,6 @@ class PerArraySequenceDict(PerArrayDict):
         self.n_rows += other.n_rows
         for key in self.keys():
             self[key].extend(other[key])
-
-    def __iadd__(self, other):
-        self.extend(other)
-        return self
 
 
 class LazyDict(collections.MutableMapping):
@@ -495,12 +487,17 @@ class Tractogram(object):
         must match those contained in the other tractogram.
         """
         self.streamlines.extend(other.streamlines)
-        self.data_per_streamline += other.data_per_streamline
-        self.data_per_point += other.data_per_point
+        self.data_per_streamline.extend(other.data_per_streamline)
+        self.data_per_point.extend(other.data_per_point)
 
     def __iadd__(self, other):
         self.extend(other)
         return self
+
+    def __add__(self, other):
+        tractogram = self.copy()
+        tractogram += other
+        return tractogram
 
 
 class LazyTractogram(Tractogram):
