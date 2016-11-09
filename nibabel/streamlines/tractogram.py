@@ -113,14 +113,22 @@ class PerArrayDict(SliceableDataDict):
         self.store[key] = value
 
     def extend(self, other):
-        if len(self) != len(other):
-            msg = ("Size mismatched between the two PerArrayDict objects."
-                   " This PerArrayDict has {0} elements whereas the other "
-                   " has {1} elements.").format(len(self), len(other))
-            raise ValueError(msg)
+        """ Appends the elements of another :class:`PerArrayDict`.
 
+        That is, for each entry in this dictionary, we append the elements
+        coming from the other dictionary at the corresponding entry.
+
+        Parameters
+        ----------
+        other : :class:`PerArrayDict` object
+            Its data will be appended to the data of this dictionary.
+
+        Notes
+        -----
+        The entries in both dictionaries must match.
+        """
         if sorted(self.keys()) != sorted(other.keys()):
-            msg = ("Key mismatched between the two PerArrayDict objects."
+            msg = ("Entry mismatched between the two PerArrayDict objects."
                    " This PerArrayDict contains '{0}' whereas the other "
                    " contains '{1}'.").format(sorted(self.keys()),
                                               sorted(other.keys()))
@@ -159,12 +167,20 @@ class PerArraySequenceDict(PerArrayDict):
         self.store[key] = value
 
     def extend(self, other):
-        if len(self) != len(other):
-            msg = ("Size mismatched between the two PerArrayDict objects."
-                   " This PerArrayDict has {0} elements whereas the other "
-                   " has {1} elements.").format(len(self), len(other))
-            raise ValueError(msg)
+        """ Appends the elements of another :class:`PerArraySequenceDict`.
 
+        That is, for each entry in this dictionary, we append the elements
+        coming from the other dictionary at the corresponding entry.
+
+        Parameters
+        ----------
+        other : :class:`PerArraySequenceDict` object
+            Its data will be appended to the data of this dictionary.
+
+        Notes
+        -----
+        The entries in both dictionaries must match.
+        """
         if sorted(self.keys()) != sorted(other.keys()):
             msg = ("Key mismatched between the two PerArrayDict objects."
                    " This PerArrayDict contains '{0}' whereas the other "
@@ -463,7 +479,21 @@ class Tractogram(object):
         return self.apply_affine(self.affine_to_rasmm, lazy=lazy)
 
     def extend(self, other):
-        # TODO: Make sure the other tractogram is compatible.
+        """ Appends the data of another :class:`Tractogram`.
+
+        Data that will be appended includes the streamlines and the content
+        of both dictionaries `data_per_streamline` and `data_per_point`.
+
+        Parameters
+        ----------
+        other : :class:`Tractogram` object
+            Its data will be appended to the data of this tractogram.
+
+        Notes
+        -----
+        The entries of `self.data_per_streamline` and `self.data_per_point`
+        must match those contained in the other tractogram.
+        """
         self.streamlines.extend(other.streamlines)
         self.data_per_streamline += other.data_per_streamline
         self.data_per_point += other.data_per_point
@@ -708,7 +738,8 @@ class LazyTractogram(Tractogram):
         raise NotImplementedError('LazyTractogram does not support indexing.')
 
     def extend(self, other):
-        raise NotImplementedError('LazyTractogram does not support concatenation.')
+        msg = 'LazyTractogram does not support concatenation.'
+        raise NotImplementedError(msg)
 
     def __iter__(self):
         count = 0

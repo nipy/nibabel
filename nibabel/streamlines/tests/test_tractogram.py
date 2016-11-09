@@ -181,6 +181,21 @@ class TestPerArrayDict(unittest.TestCase):
             assert_arrays_equal(sdict[-1][k], v[-1])
             assert_arrays_equal(sdict[[0, -1]][k], v[[0, -1]])
 
+    def test_extend(self):
+        sdict = PerArrayDict(len(DATA['tractogram']),
+                             DATA['data_per_streamline'])
+        sdict2 = PerArrayDict(len(DATA['tractogram']),
+                              DATA['data_per_streamline'])
+
+        sdict += sdict2
+        assert_equal(len(sdict), len(sdict2))
+        for k, v in DATA['tractogram'].data_per_streamline.items():
+            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
+            assert_arrays_equal(sdict[k][len(DATA['tractogram']):], v)
+
+        # Test incompatible PerArrayDicts.
+        assert_raises(ValueError, sdict.extend, PerArrayDict())
+
 
 class TestPerArraySequenceDict(unittest.TestCase):
 
@@ -232,6 +247,20 @@ class TestPerArraySequenceDict(unittest.TestCase):
             assert_arrays_equal(sdict[::-1][k], v[::-1])
             assert_arrays_equal(sdict[-1][k], v[-1])
             assert_arrays_equal(sdict[[0, -1]][k], v[[0, -1]])
+
+    def test_extend(self):
+        total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
+        sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
+        sdict2 = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
+
+        sdict += sdict2
+        assert_equal(len(sdict), len(sdict2))
+        for k, v in DATA['tractogram'].data_per_point.items():
+            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
+            assert_arrays_equal(sdict[k][len(DATA['tractogram']):], v)
+
+        # Test incompatible PerArrayDicts.
+        assert_raises(ValueError, sdict.extend, PerArraySequenceDict())
 
 
 class TestLazyDict(unittest.TestCase):
