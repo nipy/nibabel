@@ -123,9 +123,13 @@ class PerArrayDict(SliceableDataDict):
         other : :class:`PerArrayDict` object
             Its data will be appended to the data of this dictionary.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
-        The entries in both dictionaries must match.
+        The keys in both dictionaries must be the same.
         """
         if sorted(self.keys()) != sorted(other.keys()):
             msg = ("Entry mismatched between the two PerArrayDict objects."
@@ -173,9 +177,13 @@ class PerArraySequenceDict(PerArrayDict):
         other : :class:`PerArraySequenceDict` object
             Its data will be appended to the data of this dictionary.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
-        The entries in both dictionaries must match.
+        The keys in both dictionaries must be the same.
         """
         if sorted(self.keys()) != sorted(other.keys()):
             msg = ("Key mismatched between the two PerArrayDict objects."
@@ -481,10 +489,15 @@ class Tractogram(object):
         other : :class:`Tractogram` object
             Its data will be appended to the data of this tractogram.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
-        The entries of `self.data_per_streamline` and `self.data_per_point`
-        must match those contained in the other tractogram.
+        The entries in both dictionaries `self.data_per_streamline` and
+        `self.data_per_point` must match respectively those contained in the .
+        the other tractogram.
         """
         self.streamlines.extend(other.streamlines)
         self.data_per_streamline.extend(other.data_per_streamline)

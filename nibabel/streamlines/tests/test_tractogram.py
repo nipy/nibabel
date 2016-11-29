@@ -2,6 +2,7 @@ import sys
 import unittest
 import numpy as np
 import warnings
+import operator
 
 from nibabel.testing import assert_arrays_equal
 from nibabel.testing import clear_and_catch_warnings
@@ -130,6 +131,11 @@ def assert_tractogram_equal(t1, t2):
                      t2.data_per_streamline, t2.data_per_point)
 
 
+def extender(a, b):
+    a.extend(b)
+    return a
+
+
 class TestPerArrayDict(unittest.TestCase):
 
     def test_per_array_dict_creation(self):
@@ -184,17 +190,39 @@ class TestPerArrayDict(unittest.TestCase):
     def test_extend(self):
         sdict = PerArrayDict(len(DATA['tractogram']),
                              DATA['data_per_streamline'])
+
+        new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
+                    'mean_torsion': 3 * np.array(DATA['mean_torsion']),
+                    'mean_colors': 4 * np.array(DATA['mean_colors'])}
         sdict2 = PerArrayDict(len(DATA['tractogram']),
-                              DATA['data_per_streamline'])
+                              new_data)
 
         sdict.extend(sdict2)
         assert_equal(len(sdict), len(sdict2))
-        for k, v in DATA['tractogram'].data_per_streamline.items():
-            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
-            assert_arrays_equal(sdict[k][len(DATA['tractogram']):], v)
+        for k in DATA['tractogram'].data_per_streamline:
+            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])],
+                                DATA['tractogram'].data_per_streamline[k])
+            assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
+                                new_data[k])
 
         # Test incompatible PerArrayDicts.
+        # Other dict is missing entries.
         assert_raises(ValueError, sdict.extend, PerArrayDict())
+
+        # Other dict has more entries.
+        new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
+                    'mean_torsion': 3 * np.array(DATA['mean_torsion']),
+                    'mean_colors': 4 * np.array(DATA['mean_colors']),
+                    'other': 5 * np.array(DATA['mean_colors'])}
+        sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
+
+        # Other dict has the right number of entries but wrong shape.
+        new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
+                    'mean_torsion': 3 * np.array(DATA['mean_torsion']),
+                    'other': 4 * np.array(DATA['mean_torsion'])}
+        sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
 
 
 class TestPerArraySequenceDict(unittest.TestCase):
@@ -251,16 +279,35 @@ class TestPerArraySequenceDict(unittest.TestCase):
     def test_extend(self):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
-        sdict2 = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
+
+        new_data = {'colors': 2 * np.array(DATA['colors']),
+                    'fa': 3 * np.array(DATA['fa'])}
+        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
 
         sdict.extend(sdict2)
         assert_equal(len(sdict), len(sdict2))
-        for k, v in DATA['tractogram'].data_per_point.items():
-            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])], v)
-            assert_arrays_equal(sdict[k][len(DATA['tractogram']):], v)
+        for k in DATA['tractogram'].data_per_point:
+            assert_arrays_equal(sdict[k][:len(DATA['tractogram'])],
+                                DATA['tractogram'].data_per_point[k])
+            assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
+                                new_data[k])
 
         # Test incompatible PerArrayDicts.
+        # Other dict is missing entries.
         assert_raises(ValueError, sdict.extend, PerArraySequenceDict())
+
+        # Other dict has more entries.
+        new_data = {'colors': 2 * np.array(DATA['colors']),
+                    'fa': 3 * np.array(DATA['fa']),
+                    'other': 4 * np.array(DATA['fa'])}
+        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
+
+        # Other dict has the right number of entries but wrong shape.
+        new_data = {'colors': 2 * np.array(DATA['colors']),
+                    'other': 2 * np.array(DATA['colors']),}
+        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
 
 
 class TestLazyDict(unittest.TestCase):
@@ -603,19 +650,12 @@ class TestTractogram(unittest.TestCase):
         # Load tractogram that contains some metadata.
         t = DATA['tractogram'].copy()
 
-        # Double the tractogram.
-        new_t = t + t
-        assert_equal(len(new_t), 2*len(t))
-        assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
-        assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
-
-        # Double the tractogram inplace.
-        new_t = DATA['tractogram'].copy()
-        new_t += t
-        assert_equal(len(new_t), 2*len(t))
-        assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
-        assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
-
+        for op, in_place in ((operator.add, False), (operator.iadd, True), (extender, True)):
+            first_arg = t.copy()
+            new_t = op(first_arg, t)
+            assert_equal(new_t is first_arg, in_place)
+            assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
+            assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
 
 class TestLazyTractogram(unittest.TestCase):
 
@@ -690,7 +730,9 @@ class TestLazyTractogram(unittest.TestCase):
     def test_lazy_tractogram_extend(self):
         t = DATA['lazy_tractogram'].copy()
         new_t = DATA['lazy_tractogram'].copy()
-        assert_raises(NotImplementedError, new_t.__iadd__, t)
+
+        for op in (operator.add, operator.iadd, extender):
+            assert_raises(NotImplementedError, op, new_t, t)
 
     def test_lazy_tractogram_len(self):
         modules = [module_tractogram]  # Modules for which to catch warnings.
