@@ -515,16 +515,16 @@ We could record the parameters necessary for $f$ as the 3 by 3 matrix, $M$
 and the 3 by 1 vector $(a, b, c)$.
 
 In fact, the 4 by 4 image *affine array* does include exactly this
-information. If $m_{ij}$ is the value in row $i$ column $j$ of matrix $M$,
+information. If $m_{i,j}$ is the value in row $i$ column $j$ of matrix $M$,
 then the image affine matrix $A$ is:
 
 .. math::
 
     A =
     \begin{bmatrix}
-    m_{11} & m_{12} & m_{13} & a \\
-    m_{21} & m_{22} & m_{23} & b \\
-    m_{31} & m_{32} & m_{33} & c \\
+    m_{1,1} & m_{1,2} & m_{1,3} & a \\
+    m_{2,1} & m_{2,2} & m_{2,3} & b \\
+    m_{3,1} & m_{3,2} & m_{3,3} & c \\
     0 & 0 & 0 & 1 \\
     \end{bmatrix}
 
@@ -546,9 +546,9 @@ vectors:
     1\\
     \end{bmatrix} =
     \begin{bmatrix}
-    m_{11} & m_{12} & m_{13} & a \\
-    m_{21} & m_{22} & m_{23} & b \\
-    m_{31} & m_{32} & m_{33} & c \\
+    m_{1,1} & m_{1,2} & m_{1,3} & a \\
+    m_{2,1} & m_{2,2} & m_{2,3} & b \\
+    m_{3,1} & m_{3,2} & m_{3,3} & c \\
     0 & 0 & 0 & 1 \\
     \end{bmatrix}
     \begin{bmatrix}
@@ -607,6 +607,19 @@ matrix.  Put another way:
     z\\
     1\\
     \end{bmatrix} = A
+    \begin{bmatrix}
+    i\\
+    j\\
+    k\\
+    1\\
+    \end{bmatrix}
+
+    A^{-1}\begin{bmatrix}
+    x\\
+    y\\
+    z\\
+    1\\
+    \end{bmatrix} = A^{-1} A
     \begin{bmatrix}
     i\\
     j\\

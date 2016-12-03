@@ -77,7 +77,10 @@ class Minc2File(Minc1File):
             dimorder = var.attrs['dimorder'].decode()
         except KeyError:  # No specified dimensions
             return []
-        return dimorder.split(',')
+        # The dimension name list must contain only as many entries
+        # as the variable has dimensions. This reduces errors when an
+        # unnecessary dimorder attribute is left behind.
+        return dimorder.split(',')[:len(var.shape)]
 
     def get_data_dtype(self):
         return self._image.dtype
@@ -95,7 +98,7 @@ class Minc2File(Minc1File):
         info = np.iinfo(ddt.type)
         try:
             valid_range = self._image.attrs['valid_range']
-        except AttributeError:
+        except (AttributeError, KeyError):
             valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
