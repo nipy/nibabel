@@ -144,7 +144,10 @@ class TckFile(TractogramFile):
             streamlines = ArraySequence(tck_reader)
             tractogram = Tractogram(streamlines)
 
+        # By definition.
         tractogram.affine_to_rasmm = np.eye(4)
+        hdr[Field.VOXEL_TO_RASMM] = np.eye(4)
+
         return cls(tractogram, header=hdr)
 
     def save(self, fileobj):
@@ -230,8 +233,11 @@ class TckFile(TractogramFile):
             from the beginning of the TCK header).
         """
         # Fields to exclude
-        exclude = [Field.MAGIC_NUMBER, Field.NB_STREAMLINES, Field.ENDIANNESS,
-                   "count", "datatype", "file"]
+        exclude = [Field.MAGIC_NUMBER,  # Handled separately.
+                   Field.NB_STREAMLINES,  # Handled separately.
+                   Field.ENDIANNESS,  # Handled separately.
+                   Field.VOXEL_TO_RASMM,  # Streamlines are always in RAS+ mm.
+                   "count", "datatype", "file"]  # Fields being replaced.
 
         lines = []
         lines.append(header[Field.MAGIC_NUMBER])
