@@ -496,7 +496,7 @@ class Tractogram(object):
         Notes
         -----
         The entries in both dictionaries `self.data_per_streamline` and
-        `self.data_per_point` must match respectively those contained in the .
+        `self.data_per_point` must match respectively those contained in
         the other tractogram.
         """
         self.streamlines.extend(other.streamlines)

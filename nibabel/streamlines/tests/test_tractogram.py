@@ -127,17 +127,13 @@ def setup():
                                     affine_to_rasmm=np.eye(4))
 
     DATA['streamlines_func'] = lambda: (e for e in DATA['streamlines'])
-    fa_func = lambda: (e for e in DATA['fa'])
-    colors_func = lambda: (e for e in DATA['colors'])
-    mean_curvature_func = lambda: (e for e in DATA['mean_curvature'])
-    mean_torsion_func = lambda: (e for e in DATA['mean_torsion'])
-    mean_colors_func = lambda: (e for e in DATA['mean_colors'])
-
-    DATA['data_per_point_func'] = {'colors': colors_func,
-                                   'fa': fa_func}
-    DATA['data_per_streamline_func'] = {'mean_curvature': mean_curvature_func,
-                                        'mean_torsion': mean_torsion_func,
-                                        'mean_colors': mean_colors_func}
+    DATA['data_per_point_func'] = {
+        'colors': lambda: (e for e in DATA['colors']),
+        'fa': lambda: (e for e in DATA['fa'])}
+    DATA['data_per_streamline_func'] = {
+        'mean_curvature': lambda: (e for e in DATA['mean_curvature']),
+        'mean_torsion': lambda: (e for e in DATA['mean_torsion']),
+        'mean_colors': lambda: (e for e in DATA['mean_colors'])}
 
     DATA['lazy_tractogram'] = LazyTractogram(DATA['streamlines_func'],
                                              DATA['data_per_streamline_func'],
@@ -742,8 +738,8 @@ class TestLazyTractogram(unittest.TestCase):
         # Streamlines and other data as generators
         streamlines = (x for x in DATA['streamlines'])
         data_per_point = {"colors": (x for x in DATA['colors'])}
-        data_per_streamline = {'mean_torsion': (x for x in DATA['mean_torsion']),
-                               'mean_colors': (x for x in DATA['mean_colors'])}
+        data_per_streamline = {'torsion': (x for x in DATA['mean_torsion']),
+                               'colors': (x for x in DATA['mean_colors'])}
 
         # Creating LazyTractogram with generators is not allowed as
         # generators get exhausted and are not reusable unlike generator
@@ -773,9 +769,7 @@ class TestLazyTractogram(unittest.TestCase):
 
     def test_lazy_tractogram_from_data_func(self):
         # Create an empty `LazyTractogram` yielding nothing.
-        _empty_data_gen = lambda: iter([])
-
-        tractogram = LazyTractogram.from_data_func(_empty_data_gen)
+        tractogram = LazyTractogram.from_data_func(lambda: iter([]))
         check_tractogram(tractogram)
 
         # Create `LazyTractogram` from a generator function yielding
@@ -930,12 +924,14 @@ class TestLazyTractogram(unittest.TestCase):
                     is not DATA['lazy_tractogram']._data_per_point)
 
         for key in tractogram.data_per_streamline:
-            assert_true(tractogram.data_per_streamline.store[key]
-                        is DATA['lazy_tractogram'].data_per_streamline.store[key])
+            data = tractogram.data_per_streamline.store[key]
+            expected = DATA['lazy_tractogram'].data_per_streamline.store[key]
+            assert_true(data is expected)
 
         for key in tractogram.data_per_point:
-            assert_true(tractogram.data_per_point.store[key]
-                        is DATA['lazy_tractogram'].data_per_point.store[key])
+            data = tractogram.data_per_point.store[key]
+            expected = DATA['lazy_tractogram'].data_per_point.store[key]
+            assert_true(data is expected)
 
         # The affine should be a copy.
         assert_true(tractogram._affine_to_apply
