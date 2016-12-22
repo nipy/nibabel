@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import warnings
 import operator
+from collections import defaultdict
 
 from nibabel.testing import assert_arrays_equal
 from nibabel.testing import clear_and_catch_warnings
@@ -17,37 +18,99 @@ from ..tractogram import PerArrayDict, PerArraySequenceDict, LazyDict
 DATA = {}
 
 
+def make_fake_streamline(nb_points, data_per_point_shapes={},
+                         data_for_streamline_shapes={}, rng=None):
+    """ Make a single streamline according to provided requirements. """
+    if rng is None:
+        rng = np.random.RandomState()
+
+    streamline = rng.randn(nb_points, 3).astype("f4")
+
+    data_per_point = {}
+    for k, shape in data_per_point_shapes.items():
+        data_per_point[k] = rng.randn(*((nb_points,) + shape)).astype("f4")
+
+    data_for_streamline = {}
+    for k, shape in data_for_streamline.items():
+        data_for_streamline[k] = rng.randn(*shape).astype("f4")
+
+    return streamline, data_per_point, data_for_streamline
+
+
+def make_fake_tractogram(list_nb_points, data_per_point_shapes={},
+                         data_for_streamline_shapes={}, rng=None):
+    """ Make multiple streamlines according to provided requirements. """
+    all_streamlines = []
+    all_data_per_point = defaultdict(lambda: [])
+    all_data_per_streamline = defaultdict(lambda: [])
+    for nb_points in list_nb_points:
+        data = make_fake_streamline(nb_points, data_per_point_shapes,
+                                    data_for_streamline_shapes, rng)
+        streamline, data_per_point, data_for_streamline = data
+
+        all_streamlines.append(streamline)
+        for k, v in data_per_point.items():
+            all_data_per_point[k].append(v)
+
+        for k, v in data_for_streamline.items():
+            all_data_per_streamline[k].append(v)
+
+    return all_streamlines, all_data_per_point, all_data_per_streamline
+
+
+def make_dummy_streamline(nb_points):
+    """ Make the streamlines that have been used to create test data files."""
+    if nb_points == 1:
+        streamline = np.arange(1*3, dtype="f4").reshape((1, 3))
+        data_per_point = {"fa": np.array([[0.2]], dtype="f4"),
+                          "colors": np.array([(1, 0, 0)]*1, dtype="f4")}
+        data_for_streamline = {"mean_curvature": np.array([1.11], dtype="f4"),
+                               "mean_torsion": np.array([1.22], dtype="f4"),
+                               "mean_colors": np.array([1, 0, 0], dtype="f4")}
+
+    elif nb_points == 2:
+        streamline = np.arange(2*3, dtype="f4").reshape((2, 3))
+        data_per_point = {"fa": np.array([[0.3],
+                                          [0.4]], dtype="f4"),
+                          "colors": np.array([(0, 1, 0)]*2, dtype="f4")}
+        data_for_streamline = {"mean_curvature": np.array([2.11], dtype="f4"),
+                               "mean_torsion": np.array([2.22], dtype="f4"),
+                               "mean_colors": np.array([0, 1, 0], dtype="f4")}
+
+    elif nb_points == 5:
+        streamline = np.arange(5*3, dtype="f4").reshape((5, 3))
+        data_per_point = {"fa": np.array([[0.5],
+                                          [0.6],
+                                          [0.6],
+                                          [0.7],
+                                          [0.8]], dtype="f4"),
+                          "colors": np.array([(0, 0, 1)]*5, dtype="f4")}
+        data_for_streamline = {"mean_curvature": np.array([3.11], dtype="f4"),
+                               "mean_torsion": np.array([3.22], dtype="f4"),
+                               "mean_colors": np.array([0, 0, 1], dtype="f4")}
+
+    return streamline, data_per_point, data_for_streamline
+
+
 def setup():
     global DATA
     DATA['rng'] = np.random.RandomState(1234)
-    DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
-                           np.arange(2*3, dtype="f4").reshape((2, 3)),
-                           np.arange(5*3, dtype="f4").reshape((5, 3))]
 
-    DATA['fa'] = [np.array([[0.2]], dtype="f4"),
-                  np.array([[0.3],
-                            [0.4]], dtype="f4"),
-                  np.array([[0.5],
-                            [0.6],
-                            [0.6],
-                            [0.7],
-                            [0.8]], dtype="f4")]
-
-    DATA['colors'] = [np.array([(1, 0, 0)]*1, dtype="f4"),
-                      np.array([(0, 1, 0)]*2, dtype="f4"),
-                      np.array([(0, 0, 1)]*5, dtype="f4")]
-
-    DATA['mean_curvature'] = [np.array([1.11], dtype="f4"),
-                              np.array([2.11], dtype="f4"),
-                              np.array([3.11], dtype="f4")]
-
-    DATA['mean_torsion'] = [np.array([1.22], dtype="f4"),
-                            np.array([2.22], dtype="f4"),
-                            np.array([3.22], dtype="f4")]
-
-    DATA['mean_colors'] = [np.array([1, 0, 0], dtype="f4"),
-                           np.array([0, 1, 0], dtype="f4"),
-                           np.array([0, 0, 1], dtype="f4")]
+    DATA['streamlines'] = []
+    DATA['fa'] = []
+    DATA['colors'] = []
+    DATA['mean_curvature'] = []
+    DATA['mean_torsion'] = []
+    DATA['mean_colors'] = []
+    for nb_points in [1, 2, 5]:
+        data = make_dummy_streamline(nb_points)
+        streamline, data_per_point, data_for_streamline = data
+        DATA['streamlines'].append(streamline)
+        DATA['fa'].append(data_per_point['fa'])
+        DATA['colors'].append(data_per_point['colors'])
+        DATA['mean_curvature'].append(data_for_streamline['mean_curvature'])
+        DATA['mean_torsion'].append(data_for_streamline['mean_torsion'])
+        DATA['mean_colors'].append(data_for_streamline['mean_colors'])
 
     DATA['data_per_point'] = {'colors': DATA['colors'],
                               'fa': DATA['fa']}
@@ -280,9 +343,14 @@ class TestPerArraySequenceDict(unittest.TestCase):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
 
-        new_data = {'colors': 2 * np.array(DATA['colors']),
-                    'fa': 3 * np.array(DATA['fa'])}
-        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
+        # Test compatible PerArrayDicts.
+        list_nb_points = [2, 7, 4]
+        data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
+                                 "fa": DATA['fa'][0].shape[1:]}
+        _, new_data, _ = make_fake_tractogram(list_nb_points,
+                                              data_per_point_shapes,
+                                              rng=DATA['rng'])
+        sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
 
         sdict.extend(sdict2)
         assert_equal(len(sdict), len(sdict2))
@@ -297,16 +365,22 @@ class TestPerArraySequenceDict(unittest.TestCase):
         assert_raises(ValueError, sdict.extend, PerArraySequenceDict())
 
         # Other dict has more entries.
-        new_data = {'colors': 2 * np.array(DATA['colors']),
-                    'fa': 3 * np.array(DATA['fa']),
-                    'other': 4 * np.array(DATA['fa'])}
-        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
+        data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
+                                 "fa": DATA['fa'][0].shape[1:],
+                                 "other": (7,)}
+        _, new_data, _ = make_fake_tractogram(list_nb_points,
+                                              data_per_point_shapes,
+                                              rng=DATA['rng'])
+        sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
         assert_raises(ValueError, sdict.extend, sdict2)
 
         # Other dict has the right number of entries but wrong shape.
-        new_data = {'colors': 2 * np.array(DATA['colors']),
-                    'other': 2 * np.array(DATA['colors']),}
-        sdict2 = PerArraySequenceDict(total_nb_rows, new_data)
+        data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
+                                 "fa": DATA['fa'][0].shape[1:] + (3,)}
+        _, new_data, _ = make_fake_tractogram(list_nb_points,
+                                              data_per_point_shapes,
+                                              rng=DATA['rng'])
+        sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
         assert_raises(ValueError, sdict.extend, sdict2)
 
 
@@ -650,12 +724,14 @@ class TestTractogram(unittest.TestCase):
         # Load tractogram that contains some metadata.
         t = DATA['tractogram'].copy()
 
-        for op, in_place in ((operator.add, False), (operator.iadd, True), (extender, True)):
+        for op, in_place in ((operator.add, False), (operator.iadd, True),
+                             (extender, True)):
             first_arg = t.copy()
             new_t = op(first_arg, t)
             assert_equal(new_t is first_arg, in_place)
             assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
             assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
+
 
 class TestLazyTractogram(unittest.TestCase):
 
@@ -670,7 +746,8 @@ class TestLazyTractogram(unittest.TestCase):
                                'mean_colors': (x for x in DATA['mean_colors'])}
 
         # Creating LazyTractogram with generators is not allowed as
-        # generators get exhausted and are not reusable unlike generator function.
+        # generators get exhausted and are not reusable unlike generator
+        # function.
         assert_raises(TypeError, LazyTractogram, streamlines)
         assert_raises(TypeError, LazyTractogram,
                       data_per_streamline=data_per_streamline)
@@ -701,7 +778,8 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram = LazyTractogram.from_data_func(_empty_data_gen)
         check_tractogram(tractogram)
 
-        # Create `LazyTractogram` from a generator function yielding TractogramItem.
+        # Create `LazyTractogram` from a generator function yielding
+        # TractogramItem.
         data = [DATA['streamlines'], DATA['fa'], DATA['colors'],
                 DATA['mean_curvature'], DATA['mean_torsion'],
                 DATA['mean_colors']]
@@ -839,8 +917,8 @@ class TestLazyTractogram(unittest.TestCase):
         # Check we copied the data and not simply created new references.
         assert_true(tractogram is not DATA['lazy_tractogram'])
 
-        # When copying LazyTractogram, the generator function yielding streamlines
-        # should stay the same.
+        # When copying LazyTractogram, the generator function yielding
+        # streamlines should stay the same.
         assert_true(tractogram._streamlines
                     is DATA['lazy_tractogram']._streamlines)
 
