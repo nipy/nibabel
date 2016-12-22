@@ -165,6 +165,7 @@ def shared_range(flt_type, int_type):
     _SHARED_RANGES[key] = (mn, mx)
     return mn, mx
 
+
 # ----------------------------------------------------------------------------
 # Routines to work out the next lowest representable integer in floating point
 # types.
