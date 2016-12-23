@@ -59,6 +59,9 @@ class SliceableDataDict(collections.MutableMapping):
         # Key was not a valid index/slice after all.
         return self.store[key]  # Will raise the proper error.
 
+    def __contains__(self, key):
+        return key in self.store
+
     def __delitem__(self, key):
         del self.store[key]
 
@@ -90,7 +93,7 @@ class PerArrayDict(SliceableDataDict):
         Positional and keyword arguments, passed straight through the ``dict``
         constructor.
     """
-    def __init__(self, n_rows=None, *args, **kwargs):
+    def __init__(self, n_rows=0, *args, **kwargs):
         self.n_rows = n_rows
         super(PerArrayDict, self).__init__(*args, **kwargs)
 
@@ -105,12 +108,16 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError("data_per_streamline must be a 2D array.")
 
         # We make sure there is the right amount of values
-        if self.n_rows is not None and len(value) != self.n_rows:
+        if self.n_rows > 0 and len(value) != self.n_rows:
             msg = ("The number of values ({0}) should match n_elements "
                    "({1}).").format(len(value), self.n_rows)
             raise ValueError(msg)
 
         self.store[key] = value
+
+    def _extend_entry(self, key, value):
+        """ Appends the `value` to the entry specified by `key`. """
+        self[key] = np.concatenate([self[key], value])
 
     def extend(self, other):
         """ Appends the elements of another :class:`PerArrayDict`.
@@ -131,7 +138,8 @@ class PerArrayDict(SliceableDataDict):
         -----
         The keys in both dictionaries must be the same.
         """
-        if sorted(self.keys()) != sorted(other.keys()):
+        if (len(self) > 0 and len(other) > 0
+            and sorted(self.keys()) != sorted(other.keys())):
             msg = ("Entry mismatched between the two PerArrayDict objects."
                    " This PerArrayDict contains '{0}' whereas the other "
                    " contains '{1}'.").format(sorted(self.keys()),
@@ -139,8 +147,11 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError(msg)
 
         self.n_rows += other.n_rows
-        for key in self.keys():
-            self[key] = np.concatenate([self[key], other[key]])
+        for key in other.keys():
+            if key not in self:
+                self[key] = other[key]
+            else:
+                self._extend_entry(key, other[key])
 
 
 class PerArraySequenceDict(PerArrayDict):
@@ -158,43 +169,16 @@ class PerArraySequenceDict(PerArrayDict):
         value = ArraySequence(value)
 
         # We make sure there is the right amount of data.
-        if (self.n_rows is not None and
-                value.total_nb_rows != self.n_rows):
+        if self.n_rows > 0 and value.total_nb_rows != self.n_rows:
             msg = ("The number of values ({0}) should match "
                    "({1}).").format(value.total_nb_rows, self.n_rows)
             raise ValueError(msg)
 
         self.store[key] = value
 
-    def extend(self, other):
-        """ Appends the elements of another :class:`PerArraySequenceDict`.
-
-        That is, for each entry in this dictionary, we append the elements
-        coming from the other dictionary at the corresponding entry.
-
-        Parameters
-        ----------
-        other : :class:`PerArraySequenceDict` object
-            Its data will be appended to the data of this dictionary.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        The keys in both dictionaries must be the same.
-        """
-        if sorted(self.keys()) != sorted(other.keys()):
-            msg = ("Key mismatched between the two PerArrayDict objects."
-                   " This PerArrayDict contains '{0}' whereas the other "
-                   " contains '{1}'.").format(sorted(self.keys()),
-                                              sorted(other.keys()))
-            raise ValueError(msg)
-
-        self.n_rows += other.n_rows
-        for key in self.keys():
-            self[key].extend(other[key])
+    def _extend_entry(self, key, value):
+        """ Appends the `value` to the entry specified by `key`. """
+        self[key].extend(value)
 
 
 class LazyDict(collections.MutableMapping):

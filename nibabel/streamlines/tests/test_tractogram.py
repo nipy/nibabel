@@ -1,4 +1,5 @@
 import sys
+import copy
 import unittest
 import numpy as np
 import warnings
@@ -264,10 +265,13 @@ class TestPerArrayDict(unittest.TestCase):
             assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
                                 new_data[k])
 
-        # Test incompatible PerArrayDicts.
-        # Other dict is missing entries.
-        assert_raises(ValueError, sdict.extend, PerArrayDict())
+        # Extending with an empty PerArrayDicts should change nothing.
+        sdict_orig = copy.deepcopy(sdict)
+        sdict.extend(PerArrayDict())
+        for k in sdict_orig.keys():
+            assert_arrays_equal(sdict[k], sdict_orig[k])
 
+        # Test incompatible PerArrayDicts.
         # Other dict has more entries.
         new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
                     'mean_torsion': 3 * np.array(DATA['mean_torsion']),
@@ -356,10 +360,13 @@ class TestPerArraySequenceDict(unittest.TestCase):
             assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
                                 new_data[k])
 
-        # Test incompatible PerArrayDicts.
-        # Other dict is missing entries.
-        assert_raises(ValueError, sdict.extend, PerArraySequenceDict())
+        # Extending with an empty PerArrayDicts should change nothing.
+        sdict_orig = copy.deepcopy(sdict)
+        sdict.extend(PerArraySequenceDict())
+        for k in sdict_orig.keys():
+            assert_arrays_equal(sdict[k], sdict_orig[k])
 
+        # Test incompatible PerArrayDicts.
         # Other dict has more entries.
         data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
                                  "fa": DATA['fa'][0].shape[1:],
@@ -727,6 +734,16 @@ class TestTractogram(unittest.TestCase):
             assert_equal(new_t is first_arg, in_place)
             assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
             assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
+
+        # Test extending an empty Tractogram.
+        t = Tractogram()
+        t += DATA['tractogram']
+        assert_tractogram_equal(t, DATA['tractogram'])
+
+        # and the other way around.
+        t = DATA['tractogram'].copy()
+        t += Tractogram()
+        assert_tractogram_equal(t, DATA['tractogram'])
 
 
 class TestLazyTractogram(unittest.TestCase):
