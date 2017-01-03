@@ -66,10 +66,9 @@ def get_csa_header(dcm_data, csa_type='image'):
     try:
         tag = dcm_data[(0x29, element_no)]
         return read(tag.value)
-    except (KeyError,CSAReadError):
+    except (KeyError, CSAReadError):
         # The element could be missing due to anonymization
-        return None
-    
+        return None    
 
 
 def read(csa_str):
