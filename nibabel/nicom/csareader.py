@@ -64,11 +64,14 @@ def get_csa_header(dcm_data, csa_type='image'):
         return None
     element_no = section_start + element_offset
     try:
+        # The element could be missing due to anonymization
         tag = dcm_data[(0x29, element_no)]
+        # Non-MRI Dicoms have string values in CSA tag
+        # This will cause read to throw a CSAReadError
+        # in most instances. If so, we return None
         return read(tag.value)
     except (KeyError, CSAReadError):
-        # The element could be missing due to anonymization
-        return None    
+        return None
 
 
 def read(csa_str):
