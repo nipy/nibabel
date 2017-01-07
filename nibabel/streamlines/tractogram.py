@@ -138,8 +138,8 @@ class PerArrayDict(SliceableDataDict):
         -----
         The keys in both dictionaries must be the same.
         """
-        if (len(self) > 0 and len(other) > 0
-            and sorted(self.keys()) != sorted(other.keys())):
+        if (len(self) > 0 and len(other) > 0 and
+                sorted(self.keys()) != sorted(other.keys())):
             msg = ("Entry mismatched between the two PerArrayDict objects."
                    " This PerArrayDict contains '{0}' whereas the other "
                    " contains '{1}'.").format(sorted(self.keys()),
