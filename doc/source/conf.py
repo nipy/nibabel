@@ -22,8 +22,6 @@
 import sys
 import os
 
-import nibabel
-
 # Check for external Sphinx extensions we depend on
 try:
     import numpydoc
@@ -33,6 +31,13 @@ try:
     import texext
 except ImportError:
     raise RuntimeError('Need to install "texext" package for doc build')
+
+# Need nibabel installed as well
+try:
+    import nibabel
+except ImportError:
+    raise RuntimeError('Need nibabel on Python PATH; consider "make htmldoc" '
+                       'from nibabel root directory')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -82,7 +87,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2016, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
+copyright = u'2006-2017, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
