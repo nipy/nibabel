@@ -206,6 +206,7 @@ def test_io_orientation():
     # Test drop of rows, columns
     mat, vec = to_matvec(def_aff)
     aff_extra_col = np.zeros((4, 5))
+    aff_extra_col[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_col[:3, :3] = mat
     aff_extra_col[:3, -1] = vec
     assert_array_equal(io_orientation(aff_extra_col, tol=1e-5),
@@ -214,6 +215,7 @@ def test_io_orientation():
                         [2, 1],
                         [np.nan, np.nan]])
     aff_extra_row = np.zeros((5, 4))
+    aff_extra_row[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_row[:3, :3] = mat
     aff_extra_row[:3, -1] = vec
     assert_array_equal(io_orientation(aff_extra_row, tol=1e-5),
