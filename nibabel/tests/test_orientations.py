@@ -18,7 +18,7 @@ from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
                             flip_axis, apply_orientation, OrientationError,
                             ornt2axcodes, axcodes2ornt, aff2axcodes)
 
-from ..affines import from_matvec
+from ..affines import from_matvec, to_matvec
 
 
 IN_ARRS = [np.eye(4),
@@ -188,8 +188,8 @@ def test_io_orientation():
                          [1, 1],
                          [2, 1]])
     eps = np.finfo(float).eps
-    # Test that a Y axis appears as we increase the difference between the first
-    # two columns
+    # Test that a Y axis appears as we increase the difference between the
+    # first two columns
     for y_val, has_y in ((0, False),
                          (eps, False),
                          (eps * 5, False),
@@ -203,6 +203,25 @@ def test_io_orientation():
     assert_array_equal(io_orientation(def_aff, tol=0), pass_tol)
     def_aff[1, 1] = eps * 10
     assert_array_equal(io_orientation(def_aff, tol=1e-5), fail_tol)
+    # Test drop of rows, columns
+    mat, vec = to_matvec(def_aff)
+    aff_extra_col = np.zeros((4, 5))
+    aff_extra_col[-1, -1] = 1  # Not strictly necessary, but for completeness
+    aff_extra_col[:3, :3] = mat
+    aff_extra_col[:3, -1] = vec
+    assert_array_equal(io_orientation(aff_extra_col, tol=1e-5),
+                       [[0, 1],
+                        [np.nan, np.nan],
+                        [2, 1],
+                        [np.nan, np.nan]])
+    aff_extra_row = np.zeros((5, 4))
+    aff_extra_row[-1, -1] = 1  # Not strictly necessary, but for completeness
+    aff_extra_row[:3, :3] = mat
+    aff_extra_row[:3, -1] = vec
+    assert_array_equal(io_orientation(aff_extra_row, tol=1e-5),
+                       [[0, 1],
+                        [np.nan, np.nan],
+                        [2, 1]])
 
 
 def test_ornt_transform():
