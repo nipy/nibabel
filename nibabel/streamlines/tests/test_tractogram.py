@@ -587,6 +587,8 @@ class TestLazyTractogram(unittest.TestCase):
         # generators get exhausted and are not reusable unlike generator function.
         assert_raises(TypeError, LazyTractogram, streamlines)
         assert_raises(TypeError, LazyTractogram,
+                      data_per_point={"none": None})
+        assert_raises(TypeError, LazyTractogram,
                       data_per_streamline=data_per_streamline)
         assert_raises(TypeError, LazyTractogram, DATA['streamlines'],
                       data_per_point=data_per_point)
