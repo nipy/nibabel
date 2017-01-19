@@ -387,7 +387,7 @@ def concatenate(seqs, axis):
 
     Parameters
     ----------
-    seqs: list of :class:`ArraySequence` objects
+    seqs: iterable of :class:`ArraySequence` objects
         Sequences to concatenate.
     axis : int
         Axis along which the sequences will be concatenated.
