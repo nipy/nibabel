@@ -265,7 +265,7 @@ class TestPerArrayDict(unittest.TestCase):
             assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
                                 new_data[k])
 
-        # Extending with an empty PerArrayDicts should change nothing.
+        # Extending with an empty PerArrayDict should change nothing.
         sdict_orig = copy.deepcopy(sdict)
         sdict.extend(PerArrayDict())
         for k in sdict_orig.keys():
@@ -280,10 +280,17 @@ class TestPerArrayDict(unittest.TestCase):
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
         assert_raises(ValueError, sdict.extend, sdict2)
 
+        # Other dict has not the same entries (key mistmached).
+        new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
+                    'mean_torsion': 3 * np.array(DATA['mean_torsion']),
+                    'other': 4 * np.array(DATA['mean_colors'])}
+        sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
+
         # Other dict has the right number of entries but wrong shape.
         new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
                     'mean_torsion': 3 * np.array(DATA['mean_torsion']),
-                    'other': 4 * np.array(DATA['mean_torsion'])}
+                    'mean_colors': 4 * np.array(DATA['mean_torsion'])}
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
         assert_raises(ValueError, sdict.extend, sdict2)
 
@@ -343,7 +350,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
 
-        # Test compatible PerArrayDicts.
+        # Test compatible PerArraySequenceDicts.
         list_nb_points = [2, 7, 4]
         data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
                                  "fa": DATA['fa'][0].shape[1:]}
@@ -360,17 +367,26 @@ class TestPerArraySequenceDict(unittest.TestCase):
             assert_arrays_equal(sdict[k][len(DATA['tractogram']):],
                                 new_data[k])
 
-        # Extending with an empty PerArrayDicts should change nothing.
+        # Extending with an empty PerArraySequenceDicts should change nothing.
         sdict_orig = copy.deepcopy(sdict)
         sdict.extend(PerArraySequenceDict())
         for k in sdict_orig.keys():
             assert_arrays_equal(sdict[k], sdict_orig[k])
 
-        # Test incompatible PerArrayDicts.
+        # Test incompatible PerArraySequenceDicts.
         # Other dict has more entries.
         data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
                                  "fa": DATA['fa'][0].shape[1:],
                                  "other": (7,)}
+        _, new_data, _ = make_fake_tractogram(list_nb_points,
+                                              data_per_point_shapes,
+                                              rng=DATA['rng'])
+        sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
+        assert_raises(ValueError, sdict.extend, sdict2)
+
+        # Other dict has not the same entries (key mistmached).
+        data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
+                                 "other": DATA['fa'][0].shape[1:]}
         _, new_data, _ = make_fake_tractogram(list_nb_points,
                                               data_per_point_shapes,
                                               rng=DATA['rng'])
