@@ -129,7 +129,7 @@ from copy import deepcopy
 import re
 from io import StringIO
 from locale import getpreferredencoding
-from nibabel.externals import OrderedDict
+from collections import OrderedDict
 
 from .keywordonly import kw_only_meth
 from .spatialimages import SpatialHeader, SpatialImage

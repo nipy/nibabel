@@ -6,7 +6,7 @@ import operator
 from numbers import Integral
 from mmap import mmap
 
-from .externals.six.moves import reduce
+from six.moves import reduce
 
 import numpy as np
 

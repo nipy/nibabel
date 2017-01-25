@@ -1,7 +1,7 @@
 """ Routines to support optional packages """
 from distutils.version import LooseVersion
 
-from .externals.six import string_types, callable
+from six import string_types, callable
 
 try:
     import nose

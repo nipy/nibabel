@@ -10,7 +10,7 @@ from distutils.version import LooseVersion
 import itertools
 import numpy as np
 
-from ..externals.six import BytesIO
+from six import BytesIO
 from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             WriterError, ScalingError, ArrayWriter,
                             make_array_writer, get_slope_inter)

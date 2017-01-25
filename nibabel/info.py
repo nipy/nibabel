@@ -188,6 +188,7 @@ the top of the release notes.  Click on the badge for more information.
 # .travis.yml
 NUMPY_MIN_VERSION = '1.6.0'
 PYDICOM_MIN_VERSION = '0.9.7'
+SIX_MIN_VERSION = '1.3'
 
 # Main setup parameters
 NAME = 'nibabel'

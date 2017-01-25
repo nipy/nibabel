@@ -10,7 +10,7 @@
 import warnings
 import numpy as np
 
-from .externals.six import BytesIO
+from six import BytesIO
 
 from .spatialimages import HeaderDataError, HeaderTypeError
 

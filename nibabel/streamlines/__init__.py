@@ -2,7 +2,7 @@
 """
 import os
 import warnings
-from ..externals.six import string_types
+from six import string_types
 
 from .header import Field
 from .array_sequence import ArraySequence

@@ -35,13 +35,13 @@ __all__ = ['netcdf_file']
 from operator import mul
 from mmap import mmap, ACCESS_READ
 
-import numpy as np
+import numpy as np  # noqa
 from ..py3k import asbytes, asstr
 from numpy import fromstring, ndarray, dtype, empty, array, asarray
 from numpy import little_endian as LITTLE_ENDIAN
 from functools import reduce
 
-from .six import integer_types
+from six import integer_types
 
 
 ABSENT = b'\x00\x00\x00\x00\x00\x00\x00\x00'

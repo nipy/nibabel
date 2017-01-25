@@ -6,7 +6,7 @@ import numpy as np
 from os.path import join as pjoin
 
 import nibabel as nib
-from nibabel.externals.six import BytesIO
+from six import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from nibabel.testing import data_path

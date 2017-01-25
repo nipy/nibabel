@@ -19,7 +19,7 @@ import sys
 
 import numpy as np
 
-from ..externals.six import BytesIO
+from six import BytesIO
 
 from .. import Nifti1Image
 

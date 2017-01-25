@@ -12,7 +12,7 @@ from __future__ import division, print_function, absolute_import
 
 import warnings
 
-from ..externals.six import BytesIO
+from six import BytesIO
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np

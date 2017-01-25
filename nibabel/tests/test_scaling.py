@@ -11,7 +11,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
-from ..externals.six import BytesIO
+from six import BytesIO
 from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
                            apply_read_scaling, array_to_file, array_from_file)
 from ..casting import type_info
