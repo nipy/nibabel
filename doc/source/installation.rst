@@ -86,8 +86,8 @@ Requirements
     requirements.txt
     .travis.yml
 
-*  Python_ 2.7 or greater
-*  NumPy_ 1.5 or greater
+*  Python_ 2.7, or >= 3.4
+*  NumPy_ 1.6 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.7 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
