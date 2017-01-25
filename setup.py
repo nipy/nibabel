@@ -29,13 +29,13 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 from distutils.core import setup
 
 # Commit hash writing, and dependency checking
-from nisext.sexts import get_comrec_build, package_check, install_scripts_bat
+from nisext.sexts import (get_comrec_build, package_check, install_scripts_bat,
+                          read_vars_from)
 cmdclass = {'build_py': get_comrec_build('nibabel'),
             'install_scripts': install_scripts_bat}
 
-# Get version and release info, which is all stored in nibabel/info.py
-ver_file = os.path.join('nibabel', 'info.py')
-exec(open(ver_file).read())
+# Get project related strings.
+INFO = read_vars_from(pjoin('nibabel', 'info.py'))
 
 # Prepare setuptools args
 if 'setuptools' in sys.modules:
@@ -53,31 +53,32 @@ else:
     pkg_chk = package_check
 
 # Do dependency checking
-pkg_chk('numpy', NUMPY_MIN_VERSION)
+pkg_chk('numpy', INFO.NUMPY_MIN_VERSION)
+pkg_chk('six', INFO.SIX_MIN_VERSION)
 custom_pydicom_messages = {'missing opt': 'Missing optional package "%s"'
         ' provided by package "pydicom"'
 }
 pkg_chk('dicom',
-        PYDICOM_MIN_VERSION,
+        INFO.PYDICOM_MIN_VERSION,
         optional='dicom',
         messages = custom_pydicom_messages)
 
 def main(**extra_args):
-    setup(name=NAME,
-          maintainer=MAINTAINER,
-          maintainer_email=MAINTAINER_EMAIL,
-          description=DESCRIPTION,
-          long_description=LONG_DESCRIPTION,
-          url=URL,
-          download_url=DOWNLOAD_URL,
-          license=LICENSE,
-          classifiers=CLASSIFIERS,
-          author=AUTHOR,
-          author_email=AUTHOR_EMAIL,
-          platforms=PLATFORMS,
-          version=VERSION,
-          requires=REQUIRES,
-          provides=PROVIDES,
+    setup(name=INFO.NAME,
+          maintainer=INFO.MAINTAINER,
+          maintainer_email=INFO.MAINTAINER_EMAIL,
+          description=INFO.DESCRIPTION,
+          long_description=INFO.LONG_DESCRIPTION,
+          url=INFO.URL,
+          download_url=INFO.DOWNLOAD_URL,
+          license=INFO.LICENSE,
+          classifiers=INFO.CLASSIFIERS,
+          author=INFO.AUTHOR,
+          author_email=INFO.AUTHOR_EMAIL,
+          platforms=INFO.PLATFORMS,
+          version=INFO.VERSION,
+          requires=INFO.REQUIRES,
+          provides=INFO.PROVIDES,
           packages     = ['nibabel',
                           'nibabel.externals',
                           'nibabel.externals.tests',
