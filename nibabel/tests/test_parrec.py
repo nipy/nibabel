@@ -49,6 +49,8 @@ ANON_PAR = pjoin(DATA_PATH, 'umass_anonymized.PAR')
 # Fake varying scaling
 VARY_PAR = pjoin(DATA_PATH, 'phantom_varscale.PAR')
 VARY_REC = pjoin(DATA_PATH, 'phantom_varscale.REC')
+# V4.2 PAR with variant field names in the header
+VARIANT_PAR = pjoin(DATA_PATH, 'variant_v4_2_header.par')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [[-3.64994708, 0., 1.83564171, 123.66276611],
@@ -829,3 +831,15 @@ def test_dualTR():
                            expected_TRs)
         # zoom on 4th dimensions is the first TR (in seconds)
         assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0]/1000)
+
+
+def test_alternative_header_field_names():
+    # some V4.2 files had variant spellings for some of the fields in the
+    # header.  This test reads one such file and verifies that the fields with
+    # the alternate spelling were read.
+    with ImageOpener(VARIANT_PAR, 'rt') as _fobj:
+        HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
+    assert_equal(HDR_INFO['series_type'], 'Image   MRSERIES')
+    assert_equal(HDR_INFO['diffusion_echo_time'], 0.0)
+    assert_equal(HDR_INFO['repetition_time'], npa([ 21225.76]))
+    assert_equal(HDR_INFO['patient_position'], 'HFS')
