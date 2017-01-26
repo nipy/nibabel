@@ -50,7 +50,7 @@ ANON_PAR = pjoin(DATA_PATH, 'umass_anonymized.PAR')
 VARY_PAR = pjoin(DATA_PATH, 'phantom_varscale.PAR')
 VARY_REC = pjoin(DATA_PATH, 'phantom_varscale.REC')
 # V4.2 PAR with variant field names in the header
-VARIANT_PAR = pjoin(DATA_PATH, 'variant_v4_2_header.par')
+VARIANT_PAR = pjoin(DATA_PATH, 'variant_v4_2_header.PAR')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [[-3.64994708, 0., 1.83564171, 123.66276611],
