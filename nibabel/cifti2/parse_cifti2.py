@@ -566,7 +566,7 @@ class Cifti2Parser(xml.XmlParser):
 
         elif self.write_to == 'Label':
             label = self.struct_state[-1]
-            label.label = data.strip().encode('utf-8')
+            label.label = data.strip()
 
         elif self.write_to == 'MapName':
             named_map = self.struct_state[-1]
