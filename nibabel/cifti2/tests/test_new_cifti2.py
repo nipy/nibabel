@@ -34,8 +34,10 @@ def create_geometry_map(applies_to_matrix_dimension):
     vertices = ci.Cifti2VertexIndices(np.array(brain_models[1][1]))
     left_cortex = ci.Cifti2BrainModel(index_offset=4, index_count=5, model_type='CIFTI_MODEL_TYPE_SURFACE',
                                       brain_structure=brain_models[1][0], vertex_indices=vertices)
+    left_cortex.surface_number_of_vertices = number_of_vertices
+    volume = ci.Cifti2Volume(dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
     return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
-                                     maps=[left_thalamus, left_cortex])
+                                     maps=[left_thalamus, left_cortex, volume])
 
 
 def check_geometry_map(mapping):
@@ -48,6 +50,7 @@ def check_geometry_map(mapping):
     assert_equal(left_thalamus.model_type, 'CIFTI_MODEL_TYPE_VOXELS')
     assert_equal(left_thalamus.brain_structure, brain_models[0][0])
     assert_equal(left_thalamus.vertex_indices, None)
+    assert_equal(left_thalamus.surface_number_of_vertices, None)
     assert_equal(left_thalamus.voxel_indices_ijk._indices, brain_models[0][1])
 
     assert_equal(left_cortex.index_offset, 4)
@@ -56,7 +59,10 @@ def check_geometry_map(mapping):
     assert_equal(left_cortex.brain_structure, brain_models[1][0])
     assert_equal(left_cortex.voxel_indices_ijk, None)
     assert_equal(left_cortex.vertex_indices._indices, brain_models[1][1])
+    assert_equal(left_cortex.surface_number_of_vertices, number_of_vertices)
 
+    assert_equal(mapping.volume.volume_dimensions, dimensions)
+    assert_true((mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all())
 
 parcels = [('volume_parcel', ([[60, 60, 60],
                                [61, 59, 60],
@@ -80,6 +86,10 @@ def create_parcel_map(applies_to_matrix_dimension):
             else:
                 volume = ci.Cifti2VoxelIndicesIJK(element)
         mapping.append(ci.Cifti2Parcel(name, volume, surfaces))
+
+    mapping.extend([ci.Cifti2Surface('CIFTI_STRUCTURE_CORTEX_%s' % orientation,
+                    number_of_vertices) for orientation in ['LEFT', 'RIGHT']])
+    mapping.volume = ci.Cifti2Volume(dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
     return mapping
 
 
@@ -98,13 +108,23 @@ def check_parcel_map(mapping):
             else:
                 assert_equal(parcel.voxel_indices_ijk._indices, element)
 
+    for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT')):
+        assert_equal(surface.brain_structure, 'CIFTI_STRUCTURE_CORTEX_%s' % orientation)
+        assert_equal(surface.surface_number_of_vertices, number_of_vertices)
+
+    assert_equal(mapping.volume.volume_dimensions, dimensions)
+    assert_true((mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all())
+
+
 scalars = [('first_name', {'meta_key': 'some_metadata'}),
            ('another name', {})]
+
 
 def create_scalar_map(applies_to_matrix_dimension):
     maps = [ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta)) for name, meta in scalars]
     return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_SCALARS',
                                      maps=maps)
+
 
 def check_scalar_map(mapping):
     assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_SCALARS')
@@ -133,6 +153,7 @@ def create_label_map(applies_to_matrix_dimension):
         maps.append(ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta), label_table))
     return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_LABELS',
                                      maps=maps)
+
 
 def check_label_map(mapping):
     assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_LABELS')
