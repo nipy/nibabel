@@ -44,6 +44,7 @@ class Cifti2Extension(Nifti1Extension):
             raise ValueError('Can only mangle a Cifti2Header.')
         return value.to_xml()
 
+
 extension_codes.add_codes((
     (Cifti2Extension.code, 'cifti', Cifti2Extension),))
 
