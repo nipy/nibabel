@@ -91,5 +91,6 @@ def bench_load_trk():
         for s1, s2 in zip(scalars_new, scalars_old):
             assert_array_equal(s1, s2)
 
+
 if __name__ == '__main__':
     bench_load_trk()

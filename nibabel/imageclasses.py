@@ -42,6 +42,7 @@ class ClassMapDict(dict):
     def __getitem__(self, *args, **kwargs):
         return super(ClassMapDict, self).__getitem__(*args, **kwargs)
 
+
 class_map = ClassMapDict(
     analyze={'class': AnalyzeImage,  # Image class
              'ext': '.img',  # characteristic image extension
@@ -96,6 +97,7 @@ class ExtMapRecoder(Recoder):
                             '2.1', '4.0')
     def __getitem__(self, *args, **kwargs):
         return super(ExtMapRecoder, self).__getitem__(*args, **kwargs)
+
 
 # mapping of extensions to default image class names
 ext_map = ExtMapRecoder((

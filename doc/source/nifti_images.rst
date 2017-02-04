@@ -401,7 +401,7 @@ Now we save the image and load it again:
 The data array has the scaling applied:
 
 >>> scaled_img.get_data()
-memmap([[[ 10.,  12.,  14.,  16.],
+...([[[ 10.,  12.,  14.,  16.],
         [ 18.,  20.,  22.,  24.],
         [ 26.,  28.,  30.,  32.]],
 <BLANKLINE>

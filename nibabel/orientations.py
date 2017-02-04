@@ -63,7 +63,7 @@ def io_orientation(affine, tol=None):
     RS = RZS / zooms
     # Transform below is polar decomposition, returning the closest
     # shearless matrix R to RS
-    P, S, Qs = npl.svd(RS)
+    P, S, Qs = npl.svd(RS, full_matrices=False)
     # Threshold the singular values to determine the rank.
     if tol is None:
         tol = S.max() * max(RS.shape) * np.finfo(S.dtype).eps
