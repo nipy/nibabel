@@ -12,7 +12,7 @@ import base64
 import sys
 import warnings
 import zlib
-from six import StringIO
+from io import StringIO
 from xml.parsers.expat import ExpatError
 
 import numpy as np
