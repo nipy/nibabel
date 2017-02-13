@@ -2,7 +2,7 @@
 """
 from __future__ import division, print_function, absolute_import
 
-from ..externals.six import with_metaclass
+from six import with_metaclass
 
 from nose.tools import assert_equal
 

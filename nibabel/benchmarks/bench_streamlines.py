@@ -17,7 +17,7 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from nibabel.externals.six.moves import zip
+from six.moves import zip
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal

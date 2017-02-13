@@ -26,7 +26,7 @@ try:
 except ImportError:
     pass
 
-from nibabel.externals.six.moves import zip_longest
+from six.moves import zip_longest
 
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))

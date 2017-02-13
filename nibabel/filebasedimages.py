@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
-from .externals.six import string_types
+from six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)

@@ -18,7 +18,7 @@ from nibabel import nifti1 as nifti1
 from nibabel.affines import from_matvec
 from nibabel.casting import type_info, have_binary128
 from nibabel.eulerangles import euler2mat
-from nibabel.externals.six import BytesIO
+from six import BytesIO
 from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
                             Nifti1Extensions, data_type_codes, extension_codes,

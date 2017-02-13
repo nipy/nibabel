@@ -1,7 +1,7 @@
 """  Define abstract interface for Tractogram file classes
 """
 from abc import ABCMeta, abstractmethod
-from nibabel.externals.six import with_metaclass
+from six import with_metaclass
 
 from .header import Field
 

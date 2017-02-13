@@ -24,7 +24,7 @@ from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
-from ..externals.six import string_types
+from six import string_types
 
 import numpy as np
 
