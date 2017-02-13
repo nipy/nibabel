@@ -26,36 +26,11 @@ from .header import Field
 MAX_NB_NAMED_SCALARS_PER_POINT = 10
 MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE = 10
 
-# See http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
-header_1_dtd = [(Field.MAGIC_NUMBER, 'S6'),
-                (Field.DIMENSIONS, 'h', 3),
-                (Field.VOXEL_SIZES, 'f4', 3),
-                (Field.ORIGIN, 'f4', 3),
-                (Field.NB_SCALARS_PER_POINT, 'h'),
-                ('scalar_name', 'S20', MAX_NB_NAMED_SCALARS_PER_POINT),
-                (Field.NB_PROPERTIES_PER_STREAMLINE, 'h'),
-                ('property_name', 'S20',
-                 MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE),
-                ('reserved', 'S508'),
-                (Field.VOXEL_ORDER, 'S4'),
-                ('pad2', 'S4'),
-                ('image_orientation_patient', 'f4', 6),
-                ('pad1', 'S2'),
-                ('invert_x', 'S1'),
-                ('invert_y', 'S1'),
-                ('invert_z', 'S1'),
-                ('swap_xy', 'S1'),
-                ('swap_yz', 'S1'),
-                ('swap_zx', 'S1'),
-                (Field.NB_STREAMLINES, 'i4'),
-                ('version', 'i4'),
-                ('hdr_size', 'i4'),
-                ]
-
-# Version 2 adds a 4x4 matrix giving the affine transformtation going
+# Version 2 adds a 4x4 matrix giving the affine transformation going
 # from voxel coordinates in the referenced 3D voxel matrix, to xyz
 # coordinates (axes L->R, P->A, I->S). If (0 based) value [3, 3] from
 # this matrix is 0, this means the matrix is not recorded.
+# See http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
 header_2_dtd = [(Field.MAGIC_NUMBER, 'S6'),
                 (Field.DIMENSIONS, 'h', 3),
                 (Field.VOXEL_SIZES, 'f4', 3),
@@ -83,7 +58,6 @@ header_2_dtd = [(Field.MAGIC_NUMBER, 'S6'),
                 ]
 
 # Full header numpy dtypes
-header_1_dtype = np.dtype(header_1_dtd)
 header_2_dtype = np.dtype(header_2_dtd)
 
 
@@ -584,8 +558,8 @@ class TrkFile(TractogramFile):
                                                  TrkFile.HEADER_SIZE))
 
             if header_rec['version'] == 1:
-                header_rec = np.fromstring(string=header_str,
-                                           dtype=header_1_dtype)
+                # There is no 4x4 matrix for voxel to RAS transformation.
+                header_rec[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
             elif header_rec['version'] == 2:
                 pass  # Nothing more to do.
             else:
@@ -724,12 +698,17 @@ class TrkFile(TractogramFile):
                 hdr_field = getattr(Field, attr)
                 if hdr_field in vars:
                     vars[attr] = vars[hdr_field]
-        vars['scalar_names'] = '\n  '.join([asstr(s)
-                                            for s in vars['scalar_name']
-                                            if len(s) > 0])
-        vars['property_names'] = "\n  ".join([asstr(s)
-                                              for s in vars['property_name']
-                                              if len(s) > 0])
+
+        nb_scalars = self.header[Field.NB_SCALARS_PER_POINT]
+        scalar_names = [asstr(s)
+                        for s in vars['scalar_name'][:nb_scalars]
+                        if len(s) > 0]
+        vars['scalar_names'] = '\n  '.join(scalar_names)
+        nb_properties = self.header[Field.NB_PROPERTIES_PER_STREAMLINE]
+        property_names = [asstr(s)
+                          for s in vars['property_name'][:nb_properties]
+                          if len(s) > 0]
+        vars['property_names'] = "\n  ".join(property_names)
         # Make all byte strings into strings
         # Fixes recursion error on Python 3.3
         vars = dict((k, asstr(v) if hasattr(v, 'decode') else v)
@@ -739,11 +718,11 @@ MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}
 dim: {DIMENSIONS}
 voxel_sizes: {VOXEL_SIZES}
-orgin: {ORIGIN}
+origin: {ORIGIN}
 nb_scalars: {NB_SCALARS_PER_POINT}
-scalar_name:\n  {scalar_names}
+scalar_names:\n  {scalar_names}
 nb_properties: {NB_PROPERTIES_PER_STREAMLINE}
-property_name:\n  {property_names}
+property_names:\n  {property_names}
 vox_to_world:\n{VOXEL_TO_RASMM}
 voxel_order: {VOXEL_ORDER}
 image_orientation_patient: {image_orientation_patient}

@@ -156,6 +156,20 @@ class TestTRK(unittest.TestCase):
         new_trk_file = trk_file[:254] + noise + trk_file[254+4:]
         assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
 
+    def test_load_trk_version_1(self):
+        trk_file = open(DATA['simple_trk_fname'], 'rb').read()
+
+        # Simulate a TRK (version 1).
+        version = np.array(1, dtype=np.int32).tostring()
+        new_trk_file = trk_file[:992] + version + trk_file[992+4:]
+        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+            trk = TrkFile.load(BytesIO(new_trk_file))
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("identity" in str(w[0].message))
+            assert_array_equal(trk.affine, np.eye(4))
+            assert_array_equal(trk.header['version'], 1)
+
     def test_load_complex_file_in_big_endian(self):
         trk_file = open(DATA['complex_trk_big_endian_fname'], 'rb').read()
         # We use hdr_size as an indicator of little vs big endian.
