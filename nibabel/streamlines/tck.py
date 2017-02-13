@@ -65,7 +65,6 @@ class TckFile(TractogramFile):
         ----------
         tractogram : :class:`Tractogram` object
             Tractogram that will be contained in this :class:`TckFile`.
-
         header : dict (optional)
             Metadata associated to this tractogram file.
 
@@ -101,7 +100,8 @@ class TckFile(TractogramFile):
         with Opener(fileobj) as f:
             magic_number = f.fobj.readline()
             f.seek(-len(magic_number), os.SEEK_CUR)
-            return magic_number.strip() == cls.MAGIC_NUMBER
+
+        return magic_number.strip() == cls.MAGIC_NUMBER
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -229,8 +229,8 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : file-like object
-            An open file-like object pointing to TCK file (and ready to read
-            from the beginning of the TCK header).
+            An open binary file object pointing to TCK file (and ready to
+            write at the beginning of the TCK header).
         """
         # Fields to exclude
         exclude = [Field.MAGIC_NUMBER,  # Handled separately.
@@ -244,7 +244,8 @@ class TckFile(TractogramFile):
         lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
         lines.append("datatype: Float32LE")  # Always Float32LE.
         lines.extend(["{0}: {1}".format(k, v)
-                      for k, v in header.items() if k not in exclude and not k.startswith("_")])
+                      for k, v in header.items()
+                      if k not in exclude and not k.startswith("_")])
         lines.append("file: . ")  # Manually add this last field.
         out = "\n".join((asstr(line).replace('\n', '\t') for line in lines))
         fileobj.write(asbytes(out))
