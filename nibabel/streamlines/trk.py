@@ -315,8 +315,8 @@ class TrkFile(TractogramFile):
         data_per_point_slice = {}
         if hdr[Field.NB_SCALARS_PER_POINT] > 0:
             cpt = 0
-            for scalar_name in hdr['scalar_name']:
-                scalar_name, nb_scalars = decode_value_from_name(scalar_name)
+            for scalar_field in hdr['scalar_name']:
+                scalar_name, nb_scalars = decode_value_from_name(scalar_field)
 
                 if nb_scalars == 0:
                     continue
@@ -332,8 +332,8 @@ class TrkFile(TractogramFile):
         data_per_streamline_slice = {}
         if hdr[Field.NB_PROPERTIES_PER_STREAMLINE] > 0:
             cpt = 0
-            for property_name in hdr['property_name']:
-                results = decode_value_from_name(property_name)
+            for property_field in hdr['property_name']:
+                results = decode_value_from_name(property_field)
                 property_name, nb_properties = results
 
                 if nb_properties == 0:
