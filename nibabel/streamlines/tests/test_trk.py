@@ -1,4 +1,5 @@
 import os
+import sys
 import copy
 import unittest
 import numpy as np
@@ -99,68 +100,94 @@ class TestTRK(unittest.TestCase):
             trk = TrkFile.load(DATA['complex_trk_fname'], lazy_load=lazy_load)
             assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
 
+    def trk_with_bytes(self, trk_key='simple_trk_fname', endian='<'):
+        """ Return example trk file bytes and struct view onto bytes """
+        with open(DATA[trk_key], 'rb') as fobj:
+            trk_bytes = fobj.read()
+        dt = trk_module.header_2_dtype.newbyteorder(endian)
+        trk_struct = np.ndarray((1,), dt, buffer=trk_bytes)
+        trk_struct.flags.writeable = True
+        return trk_struct, trk_bytes
+
     def test_load_file_with_wrong_information(self):
         trk_file = open(DATA['simple_trk_fname'], 'rb').read()
 
         # Simulate a TRK file where `count` was not provided.
-        count = np.array(0, dtype="int32").tostring()
-        new_trk_file = trk_file[:1000-12] + count + trk_file[1000-8:]
-        trk = TrkFile.load(BytesIO(new_trk_file), lazy_load=False)
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct[Field.NB_STREAMLINES] = 0
+        trk = TrkFile.load(BytesIO(trk_bytes), lazy_load=False)
         assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
 
         # Simulate a TRK where `vox_to_ras` is not recorded (i.e. all zeros).
-        vox_to_ras = np.zeros((4, 4), dtype=np.float32).tostring()
-        new_trk_file = trk_file[:440] + vox_to_ras + trk_file[440+64:]
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
         with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
-            trk = TrkFile.load(BytesIO(new_trk_file))
+            trk = TrkFile.load(BytesIO(trk_bytes))
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, HeaderWarning))
             assert_true("identity" in str(w[0].message))
             assert_array_equal(trk.affine, np.eye(4))
 
         # Simulate a TRK where `vox_to_ras` is invalid.
-        vox_to_ras = np.zeros((4, 4), dtype=np.float32)
-        vox_to_ras[3, 3] = 1
-        vox_to_ras = vox_to_ras.tostring()
-        new_trk_file = trk_file[:440] + vox_to_ras + trk_file[440+64:]
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct[Field.VOXEL_TO_RASMM] = np.diag([0, 0, 0, 1])
         with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
-            assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+            assert_raises(HeaderError, TrkFile.load, BytesIO(trk_bytes))
 
         # Simulate a TRK file where `voxel_order` was not provided.
-        voxel_order = np.zeros(1, dtype="|S3").tostring()
-        new_trk_file = trk_file[:948] + voxel_order + trk_file[948+3:]
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct[Field.VOXEL_ORDER] = b''
         with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
-            TrkFile.load(BytesIO(new_trk_file))
+            TrkFile.load(BytesIO(trk_bytes))
             assert_equal(len(w), 1)
             assert_true(issubclass(w[0].category, HeaderWarning))
             assert_true("LPS" in str(w[0].message))
 
         # Simulate a TRK file with an unsupported version.
-        version = np.int32(123).tostring()
-        new_trk_file = trk_file[:992] + version + trk_file[992+4:]
-        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct['version'] = 123
+        assert_raises(HeaderError, TrkFile.load, BytesIO(trk_bytes))
 
         # Simulate a TRK file with a wrong hdr_size.
-        hdr_size = np.int32(1234).tostring()
-        new_trk_file = trk_file[:996] + hdr_size + trk_file[996+4:]
-        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct['hdr_size'] = 1234
+        assert_raises(HeaderError, TrkFile.load, BytesIO(trk_bytes))
 
         # Simulate a TRK file with a wrong scalar_name.
-        trk_file = open(DATA['complex_trk_fname'], 'rb').read()
-        noise = np.int32(42).tostring()
-        new_trk_file = trk_file[:47] + noise + trk_file[47+4:]
-        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+        trk_struct, trk_bytes = self.trk_with_bytes('complex_trk_fname')
+        trk_struct['scalar_name'][0, 0] = b'colors\x003\x004'
+        assert_raises(HeaderError, TrkFile.load, BytesIO(trk_bytes))
 
         # Simulate a TRK file with a wrong property_name.
-        noise = np.int32(42).tostring()
-        new_trk_file = trk_file[:254] + noise + trk_file[254+4:]
-        assert_raises(HeaderError, TrkFile.load, BytesIO(new_trk_file))
+        trk_struct, trk_bytes = self.trk_with_bytes('complex_trk_fname')
+        trk_struct['property_name'][0, 0] = b'colors\x003\x004'
+        assert_raises(HeaderError, TrkFile.load, BytesIO(trk_bytes))
+
+    def test_load_trk_version_1(self):
+        # Simulate and test a TRK (version 1).
+        # First check that setting the RAS affine works in version 2.
+        trk_struct, trk_bytes = self.trk_with_bytes()
+        trk_struct[Field.VOXEL_TO_RASMM] = np.diag([2, 3, 4, 1])
+        trk = TrkFile.load(BytesIO(trk_bytes))
+        assert_array_equal(trk.affine, np.diag([2, 3, 4, 1]))
+        # Next check that affine assumed identity if version 1.
+        trk_struct['version'] = 1
+        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+            trk = TrkFile.load(BytesIO(trk_bytes))
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("identity" in str(w[0].message))
+            assert_array_equal(trk.affine, np.eye(4))
+            assert_array_equal(trk.header['version'], 1)
 
     def test_load_complex_file_in_big_endian(self):
-        trk_file = open(DATA['complex_trk_big_endian_fname'], 'rb').read()
+        trk_struct, trk_bytes = self.trk_with_bytes(
+            'complex_trk_big_endian_fname', endian='>')
         # We use hdr_size as an indicator of little vs big endian.
-        hdr_size_big_endian = np.array(1000, dtype=">i4").tostring()
-        assert_equal(trk_file[996:996+4], hdr_size_big_endian)
+        good_orders = '>' if sys.byteorder == 'little' else '>='
+        hdr_size = trk_struct['hdr_size']
+        assert_true(hdr_size.dtype.byteorder in good_orders)
+        assert_equal(hdr_size, 1000)
 
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['complex_trk_big_endian_fname'],
