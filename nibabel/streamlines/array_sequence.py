@@ -380,3 +380,31 @@ def create_arraysequences_from_generator(gen, n):
     for seq in seqs:
         seq.finalize_append()
     return seqs
+
+
+def concatenate(seqs, axis):
+    """ Concatenates multiple :class:`ArraySequence` objects along an axis.
+
+    Parameters
+    ----------
+    seqs: iterable of :class:`ArraySequence` objects
+        Sequences to concatenate.
+    axis : int
+        Axis along which the sequences will be concatenated.
+
+    Returns
+    -------
+    new_seq: :class:`ArraySequence` object
+        New :class:`ArraySequence` object which is the result of
+        concatenating multiple sequences along the given axis.
+    """
+    new_seq = seqs[0].copy()
+    if axis == 0:
+        # This is the same as an extend.
+        for seq in seqs[1:]:
+            new_seq.extend(seq)
+
+        return new_seq
+
+    new_seq._data = np.concatenate([seq._data for seq in seqs], axis=axis)
+    return new_seq
