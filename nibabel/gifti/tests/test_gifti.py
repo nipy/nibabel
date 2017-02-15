@@ -7,7 +7,7 @@ from io import BytesIO
 import numpy as np
 
 import nibabel as nib
-from nibabel.externals.six import string_types
+from six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
                            GiftiCoordSystem)

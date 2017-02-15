@@ -19,11 +19,9 @@ import numpy as np
 import nibabel as nib
 
 from math import ceil
-from collections import defaultdict
 from optparse import OptionParser, Option
 from io import StringIO
 from nibabel.py3k import asunicode
-from nibabel.externals.six.moves import xrange
 
 __author__ = 'Yaroslav Halchenko'
 __copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \

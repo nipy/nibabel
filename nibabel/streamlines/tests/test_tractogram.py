@@ -10,7 +10,7 @@ from nibabel.testing import assert_arrays_equal
 from nibabel.testing import clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nibabel.externals.six.moves import zip
+from six.moves import zip
 
 from .. import tractogram as module_tractogram
 from ..tractogram import TractogramItem, Tractogram, LazyTractogram

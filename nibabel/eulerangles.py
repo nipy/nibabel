@@ -85,7 +85,7 @@ The convention of rotation around ``z``, followed by rotation around
 
 import math
 
-from .externals.six.moves import reduce
+from six.moves import reduce
 
 import numpy as np
 

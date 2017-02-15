@@ -8,7 +8,7 @@ from nose.tools import assert_equal, assert_raises, assert_true
 from nibabel.testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
-from ..array_sequence import ArraySequence, is_array_sequence
+from ..array_sequence import ArraySequence, is_array_sequence, concatenate
 
 
 SEQ_DATA = {}
@@ -299,3 +299,18 @@ class TestArraySequence(unittest.TestCase):
 
             # Make sure we can add new elements to it.
             loaded_seq.append(SEQ_DATA['data'][0])
+
+
+def test_concatenate():
+    seq = SEQ_DATA['seq'].copy()  # In case there is in-place modification.
+    seqs = [seq[:, [i]] for i in range(seq.common_shape[0])]
+    new_seq = concatenate(seqs, axis=1)
+    seq._data += 100  # Modifying the 'seq' shouldn't change 'new_seq'.
+    check_arr_seq(new_seq, SEQ_DATA['data'])
+    assert_true(not new_seq._is_view)
+
+    seq = SEQ_DATA['seq']
+    seqs = [seq[:, [i]] for i in range(seq.common_shape[0])]
+    new_seq = concatenate(seqs, axis=0)
+    assert_true(len(new_seq), seq.common_shape[0] * len(seq))
+    assert_array_equal(new_seq._data, seq._data.T.reshape((-1, 1)))

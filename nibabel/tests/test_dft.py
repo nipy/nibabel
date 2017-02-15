@@ -3,7 +3,7 @@
 
 import os
 from os.path import join as pjoin, dirname
-from ..externals.six import BytesIO
+from six import BytesIO
 from ..testing import suppress_warnings
 
 import numpy as np

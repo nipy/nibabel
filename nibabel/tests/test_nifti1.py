@@ -18,7 +18,7 @@ from nibabel import nifti1 as nifti1
 from nibabel.affines import from_matvec
 from nibabel.casting import type_info, have_binary128
 from nibabel.eulerangles import euler2mat
-from nibabel.externals.six import BytesIO
+from six import BytesIO
 from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             Nifti1Pair, Nifti1Extension, Nifti1DicomExtension,
                             Nifti1Extensions, data_type_codes, extension_codes,
@@ -365,7 +365,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         another_aff = np.diag([3, 4, 5, 1])
         # Affine with shears
         nasty_aff = from_matvec(np.arange(9).reshape((3, 3)), [9, 10, 11])
+        nasty_aff[0, 0] = 1  # Make full rank
         fixed_aff = unshear_44(nasty_aff)
+        assert_false(np.allclose(fixed_aff, nasty_aff))
         for in_meth, out_meth in ((hdr.set_qform, hdr.get_qform),
                                   (hdr.set_sform, hdr.get_sform)):
             in_meth(nice_aff, 2)

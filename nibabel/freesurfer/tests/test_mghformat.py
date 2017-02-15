@@ -13,7 +13,7 @@ import io
 
 import numpy as np
 
-from ...externals.six import BytesIO
+from six import BytesIO
 from .. import load, save
 from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage

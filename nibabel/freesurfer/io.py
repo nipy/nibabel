@@ -7,8 +7,8 @@ import numpy as np
 import getpass
 import time
 
-from ..externals import OrderedDict
-from ..externals.six.moves import xrange
+from collections import OrderedDict
+from six.moves import xrange
 from ..openers import Opener
 
 

@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
 from __future__ import division, print_function, absolute_import
-from ..externals.six import BytesIO
+from six import BytesIO
 
 import shutil
 from os.path import dirname, join as pjoin

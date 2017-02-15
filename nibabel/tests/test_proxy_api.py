@@ -36,7 +36,7 @@ from io import BytesIO
 
 import numpy as np
 
-from ..externals.six import string_types
+from six import string_types
 from ..volumeutils import apply_read_scaling
 from ..analyze import AnalyzeHeader
 from ..spm99analyze import Spm99AnalyzeHeader

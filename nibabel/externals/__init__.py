@@ -1,5 +1,5 @@
 # init for externals package
-try:
-    from collections import OrderedDict
-except ImportError:  # < Python 2.7
-    from .ordereddict import OrderedDict
+from collections import OrderedDict
+
+from ..deprecated import ModuleProxy as _ModuleProxy
+six = _ModuleProxy('nibabel.externals.six')
