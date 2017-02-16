@@ -198,6 +198,7 @@ def test_dtseries():
         assert_true((img2.get_data() == data).all())
         check_series_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_dscalar():
@@ -216,6 +217,7 @@ def test_dscalar():
         assert_true((img2.get_data() == data).all())
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_dlabel():
@@ -234,6 +236,7 @@ def test_dlabel():
         assert_true((img2.get_data() == data).all())
         check_label_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_dconn():
@@ -250,8 +253,8 @@ def test_dconn():
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
-
         check_geometry_map(img2.header.matrix.get_index_map(0))
+        del img2
 
 
 def test_ptseries():
@@ -270,6 +273,7 @@ def test_ptseries():
         assert_true((img2.get_data() == data).all())
         check_series_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_pscalar():
@@ -288,6 +292,7 @@ def test_pscalar():
         assert_true((img2.get_data() == data).all())
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_pdconn():
@@ -306,6 +311,7 @@ def test_pdconn():
         assert_true((img2.get_data() == data).all())
         check_geometry_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_dpconn():
@@ -324,6 +330,7 @@ def test_dpconn():
         assert_true((img2.get_data() == data).all())
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_plabel():
@@ -342,6 +349,7 @@ def test_plabel():
         assert_true((img2.get_data() == data).all())
         check_label_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_pconn():
@@ -358,8 +366,8 @@ def test_pconn():
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
-
         check_parcel_map(img2.header.matrix.get_index_map(0))
+        del img2
 
 
 def test_pconnseries():
@@ -379,9 +387,9 @@ def test_pconnseries():
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
-
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_series_map(img2.header.matrix.get_index_map(2))
+        del img2
 
 
 def test_pconnscalar():
@@ -404,3 +412,4 @@ def test_pconnscalar():
 
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_scalar_map(img2.header.matrix.get_index_map(2))
+        del img2
