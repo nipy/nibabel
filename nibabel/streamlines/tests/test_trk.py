@@ -110,8 +110,6 @@ class TestTRK(unittest.TestCase):
         return trk_struct, trk_bytes
 
     def test_load_file_with_wrong_information(self):
-        trk_file = open(DATA['simple_trk_fname'], 'rb').read()
-
         # Simulate a TRK file where `count` was not provided.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.NB_STREAMLINES] = 0
