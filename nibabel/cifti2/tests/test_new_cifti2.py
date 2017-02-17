@@ -1,9 +1,10 @@
 """Tests the generation of new CIFTI2 files from scratch
 
-Contains a series of functions to create and check each of the 5 CIFTI index types
-(i.e. BRAIN_MODELS, PARCELS, SCALARS, LABELS, and SERIES).
+Contains a series of functions to create and check each of the 5 CIFTI index
+types (i.e. BRAIN_MODELS, PARCELS, SCALARS, LABELS, and SERIES).
 
-These functions are used in the tests to generate most CIFTI file types from scratch.
+These functions are used in the tests to generate most CIFTI file types from
+scratch.
 """
 import numpy as np
 
@@ -29,19 +30,27 @@ brain_models = [('CIFTI_STRUCTURE_THALAMUS_LEFT', [[60, 60, 60],
 
 def create_geometry_map(applies_to_matrix_dimension):
     voxels = ci.Cifti2VoxelIndicesIJK(brain_models[0][1])
-    left_thalamus= ci.Cifti2BrainModel(index_offset=0, index_count=4, model_type='CIFTI_MODEL_TYPE_VOXELS',
-                                       brain_structure=brain_models[0][0], voxel_indices_ijk=voxels)
+    left_thalamus = ci.Cifti2BrainModel(index_offset=0, index_count=4,
+                                        model_type='CIFTI_MODEL_TYPE_VOXELS',
+                                        brain_structure=brain_models[0][0],
+                                        voxel_indices_ijk=voxels)
     vertices = ci.Cifti2VertexIndices(np.array(brain_models[1][1]))
-    left_cortex = ci.Cifti2BrainModel(index_offset=4, index_count=5, model_type='CIFTI_MODEL_TYPE_SURFACE',
-                                      brain_structure=brain_models[1][0], vertex_indices=vertices)
+    left_cortex = ci.Cifti2BrainModel(index_offset=4, index_count=5,
+                                      model_type='CIFTI_MODEL_TYPE_SURFACE',
+                                      brain_structure=brain_models[1][0],
+                                      vertex_indices=vertices)
     left_cortex.surface_number_of_vertices = number_of_vertices
-    volume = ci.Cifti2Volume(dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    volume = ci.Cifti2Volume(dimensions,
+                     ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3,
+                                                                       affine))
+    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
+                                     'CIFTI_INDEX_TYPE_BRAIN_MODELS',
                                      maps=[left_thalamus, left_cortex, volume])
 
 
 def check_geometry_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
+    assert_equal(mapping.indices_map_to_data_type,
+                 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
     assert_equal(len(list(mapping.brain_models)), 2)
     left_thalamus, left_cortex = mapping.brain_models
 
@@ -68,15 +77,18 @@ parcels = [('volume_parcel', ([[60, 60, 60],
                                [61, 59, 60],
                                [61, 60, 59],
                                [80, 90, 92]], )),
-           ('surface_parcel', (('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
-                               ('CIFTI_STRUCTURE_CORTEX_RIGHT', [0, 100, 381]))),
+           ('surface_parcel', (('CIFTI_STRUCTURE_CORTEX_LEFT',
+                                [0, 1000, 1301, 19972, 27312]),
+                               ('CIFTI_STRUCTURE_CORTEX_RIGHT',
+                                [0, 100, 381]))),
            ('mixed_parcel', ([[71, 81, 39],
                               [53, 21, 91]],
                              ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999])))]
 
 
 def create_parcel_map(applies_to_matrix_dimension):
-    mapping = ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_PARCELS')
+    mapping = ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
+                                        'CIFTI_INDEX_TYPE_PARCELS')
     for name, elements in parcels:
         surfaces = []
         volume = None
@@ -89,7 +101,8 @@ def create_parcel_map(applies_to_matrix_dimension):
 
     mapping.extend([ci.Cifti2Surface('CIFTI_STRUCTURE_CORTEX_%s' % orientation,
                     number_of_vertices) for orientation in ['LEFT', 'RIGHT']])
-    mapping.volume = ci.Cifti2Volume(dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
+    mapping.volume = ci.Cifti2Volume(dimensions,
+                 ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
     return mapping
 
 
@@ -109,7 +122,8 @@ def check_parcel_map(mapping):
                 assert_equal(parcel.voxel_indices_ijk._indices, element)
 
     for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT')):
-        assert_equal(surface.brain_structure, 'CIFTI_STRUCTURE_CORTEX_%s' % orientation)
+        assert_equal(surface.brain_structure,
+                     'CIFTI_STRUCTURE_CORTEX_%s' % orientation)
         assert_equal(surface.surface_number_of_vertices, number_of_vertices)
 
     assert_equal(mapping.volume.volume_dimensions, dimensions)
@@ -121,8 +135,10 @@ scalars = [('first_name', {'meta_key': 'some_metadata'}),
 
 
 def create_scalar_map(applies_to_matrix_dimension):
-    maps = [ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta)) for name, meta in scalars]
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_SCALARS',
+    maps = [ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta))
+            for name, meta in scalars]
+    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
+                                     'CIFTI_INDEX_TYPE_SCALARS',
                                      maps=maps)
 
 
@@ -138,8 +154,9 @@ def check_scalar_map(mapping):
             assert_equal(named_map.metadata, expected[1])
 
 
-labels = [('first_name', {'meta_key': 'some_metadata'}, {0: ('label0', (0.1, 0.3, 0.2, 0.5)),
-                                                         1: ('new_label', (0.5, 0.3, 0.1, 0.4))}),
+labels = [('first_name', {'meta_key': 'some_metadata'},
+           {0: ('label0', (0.1, 0.3, 0.2, 0.5)),
+            1: ('new_label', (0.5, 0.3, 0.1, 0.4))}),
           ('another name', {}, {0: ('???', (0, 0, 0, 0)),
                                 1: ('great region', (0.4, 0.1, 0.23, 0.15))})]
 
@@ -150,8 +167,10 @@ def create_label_map(applies_to_matrix_dimension):
         label_table = ci.Cifti2LabelTable()
         for key, (tag, rgba) in label.items():
             label_table[key] = ci.Cifti2Label(key, tag, *rgba)
-        maps.append(ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta), label_table))
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_LABELS',
+        maps.append(ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta),
+                                      label_table))
+    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
+                                     'CIFTI_INDEX_TYPE_LABELS',
                                      maps=maps)
 
 
@@ -168,8 +187,10 @@ def check_label_map(mapping):
 
 
 def create_series_map(applies_to_matrix_dimension):
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_SERIES',
-                                     number_of_series_points=13, series_exponent=-3, series_start=18.2,
+    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
+                                     'CIFTI_INDEX_TYPE_SERIES',
+                                     number_of_series_points=13,
+                                     series_exponent=-3, series_start=18.2,
                                      series_step=10.5, series_unit='SECOND')
 
 
