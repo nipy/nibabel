@@ -28,10 +28,7 @@ class XmlSerializable(object):
         """ Output should be an xml string with the given encoding.
         (default: utf-8)"""
         ele = self._to_xml_element()
-        if ele is None:
-            return ''
-        else:
-            return tostring(ele, enc)
+        return '' if ele is None else tostring(ele, enc)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
