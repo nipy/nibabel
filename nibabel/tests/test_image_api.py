@@ -196,7 +196,7 @@ class GenericImageAPI(ValidateAPI):
             supported_dtypes = supported_np_types(img.header_class())
             if new_dtype not in supported_dtypes:
                 new_dtype = supported_dtypes.pop()
-        except:
+        except TypeError:
             pass
         img.set_data_dtype(new_dtype)
         assert_equal(img.get_data_dtype().type, new_dtype)

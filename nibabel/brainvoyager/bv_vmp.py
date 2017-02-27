@@ -113,6 +113,7 @@ class BvVmpHeader(BvFileHeader):
 
     def set_data_shape(self, shape=None, zyx=None, n=None):
         ''' Set shape of data
+
         To conform with nibabel standards this implements shape.
         However, to fill the BvVmpHeader with sensible information use the
         zyx and the n parameter instead.
@@ -164,14 +165,16 @@ class BvVmpHeader(BvFileHeader):
             self._hdr_dict = update_BV_header(self.hdr_dict_proto,
                                               hdr_dict_old, self._hdr_dict)
 
-    def get_framing_cube(self):
+    @property
+    def framing_cube(self):
         ''' Get the dimensions of the framing cube that constitutes
         the coordinate system boundaries for the bounding box.
         '''
         hdr = self._hdr_dict
         return hdr['dim_z'], hdr['dim_y'], hdr['dim_x']
 
-    def set_framing_cube(self, fc):
+    @framing_cube.setter
+    def framing_cube(self, fc):
         ''' Set the dimensions of the framing cube that constitutes
         the coordinate system boundaries for the bounding box.
 
@@ -190,6 +193,7 @@ class BvVmpImage(BvFileImage):
     # Set the label ('image') and the extension ('.vmp') for a VMP file
     files_types = (('image', '.vmp'),)
     valid_exts = ('.vmp',)
+
 
 load = BvVmpImage.load
 save = BvVmpImage.instance_to_filename

@@ -73,13 +73,13 @@ VMR_PSHDR_DICT_PROTO = (
 )
 
 
-def computeOffsetPostHDR(hdr_dict, fileobj):
-    currentSeek = fileobj.tell()
-    return currentSeek + (hdr_dict['dim_x'] * hdr_dict['dim_y'] *
-                          hdr_dict['dim_z'])
+def compute_offset_post_hdr(hdr_dict, fileobj):
+    current_seek = fileobj.tell()
+    return current_seek + (hdr_dict['dim_x'] * hdr_dict['dim_y'] *
+                           hdr_dict['dim_z'])
 
 
-def concatePrePos(preDict, posDict):
+def merge_pre_pos(preDict, posDict):
     temp = preDict.copy()
     temp.update(posDict)
     return temp
@@ -175,7 +175,7 @@ class BvVmrHeader(BvFileHeader):
         rot[:, 2] = [0, -zooms[1], 0]
 
         # compute the translation
-        fcc = np.array(self.get_framing_cube()) / 2  # center of framing cube
+        fcc = np.array(self.framing_cube) / 2  # center of framing cube
         bbc = np.array(self.get_bbox_center())  # center of bounding box
         tra = np.dot((bbc - fcc), rot)
 
@@ -187,30 +187,24 @@ class BvVmrHeader(BvFileHeader):
         # look for additional transformations in past_spatial_trans and combine
         # with M
         if self._hdr_dict['past_spatial_trans']:
-            STarray = np.zeros((len(self._hdr_dict['past_spatial_trans']),
-                               4, 4))
+            st_array = np.zeros((len(self._hdr_dict['past_spatial_trans']),
+                                4, 4))
             for st in range(len(self._hdr_dict['past_spatial_trans'])):
-                STarray[st, :, :] = \
+                st_array[st, :, :] = \
                     parse_st(self._hdr_dict['past_spatial_trans'][st])
-            combinedST = combine_st(STarray, inv=True)
-            M = np.dot(M, combinedST)
+            combined_st = combine_st(st_array, inv=True)
+            M = np.dot(M, combined_st)
         return M
-
-    get_best_affine = get_base_affine
-
-    get_default_affine = get_base_affine
-
-    get_affine = get_base_affine
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=default_endianness,
                      check=True):
-        hdr_dictPre = parse_BV_header(VMR_PRHDR_DICT_PROTO, fileobj)
+        hdr_dict_pre = parse_BV_header(VMR_PRHDR_DICT_PROTO, fileobj)
         # calculate new seek for the post data header
-        newSeek = computeOffsetPostHDR(hdr_dictPre, fileobj)
-        fileobj.seek(newSeek)
-        hdr_dictPos = parse_BV_header(VMR_PSHDR_DICT_PROTO, fileobj)
-        hdr_dict = concatePrePos(hdr_dictPre, hdr_dictPos)
+        new_seek = compute_offset_post_hdr(hdr_dict_pre, fileobj)
+        fileobj.seek(new_seek)
+        hdr_dict_pos = parse_BV_header(VMR_PSHDR_DICT_PROTO, fileobj)
+        hdr_dict = merge_pre_pos(hdr_dict_pre, hdr_dict_pos)
         # The offset is always 8 for VMR files.
         offset = 8
         return klass(hdr_dict, endianness, check, offset)
@@ -219,7 +213,7 @@ class BvVmrHeader(BvFileHeader):
         """Get the center coordinate of the bounding box.
            Not required for VMR files
         """
-        return np.array([self.get_framing_cube() / 2 for d in range(3)])
+        return np.array([self.framing_cube / 2 for d in range(3)])
 
     def get_zooms(self):
         return (self._hdr_dict['vox_res_z'], self._hdr_dict['vox_res_y'],
@@ -236,7 +230,7 @@ class BvVmrHeader(BvFileHeader):
         sizePrH = calc_BV_header_size(VMR_PRHDR_DICT_PROTO, self._hdr_dict)
         # write the preHeader
         fileobj.write(binaryblock[0:sizePrH])
-        fileobj.seek(computeOffsetPostHDR(self._hdr_dict, fileobj))
+        fileobj.seek(compute_offset_post_hdr(self._hdr_dict, fileobj))
         fileobj.write(binaryblock[sizePrH:])
 
 
@@ -249,6 +243,7 @@ class BvVmrImage(BvFileImage):
     # Set the label ('image') and the extension ('.vtc') for a VMR file
     files_types = (('image', '.vmr'),)
     valid_exts = ('.vmr',)
+
 
 load = BvVmrImage.load
 save = BvVmrImage.instance_to_filename

@@ -350,8 +350,8 @@ def test_BvVmpHeader_set_data_shape():
 
 def test_BvVmpHeader_set_framing_cube():
     vmp = BvVmpHeader()
-    assert_equal(vmp.get_framing_cube(), (256, 256, 256))
-    vmp.set_framing_cube((512, 512, 512))
-    assert_equal(vmp.get_framing_cube(), (512, 512, 512))
-    vmp.set_framing_cube((512, 513, 514))
-    assert_equal(vmp.get_framing_cube(), (512, 513, 514))
+    assert_equal(vmp.framing_cube, (256, 256, 256))
+    vmp.framing_cube = (512, 512, 512)
+    assert_equal(vmp.framing_cube, (512, 512, 512))
+    vmp.framing_cube = (512, 513, 514)
+    assert_equal(vmp.framing_cube, (512, 513, 514))

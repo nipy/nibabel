@@ -273,6 +273,8 @@ def calc_BV_header_size(hdr_dict_proto, hdr_dict, parent_hdr_dict=None):
             # check the length of the array to expect
             if def_or_name in hdr_dict:
                 n_values = hdr_dict[def_or_name]
+            # handle cases when n_values is resides outside of the
+            # current scope (e.g. nr_of_timepoints in VMP_HDR_DICT_PROTO)
             else:
                 n_values = parent_hdr_dict[def_or_name]
             for i in range(n_values):
@@ -306,7 +308,7 @@ def update_BV_header(hdr_dict_proto, hdr_dict_old, hdr_dict_new,
        hdr_dict before any changes.
     hdr_dict_new: OrderedDict
        hdr_dict with changed fields in n_fields_name or c_fields_name fields.
-    parent_old: OrderedDict
+    parent_old: None or OrderedDict, optional
        When update_BV_header() is called recursively the not yet updated
        (parent) hdr_dict is passed to give access to n_fields_name fields
        outside the current scope (see below).
@@ -325,28 +327,27 @@ def update_BV_header(hdr_dict_proto, hdr_dict_old, hdr_dict_new,
         # handle only nested loop fields
         if not isinstance(pack_format, tuple):
             continue
+        # calculate the change of array length and the new array length
+        if def_or_name in hdr_dict_old:
+            delta_values = (hdr_dict_new[def_or_name] -
+                            hdr_dict_old[def_or_name])
+            n_values = hdr_dict_new[def_or_name]
         else:
-            # calculate the change of array length and the new array length
-            if def_or_name in hdr_dict_old:
-                delta_values = (hdr_dict_new[def_or_name] -
-                                hdr_dict_old[def_or_name])
-                n_values = hdr_dict_new[def_or_name]
-            else:
-                delta_values = (parent_new[def_or_name] -
-                                parent_old[def_or_name])
-                n_values = parent_new[def_or_name]
-            if delta_values > 0:  # add nested loops
-                for i in range(delta_values):
-                    hdr_dict_new[name].append(_proto2default(pack_format,
-                                              hdr_dict_new))
-            elif delta_values < 0:  # remove nested loops
-                for i in range(abs(delta_values)):
-                    hdr_dict_new[name].pop()
-            # loop over nested fields
-            for i in range(n_values):
-                update_BV_header(pack_format, hdr_dict_old[name][i],
-                                 hdr_dict_new[name][i], hdr_dict_old,
-                                 hdr_dict_new)
+            delta_values = (parent_new[def_or_name] -
+                            parent_old[def_or_name])
+            n_values = parent_new[def_or_name]
+        if delta_values > 0:  # add nested loops
+            for i in range(delta_values):
+                hdr_dict_new[name].append(_proto2default(pack_format,
+                                          hdr_dict_new))
+        elif delta_values < 0:  # remove nested loops
+            for i in range(abs(delta_values)):
+                hdr_dict_new[name].pop()
+        # loop over nested fields
+        for i in range(n_values):
+            update_BV_header(pack_format, hdr_dict_old[name][i],
+                             hdr_dict_new[name][i], hdr_dict_old,
+                             hdr_dict_new)
     return hdr_dict_new
 
 
@@ -453,7 +454,7 @@ class BvFileHeader(Header):
     # format defaults
     # BV files are radiological (left-is-right) by default
     # (VTC files have a flag for that, however)
-    default_x_flip = True
+    default_xflip = True
     default_endianness = '<'  # BV files are always little-endian
     allowed_dtypes = [1, 2, 3]
     default_dtype = 2
@@ -470,9 +471,10 @@ class BvFileHeader(Header):
 
         Parameters
         ----------
-        binaryblock : {None, string} optional
-            binary block to set into header.  By default, None, in
-            which case we insert the default empty header block
+        hdr_dict : None or OrderedDict, optional
+            An OrderedDict containing all header fields parsed from the file.
+            By default, None, in which case we create a default hdr_dict from
+            the corresponding _HDR_DICT_PROTO
         endianness : {None, '<','>', other endian code} string, optional
             endianness of the binaryblock.  If None, guess endianness
             from the data.
@@ -641,11 +643,12 @@ class BvFileHeader(Header):
             raise HeaderDataError(
                 'File format does not support setting of header!')
 
-    def get_xflip(self):
-        """Get xflip for data."""
-        return self.default_x_flip
+    @property
+    def xflip(self):
+        return self.default_xflip
 
-    def set_xflip(self, xflip):
+    @xflip.setter
+    def xflip(self, xflip):
         """Set xflip for data."""
         if xflip is True:
             return
@@ -666,7 +669,7 @@ class BvFileHeader(Header):
         Note that we get the translations from the center of the
         (guessed) framing cube of the referenced VMR (anatomical) file.
 
-        Internal storage of the image is ZYXT, where (in patient coordiante/
+        Internal storage of the image is ZYXT, where (in patient coordinates/
         real world orientations):
         Z := axis increasing from right to left (R to L)
         Y := axis increasing from superior to inferior (S to I)
@@ -674,7 +677,7 @@ class BvFileHeader(Header):
         T := volumes (if present in file format)
         """
         zooms = self.get_zooms()
-        if not self.get_xflip():
+        if not self.xflip:
             # make the BV internal Z axis neurological (left-is-left);
             # not default in BV files!
             zooms = (-zooms[0], zooms[1], zooms[2])
@@ -689,7 +692,7 @@ class BvFileHeader(Header):
         rot[:, 2] = [0, -zooms[1], 0]
 
         # compute the translation
-        fcc = np.array(self.get_framing_cube()) / 2  # center of framing cube
+        fcc = np.array(self.framing_cube) / 2  # center of framing cube
         bbc = np.array(self.get_bbox_center())  # center of bounding box
         tra = np.dot((bbc - fcc), rot)
 
@@ -700,11 +703,14 @@ class BvFileHeader(Header):
 
         return M
 
-    get_best_affine = get_base_affine
+    def get_best_affine(self):
+        return self.get_base_affine()
 
-    get_default_affine = get_base_affine
+    def get_default_affine(self):
+        return self.get_base_affine()
 
-    get_affine = get_base_affine
+    def get_affine(self):
+        return self.get_base_affine()
 
     def _guess_framing_cube(self):
         """Guess the dimensions of the framing cube.
@@ -729,7 +735,8 @@ class BvFileHeader(Header):
             else:
                 return fc, fc, fc
 
-    def get_framing_cube(self):
+    @property
+    def framing_cube(self):
         """Get the dimensions of the framing cube.
 
         Get the dimensions of the framing cube that constitutes the
@@ -739,7 +746,8 @@ class BvFileHeader(Header):
         """
         return self._framing_cube
 
-    def set_framing_cube(self, fc):
+    @framing_cube.setter
+    def framing_cube(self, fc):
         """Set the dimensions of the framing cube.
 
         Set the dimensions of the framing cube that constitutes the
@@ -771,10 +779,24 @@ class BvFileHeader(Header):
                      for d in shape[0:3])
 
     def set_zooms(self, zooms):
+        """Set the zooms for the image.
+
+        Voxel dimensions of functional data in BV file formats are
+        always in relationship to the voxel dimensions in a VMR file and
+        therefore need to be equal for all three spatial dimensions.
+
+        Parameters
+        ----------
+        zooms : int or sequence
+            An integer or a sequence of integers specifying the relationship
+            between voxel dimensions and real-world dimensions. If a single
+            integer is used it is applied to all spatial dimensions. If a
+            sequence of integers is used all dimensions have to be equal.
+        """
         if type(zooms) == int:
             self._hdr_dict['resolution'] = zooms
         else:
-            if any([zooms[i] != zooms[i + 1] for i in range(len(zooms) - 1)]):
+            if np.any(np.diff(zooms)):
                 raise BvError('Zooms for all dimensions must be equal!')
             else:
                 self._hdr_dict['resolution'] = int(zooms[0])

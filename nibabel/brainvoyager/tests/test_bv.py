@@ -125,76 +125,64 @@ def test_read_c_string():
     # sample binary block
     binary = b'test.fmr\x00test.prt\x00'
     with InTemporaryDirectory():
-        # create a tempfile
+        # create a tempfile and write the binary block to it
         path = 'test.header'
-        fwrite = open(path, 'wb')
-
-        # write the binary block to it
-        fwrite.write(binary)
-        fwrite.close()
+        with open(path, 'wb') as fwrite:
+            fwrite.write(binary)
 
         # open it again
-        fread = open(path, 'rb')
-
-        # test readout of one string
-        assert_equal([s for s in read_c_string(fread)], [b'test.fmr'])
-
-        # test new file position
-        assert_equal(fread.tell(), 9)
-
-        # manually rewind
-        fread.seek(0)
-
-        # test readout of two strings
-        assert_equal([s for s in read_c_string(fread, 2, rewind=True)],
-                     [b'test.fmr', b'test.prt'])
-
-        # test automatic rewind
-        assert_equal(fread.tell(), 0)
-
-        # test readout of two strings with trailing zeros
-        assert_equal([s for s in read_c_string(fread, 2, strip=False)],
-                     [b'test.fmr\x00', b'test.prt\x00'])
-
-        # test new file position
-        assert_equal(fread.tell(), 18)
-
-        # test readout of one string from given position
-        fread.seek(0)
-        assert_equal([s for s in read_c_string(fread, start_pos=9)],
-                     [b'test.prt'])
-        fread.close()
+        with open(path, 'rb') as fread:
+            # test readout of one string
+            assert_equal([s for s in read_c_string(fread)], [b'test.fmr'])
+            # test new file position
+            assert_equal(fread.tell(), 9)
+            # manually rewind
+            fread.seek(0)
+            # test readout of two strings
+            assert_equal([s for s in read_c_string(fread, 2, rewind=True)],
+                         [b'test.fmr', b'test.prt'])
+            # test automatic rewind
+            assert_equal(fread.tell(), 0)
+            # test readout of two strings with trailing zeros
+            assert_equal([s for s in read_c_string(fread, 2, strip=False)],
+                         [b'test.fmr\x00', b'test.prt\x00'])
+            # test new file position
+            assert_equal(fread.tell(), 18)
+            # test readout of one string from given position
+            fread.seek(0)
+            assert_equal([s for s in read_c_string(fread, start_pos=9)],
+                         [b'test.prt'])
 
 
 def test_combine_st():
     vmr = BvVmrImage.from_filename(vmr_file)
-    STarray = []
+    st_array = []
     for st in range(vmr.header._hdr_dict['nr_of_past_spatial_trans']):
-        STarray.append(parse_st(
+        st_array.append(parse_st(
             vmr.header._hdr_dict['past_spatial_trans'][st]))
-    STarray = np.array(STarray)
-    combinedST = combine_st(STarray, inv=True)
-    correctCombinedST = [[1., 0., 0., 0.],
-                         [0., 1., 0., -1.],
-                         [0., 0., 1., 1.],
-                         [0., 0., 0., 1.]]
-    assert_array_equal(combinedST, correctCombinedST)
-    combinedST = combine_st(STarray, inv=False)
-    correctCombinedST = [[1., 0., 0., 0.],
-                         [0., 1., 0., 1.],
-                         [0., 0., 1., -1.],
-                         [0., 0., 0., 1.]]
-    assert_array_equal(combinedST, correctCombinedST)
+    st_array = np.array(st_array)
+    combined_st = combine_st(st_array, inv=True)
+    correct_combined_st = [[1., 0., 0., 0.],
+                           [0., 1., 0., -1.],
+                           [0., 0., 1., 1.],
+                           [0., 0., 0., 1.]]
+    assert_array_equal(combined_st, correct_combined_st)
+    combined_st = combine_st(st_array, inv=False)
+    correct_combined_st = [[1., 0., 0., 0.],
+                           [0., 1., 0., 1.],
+                           [0., 0., 1., -1.],
+                           [0., 0., 0., 1.]]
+    assert_array_equal(combined_st, correct_combined_st)
 
 
 def test_parse_st():
     vmr = BvVmrImage.from_filename(vmr_file)
     ST = parse_st(vmr.header._hdr_dict['past_spatial_trans'][0])
-    correctST = [[1., 0., 0., -1.],
-                 [0., 1., 0., 0.],
-                 [0., 0., 1., -1.],
-                 [0., 0., 0., 1.]]
-    assert_array_equal(ST, correctST)
+    correct_st = [[1., 0., 0., -1.],
+                  [0., 1., 0., 0.],
+                  [0., 0., 1., -1.],
+                  [0., 0., 0., 1.]]
+    assert_array_equal(ST, correct_st)
 
     # parse_st will only handle 4x4 matrices
     vmr.header._hdr_dict['past_spatial_trans'][0]['nr_of_trans_val'] = 10
@@ -265,13 +253,16 @@ def test_BvFileHeader_update_BV_header():
 
 def test_BvFileHeader_xflip():
     bv = BvFileHeader()
-    assert_true(bv.get_xflip())
+    assert_true(bv.xflip)
 
     # should only return
-    bv.set_xflip(True)
+    bv.xflip = True
+
+    def set_xflip_false():
+        bv.xflip = False
 
     # cannot flip most BV images
-    assert_raises(BvError, bv.set_xflip, False)
+    assert_raises(BvError, set_xflip_false)
 
 
 def test_BvFileHeader_endianness():

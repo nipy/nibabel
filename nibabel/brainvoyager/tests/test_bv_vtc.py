@@ -97,11 +97,11 @@ def test_BvVtcHeader_set_data_shape():
 
 def test_BvVtcHeader_set_framing_cube():
     vtc = BvVtcHeader()
-    assert_equal(vtc.get_framing_cube(), (256, 256, 256))
-    vtc.set_framing_cube((512, 512, 512))
-    assert_equal(vtc.get_framing_cube(), (512, 512, 512))
-    vtc.set_framing_cube((512, 513, 514))
-    assert_equal(vtc.get_framing_cube(), (512, 513, 514))
+    assert_equal(vtc.framing_cube, (256, 256, 256))
+    vtc.framing_cube = (512, 512, 512)
+    assert_equal(vtc.framing_cube, (512, 512, 512))
+    vtc.framing_cube = (512, 513, 514)
+    assert_equal(vtc.framing_cube, (512, 513, 514))
 
 
 def test_BvVtcHeader_xflip():
