@@ -167,7 +167,7 @@ class LazyDict(collections.MutableMapping):
     def __setitem__(self, key, value):
         if not callable(value):
             msg = ("Values in a `LazyDict` must be generator functions."
-                   " Those are functions which whenever are called return an"
+                   " These are functions which, when called, return an"
                    " instantiated generator.")
             raise TypeError(msg)
         self.store[key] = value
@@ -608,8 +608,8 @@ class LazyTractogram(Tractogram):
     def _set_streamlines(self, value):
         if value is not None and not callable(value):
             msg = ("`streamlines` must be a generator function. That is a"
-                   " function which whenever is called returns an"
-                   " instantiated generator.")
+                   " function which, when called, returns an instantiated"
+                   " generator.")
             raise TypeError(msg)
         self._streamlines = value
 
