@@ -8,6 +8,7 @@ from os.path import join as pjoin
 import nibabel as nib
 from six import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.py3k import asbytes
 
 from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings
@@ -89,7 +90,7 @@ def test_is_supported_detect_format():
     # Valid file without extension
     for tfile_cls in FORMATS.values():
         f = BytesIO()
-        f.write(tfile_cls.MAGIC_NUMBER)
+        f.write(asbytes(tfile_cls.MAGIC_NUMBER))
         f.seek(0, os.SEEK_SET)
         assert_true(nib.streamlines.is_supported(f))
         assert_true(nib.streamlines.detect_format(f) is tfile_cls)
@@ -97,7 +98,7 @@ def test_is_supported_detect_format():
     # Wrong extension but right magic number
     for tfile_cls in FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
-            f.write(tfile_cls.MAGIC_NUMBER)
+            f.write(asbytes(tfile_cls.MAGIC_NUMBER))
             f.seek(0, os.SEEK_SET)
             assert_true(nib.streamlines.is_supported(f))
             assert_true(nib.streamlines.detect_format(f) is tfile_cls)

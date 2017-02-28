@@ -114,6 +114,15 @@ class TestTCK(unittest.TestCase):
         assert_equal(tck_file.read(),
                      open(DATA['simple_tck_fname'], 'rb').read())
 
+        # # Add custom header fields.
+        # tck_file = BytesIO()
+        # tck = TckFile(tractogram)
+        # # tck.header['Custom_field'] = "Some_value"
+        # tck.save(tck_file)
+        # tck_file.seek(0, os.SEEK_SET)
+        # new_tck = TckFile.load(tck_file)
+        # assert_equal(tck.header, new_tck.header)
+
     def test_load_write_file(self):
         for fname in [DATA['empty_tck_fname'],
                       DATA['simple_tck_fname']]:

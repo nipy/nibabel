@@ -1,7 +1,9 @@
-from __future__ import division
+""" Read / write access to TCK streamlines format.
 
-# Documentation available here:
-# http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
+TCK format is defined at
+http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
+"""
+from __future__ import division
 
 import os
 import warnings
@@ -52,7 +54,7 @@ class TckFile(TractogramFile):
     """
 
     # Contants
-    MAGIC_NUMBER = b"mrtrix tracks"
+    MAGIC_NUMBER = "mrtrix tracks"
     SUPPORTS_DATA_PER_POINT = False  # Not yet
     SUPPORTS_DATA_PER_STREAMLINE = False  # Not yet
 
@@ -98,7 +100,7 @@ class TckFile(TractogramFile):
             otherwise returns False.
         """
         with Opener(fileobj) as f:
-            magic_number = f.fobj.readline()
+            magic_number = asstr(f.fobj.readline())
             f.seek(-len(magic_number), os.SEEK_CUR)
 
         return magic_number.strip() == cls.MAGIC_NUMBER
@@ -150,6 +152,11 @@ class TckFile(TractogramFile):
 
         return cls(tractogram, header=hdr)
 
+    def _finalize_header(self, f, header, offset=0):
+        # Overwrite header with updated one.
+        f.seek(offset, os.SEEK_SET)
+        self._write_header(f, header)
+
     def save(self, fileobj):
         """ Save tractogram to a filename or file-like object using TCK format.
 
@@ -182,9 +189,7 @@ class TckFile(TractogramFile):
             except StopIteration:
                 # Empty tractogram
                 header[Field.NB_STREAMLINES] = 0
-                # Overwrite header with updated one.
-                f.seek(beginning, os.SEEK_SET)
-                self._write_header(f, header)
+                self._finalize_header(f, header, offset=beginning)
 
                 # Add the EOF_DELIMITER.
                 f.write(asbytes(self.EOF_DELIMITER.tostring()))
@@ -217,10 +222,7 @@ class TckFile(TractogramFile):
 
             # Add the EOF_DELIMITER.
             f.write(asbytes(self.EOF_DELIMITER.tostring()))
-
-            # Overwrite header with updated one.
-            f.seek(beginning, os.SEEK_SET)
-            self._write_header(f, header)
+            self._finalize_header(f, header, offset=beginning)
 
     @staticmethod
     def _write_header(fileobj, header):
@@ -247,24 +249,33 @@ class TckFile(TractogramFile):
                       for k, v in header.items()
                       if k not in exclude and not k.startswith("_")])
         lines.append("file: . ")  # Manually add this last field.
-        out = "\n".join((asstr(line).replace('\n', '\t') for line in lines))
+        out = "\n".join(lines)
+
+        # Check the header is well formatted.
+        if out.count("\n") > len(lines) - 1:  # \n only allowed between lines.
+            msg = "Key-value pairs cannot contain '\\n':\n{}".format(out)
+            raise HeaderError(msg)
+
+        if out.count(":") > len(lines):  # : only one per line.
+            msg = "Key-value pairs cannot contain ':':\n{}".format(out)
+            raise HeaderError(msg)
+
+        # Write header to file.
         fileobj.write(asbytes(out))
 
-        # Compute offset to the beginning of the binary data.
-        # We add 5 for "\nEND\n" that will be added just before the data.
-        tentative_offset = len(out) + 5
+        hdr_len_no_offset = len(out) + 5
+        # Need to add number of bytes to store offset as decimal string. We
+        # start with estimate without string, then update if the
+        # offset-as-decimal-string got longer after adding length of the
+        # offset string.
+        new_offset = -1
+        old_offset = hdr_len_no_offset
+        while new_offset != old_offset:
+            old_offset = new_offset
+            new_offset = hdr_len_no_offset + len(str(old_offset))
 
-        # Count the number of characters needed to write the offset in ASCII.
-        offset = tentative_offset + len(str(tentative_offset))
-
-        # The new offset might need one more character to write it in ASCII.
-        # e.g. offset = 98 (i.e. 2 char.), so offset += 2 = 100 (i.e. 3 char.)
-        # thus the final offset = 101.
-        if len(str(tentative_offset)) != len(str(offset)):
-            offset += 1  # +1, we need one more character for that new digit.
-
-        fileobj.write(asbytes(str(offset) + "\n"))
-        fileobj.write(asbytes(b"END\n"))
+        fileobj.write(asbytes(str(new_offset) + "\n"))
+        fileobj.write(asbytes("END\n"))
 
     @staticmethod
     def _read_header(fileobj):
@@ -318,9 +329,7 @@ class TckFile(TractogramFile):
             raise HeaderError("Missing 'file' attribute in TCK header.")
 
         # Set endianness and _dtype attributes in the header.
-        hdr[Field.ENDIANNESS] = '<'
-        if hdr['datatype'].endswith('BE'):
-            hdr[Field.ENDIANNESS] = '>'
+        hdr[Field.ENDIANNESS] = '>' if hdr['datatype'].endswith('BE') else '<'
 
         hdr['_dtype'] = np.dtype(hdr[Field.ENDIANNESS] + 'f4')
 
