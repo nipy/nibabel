@@ -93,6 +93,8 @@ def main(**extra_args):
                           'nibabel.benchmarks',
                           'nibabel.streamlines',
                           'nibabel.streamlines.tests',
+                          'nibabel.brainvoyager',
+                          'nibabel.brainvoyager.tests',
                           # install nisext as its own package
                           'nisext',
                           'nisext.tests'],

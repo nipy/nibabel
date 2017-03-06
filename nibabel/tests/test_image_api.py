@@ -32,11 +32,14 @@ from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
 _, have_h5py, _ = optional_package('h5py')
 
-from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
-                Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
-                MGHImage, Minc1Image, Minc2Image)
-from ..spatialimages import SpatialImage
-from .. import minc1, minc2, parrec
+from nibabel import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
+                     Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                     MGHImage, Minc1Image, Minc2Image, BvVtcImage, BvMskImage,
+                     BvVmpImage, BvVmrImage)
+from nibabel.spatialimages import (SpatialImage, supported_np_types,
+                                   supported_dimensions)
+from nibabel.ecat import EcatImage
+from nibabel import minc1, minc2, parrec
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
@@ -51,6 +54,10 @@ from .test_helpers import bytesio_round_trip, assert_data_similar
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
+from nibabel.brainvoyager.tests import BVVTC_EXAMPLE_IMAGES
+from nibabel.brainvoyager.tests import BVMSK_EXAMPLE_IMAGES
+from nibabel.brainvoyager.tests import BVVMP_EXAMPLE_IMAGES
+from nibabel.brainvoyager.tests import BVVMR_EXAMPLE_IMAGES
 
 
 class GenericImageAPI(ValidateAPI):
@@ -140,6 +147,10 @@ class GenericImageAPI(ValidateAPI):
         img = imaker()
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
+            # Ignore numpy.rint warning in python3/windows
+            warnings.filterwarnings('ignore',
+                                    'invalid value encountered in rint')
+            img = imaker()
             hdr = img.get_header()
             assert_equal(len(w), 1)
             assert_true(hdr is img.header)
@@ -160,6 +171,9 @@ class GenericImageAPI(ValidateAPI):
         # Check deprecated get_shape API
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
+            # Ignore numpy.rint warning in python3/windows
+            warnings.filterwarnings('ignore',
+                                    'invalid value encountered in rint')
             img = imaker()
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
@@ -175,12 +189,21 @@ class GenericImageAPI(ValidateAPI):
                 rt_img = bytesio_round_trip(img)
             assert_equal(rt_img.get_data_dtype().type, params['dtype'])
         # Setting to a different dtype
-        img.set_data_dtype(np.float32)  # assumed supported for all formats
-        assert_equal(img.get_data_dtype().type, np.float32)
+        new_dtype = np.float32
+        # some Image types accept only a few datatypes and shapes
+        # so we check and force a type change to a compatible dtype
+        try:
+            supported_dtypes = supported_np_types(img.header_class())
+            if new_dtype not in supported_dtypes:
+                new_dtype = supported_dtypes.pop()
+        except TypeError:
+            pass
+        img.set_data_dtype(new_dtype)
+        assert_equal(img.get_data_dtype().type, new_dtype)
         # dtype survives round trip
         if self.can_save:
             rt_img = bytesio_round_trip(img)
-            assert_equal(rt_img.get_data_dtype().type, np.float32)
+            assert_equal(rt_img.get_data_dtype().type, new_dtype)
 
     def validate_data(self, imaker, params):
         # Check get data returns array, and caches
@@ -267,7 +290,14 @@ class GenericImageAPI(ValidateAPI):
         if not self.can_save:
             raise SkipTest
         img = imaker()
-        img.set_data_dtype(np.float32)  # to avoid rounding in load / save
+        # Setting to a different dtype to avoid rounding in load / save
+        new_dtype = np.float32
+        # some Image types accept only a few datatypes and shapes
+        # so we check and force a type change to a compatible dtype
+        supported_dtypes = supported_np_types(img.header_class())
+        if new_dtype not in supported_dtypes:
+            new_dtype = supported_dtypes.pop()
+        img.set_data_dtype(new_dtype)
         # The bytesio_round_trip helper tests bytesio load / save via file_map
         rt_img = bytesio_round_trip(img)
         assert_array_equal(img.shape, rt_img.shape)
@@ -323,6 +353,8 @@ class MakeImageAPI(LoadImageAPI):
     header_maker = None
     # Example shapes for created images
     example_shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
+    # Example dtypes for created images
+    example_dtypes = (np.uint8, np.int16, np.float32)
 
     def img_from_arr_aff(self, arr, aff, header=None):
         return self.image_maker(arr, aff, header)
@@ -334,10 +366,19 @@ class MakeImageAPI(LoadImageAPI):
         # Create a new images
         aff = np.diag([1, 2, 3, 1])
 
+        # Try to retrieve allowed dims
+        supported_dims = supported_dimensions(self.header_maker())
+        self.example_shapes = (shape for shape in self.example_shapes
+                               if len(shape) in supported_dims)
+        # Try to retrieve allowed dtypes
+        supported_dtypes = supported_np_types(self.header_maker())
+        self.example_dtypes = (dtype for dtype in self.example_dtypes
+                               if dtype in supported_dtypes)
+
         def make_imaker(arr, aff, header=None):
             return lambda: self.image_maker(arr, aff, header)
         for shape in self.example_shapes:
-            for dtype in (np.uint8, np.int16, np.float32):
+            for dtype in self.example_dtypes:
                 arr = np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
                 hdr = self.header_maker()
                 hdr.set_data_dtype(dtype)
@@ -453,3 +494,39 @@ class TestMGHAPI(ImageHeaderAPI):
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'
+
+
+class TestBvVtcAPI(ImageHeaderAPI):
+    klass = image_maker = BvVtcImage
+    loader = BvVtcImage.load
+    example_images = BVVTC_EXAMPLE_IMAGES
+    has_scaling = False
+    can_save = True
+    standard_extension = '.vtc'
+
+
+class TestBvMskAPI(ImageHeaderAPI):
+    klass = image_maker = BvMskImage
+    loader = BvMskImage.load
+    example_images = BVMSK_EXAMPLE_IMAGES
+    has_scaling = False
+    can_save = True
+    standard_extension = '.msk'
+
+
+class TestBvVmpAPI(ImageHeaderAPI):
+    klass = image_maker = BvVmpImage
+    loader = BvVmpImage.load
+    example_images = BVVMP_EXAMPLE_IMAGES
+    has_scaling = False
+    can_save = True
+    standard_extension = '.vmp'
+
+
+class TestBvVmrAPI(TestBvMskAPI):
+    klass = image_maker = BvVmrImage
+    loader = BvVmrImage.load
+    example_images = BVVMR_EXAMPLE_IMAGES
+    has_scaling = False
+    can_save = True
+    standard_extension = '.vmr'

@@ -281,7 +281,7 @@ class MGHHeader(object):
         try:
             code = self._data_type_codes[datatype]
         except KeyError:
-            raise MGHError('datatype dtype "%s" not recognized' % datatype)
+            raise HeaderDataError('datatype dtype "%s" not recognized' % datatype)
         self._header_data['type'] = code
 
     def get_zooms(self):
@@ -332,6 +332,8 @@ class MGHHeader(object):
         dims = self._header_data['dims']
         # If len(dims) is 3, add a dimension. MGH header always
         # needs 4 dimensions.
+        if len(shape) == 2:
+            raise HeaderDataError('shape cannot have 2 dimensions')
         if len(shape) == 3:
             shape = list(shape)
             shape.append(1)
