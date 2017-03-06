@@ -336,7 +336,7 @@ The output data from a NIfTI image comes from:
 #. Reshaping to the output image shape;
 #. Multiplying the result by the header ``scl_slope`` value, if
    both of ``scl_slope`` and ``scl_inter`` are defined;
-#. Adding the value header ``scl_slope`` value to the result, if both of
+#. Adding the value header ``scl_inter`` value to the result, if both of
    ``scl_slope`` and ``scl_inter`` are defined;
 
 'Defined' means, the value is not NaN (not a number).
