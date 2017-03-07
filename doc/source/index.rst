@@ -70,6 +70,10 @@ contributed code and discussion (in rough order of appearance):
 * `Ariel Rokem`_
 * Eleftherios Garyfallidis
 * Jaakko Leppäkangas
+* Syam Gadde
+* Robert D. Vincent
+* Ivan Gonzalez
+* Demian Wassermann
 
 License reprise
 ===============

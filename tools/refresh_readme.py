@@ -6,6 +6,7 @@ Should be run from nibabel root (containing setup.py)
 from __future__ import print_function
 
 import os
+import runpy
 
 readme_lines = []
 with open('README.rst', 'rt') as fobj:
@@ -16,8 +17,7 @@ with open('README.rst', 'rt') as fobj:
     else:
         raise ValueError('Expected comment not found')
 
-rel = {}
-execfile(os.path.join('nibabel', 'info.py'), rel)
+rel = runpy.run_path(os.path.join('nibabel', 'info.py'))
 
 readme = ''.join(readme_lines) + '\n' + rel['LONG_DESCRIPTION']
 
