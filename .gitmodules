@@ -13,3 +13,6 @@
 [submodule "nibabel-data/parrec_oblique"]
 	path = nibabel-data/parrec_oblique
 	url = https://github.com/grlee77/parrec_oblique.git
+[submodule "nibabel-data/nitest-cifti2"]
+	path = nibabel-data/nitest-cifti2
+	url = https://github.com/demianw/nibabel-nitest-cifti2.git

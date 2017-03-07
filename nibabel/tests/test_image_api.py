@@ -47,7 +47,8 @@ from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
-from .test_helpers import bytesio_round_trip, assert_data_similar
+from .test_helpers import (bytesio_round_trip, bytesio_filemap,
+                           assert_data_similar)
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
@@ -100,38 +101,10 @@ class GenericImageAPI(ValidateAPI):
         """
         raise NotImplementedError
 
-    def validate_affine(self, imaker, params):
-        # Check affine API
-        img = imaker()
-        assert_almost_equal(img.affine, params['affine'], 6)
-        assert_equal(img.affine.dtype, np.float64)
-        img.affine[0, 0] = 1.5
-        assert_equal(img.affine[0, 0], 1.5)
-        # Read only
-        assert_raises(AttributeError, setattr, img, 'affine', np.eye(4))
-
-    def validate_affine_deprecated(self, imaker, params):
-        # Check deprecated affine API
-        img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
-            assert_almost_equal(img.get_affine(), params['affine'], 6)
-            assert_equal(len(w), 1)
-            assert_equal(img.get_affine().dtype, np.float64)
-            aff = img.get_affine()
-            aff[0, 0] = 1.5
-            assert_true(aff is img.get_affine())
-
     def validate_header(self, imaker, params):
         # Check header API
         img = imaker()
         hdr = img.header  # we can fetch it
-        # Change shape in header, check this changes img.header
-        shape = hdr.get_data_shape()
-        new_shape = (shape[0] + 1,) + shape[1:]
-        hdr.set_data_shape(new_shape)
-        assert_true(img.header is hdr)
-        assert_equal(img.header.get_data_shape(), new_shape)
         # Read only
         assert_raises(AttributeError, setattr, img, 'header', hdr)
 
@@ -144,25 +117,50 @@ class GenericImageAPI(ValidateAPI):
             assert_equal(len(w), 1)
             assert_true(hdr is img.header)
 
-    def validate_shape(self, imaker, params):
-        # Validate shape
+    def validate_filenames(self, imaker, params):
+        # Validate the filename, file_map interface
+        if not self.can_save:
+            raise SkipTest
         img = imaker()
-        # Same as expected shape
-        assert_equal(img.shape, params['shape'])
-        # Same as array shape if passed
-        if 'data' in params:
-            assert_equal(img.shape, params['data'].shape)
-        assert_equal(img.shape, img.get_data().shape)
-        # Read only
-        assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
+        img.set_data_dtype(np.float32)  # to avoid rounding in load / save
+        # Make sure the object does not have a file_map
+        img.file_map = None
+        # The bytesio_round_trip helper tests bytesio load / save via file_map
+        rt_img = bytesio_round_trip(img)
+        assert_array_equal(img.shape, rt_img.shape)
+        assert_almost_equal(img.get_data(), rt_img.get_data())
+        # Give the image a file map
+        klass = type(img)
+        rt_img.file_map = bytesio_filemap(klass)
+        # This object can now be saved and loaded from its own file_map
+        rt_img.to_file_map()
+        rt_rt_img = klass.from_file_map(rt_img.file_map)
+        assert_almost_equal(img.get_data(), rt_rt_img.get_data())
+        # get_ / set_ filename
+        fname = 'an_image' + self.standard_extension
+        img.set_filename(fname)
+        assert_equal(img.get_filename(), fname)
+        assert_equal(img.file_map['image'].filename, fname)
+        # to_ / from_ filename
+        fname = 'another_image' + self.standard_extension
+        with InTemporaryDirectory():
+            img.to_filename(fname)
+            rt_img = img.__class__.from_filename(fname)
+            assert_array_equal(img.shape, rt_img.shape)
+            assert_almost_equal(img.get_data(), rt_img.get_data())
+            del rt_img  # to allow windows to delete the directory
 
-    def validate_shape_deprecated(self, imaker, params):
-        # Check deprecated get_shape API
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
-            img = imaker()
-            assert_equal(img.get_shape(), params['shape'])
-            assert_equal(len(w), 1)
+    def validate_no_slicing(self, imaker, params):
+        img = imaker()
+        assert_raises(TypeError, img.__getitem__, 'string')
+        assert_raises(TypeError, img.__getitem__, slice(None))
+
+
+class GetSetDtypeMixin(object):
+    """ Adds dtype tests
+
+    Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
+    """
 
     def validate_dtype(self, imaker, params):
         # data / storage dtype
@@ -182,9 +180,17 @@ class GenericImageAPI(ValidateAPI):
             rt_img = bytesio_round_trip(img)
             assert_equal(rt_img.get_data_dtype().type, np.float32)
 
-    def validate_data(self, imaker, params):
+
+class DataInterfaceMixin(GetSetDtypeMixin):
+    """ Test dataobj interface for images with array backing
+
+    Use this mixin if your image has a ``dataobj`` property that contains an
+    array or an array-like thing.
+    """
+    def validate_data_interface(self, imaker, params):
         # Check get data returns array, and caches
         img = imaker()
+        assert_equal(img.shape, img.dataobj.shape)
         assert_data_similar(img.dataobj, params)
         if params['is_proxy']:
             assert_false(isinstance(img.dataobj, np.ndarray))
@@ -243,6 +249,8 @@ class GenericImageAPI(ValidateAPI):
                 img.uncache()
                 assert_array_equal(get_data_func(), 42)
                 assert_true(img.in_memory)
+        # Data shape is same as image shape
+        assert_equal(img.shape, img.get_data().shape)
         # dataobj is read only
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, 'dataobj', fake_data)
@@ -262,37 +270,80 @@ class GenericImageAPI(ValidateAPI):
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         assert_raises(AttributeError, setattr, img, '_data', fake_data)
 
-    def validate_filenames(self, imaker, params):
-        # Validate the filename, file_map interface
-        if not self.can_save:
-            raise SkipTest
+    def validate_shape(self, imaker, params):
+        # Validate shape
         img = imaker()
-        img.set_data_dtype(np.float32)  # to avoid rounding in load / save
-        # The bytesio_round_trip helper tests bytesio load / save via file_map
-        rt_img = bytesio_round_trip(img)
-        assert_array_equal(img.shape, rt_img.shape)
-        assert_almost_equal(img.get_data(), rt_img.get_data())
-        # get_ / set_ filename
-        fname = 'an_image' + self.standard_extension
-        img.set_filename(fname)
-        assert_equal(img.get_filename(), fname)
-        assert_equal(img.file_map['image'].filename, fname)
-        # to_ / from_ filename
-        fname = 'another_image' + self.standard_extension
-        with InTemporaryDirectory():
-            img.to_filename(fname)
-            rt_img = img.__class__.from_filename(fname)
-            assert_array_equal(img.shape, rt_img.shape)
-            assert_almost_equal(img.get_data(), rt_img.get_data())
-            del rt_img  # to allow windows to delete the directory
+        # Same as expected shape
+        assert_equal(img.shape, params['shape'])
+        # Same as array shape if passed
+        if 'data' in params:
+            assert_equal(img.shape, params['data'].shape)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
 
-    def validate_no_slicing(self, imaker, params):
+    def validate_shape_deprecated(self, imaker, params):
+        # Check deprecated get_shape API
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            img = imaker()
+            assert_equal(img.get_shape(), params['shape'])
+            assert_equal(len(w), 1)
+
+
+
+class HeaderShapeMixin(object):
+    """ Tests that header shape can be set and got
+
+    Add this one of your header supports ``get_data_shape`` and
+    ``set_data_shape``.
+    """
+
+    def validate_header_shape(self, imaker, params):
+        # Change shape in header, check this changes img.header
         img = imaker()
-        assert_raises(TypeError, img.__getitem__, 'string')
-        assert_raises(TypeError, img.__getitem__, slice(None))
+        hdr = img.header
+        shape = hdr.get_data_shape()
+        new_shape = (shape[0] + 1,) + shape[1:]
+        hdr.set_data_shape(new_shape)
+        assert_true(img.header is hdr)
+        assert_equal(img.header.get_data_shape(), new_shape)
 
 
-class LoadImageAPI(GenericImageAPI):
+class AffineMixin(object):
+    """ Adds test of affine property, method
+
+    Add this one if your image has an ``affine`` property.  If so, it should
+    (for now) also have a ``get_affine`` method returning the same result.
+    """
+
+    def validate_affine(self, imaker, params):
+        # Check affine API
+        img = imaker()
+        assert_almost_equal(img.affine, params['affine'], 6)
+        assert_equal(img.affine.dtype, np.float64)
+        img.affine[0, 0] = 1.5
+        assert_equal(img.affine[0, 0], 1.5)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'affine', np.eye(4))
+
+    def validate_affine_deprecated(self, imaker, params):
+        # Check deprecated affine API
+        img = imaker()
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter('always', DeprecationWarning)
+            assert_almost_equal(img.get_affine(), params['affine'], 6)
+            assert_equal(len(w), 1)
+            assert_equal(img.get_affine().dtype, np.float64)
+            aff = img.get_affine()
+            aff[0, 0] = 1.5
+            assert_true(aff is img.get_affine())
+
+
+class LoadImageAPI(GenericImageAPI,
+                   DataInterfaceMixin,
+                   AffineMixin,
+                   GetSetDtypeMixin,
+                   HeaderShapeMixin):
     # Callable returning an image from a filename
     loader = None
     # Sequence of dictionaries, where dictionaries have keys
@@ -323,9 +374,6 @@ class MakeImageAPI(LoadImageAPI):
     header_maker = None
     # Example shapes for created images
     example_shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
-
-    def img_from_arr_aff(self, arr, aff, header=None):
-        return self.image_maker(arr, aff, header)
 
     def obj_params(self):
         # Return any obj_params from superclass

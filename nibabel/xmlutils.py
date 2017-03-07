@@ -27,7 +27,8 @@ class XmlSerializable(object):
     def to_xml(self, enc='utf-8'):
         """ Output should be an xml string with the given encoding.
         (default: utf-8)"""
-        return tostring(self._to_xml_element(), enc)
+        ele = self._to_xml_element()
+        return '' if ele is None else tostring(ele, enc)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
@@ -47,7 +48,7 @@ class XmlParser(object):
                      'EndElementHandler',
                      'CharacterDataHandler']
 
-    def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
+    def __init__(self, encoding='utf-8', buffer_size=35000000, verbose=0):
         """
         Parameters
         ----------
