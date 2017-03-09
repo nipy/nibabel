@@ -343,8 +343,10 @@ class WrapStruct(object):
 
     def get(self, k, d=None):
         ''' Return value for the key k if present or d otherwise'''
-        if k in self.keys(): return self._structarr[k]
-        else:                return d
+        if k in self.keys():
+            return self._structarr[k]
+        else:
+            return d
 
     def check_fix(self, logger=None, error_level=None):
         ''' Check structured data with checks
