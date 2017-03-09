@@ -191,7 +191,7 @@ class _TestWrapStructBase(TestCase):
         if np.issubdtype(hdr_dt[0], np.number):
             falsyval = 0
         else:
-            falsyval = ''
+            falsyval = b''
 
         hdr[keys[0]] = falsyval
         assert_equal(hdr[keys[0]], falsyval)
