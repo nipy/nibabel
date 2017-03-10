@@ -183,6 +183,17 @@ class _TestWrapStructBase(TestCase):
         assert_equal(hdr.get(keys[0]), vals[0])
         assert_equal(hdr.get(keys[0], 'default'), vals[0])
 
+        # make sure .get returns values which evaluate to False. We have to
+        # use a different falsy value depending on the data type of the first
+        # header field.
+        falsyval = 0 if np.issubdtype(hdr_dt[0], np.number) else b''
+
+        hdr[keys[0]] = falsyval
+        assert_equal(hdr[keys[0]], falsyval)
+        assert_equal(hdr.get(keys[0]), falsyval)
+        assert_equal(hdr.get(keys[0], -1), falsyval)
+
+
     def test_endianness_ro(self):
         # endianness is a read only property
         ''' Its use in initialization tested in the init tests.
