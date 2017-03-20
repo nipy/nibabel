@@ -386,8 +386,8 @@ A rotation of $\gamma$ radians around the first array axis:
     \end{bmatrix} =
     \begin{bmatrix}
     1 & 0 & 0 \\
-    0 & \cos(\gamma) & 0 & -\sin(\gamma) \\
-    0 & \sin(\gamma) & 0 & \cos(\gamma) \\
+    0 & \cos(\gamma) & -\sin(\gamma) \\
+    0 & \sin(\gamma) & \cos(\gamma) \\
     \end{bmatrix}
     \begin{bmatrix}
     i\\
