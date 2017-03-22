@@ -10,7 +10,7 @@
 import numpy as np
 import itertools
 
-from six import BytesIO
+from io import BytesIO
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 

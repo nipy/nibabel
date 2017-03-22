@@ -26,7 +26,8 @@ _field_recoders -> field_recoders
 import logging
 import numpy as np
 
-from six import BytesIO, StringIO
+from io import BytesIO
+from six import StringIO
 from ..wrapstruct import WrapStructError, WrapStruct, LabeledWrapStruct
 from ..batteryrunners import Report
 

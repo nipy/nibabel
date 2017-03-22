@@ -13,7 +13,7 @@
 import numpy as np
 
 from .. import Nifti1Image, Nifti1Pair, MGHImage, all_image_classes
-from six import BytesIO
+from io import BytesIO
 from ..fileholders import FileHolderError
 from ..spatialimages import SpatialImage
 

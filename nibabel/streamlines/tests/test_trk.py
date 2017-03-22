@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from os.path import join as pjoin
 
-from six import BytesIO
+from io import BytesIO
 
 from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings, assert_arr_dict_equal
