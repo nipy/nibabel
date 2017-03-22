@@ -12,7 +12,7 @@ from __future__ import division
 import os
 from os.path import exists
 
-from six import BytesIO
+from io import BytesIO
 import tempfile
 import warnings
 import functools

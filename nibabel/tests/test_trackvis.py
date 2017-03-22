@@ -5,7 +5,7 @@ from functools import partial
 
 import numpy as np
 
-from six import BytesIO
+from io import BytesIO
 from .. import trackvis as tv
 from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code

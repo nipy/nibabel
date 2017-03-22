@@ -11,6 +11,7 @@ from __future__ import division, print_function, absolute_import
 from distutils.version import LooseVersion
 
 import numpy as np
+from io import BytesIO
 
 from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2LabelTable, Cifti2VertexIndices,
@@ -21,7 +22,6 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      CIFTI_MODEL_TYPES, _underscore, Cifti2HeaderError)
 from .. import xmlutils as xml
 from ..spatialimages import HeaderDataError
-from ..externals.six import BytesIO
 from ..batteryrunners import Report
 from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
 from ..nifti2 import Nifti2Header, Nifti2Image

@@ -13,7 +13,6 @@ import io
 
 import numpy as np
 
-from six import BytesIO
 from .. import load, save
 from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage
@@ -171,7 +170,7 @@ def test_header_updating():
     mgz = load(MGZ_FNAME)
     hdr = mgz.header
     # Test against mri_info output
-    exp_aff = np.loadtxt(BytesIO(b"""
+    exp_aff = np.loadtxt(io.BytesIO(b"""
     1.0000   2.0000   3.0000   -13.0000
     2.0000   3.0000   1.0000   -11.5000
     3.0000   1.0000   2.0000   -11.5000
@@ -182,7 +181,7 @@ def test_header_updating():
     assert_equal(hdr['delta'], 1)
     assert_almost_equal(hdr['Mdc'], exp_aff[:3, :3].T)
     # Save, reload, same thing
-    img_fobj = BytesIO()
+    img_fobj = io.BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
     hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
@@ -206,7 +205,7 @@ def test_cosine_order():
     aff[0] = [2, 1, 0, 10]
     img = MGHImage(data, aff)
     assert_almost_equal(img.affine, aff, 6)
-    img_fobj = BytesIO()
+    img_fobj = io.BytesIO()
     img2 = _mgh_rt(img, img_fobj)
     hdr2 = img2.header
     RZS = aff[:3, :3]
