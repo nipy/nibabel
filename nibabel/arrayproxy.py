@@ -162,6 +162,17 @@ class ArrayProxy(object):
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
+    def reshape(self, shape):
+        size = np.prod(self._shape)
+        if np.prod(shape) != size:
+            raise ValueError("cannot reshape array of size {:d} into shape "
+                             "{!s}".format(size, shape))
+        new_ap = ArrayProxy(file_like=self.file_like,
+                            header=self._header,
+                            mmap=self._mmap)
+        new_ap.shape = shape
+        return new_ap
+
 
 def is_proxy(obj):
     """ Return True if `obj` is an array proxy
