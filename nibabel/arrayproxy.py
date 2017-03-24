@@ -170,7 +170,7 @@ class ArrayProxy(object):
         new_ap = ArrayProxy(file_like=self.file_like,
                             header=self._header,
                             mmap=self._mmap)
-        new_ap.shape = shape
+        new_ap._shape = shape
         return new_ap
 
 
