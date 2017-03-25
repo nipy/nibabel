@@ -209,8 +209,11 @@ class LazyDict(collections.MutableMapping):
         return self.store[key]()
 
     def __setitem__(self, key, value):
-        if value is not None and not callable(value):  # TODO: why None?
-            raise TypeError("`value` must be a generator function or None.")
+        if not callable(value):
+            msg = ("Values in a `LazyDict` must be generator functions."
+                   " These are functions which, when called, return an"
+                   " instantiated generator.")
+            raise TypeError(msg)
         self.store[key] = value
 
     def __delitem__(self, key):
@@ -682,7 +685,10 @@ class LazyTractogram(Tractogram):
 
     def _set_streamlines(self, value):
         if value is not None and not callable(value):
-            raise TypeError("`streamlines` must be a generator function.")
+            msg = ("`streamlines` must be a generator function. That is a"
+                   " function which, when called, returns an instantiated"
+                   " generator.")
+            raise TypeError(msg)
         self._streamlines = value
 
     @property
