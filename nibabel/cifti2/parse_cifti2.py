@@ -147,7 +147,6 @@ class _Cifti2AsNiftiImage(Nifti2Image):
         if self.cifti_img is None:
             raise ValueError('Nifti2 header does not contain a CIFTI2 '
                              'extension')
-        self.cifti_img.data = self.get_data()
 
 
 class Cifti2Parser(xml.XmlParser):
