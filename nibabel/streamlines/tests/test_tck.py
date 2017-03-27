@@ -6,16 +6,16 @@ from os.path import join as pjoin
 from nibabel.externals.six import BytesIO
 from nibabel.py3k import asbytes
 
-from nose.tools import assert_equal, assert_raises
-
-from nibabel.testing import data_path
-from .test_tractogram import assert_tractogram_equal
 from ..array_sequence import ArraySequence
 from ..tractogram import Tractogram
 from ..tractogram_file import DataError
 
 from ..tck import TckFile
 
+from nose.tools import assert_equal, assert_raises, assert_true
+from numpy.testing import assert_array_equal
+from nibabel.testing import data_path
+from .test_tractogram import assert_tractogram_equal
 
 DATA = {}
 
@@ -61,6 +61,17 @@ class TestTCK(unittest.TestCase):
         tractogram.affine_to_rasmm = np.eye(4)
         tck = TckFile(tractogram, header=hdr)
         assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+
+    def test_writeable_data(self):
+        data = DATA['simple_tractogram']
+        for key in ('simple_tck_fname', 'simple_tck_big_endian_fname'):
+            for lazy_load in [False, True]:
+                tck = TckFile.load(DATA[key], lazy_load=lazy_load)
+                for actual, expected_tgi in zip(tck.streamlines, data):
+                    assert_array_equal(actual, expected_tgi.streamline)
+                    # Test we can write to arrays
+                    assert_true(actual.flags.writeable)
+                    actual[0, 0] = 99
 
     def test_load_simple_file_in_big_endian(self):
         for lazy_load in [False, True]:

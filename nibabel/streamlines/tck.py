@@ -21,7 +21,6 @@ from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 
 MEGABYTE = 1024 * 1024
-BUFFER_SIZE = 1000000
 
 
 def create_empty_header():
@@ -342,8 +341,8 @@ class TckFile(TractogramFile):
 
         return hdr
 
-    @staticmethod
-    def _read(fileobj, header, buffer_size=4):
+    @classmethod
+    def _read(cls, fileobj, header, buffer_size=4):
         """ Return generator that reads TCK data from `fileobj` given `header`
 
         Parameters
@@ -369,6 +368,10 @@ class TckFile(TractogramFile):
         buffer_size = int(buffer_size * MEGABYTE)
         buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
+        # Markers for streamline end and file end
+        fiber_marker = cls.FIBER_DELIMITER.astype(dtype).tostring()
+        eof_marker = cls.EOF_DELIMITER.astype(dtype).tostring()
+
         with Opener(fileobj) as f:
             start_position = f.tell()
 
@@ -376,58 +379,49 @@ class TckFile(TractogramFile):
             f.seek(header["_offset_data"], os.SEEK_SET)
 
             eof = False
-            buff = b""
-            pts = []
+            buffs = []
+            n_streams = 0
 
-            i = 0
+            while not eof:
 
-            while not eof or not np.all(np.isinf(pts)):
-
-                if not eof:
-                    bytes_read = f.read(buffer_size)
-                    buff += bytes_read
-                    eof = len(bytes_read) == 0
-
-                # Read floats.
-                pts = np.frombuffer(buff, dtype=dtype)
-
-                # Convert data to little-endian if needed.
-                if dtype != '<f4':
-                    pts = pts.astype('<f4')
-
-                pts = pts.reshape([-1, 3])
-                idx_nan = np.arange(len(pts))[np.isnan(pts[:, 0])]
+                bytes_read = f.read(buffer_size)
+                buffs.append(bytes_read)
+                eof = len(bytes_read) != buffer_size
 
                 # Make sure we've read enough to find a streamline delimiter.
-                if len(idx_nan) == 0:
+                if fiber_marker not in bytes_read:
                     # If we've read the whole file, then fail.
-                    if eof and not np.all(np.isinf(pts)):
-                        msg = ("Cannot find a streamline delimiter. This file"
-                               " might be corrupted.")
-                        raise DataError(msg)
+                    if eof:
+                        # Could have minimal buffering, and have read only the
+                        # EOF delimiter
+                        buffs = [b''.join(buffs)]
+                        if not buffs[0] == eof_marker:
+                            raise DataError(
+                                "Cannot find a streamline delimiter. This file"
+                                " might be corrupted.")
+                    else:
+                        # Otherwise read a bit more.
+                        continue
 
-                    # Otherwise read a bit more.
-                    continue
+                all_parts = b''.join(buffs).split(fiber_marker)
+                point_parts, buffs = all_parts[:-1], all_parts[-1:]
+                point_parts = [p for p in point_parts if p != b'']
 
-                nb_pts_total = 0
-                idx_start = 0
-                for idx_end in idx_nan:
-                    nb_pts = len(pts[idx_start:idx_end, :])
-                    nb_pts_total += nb_pts
+                for point_part in point_parts:
+                    # Read floats.
+                    pts = np.frombuffer(point_part, dtype=dtype)
+                    # Enforce ability to write to underlying bytes object
+                    pts.flags.writeable = True
+                    # Convert data to little-endian if needed.
+                    yield pts.astype('<f4', copy=False).reshape([-1, 3])
 
-                    if nb_pts > 0:
-                        yield pts[idx_start:idx_end, :]
-                        i += 1
+                n_streams += len(point_parts)
 
-                    idx_start = idx_end + 1
-
-                # Remove pts plus the first triplet of NaN.
-                nb_tiplets_to_remove = nb_pts_total + len(idx_nan)
-                nb_bytes_to_remove = nb_tiplets_to_remove * 3 * dtype.itemsize
-                buff = buff[nb_bytes_to_remove:]
+            if not buffs[-1] == eof_marker:
+                raise DataError('Expecting end-of-file marker ' 'inf inf inf')
 
             # In case the 'count' field was not provided.
-            header[Field.NB_STREAMLINES] = i
+            header[Field.NB_STREAMLINES] = n_streams
 
             # Set the file position where it was (in case it was already open).
             f.seek(start_position, os.SEEK_CUR)
