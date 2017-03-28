@@ -45,14 +45,17 @@ class ArrayProxy(object):
     of the numpy dtypes, starting at a given file position ``offset`` with
     single ``slope`` and ``intercept`` scaling to produce output values.
 
-    The class ``__init__`` requires a ``header`` object with methods:
+    The class ``__init__`` requires a spec which defines how the data will be
+    read and rescaled. The spec may be a tuple of length 2 - 5, containing the
+    shape, storage dtype, offset, slope and intercept, or a ``header`` object
+    with methods:
 
     * get_data_shape
     * get_data_dtype
     * get_data_offset
     * get_slope_inter
 
-    The header should also have a 'copy' method.  This requirement will go away
+    A header should also have a 'copy' method.  This requirement will go away
     when the deprecated 'header' propoerty goes away.
 
     This implementation allows us to deal with Analyze and its variants,
@@ -64,9 +67,10 @@ class ArrayProxy(object):
     """
     # Assume Fortran array memory layout
     order = 'F'
+    _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True):
+    def __init__(self, file_like, spec, mmap=True):
         """ Initialize array proxy instance
 
         Parameters
@@ -74,7 +78,21 @@ class ArrayProxy(object):
         file_like : object
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
-        header : object
+        spec : object or tuple
+            Tuple must have length 2-5, with the following fields:
+                - shape : tuple
+                    tuple of ints describing shape of data
+                - storage_dtype : dtype specifier
+                    dtype of array inside proxied file, or input to ``numpy.dtype``
+                    to specify array dtype
+                - offset : int
+                    Offset, in bytes, of data array from start of file
+                    (default: 0)
+                - slope : float
+                    Scaling factor for resulting data (default: 1.0)
+                - inter : float
+                    Intercept for rescaled dadta (default: 0.0)
+            OR
             Header object implementing ``get_data_shape``, ``get_data_dtype``,
             ``get_data_offset``, ``get_slope_inter``
         mmap : {True, False, 'c', 'r'}, optional, keyword only
@@ -90,16 +108,26 @@ class ArrayProxy(object):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
+        if hasattr(spec, 'get_data_shape'):
+            slope, inter = spec.get_slope_inter()
+            par = (spec.get_data_shape(),
+                   spec.get_data_dtype(),
+                   spec.get_data_offset(),
+                   1. if slope is None else slope,
+                   0. if inter is None else inter)
+            # Reference to original header; we will remove this soon
+            self._header = spec.copy()
+        elif 2 <= len(spec) <= 5:
+            optional = (0, 1., 0.)
+            par = spec + optional[len(spec) - 2:]
+        else:
+            raise TypeError('spec must be tuple of length 2-5 or header object')
+
         # Copies of values needed to read array
-        self._shape = header.get_data_shape()
-        self._dtype = header.get_data_dtype()
-        self._offset = header.get_data_offset()
-        self._slope, self._inter = header.get_slope_inter()
-        self._slope = 1.0 if self._slope is None else self._slope
-        self._inter = 0.0 if self._inter is None else self._inter
+        self._shape, self._dtype, self._offset, self._slope, self._inter = par
+        # Permit any specifier that can be interpreted as a numpy dtype
+        self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        # Reference to original header; we will remove this soon
-        self._header = header.copy()
 
     @property
     def header(self):
