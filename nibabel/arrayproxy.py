@@ -25,10 +25,9 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
-import warnings
-
 import numpy as np
 
+from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
@@ -130,10 +129,8 @@ class ArrayProxy(object):
         self._mmap = mmap
 
     @property
+    @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
     def header(self):
-        warnings.warn('We will remove the header property from proxies soon',
-                      FutureWarning,
-                      stacklevel=2)
         return self._header
 
     @property
