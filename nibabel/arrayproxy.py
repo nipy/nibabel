@@ -194,13 +194,23 @@ class ArrayProxy(object):
         ``np.reshape(array_proxy, shape)``
         '''
         size = np.prod(self._shape)
-        if np.prod(shape) != size:
+
+        # Calculate new shape if not fully specified
+        shape_arr = np.asarray(shape)
+        unknowns = shape_arr == -1
+        if len(unknowns) > 1:
+            raise ValueError("can only specify one unknown dimension")
+        elif len(unknowns) == 1:
+            uk_val = size // np.prod(shape_arr[~unknowns])
+            shape_arr[unknowns] = uk_val
+
+        if shape_arr.prod() != size:
             raise ValueError("cannot reshape array of size {:d} into shape "
                              "{!s}".format(size, shape))
-        return ArrayProxy(file_like=self.file_like,
-                          spec=(shape, self._dtype, self._offset,
-                                self._slope, self._inter),
-                          mmap=self._mmap)
+        return self.__class__(file_like=self.file_like,
+                              spec=(shape, self._dtype, self._offset,
+                                    self._slope, self._inter),
+                              mmap=self._mmap)
 
 
 def is_proxy(obj):
