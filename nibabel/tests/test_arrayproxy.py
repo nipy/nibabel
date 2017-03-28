@@ -90,11 +90,13 @@ def test_tuplespec():
     arr = np.arange(24, dtype=dtype).reshape(shape)
     bio.seek(16)
     bio.write(arr.tostring(order='F'))
+    # Create equivalent header and tuple specs
     hdr = FunkyHeader(shape)
     tuple_spec = (hdr.get_data_shape(), hdr.get_data_dtype(),
                   hdr.get_data_offset(), 1., 0.)
     ap_header = ArrayProxy(bio, hdr)
     ap_tuple = ArrayProxy(bio, tuple_spec)
+    # Header and tuple specs produce identical behavior
     for prop in ('shape', 'dtype', 'offset', 'slope', 'inter', 'is_proxy'):
         assert_equal(getattr(ap_header, prop), getattr(ap_tuple, prop))
     for method, args in (('get_unscaled', ()), ('__array__', ()),
@@ -102,6 +104,8 @@ def test_tuplespec():
                          ):
         assert_array_equal(getattr(ap_header, method)(*args),
                            getattr(ap_tuple, method)(*args))
+    # Tuple-defined ArrayProxies have no header to store
+    assert_true(ap_tuple.header is None)
 
 
 def write_raw_data(arr, hdr, fileobj):

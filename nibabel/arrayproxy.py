@@ -78,7 +78,7 @@ class ArrayProxy(object):
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
         spec : object or tuple
-            Tuple must have length 2-5, with the following fields:
+            Tuple must have length 2-5, with the following values.
                 - shape : tuple
                     tuple of ints describing shape of data
                 - storage_dtype : dtype specifier
@@ -90,7 +90,7 @@ class ArrayProxy(object):
                 - slope : float
                     Scaling factor for resulting data (default: 1.0)
                 - inter : float
-                    Intercept for rescaled dadta (default: 0.0)
+                    Intercept for rescaled data (default: 0.0)
             OR
             Header object implementing ``get_data_shape``, ``get_data_dtype``,
             ``get_data_offset``, ``get_slope_inter``
@@ -188,6 +188,11 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def reshape(self, shape):
+        ''' Return an ArrayProxy with a new shape, without modifying data
+
+        ``array_proxy.reshape(shape)`` is equivalent to
+        ``np.reshape(array_proxy, shape)``
+        '''
         size = np.prod(self._shape)
         if np.prod(shape) != size:
             raise ValueError("cannot reshape array of size {:d} into shape "
