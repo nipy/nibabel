@@ -83,6 +83,27 @@ def test_init():
     assert_array_equal(np.asarray(ap), arr)
 
 
+def test_tuplespec():
+    bio = BytesIO()
+    shape = [2, 3, 4]
+    dtype = np.int32
+    arr = np.arange(24, dtype=dtype).reshape(shape)
+    bio.seek(16)
+    bio.write(arr.tostring(order='F'))
+    hdr = FunkyHeader(shape)
+    tuple_spec = (hdr.get_data_shape(), hdr.get_data_dtype(),
+                  hdr.get_data_offset(), 1., 0.)
+    ap_header = ArrayProxy(bio, hdr)
+    ap_tuple = ArrayProxy(bio, tuple_spec)
+    for prop in ('shape', 'dtype', 'offset', 'slope', 'inter', 'is_proxy'):
+        assert_equal(getattr(ap_header, prop), getattr(ap_tuple, prop))
+    for method, args in (('get_unscaled', ()), ('__array__', ()),
+                         ('__getitem__', ((0, 2, 1), ))
+                         ):
+        assert_array_equal(getattr(ap_header, method)(*args),
+                           getattr(ap_tuple, method)(*args))
+
+
 def write_raw_data(arr, hdr, fileobj):
     hdr.set_data_shape(arr.shape)
     hdr.set_data_dtype(arr.dtype)
@@ -183,6 +204,14 @@ def test_reshape_dataobj():
     assert_array_equal(reshape_dataobj(ArrGiver(), (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
     assert_equal(arr.shape, shape)
+
+
+def test_reshaped_is_proxy():
+    shape = (1, 2, 3, 4)
+    hdr = FunkyHeader(shape)
+    bio = BytesIO()
+    prox = ArrayProxy(bio, hdr)
+    assert_true(isinstance(prox.reshape((2, 3, 4)), ArrayProxy))
 
 
 def test_get_unscaled():
