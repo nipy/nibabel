@@ -195,11 +195,10 @@ class ArrayProxy(object):
         if np.prod(shape) != size:
             raise ValueError("cannot reshape array of size {:d} into shape "
                              "{!s}".format(size, shape))
-        new_ap = ArrayProxy(file_like=self.file_like,
-                            header=self._header,
-                            mmap=self._mmap)
-        new_ap._shape = shape
-        return new_ap
+        return ArrayProxy(file_like=self.file_like,
+                          spec=(shape, self._dtype, self._offset,
+                                self._slope, self._inter),
+                          mmap=self._mmap)
 
 
 def is_proxy(obj):
