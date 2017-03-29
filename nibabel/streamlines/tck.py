@@ -7,7 +7,6 @@ from __future__ import division
 
 import os
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 
@@ -25,7 +24,7 @@ MEGABYTE = 1024 * 1024
 
 def create_empty_header():
     ''' Return an empty compliant TCK header. '''
-    header = OrderedDict()
+    header = {}
 
     # Default values
     header[Field.MAGIC_NUMBER] = TckFile.MAGIC_NUMBER
@@ -45,14 +44,14 @@ class TckFile(TractogramFile):
 
     Moreover, streamlines coordinates coming from a TCK file are considered
     to be in world space (RAS+ and mm space). MRtrix refers to that space
-    as the "real" or "scanner" space _[1].
+    as the "real" or "scanner" space [1]_.
 
     References
     ----------
     [1] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
     """
 
-    # Contants
+    # Constants
     MAGIC_NUMBER = "mrtrix tracks"
     SUPPORTS_DATA_PER_POINT = False  # Not yet
     SUPPORTS_DATA_PER_STREAMLINE = False  # Not yet
@@ -66,8 +65,9 @@ class TckFile(TractogramFile):
         ----------
         tractogram : :class:`Tractogram` object
             Tractogram that will be contained in this :class:`TckFile`.
-        header : dict (optional)
-            Metadata associated to this tractogram file.
+        header : None or dict, optional
+            Metadata associated to this tractogram file. If None, make
+            default empty header.
 
         Notes
         -----
@@ -214,7 +214,7 @@ class TckFile(TractogramFile):
             for t in tractogram:
                 s = t.streamline.astype(dtype)
                 data = np.r_[s, self.FIBER_DELIMITER]
-                f.write(asbytes(data.tostring()))
+                f.write(data.tostring())
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
@@ -283,7 +283,7 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
+            If string, a filename; otherwise an open binary file-like object
             pointing to TCK file (and ready to read from the beginning
             of the TCK header). Note that calling this function
             does not change the file position.

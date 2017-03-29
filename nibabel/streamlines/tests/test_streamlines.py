@@ -246,11 +246,9 @@ class TestLoadSave(unittest.TestCase):
                     # If streamlines format does not support saving data
                     # per point or data per streamline, warning messages
                     # should be issued.
-                    nb_expected_warnings = 0
-                    if not cls.SUPPORTS_DATA_PER_POINT:
-                        nb_expected_warnings += 1
-                    if not cls.SUPPORTS_DATA_PER_STREAMLINE:
-                        nb_expected_warnings += 1
+                    nb_expected_warnings = \
+                        ((not cls.SUPPORTS_DATA_PER_POINT) +
+                         (not cls.SUPPORTS_DATA_PER_STREAMLINE))
 
                     assert_equal(len(w), nb_expected_warnings)
                     for i in range(nb_expected_warnings):

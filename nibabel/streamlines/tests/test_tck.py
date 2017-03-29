@@ -31,9 +31,9 @@ def setup():
     # standard.tck contains only streamlines
     DATA['standard_tck_fname'] = pjoin(data_path, "standard.tck")
 
-    DATA['streamlines'] = [np.arange(1*3, dtype="f4").reshape((1, 3)),
-                           np.arange(2*3, dtype="f4").reshape((2, 3)),
-                           np.arange(5*3, dtype="f4").reshape((5, 3))]
+    DATA['streamlines'] = [np.arange(1 * 3, dtype="f4").reshape((1, 3)),
+                           np.arange(2 * 3, dtype="f4").reshape((2, 3)),
+                           np.arange(5 * 3, dtype="f4").reshape((5, 3))]
 
     DATA['empty_tractogram'] = Tractogram(affine_to_rasmm=np.eye(4))
     DATA['simple_tractogram'] = Tractogram(DATA['streamlines'],
