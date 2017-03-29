@@ -105,7 +105,8 @@ def test_tuplespec():
         assert_array_equal(getattr(ap_header, method)(*args),
                            getattr(ap_tuple, method)(*args))
     # Tuple-defined ArrayProxies have no header to store
-    assert_true(ap_tuple.header is None)
+    with warnings.catch_warnings():
+        assert_true(ap_tuple.header is None)
 
 
 def write_raw_data(arr, hdr, fileobj):
@@ -216,6 +217,10 @@ def test_reshaped_is_proxy():
     bio = BytesIO()
     prox = ArrayProxy(bio, hdr)
     assert_true(isinstance(prox.reshape((2, 3, 4)), ArrayProxy))
+    minus1 = prox.reshape((2, -1, 4))
+    assert_true(isinstance(minus1, ArrayProxy))
+    assert_equal(minus1.shape, (2, 3, 4))
+    assert_raises(ValueError, prox.reshape, (-1, -1, 4))
 
 
 def test_get_unscaled():
