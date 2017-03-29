@@ -81,6 +81,8 @@ def test_init():
     bio.write(arr.tostring(order='C'))
     ap = CArrayProxy(bio, FunkyHeader((2, 3, 4)))
     assert_array_equal(np.asarray(ap), arr)
+    # Illegal init
+    assert_raises(TypeError, ArrayProxy, bio, object())
 
 
 def test_tuplespec():
@@ -107,6 +109,13 @@ def test_tuplespec():
     # Tuple-defined ArrayProxies have no header to store
     with warnings.catch_warnings():
         assert_true(ap_tuple.header is None)
+    # Partial tuples of length 2-4 are also valid
+    for n in range(2, 5):
+        ArrayProxy(bio, tuple_spec[:n])
+    # Bad tuple lengths
+    assert_raises(TypeError, ArrayProxy, bio, ())
+    assert_raises(TypeError, ArrayProxy, bio, tuple_spec[:1])
+    assert_raises(TypeError, ArrayProxy, bio, tuple_spec + ('error',))
 
 
 def write_raw_data(arr, hdr, fileobj):
