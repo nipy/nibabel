@@ -188,23 +188,21 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def reshape(self, shape):
-        ''' Return an ArrayProxy with a new shape, without modifying data
-
-        ``array_proxy.reshape(shape)`` is equivalent to
-        ``np.reshape(array_proxy, shape)``
-        '''
+        ''' Return an ArrayProxy with a new shape, without modifying data '''
         size = np.prod(self._shape)
 
         # Calculate new shape if not fully specified
-        shape_arr = np.asarray(shape)
-        unknowns = shape_arr == -1
-        if len(unknowns) > 1:
+        from operator import mul
+        from functools import reduce
+        n_unknowns = len([e for e in shape if e == -1])
+        if n_unknowns > 1:
             raise ValueError("can only specify one unknown dimension")
-        elif len(unknowns) == 1:
-            uk_val = size // np.prod(shape_arr[~unknowns])
-            shape_arr[unknowns] = uk_val
+        elif n_unknowns == 1:
+            known_size = reduce(mul, shape, -1)
+            unknown_size = size // known_size
+            shape = tuple(unknown_size if e == -1 else e for e in shape)
 
-        if shape_arr.prod() != size:
+        if np.prod(shape) != size:
             raise ValueError("cannot reshape array of size {:d} into shape "
                              "{!s}".format(size, shape))
         return self.__class__(file_like=self.file_like,
