@@ -230,6 +230,8 @@ def test_reshaped_is_proxy():
     assert_true(isinstance(minus1, ArrayProxy))
     assert_equal(minus1.shape, (2, 3, 4))
     assert_raises(ValueError, prox.reshape, (-1, -1, 4))
+    assert_raises(ValueError, prox.reshape, (2, 3, 5))
+    assert_raises(ValueError, prox.reshape, (2, -1, 5))
 
 
 def test_get_unscaled():
