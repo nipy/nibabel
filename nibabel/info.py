@@ -186,7 +186,7 @@ the top of the release notes.  Click on the badge for more information.
 # doc/source/installation.rst
 # requirements.txt
 # .travis.yml
-NUMPY_MIN_VERSION = '1.6.0'
+NUMPY_MIN_VERSION = '1.7.1'
 PYDICOM_MIN_VERSION = '0.9.7'
 SIX_MIN_VERSION = '1.3'
 
