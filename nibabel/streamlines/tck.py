@@ -241,7 +241,7 @@ class TckFile(TractogramFile):
                    "count", "datatype", "file"]  # Fields being replaced.
 
         lines = []
-        lines.append(header[Field.MAGIC_NUMBER])
+        lines.append(asstr(header[Field.MAGIC_NUMBER]))
         lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
         lines.append("datatype: Float32LE")  # Always Float32LE.
         lines.extend(["{0}: {1}".format(k, v)
@@ -298,7 +298,8 @@ class TckFile(TractogramFile):
 
         with Opener(fileobj) as f:
             # Read magic number
-            magic_number = asstr(f.fobj.readline()).strip()
+            #magic_number = asstr(f.fobj.readline()).strip()
+            magic_number = f.fobj.readline().strip()
 
             # Read all key-value pairs contained in the header.
             buf = asstr(f.fobj.readline())
