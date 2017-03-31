@@ -3,18 +3,19 @@ import unittest
 import numpy as np
 from os.path import join as pjoin
 
-from nibabel.externals.six import BytesIO
+from six import BytesIO
 from nibabel.py3k import asbytes
 
 from ..array_sequence import ArraySequence
 from ..tractogram import Tractogram
-from ..tractogram_file import DataError
+from ..tractogram_file import HeaderWarning, DataError
 
+from .. import tck as tck_module
 from ..tck import TckFile
 
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
-from nibabel.testing import data_path
+from nibabel.testing import data_path, clear_and_catch_warnings
 from .test_tractogram import assert_tractogram_equal
 
 DATA = {}
@@ -88,6 +89,27 @@ class TestTCK(unittest.TestCase):
                                         asbytes("Float32BE"))
         assert_raises(DataError, TckFile.load, BytesIO(new_tck_file))
 
+        # Simulate a TCK file with no `datatype` field.
+        new_tck_file = tck_file.replace(b"datatype: Float32LE\n", b"")
+        # Adjust data offset
+        new_tck_file = new_tck_file.replace(b"\nfile: . 67\n", b"\nfile: . 47\n")
+        with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
+            tck = TckFile.load(BytesIO(new_tck_file))
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("Missing 'datatype'" in str(w[0].message))
+            assert_array_equal(tck.header['datatype'], "Float32LE")
+
+        # Simulate a TCK file with no `file` field.
+        # Adjust data offset
+        new_tck_file = tck_file.replace(b"\nfile: . 67", b"")
+        with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
+            tck = TckFile.load(BytesIO(new_tck_file))
+            assert_equal(len(w), 1)
+            assert_true(issubclass(w[0].category, HeaderWarning))
+            assert_true("Missing 'file'" in str(w[0].message))
+            assert_array_equal(tck.header['file'], ". 56")
+
     def test_write_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
 
@@ -124,15 +146,6 @@ class TestTCK(unittest.TestCase):
         tck_file.seek(0, os.SEEK_SET)
         assert_equal(tck_file.read(),
                      open(DATA['simple_tck_fname'], 'rb').read())
-
-        # # Add custom header fields.
-        # tck_file = BytesIO()
-        # tck = TckFile(tractogram)
-        # # tck.header['Custom_field'] = "Some_value"
-        # tck.save(tck_file)
-        # tck_file.seek(0, os.SEEK_SET)
-        # new_tck = TckFile.load(tck_file)
-        # assert_equal(tck.header, new_tck.header)
 
     def test_load_write_file(self):
         for fname in [DATA['empty_tck_fname'],

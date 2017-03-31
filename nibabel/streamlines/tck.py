@@ -15,7 +15,8 @@ from nibabel.py3k import asbytes, asstr
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile
-from .tractogram_file import HeaderError, DataWarning, DataError
+from .tractogram_file import HeaderWarning, DataWarning
+from .tractogram_file import HeaderError, DataError
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
 
@@ -306,21 +307,29 @@ class TckFile(TractogramFile):
             while not buf.rstrip().endswith("END"):
                 buf += asstr(f.fobj.readline())
 
+            offset_data = f.tell()
+
         # Build header dictionary from the buffer.
         hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
         hdr[Field.MAGIC_NUMBER] = magic_number
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
-            raise HeaderError("Missing 'datatype' attribute in TCK header.")
+            msg = ("Missing 'datatype' attribute in TCK header."
+                   " Assuming it is Float32LE.")
+            warnings.warn(msg, HeaderWarning)
+            hdr['datatype'] = "Float32LE"
 
         if not hdr['datatype'].startswith('Float32'):
-            msg = ("TCK only supports float32 dtype but 'dataype: {}' was"
+            msg = ("TCK only supports float32 dtype but 'datatype: {}' was"
                    " specified in the header.").format(hdr['datatype'])
             raise HeaderError(msg)
 
         if 'file' not in hdr:
-            raise HeaderError("Missing 'file' attribute in TCK header.")
+            msg = ("Missing 'file' attribute in TCK header."
+                   " Will try to guess it.")
+            warnings.warn(msg, HeaderWarning)
+            hdr['file'] = '. {}'.format(offset_data)
 
         if hdr['file'].split()[0] != '.':
             msg = ("TCK only supports single-file - in other words the"
