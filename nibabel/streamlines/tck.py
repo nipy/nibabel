@@ -300,7 +300,6 @@ class TckFile(TractogramFile):
 
         with Opener(fileobj) as f:
             # Read magic number
-            #magic_number = asstr(f.fobj.readline()).strip()
             magic_number = f.fobj.readline().strip()
 
             # Read all key-value pairs contained in the header.
