@@ -8,7 +8,8 @@ from nibabel.py3k import asbytes
 
 from ..array_sequence import ArraySequence
 from ..tractogram import Tractogram
-from ..tractogram_file import HeaderWarning, DataError
+from ..tractogram_file import HeaderWarning, HeaderError
+from ..tractogram_file import DataError
 
 from .. import tck as tck_module
 from ..tck import TckFile
@@ -84,15 +85,20 @@ class TestTCK(unittest.TestCase):
     def test_load_file_with_wrong_information(self):
         tck_file = open(DATA['simple_tck_fname'], 'rb').read()
 
-        # Simulate a TCK file where `datatype` was incorrectly provided.
+        # Simulate a TCK file where `datatype` has not the right endianness.
         new_tck_file = tck_file.replace(asbytes("Float32LE"),
                                         asbytes("Float32BE"))
         assert_raises(DataError, TckFile.load, BytesIO(new_tck_file))
 
+        # Simulate a TCK file with unsupported `datatype`.
+        new_tck_file = tck_file.replace(asbytes("Float32LE"),
+                                        asbytes("int32"))
+        assert_raises(HeaderError, TckFile.load, BytesIO(new_tck_file))
+
         # Simulate a TCK file with no `datatype` field.
         new_tck_file = tck_file.replace(b"datatype: Float32LE\n", b"")
-        # Adjust data offset
-        new_tck_file = new_tck_file.replace(b"\nfile: . 67\n", b"\nfile: . 47\n")
+        # Need to adjust data offset.
+        new_tck_file = new_tck_file.replace(b"file: . 67\n", b"file: . 47\n")
         with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
             tck = TckFile.load(BytesIO(new_tck_file))
             assert_equal(len(w), 1)
@@ -101,7 +107,6 @@ class TestTCK(unittest.TestCase):
             assert_array_equal(tck.header['datatype'], "Float32LE")
 
         # Simulate a TCK file with no `file` field.
-        # Adjust data offset
         new_tck_file = tck_file.replace(b"\nfile: . 67", b"")
         with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
             tck = TckFile.load(BytesIO(new_tck_file))
@@ -109,6 +114,26 @@ class TestTCK(unittest.TestCase):
             assert_true(issubclass(w[0].category, HeaderWarning))
             assert_true("Missing 'file'" in str(w[0].message))
             assert_array_equal(tck.header['file'], ". 56")
+
+        # Simulate a TCK file with `file` field pointing to another file.
+        new_tck_file = tck_file.replace(b"file: . 67\n",
+                                        b"file: dummy.mat 75\n")
+        assert_raises(HeaderError, TckFile.load, BytesIO(new_tck_file))
+
+        # Simulate a TCK file which is missing a streamline delimiter.
+        eos = TckFile.FIBER_DELIMITER.tostring()
+        eof = TckFile.EOF_DELIMITER.tostring()
+        new_tck_file = tck_file[:-(len(eos) + len(eof))] + tck_file[-len(eof):]
+
+        # Force TCK loading to use buffering.
+        buffer_size = 1. / 1024**2  # 1 bytes
+        hdr = TckFile._read_header(BytesIO(new_tck_file))
+        tck_reader = TckFile._read(BytesIO(new_tck_file), hdr, buffer_size)
+        assert_raises(DataError, list, tck_reader)
+
+        # Simulate a TCK file which is missing the end-of-file delimiter.
+        new_tck_file = tck_file[:-len(eof)]
+        assert_raises(DataError, TckFile.load, BytesIO(new_tck_file))
 
     def test_write_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
@@ -146,6 +171,15 @@ class TestTCK(unittest.TestCase):
         tck_file.seek(0, os.SEEK_SET)
         assert_equal(tck_file.read(),
                      open(DATA['simple_tck_fname'], 'rb').read())
+
+        # TCK file containing not well formatted entries in its header.
+        tck_file = BytesIO()
+        tck = TckFile(tractogram)
+        tck.header['new_entry'] = 'value\n'  # \n not allowed
+        assert_raises(HeaderError, tck.save, tck_file)
+
+        tck.header['new_entry'] = 'val:ue'  # : not allowed
+        assert_raises(HeaderError, tck.save, tck_file)
 
     def test_load_write_file(self):
         for fname in [DATA['empty_tck_fname'],

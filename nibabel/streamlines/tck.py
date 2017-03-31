@@ -256,7 +256,8 @@ class TckFile(TractogramFile):
             msg = "Key-value pairs cannot contain '\\n':\n{}".format(out)
             raise HeaderError(msg)
 
-        if out.count(":") > len(lines):  # : only one per line.
+        if out.count(":") > len(lines) - 1:
+            # : only one per line (except the last one which contains END).
             msg = "Key-value pairs cannot contain ':':\n{}".format(out)
             raise HeaderError(msg)
 
@@ -428,7 +429,7 @@ class TckFile(TractogramFile):
                 n_streams += len(point_parts)
 
             if not buffs[-1] == eof_marker:
-                raise DataError('Expecting end-of-file marker ' 'inf inf inf')
+                raise DataError("Expecting end-of-file marker 'inf inf inf'")
 
             # In case the 'count' field was not provided.
             header[Field.NB_STREAMLINES] = n_streams
