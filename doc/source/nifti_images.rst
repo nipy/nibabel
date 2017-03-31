@@ -263,7 +263,7 @@ The qform affine
 
 This affine can be calculated from a combination of the voxel sizes (entries 1
 through 4 of the ``pixdim`` field), a sign flip called ``qfac`` stored in
-entry 0 of ``pixdim``, and a `quaternion <wikipedia quaternion>`_ that can be
+entry 0 of ``pixdim``, and a `quaternion <https://en.wikipedia.org/wiki/Quaternion>`_ that can be
 reconstructed from fields ``quatern_b``, ``quatern_c``, ``quatern_d``.
 
 See the code for the :meth:`get_qform() method
