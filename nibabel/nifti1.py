@@ -1260,7 +1260,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         This is stored in one byte in the header
         '''
         for inp in (freq, phase, slice):
-            if inp not in (None, 0, 1, 2):
+            if inp is not None and inp not in (0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
