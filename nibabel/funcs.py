@@ -221,22 +221,9 @@ def as_closest_canonical(img, enforce_diag=False):
     # check if we are going to end up with something diagonal
     if enforce_diag and not _aff_is_diag(aff):
         raise OrientationError('Transformed affine is not diagonal')
-    # we need to transform the data
-    arr = img.get_data()
-    t_arr = apply_orientation(arr, ornt)
-    # Also apply the transform to the dim_info fields
-    new_hdr = img.header.copy()
-    new_dim = list(new_hdr.get_dim_info())
-    for idx, value in enumerate(new_dim):
-        # For each value, leave as None if it was that way,
-        # otherwise check where we have mapped it to
-        if value is None:
-            continue
-        new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
-    new_hdr.set_dim_info(*new_dim)
 
-    return img.__class__(t_arr, out_aff, new_hdr)
-
+    # Get the image class to transform the data for us
+    return img.transpose(ornt, out_aff)
 
 def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
