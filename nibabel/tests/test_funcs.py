@@ -12,6 +12,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 from ..funcs import concat_images, as_closest_canonical, OrientationError
+from ..analyze import AnalyzeImage
 from ..nifti1 import Nifti1Image
 from ..loadsave import save
 
@@ -128,8 +129,24 @@ def test_concat():
 
 
 def test_closest_canonical():
-    arr = np.arange(24).reshape((2, 3, 4, 1))
-    # no funky stuff, returns same thing
+    # Use 32-bit data so that the AnalyzeImage class doesn't complain
+    arr = np.arange(24).reshape((2, 3, 4, 1)).astype(np.int32)
+
+    # Test with an AnalyzeImage first
+    img = AnalyzeImage(arr, np.eye(4))
+    xyz_img = as_closest_canonical(img)
+    assert_true(img is xyz_img)
+
+    # And a case where the Analyze image has to be flipped
+    img = AnalyzeImage(arr, np.diag([-1, 1, 1, 1]))
+    xyz_img = as_closest_canonical(img)
+    assert_false(img is xyz_img)
+    out_arr = xyz_img.get_data()
+    assert_array_equal(out_arr, np.flipud(arr))
+
+    # Now onto the NIFTI cases (where dim_info also has to be updated)
+
+    # No funky stuff, returns same thing
     img = Nifti1Image(arr, np.eye(4))
     # set freq/phase/slice dim so that we can check that we
     # re-order them properly
