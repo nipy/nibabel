@@ -11,7 +11,7 @@
 import numpy as np
 
 from .orientations import (io_orientation, inv_ornt_aff,
-                           apply_orientation, OrientationError)
+                           OrientationError)
 from .loadsave import load
 
 
@@ -224,6 +224,7 @@ def as_closest_canonical(img, enforce_diag=False):
 
     # Get the image class to transform the data for us
     return img.transpose(ornt, out_aff)
+
 
 def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
