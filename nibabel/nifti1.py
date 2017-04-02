@@ -1954,8 +1954,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
         return self.__class__(t_arr, new_aff, new_hdr)
 
 
-
-
 class Nifti1Image(Nifti1Pair):
     """ Class for single file NIfTI1 format image
     """
