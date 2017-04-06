@@ -81,6 +81,41 @@ def test_init():
     bio.write(arr.tostring(order='C'))
     ap = CArrayProxy(bio, FunkyHeader((2, 3, 4)))
     assert_array_equal(np.asarray(ap), arr)
+    # Illegal init
+    assert_raises(TypeError, ArrayProxy, bio, object())
+
+
+def test_tuplespec():
+    bio = BytesIO()
+    shape = [2, 3, 4]
+    dtype = np.int32
+    arr = np.arange(24, dtype=dtype).reshape(shape)
+    bio.seek(16)
+    bio.write(arr.tostring(order='F'))
+    # Create equivalent header and tuple specs
+    hdr = FunkyHeader(shape)
+    tuple_spec = (hdr.get_data_shape(), hdr.get_data_dtype(),
+                  hdr.get_data_offset(), 1., 0.)
+    ap_header = ArrayProxy(bio, hdr)
+    ap_tuple = ArrayProxy(bio, tuple_spec)
+    # Header and tuple specs produce identical behavior
+    for prop in ('shape', 'dtype', 'offset', 'slope', 'inter', 'is_proxy'):
+        assert_equal(getattr(ap_header, prop), getattr(ap_tuple, prop))
+    for method, args in (('get_unscaled', ()), ('__array__', ()),
+                         ('__getitem__', ((0, 2, 1), ))
+                         ):
+        assert_array_equal(getattr(ap_header, method)(*args),
+                           getattr(ap_tuple, method)(*args))
+    # Tuple-defined ArrayProxies have no header to store
+    with warnings.catch_warnings():
+        assert_true(ap_tuple.header is None)
+    # Partial tuples of length 2-4 are also valid
+    for n in range(2, 5):
+        ArrayProxy(bio, tuple_spec[:n])
+    # Bad tuple lengths
+    assert_raises(TypeError, ArrayProxy, bio, ())
+    assert_raises(TypeError, ArrayProxy, bio, tuple_spec[:1])
+    assert_raises(TypeError, ArrayProxy, bio, tuple_spec + ('error',))
 
 
 def write_raw_data(arr, hdr, fileobj):
@@ -183,6 +218,20 @@ def test_reshape_dataobj():
     assert_array_equal(reshape_dataobj(ArrGiver(), (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
     assert_equal(arr.shape, shape)
+
+
+def test_reshaped_is_proxy():
+    shape = (1, 2, 3, 4)
+    hdr = FunkyHeader(shape)
+    bio = BytesIO()
+    prox = ArrayProxy(bio, hdr)
+    assert_true(isinstance(prox.reshape((2, 3, 4)), ArrayProxy))
+    minus1 = prox.reshape((2, -1, 4))
+    assert_true(isinstance(minus1, ArrayProxy))
+    assert_equal(minus1.shape, (2, 3, 4))
+    assert_raises(ValueError, prox.reshape, (-1, -1, 4))
+    assert_raises(ValueError, prox.reshape, (2, 3, 5))
+    assert_raises(ValueError, prox.reshape, (2, -1, 5))
 
 
 def test_get_unscaled():

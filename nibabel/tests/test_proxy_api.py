@@ -288,7 +288,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             # Header is a copy of original
             assert_false(prox.header is hdr)
             assert_equal(prox.header, hdr)
-            assert_equal(warns.pop(0).category, FutureWarning)
+            assert_equal(warns.pop(0).category, DeprecationWarning)
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):

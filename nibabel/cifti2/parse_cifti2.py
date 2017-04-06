@@ -121,33 +121,9 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
 
 
 class _Cifti2AsNiftiImage(Nifti2Image):
+    """ Load a NIfTI2 image with a Cifti2 header """
     header_class = _Cifti2AsNiftiHeader
-    files_types = (('image', '.nii'),)
-    valid_exts = ('.nii',)
     makeable = False
-    rw = True
-
-    def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
-        """Convert NIFTI-2 file to CIFTI2"""
-        super(_Cifti2AsNiftiImage, self).__init__(dataobj=dataobj,
-                                                  affine=affine,
-                                                  header=header,
-                                                  extra=extra,
-                                                  file_map=file_map)
-
-        # Get cifti header from extension
-        for extension in self.header.extensions:
-            if isinstance(extension, Cifti2Extension):
-                self.cifti_img = extension
-                break
-        else:
-            self.cifti_img = None
-
-        if self.cifti_img is None:
-            raise ValueError('Nifti2 header does not contain a CIFTI2 '
-                             'extension')
-        self.cifti_img.data = self.get_data()
 
 
 class Cifti2Parser(xml.XmlParser):

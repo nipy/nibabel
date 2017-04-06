@@ -25,10 +25,9 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
-import warnings
-
 import numpy as np
 
+from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
@@ -45,14 +44,17 @@ class ArrayProxy(object):
     of the numpy dtypes, starting at a given file position ``offset`` with
     single ``slope`` and ``intercept`` scaling to produce output values.
 
-    The class ``__init__`` requires a ``header`` object with methods:
+    The class ``__init__`` requires a spec which defines how the data will be
+    read and rescaled. The spec may be a tuple of length 2 - 5, containing the
+    shape, storage dtype, offset, slope and intercept, or a ``header`` object
+    with methods:
 
     * get_data_shape
     * get_data_dtype
     * get_data_offset
     * get_slope_inter
 
-    The header should also have a 'copy' method.  This requirement will go away
+    A header should also have a 'copy' method.  This requirement will go away
     when the deprecated 'header' propoerty goes away.
 
     This implementation allows us to deal with Analyze and its variants,
@@ -64,9 +66,10 @@ class ArrayProxy(object):
     """
     # Assume Fortran array memory layout
     order = 'F'
+    _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True):
+    def __init__(self, file_like, spec, mmap=True):
         """ Initialize array proxy instance
 
         Parameters
@@ -74,7 +77,21 @@ class ArrayProxy(object):
         file_like : object
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
-        header : object
+        spec : object or tuple
+            Tuple must have length 2-5, with the following values.
+                - shape : tuple
+                    tuple of ints describing shape of data
+                - storage_dtype : dtype specifier
+                    dtype of array inside proxied file, or input to ``numpy.dtype``
+                    to specify array dtype
+                - offset : int
+                    Offset, in bytes, of data array from start of file
+                    (default: 0)
+                - slope : float
+                    Scaling factor for resulting data (default: 1.0)
+                - inter : float
+                    Intercept for rescaled data (default: 0.0)
+            OR
             Header object implementing ``get_data_shape``, ``get_data_dtype``,
             ``get_data_offset``, ``get_slope_inter``
         mmap : {True, False, 'c', 'r'}, optional, keyword only
@@ -90,22 +107,30 @@ class ArrayProxy(object):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
+        if hasattr(spec, 'get_data_shape'):
+            slope, inter = spec.get_slope_inter()
+            par = (spec.get_data_shape(),
+                   spec.get_data_dtype(),
+                   spec.get_data_offset(),
+                   1. if slope is None else slope,
+                   0. if inter is None else inter)
+            # Reference to original header; we will remove this soon
+            self._header = spec.copy()
+        elif 2 <= len(spec) <= 5:
+            optional = (0, 1., 0.)
+            par = spec + optional[len(spec) - 2:]
+        else:
+            raise TypeError('spec must be tuple of length 2-5 or header object')
+
         # Copies of values needed to read array
-        self._shape = header.get_data_shape()
-        self._dtype = header.get_data_dtype()
-        self._offset = header.get_data_offset()
-        self._slope, self._inter = header.get_slope_inter()
-        self._slope = 1.0 if self._slope is None else self._slope
-        self._inter = 0.0 if self._inter is None else self._inter
+        self._shape, self._dtype, self._offset, self._slope, self._inter = par
+        # Permit any specifier that can be interpreted as a numpy dtype
+        self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        # Reference to original header; we will remove this soon
-        self._header = header.copy()
 
     @property
+    @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
     def header(self):
-        warnings.warn('We will remove the header property from proxies soon',
-                      FutureWarning,
-                      stacklevel=2)
         return self._header
 
     @property
@@ -161,6 +186,29 @@ class ArrayProxy(object):
                                  order=self.order)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
+
+    def reshape(self, shape):
+        ''' Return an ArrayProxy with a new shape, without modifying data '''
+        size = np.prod(self._shape)
+
+        # Calculate new shape if not fully specified
+        from operator import mul
+        from functools import reduce
+        n_unknowns = len([e for e in shape if e == -1])
+        if n_unknowns > 1:
+            raise ValueError("can only specify one unknown dimension")
+        elif n_unknowns == 1:
+            known_size = reduce(mul, shape, -1)
+            unknown_size = size // known_size
+            shape = tuple(unknown_size if e == -1 else e for e in shape)
+
+        if np.prod(shape) != size:
+            raise ValueError("cannot reshape array of size {:d} into shape "
+                             "{!s}".format(size, shape))
+        return self.__class__(file_like=self.file_like,
+                              spec=(shape, self._dtype, self._offset,
+                                    self._slope, self._inter),
+                              mmap=self._mmap)
 
 
 def is_proxy(obj):
