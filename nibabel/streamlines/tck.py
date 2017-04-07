@@ -23,35 +23,28 @@ from .header import Field
 MEGABYTE = 1024 * 1024
 
 
-def create_empty_header():
-    ''' Return an empty compliant TCK header. '''
-    header = {}
-
-    # Default values
-    header[Field.MAGIC_NUMBER] = TckFile.MAGIC_NUMBER
-    header[Field.NB_STREAMLINES] = 0
-    header['datatype'] = "Float32LE"
-    return header
-
-
 class TckFile(TractogramFile):
     """ Convenience class to encapsulate TCK file format.
 
     Notes
     -----
-    MRtrix (so its file format: TCK) considers the streamline coordinate
-    (0,0,0) to be in the center of the voxel which is also the case for
-    NiBabel's streamlines internal representation.
-
-    Moreover, streamlines coordinates coming from a TCK file are considered
+    MRtrix (so its file format: TCK) considers streamlines coordinates
     to be in world space (RAS+ and mm space). MRtrix refers to that space
     as the "real" or "scanner" space [1]_.
+
+    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    streamline point located at an integer coordinate (i,j,k) is considered
+    to be at the center of the corresponding voxel. This is in contrast with
+    TRK's internal convention where it would have referred to a corner.
+
+    NiBabel's streamlines internal representation follows the same
+    convention as MRtrix.
 
     References
     ----------
     [1] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
+    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
-
     # Constants
     MAGIC_NUMBER = "mrtrix tracks"
     SUPPORTS_DATA_PER_POINT = False  # Not yet
@@ -72,12 +65,15 @@ class TckFile(TractogramFile):
 
         Notes
         -----
-        Streamlines of the tractogram are assumed to be in *RAS+*
-        and *mm* space where coordinate (0,0,0) refers to the center
-        of the voxel.
+        Streamlines of the tractogram are assumed to be in *RAS+* and *mm*
+        space. It is also assumed that when streamlines are mapped back to
+        voxel space, a streamline point located at an integer coordinate
+        (i,j,k) is considered to be at the center of the corresponding voxel.
+        This is in contrast with TRK's internal convention where it would
+        have referred to a corner.
         """
         if header is None:
-            header = create_empty_header()
+            header = self.create_empty_header()
 
         super(TckFile, self).__init__(tractogram, header)
 
@@ -106,6 +102,17 @@ class TckFile(TractogramFile):
         return magic_number.strip() == cls.MAGIC_NUMBER
 
     @classmethod
+    def create_empty_header(cls):
+        """ Return an empty compliant TCK header. """
+        header = {}
+
+        # Default values
+        header[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
+        header[Field.NB_STREAMLINES] = 0
+        header['datatype'] = "Float32LE"
+        return header
+
+    @classmethod
     def load(cls, fileobj, lazy_load=False):
         """ Loads streamlines from a filename or file-like object.
 
@@ -128,9 +135,12 @@ class TckFile(TractogramFile):
 
         Notes
         -----
-        Streamlines of the tractogram are assumed to be in *RAS+*
-        and *mm* space where coordinate (0,0,0) refers to the center
-        of the voxel.
+        Streamlines of the tractogram are assumed to be in *RAS+* and *mm*
+        space. It is also assumed that when streamlines are mapped back to
+        voxel space, a streamline point located at an integer coordinate
+        (i,j,k) is considered to be at the center of the corresponding voxel.
+        This is in contrast with TRK's internal convention where it would
+        have referred to a corner.
         """
         hdr = cls._read_header(fileobj)
 
@@ -169,7 +179,7 @@ class TckFile(TractogramFile):
         """
         # Enforce float32 in little-endian byte order for data.
         dtype = np.dtype('<f4')
-        header = create_empty_header()
+        header = self.create_empty_header()
 
         # Override hdr's fields by those contained in `header`.
         header.update(self.header)
@@ -437,13 +447,13 @@ class TckFile(TractogramFile):
             f.seek(start_position, os.SEEK_CUR)
 
     def __str__(self):
-        ''' Gets a formatted string of the header of a TCK file.
+        """ Gets a formatted string of the header of a TCK file.
 
         Returns
         -------
         info : string
             Header information relevant to the TCK format.
-        '''
+        """
         hdr = self.header
 
         info = ""

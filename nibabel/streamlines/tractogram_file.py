@@ -78,6 +78,11 @@ class TractogramFile(with_metaclass(ABCMeta)):
         raise NotImplementedError()
 
     @abstractclassmethod
+    def create_empty_header(cls):
+        """ Returns an empty header for this streamlines file format. """
+        raise NotImplementedError()
+
+    @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
         """ Loads streamlines from a filename or file-like object.
 

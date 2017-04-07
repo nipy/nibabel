@@ -199,22 +199,6 @@ def decode_value_from_name(encoded_name):
     return name, value
 
 
-def create_empty_header():
-    """ Return an empty compliant TRK header. """
-    header = np.zeros(1, dtype=header_2_dtype)
-
-    # Default values
-    header[Field.MAGIC_NUMBER] = TrkFile.MAGIC_NUMBER
-    header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
-    header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
-    header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
-    header[Field.VOXEL_ORDER] = b"RAS"
-    header['version'] = 2
-    header['hdr_size'] = TrkFile.HEADER_SIZE
-
-    return header
-
-
 class TrkFile(TractogramFile):
     """ Convenience class to encapsulate TRK file format.
 
@@ -252,7 +236,7 @@ class TrkFile(TractogramFile):
         of the voxel.
         """
         if header is None:
-            header_rec = create_empty_header()
+            header_rec = self.create_empty_header()
             header = dict(zip(header_rec.dtype.names, header_rec[0]))
 
         super(TrkFile, self).__init__(tractogram, header)
@@ -280,6 +264,22 @@ class TrkFile(TractogramFile):
             magic_number = f.read(magic_len)
             f.seek(-magic_len, os.SEEK_CUR)
             return magic_number == cls.MAGIC_NUMBER
+
+    @classmethod
+    def create_empty_header(cls):
+        """ Return an empty compliant TRK header. """
+        header = np.zeros(1, dtype=header_2_dtype)
+
+        # Default values
+        header[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
+        header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
+        header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
+        header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
+        header[Field.VOXEL_ORDER] = b"RAS"
+        header['version'] = 2
+        header['hdr_size'] = cls.HEADER_SIZE
+
+        return header
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -388,7 +388,7 @@ class TrkFile(TractogramFile):
             of the TRK header data).
         """
         # Enforce little-endian byte order for header
-        header = create_empty_header().newbyteorder('<')
+        header = self.create_empty_header().newbyteorder('<')
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
