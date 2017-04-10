@@ -562,7 +562,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(ehdr.get_intent(),
                      ('t test', (10.0,), 'some score'))
         # invalid intent name
-        assert_raises(KeyError, ehdr.set_intent, 'no intention')
+        assert_raises(ValueError, ehdr.set_intent, 'no intention')
         # too many parameters
         assert_raises(HeaderDataError, ehdr.set_intent, 't test', (10, 10))
         # too few parameters
@@ -574,6 +574,13 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(ehdr['intent_name'], b'')
         ehdr.set_intent('t test', (10,))
         assert_equal((ehdr['intent_p2'], ehdr['intent_p3']), (0, 0))
+        # store intent that is not in nifti1.intent_codes recoder
+        ehdr.set_intent(code=9999)
+        assert_equal(ehdr.get_intent(), ('', (), ''))
+        assert_equal(ehdr.get_intent('code'), (9999, (), ''))
+        ehdr.set_intent(code=9999, name='custom intent')
+        assert_equal(ehdr.get_intent(), ('', (), 'custom intent'))
+        assert_equal(ehdr.get_intent('code'), (9999, (), 'custom intent')) 
 
     def test_set_slice_times(self):
         hdr = self.header_class()
