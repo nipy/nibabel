@@ -1373,12 +1373,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         if len(params) and len(params) != len(p_descr):
             raise HeaderDataError('Need params of form %s, or empty'
                                   % (p_descr,))
+        hdr['intent_code'] = icode
+        hdr['intent_name'] = name
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
             hdr['intent_p%d' % (i + 1)] = param
-        hdr['intent_code'] = icode
-        hdr['intent_name'] = name
 
     def get_slice_duration(self):
         ''' Get slice duration
