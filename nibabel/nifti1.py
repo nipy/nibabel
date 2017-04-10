@@ -1301,13 +1301,20 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
+        known_intent = code in recoder
         if code_repr == 'code':
             label = code
         elif code_repr == 'label':
-            label = recoder.label[code]
+            if known_intent:
+                label = recoder.label[code]
+            else:
+                label = ''
         else:
             raise TypeError('repr can be "label" or "code"')
-        n_params = len(recoder.parameters[code])
+        if known_intent:
+            n_params = len(recoder.parameters[code])
+        else:
+            n_params = 0
         params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
         name = asstr(np.asscalar(hdr['intent_name']))
         return label, tuple(params), name
@@ -1356,8 +1363,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         ('f test', (0.0, 0.0), '')
         '''
         hdr = self._structarr
-        icode = intent_codes.code[code]
-        p_descr = intent_codes.parameters[code]
+        known_intent = code in intent_codes
+        if known_intent:
+            icode = intent_codes.code[code]
+            p_descr = intent_codes.parameters[code]
+        else:
+            icode = code
+            p_descr = 3
         if len(params) and len(params) != len(p_descr):
             raise HeaderDataError('Need params of form %s, or empty'
                                   % (p_descr,))
