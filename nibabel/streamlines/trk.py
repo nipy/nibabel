@@ -235,10 +235,6 @@ class TrkFile(TractogramFile):
         and *mm* space where coordinate (0,0,0) refers to the center
         of the voxel.
         """
-        if header is None:
-            header_rec = self.create_empty_header()
-            header = dict(zip(header_rec.dtype.names, header_rec[0]))
-
         super(TrkFile, self).__init__(tractogram, header)
 
     @classmethod
@@ -266,8 +262,9 @@ class TrkFile(TractogramFile):
             return magic_number == cls.MAGIC_NUMBER
 
     @classmethod
-    def create_empty_header(cls):
-        """ Return an empty compliant TRK header. """
+    def _default_structarr(cls):
+        """ Return an empty compliant TRK header as numpy structured array
+        """
         header = np.zeros(1, dtype=header_2_dtype)
 
         # Default values
@@ -280,6 +277,13 @@ class TrkFile(TractogramFile):
         header['hdr_size'] = cls.HEADER_SIZE
 
         return header
+
+    @classmethod
+    def create_empty_header(cls):
+        """ Return an empty compliant TRK header as dict
+        """
+        header_rec = cls._default_structarr()
+        return dict(zip(header_rec.dtype.names, header_rec))
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -388,7 +392,7 @@ class TrkFile(TractogramFile):
             of the TRK header data).
         """
         # Enforce little-endian byte order for header
-        header = self.create_empty_header().newbyteorder('<')
+        header = self._default_structarr().newbyteorder('<')
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
