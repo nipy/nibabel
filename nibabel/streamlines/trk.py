@@ -72,8 +72,8 @@ def get_affine_trackvis_to_rasmm(header):
 
     Parameters
     ----------
-    header : dict
-        Dict containing trackvis header.
+    header : dict or ndarray
+        Dict or numpy structured array containing trackvis header.
 
     Returns
     -------
@@ -101,9 +101,12 @@ def get_affine_trackvis_to_rasmm(header):
     # If the voxel order implied by the affine does not match the voxel
     # order in the TRK header, change the orientation.
     # voxel (header) -> voxel (affine)
-    header_ornt = asstr(header[Field.VOXEL_ORDER])
+    vox_order = header[Field.VOXEL_ORDER]
+    # Input header can be dict or structured array
+    if hasattr(vox_order, 'item'):  # structured array
+        vox_order = header[Field.VOXEL_ORDER].item()
     affine_ornt = "".join(aff2axcodes(header[Field.VOXEL_TO_RASMM]))
-    header_ornt = axcodes2ornt(header_ornt)
+    header_ornt = axcodes2ornt(vox_order.decode('latin1'))
     affine_ornt = axcodes2ornt(affine_ornt)
     ornt = nib.orientations.ornt_transform(header_ornt, affine_ornt)
     M = nib.orientations.inv_ornt_aff(ornt, header[Field.DIMENSIONS])
@@ -265,25 +268,25 @@ class TrkFile(TractogramFile):
     def _default_structarr(cls):
         """ Return an empty compliant TRK header as numpy structured array
         """
-        header = np.zeros(1, dtype=header_2_dtype)
+        st_arr = np.zeros((), dtype=header_2_dtype)
 
         # Default values
-        header[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
-        header[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
-        header[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
-        header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
-        header[Field.VOXEL_ORDER] = b"RAS"
-        header['version'] = 2
-        header['hdr_size'] = cls.HEADER_SIZE
+        st_arr[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
+        st_arr[Field.VOXEL_SIZES] = np.array((1, 1, 1), dtype="f4")
+        st_arr[Field.DIMENSIONS] = np.array((1, 1, 1), dtype="h")
+        st_arr[Field.VOXEL_TO_RASMM] = np.eye(4, dtype="f4")
+        st_arr[Field.VOXEL_ORDER] = b"RAS"
+        st_arr['version'] = 2
+        st_arr['hdr_size'] = cls.HEADER_SIZE
 
-        return header
+        return st_arr
 
     @classmethod
     def create_empty_header(cls):
         """ Return an empty compliant TRK header as dict
         """
-        header_rec = cls._default_structarr()
-        return dict(zip(header_rec.dtype.names, header_rec))
+        st_arr = cls._default_structarr()
+        return dict(zip(st_arr.dtype.names, st_arr.tolist()))
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -410,7 +413,6 @@ class TrkFile(TractogramFile):
         nb_scalars = 0
         nb_properties = 0
 
-        header = header[0]
         with Opener(fileobj, mode="wb") as f:
             # Keep track of the beginning of the header.
             beginning = f.tell()
