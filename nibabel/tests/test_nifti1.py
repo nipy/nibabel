@@ -116,7 +116,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
-        # See tests for apply_read_scaling in test_utils
+        # See tests for apply_read_scaling in test_volumeutils
         hdr = self.header_class()
         hdr.set_data_shape((2, 1, 1))
         hdr.set_data_dtype(np.int16)
