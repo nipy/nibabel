@@ -646,11 +646,15 @@ def test_header_copy():
     assert_false(hdr2.permit_truncated)
     with open(TRUNC_PAR, 'rt') as fobj:
         assert_raises(PARRECError, PARRECHeader.from_fileobj, fobj)
-    with open(TRUNC_PAR, 'rt') as fobj:
-        trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        with open(TRUNC_PAR, 'rt') as fobj:
+            trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+        assert_equal(len(wlist), 1)
     assert_true(trunc_hdr.permit_truncated)
-    trunc_hdr2 = trunc_hdr.copy()
-    assert_copy_ok(trunc_hdr, trunc_hdr2)
+    with catch_warn_reset(modules=[parrec], record=True) as wlist:
+        trunc_hdr2 = trunc_hdr.copy()
+        assert_copy_ok(trunc_hdr, trunc_hdr2)
+        assert_equal(len(wlist), 1)
 
 
 def test_image_creation():
@@ -685,12 +689,18 @@ def test_image_creation():
         # Truncated raises error without permit_truncated=True
         assert_raises(PARRECError, func, trunc_param)
         assert_raises(PARRECError, func, trunc_param, permit_truncated=False)
-        img = func(trunc_param, permit_truncated=True)
-        assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='dv')
-        assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='fp')
-        assert_array_equal(img.dataobj, arr_prox_fp)
+        with catch_warn_reset(modules=[parrec], record=True) as wlist:
+            img = func(trunc_param, permit_truncated=True)
+            assert_array_equal(img.dataobj, arr_prox_dv)
+            assert_equal(len(wlist), 1)
+        with catch_warn_reset(modules=[parrec], record=True) as wlist:
+            img = func(trunc_param, permit_truncated=True, scaling='dv')
+            assert_array_equal(img.dataobj, arr_prox_dv)
+            assert_equal(len(wlist), 1)
+        with catch_warn_reset(modules=[parrec], record=True) as wlist:
+            img = func(trunc_param, permit_truncated=True, scaling='fp')
+            assert_array_equal(img.dataobj, arr_prox_fp)
+            assert_equal(len(wlist), 1)
 
 
 class FakeHeader(object):
