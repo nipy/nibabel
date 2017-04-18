@@ -84,9 +84,9 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header data). Note that calling this function
+            If string, a filename; otherwise an open file-like object in
+            binary mode pointing to TCK file (and ready to read from the
+            beginning of the TCK header). Note that calling this function
             does not change the file position.
 
         Returns
@@ -119,9 +119,9 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header). Note that calling this function
+            If string, a filename; otherwise an open file-like object in
+            binary mode pointing to TCK file (and ready to read from the
+            beginning of the TCK header). Note that calling this function
             does not change the file position.
         lazy_load : {False, True}, optional
             If True, load streamlines in a lazy manner i.e. they will not be
@@ -173,9 +173,9 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to write from the beginning
-            of the TCK header data).
+            If string, a filename; otherwise an open file-like object in
+            binary mode pointing to TCK file (and ready to write from the
+            beginning of the TCK header data).
         """
         # Enforce float32 in little-endian byte order for data.
         dtype = np.dtype('<f4')
@@ -241,8 +241,8 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : file-like object
-            An open binary file object pointing to TCK file (and ready to
-            write at the beginning of the TCK header).
+            An open file-like object in binary mode pointing to TCK file (and
+            ready to read from the beginning of the TCK header).
         """
         # Fields to exclude
         exclude = [Field.MAGIC_NUMBER,  # Handled separately.
@@ -295,9 +295,9 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open binary file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header). Note that calling this function
+            If string, a filename; otherwise an open file-like object in
+            binary mode pointing to TCK file (and ready to read from the
+            beginning of the TCK header). Note that calling this function
             does not change the file position.
 
         Returns
@@ -368,9 +368,9 @@ class TckFile(TractogramFile):
         Parameters
         ----------
         fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
-            pointing to TCK file (and ready to read from the beginning
-            of the TCK header). Note that calling this function
+            If string, a filename; otherwise an open file-like object in
+            binary mode pointing to TCK file (and ready to read from the
+            beginning of the TCK header). Note that calling this function
             does not change the file position.
         header : dict
             Metadata associated with this tractogram file.
