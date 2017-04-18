@@ -1375,6 +1375,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.get_intent()
         ('f test', (0.0, 0.0), '')
         >>> hdr.set_intent(9999, allow_unknown=True) # unknown code
+        >>> hdr.get_intent()
+        ('unknown code 9999', (), '')
         '''
         hdr = self._structarr
         known_intent = code in intent_codes
