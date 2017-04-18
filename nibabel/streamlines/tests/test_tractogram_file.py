@@ -1,7 +1,10 @@
-from nose.tools import assert_raises
+""" Test tractogramFile base class
+"""
 
 from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
+
+from nose.tools import assert_raises, assert_equal
 
 
 def test_subclassing_tractogram_file():
@@ -37,7 +40,7 @@ def test_subclassing_tractogram_file():
 
     assert_raises(TypeError, DummyTractogramFile, Tractogram())
 
-    # Missing 'create_empty_header' method
+    # Now we have everything required.
     class DummyTractogramFile(TractogramFile):
         @classmethod
         def is_correct_format(cls, fileobj):
@@ -50,13 +53,16 @@ def test_subclassing_tractogram_file():
         def save(self, fileobj):
             pass
 
-    assert_raises(TypeError, DummyTractogramFile, Tractogram())
+    # No error
+    dtf = DummyTractogramFile(Tractogram())
+
+    # Default create_empty_header is empty dict
+    assert_equal(dtf.header, {})
 
 
 def test_tractogram_file():
     assert_raises(NotImplementedError, TractogramFile.is_correct_format, "")
     assert_raises(NotImplementedError, TractogramFile.load, "")
-    assert_raises(NotImplementedError, TractogramFile.create_empty_header)
 
     # Testing calling the 'save' method of `TractogramFile` object.
     class DummyTractogramFile(TractogramFile):
@@ -71,10 +77,6 @@ def test_tractogram_file():
         @classmethod
         def save(self, fileobj):
             pass
-
-        @classmethod
-        def create_empty_header(cls):
-            return None
 
     assert_raises(NotImplementedError,
                   super(DummyTractogramFile,

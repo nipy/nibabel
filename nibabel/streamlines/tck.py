@@ -72,9 +72,6 @@ class TckFile(TractogramFile):
         This is in contrast with TRK's internal convention where it would
         have referred to a corner.
         """
-        if header is None:
-            header = self.create_empty_header()
-
         super(TckFile, self).__init__(tractogram, header)
 
     @classmethod
@@ -103,7 +100,7 @@ class TckFile(TractogramFile):
 
     @classmethod
     def create_empty_header(cls):
-        """ Return an empty compliant TCK header. """
+        """ Return an empty compliant TCK header as dict """
         header = {}
 
         # Default values
