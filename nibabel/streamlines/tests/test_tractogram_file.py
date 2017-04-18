@@ -1,7 +1,10 @@
-from nose.tools import assert_raises
+""" Test tractogramFile base class
+"""
 
 from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
+
+from nose.tools import assert_raises, assert_equal
 
 
 def test_subclassing_tractogram_file():
@@ -16,6 +19,10 @@ def test_subclassing_tractogram_file():
         def load(cls, fileobj, lazy_load=True):
             return None
 
+        @classmethod
+        def create_empty_header(cls):
+            return None
+
     assert_raises(TypeError, DummyTractogramFile, Tractogram())
 
     # Missing 'load' method
@@ -27,7 +34,30 @@ def test_subclassing_tractogram_file():
         def save(self, fileobj):
             pass
 
+        @classmethod
+        def create_empty_header(cls):
+            return None
+
     assert_raises(TypeError, DummyTractogramFile, Tractogram())
+
+    # Now we have everything required.
+    class DummyTractogramFile(TractogramFile):
+        @classmethod
+        def is_correct_format(cls, fileobj):
+            return False
+
+        @classmethod
+        def load(cls, fileobj, lazy_load=True):
+            return None
+
+        def save(self, fileobj):
+            pass
+
+    # No error
+    dtf = DummyTractogramFile(Tractogram())
+
+    # Default create_empty_header is empty dict
+    assert_equal(dtf.header, {})
 
 
 def test_tractogram_file():

@@ -296,8 +296,6 @@ class TestTRK(unittest.TestCase):
                 new_trk = TrkFile.load(fname, lazy_load=False)
                 assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
 
-                trk_file.seek(0, os.SEEK_SET)
-
     def test_load_write_LPS_file(self):
         # Load the RAS and LPS version of the standard.
         trk_RAS = TrkFile.load(DATA['standard_trk_fname'], lazy_load=False)

@@ -33,7 +33,7 @@ matrix:
     # Absolute minimum dependencies
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.6.0" PYDICOM=0
+        - DEPENDS="numpy==1.7.1" PYDICOM=0
     # Absolute minimum dependencies plus oldest MPL
     # Check these against:
     # nibabel/info.py
@@ -41,11 +41,11 @@ matrix:
     # requirements.txt
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.6.0 matplotlib==1.3.1" PYDICOM=0
+        - DEPENDS="numpy==1.7.1 matplotlib==1.3.1" PYDICOM=0
     # Minimum pydicom dependency
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.6.0 pydicom==0.9.7 pillow==2.6"
+        - DEPENDS="numpy==1.7.1 pydicom==0.9.7 pillow==2.6"
     # test against numpy 1.7
     - python: 2.7
       env:
