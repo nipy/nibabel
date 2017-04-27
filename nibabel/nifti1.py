@@ -1347,7 +1347,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             defaults to ().  Unspecified parameters are set to 0.0
         name : string
             intent name (description). Defaults to ''
-        allow_unknown : bool
+        allow_unknown : {False, True}, optional
             Allow unknown integer intent codes. If False (the default),
             a KeyError is raised on attempts to set the intent
             to an unknown code.
