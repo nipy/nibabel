@@ -233,12 +233,14 @@ intent_codes = Recoder((
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
     (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
-    # FSL-specific intent codes - FNIRT
+    # FSL-specific intent codes - codes used by FNIRT
+    # ($FSLDIR/warpfns/fnirt_file_reader.h:104)
     (2006, 'fnirt disp field', (), 'FSL_FNIRT_DISPLACEMENT_FIELD'),
     (2007, 'fnirt cubic spline coef', (), 'FSL_CUBIC_SPLINE_COEFFICIENTS'),
     (2008, 'fnirt dct coef', (), 'FSL_DCT_COEFFICIENTS'),
     (2009, 'fnirt quad spline coef', (), 'FSL_QUADRATIC_SPLINE_COEFFICIENTS'),
-    # FSL-specific intent codes - TOPUP
+    # FSL-specific intent codes - codes used by TOPUP
+    # ($FSLDIR/topup/topup_file_io.h:104)
     (2016, 'topup cubic spline coef ', (),
      'FSL_TOPUP_CUBIC_SPLINE_COEFFICIENTS'),
     (2017, 'topup quad spline coef', (),
