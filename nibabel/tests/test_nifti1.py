@@ -561,8 +561,12 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         ehdr.set_intent('t test', (10,), name='some score')
         assert_equal(ehdr.get_intent(),
                      ('t test', (10.0,), 'some score'))
-        # invalid intent name
+        # unknown intent name or code - unknown name will fail even when
+        # allow_unknown=True
         assert_raises(KeyError, ehdr.set_intent, 'no intention')
+        assert_raises(KeyError, ehdr.set_intent, 'no intention',
+                      allow_unknown=True)
+        assert_raises(KeyError, ehdr.set_intent, 32767)
         # too many parameters
         assert_raises(HeaderDataError, ehdr.set_intent, 't test', (10, 10))
         # too few parameters
@@ -574,6 +578,24 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(ehdr['intent_name'], b'')
         ehdr.set_intent('t test', (10,))
         assert_equal((ehdr['intent_p2'], ehdr['intent_p3']), (0, 0))
+        # store intent that is not in nifti1.intent_codes recoder
+        ehdr.set_intent(9999, allow_unknown=True)
+        assert_equal(ehdr.get_intent(), ('unknown code 9999', (), ''))
+        assert_equal(ehdr.get_intent('code'), (9999, (), ''))
+        ehdr.set_intent(9999, name='custom intent', allow_unknown=True)
+        assert_equal(ehdr.get_intent(),
+                     ('unknown code 9999', (), 'custom intent'))
+        assert_equal(ehdr.get_intent('code'), (9999, (), 'custom intent'))
+        # store unknown intent with parameters. set_intent will set the
+        # parameters, but get_intent won't return them
+        ehdr.set_intent(code=9999, params=(1, 2, 3), allow_unknown=True)
+        assert_equal(ehdr.get_intent(), ('unknown code 9999', (), ''))
+        assert_equal(ehdr.get_intent('code'), (9999, (), ''))
+        # unknown intent requires either zero, or three, parameters
+        assert_raises(HeaderDataError, ehdr.set_intent, 999, (1,),
+                      allow_unknown=True)
+        assert_raises(HeaderDataError, ehdr.set_intent, 999, (1,2),
+                      allow_unknown=True) 
 
     def test_set_slice_times(self):
         hdr = self.header_class()

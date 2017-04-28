@@ -13,6 +13,7 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 from __future__ import division, print_function
 import warnings
 from io import BytesIO
+from six import string_types
 
 import numpy as np
 import numpy.linalg as npl
@@ -232,6 +233,19 @@ intent_codes = Recoder((
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
     (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
+    # FSL-specific intent codes - codes used by FNIRT
+    # ($FSLDIR/warpfns/fnirt_file_reader.h:104)
+    (2006, 'fnirt disp field', (), 'FSL_FNIRT_DISPLACEMENT_FIELD'),
+    (2007, 'fnirt cubic spline coef', (), 'FSL_CUBIC_SPLINE_COEFFICIENTS'),
+    (2008, 'fnirt dct coef', (), 'FSL_DCT_COEFFICIENTS'),
+    (2009, 'fnirt quad spline coef', (), 'FSL_QUADRATIC_SPLINE_COEFFICIENTS'),
+    # FSL-specific intent codes - codes used by TOPUP
+    # ($FSLDIR/topup/topup_file_io.h:104)
+    (2016, 'topup cubic spline coef ', (),
+     'FSL_TOPUP_CUBIC_SPLINE_COEFFICIENTS'),
+    (2017, 'topup quad spline coef', (),
+     'FSL_TOPUP_QUADRATIC_SPLINE_COEFFICIENTS'),
+    (2018, 'topup field', (), 'FSL_TOPUP_FIELD'),
 ), fields=('code', 'label', 'parameters', 'niistring'))
 
 
@@ -1301,18 +1315,22 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
+        known_intent = code in recoder
         if code_repr == 'code':
             label = code
         elif code_repr == 'label':
-            label = recoder.label[code]
+            if known_intent:
+                label = recoder.label[code]
+            else:
+                label = 'unknown code ' + str(code)
         else:
             raise TypeError('repr can be "label" or "code"')
-        n_params = len(recoder.parameters[code])
+        n_params = len(recoder.parameters[code]) if known_intent else 0
         params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
         name = asstr(np.asscalar(hdr['intent_name']))
         return label, tuple(params), name
 
-    def set_intent(self, code, params=(), name=''):
+    def set_intent(self, code, params=(), name='', allow_unknown=False):
         ''' Set the intent code, parameters and name
 
         If parameters are not specified, assumed to be all zero. Each
@@ -1331,6 +1349,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             defaults to ().  Unspecified parameters are set to 0.0
         name : string
             intent name (description). Defaults to ''
+        allow_unknown : {False, True}, optional
+            Allow unknown integer intent codes. If False (the default),
+            a KeyError is raised on attempts to set the intent
+            to an unknown code.
 
         Returns
         -------
@@ -1339,7 +1361,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> hdr = Nifti1Header()
-        >>> hdr.set_intent(0)  # unknown code
+        >>> hdr.set_intent(0)  # no intent
         >>> hdr.set_intent('z score')
         >>> hdr.get_intent()
         ('z score', (), '')
@@ -1354,19 +1376,32 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_intent('f test')
         >>> hdr.get_intent()
         ('f test', (0.0, 0.0), '')
+        >>> hdr.set_intent(9999, allow_unknown=True) # unknown code
+        >>> hdr.get_intent()
+        ('unknown code 9999', (), '')
         '''
         hdr = self._structarr
-        icode = intent_codes.code[code]
-        p_descr = intent_codes.parameters[code]
+        known_intent = code in intent_codes
+        if not known_intent:
+            # We can set intent via an unknown integer code, but can't via an
+            # unknown string label
+            if not allow_unknown or isinstance(code, string_types):
+                raise KeyError('Unknown intent code: ' + str(code))
+        if known_intent:
+            icode = intent_codes.code[code]
+            p_descr = intent_codes.parameters[code]
+        else:
+            icode = code
+            p_descr = ('p1', 'p2', 'p3')
         if len(params) and len(params) != len(p_descr):
             raise HeaderDataError('Need params of form %s, or empty'
                                   % (p_descr,))
+        hdr['intent_code'] = icode
+        hdr['intent_name'] = name
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
             hdr['intent_p%d' % (i + 1)] = param
-        hdr['intent_code'] = icode
-        hdr['intent_name'] = name
 
     def get_slice_duration(self):
         ''' Get slice duration
