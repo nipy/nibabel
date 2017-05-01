@@ -94,7 +94,7 @@ copyright = u'2006-2017, %(MAINTAINER)s <%(AUTHOR_EMAIL)s>' % rel
 # built documents.
 #
 # The short X.Y version.
-version = nibabel.__version__
+version = rel['VERSION']
 # The full version, including alpha/beta/rc tags.
 release = version
 
