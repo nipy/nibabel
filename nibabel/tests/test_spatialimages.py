@@ -312,6 +312,15 @@ class TestSpatialImage(TestCase):
         in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
+        # Can't slice into the image object:
+        with assert_raises(TypeError) as exception_manager:
+            img[0, 0, 0]
+
+        assert_equal(str(exception_manager.exception),
+                     ("Cannot slice image objects; consider slicing image "
+                      "array data with `img.dataobj[slice]` or "
+                      "`img.get_data()[slice]`"))
+
         assert_true(in_data is img.dataobj)
         out_data = img.get_data()
         assert_true(in_data is out_data)
