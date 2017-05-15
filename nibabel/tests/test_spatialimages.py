@@ -315,12 +315,11 @@ class TestSpatialImage(TestCase):
         # Can't slice into the image object:
         with assert_raises(TypeError) as exception_manager:
             img[0, 0, 0]
-
+        # Make sure the right message gets raised:
         assert_equal(str(exception_manager.exception),
                      ("Cannot slice image objects; consider slicing image "
                       "array data with `img.dataobj[slice]` or "
                       "`img.get_data()[slice]`"))
-
         assert_true(in_data is img.dataobj)
         out_data = img.get_data()
         assert_true(in_data is out_data)
