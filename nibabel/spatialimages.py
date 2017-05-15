@@ -656,7 +656,7 @@ class SpatialImage(FileBasedImage):
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
 
-    def __getitem__(self):
+    def __getitem__(self, idx=None):
         ''' No slicing or dictionary interface for images
         '''
         raise TypeError("Cannot slice image objects; consider slicing image "
