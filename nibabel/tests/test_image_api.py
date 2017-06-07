@@ -37,13 +37,12 @@ _, have_h5py, _ = optional_package('h5py')
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
-                MGHImage, Minc1Image, Minc2Image)
+                MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec
 
 from nose import SkipTest
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 from ..testing import clear_and_catch_warnings
@@ -203,8 +202,13 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_data_similar(img.dataobj, params)
         for meth_name in ('get_fdata', 'get_data'):
             if params['is_proxy']:
+                # Parameters assert this is an array proxy
                 img = imaker()
+                # Does is_proxy agree?
+                assert_true(is_proxy(img.dataobj))
+                # Confirm it is not a numpy array
                 assert_false(isinstance(img.dataobj, np.ndarray))
+                # Confirm it can be converted to a numpy array with is_array
                 proxy_data = np.asarray(img.dataobj)
                 proxy_copy = proxy_data.copy()
                 # Not yet cached, proxy image: in_memory is False
