@@ -120,19 +120,13 @@ def concat_images(images, check_affines=True, axis=None):
     klass = img0.__class__
     shape0 = img0.shape
     n_dim = len(shape0)
-    if axis is None:
-        # collect images in output array for efficiency
-        out_shape = (n_imgs, ) + shape0
-        out_data = np.empty(out_shape)
-    else:
-        # collect images in list for use with np.concatenate
-        out_data = [None] * n_imgs
+
     # Get part of shape we need to check inside loop
     idx_mask = np.ones((n_dim,), dtype=bool)
     if axis is not None:
         idx_mask[axis] = False
     masked_shape = np.array(shape0)[idx_mask]
-    for i, img in enumerate(images):
+    for i, img in enumerate(images[1:], 1):
         if len(img.shape) != n_dim:
             raise ValueError(
                 'Image {0} has {1} dimensions, image 0 has {2}'.format(
@@ -144,13 +138,14 @@ def concat_images(images, check_affines=True, axis=None):
         if check_affines and not np.all(img.affine == affine):
             raise ValueError('Affine for image {0} does not match affine '
                              'for first image'.format(i))
-        # Do not fill cache in image if it is empty
-        out_data[i] = img.get_data(caching='unchanged')
+
+    # Do not fill cache in image if it is empty
+    out_data = np.concatenate([img.get_data(caching='unchanged')
+                               for img in images], axis=axis)
 
     if axis is None:
-        out_data = np.rollaxis(out_data, 0, out_data.ndim)
-    else:
-        out_data = np.concatenate(out_data, axis=axis)
+        out_data = np.rollaxis(out_data.reshape((n_imgs, ) + shape0), 0,
+                               1 + n_dim)
 
     return klass(out_data, affine, header)
 
