@@ -32,6 +32,8 @@ New features
 
 * CIFTI support (pr/249) (Satra Ghosh, Michiel Cottaar, BC, CM, Demian
   Wassermann, MB)
+* Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
+  MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
 
 Enhancements
 ------------
@@ -45,12 +47,16 @@ Enhancements
 * Allow dtype specifiers as fileslice input (pr/485) (MB)
 * Support "headerless" ArrayProxy specification, enabling memory-efficient
   ArrayProxy reshaping (pr/521) (CM)
+* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (Paul McCarthy)
+* Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
 
 Bug fixes
 ---------
 
 * Miscellaneous MINC reader fixes (pr/493) (Robert D. Vincent, reviewed by CM,
   MB)
+* Fix corner case in ``wrapstruct.get`` (pr/516) (Paul McCarthy, reviewed by
+  CM, MB)
 
 Maintenance
 -----------
@@ -65,6 +71,7 @@ API changes and deprecations
 * ``header`` argument to ``ArrayProxy.__init__`` is renamed to ``spec``
 * Deprecation of ``header`` property of ``ArrayProxy`` object, for removal in
   3.0
+* ``wrapstruct.get`` now returns entries evaluating ``False``, instead of ``None``
 
 
 2.1 (Monday 22 August 2016)
