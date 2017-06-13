@@ -74,6 +74,9 @@ contributed code and discussion (in rough order of appearance):
 * Robert D. Vincent
 * Ivan Gonzalez
 * Demian Wassermann
+* Paul McCarthy
+* Fernando Pérez García
+* Venky Reddy
 
 License reprise
 ===============
