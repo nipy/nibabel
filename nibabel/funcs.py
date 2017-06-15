@@ -11,7 +11,7 @@
 import numpy as np
 
 from .orientations import (io_orientation, inv_ornt_aff,
-                           apply_orientation, OrientationError)
+                           OrientationError)
 from .loadsave import load
 
 
@@ -221,10 +221,9 @@ def as_closest_canonical(img, enforce_diag=False):
     # check if we are going to end up with something diagonal
     if enforce_diag and not _aff_is_diag(aff):
         raise OrientationError('Transformed affine is not diagonal')
-    # we need to transform the data
-    arr = img.get_data()
-    t_arr = apply_orientation(arr, ornt)
-    return img.__class__(t_arr, out_aff, img.header)
+
+    # Get the image class to transform the data for us
+    return img.transpose(ornt, out_aff)
 
 
 def _aff_is_diag(aff):

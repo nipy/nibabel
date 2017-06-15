@@ -27,6 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
+from .orientations import apply_orientation
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -1274,7 +1275,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         This is stored in one byte in the header
         '''
         for inp in (freq, phase, slice):
-            if inp not in (None, 0, 1, 2):
+            # Don't use == on None to avoid a FutureWarning in python3
+            if inp is not None and inp not in (0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
@@ -1967,6 +1969,24 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 self._affine = self._header.get_best_affine()
             else:
                 self._affine[:] = self._header.get_best_affine()
+
+    def transpose(self, ornt, new_aff):
+        # Override the default SpatialImage method so that we update dim_info
+        t_arr = apply_orientation(self.get_data(), ornt)
+
+        # Also apply the transform to the dim_info fields
+        new_hdr = self.header.copy()
+        new_dim = list(new_hdr.get_dim_info())
+        for idx, value in enumerate(new_dim):
+            # For each value, leave as None if it was that way,
+            # otherwise check where we have mapped it to
+            if value is None:
+                continue
+            new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
+
+        new_hdr.set_dim_info(*new_dim)
+
+        return self.__class__(t_arr, new_aff, new_hdr)
 
 
 class Nifti1Image(Nifti1Pair):

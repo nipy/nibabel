@@ -12,6 +12,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 from ..funcs import concat_images, as_closest_canonical, OrientationError
+from ..analyze import AnalyzeImage
 from ..nifti1 import Nifti1Image
 from ..loadsave import save
 
@@ -128,17 +129,40 @@ def test_concat():
 
 
 def test_closest_canonical():
-    arr = np.arange(24).reshape((2, 3, 4, 1))
-    # no funky stuff, returns same thing
-    img = Nifti1Image(arr, np.eye(4))
+    # Use 32-bit data so that the AnalyzeImage class doesn't complain
+    arr = np.arange(24).reshape((2, 3, 4, 1)).astype(np.int32)
+
+    # Test with an AnalyzeImage first
+    img = AnalyzeImage(arr, np.eye(4))
     xyz_img = as_closest_canonical(img)
     assert_true(img is xyz_img)
-    # a axis flip
-    img = Nifti1Image(arr, np.diag([-1, 1, 1, 1]))
+
+    # And a case where the Analyze image has to be flipped
+    img = AnalyzeImage(arr, np.diag([-1, 1, 1, 1]))
     xyz_img = as_closest_canonical(img)
     assert_false(img is xyz_img)
     out_arr = xyz_img.get_data()
     assert_array_equal(out_arr, np.flipud(arr))
+
+    # Now onto the NIFTI cases (where dim_info also has to be updated)
+
+    # No funky stuff, returns same thing
+    img = Nifti1Image(arr, np.eye(4))
+    # set freq/phase/slice dim so that we can check that we
+    # re-order them properly
+    img.header.set_dim_info(0, 1, 2)
+    xyz_img = as_closest_canonical(img)
+    assert_true(img is xyz_img)
+
+    # a axis flip
+    img = Nifti1Image(arr, np.diag([-1, 1, 1, 1]))
+    img.header.set_dim_info(0, 1, 2)
+    xyz_img = as_closest_canonical(img)
+    assert_false(img is xyz_img)
+    assert_true(img.header.get_dim_info() == xyz_img.header.get_dim_info())
+    out_arr = xyz_img.get_data()
+    assert_array_equal(out_arr, np.flipud(arr))
+
     # no error for enforce_diag in this case
     xyz_img = as_closest_canonical(img, True)
     # but there is if the affine is not diagonal
@@ -150,3 +174,22 @@ def test_closest_canonical():
     assert_true(img is xyz_img)
     # it's still not diagnonal
     assert_raises(OrientationError, as_closest_canonical, img, True)
+
+    # an axis swap
+    aff = np.diag([1, 0, 0, 1])
+    aff[1, 2] = 1; aff[2, 1] = 1
+    img = Nifti1Image(arr, aff)
+    img.header.set_dim_info(0, 1, 2)
+
+    xyz_img = as_closest_canonical(img)
+    assert_false(img is xyz_img)
+    # Check both the original and new objects
+    assert_true(img.header.get_dim_info() == (0, 1, 2))
+    assert_true(xyz_img.header.get_dim_info() == (0, 2, 1))
+    out_arr = xyz_img.get_data()
+    assert_array_equal(out_arr, np.transpose(arr, (0, 2, 1, 3)))
+
+    # same axis swap but with None dim info (except for slice dim)
+    img.header.set_dim_info(None, None, 2)
+    xyz_img = as_closest_canonical(img)
+    assert_true(xyz_img.header.get_dim_info() == (None, None, 1))
