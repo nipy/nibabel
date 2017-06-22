@@ -141,7 +141,7 @@ from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 from .deprecated import deprecate_with_version
-from .orientations import apply_orientation
+from .orientations import apply_orientation, inv_ornt_aff
 
 
 class HeaderDataError(Exception):
@@ -486,8 +486,10 @@ class SpatialImage(DataobjImage):
                              title=self.get_filename())
 
 
-    def transpose(self, ornt, new_aff):
+    def transpose(self, ornt):
         """Apply an orientation change and return a new image
+
+        If image already has orientation, return the original image, unchanged
 
         Parameters
         ----------
@@ -506,6 +508,10 @@ class SpatialImage(DataobjImage):
         when re-orienting an image.
         """
 
+        if np.array_equal(ornt, [[0, 1], [1, 1], [2, 1]]):
+            return self
+
         t_arr = apply_orientation(self.get_data(), ornt)
+        new_aff = self.affine.dot(inv_ornt_aff(ornt, self.shape))
 
         return self.__class__(t_arr, new_aff, self.header)

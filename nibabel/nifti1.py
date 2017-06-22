@@ -27,7 +27,6 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
-from .orientations import apply_orientation
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -1970,13 +1969,29 @@ class Nifti1Pair(analyze.AnalyzeImage):
             else:
                 self._affine[:] = self._header.get_best_affine()
 
-    def transpose(self, ornt, new_aff):
-        # Override the default SpatialImage method so that we update dim_info
-        t_arr = apply_orientation(self.get_data(), ornt)
+    def transpose(self, ornt):
+        """Apply an orientation change and return a new image
+
+        If image already has orientation, return the original image, unchanged
+
+        Parameters
+        ----------
+        ornt : (n,2) orientation array
+           orientation transform. ``ornt[N,1]` is flip of axis N of the
+           array implied by `shape`, where 1 means no flip and -1 means
+           flip.  For example, if ``N==0`` and ``ornt[0,1] == -1``, and
+           there's an array ``arr`` of shape `shape`, the flip would
+           correspond to the effect of ``np.flipud(arr)``.  ``ornt[:,0]`` is
+           the transpose that needs to be done to the implied array, as in
+           ``arr.transpose(ornt[:,0])``
+        """
+        img = super(Nifti1Pair, self).transpose(ornt)
+
+        if img is self:
+            return img
 
         # Also apply the transform to the dim_info fields
-        new_hdr = self.header.copy()
-        new_dim = list(new_hdr.get_dim_info())
+        new_dim = list(img.header.get_dim_info())
         for idx, value in enumerate(new_dim):
             # For each value, leave as None if it was that way,
             # otherwise check where we have mapped it to
@@ -1984,9 +1999,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 continue
             new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
 
-        new_hdr.set_dim_info(*new_dim)
+        img.header.set_dim_info(*new_dim)
 
-        return self.__class__(t_arr, new_aff, new_hdr)
+        return img
 
 
 class Nifti1Image(Nifti1Pair):
