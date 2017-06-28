@@ -1969,10 +1969,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
             else:
                 self._affine[:] = self._header.get_best_affine()
 
-    def transpose(self, ornt):
+    def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
 
-        If image already has orientation, return the original image, unchanged
+        If ornt is identity transform, return the original image, unchanged
 
         Parameters
         ----------
@@ -1985,7 +1985,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
            the transpose that needs to be done to the implied array, as in
            ``arr.transpose(ornt[:,0])``
         """
-        img = super(Nifti1Pair, self).transpose(ornt)
+        img = super(Nifti1Pair, self).as_reoriented(ornt)
 
         if img is self:
             return img

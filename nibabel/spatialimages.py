@@ -486,10 +486,10 @@ class SpatialImage(DataobjImage):
                              title=self.get_filename())
 
 
-    def transpose(self, ornt):
+    def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
 
-        If image already has orientation, return the original image, unchanged
+        If ornt is identity transform, return the original image, unchanged
 
         Parameters
         ----------

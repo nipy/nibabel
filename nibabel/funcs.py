@@ -206,7 +206,7 @@ def as_closest_canonical(img, enforce_diag=False):
        unmodified.
     '''
     # Get the image class to transform the data for us
-    img = img.transpose(io_orientation(img.affine))
+    img = img.as_reoriented(io_orientation(img.affine))
 
     # however, the affine may not be diagonal
     if enforce_diag and not _aff_is_diag(img.affine):
