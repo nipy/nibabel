@@ -49,6 +49,8 @@ Enhancements
   ArrayProxy reshaping (pr/521) (CM)
 * Allow unknown NIfTI intent codes, add FSL codes (pr/528) (Paul McCarthy)
 * Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
+* Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
+  reviewed by MB)
 
 Bug fixes
 ---------
