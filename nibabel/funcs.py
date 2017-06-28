@@ -10,8 +10,7 @@
 ''' Processor functions for images '''
 import numpy as np
 
-from .orientations import (io_orientation, inv_ornt_aff,
-                           apply_orientation, OrientationError)
+from .orientations import io_orientation, OrientationError
 from .loadsave import load
 
 
@@ -206,25 +205,14 @@ def as_closest_canonical(img, enforce_diag=False):
        already has the correct data ordering, we just return `img`
        unmodified.
     '''
-    aff = img.affine
-    ornt = io_orientation(aff)
-    if np.all(ornt == [[0, 1],
-                       [1, 1],
-                       [2, 1]]):  # canonical already
-        # however, the affine may not be diagonal
-        if enforce_diag and not _aff_is_diag(aff):
-            raise OrientationError('Transformed affine is not diagonal')
-        return img
-    shape = img.shape
-    t_aff = inv_ornt_aff(ornt, shape)
-    out_aff = np.dot(aff, t_aff)
-    # check if we are going to end up with something diagonal
-    if enforce_diag and not _aff_is_diag(aff):
+    # Get the image class to transform the data for us
+    img = img.as_reoriented(io_orientation(img.affine))
+
+    # however, the affine may not be diagonal
+    if enforce_diag and not _aff_is_diag(img.affine):
         raise OrientationError('Transformed affine is not diagonal')
-    # we need to transform the data
-    arr = img.get_data()
-    t_arr = apply_orientation(arr, ornt)
-    return img.__class__(t_arr, out_aff, img.header)
+
+    return img
 
 
 def _aff_is_diag(aff):

@@ -141,6 +141,7 @@ from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 from .deprecated import deprecate_with_version
+from .orientations import apply_orientation, inv_ornt_aff
 
 
 class HeaderDataError(Exception):
@@ -483,3 +484,34 @@ class SpatialImage(DataobjImage):
         """
         return OrthoSlicer3D(self.dataobj, self.affine,
                              title=self.get_filename())
+
+
+    def as_reoriented(self, ornt):
+        """Apply an orientation change and return a new image
+
+        If ornt is identity transform, return the original image, unchanged
+
+        Parameters
+        ----------
+        ornt : (n,2) orientation array
+           orientation transform. ``ornt[N,1]` is flip of axis N of the
+           array implied by `shape`, where 1 means no flip and -1 means
+           flip.  For example, if ``N==0`` and ``ornt[0,1] == -1``, and
+           there's an array ``arr`` of shape `shape`, the flip would
+           correspond to the effect of ``np.flipud(arr)``.  ``ornt[:,0]`` is
+           the transpose that needs to be done to the implied array, as in
+           ``arr.transpose(ornt[:,0])``
+
+        Notes
+        -----
+        Subclasses should override this if they have additional requirements
+        when re-orienting an image.
+        """
+
+        if np.array_equal(ornt, [[0, 1], [1, 1], [2, 1]]):
+            return self
+
+        t_arr = apply_orientation(self.get_data(), ornt)
+        new_aff = self.affine.dot(inv_ornt_aff(ornt, self.shape))
+
+        return self.__class__(t_arr, new_aff, self.header)

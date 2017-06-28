@@ -77,6 +77,7 @@ contributed code and discussion (in rough order of appearance):
 * Paul McCarthy
 * Fernando Pérez García
 * Venky Reddy
+* Mark Hymers
 
 License reprise
 ===============

@@ -1274,7 +1274,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         This is stored in one byte in the header
         '''
         for inp in (freq, phase, slice):
-            if inp not in (None, 0, 1, 2):
+            # Don't use == on None to avoid a FutureWarning in python3
+            if inp is not None and inp not in (0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
@@ -1967,6 +1968,40 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 self._affine = self._header.get_best_affine()
             else:
                 self._affine[:] = self._header.get_best_affine()
+
+    def as_reoriented(self, ornt):
+        """Apply an orientation change and return a new image
+
+        If ornt is identity transform, return the original image, unchanged
+
+        Parameters
+        ----------
+        ornt : (n,2) orientation array
+           orientation transform. ``ornt[N,1]` is flip of axis N of the
+           array implied by `shape`, where 1 means no flip and -1 means
+           flip.  For example, if ``N==0`` and ``ornt[0,1] == -1``, and
+           there's an array ``arr`` of shape `shape`, the flip would
+           correspond to the effect of ``np.flipud(arr)``.  ``ornt[:,0]`` is
+           the transpose that needs to be done to the implied array, as in
+           ``arr.transpose(ornt[:,0])``
+        """
+        img = super(Nifti1Pair, self).as_reoriented(ornt)
+
+        if img is self:
+            return img
+
+        # Also apply the transform to the dim_info fields
+        new_dim = list(img.header.get_dim_info())
+        for idx, value in enumerate(new_dim):
+            # For each value, leave as None if it was that way,
+            # otherwise check where we have mapped it to
+            if value is None:
+                continue
+            new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
+
+        img.header.set_dim_info(*new_dim)
+
+        return img
 
 
 class Nifti1Image(Nifti1Pair):
