@@ -220,9 +220,9 @@ class TckFile(TractogramFile):
             tractogram = self.tractogram.to_world(lazy=True)
 
             for t in tractogram:
-                s = t.streamline.astype(dtype)
+                s = t.streamline
                 data = np.r_[s, self.FIBER_DELIMITER]
-                f.write(data.tostring())
+                f.write(data.astype(dtype).tostring())
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
