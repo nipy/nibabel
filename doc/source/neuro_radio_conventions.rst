@@ -28,6 +28,15 @@ are on the left or right of the subject and flip the images to the taste of
 the viewer. We could unpack these uses as *neurological display convention*
 and *radiological display convention*.
 
+Here is a very nice graphic by `Chris Rorden`_ showing these display
+conventions, where the 3D rendering behind the sections shows the directions
+that the neurologist and radiologist are thinking of:
+
+.. image:: /images/rorden_radio_neuro.jpg
+
+In the image above, the subject has a stroke in left temporal lobe, causing a
+dark area on the MRI.
+
 *********************************
 Alignment of world and voxel axes
 *********************************
