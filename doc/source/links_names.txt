@@ -86,6 +86,7 @@
 .. _mock: https://github.com/testing-cabal/mock
 .. _`python coverage tester`: http://nedbatchelder.com/code/coverage/
 .. _bitbucket: https://bitbucket.org
+.. _six: http://pythonhosted.org/six
 
 .. Other python projects
 .. _numpy: http://www.numpy.org
