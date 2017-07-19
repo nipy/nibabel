@@ -78,20 +78,18 @@ class ArrayProxy(object):
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
         spec : object or tuple
-            Tuple must have length 2-5, with the following values.
-                - shape : tuple
-                    tuple of ints describing shape of data
-                - storage_dtype : dtype specifier
-                    dtype of array inside proxied file, or input to ``numpy.dtype``
-                    to specify array dtype
-                - offset : int
-                    Offset, in bytes, of data array from start of file
-                    (default: 0)
-                - slope : float
-                    Scaling factor for resulting data (default: 1.0)
-                - inter : float
-                    Intercept for rescaled data (default: 0.0)
+            Tuple must have length 2-5, with the following values:
+
+            #. shape: tuple - tuple of ints describing shape of data;
+            #. storage_dtype: dtype specifier - dtype of array inside proxied
+               file, or input to ``numpy.dtype`` to specify array dtype;
+            #. offset: int - offset, in bytes, of data array from start of file
+               (default: 0);
+            #. slope: float - scaling factor for resulting data (default: 1.0);
+            #. inter: float - intercept for rescaled data (default: 0.0).
+
             OR
+
             Header object implementing ``get_data_shape``, ``get_data_dtype``,
             ``get_data_offset``, ``get_slope_inter``
         mmap : {True, False, 'c', 'r'}, optional, keyword only
