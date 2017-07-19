@@ -22,7 +22,7 @@ import os
 import re
 from inspect import getmodule
 
-from types import BuiltinFunctionType
+from types import BuiltinFunctionType, FunctionType
 
 # suppress print statements (warnings for empty files)
 DEBUG = True
@@ -221,8 +221,7 @@ class ApiDocWriter(object):
             if not self.other_defines and not getmodule(obj) == mod:
                 continue
             # figure out if obj is a function or class
-            if hasattr(obj, 'func_name') or \
-               isinstance(obj, BuiltinFunctionType):
+            if isinstance(obj, (FunctionType, BuiltinFunctionType)):
                 functions.append(obj_str)
             else:
                 try:
