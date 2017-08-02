@@ -47,6 +47,72 @@ def _fread3_many(fobj, n):
     return (b1 << 16) + (b2 << 8) + b3
 
 
+def read_aseg_stats(seg_stats_file, set ='subcortical', volumes_only = False):
+    """
+    Returns the subcortical stats found in Freesurfer output: subid/stats/aseg.stats
+
+    Tries to match the outputs returned by Freesurfer's Matlab counter part: load_segstats.m 
+    
+    Parameters
+    ----------
+    filepath : str
+        Abs path to aseg.stats file.
+        
+    set : str
+        Which set of volumes to return, among ['subcortical', 'wholebrain']. Default: 'subcortical'.
+        The choice 'subcortical' returns the usual subortical segmentations. 
+        The choice 'wholebrain' returns only volumes (only stat available), 
+        whose segmentations include [ 'BrainSegVol', 'BrainSegVolNotVent',
+        'lhCortexVol', 'rhCortexVol', 'lhCorticalWhiteMatterVol', 'rhCorticalWhiteMatterVol',
+        'SubCortGrayVol', 'TotalGrayVol', 'SupraTentorialVol', 'SupraTentorialVolNotVent',
+        'MaskVol', 'BrainSegVol-to-eTIV', 'MaskVol-to-eTIV',  'lhSurfaceHoles', 'rhSurfaceHoles',
+        'eTIV' ]
+
+    Returns
+    -------
+    seg_name : numpy array of strings
+        Array of segmentation names
+    seg_index : numpy array
+        Array of indices of segmentations into the Freesurfer color lookup table.
+    seg_stats : numpy array
+        Matrix of subcortical statistics, with the following 5 columns by default. 
+        If volumes_only = True, only the volumes in mm^3 are returned. 
+        Columns in the full output are:
+        1. number of voxels
+        2. volume of voxels (mm^3) -- same as number but scaled by voxvol
+        3. mean intensity over space
+        4. std intensity over space
+        5. min intensity over space
+        6. max intensity over space
+        7. range intensity over space
+
+    """
+
+    acceptable_choices = ['subcortical', 'wholebrain', 'eTIV']
+    set = set.lower()
+    if set not in acceptable_choices:
+        raise ValueError('invalid choice. Choose one among: {}'.format(acceptable_choices))
+
+    if set in 'subcortical':
+        stats = np.loadtxt(seg_stats_file, dtype="i1,i1,i4,f4,S50,f4,f4,f4,f4,f4")
+        if volumes_only:
+            out_data = np.array([seg[3] for seg in stats])
+        else:
+            # need to ensure both two types return data correspond in seg order
+            out_data = stats
+
+    elif set in [ 'wholebrain', 'eTIV']:
+        wb_regex_pattern = r'# Measure ([\w/+_\- ]+), ([\w/+_\- ]+), ([\w/+_\- ]+), ([\d\.]+), ([\w/+_\-^]+)'
+        datatypes = np.dtype('U100,U100,U100,f8,U10')
+        stats = np.fromregex(seg_stats_file, wb_regex_pattern, dtype=datatypes)
+        if set in ['eTIV']:
+            out_data = np.array([seg[3] for seg in stats if seg[1] == 'eTIV'])
+        else:
+            out_data = np.array([seg[3] for seg in stats])
+
+    return out_data
+
+
 def _read_volume_info(fobj):
     """Helper for reading the footer from a surface file."""
     volume_info = OrderedDict()
