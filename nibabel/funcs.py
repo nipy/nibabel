@@ -219,3 +219,39 @@ def _aff_is_diag(aff):
     ''' Utility function returning True if affine is nearly diagonal '''
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
+
+
+def crop_image(img, mask=None):
+    ''' Crop ``img`` to smallest region that contains all non-zero data
+
+    The image is cropped in the current orientation; no rotations or resampling
+    are performed.
+    The affine matrix is updated with the new intercept, so that all values are
+    found at the same RAS locations.
+
+    Parameters
+    ----------
+    img : ``spatialimage``
+    mask : ``spatialimage``, optional
+        If supplied, use the bounding box of ``mask``, rather than ``img``
+
+    Returns
+    -------
+    cropped_img : ``spatialimage``
+       Version of `img` with cropped data array and updated affine matrix
+    '''
+    if mask is None:
+        mask = img
+    elif not np.allclose(img.affine == mask.affine):
+        raise ValueError('Affine for image does not match affine for mask')
+
+    bounds = np.sort(np.vstack(np.nonzero(mask.get_data())))[:, [0, -1]]
+    x, y, z = bounds
+    new_origin = np.vstack((bounds[:, [0]], [1]))
+
+    new_data = img.get_data()[x[0]:x[1] + 1, y[0]:y[1] + 1, z[0]:z[1] + 1]
+
+    new_aff = img.affine.copy()
+    new_aff[:, [3]] = img.affine.dot(new_origin)
+
+    return img.__class__(new_data, new_aff, img.header)
