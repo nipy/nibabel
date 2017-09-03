@@ -138,10 +138,20 @@ class ArrayProxy(object):
         '''If this ``ArrayProxy`` was created with ``keep_file_open=True``,
         the open file object is closed if necessary.
         '''
-        if self._keep_file_open and hasattr(self, '_opener'):
-            if not self._opener.closed:
-                self._opener.close()
-                self._opener = None
+        if hasattr(self, '_opener') and not self._opener.closed:
+            self._opener.close()
+            self._opener = None
+
+    def __getstate__(self):
+        '''Returns the state of this ``ArrayProxy`` during pickling. '''
+        state = self.__dict__.copy()
+        state.pop('_lock', None)
+        return state
+
+    def __setstate__(self, state):
+        '''Sets the state of this ``ArrayProxy`` during unpickling. '''
+        self.__dict__.update(state)
+        self._lock = Lock()
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')

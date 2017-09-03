@@ -1,7 +1,6 @@
 """ Utilities for getting array slices out of file-like objects
 """
 from __future__ import division
-from contextlib import contextmanager
 
 import operator
 from numbers import Integral
@@ -648,10 +647,12 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
     """
     # Make a dummy lock-like thing to make the code below a bit nicer
     if lock is None:
-        @contextmanager
-        def dummy_lock():
-            yield
-        lock = dummy_lock
+        class DummyLock(object):
+            def __enter__(self):
+                pass
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                return False
+        lock = DummyLock()
 
     if len(segments) == 0:
         if n_bytes != 0:

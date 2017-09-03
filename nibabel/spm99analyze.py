@@ -245,8 +245,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True):
-        ''' class method to create image from mapping in `file_map ``
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=False):
+        '''class method to create image from mapping in `file_map ``
 
         Parameters
         ----------
@@ -261,13 +261,19 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open: If the file-ilke(s) is a file name, the default
+            behaviour is to open a new file handle every time the data is
+            accessed. If this flag is set to `True``, the file handle will be
+            opened on the first access, and kept open until this
+            ``ArrayProxy`` is garbage-collected.
 
         Returns
         -------
         img : Spm99AnalyzeImage instance
+
         '''
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map,
-                                                            mmap=mmap)
+        ret = super(Spm99AnalyzeImage, klass).from_file_map(
+            file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:
