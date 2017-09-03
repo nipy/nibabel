@@ -1,6 +1,7 @@
 """ Utilities for getting array slices out of file-like objects
 """
 from __future__ import division
+from contextlib import contextmanager
 
 import operator
 from numbers import Integral
@@ -622,7 +623,7 @@ def slicers2segments(read_slicers, in_shape, offset, itemsize):
     return all_segments
 
 
-def read_segments(fileobj, segments, n_bytes):
+def read_segments(fileobj, segments, n_bytes, lock=None):
     """ Read `n_bytes` byte data implied by `segments` from `fileobj`
 
     Parameters
@@ -634,6 +635,10 @@ def read_segments(fileobj, segments, n_bytes):
         absolute file offset in bytes and number of bytes to read
     n_bytes : int
         total number of bytes that will be read
+    lock : threading.Lock
+        If provided, used to ensure that paired calls to ``seek`` and ``read``
+        cannot be interrupted by another thread accessing the same ``fileobj``.
+
 
     Returns
     -------
@@ -641,22 +646,31 @@ def read_segments(fileobj, segments, n_bytes):
         object implementing buffer protocol, such as byte string or ndarray or
         mmap or ctypes ``c_char_array``
     """
+    # Make a dummy lock-like thing to make the code below a bit nicer
+    if lock is None:
+        @contextmanager
+        def dummy_lock():
+            yield
+        lock = dummy_lock
+
     if len(segments) == 0:
         if n_bytes != 0:
             raise ValueError("No segments, but non-zero n_bytes")
         return b''
     if len(segments) == 1:
         offset, length = segments[0]
-        fileobj.seek(offset)
-        bytes = fileobj.read(length)
+        with lock:
+            fileobj.seek(offset)
+            bytes = fileobj.read(length)
         if len(bytes) != n_bytes:
             raise ValueError("Whoops, not enough data in file")
         return bytes
     # More than one segment
     bytes = mmap(-1, n_bytes)
     for offset, length in segments:
-        fileobj.seek(offset)
-        bytes.write(fileobj.read(length))
+        with lock:
+            fileobj.seek(offset)
+            bytes.write(fileobj.read(length))
     if bytes.tell() != n_bytes:
         raise ValueError("Oh dear, n_bytes does not look right")
     return bytes
@@ -700,7 +714,7 @@ def _simple_fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
 
 
 def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
-              heuristic=threshold_heuristic):
+              heuristic=threshold_heuristic, lock=None):
     """ Slice array in `fileobj` using `sliceobj` slicer and array definitions
 
     `fileobj` contains the contiguous binary data for an array ``A`` of shape,
@@ -737,6 +751,9 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
         returning one of 'full', 'contiguous', None.  See
         :func:`optimize_slicer` and see :func:`threshold_heuristic` for an
         example.
+    lock: threading.Lock, optional
+        If provided, used to ensure that paired calls to ``seek`` and ``read``
+        cannot be interrupted by another thread accessing the same ``fileobj``.
 
     Returns
     -------
@@ -750,7 +767,7 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
     segments, sliced_shape, post_slicers = calc_slicedefs(
         sliceobj, shape, itemsize, offset, order)
     n_bytes = reduce(operator.mul, sliced_shape, 1) * itemsize
-    bytes = read_segments(fileobj, segments, n_bytes)
+    bytes = read_segments(fileobj, segments, n_bytes, lock)
     sliced = np.ndarray(sliced_shape, dtype, buffer=bytes, order=order)
     return sliced[post_slicers]
 

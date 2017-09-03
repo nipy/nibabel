@@ -73,7 +73,7 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
     is_file = hasattr(fileish, 'read') and hasattr(fileish, 'write') and \
               hasattr(fileish, 'mode')
     if is_file:
-        mode = file.mode
+        mode = fileish.mode
 
     # use indexed_gzip if possible for faster read access
     if mode == 'rb' and have_indexed_gzip:

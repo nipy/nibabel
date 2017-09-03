@@ -26,6 +26,7 @@ The proxy API is - at minimum:
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
+from threading import Lock
 
 import numpy as np
 
@@ -110,7 +111,6 @@ class ArrayProxy(object):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
-        self._keep_file_open = keep_file_open
         if hasattr(spec, 'get_data_shape'):
             slope, inter = spec.get_slope_inter()
             par = (spec.get_data_shape(),
@@ -131,6 +131,8 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
+        self._keep_file_open = keep_file_open
+        self._lock = Lock()
 
     def __del__(self):
         '''If this ``ArrayProxy`` was created with ``keep_file_open=True``,
@@ -210,7 +212,8 @@ class ArrayProxy(object):
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order=self.order)
+                                 order=self.order,
+                                 lock=self._lock)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
