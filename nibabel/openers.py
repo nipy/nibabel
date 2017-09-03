@@ -60,8 +60,30 @@ class BufferedGzipFile(gzip.GzipFile):
             return n_read
 
 
-def _gzip_open(fileish, *args, **kwargs):
-    gzip_file = BufferedGzipFile(fileish, *args, **kwargs)
+def _gzip_open(fileish, mode='rb', compresslevel=9):
+
+    # is indexed_gzip present?
+    try:
+        from indexed_gzip import SafeIndexedGzipFile
+        have_indexed_gzip = True
+    except:
+        have_indexed_gzip = False
+
+    # is this a file? if not we assume it is a string
+    is_file = hasattr(fileish, 'read') and hasattr(fileish, 'write') and \
+              hasattr(fileish, 'mode')
+    if is_file:
+        mode = file.mode
+
+    # use indexed_gzip if possible for faster read access
+    if mode == 'rb' and have_indexed_gzip:
+        kwargs = {'spacing' : 4194304, 'readbuf_size' : 1048576}
+        if hasattr(fileish, 'read') and hasattr(fileish, 'write'):
+            gzip_file = SafeIndexedGzipFile(fid=fileish, **kwargs)
+        else:
+            gzip_file = SafeIndexedGzipFile(filename=fileish, **kwargs)
+    else:
+        gzip_file = BufferedGzipFile(fileish, mode, compresslevel)
 
     # Speedup for #209; attribute not present in in Python 3.5
     # open gzip files with faster reads on large files using larger
