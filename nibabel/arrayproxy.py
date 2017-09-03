@@ -25,6 +25,8 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+from contextlib import contextmanager
+
 import numpy as np
 
 from .deprecated import deprecate_with_version
@@ -69,8 +71,8 @@ class ArrayProxy(object):
     _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True):
-        """ Initialize array proxy instance
+    def __init__(self, file_like, spec, mmap=True, keep_file_open=False):
+        """Initialize array proxy instance
 
         Parameters
         ----------
@@ -99,12 +101,16 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        scaling : {'fp', 'dv'}, optional, keyword only
-            Type of scaling to use - see header ``get_data_scaling`` method.
+        keep_file_open: If ``file_like`` is a file name, the default behaviour
+            is to open a new file handle every time the data is accessed. If
+            this flag is set to `True``, the file handle will be opened on the
+            first access, and kept open until this ``ArrayProxy`` is garbage-
+            collected.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
+        self._keep_file_open = keep_file_open
         if hasattr(spec, 'get_data_shape'):
             slope, inter = spec.get_slope_inter()
             par = (spec.get_data_shape(),
@@ -125,6 +131,15 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
+
+    def __del__(self):
+        '''If this ``ArrayProxy`` was created with ``keep_file_open=True``,
+        the open file object is closed if necessary.
+        '''
+        if self._keep_file_open and hasattr(self, '_opener'):
+            if not self._opener.closed:
+                self._opener.close()
+                self._opener = None
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -155,12 +170,26 @@ class ArrayProxy(object):
     def is_proxy(self):
         return True
 
+    @contextmanager
+    def _get_fileobj(self):
+        '''Create and return a new ``ImageOpener``, or return an existing one.
+        one. The specific behaviour depends on the value of the
+        ``keep_file_open`` flag that was passed to ``__init__``.
+        '''
+        if self._keep_file_open:
+            if not hasattr(self, '_opener'):
+                self._opener = ImageOpener(self.file_like)
+            yield self._opener
+        else:
+            with ImageOpener(self.file_like) as opener:
+                yield opener
+
     def get_unscaled(self):
         ''' Read of data from file
 
         This is an optional part of the proxy API
         '''
-        with ImageOpener(self.file_like) as fileobj:
+        with self._get_fileobj() as fileobj:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
@@ -175,7 +204,7 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def __getitem__(self, slicer):
-        with ImageOpener(self.file_like) as fileobj:
+        with self._get_fileobj() as fileobj:
             raw_data = fileslice(fileobj,
                                  slicer,
                                  self._shape,

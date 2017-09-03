@@ -934,7 +934,7 @@ class AnalyzeImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=False):
         ''' class method to create image from mapping in `file_map ``
 
         Parameters
@@ -950,6 +950,11 @@ class AnalyzeImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open: If ``file_like`` is a file name, the default behaviour
+            is to open a new file handle every time the data is accessed. If
+            this flag is set to `True``, the file handle will be opened on the
+            first access, and kept open until this ``ArrayProxy`` is garbage-
+            collected.
 
         Returns
         -------
@@ -964,7 +969,8 @@ class AnalyzeImage(SpatialImage):
         imgf = img_fh.fileobj
         if imgf is None:
             imgf = img_fh.filename
-        data = klass.ImageArrayProxy(imgf, hdr_copy, mmap=mmap)
+        data = klass.ImageArrayProxy(imgf, hdr_copy, mmap=mmap,
+                                     keep_file_open=keep_file_open)
         # Initialize without affine to allow header to pass through unmodified
         img = klass(data, None, header, file_map=file_map)
         # set affine from header though
@@ -976,7 +982,7 @@ class AnalyzeImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True):
+    def from_filename(klass, filename, mmap=True, keep_file_open=False):
         ''' class method to create image from filename `filename`
 
         Parameters
@@ -990,6 +996,11 @@ class AnalyzeImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open: If ``file_like`` is a file name, the default behaviour
+            is to open a new file handle every time the data is accessed. If
+            this flag is set to `True``, the file handle will be opened on the
+            first access, and kept open until this ``ArrayProxy`` is garbage-
+            collected.
 
         Returns
         -------
@@ -998,7 +1009,8 @@ class AnalyzeImage(SpatialImage):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap)
+        return klass.from_file_map(file_map, mmap=mmap,
+                                   keep_file_open=keep_file_open)
 
     load = from_filename
 
