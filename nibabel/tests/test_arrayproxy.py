@@ -12,18 +12,21 @@ from __future__ import division, print_function, absolute_import
 
 import warnings
 
+import pickle
 from io import BytesIO
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
 from ..arrayproxy import ArrayProxy, is_proxy, reshape_dataobj
+from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 from nibabel.testing import VIRAL_MEMMAP
+import mock
 
 from .test_fileslice import slicer_samples
 
@@ -327,3 +330,51 @@ def check_mmap(hdr, offset, proxy_class,
             # Check invalid values raise error
             assert_raises(ValueError, proxy_class, fname, hdr, mmap='rw')
             assert_raises(ValueError, proxy_class, fname, hdr, mmap='r+')
+
+
+def test_keep_file_open():
+    # Test the behaviour of the keep_file_open __init__ flag.
+    numopeners = [0]
+
+    class CountingImageOpener(ImageOpener):
+
+        def __init__(self, *args, **kwargs):
+
+            super(CountingImageOpener, self).__init__(*args, **kwargs)
+            numopeners[0] += 1
+
+    fname = 'testdata'
+    dtype = np.float32
+    data  = np.arange(1000, dtype=np.float32).reshape((10, 10, 10))
+    with InTemporaryDirectory():
+        with open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+        with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+            proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype))
+            proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
+            voxels = np.random.randint(0, 10, (10, 3), dtype=np.uint32)
+            for i in range(voxels.shape[0]):
+                x , y, z = [int(c) for c in voxels[i, :]]
+                assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert numopeners[0] == i + 1
+            numopeners[0] = 0
+            for i in range(voxels.shape[0]):
+                x , y, z = [int(c) for c in voxels[i, :]]
+                assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert numopeners[0] == 1
+
+
+def test_pickle_lock():
+    # Test that ArrayProxy can be pickled, and that thread lock is created
+
+    def islock(l):
+        # isinstance doesn't work on threading.Lock?
+        return hasattr(l, 'acquire') and hasattr(l, 'release')
+
+    proxy = ArrayProxy('dummyfile', ((10, 10, 10), np.float32))
+    assert islock(proxy._lock)
+    pickled = pickle.dumps(proxy)
+    unpickled = pickle.loads(pickled)
+    assert islock(unpickled._lock)
+    assert proxy._lock is not unpickled._lock
