@@ -208,7 +208,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 assert_true(is_proxy(img.dataobj))
                 # Confirm it is not a numpy array
                 assert_false(isinstance(img.dataobj, np.ndarray))
-                # Confirm it can be converted to a numpy array with is_array
+                # Confirm it can be converted to a numpy array with asarray
                 proxy_data = np.asarray(img.dataobj)
                 proxy_copy = proxy_data.copy()
                 # Not yet cached, proxy image: in_memory is False

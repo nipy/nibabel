@@ -138,7 +138,7 @@ class DataobjImage(FileBasedImage):
         (no reference to the array).  If the cache is full, "unchanged" leaves
         the cache full and returns the cached array reference.
 
-        The cache can effect the behavior of the image, because if the cache is
+        The cache can affect the behavior of the image, because if the cache is
         full, or you have an array image, then modifying the returned array
         will modify the result of future calls to ``get_data()``.  For example
         you might do this:
