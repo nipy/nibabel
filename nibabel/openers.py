@@ -90,10 +90,10 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
     else:
         gzip_file = BufferedGzipFile(fileish, mode, compresslevel)
 
-    # Speedup for #209; attribute not present in in Python 3.5
-    # open gzip files with faster reads on large files using larger
-    # See https://github.com/nipy/nibabel/pull/210 for discussion
-    if hasattr(gzip_file, 'max_chunk_read'):
+    # Speedup for #209, for versions of python < 3.5. Open gzip files with
+    # faster reads on large files using a larger read buffer. See
+    # https://github.com/nipy/nibabel/pull/210 for discussion
+    if hasattr(gzip_file, 'max_read_chunk'):
         gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
 
     return gzip_file
