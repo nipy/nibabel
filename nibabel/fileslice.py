@@ -637,7 +637,9 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
     lock : threading.Lock
         If provided, used to ensure that paired calls to ``seek`` and ``read``
         cannot be interrupted by another thread accessing the same ``fileobj``.
-
+        Each thread which accesses the same file via ``read_segments`` must
+        share a lock in order to ensure that the file access is thread-safe.
+        A lock does not need to be provided for single-threaded access.
 
     Returns
     -------
@@ -647,11 +649,14 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
     """
     # Make a dummy lock-like thing to make the code below a bit nicer
     if lock is None:
+
         class DummyLock(object):
             def __enter__(self):
                 pass
+
             def __exit__(self, exc_type, exc_val, exc_tb):
                 return False
+
         lock = DummyLock()
 
     if len(segments) == 0:
