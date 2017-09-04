@@ -20,6 +20,7 @@ from ..volumeutils import BinOpener
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 from ..testing import error_warnings
+import mock
 
 
 class Lunk(object):
@@ -93,6 +94,35 @@ def test_BinOpener():
     with error_warnings():
         assert_raises(DeprecationWarning,
                       BinOpener, 'test.txt', 'r')
+
+
+def test_Opener_gzip_type():
+    # Test that BufferedGzipFile or IndexedGzipFile are used as appropriate
+
+    data = 'this is some test data'
+    fname = 'test.gz'
+    mockmod = mock.MagicMock()
+
+    class MockClass(object):
+        def __init__(self, *args, **kwargs):
+            pass
+
+    with InTemporaryDirectory():
+
+        # make some test data
+        with GzipFile(fname, mode='wb') as f:
+            f.write(data.encode())
+
+        # test with indexd_gzip not present
+        with mock.patch.dict('sys.modules', {'indexed_gzip' : None}):
+            assert isinstance(Opener(fname, mode='rb').fobj, GzipFile)
+            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
+
+        # test with indexd_gzip present
+        with mock.patch.dict('sys.modules', {'indexed_gzip' : mockmod}), \
+             mock.patch('indexed_gzip.SafeIndexedGzipFile', MockClass):
+            assert isinstance(Opener(fname, mode='rb').fobj, MockClass)
+            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
 
 
 class TestImageOpener:
