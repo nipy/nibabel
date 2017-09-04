@@ -340,9 +340,10 @@ class DataobjImage(FileBasedImage):
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
             raise ValueError('{} should be floating point type'.format(dtype))
-        if (self._fdata_cache is not None and
-            self._fdata_cache.dtype.type == dtype.type):
-            return self._fdata_cache
+        # Return cache if cache present and of correct dtype.
+        if self._fdata_cache is not None:
+            if self._fdata_cache.dtype.type == dtype.type:
+                return self._fdata_cache
         data = np.asanyarray(self._dataobj).astype(dtype)
         if caching == 'fill':
             self._fdata_cache = data
