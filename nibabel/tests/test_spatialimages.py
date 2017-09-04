@@ -315,11 +315,22 @@ class TestSpatialImage(TestCase):
         assert_true(in_data is img.dataobj)
         # The get_fdata method changes the array to floating point type
         assert_equal(img.get_fdata(dtype='f4').dtype, np.dtype(np.float32))
-        assert_equal(img.get_fdata(dtype=np.float32).dtype,
-                     np.dtype(np.float32))
-        # Caching determines data dtype
-        out_data = img.get_fdata()
-        assert_equal(out_data.dtype, np.dtype(np.float32))
+        fdata_32 = img.get_fdata(dtype=np.float32)
+        assert_equal(fdata_32.dtype, np.dtype(np.float32))
+        # Caching is specific to data dtype.  If we reload with default data
+        # type, the cache gets reset
+        fdata_32[:] = 99
+        # Cache has been modified, we pick up the modifications, but only for
+        # the cached data type
+        assert_array_equal(img.get_fdata(dtype='f4'), 99)
+        fdata_64 = img.get_fdata()
+        assert_equal(fdata_64.dtype, np.dtype(np.float64))
+        assert_array_equal(fdata_64, in_data)
+        fdata_64[:] = 101
+        assert_array_equal(img.get_fdata(dtype='f8'), 101)
+        assert_array_equal(img.get_fdata(), 101)
+        # Reloading with new data type blew away the float32 cache
+        assert_array_equal(img.get_fdata(dtype='f4'), in_data)
         img.uncache()
         # Now recaching, is float64
         out_data = img.get_fdata()

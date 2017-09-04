@@ -340,7 +340,8 @@ class DataobjImage(FileBasedImage):
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
             raise ValueError('{} should be floating point type'.format(dtype))
-        if self._fdata_cache is not None:
+        if (self._fdata_cache is not None and
+            self._fdata_cache.dtype.type == dtype.type):
             return self._fdata_cache
         data = np.asanyarray(self._dataobj).astype(dtype)
         if caching == 'fill':
@@ -350,6 +351,9 @@ class DataobjImage(FileBasedImage):
     @property
     def in_memory(self):
         """ True when any array data is in memory cache
+
+        There are separate caches for `get_data` reads and `get_fdata` reads.
+        This property is True if either of those caches are set.
         """
         return (isinstance(self._dataobj, np.ndarray) or
                 self._fdata_cache is not None or
