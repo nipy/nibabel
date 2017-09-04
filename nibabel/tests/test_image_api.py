@@ -286,6 +286,9 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                     # cache state.
                     img.uncache()
                     assert_true(img.in_memory)
+                # Values to get_data caching parameter must be 'fill' or
+                # 'unchanged'
+                assert_raises(ValueError, img.get_data, caching='something')
             # Data shape is same as image shape
             assert_equal(img.shape, method().shape)
             # Values to get_data caching parameter must be 'fill' or
