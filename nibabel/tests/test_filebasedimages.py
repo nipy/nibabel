@@ -29,6 +29,9 @@ class FBNumpyImage(FileBasedImage):
     def get_data(self):
         return self.arr
 
+    def get_fdata(self):
+        return self.arr.astype(np.float64)
+
     @classmethod
     def from_file_map(klass, file_map):
         with file_map['image'].get_prepare_fileobj('rb') as fobj:
