@@ -232,7 +232,11 @@ def test_compressed_ext_case():
             if lext != ext:  # extension should not be recognized -> file
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
-                assert_true(isinstance(fobj.fobj, GzipFile))
+                try:
+                    from indexed_gzip import IndexedGzipFile
+                except ImportError:
+                    IndexedGzipFile = GzipFile
+                assert_true(isinstance(fobj.fobj, (GzipFile, IndexedGzipFile)))
             else:
                 assert_true(isinstance(fobj.fobj, BZ2File))
 
