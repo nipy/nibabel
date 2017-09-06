@@ -139,7 +139,7 @@ class ArrayProxy(object):
         the open file object is closed if necessary.
         """
         if hasattr(self, '_opener') and not self._opener.closed:
-            self._opener.close()
+            self._opener.close_if_mine()
             self._opener = None
 
     def __getstate__(self):
