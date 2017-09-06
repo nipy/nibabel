@@ -71,7 +71,7 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
 
     # is this a file? if not we assume it is a string
     is_file = (hasattr(fileish, 'read') and hasattr(fileish, 'write') and
-               hasattr(fileish, 'mode')
+               hasattr(fileish, 'mode'))
 
     # If we've been given a file object, we can't change its mode.
     if is_file:
