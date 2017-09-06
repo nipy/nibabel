@@ -694,7 +694,7 @@ def test_read_segments():
 def test_read_segments_lock():
     # Test read_segment locking with multiple threads
     fobj = BytesIO()
-    arr = np.random.randint(0, 256, 1000, dtype=np.uint8)
+    arr = np.array(np.random.randint(0, 256, 1000), dtype=np.uint8)
     fobj.write(arr.tostring())
 
     # Encourage the interpreter to switch threads between a seek/read pair

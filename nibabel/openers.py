@@ -70,8 +70,8 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
         have_indexed_gzip = False
 
     # is this a file? if not we assume it is a string
-    is_file = hasattr(fileish, 'read') and hasattr(fileish, 'write') and \
-              hasattr(fileish, 'mode')
+    is_file = (hasattr(fileish, 'read') and hasattr(fileish, 'write') and
+               hasattr(fileish, 'mode')
 
     # If we've been given a file object, we can't change its mode.
     if is_file:
@@ -79,7 +79,7 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
 
     # use indexed_gzip if possible for faster read access
     if mode == 'rb' and have_indexed_gzip:
-        kwargs = {'spacing' : 4194304, 'readbuf_size' : 1048576}
+        kwargs = {'spacing':4194304, 'readbuf_size':1048576}
         if hasattr(fileish, 'read') and hasattr(fileish, 'write'):
             gzip_file = SafeIndexedGzipFile(fid=fileish, **kwargs)
         else:

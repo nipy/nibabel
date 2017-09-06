@@ -353,7 +353,7 @@ def test_keep_file_open():
             proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype))
             proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
                                    keep_file_open=True)
-            voxels = np.random.randint(0, 10, (10, 3), dtype=np.uint32)
+            voxels = np.random.randint(0, 10, (10, 3))
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
