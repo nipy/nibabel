@@ -135,21 +135,21 @@ class ArrayProxy(object):
         self._lock = Lock()
 
     def __del__(self):
-        '''If this ``ArrayProxy`` was created with ``keep_file_open=True``,
+        """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
         the open file object is closed if necessary.
-        '''
+        """
         if hasattr(self, '_opener') and not self._opener.closed:
             self._opener.close()
             self._opener = None
 
     def __getstate__(self):
-        '''Returns the state of this ``ArrayProxy`` during pickling. '''
+        """Returns the state of this ``ArrayProxy`` during pickling. """
         state = self.__dict__.copy()
         state.pop('_lock', None)
         return state
 
     def __setstate__(self, state):
-        '''Sets the state of this ``ArrayProxy`` during unpickling. '''
+        """Sets the state of this ``ArrayProxy`` during unpickling. """
         self.__dict__.update(state)
         self._lock = Lock()
 
@@ -184,10 +184,18 @@ class ArrayProxy(object):
 
     @contextmanager
     def _get_fileobj(self):
-        '''Create and return a new ``ImageOpener``, or return an existing one.
-        one. The specific behaviour depends on the value of the
-        ``keep_file_open`` flag that was passed to ``__init__``.
-        '''
+        """Create and return a new ``ImageOpener``, or return an existing one.
+
+        The specific behaviour depends on the value of the ``keep_file_open``
+        flag that was passed to ``__init__``.
+
+
+        Yields
+        ------
+        ImageOpener
+            A newly created ``ImageOpener`` instance, or an existing one,
+            which provides access to the file.
+        """
         if self._keep_file_open:
             if not hasattr(self, '_opener'):
                 self._opener = ImageOpener(self.file_like)
@@ -197,10 +205,10 @@ class ArrayProxy(object):
                 yield opener
 
     def get_unscaled(self):
-        ''' Read of data from file
+        """ Read of data from file
 
         This is an optional part of the proxy API
-        '''
+        """
         with self._get_fileobj() as fileobj:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
@@ -228,7 +236,7 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def reshape(self, shape):
-        ''' Return an ArrayProxy with a new shape, without modifying data '''
+        """ Return an ArrayProxy with a new shape, without modifying data """
         size = np.prod(self._shape)
 
         # Calculate new shape if not fully specified

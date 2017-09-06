@@ -17,6 +17,21 @@ import numpy as np
 SKIP_THRESH = 2 ** 8
 
 
+
+class _NullLock(object):
+    """The ``_NullLock`` is an object which can be used in place of a
+    ``threading.Lock`` object, but doesn't actually do anything.
+
+    It is used by the ``read_segments`` function in the event that a
+    ``Lock`` is not provided by the caller.
+    """
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+
 def is_fancy(sliceobj):
     """ Returns True if sliceobj is attempting fancy indexing
 
@@ -647,17 +662,9 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
         object implementing buffer protocol, such as byte string or ndarray or
         mmap or ctypes ``c_char_array``
     """
-    # Make a dummy lock-like thing to make the code below a bit nicer
+    # Make a lock-like thing to make the code below a bit nicer
     if lock is None:
-
-        class DummyLock(object):
-            def __enter__(self):
-                pass
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                return False
-
-        lock = DummyLock()
+        lock = _NullLock()
 
     if len(segments) == 0:
         if n_bytes != 0:
