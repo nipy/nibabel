@@ -221,37 +221,42 @@ def _aff_is_diag(aff):
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
 
 
-def crop_image(img, mask=None):
-    ''' Crop ``img`` to smallest region that contains all non-zero data
+def crop_image(img, bounds, margin=0):
+    ''' Crop ``img`` to specified bounds
 
-    The image is cropped in the current orientation; no rotations or resampling
-    are performed.
+    The image is cropped in the current orientation; no rotation or resampling
+    is performed.
     The affine matrix is updated with the new intercept, so that all values are
     found at the same RAS locations.
 
     Parameters
     ----------
     img : ``spatialimage``
-    mask : ``spatialimage``, optional
-        If supplied, use the bounding box of ``mask``, rather than ``img``
+        Image to be cropped
+    bounds : (3, 2) array-like
+        Minimum and maximum (inclusive) voxel indices, in each dimension, to be
+        included in cropped image
+    margin : int, optional
+        Margin, in voxels, to include on each side of cropped image
 
     Returns
     -------
     cropped_img : ``spatialimage``
        Version of `img` with cropped data array and updated affine matrix
     '''
-    if mask is None:
-        mask = img
-    elif not np.allclose(img.affine == mask.affine):
-        raise ValueError('Affine for image does not match affine for mask')
 
-    bounds = np.sort(np.vstack(np.nonzero(mask.get_data())))[:, [0, -1]]
+    try:
+        bounds = np.asanyarray(bounds) + np.array([-margin, margin])
+        assert bounds.shape == (3, 2)
+    except (ValueError, AssertionError) as err:
+        raise ValueError("bounds must be interpretable as a 3x2 array")
+
     x, y, z = bounds
-    new_origin = np.vstack((bounds[:, [0]], [1]))
+    new_origin = np.vstack((bounds[:, [0]], 1))
 
-    new_data = img.get_data()[x[0]:x[1] + 1, y[0]:y[1] + 1, z[0]:z[1] + 1]
+    bounded_data = img.get_data()[x[0]:x[1] + 1, y[0]:y[1] + 1, z[0]:z[1] + 1]
 
     new_aff = img.affine.copy()
     new_aff[:, [3]] = img.affine.dot(new_origin)
 
-    return img.__class__(new_data, new_aff, img.header)
+    return img.__class__(bounded_data, new_aff, img.header)
