@@ -335,7 +335,6 @@ def check_mmap(hdr, offset, proxy_class,
 def test_keep_file_open():
     # Test the behaviour of the keep_file_open __init__ flag.
     numopeners = [0]
-
     class CountingImageOpener(ImageOpener):
 
         def __init__(self, *args, **kwargs):
@@ -345,24 +344,46 @@ def test_keep_file_open():
 
     fname = 'testdata'
     dtype = np.float32
-    data  = np.arange(1000, dtype=np.float32).reshape((10, 10, 10))
+    data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
+    voxels = np.random.randint(0, 10, (10, 3))
     with InTemporaryDirectory():
         with open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
+        # Test that ArrayProxy(keep_file_open=True) only creates one file
+        # handle, and that ArrayProxy(keep_file_open=False) creates a file
+        # handle on every data access.
         with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
             proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype))
-            proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
-                                   keep_file_open=True)
-            voxels = np.random.randint(0, 10, (10, 3))
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert numopeners[0] == i + 1
             numopeners[0] = 0
+            proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert numopeners[0] == 1
+        # Test that the keep_file_open flag has no effect if an open file
+        # handle is passed in
+        with open(fname, 'rb') as fobj:
+            proxy_no_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
+                                      keep_file_open=False)
+            for i in range(voxels.shape[0]):
+                assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert not fobj.closed
+            del proxy_no_kfp
+            proxy_no_kfp = None
+            assert not fobj.closed
+            proxy_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
+            for i in range(voxels.shape[0]):
+                assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert not fobj.closed
+            del proxy_kfp
+            proxy_kfp = None
+            assert not fobj.closed
 
 
 def test_pickle_lock():
