@@ -34,6 +34,8 @@ New features
   Wassermann, MB)
 * Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
   MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
+* Added ``get_fdata()`` as default method to retrieve scaled floating point
+  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, Satra Ghosh)
 
 Enhancements
 ------------
@@ -74,6 +76,8 @@ API changes and deprecations
 * Deprecation of ``header`` property of ``ArrayProxy`` object, for removal in
   3.0
 * ``wrapstruct.get`` now returns entries evaluating ``False``, instead of ``None``
+* ``DataobjImage.get_data`` to be deprecated April 2018, scheduled for removal
+  April 2020
 
 
 2.1 (Monday 22 August 2016)
