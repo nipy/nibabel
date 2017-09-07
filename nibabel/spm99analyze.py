@@ -245,7 +245,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=False):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open='indexed'):
         '''class method to create image from mapping in `file_map ``
 
         Parameters
@@ -261,11 +261,17 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open: If the file-ilke(s) is a file name, the default
-            behaviour is to open a new file handle every time the data is
-            accessed. If this flag is set to `True``, the file handle will be
-            opened on the first access, and kept open until this
-            ``ArrayProxy`` is garbage-collected.
+        keep_file_open : { 'indexed', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'indexed'`` (the default), and the optional ``indexed_gzip``
+            dependency is present, a single file handle is created and
+            persisted. If ``indexed_gzip`` is not available, behaviour is the
+            same as if ``keep_file_open is False``. If ``file_like`` is an
+            open file handle, this setting has no effect.
 
         Returns
         -------

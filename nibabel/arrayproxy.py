@@ -26,7 +26,7 @@ The proxy API is - at minimum:
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
-from threading import Lock
+from threading import RLock
 
 import numpy as np
 
@@ -72,7 +72,7 @@ class ArrayProxy(object):
     _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True, keep_file_open=False):
+    def __init__(self, file_like, spec, mmap=True, keep_file_open='indexed'):
         """Initialize array proxy instance
 
         Parameters
@@ -102,11 +102,17 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open: If ``file_like`` is a file name, the default behaviour
-            is to open a new file handle every time the data is accessed. If
-            this flag is set to `True``, the file handle will be opened on the
-            first access, and kept open until this ``ArrayProxy`` is garbage-
-            collected.
+        keep_file_open : { 'indexed', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'indexed'`` (the default), and the optional ``indexed_gzip``
+            dependency is present, a single file handle is created and
+            persisted. If ``indexed_gzip`` is not available, behaviour is the
+            same as if ``keep_file_open is False``. If ``file_like`` is an
+            open file handle, this setting has no effect.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -131,8 +137,9 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        self._keep_file_open = keep_file_open
-        self._lock = Lock()
+        self._keep_file_open = self._should_keep_file_open(file_like,
+                                                           keep_file_open)
+        self._lock = RLock()
 
     def __del__(self):
         """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
@@ -151,7 +158,50 @@ class ArrayProxy(object):
     def __setstate__(self, state):
         """Sets the state of this ``ArrayProxy`` during unpickling. """
         self.__dict__.update(state)
-        self._lock = Lock()
+        self._lock = RLock()
+
+    def _should_keep_file_open(self, file_like, keep_file_open):
+        """Called by ``__init__``, and used to determine the final value of
+        ``keep_file_open``.
+
+        The return value is derived from these rules:
+
+          - If ``file_like`` is a file(-like) object, ``False`` is returned.
+            Otherwise, ``file_like`` is assumed to be a file name.
+          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
+            library is available, ``True`` is returned.
+          - Otherwise, ``False`` is returned.
+
+        Parameters
+        ----------
+
+        file_like : object
+            File-like object or filename, as passed to ``__init__``.
+        keep_file_open : { 'indexed', True, False }
+            Flag as passed to ``__init__``.
+
+        Returns
+        -------
+
+        The value of ``keep_file_open`` that will be used by this
+        ``ArrayProxy``.
+        """
+
+        # file_like is a handle - keep_file_open is irrelevant
+        if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
+            return False
+        # if keep_file_open is True/False, we do what the user wants us to do
+        if keep_file_open != 'indexed':
+            return bool(keep_file_open)
+        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
+        # keep_file_open to True, else we set it to False
+        try:
+            import indexed_gzip
+            have_indexed_gzip = True
+        except ImportError:
+            have_indexed_gzip = False
+
+        return have_indexed_gzip and file_like.endswith('gz')
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')

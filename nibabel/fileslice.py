@@ -17,7 +17,6 @@ import numpy as np
 SKIP_THRESH = 2 ** 8
 
 
-
 class _NullLock(object):
     """The ``_NullLock`` is an object which can be used in place of a
     ``threading.Lock`` object, but doesn't actually do anything.
