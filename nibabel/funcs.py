@@ -248,7 +248,7 @@ def crop_image(img, bounds, margin=0):
     try:
         bounds = np.asanyarray(bounds) + np.array([-margin, margin])
         assert bounds.shape == (3, 2)
-    except (ValueError, AssertionError) as err:
+    except (ValueError, AssertionError):
         raise ValueError("bounds must be interpretable as a 3x2 array")
 
     x, y, z = bounds
