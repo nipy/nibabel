@@ -72,7 +72,7 @@ class ArrayProxy(object):
     _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True, keep_file_open='indexed'):
+    def __init__(self, file_like, spec, mmap=True, keep_file_open='auto'):
         """Initialize array proxy instance
 
         Parameters
@@ -102,13 +102,13 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { 'indexed', True, False }, optional, keyword only
+        keep_file_open : { 'auto', True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
             a new file handle is created every time the image is accessed. If
-            ``'indexed'`` (the default), and the optional ``indexed_gzip``
+            ``'auto'`` (the default), and the optional ``indexed_gzip``
             dependency is present, a single file handle is created and
             persisted. If ``indexed_gzip`` is not available, behaviour is the
             same as if ``keep_file_open is False``. If ``file_like`` is an
@@ -177,7 +177,7 @@ class ArrayProxy(object):
 
         file_like : object
             File-like object or filename, as passed to ``__init__``.
-        keep_file_open : { 'indexed', True, False }
+        keep_file_open : { 'auto', True, False }
             Flag as passed to ``__init__``.
 
         Returns
@@ -191,7 +191,7 @@ class ArrayProxy(object):
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
         # if keep_file_open is True/False, we do what the user wants us to do
-        if keep_file_open != 'indexed':
+        if keep_file_open != 'auto':
             return bool(keep_file_open)
         # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
         # keep_file_open to True, else we set it to False
