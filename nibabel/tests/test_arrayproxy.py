@@ -11,6 +11,7 @@
 from __future__ import division, print_function, absolute_import
 
 import warnings
+import gzip
 
 import pickle
 from io import BytesIO
@@ -332,16 +333,22 @@ def check_mmap(hdr, offset, proxy_class,
             assert_raises(ValueError, proxy_class, fname, hdr, mmap='r+')
 
 
-def test_keep_file_open():
-    # Test the behaviour of the keep_file_open __init__ flag.
-    numopeners = [0]
-    class CountingImageOpener(ImageOpener):
+# An image opener class which counts how many instances of itself have been
+# created
+class CountingImageOpener(ImageOpener):
 
-        def __init__(self, *args, **kwargs):
+    numOpeners = 0
 
-            super(CountingImageOpener, self).__init__(*args, **kwargs)
-            numopeners[0] += 1
+    def __init__(self, *args, **kwargs):
 
+        super(CountingImageOpener, self).__init__(*args, **kwargs)
+        CountingImageOpener.numOpeners += 1
+
+
+def test_keep_file_open_true_false():
+    # Test the behaviour of the keep_file_open __init__ flag, when it is set to
+    # True or False.
+    CountingImageOpener.numOpeners = 0
     fname = 'testdata'
     dtype = np.float32
     data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
@@ -354,22 +361,25 @@ def test_keep_file_open():
         # handle on every data access.
         with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
             proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy_no_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
-                assert numopeners[0] == i + 1
-            numopeners[0] = 0
+                assert CountingImageOpener.numOpeners == i + 1
+            CountingImageOpener.numOpeners = 0
             proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
                                    keep_file_open=True)
+            assert proxy_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
-                assert numopeners[0] == 1
+                assert CountingImageOpener.numOpeners == 1
         # Test that the keep_file_open flag has no effect if an open file
         # handle is passed in
         with open(fname, 'rb') as fobj:
             proxy_no_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
                                       keep_file_open=False)
+            assert not proxy_no_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert not fobj.closed
@@ -378,6 +388,7 @@ def test_keep_file_open():
             assert not fobj.closed
             proxy_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
                                    keep_file_open=True)
+            assert not proxy_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert not fobj.closed
@@ -385,6 +396,27 @@ def test_keep_file_open():
             proxy_kfp = None
             assert not fobj.closed
 
+
+def test_keep_file_open_default():
+    # Test the behaviour of the keep_file_open __init__ flag, when it is set to
+    # its default value
+    dtype = np.float32
+    data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
+    voxels = np.random.randint(0, 10, (10, 3))
+    mockmod = mock.MagicMock()
+    with InTemporaryDirectory():
+        fname  = 'testdata.gz'
+        with gzip.open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+    # If have_indexed_gzip, then keep_file_open should be True
+    with mock.patch.dict('sys.modules', {'indexed_gzip' : mockmod}), \
+         mock.patch('indexed_gzip.SafeIndexedGzipFile', gzip.GzipFile):
+        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+        assert proxy._keep_file_open
+    # If no have_indexed_gzip, then keep_file_open should be False
+    with mock.patch.dict('sys.modules', {'indexed_gzip' : None}):
+        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+        assert not proxy._keep_file_open
 
 def test_pickle_lock():
     # Test that ArrayProxy can be pickled, and that thread lock is created

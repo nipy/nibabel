@@ -103,7 +103,7 @@ def test_Opener_gzip_type():
     fname = 'test.gz'
     mockmod = mock.MagicMock()
 
-    class MockClass(object):
+    class MockIGZFile(object):
         def __init__(self, *args, **kwargs):
             pass
 
@@ -120,8 +120,8 @@ def test_Opener_gzip_type():
 
         # test with indexd_gzip present
         with mock.patch.dict('sys.modules', {'indexed_gzip' : mockmod}), \
-             mock.patch('indexed_gzip.SafeIndexedGzipFile', MockClass):
-            assert isinstance(Opener(fname, mode='rb').fobj, MockClass)
+             mock.patch('indexed_gzip.SafeIndexedGzipFile', MockIGZFile):
+            assert isinstance(Opener(fname, mode='rb').fobj, MockIGZFile)
             assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
 
 
