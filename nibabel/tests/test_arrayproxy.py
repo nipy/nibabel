@@ -413,9 +413,13 @@ def test_keep_file_open_default():
          mock.patch('indexed_gzip.SafeIndexedGzipFile', gzip.GzipFile):
         proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
         assert proxy._keep_file_open
+        proxy = ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
+        assert proxy._keep_file_open
     # If no have_indexed_gzip, then keep_file_open should be False
     with mock.patch.dict('sys.modules', {'indexed_gzip' : None}):
         proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+        assert not proxy._keep_file_open
+        proxy = ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
         assert not proxy._keep_file_open
 
 def test_pickle_lock():
