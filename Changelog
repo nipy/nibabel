@@ -65,6 +65,7 @@ Bug fixes
 Maintenance
 -----------
 
+* Fix documentation errors (pr/517, pr/536) (Fernando Perez, Venky Reddy)
 * Documentation update (pr/514) (Ivan Gonzalez)
 * Update testing to use pre-release builds of dependencies (pr/509) (MB)
 * Better warnings when nibabel not on path (pr/503) (MB)
