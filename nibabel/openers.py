@@ -14,6 +14,13 @@ import gzip
 import sys
 from os.path import splitext
 
+# is indexed_gzip present?
+try:
+    from indexed_gzip import SafeIndexedGzipFile
+    HAVE_INDEXED_GZIP = True
+except:
+    HAVE_INDEXED_GZIP = False
+
 
 # The largest memory chunk that gzip can use for reads
 GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
@@ -62,13 +69,6 @@ class BufferedGzipFile(gzip.GzipFile):
 
 def _gzip_open(fileish, mode='rb', compresslevel=9):
 
-    # is indexed_gzip present?
-    try:
-        from indexed_gzip import SafeIndexedGzipFile
-        have_indexed_gzip = True
-    except:
-        have_indexed_gzip = False
-
     # is this a file? if not we assume it is a string
     is_file = hasattr(fileish, 'read') and hasattr(fileish, 'write')
 
@@ -77,7 +77,7 @@ def _gzip_open(fileish, mode='rb', compresslevel=9):
         mode = fileish.mode
 
     # use indexed_gzip if possible for faster read access
-    if mode == 'rb' and have_indexed_gzip:
+    if mode == 'rb' and HAVE_INDEXED_GZIP:
         if is_file:
             gzip_file = SafeIndexedGzipFile(fid=fileish)
         else:

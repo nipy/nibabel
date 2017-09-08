@@ -34,7 +34,7 @@ from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener
+from .openers import ImageOpener, HAVE_INDEXED_GZIP
 
 
 class ArrayProxy(object):
@@ -195,13 +195,7 @@ class ArrayProxy(object):
             return bool(keep_file_open)
         # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
         # keep_file_open to True, else we set it to False
-        try:
-            import indexed_gzip
-            have_indexed_gzip = True
-        except ImportError:
-            have_indexed_gzip = False
-
-        return have_indexed_gzip and file_like.endswith('gz')
+        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -259,7 +253,7 @@ class ArrayProxy(object):
 
         This is an optional part of the proxy API
         """
-        with self._get_fileobj() as fileobj:
+        with self._get_fileobj() as fileobj, self._lock:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
