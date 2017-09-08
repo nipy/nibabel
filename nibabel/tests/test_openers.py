@@ -114,13 +114,18 @@ def test_Opener_gzip_type():
             f.write(data.encode())
 
         # test with indexd_gzip not present
-        with mock.patch.dict('sys.modules', {'indexed_gzip' : None}):
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
             assert isinstance(Opener(fname, mode='rb').fobj, GzipFile)
             assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
 
         # test with indexd_gzip present
-        with mock.patch.dict('sys.modules', {'indexed_gzip' : mockmod}), \
-             mock.patch('indexed_gzip.SafeIndexedGzipFile', MockIGZFile):
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', MockIGZFile,
+                        create=True):
             assert isinstance(Opener(fname, mode='rb').fobj, MockIGZFile)
             assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
 
