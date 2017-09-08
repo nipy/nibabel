@@ -270,8 +270,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             ``'auto'`` (the default), and the optional ``indexed_gzip``
             dependency is present, a single file handle is created and
             persisted. If ``indexed_gzip`` is not available, behaviour is the
-            same as if ``keep_file_open is False``. If ``file_like`` is an
-            open file handle, this setting has no effect.
+            same as if ``keep_file_open is False``. If ``file_map`` refers to
+            an open file handle, this setting has no effect.
 
         Returns
         -------
