@@ -737,7 +737,9 @@ def test_read_segments_lock():
         seg, nbytes = random_segments(10)
         expected = get_expected(seg)
         _check_bytes(read_segments(fobj, seg, nbytes, lock), expected)
-        numpassed[0] += 1
+
+        with lock:
+            numpassed[0] += 1
 
     threads = [Thread(target=runtest) for i in range(100)]
     [t.start() for t in threads]
