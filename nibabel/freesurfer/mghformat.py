@@ -476,7 +476,7 @@ class MGHImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open='auto'):
         '''Load image from `file_map`
 
         Parameters
@@ -491,6 +491,17 @@ class MGHImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open : { 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'`` (the default), and the optional ``indexed_gzip``
+            dependency is present, a single file handle is created and
+            persisted. If ``indexed_gzip`` is not available, behaviour is the
+            same as if ``keep_file_open is False``. If ``file_map`` refers to
+            an open file handle, this setting has no effect.
         '''
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -500,7 +511,8 @@ class MGHImage(SpatialImage):
         affine = header.get_affine()
         hdr_copy = header.copy()
         # Pass original image fileobj / filename to array proxy
-        data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap)
+        data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap,
+                                     keep_file_open=keep_file_open)
         img = klass(data, affine, header, file_map=file_map)
         img._load_cache = {'header': hdr_copy,
                            'affine': affine.copy(),
@@ -509,7 +521,7 @@ class MGHImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True):
+    def from_filename(klass, filename, mmap=True, keep_file_open='auto'):
         ''' class method to create image from filename `filename`
 
         Parameters
@@ -523,6 +535,16 @@ class MGHImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open : { 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'`` (the default), and the optional ``indexed_gzip``
+            dependency is present, a single file handle is created and
+            persisted. If ``indexed_gzip`` is not available, behaviour is the
+            same as if ``keep_file_open is False``.
 
         Returns
         -------
@@ -531,7 +553,8 @@ class MGHImage(SpatialImage):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap)
+        return klass.from_file_map(file_map, mmap=mmap,
+                                   keep_file_open=keep_file_open)
 
     load = from_filename
 

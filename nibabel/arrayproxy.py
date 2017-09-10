@@ -186,13 +186,16 @@ class ArrayProxy(object):
         The value of ``keep_file_open`` that will be used by this
         ``ArrayProxy``.
         """
+        # if keep_file_open is True/False, we do what the user wants us to do
+        if isinstance(keep_file_open, bool):
+            return keep_file_open
+        if keep_file_open != 'auto':
+            raise ValueError(
+                'keep_file_open should be one of {\'auto\', True, False }')
 
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
-        # if keep_file_open is True/False, we do what the user wants us to do
-        if keep_file_open != 'auto':
-            return bool(keep_file_open)
         # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
         # keep_file_open to True, else we set it to False
         return HAVE_INDEXED_GZIP and file_like.endswith('gz')
