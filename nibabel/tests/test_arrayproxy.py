@@ -345,7 +345,7 @@ class CountingImageOpener(ImageOpener):
         CountingImageOpener.numOpeners += 1
 
 
-def test_keep_file_open_true_false():
+def test_keep_file_open_true_false_invalid():
     # Test the behaviour of the keep_file_open __init__ flag, when it is set to
     # True or False.
     CountingImageOpener.numOpeners = 0
@@ -360,7 +360,8 @@ def test_keep_file_open_true_false():
         # handle, and that ArrayProxy(keep_file_open=False) creates a file
         # handle on every data access.
         with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
-            proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype))
+            proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                      keep_file_open=False)
             assert not proxy_no_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 x , y, z = [int(c) for c in voxels[i, :]]
@@ -388,13 +389,24 @@ def test_keep_file_open_true_false():
             assert not fobj.closed
             proxy_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
                                    keep_file_open=True)
-            assert not proxy_kfp._keep_file_open
+            assert proxy_kfp._keep_file_open
             for i in range(voxels.shape[0]):
                 assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert not fobj.closed
             del proxy_kfp
             proxy_kfp = None
             assert not fobj.closed
+        # Test invalid values of keep_file_open
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=0)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=1)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=55)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='autob')
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
 
 
 def test_keep_file_open_default():
