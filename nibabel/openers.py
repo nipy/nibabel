@@ -18,7 +18,7 @@ from os.path import splitext
 try:
     from indexed_gzip import SafeIndexedGzipFile
     HAVE_INDEXED_GZIP = True
-except:
+except ImportError:
     HAVE_INDEXED_GZIP = False
 
 
