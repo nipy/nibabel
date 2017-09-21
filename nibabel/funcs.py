@@ -245,16 +245,41 @@ def crop_image(img, bounds, margin=0):
        Version of `img` with cropped data array and updated affine matrix
     '''
 
-    try:
-        bounds = np.asanyarray(bounds) + np.array([-margin, margin])
-        assert bounds.shape == (3, 2)
-    except (ValueError, AssertionError):
+    shape = np.reshape(img.shape[:3], (3, 1))
+    bounds = np.asanyarray(bounds)
+    if bounds.shape != (3, 2):
         raise ValueError("bounds must be interpretable as a 3x2 array")
+    elif np.any(bounds > shape):
+        raise ValueError("bounds must not exceed image dimensions")
+
+    # Permit negative bounds
+    if np.any(bounds < 0):
+        bounds = (bounds + shape) % shape
+
+    if np.any(bounds < 0):
+        raise ValueError("negative bounds may not exceed image dimensions")
+    elif np.any(bounds[:, 0] > bounds[:, 1]):
+        raise ValueError("degenerate (0 width) crops are not permitted")
+
+    # Add margin in all directions
+    bounds += np.array([-margin, margin])
+
+    # Set min/max
+    bounds[bounds < 0] = 0
+    over = bounds[:, 1] > shape.reshape(-1) - 1
+    bounds[over, 1] = shape[over, 0] - 1
+
+    # Include upper bounds
+    bounds[:, 1] += 1
+
+    # Return original image if no cropping required
+    if np.array_equal(bounds, np.hstack(([[0], [0], [0]], shape))):
+        return img
 
     x, y, z = bounds
     new_origin = np.vstack((bounds[:, [0]], 1))
 
-    bounded_data = img.get_data()[x[0]:x[1] + 1, y[0]:y[1] + 1, z[0]:z[1] + 1]
+    bounded_data = img.get_data()[x[0]:x[1], y[0]:y[1], z[0]:z[1]]
 
     new_aff = img.affine.copy()
     new_aff[:, [3]] = img.affine.dot(new_origin)
