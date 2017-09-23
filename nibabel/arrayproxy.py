@@ -37,7 +37,6 @@ from .keywordonly import kw_only_meth
 from .openers import ImageOpener, HAVE_INDEXED_GZIP
 
 
-KEEP_FILE_OPEN_DEFAULT = False
 """This flag controls whether a new file handle is created every time an image
 is accessed through an ``ArrayProxy``, or a single file handle is created and
 used for the lifetime of the ``ArrayProxy``. It should be set to one of
@@ -53,6 +52,7 @@ If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
 """
+KEEP_FILE_OPEN_DEFAULT = False
 
 
 class ArrayProxy(object):
