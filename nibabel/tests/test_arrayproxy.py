@@ -419,19 +419,22 @@ def test_keep_file_open_auto():
         fname  = 'testdata.gz'
         with gzip.open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-    # If have_indexed_gzip, then keep_file_open should be True
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP',    True), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
-                    create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
-        assert proxy._keep_file_open
-    # If no have_indexed_gzip, then keep_file_open should be False
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', None, create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
-        assert not proxy._keep_file_open
+        # If have_indexed_gzip, then keep_file_open should be True
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP',    True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert proxy._keep_file_open
+        # If no have_indexed_gzip, then keep_file_open should be False
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert not proxy._keep_file_open
 
 
 def test_keep_file_open_default():
@@ -443,55 +446,62 @@ def test_keep_file_open_default():
         fname  = 'testdata.gz'
         with gzip.open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-    # The default value of KEEP_FILE_OPEN_DEFAULT should cause keep_file_open
-    # to be False, regardless of whether or not indexed_gzip is present
-    assert KEEP_FILE_OPEN_DEFAULT is False
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', None, create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert not proxy._keep_file_open
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
-                    create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert not proxy._keep_file_open
-    # KEEP_FILE_OPEN_DEFAULT=True should cause keep_file_open to be True,
-    # regardless of whether or not indexed_gzip is present
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', True), \
-         mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
-                    create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert proxy._keep_file_open
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', True), \
-         mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', None, create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert proxy._keep_file_open
-    # KEEP_FILE_OPEN_DEFAULT=auto should cause keep_file_open to be True
-    # or False, depending on whether indeed_gzip is present,
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'auto'), \
-         mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
-                    create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert proxy._keep_file_open
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'auto'), \
-         mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', None, create=True):
-        proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
-        assert not proxy._keep_file_open
-    # KEEP_FILE_OPEN_DEFAULT=any other value should cuse an error to be raised
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'badvalue'):
-        assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10), dtype))
-    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', None):
-        assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10), dtype))
+        # The default value of KEEP_FILE_OPEN_DEFAULT should cause
+        # keep_file_open to be False, regardless of whether or not indexed_gzip
+        # is present
+        assert KEEP_FILE_OPEN_DEFAULT is False
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=True should cause keep_file_open to be True,
+        # regardless of whether or not indexed_gzip is present
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', True), \
+             mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', True), \
+             mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=auto should cause keep_file_open to be True
+        # or False, depending on whether indeed_gzip is present,
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'auto'), \
+             mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', gzip.GzipFile,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'auto'), \
+             mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=any other value should cuse an error to be
+        # raised
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', 'badval'):
+            assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10),
+                                                           dtype))
+        with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', None):
+            assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10),
+                                                           dtype))
 
 
 def test_pickle_lock():
