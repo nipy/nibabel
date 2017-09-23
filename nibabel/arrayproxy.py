@@ -37,6 +37,24 @@ from .keywordonly import kw_only_meth
 from .openers import ImageOpener, HAVE_INDEXED_GZIP
 
 
+KEEP_FILE_OPEN_DEFAULT = False
+"""This flag controls whether a new file handle is created every time an image
+is accessed through an ``ArrayProxy``, or a single file handle is created and
+used for the lifetime of the ``ArrayProxy``. It should be set to one of
+``True``, ``False``, or ``'auto'``.
+
+If ``True``, a single file handle is created and used. If ``False``, a new
+file handle is created every time the image is accessed. If ``'auto'``, and
+the optional ``indexed_gzip`` dependency is present, a single file handle is
+created and persisted. If ``indexed_gzip`` is not available, behaviour is the
+same as if ``keep_file_open is False``.
+
+If this is set to any other value, attempts to create an ``ArrayProxy`` without
+specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
+raised.
+"""
+
+
 class ArrayProxy(object):
     """ Class to act as proxy for the array that can be read from a file
 
@@ -72,7 +90,7 @@ class ArrayProxy(object):
     _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True, keep_file_open='auto'):
+    def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
 
         Parameters
@@ -108,11 +126,12 @@ class ArrayProxy(object):
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
             a new file handle is created every time the image is accessed. If
-            ``'auto'`` (the default), and the optional ``indexed_gzip``
-            dependency is present, a single file handle is created and
-            persisted. If ``indexed_gzip`` is not available, behaviour is the
-            same as if ``keep_file_open is False``. If ``file_like`` is an
-            open file handle, this setting has no effect.
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_like`` is an open file
+            handle, this setting has no effect. The default value is set to
+            the value of ``KEEP_FILE_OPEN_DEFAULT``.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -186,6 +205,8 @@ class ArrayProxy(object):
         The value of ``keep_file_open`` that will be used by this
         ``ArrayProxy``.
         """
+        if keep_file_open is None:
+            keep_file_open = KEEP_FILE_OPEN_DEFAULT
         # if keep_file_open is True/False, we do what the user wants us to do
         if isinstance(keep_file_open, bool):
             return keep_file_open

@@ -245,7 +245,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open='auto'):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
         '''class method to create image from mapping in `file_map ``
 
         Parameters
@@ -267,11 +267,12 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
             a new file handle is created every time the image is accessed. If
-            ``'auto'`` (the default), and the optional ``indexed_gzip``
-            dependency is present, a single file handle is created and
-            persisted. If ``indexed_gzip`` is not available, behaviour is the
-            same as if ``keep_file_open is False``. If ``file_map`` refers to
-            an open file handle, this setting has no effect.
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_map`` refers to an open
+            file handle, this setting has no effect. The default value is
+            set to the value of ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT``.
 
         Returns
         -------

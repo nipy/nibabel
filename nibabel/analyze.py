@@ -934,8 +934,8 @@ class AnalyzeImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open='auto'):
-        ''' class method to create image from mapping in `file_map ``
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+        '''class method to create image from mapping in `file_map ``
 
         Parameters
         ----------
@@ -956,11 +956,12 @@ class AnalyzeImage(SpatialImage):
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
             a new file handle is created every time the image is accessed. If
-            ``'auto'`` (the default), and the optional ``indexed_gzip``
-            dependency is present, a single file handle is created and
-            persisted. If ``indexed_gzip`` is not available, behaviour is the
-            same as if ``keep_file_open is False``. If ``file_map`` refers
-            to an open file handle, this setting has no effect.
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_map`` refers to an open
+            file handle, this setting has no effect. The default value is
+            set to the value of ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT``.
 
         Returns
         -------
@@ -988,8 +989,8 @@ class AnalyzeImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open='auto'):
-        ''' class method to create image from filename `filename`
+    def from_filename(klass, filename, mmap=True, keep_file_open=None):
+        '''class method to create image from filename `filename`
 
         Parameters
         ----------
@@ -1002,16 +1003,18 @@ class AnalyzeImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+
         keep_file_open : { 'auto', True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
             a new file handle is created every time the image is accessed. If
-            ``'auto'`` (the default), and the optional ``indexed_gzip``
-            dependency is present, a single file handle is created and
-            persisted. If ``indexed_gzip`` is not available, behaviour is the
-            same as if ``keep_file_open is False``.
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. The default value is set to the value
+            of ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT``.
 
         Returns
         -------
