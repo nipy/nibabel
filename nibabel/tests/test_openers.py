@@ -17,10 +17,10 @@ from ..openers import Opener, ImageOpener
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
+import mock
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 from ..testing import error_warnings
-import mock
 
 
 class Lunk(object):
