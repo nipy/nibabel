@@ -67,26 +67,16 @@ class BufferedGzipFile(gzip.GzipFile):
             return n_read
 
 
-def _gzip_open(fileish, mode='rb', compresslevel=9):
-
-    # is this a file? if not we assume it is a string
-    is_file = hasattr(fileish, 'read') and hasattr(fileish, 'write')
-
-    # If we've been given a file object, we can't change its mode.
-    if is_file and hasattr(fileish, 'mode'):
-        mode = fileish.mode
+def _gzip_open(filename, mode='rb', compresslevel=9):
 
     # use indexed_gzip if possible for faster read access
     if mode == 'rb' and HAVE_INDEXED_GZIP:
-        if is_file:
-            gzip_file = SafeIndexedGzipFile(fid=fileish)
-        else:
-            gzip_file = SafeIndexedGzipFile(filename=fileish)
+        gzip_file = SafeIndexedGzipFile(filename)
 
     # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
     # defined above)
     else:
-        gzip_file = BufferedGzipFile(fileish, mode, compresslevel)
+        gzip_file = BufferedGzipFile(filename, mode, compresslevel)
 
     # Speedup for #209, for versions of python < 3.5. Open gzip files with
     # faster reads on large files using a larger read buffer. See
