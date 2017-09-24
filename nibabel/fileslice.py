@@ -18,7 +18,9 @@ SKIP_THRESH = 2 ** 8
 
 
 class _NullLock(object):
-    """The ``_NullLock`` is an object which can be used in place of a
+    """Can be used as no-function dummy object in place of ``threading.lock``.
+
+    The ``_NullLock`` is an object which can be used in place of a
     ``threading.Lock`` object, but doesn't actually do anything.
 
     It is used by the ``read_segments`` function in the event that a
@@ -648,12 +650,14 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
         absolute file offset in bytes and number of bytes to read
     n_bytes : int
         total number of bytes that will be read
-    lock : threading.Lock
+    lock : {None, threading.Lock, lock-like} optional
         If provided, used to ensure that paired calls to ``seek`` and ``read``
         cannot be interrupted by another thread accessing the same ``fileobj``.
         Each thread which accesses the same file via ``read_segments`` must
         share a lock in order to ensure that the file access is thread-safe.
-        A lock does not need to be provided for single-threaded access.
+        A lock does not need to be provided for single-threaded access. The
+        default value (``None``) results in a lock-like object  (a
+        ``_NullLock``) which does not do anything.
 
     Returns
     -------
@@ -763,9 +767,14 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
         returning one of 'full', 'contiguous', None.  See
         :func:`optimize_slicer` and see :func:`threshold_heuristic` for an
         example.
-    lock: threading.Lock, optional
+    lock : {None, threading.Lock, lock-like} optional
         If provided, used to ensure that paired calls to ``seek`` and ``read``
         cannot be interrupted by another thread accessing the same ``fileobj``.
+        Each thread which accesses the same file via ``read_segments`` must
+        share a lock in order to ensure that the file access is thread-safe.
+        A lock does not need to be provided for single-threaded access. The
+        default value (``None``) results in a lock-like object  (a
+        ``_NullLock``) which does not do anything.
 
     Returns
     -------
@@ -779,8 +788,8 @@ def fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C',
     segments, sliced_shape, post_slicers = calc_slicedefs(
         sliceobj, shape, itemsize, offset, order)
     n_bytes = reduce(operator.mul, sliced_shape, 1) * itemsize
-    bytes = read_segments(fileobj, segments, n_bytes, lock)
-    sliced = np.ndarray(sliced_shape, dtype, buffer=bytes, order=order)
+    arr_data = read_segments(fileobj, segments, n_bytes, lock)
+    sliced = np.ndarray(sliced_shape, dtype, buffer=arr_data, order=order)
     return sliced[post_slicers]
 
 

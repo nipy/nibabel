@@ -120,7 +120,7 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, 'auto', True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
@@ -130,8 +130,8 @@ class ArrayProxy(object):
             present, a single file handle is created and persisted. If
             ``indexed_gzip`` is not available, behaviour is the same as if
             ``keep_file_open is False``. If ``file_like`` is an open file
-            handle, this setting has no effect. The default value is set to
-            the value of ``KEEP_FILE_OPEN_DEFAULT``.
+            handle, this setting has no effect. The default value (``None``)
+            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -211,8 +211,8 @@ class ArrayProxy(object):
         if isinstance(keep_file_open, bool):
             return keep_file_open
         if keep_file_open != 'auto':
-            raise ValueError(
-                'keep_file_open should be one of {\'auto\', True, False }')
+            raise ValueError('keep_file_open should be one of {None, '
+                             '\'auto\', True, False}')
 
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
@@ -256,7 +256,6 @@ class ArrayProxy(object):
 
         The specific behaviour depends on the value of the ``keep_file_open``
         flag that was passed to ``__init__``.
-
 
         Yields
         ------
