@@ -11,14 +11,21 @@
 from __future__ import division, print_function, absolute_import
 
 import warnings
+import gzip
+import contextlib
 
+import pickle
 from io import BytesIO
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
-from ..arrayproxy import ArrayProxy, is_proxy, reshape_dataobj
+from ..arrayproxy import (ArrayProxy, KEEP_FILE_OPEN_DEFAULT, is_proxy,
+                          reshape_dataobj)
+from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
+
+import mock
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
@@ -327,3 +334,182 @@ def check_mmap(hdr, offset, proxy_class,
             # Check invalid values raise error
             assert_raises(ValueError, proxy_class, fname, hdr, mmap='rw')
             assert_raises(ValueError, proxy_class, fname, hdr, mmap='r+')
+
+
+# An image opener class which counts how many instances of itself have been
+# created
+class CountingImageOpener(ImageOpener):
+
+    num_openers = 0
+
+    def __init__(self, *args, **kwargs):
+
+        super(CountingImageOpener, self).__init__(*args, **kwargs)
+        CountingImageOpener.num_openers += 1
+
+
+def test_keep_file_open_true_false_invalid():
+    # Test the behaviour of the keep_file_open __init__ flag, when it is set to
+    # True or False.
+    CountingImageOpener.num_openers = 0
+    fname = 'testdata'
+    dtype = np.float32
+    data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
+    voxels = np.random.randint(0, 10, (10, 3))
+    with InTemporaryDirectory():
+        with open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+        # Test that ArrayProxy(keep_file_open=True) only creates one file
+        # handle, and that ArrayProxy(keep_file_open=False) creates a file
+        # handle on every data access.
+        with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+            proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                      keep_file_open=False)
+            assert not proxy_no_kfp._keep_file_open
+            for i in range(voxels.shape[0]):
+                x , y, z = [int(c) for c in voxels[i, :]]
+                assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert CountingImageOpener.num_openers == i + 1
+            CountingImageOpener.num_openers = 0
+            proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
+            assert proxy_kfp._keep_file_open
+            for i in range(voxels.shape[0]):
+                x , y, z = [int(c) for c in voxels[i, :]]
+                assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert CountingImageOpener.num_openers == 1
+        # Test that the keep_file_open flag has no effect if an open file
+        # handle is passed in
+        with open(fname, 'rb') as fobj:
+            proxy_no_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
+                                      keep_file_open=False)
+            assert not proxy_no_kfp._keep_file_open
+            for i in range(voxels.shape[0]):
+                assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert not fobj.closed
+            del proxy_no_kfp
+            proxy_no_kfp = None
+            assert not fobj.closed
+            proxy_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
+            assert proxy_kfp._keep_file_open
+            for i in range(voxels.shape[0]):
+                assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
+                assert not fobj.closed
+            del proxy_kfp
+            proxy_kfp = None
+            assert not fobj.closed
+        # Test invalid values of keep_file_open
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=0)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=1)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=55)
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='autob')
+        with assert_raises(ValueError):
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
+
+
+@contextlib.contextmanager
+def patch_indexed_gzip(state):
+    # Make it look like we do (state==True) or do not (state==False) have
+    # the indexed gzip module.
+    if state:
+        values = (True, True, gzip.GzipFile)
+    else:
+        values = (False, False, None)
+    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
+         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
+         mock.patch('nibabel.openers.SafeIndexedGzipFile', values[2],
+                    create=True):
+        yield
+
+
+@contextlib.contextmanager
+def patch_keep_file_open_default(value):
+    # Patch arrayproxy.KEEP_FILE_OPEN_DEFAULT with the given value
+    with mock.patch('nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT', value):
+        yield
+
+
+def test_keep_file_open_auto():
+    # Test the behaviour of the keep_file_open __init__ flag, when it is set to
+    # 'auto'
+    dtype = np.float32
+    data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
+    with InTemporaryDirectory():
+        fname  = 'testdata.gz'
+        with gzip.open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+        # If have_indexed_gzip, then keep_file_open should be True
+        with patch_indexed_gzip(True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert proxy._keep_file_open
+        # If no have_indexed_gzip, then keep_file_open should be False
+        with patch_indexed_gzip(False):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert not proxy._keep_file_open
+
+
+def test_keep_file_open_default():
+    # Test the behaviour of the keep_file_open __init__ flag, when the
+    # arrayproxy.KEEP_FILE_OPEN_DEFAULT value is changed
+    dtype = np.float32
+    data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
+    with InTemporaryDirectory():
+        fname  = 'testdata.gz'
+        with gzip.open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+        # The default value of KEEP_FILE_OPEN_DEFAULT should cause
+        # keep_file_open to be False, regardless of whether or not indexed_gzip
+        # is present
+        assert KEEP_FILE_OPEN_DEFAULT is False
+        with patch_indexed_gzip(False):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        with patch_indexed_gzip(True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=True should cause keep_file_open to be True,
+        # regardless of whether or not indexed_gzip is present
+        with patch_keep_file_open_default(True), patch_indexed_gzip(True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        with patch_keep_file_open_default(True), patch_indexed_gzip(False):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=auto should cause keep_file_open to be True
+        # or False, depending on whether indeed_gzip is present,
+        with patch_keep_file_open_default('auto'), patch_indexed_gzip(True):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert proxy._keep_file_open
+        with patch_keep_file_open_default('auto'), patch_indexed_gzip(False):
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype))
+            assert not proxy._keep_file_open
+        # KEEP_FILE_OPEN_DEFAULT=any other value should cuse an error to be
+        # raised
+        with patch_keep_file_open_default('badvalue'):
+            assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10),
+                                                           dtype))
+        with patch_keep_file_open_default(None):
+            assert_raises(ValueError,  ArrayProxy, fname, ((10, 10, 10),
+                                                           dtype))
+
+
+def test_pickle_lock():
+    # Test that ArrayProxy can be pickled, and that thread lock is created
+
+    def islock(l):
+        # isinstance doesn't work on threading.Lock?
+        return hasattr(l, 'acquire') and hasattr(l, 'release')
+
+    proxy = ArrayProxy('dummyfile', ((10, 10, 10), np.float32))
+    assert islock(proxy._lock)
+    pickled = pickle.dumps(proxy)
+    unpickled = pickle.loads(pickled)
+    assert islock(unpickled._lock)
+    assert proxy._lock is not unpickled._lock

@@ -17,6 +17,7 @@ from ..openers import Opener, ImageOpener
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
+import mock
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 from ..testing import error_warnings
@@ -93,6 +94,40 @@ def test_BinOpener():
     with error_warnings():
         assert_raises(DeprecationWarning,
                       BinOpener, 'test.txt', 'r')
+
+
+def test_Opener_gzip_type():
+    # Test that BufferedGzipFile or IndexedGzipFile are used as appropriate
+
+    data = 'this is some test data'
+    fname = 'test.gz'
+    mockmod = mock.MagicMock()
+
+    class MockIGZFile(object):
+        def __init__(self, *args, **kwargs):
+            pass
+
+    with InTemporaryDirectory():
+
+        # make some test data
+        with GzipFile(fname, mode='wb') as f:
+            f.write(data.encode())
+
+        # test with indexd_gzip not present
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
+                        create=True):
+            assert isinstance(Opener(fname, mode='rb').fobj, GzipFile)
+            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
+
+        # test with indexd_gzip present
+        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
+             mock.patch('nibabel.openers.SafeIndexedGzipFile', MockIGZFile,
+                        create=True):
+            assert isinstance(Opener(fname, mode='rb').fobj, MockIGZFile)
+            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
 
 
 class TestImageOpener:
@@ -202,7 +237,11 @@ def test_compressed_ext_case():
             if lext != ext:  # extension should not be recognized -> file
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
-                assert_true(isinstance(fobj.fobj, GzipFile))
+                try:
+                    from indexed_gzip import IndexedGzipFile
+                except ImportError:
+                    IndexedGzipFile = GzipFile
+                assert_true(isinstance(fobj.fobj, (GzipFile, IndexedGzipFile)))
             else:
                 assert_true(isinstance(fobj.fobj, BZ2File))
 

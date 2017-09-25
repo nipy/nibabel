@@ -245,8 +245,8 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True):
-        ''' class method to create image from mapping in `file_map ``
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+        '''class method to create image from mapping in `file_map ``
 
         Parameters
         ----------
@@ -261,13 +261,27 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_map`` refers to an open
+            file handle, this setting has no effect. The default value
+            (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
 
         Returns
         -------
         img : Spm99AnalyzeImage instance
+
         '''
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(file_map,
-                                                            mmap=mmap)
+        ret = super(Spm99AnalyzeImage, klass).from_file_map(
+            file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except IOError:

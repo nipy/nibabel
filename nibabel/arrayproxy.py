@@ -25,13 +25,34 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+from contextlib import contextmanager
+from threading import RLock
+
 import numpy as np
 
 from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener
+from .openers import ImageOpener, HAVE_INDEXED_GZIP
+
+
+"""This flag controls whether a new file handle is created every time an image
+is accessed through an ``ArrayProxy``, or a single file handle is created and
+used for the lifetime of the ``ArrayProxy``. It should be set to one of
+``True``, ``False``, or ``'auto'``.
+
+If ``True``, a single file handle is created and used. If ``False``, a new
+file handle is created every time the image is accessed. If ``'auto'``, and
+the optional ``indexed_gzip`` dependency is present, a single file handle is
+created and persisted. If ``indexed_gzip`` is not available, behaviour is the
+same as if ``keep_file_open is False``.
+
+If this is set to any other value, attempts to create an ``ArrayProxy`` without
+specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
+raised.
+"""
+KEEP_FILE_OPEN_DEFAULT = False
 
 
 class ArrayProxy(object):
@@ -69,8 +90,8 @@ class ArrayProxy(object):
     _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True):
-        """ Initialize array proxy instance
+    def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
+        """Initialize array proxy instance
 
         Parameters
         ----------
@@ -99,8 +120,18 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        scaling : {'fp', 'dv'}, optional, keyword only
-            Type of scaling to use - see header ``get_data_scaling`` method.
+        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_like`` is an open file
+            handle, this setting has no effect. The default value (``None``)
+            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -125,6 +156,70 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
+        self._keep_file_open = self._should_keep_file_open(file_like,
+                                                           keep_file_open)
+        self._lock = RLock()
+
+    def __del__(self):
+        """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
+        the open file object is closed if necessary.
+        """
+        if hasattr(self, '_opener') and not self._opener.closed:
+            self._opener.close_if_mine()
+            self._opener = None
+
+    def __getstate__(self):
+        """Returns the state of this ``ArrayProxy`` during pickling. """
+        state = self.__dict__.copy()
+        state.pop('_lock', None)
+        return state
+
+    def __setstate__(self, state):
+        """Sets the state of this ``ArrayProxy`` during unpickling. """
+        self.__dict__.update(state)
+        self._lock = RLock()
+
+    def _should_keep_file_open(self, file_like, keep_file_open):
+        """Called by ``__init__``, and used to determine the final value of
+        ``keep_file_open``.
+
+        The return value is derived from these rules:
+
+          - If ``file_like`` is a file(-like) object, ``False`` is returned.
+            Otherwise, ``file_like`` is assumed to be a file name.
+          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
+            library is available, ``True`` is returned.
+          - Otherwise, ``False`` is returned.
+
+        Parameters
+        ----------
+
+        file_like : object
+            File-like object or filename, as passed to ``__init__``.
+        keep_file_open : { 'auto', True, False }
+            Flag as passed to ``__init__``.
+
+        Returns
+        -------
+
+        The value of ``keep_file_open`` that will be used by this
+        ``ArrayProxy``.
+        """
+        if keep_file_open is None:
+            keep_file_open = KEEP_FILE_OPEN_DEFAULT
+        # if keep_file_open is True/False, we do what the user wants us to do
+        if isinstance(keep_file_open, bool):
+            return keep_file_open
+        if keep_file_open != 'auto':
+            raise ValueError('keep_file_open should be one of {None, '
+                             '\'auto\', True, False}')
+
+        # file_like is a handle - keep_file_open is irrelevant
+        if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
+            return False
+        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
+        # keep_file_open to True, else we set it to False
+        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -155,12 +250,33 @@ class ArrayProxy(object):
     def is_proxy(self):
         return True
 
+    @contextmanager
+    def _get_fileobj(self):
+        """Create and return a new ``ImageOpener``, or return an existing one.
+
+        The specific behaviour depends on the value of the ``keep_file_open``
+        flag that was passed to ``__init__``.
+
+        Yields
+        ------
+        ImageOpener
+            A newly created ``ImageOpener`` instance, or an existing one,
+            which provides access to the file.
+        """
+        if self._keep_file_open:
+            if not hasattr(self, '_opener'):
+                self._opener = ImageOpener(self.file_like)
+            yield self._opener
+        else:
+            with ImageOpener(self.file_like) as opener:
+                yield opener
+
     def get_unscaled(self):
-        ''' Read of data from file
+        """ Read of data from file
 
         This is an optional part of the proxy API
-        '''
-        with ImageOpener(self.file_like) as fileobj:
+        """
+        with self._get_fileobj() as fileobj, self._lock:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
@@ -175,18 +291,19 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def __getitem__(self, slicer):
-        with ImageOpener(self.file_like) as fileobj:
+        with self._get_fileobj() as fileobj:
             raw_data = fileslice(fileobj,
                                  slicer,
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order=self.order)
+                                 order=self.order,
+                                 lock=self._lock)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def reshape(self, shape):
-        ''' Return an ArrayProxy with a new shape, without modifying data '''
+        """ Return an ArrayProxy with a new shape, without modifying data """
         size = np.prod(self._shape)
 
         # Calculate new shape if not fully specified

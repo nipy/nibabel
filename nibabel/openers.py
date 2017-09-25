@@ -14,6 +14,13 @@ import gzip
 import sys
 from os.path import splitext
 
+# is indexed_gzip present?
+try:
+    from indexed_gzip import SafeIndexedGzipFile
+    HAVE_INDEXED_GZIP = True
+except ImportError:
+    HAVE_INDEXED_GZIP = False
+
 
 # The largest memory chunk that gzip can use for reads
 GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
@@ -60,13 +67,21 @@ class BufferedGzipFile(gzip.GzipFile):
             return n_read
 
 
-def _gzip_open(fileish, *args, **kwargs):
-    gzip_file = BufferedGzipFile(fileish, *args, **kwargs)
+def _gzip_open(filename, mode='rb', compresslevel=9):
 
-    # Speedup for #209; attribute not present in in Python 3.5
-    # open gzip files with faster reads on large files using larger
-    # See https://github.com/nipy/nibabel/pull/210 for discussion
-    if hasattr(gzip_file, 'max_chunk_read'):
+    # use indexed_gzip if possible for faster read access
+    if mode == 'rb' and HAVE_INDEXED_GZIP:
+        gzip_file = SafeIndexedGzipFile(filename)
+
+    # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
+    # defined above)
+    else:
+        gzip_file = BufferedGzipFile(filename, mode, compresslevel)
+
+    # Speedup for #209, for versions of python < 3.5. Open gzip files with
+    # faster reads on large files using a larger read buffer. See
+    # https://github.com/nipy/nibabel/pull/210 for discussion
+    if hasattr(gzip_file, 'max_read_chunk'):
         gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
 
     return gzip_file
