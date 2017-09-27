@@ -1,6 +1,12 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """ Utility routines for working with points and affine transforms
+
+.. testsetup::
+
+>>> from distutils.version import LooseVersion
+>>> if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
+...     np.set_printoptions(sign='legacy')
 """
 
 import numpy as np

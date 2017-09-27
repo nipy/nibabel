@@ -23,6 +23,12 @@ they are applied on the left of the vector.  For example:
 >>> M = quat2mat(q) # from this module
 >>> vec = np.array([1, 2, 3]).reshape((3,1)) # column vector
 >>> tvec = np.dot(M, vec)
+
+.. testsetup::
+
+>>> from distutils.version import LooseVersion
+>>> if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
+...     np.set_printoptions(sign='legacy')
 '''
 
 import math

@@ -9,6 +9,12 @@
 ''' Read / write access to NIfTI1 image format
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
+
+.. testsetup::
+
+>>> from distutils.version import LooseVersion
+>>> if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
+...     np.set_printoptions(sign='legacy')
 '''
 from __future__ import division, print_function
 import warnings
