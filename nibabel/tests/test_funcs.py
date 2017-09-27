@@ -11,7 +11,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
-from ..funcs import concat_images, as_closest_canonical, OrientationError
+from ..funcs import concat_images, as_closest_canonical, OrientationError, crop_image
 from ..analyze import AnalyzeImage
 from ..nifti1 import Nifti1Image
 from ..loadsave import save
@@ -193,3 +193,22 @@ def test_closest_canonical():
     img.header.set_dim_info(None, None, 2)
     xyz_img = as_closest_canonical(img)
     assert_true(xyz_img.header.get_dim_info() == (None, None, 1))
+
+
+def test_crop_image():
+    # Use 32-bit data so that the AnalyzeImage class doesn't complain
+    arr = np.arange(60).reshape((5, 3, 4, 1)).astype(np.int32)
+
+    img = AnalyzeImage(arr, np.eye(4))
+
+    cropped_img = crop_image(img, [[1, 3], [1, 1], [1, 2]])
+    assert_equal(cropped_img.shape, (3, 1, 2, 1))
+    assert_array_equal(cropped_img.affine, [[1, 0, 0, 1],
+                                            [0, 1, 0, 1],
+                                            [0, 0, 1, 1],
+                                            [0, 0, 0, 1]])
+
+    cropped_img = crop_image(img, [[1, 3], [1, 1], [1, 2]], margin=1)
+    assert_equal(cropped_img.shape, (5, 3, 4, 1))
+    assert_array_equal(cropped_img.affine, img.affine)
+    assert_true(cropped_img is img)
