@@ -53,6 +53,8 @@ Enhancements
 * Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
 * Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
   reviewed by MB)
+* Enable using ``indexed_gzip`` to reduce memory usage when reading from
+  gzipped NIfTI and MGH files (pr/552) (Paul McCarthy, reviewed by MB, CM)
 
 Bug fixes
 ---------
