@@ -461,12 +461,118 @@ class SpatialImage(DataobjImage):
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
 
+    @staticmethod
+    def requires_downsampling(idx):
+        for slicer in idx:
+            if isinstance(slicer, slice) and slicer.step not in (1, None):
+                return True
+            elif np.asanyarray(slicer).shape != (1,):
+                return True
+
+        return False
+
+    def slice_afffine(self, idx):
+        """ Retrieve affine for current image, if sliced by a given index
+
+        Applies scaling if down-sampling is applied, and adjusts the intercept
+        to account for any cropping.
+
+        Parameters
+        ----------
+        idx : numpy-compatible slice index
+
+        Returns
+        -------
+        affine : (4,4) ndarray
+            Affine with updated scale and intercept
+        """
+        # Expand ellipsis to retrieve bounds
+        if Ellipsis in idx:
+            i = idx.index(Ellipsis)
+            subslices = tuple(slice(None)
+                              for _ in range(len(self.shape) - len(idx.shape)))
+            idx = idx[:i] + subslices + idx[i + 1:]
+
+        origin = np.array([[0], [0], [0], [1]])
+        scales = np.eye(3, dtype=int)
+
+        for i, slicer in enumerate(idx[:3]):
+            new_origin[i] = (slicer.start or 0 if isinstance(slicer, slice)
+                             else np.asanyarray(slicer)[0])
+            if slicer.step is not None:
+                scales[i, i] = slicer.step
+
+        affine = self.affine.copy()
+        affine[:3, :3] = scales.dot(self.affine[:3, :3])
+        affine[:, [3]] = self.affine.dot(origin)
+        return affine
+
+    def slice(self, idx, allow_downsampling=False):
+        """ Slice image to specification
+
+        Nibabel performs no spatial filtering, so, in order to avoid aliasing
+        data, only slices that specify cropping data are permitted.
+        If the image has been filtered, or aliasing is not a concern,
+        ``allow_downsampling=True`` will disable this check and permit more
+        complicated slices.
+
+        The image is resliced in the current orientation; no rotation or
+        resampling is performed.
+        The affine matrix is updated with the new intercept (and scales, if
+        down-sampling is used), so that all values are found at the same RAS
+        locations.
+
+        Slicing may include non-spatial dimensions.
+        However, this method does not currently adjust the repetition time in
+        the image header.
+
+        Parameters
+        ----------
+        idx : numpy-compatible slice index
+        allow_downsampling : bool (default: False)
+            Permit indices that specify down-sampling
+
+        Returns
+        -------
+        resliced_img : ``spatialimage``
+           Version of `img` with resliced data array and updated affine matrix
+        """
+        if not isinstance(idx, tuple):
+            idx = (idx,)
+
+        if not allow_downsampling and self.requires_downsampling(idx):
+            raise IndexError('slicing requires downsampling, please use '
+                             'img.slice(..., allow_downsampling=True) instead')
+
+        # Get bounded data, allow numpy to complain about any indexing errors
+        dataobj = self.dataobj[slices]
+        affine = self.slice_affine(idx)
+        return self.__class__(dataobj, affine, self.header)
+
     def __getitem__(self, idx):
-        ''' No slicing or dictionary interface for images
-        '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
+        """ Crop image to specified slices
+
+        The image is cropped in the current orientation; no rotation or
+        resampling is performed.
+        The affine matrix is updated with the new intercept, so that all
+        values are found at the same RAS locations.
+
+        Cropping may include non-spatial dimensions.
+
+        Down-sampling and other slicing operations may be performed with
+        ``img.slice(..., allow_downsampling=True)``.
+
+        Parameters
+        ----------
+        idx : tuple containing (slice(step=None), Ellipsis, array-like with size (1,))
+            numpy-compatible slice index describing cropping only
+
+        Returns
+        -------
+        cropped_img : ``spatialimage``
+           Version of `img` with cropped data array and updated affine matrix
+        """
+        return self.slice(idx)
 
     def orthoview(self):
         """Plot the image using OrthoSlicer3D
