@@ -54,6 +54,10 @@ def is_fancy(sliceobj):
         # slice or Ellipsis or None OK for  basic
         if isinstance(slicer, slice) or slicer in (None, Ellipsis):
             continue
+        # Allow single items in a dimension to be sliced
+        ary = np.asanyarray(slicer)
+        if ary.shape == (1,):
+            slicer = ary[0]
         try:
             int(slicer)
         except TypeError:
@@ -113,9 +117,16 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             can_slicers.extend((slice(None),) * n_ellided)
             n_real += n_ellided
             continue
-        # int / slice indexing cases
+        # int / [int] / slice indexing cases
         dim_len = shape[n_real]
         n_real += 1
+
+        # Treat [x] as "x:x+1"
+        ary = np.asanyarray(slicer)
+        if ary.shape == (1,):
+            can_slicers.append(slice(int(ary[0]), int(ary[0]) + 1))
+            continue
+
         try:  # test for integer indexing
             slicer = int(slicer)
         except TypeError:  # should be slice object
