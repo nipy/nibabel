@@ -496,22 +496,24 @@ class SpatialImage(DataobjImage):
         """
         idx = canonical_slicers(idx, self.shape, check_inds=False)[:3]
 
-        origin = np.array([[0], [0], [0], [1]])
-        scales = np.eye(3, dtype=int)
+        # Transform:
+        # sx  0  0 tx
+        #  0 sy  0 ty
+        #  0  0 sz tz
+        #  0  0  0  1
+        transform = np.eye(4, dtype=int)
 
-        for i, slicer in enumerate(idx[:3]):
+        for i, slicer in enumerate(idx):
             if isinstance(slicer, slice):
-                origin[i] = slicer.start or 0
-                if slicer.step is not None:
-                    scales[i, i] = slicer.step
+                if slicer.step == 0:
+                    raise ValueError("slice step cannot be 0")
+                transform[i, i] = slicer.step if slicer.step is not None else 1
+                transform[i, 3] = slicer.start or 0
             elif isinstance(slicer, int):
-                origin[i] = slicer
+                transform[i, 3] = slicer
             # If slicer is None, nothing to do
 
-        affine = self.affine.copy()
-        affine[:3, :3] = scales.dot(self.affine[:3, :3])
-        affine[:, [3]] = self.affine.dot(origin)
-        return affine
+        return self.affine.dot(transform)
 
     @property
     def slicer(self):
