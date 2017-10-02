@@ -4,9 +4,9 @@
 
 .. testsetup::
 
->>> from distutils.version import LooseVersion
->>> if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
-...     np.set_printoptions(sign='legacy')
+    from distutils.version import LooseVersion
+    if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
+        np.set_printoptions(sign='legacy')
 """
 
 import numpy as np

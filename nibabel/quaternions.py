@@ -26,9 +26,9 @@ they are applied on the left of the vector.  For example:
 
 .. testsetup::
 
->>> from distutils.version import LooseVersion
->>> if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
-...     np.set_printoptions(sign='legacy')
+    from distutils.version import LooseVersion
+    if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
+        np.set_printoptions(sign='legacy')
 '''
 
 import math
