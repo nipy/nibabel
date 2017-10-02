@@ -12,6 +12,7 @@
 import bz2
 import gzip
 import sys
+import warnings
 from os.path import splitext
 from distutils.version import StrictVersion
 
@@ -19,12 +20,14 @@ from distutils.version import StrictVersion
 try:
     from indexed_gzip import SafeIndexedGzipFile, __version__ as version
 
-    if StrictVersion(version) < StrictVersion("0.6.0"):
-        raise ImportError('indexed_gzip is present, but too old '
-                          '(>= 0.6.0 required): {})'.format(version))
+    HAVE_INDEXED_GZIP = True
+
+    if StrictVersion(version) < StrictVersion('0.6.0'):
+        warnings.warn('indexed_gzip is present, but too old '
+                      '(>= 0.6.0 required): {})'.format(version))
+        HAVE_INDEXED_GZIP = False
 
     del version
-    HAVE_INDEXED_GZIP = True
 
 except ImportError:
     HAVE_INDEXED_GZIP = False
