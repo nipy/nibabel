@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for openers module '''
 import os
+import contextlib
 from gzip import GzipFile
 from bz2 import BZ2File
 from io import BytesIO, UnsupportedOperation
@@ -96,16 +97,31 @@ def test_BinOpener():
                       BinOpener, 'test.txt', 'r')
 
 
+class MockIndexedGzipFile(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+@contextlib.contextmanager
+def patch_indexed_gzip(state):
+    # Make it look like we do (state==True) or do not (state==False) have
+    # the indexed gzip module.
+    if state:
+        values = (True, True, MockIndexedGzipFile)
+    else:
+        values = (False, False, GzipFile)
+    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
+         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
+         mock.patch('nibabel.openers.SafeIndexedGzipFile', values[2],
+                    create=True):
+        yield
+
+
 def test_Opener_gzip_type():
     # Test that BufferedGzipFile or IndexedGzipFile are used as appropriate
 
     data = 'this is some test data'
     fname = 'test.gz'
-    mockmod = mock.MagicMock()
-
-    class MockIGZFile(object):
-        def __init__(self, *args, **kwargs):
-            pass
 
     with InTemporaryDirectory():
 
@@ -113,21 +129,23 @@ def test_Opener_gzip_type():
         with GzipFile(fname, mode='wb') as f:
             f.write(data.encode())
 
-        # test with indexd_gzip not present
-        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', False), \
-             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', False), \
-             mock.patch('nibabel.openers.SafeIndexedGzipFile', None,
-                        create=True):
-            assert isinstance(Opener(fname, mode='rb').fobj, GzipFile)
-            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
+        # Each test is specified by a tuple containing:
+        #   (indexed_gzip present, Opener kwargs, expected file type)
+        tests = [
+            (False, {'mode' : 'rb', 'keep_open' : True},  GzipFile),
+            (False, {'mode' : 'rb', 'keep_open' : False}, GzipFile),
+            (False, {'mode' : 'wb', 'keep_open' : True},  GzipFile),
+            (False, {'mode' : 'wb', 'keep_open' : False}, GzipFile),
+            (True,  {'mode' : 'rb', 'keep_open' : True},  MockIndexedGzipFile),
+            (True,  {'mode' : 'rb', 'keep_open' : False}, GzipFile),
+            (True,  {'mode' : 'wb', 'keep_open' : True},  GzipFile),
+            (True,  {'mode' : 'wb', 'keep_open' : False}, GzipFile),
+        ]
 
-        # test with indexd_gzip present
-        with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', True), \
-             mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', True), \
-             mock.patch('nibabel.openers.SafeIndexedGzipFile', MockIGZFile,
-                        create=True):
-            assert isinstance(Opener(fname, mode='rb').fobj, MockIGZFile)
-            assert isinstance(Opener(fname, mode='wb').fobj, GzipFile)
+        for test in tests:
+            igzip_present, kwargs, expected = test
+            with patch_indexed_gzip(igzip_present):
+                assert isinstance(Opener(fname, **kwargs).fobj, expected)
 
 
 class TestImageOpener:
