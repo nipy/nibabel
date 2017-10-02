@@ -13,11 +13,19 @@ import bz2
 import gzip
 import sys
 from os.path import splitext
+from distutils.version import StrictVersion
 
-# is indexed_gzip present?
+# is indexed_gzip present and modern?
 try:
-    from indexed_gzip import SafeIndexedGzipFile
+    from indexed_gzip import SafeIndexedGzipFile, __version__ as version
+
+    if StrictVersion(version) < StrictVersion("0.6.0"):
+        raise ImportError('indexed_gzip is present, but too old '
+                          '(>= 0.6.0 required): {})'.format(version))
+
+    del version
     HAVE_INDEXED_GZIP = True
+
 except ImportError:
     HAVE_INDEXED_GZIP = False
 
