@@ -113,8 +113,7 @@ class Opener(object):
         passed to opening method when `fileish` is str.  ``mode``, if not
         specified, is `rb`.  ``compresslevel``, if relevant, and not specified,
         is set from class variable ``default_compresslevel``. ``keep_open``, if
-        relevant, and not specified, is set from class variable
-        ``default_keep_open``.
+        relevant, and not specified, is ``False``.
     \*\*kwargs : keyword arguments
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
@@ -130,9 +129,6 @@ class Opener(object):
     default_compresslevel = 1
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
-    #: hint which tells us whether the file handle will be kept open for
-    #  multiple reads/writes, or just for one-time access.
-    default_keep_open = False
 
     def __init__(self, fileish, *args, **kwargs):
         if self._is_fileobj(fileish):
@@ -153,8 +149,7 @@ class Opener(object):
             kwargs['compresslevel'] = self.default_compresslevel
         # Default keep_open hint
         if 'keep_open' in arg_names:
-            if 'keep_open' not in kwargs:
-                kwargs['keep_open'] = self.default_keep_open
+            kwargs.setdefault('keep_open', False)
         # Clear keep_open hint if it is not relevant for the file type
         else:
             kwargs.pop('keep_open', None)
