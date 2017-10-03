@@ -2,18 +2,13 @@
 
 Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
-
-.. testsetup::
-
-    from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
-        np.set_printoptions(sign='legacy')
 """
 
 from numbers import Integral
 from platform import processor, machine
 
 import numpy as np
+from .testing import setup_test
 
 
 class CastingError(Exception):

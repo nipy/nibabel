@@ -18,14 +18,10 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 
    B ~ (q_est . q_est.T) / norm(q_est)
 
-.. testsetup::
-
-    from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
-        np.set_printoptions(sign='legacy')
 '''
 import numpy as np
 import numpy.linalg as npl
+from ..testing import setup_test
 
 
 def B2q(B, tol=None):

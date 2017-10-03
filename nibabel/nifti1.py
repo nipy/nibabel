@@ -9,12 +9,6 @@
 ''' Read / write access to NIfTI1 image format
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
-
-.. testsetup::
-
-    from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) > LooseVersion('1.13.1'):
-        np.set_printoptions(sign='legacy')
 '''
 from __future__ import division, print_function
 import warnings
@@ -33,6 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
+from .testing import setup_test
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
