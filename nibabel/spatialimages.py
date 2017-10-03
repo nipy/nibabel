@@ -325,6 +325,9 @@ class ImageDataError(Exception):
 class SpatialImage(DataobjImage):
     ''' Template class for volumetric (3D/4D) images '''
     header_class = SpatialHeader
+    # Make a strong assumption that the first three dimensions are spatial
+    # Subclasses/images for which this is not true should change this attribute
+    _spatial_dims = slice(0, 3)
 
     class Slicer(object):
         def __init__(self, img):

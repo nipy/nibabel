@@ -319,6 +319,12 @@ class Minc1Image(SpatialImage):
             data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
 
+    @property
+    def _spatial_dims(self):
+        if len(self.shape) > 3:
+            return slice(1, 4)
+        return slice(0, 3)
+
 
 load = Minc1Image.load
 
