@@ -67,6 +67,7 @@ from . import trackvis
 from . import mriutils
 from . import streamlines
 from . import viewers
+from .testing import setup_test
 
 # Note test requirement for "mock".  Requirement for "nose" tested by numpy.
 try:
