@@ -330,21 +330,36 @@ class SpatialImage(DataobjImage):
     _spatial_dims = slice(0, 3)
 
     class Slicer(object):
+        ''' Slicing interface that returns a new image with an updated affine
+        '''
         def __init__(self, img):
             self.img = img
 
-        def __getitem__(self, idx):
-            idx = self._validate(idx)
-            dataobj = self.img.dataobj[idx]
-            affine = self.img.slice_affine(idx)
-            return self.img.__class__(dataobj, affine, self.img.header)
+        def __getitem__(self, slicer):
+            klass = self.img.__class__
+            if not klass.makeable:
+                raise NotImplementedError(
+                    "Cannot slice un-makeable image types")
 
-        def _validate(self, idx):
-            idx = canonical_slicers(idx, self.img.shape)
-            for slicer in idx:
-                if isinstance(slicer, int):
-                    raise IndexError("Cannot slice image with integer")
-            return idx
+            slicer = self.img._check_slicing(self._arr_to_slice(slicer),
+                                             self.img.shape)
+            dataobj = self.img.dataobj[slicer]
+            affine = self.img._slice_affine(slicer)
+            return klass(dataobj.copy(), affine, self.img.header)
+
+        def _arr_to_slice(self, slicer):
+            ''' Convert single item sequence indices to slices '''
+            if not isinstance(slicer, tuple):
+                slicer = (slicer,)
+
+            out = []
+            for subslicer in slicer:
+                arr = np.asarray(subslicer)
+                if arr.shape == (1,):
+                    subslicer = slice(arr[0], arr[0] + 1)
+                out.append(subslicer)
+
+            return tuple(out)
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -482,7 +497,32 @@ class SpatialImage(DataobjImage):
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
 
-    def slice_affine(self, idx):
+    def _check_slicing(self, slicer, return_spatial=False):
+        ''' Canonicalize slicers and check for scalar indices in spatial dims
+
+        Parameters
+        ----------
+        slicer : object
+            something that can be used to slice an array as in
+            ``arr[sliceobj]``
+        return_spatial : bool
+            return only slices along spatial dimensions (x, y, z)
+
+        Returns
+        -------
+        slicer : object
+            Validated slicer object that will slice image's `dataobj`
+            without collapsing spatial dimensions
+        '''
+        slicer = canonical_slicers(slicer, self.shape)
+        spatial_slices = slicer[self._spatial_dims]
+        if any(not isinstance(subslicer, (slice, None))
+               for subslicer in spatial_slices):
+            raise IndexError("Scalar indices disallowed in spatial dimensions; "
+                             "Use `[x]` or `x:x+1`.")
+        return spatial_slices if return_spatial else slicer
+
+    def _slice_affine(self, slicer):
         """ Retrieve affine for current image, if sliced by a given index
 
         Applies scaling if down-sampling is applied, and adjusts the intercept
@@ -490,14 +530,16 @@ class SpatialImage(DataobjImage):
 
         Parameters
         ----------
-        idx : numpy-compatible slice index
+        slicer : object
+            something that can be used to slice an array as in
+            ``arr[sliceobj]``
 
         Returns
         -------
         affine : (4,4) ndarray
             Affine with updated scale and intercept
         """
-        idx = canonical_slicers(idx, self.shape, check_inds=False)[:3]
+        slicer = self._check_slicing(slicer, return_spatial=True)
 
         # Transform:
         # sx  0  0 tx
@@ -506,14 +548,12 @@ class SpatialImage(DataobjImage):
         #  0  0  0  1
         transform = np.eye(4, dtype=int)
 
-        for i, slicer in enumerate(idx):
-            if isinstance(slicer, slice):
-                if slicer.step == 0:
+        for i, subslicer in enumerate(slicer):
+            if isinstance(subslicer, slice):
+                if subslicer.step == 0:
                     raise ValueError("slice step cannot be 0")
-                transform[i, i] = slicer.step if slicer.step is not None else 1
-                transform[i, 3] = slicer.start or 0
-            elif isinstance(slicer, int):
-                transform[i, 3] = slicer
+                transform[i, i] = subslicer.step if subslicer.step is not None else 1
+                transform[i, 3] = subslicer.start or 0
             # If slicer is None, nothing to do
 
         return self.affine.dot(transform)
