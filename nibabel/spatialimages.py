@@ -341,8 +341,7 @@ class SpatialImage(DataobjImage):
                 raise NotImplementedError(
                     "Cannot slice un-makeable image types")
 
-            slicer = self.img._check_slicing(self._arr_to_slice(slicer),
-                                             self.img.shape)
+            slicer = self.img._check_slicing(self._arr_to_slice(slicer))
             dataobj = self.img.dataobj[slicer]
             affine = self.img._slice_affine(slicer)
             return klass(dataobj.copy(), affine, self.img.header)
@@ -516,10 +515,12 @@ class SpatialImage(DataobjImage):
         '''
         slicer = canonical_slicers(slicer, self.shape)
         spatial_slices = slicer[self._spatial_dims]
-        if any(not isinstance(subslicer, (slice, None))
-               for subslicer in spatial_slices):
-            raise IndexError("Scalar indices disallowed in spatial dimensions; "
-                             "Use `[x]` or `x:x+1`.")
+        for subslicer in spatial_slices:
+            if subslicer is None:
+                raise IndexError("New axis not permitted in spatial dimensions")
+            elif isinstance(subslicer, int):
+                raise IndexError("Scalar indices disallowed in spatial dimensions; "
+                                 "Use `[x]` or `x:x+1`.")
         return spatial_slices if return_spatial else slicer
 
     def _slice_affine(self, slicer):
