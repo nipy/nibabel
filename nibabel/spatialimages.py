@@ -341,7 +341,10 @@ class SpatialImage(DataobjImage):
                 raise NotImplementedError(
                     "Cannot slice un-makeable image types")
 
-            slicer = self.img._check_slicing(self._arr_to_slice(slicer))
+            try:
+                slicer = self.img._check_slicing(self._arr_to_slice(slicer))
+            except ValueError as err:
+                raise IndexError(*err.args)
             dataobj = self.img.dataobj[slicer]
             affine = self.img._slice_affine(slicer)
             return klass(dataobj.copy(), affine, self.img.header)
