@@ -439,6 +439,9 @@ class TestSpatialImage(TestCase):
             assert_array_equal(downsampled_img.header.get_zooms()[:3],
                                np.array(spatial_zooms) * 2)
 
+            max4d = (hasattr(img.header, '_header_data') and
+                     'dims' in img.header._header_data.dtype.fields and
+                     img.header._header_data['dims'].shape == (4,))
             # Check newaxis errors
             if t_axis == 3:
                 with assert_raises(IndexError):
@@ -460,8 +463,13 @@ class TestSpatialImage(TestCase):
                 with assert_raises(IndexError):
                     img.slicer[:, :, :, None]
             elif len(img.shape) == 4:
-                # Reorder non-spatial axes
-                assert_equal(img.slicer[:, :, :, None].shape, img.shape[:3] + (1,) + img.shape[3:])
+                if max4d:
+                    with assert_raises(ValueError):
+                        img.slicer[:, :, :, None]
+                else:
+                    # Reorder non-spatial axes
+                    assert_equal(img.slicer[:, :, :, None].shape,
+                                 img.shape[:3] + (1,) + img.shape[3:])
             else:
                 # 3D Analyze/NIfTI/MGH to 4D
                 assert_equal(img.slicer[:, :, :, None].shape, img.shape + (1,))
@@ -469,8 +477,12 @@ class TestSpatialImage(TestCase):
                 # Slices exceed dimensions
                 with assert_raises(IndexError):
                     img.slicer[:, :, :, :, None]
+            elif max4d:
+                with assert_raises(ValueError):
+                    img.slicer[:, :, :, :, None]
             else:
-                assert_equal(img.slicer[:, :, :, :, None].shape, img.shape + (1,))
+                assert_equal(img.slicer[:, :, :, :, None].shape,
+                             img.shape + (1,))
 
             # Crop by one voxel in each dimension
             if len(img.shape) == 3 or t_axis == 3:
@@ -508,7 +520,7 @@ class TestSpatialImage(TestCase):
                         np.random.choice(slice_elems, n_elems).tolist())
                     try:
                         sliced_img = img.slicer[sliceobj]
-                    except IndexError:
+                    except (IndexError, ValueError):
                         # Only checking valid slices
                         pass
                     else:
