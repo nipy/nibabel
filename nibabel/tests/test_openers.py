@@ -256,10 +256,11 @@ def test_compressed_ext_case():
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
                 try:
-                    from indexed_gzip import IndexedGzipFile
+                    from indexed_gzip import SafeIndexedGzipFile
                 except ImportError:
-                    IndexedGzipFile = GzipFile
-                assert_true(isinstance(fobj.fobj, (GzipFile, IndexedGzipFile)))
+                    SafeIndexedGzipFile = GzipFile
+                assert_true(isinstance(fobj.fobj, (GzipFile,
+                                                   SafeIndexedGzipFile))
             else:
                 assert_true(isinstance(fobj.fobj, BZ2File))
 
