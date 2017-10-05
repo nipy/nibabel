@@ -8,6 +8,7 @@ from numbers import Integral
 from platform import processor, machine
 
 import numpy as np
+from .testing import setup_test  # flake8: noqa F401
 
 
 class CastingError(Exception):
