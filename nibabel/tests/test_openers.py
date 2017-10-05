@@ -260,7 +260,7 @@ def test_compressed_ext_case():
                 except ImportError:
                     SafeIndexedGzipFile = GzipFile
                 assert_true(isinstance(fobj.fobj, (GzipFile,
-                                                   SafeIndexedGzipFile))
+                                                   SafeIndexedGzipFile)))
             else:
                 assert_true(isinstance(fobj.fobj, BZ2File))
 
