@@ -509,6 +509,12 @@ class TestSpatialImage(TestCase):
             # No change to affines with upper-bound slices
             assert_array_equal(img.slicer[:1, :1, :1].affine, img.affine)
 
+            # Yell about step = 0
+            with assert_raises(ValueError):
+                img.slicer[:, ::0]
+            with assert_raises(ValueError):
+                img._slice_affine((slice(None), slice(None, None, 0)))
+
             # Check data is consistent with slicing numpy arrays
             slice_elems = (None, Ellipsis, 0, 1, -1, [0], [1], [-1],
                            slice(None), slice(1), slice(-1), slice(1, -1))
