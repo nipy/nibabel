@@ -4,7 +4,7 @@ import subprocess
 try:
     from ConfigParser import RawConfigParser as ConfigParser
 except ImportError:
-    from configparser import RawConfigParser as ConfigParser # python 3
+    from configparser import RawConfigParser as ConfigParser  # python 3
 
 COMMIT_INFO_FNAME = 'COMMIT_INFO.txt'
 

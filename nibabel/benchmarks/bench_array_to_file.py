@@ -19,13 +19,11 @@ import sys
 
 import numpy as np
 
-from six import BytesIO
-
 from .butils import print_git_title
 
 from numpy.testing import measure
 
-from nibabel.volumeutils import array_to_file
+from nibabel.volumeutils import array_to_file  # NOQA
 
 
 def bench_array_to_file():

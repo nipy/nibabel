@@ -24,7 +24,7 @@ from .butils import print_git_title
 
 from numpy.testing import measure
 
-from nibabel.volumeutils import finite_range
+from nibabel.volumeutils import finite_range  # NOQA
 
 
 def bench_finite_range():

@@ -38,7 +38,7 @@ except ImportError:
 # Each test involves loading an image of shape SHAPE, and then slicing it
 # NITERS times
 NITERS = 50
-SHAPE  = (100, 100, 100, 100)
+SHAPE = (100, 100, 100, 100)
 
 # One test is run for each combination of SLICEOBJS, KEEP_OPENS, and HAVE_IGZIP
 
@@ -61,8 +61,11 @@ else:
 
 @contextlib.contextmanager
 def patch_indexed_gzip(have_igzip):
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', have_igzip), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', have_igzip):
+
+    atts = ['nibabel.openers.HAVE_INDEXED_GZIP',
+            'nibabel.arrayproxy.HAVE_INDEXED_GZIP']
+
+    with mock.patch(atts[0], have_igzip), mock.patch(atts[1], have_igzip):
         yield
 
 
@@ -78,12 +81,12 @@ def bench_arrayproxy_slicing():
     # because if keep_file_open is False, HAVE_INDEXED_GZIP has no effect
     tests = [t for t in tests if not (t[0] and not t[1])]
 
-    testfile   = 'testfile.nii'
+    testfile = 'testfile.nii'
     testfilegz = 'test.nii.gz'
 
     def get_test_label(test):
         have_igzip = test[0]
-        keep_open  = test[1]
+        keep_open = test[1]
 
         if not (have_igzip and keep_open):
             return 'gzip'
@@ -166,9 +169,9 @@ def bench_arrayproxy_slicing():
             gc.collect()
 
             if memory_usage is not None:
-                membaseline = max(memory_usage(lambda : None))
-                testmem     = max(memory_usage(testfunc)) - membaseline
-                basemem     = max(memory_usage(basefunc)) - membaseline
+                membaseline = max(memory_usage(lambda: None))
+                testmem = max(memory_usage(testfunc)) - membaseline
+                basemem = max(memory_usage(basefunc)) - membaseline
             else:
                 testmem = np.nan
                 basemem = np.nan
