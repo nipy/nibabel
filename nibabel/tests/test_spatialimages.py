@@ -512,8 +512,8 @@ class TestSpatialImage(TestCase):
             assert_array_equal(img.slicer[:1, :1, :1].affine, img.affine)
 
             # Check data is consistent with slicing numpy arrays
-            slice_elems = (None, Ellipsis, 0, 1, -1, slice(None), slice(1),
-                           slice(-1), slice(1, -1))
+            slice_elems = (None, Ellipsis, 0, 1, -1, [0], [1], [-1],
+                           slice(None), slice(1), slice(-1), slice(1, -1))
             for n_elems in range(6):
                 for _ in range(10):
                     sliceobj = tuple(
