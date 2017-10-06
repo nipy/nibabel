@@ -336,18 +336,13 @@ class SpatialImage(DataobjImage):
             self.img = img
 
         def __getitem__(self, slicer):
-            klass = self.img.__class__
-            if not klass.makeable:
-                raise NotImplementedError(
-                    "Cannot slice un-makeable image types")
-
             try:
                 slicer = self.img._check_slicing(self._arr_to_slice(slicer))
             except ValueError as err:
                 raise IndexError(*err.args)
             dataobj = self.img.dataobj[slicer]
             affine = self.img._slice_affine(slicer)
-            return klass(dataobj.copy(), affine, self.img.header)
+            return self.img.__class__(dataobj.copy(), affine, self.img.header)
 
         def _arr_to_slice(self, slicer):
             ''' Convert single item sequence indices to slices '''

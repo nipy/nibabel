@@ -426,9 +426,7 @@ class TestSpatialImage(TestCase):
                 t_axis = 3 if img._spatial_dims.start == 0 else 0
 
             assert_true(hasattr(img.slicer, '__getitem__'))
-            if not img_klass.makeable:
-                assert_raises(NotImplementedError, img.slicer[:])
-                continue
+
             # Note spatial zooms are always first 3, even when
             spatial_zooms = img.header.get_zooms()[:3]
 
