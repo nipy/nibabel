@@ -265,10 +265,10 @@ class ArrayProxy(object):
         """
         if self._keep_file_open:
             if not hasattr(self, '_opener'):
-                self._opener = ImageOpener(self.file_like)
+                self._opener = ImageOpener(self.file_like, keep_open=True)
             yield self._opener
         else:
-            with ImageOpener(self.file_like) as opener:
+            with ImageOpener(self.file_like, keep_open=False) as opener:
                 yield opener
 
     def get_unscaled(self):

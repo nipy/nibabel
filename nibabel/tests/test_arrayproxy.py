@@ -33,6 +33,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from nibabel.testing import VIRAL_MEMMAP
 
 from .test_fileslice import slicer_samples
+from .test_openers import patch_indexed_gzip
 
 
 class FunkyHeader(object):
@@ -410,21 +411,6 @@ def test_keep_file_open_true_false_invalid():
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='autob')
         with assert_raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
-
-
-@contextlib.contextmanager
-def patch_indexed_gzip(state):
-    # Make it look like we do (state==True) or do not (state==False) have
-    # the indexed gzip module.
-    if state:
-        values = (True, True, gzip.GzipFile)
-    else:
-        values = (False, False, None)
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', values[2],
-                    create=True):
-        yield
 
 
 @contextlib.contextmanager
