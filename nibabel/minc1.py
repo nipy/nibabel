@@ -342,6 +342,7 @@ class Minc1Image(SpatialImage):
             Validated slicer object that will slice image's `dataobj`
             without collapsing spatial dimensions
         '''
+        slicer = canonical_slicers(slicer, self.shape)
         try:
             all_slices = super(Minc1Image, self)._check_slicing(slicer, False)
             sp_dims = self._spatial_dims

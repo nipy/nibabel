@@ -337,26 +337,12 @@ class SpatialImage(DataobjImage):
 
         def __getitem__(self, slicer):
             try:
-                slicer = self.img._check_slicing(self._arr_to_slice(slicer))
+                slicer = self.img._check_slicing(slicer)
             except ValueError as err:
                 raise IndexError(*err.args)
             dataobj = self.img.dataobj[slicer]
             affine = self.img._slice_affine(slicer)
             return self.img.__class__(dataobj.copy(), affine, self.img.header)
-
-        def _arr_to_slice(self, slicer):
-            ''' Convert single item sequence indices to slices '''
-            if not isinstance(slicer, tuple):
-                slicer = (slicer,)
-
-            out = []
-            for subslicer in slicer:
-                arr = np.asarray(subslicer)
-                if arr.shape == (1,):
-                    subslicer = slice(arr[0], arr[0] + 1)
-                out.append(subslicer)
-
-            return tuple(out)
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
