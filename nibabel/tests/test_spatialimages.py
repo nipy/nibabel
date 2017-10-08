@@ -440,10 +440,12 @@ class TestSpatialImage(TestCase):
             max4d = (hasattr(img.header, '_header_data') and
                      'dims' in img.header._header_data.dtype.fields and
                      img.header._header_data['dims'].shape == (4,))
-            # Check newaxis errors
+            # Check newaxis and single-slice errors
             if t_axis == 3:
                 with assert_raises(IndexError):
                     img.slicer[None]
+                with assert_raises(IndexError):
+                    img.slicer[0]
             elif len(img.shape) == 4:
                 with assert_raises(IndexError):
                     img.slicer[None]
@@ -456,10 +458,16 @@ class TestSpatialImage(TestCase):
             with assert_raises(IndexError):
                 img.slicer[:, None]
             with assert_raises(IndexError):
+                img.slicer[:, 0]
+            with assert_raises(IndexError):
                 img.slicer[:, :, None]
+            with assert_raises(IndexError):
+                img.slicer[:, :, 0]
             if t_axis == 0:
                 with assert_raises(IndexError):
                     img.slicer[:, :, :, None]
+                with assert_raises(IndexError):
+                    img.slicer[:, :, :, 0]
             elif len(img.shape) == 4:
                 if max4d:
                     with assert_raises(ValueError):
@@ -468,6 +476,9 @@ class TestSpatialImage(TestCase):
                     # Reorder non-spatial axes
                     assert_equal(img.slicer[:, :, :, None].shape,
                                  img.shape[:3] + (1,) + img.shape[3:])
+                # 4D to 3D using ellipsis or slices
+                assert_equal(img.slicer[..., 0].shape, img.shape[:-1])
+                assert_equal(img.slicer[:, :, :, 0].shape, img.shape[:-1])
             else:
                 # 3D Analyze/NIfTI/MGH to 4D
                 assert_equal(img.slicer[:, :, :, None].shape, img.shape + (1,))
@@ -515,11 +526,19 @@ class TestSpatialImage(TestCase):
             with assert_raises(ValueError):
                 img._slice_affine((slice(None), slice(None, None, 0)))
 
+            # No fancy indexing
+            with assert_raises(IndexError):
+                img.slicer[[0]]
+            with assert_raises(IndexError):
+                img.slicer[[-1]]
+            with assert_raises(IndexError):
+                img.slicer[[0], [-1]]
+
             # Check data is consistent with slicing numpy arrays
             slice_elems = (None, Ellipsis, 0, 1, -1, [0], [1], [-1],
                            slice(None), slice(1), slice(-1), slice(1, -1))
             for n_elems in range(6):
-                for _ in range(10):
+                for _ in range(1 if n_elems == 0 else 10):
                     sliceobj = tuple(
                         np.random.choice(slice_elems, n_elems).tolist())
                     try:
