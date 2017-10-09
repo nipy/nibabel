@@ -24,37 +24,37 @@ from .spatialimages import SpatialImage, SpatialHeader
 from .volumeutils import Recoder, array_from_file
 
 _attr_dic = {
-    'string'  : str,
-    'integer' : int,
-    'float'   : float
+    'string': str,
+    'integer': int,
+    'float': float
 }
 
 _endian_dict = {
-    'LSB_FIRST' : '<',
-    'MSB_FIRST' : '>',
+    'LSB_FIRST': '<',
+    'MSB_FIRST': '>',
 }
 
 _dtype_dict = {
-    0 : 'B',
-    1 : 'h',
-    3 : 'f',
-    5 : 'D',
+    0: 'B',
+    1: 'h',
+    3: 'f',
+    5: 'D',
 }
 
 _orient_dict = {
-    0 : 'R',
-    1 : 'L',
-    2 : 'P',
-    3 : 'A',
-    4 : 'I',
-    5 : 'S'
+    0: 'R',
+    1: 'L',
+    2: 'P',
+    3: 'A',
+    4: 'I',
+    5: 'S'
 }
 
 space_codes = Recoder((
     (0, 'unknown', ''),
     (1, 'scanner', 'ORIG'),
     (3, 'talairach', 'TLRC'),
-    (4, 'mni', 'MNI')), fields=('code','label','space'))
+    (4, 'mni', 'MNI')), fields=('code', 'label', 'space'))
 
 
 class AFNIError(Exception):
@@ -85,7 +85,7 @@ def _unpack_var(var):
     aname = NAME_RE.findall(var)[0]
 
     atype = _attr_dic.get(atype, str)
-    attr  = ' '.join(var.strip().split('\n')[3:])
+    attr = ' '.join(var.strip().split('\n')[3:])
 
     if atype is not str:
         attr = [atype(f) for f in attr.split()]
@@ -116,7 +116,7 @@ def _get_datatype(info):
     if bt is None:
         raise AFNIError('Can\'t deduce image data type.')
 
-    return np.dtype(bo+bt)
+    return np.dtype(bo + bt)
 
 
 def parse_AFNI_header(fobj):
@@ -135,7 +135,7 @@ def parse_AFNI_header(fobj):
 
     head = fobj.read().split('\n\n')
 
-    all_info = {key : value for key, value in map(_unpack_var, head)}
+    all_info = {key: value for key, value in map(_unpack_var, head)}
 
     return all_info
 
@@ -292,7 +292,7 @@ class AFNIHeader(SpatialHeader):
         zooms : tuple
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
-        t_step = self.info.get('TAXIS_FLOATS',())
+        t_step = self.info.get('TAXIS_FLOATS', ())
 
         if len(t_step) > 0:
             t_step = (t_step[1],)
@@ -329,14 +329,14 @@ class AFNIHeader(SpatialHeader):
     def get_affine(self):
         # AFNI default is RAI/DICOM order (i.e., RAI are - axis)
         # need to flip RA sign to align with nibabel RAS+ system
-        affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3,4)
-        affine = np.row_stack((affine * [[-1],[-1],[1]],
-                               [0,0,0,1]))
+        affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
+        affine = np.row_stack((affine * [[-1], [-1], [1]],
+                               [0, 0, 0, 1]))
 
         return affine
 
     def get_data_scaling(self):
-        floatfacs = self.info.get('BRICK_FLOAT_FACS',None)
+        floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
 
         if floatfacs is None or not np.any(floatfacs):
             return None
@@ -367,9 +367,9 @@ class AFNIImage(SpatialImage):
     """
 
     header_class = AFNIHeader
-    valid_exts = ('.brik','.head')
-    files_types = (('image', '.brik'),('header', '.head'))
-    _compressed_suffixes = ('.gz','.bz2')
+    valid_exts = ('.brik', '.head')
+    files_types = (('image', '.brik'), ('header', '.head'))
+    _compressed_suffixes = ('.gz', '.bz2')
 
     makeable = False
     rw = False
