@@ -323,7 +323,7 @@ class WrapStruct(object):
         >>> wstr['integer']
         array(3, dtype=int16)
         """
-        self._structarr[item] = value
+        self._structarr[item] = np.asanyarray(value)
 
     def __iter__(self):
         return iter(self.keys())
