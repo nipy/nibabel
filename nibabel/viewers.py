@@ -135,7 +135,7 @@ class OrthoSlicer3D(object):
              self._scalers[self._order[1]] / self._scalers[self._order[0]]]
         self._sizes = [self._data.shape[order] for order in self._order]
         for ii, xax, yax, ratio, label in zip([0, 1, 2], [1, 0, 0], [2, 2, 1],
-                                              r, ('SAIP', 'SLIR', 'ALPR')):
+                                              r, ('SAIP', 'SRIL', 'ARPL')):
             ax = self._axes[ii]
             d = np.zeros((self._sizes[yax], self._sizes[xax]))
             im = self._axes[ii].imshow(
