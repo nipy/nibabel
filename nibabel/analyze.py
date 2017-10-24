@@ -706,6 +706,10 @@ class AnalyzeHeader(LabeledWrapStruct):
         pixdims = hdr['pixdim']
         pixdims[1:ndim + 1] = zooms[:]
 
+    def get_norm_zooms(self, raise_unknown=False):
+        ''' Get zooms in mm/s units '''
+        return self.get_zooms()
+
     def as_analyze_map(self):
         """ Return header as mapping for conversion to Analyze types
 

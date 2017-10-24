@@ -238,6 +238,10 @@ class SpatialHeader(FileBasedHeader):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 
+    def get_norm_zooms(self, raise_unknown=False):
+        ''' Get zooms in mm/s units '''
+        return self.get_zooms()
+
     def get_base_affine(self):
         shape = self.get_data_shape()
         zooms = self.get_zooms()

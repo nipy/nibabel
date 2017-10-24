@@ -1677,6 +1677,39 @@ class Nifti1Header(SpmAnalyzeHeader):
         t_code = unit_codes[t]
         self.structarr['xyzt_units'] = xyz_code + t_code
 
+    def get_norm_zooms(self, raise_unknown=False):
+        ''' Get zooms in mm/s units '''
+        raw_zooms = self.get_zooms()
+        xyz_zooms = raw_zooms[:3]
+        t_zoom = raw_zooms[3] if len(raw_zooms) > 3 else None
+
+        xyz_code, t_code = self.get_xyzt_units()
+        xyz_msg = t_msg = ''
+        if xyz_code == 'unknown':
+            xyz_msg = 'Unknown spatial units'
+            xyz_code = 'mm'
+        if t_code == 'unknown' and t_zoom is not None:
+            t_msg = 'Unknown time units'
+            t_code = 'sec'
+        if raise_unknown and (xyz_msg, t_msg) != ('', ''):
+            if xyz_msg and t_msg:
+                msg = 'Unknown spatial and time units'
+            else:
+                msg = xyz_msg or t_msg
+            raise ValueError("Error: {}".format(msg))
+        if xyz_msg:
+            warnings.warn('{} - assuming mm'.format(xyz_msg))
+        if t_msg:
+            warnings.warn('{} - assuming sec'.format(t_msg))
+
+        xyz_factor = {'meter': 0.001, 'mm': 1, 'usec': 1000}[xyz_code]
+        t_factor = {'sec': 1, 'msec': 1000, 'usec': 1000000}[t_code]
+
+        xyz_zooms = tuple(np.array(xyz_zooms) / xyz_factor)
+        t_zoom = (t_zoom / t_factor,) if t_zoom is not None else ()
+
+        return xyz_zooms + t_zoom
+
     def _clean_after_mapping(self):
         """ Set format-specific stuff after converting header from mapping
 
