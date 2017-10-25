@@ -104,7 +104,7 @@ class MGHHeader(LabeledWrapStruct):
         super(MGHHeader, self).__init__(binaryblock=binaryblock,
                                         endianness=endianness,
                                         check=False)
-        if int(self._structarr['goodRASFlag']) < 0:
+        if int(self._structarr['goodRASFlag']) < 1:
             self._set_affine_default()
         if check:
             self.check_fix()
@@ -325,6 +325,7 @@ class MGHHeader(LabeledWrapStruct):
     def _set_affine_default(self):
         ''' If  goodRASFlag is 0, return the default delta, Mdc and Pxyz_c
         '''
+        self._structarr['goodRASFlag'] = 1
         self._structarr['delta'][:] = np.array([1, 1, 1])
         self._structarr['Mdc'][0][:] = np.array([-1, 0, 0])  # x_ras
         self._structarr['Mdc'][1][:] = np.array([0, 0, -1])  # y_ras
