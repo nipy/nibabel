@@ -499,7 +499,7 @@ class MGHImage(SpatialImage):
         with file_map['image'].get_prepare_fileobj('wb') as mghf:
             hdr.writehdr_to(mghf)
             self._write_data(mghf, data, hdr)
-            self._write_footer(mghf, hdr)
+            hdr.writeftr_to(mghf)
         self._header = hdr
         self.file_map = file_map
 
@@ -523,18 +523,6 @@ class MGHImage(SpatialImage):
         offset = header.get_data_offset()
         out_dtype = header.get_data_dtype()
         array_to_file(data, mghfile, out_dtype, offset)
-
-    def _write_footer(self, mghfile, header):
-        ''' Utility routine to write header. This write the footer data
-        which occurs after the data chunk in mgh file
-
-        Parameters
-        ----------
-        mghfile : file-like
-           file-like object implementing ``write``, open for writing
-        header : header object
-        '''
-        header.writeftr_to(mghfile)
 
     def _affine2header(self):
         """ Unconditionally set affine into the header """
