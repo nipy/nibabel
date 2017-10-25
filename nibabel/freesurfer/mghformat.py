@@ -15,7 +15,7 @@ import numpy as np
 
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
-from ..fileholders import FileHolder, copy_file_map
+from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
@@ -437,9 +437,6 @@ class MGHImage(SpatialImage):
         data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap,
                                      keep_file_open=keep_file_open)
         img = klass(data, affine, header, file_map=file_map)
-        img._load_cache = {'header': hdr_copy,
-                           'affine': affine.copy(),
-                           'file_map': copy_file_map(file_map)}
         return img
 
     @classmethod
