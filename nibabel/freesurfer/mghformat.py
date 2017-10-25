@@ -35,7 +35,7 @@ header_dtd = [
     ('x_ras', '>f4', (3, 1)),
     ('y_ras', '>f4', (3, 1)),
     ('z_ras', '>f4', (3, 1)),
-    ('Pxyz_c', '>f4', (3,))
+    ('c_ras', '>f4', (3, 1))
 ]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
@@ -150,16 +150,16 @@ class MGHHeader(LabeledWrapStruct):
         ''' Get the affine transform from the header information.
         MGH format doesn't store the transform directly. Instead it's gleaned
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
-        Pxyz_c ) and the dimensions.
+        c_ras ) and the dimensions.
         '''
         hdr = self._structarr
         d = np.diag(hdr['delta'])
         pcrs_c = hdr['dims'][:3] / 2.0
-        Mdc = np.vstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras']))
-        pxyz_0 = hdr['Pxyz_c'] - np.dot(Mdc, np.dot(d, pcrs_c))
+        Mdc = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras']))
+        pxyz_0 = hdr['c_ras'] - Mdc.dot(d).dot(pcrs_c.reshape(3, 1))
         M = np.eye(4, 4)
-        M[0:3, 0:3] = np.dot(Mdc, d)
-        M[0:3, 3] = pxyz_0.T
+        M[:3, :3] = np.dot(Mdc, d)
+        M[:3, [3]] = pxyz_0
         return M
 
     # For compatibility with nifti (multiple affines)
@@ -320,19 +320,19 @@ class MGHHeader(LabeledWrapStruct):
         hdr_data['x_ras'] = np.array([[-1], [0], [0]])
         hdr_data['y_ras'] = np.array([[0], [0], [1]])
         hdr_data['z_ras'] = np.array([[0], [-1], [0]])
-        hdr_data['Pxyz_c'] = np.array([0, 0, 0])  # c_ras
+        hdr_data['c_ras'] = 0
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
 
     def _set_affine_default(self):
-        ''' If  goodRASFlag is 0, return the default delta, Mdc and Pxyz_c
+        ''' If  goodRASFlag is 0, return the default delta, Mdc and c_ras
         '''
         self._structarr['goodRASFlag'] = 1
         self._structarr['delta'][:] = np.array([1, 1, 1])
         self._structarr['x_ras'] = np.array([[-1], [0], [0]])
         self._structarr['y_ras'] = np.array([[0], [0], [1]])
         self._structarr['z_ras'] = np.array([[0], [-1], [0]])
-        self._structarr['Pxyz_c'][:] = np.array([0, 0, 0])   # c_ras
+        self._structarr['c_ras'] = 0
 
     def writehdr_to(self, fileobj):
         ''' Write header to fileobj
@@ -534,13 +534,13 @@ class MGHImage(SpatialImage):
         Mdc = MdcD / np.tile(delta, (3, 1))
         Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
         Pcrs_c[:3] = np.array(shape[:3]) / 2.0
-        Pxyz_c = np.dot(self._affine, Pcrs_c)
+        c_ras = self._affine.dot(Pcrs_c.reshape(4, 1))
 
         hdr['delta'][:] = delta
         hdr['x_ras'] = Mdc[:, [0]]
         hdr['y_ras'] = Mdc[:, [1]]
         hdr['z_ras'] = Mdc[:, [2]]
-        hdr['Pxyz_c'][:] = Pxyz_c[:3]
+        hdr['c_ras'] = c_ras[:3]
 
 
 load = MGHImage.load
