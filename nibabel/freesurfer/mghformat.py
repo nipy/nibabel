@@ -31,7 +31,7 @@ header_dtd = [
     ('dims', '>i4', (4,)),
     ('type', '>i4'),
     ('dof', '>i4'),
-    ('goodRASFlag', '>i2'),
+    ('ras_good', '>i2'),
     ('delta', '>f4', (3,)),
     ('x_ras', '>f4', (3, 1)),
     ('y_ras', '>f4', (3, 1)),
@@ -107,7 +107,7 @@ class MGHHeader(LabeledWrapStruct):
         super(MGHHeader, self).__init__(binaryblock=binaryblock,
                                         endianness=endianness,
                                         check=False)
-        if int(self._structarr['goodRASFlag']) < 1:
+        if not self._structarr['ras_good']:
             self._set_affine_default()
         if check:
             self.check_fix()
@@ -315,7 +315,7 @@ class MGHHeader(LabeledWrapStruct):
         hdr_data['version'] = 1
         hdr_data['dims'][:] = np.array([1, 1, 1, 1])
         hdr_data['type'] = 3
-        hdr_data['goodRASFlag'] = 1
+        hdr_data['ras_good'] = 1
         hdr_data['delta'][:] = np.array([1, 1, 1])
         hdr_data['x_ras'] = np.array([[-1], [0], [0]])
         hdr_data['y_ras'] = np.array([[0], [0], [1]])
@@ -325,9 +325,9 @@ class MGHHeader(LabeledWrapStruct):
         return hdr_data
 
     def _set_affine_default(self):
-        ''' If  goodRASFlag is 0, return the default delta, Mdc and c_ras
+        ''' If ras_good flag is 0, set the default affine
         '''
-        self._structarr['goodRASFlag'] = 1
+        self._structarr['ras_good'] = 1
         self._structarr['delta'][:] = np.array([1, 1, 1])
         self._structarr['x_ras'] = np.array([[-1], [0], [0]])
         self._structarr['y_ras'] = np.array([[0], [0], [1]])
