@@ -314,12 +314,12 @@ class MGHHeader(object):
     def get_data_shape(self):
         ''' Get shape of data
         '''
-        dims = self._header_data['dims'][:]
+        shape = tuple(self._header_data['dims'])
         # If last dimension (nframes) is 1, remove it because
         # we want to maintain 3D and it's redundant
-        if int(dims[-1]) == 1:
-            dims = dims[:-1]
-        return tuple(int(d) for d in dims)
+        if shape[3] == 1:
+            shape = shape[:3]
+        return shape
 
     def set_data_shape(self, shape):
         ''' Set shape of data
@@ -329,15 +329,10 @@ class MGHHeader(object):
         shape : sequence
            sequence of integers specifying data array shape
         '''
-        dims = self._header_data['dims']
-        # If len(dims) is 3, add a dimension. MGH header always
-        # needs 4 dimensions.
-        if len(shape) == 3:
-            shape = list(shape)
-            shape.append(1)
-            shape = tuple(shape)
-        dims[:] = shape
-        self._header_data['delta'][:] = 1.0
+        shape = tuple(shape)
+        if len(shape) > 4:
+            raise ValueError("Shape may be at most 4 dimensional")
+        self._header_data['dims'] = shape + (1,) * (4 - len(shape))
 
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
